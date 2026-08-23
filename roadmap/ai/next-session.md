@@ -77,6 +77,13 @@ moving unit rather than a terrain anchor and drops immediately back to normal
 unit-body interception supplies mechanical moving cover. Squad dumps expose
 the full unversioned screen state. See `complete/23-mech-screened-advance.md`.
 
+Story 28 shipped (2026-08-22, `eaef38b2`): the ASSAULT Hound's
+`BreachAndAssault` route is now reciprocal with that infantry screen. A nearby
+combat-infantry unit or live friendly mech releases the advance, but the
+destination stays within a six-cell lead of the nearest support anchor.
+Without one, the Hound clears its route and fights from its current position.
+See `28-assault-mech-cohesion.md`.
+
 Story 24 / Story I shipped (2026-08-19, `43c619ff`, `8888e6f8`): generic
 infantry pursuit now rejects targets that require movement into a two-plus
 hostile cluster, switches to a visible isolated alternative when possible,
@@ -105,9 +112,10 @@ blocks at 2 Hz. Four debug heatmaps expose the result without changing orders.
 
 ## Immediate next
 
-1. **Tactical playtest pass** — exercise Stories 19–27 together: objective
+1. **Tactical playtest pass** — exercise Stories 19–28 together: objective
    press/commit, bounding, last stands, difficulty-scaled assault mechs,
-   mech-screen formations, and clustered-runner release into covered
+   reciprocal Hound/infantry cohesion, mech-screen formations, and
+   clustered-runner release into covered
    overwatch. Confirm magenta direct ghosts, amber audio contacts, and yellow
    noise bearings remain distinct; heard gunfire should pull squads through
    walls without revealing an indirect launcher. Inspect all four commander
@@ -172,5 +180,7 @@ blocks at 2 Hz. Four debug heatmaps expose the result without changing orders.
 - `complete/27-commander-influence-substrate.md` — shipped independent
   per-faction belief aggregation, topology-aware two-channel tactical fields,
   immutable snapshots, and four read-only debug heatmaps (`4e7089d0`)
+- `28-assault-mech-cohesion.md` — shipped reciprocal Hound support
+  acquisition, hold-and-fire gate, and six-cell assault leash (`eaef38b2`)
 - `complete/` — sealed shipped work (Stage 1 tasks 01–09, Stage 2
   foundation 11, mech Stage 1 14)

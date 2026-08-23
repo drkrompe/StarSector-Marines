@@ -14,12 +14,16 @@ import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 
 /**
  * Assault mech point action. The assault member advances into an assigned
  * zone, then closes to a short standoff from its contact while keeping every
  * installed weapon live. With no assignment it advances on the squad's known
  * contact, which gives the same behavior to attacker and defender squads.
+ * The point advance is formation-leashed to nearby combat infantry or another
+ * live mech: an unsupported assault mech holds and fires instead of making a
+ * solo close-range charge.
  *
  * <p>Mixed-role mech squads keep their existing doctrine inside the shared
  * step: LR Support delegates to overwatch and Armored Support delegates to
@@ -30,7 +34,8 @@ public final class BreachAndAssault implements Action {
     public static final BreachAndAssault INSTANCE = new BreachAndAssault();
 
     static final float CONTACT_STANDOFF = 3f;
-    private static final int DESTINATION_REPICK_DISTANCE = 2;
+    static final float SUPPORT_ACQUIRE_DISTANCE = 12f;
+    static final float MAX_SUPPORT_LEAD = 6f;
     private static final WorldState EFFECTS = WorldState.EMPTY
             .with(Predicate.ENEMY_DAMAGED, true);
 
@@ -60,10 +65,104 @@ public final class BreachAndAssault implements Action {
         sim.world().setTargetId(member, target);
         fireWhileAdvancing(member, loadout, target, sim);
 
+        long support = nearestSupport(member, squad, sim);
+        if (support == 0L) {
+            hold(member, sim);
+            return ActionStatus.RUNNING;
+        }
         int[] destination = destination(member, squad, target, sim);
-        if (destination == null) return ActionStatus.RUNNING;
-        moveToward(member, destination[0], destination[1], sim);
+        if (destination == null) {
+            hold(member, sim);
+            return ActionStatus.RUNNING;
+        }
+        int[] cohesiveDestination = clampToSupport(destination[0], destination[1],
+                support, sim);
+        if (cohesiveDestination == null) {
+            hold(member, sim);
+            return ActionStatus.RUNNING;
+        }
+        moveToward(member, cohesiveDestination[0], cohesiveDestination[1], sim);
         return ActionStatus.RUNNING;
+    }
+
+    static long nearestSupport(long member, Squad squad, BattleView sim) {
+        float memberX = sim.world().x(member);
+        float memberY = sim.world().y(member);
+        float maxDistanceSq = SUPPORT_ACQUIRE_DISTANCE * SUPPORT_ACQUIRE_DISTANCE;
+        long best = 0L;
+        float bestDistanceSq = Float.MAX_VALUE;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            long candidate = sim.liveUnitAt(i);
+            if (candidate == member
+                    || sim.identity().faction(candidate) != squad.faction) continue;
+            UnitType type = sim.identity().type(candidate);
+            if (!type.isMech() && !isCombatInfantry(type)) continue;
+            Squad candidateSquad = sim.squadOf(candidate);
+            if (candidateSquad == null || candidateSquad.aliveMembers == 0
+                    || type.isMech() && candidateSquad.rescuePickupMech) continue;
+
+            float dx = sim.world().x(candidate) - memberX;
+            float dy = sim.world().y(candidate) - memberY;
+            float distanceSq = dx * dx + dy * dy;
+            if (distanceSq > maxDistanceSq) continue;
+            if (distanceSq < bestDistanceSq
+                    || distanceSq == bestDistanceSq && candidate < best) {
+                best = candidate;
+                bestDistanceSq = distanceSq;
+            }
+        }
+        return best;
+    }
+
+    private static boolean isCombatInfantry(UnitType type) {
+        return type == UnitType.MARINE || type == UnitType.MARINE_BLUE
+                || type == UnitType.MARINE_RED || type == UnitType.MILITIA;
+    }
+
+    private static int[] clampToSupport(int destinationX, int destinationY,
+                                        long support, BattleView sim) {
+        float supportX = sim.world().x(support);
+        float supportY = sim.world().y(support);
+        float dx = destinationX + 0.5f - supportX;
+        float dy = destinationY + 0.5f - supportY;
+        float distance = (float) Math.sqrt(dx * dx + dy * dy);
+        if (distance <= MAX_SUPPORT_LEAD) {
+            return new int[]{destinationX, destinationY};
+        }
+
+        float idealX = supportX + dx / distance * MAX_SUPPORT_LEAD;
+        float idealY = supportY + dy / distance * MAX_SUPPORT_LEAD;
+        NavigationGrid grid = sim.getGrid();
+        int centerX = (int) Math.floor(idealX);
+        int centerY = (int) Math.floor(idealY);
+        int[] best = null;
+        float bestScore = Float.MAX_VALUE;
+        for (int radius = 0; radius <= 3; radius++) {
+            for (int oy = -radius; oy <= radius; oy++) {
+                for (int ox = -radius; ox <= radius; ox++) {
+                    if (Math.max(Math.abs(ox), Math.abs(oy)) != radius) continue;
+                    int x = centerX + ox;
+                    int y = centerY + oy;
+                    if (!grid.inBounds(x, y) || !grid.isWalkable(x, y)) continue;
+                    float leadX = x + 0.5f - supportX;
+                    float leadY = y + 0.5f - supportY;
+                    if (leadX * leadX + leadY * leadY
+                            > MAX_SUPPORT_LEAD * MAX_SUPPORT_LEAD + 0.01f) continue;
+                    float idealDx = x + 0.5f - idealX;
+                    float idealDy = y + 0.5f - idealY;
+                    float score = idealDx * idealDx + idealDy * idealDy;
+                    if (score < bestScore) {
+                        best = new int[]{x, y};
+                        bestScore = score;
+                    }
+                }
+            }
+        }
+        return best;
+    }
+
+    private static void hold(long member, BattleControl sim) {
+        if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
     }
 
     private static void fireWhileAdvancing(long member, MechLoadoutComponent loadout,
@@ -174,8 +273,11 @@ public final class BreachAndAssault implements Action {
         }
         int[] path = sim.world().path(member);
         boolean destinationShifted = Paths.isEmpty(path)
-                || Math.abs(Paths.destX(path) - x) > DESTINATION_REPICK_DISTANCE
-                || Math.abs(Paths.destY(path) - y) > DESTINATION_REPICK_DISTANCE;
+                || Paths.destX(path) != x || Paths.destY(path) != y;
+        if (destinationShifted && !Paths.isEmpty(path)) {
+            sim.clearPath(member);
+            path = sim.world().path(member);
+        }
         if (sim.movement().mayRepath(member) && destinationShifted) {
             sim.setPath(member, GridPathfinder.findPath(
                     sim.getGrid(), sim.world().cellX(member), sim.world().cellY(member),
