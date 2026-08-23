@@ -130,6 +130,12 @@ is not linked to a Conquest guard squad. The score table is provisional;
 equipment, air, command powers, terrain, and telemetry-derived values remain
 future inputs.
 
+First Contract also has one categorical support floor: the enemy brings no
+fighter wings, regardless of faction or the procedural air-support roll.
+Marine-side employer or committed fighter cover remains valid, so allied air
+can tip a difficult opening battle without the procedural defender receiving
+the same high-impact support. Enemy fighter support begins at Established.
+
 ## Scope boundary
 
 This is a **model** change, not a content one. It does not retune any
