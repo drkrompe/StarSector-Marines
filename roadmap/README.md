@@ -96,11 +96,12 @@ universe over time, not retrofitted into intel slots.
   the next slice. Shared submod discovery/merge remains deferred until a real
   provider exists. `moddable-weapons-nouns.md` carries the standing model; its
   adjacent `stories.md` board tracks the five live stories.
-- **Surface relief** *(active)* — S1 derivation and the manually accepted S2
-  material-aware parallax/water pass are shipped. S3 dynamic ground bump
-  lighting is code-complete (`c92d5b9a`) and awaits an in-game smoke/tuning
-  pass; its fixed eight-light budget consumes muzzle, impact, heavy-blast, and
-  burning-wreck events. See [`surface-relief/`](surface-relief/overview.md).
+- **Surface relief** *(S1–S2 shipped; S3 acceptance ready)* — deterministic
+  build-time height/normal derivation feeds a fail-soft screen-space ground
+  composite with semantic structure height, micro relief, and land-safe water
+  motion. Bounded event lighting is implemented and awaits in-game acceptance;
+  unit lighting remains deferred. `surface-relief-nouns.md` carries the standing
+  model; its adjacent `stories.md` board tracks the two live stories.
 - **Battle radio** *(expanded event slice shipped; acceptance active)* — 214 standard-pilot clips
   now cover positional contact, fallback, friendly-fire, enemy-mech sighting,
   enemy-down, and sparse sustained-combat calls. Friendly warnings follow
@@ -110,32 +111,15 @@ universe over time, not retrofitted into intel slots.
   determinism. An in-game mix/content feel pass remains queued. See
   `battle-radio-nouns.md`; its adjacent `stories.md` board tracks the queued
   mix pass and the proposed credits cleanup.
-- **Mech roster** *(active)* — the modular arm/shoulder component substrate and
-  Bulwark/Hound/Sirocco debug comparison ship in `2d3f044b`, including SRM/LRM
-  -5 and -15 rack classes and profile-aware physical geometry. Hound and
-  Sirocco now have role-specific swapped/flipped hull silhouettes: Hound has a
-  nose chaingun and single SRM, while Sirocco has paired LRMs and a new heavy
-  anti-armor cannon. That cannon and the Heavy Mortar turret now share a
-  gun-launched HE pass (`39aefccb`): visible ballistic shells, timed splash,
-  cannon muzzle/impact lighting and particles, vanilla explosion/ring art,
-  structural damage, decals, and positional audio. Bulwark's racks are exposed
-  above the hull and its chainguns are narrower. Production defender rosters
-  propose deterministic mech groups by risk (`1ef74f23`): LOW has none, MEDIUM
-  proposes one Bulwark, and HIGH proposes budget-preserving mixed
-  Bulwark/Hound/Sirocco groups. A battle-start force score now removes chassis
-  and static turret candidates the combined player/allied attack cannot support,
-  keeping small Raids playable without making heavy defenses categorically
-  late-game. Fighter sorties now use that same budget: allied air strengthens
-  the attack, ordinary strafing has a fixed per-sortie cost, and AoE missile
-  profiles carry a premium. Hound's ASSAULT
-  doctrine works for either side;
-  it now requires infantry or a different chassis rather than letting Hounds
-  screen one another. Coherently moving mech squads now take role-aware
-  six-cell open-ground slots, compress toward a 2.5-cell floor with terrain,
-  and reform after clearing it; infantry squads use the same generic engine at
-  fireteam scale (`4c0864d9`). A scout follows only when recon behavior
-  can make it meaningful. See
-  [`mechs/`](mechs/overview.md). Objective-advancing infantry now consumes the
+- **Mechs** *(specialist family implemented; S1 acceptance ready)* — persistent
+  variants own chassis and loadout while roles independently own doctrine.
+  Bulwark anchors all bands, Hound assaults only with a real screen, and
+  Sirocco works behind one; their geometry, silhouettes, installed mounts, and
+  encounter costs agree. Production admits deterministic mixed groups through
+  the shared force budget, while DEBUG family delivery remains non-progression
+  playtest scaffolding. `mechs-nouns.md` carries the standing model; its
+  adjacent `stories.md` board tracks the remaining acceptance pass.
+  Objective-advancing infantry now consumes the
   ASSAULT point unit for a faction-neutral mech-screened advance (`0daf058e`):
   it follows behind the live chassis, fans to fire on contact, and receives
   real protection from physical direct-fire interception. Generic infantry
@@ -202,8 +186,13 @@ universe over time, not retrofitted into intel slots.
   campaign billets survive the deployment seam, generated squads receive the
   same stable four-person partition, infantry advances in team-local shapes
   across a shallow squad arc, one team bounds while its siblings cover, and
-  fix-and-flank keeps a team on axis while another maneuvers. The settled
-  decisions: one officer command is the company-view grouping, so the rank ladder changes
+  fix-and-flank keeps a team on axis while another maneuvers. Team spacing and
+  squad-arc anchors now release before doorways and narrow runs, allowing a
+  natural pathing queue and automatic reformation beyond the constraint;
+  unreachable or structurally indirect flank positions fall back to ordinary
+  engagement. The settled
+  decisions: one officer command is the company-view grouping, so the rank
+  ladder changes
   (officers command, NCOs lead squads); **a squad becomes twelve marines in
   three four-marine fire teams**, because progression S1's shipped 9x
   lethality scale makes a six-marine squad combat-ineffective within
@@ -377,7 +366,7 @@ universe over time, not retrofitted into intel slots.
    new 24–36-cell firing band and uses both the heavy-cannon opportunity band
    and longer LRM band. Tune chassis identities plus those formation rules.
    Budgeted production defender composition is already approved. See
-   [`mechs/next-session.md`](mechs/next-session.md).
+   `s1-specialist-striders.md`.
 7. **Manual verification queue (deferred this session)** — the loot loop's
    visual/cargo/core shipping check, squad/debrief UI feel, and swarm wave cadence
    plus post-rebalance combat feel remain pending. See

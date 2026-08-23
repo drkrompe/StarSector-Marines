@@ -2,7 +2,7 @@
 
 Status: ACTIVE — 11 open stories
 Written: 2026-08-23
-Updated: 2026-08-23 — fire-team templates are non-card equipment plans; atomic squad arrangements ship.
+Updated: 2026-08-23 — hardened maneuver constraints; non-card templates and atomic squad arrangements ship.
 
 ## Purpose
 
@@ -184,15 +184,23 @@ shape; coherently moving sibling teams then occupy laterally separated anchors
 in a shallow squad arc. A team moving on a different path is formed around its
 own heading and is not pulled back toward the squad-wide arc. This replaces the
 old whole-squad ring dispersion for infantry while leaving mech formations
-independent.
+independent. Navigation has authority in contained terrain: each team reads its
+near path clearance, contracts both its local interval and squad-arc anchor
+before a doorway or narrow run, queues through under ordinary pathing and
+collision separation, then reforms automatically after clearing the constraint.
 
 Bounding overwatch rotates one intact team forward while every sibling team
 with a firing solution covers it. With three healthy teams this is one moving
 and two overwatching; degraded two-team squads use one and one. Fix-and-flank
 likewise leaves at least one team on the contact axis while a sibling maneuvers
-to the flank waypoint. A team with fewer than two survivors is dissolved for
-tactical purposes and its survivors fold deterministically into the nearest
-viable sibling; the underlying campaign billet identity remains unchanged.
+to the flank waypoint. Flank positions must be reachable without an extreme
+structural detour; if the room or portal layout cannot support the maneuver,
+the flank step yields to ordinary engagement instead of orbiting the building.
+Bounding retains the same all-or-nothing fallback when the contained space
+cannot supply distinct reachable firing positions. A team with fewer than two
+survivors is dissolved for tactical purposes and its survivors fold
+deterministically into the nearest viable sibling; the underlying campaign
+billet identity remains unchanged.
 
 ## Lift and arrival
 

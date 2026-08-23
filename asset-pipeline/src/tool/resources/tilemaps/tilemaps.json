@@ -2,7 +2,7 @@
 // sheets listed under "sheets" get baked -- this manifest doubles as the
 // bake's inclusion list. See TileMapRecipeManifest for the schema.
 //
-// Ground/terrain sheets only (roadmap/surface-relief/stories/s1-derivation-pipeline.md).
+// Ground/terrain sheets only (surface-relief-nouns.md).
 // urban-tileset.tileset.json (indoor floor/wall, walls mixed into the same
 // sheet as floor) is intentionally NOT listed: baking it would pool wall and
 // floor luminance into one shared percentile window, which isn't a "ground"

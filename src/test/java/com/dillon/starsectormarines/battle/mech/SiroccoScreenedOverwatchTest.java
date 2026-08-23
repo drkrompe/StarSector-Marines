@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -94,6 +95,63 @@ class SiroccoScreenedOverwatchTest {
         assertEquals(0f, f.loadout.mount(MechMountSlot.RIGHT_SHOULDER).cooldown);
     }
 
+    @Test
+    void emptyLrmRacksInvalidateLongPerchAndCloseIntoHeavyCannonBand() {
+        Fixture f = fixture(42, 30);
+        f.loadout.overwatchCellX = 42;
+        f.loadout.overwatchCellY = 30;
+        f.loadout.overwatchAxisX = THREAT_X;
+        f.loadout.overwatchAxisY = THREAT_Y;
+        f.loadout.overwatchLongRangeBand = true;
+        emptyLrmRacks(f.loadout);
+
+        OverwatchKillZone.INSTANCE.execute(f.sirocco, f.squad, f.sim);
+
+        assertFalse(f.loadout.overwatchLongRangeBand,
+                "spent LRMs must invalidate the cached long-range posture");
+        assertInHeavyCannonFallbackBand(f.loadout.overwatchCellX,
+                f.loadout.overwatchCellY);
+    }
+
+    @Test
+    void resuppliedLrmRackRestoresLongRangePosture() {
+        Fixture f = fixture(45, 30);
+        emptyLrmRacks(f.loadout);
+        f.loadout.overwatchCellX = 45;
+        f.loadout.overwatchCellY = 30;
+        f.loadout.overwatchAxisX = THREAT_X;
+        f.loadout.overwatchAxisY = THREAT_Y;
+        f.loadout.overwatchLongRangeBand = false;
+        f.loadout.mount(MechMountSlot.LEFT_SHOULDER).ammo = 1;
+
+        OverwatchKillZone.INSTANCE.execute(f.sirocco, f.squad, f.sim);
+
+        assertTrue(f.loadout.overwatchLongRangeBand,
+                "a supplied LRM rack should restore normal overwatch doctrine");
+        assertInOverwatchBand(new OverwatchKillZone.OverwatchPosition(
+                f.loadout.overwatchCellX, f.loadout.overwatchCellY,
+                f.loadout.overwatchScreenId));
+    }
+
+    @Test
+    void finalLrmBurstFinishesBeforeDirectFireFallback() {
+        Fixture f = fixture(42, 30);
+        emptyLrmRacks(f.loadout);
+        f.loadout.mount(MechMountSlot.LEFT_SHOULDER).burstRemaining = 1;
+        f.loadout.overwatchCellX = 42;
+        f.loadout.overwatchCellY = 30;
+        f.loadout.overwatchAxisX = THREAT_X;
+        f.loadout.overwatchAxisY = THREAT_Y;
+        f.loadout.overwatchLongRangeBand = true;
+
+        OverwatchKillZone.INSTANCE.execute(f.sirocco, f.squad, f.sim);
+
+        assertTrue(f.loadout.overwatchLongRangeBand,
+                "the last in-progress salvo should finish before the mech closes");
+        assertEquals(42, f.loadout.overwatchCellX);
+        assertEquals(30, f.loadout.overwatchCellY);
+    }
+
     private static Fixture fixture(int siroccoX, int siroccoY) {
         BattleSimulation sim = openSimulation();
         int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.HEAVY_MECH);
@@ -155,12 +213,27 @@ class SiroccoScreenedOverwatchTest {
         return new BattleSimulation(grid, new CellTopology(width, height));
     }
 
+    private static void emptyLrmRacks(MechLoadoutComponent loadout) {
+        loadout.mount(MechMountSlot.LEFT_SHOULDER).ammo = 0;
+        loadout.mount(MechMountSlot.RIGHT_SHOULDER).ammo = 0;
+    }
+
     private static void assertInOverwatchBand(OverwatchKillZone.OverwatchPosition position) {
         float dx = position.x() - THREAT_X;
         float dy = position.y() - THREAT_Y;
         float distance = (float) Math.sqrt(dx * dx + dy * dy);
         assertTrue(distance >= OverwatchKillZone.OVERWATCH_MIN_DIST);
         assertTrue(distance <= OverwatchKillZone.OVERWATCH_MAX_DIST);
+    }
+
+    private static void assertInHeavyCannonFallbackBand(int cellX, int cellY) {
+        float dx = cellX - THREAT_X;
+        float dy = cellY - THREAT_Y;
+        float distance = (float) Math.sqrt(dx * dx + dy * dy);
+        assertTrue(distance >= MechWeapon.HEAVY_CANNON.range
+                - OverwatchKillZone.DIRECT_FALLBACK_BAND_DEPTH);
+        assertTrue(distance <= MechWeapon.HEAVY_CANNON.range,
+                "fallback perch must let the unlimited heavy cannon fire");
     }
 
     private record Fixture(BattleSimulation sim, Squad squad, long sirocco,

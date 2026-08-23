@@ -84,7 +84,7 @@ import static org.lwjgl.opengl.GL30.glGenFramebuffers;
  * {@code RenderLayer#GROUND} drain into color, material-height, and normal FBOs instead of the
  * backbuffer, then composites them through a fullscreen offset-limited
  * parallax + event-light bump shader before the rest of the frame draws on
- * top. See {@code roadmap/surface-relief/overview.md}.
+ * top. See {@code surface-relief-nouns.md}.
  *
  * <p>The FBO set is sized to the battle grid VIEWPORT (framebuffer px), not the
  * whole screen — {@link BattleCamera}'s {@code vpX/vpY/vpW/vpH} are already
@@ -107,7 +107,7 @@ public final class GroundParallaxPipeline {
 
     private static final Logger LOG = Global.getLogger(GroundParallaxPipeline.class);
 
-    // ---- shader tuning (playtest-tunable; see overview.md "Risks") -----------
+    // ---- shader tuning (playtest-tunable; see surface-relief-nouns.md) -------
 
     /** UV-space structural offset per unit of centered macro height and eye direction. */
     public static final float MIN_STRENGTH = 0f;
