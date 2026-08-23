@@ -69,6 +69,9 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
     private static final String BTN_PROMOTE        = "promote:";
     private static final String BTN_DEMOTE         = "demote:";
     private static final String BTN_FORCE_TICK     = "force-tick";
+    private static final String BTN_SKIP_1         = "skip-1-day";
+    private static final String BTN_SKIP_7         = "skip-7-days";
+    private static final String BTN_SKIP_30        = "skip-30-days";
     private static final String BTN_SPAWN_ESCORT   = "spawn-local-escort";
     private static final String BTN_SPAWN_GARRISON = "spawn-local-garrison";
     private static final String BTN_SPAWN_CADRE    = "spawn-local-cadre";
@@ -189,7 +192,11 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         ui.addButton(filterLabel, BTN_TOGGLE_FILTER, 320f, 24f, 8f);
         String bypassLabel = "Bypass house gating: " + (s.debugBypassHouseGating ? "ON" : "OFF");
         ui.addButton(bypassLabel, BTN_TOGGLE_BYPASS, 320f, 24f, 8f);
-        ui.addButton("Force daily tick (run all systems)", BTN_FORCE_TICK, 320f, 24f, 8f);
+        ui.addButton("Force daily tick (run all systems, same day)", BTN_FORCE_TICK,
+                320f, 24f, 8f);
+        ui.addButton("Skip 1 day", BTN_SKIP_1, 320f, 24f, 8f);
+        ui.addButton("Skip 7 days", BTN_SKIP_7, 320f, 24f, 8f);
+        ui.addButton("Skip 30 days", BTN_SKIP_30, 320f, 24f, 8f);
         ui.addButton("Spawn local Escort offers", BTN_SPAWN_ESCORT, 320f, 24f, 8f);
         ui.addButton("Spawn local Garrison offers", BTN_SPAWN_GARRISON, 320f, 24f, 8f);
         ui.addButton("Spawn local Cadre offers", BTN_SPAWN_CADRE, 320f, 24f, 8f);
@@ -463,6 +470,12 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
             HouseSeeder.seed(s);
         } else if (BTN_FORCE_TICK.equals(buttonId)) {
             forceTick(script, s);
+        } else if (BTN_SKIP_1.equals(buttonId)) {
+            skipDays(script, s, 1);
+        } else if (BTN_SKIP_7.equals(buttonId)) {
+            skipDays(script, s, 7);
+        } else if (BTN_SKIP_30.equals(buttonId)) {
+            skipDays(script, s, 30);
         } else if (BTN_SPAWN_ESCORT.equals(buttonId)) {
             spawnOffersForLocalPatrons(s, ContractType.ESCORT);
         } else if (BTN_SPAWN_GARRISON.equals(buttonId)) {
@@ -516,6 +529,28 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
         }
 
         ui.updateUIForItem(this);
+    }
+
+    /**
+     * Advances the campaign tier's day counter and runs a full system pass for each day
+     * crossed — the same thing a real day boundary does, one day at a time, so deadlines,
+     * retainer cadence, incident timers, and offer expiry all fire in order instead of
+     * being skipped over in one jump.
+     *
+     * <p>Only this mod's clock moves. Vanilla's economy is untouched, so a monthly report
+     * (and therefore upkeep, debt, and a computable runway) still needs a real in-game
+     * month to roll over — see {@link CampaignClock#skipDays}.
+     */
+    @DebugOnly
+    private static void skipDays(CampaignStateScript script, CampaignState s, int days) {
+        List<CampaignSystem> list = script.systems();
+        for (int skipped = 0; skipped < days; skipped++) {
+            int day = CampaignClock.skipDays(s, 1);
+            for (int i = 0; i < list.size(); i++) {
+                list.get(i).tick(s, day);
+            }
+            s.lastTickDay = day;
+        }
     }
 
     /** Walks each registered system once at the current sector day. Bypasses the
