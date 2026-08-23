@@ -106,7 +106,7 @@ public final class CampaignMarineDeployment {
                     soldier.primary(), soldier.primaryGrade(), soldier.profile(),
                     secondary, secondary != null ? secondary.startingAmmo() : 0,
                     soldier.id(), armorFamily(soldier.armor()),
-                    soldier.armor().bonusHp, soldier.armor().damageReduction,
+                    soldier.armor().armorPool, soldier.armor().armorRating,
                     soldier.armor().moveSpeedMult, soldier.armor().incomingAccuracyMult,
                     tag(owners.get(i), soldier, strengths)));
         }
@@ -164,7 +164,7 @@ public final class CampaignMarineDeployment {
                 allocation.primary, allocation.equipmentGrade, allocation.soldierProfile,
                 allocation.secondary, allocation.secondaryAmmo,
                 allocation.campaignSoldierId, allocation.armorFamily,
-                allocation.armorBonusHp, allocation.armorDamageReduction,
+                allocation.armorPool, allocation.armorRating,
                 allocation.armorMoveSpeedMult, allocation.armorIncomingAccuracyMult,
                 allocation.campaignSquad);
     }

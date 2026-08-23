@@ -68,6 +68,10 @@ public final class EntitySpec {
     public float moveSpeed;
     public float hp;
     public float maxHp;
+    /** Optional live armor seed; {@code maxArmor == 0} means the capability is absent. */
+    public float currentArmor;
+    public float maxArmor;
+    public float armorRating;
     public float attackDamage;
     public float attackRange;
     public float accuracy;
@@ -116,6 +120,27 @@ public final class EntitySpec {
     public EntitySpec moveSpeed(float v) { this.moveSpeed = v; return this; }
     public EntitySpec hp(float v) { this.hp = v; return this; }
     public EntitySpec maxHp(float v) { this.maxHp = v; return this; }
+    /** Spawn at full armor with the supplied pool and resistance rating. */
+    public EntitySpec armor(float maxArmor, float armorRating) {
+        return armor(maxArmor, maxArmor, armorRating);
+    }
+
+    /** Seed an authored armor capability, including a partially depleted pool. */
+    public EntitySpec armor(float currentArmor, float maxArmor, float armorRating) {
+        if (!Float.isFinite(maxArmor) || maxArmor <= 0f) {
+            throw new IllegalArgumentException("Maximum armor must be finite and positive");
+        }
+        if (!Float.isFinite(currentArmor) || currentArmor < 0f || currentArmor > maxArmor) {
+            throw new IllegalArgumentException("Current armor must be finite and within [0, maxArmor]");
+        }
+        if (!Float.isFinite(armorRating) || armorRating <= 0f) {
+            throw new IllegalArgumentException("Armor rating must be finite and positive");
+        }
+        this.currentArmor = currentArmor;
+        this.maxArmor = maxArmor;
+        this.armorRating = armorRating;
+        return this;
+    }
     public EntitySpec attackDamage(float v) { this.attackDamage = v; return this; }
     public EntitySpec attackRange(float v) { this.attackRange = v; return this; }
     public EntitySpec accuracy(float v) { this.accuracy = v; return this; }
@@ -123,14 +148,22 @@ public final class EntitySpec {
     public EntitySpec airLosRadius(float v) { this.airLosRadius = v; return this; }
     public EntitySpec attackCooldown(float v) { this.attackCooldown = v; return this; }
 
-    /** Applies one armor package to health, mobility and incoming-fire defenses. */
-    public EntitySpec armor(float bonusHp, float damageReduction, float moveSpeedMult,
+    /**
+     * Applies one issued armor package while keeping its movement and incoming-hit
+     * tradeoffs independent from durability. A zero pool leaves the ARMOR
+     * capability absent but still applies those profile modifiers.
+     */
+    public EntitySpec armor(float maxArmor, float armorRating, float moveSpeedMult,
                             float incomingAccuracyMult) {
-        float armoredHp = Math.max(1f, this.maxHp + bonusHp);
-        this.hp = armoredHp;
-        this.maxHp = armoredHp;
+        if (!Float.isFinite(maxArmor) || maxArmor < 0f) {
+            throw new IllegalArgumentException("Maximum armor must be finite and non-negative");
+        }
+        if (maxArmor > 0f) {
+            armor(maxArmor, armorRating);
+        } else if (!Float.isFinite(armorRating) || armorRating < 0f) {
+            throw new IllegalArgumentException("Armor rating must be finite and non-negative");
+        }
         this.moveSpeed *= Math.max(0.1f, moveSpeedMult);
-        this.damageTakenMult = Math.max(0f, 1f - damageReduction);
         this.incomingAccuracyMult = Math.max(0f, incomingAccuracyMult);
         return this;
     }

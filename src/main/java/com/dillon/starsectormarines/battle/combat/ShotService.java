@@ -85,7 +85,7 @@ public final class ShotService {
         public float remainingTime;
         /** Pre-multiplied by {@code BallisticResolver.FRIENDLY_FIRE_DAMAGE_MULT} at queue time when {@link #friendly} — the queue carries the final applied damage, not a raw base value. */
         public final float damage;
-        public final float vsTurretMult;
+        public final float penetration;
         public final float moraleImpact;
         /** True when the victim shares the shooter's faction. Damage is already reduced accordingly; kept for FX/log — hit-response rolls still apply, since being shot by your own side is still getting shot. */
         public final boolean friendly;
@@ -93,20 +93,20 @@ public final class ShotService {
         public final MarineSecondary marineSecondary;
 
         public PendingImpact(long victimId, long shooterId, float remainingTime,
-                             float damage, float vsTurretMult, float moraleImpact,
+                             float damage, float penetration, float moraleImpact,
                              boolean friendly) {
-            this(victimId, shooterId, remainingTime, damage, vsTurretMult,
+            this(victimId, shooterId, remainingTime, damage, penetration,
                     moraleImpact, friendly, null);
         }
 
         public PendingImpact(long victimId, long shooterId, float remainingTime,
-                             float damage, float vsTurretMult, float moraleImpact,
+                             float damage, float penetration, float moraleImpact,
                              boolean friendly, MarineSecondary marineSecondary) {
             this.victimId = victimId;
             this.shooterId = shooterId;
             this.remainingTime = remainingTime;
             this.damage = damage;
-            this.vsTurretMult = vsTurretMult;
+            this.penetration = penetration;
             this.moraleImpact = moraleImpact;
             this.friendly = friendly;
             this.marineSecondary = marineSecondary;

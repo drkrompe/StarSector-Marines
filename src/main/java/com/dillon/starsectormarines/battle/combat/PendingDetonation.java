@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.combat;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
 
-import com.dillon.starsectormarines.battle.turret.MapTurret;
 
 /**
  * A rocket / missile in flight, scheduled to detonate at a specific cell after
@@ -39,8 +38,8 @@ public final class PendingDetonation {
     public final float aoeRadius;
     /** Damage applied to each unit in the splash, before cover reduction. */
     public final float damage;
-    /** Damage multiplier vs {@link MapTurret} targets — rockets shred turrets. */
-    public final float vsTurretMult;
+    /** Efficiency input against actor armor. */
+    public final float penetration;
     /** Wall HP knocked off the endpoint cell on detonation. 0 = no structural damage. */
     public final int wallDamage;
     /** Faction of the firing unit. Currently unused (FF on); captured for future per-side filters. */
@@ -86,17 +85,17 @@ public final class PendingDetonation {
      */
     public PendingDetonation(long shooterId,
                              float endpointX, float endpointY, float remainingTime,
-                             float aoeRadius, float damage, float vsTurretMult,
+                             float aoeRadius, float damage, float penetration,
                              int wallDamage, Faction shooterFaction,
                              boolean aerialDelivery) {
-        this(shooterId, endpointX, endpointY, remainingTime, aoeRadius, damage, vsTurretMult,
+        this(shooterId, endpointX, endpointY, remainingTime, aoeRadius, damage, penetration,
                 wallDamage, shooterFaction, aerialDelivery,
                 /*wallDamageRadius*/ 0f, /*spawnDustOnWallBreak*/ false, /*friendlyFireImmune*/ false);
     }
 
     public PendingDetonation(long shooterId,
                              float endpointX, float endpointY, float remainingTime,
-                             float aoeRadius, float damage, float vsTurretMult,
+                             float aoeRadius, float damage, float penetration,
                              int wallDamage, Faction shooterFaction,
                              boolean aerialDelivery,
                              float wallDamageRadius,
@@ -108,7 +107,7 @@ public final class PendingDetonation {
         this.remainingTime = remainingTime;
         this.aoeRadius     = aoeRadius;
         this.damage        = damage;
-        this.vsTurretMult  = vsTurretMult;
+        this.penetration   = penetration;
         this.wallDamage    = wallDamage;
         this.shooterFaction = shooterFaction;
         this.aerialDelivery = aerialDelivery;

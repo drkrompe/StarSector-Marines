@@ -126,7 +126,7 @@ public class HeavyWeapons {
                     : weapon.damage;
             shots.queueImpact(new ShotService.PendingImpact(
                     res.victimId(), shooter, res.flightTime(), appliedDamage,
-                    weapon.vsTurretMult, moraleImpact, res.friendlyHit()));
+                    weapon.penetration, moraleImpact, res.friendlyHit()));
         }
 
         if (weapon.aoeRadius > 0f) {
@@ -134,7 +134,7 @@ public class HeavyWeapons {
                     ? new PendingDetonation(
                             shooter,
                             res.endX(), res.endY(), res.flightTime(),
-                            weapon.aoeRadius, weapon.damage, weapon.vsTurretMult,
+                            weapon.aoeRadius, weapon.damage, weapon.penetration,
                             weapon.wallDamage, shooterFaction, /*aerialDelivery*/ false,
                             weapon.wallDamageRadius, /*spawnDustOnWallBreak*/ true,
                             /*friendlyFireImmune*/ false)
@@ -180,7 +180,7 @@ public class HeavyWeapons {
         PendingDetonation onArrival = new PendingDetonation(
                 shooter,
                 ep.x(), ep.y(), weapon.flightSec,
-                weapon.aoeRadius, weapon.damage, weapon.vsTurretMult,
+                weapon.aoeRadius, weapon.damage, weapon.penetration,
                 weapon.wallDamage, shooterFaction, /*aerialDelivery*/ true,
                 weapon.wallDamageRadius, /*spawnDustOnWallBreak*/ true,
                 /*friendlyFireImmune*/ false);

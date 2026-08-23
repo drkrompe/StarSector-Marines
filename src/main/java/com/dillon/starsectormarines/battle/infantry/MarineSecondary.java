@@ -49,7 +49,7 @@ public enum MarineSecondary {
     public float damage() { return def().damage; }
     public float accuracy() { return def().accuracy; }
     public float cooldown() { return def().cooldown; }
-    public float vsTurretMult() { return def().vsHardenedMult; }
+    public float penetration() { return def().penetration; }
     public float flightSec() { return def().flightSec; }
     public float aimDuration() { return def().aimDuration; }
     public float aoeRadius() { return def().aoeRadius; }

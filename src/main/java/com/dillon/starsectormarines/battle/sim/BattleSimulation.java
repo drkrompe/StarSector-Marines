@@ -913,13 +913,13 @@ public class BattleSimulation implements BattleControl {
     }
 
     /** Unattributed damage: no entity is credited. See {@link #applyDamage(long, long, float, float, float)}. */
-    public void applyDamage(long target, float damage, float vsTurretMult) {
-        applyDamage(target, CombatTelemetryService.NO_ATTACKER, damage, vsTurretMult, 1.0f);
+    public void applyDamage(long target, float damage, float penetration) {
+        applyDamage(target, CombatTelemetryService.NO_ATTACKER, damage, penetration, 1.0f);
     }
 
     /** Unattributed damage: no entity is credited. See {@link #applyDamage(long, long, float, float, float)}. */
-    public void applyDamage(long target, float damage, float vsTurretMult, float moraleImpact) {
-        applyDamage(target, CombatTelemetryService.NO_ATTACKER, damage, vsTurretMult, moraleImpact);
+    public void applyDamage(long target, float damage, float penetration, float moraleImpact) {
+        applyDamage(target, CombatTelemetryService.NO_ATTACKER, damage, penetration, moraleImpact);
     }
 
     /**
@@ -928,8 +928,8 @@ public class BattleSimulation implements BattleControl {
      * {@link CombatTelemetryService#NO_ATTACKER} when nothing in the sim is
      * responsible; the id changes nothing about what the hit does.
      */
-    public void applyDamage(long target, long attackerId, float damage, float vsTurretMult, float moraleImpact) {
-        damageService.applyDamage(target, attackerId, damage, vsTurretMult, moraleImpact);
+    public void applyDamage(long target, long attackerId, float damage, float penetration, float moraleImpact) {
+        damageService.applyDamage(target, attackerId, damage, penetration, moraleImpact);
     }
 
     /** Drains all damage queued this tick. Delegates to {@link DamageService#flushPendingDamage()}. */
@@ -1379,7 +1379,7 @@ public class BattleSimulation implements BattleControl {
             }
             rosterService.telemetry().recordRoundHit(impact.shooterId);
             damageService.applyDamage(impact.victimId, impact.shooterId, impact.damage,
-                    impact.vsTurretMult, impact.moraleImpact);
+                    impact.penetration, impact.moraleImpact);
             if (friendlyFireSquad != Squad.NO_SQUAD && impact.damage > 0f) {
                 friendlyFireSquadsThisFrame.add(friendlyFireSquad);
             }
@@ -1610,14 +1610,14 @@ public class BattleSimulation implements BattleControl {
      * short-circuits the morale branch — strafes are too short-lived for the
      * morale model to model meaningfully. Cover reduction, HP write, death
      * cascade (death FX + equipment drop + squad-leader promotion) all run
-     * normally. {@code vsTurretMult = 1f} since strafing isn't turret-specific.
+     * normally. The caller supplies explicit penetration for the source.
      * No {@link ShotEvent} is emitted — flyby tracers draw via the overlay,
      * not the ground combat tracer pass. Fall-back is also intentionally
      * skipped (strafes pin you down rather than break contact).
      */
-    public void applyExternalDamage(long target, float damage) {
+    public void applyExternalDamage(long target, float damage, float penetration) {
         if (target == 0L || !world.isAlive(target) || damage <= 0f) return;
-        damageResolver.resolve(target, CombatTelemetryService.NO_ATTACKER, damage, 1f, 0f);
+        damageResolver.resolve(target, CombatTelemetryService.NO_ATTACKER, damage, penetration, 0f);
     }
 
 
