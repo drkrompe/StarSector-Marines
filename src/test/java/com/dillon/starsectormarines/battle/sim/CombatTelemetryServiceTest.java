@@ -14,13 +14,14 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Coverage for {@link CombatTelemetryService} and {@link CombatTelemetryReport}
  * — progression S3 slice 1
- * ({@code roadmap/progression/stories/s3-per-soldier-telemetry.md}).
+ * ({@code s3-per-soldier-telemetry.md}).
  *
  * <p>The load-bearing case is {@link #aKilledMarineKeepsItsRecord}: telemetry
  * is a lifecycle-stable capability, and a marine's statistics matter most when
@@ -136,6 +137,14 @@ public class CombatTelemetryServiceTest {
         long shooter = unit(sim, "shooter", Faction.MARINE, UnitType.MARINE, 5, 5);
         long target = unit(sim, "target", Faction.DEFENDER, UnitType.MILITIA, 9, 5);
         sim.combat().setPrimaryWeapon(shooter, MarineWeapon.PULSE_RIFLE);
+        // Certain accuracy and a pool the target cannot burn through. The
+        // firing pipeline rolls on ThreadLocalRandom, so a nominal 0.35
+        // accuracy leaves an 11% chance all five rounds miss -- which is a
+        // flaky test, not a finding. What is under test is the counting, not
+        // the marksmanship.
+        sim.combat().setAccuracy(shooter, 1f);
+        sim.world().setMaxHp(target, 1_000_000f);
+        sim.world().setHp(target, 1_000_000f);
 
         CombatTelemetryService telemetry = sim.telemetry();
         for (int i = 0; i < 5; i++) {
@@ -148,11 +157,11 @@ public class CombatTelemetryServiceTest {
 
         // Drain every pending impact through the sim's own tick so the hit
         // count comes from the production path, not a hand-written stand-in.
-        for (int i = 0; i < 200 && telemetry.roundsHit(shooter) == 0; i++) {
+        for (int i = 0; i < 60 && telemetry.roundsHit(shooter) < 5; i++) {
             sim.advance(BattleSimulation.TICK_DT);
         }
-        assertTrue(telemetry.roundsHit(shooter) > 0,
-                "at four cells with a pulse rifle, something lands");
+        assertTrue(telemetry.roundsHit(shooter) >= 5,
+                "five certain-accuracy rounds at four cells all reach the body");
         assertTrue(telemetry.roundsHit(shooter) <= telemetry.roundsFired(shooter),
                 "landed rounds can never exceed fired rounds");
         assertTrue(telemetry.landedFraction(shooter) > 0f);
@@ -185,6 +194,36 @@ public class CombatTelemetryServiceTest {
         assertTrue(rows.get(0).entityId() < rows.get(1).entityId(),
                 "rows come back in spawn order so two runs can be diffed");
         assertTrue(CombatTelemetryReport.format(rows).contains("rifleman"));
+    }
+
+    @Test
+    public void onlyCampaignMarinesCarryASoldierIdIntoTheGather() {
+        BattleSimulation sim = openArena(20, 20);
+        long deployed = sim.spawn(new EntitySpec("rifleman", Faction.MARINE, UnitType.MARINE, 5, 5)
+                .campaignSoldierId("soldier-7"));
+        long defender = unit(sim, "raider", Faction.DEFENDER, UnitType.MILITIA, 8, 5);
+        long militia = unit(sim, "local", Faction.MARINE, UnitType.MILITIA, 6, 5);
+
+        sim.applyDamage(defender, deployed, 3f, 1f, 1f);
+
+        List<CombatTelemetryRow> rows = CombatTelemetryReport.gather(sim);
+        assertEquals("soldier-7", rowFor(rows, deployed).campaignSoldierId(),
+                "only CampaignMarineDeployment supplies this, so it IS the campaign key");
+        assertNull(rowFor(rows, defender).campaignSoldierId(),
+                "defenders never acquire a campaign career record");
+        assertNull(rowFor(rows, militia).campaignSoldierId(),
+                "employer militia fight on our side but are not our people");
+    }
+
+    @Test
+    public void gatheringTwiceYieldsIdenticalRows() {
+        BattleSimulation sim = openArena(20, 20);
+        long shooter = unit(sim, "shooter", Faction.MARINE, UnitType.MARINE, 5, 5);
+        long victim = unit(sim, "victim", Faction.DEFENDER, UnitType.MILITIA, 8, 5);
+        sim.applyDamage(victim, shooter, 6f, 1f, 1f);
+
+        assertEquals(CombatTelemetryReport.gather(sim), CombatTelemetryReport.gather(sim),
+                "the gather is a pure read, so computing an outcome twice cannot drift");
     }
 
     private static CombatTelemetryRow rowFor(List<CombatTelemetryRow> rows, long entityId) {

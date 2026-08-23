@@ -4,7 +4,7 @@
 > has no idea which of their marines is the veteran.
 
 **Status:** not started. Depends on
-[S3](s3-per-soldier-telemetry.md) for live per-marine performance.
+S3 (`s3-per-soldier-telemetry.md`) for live per-marine performance.
 Coordinate with [S7](s7-grade-visual-identity.md) — see the split below.
 
 ## Problem

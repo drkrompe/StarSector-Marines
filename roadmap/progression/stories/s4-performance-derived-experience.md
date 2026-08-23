@@ -4,7 +4,7 @@
 > be worth climbing.
 
 **Status:** not started. Depends on
-[S3](s3-per-soldier-telemetry.md) for the input data, and should land after
+S3 (`s3-per-soldier-telemetry.md`) for the input data, and should land after
 [S1](s1-lethality-and-tier-spread.md) so the experience ladder is retuned
 against the corrected grade spread rather than against the current one.
 

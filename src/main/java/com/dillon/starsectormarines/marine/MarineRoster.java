@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.infantry.ExperienceTier;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.SoldierAptitude;
+import com.dillon.starsectormarines.battle.sim.CombatTelemetryRow;
 
 /**
  * Thin collection wrapper around the player's captains. Held by {@link MarineRosterScript}
@@ -737,6 +738,24 @@ public class MarineRoster implements Serializable {
     /** Applies the richer personnel report used by the squad debrief. */
     public void applySoldierOutcome(Map<String, MarineSoldierStatus> outcomes,
                                     int survivorXp, float currentDay, float wiaDays) {
+        applySoldierOutcome(outcomes, survivorXp, currentDay, wiaDays,
+                Collections.emptyMap(), false);
+    }
+
+    /**
+     * Applies the personnel report and folds the mission's frozen combat
+     * telemetry into each deployed marine's career record
+     * ({@code s3-per-soldier-telemetry.md}).
+     *
+     * <p>{@code outcomes} is the deployment manifest: it holds survivors and
+     * casualties alike, so every key is a marine who went. A marine the battle
+     * recorded nothing for still counts as deployed — they were there, they
+     * just never got a shot off.
+     */
+    public void applySoldierOutcome(Map<String, MarineSoldierStatus> outcomes,
+                                    int survivorXp, float currentDay, float wiaDays,
+                                    Map<String, CombatTelemetryRow> telemetry,
+                                    boolean victory) {
         if (outcomes == null) return;
         for (Map.Entry<String, MarineSoldierStatus> entry : outcomes.entrySet()) {
             MarineSoldier soldier = soldierById(entry.getKey());
@@ -751,6 +770,15 @@ public class MarineRoster implements Serializable {
                 soldier.setUnavailableUntilDay(0f);
             }
             soldier.setStatus(status);
+            CombatTelemetryRow row = telemetry != null ? telemetry.get(entry.getKey()) : null;
+            soldier.career().recordDeployment(
+                    victory,
+                    status == MarineSoldierStatus.WIA,
+                    row != null ? row.roundsFired() : 0,
+                    row != null ? row.roundsHit() : 0,
+                    row != null ? row.damageDealt() : 0f,
+                    row != null ? row.damageTaken() : 0f,
+                    row != null ? row.kills() : 0);
         }
         refreshLeadership();
     }

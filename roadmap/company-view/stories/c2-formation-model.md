@@ -119,7 +119,7 @@ mission concern, not an organization concern.
 
 - Whereabouts beyond a `HOME` placeholder — C4 (`c4-whereabouts-and-deployed-state.md`).
 - Career/telemetry fields on `MarineSnapshot` — progression
-  [S3](../../progression/stories/s3-per-soldier-telemetry.md) creates that
+  S3 (`s3-per-soldier-telemetry.md`) creates that
   data; add the field when it exists.
 - Any rendering.
 
