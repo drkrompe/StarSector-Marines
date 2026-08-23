@@ -40,9 +40,9 @@ Two things to carry in:
   block 19 times. Leaning shared-by-id, which makes it a small second store
   rather than a field on `WeaponDef`.
 
-**Then W3**, which is mostly mechanical once W2 settles the FX shape —
-except for `TurretKind.maxHp`, which is an emplacement's health living on
-the weapon and should be questioned rather than copied.
+**Then W3**, which is now genuinely mechanical: marine secondaries and mech
+mounts only. `MechWeaponComponent` already draws the mount/weapon boundary
+`WeaponDef` wants, so mech mounts migrate by pointing at a weapon id.
 
 ## Decisions already locked
 
@@ -70,5 +70,37 @@ Do not relitigate these in a story; change them in `overview.md`.
 
 ## Commit chain
 
-- *(this session)* — W1: `battle.weapon` package, marine-primary catalog as
+- `91d832f3` — W1: `battle.weapon` package, marine-primary catalog as
   data, `MarineWeapon` reduced to an id handle, parity test.
+- *(this session)* — design only: split `TurretKind` out of W3 into W6 and
+  lock the platform / mount / weapon commitment.
+
+## Resolved this session
+
+**Turrets are not weapons, and the code already knew it.** `TurretKind.maxHp`
+was flagged during W1 as a wart. Reading its consumers showed something
+sharper: the same `TurretKind` is mounted on **three** platforms — static
+`MapTurret`, shuttle `MountedTurret`, and a `GroundSystem` vehicle turret —
+and only the static one uses `maxHp`. The javadoc already documents the
+conflict without resolving it (`startingAmmo`: "Static `MapTurret`s ignore
+this"; `role`: "Static `MapTurret`s default to A2G; mounted shuttle turrets
+honor the role").
+
+The resolution is the model mechs already use — platform → mount → weapon —
+and it is now design commitment 7 in `overview.md`, with the test for which
+layer a field belongs to: **if two carriers of the same weapon disagree about
+a field's value, it is not a weapon field.**
+
+`TurretKind` therefore moved out of W3 and into its own story,
+`w6-emplacements-and-structures.md`. Two things make it cheaper than it
+looks: the renderer already composites a recoil barrel over a base sprite
+(the layering exists, only the keying is wrong), and mount slots already
+exist twice (`TurretMount` for shuttles, `MechMountSlot` for mechs). **No new
+art is required** — vanilla turret sprites bundle the gun with its pedestal,
+so the base/barrel pair belongs to the mount, exactly as
+`MechWeaponComponent.appearanceSelector` does.
+
+The payoff is the same gun on different platforms — a Vulcan as a hardened
+emplacement, a shuttle hardpoint with a magazine, and a convoy vehicle mount
+— which today would need three `TurretKind` entries duplicating every
+ballistic field.
