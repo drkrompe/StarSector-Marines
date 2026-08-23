@@ -13,7 +13,7 @@ import java.util.Objects;
  * ({@code asset-pipeline/.../tools/assets/terrain/TerrainMaterialDerivationKernel.java}),
  * repackaged for this mod's build-time pipeline. AO and roughness outputs are
  * dropped — this mod doesn't consume them (see
- * {@code roadmap/surface-relief/stories/s1-derivation-pipeline.md}).
+ * {@code surface-relief-nouns.md}).
  *
  * <p>{@link EdgeMode} generalizes the source kernel's hardcoded wrap-at-edges
  * filtering: {@link #derive} (whole-image, faithful to the original kernel's

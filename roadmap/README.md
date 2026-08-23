@@ -96,11 +96,12 @@ universe over time, not retrofitted into intel slots.
   the next slice. Shared submod discovery/merge remains deferred until a real
   provider exists. `moddable-weapons-nouns.md` carries the standing model; its
   adjacent `stories.md` board tracks the five live stories.
-- **Surface relief** *(active)* — S1 derivation and the manually accepted S2
-  material-aware parallax/water pass are shipped. S3 dynamic ground bump
-  lighting is code-complete (`c92d5b9a`) and awaits an in-game smoke/tuning
-  pass; its fixed eight-light budget consumes muzzle, impact, heavy-blast, and
-  burning-wreck events. See [`surface-relief/`](surface-relief/overview.md).
+- **Surface relief** *(S1–S2 shipped; S3 acceptance ready)* — deterministic
+  build-time height/normal derivation feeds a fail-soft screen-space ground
+  composite with semantic structure height, micro relief, and land-safe water
+  motion. Bounded event lighting is implemented and awaits in-game acceptance;
+  unit lighting remains deferred. `surface-relief-nouns.md` carries the standing
+  model; its adjacent `stories.md` board tracks the two live stories.
 - **Battle radio** *(expanded event slice shipped; acceptance active)* — 214 standard-pilot clips
   now cover positional contact, fallback, friendly-fire, enemy-mech sighting,
   enemy-down, and sparse sustained-combat calls. Friendly warnings follow

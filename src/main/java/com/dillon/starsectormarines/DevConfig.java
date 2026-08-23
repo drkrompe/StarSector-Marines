@@ -182,10 +182,11 @@ public final class DevConfig {
 
     /**
      * When {@code true}: the {@code RenderLayer#GROUND} pass renders into an
-     * offscreen FBO pair (color + height) instead of the backbuffer, then a
-     * fullscreen fragment shader applies offset-limited parallax before the
-     * rest of the frame draws on top ({@code roadmap/surface-relief/} S2).
-     * {@code false} (default) is pixel-identical to pre-S2 rendering — no FBO
+     * offscreen color, material-height, and normal targets instead of the
+     * backbuffer, then a fullscreen fragment shader applies offset-limited
+     * parallax before the rest of the frame draws on top
+     * ({@code surface-relief-nouns.md}).
+     * {@code false} is pixel-identical to pre-S2 rendering — no FBO
      * bind, no shader, ground draws straight to the backbuffer as before.
      *
      * <p>Independently fail-soft: even with this {@code true}, a shader
@@ -194,10 +195,10 @@ public final class DevConfig {
      * permanently for that battle (one log line, no crash) — this flag only
      * decides whether the pipeline is attempted at all.
      *
-     * <p>On by default for playtesting; visuals are still uncalibrated (see
-     * the overview's "Pixel-art aesthetic" risk). Effect strength is tunable
-     * live from the battle DEBUG panel; the remaining projection constants
-     * live at the top of {@code GroundParallaxPipeline}.
+     * <p>On by default. The S2 ground presentation is accepted; relief, water,
+     * and S3 lighting strength remain tunable live from the battle DEBUG panel.
+     * The remaining projection constants live at the top of
+     * {@code GroundParallaxPipeline}.
      */
     @DebugOnly
     public static final boolean SURFACE_RELIEF_PARALLAX = true;
