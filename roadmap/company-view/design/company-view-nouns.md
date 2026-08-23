@@ -2,7 +2,7 @@
 
 Status: ACTIVE — 11 open stories
 Written: 2026-08-23
-Updated: 2026-08-23 — hardened fire-team maneuver through portals and structures.
+Updated: 2026-08-23 — named special equipment as the optional billet slot consumed by progression and battle AI.
 
 ## Purpose
 
@@ -35,6 +35,9 @@ company view composes their stable outputs.
 - **Template card** — a reusable four-billet equipment design owned by the
   armory. The card is not physical inventory and is never consumed by
   assignment; each fielded copy still needs a complete physical kit.
+- **Special-equipment slot** — the one optional billet position beside a
+  marine's primary and armour. A card may issue a weapon-like special or a
+  utility special; the slot does not make the card a battle order.
 - **Billet** — one equipment position on a template card. Cards describe
   positions rather than named marines; the current team materializes them.
 - **Card assignment** — the template id bound to one squad's Alpha, Bravo, or
@@ -87,16 +90,18 @@ a garrison is a posting, not a task force.
 The Fleet Armory authors routine equipment at fire-team scale. `MarineArmory`
 owns a reusable card library; `MarineSquad` persists one assigned card id for
 each of its three team slots. A card has exactly four billets, and each billet
-may specify primary family, grade, armour, and optional secondary. Special gear
+may specify primary family, grade, armour, and optional special equipment. The
+current `MarineSecondary` field is the compatibility materialization of that
+last concept until the id migration retires it. Special gear
 therefore belongs to a scarce team design rather than a parallel per-marine
 override system.
 
 Assignment is atomic and inventory-aware. The target team's current equipment
 is counted as returned before the candidate card is checked. Locked recipes or
-insufficient primaries, armour, or secondaries leave every marine and the prior
-card id untouched. Slice 1 requires a complete four-marine RTD team before a
-new card can be assigned; later conformance work owns degraded and replacement
-teams.
+insufficient primaries, armour, or special items leave every marine and the
+prior card id untouched. Slice 1 requires a complete four-marine RTD team
+before a new card can be assigned; later conformance work owns degraded and
+replacement teams.
 
 The card is intent, while `MarineSoldier` equipment remains the materialized
 state consumed by deployment and battle. This preserves the campaign-to-battle
@@ -295,6 +300,8 @@ production vehicle deployment seam exists.
 - A failed card assignment changes neither issued equipment nor assignment.
 - Per-soldier kit remains the battle-facing materialization until the deployment
   seam explicitly adopts another representation.
+- A template may issue special equipment, but AI use follows faction-neutral
+  battle policy rather than a hidden instruction encoded by the card.
 - Officer capacity is checked per command; task forces do not flatten back into
   one officer's cap.
 - Reserve personnel do not count as formations or field-ready strength.

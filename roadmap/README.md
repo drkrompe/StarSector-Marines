@@ -157,8 +157,10 @@ universe over time, not retrofitted into intel slots.
   `SoldierCareer` of lifetime missions, rounds, damage, kills and wounds.
   That table is the balance artifact S1's tuning was argued without, and the
   career record is what lets S4 make experience earned rather than issued.
-  S2 and S4-S10 remain, S1's own last acceptance item is an in-game feel pass,
-  and the synthesis found one proposed XP-authority cleanup. See
+  S2 now separates primary breadth from three special-equipment stories—AMR,
+  smoke, and satchels—with their gameplay-AI use and counterplay contracted;
+  S4-S10 remain, S1's own last acceptance item is an in-game feel pass, and the
+  synthesis found one proposed XP-authority cleanup. See
   `progression-nouns.md`; its adjacent board is the open-work list.
 - **Company view** *(active — C9 and C14 Slices 1–3 shipped)* — the player's force as one legible
   hierarchy, company → squad → fire team → marine, in the fleet and in the field.
