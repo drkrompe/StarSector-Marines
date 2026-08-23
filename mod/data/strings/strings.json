@@ -129,7 +129,17 @@
 		"companyHqMrb":           "MRB credibility: {0}",
 		"companyHqEmployer":      "{0}  {1}   ({2} done / {3} failed)",
 		"companyHqNoEmployers":   "No employer has a record of you yet.",
-		"companyHqDeadlinesPending": "Pending responses, stationing terms, and lapsing offers — next slice.",
+		"companyHqClocksEmpty":   "Nothing is running against you.",
+		"companyHqClocksMore":    "+{0} more not shown",
+		"companyHqClockDue":      "Due today",
+		"companyHqClockOneDay":   "1 day",
+		"companyHqClockDays":     "{0} days",
+		"companyHqClockGarrison": "Garrison defense",
+		"companyHqClockCadre":    "Cadre incident",
+		"companyHqClockTerm":     "Stationing term ends",
+		"companyHqClockTermFails": "Ends unanswered — this fails the contract",
+		"companyHqClockWhere":    "{0} · {1}",
+		"companyHqClockRespond":  "Respond",
 		"companyHqRosterPending": "Strength by formation and the armory route — next slice.",
 
 		# Battle screen
