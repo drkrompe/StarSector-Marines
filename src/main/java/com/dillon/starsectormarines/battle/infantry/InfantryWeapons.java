@@ -136,6 +136,7 @@ public class InfantryWeapons {
      * <p>Public because behaviors call this when firing.
      */
     public void fireShot(long shooter, long target, FireStance stance) {
+        roster.telemetry().recordRoundFired(shooter);
         World world = roster.world();
         Faction shooterFaction = roster.identity().faction(shooter);
         UnitType shooterType = roster.identity().type(shooter);
@@ -239,6 +240,7 @@ public class InfantryWeapons {
         int ammo = world.secondaryAmmo(shooterId);
         if (ammo <= 0) return;
         world.setSecondaryAmmo(shooterId, ammo - 1);
+        roster.telemetry().recordSecondaryUsed(shooterId);
         float secondaryAccuracy = Math.min(1f, sec.accuracy
                 * InfantryCombatStats.shooterAccuracyMult(
                         roster.combat().soldierProfile(shooter)));
@@ -256,6 +258,7 @@ public class InfantryWeapons {
         // projectile entity but carries no phantom ground detonation.
         PendingDetonation onArrival = res.impacts()
                 ? new PendingDetonation(
+                        shooter,
                         res.endX(), res.endY(), res.flightTime(),
                         sec.aoeRadius, sec.damage, sec.vsTurretMult,
                         sec.wallDamage, shooterFaction, /*aerialDelivery*/ false,

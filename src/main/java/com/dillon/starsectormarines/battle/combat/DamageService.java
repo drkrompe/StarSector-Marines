@@ -27,9 +27,9 @@ import java.util.function.LongPredicate;
  * queued paths use identical semantics — the applier is always the same
  * method ref ({@code DamageResolver::resolve}).
  *
- * <p><b>Damage uses SoA, not AoS.</b> Four parallel arrays
- * ({@code long[]} target ids, three {@code float[]}s) + an {@code int}
- * count is enough state — no {@code DamageEvent} record. The inline path
+ * <p><b>Damage uses SoA, not AoS.</b> Five parallel arrays (two
+ * {@code long[]} — target and attacker ids — and three {@code float[]}s)
+ * + an {@code int} count is enough state — no {@code DamageEvent} record. The inline path
  * never allocates; the queued path grows the arrays by doubling when full,
  * which steady-state means zero allocation after the first overflow tick.
  * The other two queues (target-mutation, occupancy) keep their AoS pooled
@@ -49,7 +49,15 @@ import java.util.function.LongPredicate;
 public final class DamageService {
 
     @FunctionalInterface public interface DamageApplier {
-        void apply(long targetId, float damage, float vsTurretMult, float moraleImpact);
+        /**
+         * @param attackerId the entity credited with the hit, or
+         *        {@link com.dillon.starsectormarines.battle.sim.CombatTelemetryService#NO_ATTACKER}
+         *        when nothing in the sim is responsible (scripted damage,
+         *        flyby strafing, the vanilla-combat bridge's mirrored hull
+         *        damage). Carried for telemetry attribution only — it does
+         *        not affect what the hit does.
+         */
+        void apply(long targetId, long attackerId, float damage, float vsTurretMult, float moraleImpact);
     }
     @FunctionalInterface public interface ReprioApplier {
         /**
@@ -84,12 +92,13 @@ public final class DamageService {
 
     // ---- SoA damage queue ----
     //
-    // Four parallel arrays, grown by doubling when full. Lock granularity is
+    // Five parallel arrays, grown by doubling when full. Lock granularity is
     // the service instance itself — the parallel UPDATE_UNITS workers all
     // contend on one monitor, but the contention window is just a couple of
     // array writes so it's not measurable in practice.
     private static final int INITIAL_DAMAGE_CAPACITY = 64;
     private long[] dmgTargetId = new long[INITIAL_DAMAGE_CAPACITY];
+    private long[] dmgAttackerId = new long[INITIAL_DAMAGE_CAPACITY];
     private float[] dmgDamage = new float[INITIAL_DAMAGE_CAPACITY];
     private float[] dmgVsTurretMult = new float[INITIAL_DAMAGE_CAPACITY];
     private float[] dmgMoraleImpact = new float[INITIAL_DAMAGE_CAPACITY];
@@ -175,15 +184,16 @@ public final class DamageService {
      * {@link #flushPendingDamage()}. No per-call object allocation in either
      * path.
      */
-    public void applyDamage(long target, float damage, float vsTurretMult, float moraleImpact) {
+    public void applyDamage(long target, long attackerId, float damage, float vsTurretMult, float moraleImpact) {
         if (!insideParallel && !deferCombatEffects) {
-            damageApplier.apply(target, damage, vsTurretMult, moraleImpact);
+            damageApplier.apply(target, attackerId, damage, vsTurretMult, moraleImpact);
             return;
         }
         synchronized (dmgLock) {
             int i = dmgCount;
             if (i == dmgTargetId.length) growDamageArrays(i * 2);
             dmgTargetId[i] = target;
+            dmgAttackerId[i] = attackerId;
             dmgDamage[i] = damage;
             dmgVsTurretMult[i] = vsTurretMult;
             dmgMoraleImpact[i] = moraleImpact;
@@ -193,6 +203,7 @@ public final class DamageService {
 
     private void growDamageArrays(int newCapacity) {
         dmgTargetId = Arrays.copyOf(dmgTargetId, newCapacity);
+        dmgAttackerId = Arrays.copyOf(dmgAttackerId, newCapacity);
         dmgDamage = Arrays.copyOf(dmgDamage, newCapacity);
         dmgVsTurretMult = Arrays.copyOf(dmgVsTurretMult, newCapacity);
         dmgMoraleImpact = Arrays.copyOf(dmgMoraleImpact, newCapacity);
@@ -275,7 +286,7 @@ public final class DamageService {
         int n = dmgCount;
         if (n == 0) return;
         for (int i = 0; i < n; i++) {
-            damageApplier.apply(dmgTargetId[i], dmgDamage[i], dmgVsTurretMult[i], dmgMoraleImpact[i]);
+            damageApplier.apply(dmgTargetId[i], dmgAttackerId[i], dmgDamage[i], dmgVsTurretMult[i], dmgMoraleImpact[i]);
         }
         dmgCount = 0;
     }

@@ -23,6 +23,14 @@ import com.dillon.starsectormarines.battle.turret.MapTurret;
  */
 public final class PendingDetonation {
 
+    /**
+     * Entity credited with everything this detonation does, or
+     * {@link com.dillon.starsectormarines.battle.sim.CombatTelemetryService#NO_ATTACKER}
+     * for a source with no entity behind it (an orbital barrage). Telemetry
+     * attribution only: the splash is identical either way, and a shooter
+     * already dead when the shell lands is simply not credited.
+     */
+    public final long shooterId;
     public final float endpointX;
     public final float endpointY;
     /** Sim-seconds until detonation. Decremented per tick by {@code Detonations.tick}. */
@@ -76,22 +84,25 @@ public final class PendingDetonation {
      * LRM / SRM, marine rocket, and turret detonations whose wall damage
      * stays at the endpoint cell and which still apply friendly fire.
      */
-    public PendingDetonation(float endpointX, float endpointY, float remainingTime,
+    public PendingDetonation(long shooterId,
+                             float endpointX, float endpointY, float remainingTime,
                              float aoeRadius, float damage, float vsTurretMult,
                              int wallDamage, Faction shooterFaction,
                              boolean aerialDelivery) {
-        this(endpointX, endpointY, remainingTime, aoeRadius, damage, vsTurretMult,
+        this(shooterId, endpointX, endpointY, remainingTime, aoeRadius, damage, vsTurretMult,
                 wallDamage, shooterFaction, aerialDelivery,
                 /*wallDamageRadius*/ 0f, /*spawnDustOnWallBreak*/ false, /*friendlyFireImmune*/ false);
     }
 
-    public PendingDetonation(float endpointX, float endpointY, float remainingTime,
+    public PendingDetonation(long shooterId,
+                             float endpointX, float endpointY, float remainingTime,
                              float aoeRadius, float damage, float vsTurretMult,
                              int wallDamage, Faction shooterFaction,
                              boolean aerialDelivery,
                              float wallDamageRadius,
                              boolean spawnDustOnWallBreak,
                              boolean friendlyFireImmune) {
+        this.shooterId     = shooterId;
         this.endpointX     = endpointX;
         this.endpointY     = endpointY;
         this.remainingTime = remainingTime;

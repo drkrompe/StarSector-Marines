@@ -1,4 +1,5 @@
 package com.dillon.starsectormarines.battle.decision;
+import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -752,6 +753,7 @@ public class TacticalScoringTest {
             float endX = sim.world().cellX(turret) + 0.5f;
             float endY = sim.world().cellY(turret) + 0.5f;
             PendingDetonation onArrival = new PendingDetonation(
+                    CombatTelemetryService.NO_ATTACKER,
                     endX, endY, 0.5f,
                     MarineSecondary.ROCKET_LAUNCHER.aoeRadius,
                     perRocket, MarineSecondary.ROCKET_LAUNCHER.vsTurretMult,
@@ -779,6 +781,7 @@ public class TacticalScoringTest {
         float endX = sim.world().cellX(turret) + 0.5f;
         float endY = sim.world().cellY(turret) + 0.5f;
         PendingDetonation onArrival = new PendingDetonation(
+                CombatTelemetryService.NO_ATTACKER,
                 endX, endY, 0.5f,
                 MarineSecondary.ROCKET_LAUNCHER.aoeRadius,
                 bigDamage, 1.0f, 0, Faction.DEFENDER, false);

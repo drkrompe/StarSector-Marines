@@ -24,7 +24,8 @@ import com.dillon.starsectormarines.engine.ecs.Query;
  * {@link #MOVEMENT} + {@link #AI_STATE} iff it is mobile (a static turret/hub
  * carries neither) and {@link #SECONDARY_WEAPON} iff it carries one — so presence
  * <em>is</em> the capability, no nullable field. Death is the transmute to the
- * corpse archetype (identity + cell ride the row-move; health, combat, vision, and
+ * corpse archetype (identity, cell, and any {@link #TELEMETRY} record ride the
+ * row-move; health, combat, vision, and
  * any movement, ai-state, or secondary are removed); a crashing air unit then
  * carries {@link #CRASHING} over the corpse while it falls. The ecs-migration is complete: the standalone
  * {@code MechLoadout} and {@code Crashing} stores folded into archetype
@@ -304,6 +305,21 @@ public final class BattleComponents {
     /** {@link #DRONE_STATE} field 5: entity id of the hub that launched this drone, {@code 0L} = none (LONG). */
     public static final int DRONE_STATE_HOME_HUB_ID = 5;
 
+    /** {@link #TELEMETRY} field 0: rounds this entity has pulled the trigger on — one per primary round, burst-aware (INT). */
+    public static final int TELEMETRY_ROUNDS_FIRED = 0;
+    /** {@link #TELEMETRY} field 1: rounds this entity fired that reached a body — one per arriving {@code PendingImpact}, not per damage event, so one AoE shell striking six units is still one round (INT). */
+    public static final int TELEMETRY_ROUNDS_HIT = 1;
+    /** {@link #TELEMETRY} field 2: post-mitigation HP this entity has taken off hostiles — cover, armor and the hardened multiplier are already applied, and overkill past zero is not counted (FLOAT). */
+    public static final int TELEMETRY_DAMAGE_DEALT = 2;
+    /** {@link #TELEMETRY} field 3: post-mitigation HP this entity has taken off its OWN side. Kept out of {@link #TELEMETRY_DAMAGE_DEALT} deliberately — netting it in would hide it (FLOAT). */
+    public static final int TELEMETRY_FRIENDLY_FIRE_DAMAGE = 3;
+    /** {@link #TELEMETRY} field 4: post-mitigation HP this entity has absorbed, from any source including friendly fire (FLOAT). */
+    public static final int TELEMETRY_DAMAGE_TAKEN = 4;
+    /** {@link #TELEMETRY} field 5: hostiles this entity landed the killing blow on. One AoE detonation that kills three counts three (INT). */
+    public static final int TELEMETRY_KILLS = 5;
+    /** {@link #TELEMETRY} field 6: secondary-weapon rounds expended — rockets and grenades, for economy tuning (INT). */
+    public static final int TELEMETRY_SECONDARY_USED = 6;
+
     // ---- component types ----
 
     /** Who/what this entity is — {@code UnitType type, Faction faction, String name}. Persists alive→dead. */
@@ -394,6 +410,21 @@ public final class BattleComponents {
      * {@code roadmap/ecs-migration/stories/firing-system.md}.
      */
     public final ComponentType COMBAT;
+    /**
+     * Career counters for one combatant — {@code int roundsFired, roundsHit;
+     * float damageDealt, friendlyFireDamage, damageTaken; int kills,
+     * secondaryUsed}. <em>Optional</em>, added at spawn on the same gate as
+     * {@link #COMBAT}: only a combatant can fire or be credited with a kill,
+     * so "has TELEMETRY" means "this entity's fighting is being recorded".
+     *
+     * <p><b>Lifecycle-stable, unlike {@link #COMBAT}.</b> It is deliberately
+     * absent from the corpse-remove mask, so a marine's record survives the
+     * death transmute and rides the corpse — which is the whole point: a
+     * soldier's statistics matter most when they were killed, and the
+     * end-of-battle gather runs long after the roster released them. See
+     * {@code roadmap/progression/stories/s3-per-soldier-telemetry.md}.
+     */
+    public final ComponentType TELEMETRY;
     /**
      * Movement state — {@code float gaitPhase} (the repeating walk cycle),
      * {@code int[] path} (the flat path reference), {@code int pathIdx} (the
@@ -820,6 +851,16 @@ public final class BattleComponents {
      */
     public final Query combatants;
 
+    /**
+     * Every entity carrying a {@link #TELEMETRY} record, live or dead. No
+     * exclusion mask, deliberately: {@code TELEMETRY} survives the corpse
+     * transmute, and a battle report that dropped the fallen would be the
+     * exact report nobody wants. {@link #IDENTITY} rides along because every
+     * row needs a name, a faction, and (for a marine) the campaign soldier id
+     * the gather keys on.
+     */
+    public final Query telemetryRecords;
+
     public BattleComponents(EntityWorld world) {
         IDENTITY        = world.register(0, "Identity", FieldKind.OBJECT, FieldKind.OBJECT,
                 FieldKind.OBJECT, FieldKind.OBJECT, FieldKind.OBJECT);
@@ -872,6 +913,9 @@ public final class BattleComponents {
                 FieldKind.INT, FieldKind.INT, FieldKind.FLOAT);
         MECH_LOCOMOTION = world.register(33, "MechLocomotion",
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT);
+        TELEMETRY       = world.register(34, "Telemetry",
+                FieldKind.INT, FieldKind.INT, FieldKind.FLOAT, FieldKind.FLOAT,
+                FieldKind.FLOAT, FieldKind.INT, FieldKind.INT);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, SPRITE, CORPSE}, null);
         liveSprites = world.query(
@@ -884,5 +928,6 @@ public final class BattleComponents {
         airCraft = world.query(new ComponentType[]{AIR_IDENTITY, KINEMATICS, SHUTTLE_MISSION}, null);
         gridOccupants = world.query(new ComponentType[]{POSITION}, new ComponentType[]{CORPSE});
         combatants = world.query(new ComponentType[]{COMBAT}, null);
+        telemetryRecords = world.query(new ComponentType[]{TELEMETRY, IDENTITY}, null);
     }
 }

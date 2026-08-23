@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
 import com.dillon.starsectormarines.battle.sim.World;
 
 import java.util.Random;
@@ -45,6 +46,7 @@ public final class TurretFireSystem implements TurretFireSink {
     private final HitResponseSystem hitResponse;
     private final World world;
     private final BallisticResolver resolver;
+    private final CombatTelemetryService telemetry;
 
     @FunctionalInterface
     public interface DetonationSink {
@@ -55,7 +57,8 @@ public final class TurretFireSystem implements TurretFireSink {
                             ShotService shots, DamageService damageService,
                             DetonationSink detonationSink,
                             HitResponseSystem hitResponse, World world,
-                            BallisticResolver resolver) {
+                            BallisticResolver resolver,
+                            CombatTelemetryService telemetry) {
         this.rng = rng;
         this.topology = topology;
         this.shots = shots;
@@ -64,11 +67,13 @@ public final class TurretFireSystem implements TurretFireSink {
         this.hitResponse = hitResponse;
         this.world = world;
         this.resolver = resolver;
+        this.telemetry = telemetry;
     }
 
     @Override
     public void fire(long shooterId, float fromX, float fromY, Faction shooterFaction,
                      TurretKind kind, long target, boolean aerialShooter, boolean hasLos) {
+        telemetry.recordRoundFired(shooterId);
         int tcx = world.cellX(target);
         int tcy = world.cellY(target);
         float distToTarget = (float) Math.sqrt(
@@ -118,7 +123,8 @@ public final class TurretFireSystem implements TurretFireSink {
 
         if (!isAoe && hit) {
             if (!aerialDelivery || !topology.isRoofIntact(tcx, tcy)) {
-                damageService.applyDamage(target, kind.damage, 1f, 1f);
+                telemetry.recordRoundHit(shooterId);
+                damageService.applyDamage(target, shooterId, kind.damage, 1f, 1f);
                 hitResponse.rollFallbackOnHit(target);
             }
         }
@@ -126,6 +132,7 @@ public final class TurretFireSystem implements TurretFireSink {
         if (isAoe) {
             float flight = kind.flightSec > 0f ? kind.flightSec : SHOT_LIFETIME;
             detonationSink.queue(new PendingDetonation(
+                    shooterId,
                     toX, toY, flight,
                     kind.aoeRadius, kind.damage, /*vsTurretMult*/ 1f,
                     kind.wallDamage, shooterFaction, aerialDelivery,
@@ -151,6 +158,7 @@ public final class TurretFireSystem implements TurretFireSink {
 
         if (kind.aoeRadius > 0f && res.impacts()) {
             detonationSink.queue(new PendingDetonation(
+                    shooterId,
                     res.endX(), res.endY(), res.flightTime(),
                     kind.aoeRadius, kind.damage, /*vsTurretMult*/ 1f,
                     kind.wallDamage, shooterFaction, /*aerialDelivery*/ false,
@@ -196,6 +204,7 @@ public final class TurretFireSystem implements TurretFireSink {
         float flightTime = distToTarget / kind.cellsPerSec();
 
         PendingDetonation onArrival = new PendingDetonation(
+                shooterId,
                 toX, toY, flightTime,
                 kind.aoeRadius, kind.damage, /*vsTurretMult*/ 1f,
                 kind.wallDamage, shooterFaction, aerialDelivery,

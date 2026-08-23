@@ -41,7 +41,7 @@ public final class SwarmPressureBehavior implements UnitBehavior {
         if (distance <= sim.combat().attackRange(runner)) {
             sim.clearPath(runner);
             if (sim.combat().cooldownTimer(runner) <= 0f) {
-                sim.applyDamage(target,
+                sim.applyDamage(target, runner,
                         sim.combat().attackDamage(runner), 1f,
                         sim.identity().type(runner).moraleImpact);
                 sim.combat().setCooldownTimer(runner,

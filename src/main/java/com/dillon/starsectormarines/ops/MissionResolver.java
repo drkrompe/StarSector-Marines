@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationReport;
 import com.dillon.starsectormarines.battle.command.objective.ColonyArchiveObjective;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.CombatTelemetryReport;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -171,6 +172,15 @@ public final class MissionResolver {
             }
         }
         int marinesEngaged = marinesAlive + rawMarinesLost;
+
+        // Per-soldier combat telemetry, every entity including the defenders
+        // and the fallen. Currently a balance artifact only: progression S3
+        // slice 2 carries the marine-keyed rows onto MissionOutcome, and slice 3
+        // accumulates them into a career record. Logging it here means every
+        // played mission produces the data S1's tuning was argued without.
+        // See roadmap/progression/stories/s3-per-soldier-telemetry.md.
+        LOG.info("MarineOps: combat telemetry for " + mission.id + System.lineSeparator()
+                + CombatTelemetryReport.format(CombatTelemetryReport.gather(sim)));
 
         boolean hasFieldMedic = captain != null && captain.traits().contains(Trait.FIELD_MEDIC);
         int marinesLost = hasFieldMedic

@@ -459,7 +459,7 @@ public class BattleSimulation implements BattleControl {
         this.turretFire = new TurretFireSystem(
                 rng, topology, shots, damageService,
                 det -> { synchronized (detonations) { detonations.queue(det); } },
-                hitResponse, world, ballisticResolver);
+                hitResponse, world, ballisticResolver, rosterService.telemetry());
         this.infantry = new InfantryWeapons(rosterService, ballisticResolver, shots);
         this.firingSystem = new FiringSystem(grid, rosterService);
         this.heavy = new HeavyWeapons(rosterService, grid, ballisticResolver, shots, detonations);
@@ -729,6 +729,13 @@ public class BattleSimulation implements BattleControl {
      * pattern without threading the roster service through every helper signature.
      */
     public UnitRosterService getRoster() { return rosterService; }
+
+    /**
+     * Data owner for the {@code TELEMETRY} component: what each combatant did
+     * this battle. Service-direct, like {@link #getShots()}. Lifecycle-stable,
+     * so the end-of-battle gather reads it long after the dead were released.
+     */
+    public CombatTelemetryService telemetry() { return rosterService.telemetry(); }
     /**
      * Returns the entity id {@code u} is currently targeting, or {@code 0L} when
      * none is set <em>or the target is no longer live</em>. The lazy-validity
@@ -854,12 +861,24 @@ public class BattleSimulation implements BattleControl {
         groundSystem.add(type, faction, mission);
     }
 
+    /** Unattributed damage: no entity is credited. See {@link #applyDamage(long, long, float, float, float)}. */
     public void applyDamage(long target, float damage, float vsTurretMult) {
-        applyDamage(target, damage, vsTurretMult, 1.0f);
+        applyDamage(target, CombatTelemetryService.NO_ATTACKER, damage, vsTurretMult, 1.0f);
     }
 
+    /** Unattributed damage: no entity is credited. See {@link #applyDamage(long, long, float, float, float)}. */
     public void applyDamage(long target, float damage, float vsTurretMult, float moraleImpact) {
-        damageService.applyDamage(target, damage, vsTurretMult, moraleImpact);
+        applyDamage(target, CombatTelemetryService.NO_ATTACKER, damage, vsTurretMult, moraleImpact);
+    }
+
+    /**
+     * Damage entry point, crediting {@code attackerId} in the target's and the
+     * attacker's {@code TELEMETRY} record. Pass
+     * {@link CombatTelemetryService#NO_ATTACKER} when nothing in the sim is
+     * responsible; the id changes nothing about what the hit does.
+     */
+    public void applyDamage(long target, long attackerId, float damage, float vsTurretMult, float moraleImpact) {
+        damageService.applyDamage(target, attackerId, damage, vsTurretMult, moraleImpact);
     }
 
     /** Drains all damage queued this tick. Delegates to {@link DamageService#flushPendingDamage()}. */
@@ -1290,7 +1309,9 @@ public class BattleSimulation implements BattleControl {
                     && rosterService.squad().hasSquad(impact.victimId)) {
                 friendlyFireSquad = rosterService.squad().squadId(impact.victimId);
             }
-            damageService.applyDamage(impact.victimId, impact.damage, impact.vsTurretMult, impact.moraleImpact);
+            rosterService.telemetry().recordRoundHit(impact.shooterId);
+            damageService.applyDamage(impact.victimId, impact.shooterId, impact.damage,
+                    impact.vsTurretMult, impact.moraleImpact);
             if (friendlyFireSquad != Squad.NO_SQUAD && impact.damage > 0f) {
                 friendlyFireSquadsThisFrame.add(friendlyFireSquad);
             }
@@ -1528,7 +1549,7 @@ public class BattleSimulation implements BattleControl {
      */
     public void applyExternalDamage(long target, float damage) {
         if (target == 0L || !world.isAlive(target) || damage <= 0f) return;
-        damageResolver.resolve(target, damage, 1f, 0f);
+        damageResolver.resolve(target, CombatTelemetryService.NO_ATTACKER, damage, 1f, 0f);
     }
 
 
