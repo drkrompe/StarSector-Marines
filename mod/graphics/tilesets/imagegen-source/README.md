@@ -21,6 +21,13 @@ python mod\graphics\tilesets\imagegen-source\normalize_spaceport_apron.py
 .\gradlew.bat :asset-pipeline:deriveTileMaps
 ```
 
+`forest-material-source/` contains the small checked-in authoring inputs for
+the nature strip's repeating grass and dirt fields. They are 52x52 wrap-aware
+FFmpeg downsamples of Game Buffs' 4K `Grass_3_Albedo.png` and
+`Dirt_7_Albedo.png`; the normalization script adds a 2px wrapped guard band to
+match the runtime ground-frame inset. Both hash-selected variants intentionally
+use the same material so unlike variants cannot expose a join.
+
 ## Outputs
 
 | Runtime atlas | Raw source | Initial topology check |
@@ -30,7 +37,7 @@ python mod\graphics\tilesets\imagegen-source\normalize_spaceport_apron.py
 | `urban-tileset-3.png` | `urban-tileset-3.raw.png` (2166x726 RGB) | All 7 auto-sliced frames retained in order |
 | `Floors_Tiles.png` | `Floors_Tiles.raw.png` (1225x1284 RGB) | Material families retained; most topology drift and blank-cell pollution |
 | `Water_tiles.png` | `Water_tiles.raw.png` (1254x1254 RGB) | Strong macro-layout preservation; some edge spill into empty cells |
-| `nature-tiles.png` | `nature-tiles.raw.png` (2172x724 RGB) | All 20 auto-sliced frames retained in order |
+| `nature-tiles.png` | `nature-tiles.raw.png` (2172x724 RGB) + `forest-material-source/` (52x52 RGBA) | All 20 auto-sliced frames retained in order; grass/dirt fields use seamless material overrides |
 
 ## Shared prompt frame
 

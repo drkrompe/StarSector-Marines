@@ -57,8 +57,8 @@ STRIP_FRAME_BOXES = {
         (347, 12, 364, 54),
     ),
     "nature-tiles.png": (
-        (11, 14, 61, 69), (75, 15, 123, 68), (147, 16, 194, 67),
-        (213, 15, 260, 66), (278, 14, 327, 65), (347, 15, 394, 65),
+        (8, 12, 64, 68), (72, 12, 128, 68), (136, 12, 192, 68),
+        (200, 12, 256, 68), (278, 14, 327, 65), (347, 15, 394, 65),
         (409, 16, 454, 65), (477, 24, 522, 69), (534, 31, 567, 69),
         (584, 25, 619, 61), (633, 22, 674, 62), (684, 16, 725, 66),
         (735, 20, 777, 69), (812, 34, 839, 59), (862, 31, 894, 59),
@@ -95,6 +95,20 @@ STRIP_GROUND_EDGE_FRAMES = {
     # ImageGen's ground frames have a shallow 3px side outline but a much
     # deeper bottom shadow; sample vertical edges 6px inward.
     "nature-tiles.png": (7, (3, 6)),
+}
+
+# The nature strip's grass/dirt frames use purchased, natively seamless
+# materials instead of the ImageGen reskin. Each checked-in source is a 52px
+# FFmpeg downsample from the original 4K texture. A 2px wrapped guard band
+# restores a 56px atlas frame because the runtime deliberately crops 2px from
+# every sliced ground frame before stretching it to a map cell.
+STRIP_MATERIAL_OVERRIDES = {
+    "nature-tiles.png": (
+        (0, "forest-material-source/forest-grass.png"),
+        (1, "forest-material-source/forest-grass.png"),
+        (2, "forest-material-source/forest-dirt.png"),
+        (3, "forest-material-source/forest-dirt.png"),
+    ),
 }
 
 # The three 16px sand variants were generated with different left/right
@@ -256,6 +270,32 @@ def _clean_strip_ground_edges(
         _clone_rgb_edge_band(output, box, band)
 
 
+def _apply_strip_material_overrides(
+    output: np.ndarray,
+    output_name: str,
+    frame_boxes: list[tuple[int, int, int, int]],
+) -> None:
+    overrides = STRIP_MATERIAL_OVERRIDES.get(output_name)
+    if overrides is None:
+        return
+
+    guard = 2
+    for frame_index, relative_path in overrides:
+        x0, y0, x1, y1 = frame_boxes[frame_index]
+        material = np.asarray(Image.open(HERE / relative_path).convert("RGBA"))
+        expected_shape = (y1 - y0 - guard * 2, x1 - x0 - guard * 2, 4)
+        if material.shape != expected_shape:
+            raise ValueError(
+                f"{relative_path}: shape {material.shape}, expected {expected_shape}"
+            )
+        guarded = np.pad(
+            material,
+            ((guard, guard), (guard, guard), (0, 0)),
+            mode="wrap",
+        )
+        output[y0:y1, x0:x1] = guarded
+
+
 def normalize_grid(spec: GridSpec) -> None:
     source = Image.open(TILESETS / spec.source).convert("RGBA")
     raw = Image.open(HERE / spec.raw).convert("RGB")
@@ -372,6 +412,7 @@ def normalize_strip(spec: StripSpec) -> None:
         output[sy0:sy1, sx0:sx1, 3] = alpha_arr
 
     _clean_strip_ground_edges(output, spec.output, source_boxes)
+    _apply_strip_material_overrides(output, spec.output, source_boxes)
     Image.fromarray(output, "RGBA").save(TILESETS / spec.output)
 
 

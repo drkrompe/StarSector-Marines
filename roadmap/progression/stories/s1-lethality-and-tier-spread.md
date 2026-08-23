@@ -2,8 +2,8 @@
 
 > Firefights should resolve. Upgrades should be felt.
 
-**Status:** Slice 0 (TTK harness) and Slice 1 (lethality budget) are shipped.
-Slice 2 (grade spread) is not started.
+**Status:** shipped — Slice 0 (TTK harness), Slice 1 (lethality budget) and
+Slice 2 (grade spread). A play pass is the remaining acceptance item.
 
 ## Problem
 
@@ -244,7 +244,11 @@ preserves the exchange.
 - **Armor tiers widened** so T4 could reach its target band. Effective HP
   (pool ÷ damage taken) now runs 25 unarmored → 39.5 at T3 → 67.3 at T4, up
   from 25 → 33.7 → 41.25. `RED_ELITE` carries the biggest change: +8 HP / 20%
-  block became +10 / 48%.
+  block became +10 / 48%. Note this is a **player-only** change:
+  `MarineLoadout.seedInto` applies an armor package only when the loadout
+  carries an `armorFamily`, and the only producer of one is
+  `CampaignMarineDeployment`. `InfantryLoadoutRolls.defenderSquad` passes
+  null, so every defender fights at the bare 25 HP archetype pool.
 - **`ArmoryScreen` armor bars** normalized against the live pattern ladder
   instead of hand-copied maxima (0.20 block, 8 HP), which the widened tiers
   overflowed.
@@ -267,10 +271,6 @@ decision now that the floor it multiplies is sane.
 
 **Still open, and not satisfiable from tests:**
 
-- Defender rosters roll `EquipmentGrade` and armor per risk tier
-  (`InfantryLoadoutRolls`, `DefenderRoster`). A T4-armored defender is now
-  2.7x an unarmored one rather than 1.65x, so HIGH-risk compositions swing
-  harder. Needs a play pass.
 - Living-world rescue and early-operations scenarios. The alien and swarm
   exchange rates were preserved exactly, which is the specific thing that
   would have broken them, but the surrounding fights are 9x faster.
@@ -278,7 +278,7 @@ decision now that the floor it multiplies is sane.
   clustered fireteam is close to lethal. That matches the authored intent
   ("the squad pays the price for clustering") but is a large behavioral swing.
 
-## Slice 2 — Grade spread
+## Slice 2 — Grade spread *(shipped)*
 
 Widen `EquipmentGrade` so grade is a tier, not a trim level. Starting
 proposal (tune against Slice 1's TTK harness):
@@ -297,10 +297,14 @@ company a reason to care about the armory at all.
 
 Second-order effects to check in the same slice:
 
-- Grades apply to **defenders and employer soldiers** too
+- ~~Grades apply to **defenders and employer soldiers** too
   (`InfantryLoadoutRolls`, `DefenderRoster`). A wider spread makes
   risk-scaled enemy rosters swing harder. Verify HIGH-risk defender
-  composition is still winnable and LOW is still trivial.
+  composition is still winnable and LOW is still trivial.~~ Checked — see
+  the defender-difficulty table below. HIGH risk is unchanged because both
+  sides' grade mixes are nearly identical, so a wider ladder scales them
+  together; the change lands on LOW risk and militia, in the player's
+  favour.
 - `ExperienceTier` (0.92 - 1.13) and `SoldierAptitude` (0.92 - 1.13) are
   **not** an order of magnitude below grade, as this slice originally
   assumed — measured, Green → Elite/Exceptional is 1.77x against grade's
@@ -308,6 +312,61 @@ Second-order effects to check in the same slice:
   over who the soldier is. That may still be the right call, but it is now a
   deliberate choice rather than a correction. S4 rebalances the experience
   ladder; **do not** widen it here, or the two passes will fight.
+
+### What shipped
+
+The proposed table shipped as authored. Measured TTK, pulse rifle,
+Regular/Steady, 50% of effective range, defender in the open:
+
+| Grade | vs unarmored | vs T3 armor | vs T4 armor |
+| --- | ---: | ---: | ---: |
+| Surplus | 6.09 s | 8.95 s | 15.74 s |
+| Service | 3.42 s | 5.05 s | 8.61 s |
+| Milspec | 2.54 s | 3.51 s | 5.04 s |
+| Masterwork | 1.41 s | 2.29 s | 3.53 s |
+
+Surplus → Masterwork spans **4.3x**, from 1.46x immediately before this
+slice (and 1.75x before the whole story). The estimate in the proposal —
+"roughly 3x" — was low, because it reasoned about DPS while TTK also picks
+up the rounds-to-kill boundary.
+
+**The ladder is uneven against soft targets, and that is structural.** Steps
+against an unarmored marine measure 1.78x / 1.35x / 1.80x, because Service
+and Milspec both need three landed rounds to clear 25 HP while Masterwork
+needs two. There is no multiplier that gives Milspec its own round count
+there. Against T4 armor, where a kill takes 15 to 42 rounds, the same table
+reads 1.83x / 1.71x / 1.43x — smooth. Grade is a sharper distinction the
+harder the target, which is a reasonable thing for equipment quality to
+mean.
+
+**Defender difficulty barely moves.** Weighting each grade's measured kill
+rate by the roll tables in `InfantryLoadoutRolls`:
+
+| Force | Before | After |
+| --- | ---: | ---: |
+| Player squad | 0.311 | 0.343 |
+| HIGH-risk defenders | 0.312 | 0.347 |
+| LOW-risk defenders | 0.286 | 0.270 |
+| LOW-risk militia | 0.252 | 0.196 |
+
+HIGH risk stays a coin-flip on equipment because the player mix (65%
+Service / 30% Milspec / 5% Masterwork) and the HIGH defender mix (50% / 40%
+/ 5%, plus 5% Surplus) are nearly identical — a wider ladder scales both
+sides equally. What changes is the bottom: the player's edge over LOW-risk
+militia grows from 1.23x to 1.75x. That is the progression payoff landing
+exactly where it should — against the easy fights the company outgrows,
+not against the hard ones it is supposed to fear.
+
+Two consequences worth stating plainly:
+
+- **Equipment is now roughly 2.4x the soldier ladder in impact** (4.3x vs
+  1.77x). Deliberate, and S4 is where the soldier side catches up. If S4
+  does not happen, veterans will feel like a rounding error next to kit.
+- **Surplus is a real liability**, as intended: 6.09 s against an unarmored
+  marine is outside the 2.5-4 s band, and 15.74 s against T4. A Field Rifle
+  in Surplus condition against heavy armor is close to hopeless — which
+  reads correctly as "recruits with scavenged kit should not be assaulting
+  elites", but it is the pairing to watch in a play pass.
 
 ## Out of scope
 
