@@ -203,10 +203,10 @@ public class BattleSprites {
     /** Lazy-loads the road sheet (urban-tileset-2.png) — its own PNG so road art iterates independently of the indoor floors. */
     public void ensureRoadSheet()       { roadTex.ensureLoaded(); }
 
-    /** Lazy-loads the outdoor surfaces sheet (Floors_Tiles.png). 16px source cells, upscaled 2x to the 32px nav grid. */
+    /** Lazy-loads the high-resolution outdoor surfaces sheet (Floors_Tiles.png), with 56px source cells drawn into the 32px nav grid. */
     public void ensureFloorsSheet()     { floorsTex.ensureLoaded(); }
 
-    /** Lazy-loads the Water_tiles sheet (16px cells, upscaled 2x like the floors sheet). */
+    /** Lazy-loads the Water_tiles sheet (legacy 16px cells, upscaled to the 32px nav grid). */
     public void ensureWaterSheet()      { waterTex.ensureLoaded(); }
 
     /**

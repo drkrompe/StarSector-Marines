@@ -76,7 +76,7 @@ STRIP_FRAME_BOXES = {
 # separation.
 GRID_GROUND_EDGE_CELLS = {
     "Floors_Tiles.png": (
-        16,
+        56,
         (
             (17, 1), (16, 2), (17, 2), (18, 2), (17, 3),  # brick
             (1, 10), (2, 10), (3, 10),                    # grass
@@ -84,7 +84,7 @@ GRID_GROUND_EDGE_CELLS = {
             (11, 10), (12, 10), (13, 10),                 # dirt
             (6, 14), (7, 14), (8, 14),                    # sand
         ),
-        2,
+        7,
     ),
     "Water_tiles.png": (
         16,
@@ -100,22 +100,22 @@ STRIP_GROUND_EDGE_FRAMES = {
     "nature-tiles.png": (7, (3, 6)),
 }
 
-# The three 16px sand variants were generated with different left/right
+# The three generated sand variants have different left/right
 # brightness ramps. Each one is seamless with itself after edge cleanup, but
 # the runtime hash pool places unlike variants beside each other and exposes a
 # periodic vertical join. Normalize only their horizontal edge columns to the
 # shared pool mean; retain each variant's interior and top/bottom texture.
 GRID_HORIZONTAL_EDGE_POOLS = {
     "Floors_Tiles.png": (
-        16,
+        56,
         ((6, 14), (7, 14), (8, 14)),
-        3,
+        10,
     ),
 }
 
 GRID_HORIZONTAL_BIAS_POOLS = {
     "Floors_Tiles.png": (
-        16,
+        56,
         ((6, 14), (7, 14), (8, 14)),
         0.85,
     ),
