@@ -3,7 +3,8 @@
  *
  * <p>Category: framework core (diagnostics; no single feature owner).
  * <br>Charter:  per-tick and inner-phase timing ({@code TickProfile},
- *           {@code TickInnerProfile}) for the sim hot loop.
+ *           {@code TickInnerProfile}) for the sim hot loop, plus out-of-band
+ *           stalled-tick capture ({@code TickStallWatchdog}).
  * <br>Boundary: diagnostics only — nothing here is load-bearing for
  *           gameplay correctness; don't hang gameplay state off it.
  *           (The line-of-sight cache {@code LosCache} moved to
