@@ -1,7 +1,12 @@
 # S3 — Dynamic bump lighting
 
-> **IMPLEMENTED** `c92d5b9a` (2026-08-19); pending in-game shader/effect
-> acceptance before moving to `complete/`.
+Status: READY — implementation is shipped; manual play acceptance remains.
+
+Written: 2026-08-13
+
+Updated: 2026-08-23 — first landed at `c92d5b9a`; manual acceptance remains.
+
+Read `surface-relief-nouns.md` before completing this story.
 
 Light the composed ground from battle events — muzzle flashes, explosions,
 fires — using the S1 normal sheets. Per the Welsh paper, composes with S2:
@@ -35,7 +40,7 @@ the offset coordinate, then N·L against each light.
 - Confirm `Bump lighting = 0` matches the accepted S2 presentation and that
   pause plus 1×/2×/4× timing remains readable.
 - Decide whether default strength, radii, and lifetimes need tuning before
-  moving this story to `complete/`.
+  folding this story into the noun model.
 
 ## Deliberate limits
 
