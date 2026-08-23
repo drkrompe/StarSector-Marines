@@ -82,9 +82,16 @@
 
 ## Active work
 
-The contracted ballistics queue through S4a is complete. No implementation
-story is active. The next useful ballistics step is an in-game feel pass: watch
-units fire from immediately behind low cover, dense squad firing lanes, and
+**S4b is active:** `s4b-trigger-discipline.md`. Infantry primary fire now
+resolves its exact counterfactual trajectory first; only a result committed to
+a friendly victim receives a Green/Regular/Veteran/Elite hold roll. Successful
+holds emit no round but the caller still consumes cooldown and burst cadence,
+so training cannot lower hostile DPS. Focused verification is green; complete
+the implementation commit, move the story to `complete/`, then run the full
+suite and record its count.
+
+After S4b, the next useful ballistics step is an in-game feel pass: watch units
+fire from immediately behind low cover, dense squad firing lanes, and
 midfield/target-side cover to calibrate whether the 2–8-cell transition reads
 naturally without making downrange cover feel weak.
 
