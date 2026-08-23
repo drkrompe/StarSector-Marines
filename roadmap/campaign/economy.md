@@ -335,7 +335,7 @@ with it, the player feels the world acting on them.
   specifications (Strike, Garrison, Cadre, Escort, Planetary Assault)
   with their terms, salvage rights, time commitments, and how each maps
   to direct contracts vs. background-sim garrison contracts.
-- [`loot/overview.md`](loot/overview.md) — post-battle salvage screen;
+- `loot-nouns.md` — post-battle recovery choice and settlement;
   the "fence on the spot" discount conversion lives here.
 - [`infrastructure/overview.md`](infrastructure/overview.md) —
   per-planet and per-region buildings: build cost, monthly maintenance,

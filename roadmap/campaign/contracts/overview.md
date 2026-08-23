@@ -340,18 +340,16 @@ acceptance: "Am I broke this month, or am I building my arsenal?"
 
 ### Layer 3: captain trait + fleet modifiers
 
-Multiplicative on top of the negotiated %:
+Applied to recovery-pool value before the negotiated entitlement derives the
+selection budget; these modifiers do not change that percentage:
 
-- **Captain trait `SALVAGE_EXPERT`** (new) — +25% to recovered tonnage,
+- **Captain trait `SALVAGE_EXPERT`** — +25% to recovery-pool value,
   +10% chance for a high-value-item roll. Pairs with the existing
   `Trait` enum.
-- **Fleet salvage ships** — vanilla `Salvage Rig` hulls in the
-  player's deployed fleet (or fleet at the source jump-point) — each
-  adds +10% recovery rate (cap at +40% for 4 rigs). Detected via
-  `FleetMemberAPI.getHullSpec().getHullId().equals("salvage_rig")` or
-  similar at mission resolution.
-- **Salvage Gantry hullmod** — half-effect modifier on any ship
-  carrying it.
+- **Fleet salvage ships** — each `crig` Salvage Rig in the player's fleet adds
+  +10% recovery rate, within the shared +40% fleet cap.
+- **Salvage Gantry hullmod** — a non-rig ship carrying `repair_gantry` adds
+  +5%. Rigs are not counted twice for their built-in gantry.
 - **Future: tech-recovery marine trait** — unlocks blueprint salvage
   (otherwise blueprints are never in the recovery pool).
 
@@ -359,10 +357,10 @@ Multiplicative on top of the negotiated %:
 
 What can actually drop, the post-battle picker UI, cargo-capacity
 interaction, and fence-on-the-spot conversion live in
-[`../loot/overview.md`](../loot/overview.md). The contract layer only
-sets the *entitlement* (the three layers above); the loot feature
-consumes it. The *mechanic* lives here; the *screen* is a separate
-concern.
+`loot-nouns.md`. Contract negotiation sets the entitlement, while mission
+resolution freezes the downstream recovery-modifier inputs; the loot feature
+consumes both. Contract terms and recovery presentation remain separate
+concerns.
 
 ## Default / breach mechanics
 
@@ -443,23 +441,14 @@ chain's narrative momentum depends on the player following through.
 6. **MRB scoring curve** — exact formula. Lean logarithmic so early
    contracts feel impactful and late-game grinding has diminishing
    returns. Specific curve a balance pass.
-7. **Salvage when fleet can't carry it** — 75% fence-on-spot cash
-   confirmed above, but: does this affect the "salvage > cash" axiom
-   if it's auto-converted? Player choice: take less salvage so they
-   can carry it all, or take more and accept the discount?
-8. **Salvage Rig detection** — is the rig in the *deployed* fleet,
-   or any fleet in the system? Lean deployed (more interesting fleet
-   composition choice), but the system-wide version is more forgiving
-   for skeleton.
-9. **Captain availability on contract offer** — does the contract
+7. **Captain availability on contract offer** — does the contract
    offer specify which captain it wants, or does the player assign
    any captain at acceptance? Lean player-assigns (more agency).
 
 ## Followup docs this gates
 
-- [`../loot/overview.md`](../loot/overview.md) — post-battle salvage UI:
-  item discovery, cargo capacity interaction, trait + fleet modifier
-  surfacing, item value display. Needed before the loot loop is playable.
+- `loot-nouns.md` — the shipped post-battle recovery model; its board owns the
+  remaining in-game acceptance checkpoint.
 - [`../infrastructure/overview.md`](../infrastructure/overview.md) —
   buildings that modulate garrison default rates and per-house power.
   Defensive infra reduces Garrison default rolls; intel infra surfaces

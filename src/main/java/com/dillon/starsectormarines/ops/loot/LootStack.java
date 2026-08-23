@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.ops.loot;
 
-/** Immutable stack shown by the future salvage picker. */
+/** Immutable recovery stack shown by the salvage picker. */
 public final class LootStack {
 
     public final LootKind kind;

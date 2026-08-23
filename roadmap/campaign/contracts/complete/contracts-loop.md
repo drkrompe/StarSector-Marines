@@ -165,8 +165,8 @@ src/main/java/com/dillon/starsectormarines/ops/BriefingScreen.java
 
 src/main/java/com/dillon/starsectormarines/ops/ResultsScreen.java
   + Salvage row beneath Payout when outcome.salvageEntitlement > 0.
-    Picker UI deferred to loot/overview.md; this just confirms the entitlement
-    landed on the outcome.
+    The downstream picker is owned by loot-nouns.md; this contract seam confirms
+    that entitlement landed on the outcome.
 ```
 
 ## Debug intel — full contract pipeline forcing functions
@@ -238,10 +238,9 @@ method together act as a copyable template — see
 
 ## What this loop does NOT do yet
 
-- **Loot picker UI** — `salvageEntitlement` lands on the outcome and
-  the results screen shows the %, but there's no item pool / item roll
-  / picker grid yet. That's `loot/overview.md` territory and a session of its
-  own.
+- **Loot choice is downstream by design** — this loop lands
+  `salvageEntitlement` on the outcome; `loot-nouns.md` owns the implemented
+  manifest, picker, and settlement flow.
 - **OFFERED → ACTIVE flip on briefing accept** — single-phase STRIKE/Escort
   contracts still resolve OFFERED → terminal directly. Planetary Assault now
   freezes contract-wide terms on first deployment and resolves the first phase
