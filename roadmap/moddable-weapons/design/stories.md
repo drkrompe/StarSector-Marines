@@ -1,6 +1,6 @@
 # Moddable Weapons — Open Stories
 
-Status: ACTIVE — 1 ready story, 3 planned stories, 1 deferred story
+Status: ACTIVE — 1 story in progress, 1 ready story, 3 planned stories, 1 deferred story
 
 Written: 2026-08-23
 
@@ -8,6 +8,7 @@ Read `moddable-weapons-nouns.md` before changing any of these stories.
 
 | Story | State | Scope |
 | --- | --- | --- |
+| `hephaestus-cannon-role-and-impact.md` | In progress | Give the Hephaestus a slow anti-armor contact payload, lower-penetration blast, and smoke/fire impact weight. |
 | `w2-layered-fx.md` | Ready | Replace fixed impact recipes with deterministic authored effect layers. |
 | `w3-remaining-catalogs.md` | In progress | Marine secondaries are data-owned; move the five mech weapons and validate mech mounts. |
 | `w6-emplacements-and-structures.md` | Planned | Split turret platform, mount, and weapon authority without changing established carriers. |
