@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.combat.FireStance;
+import com.dillon.starsectormarines.battle.combat.FireGate;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
@@ -143,6 +144,18 @@ public final class CombatService {
     public void setReflexTimer(long id, float v) {
         entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_REFLEX_TIMER,
                 Math.max(0f, v));
+    }
+
+    public FireGate lastFireGate(long id) {
+        int ordinal = entityWorld.getInt(id, components.COMBAT,
+                BattleComponents.COMBAT_LAST_FIRE_GATE);
+        return ordinal >= 0 && ordinal < FireGate.VALUES.length
+                ? FireGate.VALUES[ordinal] : FireGate.NONE;
+    }
+
+    public int lastFireGateTick(long id) {
+        return entityWorld.getInt(id, components.COMBAT,
+                BattleComponents.COMBAT_LAST_FIRE_GATE_TICK);
     }
 
     /**

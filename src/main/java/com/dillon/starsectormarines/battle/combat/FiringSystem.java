@@ -118,6 +118,8 @@ public final class FiringSystem {
             int[] fireReposition = t.ints(components.COMBAT, BattleComponents.COMBAT_FIRE_REPOSITION).array();
             long[] reflexTarget = t.longs(components.COMBAT, BattleComponents.COMBAT_REFLEX_TARGET_ID).array();
             float[] reflexTimer = t.floats(components.COMBAT, BattleComponents.COMBAT_REFLEX_TIMER).array();
+            int[] lastFireGate = t.ints(components.COMBAT, BattleComponents.COMBAT_LAST_FIRE_GATE).array();
+            int[] lastFireGateTick = t.ints(components.COMBAT, BattleComponents.COMBAT_LAST_FIRE_GATE_TICK).array();
             Object[] unitType = t.objects(components.IDENTITY, BattleComponents.IDENTITY_TYPE).array();
 
             for (int r = 0, n = t.rowCount(); r < n; r++) {
@@ -139,27 +141,45 @@ public final class FiringSystem {
                 // Consume-once: cleared whether or not this shot actually
                 // fires, so a stale intent never carries into a later tick.
                 fireTarget[r] = 0L;
+                lastFireGateTick[r] = sim.getSimTickIndex();
 
                 long shooterId = t.entityAt(r);
-                if (!roster.isAliveById(shooterId)) continue; // killed earlier this walk
-                if (!roster.isLive(ft)) continue; // target released (death-in-flight)
+                if (!roster.isAliveById(shooterId)) {
+                    lastFireGate[r] = FireGate.TARGET_GONE.ordinal();
+                    continue; // killed earlier this walk
+                }
+                if (!roster.isLive(ft)) {
+                    lastFireGate[r] = FireGate.TARGET_GONE.ordinal();
+                    continue; // target released (death-in-flight)
+                }
 
                 UnitType type = (UnitType) unitType[r];
                 if (type.usesInfantryTraining()
                         && (reflexTarget[r] != ft || reflexTimer[r] > 0f)) {
+                    lastFireGate[r] = FireGate.REGISTERING.ordinal();
                     continue;
                 }
 
-                if (cooldownTimer[r] > 0f) continue;
+                if (cooldownTimer[r] > 0f) {
+                    lastFireGate[r] = FireGate.COOLDOWN.ordinal();
+                    continue;
+                }
                 int sx = w.cellX(shooterId);
                 int sy = w.cellY(shooterId);
                 int tx = w.cellX(ft);
                 int ty = w.cellY(ft);
-                if (TacticalScoring.cellDistance(w.x(shooterId), w.y(shooterId), w.x(ft), w.y(ft)) > attackRange[r]) continue;
-                if (!grid.hasLineOfSight(sx, sy, tx, ty)) continue;
+                if (TacticalScoring.cellDistance(w.x(shooterId), w.y(shooterId), w.x(ft), w.y(ft)) > attackRange[r]) {
+                    lastFireGate[r] = FireGate.OUT_OF_RANGE.ordinal();
+                    continue;
+                }
+                if (!grid.hasLineOfSight(sx, sy, tx, ty)) {
+                    lastFireGate[r] = FireGate.NO_LOS.ordinal();
+                    continue;
+                }
 
                 FireStance stance = FireStance.VALUES[fireStance[r]];
                 sim.fireShot(shooterId, ft, stance);
+                lastFireGate[r] = FireGate.FIRED.ordinal();
                 combat.setCooldownTimer(shooterId, combat.attackCooldown(shooterId));
                 combat.beginBurst(shooterId, ft);
                 if (fireReposition[r] != 0) RepositionToCover.tryReposition(shooterId, sim);

@@ -169,6 +169,10 @@ public final class BattleComponents {
     public static final int COMBAT_REFLEX_TARGET_ID = 15;
     /** {@link #COMBAT} field 16: sim-seconds remaining before {@link #COMBAT_REFLEX_TARGET_ID} is registered and may receive primary fire (FLOAT). */
     public static final int COMBAT_REFLEX_TIMER = 16;
+    /** {@link #COMBAT} field 17: {@link com.dillon.starsectormarines.battle.combat.FireGate} ordinal for the most recently consumed primary-fire intent (INT). */
+    public static final int COMBAT_LAST_FIRE_GATE = 17;
+    /** {@link #COMBAT} field 18: sim tick on which {@link #COMBAT_LAST_FIRE_GATE} was authored, {@code 0} before any intent was consumed (INT). */
+    public static final int COMBAT_LAST_FIRE_GATE_TICK = 18;
 
     /** {@link #MOVEMENT} field 0: repeating [0,1) walk-stride phase, advanced by distance traveled — one full cycle per cell (FLOAT). Presentation-only: read by {@code battle.appearance.FacingSystem} for the locomotion pose; the sim never gates on it. */
     public static final int MOVEMENT_GAIT_PHASE = 0;
@@ -184,6 +188,8 @@ public final class BattleComponents {
     public static final int MOVEMENT_VEL_X = 5;
     /** {@link #MOVEMENT} field 6: velocity y actually applied this tick, cells/sec (FLOAT). See {@link #MOVEMENT_VEL_X}. */
     public static final int MOVEMENT_VEL_Y = 6;
+    /** {@link #MOVEMENT} field 7: brief sim-seconds of formation-heading memory after actual translation, used only to preserve shared-destination infantry footprints after arrival (FLOAT). */
+    public static final int MOVEMENT_FORMATION_MEMORY_TIMER = 7;
 
     /** {@link #AI_STATE} field 0: sim-seconds until the unit may next micro-reposition between shots (FLOAT). */
     public static final int AI_STATE_REPOSITION_COOLDOWN = 0;
@@ -878,13 +884,14 @@ public final class BattleComponents {
                 FieldKind.FLOAT, FieldKind.OBJECT,
                 FieldKind.LONG, FieldKind.INT, FieldKind.INT,
                 FieldKind.OBJECT, FieldKind.OBJECT,
-                FieldKind.LONG, FieldKind.FLOAT);
+                FieldKind.LONG, FieldKind.FLOAT,
+                FieldKind.INT, FieldKind.INT);
         SECONDARY_WEAPON = world.register(7, "SecondaryWeapon",
                 FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT, FieldKind.FLOAT,
                 FieldKind.LONG, FieldKind.INT);
         MOVEMENT        = world.register(8, "Movement",
                 FieldKind.FLOAT, FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT,
-                FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT);
+                FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT);
         AI_STATE        = world.register(9, "AiState",
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.INT, FieldKind.INT, FieldKind.FLOAT);
         CRASHING        = world.register(10, "Crashing", FieldKind.OBJECT);
