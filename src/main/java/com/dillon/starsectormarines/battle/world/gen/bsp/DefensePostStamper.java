@@ -888,10 +888,10 @@ public final class DefensePostStamper implements GenStage {
 
     /**
      * Stamp one ring cell: non-walkable, SEE_THROUGH, with the embankment/vent
-     * doodad pinned on top. Marks the doodad as {@link Doodad#COVER_HEAVY} —
-     * matches the +1 facing cover the wall-adjacency bake produces, and lets
-     * the planner pick adjacent cells preferentially when scoring fire
-     * positions.
+     * doodad pinned on top. The fixture tag keeps finalize from promoting the
+     * embankment to a destructible wall. Its {@link Doodad#COVER_HEAVY}
+     * profile upgrades the generic adjacent edge to authored heavy cover when
+     * the battle installs doodads, without also becoming crossed-prop cover.
      */
     private static void stampRingCell(NavigationGrid grid, CellTopology topology,
                                       List<Doodad> doodads, int x, int y,
@@ -899,6 +899,8 @@ public final class DefensePostStamper implements GenStage {
         if (!grid.inBounds(x, y)) return;
         grid.setWalkable(x, y, false);
         grid.setSeeThrough(x, y, true);
+        topology.setWall(x, y, false);
+        topology.setFixture(x, y, true);
         // Ring cells are NOT topology.WALL — the wall renderer skips them; the
         // doodad pass paints the embankment art instead. The old road-sheet
         // turret block (cols 3..5) is now a topology token: resolve it to the
@@ -965,8 +967,9 @@ public final class DefensePostStamper implements GenStage {
     }
 
     /**
-     * Seal the LARGE-post middle cell — non-walkable STONE pad with no doodad
-     * and no cover bake (it's not a turret, just a filler). Prevents the
+     * Seal the LARGE-post middle cell — non-walkable, see-through STONE fixture
+     * with no doodad and no authored cover upgrade (it's just footprint
+     * filler). Prevents the
      * middle from forming an unreachable walkable island, completes the
      * 5×3 footprint as one contiguous non-walkable mass.
      */
@@ -974,6 +977,8 @@ public final class DefensePostStamper implements GenStage {
         if (!grid.inBounds(cellX, cellY)) return;
         grid.setWalkable(cellX, cellY, false);
         grid.setSeeThrough(cellX, cellY, true);
+        topology.setWall(cellX, cellY, false);
+        topology.setFixture(cellX, cellY, true);
         topology.setGroundKind(cellX, cellY, GroundKind.STONE);
     }
 

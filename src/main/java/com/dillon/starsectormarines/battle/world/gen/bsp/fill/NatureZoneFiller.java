@@ -258,6 +258,7 @@ public final class NatureZoneFiller implements BlockFiller {
                         if (!topology.isWater(nx, ny)) continue;
                         topology.setGroundKind(nx, ny, GroundKind.DIRT);
                         grid.setWalkable(nx, ny, true);
+                        grid.setEdgeCoverSuppressed(nx, ny, false);
                         reached[nx - leaf.left][ny - leaf.top] = true;
                         changed = true;
                     }
@@ -287,6 +288,7 @@ public final class NatureZoneFiller implements BlockFiller {
         topology.setGroundKind(x, y, GroundKind.WATER);
         grid.setWalkable(x, y, false);
         grid.setSeeThrough(x, y, true);
+        grid.setEdgeCoverSuppressed(x, y, true);
     }
 
     /** True if any cardinal neighbor of {@code (x, y)} inside the leaf is a water cell. Used to find the bank ring. */
