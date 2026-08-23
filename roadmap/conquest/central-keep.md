@@ -496,8 +496,7 @@ behaviour:
 
 ## Cross-refs
 
-- [`../reinforcement/architecture.md`](../reinforcement/architecture.md)
-  — the orchestration layer this design extends. Triggers/means
+- `reinforcement-nouns.md` — the orchestration layer this design extends. Triggers/means
   gain compound-state gates; service shape itself doesn't change.
 - `convoy-nouns.md` — convoy is the ARMORY-tier means.
 - [[battle_services_systems]] — the *Service (stateful, constructor-

@@ -5,12 +5,11 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 /**
  * A request for "more units" posted by a {@link ReinforcementTrigger} and
  * fulfilled by the first {@link ReinforcementMeans} that returns
- * {@code canFulfill = true}. The full design lives in
- * {@code roadmap/reinforcement/architecture.md}.
+ * {@code canFulfill = true}. See {@code reinforcement-nouns.md}.
  *
- * <p>Side neutrality: defenders and attackers both post through the same
- * type. The {@link #reason} is informational/diegetic — it surfaces in
- * briefings and after-action reports but never branches dispatch logic.
+ * <p>Side capability: the request type can represent defenders or attackers,
+ * while production means currently dispatch defenders only. The
+ * {@link #reason} is dispatch-neutral context and never selects a means.
  *
  * <p>Delivery vs. objective — the two-coordinate split (see
  * {@code roadmap/conquest/stories/progressive-reinforcement.md}):
@@ -21,8 +20,8 @@ import com.dillon.starsectormarines.battle.unit.Faction;
  *       "dispatcher picks".</li>
  *   <li>{@link #objectiveX} / {@link #objectiveY} is the <b>squad
  *       assignment</b> — the contested position the deboarded squad should
- *       advance to and re-man. {@code -1} means "no objective" (overflow →
- *       patrol the delivery slice).</li>
+ *       advance to and re-man. {@code -1} means no explicit tactical-node
+ *       assignment.</li>
  * </ul>
  * The 5-arg constructor defaults objective = rally, matching the legacy
  * behavior where the rally served double duty.
@@ -44,16 +43,16 @@ public final class ReinforcementRequest {
          * The staged bulge counterattack's massed wave — see
          * {@code roadmap/conquest/stories/biome-counterattack.md} and
          * {@link CounterattackSystem}. Informational like the others; it does
-         * not branch dispatch logic, but a request with this reason is always
-         * {@link #prepaid}.
+         * not branch dispatch logic. Production counterattack requests are
+         * posted as {@link #prepaid}.
          */
         COUNTERATTACK
     }
 
     /**
      * How much reinforcement to send. Each means provider scales its own
-     * spawn count from this — see the strength scaling table in
-     * {@code roadmap/reinforcement/architecture.md}.
+     * spawn count from this. The coordinated open contract is tracked by
+     * {@code reinforcement-strength-scaling.md}.
      */
     public enum Strength { SMALL, MEDIUM, LARGE }
 

@@ -8,12 +8,10 @@ import java.util.Map;
 /**
  * Per-{@link Faction} catalogue of which {@link UnitType} represents the
  * bulk infantry, the stiffening elite, and the heavy mech for that side.
- * Centralises picks that {@code BattleSetup.allocateDefenders},
- * {@code AirSystem.tryDeboardMarine}, and {@code WalkInMeans.dispatch}
- * previously literal-typed.
+ * Centralises faction-tier picks consumed by battle setup, delivery payloads,
+ * garrisons, and reinforcement means.
  *
- * <p>Design rationale + per-faction table live in
- * {@code roadmap/reinforcement/faction-roster.md}. The short version:
+ * <p>The ownership contract lives in {@code reinforcement-nouns.md}. The short version:
  * marines bulk-spawn {@link UnitType#MARINE}, defenders bulk-spawn
  * {@link UnitType#MILITIA}, and the elite slot lets shuttle-drop / future
  * elite-roll paths pick a stiffer type without each call site re-deriving
