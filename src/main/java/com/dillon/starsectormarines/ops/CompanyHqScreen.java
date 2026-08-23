@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.CompanyClocks;
 import com.dillon.starsectormarines.campaign.CompanyStanding;
@@ -105,6 +106,13 @@ public final class CompanyHqScreen implements Screen {
         widgets.add(new ButtonWidget(left, buttonY, BTN_W, BTN_H, this::onClose));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("actionBack"),
                 left + 14f, buttonY + BTN_H - 8f, VALUE));
+        if (DevConfig.DEBUG_UI_WORKBENCH) {
+            float workbenchX = left + BTN_W + 12f;
+            widgets.add(new ButtonWidget(workbenchX, buttonY, 224f, BTN_H,
+                    () -> ctx.goTo(ScreenId.UI_WORKBENCH)));
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, "UI Workbench",
+                    workbenchX + 14f, buttonY + BTN_H - 8f, GOOD));
+        }
     }
 
     private void buildStanding(CompanyStanding standing, float x, float top, float width) {
