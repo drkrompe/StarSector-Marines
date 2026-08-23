@@ -938,7 +938,7 @@ public class MarineRoster implements Serializable {
             int required = requiredSecondaries.getOrDefault(secondary, 0);
             if (returned == 0 && required == 0) continue;
             gear.add(new FireTeamGearDelta(FireTeamGearDelta.Kind.SPECIAL,
-                    secondary.displayName, freeSecondary(secondary), returned, required));
+                    secondary.displayName(), freeSecondary(secondary), returned, required));
         }
 
         FireTeamTemplateResult result = unlocked ? insufficiency(gear)

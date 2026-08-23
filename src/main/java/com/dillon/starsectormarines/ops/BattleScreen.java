@@ -865,7 +865,10 @@ public class BattleScreen implements Screen, BattleUiContext {
                 Vector2f loc = new Vector2f(
                         s.toX * AUDIO_WORLD_UNITS_PER_CELL,
                         s.toY * AUDIO_WORLD_UNITS_PER_CELL);
-                Global.getSoundPlayer().playSound(s.marineSecondary.impactSoundId, pitch, 0.70f, loc, zeroVel);
+                if (s.marineSecondary.impactSoundId() != null) {
+                    Global.getSoundPlayer().playSound(s.marineSecondary.impactSoundId(),
+                            pitch, 0.70f, loc, zeroVel);
+                }
             } else if (s.marineWeapon != null) {
                 profile = s.marineWeapon.impactProfile();
                 renderer.getImpactFx().spawnImpact(profile, s.toX, s.visualToY(), isWall);
@@ -914,7 +917,8 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (s.turretKind != null) {
                 Global.getSoundPlayer().playSound(s.turretKind.fireSoundId, pitch, 1.0f, loc, zeroVel);
             } else if (s.marineSecondary != null) {
-                Global.getSoundPlayer().playSound(s.marineSecondary.fireSoundId, pitch, 1.0f, loc, zeroVel);
+                Global.getSoundPlayer().playSound(s.marineSecondary.fireSoundId(),
+                        pitch, 1.0f, loc, zeroVel);
             } else if (s.marineWeapon != null) {
                 Global.getSoundPlayer().playSound(s.marineWeapon.fireSoundId(), pitch, 0.85f, loc, zeroVel);
             } else if (s.mechWeapon != null) {

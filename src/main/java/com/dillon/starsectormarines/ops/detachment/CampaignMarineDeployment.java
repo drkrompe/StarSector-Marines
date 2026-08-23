@@ -104,7 +104,7 @@ public final class CampaignMarineDeployment {
             MarineSecondary secondary = soldier.secondary();
             frozen.add(new MarineLoadout(UnitRole.COMBATANT, null,
                     soldier.primary(), soldier.primaryGrade(), soldier.profile(),
-                    secondary, secondary != null ? secondary.startingAmmo : 0,
+                    secondary, secondary != null ? secondary.startingAmmo() : 0,
                     soldier.id(), armorFamily(soldier.armor()),
                     soldier.armor().bonusHp, soldier.armor().damageReduction,
                     soldier.armor().moveSpeedMult, soldier.armor().incomingAccuracyMult,
