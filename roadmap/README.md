@@ -105,7 +105,13 @@ universe over time, not retrofitted into intel slots.
   with **layered** effect definitions so a weapon composes its own tracer,
   muzzle and impact particles instead of picking one of four fixed recipes.
   W5 (submod merge) is deferred and should share one mechanism with
-  moddable-tilesets Phase 3. See [`moddable-weapons/`](moddable-weapons/overview.md).
+  moddable-tilesets Phase 3. A design pass also pulled `TurretKind` out of
+  the weapon catalog entirely into **W6**: it is a platform, a mount and a
+  gun fused into one enum, already carried by three platforms (static
+  emplacement, shuttle hardpoint, convoy vehicle) that disagree about which
+  of its fields mean anything — so emplacements and structures adopt the
+  three-layer model mechs already use. See
+  [`moddable-weapons/`](moddable-weapons/overview.md).
 - **Surface relief** *(active)* — S1 derivation and the manually accepted S2
   material-aware parallax/water pass are shipped. S3 dynamic ground bump
   lighting is code-complete (`c92d5b9a`) and awaits an in-game smoke/tuning
