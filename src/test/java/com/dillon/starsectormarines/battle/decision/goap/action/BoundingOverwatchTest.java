@@ -72,17 +72,57 @@ public class BoundingOverwatchTest {
     }
 
     @Test
-    public void fourMembersSplitEvenlyIntoStableTeams() {
+    public void fourMembersRemainOneOrganizationalFireTeam() {
         Fixture f = fourMarineFixture();
-        var roles = f.action.roles(f.squad, f.sim);
+        var roles = f.action.assignRoles(f.squad, f.sim, f.members);
 
-        assertEquals(2, roles.size());
-        assertEquals(EnterZone.TEAM_A, roles.get(0).name());
-        assertEquals(2, roles.get(0).count());
-        assertEquals(EnterZone.TEAM_B, roles.get(1).name());
-        assertEquals(2, roles.get(1).count());
+        assertEquals(1, roles.size());
+        assertEquals(EnterZone.TEAM_A, roles.keySet().iterator().next());
+        assertEquals(4, roles.get(EnterZone.TEAM_A).size());
         assertFalse(f.action.permitsOpportunityFire(),
                 "the dispatcher must not fill an intentionally empty bounder fire intent");
+    }
+
+    @Test
+    public void twelveMembersBoundAsOneTeamWithTwoTeamsCovering() {
+        BattleSimulation sim = openSim();
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        List<Long> members = new ArrayList<>();
+        for (int i = 0; i < 12; i++) {
+            long member = sim.spawn(new EntitySpec("m" + i, Faction.MARINE,
+                    UnitType.MARINE, 10, 4 + i).squad(squadId).fireTeam(i / 4));
+            sim.world().setAttackRange(member, 30f);
+            sim.setPath(member, new int[]{10, 4 + i, DEST_X, DEST_Y});
+            members.add(member);
+        }
+        squad.leaderId = members.get(0);
+        squad.aliveMembers = 12;
+        squad.originalSize = 12;
+        squad.centroidX = 10.5f;
+        squad.centroidY = 10f;
+        for (int i = 0; i < 6; i++) {
+            sim.spawn(new EntitySpec("threat" + i, Faction.DEFENDER,
+                    UnitType.MARINE, 35, 7 + i));
+        }
+
+        EnterZone action = new EnterZone(-99, DEST_X, DEST_Y);
+        SquadPlan.Step step = new SquadPlan.Step(action);
+        step.assignments.putAll(action.assignRoles(squad, sim, members));
+        squad.currentPlan = new SquadPlan(List.of(step));
+
+        action.execute(members.get(0), squad, sim);
+        action.execute(members.get(4), squad, sim);
+        action.execute(members.get(8), squad, sim);
+
+        assertEquals(3, step.assignments.size());
+        assertEquals(4, squad.boundingMemberIds.length,
+                "only one four-marine team maneuvers in each phase");
+        assertTrue(Paths.isEmpty(sim.world().path(members.get(0))));
+        assertFalse(Paths.isEmpty(sim.world().path(members.get(4))));
+        assertTrue(Paths.isEmpty(sim.world().path(members.get(8))));
+        assertTrue(sim.combat().fireTargetId(members.get(0)) != 0L);
+        assertTrue(sim.combat().fireTargetId(members.get(8)) != 0L);
     }
 
     @Test

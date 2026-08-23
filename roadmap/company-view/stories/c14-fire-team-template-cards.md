@@ -123,7 +123,7 @@ surface once the designer replaces it.
 
 - C14 changes equipment authorship, not deployment selection or player battle
   orders. Squads remain the command target.
-- `c9-fire-teams-as-the-maneuver-element.md` owns how assigned teams maneuver.
+- `company-view-nouns.md` owns how assigned teams maneuver in battle.
   It may later consume card-derived tactical tags, but C14 does not make gear a
   hidden AI-order channel.
 - `progression-nouns.md` owns catalog breadth, unlocks, grades and individual

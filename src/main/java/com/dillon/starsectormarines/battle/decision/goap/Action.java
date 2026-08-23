@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.decision.goap.scoring.RoleAssigner;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * One operator in the GOAP action library. Implementations are
@@ -94,6 +95,15 @@ public interface Action {
      */
     default List<RoleAssigner.Slot<Long>> roles(Squad squad, BattleView sim) {
         return List.of(new RoleAssigner.Slot<>("any", squad.aliveMembers, c -> 0f));
+    }
+
+    /**
+     * Fills this action's role map. Coordinated actions override this seam to
+     * assign intact fire teams; ordinary actions retain individual scoring.
+     */
+    default Map<String, List<Long>> assignRoles(Squad squad, BattleView sim,
+                                                List<Long> candidates) {
+        return RoleAssigner.assign(candidates, roles(squad, sim));
     }
 
     /**

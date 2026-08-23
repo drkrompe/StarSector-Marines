@@ -40,6 +40,7 @@ public class SquadServiceTest {
 
         assertTrue(squad.hasSquad(id));
         assertEquals(7, squad.squadId(id));
+        assertEquals(0, squad.fireTeamIndex(id));
     }
 
     @Test
@@ -63,6 +64,15 @@ public class SquadServiceTest {
         squad.assignSquad(id, 9);
         assertTrue(squad.hasSquad(id));
         assertEquals(9, squad.squadId(id));
+        assertEquals(0, squad.fireTeamIndex(id));
+    }
+
+    @Test
+    public void allocatePreservesExplicitFireTeamIdentity() {
+        UnitRosterService r = roster();
+        long id = r.spawn(unit("charlie").squad(7).fireTeam(2));
+
+        assertEquals(2, r.squad().fireTeamIndex(id));
     }
 
     @Test

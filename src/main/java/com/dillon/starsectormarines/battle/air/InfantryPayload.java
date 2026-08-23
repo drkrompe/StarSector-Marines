@@ -59,6 +59,7 @@ public enum InfantryPayload implements AirDeliveryPayload {
             }
         }
         marine.squad(mission.squadId);
+        if (tag != null) marine.fireTeam(tag.fireTeamIndex);
         Squad squad = context.squad(mission.squadId);
         if (squad != null) squad.originalSize++;
         long unit = context.spawn(marine);

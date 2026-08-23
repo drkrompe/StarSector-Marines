@@ -204,6 +204,8 @@ public final class BattleComponents {
 
     /** {@link #SQUAD} field 0: the squad id this unit belongs to (INT) — a key into the roster's squad registry. Presence IS membership: a non-member carries no SQUAD, so {@code NO_SQUAD} is never a stored value. */
     public static final int SQUAD_ID = 0;
+    /** {@link #SQUAD} field 1: stable zero-based fire-team index inside the squad (INT). */
+    public static final int SQUAD_FIRE_TEAM_INDEX = 1;
 
     /** {@link #ROLE} field 0: the {@link com.dillon.starsectormarines.battle.unit.UnitRole} ordinal (INT) driving per-tick behavior dispatch. Stored as the ordinal rather than an OBJECT ref so it's a plain primitive column ({@code RoleService} reconstructs the enum). */
     public static final int ROLE_ORDINAL = 0;
@@ -480,8 +482,8 @@ public final class BattleComponents {
      */
     public final ComponentType VISION;
     /**
-     * Optional squad membership — one INT field, the {@code squadId} key into the
-     * roster's squad registry ({@code UnitRosterService.getSquad}). The first
+     * Optional squad membership — the {@code squadId} key into the roster's squad
+     * registry plus the member's stable fire-team index. The first
      * <em>universal-domain</em> capability modeled as archetype presence rather than
      * a sentinel: a unit carries SQUAD <em>iff</em> it belongs to a squad, so "has
      * SQUAD" <em>is</em> membership and the old {@code Squad.NO_SQUAD} sentinel is
@@ -897,7 +899,7 @@ public final class BattleComponents {
         AIR_TURRETS     = world.register(16, "AirTurrets", FieldKind.OBJECT);
         APPEARANCE      = world.register(17, "Appearance", FieldKind.FLOAT, FieldKind.FLOAT);
         VISION          = world.register(18, "Vision", FieldKind.FLOAT, FieldKind.FLOAT);
-        SQUAD           = world.register(19, "Squad", FieldKind.INT);
+        SQUAD           = world.register(19, "Squad", FieldKind.INT, FieldKind.INT);
         ROLE            = world.register(20, "Role", FieldKind.INT);
         HOME            = world.register(21, "Home", FieldKind.INT, FieldKind.INT);
         TASK            = world.register(22, "Task", FieldKind.OBJECT, FieldKind.OBJECT);

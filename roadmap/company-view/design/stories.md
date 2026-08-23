@@ -1,8 +1,8 @@
 # Company view open work
 
-Status: ACTIVE — 12 open stories
+Status: ACTIVE — 11 open stories
 Written: 2026-08-23
-Updated: 2026-08-23 — added C14 after its built-in template-card slice shipped.
+Updated: 2026-08-23 — retired C9 after fire-team maneuver doctrine shipped.
 
 Read `company-view-nouns.md` before changing a company-view story.
 
@@ -14,7 +14,6 @@ Read `company-view-nouns.md` before changing a company-view story.
 | `c5-battle-hud-company-rollup.md` | Planned | Depends on the shipped deployment-identity law and C2. |
 | `c6-after-action-by-fireteam.md` | Planned | Depends on shipped deployment identity; coordinate officer outcomes with C13. |
 | `c8-lift-capacity-and-multi-pass-drops.md` | Ready | Slices 1–3 are folded; only explicit safe rejoin for late arrivals remains. |
-| `c9-fire-teams-as-the-maneuver-element.md` | Planned | Uses the shipped derived fire-team structure without exposing player commands. |
 | `c11-the-contract-board.md` | Planned | Uses the shipped campaign-map home; owns offers, not obligation clocks. |
 | `c12-the-debug-company.md` | Deferred | Slices 1–2 are folded; combined arms waits for player-side vehicle deployment. |
 | `c13-the-task-force.md` | Partial | Slice 1 is folded; per-officer outcomes and scalable assignment remain. |

@@ -94,6 +94,19 @@ class CampaignSquadIdentityTest {
     }
 
     @Test
+    void frozenSeatsCarryTheirRosterDerivedFireTeamIndex() {
+        MarineRoster roster = rosterOfSquads(1);
+        MarineSquad squad = lineSquads(roster).get(0);
+        CampaignMarineDeployment frozen = CampaignMarineDeployment.freezeSelection(
+                roster, Set.of(squad.id()), MarineSquad.CAPACITY);
+
+        for (int seat = 0; seat < MarineSquad.CAPACITY; seat++) {
+            assertEquals(seat / Squad.FIRE_TEAM_SIZE,
+                    frozen.seat(seat).campaignSquad.fireTeamIndex);
+        }
+    }
+
+    @Test
     void eachTagCarriesTheStrengthItsSquadIsAssemblingToward() {
         MarineRoster roster = rosterOfSquads(2);
         List<MarineSquad> line = lineSquads(roster);

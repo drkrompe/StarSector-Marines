@@ -11,7 +11,6 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.decision.UnitBehavior;
-import com.dillon.starsectormarines.battle.decision.goap.scoring.RoleAssigner;
 import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder;
 
 import java.util.ArrayList;
@@ -268,8 +267,8 @@ public final class GoapInfantryBehavior implements UnitBehavior {
                 aliveMembers.add(u);
             }
             for (SquadPlan.Step step : plan.steps()) {
-                List<RoleAssigner.Slot<Long>> slots = step.action.roles(squad, sim);
-                Map<String, List<Long>> assignment = RoleAssigner.assign(aliveMembers, slots);
+                Map<String, List<Long>> assignment = step.action.assignRoles(
+                        squad, sim, aliveMembers);
                 step.assignments.putAll(assignment);
             }
         }

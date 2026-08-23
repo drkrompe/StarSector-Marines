@@ -45,6 +45,7 @@ public final class EntitySpec {
 
     // ---- optional capability seeds (default = absent) ----
     public int squadId = Squad.NO_SQUAD;
+    public int fireTeamIndex = Squad.NO_FIRE_TEAM;
     public UnitRole role = UnitRole.COMBATANT;
     public MarineSecondary secondaryWeapon;
     public int secondaryAmmo;
@@ -95,6 +96,7 @@ public final class EntitySpec {
     }
 
     public EntitySpec squad(int squadId) { this.squadId = squadId; return this; }
+    public EntitySpec fireTeam(int fireTeamIndex) { this.fireTeamIndex = fireTeamIndex; return this; }
     public EntitySpec role(UnitRole role) { this.role = role; return this; }
     public EntitySpec secondary(MarineSecondary weapon, int ammo) { this.secondaryWeapon = weapon; this.secondaryAmmo = ammo; return this; }
     public EntitySpec body(AirBody body) { this.body = body; return this; }

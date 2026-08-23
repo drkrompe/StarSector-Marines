@@ -191,7 +191,7 @@ universe over time, not retrofitted into intel slots.
   S2 and S4-S10 remain, S1's own last acceptance item is an in-game feel pass,
   and the synthesis found one proposed XP-authority cleanup. See
   `progression-nouns.md`; its adjacent board is the open-work list.
-- **Company view** *(active — C14 Slice 1 shipped)* — the player's force as one legible
+- **Company view** *(active — C9 and C14 Slice 1 shipped)* — the player's force as one legible
   hierarchy, company → squad → fire team → marine, in the fleet and in the field.
   The mod already models captains, persistent six-marine squads, and
   named soldiers, but every surface renders them as a flat list and the
@@ -213,7 +213,11 @@ universe over time, not retrofitted into intel slots.
   holds at its LZ rather than feeding itself forward a team at a time.
   Remaining: a derived formation model, the card stack, whereabouts, a
   battle-HUD company rollup, after-action by squad, C8's rejoin state for
-  late arrivals, and fire teams as the AI's maneuver element. The settled
+  late arrivals. **C9 now ships fire teams as the AI's maneuver element:**
+  campaign billets survive the deployment seam, generated squads receive the
+  same stable four-person partition, infantry advances in team-local shapes
+  across a shallow squad arc, one team bounds while its siblings cover, and
+  fix-and-flank keeps a team on axis while another maneuvers. The settled
   decisions: a card is one officer's command, so the rank ladder changes
   (officers command, NCOs lead squads); **a squad becomes twelve marines in
   three four-marine fire teams**, because progression S1's shipped 9x

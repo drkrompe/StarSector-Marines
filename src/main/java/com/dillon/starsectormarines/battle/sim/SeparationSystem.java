@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.squad.FireTeamGroups;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
@@ -12,6 +13,8 @@ import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
 import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Post-movement separation pass. It pushes overlapping ground units apart
@@ -118,6 +121,10 @@ public final class SeparationSystem {
     static final int INFANTRY_FORMATION_OPEN_CLEARANCE = 2;
     /** Below this mean path-heading agreement, members keep their individual orders. */
     static final float FORMATION_MIN_HEADING_COHERENCE = 0.65f;
+    /** Open-ground interval between neighboring fire-team anchors. */
+    static final float FIRE_TEAM_LATERAL_INTERVAL = 4f;
+    /** Wing-team setback that turns three anchors into a shallow advance arc. */
+    static final float FIRE_TEAM_ARC_DEPTH = 1.25f;
     /** Compression-floor radius plus enough slack for one tick of ordinary mech movement. */
     private static final float MECH_FORMATION_QUERY_RADIUS = 2.75f;
 
@@ -233,61 +240,137 @@ public final class SeparationSystem {
         for (Squad squad : roster.getSquads()) {
             FormationProfile profile = formationProfile(squad);
             if (profile == null) continue;
-            int count = gatherMovingFormationMembers(squad.id, dense, liveCount);
-            if (count < 2) continue;
-            sortFormationMembers(count, profile);
+            if (profile == FormationProfile.MECH) {
+                int count = gatherMovingFormationMembers(squad.id, dense, liveCount);
+                accumulateFormation(count, profile, dt,
+                        Float.NaN, Float.NaN, Float.NaN, Float.NaN);
+            } else {
+                accumulateInfantryFireTeams(squad.id, dense, liveCount, dt);
+            }
+        }
+    }
 
-            float centerX = 0f;
-            float centerY = 0f;
-            float forwardX = 0f;
-            float forwardY = 0f;
-            for (int i = 0; i < count; i++) {
-                long member = formationMembers[i];
+    private void accumulateInfantryFireTeams(int squadId, long[] dense,
+                                              int liveCount, float dt) {
+        List<Long> allMembers = new ArrayList<>();
+        for (int i = 0; i < liveCount; i++) {
+            long member = dense[i];
+            if (roster.combat().has(member)
+                    && roster.squad().hasSquad(member)
+                    && roster.squad().squadId(member) == squadId) {
+                allMembers.add(member);
+            }
+        }
+        List<List<Long>> movingTeams = new ArrayList<>();
+        for (FireTeamGroups.Team team : FireTeamGroups.organize(allMembers, roster.squad())) {
+            List<Long> moving = new ArrayList<>();
+            for (long member : team.members()) {
+                if (entityWorld.has(member, components.MOVEMENT) && hasActivePath(member)) {
+                    moving.add(member);
+                }
+            }
+            if (!moving.isEmpty()) movingTeams.add(moving);
+        }
+        if (movingTeams.isEmpty()) return;
+
+        float centerX = 0f;
+        float centerY = 0f;
+        float forwardX = 0f;
+        float forwardY = 0f;
+        int movingCount = 0;
+        for (List<Long> team : movingTeams) {
+            for (long member : team) {
                 centerX += world.x(member);
                 centerY += world.y(member);
                 pathHeading(member, headingScratch);
                 forwardX += headingScratch[0];
                 forwardY += headingScratch[1];
+                movingCount++;
             }
-            centerX /= count;
-            centerY /= count;
-            float forwardLength = (float) Math.sqrt(
-                    forwardX * forwardX + forwardY * forwardY);
-            if (forwardLength / count < FORMATION_MIN_HEADING_COHERENCE) continue;
+        }
+        centerX /= movingCount;
+        centerY /= movingCount;
+        float forwardLength = (float) Math.sqrt(forwardX * forwardX + forwardY * forwardY);
+        boolean sharedArc = movingTeams.size() > 1
+                && forwardLength / movingCount >= FORMATION_MIN_HEADING_COHERENCE;
+        if (sharedArc) {
             forwardX /= forwardLength;
             forwardY /= forwardLength;
+        }
+
+        for (int teamIndex = 0; teamIndex < movingTeams.size(); teamIndex++) {
+            List<Long> team = movingTeams.get(teamIndex);
+            ensureFormationCapacity(team.size());
+            for (int i = 0; i < team.size(); i++) formationMembers[i] = team.get(i);
+            if (!sharedArc) {
+                accumulateFormation(team.size(), FormationProfile.INFANTRY, dt,
+                        Float.NaN, Float.NaN, Float.NaN, Float.NaN);
+                continue;
+            }
+            float ordinal = teamIndex - (movingTeams.size() - 1) * 0.5f;
             float lateralX = -forwardY;
             float lateralY = forwardX;
-            float spacing = preferredFormationSpacing(
-                    formationMembers, count, profile);
-            float openness = (spacing - profile.minimumDistance)
-                    / (profile.openDistance - profile.minimumDistance);
-            if (openness <= 0f) continue;
-            boolean depthPair = count == 2 && compareFormationRoles(
-                    formationMembers[0], formationMembers[1], profile) != 0;
+            float anchorX = centerX + lateralX * ordinal * FIRE_TEAM_LATERAL_INTERVAL
+                    - forwardX * Math.abs(ordinal) * FIRE_TEAM_ARC_DEPTH;
+            float anchorY = centerY + lateralY * ordinal * FIRE_TEAM_LATERAL_INTERVAL
+                    - forwardY * Math.abs(ordinal) * FIRE_TEAM_ARC_DEPTH;
+            accumulateFormation(team.size(), FormationProfile.INFANTRY, dt,
+                    anchorX, anchorY, forwardX, forwardY);
+        }
+    }
 
-            for (int slot = 0; slot < count; slot++) {
-                float slotForward = slotForward(
-                        slot, count, spacing, depthPair);
-                float slotLateral = slotLateral(
-                        slot, count, spacing, depthPair);
-                long member = formationMembers[slot];
-                float targetX = centerX + forwardX * slotForward
-                        + lateralX * slotLateral;
-                float targetY = centerY + forwardY * slotForward
-                        + lateralY * slotLateral;
-                float dx = targetX - world.x(member);
-                float dy = targetY - world.y(member);
-                float distance = (float) Math.sqrt(dx * dx + dy * dy);
-                if (distance < COINCIDENT_EPS) continue;
-                float correction = Math.min(
-                        distance * FORMATION_STIFFNESS * openness,
-                        FORMATION_MAX_SPEED * dt);
-                int denseIndex = roster.indexOf(member);
-                if (denseIndex == UnitRosterService.INVALID_INDEX) continue;
-                impulseX[denseIndex] += dx / distance * correction;
-                impulseY[denseIndex] += dy / distance * correction;
-            }
+    private void accumulateFormation(int count, FormationProfile profile, float dt,
+                                     float anchorX, float anchorY,
+                                     float sharedForwardX, float sharedForwardY) {
+        if (count < 2) return;
+        sortFormationMembers(count, profile);
+        float centerX = 0f;
+        float centerY = 0f;
+        float forwardX = 0f;
+        float forwardY = 0f;
+        for (int i = 0; i < count; i++) {
+            long member = formationMembers[i];
+            centerX += world.x(member);
+            centerY += world.y(member);
+            pathHeading(member, headingScratch);
+            forwardX += headingScratch[0];
+            forwardY += headingScratch[1];
+        }
+        centerX = Float.isNaN(anchorX) ? centerX / count : anchorX;
+        centerY = Float.isNaN(anchorY) ? centerY / count : anchorY;
+        float forwardLength = (float) Math.sqrt(forwardX * forwardX + forwardY * forwardY);
+        if (forwardLength / count < FORMATION_MIN_HEADING_COHERENCE) return;
+        if (!Float.isNaN(sharedForwardX)) {
+            forwardX = sharedForwardX;
+            forwardY = sharedForwardY;
+        } else {
+            forwardX /= forwardLength;
+            forwardY /= forwardLength;
+        }
+        float lateralX = -forwardY;
+        float lateralY = forwardX;
+        float spacing = preferredFormationSpacing(formationMembers, count, profile);
+        float openness = (spacing - profile.minimumDistance)
+                / (profile.openDistance - profile.minimumDistance);
+        if (openness <= 0f) return;
+        boolean depthPair = count == 2 && compareFormationRoles(
+                formationMembers[0], formationMembers[1], profile) != 0;
+        for (int slot = 0; slot < count; slot++) {
+            float slotForward = slotForward(slot, count, spacing, depthPair, profile);
+            float slotLateral = slotLateral(slot, count, spacing, depthPair, profile);
+            long member = formationMembers[slot];
+            float targetX = centerX + forwardX * slotForward + lateralX * slotLateral;
+            float targetY = centerY + forwardY * slotForward + lateralY * slotLateral;
+            float dx = targetX - world.x(member);
+            float dy = targetY - world.y(member);
+            float distance = (float) Math.sqrt(dx * dx + dy * dy);
+            if (distance < COINCIDENT_EPS) continue;
+            float correction = Math.min(distance * FORMATION_STIFFNESS * openness,
+                    FORMATION_MAX_SPEED * dt);
+            int denseIndex = roster.indexOf(member);
+            if (denseIndex == UnitRosterService.INVALID_INDEX) continue;
+            impulseX[denseIndex] += dx / distance * correction;
+            impulseY[denseIndex] += dy / distance * correction;
         }
     }
 
@@ -409,7 +492,7 @@ public final class SeparationSystem {
     }
 
     private static float slotForward(int slot, int count, float spacing,
-                                     boolean depthPair) {
+                                     boolean depthPair, FormationProfile profile) {
         if (count == 2) {
             if (!depthPair) return 0f;
             return slot == 0 ? spacing * 0.5f : -spacing * 0.5f;
@@ -421,12 +504,16 @@ public final class SeparationSystem {
             if (slot == 3) return -spacing * 0.70710677f;
             return 0f;
         }
+        if (profile == FormationProfile.INFANTRY) {
+            float ordinal = slot - (count - 1) * 0.5f;
+            return -Math.abs(ordinal) * spacing * 0.35f;
+        }
         float radius = spacing / (2f * (float) Math.sin(Math.PI / count));
         return (float) Math.cos(2f * Math.PI * slot / count) * radius;
     }
 
     private static float slotLateral(int slot, int count, float spacing,
-                                     boolean depthPair) {
+                                     boolean depthPair, FormationProfile profile) {
         if (count == 2) {
             if (depthPair) return 0f;
             return slot == 0 ? spacing * 0.5f : -spacing * 0.5f;
@@ -440,6 +527,10 @@ public final class SeparationSystem {
             if (slot == 1) return spacing * 0.70710677f;
             if (slot == 2) return -spacing * 0.70710677f;
             return 0f;
+        }
+        if (profile == FormationProfile.INFANTRY) {
+            float ordinal = slot - (count - 1) * 0.5f;
+            return ordinal * spacing * 0.7f;
         }
         float radius = spacing / (2f * (float) Math.sin(Math.PI / count));
         return (float) Math.sin(2f * Math.PI * slot / count) * radius;
