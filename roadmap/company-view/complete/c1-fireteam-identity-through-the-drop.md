@@ -3,9 +3,63 @@
 > A battle squad is currently "whoever rode this dropship." Make it able to
 > name the campaign squad it came from.
 
-**Status:** not started. No dependencies. Enabling slice for
-C5 (`c5-battle-hud-company-rollup.md`) and
-C6 (`c6-after-action-by-fireteam.md`).
+**Status:** shipped 2026-08-22 (`00ace1b0`) — all four slices. Enabling slice
+for C5 (`c5-battle-hud-company-rollup.md`) and
+C6 (`c6-after-action-by-fireteam.md`), both of which can now start.
+
+## What shipped
+
+| Commit | What landed |
+| --- | --- |
+| `00ace1b0` | `CampaignSquadTag` on every seat, `CampaignSquadIndex`, roster-order freeze, NCO seeds `Squad.leaderId` |
+
+### Landed as designed
+
+- Two values cross the seam, not a reference: the label is frozen at deploy
+  time, so a rename back home mid-battle cannot change what the HUD says.
+- Null tag on every generated spawn keeps defenders, militia, employer
+  personnel, debug fixtures and `MarineInsertion` on the old per-sortie
+  minting, untouched.
+- `freeze` walks squads in **roster order**. The previous iteration was over
+  a `Set`, so seat assignment was not reproducible run to run; it is now,
+  and members of one squad stay adjacent.
+- Minting keys on `(campaign squad, landing zone)`. Two zones still means two
+  battle squads — one squad spanning two zones would have leader-pull
+  cohesion dragging members across the map.
+- Slice 4: the campaign NCO takes the battle squad's leader billet outright,
+  closing the slice `c7-organization-and-ranks.md` could not ship without
+  this seam.
+
+### Landed differently, and why
+
+- **One value object, not three fields.** The story specified
+  `campaignSquadId` and `squadLabel` as separate fields on `MarineLoadout`.
+  That class already had four constructors and fourteen parameters on the
+  widest; the id, label, leader flag and expected strength always travel
+  together, so they became `CampaignSquadTag` and one overload.
+- **The `(A)`/`(B)` suffix is applied retroactively.** The story implies both
+  halves are labelled at landing, but at the time the first lands there is
+  nothing to distinguish it from — so it lands plain and gets its `(A)` when
+  a second zone appears. `CampaignSquadIndex` keeps the first landing's id
+  for exactly that.
+- **`Squad.FIRE_TEAM_SIZE` became the single authority for the number.** The
+  battle tier owns it (it is the maneuver element) and
+  `MarineSquad.TEAM_SIZE` reads it from there. The campaign tier already
+  depends on the battle tier, so the direction was available; the
+  alternative was the number 4 written down twice.
+
+### Not verified
+
+Behaviour under a real multi-lift drop is untested in play. The unit tests
+cover the seam (contiguity, determinism, one leader per squad, frozen
+labels, generated personnel untouched) and the index (join, split,
+disjoint squads), but "two squads into a 3-lift manifest" as an end-to-end
+sim assertion was not written — the deboard path needs a running battle,
+and the existing air tests build one shuttle at a time.
+
+---
+
+## Original story
 
 ## Problem
 

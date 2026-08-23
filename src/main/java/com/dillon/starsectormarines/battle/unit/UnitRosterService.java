@@ -20,6 +20,8 @@ import com.dillon.starsectormarines.battle.sim.TaskService;
 import com.dillon.starsectormarines.battle.sim.TurretStateService;
 import com.dillon.starsectormarines.battle.sim.DroneStateService;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
+import com.dillon.starsectormarines.battle.squad.CampaignSquadIndex;
+import com.dillon.starsectormarines.battle.squad.CampaignSquadTag;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
@@ -173,6 +175,9 @@ public final class UnitRosterService {
 
     /** Next squad id to assign on shuttle deboard. Monotonically increasing across the battle's lifetime. */
     private int nextSquadId = 0;
+
+    /** Groups deploying campaign personnel by (campaign squad, LZ) instead of by sortie. */
+    private final CampaignSquadIndex campaignSquads = new CampaignSquadIndex(this::getSquad);
     /** Counter for IDs of marines deboarded from shuttles. Bumped via {@link #nextMarineId()} when {@code AirSystem} deboards. Format: "m0", "m1", ... matches the pre-shuttle setup convention. */
     private int deboardedMarineCount = 0;
 
@@ -805,6 +810,25 @@ public final class UnitRosterService {
             squad.mechSquad = type.isMech();
             squads.put(squad.id, squad);
             return squad.id;
+        }
+    }
+
+    /**
+     * The battle squad a tagged campaign marine joins at this landing zone,
+     * minting one on the squad's first arrival there. This is what lets a
+     * twelve-marine squad cross in three lifts and still be one unit on the
+     * ground; see {@link CampaignSquadIndex} for why the zone is part of the
+     * key. Synchronized on the same monitor as {@link #mintSquad} because it
+     * mints through it.
+     */
+    public int squadForCampaign(Faction faction, UnitType type,
+                                CampaignSquadTag tag, int lzX, int lzY) {
+        synchronized (squads) {
+            int existing = campaignSquads.landed(tag.squadId, lzX, lzY);
+            if (existing != Squad.NO_SQUAD) return existing;
+            int minted = mintSquad(faction, type);
+            campaignSquads.register(tag, lzX, lzY, minted);
+            return minted;
         }
     }
 

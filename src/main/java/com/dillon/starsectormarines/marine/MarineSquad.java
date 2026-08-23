@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.battle.squad.Squad;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,8 +18,8 @@ import java.util.UUID;
  */
 public final class MarineSquad implements Serializable {
 
-    /** Marines in one fire team. */
-    public static final int TEAM_SIZE = 4;
+    /** Marines in one fire team. Defined by the battle tier, which maneuvers with it. */
+    public static final int TEAM_SIZE = Squad.FIRE_TEAM_SIZE;
 
     /** Fire teams in a full squad. */
     public static final int TEAMS_PER_SQUAD = 3;

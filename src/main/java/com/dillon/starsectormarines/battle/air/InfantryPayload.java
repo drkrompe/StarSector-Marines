@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.air;
 
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.squad.CampaignSquadTag;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
@@ -29,7 +30,15 @@ public enum InfantryPayload implements AirDeliveryPayload {
         MarineLoadout loadout = mission.marineLoadout != null && slot < mission.marineLoadout.length
                 ? mission.marineLoadout[slot] : null;
         if (loadout != null) loadout.seedInto(marine);
-        if (mission.squadId == Squad.NO_SQUAD) {
+        CampaignSquadTag tag = loadout != null ? loadout.campaignSquad : null;
+        if (tag != null) {
+            // Campaign personnel group by (campaign squad, LZ), not by sortie, so a
+            // squad that needs three lifts lands as one unit. Writing it back onto
+            // the mission keeps the shuttle's rear-overwatch hover following this
+            // squad; AirSystem's per-cycle reset is harmless because the next
+            // deboard resolves the same squad out of the index again.
+            mission.squadId = context.squadForCampaign(type, tag);
+        } else if (mission.squadId == Squad.NO_SQUAD) {
             mission.squadId = context.mintSquad(type);
             if (mission.rescueMilitiaTransport) {
                 Squad guard = context.squad(mission.squadId);
@@ -53,7 +62,12 @@ public enum InfantryPayload implements AirDeliveryPayload {
         Squad squad = context.squad(mission.squadId);
         if (squad != null) squad.originalSize++;
         long unit = context.spawn(marine);
-        if (squad != null && squad.leaderId == 0L) squad.leaderId = unit;
+        if (squad != null) {
+            // The campaign NCO takes the billet outright; otherwise leadership
+            // still falls to whoever landed first.
+            if (tag != null && tag.leader) squad.leaderId = unit;
+            else if (squad.leaderId == 0L) squad.leaderId = unit;
+        }
         return true;
     }
 }

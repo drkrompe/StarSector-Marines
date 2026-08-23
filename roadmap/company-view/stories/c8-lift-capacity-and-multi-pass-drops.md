@@ -4,9 +4,59 @@
 > organizational unit at all. Every lift splits a squad by arithmetic, and
 > every reinforcement wave mints a brand-new one.
 
-**Status:** not started. Pairs with
-C1 (`c1-fireteam-identity-through-the-drop.md`) — C1 gives the seat an
-identity, C8 makes the lift respect it.
+**Status:** slices 1-3 shipped 2026-08-22 (`00ace1b0`, `6e3908b0`).
+**Slice 4 — the rejoin state for late arrivals — is all that remains.**
+Pairs with C1 (`c1-fireteam-identity-through-the-drop.md`), now complete:
+C1 gave the seat an identity, C8 made the lift respect it.
+
+## Shipped
+
+- **Slice 1 — team-denominated capacity** (`00ace1b0`). `ShuttleType` now
+  declares `teams` and derives `capacity = teams * Squad.FIRE_TEAM_SIZE`, so
+  the table reads in the unit it means and a partial team is unrepresentable
+  rather than merely absent. 1 team for the small hulls, 2 for the
+  freighters, 3 for the Valkyrie, exactly as designed.
+- **Slice 2 — needed no code** (`00ace1b0`). The plan was to scope
+  `AirSystem`'s per-cycle `squadId` reset. Once campaign personnel resolve
+  their squad from C1's `(campaign squad, LZ)` index instead of from
+  `mission.squadId`, the reset stops mattering: the next deboard looks the
+  same squad up again. The mission id is still written back each deboard so
+  the shuttle keeps its rear-overwatch hover on the squad it delivered, and
+  generated waves keep today's behaviour with no branch added for them.
+- **Slice 3 — form-up gate** (`6e3908b0`). `SquadFormUpSystem` clears the
+  advancing assignment of a squad that is still arriving, running once after
+  the commander pass so all six `MissionCommand` implementations are covered
+  at one seam.
+
+### What slice 3 found
+
+The story budgeted for a new posture — "arriving teams rally at the LZ" — and
+none was needed. Two facts about the shipped AI make clearing the assignment
+sufficient:
+
+- `RoutinePatrol` is **DEFENDER-only**, so an unassigned marine squad does not
+  wander off looking for a patrol route.
+- `EliminateEnemiesGoal` needs enemies the squad can actually see, so an
+  unassigned squad with nothing in sight simply stays where it landed, and one
+  that *is* engaged still fights.
+
+So "hold at the LZ" is the ambient behaviour already, and the gate only has to
+stop the commander from overriding it.
+
+The other question the story left open — how long the timeout should be, and
+whether it scales with lifts still inbound — is answered with a flat
+`FORM_UP_TIMEOUT = 60f` and a note. A scan of live shuttle missions for
+"anything still inbound for this squad" would need no constant at all and is
+the better answer if 60s proves wrong in play.
+
+### Known gap, deliberate
+
+A squad split across two landing zones sets `expectedSize` to the whole
+squad's manifest strength at **both** zones, because the manifest cannot know
+which seats will be assigned where. Neither half can reach it, so both wait
+out the timeout before stepping off. The timeout keeps it from deadlocking,
+and single-LZ is the shipped case, but this is the reason a split drop feels
+sluggish if it ever comes up.
 
 ## Decision this story implements
 
@@ -136,13 +186,22 @@ mechanism; the two would fight.
 
 ## Slices
 
-1. **Team-denominated capacity.** `ShuttleType` values, and whatever in
-   `DetachmentResolver` / `getMarineDeploymentCapacity` derives seats from
-   them.
-2. **Scope the per-cycle reset.** Campaign squads persist across cycles;
-   generated waves keep today's behavior.
-3. **Form-up gate** before the commander advances an assembling squad.
-4. **Rejoin state for late arrivals.**
+1. ~~**Team-denominated capacity.**~~ Shipped.
+2. ~~**Scope the per-cycle reset.**~~ Shipped — as nothing; see above.
+3. ~~**Form-up gate** before the commander advances an assembling squad.~~
+   Shipped.
+4. **Rejoin state for late arrivals.** *Remaining.* A marine who lands while
+   their squad is forty cells forward must path to it without soloing into
+   contact, and must not be treated as a full member of an ENGAGED squad's
+   plan the instant they spawn. The machinery exists — `RegroupPosture` plus
+   `InfantryCohesion.cohesionOverride`, selected whenever a downstream
+   posture needs `WITHIN_COHESION_RADIUS`. What is missing is the *intent*: a
+   fresh arrival should be explicitly rejoining rather than inheriting the
+   squad's current plan from spawn. Build it on that cohesion layer; a second
+   cohesion mechanism would fight the first. Note the form-up gate has
+   already removed the worst case (the whole squad advancing while a third of
+   it is still in the air), so what is left is the genuinely-late arrival
+   after a timeout or a replacement wave.
 
 ## Acceptance
 
