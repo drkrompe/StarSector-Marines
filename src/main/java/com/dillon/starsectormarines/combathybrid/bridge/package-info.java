@@ -19,8 +19,7 @@
  * {@code CombatLayeredRenderingPlugin} alongside sim types; nothing outside
  * {@code combathybrid} may.
  *
- * <p><b>Pointer:</b> {@code roadmap/vanilla-combat-bridge/production-architecture.md}
- * for the architectural decisions and the S3-series render-layer stories that grow
- * {@code GroundBattleConfig#sceneLayers}.
+ * <p><b>Pointer:</b> {@code vanilla-combat-bridge-nouns.md} for the adapter
+ * authority and presentation contract.
  */
 package com.dillon.starsectormarines.combathybrid.bridge;

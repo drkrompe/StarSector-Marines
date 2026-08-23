@@ -1,45 +1,41 @@
-# Skybattle / fleet control over the city (parked — future feature)
+# Skybattle Fleet Control
 
-> The fleet fight that happens *above* the ground battle: the player's (and enemy's) ships
-> contesting the airspace over the city while the ground sim plays out below. This is where
-> ship-AI depth, fleet command, and the air⇄ground interaction economy actually matter.
-> **Parked 2026-06-20** — not a probe-stage concern; revisit when the skybattle becomes a
-> real feature rather than a backdrop full of strafing carriers.
+Status: PARKED
 
-## Why this is parked, not built
+Written: 2026-08-23
 
-The S3c probe proved the *mechanism* (vanilla ships engage sim-slaved ground proxies
-natively). Tuning the fleet's *behaviour* — making carriers commit, hold a sensible
-standoff band, prioritise targets, and respond to the ground battle's state — is a feature,
-not a probe. It only pays off once there's a real skybattle to control (player fleet vs.
-enemy fleet over the city, command inputs, win/loss stakes), which doesn't exist yet.
+Read `vanilla-combat-bridge-nouns.md` before reviving this story.
 
-## What we learned (carry-over from S3c lever 1)
+## Current substrate
 
-`CarrierEngagementPlugin` (host/) issues a one-shot `ASSAULT` assignment to steer carriers
-onto the ground band. **Playtest verdict: carriers commit briefly, then drift back** — the
-side's admiral / ship-level caution reassigns them off the waypoint, and a one-shot order
-doesn't stick. The lever ladder, in increasing grip (all confirmed available):
+A one-shot `ASSAULT` assignment can nudge player carriers toward the ground band,
+but normal admiral and ship caution soon pull them away. Carrier takeover proves
+stronger movement authority exists, while the current debug scene has no enemy
+fleet capable of threatening the invasion transport.
 
-1. **`ASSAULT` waypoint assignment** (built) — drifts back; would need a re-issue loop when
-   `getAssignmentFor` goes null, and even then fights the admiral.
-2. **`ShipAIConfig.personalityOverride`** (`reckless`/`aggressive`) — reduces skittishness
-   at the ship level; blunter, persistent.
-3. **`setShipAI` takeover** — own the carrier's movement brain outright (a custom
-   `ShipAIPlugin` holding a standoff band). The real answer if the fantasy is precise
-   fleet positioning; also the S3d landing-takeover mechanism, so it arrives via that thread.
-4. **`setFullAssault(true)`** on the task manager — persistent "all ships attack" mode;
-   simplest but removes all caution (carriers may ram defenses).
+## Goal
 
-## Scope when it wakes up
+Turn the fleet-above layer into a real contested battle with coherent fleet
+command, standoff behavior, and cross-layer consequences.
 
-- Player fleet command over the skybattle (orders, target priority, hold-the-band).
-- A standoff-band model so carriers project fighters without charging the defenses.
-- Air⇄ground economy: the fleet breaking planetary defenses vs. ground forces breaking
-  through, and how each side's progress changes the other's pressure.
-- Enemy fleet presence (today only the player-side carriers exist over a passive ground band).
+## Contract
 
-## Pointers
-- `CarrierEngagementPlugin`, `CombatBridgeSession.enterEngine` — the existing wiring.
-- [`s3c-airspace-gating.md`](s3c-airspace-gating.md) — the probe that surfaced this.
-- [[combat_assignment_target_types]] — assignment-type ↔ target-kind rules.
+- Define which fleet authority owns movement while ground-control mode is active.
+- Give carriers a readable standoff band that projects fighters without turning
+  every order into a suicidal charge.
+- Add enemy fleet pressure and explicit air-to-ground target priorities.
+- Let carrier destruction make undeployed invasion capacity genuinely at risk.
+- Exchange only bounded events/resources with the ground simulation; neither
+  engine mirrors the other's mutable combat state.
+
+## Acceptance
+
+The player can command a contested fleet layer, carriers hold intentional
+positions, both sides exert legible pressure on the ground battle, and loss of
+an orbiting transport resolves the already-declared undeployed-wave stake.
+
+## Out of scope
+
+- Vanilla terrain collision or wall-clamping.
+- Directly piloting a simulation proxy.
+- Ground-unit selection and orders; see `ground-control-mode.md`.

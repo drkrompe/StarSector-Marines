@@ -4,7 +4,7 @@
  * <p><b>Charter:</b> bridges the headless ground battle sim ({@code battle/}) and
  * vanilla's real-time {@code CombatEngineAPI}. Owns the battle-creation plugin,
  * proxy/avatar entities, and per-frame combat plugins that let sim state and
- * vanilla combat interact. See {@code roadmap/vanilla-combat-bridge/}.
+ * vanilla combat interact. See {@code vanilla-combat-bridge-nouns.md}.
  *
  * <p><b>Boundary (change guidance):</b> the dependency arrow points <em>one way</em>
  * — {@code combathybrid} → {@code battle} (reads sim state, slaves proxies, drains
@@ -26,8 +26,7 @@
  *       pick, roster building); deletable once the mission-flow trigger lands.</li>
  * </ul>
  *
- * <p><b>Pointer:</b> {@code roadmap/vanilla-combat-bridge/production-architecture.md} for the
- * code structure and {@code overview.md}/{@code architecture.md} for the concept + verified
- * API facts.
+ * <p><b>Pointer:</b> {@code vanilla-combat-bridge-nouns.md} for the standing
+ * vocabulary, ownership, laws, and extension boundaries.
  */
 package com.dillon.starsectormarines.combathybrid;

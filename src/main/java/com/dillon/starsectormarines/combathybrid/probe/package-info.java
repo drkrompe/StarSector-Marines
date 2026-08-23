@@ -18,8 +18,8 @@
  * No new durable logic should be added here; durable additions belong in {@code host}
  * or {@code bridge}.
  *
- * <p><b>Pointer:</b> {@code roadmap/vanilla-combat-bridge/} for the overall design;
- * {@code stories/s0-battle-bootstrap.md} for the probe's specific verified facts and
- * acceptance criteria.
+ * <p><b>Pointer:</b> {@code vanilla-combat-bridge-nouns.md} for the standing
+ * model and {@code bridge-production-launch.md} for the work that retires this
+ * probe package.
  */
 package com.dillon.starsectormarines.combathybrid.probe;

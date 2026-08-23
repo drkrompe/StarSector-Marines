@@ -2447,7 +2447,7 @@ public final class BattleSetup {
      * don't carry valid cover values; the demolition path re-bakes on death.
      */
     /**
-     * Public so the combat-bridge ({@code combathybrid.S0BattleCreationPlugin}) spawns
+     * Public so the debug combat-bridge creation plugin spawns
      * the planet's defenses through the <em>same</em> path the standalone battle uses —
      * no reimplementation to drift from this one (its earlier copy omitted the cover
      * recompute). Returns the spawned structure units (turrets + drone hubs) in spawn

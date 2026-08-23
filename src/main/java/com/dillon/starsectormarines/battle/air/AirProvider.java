@@ -4,16 +4,18 @@ package com.dillon.starsectormarines.battle.air;
  * Declares who owns the air layer for a {@link com.dillon.starsectormarines.battle.sim.BattleSimulation}
  * — the marine drop-ships and fighter passes "above" the ground battle.
  *
- * <p>This is the host-selection seam of the vanilla-combat-bridge: a standalone
- * battle runs its own air; the combat-bridge host hands the air off to the real
- * vanilla ships flying in the {@code CombatEngineAPI} layer above the ground sim.
+ * <p>This is an explicit host-selection seam. Standalone battles and the current
+ * vanilla-combat bridge use internal simulation air; the bridge's vanilla ships
+ * add pressure without replacing the sim's shuttles or flybys. An external-air
+ * host remains a distinct supported contract, not the current bridge mode. See
+ * {@code vanilla-combat-bridge-nouns.md}.
  *
  * <ul>
  *   <li><b>{@link #INTERNAL}</b> (default) — the sim's own {@code AirSystem}
  *       ticks composed shuttle entities through their mission state, and flyby
  *       passes draw from the installed {@code FlybyRoster}. The standalone
- *       {@code BattleScreen} host. All {@code createX} factories and tests run
- *       in this mode.</li>
+ *       {@code BattleScreen} host and the current vanilla-combat bridge both
+ *       use this mode. All {@code createX} factories and tests run in it.</li>
  *   <li><b>{@link #EXTERNAL}</b> — the host owns the air. The internal air tick is
  *       skipped, and installing internal air ({@code spawnShuttle} / {@code attachAirTurrets}
  *       / {@code setFlybyRoster}) is a contract violation that fails loud. External

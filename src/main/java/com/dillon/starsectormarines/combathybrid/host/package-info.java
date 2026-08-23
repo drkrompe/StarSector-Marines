@@ -16,7 +16,7 @@
  * caller). Session types are the long-lived production surface; probe types are
  * throwaway scaffolding and will be deleted when the mission-flow trigger lands.
  *
- * <p><b>Pointer:</b> {@code roadmap/vanilla-combat-bridge/production-architecture.md}
- * for the session lifecycle and the spectator-canvas design decisions.
+ * <p><b>Pointer:</b> {@code vanilla-combat-bridge-nouns.md} for the session
+ * lifecycle and spectator-host laws.
  */
 package com.dillon.starsectormarines.combathybrid.host;

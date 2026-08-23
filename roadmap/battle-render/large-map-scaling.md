@@ -123,5 +123,5 @@ In the bridge this also pairs with the spectator free-cam's `visibleWidth` clamp
 - `render2d/DecalAccumulator` — the world-sized decal FBO. (`LightAccumulator` removed 2026-06-29.)
 - `DevConfig.DECAL_FBO_PX_PER_CELL` (32), `DECAL_SOURCE_CAP` (25k).
 - `battle/nav/GridPathfinder` (flat A*), `battle/.../ZoneDetector` (O(W×H) rebuild).
-- `roadmap/vanilla-combat-bridge/stories/s3j-fx-fbo-retarget.md` — the deferred DECALS retarget.
+- `s3j-fx-fbo-retarget.md` — the deferred bridge DECALS retarget.
 - ~~`roadmap/backlog.md` — "Deprecate the LIGHTING layer" (frees the twin FBO).~~ ✅ completed 2026-06-29.

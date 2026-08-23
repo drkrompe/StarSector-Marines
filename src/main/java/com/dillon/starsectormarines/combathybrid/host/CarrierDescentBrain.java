@@ -12,23 +12,20 @@ import org.apache.log4j.Logger;
 import org.lwjgl.util.vector.Vector2f;
 
 /**
- * S3d descent foundation — the <b>{@code setShipAI} takeover brain</b>. Installed onto one real
- * vanilla carrier mid-combat (by {@link CarrierDescentPlugin}) to fly it from the fleet down to a
- * point in the ground band, overriding the side's admiral. This is the "schedule" phase of the S3d
- * landing handoff: get the ship to the touchdown point. The visible scale-down + the
- * {@code removeEntity}/owned-sprite swap + {@code sim.deliverSquad} are later S3d steps; this slice
- * de-risks only the load-bearing unknown — <em>can a custom {@link ShipAIPlugin} reliably steer a
- * live vanilla ship (real mass / turn rate / physics) to a chosen point, against the admiral?</em>
+ * The <b>{@code setShipAI} takeover brain</b> used by the drop invasion. Installed onto one real
+ * vanilla carrier mid-combat (by {@link CarrierDescentPlugin}), it flies the ship from the fleet
+ * to an orbit point over the ground band while overriding the side's admiral. Once settled, the
+ * host launches sim-native dropships; the carrier remains a vanilla entity throughout.
  *
- * <p><b>Grip tier 2</b> (per {@code roadmap/vanilla-combat-bridge/next-session.md}): we own the
- * brain but vanilla physics still flies the ship. Each frame the brain issues {@link ShipCommand}s —
+ * <p>The brain owns intent while vanilla physics still flies the ship. Each frame it issues
+ * {@link ShipCommand}s —
  * turn toward the target, thrust only while roughly aligned, and bleed speed while turning or near
  * the target so it arrives instead of orbiting. (Tier 3, the per-frame {@code getLocation().set}
  * puppet, is what proxies do; it's deterministic but ignores physics, so it doesn't answer the
- * tier-2 question this probe exists to answer.)
+ * physical-arrival behavior.) See {@code vanilla-combat-bridge-nouns.md}.
  *
  * <p>The brain never issues {@link ShipCommand#FIRE}, so the taken-over carrier stops shooting while
- * it peels off to land — fine for a ship leaving the fight. {@link #getAIFlags()} / {@link
+ * it maneuvers to and holds its orbit point. {@link #getAIFlags()} / {@link
  * #getConfig()} return fresh self-owned instances; the rest of the interface is no-op plumbing.
  */
 @DebugOnly

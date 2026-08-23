@@ -48,15 +48,17 @@ universe over time, not retrofitted into intel slots.
   Its immediate work is the S8 mixed-detachment live-play acceptance; capacity
   progression and drop geography remain planned/deferred. See
   `command-powers-nouns.md` and its adjacent open-story board. A second, now
-  **active** track —
-  [`vanilla-combat-bridge/`](vanilla-combat-bridge/overview.md) — hooks the headless
+  **active** track — the vanilla combat bridge described by
+  `vanilla-combat-bridge-nouns.md` — hooks the headless
   sim and vanilla `CombatEngineAPI` together (the reverse of how the mod is built).
   Past its probes: sim-authoritative *proxy targets* are proven, and a live Conquest
   ground battle now runs below a real vanilla fleet fight. The product it builds toward
   is the **drop-ship invasion** (S3d) — **the full D1–D5 ladder shipped 2026-06-27**: click a drop
   zone → carrier establishes orbit → timed dropship waves fall through AA into a threat-scaled scatter
   → marines fight; the fleet you bring is the invasion depth, and losing the transport is the stake.
-  Remaining: extraction/dustoff + the skybattle feature (the carrier-death source that arms the stake).
+  Remaining: production mission launch and host acceptance, a player-facing
+  ground-control mode, extraction/dustoff, and the skybattle feature (the
+  carrier-death source that arms the stake).
   The active Air domain is described by `air-nouns.md`: shuttles already live
   as composed world entities, fighters already use hull-derived body motion but
   still await their final flyby-to-world ownership fold, and overhead ships
