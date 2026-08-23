@@ -80,6 +80,7 @@ public final class UiWorkbenchScreen implements Screen {
                 .padding(12f)
                 .gap(12f);
         header.child(label("title", "RETAINED UI WORKBENCH", ACCENT)
+                .addClass("heading")
                 .grow(1f));
         viewportReadout = label("viewport-readout", "", EDGE)
                 .preferredWidth(520f)
@@ -101,19 +102,20 @@ public final class UiWorkbenchScreen implements Screen {
                 .preferredHeight(48f)
                 .padding(7f)
                 .gap(10f);
-        footer.child(button("back", "BACK TO COMPANY HQ", 188f,
+        footer.child(button("back", "Back to Company HQ",
                 () -> context.goTo(ScreenId.COMPANY_HQ)));
-        UiElement standardTheme = button("theme-standard", "STANDARD", 116f,
+        UiElement standardTheme = button("theme-standard", "Standard",
                 () -> selectTheme(false));
-        UiElement contrastTheme = button("theme-contrast", "HIGH CONTRAST", 154f,
+        UiElement contrastTheme = button("theme-contrast", "High Contrast",
                 () -> selectTheme(true));
         themeButtons.add(standardTheme);
         themeButtons.add(contrastTheme);
         footer.child(standardTheme);
         footer.child(contrastTheme);
         footer.child(label("retained-status",
-                "RETAINED TREE  |  CASCADE + REAL-TIME MOTION  |  U3 PROOF",
-                GOOD).grow(1f).align(UiAlign.STRETCH, UiAlign.CENTER));
+                "Retained tree  |  Cascade + real-time motion  |  U3 proof",
+                GOOD).preferredWidth(0f).grow(1f)
+                .align(UiAlign.STRETCH, UiAlign.CENTER));
         root.child(footer);
 
         stampScope(root, "ui-workbench");
@@ -132,18 +134,19 @@ public final class UiWorkbenchScreen implements Screen {
                 .padding(10f)
                 .gap(7f);
         pane.child(label("formation-heading", "COMPANY / SQUAD / FIRE TEAM", EDGE)
+                .addClass("heading")
                 .preferredHeight(34f));
-        pane.child(label("squad", "1ST SQUAD  ·  12 / 12 RTD", TEXT)
+        pane.child(label("squad", "1st Squad  ·  12 / 12 RTD", TEXT)
                 .preferredHeight(34f)
                 .addClass("surface-dark")
                 .padding(7f));
 
-        String[] teams = {"ALPHA", "BRAVO", "CHARLIE"};
-        String[] issues = {"LINE TEMPLATE", "RECON TEMPLATE", "FIRE SUPPORT"};
+        String[] teams = {"Alpha", "Bravo", "Charlie"};
+        String[] issues = {"Line template", "Recon template", "Fire support"};
         for (int i = 0; i < teams.length; i++) {
             final int index = i;
             UiElement team = button("team-" + i,
-                    teams[i] + "  ·  4 RTD  ·  " + issues[i], Float.NaN,
+                    teams[i] + "  ·  4 RTD  ·  " + issues[i],
                     () -> selectTeam(index)).preferredHeight(56f);
             teamButtons.add(team);
             pane.child(team);
@@ -161,6 +164,7 @@ public final class UiWorkbenchScreen implements Screen {
                 .padding(10f)
                 .gap(7f);
         pane.child(label("template-heading", "TEMPLATE LIBRARY", EDGE)
+                .addClass("heading")
                 .preferredHeight(34f));
         UiElement list = new UiElement("template-list")
                 .layout(UiLayout.COLUMN)
@@ -169,18 +173,18 @@ public final class UiWorkbenchScreen implements Screen {
                 .padding(2f)
                 .overflow(Overflow.SCROLL);
         String[] templates = {
-                "LINE  ·  FIELDED 2  ·  READY 3",
-                "RECON  ·  FIELDED 1  ·  READY 1",
-                "FIRE SUPPORT  ·  FIELDED 1  ·  READY 0",
-                "BREACH  ·  FIELDED 0  ·  READY 1",
-                "BOARDING  ·  FIELDED 0  ·  READY 2",
-                "ANTI-ARMOR  ·  FIELDED 0  ·  READY 0",
-                "SECURITY  ·  FIELDED 0  ·  READY 4",
-                "HAZARD RESPONSE  ·  FIELDED 0  ·  READY 1"
+                "Line  ·  Fielded 2  ·  Ready 3",
+                "Recon  ·  Fielded 1  ·  Ready 1",
+                "Fire Support  ·  Fielded 1  ·  Ready 0",
+                "Breach  ·  Fielded 0  ·  Ready 1",
+                "Boarding  ·  Fielded 0  ·  Ready 2",
+                "Anti-Armor  ·  Fielded 0  ·  Ready 0",
+                "Security  ·  Fielded 0  ·  Ready 4",
+                "Hazard Response  ·  Fielded 0  ·  Ready 1"
         };
         for (int i = 0; i < templates.length; i++) {
             final int index = i;
-            UiElement template = button("template-" + i, templates[i], Float.NaN,
+            UiElement template = button("template-" + i, templates[i],
                     () -> selectTemplate(index)).preferredHeight(50f);
             templateButtons.add(template);
             list.child(template);
@@ -203,6 +207,7 @@ public final class UiWorkbenchScreen implements Screen {
                 .overflow(Overflow.SCROLL)
                 .align(UiAlign.STRETCH, UiAlign.STRETCH);
         content.child(label("workspace-heading", "REFIT TRANSACTION", EDGE)
+                .addClass("heading")
                 .preferredHeight(34f));
         selectedTeamReadout = label("selected-team", "", ACCENT)
                 .preferredHeight(38f)
@@ -219,11 +224,11 @@ public final class UiWorkbenchScreen implements Screen {
                 .layout(UiLayout.ROW)
                 .preferredHeight(48f)
                 .gap(6f);
-        states.child(button("state-focus", "TAB: FOCUS", Float.NaN, () -> { }).grow(1f));
-        states.child(button("state-live", "HOVER / PRESS", Float.NaN, () -> { }).grow(1f));
-        states.child(button("state-selected", "SELECTED", Float.NaN, () -> { })
+        states.child(button("state-focus", "Tab: Focus", () -> { }).grow(1f));
+        states.child(button("state-live", "Hover / Press", () -> { }).grow(1f));
+        states.child(button("state-selected", "Selected", () -> { })
                 .grow(1f).selected(true));
-        states.child(button("state-disabled", "DISABLED", Float.NaN, () -> { })
+        states.child(button("state-disabled", "Disabled", () -> { })
                 .grow(1f).disabled(true));
         content.child(states);
 
@@ -250,9 +255,9 @@ public final class UiWorkbenchScreen implements Screen {
                 });
         content.child(transactionCanvas);
 
-        content.child(issueRow("free", "FREE STOCK", "18 rifles  ·  4 armor  ·  1 support"));
-        content.child(issueRow("returns", "RETURNED ISSUE", "+4 rifles  ·  +4 armor"));
-        content.child(issueRow("required", "REQUIRED ISSUE", "-3 rifles  ·  -4 armor  ·  -1 support"));
+        content.child(issueRow("free", "Free stock", "18 rifles  ·  4 armor  ·  1 support"));
+        content.child(issueRow("returns", "Returned issue", "+4 rifles  ·  +4 armor"));
+        content.child(issueRow("required", "Required issue", "-3 rifles  ·  -4 armor  ·  -1 support"));
         transactionReadout = label("transaction-result", "", GOOD)
                 .preferredHeight(46f)
                 .addClass("good-surface")
@@ -265,7 +270,7 @@ public final class UiWorkbenchScreen implements Screen {
                 .align(UiAlign.STRETCH, UiAlign.END));
         stack.child(content);
 
-        UiElement overlay = label("stack-proof", "STACK OVERLAY", EDGE)
+        UiElement overlay = label("stack-proof", "Stack overlay", EDGE)
                 .preferredSize(178f, 34f)
                 .align(UiAlign.END, UiAlign.END)
                 .addClass("edge-surface")
@@ -283,10 +288,10 @@ public final class UiWorkbenchScreen implements Screen {
         float nodeHeight = 62f;
         float top = 42f;
         float[] x = {28f, width * 0.28f, width * 0.54f, width - nodeWidth - 28f};
-        String[] labels = {"FREE STOCK", "RETURNS", "REQUIRED", "VALID ISSUE"};
+        String[] labels = {"Free Stock", "Returns", "Required", "Valid Issue"};
         Color[] colors = {palette.button(), palette.selected(), palette.danger(), palette.valid()};
 
-        canvas.text(font, "CAPTURED CANVAS DRAG  ·  MOVE ISSUE MARKER",
+        canvas.text(font, "Captured canvas drag  ·  Move issue marker",
                 24f, 12f, palette.muted());
         for (int index = 0; index < x.length; index++) {
             if (index > 0) {
@@ -338,10 +343,9 @@ public final class UiWorkbenchScreen implements Screen {
                 .overflow(Overflow.HIDDEN);
     }
 
-    private static UiElement button(String id, String text, float width, Runnable action) {
+    private static UiElement button(String id, String text, Runnable action) {
         return new UiElement(id)
                 .tag(UiTag.BUTTON)
-                .preferredWidth(width)
                 .text(text)
                 .onClick(action);
     }
@@ -379,10 +383,10 @@ public final class UiWorkbenchScreen implements Screen {
     }
 
     private void updateSelectionReadouts() {
-        String[] teams = {"ALPHA", "BRAVO", "CHARLIE"};
+        String[] teams = {"Alpha", "Bravo", "Charlie"};
         String[] templates = {
-                "LINE", "RECON", "FIRE SUPPORT", "BREACH",
-                "BOARDING", "ANTI-ARMOR", "SECURITY", "HAZARD RESPONSE"
+                "Line", "Recon", "Fire Support", "Breach",
+                "Boarding", "Anti-Armor", "Security", "Hazard Response"
         };
         for (int i = 0; i < teamButtons.size(); i++) {
             teamButtons.get(i).selected(i == selectedTeam);
@@ -394,21 +398,21 @@ public final class UiWorkbenchScreen implements Screen {
             themeButtons.get(i).selected(highContrast == (i == 1));
         }
         if (selectedTeamReadout != null) {
-            selectedTeamReadout.text("TARGET  ·  1ST SQUAD / " + teams[selectedTeam]);
+            selectedTeamReadout.text("Target  ·  1st Squad / " + teams[selectedTeam]);
         }
         if (selectedTemplateReadout != null) {
-            selectedTemplateReadout.text("CANDIDATE  ·  " + templates[selectedTemplate] + " TEMPLATE");
+            selectedTemplateReadout.text("Candidate  ·  " + templates[selectedTemplate] + " template");
         }
         if (transactionReadout != null) {
-            transactionReadout.text("VALID  ·  ISSUE " + templates[selectedTemplate]
-                    + " TO " + teams[selectedTeam] + " IN ONE ATOMIC TRANSACTION");
+            transactionReadout.text("Valid  ·  Issue " + templates[selectedTemplate]
+                    + " to " + teams[selectedTeam] + " in one atomic transaction");
         }
     }
 
     private void updateViewportReadout() {
         if (viewportReadout == null || viewport == null) return;
         viewportReadout.text(String.format(Locale.ROOT,
-                "GRANTED %.1f x %.1f  ·  DOCUMENT ORIGIN TOP-LEFT",
+                "Granted %.1f x %.1f  ·  Document origin top-left",
                 viewport.width(), viewport.height()));
     }
 

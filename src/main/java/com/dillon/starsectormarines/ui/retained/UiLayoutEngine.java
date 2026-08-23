@@ -12,6 +12,12 @@ import java.util.List;
  */
 public final class UiLayoutEngine {
 
+    private final UiTextMeasurer text;
+
+    UiLayoutEngine(UiTextMeasurer text) {
+        this.text = text;
+    }
+
     /**
      * The clip rectangle an element's children inherit.
      *
@@ -32,6 +38,8 @@ public final class UiLayoutEngine {
 
     private void arrange(UiElement element, Rect rect, float containingBlockWidth) {
         element.box().place(rect, element.resolvedPadding(containingBlockWidth), element.borderWidth());
+        element.clearLayoutDirty();
+        element.clearDescendantLayoutDirty();
         Rect content = element.box().contentBox();
         List<UiElement> children = element.children();
         element.box().scrollHeight(0f);
@@ -115,25 +123,31 @@ public final class UiLayoutEngine {
         }
     }
 
-    private static float preferredMain(UiElement element, boolean horizontal,
-                                       float widthBasis, float heightBasis) {
+    private float preferredMain(UiElement element, boolean horizontal,
+                                float widthBasis, float heightBasis) {
         float preferred = preferredAxis(element, horizontal, widthBasis, heightBasis);
         return Float.isNaN(preferred) ? 0f : Math.max(0f, preferred);
     }
 
-    private static float preferredCross(UiElement element, boolean horizontal,
-                                        float widthBasis, float heightBasis) {
+    private float preferredCross(UiElement element, boolean horizontal,
+                                 float widthBasis, float heightBasis) {
         return preferredAxis(element, !horizontal, widthBasis, heightBasis);
     }
 
-    private static float preferredAxis(UiElement element, boolean horizontal,
-                                       float widthBasis, float heightBasis) {
+    private float preferredAxis(UiElement element, boolean horizontal,
+                                float widthBasis, float heightBasis) {
         float preferred = horizontal ? element.resolvedPreferredWidth(widthBasis)
                 : element.resolvedPreferredHeight(heightBasis, widthBasis);
-        if (Float.isNaN(preferred) && element.tag() == UiTag.CANVAS) {
+        if (!Float.isNaN(preferred)) return preferred;
+        if (element.tag() == UiTag.CANVAS) {
             return horizontal ? element.canvasWidth() : element.canvasHeight();
         }
-        return preferred;
+        UiTextMeasurer.Measurement measured = text.measure(element);
+        if (measured.font() == null) return Float.NaN;
+        Insets padding = element.resolvedPadding(widthBasis);
+        float frame = (horizontal ? padding.horizontal() : padding.vertical())
+                + element.borderWidth() * 2f;
+        return (horizontal ? measured.width() : measured.lineHeight()) + frame;
     }
 
     private static float resolveStackExtent(float preferred, float available, UiAlign align) {
