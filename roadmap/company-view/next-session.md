@@ -4,11 +4,11 @@
 
 Track opened 2026-08-22 from an inventory of the shipped squad AI and
 commander ("squad of squads") tiers. Eleven stories contracted (C1–C11).
-**Three have shipped work.** `c7-organization-and-ranks.md` and
+**Four have shipped work.** `c7-organization-and-ranks.md` and
 `c1-fireteam-identity-through-the-drop.md` are complete;
 `c8-lift-capacity-and-multi-pass-drops.md` has three of four slices in, and
-`c10-company-between-contracts.md` has two of four (`2b959e44`,
-`b204c237`). Everything else is design stage.
+`c10-company-between-contracts.md` is complete — all four slices, now in
+`complete/`. Everything else is design stage.
 
 The organization is now settled in code, so every later story renders a
 real hierarchy rather than a proposed one:
@@ -83,9 +83,11 @@ standing pane led by runway in months of payroll. The spike question slice 1
 existed to answer is **settled in game**: the ability opens the screen and the
 host dismisses cleanly. A follow-up (`8ac4116a`) fixed the pane printing an
 unknown upkeep as `Cr. 0` and gave the debug panel a day-skip that actually
-moves the clock. **Slice 3 is in** (`20f498de`): the clocks column, and with it
-somewhere for G32's **Hold** to come back to. Slice 4 (the roster column and the
-armory route) is the last one. `c11-the-contract-board.md` was
+moves the clock. **Slice 3** (`20f498de`) landed the clocks column — and with it
+somewhere for G32's **Hold** to come back to — and **slice 4** (`822065cd`) the
+roster column and the armory route. The story is closed; the next thing to touch
+this screen is C3's card stack landing in the ROSTER column, or
+C11 (`c11-the-contract-board.md`) adding the board. `c11-the-contract-board.md` was
 contracted 2026-08-22 and takes lapsing offers off that pane.
 
 ~~C7 — Organization and ranks~~ **shipped 2026-08-22**; the record is in
@@ -213,6 +215,8 @@ and nothing was tuned to compensate.
   **Skip 1 / 7 / 30 days** via `CampaignClock.skipDays`
 - `20f498de` — C10 slice 3: obligations only, soonest first; Respond routes
   through the presenter
+- `822065cd` — C10 slice 4: the people move under the ROSTER header; formation
+  band, next recovery, and the armory door
 - `2e187f54` — C7 slices 1+2: squad of twelve in three fire teams; officer
   ranks counted in squads
 - `976bb87a` — C7 slice 3: `EnlistedRank`, squad leaders, deterministic
