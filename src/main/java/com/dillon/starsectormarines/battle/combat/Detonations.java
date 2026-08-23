@@ -156,7 +156,7 @@ public class Detonations {
                 aoeScratch.add(u);
             }
             for (int i = 0, n = aoeScratch.size(); i < n; i++) {
-                damageService.applyDamage(aoeScratch.getLong(i), det.shooterId, det.damage, det.vsTurretMult, 1f);
+                damageService.applyDamage(aoeScratch.getLong(i), det.shooterId, det.damage, det.penetration, 1f);
             }
             aoeScratch.clear();
             int rCells = (int) Math.ceil(det.aoeRadius);

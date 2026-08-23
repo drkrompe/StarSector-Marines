@@ -75,7 +75,7 @@ above stays half-answered.
 
 The campaign-map-home law in `company-view-nouns.md` owns it instead: an
 ability-bar button opens the planet-free host G32
-(`g32-player-event-popup.md`) shipped,
+(`contracts-nouns.md`) shipped,
 on a `COMPANY_HQ` screen whose company pane is where C3's stack and this
 story's chips land. C4 keeps the whereabouts model and the chips; the entry
 point is not its work.
@@ -113,8 +113,9 @@ point is not its work.
 ## Out of scope
 
 - Changing stationing mechanics, terms, or the incident payloads
-  (`campaign/contracts/` owns those, and
-  G31/G32 are actively reshaping them — read that track's `next-session.md`
+  (`contracts-nouns.md` owns those, and
+  G31/G32 are shipped — read `contracts-nouns.md` and
+  `contracts-live-acceptance.md`
   before touching the term/deadline fields).
 - Recalling a stationed team from this screen. That is a mutation with real
   contract consequences; if it is wanted, it belongs to the contracts

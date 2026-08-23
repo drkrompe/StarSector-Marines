@@ -9,7 +9,7 @@ patron's promotion progress — the first rung of the impact ladder
 
 Builds directly on Slice A's genesis seeding (the contested stakes this slice
 moves) and the contract bridge from
-[`../../contracts/complete/contracts-loop.md`](../../contracts/complete/contracts-loop.md)
+`contracts-nouns.md`
 (the `MissionResolver` writeback path it hooks into).
 
 ## What landed

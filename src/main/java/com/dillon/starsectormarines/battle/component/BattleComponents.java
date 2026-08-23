@@ -16,8 +16,8 @@ import com.dillon.starsectormarines.engine.ecs.Query;
  * alive→dead; Health is live-only), per the committed decomposition in
  * {@code ecs-nouns.md}. Registered capabilities include the
  * corpse archetype plus the mandatory live capabilities ({@link #POSITION},
- * {@link #HEALTH}, {@link #COMBAT}), the optional live ones ({@link #MOVEMENT},
- * {@link #AI_STATE}, {@link #SECONDARY_WEAPON}), the universal {@link #VISION}
+ * {@link #HEALTH}, {@link #COMBAT}), the optional live ones ({@link #ARMOR},
+ * {@link #MOVEMENT}, {@link #AI_STATE}, {@link #SECONDARY_WEAPON}), the universal {@link #VISION}
  * sight stats and {@link #ROLE} dispatch tag, and the optional post-death
  * {@link #CRASHING}. Every unit spawns
  * into the world as {@code {IDENTITY, POSITION, HEALTH, COMBAT, VISION, ROLE}}, plus
@@ -134,6 +134,13 @@ public final class BattleComponents {
     public static final int HEALTH_DAMAGE_TAKEN_MULT = 2;
     /** Field 3: multiplier applied to incoming ballistic hit rolls; 1 = unmodified. */
     public static final int HEALTH_INCOMING_ACCURACY_MULT = 3;
+
+    /** {@link #ARMOR} field 0: current armor protection remaining (FLOAT). */
+    public static final int ARMOR_CURRENT = 0;
+    /** {@link #ARMOR} field 1: maximum armor protection (FLOAT). */
+    public static final int ARMOR_MAX = 1;
+    /** {@link #ARMOR} field 2: resistance compared with an attack's penetration (FLOAT). */
+    public static final int ARMOR_RATING = 2;
 
     /** {@link #COMBAT} field 0: base attack damage (FLOAT). */
     public static final int COMBAT_ATTACK_DAMAGE = 0;
@@ -390,6 +397,13 @@ public final class BattleComponents {
      * by-id accessors.
      */
     public final ComponentType HEALTH;
+    /**
+     * Optional live protection state — {@code float current, max, rating}.
+     * Presence means the actor has an authored armor capability, including while
+     * its current pool is depleted; armorless actors omit the component. Removed
+     * in the corpse transmute alongside {@link #HEALTH}.
+     */
+    public final ComponentType ARMOR;
     /**
      * Live-combat state — {@code float attackDamage, attackRange, accuracy,
      * cooldownTimer; long targetId; int burstRemaining; float burstTimer; long
@@ -812,6 +826,14 @@ public final class BattleComponents {
     public final Query layeredSprites;
 
     /**
+     * Every live actor with authored armor state ({@code {HEALTH, ARMOR}}).
+     * A depleted but living actor remains in this query because component
+     * presence expresses the armor capability; the corpse transmute removes
+     * both live-only components.
+     */
+    public final Query armoredActors;
+
+    /**
      * Every entity currently crashing ({@code {CRASHING}}) — the falling drones the
      * crash system advances each tick and the drone renderer draws as fading hulls.
      * Required-only on {@code CRASHING}; the carrier is a corpse-archetype entity
@@ -927,6 +949,8 @@ public final class BattleComponents {
         TELEMETRY       = world.register(34, "Telemetry",
                 FieldKind.INT, FieldKind.INT, FieldKind.FLOAT, FieldKind.FLOAT,
                 FieldKind.FLOAT, FieldKind.INT, FieldKind.INT);
+        ARMOR          = world.register(35, "Armor",
+                FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, SPRITE, CORPSE}, null);
         liveSprites = world.query(
@@ -934,6 +958,7 @@ public final class BattleComponents {
         layeredSprites = world.query(
                 new ComponentType[]{IDENTITY, POSITION, SPRITE,
                         LAYERED_ANIMATION, HEALTH}, null);
+        armoredActors = world.query(new ComponentType[]{HEALTH, ARMOR}, null);
         crashing = world.query(new ComponentType[]{CRASHING}, null);
         mechLoadouts = world.query(new ComponentType[]{MECH_LOADOUT}, new ComponentType[]{CORPSE});
         airCraft = world.query(new ComponentType[]{AIR_IDENTITY, KINEMATICS, SHUTTLE_MISSION}, null);

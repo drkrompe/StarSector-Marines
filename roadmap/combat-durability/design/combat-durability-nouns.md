@@ -1,8 +1,8 @@
 # Combat durability
 
-Status: ACTIVE — the armor-and-structure model is contracted; implementation is in progress.
+Status: ACTIVE — armor-and-structure resolution is live; decision, evidence, and tuning follow-ons remain.
 Written: 2026-08-23
-Updated: 2026-08-23 — landed the shared allocation-free resolution calculation; live component wiring remains D1 work.
+Updated: 2026-08-23 — shipped the optional armor capability, penetration transport, shared live resolver, and initial durability profiles.
 
 ## Purpose
 
@@ -71,10 +71,12 @@ types, armor regeneration, localized facings, or ablative segments. Those are
 possible extensions only after a weapon or platform demonstrates a gameplay
 need that the two-pool model cannot express.
 
-`DurabilityModel` is the shipped pure calculation boundary. It writes into
-caller-owned result scratch so live application can remain allocation-free;
-component storage, attack migration, and live resolver wiring remain active D1
-work.
+`DurabilityModel` is the shared calculation boundary for prediction and live
+application. It writes into caller-owned result scratch so the serialized
+damage path stays allocation-free. `ARMOR` is an optional ECS capability;
+armorless actors omit it. `DamageService` carries penetration through its SoA
+mailbox, and `DamageResolver` applies the shared result after cover and generic
+incoming-damage modifiers.
 
 ## Ownership and flow
 
@@ -120,6 +122,11 @@ selected merely because a target's type once counted as hardened, especially
 when its armor is already gone or another attack has already committed enough
 damage to break it.
 
+The live D1 implementation has removed target-type damage multipliers, but
+some target-selection gates remain descriptive type-based compatibility logic.
+D2 owns replacing those gates and the current mech morale proxy with decisions
+driven by the live armor state and the real armor-break transition.
+
 Mech morale consumes the real armor-break transition instead of treating a
 structure percentage as fictional lost armor. Structure thresholds may still
 create escalating pressure after exposure.
@@ -130,6 +137,10 @@ credit comes from structure depletion. Battle and campaign surfaces present
 armor pool/rating separately from structure, and weapons present penetration
 rather than an anti-hardened multiplier. Presentation observes simulation; it
 never creates armor state.
+
+D1 currently preserves aggregate telemetry and limited armory readouts. D3
+owns separate armor/structure evidence, battle-pool presentation, and the full
+penetration UI pass.
 
 ## Standing laws
 

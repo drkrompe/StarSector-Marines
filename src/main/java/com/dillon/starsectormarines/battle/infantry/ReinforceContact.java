@@ -220,12 +220,9 @@ public final class ReinforceContact implements Goal {
         if (leader != 0L) {
             return new int[]{sim.world().cellX(leader), sim.world().cellY(leader)};
         }
-        for (int i = 0; i < sim.liveUnitCount(); i++) {
-            long member = sim.liveUnitAt(i);
-            if (sim.squad().hasSquad(member)
-                    && sim.squad().squadId(member) == squad.id) {
-                return new int[]{sim.world().cellX(member), sim.world().cellY(member)};
-            }
+        if (sim.squadMemberCount(squad.id) > 0) {
+            long member = sim.squadMemberAt(squad.id, 0);
+            return new int[]{sim.world().cellX(member), sim.world().cellY(member)};
         }
         int x = Math.max(0, Math.min(sim.getGrid().getWidth() - 1,
                 (int) Math.floor(squad.centroidX)));

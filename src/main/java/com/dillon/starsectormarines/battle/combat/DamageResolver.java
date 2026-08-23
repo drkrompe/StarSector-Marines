@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.combat;
 
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
@@ -23,7 +22,7 @@ import java.util.function.LongConsumer;
  *
  * <ol>
  *   <li>Cover lookup + cover-reduction curve</li>
- *   <li>HP write + death detection</li>
+ *   <li>Armor/structure write + death detection</li>
  *   <li>Telemetry attribution — applied damage to attacker and target,
  *       plus a kill credit when the hit was fatal</li>
  *   <li>Death cascade — death-pose roll, death-sink emit ({@code deathsThisFrame}),
@@ -41,13 +40,14 @@ import java.util.function.LongConsumer;
  * applier method ref both ways — semantics are identical across paths.
  *
  * <p>Method ref shape: {@link DamageService.DamageApplier} — five positional
- * args (target, attacker, damage, vsTurretMult, moraleImpact). No event
+ * args (target, attacker, damage, penetration, moraleImpact). No event
  * class; the SoA queue stores those five values in parallel arrays. The
  * attacker id is carried for telemetry attribution only and never changes
  * what the hit does.
  *
- * <p>Dependencies are constructor-injected. No state — safe to share across
- * the lifetime of a {@code BattleSimulation}.
+ * <p>Dependencies are constructor-injected. The one mutable field is a
+ * caller-owned durability result scratch; damage application is serialized by
+ * {@link DamageService}, so the shared calculation adds no per-hit allocation.
  */
 public final class DamageResolver {
 
@@ -66,6 +66,7 @@ public final class DamageResolver {
     private final LongConsumer deathSink;
     private final DeathDispatcher deathDispatcher;
     private final Random rng;
+    private final DurabilityModel.Resolution durability = new DurabilityModel.Resolution();
 
     public DamageResolver(NavigationService navigation,
                           UnitRosterService roster,
@@ -98,7 +99,7 @@ public final class DamageResolver {
      * inside this method, so {@code !wasAlive} means the target is already dead
      * — and the damage is moot anyway.
      */
-    public void resolve(long targetId, long attackerId, float damage, float vsTurretMult, float moraleImpact) {
+    public void resolve(long targetId, long attackerId, float damage, float penetration, float moraleImpact) {
         World world = roster.world();
         boolean wasAlive = roster.isAliveById(targetId);
         if (!wasAlive) return;
@@ -108,25 +109,26 @@ public final class DamageResolver {
         float ty = world.y(targetId);
         int targetCover = grid.getCoverAt(tcx, tcy);
         float dr = COVER_DAMAGE_REDUCTION[Math.min(targetCover, COVER_DAMAGE_REDUCTION.length - 1)];
-        // vsTurretMult is misnamed history — it's the "vs hardened" multiplier.
-        // Honor it for every class TacticalScoring.isHardened recognizes so the
-        // AI's projectedRocketDamageOnTarget projection matches the actual HP
-        // hit (drone hubs, heavy mechs both took 1× before despite the AI
-        // assuming 3.5×, which suppressed the second/third volley rocket the
-        // squad gate actually needed). One contract, one classifier.
-        float effectiveMult = TacticalScoring.isHardened(roster.identity().type(targetId)) ? vsTurretMult : 1f;
         float hpBefore = world.hp(targetId);
-        float newHp = hpBefore - damage * effectiveMult * (1f - dr)
-                * world.damageTakenMult(targetId);
+        boolean hasArmor = world.hasArmor(targetId);
+        float armorBefore = hasArmor ? world.armor(targetId) : 0f;
+        float armorRating = hasArmor ? world.armorRating(targetId) : 0f;
+        float postCoverDamage = damage * (1f - dr) * world.damageTakenMult(targetId);
+        DurabilityModel.resolveInto(postCoverDamage, penetration, armorBefore,
+                armorRating, hpBefore, durability);
+        if (hasArmor && durability.armorDamage() > 0f) {
+            world.setArmor(targetId, Math.max(0f, armorBefore - durability.armorDamage()));
+        }
+        float newHp = hpBefore - durability.structureDamage();
         world.setHp(targetId, newHp);
         boolean died = newHp <= 0f;   // wasAlive is guaranteed by the early return above
         // Telemetry runs here, at the one point in the sim that knows both what
-        // the hit actually cost after cover / armor / hardened scaling and
+        // the hit actually cost after cover and armor resolution and
         // whether it was fatal. Credited HP is clamped to the pool that was
         // left, so overkill from a rocket doesn't read as output the shooter
         // produced. Both writes are safe on a target that is about to be
         // released: TELEMETRY is not in the corpse-remove mask.
-        float applied = hpBefore - Math.max(0f, newHp);
+        float applied = durability.armorDamage() + (hpBefore - Math.max(0f, newHp));
         CombatTelemetryService telemetry = roster.telemetry();
         telemetry.recordDamageTaken(targetId, applied);
         // Gated on isRecorded, not on the NO_ATTACKER sentinel alone: a convoy

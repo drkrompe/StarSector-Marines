@@ -461,7 +461,7 @@ public class TacticalScoringTest {
     @Test
     public void rocketeerPrefersMechOverNearerInfantry() {
         // Two visible targets: a mech at distance 15, infantry at distance 5.
-        // A marine carrying a rocket launcher (vsTurretMult 3.5) should pick
+        // A marine carrying a high-penetration rocket launcher should pick
         // the mech — the affinity bonus overcomes the distance gap.
         BattleSimulation sim = openArena(30, 10);
         long rocketeer = unit(sim, Faction.MARINE, 5, 5);
@@ -478,7 +478,7 @@ public class TacticalScoringTest {
 
     @Test
     public void smgMarinePrefersInfantryOverMech() {
-        // Mirror case — an SMG marine (vsTurretMult 0.5) should pick the
+        // Mirror case — a low-penetration SMG marine should pick the
         // infantry. No rocket, so suitability against the mech is poor.
         BattleSimulation sim = openArena(30, 10);
         long smg = unit(sim, Faction.MARINE, 5, 5);
@@ -700,9 +700,8 @@ public class TacticalScoringTest {
         sim.squad().assignSquad(m2, squadId);
 
         long turret = turret(sim, Faction.DEFENDER, TurretKind.HEPHAESTUS, 10, 5);
-        float oneRocket = MarineSecondary.ROCKET_LAUNCHER.damage()
-                * MarineSecondary.ROCKET_LAUNCHER.vsTurretMult();
-        assertTrue(oneRocket < sim.world().maxHp(turret),
+        float oneRocket = MarineSecondary.ROCKET_LAUNCHER.damage();
+        assertTrue(oneRocket < sim.world().maxHp(turret) + sim.world().armor(turret),
                 "test invariant: Hephaestus needs >1 rocket — adjust if balance changed");
 
         sim.world().setSecondaryActionTimer(m0, MarineSecondary.ROCKET_LAUNCHER.aimDuration());
@@ -756,7 +755,7 @@ public class TacticalScoringTest {
                     CombatTelemetryService.NO_ATTACKER,
                     endX, endY, 0.5f,
                     MarineSecondary.ROCKET_LAUNCHER.aoeRadius(),
-                    perRocket, MarineSecondary.ROCKET_LAUNCHER.vsTurretMult(),
+                    perRocket, MarineSecondary.ROCKET_LAUNCHER.penetration(),
                     0, Faction.MARINE, false);
             sim.queueProjectile(new Projectile(
                     sim.world().cellX(rocketeer) + 0.5f, sim.world().cellY(rocketeer) + 0.5f, endX, endY,

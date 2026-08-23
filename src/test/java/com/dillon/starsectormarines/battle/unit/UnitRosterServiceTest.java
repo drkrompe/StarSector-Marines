@@ -112,6 +112,51 @@ public class UnitRosterServiceTest {
     }
 
     @Test
+    public void factionSlicesTrackSpawnGrowthAndSwapPopRelease() {
+        UnitRosterService r = roster();
+        long marineA = r.spawn(unit("marine a"));
+        long defender = r.spawn(new EntitySpec("defender", Faction.DEFENDER,
+                UnitType.MILITIA, 1, 0));
+        long marineB = r.spawn(unit("marine b"));
+
+        assertEquals(2, r.factionLiveCount(Faction.MARINE));
+        assertEquals(1, r.factionLiveCount(Faction.DEFENDER));
+        assertEquals(marineA, r.factionDenseArray(Faction.MARINE)[0]);
+        assertEquals(marineB, r.factionDenseArray(Faction.MARINE)[1]);
+        assertEquals(defender, r.factionDenseArray(Faction.DEFENDER)[0]);
+
+        r.release(marineA);
+
+        assertEquals(1, r.factionLiveCount(Faction.MARINE));
+        assertEquals(marineB, r.factionDenseArray(Faction.MARINE)[0]);
+        assertEquals(0L, r.factionDenseArray(Faction.MARINE)[1]);
+        assertEquals(1, r.factionLiveCount(Faction.DEFENDER));
+    }
+
+    @Test
+    public void squadMemberSlicesPreserveSpawnOrderAcrossRelease() {
+        UnitRosterService r = roster();
+        int squadId = r.mintSquad(Faction.MARINE, UnitType.MARINE_BLUE);
+        long first = r.spawn(unit("first").squad(squadId));
+        long second = r.spawn(unit("second").squad(squadId));
+        long third = r.spawn(unit("third").squad(squadId));
+        r.spawn(unit("solo"));
+
+        assertEquals(3, r.squadMemberCount(squadId));
+        assertEquals(first, r.squadMemberArray(squadId)[0]);
+        assertEquals(second, r.squadMemberArray(squadId)[1]);
+        assertEquals(third, r.squadMemberArray(squadId)[2]);
+
+        r.release(second);
+
+        assertEquals(2, r.squadMemberCount(squadId));
+        assertEquals(first, r.squadMemberArray(squadId)[0]);
+        assertEquals(third, r.squadMemberArray(squadId)[1]);
+        assertEquals(0L, r.squadMemberArray(squadId)[2]);
+        assertEquals(0, r.squadMemberCount(999));
+    }
+
+    @Test
     public void staleIdAfterReleaseReturnsInvalidIndex() {
         UnitRosterService r = roster();
         long a = r.spawn(unit("a"));

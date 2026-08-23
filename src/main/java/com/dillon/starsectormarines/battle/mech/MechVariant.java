@@ -7,7 +7,7 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 /** Stable chassis profiles built from swappable {@link MechWeaponComponent}s. */
 public enum MechVariant {
 
-    BULWARK("bulwark", "Bulwark", 4860f, 1.15f, 0.40f, 55f,
+    BULWARK("bulwark", "Bulwark", 550f, 950f, 18f, 1.15f, 0.40f, 55f,
             1.60f, 1.50f, 0.60f, 0.80f,
             LayeredMechAppearance.CHASSIS_CLEAN,
             MechWeaponComponent.DUAL_CHAINGUNS,
@@ -15,7 +15,7 @@ public enum MechVariant {
             MechWeaponComponent.LRM_15,
             MechRole.ARMORED_SUPPORT),
 
-    HOUND("hound", "Hound", 2700f, 1.70f, 0.42f, 50f,
+    HOUND("hound", "Hound", 350f, 500f, 14f, 1.70f, 0.42f, 50f,
             1.35f, 1.20f, 0.50f, 0.67f,
             LayeredMechAppearance.CHASSIS_HOUND,
             MechWeaponComponent.NOSE_CHAINGUN,
@@ -23,7 +23,7 @@ public enum MechVariant {
             null,
             MechRole.ASSAULT),
 
-    SIROCCO("sirocco", "Sirocco", 2070f, 1.45f, 0.45f, 55f,
+    SIROCCO("sirocco", "Sirocco", 250f, 400f, 10f, 1.45f, 0.45f, 55f,
             1.35f, 1.20f, 0.48f, 0.65f,
             LayeredMechAppearance.CHASSIS_SIROCCO,
             MechWeaponComponent.SINGLE_HEAVY_CANNON,
@@ -33,7 +33,9 @@ public enum MechVariant {
 
     public final String id;
     public final String displayName;
-    public final float maxHp;
+    public final float maxStructure;
+    public final float armorPool;
+    public final float armorRating;
     public final float moveSpeed;
     public final float accuracy;
     public final float visionRange;
@@ -47,7 +49,8 @@ public enum MechVariant {
     public final MechWeaponComponent rightShoulder;
     public final MechRole defaultRole;
 
-    MechVariant(String id, String displayName, float maxHp, float moveSpeed,
+    MechVariant(String id, String displayName, float maxStructure,
+                float armorPool, float armorRating, float moveSpeed,
                 float accuracy, float visionRange, float renderScale,
                 float moraleImpact, float radius, float hitHalfHeight,
                 int chassisAppearance, MechWeaponComponent arms,
@@ -55,7 +58,9 @@ public enum MechVariant {
                 MechWeaponComponent rightShoulder, MechRole defaultRole) {
         this.id = id;
         this.displayName = displayName;
-        this.maxHp = maxHp;
+        this.maxStructure = maxStructure;
+        this.armorPool = armorPool;
+        this.armorRating = armorRating;
         this.moveSpeed = moveSpeed;
         this.accuracy = accuracy;
         this.visionRange = visionRange;
@@ -73,7 +78,8 @@ public enum MechVariant {
     /** Applies the chassis's spawn-time stats and persistent profile identity. */
     public EntitySpec applyTo(EntitySpec spec) {
         spec.mechVariant = this;
-        spec.health(maxHp)
+        spec.health(maxStructure)
+                .armor(armorPool, armorRating)
                 .moveSpeed(moveSpeed)
                 .accuracy(accuracy)
                 .attackRange(maxWeaponRange())
