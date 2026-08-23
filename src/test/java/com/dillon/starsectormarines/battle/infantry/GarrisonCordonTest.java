@@ -172,8 +172,10 @@ public class GarrisonCordonTest {
         assertEquals(attacker, sim.combat().fireTargetId(d1),
                 "on-post holder with visible enemy in range → authors a fire intent (opportunistic, no portal trigger required)");
 
-        // FiringSystem (not execute() itself) applies the cooldown gate and
-        // fires — drive it directly to observe the actual shot.
+        // This test owns the cordon's opportunity-fire decision, not the
+        // independent experience/reflex contract. Fast-forward the threat's
+        // registration window, then drive FiringSystem to observe the shot.
+        sim.combat().setReflexTimer(d1, 0f);
         new FiringSystem(sim.getGrid(), sim.getRoster()).tick(sim);
 
         assertTrue(sim.world().cooldownTimer(d1) > 0f,

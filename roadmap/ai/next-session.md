@@ -98,6 +98,15 @@ separation pass now also gives all moving allied mech variants a gentle
 2.5-cell formation spacing force without moving idle posts or repelling enemy
 walkers. See `30-mech-formation-discipline.md`.
 
+Story 31 shipped (2026-08-22, `4c0864d9`), superseding Story 30's formation
+tuning: organized squads now share a terrain-aware slot engine. Mech lances use
+roughly six-cell open-ground diamonds with assault units forward and long-range
+support rearward, then release the slot steer under constraint while retaining
+the 2.5-cell pair floor. Infantry fireteams use the same machinery at a
+0.75–1.75-cell scale with shorter-range weapons forward. Divergent paths,
+idle units, hostile pairs, and unrelated squads do not get merged into a
+formation. See `31-adaptive-squad-formations.md`.
+
 Story 24 / Story I shipped (2026-08-19, `43c619ff`, `8888e6f8`): generic
 infantry pursuit now rejects targets that require movement into a two-plus
 hostile cluster, switches to a visible isolated alternative when possible,
@@ -126,10 +135,10 @@ blocks at 2 Hz. Four debug heatmaps expose the result without changing orders.
 
 ## Immediate next
 
-1. **Tactical playtest pass** — exercise Stories 19–30 together: objective
+1. **Tactical playtest pass** — exercise Stories 19–31 together: objective
    press/commit, bounding, last stands, difficulty-scaled assault mechs,
    reciprocal Hound/infantry cohesion, same-chassis support rejection,
-   Sirocco screened firing angles, moving-mech spacing, mech-screen formations,
+   Sirocco screened firing angles, adaptive mech and infantry squad formations,
    and
    clustered-runner release into covered
    overwatch. Confirm magenta direct ghosts, amber audio contacts, and yellow
@@ -203,5 +212,7 @@ blocks at 2 Hz. Four debug heatmaps expose the result without changing orders.
   diagnostics (`98fcc3fb`)
 - `30-mech-formation-discipline.md` — shipped same-variant Hound support
   rejection plus movement-scoped allied-mech separation (`861a5bf1`)
+- `31-adaptive-squad-formations.md` — shipped terrain-scaled role-aware slots
+  for mech lances and infantry fireteams (`4c0864d9`)
 - `complete/` — sealed shipped work (Stage 1 tasks 01–09, Stage 2
   foundation 11, mech Stage 1 14)
