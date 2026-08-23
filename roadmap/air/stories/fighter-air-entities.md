@@ -1,201 +1,63 @@
-# Story — Fighters as air entities (rewrite the movement handler)
+# Story — Fold fighters into the air entity model
 
-> Slice 4 of [`air-entity-composition`](air-entity-composition.md) and the
-> fighter-specific expansion of [`fighters/overview.md`](../fighters/overview.md).
-> The shared air-entity core that the old fighters overview *planned for* now
-> **exists** (slices 1–3): `entityId` + `AirBody` (pure data) + `AirSteeringSystem`
-> + component stores (`ThrusterFx`, `AirTurrets`) + the `releaseAirEntity` death
-> seam. This slice makes fighters compose that core, and **rewrites their
-> movement** off the scripted cosmetic handler onto real kinematics.
+Status: ACTIVE
 
-## The problem — `flyby/` fighters fake their motion
+Written: 2026-08-23
 
-`FlybyOverlay` flies fighters on a hand-scripted heading state machine
-(`tickFighter` → `pickTargetHeading` / `tickCruise` / `tickBankBack` / `tickRun`
-over a private `Fighter` struct):
+Updated: 2026-08-23 — reduced to the remaining overlay-to-world migration
 
-```
-f.headingDeg  += clamp(targetHeading - heading, ±TURN_RATE·dt)   // steer
-f.worldX/Y    += cos/sin(headingDeg) · f.speed · dt              // constant-speed glide
-```
+Read `air-nouns.md` before changing this story. A fighter is an air entity
+with shared hull-derived kinematics and fighter-specific mission, loadout, and
+presentation behavior; the air world owns identity and lifecycle while systems
+own behavior.
 
-No acceleration, no momentum, no lateral drift — a fighter pivots in place at a
-fixed turn rate and slides at a fixed speed, with a sinusoid "weave" painted on
-to fake life. There's no kinematic difference between a twitchy interceptor and a
-sluggish bomber; the role contrast the fighters overview wants can't emerge from
-this. It also doesn't fly on `AirBody`, so none of the slices-1–3 work (engine
-plumes, the death seam, the shared steering feel) reaches it.
+## Current substrate
 
-## The fix — compose the core, drive with `AirSteeringSystem`
+`FlybyOverlay` already drives each fighter's `AirBody` through
+`AirSteeringSystem`, and `HullKinematicsResolver` supplies mod-aware handling
+from the loaded hull specification. Fighter profiles, wing scheduling,
+weapon/tracer effects, cycling re-entry, and the debug aircraft picker remain
+in the `battle.flyby` shell. The shell still keeps a private fighter record and
+its own draw/fire coupling rather than exposing fighter entities through the
+air-world query.
 
-A fighter becomes an air entity, exactly like a shuttle:
+## Goal
 
-- **`entityId`** — minted by the air registry (`AirSystem.add`-equivalent), so it
-  keys the shared component stores and releases through `releaseAirEntity`.
-- **`AirBody`** — the kinematic data; driven each tick by
-  `AirSteeringSystem.steer(body, goalX, goalY, mode, type, dt)`. The boat-feel
-  (interceptor carves, bomber pendulums) **falls out of the handling profile** —
-  the same kinematic-limited steering that gives shuttles their arc, no scripted
-  weave needed.
-- **Handling is *scraped*, not hand-tiered.** A fighter's `AirHandling` comes
-  from `HullKinematicsResolver.resolve(hullId)` — the hull's real maneuver stats
-  read live from `Global.getSettings().getHullSpec(hullId).getEngineSpec()`
-  (`getMaxSpeed/getAcceleration/getDeceleration/getMaxTurnRate/getTurnAcceleration`,
-  sourced from `ship_data.csv`, **merged across vanilla + every loaded mod**).
-  So interceptor-vs-bomber feel is the *data's*, and any modded fighter using the
-  stock ship file format flies correctly with **no new code**. A thin
-  `FighterType`/profile may still bind `hullId` ↔ `FighterProfile`, but it no
-  longer hand-authors kinematics.
-- **`ThrusterFx`** — engine plumes for free: the slot resolver keys on the
-  fighter's `renderHullId`, the smoothing system already advances any air entity.
-- **`FighterMission`** — the strafing-run state machine, ported off headings onto
-  *goals*. States map to a (waypoint, `SteeringMode`):
-  - INBOUND/CRUISE → fly the entry→exit line at `CRUISE` (the weave becomes
-    emergent drift, or a small facing-only wobble if we want extra life).
-  - ATTACK_RUN: BANK_BACK → steer to the run-in waypoint; RUN → steer to the
-    run-out waypoint, spraying tracers. The cluster scan + waypoint planning
-    (`tryPlanStrafingRun`) is preserved — only the *execution* swaps from
-    heading-lerp to `AirSteeringSystem`.
-  - EXIT → off-map waypoint at `CRUISE`; on arrival → GONE → `releaseAirEntity`.
-- **`FighterProfile` is kept** — sprite, weapon class, tracer/burst/projectile
-  tuning, audio, faction pool. It's the loadout/FX half; the new kinematic half
-  is `FighterType`. Joined on `hullId` (separate records, per the overview's S1
-  call).
+Move fighters from the cosmetic overlay's private roster into the shared air
+entity lifecycle while preserving their current strafing behavior and making
+the fighter mission, render, and weapon systems consume the composed world
+state.
 
-## What stays vs what dies
+## Decisions
 
-**Dies (the movement handler):** `FlybyOverlay.tickFighter`, `pickTargetHeading`,
-the heading-lerp + constant-speed integration, the `Fighter` struct's
-`headingDeg/speed/vx/vy/weave*` motion fields, `TURN_RATE_DEG_PER_SEC`. Replaced
-by `AirBody` + `AirSteeringSystem` + `FighterType`.
+- Keep `FighterProfile` as loadout and presentation data; hull-derived
+  `AirHandling` remains the kinematics authority.
+- Use world entity ids and the existing air components; do not mint a fighter
+  id space or retain a parallel component store.
+- Preserve the current wing schedule, strafing-run planning, cycling re-entry,
+  tracers, audio, and debug picker while moving their state reads to the world
+  entity and fighter mission.
+- Fighter damage/anti-air and modeled fighter fire remain separate follow-ups;
+  this story establishes the composed entity and movement/render seam only.
 
-**Stays (cosmetic + the one sim coupling), repointed to read `body`:** weapon
-fire (`fireBurstShot`/`fireRunShot`), tracers, projectiles, muzzle/impact/AoE FX,
-audio, shadow + sprite + engine-glow draw, and the lone sim coupling
-`BattleSimulation#applyExternalDamage`. These read `body.x/y/facingDegrees`
-instead of the struct's `worldX/headingDeg`.
+## Acceptance
 
-## Where it runs
-
-`AirSystem`'s charter is "owns every airborne vehicle." Fighters join its roster
-and id space (shared `ThrusterFx` store + `releaseAirEntity`). To keep `AirSystem`
-from bloating, the fighter behavior is its own `FighterMissionSystem` (the
-goal-provider that feeds `AirSteeringSystem`), called from `AirSystem.tick`
-alongside `advanceShuttles` — same shape as the shuttle state machine, different
-mission. Rendering moves to a `FighterRenderSystem` (mirrors `ShuttleRenderSystem`)
-when `flyby/` folds into `air/`; until then `FlybyOverlay`'s draw is reused.
-
-## Decomposition (committable sub-slices)
-
-- **4a — `HullKinematicsResolver` → `AirHandling` (scraped, mod-aware) — SHIPPED
-  `c807773`.** `HullKinematics` (pure) + `HullKinematicsResolver` (runtime,
-  cached); `HullKinematicsTest` locks the conversion with real Talon/Trident
-  values. No behavior change yet — available for 4b. Calibration knobs
-  (`SPEED_ATMO_MULT` 1.3, `TURN_ATMO_MULT` 1.0, lateral/station damping) live in
-  `HullKinematics` for in-game tuning. Read the hull's real maneuver stats from
-  the runtime spec
-  (`getHullSpec(id).getEngineSpec()` — `maxSpeed/acceleration/deceleration/
-  maxTurnRate/turnAcceleration`, merged across vanilla + all mods) and convert to
-  our `AirHandling`:
-  - **Linear** (`maxSpeed/accel/decel`, in `su`/sec) → cells/sec via a calibrated
-    speed scale. `su` ≈ sprite pixels, so seed from `AirScale.METERS_PER_PX` ×
-    an **atmosphere speed mult** (fighters should read faster over the
-    battlefield than their campaign crawl).
-  - **Angular** (`maxTurnRate`, deg/sec) passes through — angular rate is
-    scale-invariant.
-  - **Lateral / station damping** aren't in the ship spec (vanilla space-flight
-    has no atmospheric drag) — these are the **atmosphere knobs**, a tunable
-    constant (or derived from decel), giving the boat-feel.
-
-  Cache by hull id (mirrors `EngineSlotResolver`/`HullFootprintResolver`);
-  sandbox-safe (SettingsAPI, no file I/O). Unit-test the conversion against known
-  hulls (Talon/Trident) to lock the scale band + guard a missing/zero spec. No
-  behavior change yet — the resolver is just available.
-- **4b — fly on `AirBody` — SHIPPED `eb5a95b`.** Each `Fighter` composes an
-  `AirBody` + the hull's scraped `AirHandling`; the per-tick handler picks a goal
-  point per state (CRUISE chases a point ahead along the weaving heading;
-  BANK_BACK/RUN steer to waypoints) and drives the body via `AirSteeringSystem` at
-  cruise throttle — the banked arc emerges from the hull's real turn/accel, not a
-  heading-lerp. Legacy `worldX/headingDeg/…` kept as a body-synced read-surface so
-  fire/render/FX are untouched ([[air_unit_render_sync]]); dead scripted-glide
-  knobs removed. Done as an in-place `FlybyOverlay` rewrite (a separate
-  `FighterMissionSystem` waits for the 4d fold). **Open: in-game calibration of
-  the atmosphere knobs (`SPEED_ATMO_MULT` etc.) — the feel is now one-place tunable.**
-- **4c — Repoint FX + fire + render to `body`; delete the scripted motion.** The
-  `Fighter` struct loses its kinematic fields (gains an `AirBody` + `entityId` +
-  `FighterMission`, or is replaced by a `Fighter` air-entity like `Shuttle`).
-- **4d — Fold `flyby/` → `air/`.** git-mv the kept classes (`FighterProfile`,
-  `WeaponClass`, roster), add `FighterRenderSystem`, retire the overlay shell,
-  update package-info charters. The deferred package move, now that it shares
-  `AirBody`.
-- **(Future) 4e — Fighters take fire / get shot down.** Wire `hp` + the AA path
-  through the same death seam; land at bases. Gated on the AA work.
-- **(Future) 4f — Modeled fighter fire.** Once fighter attacks live on the
-  composed air entity, adopt ballistics' target-plane high/low/wide aim and
-  resolved traveling FX. Define airborne source Z, roof/wall clearance, and
-  air-to-air silhouettes before enabling damage; keep `FighterProfile` /
-  `WeaponClass` as the FX/loadout authority. See ballistics S4's fighter
-  follow-up rather than folding this into the ground direct-fire migration.
-
-## Lifecycle — cycling SHIPPED `d63d03f`
-
-Fighters that clear the map now **re-enter for another pass instead of retiring**
-(`enterFromEdge` re-rolls a fresh entry/exit + resets strafe/burst/aggro on the
-existing entity; identity — profile/side/handling/voice — is preserved). A wing's
-spawned fighters become a persistent cycling presence rather than a finite
-trickle. The `Fighter.alive` flag is the gate: alive → cycle, dead → remove —
-nothing clears it yet, so all fighters cycle today; the AA work (4e) flips it on a
-kill and the wreck retires on its next off-map exit. Re-entry is off-screen so it
-reads as the fighter banking back around. (Open: an optional off-screen turnaround
-delay if instant re-entry reads too eager.)
-
-## Calibration tooling — SHIPPED `12c5cb0`
-
-A dev-gated **briefing aircraft picker** (`DevConfig.DEBUG_AIRCRAFT_PICKER`) drives
-4b's in-game calibration: an "AIR DEBUG — force-spawn" panel at the top of
-`BriefingScreen` with per-side (Attacker/Defender) toggles for every
-`FighterProfile`. Toggled pairs force-spawn debug wings on either side
-(`DebugAirRoster.wing`, threaded through `MissionLaunch.buildSimulation`'s new
-`debugWings` arg), independent of the player's carriers or the mission's enemy-air
-roll — so any aircraft can be put in the air for either side on demand while
-tuning `SPEED_ATMO_MULT` / `TURN_ATMO_MULT` / damping. Hidden (zero behavior
-change) when the flag is off.
-
-## Follow-up — unify shuttle kinematics onto the scraped resolver
-
-`ShuttleType.HandlingProfile` is hand-tuned tiers (NIMBLE/MEDIUM/BUS) — the same
-thing 4a replaces for fighters. Once `HullKinematicsResolver` exists and is
-calibrated, shuttles should adopt it too (their `matchingHullIds[0]`/`renderHullId`
-already names a real hull), retiring the hand-authored profiles so *all* air craft
-— shuttle and fighter, vanilla and modded — derive their feel from one scraped
-source. Not in this slice (don't perturb shipped shuttle feel mid-fighter-work),
-but it's the consistency endpoint.
+- Fighter spawn creates an air-world entity with its kinematics, identity,
+  appearance, and fighter mission/loadout state; despawn removes it through the
+  shared lifecycle.
+- A dedicated fighter mission system supplies goals to
+  `AirSteeringSystem`; the old private heading/speed integration and duplicate
+  motion state are gone.
+- Rendering, engine FX, weapon fire, tracers, and audio read the entity's live
+  `AirBody`/air components rather than a shadow `FlybyOverlay.Fighter` state.
+- Existing wing timing, strafing waypoints, cycling re-entry, and debug-only
+  aircraft selection remain behaviorally intact.
+- The migration leaves the shared vocabulary in `air-nouns.md` and does not
+  create a second fighter-specific air model.
 
 ## Out of scope
 
-- Wing composition from `wing_data.csv` (num/formation/role) — the overview's S3;
-  layer on once single fighters fly on `AirBody`. Note as a follow-up, don't
-  silently drop.
-- Full hull-polygon collision — `collisionRadius` is plenty for fighters
-  ([`fighters/overview.md`](../fighters/overview.md) § Collision).
-- Carrier/launch sourcing — fighters still spawn from map edges (`spawnFromWing`).
-
-## Done when
-
-- A fighter flies on `AirBody` + `AirSteeringSystem` under a `FighterType`
-  handling profile; interceptor-vs-bomber feel is visibly different and emergent,
-  not scripted.
-- The scripted heading movement handler is gone; weapon/tracer/FX read the body.
-- Fighters carry an `entityId`, get engine plumes from `ThrusterFx`, and release
-  through `releaseAirEntity` on exit.
-- Each sub-slice compiles + its tests pass; sub-slices land as separate commits.
-
-## Cross-references
-
-- [`air-entity-composition.md`](air-entity-composition.md) — slices 1–3 built the
-  core this composes; slice 4 is this story.
-- [`fighters/overview.md`](../fighters/overview.md) — the fighter feature design
-  (loadout vs kinematics, wing composition, collision).
-- `roadmap/backlog.md` § "Flyby fighters as real air entities" — closed by 4b–4d.
-- Memory: [[air_vehicle_kinematics]], [[air_unit_render_sync]],
-  [[vanilla_ship_spec_scraping]].
+- Anti-air health/death, fighter collision, and air-to-air or modeled fighter
+  fire; those require their own combat and ballistics stories.
+- Wing composition from `wing_data.csv` beyond the current spawn mapping.
+- Dense storage optimization; it follows measured fighter-swarm pressure.
