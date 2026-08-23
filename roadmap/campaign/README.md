@@ -47,7 +47,7 @@ Each thread is a sub-directory whose canonical target is `design/<noun>.md`,
 | [`living-world/`](living-world/overview.md) | **G9 active; Slice 2 complete** | Autonomous politics, Chronicle, civil-war participation/consequences, civilian rescue, defector asylum, and Silent Colony through deterministic dead-site signals and Dead Letter choices. |
 | `loot-nouns.md` | **ready for acceptance** | Manifest, picker, capacity-aware settlement, recovery modifiers, and rare AI-core gates are code-complete; one live in-game shipping check remains. Consumes the contract salvage entitlement. |
 | `infrastructure-nouns.md` | **draft; no story contracted** | Location-bound investments that may supply bounded modifiers to campaign policies once the first vertical slice is specified. |
-| [`narrative/`](narrative/overview.md) | **S1–S5 shipped** | Comms-officer narration with exact-once patron history, two-engagement patterns, bounded local/Chronicle context, and remembered target locations. |
+| `narrative-nouns.md` | **S1–S5 shipped; acceptance ready** | Fact-bound comms-officer narration with immutable patron memory, bounded local/Chronicle context, and remembered target locations. |
 | `t3-endgame-nouns.md` | **shipped; acceptance ready** | Tier-4 faction-flip handoff and kingmaker Last Testament capstone. The only domain allowed to write vanilla ownership and faction diplomacy. |
 
 [`flavors/`](flavors/README.md) is an authoring bucket (one file per

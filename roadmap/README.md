@@ -170,9 +170,9 @@ universe over time, not retrofitted into intel slots.
   `SoldierCareer` of lifetime missions, rounds, damage, kills and wounds.
   That table is the balance artifact S1's tuning was argued without, and the
   career record is what lets S4 make experience earned rather than issued.
-  S2 now separates primary breadth from four special-equipment stories—AMR,
-  smoke, satchels, and the retained frag grenade—with their gameplay-AI use
-  and counterplay contracted;
+  S2 separates primary breadth from special-equipment stories. AMR and smoke
+  are shipped, while satchels and the retained frag grenade remain contracted
+  with their gameplay-AI use and counterplay;
   S4-S10 remain, S1's own last acceptance item is an in-game feel pass, and the
   synthesis found one proposed XP-authority cleanup. See
   `progression-nouns.md`; its adjacent board is the open-work list.
@@ -373,8 +373,8 @@ universe over time, not retrofitted into intel slots.
    measured same-market engagement; selected history variants can now name the
    prior operation's frozen target location. Contract the next narrative story
    before adding patron evolution, captain observations, or longer-form
-   continuity. See
-   [`campaign/narrative/next-session.md`](campaign/narrative/next-session.md).
+   continuity. See `narrative-nouns.md` and
+   `narrative-live-acceptance.md`.
 5. **Command Powers S8 acceptance** — use the shipped canonical briefing to
    hold back individual source ships, verify cards disappear and return, deploy
    a mixed deck, and confirm that the battle receives exactly the selected

@@ -65,7 +65,7 @@ temptation to grow a background picker into a character creator.
 - **History-aware loop (future):** late-game patron flavor can reference
   the background — "we hear you served with the Hegemony marines yourself"
   — closing the loop on history-aware briefings (see
-  [`narrative/overview.md`](narrative/overview.md) § procedural fatigue,
+  `narrative-nouns.md` § procedural fatigue,
   point 4).
 
 ## Related
@@ -73,5 +73,5 @@ temptation to grow a background picker into a character creator.
 - [`themes.md`](themes.md) — the merc-company framing the background seeds.
 - [`economy.md`](economy.md) — debt-start backgrounds feed the hard-fail
   survival window.
-- [`narrative/overview.md`](narrative/overview.md) — history-aware
+- `narrative-nouns.md` — history-aware
   briefings the background id feeds.

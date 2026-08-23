@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
+import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.marine.SpecialActivation;
 
 
 /**
@@ -41,6 +43,9 @@ public final class InfantryUnitPrep {
         // capability lacks the component (the timer read would fail loud).
         if (!w.hasSecondaryWeapon(id) || w.secondaryActionTimer(id) <= 0f) return false;
         MarineSecondary sec = w.secondaryWeapon(id);
+        if (sec.activation() == SpecialActivation.UTILITY_SMOKE) {
+            return tickSmokeThrow(unit, sec, sim);
+        }
         w.setSecondaryActionTimer(id, w.secondaryActionTimer(id) - BattleSimulation.TICK_DT);
         float fireAt = sec.aimDuration() * 0.5f;
         if (!w.secondaryFired(id) && w.secondaryActionTimer(id) <= fireAt) {
@@ -127,6 +132,7 @@ public final class InfantryUnitPrep {
         if (sim.world().secondaryActionTimer(id) > 0f) return false;
 
         MarineSecondary sec = sim.world().secondaryWeapon(id);
+        if (sec.activation() == SpecialActivation.UTILITY_SMOKE) return false;
         float range = sec.range();
         // Hardened-target scan: any MapTurret, drone hub, or HEAVY_MECH in
         // special range with LoS that the squad-coordination gate doesn't
@@ -181,5 +187,28 @@ public final class InfantryUnitPrep {
         return sim.getGrid().hasLineOfSight(
                 sim.world().cellX(unit), sim.world().cellY(unit),
                 sim.world().cellX(target), sim.world().cellY(target));
+    }
+
+    private static boolean tickSmokeThrow(long unit, MarineSecondary special,
+                                          BattleControl sim) {
+        World world = sim.world();
+        float duration = special.smokeGrenadeSpec().throwDuration();
+        world.setSecondaryActionTimer(unit,
+                world.secondaryActionTimer(unit) - BattleSimulation.TICK_DT);
+        if (!world.secondaryFired(unit)
+                && world.secondaryActionTimer(unit) <= duration * 0.5f) {
+            Squad squad = sim.squadOf(unit);
+            if (squad != null && squad.smokeCarrierId == unit
+                    && squad.smokeTargetX >= 0 && squad.smokeTargetY >= 0) {
+                sim.throwSmoke(unit, squad.smokeTargetX + 0.5f,
+                        squad.smokeTargetY + 0.5f);
+            }
+            world.setSecondaryFired(unit, true);
+        }
+        if (world.secondaryActionTimer(unit) <= 0f) {
+            world.setSecondaryActionTimer(unit, 0f);
+            world.setSecondaryAimTargetId(unit, 0L);
+        }
+        return true;
     }
 }

@@ -16,6 +16,7 @@ public final class LayeredAppearance {
     public static final int POSE_ROCKET_FIRE = 4;
     public static final int POSE_AMR_AIM = 5;
     public static final int POSE_AMR_FIRE = 6;
+    public static final int POSE_SMOKE_THROW = 7;
 
     public static final int FLAG_MOVING = 1;
     public static final int FLAG_MUZZLE_FLASH = 1 << 1;
