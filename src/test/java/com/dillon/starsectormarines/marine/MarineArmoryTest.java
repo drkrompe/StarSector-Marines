@@ -175,6 +175,99 @@ class MarineArmoryTest {
     }
 
     @Test
+    void refitPreviewReportsFreeReturnedAndRequiredFromTheRealTransaction() {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(MarineSquad.TEAM_SIZE);
+        MarineSquad squad = roster.squads().get(0);
+
+        FireTeamRefitPreview preview = roster.previewFireTeamTemplate(
+                squad.id(), 0, FireTeamTemplateCards.LINE_ID);
+
+        assertTrue(preview.canApply());
+        FireTeamGearDelta fieldRifles = delta(preview, "FR-1 Rook");
+        assertTrue(fieldRifles.unlimited());
+        assertEquals(2, fieldRifles.returned());
+        assertEquals(0, fieldRifles.required());
+        FireTeamGearDelta pulseRifles = delta(preview, "PLS-2 Lancer");
+        assertEquals(12, pulseRifles.free());
+        assertEquals(0, pulseRifles.returned());
+        assertEquals(4, pulseRifles.required());
+        FireTeamGearDelta charcoal = delta(preview, "Charcoal combat armor");
+        assertEquals(2, charcoal.free());
+        assertEquals(4, charcoal.returned());
+        assertEquals(4, charcoal.required());
+    }
+
+    @Test
+    void cardAvailabilityCountsFieldedAssignmentsAndAdditionalCompleteKits() {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(MarineSquad.TEAM_SIZE);
+        MarineSquad squad = roster.squads().get(0);
+
+        FireTeamTemplateAvailability before = roster.fireTeamTemplateAvailability(
+                FireTeamTemplateCards.RECON_ID);
+        assertEquals(0, before.fielded());
+        assertEquals(1, before.readyToIssue());
+        assertTrue(before.recipesUnlocked());
+
+        assertEquals(FireTeamTemplateResult.APPLIED,
+                roster.applyFireTeamTemplate(squad.id(), 0, FireTeamTemplateCards.RECON_ID));
+        FireTeamTemplateAvailability after = roster.fireTeamTemplateAvailability(
+                FireTeamTemplateCards.RECON_ID);
+        assertEquals(1, after.fielded());
+        assertEquals(0, after.readyToIssue());
+    }
+
+    @Test
+    void twoTeamSwapUsesBothReturnsInOneAtomicInventoryTransaction() {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(2 * MarineSquad.TEAM_SIZE);
+        MarineSquad squad = roster.squads().get(0);
+        assertEquals(FireTeamTemplateResult.APPLIED,
+                roster.applyFireTeamTemplate(squad.id(), 0, FireTeamTemplateCards.LINE_ID));
+        assertEquals(FireTeamTemplateResult.APPLIED,
+                roster.applyFireTeamTemplate(squad.id(), 1, FireTeamTemplateCards.RECON_ID));
+        assertEquals(FireTeamTemplateResult.INSUFFICIENT_PRIMARIES,
+                roster.applyFireTeamTemplate(squad.id(), 0, FireTeamTemplateCards.RECON_ID),
+                "a sequential refit cannot borrow the other team's held recon kit");
+
+        FireTeamRefitPreview preview = roster.previewFireTeamTemplateSwap(
+                squad.id(), 0, squad.id(), 1);
+        assertTrue(preview.canApply());
+        assertEquals(FireTeamTemplateResult.APPLIED,
+                roster.swapFireTeamTemplates(squad.id(), 0, squad.id(), 1));
+
+        assertEquals(FireTeamTemplateCards.RECON_ID, squad.teamTemplateCardId(0));
+        assertEquals(FireTeamTemplateCards.LINE_ID, squad.teamTemplateCardId(1));
+        assertEquals(MarineWeapon.SMG,
+                roster.soldierById(squad.teamMembers(0).get(0)).primary());
+        assertEquals(MarineWeapon.PULSE_RIFLE,
+                roster.soldierById(squad.teamMembers(1).get(0)).primary());
+    }
+
+    @Test
+    void failedTwoTeamSwapLeavesBothTeamsAndAssignmentsUntouched() {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(2 * MarineSquad.TEAM_SIZE);
+        MarineSquad squad = roster.squads().get(0);
+        assertEquals(FireTeamTemplateResult.APPLIED,
+                roster.applyFireTeamTemplate(squad.id(), 0, FireTeamTemplateCards.LINE_ID));
+        assertEquals(FireTeamTemplateResult.APPLIED,
+                roster.applyFireTeamTemplate(squad.id(), 1, FireTeamTemplateCards.RECON_ID));
+        MarineSoldier wounded = roster.soldierById(squad.teamMembers(1).get(0));
+        roster.applySoldierOutcome(Collections.singletonMap(
+                wounded.id(), MarineSoldierStatus.WIA), 0, 1f, 7f);
+
+        assertEquals(FireTeamTemplateResult.TEAM_NOT_READY,
+                roster.swapFireTeamTemplates(squad.id(), 0, squad.id(), 1));
+        assertEquals(FireTeamTemplateCards.LINE_ID, squad.teamTemplateCardId(0));
+        assertEquals(FireTeamTemplateCards.RECON_ID, squad.teamTemplateCardId(1));
+        assertEquals(MarineWeapon.PULSE_RIFLE,
+                roster.soldierById(squad.teamMembers(0).get(0)).primary());
+        assertEquals(MarineWeapon.SMG, wounded.primary());
+    }
+
+    @Test
     void insufficientSecondaryLeavesEveryBilletAndAssignmentUntouched() {
         MarineRoster roster = new MarineRoster();
         roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
@@ -318,6 +411,13 @@ class MarineArmoryTest {
                                           EquipmentGrade grade, MarineSecondary secondary,
                                           MarineArmorPattern armor) {
         return new FireTeamBillet(name, primary, grade, secondary, armor);
+    }
+
+    private static FireTeamGearDelta delta(FireTeamRefitPreview preview, String label) {
+        return preview.gear().stream()
+                .filter(item -> label.equals(item.label()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Missing gear delta: " + label));
     }
 
     @SuppressWarnings("unchecked")
