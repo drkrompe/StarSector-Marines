@@ -8,7 +8,7 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * unit's idle-post cell in the archetype {@link EntityWorld}.
  *
  * <p>A <b>Service</b> in this codebase's sense (see
- * {@code roadmap/ecs-migration/stories/entity-field-migration.md}): it <em>owns</em>
+ * {@code ecs-nouns.md}): it <em>owns</em>
  * a component's data and exposes the methods to read/modify it. A consumer reaches it
  * via {@code sim.home()} / {@code roster.home()} and calls {@code home.hasHome(id)} /
  * {@code home.homeCellX(id)} directly — no {@link World} hop.

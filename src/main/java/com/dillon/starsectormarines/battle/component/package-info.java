@@ -7,10 +7,8 @@
  *           {@code engine.ecs.EntityWorld}.
  *           {@link com.dillon.starsectormarines.battle.component.BattleComponents}
  *           here is the component-type registrations + shared queries for it (one
- *           instance per battle, alongside the per-battle world). The transitional
- *           {@code ComponentStore} that earlier slices migrated off is now retired
- *           — the archetype table is the sole composition substrate
- *           ({@code roadmap/ecs-migration/archetype-storage.md}).
+ *           instance per battle, alongside the per-battle world). The archetype
+ *           table is the sole composition substrate ({@code ecs-nouns.md}).
  * <br>Boundary: no concrete component <em>records</em> here. An OBJECT column's
  *           payload record lives in a {@code components} subpackage of its domain
  *           (convention: {@code XxxComponent}) — e.g.

@@ -24,7 +24,7 @@ import java.util.Map;
  * {@link #disagreeStreak}, and the first-observation {@link #seeded} latch.
  * Named {@code *System}, not {@code *Service}, under the
  * Service(data-owner)/System(processor) convention — see
- * {@code roadmap/ecs-migration/stories/entity-field-migration.md}.
+ * {@code ecs-nouns.md}.
  *
  * <ul>
  *   <li><b>Open targets.</b> Derived each tick from squad&rarr;node assignment,

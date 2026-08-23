@@ -81,9 +81,8 @@ public final class FacingSystem {
 
             Object[] types = t.objects(components.IDENTITY, BattleComponents.IDENTITY_TYPE).array();
             float[] hp = t.floats(components.HEALTH, BattleComponents.HEALTH_HP).array();
-            // Continuous position columns; the facing math floors per-row to grid
-            // cells below (identical to the old cell-index values this phase —
-            // units only ever sit on centers).
+            // Continuous position columns; target-facing math floors per-row to
+            // grid cells below, while travel facing uses the applied velocity.
             float[] posX = t.floats(components.POSITION, BattleComponents.POSITION_X).array();
             float[] posY = t.floats(components.POSITION, BattleComponents.POSITION_Y).array();
             int[] sheetSel = t.ints(components.SPRITE, BattleComponents.SPRITE_SHEET).array();
@@ -157,16 +156,15 @@ public final class FacingSystem {
                 boolean up = LiveAppearance.weaponUp(inAim, type.combatant,
                         hasCombat ? cooldownTimer[r] : 0f, hasCombat ? attackCooldown[r] : 0f);
 
-                // The grid cell this row occupies — floored locally since the
-                // facing math below needs an integer cell delta, not the continuous
-                // position. Identical to the old cell-index values this phase
-                // (units only ever sit on centers).
+                // The grid cell this row occupies — floored locally because target
+                // facing uses an integer cell delta while movement retains continuous
+                // position.
                 int rowCellX = (int) Math.floor(posX[r]);
                 int rowCellY = (int) Math.floor(posY[r]);
 
-                // Facing source, exactly the renderer's fallback chain: aim at
-                // a live target first, else the next path cell, else none
-                // (defaults to SOUTH / S below). Non-combatants carry no
+                // Facing source: aim at a live target first, else use the applied
+                // travel velocity below, else none (defaults to SOUTH / S below).
+                // Non-combatants carry no
                 // COMBAT — they have no target anyway, so this gates on both
                 // hasCombat and type.combatant before any target read.
                 int dx = 0;

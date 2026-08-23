@@ -20,7 +20,7 @@ import java.util.Map;
  * moved entity and the source tail that filled its hole. Serial-only — built for
  * the single-threaded sim tick.
  *
- * <p>Game-agnostic engine layer — see {@code roadmap/ecs-migration/archetype-storage.md}.
+ * <p>Game-agnostic engine layer — see {@code ecs-nouns.md}.
  */
 public final class EntityWorld {
 
@@ -63,12 +63,12 @@ public final class EntityWorld {
     }
 
     /**
-     * Creates an entity under an <b>externally-minted</b> id — the adoption seam
-     * for migration, where another authority (the transitional dense registry)
-     * still mints game entity ids. The internal mint is bumped past {@code id}
-     * so future {@link #createEntity(ComponentType...)} calls can never collide
-     * with an adopted id. {@code id} must be positive ({@code 0} is the no-entity
-     * sentinel) and not already alive.
+     * Creates an entity under an <b>externally-minted</b> id for a game integration
+     * that owns one identity sequence across several entity families. The internal
+     * mint is bumped past {@code id} so future
+     * {@link #createEntity(ComponentType...)} calls cannot collide with an adopted
+     * id. {@code id} must be positive ({@code 0} is the no-entity sentinel) and not
+     * already alive.
      */
     public void createEntity(long id, ComponentType... comps) {
         if (id <= 0L) throw new IllegalArgumentException("adopted entity id must be positive: " + id);

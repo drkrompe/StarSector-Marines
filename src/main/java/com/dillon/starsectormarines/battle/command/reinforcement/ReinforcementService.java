@@ -14,7 +14,7 @@ import java.util.List;
  * the read/mutate methods for them; the per-tick poll-and-dispatch driver lives
  * on {@link ReinforcementSystem}. Named {@code *Service}, not {@code *System},
  * under the Service(data-owner)/System(processor) convention — see
- * {@code roadmap/ecs-migration/stories/entity-field-migration.md}. The
+ * {@code ecs-nouns.md}. The
  * System-facing accessors are package-private (only the sibling System reaches
  * them), mirroring {@code power.CommandPowerService}.
  */

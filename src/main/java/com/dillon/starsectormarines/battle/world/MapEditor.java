@@ -30,8 +30,8 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
  * <p>Sits alongside the {@link NavigationService},
  * {@link com.dillon.starsectormarines.battle.combat.DamageService},
  * {@link com.dillon.starsectormarines.battle.combat.fx.EffectsService}, et al.
- * Slice 1 of the map-service-coordinator story owns runtime modification;
- * generation orchestration is a later slice.
+ * Runtime modification is its complete boundary; generation orchestration stays
+ * separate. See {@code ecs-nouns.md}.
  */
 public final class MapEditor {
 

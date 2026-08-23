@@ -160,21 +160,20 @@ public final class DamageResolver {
             // so a handler that wants the live entity still sees it. Buffered:
             // handlers don't run here — DeathDispatcher.drain() fans them out
             // at the demolition phase. Every post-death reaction (turret + hub
-            // demolition, drone crash, mech wreck, dead-body/render) now reacts
-            // off this event, not a list scan. See DeathDispatcher +
-            // retire-legacy-units-list. Snapshot the true death position into the
-            // event here, while the target is still registered — handlers run at
-            // the drain (post-release) where the Group-C accessors fail loud.
+            // demolition, drone crash, mech wreck, dead-body/render) reacts off
+            // this event, not a list scan. Snapshot the true death position into
+            // the event while the target still has its live capabilities; handlers
+            // run later at the fixed drain phase. See DeathDispatcher and
+            // ecs-nouns.md.
             // Roll the corpse prone-pose here (the normal-death path is the one that
             // leaves a ground body); the drone-cascade path publishes -1 (no corpse).
             // Publish the id directly — the target is still registered here (release
             // is below), and handlers read the id-keyed corpse columns + the event
             // snapshot, never a live handle.
             deathDispatcher.publish(new DeathEvent(targetId, tx, ty, rng.nextInt(4)));
-            // Drop the dense-registry entry. The legacy units list still retains
-            // the dead unit (no cleanup path) until it's deleted outright, but
-            // nothing reads a released unit through it anymore — this release is
-            // effectively the death bookkeeping. See UnitRosterService class doc.
+            // Remove the id from the dense live roster. The entity stays in the
+            // world so buffered death handlers can transmute it to its corpse
+            // lifecycle and consume the event snapshot.
             roster.releaseFromRegistry(targetId);
         }
         // Morale drain — branches on unit type. Gated on moraleImpact > 0

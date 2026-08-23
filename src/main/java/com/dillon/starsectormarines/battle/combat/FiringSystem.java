@@ -16,7 +16,7 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 /**
  * Executes the per-tick fire-intent queue the behaviors write on
  * {@code COMBAT} — the proving slice of the FiringSystem epic
- * ({@code roadmap/ecs-migration/stories/firing-system.md} § The decision).
+ * ({@code ecs-nouns.md}).
  * The sweep phase is complete: every infantry-family fire site (postures,
  * zone actions, patrol/garrison holds, the kit retriever) authors intent
  * here rather than firing inline. Turret/drone/mech fire paths keep their

@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 /**
  * Headless pin for Phase 2 of the live-appearance epic
- * ({@code roadmap/ecs-migration/stories/live-appearance.md}): {@link UnitRenderService}
+ * ({@code ecs-nouns.md}): {@link UnitRenderService}
  * now reads the {@code SPRITE} component {@code battle.appearance.FacingSystem} authors,
  * instead of deriving facing/frame per render. Exercised with an <em>unloaded</em>
  * {@link BattleSprites} (no {@code ensure*} call, so every sprite-cache lookup misses and

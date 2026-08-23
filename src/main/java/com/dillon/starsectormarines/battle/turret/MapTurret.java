@@ -30,7 +30,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
  * lives in the world {@code TURRET_STATE} component (data owner
  * {@code battle.sim.TurretStateService}); {@link #create} seeds it via
  * {@link EntitySpec#turretKind}. See
- * {@code roadmap/ecs-migration/stories/identity-collapse.md} (slice B2).
+ * {@code ecs-nouns.md}.
  */
 public final class MapTurret {
 

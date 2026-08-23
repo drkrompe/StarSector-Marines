@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Coverage for {@link FiringSystem} — the proving slice of the FiringSystem
- * epic ({@code roadmap/ecs-migration/stories/firing-system.md}). Direct-tick
+ * contract ({@code ecs-nouns.md}). Direct-tick
  * tests construct the system by hand and drive it against manually-written
  * {@code COMBAT} fire intent, the {@link com.dillon.starsectormarines.battle.unit.DeadBodySystemTest}
  * / {@code FacingSystemTest} arena pattern — avoiding whole-tick AI

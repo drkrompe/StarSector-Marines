@@ -21,7 +21,7 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * {@code VEHICLE_MISSION} columns.
  *
  * <p>A <b>Service</b> in this codebase's sense (see
- * {@code roadmap/ecs-migration/stories/vehicle-into-world.md}): it owns the
+ * {@code ecs-nouns.md}): it owns the
  * ground-craft component data and the spawn seam; {@link com.dillon.starsectormarines.battle.vehicle.GroundSystem}
  * (the System) reaches it via {@code roster.convoy()} and reads by id — no
  * {@link World} hop (the World facade is deprecated for new migrated state,

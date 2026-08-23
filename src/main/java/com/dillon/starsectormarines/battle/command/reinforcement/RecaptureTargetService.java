@@ -39,7 +39,7 @@ import java.util.Map;
  * (the debounce machine + the squad-assignment aggregation) lives on
  * {@link RecaptureTargetSystem}. Named {@code *Service}, not {@code *System},
  * under the Service(data-owner)/System(processor) convention — see
- * {@code roadmap/ecs-migration/stories/entity-field-migration.md}. The
+ * {@code ecs-nouns.md}. The
  * recompute writes results back through the package-private
  * {@link #setContested} mutator (and the targets' own flags).
  */

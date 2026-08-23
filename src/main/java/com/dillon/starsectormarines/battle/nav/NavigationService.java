@@ -85,11 +85,9 @@ public final class NavigationService {
     private int openedCount = 0;
 
     /**
-     * Dense entity store, for by-id current-cell reads in {@link #setPath} (the
-     * one occupancy path that holds a {@code Entity} ref without the dense index
-     * in hand). Setter-injected after construction because the registry is built
-     * after this service; never null once the sim is wired. Part of the
-     * {@code world-facade} migration off {@code Entity}'s self-routing accessors.
+     * Roster/world owner used for by-id current-position reads in {@link #setPath}.
+     * Setter-injected because the roster is constructed after this service; never
+     * null once the simulation is wired.
      */
     private UnitRosterService roster;
 

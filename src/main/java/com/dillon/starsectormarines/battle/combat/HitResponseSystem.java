@@ -20,7 +20,7 @@ import java.util.Random;
  * injected collaborator), reading unit/world state and routing writes through
  * {@link DamageService}. Named {@code *System}, not {@code *Service}, under the
  * Service(data-owner)/System(processor) convention — see
- * {@code roadmap/ecs-migration/stories/entity-field-migration.md}.
+ * {@code ecs-nouns.md}.
  *
  * <p>Both methods are called from the parallel UPDATE_UNITS dispatch (via
  * InfantryWeapons / HeavyWeapons / TurretFireSystem for the postures/tracks

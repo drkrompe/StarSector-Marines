@@ -315,7 +315,7 @@ public final class UnitRenderService implements RenderSystem {
      * first render(s), until the first {@code FacingSystem} pass authors real
      * facing — the old per-frame derivation would have shown path-facing one frame
      * earlier. Imperceptible; accepted in
-     * {@code roadmap/ecs-migration/stories/live-appearance.md}.
+     * {@code ecs-nouns.md}.
      */
     private void sweepLiveSprites(RenderContext ctx, DrawList out) {
         BattleComponents c = ctx.sim.getBattleComponents();

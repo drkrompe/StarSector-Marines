@@ -66,7 +66,7 @@ https://davidkbd.itch.io/eternity-metal-scfi-music-pack
   garrison fire feel in playtest (the game may have been implicitly balanced
   around the bug; if garrisons feel too soft, tune `attackCooldown` data, don't
   resurrect the double-tick). Record:
-  `roadmap/ecs-migration/stories/firing-system.md` Phase 2.
+  `ecs-nouns.md` and its shipped ledger.
 - **A marine mech can be recruited as `KIT_RETRIEVER`** —
   `EquipmentDropSystem.nearestAvailableMarine` filters on faction only, so a
   mech-loadout unit can win the recruitment and run `KitRetrieverBehavior`: it
@@ -184,8 +184,8 @@ https://davidkbd.itch.io/eternity-metal-scfi-music-pack
   neutral home (a `BattleConstants`/`Timestep` holder, or a `static final`
   on `BattleView`) and repoint all callers. Pure tidiness — a shared
   literal, not behavioral coupling — and the last thread of the
-  `drop-sim-facade-delegators` story's "BattleSimulation is just the tick
-  loop" north star. Surfaced by that story's command-tier critique pass.
+  `ecs-nouns.md` rule that `BattleSimulation` is the tick coordinator rather
+  than a general dependency. Surfaced by the original facade-narrowing audit.
 
 ## Performance
 

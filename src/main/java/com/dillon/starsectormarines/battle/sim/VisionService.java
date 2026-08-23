@@ -17,7 +17,7 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * shadowcast and the decision/combat LoS checks ({@code TacticalScoring},
  * {@code TurretAim}, …) read these by id off this Service. The per-component
  * Service mirroring {@code CombatService}/{@code MovementService}; the slice-3
- * field migration ({@code roadmap/ecs-migration/stories/entity-field-migration.md})
+ * component model ({@code ecs-nouns.md})
  * lands VISION here from the start rather than on the {@link World} god-facade.
  *
  * <p>{@code VISION} is <em>universal</em> (every live unit carries it — a ground

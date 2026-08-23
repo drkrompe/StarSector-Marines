@@ -16,7 +16,7 @@ import org.apache.log4j.Logger;
  * (transient bookkeeping); the trigger/means registries and the pending queue
  * live on the Service. Named {@code *System}, not {@code *Service}, under the
  * Service(data-owner)/System(processor) convention — see
- * {@code roadmap/ecs-migration/stories/entity-field-migration.md}.
+ * {@code ecs-nouns.md}.
  *
  * <p>Dispatch is resource-gated: each successful dispatch debits one
  * {@link ResourceType#REINFORCEMENT} ticket from the requesting side's

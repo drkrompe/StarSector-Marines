@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * {@link ConvoyService} as the convoy-vehicle factory + data owner (the dissolution
- * end-state of {@code roadmap/ecs-migration/stories/vehicle-into-world.md}, mirroring
+ * entity-family contract in {@code ecs-nouns.md}, mirroring
  * the air {@code ShuttleMission} shape): {@link ConvoyService#spawn} builds a vehicle's
  * {@code GroundBody} + {@code GroundTurret} from the variant, mints a world entity, and
  * seeds the ground-craft columns ({@code {GROUND_IDENTITY, GROUND_KINEMATICS,

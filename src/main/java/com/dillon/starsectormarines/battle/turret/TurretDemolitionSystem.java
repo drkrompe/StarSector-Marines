@@ -22,20 +22,17 @@ import java.util.List;
  * was guarding the post once every turret on it is dead — is turret-only and
  * would clutter the hub path.
  *
- * <p>Migrated off the legacy {@code List<Entity>} scan (the old per-tick
- * {@code !isAlive() && !demolished} sweep) to the event seam — the first
- * handler proving the {@code retire-legacy-units-list} spine. The
- * {@code demolished} flag used to live as a field on the turret's
- * (now-dissolved) dedicated {@code Entity} subclass; it's now
- * {@link #demolishedTurrets}, an id side-table here — the turret itself is a
- * plain {@code Entity} with no per-instance demolition state. Still a
+ * <p>The event seam avoids scanning the live roster for dead units.
+ * {@link #demolishedTurrets} is an id side-table here; the entity carries no
+ * per-instance demolition state. It remains a
  * defensive double-fire guard (a death publishes exactly once, so it's
  * belt-and-suspenders) and the "already demolished" marker {@link #isDemolished}
  * exposes for tests.
  *
  * <p>Sibling to other {@code *System} consumers — all dependencies
  * constructor-injected; {@link #demolishedTurrets} is the one piece of
- * per-turret state this system owns (everything else is stateless).
+ * per-turret state this system owns (everything else is stateless). See
+ * {@code ecs-nouns.md}.
  */
 public final class TurretDemolitionSystem {
 

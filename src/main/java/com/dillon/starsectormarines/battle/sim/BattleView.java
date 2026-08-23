@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
+import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -31,11 +32,9 @@ import java.util.Random;
  * requires to be read-only — a guarantee that was previously Javadoc-only
  * (see {@link com.dillon.starsectormarines.battle.decision.goap.Action}).
  *
- * <p>Part of the {@code drop-sim-facade-delegators} migration: the GOAP
- * {@code sim} parameter is being replaced by these narrowed types so consumers
- * depend on a scoped contract, not the whole orchestrator. The surface is
- * grown incrementally as consumers migrate — every method here already exists
- * on {@link BattleSimulation}, so adding one is zero-risk.
+ * <p>This is the standing read boundary for parallel planning. Keep the surface
+ * scoped to observations a planner genuinely needs rather than exposing the
+ * whole orchestrator. See {@code ecs-nouns.md}.
  *
  * <p><b>Caveat:</b> some accessors return service objects
  * ({@link TacticalScoring}) that carry their own mutators; the read-only
@@ -54,18 +53,17 @@ public interface BattleView {
     ZoneGraph getZoneGraph();
 
     /**
-     * Number of live units in the dense registry — the corpse-free count for
-     * live iteration. Paired with {@link #liveUnitAt(int)} this is the
-     * read-only, allocation-free live-iteration path: the dense registry holds
-     * only live units, so no {@code isAlive()} skip is needed. (Replaced the
-     * retired live+dead {@code getUnits()} list; post-death state lives in the
-     * corpse component stores.)
+     * Number of live units in the dense roster — the corpse-free count for live
+     * iteration. Paired with {@link #liveUnitAt(int)} this is the read-only,
+     * allocation-free live-iteration path: {@link UnitRosterService} retains
+     * only live-unit ids, so no {@code isAlive()} skip is needed. Corpse state
+     * remains in the shared {@code EntityWorld} under the same entity id.
      */
     int liveUnitCount();
 
     /**
      * Entity id of the live unit at dense index {@code [0, liveUnitCount())}.
-     * Iteration order is registry-dense (insertion order with swap-and-pop on
+     * Iteration order is roster-dense (insertion order with swap-and-pop on
      * release), <b>not</b> stable across releases — fine for a within-tick read
      * pass, not for anything that assumes a fixed battle-long ordering. Safe to
      * call during the parallel replan window (read-only; the dense array is
@@ -102,7 +100,7 @@ public interface BattleView {
     /** Resolve a unit id to itself if a live unit holds it, else {@code 0L}. */
     long resolveUnit(long id);
 
-    /** Entity-access facade — by-id hot primitives ({@code world().hp(id)}) over the dense SoA + cold {@code world().id(id).getOrNull(Cmp.class)} component projection. See {@link World}. */
+    /** Entity-access facade for broad by-id component reads ({@code world().hp(id)}); focused consumers should prefer the owning component service. See {@link World}. */
     World world();
 
     /**

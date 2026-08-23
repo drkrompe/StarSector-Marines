@@ -667,7 +667,7 @@ public final class UnitRosterService {
      * would bump the world's counter but not {@code nextId}, letting a later ground
      * allocate reuse a vehicle's id). Serial-only (the convoy tick runs in the serial
      * GROUND_SYSTEM phase). Part of the convoy-{@code Vehicle}-into-world epic
-     * ({@code roadmap/ecs-migration/stories/vehicle-into-world.md}).
+     * ({@code ecs-nouns.md}).
      */
     public long allocateVehicle(ComponentType[] archetype) {
         long id = nextId++;

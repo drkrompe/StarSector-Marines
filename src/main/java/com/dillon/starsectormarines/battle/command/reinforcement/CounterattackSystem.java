@@ -30,7 +30,7 @@ import java.util.List;
  * counterpart because there's no state here worth splitting out; the whole
  * point is a transient state machine. Named {@code *System} under the
  * Service(data-owner)/System(processor) convention — see
- * {@code roadmap/ecs-migration/stories/entity-field-migration.md}.
+ * {@code ecs-nouns.md}.
  *
  * <h2>Phases</h2>
  * <pre>

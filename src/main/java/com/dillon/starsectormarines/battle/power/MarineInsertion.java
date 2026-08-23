@@ -22,7 +22,7 @@ public final class MarineInsertion extends AirDeliveryPower {
      * drop of every battle rolls the same loadout — deterministic, but uniform across
      * battles. Tying it to the battle stream needs the activation path to hand the
      * {@code BattleControl} down to {@code configureMission}; logged as a follow-up in
-     * {@code seeded-battle-determinism.md}.
+     * {@code ecs-nouns.md}.
      */
     private static final long LOADOUT_SEED = 0x10AD0107L;
 

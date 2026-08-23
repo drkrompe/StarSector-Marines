@@ -6,7 +6,7 @@ package com.dillon.starsectormarines.battle.vehicle;
  * {@code Vehicle.State} nested enum to top-level so it outlives the {@code Vehicle}
  * handle as its state migrates into the world's {@code VEHICLE_MISSION} component
  * (convoy-{@code Vehicle}-into-world epic,
- * {@code roadmap/ecs-migration/stories/vehicle-into-world.md}).
+ * {@code ecs-nouns.md}).
  *
  * <p>Flow: {@link #PENDING} (off-map, waiting on the spawn stagger) → {@link #INCOMING}
  * (consuming the inbound waypoint queue) → {@link #LANDED} (deboarding militia at the LZ)

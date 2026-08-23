@@ -27,7 +27,7 @@ import java.util.Random;
  * injected collaborator), resolving one shot per {@link #fire} call. Named
  * {@code *System}, not {@code *Service}, under the
  * Service(data-owner)/System(processor) convention — see
- * {@code roadmap/ecs-migration/stories/entity-field-migration.md}.
+ * {@code ecs-nouns.md}.
  *
  * <p>Hit-response is delegated to the constructor-injected
  * {@link HitResponseSystem}.

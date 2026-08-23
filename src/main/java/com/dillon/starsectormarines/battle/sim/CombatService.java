@@ -14,7 +14,7 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * to a combatant's primary-weapon state in the archetype {@link EntityWorld}.
  *
  * <p>A <b>Service</b> in this codebase's sense (see
- * {@code roadmap/ecs-migration/stories/entity-field-migration.md}): it <em>owns</em>
+ * {@code ecs-nouns.md}): it <em>owns</em>
  * a component's data and exposes the methods to read/modify it — distinct from a
  * per-tick <b>System</b>, which processes every entity matching an aspect by
  * column-walking. A consumer that needs combat state is constructor-injected with

@@ -9,7 +9,7 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * turret's live aim/recoil/burst state in the archetype {@link EntityWorld}.
  *
  * <p>A <b>Service</b> in this codebase's sense (see
- * {@code roadmap/ecs-migration/stories/entity-field-migration.md}): it <em>owns</em>
+ * {@code ecs-nouns.md}): it <em>owns</em>
  * a component's data and exposes the methods to read/modify it. A consumer reaches it
  * via {@code sim.turretState()} / {@code roster.turretState()} and calls
  * {@code turretState.facingDegrees(id)} / {@code turretState.setRecoilTimer(id, v)}

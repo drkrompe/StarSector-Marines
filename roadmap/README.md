@@ -32,12 +32,11 @@ universe over time, not retrofitted into intel slots.
   generation, and multi-chamber keep all shipped. See
   [`conquest/central-keep.md`](conquest/central-keep.md) for the full
   shipped-with-details record. The battle tier's ongoing parallel tracks
-  are convoy kinematics (`convoy-nouns.md`), the Services/Systems + SoA refactor
-  ([`ecs-migration/`](ecs-migration/overview.md)), fog-of-war
+  are convoy kinematics (`convoy-nouns.md`), bounded ECS acceptance/presentation
+  follow-ons (`ecs-nouns.md`), fog-of-war
   (`fog-of-war-nouns.md`), and AI (GOAP + commander).
   The **feature-vertical package reorg** of `battle/` is **complete** (all
-  10 slices shipped; the `entity/` rename alone is deferred to
-  ecs-migration). On the render side, the **`BattleScreen` god-class
+  10 slices shipped; entity identity is now a bare `long`). On the render side, the **`BattleScreen` god-class
   decomposition into a layered draw-list pipeline is complete**: `renderWorld`
   is collect-all → drain-all over semantic layers, the batch-flush rewrite and
   camera culling are shipped, and only proposed asset/allocation cleanup plus

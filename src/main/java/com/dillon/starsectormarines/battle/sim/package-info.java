@@ -14,6 +14,6 @@
  *           state or behavior onto the orchestrator itself.
  *
  * <p>See {@link com.dillon.starsectormarines.battle} and
- * {@code roadmap/ecs-migration/overview.md} for the Services/Systems model.
+ * {@code ecs-nouns.md} for the Services/Systems model.
  */
 package com.dillon.starsectormarines.battle.sim;
