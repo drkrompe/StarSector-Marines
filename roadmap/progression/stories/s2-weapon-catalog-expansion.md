@@ -84,7 +84,7 @@ transient LoS blocker the shadowcast pass respects.
 - The reusable `FireTeamTemplateCard` library is revisited so the new families
   feed at least one four-billet team archetype (an ASSAULT/BREACH card is the
   obvious addition). The player-authored designer belongs to
-  `c14-fire-team-template-cards.md`.
+  `c14-fire-team-equipment-templates.md`.
 - Defender rosters (`InfantryLoadoutRolls`, `DefenderRoster`) get an
   explicit decision per family: enemy-available or player-only. Shotguns in
   defender hands change interior assaults substantially.
