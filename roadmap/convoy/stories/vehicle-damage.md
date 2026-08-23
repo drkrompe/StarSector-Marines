@@ -1,25 +1,36 @@
 # Story: anti-vehicle weapons → trucks take damage
 
-**Queued.** V1 trucks have no HP and never take damage. This wires them
-into the existing damage system so the player can counter a reinforcement
-push.
+Status: PLANNED — convoy vehicles do not yet participate in damage/destruction authority.
+
+Written: 2026-05-28
+
+Updated: 2026-08-23 — normalized around the current component-native vehicle model.
+
+Read `convoy-nouns.md` first. This story wires vehicles into combat damage so
+the player can counter a reinforcement push.
 
 ## Scope
 
-- **`Vehicle.hp` field** — already wired-forward on `Shuttle`; copy the
-  pattern.
+- Add component-native health/damage state using the existing battle damage
+  authority rather than reviving the retired `Vehicle` object model.
 - **Damage sources.** Marines' rocket launchers + mech LRMs damage trucks;
   direct fire (rifles) does less than rockets.
-- **HP-zero → wreck.** New `wreckedSpriteFrame` on `VehicleType` (or a
-  separate `wrecks.png` sheet). The wreck stays as a blocking doodad on
-  the road — which the road-reservation / footprint check already treats
-  as non-walkable terrain, so pathing routes around it for free.
+- **HP-zero → wreck.** Remove the live vehicle authority and create a persistent
+  wreck presentation/obstacle. Define which navigation state the wreck changes
+  and how route/clearance inputs observe or invalidate that change; do not
+  assume a render doodad blocks motion by itself.
 - **Crew fate.** Driver/passengers on a destroyed truck either die or
   eject as scattered militia (1–2 survivors, low HP), drawn from the
   per-faction roster.
 
 ## Why it unblocks other work
 
-Air ↔ ground interaction (shuttle A2G turrets vs. trucks) is easy once
-vehicles have HP — see the Parked list in [`../overview.md`](../overview.md).
-This story is the prerequisite.
+Air ↔ ground interaction (shuttle A2G turrets vs. trucks) becomes meaningful
+once vehicles can be damaged. This story is the prerequisite.
+
+## Acceptance
+
+Anti-vehicle fire can destroy an APC; destruction resolves its passengers once,
+replaces the live actor with an honest wreck/obstacle, and forces later vehicles
+to stop or reroute without clipping it. Ordinary small-arms fire remains a
+meaningfully weaker counter.

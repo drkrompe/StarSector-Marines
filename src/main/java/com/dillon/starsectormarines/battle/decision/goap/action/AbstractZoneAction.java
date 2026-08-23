@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.decision.goap.action;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Doctrine;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Posture;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
@@ -96,6 +98,7 @@ abstract class AbstractZoneAction implements Action {
     protected final void advanceIntoZone(long member, Squad squad, BattleControl sim,
                                          int destX, int destY, boolean haltOnContact) {
         boolean committed = false;
+        boolean doctrineHold = false;
         float engageLeash = 0f;
         long advanceThreat = 0L;
         int threatAnchorX = -1;
@@ -103,6 +106,15 @@ abstract class AbstractZoneAction implements Action {
         if (haltOnContact) {
             updateAdvanceThreat(squad, sim, destX, destY);
             committed = squad.advanceEngageCommitted;
+            Doctrine doctrine = squad.contactPicture.doctrine();
+            boolean advancingPicture = squad.contactPicture.posture() == Posture.ADVANCING;
+            if (advancingPicture && doctrine == Doctrine.DISENGAGE) {
+                BreakContact.INSTANCE.execute(member, squad, sim);
+                return;
+            }
+            doctrineHold = advancingPicture && doctrine == Doctrine.HOLD
+                    && squad.contactPicture.hasContacts();
+            committed |= doctrineHold;
             engageLeash = squad.advanceEngageLeash;
             advanceThreat = squad.advanceThreatId;
             threatAnchorX = squad.advanceThreatAnchorX;
@@ -168,6 +180,16 @@ abstract class AbstractZoneAction implements Action {
             }
         }
 
+        // A flank/rear or adverse-odds picture can order a contact line even
+        // when no believed enemy lies close enough to the literal route
+        // segment to provide a firing-position anchor. Plant instead of
+        // silently resuming the objective path; opportunity fire above still
+        // answers any target that becomes legal.
+        if (doctrineHold) {
+            if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+            return;
+        }
+
         if (sim.movement().mayRepath(member)) {
             sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                     sim.world().cellX(member), sim.world().cellY(member), destX, destY, sim.getOccupancyMap()));
@@ -188,7 +210,7 @@ abstract class AbstractZoneAction implements Action {
         synchronized (squad.lock) {
             if (squad.advanceThreatTick == tick) return;
             TacticalScoring.AdvanceThreat threat = sim.getTacticalScoring()
-                    .assessAdvanceThreat(squad, destX, destY);
+                    .assessAdvanceThreat(squad, destX, destY, tick);
             squad.advanceEngageWeight = threat.weight();
             squad.advanceEngageCommitted = shouldCommitAdvance(
                     squad.advanceEngageCommitted, threat.weight());

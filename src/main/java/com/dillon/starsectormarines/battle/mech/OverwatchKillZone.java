@@ -36,9 +36,11 @@ import com.dillon.starsectormarines.battle.unit.LongBucket;
  * the inner edge and uses LRMs outside the cannon band. SRM is never called
  * from this action regardless. Once every LRM rack is empty, the cached long
  * perch is invalidated and the mech closes into the outer edge of its installed
- * arms range instead of remaining unable to fire. Resupply restores the normal
- * medium/long band. A future morale-driven pressured override can unlock SRM as
- * a pressure-release valve; see `14-mech-stage1.md`.
+ * arms range instead of remaining unable to fire. It withholds replenished
+ * LRMs in that fallback posture until every installed rack is full, then
+ * returns to the normal medium/long band as one deliberate rearm cycle instead
+ * of oscillating for each restored trigger. A future morale-driven pressured
+ * override can unlock SRM as a pressure-release valve; see `14-mech-stage1.md`.
  *
  * <p>Always returns {@link ActionStatus#RUNNING} — same lifecycle as
  * {@link EngageAtCurrentBand}; replan handles posture changes.
@@ -177,7 +179,9 @@ public final class OverwatchKillZone implements Action {
             boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
                     sim.world().cellX(target), sim.world().cellY(target));
             if (inRange) {
-                MechCombatantBehavior.tryFireLrm(member, m, target, dist, sim, visible);
+                if (band.longRange()) {
+                    MechCombatantBehavior.tryFireLrm(member, m, target, dist, sim, visible);
+                }
                 MechCombatantBehavior.tryFireArms(member, m, target, dist, sim, visible);
                 // SRM intentionally withheld — see class doc.
             }
@@ -242,7 +246,8 @@ public final class OverwatchKillZone implements Action {
     }
 
     private static OverwatchBand overwatchBand(MechLoadoutComponent loadout) {
-        if (hasLrmPressure(loadout)) {
+        if (hasLrmPressure(loadout)
+                && (loadout.overwatchLongRangeBand || lrmRacksFull(loadout))) {
             return new OverwatchBand(OVERWATCH_MIN_DIST, OVERWATCH_MAX_DIST, true);
         }
         MechWeaponMount arms = loadout.mount(MechMountSlot.ARMS);
@@ -261,6 +266,16 @@ public final class OverwatchKillZone implements Action {
             }
         }
         return false;
+    }
+
+    private static boolean lrmRacksFull(MechLoadoutComponent loadout) {
+        boolean found = false;
+        for (MechWeaponMount mount : loadout.mounts()) {
+            if (mount == null || mount.weapon() != MechWeapon.LRM_ARTILLERY) continue;
+            found = true;
+            if (!mount.full()) return false;
+        }
+        return found;
     }
 
     private static boolean insideBand(int cellX, int cellY,

@@ -114,7 +114,7 @@ class SiroccoScreenedOverwatchTest {
     }
 
     @Test
-    void resuppliedLrmRackRestoresLongRangePosture() {
+    void partiallyReplenishedLrmRackKeepsCannonFallbackStable() {
         Fixture f = fixture(45, 30);
         emptyLrmRacks(f.loadout);
         f.loadout.overwatchCellX = 45;
@@ -126,8 +126,28 @@ class SiroccoScreenedOverwatchTest {
 
         OverwatchKillZone.INSTANCE.execute(f.sirocco, f.squad, f.sim);
 
+        assertFalse(f.loadout.overwatchLongRangeBand,
+                "one restored trigger must not make the Sirocco oscillate outward");
+        assertEquals(1, f.loadout.mount(MechMountSlot.LEFT_SHOULDER).ammo,
+                "fallback posture withholds LRMs while the racks rebuild");
+        assertInHeavyCannonFallbackBand(f.loadout.overwatchCellX,
+                f.loadout.overwatchCellY);
+    }
+
+    @Test
+    void fullLrmRacksRestoreLongRangePosture() {
+        Fixture f = fixture(45, 30);
+        f.loadout.overwatchCellX = 45;
+        f.loadout.overwatchCellY = 30;
+        f.loadout.overwatchAxisX = THREAT_X;
+        f.loadout.overwatchAxisY = THREAT_Y;
+        f.loadout.overwatchLongRangeBand = false;
+        fillLrmRacks(f.loadout);
+
+        OverwatchKillZone.INSTANCE.execute(f.sirocco, f.squad, f.sim);
+
         assertTrue(f.loadout.overwatchLongRangeBand,
-                "a supplied LRM rack should restore normal overwatch doctrine");
+                "full LRM racks should restore normal overwatch doctrine");
         assertInOverwatchBand(new OverwatchKillZone.OverwatchPosition(
                 f.loadout.overwatchCellX, f.loadout.overwatchCellY,
                 f.loadout.overwatchScreenId));
@@ -216,6 +236,13 @@ class SiroccoScreenedOverwatchTest {
     private static void emptyLrmRacks(MechLoadoutComponent loadout) {
         loadout.mount(MechMountSlot.LEFT_SHOULDER).ammo = 0;
         loadout.mount(MechMountSlot.RIGHT_SHOULDER).ammo = 0;
+    }
+
+    private static void fillLrmRacks(MechLoadoutComponent loadout) {
+        MechWeaponMount left = loadout.mount(MechMountSlot.LEFT_SHOULDER);
+        MechWeaponMount right = loadout.mount(MechMountSlot.RIGHT_SHOULDER);
+        left.ammo = left.component.ammoCapacity;
+        right.ammo = right.component.ammoCapacity;
     }
 
     private static void assertInOverwatchBand(OverwatchKillZone.OverwatchPosition position) {

@@ -58,9 +58,9 @@ public class TileRegistryParityTest {
             new G("nature.rock-small-3",  NATURE_SHEET, 14, TileLayer.ROCK,   TileCover.NONE,  true),
             new G("nature.rock-medium-1", NATURE_SHEET, 15, TileLayer.ROCK,   TileCover.LIGHT, true),
             new G("nature.rock-medium-2", NATURE_SHEET, 16, TileLayer.ROCK,   TileCover.LIGHT, true),
-            new G("nature.rock-large-1",  NATURE_SHEET, 17, TileLayer.ROCK,   TileCover.NONE,  false),
-            new G("nature.rock-large-2",  NATURE_SHEET, 18, TileLayer.ROCK,   TileCover.NONE,  false),
-            new G("nature.rock-large-3",  NATURE_SHEET, 19, TileLayer.ROCK,   TileCover.NONE,  false),
+            new G("nature.rock-large-1",  NATURE_SHEET, 17, TileLayer.ROCK,   TileCover.HEAVY, false),
+            new G("nature.rock-large-2",  NATURE_SHEET, 18, TileLayer.ROCK,   TileCover.HEAVY, false),
+            new G("nature.rock-large-3",  NATURE_SHEET, 19, TileLayer.ROCK,   TileCover.HEAVY, false),
 
             new G("urban3.street-square",    URBAN3_SHEET, 0, TileLayer.GROUND,  TileCover.NONE, true),
             new G("urban3.street-irregular", URBAN3_SHEET, 1, TileLayer.GROUND,  TileCover.NONE, true),

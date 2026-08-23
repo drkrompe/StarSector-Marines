@@ -66,13 +66,14 @@ are the design-stage members that extend it.
   fighter/drone data (offline reference).
 - `roadmap/backlog.md` § "Flyby fighters as real air entities" — unblocked by
   the fighter track here.
-- `roadmap/convoy/overview.md` — the ground-vehicle sibling (`GroundBody`);
+- `convoy-nouns.md` — the ground-vehicle sibling (`GroundBody`);
   same "data-driven body + steering" shape, different medium.
 - `roadmap/vanilla-combat-bridge/overview.md` — adjacent: its proxy-target
   thread is the other side of "vanilla ships and our sim interact." Ground
   defenses targeting ships (in [`ships/`](ships/overview.md)) lives next door.
-- `roadmap/command-powers/` — fighter cover is surfaced to the player as a
-  command power; this category is the sim substrate those wings fly on.
+- `command-powers-nouns.md` — fighter cover is a committed detachment support
+  kind surfaced beside command powers; this category is the sim substrate those
+  wings fly on.
 - Memory: [[air_vehicle_kinematics]], [[air_unit_render_sync]],
   [[vanilla_ship_spec_scraping]], [[starsector_script_sandbox]],
   [[ground_vehicle_kinematics]].

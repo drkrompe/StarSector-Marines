@@ -1,8 +1,14 @@
 # Story: truck vs. infantry interaction
 
-**Queued.** Today the truck is a fractional-position body the sim doesn't
-know about for collision: marines walk through it, trucks drive through
-marines. This makes trucks feel real in the battle.
+Status: PLANNED — moving-vehicle occupancy and collision authority are not yet defined.
+
+Written: 2026-05-28
+
+Updated: 2026-08-23 — reframed around the current world-actor/grid-combatant boundary.
+
+Read `convoy-nouns.md` first. Today the vehicle is a continuous world actor the
+infantry grid does not treat as an occupant: marines and trucks can pass through
+one another. This story makes that interaction explicit.
 
 ## Options
 
@@ -20,11 +26,10 @@ dodge" and add the squash variant later.
 
 ## Notes
 
-- The deboard loadout already routes through the per-faction roster (see
-  [`reinforcement-integration`](../complete/reinforcement-integration.md)),
-  so squashed/ejected militia would draw from the same lookup. See
-  [`../../reinforcement/faction-roster.md`](../../reinforcement/faction-roster.md).
-- Predictive avoidance leans on the GOAP re-plan triggers in
-  [`../../ai/overview.md`](../../ai/overview.md) — a truck's projected
+- The deboard loadout already routes through the per-faction roster described by
+  `convoy-nouns.md`, so squashed/ejected militia would draw from the same
+  lookup. See `faction-roster.md`.
+- Predictive avoidance leans on the GOAP re-plan triggers described by the AI
+  feature — a truck's projected
   occupancy is a new world-state input rather than a bespoke dodge
   behavior.

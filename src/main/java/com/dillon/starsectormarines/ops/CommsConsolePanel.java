@@ -39,7 +39,7 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
  * <em>Brief &amp; Deploy</em> action. Brief &amp; Deploy hands off to the
  * full-screen {@link BriefingScreen} — the canonical pre-battle surface that
  * owns the commitment controls (transports, fighter cover, captain, salvage)
- * and launches the battle (roadmap command-powers S8 Slice A).
+ * and launches the battle (see {@code command-powers-nouns.md}).
  *
  * <p>Inline-expand state lives on {@link MarineOpsContext#getSelectedMission()}
  * — null = no expansion; non-null = that mission is the expanded one. The
@@ -188,7 +188,7 @@ public class CommsConsolePanel extends OpsPanel {
         }
 
         Mission expanded = ctx.getSelectedMission();
-        // The expanded card is a read-only summary now (S8 Slice A) — the
+        // The expanded card is a read-only summary — the
         // commitment controls (transports, fighter cover, captain, salvage)
         // live on the full-screen BriefingScreen reached via Brief & Deploy.
 
@@ -291,7 +291,7 @@ public class CommsConsolePanel extends OpsPanel {
     }
 
     /**
-     * Lays out the expanded card's action buttons. As of S8 Slice A the card is
+     * Lays out the expanded card's action buttons. The card is
      * a read-only summary (title + meta + briefing prose drawn by
      * {@link ExpandedCardWidget}); the only controls are <em>Brief &amp;
      * Deploy</em> (→ full-screen {@link BriefingScreen} for commitment) and

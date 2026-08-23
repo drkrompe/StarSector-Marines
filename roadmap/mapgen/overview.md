@@ -63,6 +63,13 @@ survey in [`pipeline-audit.md`](pipeline-audit.md)):
   then wall-HP seeding, cover baking, building flood-fill, spawn-anchor
   selection.
 
+Nature fillers also publish playable terrain semantics. Rock definitions own
+their cover and passability values; the filler applies them without treating a
+rock as structural architecture. Medium rocks remain walkable cover. Large
+rocks block navigation but are see-through, skip wall art/HP through the
+non-structural fixture contract, stay off leaf perimeters, and are rejected
+when their placement would disconnect the leaf's remaining walkable space.
+
 The room-purpose seam, introduced by the refactor:
 
 - **`RoomPurpose` enum** in `battle.map` (next to `BuildingKind`) —
@@ -181,8 +188,9 @@ station-shaped graph framing lives on for stations in
 - [`../conquest/central-keep.md`](../conquest/central-keep.md) — Slice 6
   of that doc (multi-room keep) is what surfaced the need for this
   refactor. The keep is the immediate driver but not the only consumer.
-- [`../convoy/overview.md`](../convoy/overview.md) — the road graph the
-  partition step reserves is consumed by convoy path-planning; see
+- `convoy-nouns.md` — the road graph the partition step reserves provides
+  convoy approach/drop-off vocabulary, while cost-field search routes between
+  those points; see
   [[road_graph_design]].
 - [[battle_services_systems]] — Services vs Systems decomposition the
   rest of the battle tier follows. The map-gen refactor is structurally
