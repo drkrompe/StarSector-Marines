@@ -3,13 +3,14 @@
 ## Where we are
 
 Track opened 2026-08-22 from an inventory of the shipped squad AI and
-commander ("squad of squads") tiers. Twelve stories contracted (C1–C12).
-**Four have shipped work.** `c7-organization-and-ranks.md` and
+commander ("squad of squads") tiers. Thirteen stories contracted (C1–C13).
+**Five have shipped work.** `c7-organization-and-ranks.md` and
 `c1-fireteam-identity-through-the-drop.md` are complete;
 `c8-lift-capacity-and-multi-pass-drops.md` has three of four slices in,
 `c10-company-between-contracts.md` is complete — all four slices, now in
-`complete/` — and `c12-the-debug-company.md` has two of three. Everything
-else is design stage.
+`complete/` — `c12-the-debug-company.md` has two of three, and
+`c13-the-task-force.md` has one of three. Everything else is design
+stage.
 
 The organization is now settled in code, so every later story renders a
 real hierarchy rather than a proposed one:
@@ -38,8 +39,15 @@ real hierarchy rather than a proposed one:
   builds a detached `MarineRoster`, so a debug deployment goes through the
   same `freezeSelection` the campaign does and earns the same tags, NCO
   leaders and multi-lift joins. `DebugCompanyStage` picks the point on the
-  campaign arc (First Contract / Established / Veteran Company) and moves
-  squad count, experience, kit and mech support together.
+  campaign arc (First Contract / Established / Veteran Company /
+  Reinforced / Full Strength, 1-34 squads) and moves squad count,
+  experience, kit and mech support together; a squad dial resizes it to 40.
+- **Command is scoped per officer.** `TaskForce` derives a deployment's
+  officers from the squads selected — each squad rides its own
+  `homeCaptainId`'s `Rank.squadCommandCap`, and only an unassigned squad
+  counts against the operation's commander. A 34-squad drop across three
+  officers deploys; a roster with nothing assigned behaves exactly as it
+  did under the old single-officer cap.
 
 Read [`overview.md`](overview.md) first — it holds the inventory of what
 exists today and the seven design commitments the stories assume.
@@ -197,9 +205,11 @@ and nothing was tuned to compensate.
   at HIGH risk authorises **40 drops = 480 seats**, and play reports it
   wanting 200-400 marines — 17 to 34 squads, against `Rank.COLONEL`'s cap of
   24. The lift was never the constraint; the *command ladder* is. Three ways
-  out (more officers per deployment, higher rank caps, or CONQUEST/HIGH is
-  mistuned) are laid out in `c12-the-debug-company.md`; **none is chosen
-  yet**. The roster still outgrows the battle either way, which is why the
+  out were laid out in `c12-the-debug-company.md`, and **more officers per
+  deployment was chosen** — shipped as `c13-the-task-force.md` slice 1.
+  Raising rank caps was rejected (it makes a Colonel's company a regiment);
+  whether CONQUEST/HIGH's 40 drops are themselves an outlier is still open,
+  and the squad dial is now the cheap way to find out. The roster still outgrows the battle either way, which is why the
   fleet view paginates and the battle view does not need to.
 - `AirSystem.java:471` resets `mission.squadId` per cycle today, so every
   reinforcement wave currently mints an unrelated squad. C8 slice 2 scopes
@@ -230,6 +240,8 @@ and nothing was tuned to compensate.
 - `00ace1b0` — C1 (all four slices) + C8 slice 1: the identity seam, and
   lift capacity in fire teams
 - `6e3908b0` — C8 slice 3: an assembling squad holds at its LZ
+- C13 slice 1: the task force — command scoped per officer, so a
+  34-squad deployment across three officers validates
 - C12 slices 1-2: the debug company — a detached `MarineRoster` through the
   same deployment path, staged along the campaign arc
 
