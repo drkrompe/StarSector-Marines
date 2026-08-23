@@ -75,11 +75,19 @@ really occur.
 
 So `DebugCompanyStage` replaces the preset, and each stage is a snapshot:
 
-| Stage | Squads | Marines | Experience | Kit | Mechs |
+| Stage | Squads | Marines | Plan | Officer | Mechs |
 | --- | ---: | ---: | --- | --- | ---: |
-| First Contract | 1 | 12 | all Green | starter auto-issue | 0 |
-| Established | 3 | 36 | Veteran NCOs over Regulars | Service, a Milspec DMR per squad | 3 |
-| Veteran Company | 6 | 72 | Elite NCOs over Veterans | Milspec, Masterwork marksmen | 6 |
+| First Contract | 1 | 12 | starter issue, all Green | Lieutenant | 0 |
+| Established | 3 | 36 | seasoned — Veteran NCOs over Regulars | Captain | 3 |
+| Veteran Company | 6 | 72 | hardened — Elite NCOs over Veterans | Major | 6 |
+| Reinforced | 17 | 204 | seasoned | Lt. Colonel | 9 |
+| Full Strength | 34 | 408 | hardened | Colonel | 18 |
+
+**Size and quality are separate axes.** `DebugBilletPlan` carries quality
+(three profiles); the stage names a plan and a default size; the briefing's
+squad dial overrides size up to `DebugCompany.MAX_SQUADS`. A fixed ladder
+cannot answer "how many marines does this mission need" — that is a dial
+question, and it is the question play actually asked.
 
 **First Contract is literally the campaign opening** — one squad of twelve
 through `recruitToSquad` with the auto-issue pattern untouched, which is
@@ -94,7 +102,9 @@ the arc is a small edit, deliberately.
 - **Lift.** The debug transport picker stays authoritative — pick the
   hulls, and `freeze` truncates to the seats that exist, exactly as a short
   campaign manifest does. A six-squad company in one Valkyrie deploys
-  twelve marines and says so.
+  twelve marines and says so. The dial's ceiling of 40 squads is the lift
+  ceiling: a CONQUEST at HIGH risk authorises 40 drops, and 40 Valkyrie
+  drops is 480 seats.
 - **Command.** `captainCommandReady` already returns `true` for debug
   missions, so the officer cap does not gate the fixture. The stage names
   an officer rank for the readout only; wiring a synthetic captain is
@@ -183,3 +193,45 @@ tag → `CampaignSquadIndex` → `SquadFormUpSystem` chain has its own tests,
 but no test drives a debug multi-lift drop through a live sim. The air
 fixtures build one shuttle at a time, so that needs a harness this story did
 not build. First real proof will be a play pass.
+
+## The scaling finding (2026-08-23)
+
+Play reports a **CONQUEST at HIGH risk wanting 200-400 marines**. Checking
+the numbers against what exists:
+
+| | value | note |
+| --- | ---: | --- |
+| CONQUEST/HIGH required drops | 40 | `MissionGenerator.requiredDropsFor` |
+| Seats at a Valkyrie's capacity | **480** | lift was never the constraint |
+| `Rank.COLONEL.squadCommandCap` | 24 squads = **288 marines** | the ladder's top rung |
+| 400 marines | 34 squads | **past every officer rank** |
+
+Two conclusions, and they point in different directions.
+
+**The lift is fine.** Nothing needed to change for a 400-marine drop to be
+physically deliverable — 40 drops of a twelve-seat hull already covers it.
+The debug company was the only thing that could not field them, and now it
+can.
+
+**The mission ladder has outgrown the command ladder.** This contradicts an
+assumption recorded in `next-session.md`: *"the officer rank cap and the
+lift capacity together bound what reaches one battle — a dozen squads,
+realistically."* A HIGH conquest wants two to three times that. So one of
+these has to give:
+
+- **More officers per deployment.** A 400-marine drop is several officers'
+  commands — a task force, not a company. This matches the fiction (the
+  player *is* the company; officers command sub-units), matches C3's
+  planned "officer grouping" pagination, and keeps `Rank`'s numbers
+  meaningful. It needs real work: `MarineOpsContext.selectedCaptainId` is
+  singular and `CaptainDeploymentPolicy` validates one officer's squads.
+- **Raise the rank caps.** One enum edit, but it makes a Colonel's command a
+  regiment and quietly redefines what a card in C3 shows.
+- **Or CONQUEST/HIGH is mistuned** and its 40 drops are the outlier.
+
+Not decided here. The fixture deliberately does *not* pick a side: the top
+two stages exceed their officer's cap and `exceedsCommandCap()` reports it,
+so the briefing shows the overrun in the blocked colour instead of hiding
+it. Debug missions bypass `captainCommandReady`, so the fixture still
+deploys — the point is to make the gap visible while play establishes what
+the real number is.

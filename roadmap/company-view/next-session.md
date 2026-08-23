@@ -75,6 +75,11 @@ twelve-marine squads with NCO leaders, and a transport picker set below the
 company's strength forces the multi-lift path the form-up gate exists for.
 Before C12 a debug mission could not reach any of it.
 
+For force-ratio work the **squad dial** in the briefing's COMPANY DEBUG row
+is the tool — it resizes the company from 0 to 40 squads (0-480 marines)
+without changing its quality, so "what does this mission actually need" is
+one picker rather than a code edit.
+
 **Then C2 (`c2-formation-model.md`).** It is the prerequisite for all three
 UI stories, and its second slice (rewire `SquadDeploymentScreen`'s counts,
 no visible change) is a safe proof. C5 and C6 are unblocked now that C1 has
@@ -184,12 +189,16 @@ and nothing was tuned to compensate.
   crossed. It does **not** advance vanilla's economy, so no amount of skipping
   produces a monthly report.
 
-- **Scale is governed at the source, not by the UI.** The officer rank cap
+- **Scale is governed at the source, not by the UI.** ~~The officer rank cap
   and the lift capacity together bound what reaches one battle — a dozen
-  squads, realistically. Hundreds of squads is a state neither the meta
-  game nor the HUD can carry, so future cap numbers get picked with that
-  ceiling in mind. The *roster* still outgrows it, which is why the fleet
-  view paginates and the battle view does not need to.
+  squads, realistically.~~ **Contradicted by play 2026-08-23:** a CONQUEST
+  at HIGH risk authorises **40 drops = 480 seats**, and play reports it
+  wanting 200-400 marines — 17 to 34 squads, against `Rank.COLONEL`'s cap of
+  24. The lift was never the constraint; the *command ladder* is. Three ways
+  out (more officers per deployment, higher rank caps, or CONQUEST/HIGH is
+  mistuned) are laid out in `c12-the-debug-company.md`; **none is chosen
+  yet**. The roster still outgrows the battle either way, which is why the
+  fleet view paginates and the battle view does not need to.
 - `AirSystem.java:471` resets `mission.squadId` per cycle today, so every
   reinforcement wave currently mints an unrelated squad. C8 slice 2 scopes
   that; C5 must not paper over it with display-only grouping.

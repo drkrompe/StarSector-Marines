@@ -45,14 +45,34 @@ public final class DebugCompany {
      */
     private static final int FABRICATION_BUDGET = 1_000_000;
 
+    /**
+     * Ceiling on the squad dial. Forty squads is 480 marines, which is exactly
+     * the lift a CONQUEST at HIGH risk can put on the ground (40 required
+     * drops at a Valkyrie's twelve seats). Past it the manifest truncates and
+     * the extra squads would never leave orbit, so the dial stops where the
+     * transports do.
+     */
+    public static final int MAX_SQUADS = 40;
+
     private DebugCompany() {}
 
-    /** The company at {@code stage}, as a roster nothing else holds a reference to. */
+    /** The company at {@code stage}, at that stage's own size. */
     public static MarineRoster roster(DebugCompanyStage stage) {
         DebugCompanyStage resolved = stage != null ? stage : DebugCompanyStage.FIRST_CONTRACT;
+        return roster(resolved, resolved.squads);
+    }
+
+    /**
+     * The company at {@code stage}, resized to {@code squads}. Size and
+     * quality are independent: the dial answers "how many marines does this
+     * mission need", which no fixed ladder can.
+     */
+    public static MarineRoster roster(DebugCompanyStage stage, int squads) {
+        DebugCompanyStage resolved = stage != null ? stage : DebugCompanyStage.FIRST_CONTRACT;
+        int count = clampSquads(squads);
         MarineRoster roster = new MarineRoster();
-        stockArmory(roster.armory(), resolved);
-        for (int s = 0; s < resolved.squads; s++) {
+        stockArmory(roster.armory(), resolved, count);
+        for (int s = 0; s < count; s++) {
             MarineSquad squad = roster.createSquad();
             for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
                 MarineSoldier recruit = roster.recruitToSquad(squad.id());
@@ -68,6 +88,11 @@ public final class DebugCompany {
         return roster;
     }
 
+    /** Squad counts outside {@code [0, MAX_SQUADS]} are clamped, never rejected. */
+    public static int clampSquads(int squads) {
+        return Math.max(0, Math.min(MAX_SQUADS, squads));
+    }
+
     /** Line squads in roster order — what the deployment selects, reserve excluded. */
     public static List<String> lineSquadIds(MarineRoster roster) {
         List<String> ids = new ArrayList<>();
@@ -81,15 +106,16 @@ public final class DebugCompany {
     /** Applies the stage's billet plan to one marine. */
     private static void outfit(MarineRoster roster, DebugCompanyStage stage,
                                MarineSoldier soldier, int billet) {
-        soldier.addExperience(stage.experienceXp(billet));
-        MarineWeapon primary = stage.primary(billet);
-        EquipmentGrade grade = stage.grade(billet);
+        DebugBilletPlan plan = stage.plan;
+        soldier.addExperience(plan.experienceXp(billet));
+        MarineWeapon primary = plan.primary(billet);
+        EquipmentGrade grade = plan.grade(billet);
         if (primary != null && grade != null) {
             roster.allocatePrimary(soldier.id(), primary, grade);
         }
-        MarineSecondary secondary = stage.secondary(billet);
+        MarineSecondary secondary = plan.secondary(billet);
         if (secondary != null) roster.allocateSecondary(soldier.id(), secondary);
-        MarineArmorPattern armor = stage.armor(billet);
+        MarineArmorPattern armor = plan.armor(billet);
         if (armor != null) roster.allocateArmor(soldier.id(), armor);
     }
 
@@ -99,27 +125,28 @@ public final class DebugCompany {
      * shows up as marines quietly holding the starter rifle rather than as a
      * failure — hence printing against the plan rather than a guessed number.
      */
-    private static void stockArmory(MarineArmory armory, DebugCompanyStage stage) {
+    private static void stockArmory(MarineArmory armory, DebugCompanyStage stage, int squads) {
         armory.addFabricationMaterials(FABRICATION_BUDGET);
+        DebugBilletPlan plan = stage.plan;
         for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
-            MarineWeapon primary = stage.primary(billet);
-            EquipmentGrade grade = stage.grade(billet);
+            MarineWeapon primary = plan.primary(billet);
+            EquipmentGrade grade = plan.grade(billet);
             if (primary != null && grade != null) {
                 armory.unlockPrimary(primary, grade);
                 printUpTo(() -> armory.ownedPrimary(primary, grade),
-                        () -> armory.printPrimary(primary, grade), stage.squads);
+                        () -> armory.printPrimary(primary, grade), squads);
             }
-            MarineSecondary secondary = stage.secondary(billet);
+            MarineSecondary secondary = plan.secondary(billet);
             if (secondary != null) {
                 armory.unlockSecondary(secondary);
                 printUpTo(() -> armory.ownedSecondary(secondary),
-                        () -> armory.printSecondary(secondary), stage.squads);
+                        () -> armory.printSecondary(secondary), squads);
             }
-            MarineArmorPattern armor = stage.armor(billet);
+            MarineArmorPattern armor = plan.armor(billet);
             if (armor != null) {
                 armory.unlockArmor(armor);
                 printUpTo(() -> armory.ownedArmor(armor),
-                        () -> armory.printArmor(armor), stage.squads);
+                        () -> armory.printArmor(armor), squads);
             }
         }
     }

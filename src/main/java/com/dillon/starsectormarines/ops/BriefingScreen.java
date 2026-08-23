@@ -27,6 +27,7 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import com.dillon.starsectormarines.ops.detachment.CommandDeck;
+import com.dillon.starsectormarines.ops.detachment.DebugCompany;
 import com.dillon.starsectormarines.ops.detachment.DebugCompanyStage;
 import com.dillon.starsectormarines.ops.detachment.PlayerFleetPowerSources;
 import com.dillon.starsectormarines.battle.power.CommandPower;
@@ -428,6 +429,11 @@ public class BriefingScreen implements Screen {
             y -= SECTION_GAP;
         }
 
+        if (m.source.isDebug()) {
+            y = buildDebugCompanyPicker(x, y, rowW, floor);
+            y -= SECTION_GAP;
+        }
+
         if (DevConfig.DEBUG_MECH_SUPPORT_PICKER && m.source.isDebug()) {
             y = buildDebugMechPicker(m, x, y, rowW, floor);
             y -= SECTION_GAP;
@@ -440,7 +446,7 @@ public class BriefingScreen implements Screen {
         if (m.source.isDebug()) {
             widgets.add(new LabelWidget(Fonts.ORBITRON_20, "Personnel", x, y, LABEL_COLOR));
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                    ctx.getDebugCompanyStage().summary(),
+                    ctx.getDebugCompanyStage().summary(ctx.getDebugSquadCount()),
                     valueX, y, ACCEPT_COLOR));
         } else {
             PersonnelReadiness readiness = personnelReadiness(m);
@@ -669,6 +675,7 @@ public class BriefingScreen implements Screen {
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                 debugPersonnel
                         ? "Company: " + ctx.getDebugCompanyStage().displayName
+                                + " x" + ctx.getDebugSquadCount()
                         : "Assign Squads",
                 squadsX + 8f, btnY + BTN_H - 6f, HEADER_COLOR));
 
@@ -777,6 +784,58 @@ public class BriefingScreen implements Screen {
     }
 
     // ---- debug-only pickers ----
+
+    /**
+     * Squad dial for the debug company. The stage sets the default; this
+     * overrides the size without touching the quality, because "how many
+     * marines does this mission need" is the balance question a fixed stage
+     * ladder cannot answer. Capped at {@link DebugCompany#MAX_SQUADS}, which
+     * is the lift ceiling rather than an arbitrary number.
+     */
+    private float buildDebugCompanyPicker(float x, float y, float rowW, float floor) {
+        if (y < floor) return y;
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                "COMPANY DEBUG — squads deployed", x, y, HEADER_COLOR));
+        y -= ROW_GAP;
+        if (y < floor) return y;
+
+        int squads = ctx.getDebugSquadCount();
+        float arrowW = 34f;
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, "Squads", x, y, LABEL_COLOR));
+        float controlX = x + 70f;
+        addDebugTransportButton(controlX, y, 42f, "-10",
+                squads > 0 ? () -> adjustDebugSquadCount(-10) : null);
+        addDebugTransportButton(controlX + 46f, y, arrowW, "-",
+                squads > 0 ? () -> adjustDebugSquadCount(-1) : null);
+        widgets.add(new ButtonWidget(controlX + 84f, y - BTN_H + 6f, 56f, BTN_H, null));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, Integer.toString(squads),
+                controlX + 100f, y, squads > 0 ? ACCEPT_COLOR : BLOCKED_COLOR));
+        addDebugTransportButton(controlX + 144f, y, arrowW, "+",
+                squads < DebugCompany.MAX_SQUADS ? () -> adjustDebugSquadCount(1) : null);
+        addDebugTransportButton(controlX + 182f, y, 42f, "+10",
+                squads < DebugCompany.MAX_SQUADS ? () -> adjustDebugSquadCount(10) : null);
+        addDebugTransportButton(controlX + 232f, y, 88f, "Stage",
+                () -> {
+                    ctx.cycleDebugCompanyStage();
+                    debugMechCount = ctx.getDebugCompanyStage().mechs;
+                    rebuild();
+                });
+        y -= ROW_GAP;
+
+        if (y >= floor) {
+            DebugCompanyStage stage = ctx.getDebugCompanyStage();
+            boolean overCap = squads > stage.officerRank.squadCommandCap();
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20, stage.summary(squads),
+                    x, y, overCap ? BLOCKED_COLOR : VALUE_COLOR));
+            y -= ROW_GAP;
+        }
+        return y;
+    }
+
+    private void adjustDebugSquadCount(int delta) {
+        ctx.setDebugSquadCount(ctx.getDebugSquadCount() + delta);
+        rebuild();
+    }
 
     private float buildDebugMechPicker(Mission mission, float x, float y,
                                        float rowW, float floor) {

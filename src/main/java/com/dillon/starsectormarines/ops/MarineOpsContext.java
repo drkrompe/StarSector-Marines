@@ -72,6 +72,13 @@ public class MarineOpsContext {
      * a fresh build per read would show one company and deploy another.
      */
     private MarineRoster debugCompanyRoster;
+    /**
+     * Squad-count override for the debug company, or {@code -1} to use the
+     * stage's own size. Size and quality are separate axes: "how many marines
+     * does this mission actually need" is the balance question a fixed ladder
+     * cannot answer, so the briefing gets a dial.
+     */
+    private int debugSquadCount = -1;
     /** Stationing offer selected for the dedicated assignment screen. */
     private long selectedStationingContractId = -1L;
     /** Current battle simulation — built by the accept path (MissionLaunch), read by BattleScreen. */
@@ -148,13 +155,26 @@ public class MarineOpsContext {
 
     public void cycleDebugCompanyStage() {
         debugCompanyStage = debugCompanyStage.next();
+        debugSquadCount = -1;
+        debugCompanyRoster = null;
+    }
+
+    /** Squads the debug company fields — the override when set, else the stage's own size. */
+    public int getDebugSquadCount() {
+        return debugSquadCount >= 0 ? debugSquadCount : debugCompanyStage.squads;
+    }
+
+    public void setDebugSquadCount(int squads) {
+        int clamped = DebugCompany.clampSquads(squads);
+        if (clamped == debugSquadCount) return;
+        debugSquadCount = clamped;
         debugCompanyRoster = null;
     }
 
     /** The debug company at the selected stage. Detached — never the campaign roster. */
     public MarineRoster getDebugCompanyRoster() {
         if (debugCompanyRoster == null) {
-            debugCompanyRoster = DebugCompany.roster(debugCompanyStage);
+            debugCompanyRoster = DebugCompany.roster(debugCompanyStage, getDebugSquadCount());
         }
         return debugCompanyRoster;
     }
