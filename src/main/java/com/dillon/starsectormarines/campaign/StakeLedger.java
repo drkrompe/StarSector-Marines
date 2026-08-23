@@ -3,7 +3,8 @@ package com.dillon.starsectormarines.campaign;
 /**
  * Higher-level operations on the {@code stakes[]} table — the "transfer N stake
  * from A to B" layer that {@link CampaignState}'s low-level mutators deliberately
- * leave out (see that class's header and {@code architecture.md} §2). Stateless;
+ * leave out (see that class's header and
+ * {@code roadmap/campaign/design/architecture.md}). Stateless;
  * every method operates on a passed-in {@link CampaignState}.
  *
  * <p>This is the single primitive every stake-moving caller routes through —
@@ -12,17 +13,18 @@ package com.dillon.starsectormarines.campaign;
  * {@code roadmap/campaign/living-world/design/living-world-nouns.md}.
  * Centralising it keeps the conservation + ceiling invariants in one place.
  *
- * <h2>Tombstone-at-zero (stake soft-delete)</h2>
- * Stakes have no {@code status} column, so a depleted stake is represented by
- * {@code share == 0}, not row removal — physical removal would compact the array
- * and break {@code stakeIndexById} (architecture.md §1, "compaction is
- * forbidden"). A zeroed row is inert: it contributes nothing to claimed totals
- * and is revived in place if the same house re-acquires the industry.
+ * <h2>Zero-share stake rows</h2>
+ * Stakes have no {@code status} column, so this owner currently retains a
+ * depleted row with {@code share == 0}. The row contributes nothing to claimed
+ * totals and is revived in place if the same house re-acquires the industry.
+ * Any owner-approved compaction must rebuild the stake rows and their lookup
+ * index together; this ledger does not promise stable row positions.
  *
  * <h2>Invariant this layer maintains</h2>
  * At most one row per {@code (houseId, marketId, industryId)} triple — seeding
- * creates each once, and {@link #seizeShare} reuses the existing (or tombstoned)
- * row rather than appending a duplicate. {@link #findStake} relies on it.
+ * creates each once, and {@link #seizeShare} reuses the existing row (including
+ * a zero-share row) rather than appending a duplicate. {@link #findStake} relies
+ * on it.
  */
 public final class StakeLedger {
 
@@ -33,10 +35,11 @@ public final class StakeLedger {
 
     /**
      * Row index of {@code houseId}'s stake on {@code (marketIdx, industryIdx)},
-     * or {@code -1} if it holds none. Matches regardless of share so a tombstoned
-     * (zeroed) row is found and revived rather than duplicated.
+     * or {@code -1} if it holds none. Matches regardless of share so a zero-share
+     * row is found and revived rather than duplicated.
      *
-     * <p>Linear scan — acceptable per architecture.md §5 because stake moves are
+     * <p>Linear scan — acceptable per the campaign architecture because stake
+     * moves are
      * once-per-mission (player) or once-per-house-per-week (drift), never an
      * inner-loop hot path. If the drift loop later proves this hot, a composite
      * {@code (house,market,industry) → row} index is the escalation.
@@ -91,8 +94,9 @@ public final class StakeLedger {
      *
      * <p>Conservation: the winner's gain is bounded by {@code loserHeld +
      * unclaimedBefore}, so the claimed total on the industry never exceeds
-     * {@link #SHARE_CEILING}. The loser is reduced to a floor of zero (tombstoned,
-     * never removed). No-ops on {@code amount <= 0} or a self-transfer.
+     * {@link #SHARE_CEILING}. The loser's current row is reduced to a floor of
+     * zero; this owner retains that zero-share row. No-ops on {@code amount <= 0}
+     * or a self-transfer.
      */
     public static int seizeShare(CampaignState state, long fromHouseId, long toHouseId,
                                  int marketIdx, int industryIdx, int amount) {
@@ -107,7 +111,7 @@ public final class StakeLedger {
         if (fromRow >= 0) {
             int held = state.stakeShare[fromRow];
             taken = Math.min(amount, held);
-            state.stakeShare[fromRow] = (short) (held - taken); // tombstones at 0
+            state.stakeShare[fromRow] = (short) (held - taken); // retains zero-share row
         }
 
         int fromUnclaimed = Math.min(amount - taken, unclaimedBefore);

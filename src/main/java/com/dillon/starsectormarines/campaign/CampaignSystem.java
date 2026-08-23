@@ -7,8 +7,8 @@ import java.util.EnumSet;
  * all persistent data lives on {@link CampaignState}, all systems do is
  * compute one tick's worth of changes against it.
  *
- * <p>See <code>roadmap/campaign/architecture.md</code> §2 (Systems) and §3
- * (read/write declarations) for the design rationale. Short version:
+ * <p>See <code>roadmap/campaign/design/architecture.md</code> for the system
+ * and read/write declaration rationale. Short version:
  *
  * <ul>
  *   <li>One system per simulation phase. Promotion, relationship interactions,
@@ -18,8 +18,8 @@ import java.util.EnumSet;
  *       persistent state. {@link CampaignStateScript} keeps them in a
  *       {@code transient} list.</li>
  *   <li>Every system declares its {@link #reads()} and {@link #writes()}
- *       table sets so a future scheduler can determine safe parallelism
- *       (currently the scheduler runs serially in registration order).</li>
+ *       table sets so a scheduler can reason about safe parallelism; the
+ *       current scheduler runs serially in registration order.</li>
  * </ul>
  */
 public interface CampaignSystem {
