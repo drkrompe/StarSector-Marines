@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CompanyStandingTest {
@@ -192,6 +193,30 @@ class CompanyStandingTest {
         assertTrue(broke.finances.runwayMonths()
                 < OfficerMoodReader.DESPERATE_RUNWAY_MONTHS);
         assertEquals(OfficerMood.DESPERATE, broke.mood());
+    }
+
+
+    // ---------- the pre-report window ----------
+
+    @Test
+    void beforeTheFirstMonthlyReportTheFiguresAreUnknownRatherThanZero() {
+        // Vanilla only writes a monthly report at the first rollover. Until then every
+        // figure derived from it is absent, and a surface that renders "upkeep Cr. 0"
+        // states something false about the company.
+        OfficerMoodReader.Snapshot fresh =
+                new OfficerMoodReader.Snapshot(200_000f, 0f, 0f, 0, 0, 1, 1, 0);
+
+        assertFalse(fresh.hasMonthlyReport);
+        assertEquals(-1f, fresh.runwayMonths(), 0.001f);
+    }
+
+    @Test
+    void aReportWithRealUpkeepIsRecognisedAsPresent() {
+        OfficerMoodReader.Snapshot settled =
+                new OfficerMoodReader.Snapshot(200_000f, 1_000f, 20_000f, 0, 0, 1, 1, 0);
+
+        assertTrue(settled.hasMonthlyReport);
+        assertEquals(10f, settled.runwayMonths(), 0.001f);
     }
 
     // ---------- fixtures ----------

@@ -118,20 +118,27 @@ public final class CompanyHqScreen implements Screen {
                 MessageFormat.format(Strings.get("companyHqOnHand"),
                         credits.format((long) standing.finances.credits)), x, y, VALUE));
         y -= ROW;
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                MessageFormat.format(Strings.get("companyHqUpkeep"),
-                        credits.format((long) standing.finances.upkeepLastMonth)),
-                x, y, VALUE));
-        y -= ROW;
-        float net = standing.finances.netLastMonth;
-        widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                MessageFormat.format(Strings.get("companyHqNet"),
-                        signed(credits, net)), x, y, net < 0f ? BAD : VALUE));
-        y -= ROW;
-        if (standing.finances.debt > 0) {
+        if (standing.finances.hasMonthlyReport) {
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                    MessageFormat.format(Strings.get("companyHqDebt"),
-                            credits.format(standing.finances.debt)), x, y, BAD));
+                    MessageFormat.format(Strings.get("companyHqUpkeep"),
+                            credits.format((long) standing.finances.upkeepLastMonth)),
+                    x, y, VALUE));
+            y -= ROW;
+            float net = standing.finances.netLastMonth;
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    MessageFormat.format(Strings.get("companyHqNet"),
+                            signed(credits, net)), x, y, net < 0f ? BAD : VALUE));
+            y -= ROW;
+            if (standing.finances.debt > 0) {
+                widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                        MessageFormat.format(Strings.get("companyHqDebt"),
+                                credits.format(standing.finances.debt)), x, y, BAD));
+                y -= ROW;
+            }
+        } else {
+            // Zeroes here would be a claim, not a gap. Say the report does not exist.
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    Strings.get("companyHqNoReport"), x, y, MUTED));
             y -= ROW;
         }
         y -= SECTION_GAP;
