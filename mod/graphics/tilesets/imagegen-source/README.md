@@ -23,10 +23,10 @@ python mod\graphics\tilesets\imagegen-source\normalize_spaceport_apron.py
 ```
 
 `atlas-material-source/` contains the small checked-in authoring inputs used by
-`texture-atlases.json`. The current grass and dirt inputs are 52x52 wrap-aware
-FFmpeg downsamples of Game Buffs' 4K `Grass_3_Albedo.png` and
-`Dirt_7_Albedo.png`. Both hash-selected variants intentionally use the same
-material so unlike variants cannot expose a join.
+`texture-atlases.json`. They are wrap-aware FFmpeg downsamples of selected Game
+Buffs 4K materials: 52x52 grass and dirt for `nature-tiles`, plus 14x14 sand and
+stone for `Floors_Tiles`. Every hash-selected variant in a material pool uses
+the same imported source so unlike variants cannot expose a join.
 
 ## Individual-material atlas packer
 
@@ -58,10 +58,10 @@ python mod\graphics\tilesets\imagegen-source\pack_texture_atlas.py import-tileab
   --size 14
 ```
 
-For the 16px `Floors_Tiles` sand pool, a 1px runtime guard means the checked-in
-material is 14x14. Add a grid atlas entry with `cellPx: 16`, then target cells
-`[6, 14]`, `[7, 14]`, and `[8, 14]`. Using the same imported material for all
-three cells guarantees that hash-selected variants meet cleanly.
+For the 16px `Floors_Tiles` ground pools, a 1px runtime guard means each
+checked-in material is 14x14. The manifest packs `Beach_Sand_Dry_1_Albedo.png`
+into sand cells `[6, 14]`, `[7, 14]`, and `[8, 14]`, and
+`Gravel_11_Albedo.png` into stone cells `[6, 10]`, `[7, 10]`, and `[8, 10]`.
 
 Run the packer tests with:
 
@@ -78,7 +78,7 @@ python -m unittest discover `
 | `urban-tileset.png` | `urban-tileset.raw.png` (1254x1254 RGB) | Strong whole-sheet preservation; 2 originally empty cells contain spillover |
 | `urban-tileset-2.png` | `urban-tileset-2-spaceport-apron.raw.png` (1254x1254 RGB) | The approved 3x3 spaceport apron is extracted panel-by-panel into the road atlas |
 | `urban-tileset-3.png` | `urban-tileset-3.raw.png` (2166x726 RGB) | All 7 auto-sliced frames retained in order |
-| `Floors_Tiles.png` | `Floors_Tiles.raw.png` (1225x1284 RGB) | Material families retained; most topology drift and blank-cell pollution |
+| `Floors_Tiles.png` | `Floors_Tiles.raw.png` (1225x1284 RGB) + `atlas-material-source/` (14x14 RGBA) | Material families retained; sand and stone fields use manifest-packed seamless materials |
 | `Water_tiles.png` | `Water_tiles.raw.png` (1254x1254 RGB) | Strong macro-layout preservation; some edge spill into empty cells |
 | `nature-tiles.png` | `nature-tiles.raw.png` (2172x724 RGB) + `atlas-material-source/` (52x52 RGBA) | All 20 auto-sliced frames retained in order; grass/dirt fields use manifest-packed seamless materials |
 
