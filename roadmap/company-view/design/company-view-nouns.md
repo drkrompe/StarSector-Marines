@@ -1,8 +1,8 @@
 # Company view nouns
 
-Status: ACTIVE — 12 open stories
+Status: ACTIVE — 11 open stories
 Written: 2026-08-23
-Updated: 2026-08-23 — made fire-team template cards the Fleet Armory's equipment-authoring tier.
+Updated: 2026-08-23 — shipped fire teams as the battle AI's maneuver element.
 
 ## Purpose
 
@@ -30,7 +30,7 @@ company view composes their stable outputs.
   stationing binding, and NCO billet live in the campaign roster.
 - **Fire team** — four adjacent squad billets derived from roster order. It is
   the Fleet Armory's player-facing equipment tier, the lift-capacity unit, and
-  intended AI maneuver element. It is not another deployment selection or
+  battle AI maneuver element. It is not another deployment selection or
   player command target.
 - **Template card** — a reusable four-billet equipment design owned by the
   armory. The card is not physical inventory and is never consumed by
@@ -117,9 +117,9 @@ per-marine mutation remain in `c14-fire-team-template-cards.md`.
 A campaign deployment is a frozen value snapshot, never a live roster
 reference. Selected squads are frozen in stable roster order so their seats
 remain contiguous. Each campaign seat carries its marine identity plus a
-`CampaignSquadTag`: stable squad id, deploy-time label, NCO marker, and the
-strength that selected squad is assembling toward. A later roster rename or
-transfer cannot rewrite the battle.
+`CampaignSquadTag`: stable squad id, deploy-time label, NCO marker, fire-team
+index, and the strength that selected squad is assembling toward. A later
+roster rename or transfer cannot rewrite the battle.
 
 At landing, tagged personnel group by **campaign squad and landing zone**.
 Repeated lifts to the same zone join one battle squad; a campaign squad split
@@ -136,6 +136,30 @@ therefore carries campaign-shaped identity without touching campaign state.
 The standing law is **values cross the campaign-to-battle seam; campaign
 objects do not**. Labels remain stable, battle code never resolves the roster,
 and generated personnel never gain campaign identity by accident.
+
+## Battle maneuver doctrine
+
+The player and the mission commander continue to assign objectives to squads.
+Inside that order, infantry AI treats each roster-derived four-marine fire team
+as an intact maneuver element. Scenario-generated squads receive the same
+stable four-seat partition at spawn, so the doctrine is not limited to named
+campaign personnel. Replanning may change a team's tactical role but does not
+reshuffle its membership.
+
+Formation steering is hierarchical. Marines first hold a compact team-local
+shape; coherently moving sibling teams then occupy laterally separated anchors
+in a shallow squad arc. A team moving on a different path is formed around its
+own heading and is not pulled back toward the squad-wide arc. This replaces the
+old whole-squad ring dispersion for infantry while leaving mech formations
+independent.
+
+Bounding overwatch rotates one intact team forward while every sibling team
+with a firing solution covers it. With three healthy teams this is one moving
+and two overwatching; degraded two-team squads use one and one. Fix-and-flank
+likewise leaves at least one team on the contact axis while a sibling maneuvers
+to the flank waypoint. A team with fewer than two survivors is dissolved for
+tactical purposes and its survivors fold deterministically into the nearest
+viable sibling; the underlying campaign billet identity remains unchanged.
 
 ## Lift and arrival
 

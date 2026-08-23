@@ -561,6 +561,12 @@ public final class UnitRosterService {
         // the unit spawns in a squad).
         if (inSquad) {
             entityWorld.setInt(id, components.SQUAD, BattleComponents.SQUAD_ID, spec.squadId);
+            Squad squad = getSquad(spec.squadId);
+            int fireTeamIndex = spec.fireTeamIndex != Squad.NO_FIRE_TEAM
+                    ? spec.fireTeamIndex
+                    : squad != null ? squad.claimFireTeamIndex() : 0;
+            entityWorld.setInt(id, components.SQUAD,
+                    BattleComponents.SQUAD_FIRE_TEAM_INDEX, Math.max(0, fireTeamIndex));
         }
         // Seed the garrison post (the HOME component was attached above iff the unit
         // spawns with one).

@@ -58,6 +58,7 @@ public final class Squad {
      * membership lookups; never a stored column value.
      */
     public static final int NO_SQUAD = -1;
+    public static final int NO_FIRE_TEAM = -1;
 
     /**
      * Marines in one fire team — the squad's maneuver element, and the unit
@@ -68,6 +69,17 @@ public final class Squad {
      * it, so a lift can never carry a fraction of a team.
      */
     public static final int FIRE_TEAM_SIZE = 4;
+
+    /** Spawn-order seat used to give generated battle squads stable four-person teams. */
+    private int nextFireTeamSeat;
+
+    /**
+     * Claims the next generated fire-team billet. Campaign marines bypass this
+     * with their frozen roster index; scenario units use it at the spawn seam.
+     */
+    public synchronized int claimFireTeamIndex() {
+        return nextFireTeamSeat++ / FIRE_TEAM_SIZE;
+    }
 
     /**
      * Sim-seconds the squad stays ENGAGED after the last LOS to an enemy

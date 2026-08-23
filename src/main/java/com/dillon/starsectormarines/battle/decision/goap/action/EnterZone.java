@@ -2,19 +2,20 @@ package com.dillon.starsectormarines.battle.decision.goap.action;
 
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
-import com.dillon.starsectormarines.battle.decision.goap.scoring.RoleAssigner;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
+import com.dillon.starsectormarines.battle.squad.FireTeamGroups;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <b>Squad posture: move into a target zone.</b> Each member paths to a
@@ -41,9 +42,11 @@ import java.util.List;
  */
 public final class EnterZone extends AbstractZoneAction {
 
-    static final String TEAM_A = "team:a";
-    static final String TEAM_B = "team:b";
-    /** Cells gained by each half-squad before the roles swap. */
+    static final String FIRE_TEAM = "fireteam:";
+    /** Test/fixture aliases for the first two organizational teams. */
+    static final String TEAM_A = FIRE_TEAM + "0";
+    static final String TEAM_B = FIRE_TEAM + "1";
+    /** Cells gained by each maneuvering fire team before the role rotates. */
     static final float BOUNDING_STRIDE = 6f;
 
     /** Destination cell inside the target zone — chosen at construction so all members aim at the same spot and the pathfinder routes them through the portal naturally. */
@@ -75,12 +78,9 @@ public final class EnterZone extends AbstractZoneAction {
     @Override public String name() { return "EnterZone[" + targetZoneId + "]"; }
 
     @Override
-    public List<RoleAssigner.Slot<Long>> roles(Squad squad, BattleView sim) {
-        int teamA = (squad.aliveMembers + 1) / 2;
-        int teamB = squad.aliveMembers / 2;
-        return List.of(
-                new RoleAssigner.Slot<>(TEAM_A, teamA, member -> 0f),
-                new RoleAssigner.Slot<>(TEAM_B, teamB, member -> 0f));
+    public Map<String, List<Long>> assignRoles(Squad squad, BattleView sim,
+                                                List<Long> candidates) {
+        return FireTeamGroups.assignments(FIRE_TEAM, candidates, sim.squad());
     }
 
     /**
@@ -139,11 +139,10 @@ public final class EnterZone extends AbstractZoneAction {
         SquadPlan.Step step = plan != null ? plan.currentStep() : null;
         if (step == null || step.action != this) return false;
         String memberTeam = step.slotOf(member);
-        if (!TEAM_A.equals(memberTeam) && !TEAM_B.equals(memberTeam)) return false;
+        if (memberTeam == null || !memberTeam.startsWith(FIRE_TEAM)) return false;
 
-        List<Long> teamA = liveMembers(step.assignments.get(TEAM_A), sim);
-        List<Long> teamB = liveMembers(step.assignments.get(TEAM_B), sim);
-        if (teamA.isEmpty() || teamB.isEmpty()) {
+        List<List<Long>> teams = liveTeams(step, sim);
+        if (teams.size() < 2) {
             clearBounding(squad);
             return false;
         }
@@ -156,11 +155,7 @@ public final class EnterZone extends AbstractZoneAction {
             }
 
             if (squad.boundingActive && allBoundersArrived(squad, sim)) {
-                String nextOverwatch = overwatchTeam(squad.boundingPhase + 1);
-                List<Long> suppressors = TEAM_A.equals(nextOverwatch) ? teamA : teamB;
-                List<Long> bounders = TEAM_A.equals(nextOverwatch) ? teamB : teamA;
-                if (!beginPhase(squad, sim, suppressors, bounders,
-                        squad.boundingPhase + 1, threat)) {
+                if (!beginPhase(squad, sim, teams, squad.boundingPhase + 1, threat)) {
                     squad.clearBoundingOverwatch();
                     squad.boundingAttemptTick = sim.getSimTickIndex();
                     return false;
@@ -169,14 +164,15 @@ public final class EnterZone extends AbstractZoneAction {
 
             if (!squad.boundingActive) {
                 if (squad.boundingAttemptTick == sim.getSimTickIndex()) return false;
-                if (!beginPhase(squad, sim, teamA, teamB, 0, threat)) return false;
+                if (!beginPhase(squad, sim, teams, 0, threat)) return false;
             }
             state = new BoundingState(squad.boundingPhase, squad.boundingThreatId,
                     squad.boundingMemberIds, squad.boundingTargetXs, squad.boundingTargetYs);
         }
 
-        String overwatch = overwatchTeam(state.phase);
-        if (overwatch.equals(memberTeam)) {
+        int memberTeamIndex = teamIndexContaining(teams, member);
+        int maneuverTeamIndex = Math.floorMod(state.phase + 1, teams.size());
+        if (memberTeamIndex != maneuverTeamIndex) {
             holdOverwatch(member, state.threat, sim);
             return true;
         }
@@ -184,9 +180,14 @@ public final class EnterZone extends AbstractZoneAction {
     }
 
     private boolean beginPhase(Squad squad, BattleControl sim,
-                               List<Long> suppressors, List<Long> bounders,
-                               int phase, long threat) {
+                               List<List<Long>> teams, int phase, long threat) {
         squad.boundingAttemptTick = sim.getSimTickIndex();
+        int maneuverTeam = Math.floorMod(phase + 1, teams.size());
+        List<Long> bounders = teams.get(maneuverTeam);
+        List<Long> suppressors = new ArrayList<>();
+        for (int i = 0; i < teams.size(); i++) {
+            if (i != maneuverTeam) suppressors.addAll(teams.get(i));
+        }
         if (!hasFiringMember(suppressors, threat, sim)) return false;
 
         int[] stride = nextStrideCell(squad, phase > 0);
@@ -293,10 +294,6 @@ public final class EnterZone extends AbstractZoneAction {
         return -1;
     }
 
-    private static String overwatchTeam(int phase) {
-        return (phase & 1) == 0 ? TEAM_A : TEAM_B;
-    }
-
     private boolean matchesCurrentAdvance(Squad squad, long threat) {
         return squad.boundingTargetZoneId == targetZoneId
                 && squad.boundingDestX == destX
@@ -311,6 +308,23 @@ public final class EnterZone extends AbstractZoneAction {
             if (sim.resolveUnit(member) != 0L) live.add(member);
         }
         return live;
+    }
+
+    private static List<List<Long>> liveTeams(SquadPlan.Step step, BattleView sim) {
+        List<List<Long>> teams = new ArrayList<>();
+        for (Map.Entry<String, List<Long>> entry : step.assignments.entrySet()) {
+            if (!entry.getKey().startsWith(FIRE_TEAM)) continue;
+            List<Long> live = liveMembers(entry.getValue(), sim);
+            if (!live.isEmpty()) teams.add(live);
+        }
+        return teams;
+    }
+
+    private static int teamIndexContaining(List<List<Long>> teams, long member) {
+        for (int i = 0; i < teams.size(); i++) {
+            for (long candidate : teams.get(i)) if (candidate == member) return i;
+        }
+        return -1;
     }
 
     private static void clearBounding(Squad squad) {

@@ -32,10 +32,19 @@ public final class CampaignSquadTag {
      */
     public final int strength;
 
+    /** Stable zero-based fire-team billet derived from the campaign squad roster. */
+    public final int fireTeamIndex;
+
     public CampaignSquadTag(String squadId, String label, boolean leader, int strength) {
+        this(squadId, label, leader, strength, Squad.NO_FIRE_TEAM);
+    }
+
+    public CampaignSquadTag(String squadId, String label, boolean leader, int strength,
+                            int fireTeamIndex) {
         this.squadId = squadId;
         this.label = label;
         this.leader = leader;
         this.strength = strength;
+        this.fireTeamIndex = fireTeamIndex;
     }
 }
