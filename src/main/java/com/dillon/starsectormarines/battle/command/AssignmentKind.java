@@ -11,6 +11,9 @@ package com.dillon.starsectormarines.battle.command;
  *   <li>{@link #CLEAR_ZONE} — push into the named zone and eliminate hostiles
  *       inside it. Conquest signature — spreads marine squads across charge-
  *       site zones instead of dogpiling the nearest contact.</li>
+ *   <li>{@link #SWEEP_SECTOR} — search an Assault sector via a commander-
+ *       selected waypoint until the squad acquires a contact. The assignment
+ *       carries an exact cell, but no enemy identity or position.</li>
  *   <li>{@link #SECURE_COMPOUND} — push into a compound's zone, clear it, then
  *       hold until the compound's capture timer completes. Issued by
  *       {@code ConquestCommand} for zones containing uncaptured compounds
@@ -27,12 +30,12 @@ package com.dillon.starsectormarines.battle.command;
  *       The commander uses this for surplus squads.</li>
  * </ul>
  *
- * <p>Additions ({@code SWEEP_SECTOR}, {@code CONVERGE_ON_CONTACT}) queue
- * behind the Assault commander shape — separate kinds from the Conquest set
- * because the per-squad goal mapping differs.
+ * <p>{@code CONVERGE_ON_CONTACT} remains queued behind the richer Assault
+ * commander shape.
  */
 public enum AssignmentKind {
     CLEAR_ZONE,
+    SWEEP_SECTOR,
     SECURE_COMPOUND,
     HOLD_NODE,
     RUSH_OBJECTIVE,
