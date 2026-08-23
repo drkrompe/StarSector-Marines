@@ -33,7 +33,9 @@ at a weapon id and changing nothing else.
 This story migrates the one shipped weapon-like secondary; it does not declare
 that every future item in the same player-facing slot is a weapon. The
 anti-materiel rifle in `s2a-anti-materiel-rifle.md` may reference this schema.
-Smoke and satchel activations remain owned by their progression stories.
+The frag grenade in `s2d-frag-grenades.md` may do the same for an arcing
+explosive definition. Smoke and satchel activations remain owned by their
+progression stories.
 
 ## Out of scope
 

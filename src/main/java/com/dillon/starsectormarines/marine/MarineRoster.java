@@ -199,7 +199,7 @@ public class MarineRoster implements Serializable {
 
     public MarineArmory armory() { return armory; }
 
-    /** Whether any line or reserve squad still points at this reusable card. */
+    /** Whether any line or reserve squad still points at this reusable template. */
     public boolean isFireTeamTemplateAssigned(String cardId) {
         if (cardId == null) return false;
         for (MarineSquad squad : squads) {
@@ -210,9 +210,15 @@ public class MarineRoster implements Serializable {
         return false;
     }
 
-    /** Custom cards may be deleted only after every team has moved off them. */
+    /** Whether a fielded team or saved squad arrangement still references this template. */
+    public boolean isFireTeamTemplateReferenced(String templateId) {
+        return isFireTeamTemplateAssigned(templateId)
+                || armory.isTemplateReferencedByArrangement(templateId);
+    }
+
+    /** Custom templates may be deleted only after every live reference is removed. */
     public boolean deleteFireTeamTemplate(String cardId) {
-        return !isFireTeamTemplateAssigned(cardId) && armory.deleteTemplateCard(cardId);
+        return !isFireTeamTemplateReferenced(cardId) && armory.deleteTemplateCard(cardId);
     }
 
     public List<MarineSoldier> soldiers() {
@@ -734,7 +740,7 @@ public class MarineRoster implements Serializable {
     }
 
     /**
-     * Assigns one reusable template card to one complete, ready fire team.
+     * Assigns one reusable template to one complete, ready fire team.
      * The preview and mutation share one inventory calculation, and mutation
      * begins only after that entire transaction succeeds.
      */
@@ -747,7 +753,7 @@ public class MarineRoster implements Serializable {
         return FireTeamTemplateResult.APPLIED;
     }
 
-    /** Evaluates two teams exchanging their assigned cards as one net transaction. */
+    /** Evaluates two teams exchanging their assigned templates as one net transaction. */
     public FireTeamRefitPreview previewFireTeamTemplateSwap(
             String firstSquadId, int firstTeamIndex,
             String secondSquadId, int secondTeamIndex) {
@@ -766,7 +772,7 @@ public class MarineRoster implements Serializable {
         String secondCardId = second.teamTemplateCardId(secondTeamIndex);
         if (firstCardId == null || secondCardId == null) {
             return new FireTeamRefitPreview(
-                    FireTeamTemplateResult.UNKNOWN_CARD, Collections.emptyList());
+                    FireTeamTemplateResult.UNKNOWN_TEMPLATE, Collections.emptyList());
         }
         return previewRefits(List.of(
                 new RefitRequest(firstSquadId, firstTeamIndex, secondCardId),
@@ -792,6 +798,57 @@ public class MarineRoster implements Serializable {
         return FireTeamTemplateResult.APPLIED;
     }
 
+    /** Number of squads whose current Alpha/Bravo/Charlie assignments match this plan. */
+    public int squadArrangementFieldedCount(String arrangementId) {
+        SquadArrangement arrangement = armory.squadArrangementById(arrangementId);
+        if (arrangement == null) return 0;
+        int fielded = 0;
+        for (MarineSquad squad : squads) {
+            boolean matches = true;
+            for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
+                if (!arrangement.templateId(team).equals(squad.teamTemplateCardId(team))) {
+                    matches = false;
+                    break;
+                }
+            }
+            if (matches) fielded++;
+        }
+        return fielded;
+    }
+
+    /** Previews all three template assignments as one squad-wide inventory transaction. */
+    public SquadArrangementPreview previewSquadArrangement(String squadId,
+                                                            String arrangementId) {
+        SquadArrangement arrangement = armory.squadArrangementById(arrangementId);
+        if (arrangement == null) {
+            return new SquadArrangementPreview(
+                    FireTeamTemplateResult.UNKNOWN_ARRANGEMENT, Collections.emptyList());
+        }
+        FireTeamRefitPreview preview = previewRefits(arrangementRequests(squadId, arrangement));
+        return new SquadArrangementPreview(preview.result(), preview.gear());
+    }
+
+    /** Applies Alpha, Bravo and Charlie together, or leaves the whole squad untouched. */
+    public FireTeamTemplateResult applySquadArrangement(String squadId,
+                                                        String arrangementId) {
+        SquadArrangement arrangement = armory.squadArrangementById(arrangementId);
+        if (arrangement == null) return FireTeamTemplateResult.UNKNOWN_ARRANGEMENT;
+        List<RefitRequest> requests = arrangementRequests(squadId, arrangement);
+        FireTeamRefitPreview preview = previewRefits(requests);
+        if (!preview.canApply()) return preview.result();
+        materializeRefits(requests);
+        return FireTeamTemplateResult.APPLIED;
+    }
+
+    private List<RefitRequest> arrangementRequests(String squadId,
+                                                   SquadArrangement arrangement) {
+        List<RefitRequest> requests = new ArrayList<>();
+        for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
+            requests.add(new RefitRequest(squadId, team, arrangement.templateId(team)));
+        }
+        return requests;
+    }
+
     private FireTeamRefitPreview previewRefits(List<RefitRequest> requests) {
         if (requests == null || requests.isEmpty()) {
             return new FireTeamRefitPreview(
@@ -814,7 +871,7 @@ public class MarineRoster implements Serializable {
             FireTeamTemplateCard card = armory.templateCardById(request.cardId);
             if (card == null) {
                 return new FireTeamRefitPreview(
-                        FireTeamTemplateResult.UNKNOWN_CARD, Collections.emptyList());
+                        FireTeamTemplateResult.UNKNOWN_TEMPLATE, Collections.emptyList());
             }
             List<String> memberIds = squad.teamMembers(request.teamIndex);
             if (memberIds.size() != MarineSquad.TEAM_SIZE) {

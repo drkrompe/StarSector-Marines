@@ -137,6 +137,43 @@ public class BiomeCompoundSeederTest {
     }
 
     @Test
+    public void fortressSeedPrefersRoomForOuterWardOverLargerEdgeLeaf() {
+        BiomeMap biome = makeBiomeMap();
+        BlockLeaf edgeLeaf = null;
+        for (int y = 0; y < H - 10; y++) {
+            BlockLeaf candidate = new BlockLeaf(0, y, 9, y + 9, false);
+            if (biome.biomeAt(candidate.centerX(), candidate.centerY())
+                    == BiomeKind.FORTRESS_DISTRICT) {
+                edgeLeaf = candidate;
+                break;
+            }
+        }
+        BlockLeaf wardSafeLeaf = null;
+        for (int y = 0; y < H - 8 && wardSafeLeaf == null; y++) {
+            for (int x = 8; x <= W - 16; x++) {
+                BlockLeaf candidate = new BlockLeaf(x, y, x + 7, y + 7, false);
+                if (biome.biomeAt(candidate.centerX(), candidate.centerY())
+                        == BiomeKind.FORTRESS_DISTRICT) {
+                    wardSafeLeaf = candidate;
+                    break;
+                }
+            }
+        }
+        assertTrue(edgeLeaf != null && wardSafeLeaf != null,
+                "synthetic biome needs both edge and ward-safe fortress leaves");
+        edgeLeaf.kind = BlockKind.BUILDING_RESIDENTIAL;
+        wardSafeLeaf.kind = BlockKind.BUILDING_RESIDENTIAL;
+
+        int forced = BiomeCompoundSeeder.seed(
+                new ArrayList<>(List.of(edgeLeaf, wardSafeLeaf)), biome);
+
+        assertEquals(1, forced);
+        assertEquals(BlockKind.BUILDING_RESIDENTIAL, edgeLeaf.kind,
+                "raw area must not win when it strands the keep outside a return wall");
+        assertEquals(BlockKind.MILITARY_BASE, wardSafeLeaf.kind);
+    }
+
+    @Test
     public void skipsLeafsTooSmall() {
         BiomeMap biome = makeBiomeMap();
         List<BlockLeaf> leaves = new ArrayList<>();

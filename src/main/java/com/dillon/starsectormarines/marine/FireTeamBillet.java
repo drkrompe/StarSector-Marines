@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 
 import java.io.Serializable;
 
-/** One equipment position in a reusable four-billet fire-team template card. */
+/** One equipment position in a reusable four-billet fire-team template. */
 public final class FireTeamBillet implements Serializable {
 
     private String name;
