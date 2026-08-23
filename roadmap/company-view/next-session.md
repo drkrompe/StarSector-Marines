@@ -4,11 +4,11 @@
 
 Track opened 2026-08-22 from an inventory of the shipped squad AI and
 commander ("squad of squads") tiers. Ten stories contracted (C1–C10).
-**Two have shipped work.** `c7-organization-and-ranks.md` is complete —
-slices 1–4; its slice 5 moved into C1, which owns the seam it needs.
-`c10-company-between-contracts.md` has slices 1–2 in: the campaign-map
-entry point (`2b959e44`) and the standing pane (`b204c237`). Everything
-else is design stage.
+**Three have shipped work.** `c7-organization-and-ranks.md` and
+`c1-fireteam-identity-through-the-drop.md` are complete;
+`c8-lift-capacity-and-multi-pass-drops.md` has three of four slices in, and
+`c10-company-between-contracts.md` has two of four (`2b959e44`,
+`b204c237`). Everything else is design stage.
 
 The organization is now settled in code, so every later story renders a
 real hierarchy rather than a proposed one:
@@ -24,6 +24,15 @@ real hierarchy rather than a proposed one:
   Successors are picked by rank, then experience, then a stable id
   tiebreak.
 - The UI says "squad" for the twelve and "fire team" for the four.
+- A deploying seat carries a `CampaignSquadTag` — squad id, frozen label,
+  leader flag, expected strength. Null on every generated spawn.
+- `CampaignSquadIndex` groups landing marines by `(campaign squad, LZ)`, so
+  a squad crossing in three lifts is one unit on the ground and the
+  campaign NCO leads it.
+- `ShuttleType` capacity is declared in whole fire teams;
+  `Squad.FIRE_TEAM_SIZE` is the single authority for the number.
+- `SquadFormUpSystem` holds a still-arriving squad at its LZ by clearing the
+  advancing assignment, once, after the commander pass.
 
 Read [`overview.md`](overview.md) first — it holds the inventory of what
 exists today and the seven design commitments the stories assume.
@@ -45,14 +54,22 @@ blocked on that seam. That is C1 (`c1-fireteam-identity-through-the-drop.md`).
 
 ## Recommended pickup
 
-**C1 (`c1-fireteam-identity-through-the-drop.md`).**
-No dependencies, small, and it unblocks C5 and C6. Slice 1 (fields +
-deterministic freeze ordering) is pure plumbing verifiable by unit test.
+**Play a mission first.** Three shipped stories changed what a deployment
+*is* — twelve-marine squads, lifts denominated in fire teams, a squad that
+assembles at its LZ before it steps off — and none of the behavioural half
+has been seen in play. Two numbers are first guesses:
+`SquadFormUpSystem.FORM_UP_TIMEOUT` (60s) and the opening ladder's force
+ratios, which `../campaign/early-operations/next-session.md` has been
+holding for exactly this.
 
-C2 (`c2-formation-model.md`) is equally
-unblocked and can land in parallel; it is the prerequisite for all three UI
-stories and its second slice (rewire `SquadDeploymentScreen`'s counts, no
-visible change) is a safe proof.
+**Then C2 (`c2-formation-model.md`).** It is the prerequisite for all three
+UI stories, and its second slice (rewire `SquadDeploymentScreen`'s counts,
+no visible change) is a safe proof. C5 and C6 are unblocked now that C1 has
+landed, and both consume the label the seam carries.
+
+**`c8-lift-capacity-and-multi-pass-drops.md` slice 4** is the one loose end
+in otherwise-complete work: the rejoin state for a genuinely-late arrival.
+Smaller than it was — the form-up gate removed the worst case.
 
 **C10 — The company between contracts** (`c10-company-between-contracts.md`)
 is unblocked too, and is the one story here that ships player-visible value
@@ -155,6 +172,10 @@ and nothing was tuned to compensate.
   before touching term/deadline fields.
 
 ## Commit chain
+
+- `00ace1b0` — C1 (all four slices) + C8 slice 1: the identity seam, and
+  lift capacity in fire teams
+- `6e3908b0` — C8 slice 3: an assembling squad holds at its LZ
 
 - `2b959e44` — C10 slice 1: a campaign-map door into the company
 - `b204c237` — C10 slice 2: standing, led by months of payroll

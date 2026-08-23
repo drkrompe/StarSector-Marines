@@ -22,20 +22,23 @@ deploy.
   combat-ineffective within seconds of contact. The officer ladder now caps
   command in squads and the company starts under a Lieutenant with one full
   squad of twelve, where it used to start with ten marines in two teams.
-- **Still pending.** Transport capacity denominated in fire teams
-  (`c8-lift-capacity-and-multi-pass-drops.md`): Hermes 3 → 4, the 4-seat
-  hulls unchanged, Tarsus/Buffalo/Mule/Nebula 5–7 → 8, Valkyrie 8 → 12. A
-  squad therefore arrives across one to three passes and holds at its LZ
-  until it has formed up.
+- **Also shipped 2026-08-22.** Transport capacity is denominated in fire
+  teams (`c8-lift-capacity-and-multi-pass-drops.md` slices 1-3): Hermes
+  3 → 4, the 4-seat hulls unchanged, Tarsus/Buffalo/Mule/Nebula 5–7 → 8,
+  Valkyrie 8 → 12. A squad arrives across one to three passes, lands as one
+  battle squad rather than one per sortie, and holds at its LZ until it has
+  assembled or `SquadFormUpSystem.FORM_UP_TIMEOUT` (60s) expires.
 
 The decision was to take those changes and re-tune the opening ladder
 around them, rather than tune against numbers we intend to replace.
 
-So: the relief and counterattack ratios above are still worth playing for
-*feel* (does the line hold, is the battle the right length), but do not
-freeze the 8+4 vs 12 and 4+player vs 12 numbers until C8 has landed too —
-the arrival *schedule* is the half that is still moving, and a squad that
-trickles in four at a time fights nothing like one that lands whole.
+**Both halves have now landed, so the tuning is unblocked.** Re-derive the
+relief and counterattack ratios in live play against what the player
+actually fields today, not against the old 8+4 vs 12 and 4+player vs 12 —
+a player squad is twelve marines now, and it steps off as a squad rather
+than trickling. Two things are first guesses and want the same play pass:
+the 60-second form-up timeout, and whether an assembling squad standing at
+its LZ reads as deliberate or as broken.
 
 ## Next implementation candidate
 
