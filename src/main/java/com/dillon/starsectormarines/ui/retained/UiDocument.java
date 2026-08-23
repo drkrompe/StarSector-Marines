@@ -13,6 +13,7 @@ public final class UiDocument {
     private final UiElement root;
     private final UiLayoutEngine layout = new UiLayoutEngine();
     private final UiPainter painter = new UiPainter();
+    private Rect viewport = Rect.EMPTY;
     private UiElement hovered;
     private UiElement pressed;
 
@@ -26,7 +27,8 @@ public final class UiDocument {
     }
 
     public void layout(float width, float height) {
-        layout.layout(root, width, height);
+        viewport = new Rect(0f, 0f, Math.max(0f, width), Math.max(0f, height));
+        layout.layout(root, viewport.width(), viewport.height());
     }
 
     public void render(UiViewport viewport, float alphaMult) {
@@ -34,7 +36,7 @@ public final class UiDocument {
     }
 
     public void pointerMoved(float x, float y) {
-        UiElement target = hit(root, x, y);
+        UiElement target = hit(x, y);
         if (target == hovered) return;
         if (hovered != null) hovered.hovered(false);
         hovered = target;
@@ -42,7 +44,7 @@ public final class UiDocument {
     }
 
     public boolean pointerDown(float x, float y) {
-        UiElement target = hit(root, x, y);
+        UiElement target = hit(x, y);
         if (pressed != null) pressed.armed(false);
         pressed = target;
         if (pressed == null) return false;
@@ -55,22 +57,26 @@ public final class UiDocument {
         if (wasPressed == null) return false;
         pressed = null;
         wasPressed.armed(false);
-        UiElement releasedOver = hit(root, x, y);
+        UiElement releasedOver = hit(x, y);
         if (releasedOver == wasPressed) wasPressed.click();
         return true;
     }
 
     UiElement hit(float x, float y) {
-        return hit(root, x, y);
+        return hit(root, x, y, viewport);
     }
 
-    private static UiElement hit(UiElement element, float x, float y) {
+    private static UiElement hit(UiElement element, float x, float y, Rect inheritedClip) {
+        Rect childClip = UiLayoutEngine.clipForChildren(
+                element.overflow(), element.box(), inheritedClip);
         List<UiElement> children = element.children();
         for (int i = children.size() - 1; i >= 0; i--) {
-            UiElement hit = hit(children.get(i), x, y);
+            UiElement hit = hit(children.get(i), x, y, childClip);
             if (hit != null) return hit;
         }
-        return element.clickable() && element.box().borderBox().contains(x, y)
+        return element.clickable()
+                && inheritedClip.contains(x, y)
+                && element.box().borderBox().contains(x, y)
                 ? element : null;
     }
 }

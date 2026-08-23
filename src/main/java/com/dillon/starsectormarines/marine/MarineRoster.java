@@ -40,6 +40,7 @@ public class MarineRoster implements Serializable {
     private List<MarineSquad> squads = new ArrayList<>();
     private List<CaptainCandidate> captainCandidates = new ArrayList<>();
     private MarineArmory armory = new MarineArmory();
+    private MechBay mechBay = new MechBay();
     private int nextSoldierNumber = 1;
     private int nextSquadNumber = 1;
     private String reserveSquadId;
@@ -198,6 +199,7 @@ public class MarineRoster implements Serializable {
     }
 
     public MarineArmory armory() { return armory; }
+    public MechBay mechBay() { return mechBay; }
 
     /** Whether any line or reserve squad still points at this reusable template. */
     public boolean isFireTeamTemplateAssigned(String cardId) {
@@ -1276,6 +1278,7 @@ public class MarineRoster implements Serializable {
         if (squads == null) squads = new ArrayList<>();
         if (captainCandidates == null) captainCandidates = new ArrayList<>();
         if (armory == null) armory = new MarineArmory();
+        if (mechBay == null) mechBay = new MechBay();
         if (nextSoldierNumber <= 0) nextSoldierNumber = soldiers.size() + 1;
         if (nextSquadNumber <= 0) nextSquadNumber = squads.size() + 1;
         if (!soldiers.isEmpty()) initialComplementIssued = true;

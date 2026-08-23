@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.power.EmergencyResupply;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
 import com.dillon.starsectormarines.battle.power.MarineInsertion;
+import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.ops.Mission;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.combat.ShipVariantAPI;
@@ -64,6 +65,12 @@ public final class PowerCatalog {
      * off to feel the real gating.
      */
     public static List<CommandPower> resolve(List<FleetMemberAPI> committedShips, Mission m) {
+        return resolve(committedShips, m, List.of());
+    }
+
+    /** Resolve powers and, when sourced, configure Mech Support from campaign inventory. */
+    public static List<CommandPower> resolve(List<FleetMemberAPI> committedShips, Mission m,
+                                             List<MechDeploymentSpec> configuredMechs) {
         Map<String, CommandPower> byId = new LinkedHashMap<>();
 
         // Dev convenience — grant recon ping for free (see DevConfig). Off in prod.
@@ -93,6 +100,10 @@ public final class PowerCatalog {
         for (String id : employerPowerIds(m)) {
             CommandPower p = forId(id);
             if (p != null) byId.putIfAbsent(p.id, p);
+        }
+        if (byId.containsKey(MechSupport.ID)
+                && configuredMechs != null && !configuredMechs.isEmpty()) {
+            byId.put(MechSupport.ID, MechSupport.configured(configuredMechs));
         }
 
         LOG.info("PowerCatalog: resolved " + byId.size() + " power(s) " + byId.keySet()
