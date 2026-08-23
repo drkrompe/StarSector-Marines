@@ -47,6 +47,8 @@ public final class VehicleController {
     static final float REPLAN_DRIFT_CELLS = 2.0f;
     /** Fraction of the current trajectory's length that may be consumed before a replan is forced (so we plan the next horizon before running out). */
     static final float REPLAN_CONSUMED_FRACTION = 0.5f;
+    /** Brief persistence filter before an on-grid local-plan failure triggers a macro reroute. The vehicle brakes during this window; it never pursues the rejected coarse bend. */
+    static final float LOCAL_PLAN_FAILURE_REROUTE_SEC = 0.5f;
 
     /**
      * Carrot look-ahead floor (cells) — look-ahead shrinks toward this as the

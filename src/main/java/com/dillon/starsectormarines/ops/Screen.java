@@ -14,8 +14,9 @@ import java.util.List;
  * {@code ctx.goTo(...)} and the plugin observes the change and re-attaches.
  *
  * <p>{@link #attach} is idempotent — the plugin calls it on screen activation
- * AND whenever the dialog's position changes, so screens should rebuild their
- * widgets from scratch each call.
+ * and whenever the dialog's position changes. Legacy immediate screens may
+ * rebuild widgets; retained screens relayout their existing document so focus,
+ * scroll, and ordinary interaction state survive a position callback.
  */
 public interface Screen {
 

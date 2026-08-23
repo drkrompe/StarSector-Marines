@@ -4,17 +4,17 @@
 
 **Written:** 2026-08-23
 
-**Updated:** 2026-08-23 — contact-picture and doctrine slice
+**Updated:** 2026-08-23 — contact-picture doctrine plus squad-wide direct-LOS episode interrupts
 
 ## The player-visible story
 
 A marine squad advancing through lethal terrain takes fire on one side. The
 hit fireteam immediately gets out of the lane while its sibling fireteam
-plants and returns fire. A squad that sees a new threat or crosses its morale
-break point changes posture now, rather than continuing an obsolete order for
-up to two seconds. Squads react to what they have actually seen or heard; an
-unobserved unit elsewhere on the map cannot tighten a patrol leash or stop an
-advance.
+plants and returns fire. A squad that enters or re-enters direct contact, or
+crosses its morale break point, changes posture now rather than continuing an
+obsolete order for up to two seconds. Squads react to what they have actually
+seen or heard; an unobserved unit elsewhere on the map cannot tighten a patrol
+leash or stop an advance.
 
 The result should read as one squad making a coordinated decision, with each
 fireteam doing a different part of it.
@@ -26,7 +26,8 @@ is useful maintenance but too slow to be the primary contact reaction. The
 perception system, stable fireteams, and belief-derived influence maps now
 provide the right inputs, but three seams still undermine them:
 
-1. new direct contact and morale transitions do not interrupt a fresh plan;
+1. entering direct contact and morale transitions do not interrupt a fresh
+   plan;
 2. objective-advance and guard-post threat checks still read hidden live units;
 3. `BreakLOS` moves the whole squad even when only one fireteam is exposed.
 
@@ -34,9 +35,13 @@ provide the right inputs, but three seams still undermine them:
 
 - **Local squad reaction** uses the squad's immutable contact belief. Remembered
   cells and confidence may inform a decision; current hidden positions may not.
-- **Fresh direct contact, alert transitions, incoming-fire onset, casualties,
-  and morale break/clear transitions** are tactical interrupts. The existing
-  periodic refresh remains the convergence and cleanup path.
+- **Fresh squad-wide direct contact, alert transitions, incoming-fire onset,
+  casualties, and morale break/clear transitions** are tactical interrupts.
+  The existing periodic refresh remains the convergence and cleanup path. A
+  fresh contact means the first direct sighting after a tick with no direct
+  LOS; additional hostile identities entering sight during continuous contact
+  are folded into the current engagement instead of repeatedly interrupting
+  the planner.
 - **Fireteams are the coordination unit.** On a recoverable ambush, exposed
   teams displace while unexposed sibling teams hold and cover. A lone team, or
   a squad whose every team is exposed, all displaces.
@@ -47,9 +52,9 @@ provide the right inputs, but three seams still undermine them:
 
 ### 1. Event-driven replanning
 
-Publish one-tick squad flags for newly acquired direct contact, alert-level
-change, and morale broken-state change. Consume them in the squad replan gate
-alongside the existing incoming-fire edge and casualty check.
+Publish one-tick squad flags for a newly started direct-contact episode,
+alert-level change, and morale broken-state change. Consume them in the squad
+replan gate alongside the existing incoming-fire edge and casualty check.
 
 ### 2. Honest threat reads
 
@@ -68,8 +73,10 @@ arrival is not part of the completion gate.
 
 ## Acceptance
 
-- A new direct contact replaces an otherwise-fresh plan in the same simulation
-  tick.
+- The first direct sighting, or reacquisition after a no-LOS tick, replaces an
+  otherwise-fresh plan in the same simulation tick. Additional hostile
+  identities seen during continuous squad contact do not trigger another
+  immediate replan.
 - Crossing into or out of broken morale replaces an otherwise-fresh plan in
   the same simulation tick.
 - Hidden, unremembered enemies contribute nothing to advance or defensive

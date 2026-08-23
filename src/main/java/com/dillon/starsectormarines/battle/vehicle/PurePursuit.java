@@ -23,14 +23,20 @@ public final class PurePursuit {
 
     private PurePursuit() {}
 
-    /** Carrot point + the index of the next un-consumed waypoint + an end-of-path flag. */
+    /** Carrot point + progress cursor + the segment containing the carrot + an end-of-path flag. */
     public static final class Carrot {
         public final float x;
         public final float y;
         public final int nextIdx;
+        /** Index of the waypoint at the end of the path segment containing this carrot. */
+        public final int segmentEndIdx;
         public final boolean atEnd;
-        Carrot(float x, float y, int nextIdx, boolean atEnd) {
-            this.x = x; this.y = y; this.nextIdx = nextIdx; this.atEnd = atEnd;
+        Carrot(float x, float y, int nextIdx, int segmentEndIdx, boolean atEnd) {
+            this.x = x;
+            this.y = y;
+            this.nextIdx = nextIdx;
+            this.segmentEndIdx = segmentEndIdx;
+            this.atEnd = atEnd;
         }
     }
 
@@ -46,8 +52,8 @@ public final class PurePursuit {
                               int startIdx,
                               float lookAhead) {
         int n = xs.length;
-        if (n == 0) return new Carrot(bodyX, bodyY, 0, true);
-        if (n == 1) return new Carrot(xs[0], ys[0], 0, true);
+        if (n == 0) return new Carrot(bodyX, bodyY, 0, 0, true);
+        if (n == 1) return new Carrot(xs[0], ys[0], 0, 0, true);
 
         // Advance startIdx past any waypoint the body has crossed (body is
         // past the perpendicular through that waypoint, measured against the
@@ -81,14 +87,14 @@ public final class PurePursuit {
             float d = (float) Math.sqrt(dx * dx + dy * dy);
             if (d >= remaining) {
                 float t = (d > 1e-6f) ? (remaining / d) : 0f;
-                return new Carrot(cx + t * dx, cy + t * dy, idx, false);
+                return new Carrot(cx + t * dx, cy + t * dy, idx, cursor, false);
             }
             remaining -= d;
             cx = tx; cy = ty;
             cursor++;
         }
         // Exhausted the path — pin carrot to the final waypoint.
-        return new Carrot(xs[n - 1], ys[n - 1], idx, true);
+        return new Carrot(xs[n - 1], ys[n - 1], idx, n - 1, true);
     }
 
     /**
@@ -103,8 +109,8 @@ public final class PurePursuit {
                               int startIdx,
                               float lookAhead) {
         int n = flatCells.length / 2;
-        if (n == 0) return new Carrot(bodyX, bodyY, 0, true);
-        if (n == 1) return new Carrot(flatCells[0] + 0.5f, flatCells[1] + 0.5f, 0, true);
+        if (n == 0) return new Carrot(bodyX, bodyY, 0, 0, true);
+        if (n == 1) return new Carrot(flatCells[0] + 0.5f, flatCells[1] + 0.5f, 0, 0, true);
 
         int idx = Math.max(0, Math.min(startIdx, n - 1));
         while (idx < n - 1) {
@@ -132,13 +138,14 @@ public final class PurePursuit {
             float d = (float) Math.sqrt(dx * dx + dy * dy);
             if (d >= remaining) {
                 float t = (d > 1e-6f) ? (remaining / d) : 0f;
-                return new Carrot(cx + t * dx, cy + t * dy, idx, false);
+                return new Carrot(cx + t * dx, cy + t * dy, idx, cursor, false);
             }
             remaining -= d;
             cx = tx; cy = ty;
             cursor++;
         }
-        return new Carrot(flatCells[(n - 1) * 2] + 0.5f, flatCells[(n - 1) * 2 + 1] + 0.5f, idx, true);
+        return new Carrot(flatCells[(n - 1) * 2] + 0.5f, flatCells[(n - 1) * 2 + 1] + 0.5f,
+                idx, n - 1, true);
     }
 
     /**

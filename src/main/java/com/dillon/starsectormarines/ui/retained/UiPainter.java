@@ -10,6 +10,7 @@ import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_CURRENT_BIT;
 import static org.lwjgl.opengl.GL11.GL_ENABLE_BIT;
 import static org.lwjgl.opengl.GL11.GL_LINE_BIT;
+import static org.lwjgl.opengl.GL11.GL_LINES;
 import static org.lwjgl.opengl.GL11.GL_LINE_LOOP;
 import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_QUADS;
@@ -34,7 +35,13 @@ import static org.lwjgl.opengl.GL20.glUseProgram;
 /** Paints retained boxes into Starsector's fixed-function UI pass. */
 final class UiPainter {
 
-    void paint(UiElement root, UiViewport viewport, float alphaMult) {
+    private static final float SCROLL_THUMB_WIDTH = 4f;
+    private static final float SCROLL_THUMB_INSET = 2f;
+    private static final float SCROLL_THUMB_MIN_HEIGHT = 12f;
+    private static final Color SCROLL_THUMB = new Color(0xC8, 0xD0, 0xD8, 0xA6);
+
+    void paint(UiElement root, UiViewport viewport, float alphaMult,
+               CanvasRegistry canvases) {
         glPushAttrib(GL_COLOR_BUFFER_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT
                 | GL_LINE_BIT | GL_TEXTURE_BIT | GL_SCISSOR_BIT);
         try {
@@ -43,7 +50,7 @@ final class UiPainter {
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glEnable(GL_SCISSOR_TEST);
             Rect viewportClip = new Rect(0f, 0f, viewport.width(), viewport.height());
-            paintElement(root, viewport, alphaMult, viewportClip);
+            paintElement(root, viewport, alphaMult, viewportClip, canvases);
         } finally {
             glUseProgram(0);
             glPopAttrib();
@@ -51,7 +58,7 @@ final class UiPainter {
     }
 
     private void paintElement(UiElement element, UiViewport viewport, float alphaMult,
-                              Rect inheritedClip) {
+                              Rect inheritedClip, CanvasRegistry canvases) {
         if (inheritedClip.width() <= 0f || inheritedClip.height() <= 0f) return;
         applyClip(viewport, inheritedClip);
         Rect rect = element.box().borderBox();
@@ -72,9 +79,77 @@ final class UiPainter {
             element.font().drawString(element.text(), viewport.screenXFor(content.x()),
                     viewport.screenTopFor(content.y()), element.textColor(), alphaMult);
         }
+        paintCanvas(element, viewport, alphaMult, childClip, canvases);
         for (UiElement child : element.children()) {
-            paintElement(child, viewport, alphaMult, childClip);
+            paintElement(child, viewport, alphaMult, childClip, canvases);
         }
+        if (element.focusVisible() && element.focusOutlineColor() != null
+                && element.focusOutlineWidth() > 0f) {
+            applyClip(viewport, inheritedClip);
+            outline(rect, viewport, element.focusOutlineColor(),
+                    element.focusOutlineWidth(), alphaMult);
+        }
+        Rect thumb = scrollThumbRect(element);
+        if (thumb != null) {
+            Rect thumbClip = inheritedClip.intersect(element.box().paddingBox());
+            if (thumbClip.width() > 0f && thumbClip.height() > 0f) {
+                applyClip(viewport, thumbClip);
+                fill(thumb, viewport, SCROLL_THUMB, alphaMult);
+            }
+        }
+    }
+
+    private static void paintCanvas(UiElement element, UiViewport viewport, float alphaMult,
+                                    Rect inheritedClip, CanvasRegistry canvases) {
+        if (element.tag() != UiTag.CANVAS) return;
+        CanvasProducer producer = canvases.producerOf(element);
+        if (producer == null) return;
+        Rect canvasClip = inheritedClip.intersect(element.box().contentBox());
+        if (canvasClip.width() <= 0f || canvasClip.height() <= 0f) return;
+        applyClip(viewport, canvasClip);
+        float devicePixelRatio = Display.getWidth()
+                / Math.max(1f, Global.getSettings().getScreenWidth());
+        CanvasMetrics metrics = CanvasMetrics.of(element, element.box(), devicePixelRatio);
+        Rect visible = canvasVisibleBounds(metrics, canvasClip);
+        if (visible == null) return;
+        producer.draw(new CanvasContext(metrics, visible, viewport, alphaMult));
+    }
+
+    static Rect canvasVisibleBounds(CanvasMetrics metrics, Rect documentClip) {
+        float left = metrics.toCanvasX(documentClip.x());
+        float top = metrics.toCanvasY(documentClip.y());
+        float right = metrics.toCanvasX(documentClip.right());
+        float bottom = metrics.toCanvasY(documentClip.bottom());
+        if (!Float.isFinite(left) || !Float.isFinite(top)
+                || !Float.isFinite(right) || !Float.isFinite(bottom)) return null;
+        return new Rect(left, top, Math.max(0f, right - left),
+                Math.max(0f, bottom - top));
+    }
+
+    /** Pure geometry seam for the overlay scrollbar and its headless tests. */
+    static Rect scrollThumbRect(UiElement element) {
+        if (element.overflow() != Overflow.SCROLL) return null;
+        LayoutBox box = element.box();
+        float range = box.maxScrollTop();
+        if (range <= 0f) return null;
+        Rect padding = box.paddingBox();
+        float trackHeight = padding.height() - SCROLL_THUMB_INSET * 2f;
+        float visible = box.contentBox().height();
+        float content = box.scrollHeight();
+        if (trackHeight <= 0f || visible <= 0f || content <= 0f
+                || padding.width() < SCROLL_THUMB_WIDTH + SCROLL_THUMB_INSET) {
+            return null;
+        }
+        float thumbHeight = Math.min(trackHeight, Math.max(SCROLL_THUMB_MIN_HEIGHT,
+                trackHeight * visible / content));
+        float travel = trackHeight - thumbHeight;
+        float fraction = travel <= 0f ? 0f
+                : Math.max(0f, Math.min(1f, element.scrollTop() / range));
+        return new Rect(
+                padding.right() - SCROLL_THUMB_INSET - SCROLL_THUMB_WIDTH,
+                padding.y() + SCROLL_THUMB_INSET + travel * fraction,
+                SCROLL_THUMB_WIDTH,
+                thumbHeight);
     }
 
     private static void applyClip(UiViewport viewport, Rect clip) {
@@ -85,7 +160,7 @@ final class UiPainter {
         glScissor(scissor.x(), scissor.y(), scissor.width(), scissor.height());
     }
 
-    private static void fill(Rect rect, UiViewport viewport, Color color, float alphaMult) {
+    static void fill(Rect rect, UiViewport viewport, Color color, float alphaMult) {
         glDisable(GL_TEXTURE_2D);
         setColor(color, alphaMult);
         float left = viewport.screenXFor(rect.x());
@@ -100,8 +175,8 @@ final class UiPainter {
         glEnd();
     }
 
-    private static void outline(Rect rect, UiViewport viewport, Color color,
-                                float width, float alphaMult) {
+    static void outline(Rect rect, UiViewport viewport, Color color,
+                        float width, float alphaMult) {
         glDisable(GL_TEXTURE_2D);
         setColor(color, alphaMult);
         glLineWidth(width);
@@ -114,6 +189,17 @@ final class UiPainter {
         glVertex2f(right, bottom);
         glVertex2f(right, top);
         glVertex2f(left, top);
+        glEnd();
+    }
+
+    static void line(float x1, float y1, float x2, float y2, UiViewport viewport,
+                     Color color, float width, float alphaMult) {
+        glDisable(GL_TEXTURE_2D);
+        setColor(color, alphaMult);
+        glLineWidth(width);
+        glBegin(GL_LINES);
+        glVertex2f(viewport.screenXFor(x1), viewport.screenTopFor(y1));
+        glVertex2f(viewport.screenXFor(x2), viewport.screenTopFor(y2));
         glEnd();
     }
 

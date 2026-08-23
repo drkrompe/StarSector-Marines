@@ -225,6 +225,67 @@ public class VehicleRoutePlannerTest {
     }
 
     @Test
+    public void drivableRouteRejectsAStaticWidthOnlyElbow() {
+        NavigationGrid grid = new NavigationGrid(30, 30);
+        carve(grid, 10, 0, 12, 12);
+        carve(grid, 10, 10, 25, 12);
+        CellTopology topo = new CellTopology(30, 30);
+        fillKind(topo, GroundKind.STREET);
+        TerrainCostField cost = TerrainCostField.from(topo);
+        VehicleClearance clr = VehicleClearance.erode(grid, 1);
+
+        assertNotNull(VehicleRoutePlanner.route(11, 2, 24, 11, grid, cost, clr),
+                "the width-only mask admits the three-cell elbow");
+        assertNull(VehicleRoutePlanner.routeDrivable(11, 2, 24, 11,
+                        grid, cost, clr, VehicleType.HEAVY_APC),
+                "the APC router must reject the same elbow when no minimum-radius turn fits");
+    }
+
+    @Test
+    public void drivableRouteRoundsABroadElbow() {
+        NavigationGrid grid = new NavigationGrid(40, 40);
+        carve(grid, 8, 0, 24, 24);
+        carve(grid, 8, 8, 39, 24);
+        CellTopology topo = new CellTopology(40, 40);
+        fillKind(topo, GroundKind.STREET);
+        TerrainCostField cost = TerrainCostField.from(topo);
+        VehicleClearance clr = VehicleClearance.erode(grid, 1);
+
+        float[][] route = VehicleRoutePlanner.routeDrivable(16, 3, 34, 16,
+                grid, cost, clr, VehicleType.HEAVY_APC);
+
+        assertNotNull(route);
+        assertTrue(route[0].length > 2, "the broad bend should contain sampled curvature");
+        assertRouteClear(route, clr);
+    }
+
+    @Test
+    public void drivableRouteSearchesAroundAnUnturnableShortRoute() {
+        NavigationGrid grid = new NavigationGrid(50, 40);
+        // Short, cheap-looking three-cell elbow.
+        carve(grid, 14, 4, 16, 16);
+        carve(grid, 14, 14, 36, 16);
+        // Longer broad U around it, with intersections large enough for R≈4.
+        carve(grid, 0, 0, 20, 13);
+        carve(grid, 0, 0, 14, 35);
+        carve(grid, 0, 20, 45, 35);
+        carve(grid, 25, 10, 45, 35);
+        CellTopology topo = new CellTopology(50, 40);
+        fillKind(topo, GroundKind.STREET);
+        TerrainCostField cost = TerrainCostField.from(topo);
+        VehicleClearance clr = VehicleClearance.erode(grid, 1);
+
+        float[][] route = VehicleRoutePlanner.routeDrivable(15, 5, 35, 15,
+                grid, cost, clr, VehicleType.HEAVY_APC);
+
+        assertNotNull(route, "a longer turn-feasible route exists around the rejected elbow");
+        float maxY = Float.NEGATIVE_INFINITY;
+        for (float y : route[1]) maxY = Math.max(maxY, y);
+        assertTrue(maxY > 20f, "the repaired route should use the broad northern U, maxY=" + maxY);
+        assertRouteClear(route, clr);
+    }
+
+    @Test
     public void avoidingRegionForcesADetour() {
         // Two horizontal lanes (rows 2 and 8) joined at both ends by vertical
         // links, so start (1,2) → goal (9,2) can go straight across row 2 OR

@@ -176,7 +176,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
      *   <li>No current plan</li>
      *   <li>Current plan ran to completion</li>
      *   <li>Squad lost or gained a live member since the last plan (death-driven freshness)</li>
-     *   <li>New direct contact or an alert-level transition</li>
+     *   <li>A squad-wide direct-LOS episode started, or the alert level transitioned</li>
      *   <li>Morale hysteresis entered or left the broken state</li>
      *   <li>The alert pass observed hostile incoming fire with LOS to its origin</li>
      *   <li>{@link Planner#REPLAN_PERIOD} sim-seconds have elapsed since the last replan</li>
@@ -217,6 +217,9 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         // hidden cell the ordinary plan can resume on the next replan.
         boolean incomingFireStarted = squad._underFireAtLosThisTick
                 && !squad._underFireAtLosLastTick;
+        // Contact is a squad-level no-direct-LOS -> some-direct-LOS episode
+        // edge. Additional hostile identities join belief without repeatedly
+        // replacing the plan during one continuous engagement.
         boolean contactStateChanged = squad._directContactStartedThisTick
                 || squad._alertLevelChangedThisTick;
         boolean needsReplan = squad.currentPlan == null

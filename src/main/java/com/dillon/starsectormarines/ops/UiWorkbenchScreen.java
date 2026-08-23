@@ -1,12 +1,18 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.ui.Fonts;
+import com.dillon.starsectormarines.ui.retained.CanvasContext;
+import com.dillon.starsectormarines.ui.retained.CanvasMetrics;
 import com.dillon.starsectormarines.ui.retained.Overflow;
+import com.dillon.starsectormarines.ui.retained.PointerButton;
 import com.dillon.starsectormarines.ui.retained.UiAlign;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.UiLayout;
+import com.dillon.starsectormarines.ui.retained.UiPointerEvent;
+import com.dillon.starsectormarines.ui.retained.UiTag;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
+import com.dillon.starsectormarines.ui.starsector.StarsectorUiInputAdapter;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
 
@@ -44,10 +50,13 @@ public final class UiWorkbenchScreen implements Screen {
     private MarineOpsContext context;
     private UiViewport viewport;
     private UiDocument document;
+    private StarsectorUiInputAdapter input;
     private UiElement viewportReadout;
     private UiElement selectedTeamReadout;
     private UiElement selectedTemplateReadout;
     private UiElement transactionReadout;
+    private UiElement transactionCanvas;
+    private float issueMarkerX = 610f;
     private int selectedTeam;
     private int selectedTemplate;
 
@@ -60,6 +69,7 @@ public final class UiWorkbenchScreen implements Screen {
         updateViewportReadout();
         updateSelectionReadouts();
         document.layout(viewport.width(), viewport.height());
+        input = new StarsectorUiInputAdapter(document, viewport);
     }
 
     private UiDocument buildDocument() {
@@ -101,11 +111,13 @@ public final class UiWorkbenchScreen implements Screen {
         footer.child(button("back", "BACK TO COMPANY HQ", 188f,
                 () -> context.goTo(ScreenId.COMPANY_HQ)));
         footer.child(label("retained-status",
-                "RETAINED TREE  |  OVERFLOW CLIPS PAINT + HIT TEST  |  U2 PROOF",
+                "RETAINED TREE  |  CLIPPED SCROLL + HIT TEST  |  U2 PROOF",
                 GOOD).grow(1f).align(UiAlign.STRETCH, UiAlign.CENTER));
         root.child(footer);
 
-        UiDocument built = new UiDocument(root);
+        UiDocument built = new UiDocument(root)
+                .onCancel(() -> context.goTo(ScreenId.COMPANY_HQ));
+        built.canvases().set(transactionCanvas, this::paintTransactionCanvas);
         updateSelectionReadouts();
         return built;
     }
@@ -148,22 +160,33 @@ public final class UiWorkbenchScreen implements Screen {
                 .border(1f, BORDER);
         pane.child(label("template-heading", "TEMPLATE LIBRARY", EDGE)
                 .preferredHeight(34f));
+        UiElement list = new UiElement("template-list")
+                .layout(UiLayout.COLUMN)
+                .grow(1f)
+                .gap(7f)
+                .padding(2f)
+                .overflow(Overflow.SCROLL);
         String[] templates = {
                 "LINE  ·  FIELDED 2  ·  READY 3",
                 "RECON  ·  FIELDED 1  ·  READY 1",
                 "FIRE SUPPORT  ·  FIELDED 1  ·  READY 0",
-                "BREACH  ·  FIELDED 0  ·  READY 1"
+                "BREACH  ·  FIELDED 0  ·  READY 1",
+                "BOARDING  ·  FIELDED 0  ·  READY 2",
+                "ANTI-ARMOR  ·  FIELDED 0  ·  READY 0",
+                "SECURITY  ·  FIELDED 0  ·  READY 4",
+                "HAZARD RESPONSE  ·  FIELDED 0  ·  READY 1"
         };
         for (int i = 0; i < templates.length; i++) {
             final int index = i;
             UiElement template = button("template-" + i, templates[i], Float.NaN,
                     () -> selectTemplate(index)).preferredHeight(50f);
             templateButtons.add(template);
-            pane.child(template);
+            list.child(template);
         }
+        pane.child(list);
         pane.child(label("library-note",
                 "Plans are reusable. Finite equipment gates assignment, not design.", MUTED)
-                .grow(1f)
+                .preferredHeight(52f)
                 .align(UiAlign.STRETCH, UiAlign.END));
         return pane;
     }
@@ -190,6 +213,29 @@ public final class UiWorkbenchScreen implements Screen {
         content.child(selectedTeamReadout);
         content.child(selectedTemplateReadout);
 
+        transactionCanvas = new UiElement("transaction-canvas")
+                .tag(UiTag.CANVAS)
+                .canvasSize(900, 150)
+                .preferredHeight(150f)
+                .background(PANEL_DARK)
+                .border(1f, BORDER)
+                .overflow(Overflow.HIDDEN)
+                .onPointerDown(event -> {
+                    if (event.button() == PointerButton.PRIMARY) {
+                        event.capturePointer();
+                        moveIssueMarker(event);
+                    }
+                })
+                .onPointerMove(event -> {
+                    if (document != null && document.pointerCapture() == transactionCanvas) {
+                        moveIssueMarker(event);
+                    }
+                })
+                .onPointerUp(event -> {
+                    if (event.button() == PointerButton.PRIMARY) moveIssueMarker(event);
+                });
+        content.child(transactionCanvas);
+
         content.child(issueRow("free", "FREE STOCK", "18 rifles  ·  4 armor  ·  1 support"));
         content.child(issueRow("returns", "RETURNED ISSUE", "+4 rifles  ·  +4 armor"));
         content.child(issueRow("required", "REQUIRED ISSUE", "-3 rifles  ·  -4 armor  ·  -1 support"));
@@ -213,6 +259,43 @@ public final class UiWorkbenchScreen implements Screen {
                 .border(1f, EDGE);
         stack.child(overlay);
         return stack;
+    }
+
+    private void paintTransactionCanvas(CanvasContext canvas) {
+        float width = canvas.metrics().surfaceWidth();
+        float nodeWidth = 190f;
+        float nodeHeight = 62f;
+        float top = 42f;
+        float[] x = {28f, width * 0.28f, width * 0.54f, width - nodeWidth - 28f};
+        String[] labels = {"FREE STOCK", "RETURNS", "REQUIRED", "VALID ISSUE"};
+        Color[] colors = {BUTTON, SELECTED, new Color(0x3D, 0x2A, 0x26),
+                new Color(0x13, 0x2B, 0x22)};
+
+        canvas.text(Fonts.ORBITRON_20, "CAPTURED CANVAS DRAG  ·  MOVE ISSUE MARKER",
+                24f, 12f, MUTED);
+        for (int index = 0; index < x.length; index++) {
+            if (index > 0) {
+                canvas.line(x[index - 1] + nodeWidth, top + nodeHeight * 0.5f,
+                        x[index], top + nodeHeight * 0.5f, EDGE, 2f);
+            }
+            canvas.fillRect(x[index], top, nodeWidth, nodeHeight, colors[index]);
+            canvas.strokeRect(x[index], top, nodeWidth, nodeHeight,
+                    index == x.length - 1 ? GOOD : BORDER, 2f);
+            canvas.text(Fonts.ORBITRON_20, labels[index], x[index] + 13f,
+                    top + 18f, index == x.length - 1 ? GOOD : TEXT);
+        }
+        canvas.line(issueMarkerX, 34f, issueMarkerX, 126f, ACCENT, 3f);
+        canvas.fillRect(issueMarkerX - 7f, 30f, 14f, 14f, ACCENT);
+    }
+
+    private void moveIssueMarker(UiPointerEvent event) {
+        if (document == null || transactionCanvas == null) return;
+        CanvasMetrics metrics = document.canvasMetrics(transactionCanvas, 1f);
+        float canvasX = metrics.toCanvasX(event.x());
+        if (!Float.isFinite(canvasX)) return;
+        issueMarkerX = Math.max(8f,
+                Math.min(metrics.surfaceWidth() - 8f, canvasX));
+        document.canvases().invalidate(transactionCanvas);
     }
 
     private static UiElement issueRow(String id, String label, String value) {
@@ -239,11 +322,13 @@ public final class UiWorkbenchScreen implements Screen {
 
     private static UiElement button(String id, String text, float width, Runnable action) {
         UiElement button = new UiElement(id)
+                .tag(UiTag.BUTTON)
                 .preferredWidth(width)
                 .background(BUTTON)
                 .hoverBackground(BUTTON_HOVER)
                 .armedBackground(BUTTON_ARMED)
                 .border(1f, BORDER)
+                .focusOutline(2f, ACCENT)
                 .padding(9f)
                 .overflow(Overflow.HIDDEN)
                 .text(Fonts.ORBITRON_20, text, TEXT)
@@ -263,7 +348,10 @@ public final class UiWorkbenchScreen implements Screen {
 
     private void updateSelectionReadouts() {
         String[] teams = {"ALPHA", "BRAVO", "CHARLIE"};
-        String[] templates = {"LINE", "RECON", "FIRE SUPPORT", "BREACH"};
+        String[] templates = {
+                "LINE", "RECON", "FIRE SUPPORT", "BREACH",
+                "BOARDING", "ANTI-ARMOR", "SECURITY", "HAZARD RESPONSE"
+        };
         for (int i = 0; i < teamButtons.size(); i++) {
             teamButtons.get(i).background(i == selectedTeam ? SELECTED : BUTTON);
         }
@@ -300,18 +388,12 @@ public final class UiWorkbenchScreen implements Screen {
 
     @Override
     public void processInput(List<InputEventAPI> events) {
-        if (events == null || document == null || viewport == null) return;
-        for (InputEventAPI event : events) {
-            if (event.isConsumed()) continue;
-            float x = viewport.documentX(event.getX());
-            float y = viewport.documentY(event.getY());
-            if (event.isMouseMoveEvent()) {
-                document.pointerMoved(x, y);
-            } else if (event.isLMBDownEvent()) {
-                if (document.pointerDown(x, y)) event.consume();
-            } else if (event.isLMBUpEvent()) {
-                if (document.pointerUp(x, y)) event.consume();
-            }
-        }
+        if (input != null) input.process(events);
+    }
+
+    @Override
+    public void detach() {
+        if (document != null) document.deactivateInput();
+        input = null;
     }
 }
