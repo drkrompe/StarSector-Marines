@@ -2,8 +2,8 @@
  * Bridge layer (campaign &rarr; battle) — resolves the player's <em>committed
  * detachment</em> into the support a battle runs with.
  *
- * <p>Category: pre-battle resolver (the diegetic-loadout core, roadmap
- *           command-powers S2).
+ * <p>Category: pre-battle resolver (the diegetic-loadout core described by
+ *           {@code command-powers-nouns.md}).
  * <br>Charter:  turn <em>(committed fleet subset + employer/contract offerings)</em>
  *           into a {@link com.dillon.starsectormarines.ops.detachment.Detachment}
  *           — the single source of all three battle-support kinds: shuttle
@@ -22,7 +22,6 @@
  *           same discipline {@code FlybyRoster} / {@code ShuttleAssignment}
  *           already keep.
  *
- * <p>See {@code roadmap/command-powers/} (S2 — explicit detachment + unified
- * support resolver) for the design track.
+ * <p>See {@code command-powers-nouns.md} for the standing feature model.
  */
 package com.dillon.starsectormarines.ops.detachment;

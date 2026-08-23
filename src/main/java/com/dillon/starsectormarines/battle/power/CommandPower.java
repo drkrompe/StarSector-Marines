@@ -5,9 +5,9 @@ import com.dillon.starsectormarines.battle.sim.BattleView;
 
 /**
  * A battlefield ability the player can invoke during a battle. The fleet the
- * player brought to the planet determines <em>which</em> powers exist (the
- * diegetic-spellbook design, roadmap S2); this abstraction is the in-battle
- * runtime contract every power satisfies.
+ * player commits to the detachment determines <em>which</em> powers exist (the
+ * diegetic-spellbook model in {@code command-powers-nouns.md}); this abstraction
+ * is the in-battle runtime contract every power satisfies.
  *
  * <p>A power carries its static cost/pacing metadata ({@link #cpCost},
  * {@link #cooldownSeconds}) and a single {@link #resolve} hook. The lifecycle
@@ -23,7 +23,7 @@ import com.dillon.starsectormarines.battle.sim.BattleView;
  */
 public abstract class CommandPower {
 
-    /** Stable identifier — keys cooldown state and the S2 fleet-mapping table. */
+    /** Stable identifier — keys cooldown state and the fleet capability catalog. */
     public final String id;
 
     /** Human-readable name for the power button. */
