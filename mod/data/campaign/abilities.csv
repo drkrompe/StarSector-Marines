@@ -1,0 +1,2 @@
+name,id,type,tags,activationDays,activationCooldown,durationDays,deactivationDays,deactivationCooldown,unlockedAtStart,defaultForAIFleet,musicSuppression,uiOn,uiOff,uiLoop,worldOn,worldOff,worldLoop,icon,plugin,ai,desc,sortOrder
+Company,marines_company_view,TOGGLE,,,,,,,FALSE,FALSE,,,,,,,,graphics/icons/abilities/company_view.png,com.dillon.starsectormarines.ops.CompanyViewAbility,,"Review the company: standing, running deadlines, and the roster.",1000
