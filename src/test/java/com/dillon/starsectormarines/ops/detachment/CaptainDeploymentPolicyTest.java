@@ -19,8 +19,8 @@ class CaptainDeploymentPolicyTest {
 
     @Test
     void defaultsToRosterOrderedHomeFormation() {
-        MarineRoster roster = roster(18);
-        MarineCaptain captain = captain(Rank.CORPORAL);
+        MarineRoster roster = roster(2 * MarineSquad.CAPACITY);
+        MarineCaptain captain = captain(Rank.CAPTAIN);
         roster.add(captain);
         MarineSquad first = roster.squads().get(0);
         MarineSquad second = roster.squads().get(1);
@@ -32,29 +32,29 @@ class CaptainDeploymentPolicyTest {
     }
 
     @Test
-    void borrowingStopsAtWholeFireteamRankCap() {
-        MarineRoster roster = roster(18);
-        MarineCaptain captain = captain(Rank.PRIVATE);
+    void borrowingStopsAtWholeSquadRankCap() {
+        int cap = Rank.LIEUTENANT.squadCommandCap();
+        MarineRoster roster = roster((cap + 1) * MarineSquad.CAPACITY);
+        MarineCaptain captain = captain(Rank.LIEUTENANT);
         roster.add(captain);
-        MarineSquad first = roster.squads().get(0);
-        MarineSquad second = roster.squads().get(1);
         Set<String> selected = new LinkedHashSet<>();
-        selected.add(first.id());
+        for (int i = 0; i < cap; i++) selected.add(roster.squads().get(i).id());
+        MarineSquad beyondCap = roster.squads().get(cap);
 
         assertFalse(CaptainDeploymentPolicy.canAdd(
-                roster, captain, selected, second.id()));
+                roster, captain, selected, beyondCap.id()));
         assertTrue(CaptainDeploymentPolicy.isValidCommand(
                 roster, captain, selected));
 
-        selected.add(second.id());
+        selected.add(beyondCap.id());
         assertFalse(CaptainDeploymentPolicy.isValidCommand(
                 roster, captain, selected));
     }
 
     @Test
     void unavailableCaptainCannotLeadOrBorrow() {
-        MarineRoster roster = roster(6);
-        MarineCaptain captain = captain(Rank.GENERAL);
+        MarineRoster roster = roster(MarineSquad.CAPACITY);
+        MarineCaptain captain = captain(Rank.COLONEL);
         roster.add(captain);
         captain.setStatus(Status.INJURED);
 

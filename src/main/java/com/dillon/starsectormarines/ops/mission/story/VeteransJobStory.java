@@ -37,7 +37,7 @@ public final class VeteransJobStory implements StoryMissionDef {
         if (ctx.client == null || !"independent".equals(ctx.client.factionId)) return false;
         // Word travels — at least one captain has earned a stripe.
         for (MarineCaptain c : ctx.roster.all()) {
-            if (c.status() == Status.ACTIVE && c.rank().ordinal() >= Rank.CORPORAL.ordinal()) {
+            if (c.status() == Status.ACTIVE && c.rank().ordinal() >= Rank.CAPTAIN.ordinal()) {
                 return true;
             }
         }

@@ -15,13 +15,13 @@ class CadreTrainingSystemTest {
     @Test
     void catchesUpMonthsPromotesAndDoesNotDuplicate() {
         Fixture fixture = fixture(ContractType.CADRE, ContractState.ACTIVE, 10, 100);
-        fixture.captain.addXp(100);
+        fixture.captain.addXp(700);
 
         fixture.system.tick(fixture.state, 70);
         fixture.system.tick(fixture.state, 70);
 
-        assertEquals(Rank.CORPORAL, fixture.captain.rank());
-        assertEquals(250, fixture.captain.xp());
+        assertEquals(Rank.CAPTAIN, fixture.captain.rank());
+        assertEquals(100, fixture.captain.xp());
         assertEquals(70, fixture.state.contractLastTrainingTick[0]);
     }
 
@@ -31,8 +31,8 @@ class CadreTrainingSystemTest {
 
         fixture.system.tick(fixture.state, 120);
 
-        assertEquals(Rank.CORPORAL, fixture.captain.rank());
-        assertEquals(150, fixture.captain.xp());
+        assertEquals(Rank.LIEUTENANT, fixture.captain.rank());
+        assertEquals(400, fixture.captain.xp());
         assertEquals(60, fixture.state.contractLastTrainingTick[0]);
     }
 
@@ -55,7 +55,7 @@ class CadreTrainingSystemTest {
     private static Fixture fixture(ContractType type, ContractState contractState,
                                    int acceptedDay, int expiresDay) {
         CampaignState state = new CampaignState();
-        MarineCaptain captain = new MarineCaptain("Trainer", null, Rank.PRIVATE, 0f);
+        MarineCaptain captain = new MarineCaptain("Trainer", null, Rank.LIEUTENANT, 0f);
         captain.setStatus(Status.GARRISONED);
         int captainSlot = state.captainRegistry.intern(captain.id());
         state.addContract(1L, -1L, -1L, type, contractState,

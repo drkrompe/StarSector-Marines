@@ -87,7 +87,7 @@ class StationingAssignmentServiceTest {
         Fixture fixture = fixture(ContractType.GARRISON, HouseRank.TIER_2, 0);
         MarineRoster roster = new MarineRoster();
         roster.add(fixture.captain);
-        roster.ensureActiveSoldiers(7);
+        roster.ensureActiveSoldiers(MarineSquad.CAPACITY + 1);
         MarineSquad first = roster.squads().get(0);
         MarineSquad second = roster.squads().get(1);
         roster.applySoldierOutcome(Map.of(
@@ -101,10 +101,12 @@ class StationingAssignmentServiceTest {
 
         int row = fixture.state.contractIndex(fixture.contractId);
         assertEquals(List.of(first, second), roster.squadsStationedOn(fixture.contractId));
-        assertEquals(6, roster.stationedLivingCount(fixture.contractId));
-        assertEquals(6, fixture.state.contractMarinesCommitted[row]);
+        assertEquals(MarineSquad.CAPACITY, roster.stationedLivingCount(fixture.contractId));
+        assertEquals(MarineSquad.CAPACITY, fixture.state.contractMarinesCommitted[row]);
         assertEquals(100, fixture.state.contractExpiresTick[row]);
-        assertEquals(198, fixture.state.contractRetainerPerMonth[row]);
+        // The retainer is linear in committed marines (20 x 1.10 mode x 1.50 tier),
+        // so a stationed squad costs twice what a six-marine team used to.
+        assertEquals(33 * MarineSquad.CAPACITY, fixture.state.contractRetainerPerMonth[row]);
         assertEquals(Status.GARRISONED, fixture.captain.status());
         assertEquals(0, fixture.store.available);
     }
@@ -150,7 +152,7 @@ class StationingAssignmentServiceTest {
         long incumbentOffer = civilWarOffer(state, incumbent, claimant,
                 -1L, chainId, ContractType.GARRISON, market);
         MarineCaptain captain = new MarineCaptain(
-                "Captain", null, Rank.SERGEANT, 0f);
+                "Captain", null, Rank.CAPTAIN, 0f);
         TestMarineStore store = new TestMarineStore(100);
 
         assertTrue(StationingAssignmentService.acceptLegacy(state, claimantOffer,
@@ -182,7 +184,7 @@ class StationingAssignmentServiceTest {
         long contractId = state.addContract(patronId, -1L, -1L, type,
                 ContractState.OFFERED, 0, -1, 20, (byte) 0, -1, 0, -1,
                 0, 0, (byte) 0, (byte) 0, (byte) 100);
-        MarineCaptain captain = new MarineCaptain("Captain", null, Rank.SERGEANT, 0f);
+        MarineCaptain captain = new MarineCaptain("Captain", null, Rank.CAPTAIN, 0f);
         return new Fixture(state, contractId, captain, new TestMarineStore(marines));
     }
 

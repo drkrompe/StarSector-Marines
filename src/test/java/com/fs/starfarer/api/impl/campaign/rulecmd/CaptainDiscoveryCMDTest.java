@@ -52,7 +52,7 @@ class CaptainDiscoveryCMDTest {
     void fullRosterDisablesAndRejectsAcceptanceWithoutConsumingOffer() {
         Fixture fixture = new Fixture();
         fixture.roster.setCapacity(1);
-        fixture.roster.add(new MarineCaptain("Incumbent", null, Rank.PRIVATE, 0f));
+        fixture.roster.add(new MarineCaptain("Incumbent", null, Rank.LIEUTENANT, 0f));
 
         assertTrue(fixture.execute("show"));
         assertTrue(fixture.disabled.contains(CaptainDiscoveryCMD.OPTION_ACCEPT));
@@ -129,7 +129,7 @@ class CaptainDiscoveryCMDTest {
         final CaptainCandidate candidate = roster.discoverCaptainCandidate(
                 "derelict:test-wreck", "Mara Venn",
                 "graphics/portraits/portrait_mercenary01.png",
-                Rank.CORPORAL, Trait.FIELD_MEDIC, 61f);
+                Rank.CAPTAIN, Trait.FIELD_MEDIC, 61f);
         final Map<String, Object> memoryValues = new HashMap<>();
         final Map<Object, String> options = new LinkedHashMap<>();
         final Map<Object, String> tooltips = new HashMap<>();

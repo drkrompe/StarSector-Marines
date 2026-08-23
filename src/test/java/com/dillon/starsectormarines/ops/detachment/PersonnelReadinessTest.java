@@ -16,14 +16,14 @@ class PersonnelReadinessTest {
     @Test
     void distinguishesSelectionShortfallFromCompanyShortfall() {
         MarineRoster roster = new MarineRoster();
-        roster.bootstrapInitialComplement(10);
+        roster.bootstrapInitialComplement(MarineSquad.CAPACITY + 4);
         MarineSquad first = roster.squads().get(0);
 
         PersonnelReadiness selected = PersonnelReadiness.assess(
-                roster, Set.of(first.id()), 8);
+                roster, Set.of(first.id()), MarineSquad.CAPACITY + 2);
 
-        assertEquals(6, selected.selectedReady());
-        assertEquals(10, selected.companyReady());
+        assertEquals(MarineSquad.CAPACITY, selected.selectedReady());
+        assertEquals(MarineSquad.CAPACITY + 4, selected.companyReady());
         assertEquals(2, selected.selectedShortfall());
         assertEquals(0, selected.companyShortfall());
         assertFalse(selected.ready());

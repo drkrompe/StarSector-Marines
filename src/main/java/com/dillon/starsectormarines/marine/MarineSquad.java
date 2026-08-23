@@ -6,10 +6,23 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-/** A persistent six-marine campaign fireteam. Tactical battle squads remain ephemeral. */
+/**
+ * A persistent campaign squad: twelve marines organized as three four-marine
+ * fire teams. Tactical battle squads remain ephemeral.
+ *
+ * <p>Fire teams are the AI's maneuver element and the unit lift capacity is
+ * denominated in, not a level of the player's command hierarchy — the player
+ * commands squads.
+ */
 public final class MarineSquad implements Serializable {
 
-    public static final int CAPACITY = 6;
+    /** Marines in one fire team. */
+    public static final int TEAM_SIZE = 4;
+
+    /** Fire teams in a full squad. */
+    public static final int TEAMS_PER_SQUAD = 3;
+
+    public static final int CAPACITY = TEAM_SIZE * TEAMS_PER_SQUAD;
 
     private String id;
     private String name;
@@ -42,6 +55,25 @@ public final class MarineSquad implements Serializable {
     public boolean stationed() { return stationingContractId > 0L; }
     public List<String> memberIds() { return Collections.unmodifiableList(memberIds); }
 
+    /**
+     * Fire team holding this billet, or {@code -1} when the soldier is not a
+     * member. Derived from roster order rather than stored, so a squad that
+     * loses marines consolidates into fewer full teams instead of keeping
+     * hollow ones — the behaviour a partly-manned squad wants.
+     */
+    public int teamIndexOf(String soldierId) {
+        int billet = memberIds.indexOf(soldierId);
+        return billet < 0 ? -1 : billet / TEAM_SIZE;
+    }
+
+    /** Members of one fire team in billet order; empty when the team is unmanned. */
+    public List<String> teamMembers(int teamIndex) {
+        if (teamIndex < 0 || teamIndex >= TEAMS_PER_SQUAD) return Collections.emptyList();
+        int from = Math.min(teamIndex * TEAM_SIZE, memberIds.size());
+        int to = Math.min(from + TEAM_SIZE, memberIds.size());
+        return Collections.unmodifiableList(new ArrayList<>(memberIds.subList(from, to)));
+    }
+
     boolean add(String soldierId) {
         if (soldierId == null || memberIds.contains(soldierId)) return false;
         memberIds.add(soldierId);
@@ -61,7 +93,7 @@ public final class MarineSquad implements Serializable {
 
     private Object readResolve() {
         if (id == null) id = UUID.randomUUID().toString();
-        if (name == null) name = "Fireteam";
+        if (name == null) name = "Squad";
         if (memberIds == null) memberIds = new ArrayList<>();
         if (stationingContractId <= 0L) stationingContractId = -1L;
         return this;

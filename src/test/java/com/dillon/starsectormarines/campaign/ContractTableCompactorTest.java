@@ -124,7 +124,7 @@ class ContractTableCompactorTest {
                 ContractState.COMPLETED, 1, 30, -1, (byte) 0, -1, 5, -1,
                 0, 1_000, (byte) 5, (byte) 5, (byte) 100);
         MarineRoster roster = new MarineRoster();
-        MarineCaptain captain = new MarineCaptain("Cadre Lead", null, Rank.PRIVATE, 0f);
+        MarineCaptain captain = new MarineCaptain("Cadre Lead", null, Rank.LIEUTENANT, 0f);
         roster.add(captain);
         roster.ensureActiveSoldiers(6);
         MarineSquad squad = roster.squads().get(0);

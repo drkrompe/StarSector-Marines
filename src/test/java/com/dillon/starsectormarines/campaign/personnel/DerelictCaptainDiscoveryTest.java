@@ -47,7 +47,7 @@ class DerelictCaptainDiscoveryTest {
         assertEquals(first.startingTrait(), second.startingTrait());
         assertEquals(42f, first.discoveredAtDay());
         assertEquals(77f, second.discoveredAtDay());
-        assertTrue(Set.of(Rank.PRIVATE, Rank.CORPORAL, Rank.SERGEANT)
+        assertTrue(Set.of(Rank.LIEUTENANT, Rank.CAPTAIN)
                 .contains(first.startingRank()));
         assertTrue(first.startingTrait() == null
                 || Set.of(Trait.FIELD_MEDIC, Trait.NATURAL_LEADER, Trait.SALVAGE_EXPERT)

@@ -80,7 +80,7 @@ class StationingReleaseSystemTest {
 
     private static Fixture fixture(ContractState contractState) {
         CampaignState state = new CampaignState();
-        MarineCaptain captain = new MarineCaptain("Captain", null, Rank.SERGEANT, 0f);
+        MarineCaptain captain = new MarineCaptain("Captain", null, Rank.CAPTAIN, 0f);
         captain.setStatus(Status.GARRISONED);
         int captainSlot = state.captainRegistry.intern(captain.id());
         state.addContract(1L, -1L, -1L, ContractType.GARRISON, contractState,
