@@ -8,7 +8,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-/** Constant-budget S8 command deck: selection math plus launch-boundary filtering. */
+/** Constant-budget command deck: selection math plus launch-boundary filtering. */
 public final class CommandDeck {
 
     public static final int BUDGET = 5;
