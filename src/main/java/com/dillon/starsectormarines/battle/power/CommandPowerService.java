@@ -17,11 +17,10 @@ import java.util.Map;
  * (state owner, mutated by a stateless system) — sibling to
  * {@code command.BattleResources} and {@code command.CommanderService}.
  *
- * <p>Command points are a single <em>player</em> scalar in S1 (powers are
- * player-only); generalize to a per-faction pool if an enemy commander ever
- * gets powers. The available-power roster is hardcoded to the always-on
- * {@link ReconPing} in S1; the S2 fleet&rarr;powers resolver will populate it
- * from real fleet composition.
+ * <p>Command points are a single <em>player</em> scalar (powers are player-only);
+ * generalize to a per-faction pool if an enemy commander ever gets powers. The
+ * roster starts empty and is injected at battle setup from the detachment's
+ * committed, deck-filtered fleet and employer capabilities.
  *
  * <p>Threading: {@link #requestActivation} is called from the input pass
  * ({@code BattleScreen.processInput}) and the queue is drained from the sim tick
@@ -63,7 +62,7 @@ public final class CommandPowerService {
         }
     }
 
-    // ---- S1 placeholder tuning (capacity scaling is S5) ----
+    // ---- Placeholder tuning (persistent capacity scaling remains open) ----
     private static final float STARTING_COMMAND_POINTS = 4f;
     private static final float MAX_COMMAND_POINTS = 10f;
     private static final float REGEN_PER_SECOND = 0.5f;
