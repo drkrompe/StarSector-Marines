@@ -94,7 +94,8 @@ public final class CompoundClaim {
      * Conquest spec set — {@link BiomeCompoundSeeder} reserves exactly three
      * MILITARY_BASE leaves (one per biome band). A reserved base may claim as a
      * single-leaf fallback so the mission-authored supply anchor cannot disappear
-     * when no eligible neighbor survives the theme roll.
+     * when no eligible neighbor survives the theme roll. The fortress base also
+     * rejects lateral edge members so compound growth preserves its outer ward.
      */
     public static final List<ClaimSpec> CONQUEST_SPECS = Arrays.asList(
             new ClaimSpec(BlockKind.MILITARY_BASE, BlockKind.FORTIFIED_POST,
@@ -150,7 +151,10 @@ public final class CompoundClaim {
                 seed.kind = spec.demoteTo;
                 continue;
             }
-            List<BlockLeaf> members = grow(seed, adjacency, spec, rng);
+            boolean fortressKeep = spec.seedKind == BlockKind.MILITARY_BASE
+                    && biomeMap != null
+                    && biomeMap.biomeAt(seed.centerX(), seed.centerY()) == BiomeKind.FORTRESS_DISTRICT;
+            List<BlockLeaf> members = grow(seed, adjacency, spec, biomeMap, fortressKeep, rng);
             if (members.size() < spec.minMembers) {
                 seed.kind = spec.demoteTo;
                 continue;
@@ -180,11 +184,13 @@ public final class CompoundClaim {
      */
     private static List<BlockLeaf> grow(BlockLeaf seed,
                                         Map<BlockLeaf, List<BlockLeaf>> adjacency,
-                                        ClaimSpec spec, Random rng) {
+                                        ClaimSpec spec, BiomeMap biomeMap,
+                                        boolean fortressKeep, Random rng) {
         LinkedHashSet<BlockLeaf> members = new LinkedHashSet<>();
         members.add(seed);
         while (members.size() < spec.targetMembers) {
-            BlockLeaf next = pickNextNeighbor(members, adjacency, spec, rng);
+            BlockLeaf next = pickNextNeighbor(
+                    members, adjacency, spec, biomeMap, fortressKeep, rng);
             if (next == null) break;
             members.add(next);
             if (members.size() >= spec.maxMembers) break;
@@ -194,12 +200,14 @@ public final class CompoundClaim {
 
     private static BlockLeaf pickNextNeighbor(LinkedHashSet<BlockLeaf> members,
                                               Map<BlockLeaf, List<BlockLeaf>> adjacency,
-                                              ClaimSpec spec, Random rng) {
+                                              ClaimSpec spec, BiomeMap biomeMap,
+                                              boolean fortressKeep, Random rng) {
         List<BlockLeaf> candidates = new ArrayList<>();
         for (BlockLeaf m : members) {
             for (BlockLeaf n : adjacency.get(m)) {
                 if (members.contains(n)) continue;
                 if (!isEligible(n, spec)) continue;
+                if (fortressKeep && !BiomeCompoundSeeder.hasFortressWardClearance(n, biomeMap)) continue;
                 if (!candidates.contains(n)) candidates.add(n);
             }
         }
