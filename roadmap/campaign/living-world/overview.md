@@ -317,7 +317,7 @@ Designed in a follow-up once Genesis + drift exist to react against.
 5. ~~**Discovery surface**~~ — D3 ships deterministic weekly
    `discoveryRisk` rumors for player-touched or Tier-3+ chains. Captain SCOUT
    and infrastructure can later widen eligibility rather than replacing this
-   baseline (ties to [`../infrastructure/`](../infrastructure/overview.md)).
+   baseline (see `infrastructure-nouns.md`).
 6. **House birth** — once consolidation thins markets, do new houses ever
    spawn, or is monotonic consolidation the intended long-game texture?
    (Leaning: let it consolidate.)

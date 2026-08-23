@@ -155,7 +155,8 @@ Texture that falls out:
 - **A reason to scout.** Low-commitment contracts (and the Cadre type,
   high political access) become a way to *feel out* a patron before a big
   commitment. The `SCOUT` captain trait and intel
-  [`../infrastructure/`](../infrastructure/overview.md) speed the reveal.
+  future intelligence investment described by `infrastructure-nouns.md` may
+  speed the reveal.
 - **Discipline guard:** marks represent *earned knowledge and
   relationship*, not raw stats. No completionist trait-grid to optimize
   against; the satisfaction is "I know these people now," not "I collected

@@ -449,10 +449,9 @@ chain's narrative momentum depends on the player following through.
 
 - `loot-nouns.md` — the shipped post-battle recovery model; its board owns the
   remaining in-game acceptance checkpoint.
-- [`../infrastructure/overview.md`](../infrastructure/overview.md) —
-  buildings that modulate garrison default rates and per-house power.
-  Defensive infra reduces Garrison default rolls; intel infra surfaces
-  hidden pretenders sooner.
+- `infrastructure-nouns.md` — future location-bound modifiers for stationing
+  risk and discovery policy; infrastructure does not alter political
+  `housePower` implicitly.
 - `t3-endgame-nouns.md` — the Tier-4
   contracts. Where this doc's "future" bracket actually lives.
 - [`../narrative/overview.md`](../narrative/overview.md) — the patron
