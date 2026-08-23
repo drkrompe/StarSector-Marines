@@ -454,7 +454,7 @@ chain's narrative momentum depends on the player following through.
   `housePower` implicitly.
 - `t3-endgame-nouns.md` — the Tier-4
   contracts. Where this doc's "future" bracket actually lives.
-- [`../narrative/overview.md`](../narrative/overview.md) — the patron
+- `narrative-nouns.md` — the patron
   tapestry: comms-officer narrator, archetype content axis, procedural
   fatigue discipline. Extracted from this doc.
 
@@ -463,7 +463,7 @@ chain's narrative momentum depends on the player following through.
 The narrative side of the contract layer — comms-officer narrator,
 the patron-archetype content axis (the `byte archetype` carried on the
 contract's patron house), and the procedural-fatigue discipline — now
-lives in [`../narrative/overview.md`](../narrative/overview.md). The
+lives in `narrative-nouns.md`. The
 contract layer sets the commercial terms; what the player *reads* about
 the patron behind those terms is the narrative feature's concern.
 
