@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.command;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.infantry.GoapInfantryBehavior;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -12,14 +13,13 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Coverage for {@link AssaultCommand}'s exterior-zone guard (story 17 bug 0a):
- * the search-and-destroy sweep must never hand a squad the open exterior flood
- * zone as a {@code CLEAR_ZONE} target — clearing it never completes, so the
- * squad would charge the whole map. Outdoor defenders are engaged ambiently by
- * {@code EliminateEnemiesGoal} instead.
+ * Coverage for {@link AssaultCommand}'s exterior-zone handling: the commander
+ * must never hand out the map-wide exterior as a {@code CLEAR_ZONE}, but it
+ * must keep outdoor enemies actionable through a {@code SWEEP_SECTOR} search
+ * route when the squad has no contact.
  */
 public class AssaultCommandTest {
 
@@ -89,7 +89,7 @@ public class AssaultCommandTest {
     }
 
     @Test
-    public void exteriorOnlyDefenderLeavesAssignmentNull() {
+    public void exteriorOnlyDefenderProducesSearchAssignment() {
         BattleSimulation sim = roomPlusExteriorSim();
         AssaultCommand cmd = new AssaultCommand();
         Squad squad = addMarineSquad(sim, 5f, 3f);   // exterior, sector 0
@@ -97,7 +97,29 @@ public class AssaultCommandTest {
 
         cmd.tick(sim);
 
-        assertNull(squad.assignedObjective,
-                "exterior-only defender → no active sector, no CLEAR_ZONE; squad engages ambiently");
+        ObjectiveAssignment assignment = squad.assignedObjective;
+        assertNotNull(assignment,
+                "outdoor survivors must keep the Assault search active");
+        assertEquals(AssignmentKind.SWEEP_SECTOR, assignment.kind());
+        assertEquals(ObjectiveAssignment.UNSCOPED, assignment.targetZoneId(),
+                "the map-wide exterior is never a clear-zone target");
+        assertNotEquals(8, assignment.targetCellX(),
+                "search order receives a route cell, not the enemy's exact position");
+
+        GoapInfantryBehavior.replanIfNeeded(squad, sim);
+        assertNotNull(squad.currentPlan,
+                "no-contact Assault squad must have an executable search plan");
+        assertEquals("SweepAssignedSector", squad.currentGoal.name());
+
+        int firstX = assignment.targetCellX();
+        int firstY = assignment.targetCellY();
+        squad.centroidX = firstX + 0.5f;
+        squad.centroidY = firstY + 0.5f;
+        cmd.tick(sim);
+
+        assertEquals(AssignmentKind.SWEEP_SECTOR, squad.assignedObjective.kind());
+        assertTrue(firstX != squad.assignedObjective.targetCellX()
+                        || firstY != squad.assignedObjective.targetCellY(),
+                "arriving at one search cell advances the sector route");
     }
 }

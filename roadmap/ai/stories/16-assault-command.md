@@ -1,6 +1,10 @@
 # 16 — Assault Commander
 
-**Active.** Third commander partition shape, pulled from
+Status: SHIPPED
+Written: 2026-05-27
+Updated: 2026-08-23 — Exterior contacts now drive real sector searches instead of ambient idle.
+
+Third commander partition shape, pulled from
 [`12-squad-of-squads.md`](12-squad-of-squads.md) Assault section. Adds
 strategic sweep coordination to ASSAULT missions where squads currently
 dogpile the nearest defender cluster.
@@ -37,15 +41,26 @@ would strand squads in empty sectors.
 
 Per slow tick:
 
-1. Compute **active sectors** (any sector with >= 1 defender-occupied zone).
+1. Compute **active sectors** from surviving defender combatants' rectangular
+   sector positions. This is deliberately sector-granular: a squad receives a
+   search area, not the defender's exact cell.
 2. **Greedy nearest-sector**: each alive marine squad assigned to nearest
    active sector by centroid distance. Bias toward current sector to
    prevent flip-flop churn.
 3. **Load balance**: when squads outnumber active sectors, surplus doubles
    up on the sector with the most defender-occupied zones. This is
    implicit convergence — no explicit `CONVERGE_ON_CONTACT` kind needed.
-4. Within the assigned sector, pick **nearest defender-occupied zone**
-   -> write `CLEAR_ZONE`. Null if sector fully clear.
+4. Within the assigned sector, pick the **nearest defender-occupied interior
+   zone** -> write `CLEAR_ZONE`.
+5. If the remaining defenders are in the map-wide exterior flood zone, write
+   `SWEEP_SECTOR` with the squad's next deterministic serpentine search cell.
+   Reaching a cell advances the route; surplus squads start on different cells.
+
+`SweepAssignedSectorGoal` owns the tactical handoff. It is relevant only while
+the assignment is present, morale is intact, and the squad has no identified
+contact. `SweepSector` walks the route, redirects toward anonymous audible
+bearings, and clears its path as soon as direct or source-linked audio belief
+appears so ordinary `EliminateEnemies` Approach/Engage behavior takes over.
 
 ## What's reused
 
@@ -57,20 +72,21 @@ Per slow tick:
 ## Observable behavior
 
 - Squads spread across the map into distinct sectors instead of clustering
+- Squads without contact continue physically searching rather than retaining
+  stale paths under a null plan
 - As sectors clear, freed squads reposition to remaining hotspots
 - Multiple squads converge on the last occupied sector
 - Debug panel: `ClearAssignedZone` goal with zone targets in different map regions
 
 ## Status
 
-**Shipped** (2026-05-27). `AssaultCommand` wired in `BattleSetup.createPlaceholder`
-for `MissionType.ASSAULT`.
+**Shipped** (2026-05-27). `AssaultCommand` is wired in
+`BattleSetup.createPlaceholder` for `MissionType.ASSAULT`. The exterior-sector
+search completion shipped 2026-08-23.
 
 ## What's not in v1
 
-- `SWEEP_SECTOR` / `CONVERGE_ON_CONTACT` as distinct `AssignmentKind` values
-  (reusing `CLEAR_ZONE` is sufficient — behavior distinction doesn't justify
-  new goal types yet)
+- `CONVERGE_ON_CONTACT` as a distinct `AssignmentKind`
 - Defender-side assault commander (gated on doc 15 perception)
 - Contact convergence as an explicit mechanism (v1 convergence is emergent
   from the load-balancing math)
