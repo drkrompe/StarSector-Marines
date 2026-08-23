@@ -440,7 +440,7 @@ public class BriefingScreen implements Screen {
                     ctx.getSelectedMarineSquadIds());
             int teamCap = captain != null ? captain.rank().squadCommandCap() : 0;
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                    selectedTeams + "/" + teamCap + " fireteams",
+                    selectedTeams + "/" + teamCap + " squads",
                     x + rowW - 150f, y, captainCommandReady(m)
                             ? ACCEPT_COLOR : BLOCKED_COLOR));
         }

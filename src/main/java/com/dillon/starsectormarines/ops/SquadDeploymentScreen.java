@@ -59,15 +59,15 @@ public final class SquadDeploymentScreen implements Screen {
         int teamCap = captain != null ? captain.rank().squadCommandCap() : 0;
 
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                "Pre-Battle Fireteam Assignment", left, top, HEADER));
+                "Pre-Battle Squad Assignment", left, top, HEADER));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                "Select persistent fireteams; tactical squads form around their actual lifts.",
+                "Select persistent squads; fire teams form around their actual lifts.",
                 left, top - 30f, MUTED));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
                 "READY SEATS  " + Math.min(readiness.selectedReady(), capacity)
                         + " / " + capacity + "   COMPANY " + readiness.companyReady()
                         + "   SHORT " + readiness.selectedShortfall()
-                        + "   FIRETEAMS " + selectedTeams + " / " + teamCap
+                        + "   SQUADS " + selectedTeams + " / " + teamCap
                         + (readiness.selectedReady() > capacity
                                 ? "   (" + (readiness.selectedReady() - capacity)
                                         + " reserve)" : ""),

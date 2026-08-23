@@ -132,7 +132,7 @@ public final class StationingScreen implements Screen {
                         roster, selectedCaptain, selectedSquadIds)
                 && selectionAvailable(roster);
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                "DETACHMENT  " + selectedTeams + " / " + teamCap + " fireteams"
+                "DETACHMENT  " + selectedTeams + " / " + teamCap + " squads"
                         + "   " + active + " RTD   " + wia + " WIA",
                 x, y, commandValid ? ACCEPT : BLOCKED));
         y -= ROW;
@@ -152,7 +152,7 @@ public final class StationingScreen implements Screen {
         y -= ROW + 4f;
 
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                "Select whole fireteams — home formation selected by default",
+                "Select whole squads — home formation selected by default",
                 x, y, HEADER));
         y -= ROW;
 
@@ -176,7 +176,7 @@ public final class StationingScreen implements Screen {
                     columnWidth, roster, selectedCaptain);
         }
         if (pages > 1) {
-            addPageButton(x, navY, 116f, "Prev Teams", squadPage > 0 ? () -> {
+            addPageButton(x, navY, 116f, "Prev Squads", squadPage > 0 ? () -> {
                 squadPage--;
                 rebuild();
             } : null, squadPage > 0);
@@ -231,7 +231,7 @@ public final class StationingScreen implements Screen {
             y -= ROW;
         } else {
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                    "Fireteams: " + squadNames(stationed), x, y, VALUE));
+                    "Squads: " + squadNames(stationed), x, y, VALUE));
             y -= ROW;
             int active = statusCount(roster, squadIds(stationed), MarineSoldierStatus.ACTIVE);
             int wia = statusCount(roster, squadIds(stationed), MarineSoldierStatus.WIA);
