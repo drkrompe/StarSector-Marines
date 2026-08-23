@@ -1,9 +1,9 @@
 # Moddable Weapons
 
-Status: ACTIVE — the marine-primary catalog is data-owned; the remaining weapon families are planned migrations
+Status: ACTIVE — handheld weapons are data-owned; mech and emplacement migrations remain
 
 Written: 2026-08-23
-Updated: 2026-08-23 — separated weapon definitions from the special-equipment slot that may reference them.
+Updated: 2026-08-23 — moved weapon-like marine specials into the registry while keeping item activation separate.
 
 ## Purpose
 
@@ -89,16 +89,19 @@ shared consumer exists.
 
 ## Current boundary and direction
 
-W1 has moved the five marine-primary definitions into the registry, while
-`MarineWeapon` remains an id-backed compatibility handle for current callers
-and persistence. The current rocket carried through `MarineSecondary`, mech
-weapons, and turrets remain enum-owned work; their migration is deliberately
-not implied by the shared schema. The open work is on `stories.md`.
+W1 moved the five marine-primary definitions into the registry. The first W3
+slice moved the Annihilator rocket there too, and progression S2A added the
+anti-materiel heavy round through the same marine-secondary mount class.
+`MarineWeapon` and `MarineSecondary` remain id-backed compatibility handles;
+the latter points through a distinct special-equipment definition so a loadout
+item and the weapon it activates do not become one identity. Mech weapons and
+turrets remain enum-owned work. The open work is on `stories.md`.
 
-W2 turns effect recipes into ordered authored layers. W3 migrates the current
-rocket and mech weapon families and adds the first meaningful mount validation.
-Progression S2A then establishes a special-equipment identity that may point at
-those weapon ids; later smoke and satchel stories add non-weapon activations,
+W2 turns effect recipes into ordered authored layers. W3 has migrated the
+current rocket and added marine mount validation; its remaining slice moves
+the mech weapon families and validates their mount rules. Progression's
+special-equipment identity may point at those weapon ids; later smoke and
+satchel stories add non-weapon activations,
 while the frag story adds another weapon-like activation.
 W4 retires enum stat carriers and owns the save migration. W6 applies the
 platform/mount/weapon split to emplacements and structures. W5 is deferred

@@ -136,6 +136,7 @@ public final class SquadAlertSystem {
             squad.centroidY = 0f;
             squad._engagedThisTick = false;
             squad._suspiciousThisTick = false;
+            squad._contactDoctrineChangedThisTick = false;
             squad._alertLevelChangedThisTick = false;
             squad._killZoneSightedThisTick = false;
             squad._underFireAtLosLastTick = squad._underFireAtLosThisTick;

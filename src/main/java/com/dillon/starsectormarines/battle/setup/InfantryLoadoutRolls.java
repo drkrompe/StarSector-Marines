@@ -33,24 +33,28 @@ public final class InfantryLoadoutRolls {
             SoldierProfile profile = playerProfile(rng);
             MarineSecondary secondary = i == rocketSlot
                     ? MarineSecondary.ROCKET_LAUNCHER : null;
-            int ammo = secondary != null ? secondary.startingAmmo : 0;
+            int ammo = secondary != null ? secondary.startingAmmo() : 0;
             roster[i] = new MarineLoadout(UnitRole.COMBATANT, null,
                     primary, grade, profile, secondary, ammo);
         }
         return roster;
     }
 
-    /** Builds a standard randomized local/defender fireteam without player-only secondaries. */
+    /** Builds a local/defender fireteam; elite high-risk regulars field one AMR carrier. */
     public static MarineLoadout[] defenderSquad(int capacity, UnitType type,
                                                  RiskLevel risk, Random rng) {
         MarineLoadout[] roster = new MarineLoadout[Math.max(0, capacity)];
         RiskLevel resolvedRisk = risk != null ? risk : RiskLevel.LOW;
+        int amrSlot = resolvedRisk == RiskLevel.HIGH && type != UnitType.MILITIA
+                && capacity >= 4 ? capacity - 1 : -1;
         for (int i = 0; i < roster.length; i++) {
+            MarineSecondary special = i == amrSlot
+                    ? MarineSecondary.ANTI_MATERIEL_RIFLE : null;
             roster[i] = new MarineLoadout(UnitRole.COMBATANT, null,
                     defenderPrimary(type, rng),
                     defenderEquipmentGrade(type, resolvedRisk, rng),
                     defenderProfile(type, resolvedRisk, rng),
-                    null, 0);
+                    special, special != null ? special.startingAmmo() : 0);
         }
         return roster;
     }

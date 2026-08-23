@@ -365,25 +365,27 @@ public class BattleSprites {
         if (marineSecondarySpritesLoadAttempted) return;
         marineSecondarySpritesLoadAttempted = true;
         for (MarineSecondary sec : MarineSecondary.values()) {
-            try {
-                Global.getSettings().loadTexture(sec.projectileSpritePath);
-                SpriteAPI sprite = Global.getSettings().getSprite(sec.projectileSpritePath);
-                if (sprite == null) {
-                    LOG.warn("BattleSprites: getSprite returned null for " + sec.projectileSpritePath);
-                } else {
-                    float w = sprite.getWidth();
-                    float h = sprite.getHeight();
-                    float aspect = (h > 0f) ? w / h : 1f;
-                    ShuttleSpriteCache cache = new ShuttleSpriteCache(sprite, aspect);
-                    projectileSpriteByPath.put(sec.projectileSpritePath, cache);
-                    LOG.info("BattleSprites: loaded " + sec.projectileSpritePath
-                            + " (" + w + "x" + h + ", aspect=" + aspect + ")");
+            if (sec.projectileSpritePath() != null) {
+                try {
+                    Global.getSettings().loadTexture(sec.projectileSpritePath());
+                    SpriteAPI sprite = Global.getSettings().getSprite(sec.projectileSpritePath());
+                    if (sprite == null) {
+                        LOG.warn("BattleSprites: getSprite returned null for " + sec.projectileSpritePath());
+                    } else {
+                        float w = sprite.getWidth();
+                        float h = sprite.getHeight();
+                        float aspect = (h > 0f) ? w / h : 1f;
+                        ShuttleSpriteCache cache = new ShuttleSpriteCache(sprite, aspect);
+                        projectileSpriteByPath.put(sec.projectileSpritePath(), cache);
+                        LOG.info("BattleSprites: loaded " + sec.projectileSpritePath()
+                                + " (" + w + "x" + h + ", aspect=" + aspect + ")");
+                    }
+                } catch (Exception e) {
+                    LOG.error("BattleSprites: failed to load secondary projectile " + sec.projectileSpritePath(), e);
                 }
-            } catch (Exception e) {
-                LOG.error("BattleSprites: failed to load secondary projectile " + sec.projectileSpritePath, e);
             }
-            if (sec.aimSpritePath != null) {
-                UnitSpriteCache aim = loadUnitSheet(sec.aimSpritePath);
+            if (sec.aimSpritePath() != null) {
+                UnitSpriteCache aim = loadUnitSheet(sec.aimSpritePath());
                 if (aim != null) marineSecondaryAimSheets.put(sec, aim);
             }
         }
@@ -462,38 +464,39 @@ public class BattleSprites {
         LayeredSpriteCache masterworkDmr = loadLayeredSprite(
                 MODULAR_ROOT + "weapons/grades/masterwork/dmr.png");
         LayeredSpriteCache rocket = loadLayeredSprite(MODULAR_ROOT + "weapons/rocket-launcher.png");
+        LayeredSpriteCache amr = loadLayeredSprite(MODULAR_ROOT + "weapons/anti-materiel-rifle.png");
         LayeredSpriteCache flash = loadLayeredSprite(
                 "graphics/battle/marine-modular-topdown/marine-muzzle-flash.png");
         if (foot == null || rifle == null || laser == null || smg == null || dmr == null
-                || rocket == null || flash == null || surplusRifle == null
+                || rocket == null || amr == null || flash == null || surplusRifle == null
                 || masterworkDmr == null) {
             LOG.warn("BattleSprites: modular shared layers incomplete; legacy unit sheets remain active");
             return;
         }
 
-        loadLayeredFamily(LayeredArmorFamily.ARMORLESS, "armorless", foot, rifle, laser, smg, dmr, rocket, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamily(LayeredArmorFamily.CHARCOAL, "charcoal", foot, rifle, laser, smg, dmr, rocket, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamily(LayeredArmorFamily.BLUE_SCOUT, "blue-scout", foot, rifle, laser, smg, dmr, rocket, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamily(LayeredArmorFamily.RED_ELITE, "red-heavy", foot, rifle, laser, smg, dmr, rocket, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamily(LayeredArmorFamily.OUTLAW, "outlaw", foot, rifle, laser, smg, dmr, rocket, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamily(LayeredArmorFamily.ARMY_GREEN, "army-green", foot, rifle, laser, smg, dmr, rocket, flash, surplusRifle, masterworkDmr);
-        loadLayeredFamily(LayeredArmorFamily.MILITIA, "militia", foot, rifle, laser, smg, dmr, rocket, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamily(LayeredArmorFamily.ARMORLESS, "armorless", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamily(LayeredArmorFamily.CHARCOAL, "charcoal", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamily(LayeredArmorFamily.BLUE_SCOUT, "blue-scout", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamily(LayeredArmorFamily.RED_ELITE, "red-heavy", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamily(LayeredArmorFamily.OUTLAW, "outlaw", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamily(LayeredArmorFamily.ARMY_GREEN, "army-green", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamily(LayeredArmorFamily.MILITIA, "militia", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
         loadLayeredFamilyAt(LayeredArmorFamily.CIVILIAN_COLONIST,
                 "graphics/battle/colonist-modular-topdown/civilian/",
-                foot, rifle, laser, smg, dmr, rocket, flash, surplusRifle, masterworkDmr);
+                foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
         loadLayeredFamilyAt(LayeredArmorFamily.ENGINEER,
                 "graphics/battle/colonist-modular-topdown/engineer/",
-                foot, rifle, laser, smg, dmr, rocket, flash, surplusRifle, masterworkDmr);
+                foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
         loadLayeredFamilyAt(LayeredArmorFamily.SCIENTIST,
                 "graphics/battle/colonist-modular-topdown/scientist/",
-                foot, rifle, laser, smg, dmr, rocket, flash, surplusRifle, masterworkDmr);
+                foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
         LayeredSpriteCache alienFoot = loadLayeredSprite(
                 "graphics/battle/alien-modular-topdown/foot.png");
         LayeredSpriteCache alienForeClaw = loadLayeredSprite(
                 "graphics/battle/alien-modular-topdown/fore-claw.png");
         loadLayeredFamilyAt(LayeredArmorFamily.XENO,
                 "graphics/battle/alien-modular-topdown/",
-                alienFoot, alienForeClaw, rifle, laser, smg, dmr, rocket, flash,
+                alienFoot, alienForeClaw, rifle, laser, smg, dmr, rocket, amr, flash,
                 surplusRifle, masterworkDmr);
     }
 
@@ -534,11 +537,12 @@ public class BattleSprites {
                                    LayeredSpriteCache smg,
                                    LayeredSpriteCache dmr,
                                    LayeredSpriteCache rocket,
+                                   LayeredSpriteCache amr,
                                    LayeredSpriteCache flash,
                                    LayeredSpriteCache surplusRifle,
                                    LayeredSpriteCache masterworkDmr) {
         loadLayeredFamilyAt(familyId, MODULAR_ROOT + "armor/" + family + "/",
-                foot, null, rifle, laser, smg, dmr, rocket, flash,
+                foot, null, rifle, laser, smg, dmr, rocket, amr, flash,
                 surplusRifle, masterworkDmr);
     }
 
@@ -549,11 +553,12 @@ public class BattleSprites {
                                      LayeredSpriteCache smg,
                                      LayeredSpriteCache dmr,
                                      LayeredSpriteCache rocket,
+                                     LayeredSpriteCache amr,
                                      LayeredSpriteCache flash,
                                      LayeredSpriteCache surplusRifle,
                                      LayeredSpriteCache masterworkDmr) {
         loadLayeredFamilyAt(familyId, familyRoot, foot, null, rifle, laser, smg, dmr,
-                rocket, flash, surplusRifle, masterworkDmr);
+                rocket, amr, flash, surplusRifle, masterworkDmr);
     }
 
     private void loadLayeredFamilyAt(LayeredArmorFamily familyId, String familyRoot,
@@ -564,6 +569,7 @@ public class BattleSprites {
                                      LayeredSpriteCache smg,
                                      LayeredSpriteCache dmr,
                                      LayeredSpriteCache rocket,
+                                     LayeredSpriteCache amr,
                                      LayeredSpriteCache flash,
                                      LayeredSpriteCache surplusRifle,
                                      LayeredSpriteCache masterworkDmr) {
@@ -577,7 +583,7 @@ public class BattleSprites {
         }
         layeredUnitSprites.put(familyId,
                 new LayeredUnitAssets(body, head, foot, foreClaw, rifle, laser, smg, dmr,
-                        rocket, flash, surplusRifle, masterworkDmr));
+                        rocket, amr, flash, surplusRifle, masterworkDmr));
     }
 
     /** Whole transparent PNG loader that captures image pixels before SpriteAPI mutation. */

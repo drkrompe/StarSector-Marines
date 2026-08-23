@@ -59,6 +59,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             RoutinePatrol.INSTANCE,
             ReinforceContact.INSTANCE,
             SurviveContact.INSTANCE,
+            DisengageFromContactGoal.INSTANCE,
             RecoverFromAmbush.INSTANCE,
             BreachToEngage.INSTANCE,
             HoldEngagementLineGoal.INSTANCE,
@@ -93,7 +94,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
                                            boolean permitsOpportunityFire) {
         if (InfantryUnitPrep.tickAimAndShortCircuit(unit, sim)) return false;
         InfantryUnitPrep.tickCooldowns(unit, sim.world());
-        if (permitsOpportunityFire && InfantryUnitPrep.tryOpportunityRocket(unit, sim)) return false;
+        if (permitsOpportunityFire && InfantryUnitPrep.tryOpportunitySpecial(unit, sim)) return false;
         return true;
     }
 
@@ -227,6 +228,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
                            || memberCountChanged
                            || incomingFireStarted
                            || contactStateChanged
+                           || squad._contactDoctrineChangedThisTick
                            || squad._moraleBrokenChangedThisTick;
 
         if (!needsReplan) {

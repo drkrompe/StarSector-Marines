@@ -425,6 +425,7 @@ public final class UnitRenderService implements RenderSystem {
                     LayeredUnitComposer.emit(out, layeredAssets, layeredHeadAssets.head,
                             primaryWeapon != null ? (MarineWeapon) primaryWeapon[r] : null,
                             type.drawsLayeredWeapon(),
+                            secSpec != null ? (MarineSecondary) secSpec[r] : null,
                             equipmentGrade != null ? (EquipmentGrade) equipmentGrade[r]
                                     : EquipmentGrade.SERVICE,
                             cx, cy, unitSize * type.renderScale * LAYERED_INFANTRY_SCALE,

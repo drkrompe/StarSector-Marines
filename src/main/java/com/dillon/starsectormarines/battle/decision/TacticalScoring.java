@@ -8,9 +8,17 @@ import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.command.AssignmentKind;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.squad.BelievedContact;
 import com.dillon.starsectormarines.battle.squad.BeliefSource;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Doctrine;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture.ForceBalance;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Motion;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Posture;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Sector;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
@@ -48,6 +56,11 @@ import java.util.List;
  * </ul>
  */
 public final class TacticalScoring {
+
+    /** Radius around the squad centroid represented by its local contact picture. */
+    public static final float CONTACT_PICTURE_RADIUS = 36f;
+    private static final float SECTOR_FRONT_COS = 0.70710677f;
+    private static final float MOTION_RADIAL_THRESHOLD = 0.25f;
 
     private final NavigationService nav;
     private final NavigationGrid grid;
@@ -487,7 +500,7 @@ public final class TacticalScoring {
         MarineWeapon primaryWeapon = roster.combat().primaryWeapon(self);
         float primary = primaryWeapon != null ? primaryWeapon.vsTurretMult() : 0.3f;
         float secondary = (world.hasSecondaryWeapon(self) && world.secondaryAmmo(self) > 0)
-                ? world.secondaryWeapon(self).vsTurretMult : 0f;
+                ? world.secondaryWeapon(self).vsTurretMult() : 0f;
         float bestMult = Math.max(primary, secondary);
         return WEAPON_AFFINITY_WEIGHT * (1f - bestMult);
     }
@@ -529,7 +542,7 @@ public final class TacticalScoring {
      * the pairings where the rocket's {@code vsTurretMult} bonus damage pays
      * off. Centralizes the check used by {@link #effectiveAttackRange}.
      */
-    public boolean canRocketTarget(long shooter, long target) {
+    public boolean canSpecialTarget(long shooter, long target) {
         World world = roster.world();
         return isHardened(roster.identity().type(target))
                 && world.hasSecondaryWeapon(shooter)
@@ -545,9 +558,9 @@ public final class TacticalScoring {
      * to close to rifle range before firing.
      */
     public float effectiveAttackRange(long shooter, long target, float shooterAttackRange) {
-        if (canRocketTarget(shooter, target)) {
+        if (canSpecialTarget(shooter, target)) {
             World world = roster.world();
-            return Math.max(shooterAttackRange, world.secondaryWeapon(shooter).range);
+            return Math.max(shooterAttackRange, world.secondaryWeapon(shooter).range());
         }
         return shooterAttackRange;
     }
@@ -569,12 +582,17 @@ public final class TacticalScoring {
      * re-checking on a later tick (after his own cooldown) isn't blocked by
      * his own prior contribution.
      */
-    public boolean shouldCommitRocket(long shooter, long target) {
+    public boolean shouldCommitSpecial(long shooter, long target) {
         World world = roster.world();
         if (!world.hasSecondaryWeapon(shooter) || world.secondaryAmmo(shooter) <= 0) return false;
         if (target == 0L || !roster.isAliveById(target)) return false;
-        return projectedRocketDamageOnTarget(shooter, target)
+        return projectedSpecialDamageOnTarget(shooter, target)
                 < world.hp(target);
+    }
+
+    /** Compatibility name retained for focused rocket tests and older callers. */
+    public boolean shouldCommitRocket(long shooter, long target) {
+        return shouldCommitSpecial(shooter, target);
     }
 
     /**
@@ -594,7 +612,7 @@ public final class TacticalScoring {
      * the faction match. The squad-aim-window pre-fire half above remains
      * squadId-gated so a sibling squad's pre-launch aim isn't double-counted.
      */
-    private float projectedRocketDamageOnTarget(long shooter, long target) {
+    private float projectedSpecialDamageOnTarget(long shooter, long target) {
         World world = roster.world();
         float total = 0f;
         if (roster.squad().hasSquad(shooter)) {
@@ -607,7 +625,7 @@ public final class TacticalScoring {
                 if (world.secondaryActionTimer(u) <= 0f) continue;
                 if (world.secondaryAimTargetId(u) != target) continue;
                 MarineSecondary sw = world.secondaryWeapon(u);
-                total += sw.damage * sw.vsTurretMult;
+                total += sw.damage() * sw.vsTurretMult();
             }
         }
         // Inflight rocket entities owned by the sim. The Projectile carries
@@ -630,6 +648,12 @@ public final class TacticalScoring {
             if (dx * dx + dy * dy <= det.aoeRadius * det.aoeRadius) {
                 total += det.damage * det.vsTurretMult;
             }
+        }
+        for (ShotService.PendingImpact impact : shots.snapshotActiveImpacts()) {
+            if (impact.marineSecondary == null || impact.victimId != target) continue;
+            if (!roster.isAliveById(impact.shooterId)) continue;
+            if (roster.identity().faction(impact.shooterId) != shooterFaction) continue;
+            total += impact.damage * impact.vsTurretMult;
         }
         return total;
     }
@@ -1037,7 +1061,7 @@ public final class TacticalScoring {
         Faction selfFaction = roster.identity().faction(self);
         float maxWeaponReach = world.attackRange(self);
         if (world.hasSecondaryWeapon(self) && world.secondaryAmmo(self) > 0) {
-            maxWeaponReach = Math.max(maxWeaponReach, world.secondaryWeapon(self).range);
+            maxWeaponReach = Math.max(maxWeaponReach, world.secondaryWeapon(self).range());
         }
         float gatherRadius = maxDistFromAnchor + maxWeaponReach;
         LongBucket scratch = new LongBucket();
@@ -1097,6 +1121,222 @@ public final class TacticalScoring {
             }
         }
         return presence;
+    }
+
+    /**
+     * Publishes one immutable belief-derived contact picture per live squad.
+     * Called serially after {@code SquadAlertSystem} has published contact
+     * memory and before the parallel replan/read phase.
+     */
+    public void updateContactPictures(int currentTick) {
+        for (Squad squad : roster.getSquads()) {
+            Doctrine previous = squad.contactPicture.doctrine();
+            SquadContactPicture picture = assessContactPicture(squad, currentTick);
+            squad.contactPicture = picture;
+            squad._contactDoctrineChangedThisTick = picture.doctrine() != previous;
+        }
+    }
+
+    /** Builds the local tactical picture without reading a hostile's hidden position. */
+    public SquadContactPicture assessContactPicture(Squad squad, int currentTick) {
+        if (squad.aliveMembers <= 0 || squad.believedContacts().isEmpty()) {
+            return new SquadContactPicture(currentTick, postureOf(squad), 0f, 0f,
+                    0, 0, 0f, 0, ForceBalance.NONE, Sector.NONE,
+                    Motion.UNKNOWN, 0L, -1, -1, 0f, Doctrine.ADVANCE);
+        }
+
+        Posture posture = postureOf(squad);
+        float[] axis = tacticalAxis(squad);
+        float[] sectorStrength = new float[Sector.values().length];
+        float hostileStrength = 0f;
+        int contactCount = 0;
+        int directCount = 0;
+        BelievedContact primary = null;
+        float primaryDistance = Float.MAX_VALUE;
+
+        for (BelievedContact contact : squad.believedContacts()) {
+            long id = contact.unitId();
+            if (!roster.isAliveById(id)
+                    || roster.identity().faction(id) == squad.faction
+                    || !roster.identity().type(id).combatant) continue;
+            float dx = contact.lastSeenCellX() + 0.5f - squad.centroidX;
+            float dy = contact.lastSeenCellY() + 0.5f - squad.centroidY;
+            float distance = (float) Math.sqrt(dx * dx + dy * dy);
+            if (distance > CONTACT_PICTURE_RADIUS) continue;
+
+            Sector sector = classifySector(axis[0], axis[1], dx, dy);
+            sectorStrength[sector.ordinal()] += contact.confidence();
+            hostileStrength += contact.confidence();
+            contactCount++;
+            if (contact.source() == BeliefSource.DIRECT
+                    && contact.observedOnTick(currentTick)) directCount++;
+            if (primary == null
+                    || contact.confidence() > primary.confidence()
+                    || (contact.confidence() == primary.confidence()
+                    && distance < primaryDistance)) {
+                primary = contact;
+                primaryDistance = distance;
+            }
+        }
+
+        if (primary == null) {
+            return new SquadContactPicture(currentTick, posture, axis[0], axis[1],
+                    0, 0, 0f, 0, ForceBalance.NONE, Sector.NONE,
+                    Motion.UNKNOWN, 0L, -1, -1, 0f, Doctrine.ADVANCE);
+        }
+
+        Sector dominant = dominantSector(sectorStrength);
+        int friends = countCombatantsWithin(squad.faction,
+                Math.round(squad.centroidX - 0.5f),
+                Math.round(squad.centroidY - 0.5f), CONTACT_PICTURE_RADIUS);
+        ForceBalance balance = forceBalance(hostileStrength, friends);
+        Motion motion = contactMotion(primary, squad, currentTick);
+        Doctrine doctrine = selectDoctrine(posture, balance, dominant, motion,
+                mustHold(squad), squad.contactPicture.doctrine(), true);
+        return new SquadContactPicture(currentTick, posture, axis[0], axis[1],
+                contactCount, directCount, hostileStrength, friends, balance,
+                dominant, motion, primary.unitId(), primary.lastSeenCellX(),
+                primary.lastSeenCellY(), primary.confidence(), doctrine);
+    }
+
+    static Sector classifySector(float axisX, float axisY, float dx, float dy) {
+        float axisLength = (float) Math.sqrt(axisX * axisX + axisY * axisY);
+        float contactLength = (float) Math.sqrt(dx * dx + dy * dy);
+        if (axisLength < 1e-4f || contactLength < 1e-4f) return Sector.UNKNOWN;
+        float nx = axisX / axisLength;
+        float ny = axisY / axisLength;
+        float dot = (nx * dx + ny * dy) / contactLength;
+        if (dot >= SECTOR_FRONT_COS) return Sector.FRONT;
+        if (dot <= -SECTOR_FRONT_COS) return Sector.REAR;
+        float cross = nx * dy - ny * dx;
+        return cross < 0f ? Sector.LEFT_FLANK : Sector.RIGHT_FLANK;
+    }
+
+    static ForceBalance forceBalance(float hostileStrength, int friends) {
+        if (hostileStrength <= 0f) return ForceBalance.NONE;
+        float ratio = hostileStrength / Math.max(1, friends);
+        if (ratio <= 0.65f) return ForceBalance.FAVORABLE;
+        if (ratio <= 1.25f) return ForceBalance.EVEN;
+        return ForceBalance.UNFAVORABLE;
+    }
+
+    /** Pure doctrine selector; the prior doctrine supplies enter/release hysteresis. */
+    static Doctrine selectDoctrine(Posture posture, ForceBalance balance,
+                                    Sector sector, Motion motion,
+                                    boolean mustHold, Doctrine previous,
+                                    boolean hasContacts) {
+        if (!hasContacts || balance == ForceBalance.NONE) return Doctrine.ADVANCE;
+        if (mustHold) return Doctrine.HOLD;
+
+        int risk = switch (balance) {
+            case FAVORABLE -> -1;
+            case EVEN, NONE -> 0;
+            case UNFAVORABLE -> 2;
+        };
+        if (sector == Sector.LEFT_FLANK || sector == Sector.RIGHT_FLANK) risk++;
+        else if (sector == Sector.REAR) risk += 2;
+        if (motion == Motion.APPROACHING) risk++;
+        else if (motion == Motion.WITHDRAWING) risk--;
+
+        if (posture == Posture.DEFENDING) {
+            if (previous == Doctrine.DISENGAGE && risk > 1) return Doctrine.DISENGAGE;
+            return risk >= 3 ? Doctrine.DISENGAGE : Doctrine.HOLD;
+        }
+        if (previous == Doctrine.DISENGAGE) {
+            return risk > 1 ? Doctrine.DISENGAGE
+                    : (risk <= -1 ? Doctrine.ADVANCE : Doctrine.HOLD);
+        }
+        if (previous == Doctrine.HOLD) {
+            if (risk >= 3) return Doctrine.DISENGAGE;
+            return risk <= -2 ? Doctrine.ADVANCE : Doctrine.HOLD;
+        }
+        if (risk >= 3) return Doctrine.DISENGAGE;
+        return risk >= 0 ? Doctrine.HOLD : Doctrine.ADVANCE;
+    }
+
+    private Posture postureOf(Squad squad) {
+        ObjectiveAssignment assignment = squad.assignedObjective;
+        if (assignment != null) {
+            return assignment.kind() == AssignmentKind.HOLD_NODE
+                    ? Posture.DEFENDING : Posture.ADVANCING;
+        }
+        if (squad.holdsFireUntilKillZone || squad.defensePost != null
+                || squad.assignedNode != null) return Posture.DEFENDING;
+        return Posture.UNCOMMITTED;
+    }
+
+    private float[] tacticalAxis(Squad squad) {
+        float targetX = Float.NaN;
+        float targetY = Float.NaN;
+        ObjectiveAssignment assignment = squad.assignedObjective;
+        if (assignment != null) {
+            if (assignment.targetCellX() >= 0 && assignment.targetCellY() >= 0) {
+                targetX = assignment.targetCellX() + 0.5f;
+                targetY = assignment.targetCellY() + 0.5f;
+            } else if (assignment.targetNode() != null) {
+                targetX = assignment.targetNode().anchorX + 0.5f;
+                targetY = assignment.targetNode().anchorY + 0.5f;
+            } else if (assignment.targetZoneId() >= 0) {
+                var zone = zoneGraph.zoneById(assignment.targetZoneId());
+                if (zone != null && zone.getCellIndices().length > 0) {
+                    int cell = zone.getCellIndices()[zone.getCellIndices().length / 2];
+                    targetX = cell % grid.getWidth() + 0.5f;
+                    targetY = cell / grid.getWidth() + 0.5f;
+                }
+            }
+        }
+        if (Float.isNaN(targetX) && squad.patrolWaypointX >= 0) {
+            targetX = squad.patrolWaypointX + 0.5f;
+            targetY = squad.patrolWaypointY + 0.5f;
+        }
+        float dx = targetX - squad.centroidX;
+        float dy = targetY - squad.centroidY;
+        float length = (float) Math.sqrt(dx * dx + dy * dy);
+        if (length >= 1e-4f) return new float[]{dx / length, dy / length};
+        SquadContactPicture old = squad.contactPicture;
+        if (old.axisX() != 0f || old.axisY() != 0f) {
+            return new float[]{old.axisX(), old.axisY()};
+        }
+        // Stationary squads retain a deterministic map-north reference until
+        // movement or an assignment supplies a more meaningful axis.
+        return new float[]{0f, -1f};
+    }
+
+    private static Sector dominantSector(float[] strength) {
+        Sector best = Sector.NONE;
+        float bestStrength = 0f;
+        for (Sector sector : Sector.values()) {
+            if (sector == Sector.NONE) continue;
+            float candidate = strength[sector.ordinal()];
+            if (candidate > bestStrength) {
+                best = sector;
+                bestStrength = candidate;
+            }
+        }
+        return best;
+    }
+
+    private static Motion contactMotion(BelievedContact contact, Squad squad,
+                                        int currentTick) {
+        if (!contact.hasFreshMotionSample(currentTick)) return Motion.UNKNOWN;
+        float radialX = contact.previousDirectCellX() + 0.5f - squad.centroidX;
+        float radialY = contact.previousDirectCellY() + 0.5f - squad.centroidY;
+        float radialLength = (float) Math.sqrt(radialX * radialX + radialY * radialY);
+        if (radialLength < 1e-4f) return Motion.UNKNOWN;
+        float moveX = contact.lastSeenCellX() - contact.previousDirectCellX();
+        float moveY = contact.lastSeenCellY() - contact.previousDirectCellY();
+        float radialMotion = (moveX * radialX + moveY * radialY) / radialLength;
+        if (radialMotion >= MOTION_RADIAL_THRESHOLD) return Motion.WITHDRAWING;
+        if (radialMotion <= -MOTION_RADIAL_THRESHOLD) return Motion.APPROACHING;
+        return Motion.LATERAL;
+    }
+
+    private static boolean mustHold(Squad squad) {
+        ObjectiveAssignment assignment = squad.assignedObjective;
+        if (assignment != null && assignment.targetNode() != null) {
+            return assignment.targetNode().mustHold;
+        }
+        return squad.assignedNode != null && squad.assignedNode.mustHold;
     }
 
     /**

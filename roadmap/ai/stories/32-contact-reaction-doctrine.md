@@ -1,10 +1,10 @@
 # Story 32 — Contact-Reaction Doctrine
 
-**Status:** IN PROGRESS — local reaction slice
+**Status:** IN PROGRESS — implementation complete; playtest deferred
 
 **Written:** 2026-08-23
 
-Updated: 2026-08-23 — Direct-contact interrupts now describe squad-wide LOS episode edges.
+**Updated:** 2026-08-23 — contact-picture doctrine plus squad-wide direct-LOS episode interrupts
 
 ## The player-visible story
 
@@ -89,10 +89,56 @@ arrival is not part of the completion gate.
 - Existing periodic replanning, single-team ambush recovery, and open-terrain
   least-exposed fallback behavior remain intact.
 
+## Contact-picture and doctrine slice
+
+This slice turns the squad's individual contact memories into one immutable
+tactical picture published before planning. It answers the questions a squad
+leader needs without granting omniscience: where the believed threat lies
+relative to the squad's current axis, whether a freshly observed contact is
+closing or withdrawing, and how believed hostile strength compares with
+nearby known friendlies.
+
+The picture classifies contacts as front, flank, or rear and chooses a dominant
+sector. Motion is reported only when consecutive direct observations support
+it; remembered or audio-only contacts remain motion-unknown. Local hostile
+strength is confidence-weighted, while friendly strength uses exact same-side
+positions. The squad then derives a sticky `ADVANCE`, `HOLD`, or `DISENGAGE`
+doctrine from its posture, contact geometry, motion, and local force balance.
+Small score changes must not make the doctrine oscillate each tick.
+
+Advancing squads use the doctrine to decide whether to press, establish a
+contact line, or break away from a badly compromised approach. Defending
+squads prefer to hold their assigned ground, but can disengage when they are
+locally overmatched and the assignment is not a must-hold order. Explicit
+morale-break survival behavior remains authoritative.
+
+### Acceptance
+
+- The published contact picture is immutable and derived from squad beliefs;
+  an unobserved enemy does not appear in its count, sector, or force balance.
+- A stable movement or objective axis divides believed contacts into front,
+  left/right flank, and rear sectors; the dominant sector is deterministic.
+- Approach/withdraw motion is produced only from consecutive fresh direct
+  observations and becomes unknown when the track is stale or audio-only.
+- Friendly-to-hostile local odds account for confidence and nearby support,
+  and expose a coarse favorable/even/unfavorable assessment to planning.
+- Doctrine has hysteresis and produces `ADVANCE`, `HOLD`, or `DISENGAGE`
+  decisions that differ appropriately for advancing and defending squads.
+- Advance and defensive engagement behavior consume the doctrine instead of
+  independently reconstructing a partial threat picture.
+- Diagnostics expose the picture and selected doctrine for test and later
+  playtest inspection.
+- Automated tests cover sector boundaries, motion freshness, force balance,
+  doctrine hysteresis, and advancing-versus-defending reactions.
+
+### Deferred validation
+
+- Tune the advance/hold/disengage thresholds from the parallel player-facing
+  playtest pass. Automated verification covers the implementation contract,
+  but is not a substitute for combat-feel acceptance.
+
 ## Parked follow-ons
 
-- A richer squad contact picture (threat bearings, approach/withdraw posture,
-  local odds, and flank/rear classification).
-- Advance-versus-defend doctrine scoring beyond the immediate ambush case.
 - Mechanical suppression and a commander consumer for the influence field.
 - Cross-squad briefing and reserve commitment.
+- Player-facing doctrine visualization and tuning playtests.

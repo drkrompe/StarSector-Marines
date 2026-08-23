@@ -5,12 +5,14 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Doctrine;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.decision.goap.action.BreakContact;
 
 /**
  * <b>Squad posture: garrison hold at assigned post.</b> Custom-plan action
@@ -67,6 +69,10 @@ public final class HoldPost implements Action {
         // arrives, at which point normal engagement resumes.
         if (squad.fallbackInProgress) {
             return returnToHome(member, sim, homeX, homeY);
+        }
+
+        if (squad.contactPicture.doctrine() == Doctrine.DISENGAGE) {
+            return BreakContact.INSTANCE.execute(member, squad, sim);
         }
 
         long target = sim.targetOf(member);
