@@ -1,6 +1,12 @@
 # Ship & Hull-Mod Flavor Survey — ground-combat tie-ins
 
-> Reference data for [`overview.md`](overview.md). A sweep of vanilla
+Status: ACTIVE — enduring source-flavor and projection evidence for future command-power mappings.
+
+Written: 2026-05-29
+
+Updated: 2026-08-23 — moved beside the canonical model and separated from the runtime catalog.
+
+> Reference evidence for `command-powers-nouns.md`. A sweep of vanilla
 > Starsector (0.98a) ship descriptions (`data/strings/descriptions.csv`) and
 > hull mods (`data/hullmods/hull_mods.csv`) for flavor that justifies a
 > player Command Power in the ground battle sub-game. Quotes are the load-bearing
@@ -11,7 +17,7 @@
 > strength "up to the total number of marines in the fleet." That is the
 > precedent that everything here builds on.
 >
-> **Read through the projection lens** (see `overview.md`): the question isn't
+> **Read through the projection lens** (see `command-powers-nouns.md`): the question isn't
 > "does the flavor mention combat" but "does this capability *project onto the
 > ground op*?" Three buckets — (a) **becomes a power** (Valkyrie drop, Survey
 > Equipment scan-ahead), (b) **scales a power** (hangar/deck capacity → bigger

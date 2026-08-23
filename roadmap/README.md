@@ -41,11 +41,14 @@ universe over time, not retrofitted into intel slots.
   decomposition into a layered draw-list pipeline is complete** (stories A–J +
   Final shipped & verified — `renderWorld` is now collect-all → drain-all over a
   `RenderSystem` registry); only the deferred `QuadBatch.flush` perf spike
-  remains. See [`battle-render/`](battle-render/overview.md). A new **design-stage**
-  track — [`command-powers/`](command-powers/overview.md) — brainstorms the
-  player-agency layer (orbital strikes, marine drops, recon) and its
-  between-battle meta-progression spine; powers are sourced diegetically from
-  the player's fleet (ship + hull-mod flavor). A second, now **active** track —
+  remains. See [`battle-render/`](battle-render/overview.md). The **active
+  command-powers track** has shipped its fleet-sourced player-agency spine:
+  canonical briefing, member-level support commitment, command-deck slotting,
+  recon, physical reinforcement/resupply, orbital barrage, and marine insertion.
+  Its immediate work is the S8 mixed-detachment live-play acceptance; capacity
+  progression and drop geography remain planned/deferred. See
+  `command-powers-nouns.md` and its adjacent open-story board. A second, now
+  **active** track —
   [`vanilla-combat-bridge/`](vanilla-combat-bridge/overview.md) — hooks the headless
   sim and vanilla `CombatEngineAPI` together (the reverse of how the mod is built).
   Past its probes: sim-authoritative *proxy targets* are proven, and a live Conquest
@@ -157,8 +160,11 @@ universe over time, not retrofitted into intel slots.
   `SoldierCareer` of lifetime missions, rounds, damage, kills and wounds.
   That table is the balance artifact S1's tuning was argued without, and the
   career record is what lets S4 make experience earned rather than issued.
-  S2 and S4-S10 remain, S1's own last acceptance item is an in-game feel pass,
-  and the synthesis found one proposed XP-authority cleanup. See
+  S2 now separates primary breadth from four special-equipment stories—AMR,
+  smoke, satchels, and the retained frag grenade—with their gameplay-AI use
+  and counterplay contracted;
+  S4-S10 remain, S1's own last acceptance item is an in-game feel pass, and the
+  synthesis found one proposed XP-authority cleanup. See
   `progression-nouns.md`; its adjacent board is the open-work list.
 - **Retained UI foundation** *(active — U1 implementation ready for live acceptance)* —
   Marine Ops is growing a retained document layer inside the existing full-canvas
@@ -356,10 +362,11 @@ universe over time, not retrofitted into intel slots.
    before adding patron evolution, captain observations, or longer-form
    continuity. See
    [`campaign/narrative/next-session.md`](campaign/narrative/next-session.md).
-5. **Command Powers S8 B-2** — add member-level commitment for power-source
-   ships so the canonical briefing narrows `PowerCatalog` to the actual
-   detachment. Then S8 C can add the command-deck slot budget. See
-   [`command-powers/next-session.md`](command-powers/next-session.md).
+5. **Command Powers S8 acceptance** — use the shipped canonical briefing to
+   hold back individual source ships, verify cards disappear and return, deploy
+   a mixed deck, and confirm that the battle receives exactly the selected
+   powers, fighter cover, and shuttle support. See
+   `s8-pre-battle-loadout-screen.md` and `command-powers-nouns.md`.
 6. **Specialist mech playtest** — use **Spawn mech family** in the battle debug
    panel to compare Hound/Sirocco against the unchanged Bulwark, then playtest
    the reciprocal Hound/infantry screen: the Hound should lead by no more than

@@ -3,10 +3,11 @@
 > The ladder is four rungs long and ends at mission five. Four armor
 > patterns are fully authored and unreachable.
 
-Status: PLANNED — depends on `s5-parts-acquisition-channels.md` and
-`s2-weapon-catalog-expansion.md`.
+Status: PLANNED — depends on `s5-parts-acquisition-channels.md`,
+`s2-primary-weapon-catalog-expansion.md`, and the S2A–S2D special-equipment
+stories.
 Written: 2026-08-22
-Updated: 2026-08-23 — migrated dependencies and references to stable slugs.
+Updated: 2026-08-23 — expanded the reachability gate across the split primary and special-equipment stories.
 
 ## Problem
 
@@ -19,7 +20,8 @@ Updated: 2026-08-23 — migrated dependencies and references to stable slugs.
 
 Then flat, forever. Consequences:
 
-- **No armor or secondary is ever unlocked.** `BLUE_SCOUT`, `RED_ELITE`,
+- **No additional armor pattern or special equipment beyond starter rockets is
+  ever unlocked.** `BLUE_SCOUT`, `RED_ELITE`,
   `OUTLAW`, and `MILITIA` have stats, icons, and sprite layers and cannot
   be reached in a real campaign. `RED_ELITE` is the best armor in the game.
 - Masterwork exists for exactly one weapon.
@@ -44,13 +46,14 @@ The smallest correct fix, shippable on its own:
   `tier` field: tier 2 (`BLUE_SCOUT`, `OUTLAW`, `MILITIA`) early, tier 3
   (`CHARCOAL`, `ARMY_GREEN`) mid — both currently starter issue, so decide
   whether they stay starter — and tier 4 (`RED_ELITE`) as a genuine chase.
-- Fill the grade matrix: MILSPEC and MASTERWORK for every primary family
-  and for secondaries, not just `DMR`.
+- Fill the grade matrix: MILSPEC and MASTERWORK for every primary family,
+  not just `DMR`. Special equipment remains an item family rather than a grade
+  matrix unless its own story explicitly authors grades.
 - Add a **ships-nothing-stranded check**: a test that asserts every
-  `MarineWeapon` x `EquipmentGrade`, every `MarineSecondary`, and every
-  `MarineArmorPattern` is either starter issue or reachable through some
-  unlock path. This is the guard that stops the audit's finding from
-  recurring the next time an asset is authored.
+  player primary x `EquipmentGrade`, every special-equipment id, and every
+  `MarineArmorPattern` is either starter issue or reachable through some unlock
+  path. This is the guard that stops the audit's finding from recurring the
+  next time an asset is authored.
 
 ## Slice 2 — Reframe recipes as recoverable blueprints
 
@@ -156,7 +159,9 @@ Where a milestone gate is still the right tool, gate on more than a count:
 ## Out of scope
 
 - Where parts come from — `s5-parts-acquisition-channels.md`.
-- New gear to unlock — `s2-weapon-catalog-expansion.md`.
+- New gear to unlock — `s2-primary-weapon-catalog-expansion.md`,
+  `s2a-anti-materiel-rifle.md`, `s2b-smoke-grenades.md`, and
+  `s2c-satchel-charges.md`, plus `s2d-frag-grenades.md`.
 - Visual differentiation of unlocked tiers —
   `s7-grade-visual-identity.md`.
 - Any change to printing costs beyond repricing against S5's stated income
@@ -164,7 +169,7 @@ Where a milestone gate is still the right tool, gate on more than a count:
 
 ## Acceptance
 
-- Every authored weapon, grade, secondary, and armor pattern is reachable,
+- Every authored weapon, grade, special item, and armor pattern is reachable,
   enforced by the stranded-asset test.
 - The ladder has meaningful rungs past mission 30, verified against S5's
   stated income curve at missions 5, 15, and 30.

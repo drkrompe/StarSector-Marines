@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
+import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 
 /**
@@ -29,6 +30,8 @@ public final class MechLoadoutComponent {
 
     public final MechVariant variant;
     private final MechWeaponMount[] mounts = new MechWeaponMount[MechMountSlot.values().length];
+    private MissileReplenisherComponent missileReplenisher =
+            MissileReplenisherComponent.STANDARD;
 
     /** Current upper-torso bearing in sprite degrees; independent of the hips. */
     public float torsoFacingDegrees = 180f;
@@ -160,6 +163,19 @@ public final class MechLoadoutComponent {
 
     public MechWeaponMount[] mounts() {
         return mounts;
+    }
+
+    /** Installed onboard missile-replenishment subsystem. */
+    public MissileReplenisherComponent missileReplenisher() {
+        return missileReplenisher;
+    }
+
+    /** Replacement seam for future mech subsystem upgrade items. */
+    public void installMissileReplenisher(MissileReplenisherComponent replenisher) {
+        if (replenisher == null) {
+            throw new IllegalArgumentException("Missile replenisher is required");
+        }
+        missileReplenisher = replenisher;
     }
 
     public boolean hasWeapon(MechWeapon weapon) {
