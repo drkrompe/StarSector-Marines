@@ -1,275 +1,67 @@
-# S1 — Specialist striders
+# S1 — Specialist strider acceptance
 
-**Status:** Slice A shipped (`2d3f044b`, 2026-08-19); heavy-cannon FX tuning
-shipped (`39aefccb`, 2026-08-19); production-roster integration and ASSAULT
-Hound doctrine shipped (`1ef74f23`, 2026-08-19). Manual comparison/tuning
-remains.
+Status: READY — implementation is shipped; manual battlefield tuning remains.
 
-## Shipped slice A
+Written: 2026-08-19
 
-The first vertical slice now exists behind **Spawn mech family** in the battle
-debug panel. It deterministically places Bulwark, Hound, and Sirocco together
-using the current battle's center-nearest unoccupied walkable cells.
+Updated: 2026-08-23 — narrowed to the live comparison and tuning pass.
 
-The implementation landed:
+Read `mechs-nouns.md` before completing this story.
 
-- physical `ARMS`, `LEFT_SHOULDER`, and `RIGHT_SHOULDER` hardpoints;
-- generic installed-component state with independent cooldown, representative
-  burst/salvo, target lock, ammunition, and resupply behavior per mount;
-- dual/nose chaingun, dual linear-cannon, and single heavy-cannon arm components;
-- SRM-5, SRM-15, LRM-5, and LRM-15 shoulder components;
-- persistent Bulwark, Hound, and Sirocco chassis profiles with profile-driven
-  health, speed, accuracy, vision, render scale, morale weight, radius, hit
-  height, layered chassis, arms, and pod selectors;
-- profile-aware picking, separation, ballistic contact, blast contact, live
-  rendering, and corpse rendering;
-- generic firing/continuation, torso aim, animation, and resupply paths that
-  operate only on installed mounts;
-- focused variant/component/debug-fixture regressions plus the full build.
+## Goal
 
-The launcher number is a MechWarrior-style rack/readability class, not a demand
-to simulate every physical tube as a projectile. Small -5 racks emit a two-shot
-representative packet. Bulwark's -15 racks preserve the exact old four-SRM and
-five-LRM packets and ammunition capacities, avoiding a stealth balance change.
-
-Hound now uses one dorsal SRM-5; Sirocco uses paired LRM-5 shoulders. A
-public authored-loadout constructor can independently replace the arms and
-either shoulder component, and appearance follows the installed hardware.
-
-Production defenders now use the budget-preserving mixed roster recorded below.
-The player's Mech Support power deliberately remains Bulwark-only.
-
-## Shipped heavy-cannon FX tuning
-
-`39aefccb` turns Sirocco's cannon and the existing Heavy Mortar turret into one
-readable gun-launched HE family without making their shells missiles:
-
-- each travels as a resolved ballistic `ShotEvent` and detonates at its physical
-  unit/cover/wall stop after the visible flight time;
-- Sirocco uses a larger vanilla Hellbore shell, Hellbore report, 1-cell splash,
-  and modest structural damage; Heavy Mortar uses a 1.35-cell version;
-- `CANNON_HE` drives a forward muzzle flash/fire/smoke burst, stronger muzzle
-  and impact lights, a random vanilla explosion frame, vanilla shock ring,
-  existing fire/smoke particles, a larger crater/rubble recipe, and a louder
-  positional explosion clip;
-- the standalone and vanilla-combat bridge presentation paths share the same
-  profile and focused tests pin physical stopping, timed AoE payloads, and the
-  distinction between ballistic shells and boost-ramping rocket entities.
-
-## Shipped moving-fire target control
-
-The family now uses one target-refresh policy across parity engagement, rescue
-patrol, overwatch, infantry backstop, and break-contact fire. Upper chassis
-traverse widened from 70 to 145 degrees on either side of the planted hips.
-Targets within 10 cells act as close threats and interrupt farther engagements;
-otherwise, a visible target outside the current traverse yields to the nearest
-visible in-arc contact. Existing close targets remain sticky, and the 70-degree
-rear blind wedge preserves a reason for the chassis to turn.
-
-Focused regressions pin the traverse clamp, rear-to-flank retarget, close-threat
-override, and close-target stickiness. This is shared behavioral infrastructure,
-not a new doctrine or a variant-specific stat, so Hound, Sirocco, and Bulwark
-currently use the same envelope.
-
-## Player-facing outcome
-
-A defender mech contact no longer always means the same enormous all-range
-machine. The player can read three distinct threats at gameplay zoom:
-
-- the heavy Bulwark anchors a position and remains dangerous at every range;
-- the Hound runs down weak ground and breaches dense compounds with close
-  weapons, but can be engaged from outside its reach;
-- the Sirocco shapes the fight with indirect missiles, but becomes a rescue
-  problem for its allies when marines close on it.
-
-The result should be counterplay and target-priority decisions, not a linear
-enemy power increase.
-
-## Proposed roster contract
-
-The following values are tuning seeds, not final balance promises.
-
-| Profile | HP | Speed | Render scale | Body radius | Vision | Weapons | Default doctrine |
-| --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
-| Bulwark | 540 | 1.15 | 1.60 | 0.60 | 55 | Chaingun, SRM, LRM | Either current role |
-| Hound | 300 | 1.70 | 1.35 | 0.50 | 50 | Nose chaingun, one SRM-5 | `ARMORED_SUPPORT` initially |
-| Sirocco | 230 | 1.45 | 1.35 | 0.48 | 55 | Heavy cannon, paired LRM-5 | `LR_SUPPORT` |
-
-### Bulwark — heavy control
-
-The current `HEAVY_MECH` behavior and numbers remain unchanged. It is the rare
-apex chassis, the regression control for the new substrate, and the mech used
-by the player's existing Mech Support command power.
-
-### Hound — breach strider
-
-The Hound uses a single centerline nose chaingun and one compact dorsal SRM-5. Higher speed lets it
-cross a road, exploit a broken wall, or reinforce a contested compound before
-the heavy could arrive. Its smaller health pool makes that commitment risky.
-With no LRM track, open ground and disciplined standoff fire are real counters.
-
-S1 assigns it `ARMORED_SUPPORT` so it can ship on proven planning behavior.
-A later `ASSAULT` doctrine may make it more aggressive, but the hardware must
-already work and remain legible without that behavior expansion.
-
-### Sirocco — missile strider
-
-The Sirocco uses a single heavy cannon as a modest anti-armor direct-fire
-backup and carries paired compact LRM-5 shoulders. It has neither the heavy's health nor an SRM
-panic button. Its `LR_SUPPORT` doctrine should keep it behind friendly bodies,
-while flanking or overrunning it meaningfully shuts down its advantage.
-
-Its `HEAVY_CANNON` fires one accurate gun-launched HE shell for modest infantry
-damage, limited 1-cell splash, and triple damage against hardened targets. Its
-26-cell band keeps the paired LRMs primary at standoff range and avoids erasing
-the weakness created by removing close missiles.
-
-## Architecture decision
-
-The shipped implementation does not add a `UnitType` for every hardpoint
-combination. Its `MechVariant` profile/catalog owns:
-
-- display/debug label;
-- default doctrine;
-- weapon definitions and ammunition for each available slot;
-- layered appearance selectors for chassis, arms, and shoulders;
-- health, movement, accuracy, and vision seeds;
-- render scale, body radius, hit extent, and morale footprint.
-
-`MechRole` remains the doctrine stored with the live mech loadout. The profile
-is physical configuration. The two may have a recommended pairing without
-being collapsed into one enum.
-
-For the first slice, `UnitType.HEAVY_MECH` may remain the compatibility tag that
-routes every strider through mech ECS construction. Its name is imperfect, but
-renaming the pre-spawn capability and all consumers is unnecessary risk. The
-variant profile must be the source of the live body's actual properties.
-
-### Weapon tracks
-
-`MechLoadoutComponent` now holds optional generic mounts for arms and both
-shoulders. The arms can carry chainguns or linear cannons; either shoulder can
-carry any compatible SRM/LRM component or remain empty. Firing, continuation,
-AI utility, ammunition, debug, resupply, and appearance paths iterate only real
-installed mounts rather than manufacturing dummy weapons.
-
-The heavy's three existing tracks and cadence must be preserved exactly.
-
-### Physical properties
-
-Body properties previously came directly from `UnitType`. The shipped profile
-identity now makes render scale and gameplay geometry variant-aware across:
-
-- click/picking bounds;
-- separation and avoidance radius;
-- ballistic hit bounds;
-- explosion and area-effect distance checks;
-- wreck/impact placement where applicable.
-
-The profile persists on the entity's identity across the corpse transition, and
-`UnitRosterService` is the shared source for these physical values.
-
-### Construction and appearance
-
-`EntitySpec.mechVariant` applies profile values before spawn, while the profile
-creates its loadout after spawn. Initial layered selectors come from the
-profile, and loadout attachment reauthors arms/shoulders from the actual
-installed components so custom authored configurations render correctly.
-
-The first comparison used existing assets, but the shared socketed hull failed
-the immediate-recognition criterion. The revised visual contract is:
-
-- Bulwark: current clean chassis, exposed heavy pods, and half-width chainguns;
-- Hound: flipped narrow pointed chassis, nose chaingun, one top-layer SRM-5,
-  and no LRM pod;
-- Sirocco: flipped broad wedge chassis, generated centerline heavy cannon,
-  paired compact LRM treatment, and no SRM pod.
-
-Rack layer order is part of each hull: Bulwark and Hound expose their racks
-above the body, while Sirocco's pair remains tucked beneath its wedge.
-
-Exact left/right pod symmetry can be chosen during the comparison-fixture pass.
-The criterion is immediate visual recognition, not adherence to a fixed socket
-diagram.
-
-## Delivery slices
-
-### A. Variant substrate and comparison fixture — shipped
-
-1. Add the catalog, `LINEAR_CANNON`, optional weapon slots, and profile-driven
-   appearance/body construction.
-2. Keep every production spawn on Bulwark.
-3. Add a deterministic debug battle/gallery that places Bulwark, Hound, and
-   Sirocco together against the same targets and terrain.
-4. Add automated contracts for profile values, missing slots, geometry source
-   consistency, and unchanged heavy behavior.
-
-This shipped in `2d3f044b` and produces a safe visual/combat comparison before
-changing encounter composition.
-
-### B. Tune battlefield identities
-
-Playtest the fixture for silhouette readability, travel time, time-to-kill,
-minimum/maximum useful range, and whether the Sirocco's backup gun is genuinely
-defensive. Adjust the provisional numbers, but preserve each weakness.
-
-### C. Budgeted defender integration — shipped (`1ef74f23`)
-
-Replace the flat assumption that every `mechCount` entry is equivalent with a
-small deterministic threat budget. Suggested starting costs are Bulwark 3,
-Hound 2, Sirocco 2, and future Needle 1. Heavy-industry/high-risk generation
-still gates mech availability and should retain a guaranteed Bulwark where the
-current roster promises one.
-
-Lighter variants replace part of the existing mech allocation; they do not
-increase total bodies on top of it. Prefer complementary mixed lances over
-unbounded random duplicate rolls. Record the chosen profile in roster/debug
-output so a seed can be reproduced.
-
-The player Mech Support payload remains Bulwark-only in S1.
-
-## Automated verification
-
-- Every profile has a stable unique id and complete physical/stat data.
-- Bulwark still spawns with its exact current stats, three weapon tracks,
-  ammunition, cadence, appearance, and accepted GOAP behavior.
-- Hound has no LRM track; no planner or firing path can select or continue one.
-- Sirocco has no SRM track and cannot substitute an SRM-like close salvo.
-- Sirocco's heavy cannon renders a ballistic shell, schedules its AoE at the
-  physical stop, and does not create a boost-ramping missile entity.
-- Empty shoulders render empty and optional tracks never produce null failures.
-- Profile render scale, picking, separation, ballistic hits, and AoE queries
-  agree on the light body's dimensions.
-- Appearance selection is deterministic from profile, not insertion order.
-- Roster generation is seed-stable, respects its threat budget, and does not
-  inflate the old encounter's maximum mech cost.
-- The existing player command-power drop continues to produce the heavy.
+Accept the Bulwark, Hound, and Sirocco as distinct, readable battlefield
+choices. Tune only from representative play: the durable family boundaries,
+hardware/doctrine split, absent weapon bands, and encounter budget are already
+part of the noun model.
 
 ## Manual acceptance
 
-- At normal gameplay zoom, a player can distinguish all three before the first
-  missile lands.
-- Hound reaches and pressures a close objective noticeably faster than Bulwark,
-  but dies substantially sooner and cannot answer a long-range contact.
-- Sirocco tries to preserve range and creates useful indirect pressure, but a
-  successful close approach feels like a decisive counter.
-- Bulwark remains the most individually frightening and flexible machine.
-- A mixed defender lance changes target priority without feeling strictly more
-  lethal than the former all-heavy allocation.
-- Smaller bodies do not exhibit mismatched clicks, invisible collisions,
-  suspicious misses, or oversized blast interactions.
+- At ordinary gameplay zoom, distinguish all three variants by silhouette,
+  movement, mounted hardware, and firing character before reading a label.
+- Confirm the Hound reaches and pressures close objectives faster than the
+  Bulwark, but cannot answer disciplined standoff fire and dies meaningfully
+  sooner. It must hold rather than solo-charge after losing nearby combat
+  infantry or a different live chassis; another Hound cannot release it.
+- Confirm the Sirocco seeks a non-Sirocco friendly screen, uses long-range
+  missiles as its primary pressure, and keeps its heavy cannon readable as a
+  ballistic anti-armor fallback rather than a second close-range primary.
+- Confirm a moving mixed lance adopts role-aware spacing in open terrain,
+  compresses through real constraints, and expands afterward without moving
+  planted firing posts or merging separate squads into one formation.
+- Play representative MEDIUM and HIGH production encounters. Mixed defenders
+  should change target priority without feeling strictly stronger than the
+  former all-heavy allocation; small attacker forces must still shed mech and
+  static-defense candidates through the shared force budget.
+- In a DEBUG Conquest briefing, verify the configured family roster remains
+  stable while editing other choices, rerolls explicitly, fits the briefing,
+  and arrives in the displayed order through physical drops. Exercise a full
+  four-chassis group, a partial final group, zero support, and a stress roster.
 
-## Deferred
+## Tuning constraints
 
-- Needle, `RECON`, target painting, and other information mechanics.
-- An `ASSAULT` doctrine tuned specifically for Hound.
-- Player variant selection, ownership, salvage, refit, and hardpoint UI.
-- Procedural/custom hardpoint combinations.
-- Additional animation sets or multi-cell bodies.
-- Final balance values outside representative playtest encounters.
+- Preserve Bulwark as the durable all-band control case and the ordinary
+  production Mech Support payload.
+- Preserve Hound's missing long-range band and Sirocco's missing close-missile
+  band. Do not tune either into a cheaper generalist.
+- Keep visible scale, selection, collision, separation, ballistic contact,
+  blast contact, and morale footprint consistent for every chassis.
+- Preserve Hound's support gate, Sirocco's screened-support doctrine, planted
+  hip traverse, and role-aware formation ordering while tuning thresholds.
+- Lighter variants replace encounter allocation; they do not add threat above
+  the admitted defender budget.
+- DEBUG delivery remains iteration scaffolding. Do not infer ownership,
+  salvage, refit, lift, recovery, or campaign lance rules from it.
 
-## Decisions to confirm
+## Out of scope
 
-Before code starts, confirm the three working names and whether Hound/Sirocco
-are the right first pair. Numeric seeds can move in the fixture; their missing
-weapon bands and stated weaknesses are the durable design contract.
+- Needle or a recon/target-painting doctrine.
+- Player variant ownership, acquisition, salvage, recovery, or refit.
+- A campaign definition of lance organization or lift requirements.
+- Procedural/custom hardpoint construction, multi-cell bodies, or final
+  balance outside representative encounters.
+
+## Completion
+
+Record any accepted tuning in code and focused Javadoc, update the standing
+noun model only if a family law changes, then fold and delete this story.
