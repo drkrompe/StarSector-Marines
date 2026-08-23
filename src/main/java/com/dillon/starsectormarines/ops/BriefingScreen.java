@@ -1231,14 +1231,11 @@ public class BriefingScreen implements Screen {
         int cashMult = 100 + (baseline - next) / 2;
         int phaseNegotiated = Math.min(m.salvageBaseline & 0xFF, next);
 
-        Mission replaced = new Mission(
-                m.id, m.name, m.type, m.source, m.payout, m.risk, m.requirements, m.flavor,
-                m.normalizedX, m.normalizedY, m.clientFighterSupport, m.enemyFighterSupport,
-                m.requiredDrops, m.employerShuttles, m.targetPlanetName, m.targetIndustryId,
-                m.targetFactionId, m.contractId, m.salvageBaseline,
-                (byte) phaseNegotiated, (byte) cashMult,
-                m.contractSalvageBaseline, (byte) next,
-                m.employerPowerIds);
+        Mission replaced = Mission.builder(m)
+                .salvageNegotiated(phaseNegotiated)
+                .cashMultiplier(cashMult)
+                .contractSalvageNegotiated(next)
+                .build();
         ctx.setSelectedMission(replaced);
         rebuild();
     }

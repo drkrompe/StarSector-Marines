@@ -1,13 +1,11 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.campaign.CampaignEventState;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CivilianRescueEvent;
 import com.dillon.starsectormarines.campaign.CivilianRescueMissionKey;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -16,14 +14,20 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 class CivilianRescueMissionFactoryTest {
 
     @Test
-    void legacyMissionConstructorKeepsEventLineageEmpty() {
-        Mission mission = new Mission("id", "name", MissionType.ASSAULT,
-                MissionSource.GENERATED, 100, RiskLevel.LOW,
-                "requirements", "flavor", 0.5f, 0.5f,
-                FlybyRoster.EMPTY, FlybyRoster.EMPTY, 2, 0,
-                "planet", null, null, -1L,
-                (byte) 0, (byte) 0, (byte) 100,
-                Collections.emptyList());
+    void anOrdinaryMissionKeepsEventLineageEmpty() {
+        Mission mission = Mission.builder()
+                .id("id")
+                .name("name")
+                .type(MissionType.ASSAULT)
+                .source(MissionSource.GENERATED)
+                .payout(100)
+                .risk(RiskLevel.LOW)
+                .requirements("requirements")
+                .flavor("flavor")
+                .mapPosition(0.5f, 0.5f)
+                .requiredDrops(2)
+                .targetPlanetName("planet")
+                .build();
 
         assertEquals(-1L, mission.campaignEventId);
         assertEquals(-1, mission.campaignEventMarketId);

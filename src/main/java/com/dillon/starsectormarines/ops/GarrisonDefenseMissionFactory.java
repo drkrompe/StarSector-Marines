@@ -1,11 +1,9 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.campaign.GarrisonDefenseMissionKey;
 import com.dillon.starsectormarines.campaign.GarrisonDefensePayload;
 import com.dillon.starsectormarines.campaign.GarrisonDefenseTriggerType;
 
-import java.util.Collections;
 
 /** Builds a battle mission from a Garrison's already-stationed detachment. */
 public final class GarrisonDefenseMissionFactory {
@@ -23,14 +21,25 @@ public final class GarrisonDefenseMissionFactory {
         String flavor = "The stationed Garrison is already under attack. Defend the market "
                 + "with the assigned captain and " + payload.committedMarines
                 + " committed marines.";
-        return new Mission(GarrisonDefenseMissionKey.encode(payload), title,
-                MissionType.ASSAULT, MissionSource.STATIONING, 0, RiskLevel.HIGH,
-                "Stationed detachment", flavor, 0.5f, 0.5f,
-                FlybyRoster.EMPTY, FlybyRoster.EMPTY, drops, drops,
-                planetName, null, factionId, payload.contractId,
-                payload.salvageBaseline, payload.salvageNegotiated, (byte) 100,
-                payload.salvageBaseline, payload.salvageNegotiated,
-                Collections.emptyList());
+        return Mission.builder()
+                .id(GarrisonDefenseMissionKey.encode(payload))
+                .name(title)
+                .type(MissionType.ASSAULT)
+                .source(MissionSource.STATIONING)
+                .risk(RiskLevel.HIGH)
+                .requirements("Stationed detachment")
+                .flavor(flavor)
+                .mapPosition(0.5f, 0.5f)
+                .requiredDrops(drops)
+                .employerShuttles(drops)
+                .targetPlanetName(planetName)
+                .targetFactionId(factionId)
+                .contractId(payload.contractId)
+                .salvageBaseline(payload.salvageBaseline)
+                .salvageNegotiated(payload.salvageNegotiated)
+                .contractSalvageBaseline(payload.salvageBaseline)
+                .contractSalvageNegotiated(payload.salvageNegotiated)
+                .build();
     }
 
     private static String title(GarrisonDefenseTriggerType type) {

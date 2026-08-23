@@ -2,14 +2,12 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPayload;
 import com.dillon.starsectormarines.battle.evacuation.SwarmDefenseRoster;
-import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -85,14 +83,21 @@ class SwarmEvacuationOutcomeBridgeTest {
     }
 
     private static Mission eventMission(int civiliansAtRisk) {
-        return new Mission("civilian-rescue:7", "Civilian Evacuation",
-                MissionType.EXTRACTION, MissionSource.CAMPAIGN_EVENT,
-                0, RiskLevel.HIGH, "Committed relief response", "",
-                0.5f, 0.5f, FlybyRoster.EMPTY, FlybyRoster.EMPTY,
-                4, 0, "Arcadia", null, "independent",
-                -1L, 7L, 3, civiliansAtRisk,
-                (byte) 0, (byte) 0, (byte) 100,
-                (byte) 0, (byte) 0, Collections.emptyList());
+        return Mission.builder()
+                .id("civilian-rescue:7")
+                .name("Civilian Evacuation")
+                .type(MissionType.EXTRACTION)
+                .source(MissionSource.CAMPAIGN_EVENT)
+                .risk(RiskLevel.HIGH)
+                .requirements("Committed relief response")
+                .mapPosition(0.5f, 0.5f)
+                .requiredDrops(4)
+                .targetPlanetName("Arcadia")
+                .targetFactionId("independent")
+                .campaignEventId(7L)
+                .campaignEventMarketId(3)
+                .civiliansAtRisk(civiliansAtRisk)
+                .build();
     }
 
     private static final class Fixture {
