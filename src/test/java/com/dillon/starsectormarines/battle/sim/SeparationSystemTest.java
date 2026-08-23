@@ -18,10 +18,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * S1 + S2 coverage for {@link SeparationSystem} — tests 1, 2, 3, 4, 5, 6 of
- * the story doc's test plan
- * ({@code separation-steering.md}),
- * plus a drone-hub immovability regression and a production-tick-loop
+ * Coverage for the soft-separation laws in
+ * {@code continuous-positions-nouns.md}, plus a drone-hub immovability
+ * regression and a production-tick-loop
  * wiring check (see {@link #droneHubNeverMovesWhileOverlappingMarineResolvesFully}
  * and {@link #separationRunsInsideTheProductionTickLoop}).
  *
