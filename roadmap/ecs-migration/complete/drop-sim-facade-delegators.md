@@ -44,7 +44,7 @@ facade methods come off the sim.
 The `sim` handle is welded into the GOAP contract. `Action` (and `Goal`)
 thread `BattleSimulation sim` through `cost(state, squad, sim)`,
 `execute(member, squad, sim)`, `roles(squad, sim)`,
-`highlightCells(squad, sim)` ([`Action.java`](../../../src/main/java/com/dillon/starsectormarines/battle/ai/goap/Action.java)).
+`highlightCells(squad, sim)` (`Action.java`).
 `BattleSimulation` is referenced in **~141 battle files**. So removing
 the delegators is not a mechanical rename — it forces a decision about
 *how a consumer acquires the services it needs*, and that decision has to
@@ -76,7 +76,7 @@ delegates, so they fold in here cleanly.
 ## Approach — the real design fork (decide before starting)
 
 The constraint that shapes everything: GOAP actions are **stateless
-singletons** ([`Action.java`](../../../src/main/java/com/dillon/starsectormarines/battle/ai/goap/Action.java)
+singletons** (`Action.java`
 class doc) — the planner holds one shared instance per action type and
 runs search in parallel. So an action **cannot** hold per-battle service
 references as fields. Whatever replaces `sim` must be *passed in* and must

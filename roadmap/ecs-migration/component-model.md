@@ -24,7 +24,7 @@ a component + a system over its set whenever new entity capability or per-tick
 side-effect work lands.** ([[feedback_build_composition_now]].)
 
 Framed in the engine-vs-game lens the project runs under
-([`user_engine_game_framing`](../../memory)): **World + Systems +
+([[user_engine_game_framing]]): **World + Systems +
 Components is the engine; the specific systems — morale, GOAP, recapture —
 are the game.** This doc is about closing the gap on the *engine* half.
 
@@ -42,8 +42,8 @@ We've built the **storage + transform** half of ECS and stopped at the
 
 This is a legitimate **single-archetype SoA table**: one wide table, every
 entity has every column. The hard-to-retrofit part (data layout, dense
-iteration, stateless systems, the [`BattleView`/`BattleControl`
-contract`](../../memory)) is **done**. What remains is a modeling layer — now the
+iteration, stateless systems, the `BattleView`/`BattleControl` contract,
+[[battle_view_control_contract]]) is **done**. What remains is a modeling layer — now the
 committed **archetype-tables** design ([`archetype-storage.md`](archetype-storage.md)):
 the single wide table is the *starting* state we migrate off, not the target.
 
@@ -218,11 +218,11 @@ Existing components were retrofitted to this convention (2026-06-03):
   — a scoped carve-out from ship-then-optimize (2026-06-03). The archetype storage
   engine is built deliberately as the committed end-state
   ([`archetype-storage.md`](archetype-storage.md)), not pulled into existence
-  piecemeal. Ship-then-optimize ([`feedback_ship_then_optimize`](../../memory),
-  [`feedback_no_stopgap_dev`](../../memory)) still governs gameplay/feature work;
+  piecemeal. Ship-then-optimize ([[feedback_ship_then_optimize]],
+  [[feedback_no_stopgap_dev]]) still governs gameplay/feature work;
   it no longer governs the storage core.
 - **Default to the ECS shape** in new battle-tier work
-  ([`feedback_entity_for_loop_endgame`](../../memory)): when the vehicle
+  ([[feedback_entity_for_loop_endgame]]): when the vehicle
   HP/weapons land, reach for "component + system over its set," not "another
   nullable field + if/else."
 - Every storage change still obeys the SoA design rules in
@@ -231,9 +231,9 @@ Existing components were retrofitted to this convention (2026-06-03):
 
 ## Related memory
 
-- [`battle_view_control_contract`](../../memory) — the read/mutate sim
+- [[battle_view_control_contract]] — the read/mutate sim
   access contract (the facade phase, now shipped).
-- [`battle_services_systems`](../../memory) — Service/System decomposition;
+- [[battle_services_systems]] — Service/System decomposition;
   the dense-iter ECS seam.
-- [`feedback_skip_generation_bits`](../../memory) — ids are monotonic;
+- [[feedback_skip_generation_bits]] — ids are monotonic;
   no generation bits.

@@ -330,7 +330,7 @@ the target `open && dispatched` forever — silently un-reinforced.
 
 - [`biome-counterattack.md`](biome-counterattack.md) — follow-on: the
   staged "bulge" that inverts this filter to retake conceded slices.
-- [`compound-spread.md`](compound-spread.md) — biome-spread compounds
+- `compound-spread.md` — biome-spread compounds
   create the tiered map depth this system contests.
 - [`../central-keep.md`](../central-keep.md) — compound-as-supply
   gates remain the delivery constraint.

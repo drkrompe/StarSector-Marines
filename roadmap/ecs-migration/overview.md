@@ -80,14 +80,14 @@ These were the rules every SoA promotion had to follow.
    snapshot only. Never read directly except in registry's allocate /
    release; everything else routes through the accessor. Doc the
    xstream/Serializable caveat at the field site
-   ([`Unit.java:118-126`](../../src/main/java/com/dillon/starsectormarines/battle/unit/Unit.java)).
+   (`Unit.java:118-126`).
 3. **Release snapshots back.** Corpses on the legacy units list still
    need to report sane values for the post-death systems that haven't
    migrated yet (drone-crash sprite, legacy iteration paths).
 4. **Tail-swap updates the moved unit's `denseIdx`.** Failing to do
    this is the load-bearing bug — caught by
    `releaseUpdatesDenseIdxOfTheSwappedTailUnit` in
-   [`UnitRegistryTest`](../../src/test/java/com/dillon/starsectormarines/battle/unit/UnitRegistryTest.java).
+   `UnitRegistryTest`.
    Every primitive promoted needs an equivalent test.
 5. **Parallel arrays, not interleaved.** Default to separate arrays
    per axis (`int[] cellX, int[] cellY`). Pick interleaved only when
@@ -158,9 +158,9 @@ next epics, by leverage (full backlog in [`next-session.md`](next-session.md) §
 
 ## Memory entries to read alongside
 
-- [`battle_services_systems`](../../memory) — Service/System
+- [[battle_services_systems]] — Service/System
   decomposition direction, dense-iter ECS seam, registry shape.
-- [`feedback_skip_generation_bits`](../../memory) — why no generation
+- [[feedback_skip_generation_bits]] — why no generation
   bits.
-- [`feedback_entity_for_loop_endgame`](../../memory) — default to
+- [[feedback_entity_for_loop_endgame]] — default to
   ECS shape in battle-tier extractions.

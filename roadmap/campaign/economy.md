@@ -36,8 +36,8 @@ schedule.
 ### Direct contracts
 
 The current
-[`MissionGenerator`](../../src/main/java/com/dillon/starsectormarines/ops/MissionGenerator.java) /
-[`MissionResolver`](../../src/main/java/com/dillon/starsectormarines/ops/MissionResolver.java)
+`MissionGenerator` /
+`MissionResolver`
 flow — one-shot ops that render through the battle simulation.
 Payout already scales with planet size × risk × mission type. These
 are the *windfall* income — big and lumpy, with high effort per
@@ -154,7 +154,7 @@ but staving off entropy:
   Earned via story milestones (first faction-flip, first
   T3 chain completion, etc.).
 - **Captain traits** — per-officer. `Trait.LOGISTICS_CHIEF` in
-  [`Trait.java`](../../src/main/java/com/dillon/starsectormarines/marine/Trait.java)
+  `Trait.java`
   is already defined but currently unwired — this is where it earns
   its keep. Reduces cash overhead in operations the captain runs,
   reduces garrison default rate when stationed. Strong reason to

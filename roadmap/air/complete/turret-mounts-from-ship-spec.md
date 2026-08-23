@@ -21,7 +21,7 @@ extracting `WeaponSlotParser` and folding the `(center − pixelCentre)`
 compensation into the scrape; verified with the new `TurretSlotPreviewTest`
 (projects the scrape onto the sprite). The deeper unifying fix — anchor the whole
 entity at the centroid of gravity so rotation pivots there and the compensation
-disappears — is [`anchor-at-center-of-gravity.md`](../stories/anchor-at-center-of-gravity.md).
+disappears — is `anchor-at-center-of-gravity.md`.
 
 **Outstanding:** in-game eyeball that turrets land on the painted hardpoints and
 that per-turret LoS still differentiates. Known limitation: the loadout count is

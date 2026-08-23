@@ -116,6 +116,31 @@ roadmap/<feature>/
   if priorities shifted, say so.
 - Existing feature dirs are migrated incrementally as they're touched.
 
+### Cross-references: bare slugs, not relative paths
+
+- **Reference another roadmap doc by bare slug in backticks** — `` `central-keep.md` ``,
+  not `[central-keep.md](../central-keep.md)`. A slug survives the
+  `stories/` → `complete/` move that every shipped story makes, so the
+  reference never rots, and `git grep -F '<slug>.md'` finds every citation
+  in one sweep. Look docs up by name (fuzzy file-open), not by path.
+  Filenames are stable slugs — status lives in the bucket and the doc's own
+  status line, never in the filename.
+- **Reference code by backticked symbol, not a path link** —
+  `` `TacticalScoring.hasReachableFiringSpot` ``, not a `../../src/main/...`
+  link. Package moves are routine here; the symbol name is what stays true
+  and what you would actually search for.
+- **Reference project memory as `[[slug]]`** — e.g. `[[battle_services_systems]]`.
+  The memory directory lives outside the repo, so a relative link can never
+  resolve.
+- **When you delete a doc, redirect its citations in the same commit.**
+  `git grep -F '<slug>.md'` across `roadmap/` *and* `src/` — package-info
+  charters and javadoc cite roadmap docs too. A fold that leaves dangling
+  citations has traded stale docs for broken ones.
+
+(Convention adopted 2026-08-22 from the sibling MoonLightEngine project,
+after a link sweep found 41 rotted references — nearly all of them paths to
+docs that had merely moved into `complete/`.)
+
 ## Conventions for this repo
 
 - Package root: `com.dillon.starsectormarines`.

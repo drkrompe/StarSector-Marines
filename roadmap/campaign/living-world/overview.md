@@ -180,9 +180,9 @@ work cleanup, stale ambition re-evaluation, and selective dormancy dispatches:
 ambition review, power/progress-gated promotion intent, and faction-targeted
 Tier-3 throne claims: `f022d4ad`, `31bb6875`, `3c58964b`, `57be6214`) — see
 [`complete/`](complete/). The reusable primitives —
-[`StakeLedger`](../../../src/main/java/com/dillon/starsectormarines/campaign/StakeLedger.java)
+`StakeLedger`
 (stake moves) and
-[`HousePromotion`](../../../src/main/java/com/dillon/starsectormarines/campaign/HousePromotion.java)
+`HousePromotion`
 (rank ladder) — are the seams Slices C–D build the autonomous loops on, so
 the drift/chain work is "call the same primitives on a tick" rather than new
 mutation logic. Vertical chain payloads own the post-spine boundary and land
