@@ -449,13 +449,12 @@ chain's narrative momentum depends on the player following through.
 
 - `loot-nouns.md` — the shipped post-battle recovery model; its board owns the
   remaining in-game acceptance checkpoint.
-- [`../infrastructure/overview.md`](../infrastructure/overview.md) —
-  buildings that modulate garrison default rates and per-house power.
-  Defensive infra reduces Garrison default rolls; intel infra surfaces
-  hidden pretenders sooner.
+- `infrastructure-nouns.md` — future location-bound modifiers for stationing
+  risk and discovery policy; infrastructure does not alter political
+  `housePower` implicitly.
 - `t3-endgame-nouns.md` — the Tier-4
   contracts. Where this doc's "future" bracket actually lives.
-- [`../narrative/overview.md`](../narrative/overview.md) — the patron
+- `narrative-nouns.md` — the patron
   tapestry: comms-officer narrator, archetype content axis, procedural
   fatigue discipline. Extracted from this doc.
 
@@ -464,7 +463,7 @@ chain's narrative momentum depends on the player following through.
 The narrative side of the contract layer — comms-officer narrator,
 the patron-archetype content axis (the `byte archetype` carried on the
 contract's patron house), and the procedural-fatigue discipline — now
-lives in [`../narrative/overview.md`](../narrative/overview.md). The
+lives in `narrative-nouns.md`. The
 contract layer sets the commercial terms; what the player *reads* about
 the patron behind those terms is the narrative feature's concern.
 

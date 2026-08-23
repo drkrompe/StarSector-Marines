@@ -4,7 +4,7 @@
 
 **Written:** 2026-08-23
 
-**Updated:** 2026-08-23 — contact-picture doctrine plus squad-wide direct-LOS episode interrupts
+**Updated:** 2026-08-23 — selected-squad doctrine visibility and dump contract
 
 ## The player-visible story
 
@@ -136,6 +136,37 @@ morale-break survival behavior remains authoritative.
 - Tune the advance/hold/disengage thresholds from the parallel player-facing
   playtest pass. Automated verification covers the implementation contract,
   but is not a substitute for combat-feel acceptance.
+
+## Selected-squad visibility slice
+
+The selected-squad GOAP detail must make the contact decision inspectable
+without requiring a dump. It shows the selected doctrine beside the posture
+and force balance that shaped it, then the dominant sector, fresh motion,
+direct/remembered contact counts, local strengths, tactical axis, and primary
+believed contact. The world overlay extends the existing believed-contact
+ghosts with a short doctrine-colored axis from the squad centroid, so a front,
+flank, or rear classification can be checked spatially.
+
+The manual squad dump remains the durable offline diagnostic. Its
+`contactPicture` object carries the same published snapshot plus picture age,
+hostile-to-friendly ratio, doctrine-transition flag, resolved primary-contact
+identity, and primary evidence freshness. Presentation does not reconstruct a
+new threat score or read hidden hostile positions.
+
+### Acceptance
+
+- Selecting a living squad exposes doctrine, posture, balance, dominant
+  sector, primary motion, contact counts, strengths, axis, and primary belief
+  near the top of the GOAP detail panel.
+- `ADVANCE`, `HOLD`, and `DISENGAGE` use distinct, stable debug colors without
+  changing the decision thresholds.
+- A selected squad publishes a bounded doctrine-colored tactical-axis trace;
+  deselection or squad loss clears it with the other debug-only highlights.
+- Believed-contact ghosts remain confidence/source-coded and no presentation
+  path resolves an unknown enemy's current cell.
+- The DUMP button serializes the full published contact picture, its age and
+  ratio, the transition flag, and primary belief evidence in a test-covered
+  JSON shape.
 
 ## Parked follow-ons
 

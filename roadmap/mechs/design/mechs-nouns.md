@@ -4,7 +4,7 @@ Status: ACTIVE — the specialist family, campaign support squad, first subsyste
 
 Written: 2026-08-23
 
-Updated: 2026-08-23 — the Fleet Armory Mech Lab now owns a persistent support squad and finite replenisher inventory.
+Updated: 2026-08-23 — assigned chassis durability profiles to the shared combat-durability model.
 
 ## Purpose
 
@@ -117,6 +117,9 @@ determines the payload, not the entitlement to call it.
   a variant name or infer a chassis solely from its assigned role.
 - Every specialist loses a meaningful capability as well as durability; a
   lighter chassis cannot be a discounted all-range Bulwark.
+- Chassis structure, armor pool, and armor rating are separate values. Bulwark
+  remains the high-pool, high-rating anchor; Hound trades armor endurance for
+  mobility; Sirocco has the least protection and depends on range and a screen.
 - Mount absence is a tactical weakness. Firing, continuation, AI utility,
   resupply, and rendering must operate only on installed components.
 - Missile weapon hardware owns capacity and projectile behavior; the installed
@@ -154,5 +157,7 @@ hardware and constraints for it to command. Air delivery owns when a payload
 lands, while this feature owns the landed variant/loadout identity.
 `moddable-weapons-nouns.md` owns the future shared weapon-catalog direction;
 mechs owns the mechanical and tactical meaning of a chassis and hardpoint.
+`combat-durability-nouns.md` owns how the chassis's authored structure and
+armor profile receives damage and exposes an armor-break transition.
 Rendering consumes the variant and installed mounts to show the same body that
 simulation uses; it does not choose stats or doctrine.

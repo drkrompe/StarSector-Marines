@@ -106,7 +106,7 @@ saga you're peripheral to. Four disciplines fall out:
 1. **Partial and POV-limited.** Dispatches, not ground truth. Some arrive
    stale; some as rumor ("word is Korvath's been buying muscle…") that
    only later confirms. Never an omniscient feed — the same no-omniscient
-   discipline the [narrative thread](../narrative/overview.md) commits to.
+   discipline `narrative-nouns.md` commits to.
 2. **Two bands, silent middle.** The player hears the **intimate**
    (houses they've touched — warm, callback-laden) and the **epic**
    (sector-shaking T3/T4 moves — news of a war in a far kingdom). The vast
@@ -125,7 +125,7 @@ saga you're peripheral to. Four disciplines fall out:
 `DiscoveryPropagationSystem` is **the editor**: it decides what's
 newsworthy enough to print, in which band, at what confidence. Headlines
 are composed from sim data through the same token+voice machinery as
-briefings ([`../narrative/overview.md`](../narrative/overview.md)), so the
+briefings (`narrative-nouns.md`), so the
 procedural-fatigue discipline applies (variant pools per event type).
 
 Storage TBD — likely a small append-only `chronicle[]` of *learned*
@@ -317,7 +317,7 @@ Designed in a follow-up once Genesis + drift exist to react against.
 5. ~~**Discovery surface**~~ — D3 ships deterministic weekly
    `discoveryRisk` rumors for player-touched or Tier-3+ chains. Captain SCOUT
    and infrastructure can later widen eligibility rather than replacing this
-   baseline (ties to [`../infrastructure/`](../infrastructure/overview.md)).
+   baseline (see `infrastructure-nouns.md`).
 6. **House birth** — once consolidation thins markets, do new houses ever
    spawn, or is monotonic consolidation the intended long-game texture?
    (Leaning: let it consolidate.)
@@ -330,7 +330,7 @@ Designed in a follow-up once Genesis + drift exist to react against.
   skeleton this thread implements; stake-transfer + promotion math.
 - [`../themes.md`](../themes.md) — the impact ladder, rank visibility,
   sector-wide-simulation framing.
-- [`../narrative/overview.md`](../narrative/overview.md) — the voice
+- `narrative-nouns.md` — the voice
   machinery the Chronicle composes through.
 - [`../contracts/overview.md`](../contracts/overview.md) — player chains
   feed contracts feed missions; the accelerant path.
