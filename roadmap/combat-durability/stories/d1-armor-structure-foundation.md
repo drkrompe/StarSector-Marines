@@ -3,9 +3,9 @@
 > Give protection a real state before teaching the rest of the game to react
 > to it.
 
-Status: IN PROGRESS
+Status: IN PROGRESS — implementation verified; story fold pending
 Written: 2026-08-23
-Updated: 2026-08-23 — pure resolution law and focused unit tests landed; component and attack wiring is next.
+Updated: 2026-08-23 — live armor, penetration transport, initial profiles, and full-suite verification are complete.
 
 Read `combat-durability-nouns.md` before implementing this story.
 
@@ -66,7 +66,7 @@ calculation converts post-cover damage into clamped armor and structure loss.
 ## Implementation order
 
 1. ~~Land the pure resolution model and its unit tests.~~
-2. **Next:** add component/world/mailbox plumbing.
-3. Migrate weapon inputs and damage callers atomically.
-4. Seed infantry and armored-platform profiles.
-5. Run focused combat tests, then the full build.
+2. ~~Add component/world/mailbox plumbing.~~
+3. ~~Migrate weapon inputs and damage callers atomically.~~
+4. ~~Seed infantry and armored-platform profiles.~~
+5. ~~Run focused combat tests, then the full build.~~

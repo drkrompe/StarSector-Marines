@@ -4,7 +4,7 @@ Status: ACTIVE — the specialist family, campaign support squad, first subsyste
 
 Written: 2026-08-23
 
-Updated: 2026-08-23 — assigned chassis durability profiles to the shared combat-durability model.
+Updated: 2026-08-23 — shipped chassis structure, live armor pools, and ratings through the shared combat-durability model.
 
 ## Purpose
 
@@ -141,6 +141,9 @@ determines the payload, not the entitlement to call it.
 
 ## Current direction
 
+Bulwark, Hound, and Sirocco now spawn with distinct live structure, armor pool,
+and armor rating profiles. Their relative identities are authoritative; the
+exact D1 numbers are initial values pending the combat-durability balance pass.
 The live `s1-specialist-striders.md` story retains manual comparison and tuning
 of the shipped family. A future recon strider needs actual information
 mechanics and a doctrine before its hardware is added. Further chassis

@@ -93,7 +93,7 @@ public final class EngagePosture implements Action {
             boolean startedSecondary = false;
             // Rocket eligibility broadened from MapTurret-only to any hardened
             // target (turrets, drone hubs, heavy mechs) — anything the rocket's
-            // vsTurretMult bonus is worth burning a tube on.
+            // Dedicated penetration is worth burning a tube on.
             long mid = member;
             if (sim.world().hasSecondaryWeapon(mid) && sim.world().secondaryAmmo(mid) > 0
                     && sim.world().secondaryCooldownTimer(mid) <= 0f

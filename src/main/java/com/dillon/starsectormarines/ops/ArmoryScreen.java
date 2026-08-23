@@ -408,7 +408,9 @@ public final class ArmoryScreen implements Screen {
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                 "Doctrine: " + roleLabel(mech), x, top - 72f, GOOD));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                "Integrity: " + Math.round(mech.variant().maxHp)
+                "Structure: " + Math.round(mech.variant().maxStructure)
+                        + "  Armor: " + Math.round(mech.variant().armorPool)
+                        + "  Rating: " + Math.round(mech.variant().armorRating)
                         + "    Speed: " + fmt(mech.variant().moveSpeed),
                 x, top - 98f, MUTED));
 
@@ -1564,12 +1566,12 @@ public final class ArmoryScreen implements Screen {
                     ReadoutFormat.PERCENT, x, width, y);
         }
         y -= rowH;
-        addReadoutLine("HEALTH", UnitType.MARINE.maxHp + baseArmor.bonusHp,
-                UnitType.MARINE.maxHp + soldier.armor().bonusHp,
+        addReadoutLine("ARMOR", baseArmor.armorPool,
+                soldier.armor().armorPool,
                 ReadoutFormat.INTEGER, x, width, y);
         y -= rowH;
-        addReadoutLine("BLOCK", baseArmor.damageReduction, soldier.armor().damageReduction,
-                ReadoutFormat.PERCENT, x, width, y);
+        addReadoutLine("RATING", baseArmor.armorRating, soldier.armor().armorRating,
+                ReadoutFormat.INTEGER, x, width, y);
         y -= rowH;
         addReadoutLine("MOVE", UnitType.MARINE.moveSpeed * baseArmor.moveSpeedMult,
                 UnitType.MARINE.moveSpeed * soldier.armor().moveSpeedMult,
@@ -1977,12 +1979,12 @@ public final class ArmoryScreen implements Screen {
         float barX = x + 150f;
         float barW = Math.max(70f, Math.min(330f, width - 220f));
         float y = top - 380f;
-        addStatRow("DAMAGE BLOCK", pct(armor.damageReduction),
-                armor.damageReduction / armorLadderMax(p -> p.damageReduction),
+        addStatRow("ARMOR", Integer.toString(Math.round(armor.armorPool)),
+                armor.armorPool / armorLadderMax(p -> p.armorPool),
                 labelX, barX, y, barW, DAMAGE_BAR);
         y -= 30f;
-        addStatRow("BONUS HEALTH", "+" + Math.round(armor.bonusHp),
-                armor.bonusHp / armorLadderMax(p -> p.bonusHp),
+        addStatRow("RATING", Integer.toString(Math.round(armor.armorRating)),
+                armor.armorRating / armorLadderMax(p -> p.armorRating),
                 labelX, barX, y, barW, GOOD);
         y -= 30f;
         addStatRow("MOVE SPEED", pct(armor.moveSpeedMult),
@@ -2041,8 +2043,8 @@ public final class ArmoryScreen implements Screen {
         addStatRow("ACCURACY", pct(secondary.accuracy()), secondary.accuracy(),
                 labelX, barX, y, barW, ACCURACY_BAR);
         y -= 30f;
-        addStatRow("ANTI-ARMOR", fmt(secondary.vsTurretMult()) + "x",
-                secondary.vsTurretMult() / 3.5f, labelX, barX, y, barW, DPS_BAR);
+        addStatRow("PENETRATION", fmt(secondary.penetration()),
+                secondary.penetration() / 18f, labelX, barX, y, barW, DPS_BAR);
         y -= 30f;
         addStatRow("AMMUNITION", Integer.toString(secondary.startingAmmo()),
                 secondary.startingAmmo() / 4f, labelX, barX, y, barW, VALUE);

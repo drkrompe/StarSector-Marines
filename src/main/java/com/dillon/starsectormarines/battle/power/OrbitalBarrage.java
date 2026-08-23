@@ -26,7 +26,7 @@ public final class OrbitalBarrage extends CommandPower {
         service.addFireMission(new PendingDetonation(
                 CombatTelemetryService.NO_ATTACKER,
                 cellX + 0.5f, cellY + 0.5f, WARNING_SECONDS,
-                BLAST_RADIUS_CELLS, 80f, 1.5f,
+                BLAST_RADIUS_CELLS, 80f, 24f,
                 120, Faction.MARINE, true,
                 3f, true, false));
     }

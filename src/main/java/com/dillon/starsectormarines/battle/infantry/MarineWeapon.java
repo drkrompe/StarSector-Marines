@@ -1,8 +1,6 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
-import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 
@@ -33,9 +31,8 @@ import java.awt.Color;
  * shell-backed weapons use {@link #projectileSpritePath()}. Per-weapon fire
  * sound supplies the matching audio identity.
  *
- * <p>The {@link #vsTurretMult()} multiplier is applied in
- * {@link BattleSimulation#fireShot} when the target is a {@link MapTurret} —
- * rifles plink emplacements, dedicated AT weapons land near full damage.
+ * <p>{@link #penetration()} is resolved against the target's current armor
+ * rating by the shared combat-durability model.
  */
 public enum MarineWeapon {
     /**
@@ -122,8 +119,7 @@ public enum MarineWeapon {
     public float damage() { return def().damage; }
     public float accuracy() { return def().accuracy; }
     public float cooldown() { return def().cooldown; }
-    /** Multiplier on damage when the target is a hardened class. Fine against infantry, anemic against emplacements. */
-    public float vsTurretMult() { return def().vsHardenedMult; }
+    public float penetration() { return def().penetration; }
     /** Visual character of the impact at endpoint. */
     public ImpactProfile impactProfile() { return def().impactProfile; }
     /** Rounds per fire decision. 1 = single shot. &gt;1 = burst: the AI fires the first round and {@code InfantryWeapons.tick} emits the remainder at {@link #burstSpacing()} intervals. */

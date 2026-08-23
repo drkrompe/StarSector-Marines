@@ -1,4 +1,5 @@
 package com.dillon.starsectormarines.battle.decision;
+import com.dillon.starsectormarines.battle.combat.DurabilityModel;
 import com.dillon.starsectormarines.battle.turret.TurretAim;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
@@ -197,7 +198,7 @@ public final class TacticalScoring {
 
     /**
      * Multiplier on the weapon-target affinity term in {@link #findBestTarget}.
-     * A marine's score for a hardened target gets {@code WEIGHT * (1 - vsHardenedMult)}
+     * A marine's score for a hardened target gets a weapon-penetration affinity
      * added — well-suited weapons (rockets, mult 3.5) earn a ~20-point bonus
      * toward the hardened target, poorly-suited weapons (rifles, mult 0.3)
      * eat a ~5-point penalty. With one visible target in LOS this is a no-op
@@ -372,7 +373,7 @@ public final class TacticalScoring {
      * <p><b>Weapon affinity</b> — when {@code excludeFromCrowding} is a
      * {@code Entity} (the marine's own callers pass {@code self} here), hardened
      * targets (turrets + heavy mechs) get a per-marine score adjustment based
-     * on {@code primary.vsTurretMult} / {@code secondary.vsTurretMult}.
+     * on primary and secondary penetration.
      * Rocketeers prefer mechs; rifle/SMG marines prefer infantry. With one
      * visible target the term doesn't matter (single candidate wins); with
      * multiple, it tilts the choice without overriding distance for nearby
@@ -484,9 +485,9 @@ public final class TacticalScoring {
     /**
      * Score adjustment for how well {@code self}'s loadout matches
      * {@code target}. Hardened targets (turrets + heavy mechs) get the per-
-     * weapon {@code vsTurretMult} treated as an affinity: rockets (3.5×) earn
-     * a strong negative adjustment (bonus); rifles (0.3×) earn a positive one
-     * (penalty). Soft targets are baseline (no adjustment).
+     * weapon penetration treated as a bounded affinity. This remains a
+     * temporary type-based preference until D2 moves the decision onto a full
+     * expected-damage comparison over current armor state.
      *
      * <p>{@code self} is {@code 0L} for non-combatant callers (shuttle / static
      * turrets) — they get no affinity term.
@@ -498,11 +499,11 @@ public final class TacticalScoring {
         // self is the scoring combatant (non-combatant callers pass 0L above), so its
         // COMBAT primary-weapon read is safe by id; null = no per-weapon profile.
         MarineWeapon primaryWeapon = roster.combat().primaryWeapon(self);
-        float primary = primaryWeapon != null ? primaryWeapon.vsTurretMult() : 0.3f;
+        float primary = primaryWeapon != null ? primaryWeapon.penetration() : 0f;
         float secondary = (world.hasSecondaryWeapon(self) && world.secondaryAmmo(self) > 0)
-                ? world.secondaryWeapon(self).vsTurretMult() : 0f;
-        float bestMult = Math.max(primary, secondary);
-        return WEAPON_AFFINITY_WEIGHT * (1f - bestMult);
+                ? world.secondaryWeapon(self).penetration() : 0f;
+        float relativeToServiceRifle = Math.max(primary, secondary) / 5f;
+        return WEAPON_AFFINITY_WEIGHT * (1f - relativeToServiceRifle);
     }
 
     /**
@@ -527,8 +528,7 @@ public final class TacticalScoring {
      * prefer hardened) and the rocket-eligibility gates in
      * {@link com.dillon.starsectormarines.battle.infantry.InfantryUnitPrep#tryOpportunityRocket}
      * and {@link com.dillon.starsectormarines.battle.infantry.EngagePosture} —
-     * marines burn a rocket on anything that earns the {@code vsTurretMult}
-     * (3.5×) bonus payoff.
+     * marines burn a rocket on the legacy hardened target classes.
      */
     public static boolean isHardened(UnitType type) {
         if (type.isTurret()) return true;
@@ -539,8 +539,8 @@ public final class TacticalScoring {
     /**
      * True when {@code shooter} carries a loaded rocket and {@code target} is
      * a hardened class (a turret, a drone hub, heavy mech) —
-     * the pairings where the rocket's {@code vsTurretMult} bonus damage pays
-     * off. Centralizes the check used by {@link #effectiveAttackRange}.
+     * the pairings where dedicated penetration is useful. Centralizes the
+     * check used by {@link #effectiveAttackRange}.
      */
     public boolean canSpecialTarget(long shooter, long target) {
         World world = roster.world();
@@ -586,8 +586,9 @@ public final class TacticalScoring {
         World world = roster.world();
         if (!world.hasSecondaryWeapon(shooter) || world.secondaryAmmo(shooter) <= 0) return false;
         if (target == 0L || !roster.isAliveById(target)) return false;
-        return projectedSpecialDamageOnTarget(shooter, target)
-                < world.hp(target);
+        float remainingDurability = world.hp(target)
+                + (world.hasArmor(target) ? world.armor(target) : 0f);
+        return projectedSpecialDamageOnTarget(shooter, target) < remainingDurability;
     }
 
     /** Compatibility name retained for focused rocket tests and older callers. */
@@ -625,7 +626,7 @@ public final class TacticalScoring {
                 if (world.secondaryActionTimer(u) <= 0f) continue;
                 if (world.secondaryAimTargetId(u) != target) continue;
                 MarineSecondary sw = world.secondaryWeapon(u);
-                total += sw.damage() * sw.vsTurretMult();
+                total += projectedResolvedDamage(target, sw.damage(), sw.penetration());
             }
         }
         // Inflight rocket entities owned by the sim. The Projectile carries
@@ -646,16 +647,26 @@ public final class TacticalScoring {
             float dx = targetCx - det.endpointX;
             float dy = targetCy - det.endpointY;
             if (dx * dx + dy * dy <= det.aoeRadius * det.aoeRadius) {
-                total += det.damage * det.vsTurretMult;
+                total += projectedResolvedDamage(target, det.damage, det.penetration);
             }
         }
         for (ShotService.PendingImpact impact : shots.snapshotActiveImpacts()) {
             if (impact.marineSecondary == null || impact.victimId != target) continue;
             if (!roster.isAliveById(impact.shooterId)) continue;
             if (roster.identity().faction(impact.shooterId) != shooterFaction) continue;
-            total += impact.damage * impact.vsTurretMult;
+            total += projectedResolvedDamage(target, impact.damage, impact.penetration);
         }
         return total;
+    }
+
+    /** Shared-model projection for the temporary D1 committed-fire gate. */
+    private float projectedResolvedDamage(long target, float damage, float penetration) {
+        World world = roster.world();
+        float armor = world.hasArmor(target) ? world.armor(target) : 0f;
+        float rating = world.hasArmor(target) ? world.armorRating(target) : 0f;
+        DurabilityModel.Resolution result = new DurabilityModel.Resolution();
+        DurabilityModel.resolveInto(damage, penetration, armor, rating, world.hp(target), result);
+        return result.armorDamage() + result.structureDamage();
     }
 
     /**

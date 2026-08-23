@@ -56,10 +56,12 @@ public class MechMoraleTest {
         // Loadout is a presence component, attached by id after the unit is
         // added (mirrors BattleSetup's spawn path).
         sim.world().attachMechLoadout(first, MechLoadoutComponent.defaultLoadout(role));
+        sim.world().setArmor(first, 0f);
         for (int i = 1; i < size; i++) {
             long u = sim.spawn(new EntitySpec("d" + i, Faction.DEFENDER, UnitType.HEAVY_MECH, 1 + i, 1)
                     .squad(squadId));
             sim.world().attachMechLoadout(u, MechLoadoutComponent.defaultLoadout(role));
+            sim.world().setArmor(u, 0f);
         }
         Squad sq = sim.getSquad(squadId);
         sq.originalSize = size;
