@@ -77,12 +77,26 @@ public final class MissionLaunch {
                                                    FlybyRoster debugWings,
                                                    Collection<String> selectedPowerIds,
                                                    List<FleetMemberAPI> committedPowerSources) {
+        return buildSimulation(ctx, m, committedShuttles, committedWings, debugWings,
+                selectedPowerIds, committedPowerSources, null);
+    }
+
+    /** Build with an optional debug-only marine mech-support roster. */
+    public static BattleSimulation buildSimulation(MarineOpsContext ctx,
+                                                   Mission m,
+                                                   List<ShuttleType> committedShuttles,
+                                                   FlybyRoster committedWings,
+                                                   FlybyRoster debugWings,
+                                                   Collection<String> selectedPowerIds,
+                                                   List<FleetMemberAPI> committedPowerSources,
+                                                   DebugMechRoster debugMechs) {
         Detachment det = m.source == MissionSource.STATIONING
                 ? DetachmentResolver.resolveStationed(m)
                 : committedPowerSources == null
                         ? DetachmentResolver.resolve(m, committedShuttles, committedWings)
                         : DetachmentResolver.resolve(m, committedShuttles, committedWings,
                                 committedPowerSources);
+        if (debugMechs != null) det = debugMechs.applyTo(det);
         det = CommandDeck.apply(det, selectedPowerIds);
 
         // Heavy-armaments availability on the target world drives whether the

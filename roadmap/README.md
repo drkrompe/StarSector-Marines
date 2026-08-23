@@ -191,11 +191,16 @@ universe over time, not retrofitted into intel slots.
   command in squads (Lieutenant 3 through Colonel 24, the company starting
   under a Lieutenant), squads have NCOs with deterministic
   promotion-on-loss, and the UI says "squad" for the twelve and "fire team"
-  for the four. Nine stories are still
-  contracted and unstarted: the identity seam, a derived formation model,
-  the card stack, whereabouts, a battle-HUD company rollup, after-action by
-  squad, lift capacity denominated in
-  fire teams, and fire teams as the AI's maneuver element. The settled
+  for the four. **C1 and most of C8 shipped the same day** (`00ace1b0`,
+  `6e3908b0`): a deploying seat carries its campaign squad's id, frozen
+  label and NCO across the seam, marines landing from several lifts join
+  one battle squad keyed on (campaign squad, landing zone) instead of one
+  squad per sortie, lift capacity is declared in whole four-marine fire
+  teams so only a Valkyrie lands a squad intact, and a squad still arriving
+  holds at its LZ rather than feeding itself forward a team at a time.
+  Remaining: a derived formation model, the card stack, whereabouts, a
+  battle-HUD company rollup, after-action by squad, C8's rejoin state for
+  late arrivals, and fire teams as the AI's maneuver element. The settled
   decisions: a card is one officer's command, so the rank ladder changes
   (officers command, NCOs lead squads); **a squad becomes twelve marines in
   three four-marine fire teams**, because progression S1's shipped 9x

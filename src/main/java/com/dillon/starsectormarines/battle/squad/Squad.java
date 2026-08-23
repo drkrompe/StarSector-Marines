@@ -56,6 +56,16 @@ public final class Squad {
     public static final int NO_SQUAD = -1;
 
     /**
+     * Marines in one fire team — the squad's maneuver element, and the unit
+     * transport capacity is denominated in ({@link
+     * com.dillon.starsectormarines.battle.air.ShuttleType}). The single
+     * authority for the number: the campaign tier's
+     * {@code MarineSquad.TEAM_SIZE} reads it from here rather than repeating
+     * it, so a lift can never carry a fraction of a team.
+     */
+    public static final int FIRE_TEAM_SIZE = 4;
+
+    /**
      * Sim-seconds the squad stays ENGAGED after the last LOS to an enemy
      * drops. Generous so a brief duck-behind-cover doesn't yank a garrison
      * back into idle posture, and so SUSPICIOUS still has time to converge.
@@ -172,6 +182,37 @@ public final class Squad {
      * weren't sized at creation (marine deboards grow incrementally).
      */
     public int originalSize = 0;
+    /**
+     * Campaign squad this unit came from, or null for every generated spawn
+     * (defenders, militia, drones, mechs, debug fixtures). Written once by
+     * {@link CampaignSquadIndex} on the squad's first landing and never
+     * cleared — a wiped squad keeps its name.
+     */
+    public String campaignSquadId;
+
+    /**
+     * Display name frozen at deploy time, e.g. "Squad 01" or "Squad 01 (B)"
+     * when the squad landed at more than one zone. Null alongside
+     * {@link #campaignSquadId}; the HUD falls back to the numeric id.
+     */
+    public String campaignLabel;
+
+    /**
+     * Marines this squad is still expecting to land, from the deploy manifest.
+     * 0 for every generated spawn and for campaign squads before their first
+     * landing. Compared against {@link #originalSize} — which counts marines
+     * actually deboarded — to tell an assembling squad from a mauled one.
+     */
+    public int expectedSize = 0;
+
+    /**
+     * Sim-seconds this squad has spent waiting at its LZ for the rest of
+     * itself. Accumulated by {@link SquadFormUpSystem}, which stops holding
+     * the squad back once it crosses the form-up timeout so a lift that never
+     * arrives cannot deadlock the mission.
+     */
+    public float formUpElapsed = 0f;
+
     /** True once the squad has already executed its one-shot fallback this battle. Suppresses re-trigger so a squad doesn't cascade through every node in its FALLBACK_TO chain in one tick. */
     public boolean fallbackTriggered = false;
     /**

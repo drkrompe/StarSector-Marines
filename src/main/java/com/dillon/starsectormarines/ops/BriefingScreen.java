@@ -29,6 +29,8 @@ import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import com.dillon.starsectormarines.ops.detachment.CommandDeck;
 import com.dillon.starsectormarines.ops.detachment.PlayerFleetPowerSources;
 import com.dillon.starsectormarines.battle.power.CommandPower;
+import com.dillon.starsectormarines.battle.power.MechSupport;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.ui.ButtonWidget;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.LabelWidget;
@@ -138,6 +140,10 @@ public class BriefingScreen implements Screen {
      */
     private ShuttleType debugTransportType = ShuttleType.VALKYRIE;
     private int debugTransportCount = 1;
+
+    /** Debug mission Mech Support roster controls; stable across ordinary rebuilds. */
+    private int debugMechCount = DebugMechRoster.DEFAULT_COUNT;
+    private int debugMechRoll;
 
     /**
      * Indices into {@link #cachedCarriers} the player has deselected for the
@@ -416,6 +422,11 @@ public class BriefingScreen implements Screen {
             y -= SECTION_GAP;
         }
 
+        if (DevConfig.DEBUG_MECH_SUPPORT_PICKER && m.source.isDebug()) {
+            y = buildDebugMechPicker(m, x, y, rowW, floor);
+            y -= SECTION_GAP;
+        }
+
         // === YOUR FLEET BRINGS ===
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, Strings.get("briefingYourFleet"), x, y, HEADER_COLOR));
         y -= ROW_GAP;
@@ -613,10 +624,12 @@ public class BriefingScreen implements Screen {
 
     private List<CommandPower> availablePowers(Mission mission) {
         if (mission == null) return Collections.emptyList();
-        return mission.source == MissionSource.STATIONING
+        List<CommandPower> powers = mission.source == MissionSource.STATIONING
                 ? DetachmentResolver.resolveStationed(mission).powers
                 : DetachmentResolver.resolve(mission, effectivePlayerShuttles(), committedWings(),
                         committedPowerSourceMembers()).powers;
+        return debugMechRoster(mission) != null
+                ? debugMechRoster(mission).applyTo(powers) : powers;
     }
 
     private void buildButtons() {
@@ -757,6 +770,81 @@ public class BriefingScreen implements Screen {
     }
 
     // ---- debug-only pickers ----
+
+    private float buildDebugMechPicker(Mission mission, float x, float y,
+                                       float rowW, float floor) {
+        if (y < floor) return y;
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                "MECH DEBUG — player support", x, y, HEADER_COLOR));
+        y -= ROW_GAP;
+        if (y < floor) return y;
+
+        float arrowW = 34f;
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, "Count", x, y, LABEL_COLOR));
+        float controlX = x + 70f;
+        addDebugTransportButton(controlX, y, 42f, "-10",
+                debugMechCount > 0 ? () -> adjustDebugMechCount(-10) : null);
+        addDebugTransportButton(controlX + 46f, y, arrowW, "-",
+                debugMechCount > 0 ? () -> adjustDebugMechCount(-1) : null);
+        widgets.add(new ButtonWidget(controlX + 84f, y - BTN_H + 6f,
+                56f, BTN_H, null));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, Integer.toString(debugMechCount),
+                controlX + 100f, y,
+                debugMechCount > 0 ? ACCEPT_COLOR : BLOCKED_COLOR));
+        addDebugTransportButton(controlX + 144f, y, arrowW, "+",
+                debugMechCount < DebugMechRoster.MAX_COUNT
+                        ? () -> adjustDebugMechCount(1) : null);
+        addDebugTransportButton(controlX + 182f, y, 42f, "+10",
+                debugMechCount < DebugMechRoster.MAX_COUNT
+                        ? () -> adjustDebugMechCount(10) : null);
+        float rerollX = controlX + 232f;
+        addDebugTransportButton(rerollX, y, 88f, "Reroll", () -> {
+            debugMechRoll++;
+            rebuild();
+        });
+        y -= ROW_GAP;
+
+        if (y >= floor) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    debugMechSummary(debugMechRoster(mission)), x, y,
+                    debugMechCount > 0 ? VALUE_COLOR : LABEL_COLOR));
+            y -= ROW_GAP;
+        }
+        return y;
+    }
+
+    private void adjustDebugMechCount(int delta) {
+        debugMechCount = Math.max(0,
+                Math.min(DebugMechRoster.MAX_COUNT, debugMechCount + delta));
+        rebuild();
+    }
+
+    private DebugMechRoster debugMechRoster(Mission mission) {
+        if (!DevConfig.DEBUG_MECH_SUPPORT_PICKER || mission == null
+                || !mission.source.isDebug()) return null;
+        long seed = 31L * mission.id.hashCode() + debugMechRoll;
+        return DebugMechRoster.randomized(debugMechCount, seed);
+    }
+
+    private static String debugMechSummary(DebugMechRoster roster) {
+        if (roster == null || roster.count() == 0) return "No player mech drops";
+        int bulwarks = 0;
+        int hounds = 0;
+        int siroccos = 0;
+        for (MechVariant variant : roster.variants()) {
+            if (variant == MechVariant.BULWARK) bulwarks++;
+            else if (variant == MechVariant.HOUND) hounds++;
+            else if (variant == MechVariant.SIROCCO) siroccos++;
+        }
+        List<String> parts = new ArrayList<>();
+        if (bulwarks > 0) parts.add(bulwarks + "x Bulwark");
+        if (hounds > 0) parts.add(hounds + "x Hound");
+        if (siroccos > 0) parts.add(siroccos + "x Sirocco");
+        int drops = (roster.count() + MechSupport.LANCE_SIZE - 1)
+                / MechSupport.LANCE_SIZE;
+        return drops + (drops == 1 ? " lance · " : " lances · ")
+                + String.join(" · ", parts);
+    }
 
     /** Exact debug-only transport type/count controls. */
     private float buildDebugTransportPicker(Mission mission, float x, float y,
@@ -1041,7 +1129,8 @@ public class BriefingScreen implements Screen {
                 m.source == MissionSource.STATIONING ? FlybyRoster.EMPTY : debugWings(),
                 selectedPowerIds,
                 m.source == MissionSource.STATIONING
-                        ? java.util.Collections.emptyList() : committedPowerSourceMembers());
+                        ? java.util.Collections.emptyList() : committedPowerSourceMembers(),
+                debugMechRoster(m));
         if (m.contractId >= 0L && campaignScript != null) {
             int day = Global.getSector() != null
                     ? CampaignClock.day() : 0;
