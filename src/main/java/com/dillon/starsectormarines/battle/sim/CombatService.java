@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
 /**
@@ -116,7 +117,53 @@ public final class CombatService {
     }
 
     public long targetId(long id) { return entityWorld.getLong(id, components.COMBAT, BattleComponents.COMBAT_TARGET_ID); }
-    public void setTargetId(long id, long v) { entityWorld.setLong(id, components.COMBAT, BattleComponents.COMBAT_TARGET_ID, v); }
+
+    /**
+     * Selects the unit's current threat and starts its experience-scaled
+     * registration delay when that threat is new. Reasserting the same threat
+     * is free, so per-tick target maintenance never restarts the clock.
+     */
+    public void setTargetId(long id, long v) {
+        entityWorld.setLong(id, components.COMBAT, BattleComponents.COMBAT_TARGET_ID, v);
+        registerThreat(id, v);
+    }
+
+    public long reflexTargetId(long id) {
+        return entityWorld.getLong(id, components.COMBAT, BattleComponents.COMBAT_REFLEX_TARGET_ID);
+    }
+
+    public void setReflexTargetId(long id, long v) {
+        entityWorld.setLong(id, components.COMBAT, BattleComponents.COMBAT_REFLEX_TARGET_ID, v);
+    }
+
+    public float reflexTimer(long id) {
+        return entityWorld.getFloat(id, components.COMBAT, BattleComponents.COMBAT_REFLEX_TIMER);
+    }
+
+    public void setReflexTimer(long id, float v) {
+        entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_REFLEX_TIMER,
+                Math.max(0f, v));
+    }
+
+    /**
+     * Observes a threat without changing the unit's pursuit target. This is
+     * the opportunity-fire seam: a passing target still has to be registered,
+     * but it does not pull the unit away from its current objective.
+     */
+    public void registerThreat(long id, long threatId) {
+        if (!usesInfantryTraining(id)) return;
+        if (reflexTargetId(id) == threatId) return;
+        setReflexTargetId(id, threatId);
+        setReflexTimer(id, threatId == 0L
+                ? 0f
+                : soldierProfile(id).experienceTier().reflexDelaySeconds);
+    }
+
+    private boolean usesInfantryTraining(long id) {
+        UnitType type = (UnitType) entityWorld.getObject(id, components.IDENTITY,
+                BattleComponents.IDENTITY_TYPE);
+        return type != null && type.usesInfantryTraining();
+    }
 
     public int burstRemaining(long id) { return entityWorld.getInt(id, components.COMBAT, BattleComponents.COMBAT_BURST_REMAINING); }
     public void setBurstRemaining(long id, int v) { entityWorld.setInt(id, components.COMBAT, BattleComponents.COMBAT_BURST_REMAINING, v); }
@@ -132,10 +179,14 @@ public final class CombatService {
      * inline: {@code targetId} to shoot this tick, the {@code stance} for the
      * shot (stored as its ordinal), and whether a successful fire should
      * chain into {@code RepositionToCover} same-tick. {@code
+     * setFireIntent} also registers the target as an observed threat so
+     * opportunistic fire that deliberately leaves the pursuit target alone
+     * still obeys the reflex passive. {@code
      * battle.combat.FiringSystem} is the sole reader; it clears {@link
      * #fireTargetId} every tick whether or not it fired.
      */
     public void setFireIntent(long id, long targetId, FireStance stance, boolean repositionAfter) {
+        registerThreat(id, targetId);
         entityWorld.setLong(id, components.COMBAT, BattleComponents.COMBAT_FIRE_TARGET_ID, targetId);
         entityWorld.setInt(id, components.COMBAT, BattleComponents.COMBAT_FIRE_STANCE, stance.ordinal());
         entityWorld.setInt(id, components.COMBAT, BattleComponents.COMBAT_FIRE_REPOSITION, repositionAfter ? 1 : 0);

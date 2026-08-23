@@ -5,9 +5,11 @@ import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.infantry.RepositionToCover;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.CombatService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
@@ -29,17 +31,20 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * shot, same tick). Target <em>selection</em> and every posture-specific
  * pre-gate — leash windows, portal triggers, opportune picks, rocket-branch
  * suppression — stay in the behavior; this system applies only the uniform
- * gate every one of those fire sites duplicated inline: cooldown ready,
- * target in range, and line-of-sight. <b>Consume-once</b>: {@code
+ * gate every one of those fire sites duplicated inline: threat registered,
+ * cooldown ready, target in range, and line-of-sight. <b>Consume-once</b>: {@code
  * fireTargetId} is cleared every tick whether or not the shot actually
  * fired, so a stale intent (the behavior didn't run again this tick, or
  * wrote a hold) can never re-fire on a later tick.
  *
- * <p><b>The decrement is NOT here.</b> {@code InfantryUnitPrep.tickCooldowns}
- * stays the canonical once-per-unit cooldown decrement — it's coupled to the
+ * <p><b>The weapon-cooldown decrement is NOT here.</b> {@code
+ * InfantryUnitPrep.tickCooldowns} stays the canonical once-per-unit cooldown decrement — it's coupled to the
  * mid-aim short-circuit (cooldowns freeze during the rocket-aim window) and
  * the secondary/reposition cooldowns, concerns this system has no business
- * owning. By the time this system runs, {@code cooldownTimer} already
+ * owning. The separate reflex-registration timer <em>does</em> advance here
+ * because registration follows the global combat clock even when a soldier
+ * has no fire intent or active squad behavior. By the time this system runs,
+ * {@code cooldownTimer} already
  * reflects this tick's decrement (it ran earlier, during the behavior
  * dispatch that wrote the intent); this system only ever reads it and
  * resets it on a fire.
@@ -68,8 +73,10 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * (still before {@code infantry.tick()}'s burst continuation, so the burst
  * continuation sees this tick's {@code beginBurst} state exactly as it did
  * when postures fired inline). Within-tick shot ordering across units
- * shifts as a result; cadence (shots per unit per second) is unchanged —
- * see the story's cadence golden test. Because combat effects now defer to
+ * shifts as a result; once a threat is registered, cadence (shots per unit
+ * per second) is unchanged — see the story's cadence golden test. A newly
+ * selected threat intentionally delays only the first primary shot. Because
+ * combat effects now defer to
  * the same barrier the old parallel path used, the residual behavioral
  * deltas are narrow: (i) the post-advance range/LoS re-check this system
  * applies is conservative-only (can suppress a fire the old inline gate
@@ -109,8 +116,23 @@ public final class FiringSystem {
             float[] attackRange = t.floats(components.COMBAT, BattleComponents.COMBAT_ATTACK_RANGE).array();
             int[] fireStance = t.ints(components.COMBAT, BattleComponents.COMBAT_FIRE_STANCE).array();
             int[] fireReposition = t.ints(components.COMBAT, BattleComponents.COMBAT_FIRE_REPOSITION).array();
+            long[] reflexTarget = t.longs(components.COMBAT, BattleComponents.COMBAT_REFLEX_TARGET_ID).array();
+            float[] reflexTimer = t.floats(components.COMBAT, BattleComponents.COMBAT_REFLEX_TIMER).array();
+            Object[] unitType = t.objects(components.IDENTITY, BattleComponents.IDENTITY_TYPE).array();
 
             for (int r = 0, n = t.rowCount(); r < n; r++) {
+                // Reflex registration advances on the global combat clock, not
+                // on an AI replan or fire attempt. A unit can therefore finish
+                // registering a threat while closing on it, and squadless test
+                // or scripted combatants do not freeze the passive.
+                if (reflexTimer[r] > 0f) {
+                    float remaining = reflexTimer[r] - BattleSimulation.TICK_DT;
+                    // Treat sub-microsecond residue as zero so authored delays
+                    // that are exact tick multiples do not acquire a phantom
+                    // extra frame from float subtraction.
+                    reflexTimer[r] = remaining <= 1e-6f ? 0f : remaining;
+                }
+
                 long ft = fireTarget[r];
                 if (ft == 0L) continue; // no intent — hold fire
 
@@ -121,6 +143,12 @@ public final class FiringSystem {
                 long shooterId = t.entityAt(r);
                 if (!roster.isAliveById(shooterId)) continue; // killed earlier this walk
                 if (!roster.isLive(ft)) continue; // target released (death-in-flight)
+
+                UnitType type = (UnitType) unitType[r];
+                if (type.usesInfantryTraining()
+                        && (reflexTarget[r] != ft || reflexTimer[r] > 0f)) {
+                    continue;
+                }
 
                 if (cooldownTimer[r] > 0f) continue;
                 int sx = w.cellX(shooterId);

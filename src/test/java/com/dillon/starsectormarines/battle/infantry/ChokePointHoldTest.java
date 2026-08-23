@@ -153,9 +153,11 @@ public class ChokePointHoldTest {
         assertEquals(attacker, sim.combat().fireTargetId(d1),
                 "enemy on portal cell + LoS + range → defender authors a fire intent");
 
-        // FiringSystem (not execute() itself) applies the cooldown gate and
-        // fires — drive it directly to observe the same on-tick burst the
-        // trigger existed to express.
+        // This test owns the choke action's trigger, not the independent
+        // experience/reflex contract. Fast-forward the registration window,
+        // then drive FiringSystem directly to observe the shot the trigger
+        // exists to express.
+        sim.combat().setReflexTimer(d1, 0f);
         new FiringSystem(sim.getGrid(), sim.getRoster()).tick(sim);
 
         assertTrue(sim.world().cooldownTimer(d1) > 0f,
@@ -193,9 +195,12 @@ public class ChokePointHoldTest {
         assertEquals(attacker, sim.combat().fireTargetId(d1));
         assertEquals(attacker, sim.combat().fireTargetId(d2));
 
-        // Both holders' intents land on the same FiringSystem walk — the
-        // deterministic concentrated-burst property the action exists to
-        // express.
+        // Reflex timing has its own focused contract. Both same-tier holders
+        // have completed registration here so their intents land on the same
+        // FiringSystem walk — the deterministic concentrated-burst property
+        // this action exists to express.
+        sim.combat().setReflexTimer(d1, 0f);
+        sim.combat().setReflexTimer(d2, 0f);
         new FiringSystem(sim.getGrid(), sim.getRoster()).tick(sim);
 
         assertTrue(sim.world().cooldownTimer(d1) > 0f, "d1 must have fired this tick");
