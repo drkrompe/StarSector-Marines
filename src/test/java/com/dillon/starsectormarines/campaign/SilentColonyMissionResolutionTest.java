@@ -10,7 +10,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -215,15 +214,26 @@ class SilentColonyMissionResolutionTest {
                                AbandonedColonyArchiveOutcome archive,
                                long seed, int outcomeMarket, int atRisk,
                                int representatives, int evacuated) {
-            return new MissionOutcome(false, missionId, "Silent Colony",
-                    MissionType.EXTRACTION, RiskLevel.HIGH, source,
-                    payout, payout, 8, 2,
-                    null, null, null, null, 0, 0f, null,
-                    "Hesperus Ruins", null, "neutral",
-                    -1L, eventId, outcomeMarket, seed, atRisk, rescued,
-                    representatives, evacuated, archive,
-                    0, 0, 0, Collections.emptySet(),
-                    Collections.emptySet(), Collections.emptySet());
+            return MissionOutcome.builder()
+                    .missionId(missionId)
+                    .missionName("Silent Colony")
+                    .missionType(MissionType.EXTRACTION)
+                    .risk(RiskLevel.HIGH)
+                    .missionSource(source)
+                    .payoutBase(payout)
+                    .payoutEarned(payout)
+                    .marinesEngaged(8)
+                    .marinesLost(2)
+                    .targetPlanetName("Hesperus Ruins")
+                    .targetFactionId("neutral")
+                    .campaignEventId(eventId)
+                    .campaignEventMarketId(outcomeMarket)
+                    .campaignEventThreatSeed(seed)
+                    .civiliansAtRisk(atRisk)
+                    .civiliansRescued(rescued)
+                    .evacuationReport(representatives, evacuated)
+                    .colonyArchiveOutcome(archive)
+                    .build();
         }
     }
 }

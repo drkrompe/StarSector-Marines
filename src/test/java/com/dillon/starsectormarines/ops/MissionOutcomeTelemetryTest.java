@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryRow;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
-import com.dillon.starsectormarines.campaign.AbandonedColonyArchiveOutcome;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
@@ -51,15 +50,14 @@ class MissionOutcomeTelemetryTest {
 
     @Test
     void anOutcomeBuiltWithoutABattleCarriesNoTelemetry() {
-        MissionOutcome outcome = new MissionOutcome(true, "no-battle", "No Battle",
-                MissionType.ASSAULT, RiskLevel.MEDIUM, MissionSource.GENERATED,
-                0, 0, 0, 0,
-                null, null, null, null,
-                0, 0f, null,
-                null, null, null,
-                -1L, -1L, -1, -1L, 0, -1,
-                -1, -1, AbandonedColonyArchiveOutcome.NONE, 0, 0, 0,
-                Set.of(), Set.of(), Set.of());
+        MissionOutcome outcome = MissionOutcome.builder()
+                .victory(true)
+                .missionId("no-battle")
+                .missionName("No Battle")
+                .missionType(MissionType.ASSAULT)
+                .risk(RiskLevel.MEDIUM)
+                .missionSource(MissionSource.GENERATED)
+                .build();
 
         assertTrue(outcome.soldierTelemetry.isEmpty(),
                 "the telemetry-free overload is what every campaign-side caller uses");
@@ -79,15 +77,16 @@ class MissionOutcomeTelemetryTest {
     }
 
     private static MissionOutcome outcome(Map<String, CombatTelemetryRow> telemetry) {
-        return new MissionOutcome(true, "telemetry-test", "Telemetry Test",
-                MissionType.ASSAULT, RiskLevel.MEDIUM, MissionSource.GENERATED,
-                0, 0, 1, 0,
-                null, null, null, null,
-                0, 0f, null,
-                null, null, null,
-                -1L, -1L, -1, -1L, 0, -1,
-                -1, -1, AbandonedColonyArchiveOutcome.NONE, 0, 0, 0,
-                Collections.singleton("soldier-1"), Set.of(), Set.of(),
-                telemetry);
+        return MissionOutcome.builder()
+                .victory(true)
+                .missionId("telemetry-test")
+                .missionName("Telemetry Test")
+                .missionType(MissionType.ASSAULT)
+                .risk(RiskLevel.MEDIUM)
+                .missionSource(MissionSource.GENERATED)
+                .marinesEngaged(1)
+                .survivingSoldierIds(Collections.singleton("soldier-1"))
+                .soldierTelemetry(telemetry)
+                .build();
     }
 }

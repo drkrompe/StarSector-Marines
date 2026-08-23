@@ -229,14 +229,22 @@ counters.
   debrief ever wants a timeline, that is a new shape, not a widening of this
   one.
 
-### Follow-up worth recording
+### Follow-up worth recording — RESOLVED
 
-`MissionOutcome` now has **six constructors and thirty-six positional
-parameters** on the canonical one. Adding the telemetry map kept the blast
-radius to two edits, but the class is past the point where a positional
-constructor is readable, and the next field added will be worse. A builder,
-or grouping the frozen battle report into its own value object, is the
-obvious fix — out of scope here, but it should not be put off much longer.
+`MissionOutcome` came out of this story with **six constructors and
+thirty-six positional parameters** on the canonical one. Adding the telemetry
+map kept the blast radius to two edits, but the class was past the point where
+a positional constructor is readable.
+
+Closed immediately after S3: all six constructors are gone, replaced by
+`MissionOutcome.builder()` and one private constructor taking the builder.
+Defaults are the "nothing to report" sentinels the outcome already normalized
+to, so a caller names only the fields it knows — the two campaign-resolution
+fixtures dropped from twenty-eight and thirty-five positional arguments to
+thirteen and eighteen named ones, and the no-battle fixture in
+`MissionOutcomeTelemetryTest` went from thirty-five arguments to six.
+`Builder.mission(Mission)` copies the fourteen fields the outcome inherits
+verbatim from the contract; `Builder.captain(MarineCaptain)` is null-safe.
 
 ## Out of scope
 
