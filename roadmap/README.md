@@ -142,13 +142,13 @@ universe over time, not retrofitted into intel slots.
   (`4e7089d0`), propagate through fine-connectivity-aware 8×8 tactical blocks,
   and expose four read-only debug heatmaps. No commander assignments consume
   the fields yet.
-- **Combat durability** *(implementation starting)* — a real armor pool now has
-  a contracted place in front of structure, with weapon penetration replacing
-  target-type hardened multipliers. The model separates mech endurance from
-  weapon effectiveness, preserves cover and wall boundaries, and provides one
-  armor-break transition for AI, morale, telemetry, and presentation. D1 is
-  the active foundation slice; decision, evidence/UI, and measured balance
-  follow-ons are planned. See `combat-durability-nouns.md` and its adjacent
+- **Combat durability** *(D1 shipped; D2 planned)* — actors now carry an
+  optional live armor pool and rating in front of structure, while every live
+  damage path transports weapon penetration instead of target-type damage
+  multipliers. Infantry patterns, mech variants, turrets, and drone hubs have
+  initial profiles behind one allocation-free resolver that preserves cover
+  and wall boundaries. Armor-aware decisions, split evidence/UI, and measured
+  balance remain follow-ons. See `combat-durability-nouns.md` and its adjacent
   open-story board.
 - **Progression** *(in progress)* — a cross-tier track covering the
   meta-progression axes: weapon lethality and equipment tiering, earned

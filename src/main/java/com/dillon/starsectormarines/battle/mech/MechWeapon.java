@@ -61,7 +61,7 @@ public enum MechWeapon {
     CHAINGUN("Chaingun",
              "chaingun_fire",
              new Color(0xFF, 0xE8, 0xC0),
-             30f, 13.5f, 0.55f, 2.00f, 0.4f,
+             30f, 13.5f, 0.55f, 2.00f, 5f,
              ImpactProfile.KINETIC,
              12, 0.06f,
              "graphics/missiles/shell_small_yellow.png", 0.18f, 0.10f,
@@ -76,7 +76,7 @@ public enum MechWeapon {
     LINEAR_CANNON("Linear Cannon",
                   "needler_fire",
                   new Color(0xB8, 0xE8, 0xFF),
-                  32f, 27.0f, 0.68f, 2.80f, 0.6f,
+                  32f, 27.0f, 0.68f, 2.80f, 8f,
                   ImpactProfile.KINETIC,
                   2, 0.12f,
                   "graphics/missiles/shell_large_blue.png", 0.20f, 0.14f,
@@ -96,7 +96,7 @@ public enum MechWeapon {
     HEAVY_CANNON("Heavy Cannon",
                  "hellbore_fire",
                  new Color(0xFF, 0xD0, 0x88),
-                 26f, 45.0f, 0.76f, 2.50f, 3.0f,
+                 26f, 45.0f, 0.76f, 2.50f, 18f,
                  ImpactProfile.CANNON_HE,
                  1, 0f,
                  "graphics/missiles/shell_hellbore.png", 0.34f, 0.30f,
@@ -112,7 +112,7 @@ public enum MechWeapon {
     SRM_POD("SRM Pod",
             "annihilator_fire",
             new Color(0xFF, 0xC0, 0x80),
-            18f, 49.5f, 0.55f, 5.50f, 2.0f,
+            18f, 49.5f, 0.55f, 5.50f, 14f,
             ImpactProfile.HE,
             4, 0.10f,
             "graphics/missiles/missile_SRM.png", 0.40f, 0.55f,
@@ -134,7 +134,7 @@ public enum MechWeapon {
     LRM_ARTILLERY("LRM Artillery",
                   "pilum_lrm_fire",
                   new Color(0xC8, 0xD8, 0xFF),
-                  40f, 81.0f, 0.55f, 9.00f, 2.5f,
+                  40f, 81.0f, 0.55f, 9.00f, 16f,
                   ImpactProfile.HE,
                   5, 0.11f,
                   "graphics/missiles/missile_LRM.png", 0.65f, 1.40f,
@@ -161,8 +161,8 @@ public enum MechWeapon {
     public final float accuracy;
     /** Sim-seconds between trigger pulls. For CHAINGUN this is between bursts; for SRM between salvos; for LRM between shots. */
     public final float cooldown;
-    /** Damage multiplier against hardened targets, including turrets, mechs, and objective hubs. */
-    public final float vsTurretMult;
+    /** Efficiency input against actor armor. */
+    public final float penetration;
     public final ImpactProfile impactProfile;
     /** Projectiles per trigger pull. CHAINGUN burst (12), SRM salvo (4), LRM salvo (5). */
     public final int burstCount;
@@ -217,7 +217,7 @@ public enum MechWeapon {
      */
     public final float wallDamageRadius;
     MechWeapon(String displayName, String fireSoundId, Color tracerColor,
-               float range, float damage, float accuracy, float cooldown, float vsTurretMult,
+               float range, float damage, float accuracy, float cooldown, float penetration,
                ImpactProfile impactProfile,
                int burstCount, float burstSpacing,
                String projectileSpritePath, float projectileVisualCells, float flightSec,
@@ -230,7 +230,7 @@ public enum MechWeapon {
         this.damage = damage;
         this.accuracy = accuracy;
         this.cooldown = cooldown;
-        this.vsTurretMult = vsTurretMult;
+        this.penetration = penetration;
         this.impactProfile = impactProfile;
         this.burstCount = burstCount;
         this.burstSpacing = burstSpacing;

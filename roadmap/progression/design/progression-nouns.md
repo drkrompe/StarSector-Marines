@@ -1,8 +1,8 @@
 # Progression nouns
 
-Status: ACTIVE — 12 open stories; infantry armor is aligning with combat durability
+Status: ACTIVE — 12 open stories; issued infantry armor now supplies live durability profiles
 Written: 2026-08-23
-Updated: 2026-08-23 — shipped faction-neutral smoke utility and aligned issued armor with the combat-durability contract.
+Updated: 2026-08-23 — shipped faction-neutral smoke utility and migrated issued armor from bonus HP/reduction to live armor pool and rating.
 
 ## Purpose
 
@@ -101,9 +101,9 @@ tradeoffs. Some authored patterns are not presently reachable by the live
 unlock ladder; their existence is not evidence of a shipped acquisition path.
 The pattern owns the deployed armor pool, rating, movement modifier, and
 incoming-accuracy tradeoff; `combat-durability-nouns.md` owns how battle damage
-removes that armor and exposed structure. The current bonus-HP and permanent
-damage-reduction representation is transitional until
-`d1-armor-structure-foundation.md` ships.
+removes that armor and exposed structure. Structure remains the platform's base
+pool; armor no longer adds health or applies a permanent damage-reduction
+multiplier after it breaks.
 
 Each billet has at most one special-equipment slot. The item is a stable
 loadout identity with a typed activation: weapon-like specials reference the
@@ -221,9 +221,6 @@ The following are direction, not current behavior:
 - Give only traits with an observable, domain-appropriate consequence a
   mechanic, and define a deliberate acquisition model before promising
   level-up rewards.
-- Replace infantry armor's bonus-health and permanent-reduction proxy with the
-  armor pool and rating supplied to `combat-durability-nouns.md`; keep armor
-  acquisition and loadout authority here.
 
 ## Invariants for future work
 

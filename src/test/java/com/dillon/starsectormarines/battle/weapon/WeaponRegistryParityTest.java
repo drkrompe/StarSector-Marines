@@ -64,7 +64,7 @@ class WeaponRegistryParityTest {
         assertEquals(32f, rocket.range(), EPS);
         assertEquals(162f, rocket.damage(), EPS);
         assertEquals(0.85f, rocket.accuracy(), EPS);
-        assertEquals(3.5f, rocket.vsTurretMult(), EPS);
+        assertEquals(18f, rocket.penetration(), EPS);
         assertEquals(1.5f, rocket.aoeRadius(), EPS);
         assertEquals(50, rocket.wallDamage());
         assertEquals(0.65f, rocket.aimDuration(), EPS);
@@ -77,7 +77,7 @@ class WeaponRegistryParityTest {
         assertEquals("weapon.anti-materiel-rifle", amr.def().id);
         assertEquals(4, amr.startingAmmo());
         assertTrue(amr.range() > MarineWeapon.DMR.range());
-        assertTrue(amr.vsTurretMult() > 1f);
+        assertEquals(18f, amr.penetration(), EPS);
         assertEquals(0f, amr.aoeRadius(), EPS);
         assertEquals(0, amr.wallDamage());
         assertNull(amr.projectileSpritePath());
@@ -86,7 +86,7 @@ class WeaponRegistryParityTest {
 
     @Test
     void fieldRifleMatchesItsShippedValues() {
-        assertSim(MarineWeapon.FIELD_RIFLE, 22f, 14.0f, 0.28f, 1.15f, 0.25f,
+        assertSim(MarineWeapon.FIELD_RIFLE, 22f, 14.0f, 0.28f, 1.15f, 7f,
                 1, 0f, 0.42f, 0.75f, 48f);
         assertPresentation(MarineWeapon.FIELD_RIFLE, new Color(0xFF, 0xD0, 0x88),
                 ImpactProfile.RIFLE, "graphics/missiles/shell_small_yellow.png", 0.18f,
@@ -97,7 +97,7 @@ class WeaponRegistryParityTest {
 
     @Test
     void pulseRifleMatchesItsShippedValues() {
-        assertSim(MarineWeapon.PULSE_RIFLE, 24f, 9.0f, 0.35f, 1.0f, 0.30f,
+        assertSim(MarineWeapon.PULSE_RIFLE, 24f, 9.0f, 0.35f, 1.0f, 5f,
                 3, 0.09f, 0.30f, 0.4f, 55f);
         assertPresentation(MarineWeapon.PULSE_RIFLE, new Color(0x80, 0xFF, 0x80),
                 ImpactProfile.RIFLE, null, 0f, "pulse_laser_fire");
@@ -107,7 +107,7 @@ class WeaponRegistryParityTest {
 
     @Test
     void machineGunMatchesItsShippedValues() {
-        assertSim(MarineWeapon.SMG, 16f, 5.4f, 0.50f, 0.50f, 0.30f,
+        assertSim(MarineWeapon.SMG, 16f, 5.4f, 0.50f, 0.50f, 3f,
                 3, 0.07f, 0.60f, 1.4f, 45f);
         assertPresentation(MarineWeapon.SMG, new Color(0xFF, 0xE8, 0xC0),
                 ImpactProfile.RIFLE, "graphics/missiles/shell_small_yellow.png", 0.15f,
@@ -118,7 +118,7 @@ class WeaponRegistryParityTest {
 
     @Test
     void railgunMatchesItsShippedValues() {
-        assertSim(MarineWeapon.DMR, 32f, 18.0f, 0.55f, 1.10f, 0.40f,
+        assertSim(MarineWeapon.DMR, 32f, 18.0f, 0.55f, 1.10f, 11f,
                 1, 0f, 0.10f, 0.15f, 110f);
         assertPresentation(MarineWeapon.DMR, new Color(0xE0, 0xF0, 0xFF),
                 ImpactProfile.KINETIC, null, 0f, "railgun_fire");
@@ -128,7 +128,7 @@ class WeaponRegistryParityTest {
 
     @Test
     void dronePulseMatchesItsShippedValues() {
-        assertSim(MarineWeapon.DRONE_PULSE, 26f, 7.2f, 0.40f, 1.0f, 0.30f,
+        assertSim(MarineWeapon.DRONE_PULSE, 26f, 7.2f, 0.40f, 1.0f, 5f,
                 2, 0.10f, 0.35f, 0.5f, 55f);
         assertPresentation(MarineWeapon.DRONE_PULSE, new Color(0x60, 0xCF, 0xFF),
                 ImpactProfile.RIFLE, null, 0f, "pulse_laser_fire");
@@ -158,7 +158,7 @@ class WeaponRegistryParityTest {
     }
 
     private static void assertSim(MarineWeapon weapon, float range, float damage,
-                                  float accuracy, float cooldown, float vsHardened,
+                                  float accuracy, float cooldown, float penetration,
                                   int burstCount, float burstSpacing,
                                   float accuracyFalloff, float hitSpread,
                                   float roundVelocity) {
@@ -166,7 +166,7 @@ class WeaponRegistryParityTest {
         assertEquals(damage, weapon.damage(), EPS, weapon + " damage");
         assertEquals(accuracy, weapon.accuracy(), EPS, weapon + " accuracy");
         assertEquals(cooldown, weapon.cooldown(), EPS, weapon + " cooldown");
-        assertEquals(vsHardened, weapon.vsTurretMult(), EPS, weapon + " vs-hardened multiplier");
+        assertEquals(penetration, weapon.penetration(), EPS, weapon + " penetration");
         assertEquals(burstCount, weapon.burstCount(), weapon + " burst count");
         assertEquals(burstSpacing, weapon.burstSpacing(), EPS, weapon + " burst spacing");
         assertEquals(accuracyFalloff, weapon.accuracyFalloff(), EPS, weapon + " accuracy falloff");

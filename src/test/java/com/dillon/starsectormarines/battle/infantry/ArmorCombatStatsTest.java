@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ArmorCombatStatsTest {
 
     @Test
-    void armorSeedsHealthMobilityEvasionAndDamageReduction() {
+    void armorSeedsSeparatePoolRatingMobilityAndEvasion() {
         NavigationGrid grid = new NavigationGrid(12, 12);
         for (int y = 0; y < 12; y++) {
             for (int x = 0; x < 12; x++) grid.setWalkableFloor(x, y);
@@ -23,19 +23,22 @@ class ArmorCombatStatsTest {
         BattleSimulation sim = new BattleSimulation(grid, new CellTopology(12, 12));
         MarineArmorPattern armor = MarineArmorPattern.CHARCOAL;
         EntitySpec spec = new EntitySpec("armored", Faction.MARINE, UnitType.MARINE, 5, 5)
-                .armor(armor.bonusHp, armor.damageReduction,
+                .armor(armor.armorPool, armor.armorRating,
                         armor.moveSpeedMult, armor.incomingAccuracyMult);
         long marine = sim.spawn(spec);
 
-        assertEquals(30f, sim.world().maxHp(marine), 1e-6f);
-        assertEquals(30f, sim.world().hp(marine), 1e-6f);
+        assertEquals(25f, sim.world().maxHp(marine), 1e-6f);
+        assertEquals(25f, sim.world().hp(marine), 1e-6f);
+        assertEquals(9f, sim.world().armor(marine), 1e-6f);
+        assertEquals(8f, sim.world().armorRating(marine), 1e-6f);
         assertEquals(UnitType.MARINE.moveSpeed * 0.96f,
                 sim.world().moveSpeed(marine), 1e-6f);
-        assertEquals(0.78f, sim.world().damageTakenMult(marine), 1e-6f);
+        assertEquals(1f, sim.world().damageTakenMult(marine), 1e-6f);
         assertEquals(0.96f, sim.world().incomingAccuracyMult(marine), 1e-6f);
 
-        sim.applyDamage(marine, 10f, 1f, 0f);
-        assertEquals(22.2f, sim.world().hp(marine), 1e-6f);
+        sim.applyDamage(marine, 10f, 5f, 0f);
+        assertEquals(25f, sim.world().hp(marine), 1e-6f);
+        assertEquals(2.375f, sim.world().armor(marine), 1e-6f);
     }
 
     @Test
@@ -45,8 +48,45 @@ class ArmorCombatStatsTest {
 
         assertTrue(scout.moveSpeedMult > 1f);
         assertTrue(scout.incomingAccuracyMult < heavy.incomingAccuracyMult);
-        assertTrue(heavy.damageReduction > scout.damageReduction);
-        assertTrue(heavy.bonusHp > scout.bonusHp);
+        assertTrue(heavy.armorRating > scout.armorRating);
+        assertTrue(heavy.armorPool > scout.armorPool);
         assertTrue(heavy.moveSpeedMult < scout.moveSpeedMult);
+    }
+
+    @Test
+    void armorlessProfileKeepsMobilityAndEvasionWithoutArmorCapability() {
+        BattleSimulation sim = arena();
+        MarineArmorPattern armorless = MarineArmorPattern.ARMORLESS;
+        long marine = sim.spawn(new EntitySpec("armorless", Faction.MARINE,
+                UnitType.MARINE, 5, 5).armor(armorless.armorPool,
+                armorless.armorRating, armorless.moveSpeedMult,
+                armorless.incomingAccuracyMult));
+
+        assertTrue(!sim.world().hasArmor(marine));
+        assertEquals(UnitType.MARINE.moveSpeed * armorless.moveSpeedMult,
+                sim.world().moveSpeed(marine), 1e-6f);
+        assertEquals(armorless.incomingAccuracyMult,
+                sim.world().incomingAccuracyMult(marine), 1e-6f);
+    }
+
+    @Test
+    void coverReducesDamageBeforeArmorEfficiency() {
+        BattleSimulation sim = arena();
+        sim.getGrid().setCoverAtFacing(5, 5, NavigationGrid.FACING_W, 2);
+        long marine = sim.spawn(new EntitySpec("covered", Faction.MARINE,
+                UnitType.MARINE, 5, 5).armor(9f, 8f));
+
+        sim.applyDamage(marine, 10f, 5f, 0f);
+
+        assertEquals(9f - 7f * 0.6625f, sim.world().armor(marine), 1e-6f);
+        assertEquals(25f, sim.world().hp(marine), 1e-6f);
+    }
+
+    private static BattleSimulation arena() {
+        NavigationGrid grid = new NavigationGrid(12, 12);
+        for (int y = 0; y < 12; y++) {
+            for (int x = 0; x < 12; x++) grid.setWalkableFloor(x, y);
+        }
+        return new BattleSimulation(grid, new CellTopology(12, 12));
     }
 }
