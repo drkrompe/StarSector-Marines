@@ -23,7 +23,7 @@ import java.util.List;
  * slot engine spreads a mech lance into a useful weapons-platform footprint
  * and a marine fireteam into a smaller tactical interval on open ground,
  * compresses either through constrained terrain, and expands it afterward.
- * Design: {@code separation-steering.md}.
+ * Design: {@code continuous-positions-nouns.md}.
  * Stateless consumer (Services/Systems shape): every field below is a
  * reusable scratch buffer, never battle state.
  *
