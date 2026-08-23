@@ -166,13 +166,21 @@ One list of everything with a deadline running against it, **sorted by days
 remaining** — not a ledger organised by contract. The player's actual
 question is "is anything about to bite me?"
 
-Three row sources, already persisted:
+Two row sources, already persisted:
 
 | Row | Field | Shipped by |
 | --- | --- | --- |
 | Pending response | `contractResponseDeadlineTick` | G31 (`g31-stationing-response-deadlines.md`) |
 | Stationing term ending | `contractExpiresTick` | G5 |
-| Offer lapsing | `contractOfferExpiresTick` | offer expiry |
+
+**Lapsing offers are deliberately not here.** *Revised 2026-08-22.* This pane
+carries obligations, and obligations **bite** — a missed response deadline
+costs reputation and loses the garrison, a term ending changes the company's
+income. An offer merely **lapses**: nothing bad happens, the player just does
+not get the job. Opportunities live on the board in
+C11 (`c11-the-contract-board.md`), where the action attached to them actually
+is. Mixing the two would put a row here whose only button is "fly somewhere
+else."
 
 `PlayerEventInbox.pending(state, roster, day)` already returns the
 pending-response rows as notices in exactly this order — soonest deadline
@@ -239,8 +247,9 @@ battle seam.
 2. ~~**Standing.**~~ **Shipped** (`b204c237`). Runway headline through
    `OfficerMoodReader.Snapshot`, retainer sum, MRB and employer standing,
    personnel gap, and the comms-officer line via `OfficerHeaderWidget`.
-3. **The clock.** Merged deadline list over the three sources, with
+3. **The clock.** Merged deadline list over the two obligation sources, with
    **Respond** routing through `PlayerEventPresenter.requestDeployment`.
+   Offer expiry belongs to C11 (`c11-the-contract-board.md`).
 4. **The company pane.** Strength rollup and the armory route.
 
 Slices 2–4 are independently valuable and can ship in any order after 1.
@@ -278,8 +287,9 @@ the same gate as G5, G13, and G32.
   the pane consumes the reader rather than re-deriving.
 - Retainer-income sum over a fixture contracts table, including that
   OFFERED and terminal rows contribute nothing.
-- Clock-row merge and ordering across all three sources, with ties broken
-  deterministically, and the empty case.
+- Clock-row merge and ordering across both obligation sources, with ties
+  broken deterministically, and the empty case. Plus that an OFFERED row
+  contributes nothing — the valence split is a rule, not an omission.
 - **Manual smoke (shipping gate):** the button's presence/absence across
   every core tab and the pause menu; opening from deep space; layout at
   1.0x / 1.25x / 1.5x UI scale; the armory round trip; **Respond** into a
@@ -322,11 +332,13 @@ the same gate as G5, G13, and G32.
   unconditionally at load is simplest. Gating it behind having a captain at
   all would make the early game read as an escalation, at the cost of a
   first-hour surface the player cannot find.
-- **Should the clock pane show contracts the player has not accepted?**
-  Offers lapsing is a real deadline, but an offer is only actionable at its
-  market, so a countdown here may read as a promise the screen cannot keep.
-  Worth deciding against the G32 principle that a pushed decision should be
-  answerable where it is shown.
+- ~~**Should the clock pane show contracts the player has not accepted?**~~
+  **Settled 2026-08-22: no.** Obligations bite, opportunities lapse, so they
+  are different surfaces — offer expiry moves to
+  C11 (`c11-the-contract-board.md`). The one case that would earn an offer a
+  row here is one the player has *decided on* and is flying toward, which
+  needs a watchlist that is not modelled; C11 carries that as its own open
+  question.
 - **Does Standing want a trend, not just a level?** "Four months of payroll"
   is less useful than "four months, down from seven." `MonthlyReport` carries
   the previous report, so the data is there; whether one extra number earns
