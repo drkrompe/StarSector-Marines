@@ -22,10 +22,12 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
  * cadence at the LZ) → optional OVERWATCH (armed loiter) → DEPARTING (consuming
  * the outbound queue) → GONE. No hover analog — ground vehicles drop off and leave.
  *
- * <p>Waypoints are cell-center coordinates (cellX + 0.5, cellY + 0.5) along a
- * {@link com.dillon.starsectormarines.battle.world.gen.road.RoadGraph} edge
- * sequence, in fractional world space. The terminal inbound waypoint is the LZ
- * ({@link #lzX}/{@link #lzY}) — the body teleports to it on arrival.
+ * <p>Waypoints are cell-center coordinates ({@code cellX + 0.5},
+ * {@code cellY + 0.5}) forming the cost-routed advisory corridor, with optional
+ * off-map entry/exit tails. The terminal inbound waypoint names the LZ
+ * ({@link #lzX}/{@link #lzY}); travel is body-driven through ordinary tracking
+ * and the validated terminal docking phase until the final arrival tolerance,
+ * where the state transition applies a small terminal snap as a fallback.
  */
 public final class VehicleMission {
 
@@ -34,7 +36,7 @@ public final class VehicleMission {
     /** Inbound path's cell-center coords. {@link #lzX}/{@link #lzY} repeat the last entry as a convenience. Mutable — may be replaced by a re-plan. */
     public float[] inboundX;
     public float[] inboundY;
-    /** Outbound path's cell-center coords. Same shape as inbound; usually inbound reversed for V1. Mutable — may be replaced by a re-plan. */
+    /** Outbound path's cell-center coords. Same shape as inbound. Mutable — may be replaced by a re-plan. */
     public float[] outboundX;
     public float[] outboundY;
 

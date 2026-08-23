@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.ui.retained;
 
+import com.fs.starfarer.api.Global;
+import org.lwjgl.opengl.Display;
+
 import java.awt.Color;
 
 import static org.lwjgl.opengl.GL11.GL_BLEND;
@@ -10,6 +13,8 @@ import static org.lwjgl.opengl.GL11.GL_LINE_BIT;
 import static org.lwjgl.opengl.GL11.GL_LINE_LOOP;
 import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_QUADS;
+import static org.lwjgl.opengl.GL11.GL_SCISSOR_BIT;
+import static org.lwjgl.opengl.GL11.GL_SCISSOR_TEST;
 import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_2D;
 import static org.lwjgl.opengl.GL11.GL_TEXTURE_BIT;
@@ -22,6 +27,7 @@ import static org.lwjgl.opengl.GL11.glEnd;
 import static org.lwjgl.opengl.GL11.glLineWidth;
 import static org.lwjgl.opengl.GL11.glPopAttrib;
 import static org.lwjgl.opengl.GL11.glPushAttrib;
+import static org.lwjgl.opengl.GL11.glScissor;
 import static org.lwjgl.opengl.GL11.glVertex2f;
 import static org.lwjgl.opengl.GL20.glUseProgram;
 
@@ -30,19 +36,24 @@ final class UiPainter {
 
     void paint(UiElement root, UiViewport viewport, float alphaMult) {
         glPushAttrib(GL_COLOR_BUFFER_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT
-                | GL_LINE_BIT | GL_TEXTURE_BIT);
+                | GL_LINE_BIT | GL_TEXTURE_BIT | GL_SCISSOR_BIT);
         try {
             glUseProgram(0);
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            paintElement(root, viewport, alphaMult);
+            glEnable(GL_SCISSOR_TEST);
+            Rect viewportClip = new Rect(0f, 0f, viewport.width(), viewport.height());
+            paintElement(root, viewport, alphaMult, viewportClip);
         } finally {
             glUseProgram(0);
             glPopAttrib();
         }
     }
 
-    private void paintElement(UiElement element, UiViewport viewport, float alphaMult) {
+    private void paintElement(UiElement element, UiViewport viewport, float alphaMult,
+                              Rect inheritedClip) {
+        if (inheritedClip.width() <= 0f || inheritedClip.height() <= 0f) return;
+        applyClip(viewport, inheritedClip);
         Rect rect = element.box().borderBox();
         Color background = element.paintedBackground();
         if (background != null && rect.width() > 0f && rect.height() > 0f) {
@@ -52,14 +63,26 @@ final class UiPainter {
                 && rect.width() > 0f && rect.height() > 0f) {
             outline(rect, viewport, element.borderColor(), element.borderWidth(), alphaMult);
         }
-        if (element.font() != null && element.text() != null && element.textColor() != null) {
+        Rect childClip = UiLayoutEngine.clipForChildren(
+                element.overflow(), element.box(), inheritedClip);
+        applyClip(viewport, childClip);
+        if (element.font() != null && element.text() != null && element.textColor() != null
+                && childClip.width() > 0f && childClip.height() > 0f) {
             Rect content = element.box().contentBox();
             element.font().drawString(element.text(), viewport.screenXFor(content.x()),
                     viewport.screenTopFor(content.y()), element.textColor(), alphaMult);
         }
         for (UiElement child : element.children()) {
-            paintElement(child, viewport, alphaMult);
+            paintElement(child, viewport, alphaMult, childClip);
         }
+    }
+
+    private static void applyClip(UiViewport viewport, Rect clip) {
+        FramebufferScissor scissor = FramebufferScissor.from(viewport, clip,
+                Display.getWidth(), Display.getHeight(),
+                Global.getSettings().getScreenWidth(),
+                Global.getSettings().getScreenHeight());
+        glScissor(scissor.x(), scissor.y(), scissor.width(), scissor.height());
     }
 
     private static void fill(Rect rect, UiViewport viewport, Color color, float alphaMult) {

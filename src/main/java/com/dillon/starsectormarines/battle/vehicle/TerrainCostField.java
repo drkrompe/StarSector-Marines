@@ -8,7 +8,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
  * {@link CellTopology.GroundKind}. The cost-field router (slice 1) multiplies
  * each grid step by the destination cell's cost, so search <em>prefers</em>
  * cheap terrain (roads) but will cross dearer terrain (open ground) when that
- * genuinely shortens the route. See {@code cost-field-routing/overview.md}.
+ * genuinely shortens the route. See {@code convoy-nouns.md}.
  *
  * <p>Costs are <b>multiplicative with a 1.0 road baseline</b> — nothing is
  * cheaper than a road, so the router's octile distance heuristic (which assumes

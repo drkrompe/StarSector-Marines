@@ -1,7 +1,8 @@
 # Marine Ops UI nouns
 
-Status: ACTIVE — four foundation stories open
+Status: ACTIVE — four foundation stories open; overflow clipping implemented
 Written: 2026-08-23
+Updated: 2026-08-23 — adopted MoonLight's CSS overflow contract for retained paint and hit-testing.
 
 ## Purpose
 
@@ -28,6 +29,9 @@ them.
   hit-testing consume the same box; neither independently derives geometry.
 - A **layout context** arranges a parent's children. The initial contexts are row,
   column, and stack; later capability stories may add grid and absolute placement.
+- **Overflow** is CSS's relationship between a box and content that exceeds it.
+  `visible` is the default; `hidden` and `scroll` establish the same padding-box
+  clip, while `scroll` additionally promises navigation chrome and input.
 - A **painter** projects document-space boxes into Starsector's UI-space render
   callback and restores every OpenGL state it changes.
 - A **theme** maps semantic component roles and interaction states to typography,
@@ -93,6 +97,19 @@ the retained model.
    the Java API produces and receives no privileged layout or behavior path.
 10. **Exceptional drawing stays exceptional.** A new visual does not require a new
     element kind when a canvas producer can express it.
+
+## Overflow and clipping
+
+An element paints its own background and border under the clip inherited from its
+ancestors. Its content and descendants then inherit the intersection of that clip
+and its padding box when `overflow` is `hidden` or `scroll`. This is the CSS rule:
+the border remains visible while content cannot paint through it.
+
+The one `UiLayoutEngine.clipForChildren` expression is consumed by both the painter
+and reverse-order hit test. A clipped-away child is therefore neither visible nor
+clickable. Only the OpenGL backend converts that document rectangle into physical
+framebuffer pixels; the conversion observes Starsector UI scale and flips the
+top-left document Y axis exactly once.
 
 ## Authority boundaries
 

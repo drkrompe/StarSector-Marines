@@ -66,7 +66,7 @@ are the design-stage members that extend it.
   fighter/drone data (offline reference).
 - `roadmap/backlog.md` § "Flyby fighters as real air entities" — unblocked by
   the fighter track here.
-- `roadmap/convoy/overview.md` — the ground-vehicle sibling (`GroundBody`);
+- `convoy-nouns.md` — the ground-vehicle sibling (`GroundBody`);
   same "data-driven body + steering" shape, different medium.
 - `roadmap/vanilla-combat-bridge/overview.md` — adjacent: its proxy-target
   thread is the other side of "vanilla ships and our sim interact." Ground

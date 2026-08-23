@@ -32,7 +32,7 @@ universe over time, not retrofitted into intel slots.
   generation, and multi-chamber keep all shipped. See
   [`conquest/central-keep.md`](conquest/central-keep.md) for the full
   shipped-with-details record. The battle tier's ongoing parallel tracks
-  are convoy kinematics ([`convoy/`](convoy/overview.md)), the Services/Systems + SoA refactor
+  are convoy kinematics (`convoy-nouns.md`), the Services/Systems + SoA refactor
   ([`ecs-migration/`](ecs-migration/overview.md)), fog-of-war
   (`fog-of-war-nouns.md`), and AI (GOAP + commander).
   The **feature-vertical package reorg** of `battle/` is **complete** (all
@@ -120,7 +120,12 @@ universe over time, not retrofitted into intel slots.
   Sirocco works behind one; their geometry, silhouettes, installed mounts, and
   encounter costs agree. Production admits deterministic mixed groups through
   the shared force budget, while DEBUG family delivery remains non-progression
-  playtest scaffolding. `mechs-nouns.md` carries the standing model; its
+  playtest scaffolding. The campaign Fleet Armory now also hosts a Mech Lab:
+  one persistent support squad owns its installed kit, finite replenisher
+  inventory can refit it atomically, and sourced Mech Support freezes that
+  configured squad into battle without exposing campaign objects. Chassis
+  acquisition and weapon-component inventory remain future progression.
+  `mechs-nouns.md` carries the standing model; its
   adjacent `stories.md` board tracks the remaining acceptance pass.
   Objective-advancing infantry now consumes the
   ASSAULT point unit for a faction-neutral mech-screened advance (`0daf058e`):
@@ -170,7 +175,9 @@ universe over time, not retrofitted into intel slots.
   Marine Ops is growing a retained document layer inside the existing full-canvas
   Starsector host. U1 adds the first Java tree, top-left document coordinates,
   row/column/stack layout, shared paint/hit boxes, and a dev workbench reachable
-  from Company HQ. Clipping/focus/canvas input, themes/transitions, and MoonLight-style
+  from Company HQ. U2 now ports MoonLight's CSS overflow contract: nested padding-box
+  clips govern both OpenGL paint and hit-testing through one UI-scale-aware adapter.
+  Scrolling/focus/canvas input, themes/transitions, and MoonLight-style
   `.mlx` components remain ordered follow-ons under `roadmap/ui/`; Fleet Armory is
   the first planned production conversion.
 - **Company view** *(active — C9 and C14 Slices 1–4 shipped)* — the player's force as one legible
