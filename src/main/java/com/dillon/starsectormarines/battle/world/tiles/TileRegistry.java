@@ -17,17 +17,16 @@ import java.util.Objects;
  * Runtime catalog of {@link TileDef}s loaded from {@code data/tilesets/*.tileset.json},
  * addressed by stable string id. The asset-store half of the moddable-tilesets
  * split ([[battle_services_systems]]: registry = store, fillers / renderer =
- * systems that consume it by id). See {@code roadmap/moddable-tilesets/}.
+ * systems that consume it by id). See {@code moddable-tilesets-nouns.md}.
  *
  * <p>Parsing ({@link #ingestSheet}) is decoupled from the game's
  * {@link com.fs.starfarer.api.SettingsAPI} so tests can feed a {@link JSONObject}
  * read straight off disk; {@link #loadBuiltins()} is the in-game path that pulls
  * the bundled resources and installs the result.
  *
- * <p>Phase 1a builds and validates the registry but does not yet drive
- * rendering or generation — the consumers migrate off the enums in 1b/1c. The
- * {@code TileRegistryParityTest} pins the JSON's semantics to the current enum
- * fields so that migration is provably behavior-preserving.
+ * <p>The registry is the installed authority used by generation and rendering.
+ * Parity tests pin the bundled definitions to their established visual and
+ * tactical behavior.
  */
 public final class TileRegistry {
 
@@ -36,7 +35,7 @@ public final class TileRegistry {
     /**
      * Built-in tileset resources bundled with the mod. Phase 3 (submod support)
      * replaces this fixed list with discovery + cross-mod merge; for now the
-     * sliced sheets migrated in Phase 1 are listed explicitly.
+     * bundled sheets are listed explicitly.
      */
     public static final List<String> BUILTIN_TILESETS = List.of(
             "data/tilesets/nature-tiles.tileset.json",

@@ -20,8 +20,7 @@ package com.dillon.starsectormarines.battle.world.tiles;
  * </ul>
  *
  * <p>Replaces the hardcoded origin constants + {@code pickXxx} resolvers in
- * {@code TileManifest} (moddable-tilesets Phase 1c). See
- * {@code roadmap/moddable-tilesets/overview.md}.
+ * {@code TileManifest}. See {@code moddable-tilesets-nouns.md}.
  */
 public final class GridBlockDef {
 
