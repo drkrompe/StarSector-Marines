@@ -1,10 +1,10 @@
 # Mechs
 
-Status: ACTIVE — the Bulwark/Hound/Sirocco family and production composition are implemented; battlefield tuning remains active.
+Status: ACTIVE — the specialist family, campaign support squad, first subsystem inventory, and production composition are implemented; battlefield tuning remains active.
 
 Written: 2026-08-23
 
-Updated: 2026-08-23 — onboard replenishment now sustains finite missile racks on an upgradeable cadence.
+Updated: 2026-08-23 — the Fleet Armory Mech Lab now owns a persistent support squad and finite replenisher inventory.
 
 ## Purpose
 
@@ -33,6 +33,20 @@ increasing an encounter's total armored threat.
   their weapon cooldown and ready-ammunition capacity. Replenishment repeats
   for the life of the mech; the installed component is the future item-upgrade
   seam for changing that cadence.
+- A **campaign mech** is one persistent player-owned chassis plus its doctrine
+  and installed components. It is the campaign authority that produces a
+  frozen battle loadout; the live battle mech never reaches back into it.
+- A **mech squad** is the player-facing group of up to four campaign mechs
+  configured together in the Fleet Armory. One selected active squad becomes
+  the payload when a sourced Mech Support power is committed. It is distinct
+  from the battle-lifetime lance that realizes that payload after landing.
+- **Subsystem inventory** is finite fleet stock. Installed components count
+  against owned quantity; a refit transaction returns the target mech's
+  current component before evaluating the replacement.
+- The **Mech Lab** is the Fleet Armory workspace that selects the active mech
+  squad, presents each chassis and installed loadout, and performs inventory-
+  checked refits. It is an authoring surface over campaign authorities, not a
+  second inventory or a battle debug picker.
 - A **weapon family** owns projectile behavior and presentation; a component
   turns it into a mountable rack/arm with capacity and appearance. The gun,
   mount, and chassis remain distinct authorities.
@@ -77,7 +91,10 @@ across movement, targeting geometry, collision/separation, blast contact,
 morale footprint, picking, appearance, and wreck continuity. It creates a
 loadout, whose installed mounts drive firing, ammunition, resupply, and the
 visible hardpoint layers. The role attached to that loadout feeds the mech
-planner, independently of the hardware profile.
+planner, independently of the hardware profile. Campaign support first freezes
+variant, role, and installed subsystem from the active mech squad into plain
+deployment values. The delivery power transports those values; landing then
+constructs the live loadout and installs the frozen subsystem.
 
 Defender setup produces a deterministic sequence of variants, not an
 interchangeable mech count. Risk, target conditions, and attacking force
@@ -86,8 +103,10 @@ battle setup unchanged. A DEBUG briefing holds a stable, explicitly rerollable
 family roster; support preserves that order while partitioning it into physical
 drops and coherent squads of up to four chassis. This deliberately exercises
 the real air-delivery seam but does not confer ownership, inventory, salvage,
-refit, lift, or campaign entitlement. The ordinary production Mech Support
-delivery remains Bulwark-only until a player-access story owns that choice.
+refit, lift, or campaign entitlement. Ordinary campaign state separately owns
+a starter support squad and its subsystem stock. Fleet or employer sourcing
+still determines whether Mech Support is available in an operation; ownership
+determines the payload, not the entitlement to call it.
 
 ## Laws
 
@@ -103,6 +122,10 @@ delivery remains Bulwark-only until a player-access story owns that choice.
 - Missile weapon hardware owns capacity and projectile behavior; the installed
   replenisher owns refill cadence. Upgrade content changes the subsystem rather
   than encoding reload speed in a chassis, role, or weapon definition.
+- Owned subsystem quantity includes installed copies. A failed refit changes
+  neither inventory accounting nor the target mech's installed loadout.
+- Campaign-to-battle deployment freezes values. Live battle code does not read
+  or mutate the campaign mech, squad, or fleet inventory.
 - Gun-launched HE is a ballistic shot whose timed detonation owns splash and
   structural damage. It must not be represented as a boost-ramping missile
   merely to obtain spectacle.
@@ -117,9 +140,10 @@ delivery remains Bulwark-only until a player-access story owns that choice.
 
 The live `s1-specialist-striders.md` story retains manual comparison and tuning
 of the shipped family. A future recon strider needs actual information
-mechanics and a doctrine before its hardware is added. Player variant access,
-ownership, salvage, refit, and custom-hardpoint UI are separate progression
-work, not an expansion of the debug picker. The broader weapon catalog
+mechanics and a doctrine before its hardware is added. Further chassis
+acquisition, salvage, weapon-component inventory, and custom-hardpoint refit
+are separate progression work; the first lab slice intentionally makes those
+mounts visible but read-only. The broader weapon catalog
 migration may later data-drive projectile and mount definitions, but it must
 preserve this chassis/mount/weapon authority split.
 

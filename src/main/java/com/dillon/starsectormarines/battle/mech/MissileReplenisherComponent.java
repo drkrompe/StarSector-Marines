@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import java.util.List;
+
 /**
  * Installed onboard subsystem that controls how quickly finite missile mounts
  * fabricate and load replacement trigger packs. The component is independent
@@ -16,6 +18,13 @@ public record MissileReplenisherComponent(
             new MissileReplenisherComponent(
                     "standard_replenisher", "Standard missile replenisher",
                     12f, 18f);
+    public static final MissileReplenisherComponent ACCELERATED_FEED =
+            new MissileReplenisherComponent(
+                    "accelerated_feed", "Accelerated feed system",
+                    9f, 13.5f);
+
+    private static final List<MissileReplenisherComponent> CATALOG =
+            List.of(STANDARD, ACCELERATED_FEED);
 
     public MissileReplenisherComponent {
         if (id == null || id.isBlank()) {
@@ -39,5 +48,25 @@ public record MissileReplenisherComponent(
         if (weapon == MechWeapon.SRM_POD) return srmReplenishmentSeconds;
         if (weapon == MechWeapon.LRM_ARTILLERY) return lrmReplenishmentSeconds;
         return Float.POSITIVE_INFINITY;
+    }
+
+    /** Stable item catalog shared by campaign inventory and battle loadouts. */
+    public static List<MissileReplenisherComponent> catalog() {
+        return CATALOG;
+    }
+
+    /** Returns null for an unknown persisted item id. */
+    public static MissileReplenisherComponent findById(String id) {
+        if (id == null) return null;
+        for (MissileReplenisherComponent component : CATALOG) {
+            if (component.id().equals(id)) return component;
+        }
+        return null;
+    }
+
+    /** Legacy-safe resolution for a live loadout. */
+    public static MissileReplenisherComponent resolve(String id) {
+        MissileReplenisherComponent component = findById(id);
+        return component != null ? component : STANDARD;
     }
 }

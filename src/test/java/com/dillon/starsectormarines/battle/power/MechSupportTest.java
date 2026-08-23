@@ -2,7 +2,10 @@ package com.dillon.starsectormarines.battle.power;
 
 import com.dillon.starsectormarines.battle.air.MechSupportPayload;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
+import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -165,5 +168,41 @@ public class MechSupportTest {
         assertEquals(2, hounds);
         assertEquals(1, siroccos);
         assertEquals(1, bulwarks);
+    }
+
+    @Test
+    public void campaignConfigurationInstallsFrozenDoctrineAndSubsystem() {
+        BattleSimulation sim = openSim();
+        sim.spawn(new EntitySpec("defender", Faction.DEFENDER, UnitType.MILITIA, 25, 25)
+                .health(100_000f).attackDamage(0f));
+        MechSupport power = MechSupport.configured(List.of(new MechDeploymentSpec(
+                MechVariant.HOUND, MechRole.ASSAULT,
+                MissileReplenisherComponent.ACCELERATED_FEED)));
+        sim.setCommandPowers(List.of(power));
+        sim.getCommandPowerService().requestActivation(power.id, 15, 15);
+        sim.advance(BattleSimulation.TICK_DT);
+
+        ShuttleMission mission = sim.world().mission(sim.getAirEntityIds()[0]);
+        assertEquals(1, mission.mechDeployments.length);
+        assertEquals(MissileReplenisherComponent.ACCELERATED_FEED,
+                mission.mechDeployments[0].missileReplenisher());
+
+        long mech = 0L;
+        for (int i = 0; i < 600 && mech == 0L; i++) {
+            sim.advance(BattleSimulation.TICK_DT);
+            for (int u = 0; u < sim.liveUnitCount(); u++) {
+                long candidate = sim.liveUnitAt(u);
+                if (sim.identity().faction(candidate) == Faction.MARINE
+                        && sim.identity().type(candidate) == UnitType.HEAVY_MECH) {
+                    mech = candidate;
+                    break;
+                }
+            }
+        }
+
+        assertTrue(mech != 0L);
+        assertEquals(MechRole.ASSAULT, sim.world().mechLoadout(mech).role);
+        assertEquals(MissileReplenisherComponent.ACCELERATED_FEED,
+                sim.world().mechLoadout(mech).missileReplenisher());
     }
 }

@@ -1,7 +1,9 @@
 package com.dillon.starsectormarines.battle.air;
 
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
@@ -36,7 +38,8 @@ public enum MechSupportPayload implements AirDeliveryPayload {
                 }
             }
         }
-        MechVariant variant = variantForDeboard(context.mission);
+        MechDeploymentSpec deployment = deploymentForDeboard(context.mission);
+        MechVariant variant = deployment.variant();
         EntitySpec spec = new EntitySpec("support-" + context.nextUnitName(), context.faction,
                 UnitType.HEAVY_MECH, cell[0], cell[1])
                 .mechVariant(variant)
@@ -44,8 +47,9 @@ public enum MechSupportPayload implements AirDeliveryPayload {
                         ? UnitRole.GARRISON : UnitRole.COMBATANT)
                 .squad(context.mission.squadId);
         long mech = context.spawn(spec);
-        context.attachMechLoadout(mech,
-                variant.createLoadout(variant.defaultRole));
+        MechLoadoutComponent loadout = variant.createLoadout(deployment.role());
+        loadout.installMissileReplenisher(deployment.missileReplenisher());
+        context.attachMechLoadout(mech, loadout);
         Squad squad = context.squad(context.mission.squadId);
         if (squad != null) {
             if (squad.leaderId == 0L) squad.leaderId = mech;
@@ -62,5 +66,15 @@ public enum MechSupportPayload implements AirDeliveryPayload {
             if (variant != null) return variant;
         }
         return mission.mechVariant != null ? mission.mechVariant : MechVariant.BULWARK;
+    }
+
+    private static MechDeploymentSpec deploymentForDeboard(ShuttleMission mission) {
+        if (mission.mechDeployments != null && mission.mechDeployments.length > 0) {
+            int index = Math.min(mission.deboardedThisSortie,
+                    mission.mechDeployments.length - 1);
+            MechDeploymentSpec deployment = mission.mechDeployments[index];
+            if (deployment != null) return deployment;
+        }
+        return MechDeploymentSpec.standard(variantForDeboard(mission));
     }
 }
