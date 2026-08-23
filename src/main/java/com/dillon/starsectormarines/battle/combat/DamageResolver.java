@@ -129,7 +129,13 @@ public final class DamageResolver {
         float applied = hpBefore - Math.max(0f, newHp);
         CombatTelemetryService telemetry = roster.telemetry();
         telemetry.recordDamageTaken(targetId, applied);
-        if (attackerId != CombatTelemetryService.NO_ATTACKER && attackerId != targetId) {
+        // Gated on isRecorded, not on the NO_ATTACKER sentinel alone: a convoy
+        // vehicle's turret fires with the vehicle entity as the attacker, and a
+        // vehicle carries GROUND_IDENTITY rather than IDENTITY, so the faction
+        // read below is fail-loud on one. Nothing is lost by skipping it — this
+        // block writes telemetry and nothing else, and an entity with no
+        // TELEMETRY row has nowhere to be credited.
+        if (telemetry.isRecorded(attackerId) && attackerId != targetId) {
             boolean friendly = roster.identity().faction(attackerId)
                     == roster.identity().faction(targetId);
             telemetry.recordDamageDealt(attackerId, applied, friendly);

@@ -3,7 +3,7 @@
 ## Where we are
 
 Track opened 2026-08-22 from an inventory of the shipped squad AI and
-commander ("squad of squads") tiers. Ten stories contracted (C1–C10).
+commander ("squad of squads") tiers. Eleven stories contracted (C1–C11).
 **Three have shipped work.** `c7-organization-and-ranks.md` and
 `c1-fireteam-identity-through-the-drop.md` are complete;
 `c8-lift-capacity-and-multi-pass-drops.md` has three of four slices in, and
@@ -84,7 +84,8 @@ existed to answer is **settled in game**: the ability opens the screen and the
 host dismisses cleanly. A follow-up (`8ac4116a`) fixed the pane printing an
 unknown upkeep as `Cr. 0` and gave the debug panel a day-skip that actually
 moves the clock. Slices 3 (running clocks) and 4 (roster) are next; the clocks
-pane is where G32's **Hold** finally goes.
+pane is where G32's **Hold** finally goes. `c11-the-contract-board.md` was
+contracted 2026-08-22 and takes lapsing offers off that pane.
 
 ~~C7 — Organization and ranks~~ **shipped 2026-08-22**; the record is in
 `c7-organization-and-ranks.md` under `complete/`. One consequence worth
@@ -135,7 +136,18 @@ and nothing was tuned to compensate.
    no planet, so most roster work was gated by where its button sits, not by
    any fiction. That is C10 (`c10-company-between-contracts.md`), and
    it supersedes C4's slice 3.
-7. **Take C8's capacity change now, re-tune after.** The opening ladder's
+7. **Offers are already sector-wide; only the view is local.**
+   `ContractGenerator` iterates every house in the sector and never reads the
+   player's position — the gating is two lines in
+   `MissionGenerator.generateFromContracts` (patron matches the client, market
+   matches the docked planet), which exist because a patron client inside a
+   planet interaction was the only surface there has ever been. So the board is
+   a presentation story, not a model change. Distance governs **resolution**,
+   not existence, and acceptance stays local at every tier so the patron-voice
+   machinery keeps its hook. The sector-wide feed is gated by MRB standing,
+   then a one-time activation fee, then cancellable monthly maintenance. That
+   is C11 (`c11-the-contract-board.md`).
+8. **Take C8's capacity change now, re-tune after.** The opening ladder's
    force ratios are mid-playtest against today's seats, and raising the
    floor moves them 50–100% — tuning against numbers we intend to replace
    is wasted work. Flagged in
@@ -143,6 +155,12 @@ and nothing was tuned to compensate.
 
 ### Consequences worth knowing before starting
 
+- **The offer caps are the real constraint on the board.**
+  `GLOBAL_OFFER_CAP` is 20 and `PER_PATRON_OFFER_CAP` is 1, so the sector holds
+  twenty live offers and a patron never shows a choice. Filters have nothing to
+  bite on until that moves, which is why C11's slice 1 is tuning rather than
+  UI. It also means pagination is not needed yet — `ScrollRegionWidget` exists
+  and twenty rows fit it.
 - **A derived number with no input says so.** `MonthlyReport` does not exist
   until an in-game month rolls over, and `PlayerEventInbox` is empty before any
   contract arrives, so every pane in C10 has a legitimate blank state. Render
