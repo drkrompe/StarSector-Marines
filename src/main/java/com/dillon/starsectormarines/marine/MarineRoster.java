@@ -199,6 +199,22 @@ public class MarineRoster implements Serializable {
 
     public MarineArmory armory() { return armory; }
 
+    /** Whether any line or reserve squad still points at this reusable card. */
+    public boolean isFireTeamTemplateAssigned(String cardId) {
+        if (cardId == null) return false;
+        for (MarineSquad squad : squads) {
+            for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
+                if (cardId.equals(squad.teamTemplateCardId(team))) return true;
+            }
+        }
+        return false;
+    }
+
+    /** Custom cards may be deleted only after every team has moved off them. */
+    public boolean deleteFireTeamTemplate(String cardId) {
+        return !isFireTeamTemplateAssigned(cardId) && armory.deleteTemplateCard(cardId);
+    }
+
     public List<MarineSoldier> soldiers() {
         return Collections.unmodifiableList(soldiers);
     }
