@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.marine.SpecialActivation;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
@@ -49,7 +50,11 @@ public class ShotFxTest {
     public void everySourceResolvesToANonNullComposition() {
         for (TurretKind k : TurretKind.values())      assertNotNull(ShotFx.of(turretShot(k)), "turret " + k);
         for (MarineWeapon w : MarineWeapon.values())  assertNotNull(ShotFx.of(shot(null, w, null, null)), "primary " + w);
-        for (MarineSecondary w : MarineSecondary.values()) assertNotNull(ShotFx.of(shot(null, null, w, null)), "secondary " + w);
+        for (MarineSecondary w : MarineSecondary.values()) {
+            if (w.activation() != SpecialActivation.UTILITY_SMOKE) {
+                assertNotNull(ShotFx.of(shot(null, null, w, null)), "secondary " + w);
+            }
+        }
         for (MechWeapon w : MechWeapon.values())      assertNotNull(ShotFx.of(shot(null, null, null, w)), "mech " + w);
         // No weapon source (detonations / legacy callers) → faction-default tracer.
         ShotEvent bare = new ShotEvent(0, 0, 1, 1, true, Faction.MARINE, 0.15f);
@@ -162,6 +167,7 @@ public class ShotFxTest {
     @Test
     public void marineSecondariesDeriveProjectileBodiesFromTheirWeaponDefinitions() {
         for (MarineSecondary w : MarineSecondary.values()) {
+            if (w.activation() == SpecialActivation.UTILITY_SMOKE) continue;
             ShotFx fx = ShotFx.of(shot(null, null, w, null));
             if (w.projectileSpritePath() != null) {
                 Sprite body = assertSprite(fx, "secondary " + w);

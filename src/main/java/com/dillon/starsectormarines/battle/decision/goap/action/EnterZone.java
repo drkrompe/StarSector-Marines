@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.infantry.SmokeTactics;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -141,6 +142,12 @@ public final class EnterZone extends AbstractZoneAction {
         String memberTeam = step.slotOf(member);
         if (memberTeam == null || !memberTeam.startsWith(FIRE_TEAM)) return false;
 
+        if (SmokeTactics.holdForAdvanceSmoke(squad, squad.advanceThreatId,
+                destX, destY, sim)) {
+            if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+            return true;
+        }
+
         List<List<Long>> teams = liveTeams(step, sim);
         if (teams.size() < 2) {
             clearBounding(squad);
@@ -188,10 +195,12 @@ public final class EnterZone extends AbstractZoneAction {
         for (int i = 0; i < teams.size(); i++) {
             if (i != maneuverTeam) suppressors.addAll(teams.get(i));
         }
-        if (!hasFiringMember(suppressors, threat, sim)) return false;
-
         int[] stride = nextStrideCell(squad, phase > 0);
         if (stride == null) return false;
+        boolean smokeScreensStride = sim.resolveUnit(threat) != 0L
+                && sim.getGrid().hasTransientOpacityOnLine(sim.world().cellX(threat),
+                sim.world().cellY(threat), stride[0], stride[1]);
+        if (!smokeScreensStride && !hasFiringMember(suppressors, threat, sim)) return false;
         List<TacticalScoring.BoundingPosition> positions = sim.getTacticalScoring()
                 .findBoundingPositions(bounders, threat, stride[0], stride[1], destX, destY);
         if (positions.size() != bounders.size()) return false;

@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.marine.SpecialActivation;
+import com.dillon.starsectormarines.marine.SmokeGrenadeSpec;
+
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
@@ -2022,7 +2025,10 @@ public final class ArmoryScreen implements Screen {
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, secondary.displayName(),
                 x + 190f, top - 48f, VALUE));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                "Limited-ammunition support weapon", x + 190f, top - 76f, MUTED));
+                secondary.activation() == SpecialActivation.UTILITY_SMOKE
+                        ? "Limited-ammunition tactical utility"
+                        : "Limited-ammunition support weapon",
+                x + 190f, top - 76f, MUTED));
         widgets.add(new SpriteThumbWidget(secondaryIcon(secondary), x, top - 260f, 170f, 150f));
         addWrappedText(secondaryFlavor(secondary), x + 190f, top - 112f,
                 Math.max(120f, width - 200f), MUTED, 6);
@@ -2032,6 +2038,21 @@ public final class ArmoryScreen implements Screen {
         float barX = x + 150f;
         float barW = Math.max(70f, Math.min(330f, width - 220f));
         float y = top - 368f;
+        if (secondary.activation() == SpecialActivation.UTILITY_SMOKE) {
+            SmokeGrenadeSpec smoke = secondary.smokeGrenadeSpec();
+            addStatRow("THROW RANGE", Integer.toString(Math.round(smoke.throwRange())),
+                    smoke.throwRange() / 12f, labelX, barX, y, barW, RANGE_BAR);
+            y -= 30f;
+            addStatRow("CLOUD RADIUS", fmt(smoke.cloudRadius()),
+                    smoke.cloudRadius() / 4f, labelX, barX, y, barW, VALUE);
+            y -= 30f;
+            addStatRow("DURATION", Math.round(smoke.cloudDuration()) + " sec",
+                    smoke.cloudDuration() / 18f, labelX, barX, y, barW, DPS_BAR);
+            y -= 30f;
+            addStatRow("AMMUNITION", Integer.toString(secondary.startingAmmo()),
+                    secondary.startingAmmo() / 4f, labelX, barX, y, barW, VALUE);
+            return;
+        }
         addStatRow("DAMAGE", fmt(secondary.damage()), secondary.damage() / 42f,
                 labelX, barX, y, barW, DAMAGE_BAR);
         y -= 30f;
@@ -2594,6 +2615,8 @@ public final class ArmoryScreen implements Screen {
                     + "hardened emplacements and emergency wall breaching; the blast does not distinguish friend from foe.";
             case ANTI_MATERIEL_RIFLE -> "The Breachlight braces a magnetic heavy round through armor seams "
                     + "without endangering friendlies nearby. It carries four shots and cannot breach walls.";
+            case SMOKE_GRENADE -> "Wayfarer canisters flood a crossing with dense multispectral smoke. "
+                    + "The cloud harms no one, blocks both sides equally, and buys only a few seconds to move.";
         };
     }
 
