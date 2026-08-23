@@ -98,9 +98,9 @@ public final class EngagePosture implements Action {
             if (sim.world().hasSecondaryWeapon(mid) && sim.world().secondaryAmmo(mid) > 0
                     && sim.world().secondaryCooldownTimer(mid) <= 0f
                     && TacticalScoring.isHardened(sim.identity().type(target))
-                    && dist <= sim.world().secondaryWeapon(mid).range
-                    && sim.getTacticalScoring().shouldCommitRocket(member, target)) {
-                sim.world().setSecondaryActionTimer(mid, sim.world().secondaryWeapon(mid).aimDuration);
+                    && dist <= sim.world().secondaryWeapon(mid).range()
+                    && sim.getTacticalScoring().shouldCommitSpecial(member, target)) {
+                sim.world().setSecondaryActionTimer(mid, sim.world().secondaryWeapon(mid).aimDuration());
                 sim.world().setSecondaryFired(mid, false);
                 sim.world().setSecondaryAimTargetId(mid, target);
                 startedSecondary = true;

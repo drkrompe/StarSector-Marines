@@ -619,7 +619,7 @@ public class TacticalScoringTest {
         sim.combat().setPrimaryWeapon(u, MarineWeapon.PULSE_RIFLE);
         sim.world().setAttackRange(u, MarineWeapon.PULSE_RIFLE.range());
         sim.world().attachSecondaryWeapon(u, MarineSecondary.ROCKET_LAUNCHER,
-                MarineSecondary.ROCKET_LAUNCHER.startingAmmo);
+                MarineSecondary.ROCKET_LAUNCHER.startingAmmo());
         return u;
     }
 
@@ -630,7 +630,7 @@ public class TacticalScoringTest {
         long turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 25, 5);
         long infantry = unit(sim, Faction.DEFENDER, 25, 5);
 
-        assertEquals(MarineSecondary.ROCKET_LAUNCHER.range,
+        assertEquals(MarineSecondary.ROCKET_LAUNCHER.range(),
                 sim.getTacticalScoring().effectiveAttackRange(rocketeer, turret, sim.world().attackRange(rocketeer)),
                 0.001f, "rocketeer-vs-turret must widen to rocket range");
         assertEquals(sim.world().attackRange(rocketeer),
@@ -662,7 +662,7 @@ public class TacticalScoringTest {
         float distFromTurret = (float) Math.sqrt(
                 (pick[0] - sim.world().cellX(turret)) * (pick[0] - sim.world().cellX(turret))
               + (pick[1] - sim.world().cellY(turret)) * (pick[1] - sim.world().cellY(turret)));
-        assertTrue(distFromTurret <= MarineSecondary.ROCKET_LAUNCHER.range,
+        assertTrue(distFromTurret <= MarineSecondary.ROCKET_LAUNCHER.range(),
                 "picked cell must be inside rocket range, got dist " + distFromTurret);
         // Self at (5,5); turret at primary+8. The closest in-range cell to
         // self lies on the line between, which is well outside primary range
@@ -700,18 +700,18 @@ public class TacticalScoringTest {
         sim.squad().assignSquad(m2, squadId);
 
         long turret = turret(sim, Faction.DEFENDER, TurretKind.HEPHAESTUS, 10, 5);
-        float oneRocket = MarineSecondary.ROCKET_LAUNCHER.damage
-                * MarineSecondary.ROCKET_LAUNCHER.vsTurretMult;
+        float oneRocket = MarineSecondary.ROCKET_LAUNCHER.damage()
+                * MarineSecondary.ROCKET_LAUNCHER.vsTurretMult();
         assertTrue(oneRocket < sim.world().maxHp(turret),
                 "test invariant: Hephaestus needs >1 rocket — adjust if balance changed");
 
-        sim.world().setSecondaryActionTimer(m0, MarineSecondary.ROCKET_LAUNCHER.aimDuration);
+        sim.world().setSecondaryActionTimer(m0, MarineSecondary.ROCKET_LAUNCHER.aimDuration());
         sim.world().setSecondaryAimTargetId(m0, turret);
 
         assertTrue(sim.getTacticalScoring().shouldCommitRocket(m1, turret),
                 "second marine joins when one inbound rocket isn't enough");
 
-        sim.world().setSecondaryActionTimer(m1, MarineSecondary.ROCKET_LAUNCHER.aimDuration);
+        sim.world().setSecondaryActionTimer(m1, MarineSecondary.ROCKET_LAUNCHER.aimDuration());
         sim.world().setSecondaryAimTargetId(m1, turret);
 
         assertFalse(sim.getTacticalScoring().shouldCommitRocket(m2, turret),
@@ -731,7 +731,7 @@ public class TacticalScoringTest {
         sim.squad().assignSquad(m1, squadId);
         long turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
 
-        sim.world().setSecondaryActionTimer(m0, MarineSecondary.ROCKET_LAUNCHER.aimDuration);
+        sim.world().setSecondaryActionTimer(m0, MarineSecondary.ROCKET_LAUNCHER.aimDuration());
         sim.world().setSecondaryAimTargetId(m0, turret);
 
         assertFalse(sim.getTacticalScoring().shouldCommitRocket(m1, turret),
@@ -748,15 +748,15 @@ public class TacticalScoringTest {
         // turret. One rocket isn't enough for a Vulcan (test above), so two.
         // Marine rockets now live in activeProjectiles (matching locust); each
         // Projectile owns its arrival PendingDetonation directly.
-        float perRocket = MarineSecondary.ROCKET_LAUNCHER.damage;
+        float perRocket = MarineSecondary.ROCKET_LAUNCHER.damage();
         for (int i = 0; i < 2; i++) {
             float endX = sim.world().cellX(turret) + 0.5f;
             float endY = sim.world().cellY(turret) + 0.5f;
             PendingDetonation onArrival = new PendingDetonation(
                     CombatTelemetryService.NO_ATTACKER,
                     endX, endY, 0.5f,
-                    MarineSecondary.ROCKET_LAUNCHER.aoeRadius,
-                    perRocket, MarineSecondary.ROCKET_LAUNCHER.vsTurretMult,
+                    MarineSecondary.ROCKET_LAUNCHER.aoeRadius(),
+                    perRocket, MarineSecondary.ROCKET_LAUNCHER.vsTurretMult(),
                     0, Faction.MARINE, false);
             sim.queueProjectile(new Projectile(
                     sim.world().cellX(rocketeer) + 0.5f, sim.world().cellY(rocketeer) + 0.5f, endX, endY,
@@ -783,7 +783,7 @@ public class TacticalScoringTest {
         PendingDetonation onArrival = new PendingDetonation(
                 CombatTelemetryService.NO_ATTACKER,
                 endX, endY, 0.5f,
-                MarineSecondary.ROCKET_LAUNCHER.aoeRadius,
+                MarineSecondary.ROCKET_LAUNCHER.aoeRadius(),
                 bigDamage, 1.0f, 0, Faction.DEFENDER, false);
         sim.queueProjectile(new Projectile(
                 10f, 10f, endX, endY,
@@ -811,7 +811,7 @@ public class TacticalScoringTest {
 
         long turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
 
-        sim.world().setSecondaryActionTimer(mA, MarineSecondary.ROCKET_LAUNCHER.aimDuration);
+        sim.world().setSecondaryActionTimer(mA, MarineSecondary.ROCKET_LAUNCHER.aimDuration());
         sim.world().setSecondaryAimTargetId(mA, turret);
 
         assertTrue(sim.getTacticalScoring().shouldCommitRocket(mB, turret),

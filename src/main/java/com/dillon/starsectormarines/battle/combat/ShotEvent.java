@@ -186,7 +186,9 @@ public class ShotEvent {
 
     /** Source link safe to expose to hearing; indirect launches stay anonymous. */
     public long audibleSourceUnitId() {
-        return isIndirectFire() ? 0L : shooterId;
+        return isIndirectFire()
+                || marineSecondary == MarineSecondary.ANTI_MATERIEL_RIFLE
+                ? 0L : shooterId;
     }
 
     public boolean isIndirectFire() {

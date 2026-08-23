@@ -19,10 +19,9 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Tests for {@link InfantryUnitPrep#tryOpportunityRocket} — the reactive
- * rocket-on-turret check that runs every tick before a marine's normal
- * action executes, letting them pause and fire a rocket at a turret
- * spotted in passing.
+ * Tests for reactive special-equipment targeting that runs before a marine's
+ * normal action and lets them brace against a hardened target spotted in
+ * passing.
  */
 public class InfantryUnitPrepTest {
 
@@ -37,7 +36,7 @@ public class InfantryUnitPrepTest {
 
     private static long rocketeer(BattleSimulation sim, Faction f, int x, int y) {
         long u = sim.spawn(new EntitySpec("u" + sim.liveUnitCount(), f, UnitType.MARINE, x, y)
-                .secondary(MarineSecondary.ROCKET_LAUNCHER, MarineSecondary.ROCKET_LAUNCHER.startingAmmo));
+                .secondary(MarineSecondary.ROCKET_LAUNCHER, MarineSecondary.ROCKET_LAUNCHER.startingAmmo()));
         // Primary weapon ref only — .primaryWeapon() would derive the weapon's
         // damage/accuracy/range/cooldown; this test keeps the UnitType.MARINE
         // defaults and sets attackRange separately below, so set the ref by id.
@@ -46,6 +45,13 @@ public class InfantryUnitPrepTest {
         // registered (the accessor is fail-loud pre-allocate).
         sim.world().setAttackRange(u, MarineWeapon.PULSE_RIFLE.range());
         return u;
+    }
+
+    private static long heavyMarksman(BattleSimulation sim, Faction faction, int x, int y) {
+        return sim.spawn(new EntitySpec("amr" + sim.liveUnitCount(), faction,
+                UnitType.MARINE, x, y)
+                .secondary(MarineSecondary.ANTI_MATERIEL_RIFLE,
+                        MarineSecondary.ANTI_MATERIEL_RIFLE.startingAmmo()));
     }
 
     private static long turret(BattleSimulation sim, Faction f, TurretKind kind, int x, int y) {
@@ -61,7 +67,7 @@ public class InfantryUnitPrepTest {
 
         boolean started = InfantryUnitPrep.tryOpportunityRocket(marine, sim);
         assertTrue(started, "marine in rocket range with LOS should start aim");
-        assertEquals(MarineSecondary.ROCKET_LAUNCHER.aimDuration,
+        assertEquals(MarineSecondary.ROCKET_LAUNCHER.aimDuration(),
                 sim.world().secondaryActionTimer(marine), 0.001f);
         assertEquals(turret, sim.world().secondaryAimTargetId(marine));
     }
@@ -157,6 +163,43 @@ public class InfantryUnitPrepTest {
 
         assertFalse(InfantryUnitPrep.tryOpportunityRocket(defenderRocketeer, sim),
                 "friendly turret must not be a rocket target");
+    }
+
+    @Test
+    public void antiMaterielCarrierBracesOnlyForHardenedTargets() {
+        BattleSimulation softSim = openArena(50, 10);
+        long softCarrier = heavyMarksman(softSim, Faction.MARINE, 5, 5);
+        softSim.spawn(new EntitySpec("infantry", Faction.DEFENDER,
+                UnitType.MARINE, 28, 5));
+        assertFalse(InfantryUnitPrep.tryOpportunitySpecial(softCarrier, softSim),
+                "scarce heavy rounds are not intentionally spent on infantry");
+
+        BattleSimulation hardSim = openArena(50, 10);
+        long hardCarrier = heavyMarksman(hardSim, Faction.MARINE, 5, 5);
+        long hardTarget = turret(hardSim, Faction.DEFENDER, TurretKind.VULCAN, 28, 5);
+        assertTrue(InfantryUnitPrep.tryOpportunitySpecial(hardCarrier, hardSim));
+        assertEquals(hardTarget, hardSim.world().secondaryAimTargetId(hardCarrier));
+        assertEquals(MarineSecondary.ANTI_MATERIEL_RIFLE.aimDuration(),
+                hardSim.world().secondaryActionTimer(hardCarrier), 0.001f);
+    }
+
+    @Test
+    public void antiMaterielAimCancelsWithoutAmmoOrCooldownWhenLosIsLost() {
+        BattleSimulation sim = openArena(50, 10);
+        long carrier = heavyMarksman(sim, Faction.MARINE, 5, 5);
+        turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 28, 5);
+        assertTrue(InfantryUnitPrep.tryOpportunitySpecial(carrier, sim));
+
+        for (int y = 0; y < 10; y++) sim.getGrid().setWalkable(15, y, false);
+        sim.world().setSecondaryActionTimer(carrier,
+                MarineSecondary.ANTI_MATERIEL_RIFLE.aimDuration() * 0.5f);
+
+        assertTrue(InfantryUnitPrep.tickAimAndShortCircuit(carrier, sim));
+        assertEquals(MarineSecondary.ANTI_MATERIEL_RIFLE.startingAmmo(),
+                sim.world().secondaryAmmo(carrier));
+        assertEquals(0f, sim.world().secondaryCooldownTimer(carrier), 0.001f);
+        assertTrue(sim.getShotsThisFrame().isEmpty(),
+                "los loss cancels instead of redirecting or spending the round");
     }
 
     @Test

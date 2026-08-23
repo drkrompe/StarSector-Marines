@@ -20,6 +20,7 @@ HEAD_WIDTH = sw(0.48)
 STANDARD_WEAPON_HEIGHT = sw(0.6533)
 SMG_HEIGHT = sw(0.52)
 DMR_HEIGHT = sw(0.82)
+AMR_HEIGHT = sw(0.96)
 ROCKET_HEIGHT = sw(1.04)
 
 BODY_CENTER_OFFSET = (sw(0.0), sw(0.12))
@@ -136,6 +137,7 @@ def main() -> None:
     laser = normalize_height(source_root / "laser-gun.png", STANDARD_WEAPON_HEIGHT)
     smg = normalize_height(source_root / "smg.png", SMG_HEIGHT)
     dmr = normalize_height(source_root / "dmr.png", DMR_HEIGHT)
+    amr = normalize_height(source_root / "anti-materiel-rifle.png", AMR_HEIGHT)
     surplus_rifle = normalize_height(source_root / "rifle-surplus.png", STANDARD_WEAPON_HEIGHT)
     masterwork_dmr = normalize_height(source_root / "dmr-masterwork.png", DMR_HEIGHT)
     rifle.save(weapons_dir / "rifle.png", optimize=True)
@@ -143,6 +145,7 @@ def main() -> None:
     laser.save(weapons_dir / "laser-gun.png", optimize=True)
     smg.save(weapons_dir / "smg.png", optimize=True)
     dmr.save(weapons_dir / "dmr.png", optimize=True)
+    amr.save(weapons_dir / "anti-materiel-rifle.png", optimize=True)
     grade_root = weapons_dir / "grades"
     (grade_root / "surplus").mkdir(parents=True, exist_ok=True)
     (grade_root / "masterwork").mkdir(parents=True, exist_ok=True)
@@ -167,6 +170,9 @@ def main() -> None:
          (smg.width // 2, round(smg.height * 0.75)), "under_body"),
         ("army-green-dmr.png", "army-green", dmr, 0, STANDARD_WEAPON_OFFSET,
          (dmr.width // 2, round(dmr.height * 0.75)), "under_body"),
+        ("charcoal-anti-materiel-rifle.png", "charcoal", amr, 0,
+         STANDARD_WEAPON_OFFSET,
+         (amr.width // 2, round(amr.height * 0.75)), "under_body"),
         ("armorless-surplus-rifle.png", "armorless", surplus_rifle, 20,
          STANDARD_WEAPON_OFFSET,
          (surplus_rifle.width // 2, round(surplus_rifle.height * 0.75)),

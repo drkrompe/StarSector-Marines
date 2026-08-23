@@ -16,6 +16,7 @@ public final class LayeredUnitAssets {
     public final LayeredSpriteCache smg;
     public final LayeredSpriteCache dmr;
     public final LayeredSpriteCache rocketLauncher;
+    public final LayeredSpriteCache antiMaterielRifle;
     public final LayeredSpriteCache muzzleFlash;
     private final EnumMap<LayeredWeaponFamily, EnumMap<EquipmentGrade, LayeredSpriteCache>>
             gradeWeapons = new EnumMap<>(LayeredWeaponFamily.class);
@@ -27,6 +28,7 @@ public final class LayeredUnitAssets {
                              LayeredSpriteCache smg,
                              LayeredSpriteCache dmr,
                              LayeredSpriteCache rocketLauncher,
+                             LayeredSpriteCache antiMaterielRifle,
                              LayeredSpriteCache muzzleFlash,
                              LayeredSpriteCache surplusRifle,
                              LayeredSpriteCache masterworkDmr) {
@@ -39,6 +41,7 @@ public final class LayeredUnitAssets {
         this.smg = smg;
         this.dmr = dmr;
         this.rocketLauncher = rocketLauncher;
+        this.antiMaterielRifle = antiMaterielRifle;
         this.muzzleFlash = muzzleFlash;
         registerGrade(LayeredWeaponFamily.RIFLE, EquipmentGrade.SURPLUS, surplusRifle);
         registerGrade(LayeredWeaponFamily.DMR, EquipmentGrade.MASTERWORK, masterworkDmr);

@@ -180,7 +180,8 @@ public class RecoverFromAmbushTest {
         assertTrue(squad._alertLevelChangedThisTick);
         assertNotSame(oldPlan, squad.currentPlan,
                 "new direct contact must replace a fresh quiet-state plan in the same tick");
-        assertSame(EliminateEnemiesGoal.INSTANCE, squad.currentGoal);
+        assertSame(HoldEngagementLineGoal.INSTANCE, squad.currentGoal,
+                "a lone marine taking an even-strength flank contact should plant and return fire");
     }
 
     @Test
