@@ -2,12 +2,11 @@
 
 ## State of play
 
-The Sirocco screened-overwatch follow-up is code-complete on its session
-branch. Its LR Support posture now searches a 24–36-cell medium/long band,
-strongly favors angles with a same-faction combatant on the firing axis, and
-explicitly refuses to treat another Sirocco as that front line. It re-picks
-when the screen dies or leaves the lane and exposes the chosen ally in the
-squad dump.
+The Sirocco screened-overwatch follow-up shipped in `98fcc3fb`. Its LR Support
+posture now searches a 24–36-cell medium/long band, strongly favors angles with
+a same-faction combatant on the firing axis, and explicitly refuses to treat
+another Sirocco as that front line. It re-picks when the screen dies or leaves
+the lane and exposes the chosen ally in the squad dump.
 
 The Hound cohesion follow-up shipped in `eaef38b2`: its ASSAULT advance now
 requires nearby same-faction combat infantry or another live mech, and the
@@ -122,6 +121,8 @@ close-range weakness.
    faction-neutral ASSAULT doctrine (`1ef74f23`).
 9. Reciprocal assault cohesion: nearby infantry/mechs release the Hound's
    advance, bounded by a six-cell formation lead (`eaef38b2`).
+10. Sirocco screened overwatch: a 24–36-cell medium/long firing band with a
+    non-Sirocco ally preference and live screen re-evaluation (`98fcc3fb`).
 
 Tune profile/component numbers from the production encounters; mixed-group
 adoption itself is complete.
