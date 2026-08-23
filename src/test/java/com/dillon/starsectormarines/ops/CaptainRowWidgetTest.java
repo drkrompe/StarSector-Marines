@@ -14,7 +14,7 @@ class CaptainRowWidgetTest {
     void detailsShowRankAloneBeforeOutlookResolves() {
         MarineCaptain captain = captain();
 
-        assertEquals("Corporal", CaptainRowWidget.detailsText(captain));
+        assertEquals("Captain", CaptainRowWidget.detailsText(captain));
     }
 
     @Test
@@ -24,7 +24,7 @@ class CaptainRowWidgetTest {
 
         String details = CaptainRowWidget.detailsText(captain);
 
-        assertEquals("Corporal · Idealist", details);
+        assertEquals("Captain · Idealist", details);
         assertFalse(details.contains("mercy"));
         assertFalse(details.contains("+"));
         assertFalse(details.matches(".*\\d.*"));
@@ -39,6 +39,6 @@ class CaptainRowWidgetTest {
     }
 
     private static MarineCaptain captain() {
-        return new MarineCaptain("Display Captain", null, Rank.CORPORAL, 0f);
+        return new MarineCaptain("Display Captain", null, Rank.CAPTAIN, 0f);
     }
 }

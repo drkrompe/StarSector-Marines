@@ -82,7 +82,7 @@ public final class CadreTrainingSystem implements CampaignSystem {
     static void awardXp(MarineCaptain captain, int amount, int day) {
         if (captain == null || amount <= 0) return;
         captain.addXp(amount);
-        while (captain.rank() != Rank.GENERAL
+        while (!captain.rank().isTerminal()
                 && captain.xp() >= captain.rank().xpToNext()) {
             captain.addXp(-captain.rank().xpToNext());
             Rank next = captain.rank().promote();

@@ -107,7 +107,7 @@ public final class ArmoryScreen implements Screen {
         MarineRosterScript script = MarineRosterScript.getInstance();
         roster = script != null ? script.roster() : null;
         if (roster != null) {
-            roster.bootstrapInitialComplement(10);
+            roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
             roster.reserveSquad();
             if (roster.squadById(selectedSquadId) == null && !roster.squads().isEmpty()) {
                 selectedSquadId = roster.squads().get(0).id();
@@ -1080,7 +1080,7 @@ public final class ArmoryScreen implements Screen {
         String command = current != null
                 ? current.name() + " · " + current.rank().displayName()
                         + " · " + roster.squadsCommandedBy(current.id()).size()
-                        + "/" + current.rank().fireteamCap() + " teams"
+                        + "/" + current.rank().squadCommandCap() + " teams"
                         + (current.status() == Status.ACTIVE
                                 ? "" : " · " + current.status().name())
                 : "Unassigned";

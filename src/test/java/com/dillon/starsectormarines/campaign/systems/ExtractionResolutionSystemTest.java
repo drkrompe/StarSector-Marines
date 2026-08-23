@@ -120,7 +120,7 @@ class ExtractionResolutionSystemTest {
         long patronId = state.addHouse(marketId, 1, HouseFlavor.CORPORATE,
                 HouseRank.TIER_2, HouseStatus.ACTIVE,
                 PatronArchetype.ESTABLISHED, "House Cavor");
-        MarineCaptain captain = new MarineCaptain("Stranded", null, Rank.SERGEANT, 0f);
+        MarineCaptain captain = new MarineCaptain("Stranded", null, Rank.CAPTAIN, 0f);
         captain.setStatus(Status.GARRISONED);
         int captainSlot = state.captainRegistry.intern(captain.id());
         long parentId = state.addContract(patronId, -1L, -1L, ContractType.GARRISON,

@@ -106,7 +106,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
             MarineCaptain starter = new MarineCaptain(
                     "Mira Hale",
                     "graphics/portraits/portrait_mercenary01.png",
-                    Rank.SERGEANT,
+                    Rank.LIEUTENANT,
                     currentDay);
             roster.add(starter);
             LOG.info("Starsector Marines: injected starter captain " + starter.name() + " [" + starter.id() + "]");

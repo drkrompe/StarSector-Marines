@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -16,28 +17,30 @@ class NamedStationingBindingTest {
 
     @Test
     void bindingIsAtomicRankBoundedAndExcludesOrdinaryReadiness() {
-        MarineRoster roster = roster(12);
-        MarineCaptain captain = captain(Rank.PRIVATE);
+        int cap = Rank.LIEUTENANT.squadCommandCap();
+        MarineRoster roster = roster((cap + 1) * MarineSquad.CAPACITY);
+        MarineCaptain captain = captain(Rank.LIEUTENANT);
         roster.add(captain);
-        MarineSquad first = roster.squads().get(0);
-        MarineSquad second = roster.squads().get(1);
+        List<MarineSquad> line = roster.squads().subList(0, cap + 1);
+        List<String> withinCap = new ArrayList<>();
+        for (int i = 0; i < cap; i++) withinCap.add(line.get(i).id());
+        List<String> overCap = new ArrayList<>(withinCap);
+        overCap.add(line.get(cap).id());
 
-        assertFalse(roster.bindStationing(41L, captain.id(),
-                List.of(first.id(), second.id())));
-        assertFalse(first.stationed());
-        assertFalse(second.stationed());
+        assertFalse(roster.bindStationing(41L, captain.id(), overCap));
+        for (MarineSquad squad : line) assertFalse(squad.stationed());
 
-        assertTrue(roster.bindStationing(41L, captain.id(), List.of(first.id())));
-        assertEquals(41L, first.stationingContractId());
-        assertFalse(roster.isSquadAvailable(first.id()));
-        assertEquals(6, roster.lineReadySoldiers().size());
-        assertEquals(List.of(first), roster.squadsStationedOn(41L));
+        assertTrue(roster.bindStationing(41L, captain.id(), withinCap));
+        assertEquals(41L, line.get(0).stationingContractId());
+        assertFalse(roster.isSquadAvailable(line.get(0).id()));
+        assertEquals(MarineSquad.CAPACITY, roster.lineReadySoldiers().size());
+        assertEquals(line.subList(0, cap), roster.squadsStationedOn(41L));
     }
 
     @Test
     void bindingRejectsUnavailableTeamsAndReleaseIsReplaySafe() {
-        MarineRoster roster = roster(12);
-        MarineCaptain captain = captain(Rank.CORPORAL);
+        MarineRoster roster = roster(2 * MarineSquad.CAPACITY);
+        MarineCaptain captain = captain(Rank.CAPTAIN);
         roster.add(captain);
         MarineSquad first = roster.squads().get(0);
         MarineSquad second = roster.squads().get(1);
@@ -54,9 +57,9 @@ class NamedStationingBindingTest {
 
     @Test
     void stationedTeamRejectsPersonnelCommandAndEquipmentMutation() {
-        MarineRoster roster = roster(7);
-        MarineCaptain captain = captain(Rank.CORPORAL);
-        MarineCaptain replacement = captain(Rank.CORPORAL);
+        MarineRoster roster = roster(MarineSquad.CAPACITY + 1);
+        MarineCaptain captain = captain(Rank.CAPTAIN);
+        MarineCaptain replacement = captain(Rank.CAPTAIN);
         roster.add(captain);
         roster.add(replacement);
         MarineSquad stationed = roster.squads().get(0);
@@ -114,8 +117,8 @@ class NamedStationingBindingTest {
 
     @Test
     void failedExtractionMarksRecoverablePersonnelMiaBeforeRelease() {
-        MarineRoster roster = roster(6);
-        MarineCaptain captain = captain(Rank.PRIVATE);
+        MarineRoster roster = roster(MarineSquad.CAPACITY);
+        MarineCaptain captain = captain(Rank.LIEUTENANT);
         roster.add(captain);
         MarineSquad squad = roster.squads().get(0);
         MarineSoldier wounded = roster.squadMembers(squad).get(0);

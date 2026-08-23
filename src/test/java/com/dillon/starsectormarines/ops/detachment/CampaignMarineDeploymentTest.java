@@ -56,7 +56,7 @@ class CampaignMarineDeploymentTest {
     @Test
     void selectedFireteamIsLoadedBeforeOtherRosterPersonnel() {
         MarineRoster roster = new MarineRoster();
-        roster.ensureActiveSoldiers(12);
+        roster.ensureActiveSoldiers(2 * MarineSquad.CAPACITY);
         MarineSquad second = roster.squads().get(1);
 
         CampaignMarineDeployment deployment = CampaignMarineDeployment.freeze(

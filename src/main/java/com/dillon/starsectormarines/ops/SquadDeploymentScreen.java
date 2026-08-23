@@ -56,7 +56,7 @@ public final class SquadDeploymentScreen implements Screen {
         MarineCaptain captain = ctx.getSelectedCaptain();
         int selectedTeams = CaptainDeploymentPolicy.selectedCount(
                 roster, ctx.getSelectedMarineSquadIds());
-        int teamCap = captain != null ? captain.rank().fireteamCap() : 0;
+        int teamCap = captain != null ? captain.rank().squadCommandCap() : 0;
 
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
                 "Pre-Battle Fireteam Assignment", left, top, HEADER));

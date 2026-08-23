@@ -42,20 +42,21 @@ class MarinePersonnelLogisticsTest {
     }
 
     @Test
-    void bulkEnlistmentFillsLineFireteamsAndStopsAtAvailableCargo() {
-        float[] quantity = {8f};
+    void bulkEnlistmentFillsLineSquadsAndStopsAtAvailableCargo() {
+        float[] quantity = {MarineSquad.CAPACITY + 2f};
         CargoAPI cargo = cargo(quantity);
         MarineRoster roster = new MarineRoster();
         MarineSquad reserve = roster.reserveSquad();
 
-        assertEquals(7, MarinePersonnelLogistics.enlistLine(roster, 7, cargo));
+        int firstDraft = MarineSquad.CAPACITY + 1;
+        assertEquals(firstDraft, MarinePersonnelLogistics.enlistLine(roster, firstDraft, cargo));
         assertEquals(1f, quantity[0]);
-        assertEquals(7, roster.lineReadySoldiers().size());
+        assertEquals(firstDraft, roster.lineReadySoldiers().size());
         assertTrue(roster.squadMembers(reserve).isEmpty());
 
         assertEquals(1, MarinePersonnelLogistics.enlistLine(roster, 5, cargo));
         assertEquals(0f, quantity[0]);
-        assertEquals(8, roster.lineReadySoldiers().size());
+        assertEquals(MarineSquad.CAPACITY + 2, roster.lineReadySoldiers().size());
         assertEquals(2, roster.squads().stream().filter(squad -> !squad.reserve()).count());
     }
 

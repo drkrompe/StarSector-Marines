@@ -178,7 +178,7 @@ public class BriefingScreen implements Screen {
         if (position == null || ctx == null) return;
         layout = new BriefingLayout(position);
         MarineRosterScript personnel = MarineRosterScript.getInstance();
-        if (personnel != null) personnel.roster().bootstrapInitialComplement(10);
+        if (personnel != null) personnel.roster().bootstrapInitialComplement(MarineSquad.CAPACITY);
 
         // Default to the first ACTIVE captain if nothing's selected yet — saves
         // a click for the common case. User's pick survives across re-attaches.
@@ -438,7 +438,7 @@ public class BriefingScreen implements Screen {
                     MarineRosterScript.getInstance() != null
                             ? MarineRosterScript.getInstance().roster() : null,
                     ctx.getSelectedMarineSquadIds());
-            int teamCap = captain != null ? captain.rank().fireteamCap() : 0;
+            int teamCap = captain != null ? captain.rank().squadCommandCap() : 0;
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                     selectedTeams + "/" + teamCap + " fireteams",
                     x + rowW - 150f, y, captainCommandReady(m)

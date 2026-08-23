@@ -122,7 +122,7 @@ class CaptainTraitDriftSystemTest {
 
     private static MarineCaptain captain(float createdAtDay, Status status) {
         MarineCaptain captain = new MarineCaptain(
-                "Witness", null, Rank.PRIVATE, createdAtDay);
+                "Witness", null, Rank.LIEUTENANT, createdAtDay);
         captain.setStatus(status);
         return captain;
     }

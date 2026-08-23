@@ -85,7 +85,7 @@ class StationingIncidentResolutionTest {
     void namedResolutionDerivesLivingStrengthAfterIndividualFates() {
         CampaignState state = pending(6, 42, 200, StationingIncidentType.LIVE_FIRE_RAID);
         MarineRoster roster = new MarineRoster();
-        MarineCaptain captain = new MarineCaptain("Cadre Lead", null, Rank.PRIVATE, 0f);
+        MarineCaptain captain = new MarineCaptain("Cadre Lead", null, Rank.LIEUTENANT, 0f);
         roster.add(captain);
         roster.ensureActiveSoldiers(6);
         MarineSquad squad = roster.squads().get(0);
@@ -109,7 +109,7 @@ class StationingIncidentResolutionTest {
     void namedResolutionRejectsMismatchedFrozenFormation() {
         CampaignState state = pending(6, 42, 200, StationingIncidentType.LIVE_FIRE_RAID);
         MarineRoster roster = new MarineRoster();
-        MarineCaptain captain = new MarineCaptain("Cadre Lead", null, Rank.PRIVATE, 0f);
+        MarineCaptain captain = new MarineCaptain("Cadre Lead", null, Rank.LIEUTENANT, 0f);
         roster.add(captain);
         roster.ensureActiveSoldiers(6);
         MarineSquad squad = roster.squads().get(0);

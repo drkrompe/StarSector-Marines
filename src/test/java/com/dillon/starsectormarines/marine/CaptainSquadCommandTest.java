@@ -12,22 +12,36 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class CaptainFireteamCommandTest {
+class CaptainSquadCommandTest {
+
+    /** One line squad per twelve personnel; the roster grows no reserve until asked. */
+    private static final int SQUADS_4 = 4 * MarineSquad.CAPACITY;
+    private static final int SQUADS_2 = 2 * MarineSquad.CAPACITY;
 
     @Test
-    void rankCapacityRoundsUpToWholeFireteams() {
-        int[] expected = {1, 2, 7, 14, 27, 54, 107, 214};
+    void rankCapsCommandInWholeSquads() {
+        int[] expected = {3, 6, 10, 16, 24};
 
         for (Rank rank : Rank.values()) {
-            assertEquals(expected[rank.ordinal()], rank.fireteamCap());
+            assertEquals(expected[rank.ordinal()], rank.squadCommandCap());
+            assertEquals(expected[rank.ordinal()] * MarineSquad.CAPACITY,
+                    rank.marineCommandCap());
+        }
+    }
+
+    @Test
+    void onlyTheTopOfTheLadderIsTerminal() {
+        for (Rank rank : Rank.values()) {
+            assertEquals(rank == Rank.COLONEL, rank.isTerminal());
+            assertEquals(rank.isTerminal(), rank.promote() == rank);
         }
     }
 
     @Test
     void assignmentRejectsReserveAndReassignsAtomically() {
-        MarineRoster roster = rosterWithFireteams(7);
-        MarineCaptain first = captain("First", Rank.PRIVATE);
-        MarineCaptain second = captain("Second", Rank.PRIVATE);
+        MarineRoster roster = rosterWithSquads(MarineSquad.CAPACITY);
+        MarineCaptain first = captain("First", Rank.LIEUTENANT);
+        MarineCaptain second = captain("Second", Rank.LIEUTENANT);
         roster.add(first);
         roster.add(second);
         MarineSquad line = roster.squads().get(0);
@@ -43,29 +57,29 @@ class CaptainFireteamCommandTest {
 
     @Test
     void casualtiesDoNotCreateAdditionalCommandSlots() {
-        MarineRoster roster = rosterWithFireteams(13);
-        MarineCaptain captain = captain("Corporal", Rank.CORPORAL);
+        MarineRoster roster = rosterWithSquads(SQUADS_4);
+        MarineCaptain captain = captain("Lieutenant", Rank.LIEUTENANT);
         roster.add(captain);
-        MarineSquad first = roster.squads().get(0);
-        MarineSquad second = roster.squads().get(1);
-        MarineSquad third = roster.squads().get(2);
-        assertTrue(roster.assignCaptainToSquad(captain.id(), first.id()));
-        assertTrue(roster.assignCaptainToSquad(captain.id(), second.id()));
+        for (int i = 0; i < Rank.LIEUTENANT.squadCommandCap(); i++) {
+            assertTrue(roster.assignCaptainToSquad(captain.id(), roster.squads().get(i).id()));
+        }
 
         Map<String, MarineSoldierStatus> casualties = new HashMap<>();
-        for (MarineSoldier soldier : roster.squadMembers(first)) {
+        for (MarineSoldier soldier : roster.squadMembers(roster.squads().get(0))) {
             casualties.put(soldier.id(), MarineSoldierStatus.KIA);
         }
         roster.applySoldierOutcome(casualties, 0, 0f, 1f);
 
-        assertFalse(roster.assignCaptainToSquad(captain.id(), third.id()));
-        assertEquals(2, roster.squadsCommandedBy(captain.id()).size());
+        MarineSquad beyondCap = roster.squads().get(Rank.LIEUTENANT.squadCommandCap());
+        assertFalse(roster.assignCaptainToSquad(captain.id(), beyondCap.id()));
+        assertEquals(Rank.LIEUTENANT.squadCommandCap(),
+                roster.squadsCommandedBy(captain.id()).size());
     }
 
     @Test
-    void unavailableCaptainRetainsHistoryButCannotReceiveAnotherTeam() {
-        MarineRoster roster = rosterWithFireteams(7);
-        MarineCaptain captain = captain("Wounded", Rank.CORPORAL);
+    void unavailableCaptainRetainsHistoryButCannotReceiveAnotherSquad() {
+        MarineRoster roster = rosterWithSquads(SQUADS_2);
+        MarineCaptain captain = captain("Wounded", Rank.CAPTAIN);
         roster.add(captain);
         MarineSquad first = roster.squads().get(0);
         MarineSquad second = roster.squads().get(1);
@@ -79,17 +93,19 @@ class CaptainFireteamCommandTest {
 
     @Test
     void formationPickerSkipsUnavailableAndFullCaptains() {
-        MarineRoster roster = rosterWithFireteams(13);
-        MarineCaptain full = captain("Full", Rank.PRIVATE);
-        MarineCaptain injured = captain("Injured", Rank.GENERAL);
-        MarineCaptain available = captain("Available", Rank.CORPORAL);
+        MarineRoster roster = rosterWithSquads(SQUADS_4);
+        MarineCaptain full = captain("Full", Rank.LIEUTENANT);
+        MarineCaptain injured = captain("Injured", Rank.COLONEL);
+        MarineCaptain available = captain("Available", Rank.CAPTAIN);
         roster.add(full);
         roster.add(injured);
         roster.add(available);
         injured.setStatus(Status.INJURED);
-        assertTrue(roster.assignCaptainToSquad(full.id(), roster.squads().get(0).id()));
+        for (int i = 0; i < Rank.LIEUTENANT.squadCommandCap(); i++) {
+            assertTrue(roster.assignCaptainToSquad(full.id(), roster.squads().get(i).id()));
+        }
 
-        MarineSquad target = roster.squads().get(2);
+        MarineSquad target = roster.squads().get(Rank.LIEUTENANT.squadCommandCap());
 
         assertSame(available, roster.nextAssignableCaptain(target.id()));
         assertTrue(roster.assignCaptainToSquad(available.id(), target.id()));
@@ -98,8 +114,8 @@ class CaptainFireteamCommandTest {
 
     @Test
     void removingCaptainClearsTheirHomeFormation() {
-        MarineRoster roster = rosterWithFireteams(1);
-        MarineCaptain captain = captain("Departing", Rank.PRIVATE);
+        MarineRoster roster = rosterWithSquads(1);
+        MarineCaptain captain = captain("Departing", Rank.LIEUTENANT);
         roster.add(captain);
         MarineSquad squad = roster.squads().get(0);
         assertTrue(roster.assignCaptainToSquad(captain.id(), squad.id()));
@@ -112,26 +128,28 @@ class CaptainFireteamCommandTest {
 
     @Test
     void saveRepairClearsDanglingReserveAndOverCapacityBindings() throws Exception {
-        MarineRoster roster = rosterWithFireteams(7);
-        MarineCaptain captain = captain("Private", Rank.PRIVATE);
+        MarineRoster roster = rosterWithSquads(SQUADS_4);
+        MarineCaptain captain = captain("Lieutenant", Rank.LIEUTENANT);
         roster.add(captain);
-        MarineSquad first = roster.squads().get(0);
-        MarineSquad second = roster.squads().get(1);
+        int cap = Rank.LIEUTENANT.squadCommandCap();
+        for (int i = 0; i <= cap; i++) {
+            roster.squads().get(i).setHomeCaptainId(captain.id());
+        }
         MarineSquad reserve = roster.reserveSquad();
-        first.setHomeCaptainId(captain.id());
-        second.setHomeCaptainId(captain.id());
         reserve.setHomeCaptainId("missing-captain");
 
         Method readResolve = MarineRoster.class.getDeclaredMethod("readResolve");
         readResolve.setAccessible(true);
         readResolve.invoke(roster);
 
-        assertEquals(captain.id(), first.homeCaptainId());
-        assertNull(second.homeCaptainId());
+        for (int i = 0; i < cap; i++) {
+            assertEquals(captain.id(), roster.squads().get(i).homeCaptainId());
+        }
+        assertNull(roster.squads().get(cap).homeCaptainId());
         assertNull(reserve.homeCaptainId());
     }
 
-    private static MarineRoster rosterWithFireteams(int personnel) {
+    private static MarineRoster rosterWithSquads(int personnel) {
         MarineRoster roster = new MarineRoster();
         roster.ensureActiveSoldiers(personnel);
         return roster;

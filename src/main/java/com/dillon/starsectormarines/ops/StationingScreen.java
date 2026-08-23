@@ -99,7 +99,7 @@ public final class StationingScreen implements Screen {
         MarineRoster roster = roster();
         MarineCaptain selectedCaptain = ctx.getSelectedCaptain();
         int selectedTeams = CaptainDeploymentPolicy.selectedCount(roster, selectedSquadIds);
-        int teamCap = selectedCaptain != null ? selectedCaptain.rank().fireteamCap() : 0;
+        int teamCap = selectedCaptain != null ? selectedCaptain.rank().squadCommandCap() : 0;
         int active = selectedStatusCount(roster, MarineSoldierStatus.ACTIVE);
         int wia = selectedStatusCount(roster, MarineSoldierStatus.WIA);
         int living = active + wia;

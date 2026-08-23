@@ -57,7 +57,7 @@ class GarrisonDefenseMissionFactoryTest {
     void namedDefenseSizesLiftsFromFrozenActiveSeats() {
         CampaignState state = new CampaignState();
         MarineRoster roster = new MarineRoster();
-        MarineCaptain captain = new MarineCaptain("Garrison Lead", null, Rank.PRIVATE, 0f);
+        MarineCaptain captain = new MarineCaptain("Garrison Lead", null, Rank.LIEUTENANT, 0f);
         roster.add(captain);
         roster.ensureActiveSoldiers(6);
         MarineSquad squad = roster.squads().get(0);

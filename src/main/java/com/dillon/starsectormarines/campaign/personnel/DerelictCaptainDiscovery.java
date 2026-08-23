@@ -48,8 +48,11 @@ public final class DerelictCaptainDiscovery {
         Random random = new Random(seedFor(sourceKey));
         int profile = random.nextInt(NAMES.length);
         int rankRoll = random.nextInt(100);
-        Rank rank = rankRoll < 60 ? Rank.PRIVATE
-                : rankRoll < 90 ? Rank.CORPORAL : Rank.SERGEANT;
+        // A pod survivor is usually a peer of the company's own officer, and
+        // occasionally a real find. The old three-rung roll topped out at the
+        // starter's rank; the officer ladder has no rung below that any more,
+        // so the spread moves upward instead of downward.
+        Rank rank = rankRoll < 90 ? Rank.LIEUTENANT : Rank.CAPTAIN;
         Trait trait = STARTING_TRAITS[random.nextInt(STARTING_TRAITS.length)];
         return roster.discoverCaptainCandidate(
                 sourceKey, NAMES[profile], PORTRAITS[profile],

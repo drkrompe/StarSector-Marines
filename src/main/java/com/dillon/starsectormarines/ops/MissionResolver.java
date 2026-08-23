@@ -361,7 +361,7 @@ public final class MissionResolver {
                         captain.addXp(outcome.xpGained);
                         // Mirror compute's promotion logic against the live captain so
                         // rank advances in lockstep with the displayed outcome.
-                        while (captain.rank() != Rank.GENERAL
+                        while (!captain.rank().isTerminal()
                                 && captain.xp() >= captain.rank().xpToNext()) {
                             captain.addXp(-captain.rank().xpToNext());
                             Rank next = captain.rank().promote();
@@ -450,7 +450,7 @@ public final class MissionResolver {
     private static Rank simulatePromotion(Rank startRank, int currentXp, int xpGained) {
         Rank rank = startRank;
         int xp = currentXp + xpGained;
-        while (rank != Rank.GENERAL && xp >= rank.xpToNext()) {
+        while (!rank.isTerminal() && xp >= rank.xpToNext()) {
             xp -= rank.xpToNext();
             rank = rank.promote();
         }

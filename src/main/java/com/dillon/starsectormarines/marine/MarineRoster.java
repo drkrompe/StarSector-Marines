@@ -260,7 +260,7 @@ public class MarineRoster implements Serializable {
         for (String squadId : squadIds) {
             if (squadId == null || !unique.add(squadId)) return false;
         }
-        if (unique.isEmpty() || unique.size() > captain.rank().fireteamCap()) return false;
+        if (unique.isEmpty() || unique.size() > captain.rank().squadCommandCap()) return false;
         boolean hasReadyMember = false;
         for (String squadId : unique) {
             MarineSquad squad = squadById(squadId);
@@ -310,7 +310,7 @@ public class MarineRoster implements Serializable {
                 || squad == null || squad.reserve()) return false;
         if (captainId.equals(squad.homeCaptainId())) return true;
         if (squad.stationed()) return false;
-        if (squadsCommandedBy(captainId).size() >= captain.rank().fireteamCap()) {
+        if (squadsCommandedBy(captainId).size() >= captain.rank().squadCommandCap()) {
             return false;
         }
         squad.setHomeCaptainId(captainId);
@@ -342,7 +342,7 @@ public class MarineRoster implements Serializable {
         for (int offset = 1; offset <= captains.size(); offset++) {
             MarineCaptain candidate = captains.get((start + offset) % captains.size());
             if (candidate.id().equals(currentId) || candidate.status() != Status.ACTIVE) continue;
-            if (squadsCommandedBy(candidate.id()).size() < candidate.rank().fireteamCap()) {
+            if (squadsCommandedBy(candidate.id()).size() < candidate.rank().squadCommandCap()) {
                 return candidate;
             }
         }
@@ -800,19 +800,25 @@ public class MarineRoster implements Serializable {
         return recruit;
     }
 
-    /** Gives a new campaign a readable mixed roster before the armory UI lands. */
+    /**
+     * Gives a new campaign a readable mixed roster before the player reaches the
+     * armory. Keyed to squad structure so the pattern holds as the roster grows:
+     * one anti-armor billet per squad, and the first two squads issued distinct
+     * armor so they read apart on sight.
+     */
     private void autoIssueRecruit(MarineSoldier recruit, int number) {
-        if (number % 6 == 2) {
+        int billet = Math.floorMod(number - 1, MarineSquad.CAPACITY) + 1;
+        if (billet % 6 == 2) {
             allocatePrimary(recruit.id(), MarineWeapon.SMG, EquipmentGrade.SERVICE);
-        } else if (number % 6 == 4) {
+        } else if (billet % 6 == 4) {
             allocatePrimary(recruit.id(), MarineWeapon.DMR, EquipmentGrade.SERVICE);
         }
-        if (number <= 6) {
+        if (number <= MarineSquad.CAPACITY) {
             allocateArmor(recruit.id(), MarineArmorPattern.CHARCOAL);
-        } else if (number <= 10) {
+        } else if (number <= 2 * MarineSquad.CAPACITY) {
             allocateArmor(recruit.id(), MarineArmorPattern.ARMY_GREEN);
         }
-        if (number == 6 || number == 10) {
+        if (billet == MarineSquad.CAPACITY) {
             allocateSecondary(recruit.id(), MarineSecondary.ROCKET_LAUNCHER);
         }
     }
@@ -881,7 +887,7 @@ public class MarineRoster implements Serializable {
             if (captainId == null) continue;
             MarineCaptain captain = byId(captainId);
             int assigned = assignedByCaptain.getOrDefault(captainId, 0);
-            if (squad.reserve() || captain == null || assigned >= captain.rank().fireteamCap()) {
+            if (squad.reserve() || captain == null || assigned >= captain.rank().squadCommandCap()) {
                 squad.setHomeCaptainId(null);
                 continue;
             }

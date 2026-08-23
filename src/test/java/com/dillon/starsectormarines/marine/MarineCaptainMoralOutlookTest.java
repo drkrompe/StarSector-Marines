@@ -100,7 +100,7 @@ class MarineCaptainMoralOutlookTest {
     }
 
     private static MarineCaptain captain() {
-        return new MarineCaptain("Outlook Captain", null, Rank.PRIVATE, 0f);
+        return new MarineCaptain("Outlook Captain", null, Rank.LIEUTENANT, 0f);
     }
 
     private static long countTrait(MarineCaptain captain, Trait trait) {

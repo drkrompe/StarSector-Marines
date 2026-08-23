@@ -68,7 +68,7 @@ class NamedStationingRepairSystemTest {
     private static Fixture fixture(ContractState contractState) {
         CampaignState state = new CampaignState();
         MarineRoster roster = new MarineRoster();
-        MarineCaptain captain = new MarineCaptain("Station Lead", null, Rank.PRIVATE, 0f);
+        MarineCaptain captain = new MarineCaptain("Station Lead", null, Rank.LIEUTENANT, 0f);
         roster.add(captain);
         roster.ensureActiveSoldiers(6);
         int captainSlot = state.captainRegistry.intern(captain.id());
