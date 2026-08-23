@@ -2,7 +2,13 @@
 
 > A turret is a platform, a mount, and a gun. Today it is one enum.
 
-**Status:** not started. Depends on `w3-remaining-catalogs.md`.
+Status: PLANNED
+
+Written: 2026-08-22
+
+Updated: 2026-08-23 — follows W3 and must precede W4 enum retirement.
+
+Read `moddable-weapons-nouns.md` before implementing this story.
 
 ## The finding
 

@@ -1,12 +1,14 @@
 /**
  * <b>Category:</b> asset store (data), not a simulation system.
  *
- * <p><b>Charter:</b> owns the weapon catalog as data — the JSON schema, its
- * parsed {@link com.dillon.starsectormarines.battle.weapon.WeaponDef} shape,
- * and the id-addressed
+ * <p><b>Charter:</b> owns the data-backed portion of the weapon catalog — the
+ * JSON schema, its parsed
+ * {@link com.dillon.starsectormarines.battle.weapon.WeaponDef} shape, and the
+ * id-addressed
  * {@link com.dillon.starsectormarines.battle.weapon.WeaponRegistry} that
- * serves it. One schema spans every catalog the mod ships (marine primaries
- * and secondaries, mech mounts, turret mounts);
+ * serves it. Marine primaries are data-owned today; the shared schema is
+ * intended to span secondaries, mech mounts, and turret mounts as their
+ * stories ship.
  * {@link com.dillon.starsectormarines.battle.weapon.MountClass} distinguishes
  * them instead of a separate Java type per catalog.
  *
@@ -16,7 +18,7 @@
  * reasoning about weapons stays in {@code battle.decision}. Nothing here may
  * depend on a live simulation — a def is readable before a battle exists.
  *
- * <p><b>Pointer:</b> {@code roadmap/moddable-weapons/overview.md} for the
+ * <p><b>Pointer:</b> {@code moddable-weapons-nouns.md} for the
  * track, and {@code battle.world.tiles.TileRegistry} for the store pattern
  * this mirrors.
  */

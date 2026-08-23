@@ -17,7 +17,7 @@ import java.util.Map;
  * weapon half of the same store/consumer split
  * {@link com.dillon.starsectormarines.battle.world.tiles.TileRegistry} uses
  * for tiles — the registry owns the data, the firing and presentation
- * systems consume it by id. See {@code roadmap/moddable-weapons/}.
+ * systems consume it by id. See {@code moddable-weapons-nouns.md}.
  *
  * <p>Parsing ({@link #ingest}) is decoupled from the game's
  * {@link com.fs.starfarer.api.SettingsAPI} so tests can feed a

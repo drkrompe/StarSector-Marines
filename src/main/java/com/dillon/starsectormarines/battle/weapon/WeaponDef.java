@@ -10,11 +10,10 @@ import java.awt.Color;
  * One weapon, parsed from a {@code *.weapon.json} entry. Immutable and
  * id-addressed; the authoring surface is the JSON, not this class.
  *
- * <p>The field set spans every catalog the mod ships — marine primaries and
- * secondaries, mech mounts, turret mounts — even though only marine
- * primaries populate it today (see {@code roadmap/moddable-weapons/}).
- * {@link #mount} says which class a def belongs to; fields a mount class
- * does not use stay at their neutral defaults.
+ * <p>The current field set is the shared baseline populated by marine
+ * primaries (see {@code moddable-weapons-nouns.md}). Later catalog stories
+ * extend that shape for secondaries, mech mounts, and turret mounts, then
+ * validate which fields each {@link #mount} class may declare.
  *
  * <p>Grouped by who reads it: the {@code sim} block feeds
  * {@link com.dillon.starsectormarines.battle.infantry.InfantryCombatStats}

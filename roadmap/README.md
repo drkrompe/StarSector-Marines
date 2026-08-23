@@ -89,26 +89,13 @@ universe over time, not retrofitted into intel slots.
   real second content provider exists. `moddable-tilesets-nouns.md` carries the
   standing model; its adjacent `stories.md` board tracks the remaining narrow
   nature-pool authority cleanup.
-- **Moddable weapons** *(W1 shipped)* — the same move for the weapon
-  catalog. Nineteen weapons across four enums (`MarineWeapon`,
-  `MarineSecondary`, `MechWeapon`, `TurretKind`) with near-identical field
-  sets, none reachable by a submod and all requiring a recompile to tune.
-  **W1 shipped**: a new `battle.weapon` package holds `WeaponDef` /
-  `MountClass` / `WeaponRegistry`, marine primaries now live in
-  `data/marines/marine-weapons.weapon.json`, and `MarineWeapon` is reduced
-  to an id handle whose accessors delegate to the registry — pinned
-  field-for-field by `WeaponRegistryParityTest` with no test expectation
-  changed. Next is **W2**, which replaces the four-arm `ImpactProfile` enum
-  with **layered** effect definitions so a weapon composes its own tracer,
-  muzzle and impact particles instead of picking one of four fixed recipes.
-  W5 (submod merge) is deferred and should share one mechanism with
-  moddable-tilesets Phase 3. A design pass also pulled `TurretKind` out of
-  the weapon catalog entirely into **W6**: it is a platform, a mount and a
-  gun fused into one enum, already carried by three platforms (static
-  emplacement, shuttle hardpoint, convoy vehicle) that disagree about which
-  of its fields mean anything — so emplacements and structures adopt the
-  three-layer model mechs already use. See
-  [`moddable-weapons/`](moddable-weapons/overview.md).
+- **Moddable weapons** *(W1 shipped; W2 ready)* — marine-primary definitions
+  are id-addressed data behind fail-loud `WeaponRegistry`; the remaining
+  secondary, mech, and emplacement catalogs are planned migrations. The model
+  separates platform, mount, and weapon authority, with layered authored FX as
+  the next slice. Shared submod discovery/merge remains deferred until a real
+  provider exists. `moddable-weapons-nouns.md` carries the standing model; its
+  adjacent `stories.md` board tracks the five live stories.
 - **Surface relief** *(active)* — S1 derivation and the manually accepted S2
   material-aware parallax/water pass are shipped. S3 dynamic ground bump
   lighting is code-complete (`c92d5b9a`) and awaits an in-game smoke/tuning

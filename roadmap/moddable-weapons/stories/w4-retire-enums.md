@@ -2,7 +2,13 @@
 
 > The id is the handle.
 
-**Status:** not started. Depends on `w3-remaining-catalogs.md`.
+Status: PLANNED
+
+Written: 2026-08-22
+
+Updated: 2026-08-23 — depends on W3 and W6 so every stat-carrier enum has a replacement before save migration.
+
+Read `moddable-weapons-nouns.md` before implementing this story.
 
 ## Scope
 
@@ -16,8 +22,8 @@ armory template cards too, so every existing save carries enum names. The migrat
 registry id, and fail closed onto the starter weapon when an id no longer
 resolves — a submod the player uninstalled must not corrupt a roster.
 
-Also in scope: the identity references that survive. Roughly 69 sites name
-a specific constant — `InfantryLoadoutRolls` roll tables, `MarineArmory`
+Also in scope: the identity references that survive. Callers name specific
+constants across `InfantryLoadoutRolls` roll tables, `MarineArmory`
 unlock ladder, `DebugPersonnelPreset` fixtures, `Drone`'s built-in mount.
 Those become id lookups, and the roll tables themselves are a candidate for
 data in a later story.

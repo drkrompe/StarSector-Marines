@@ -21,9 +21,8 @@ import java.awt.Color;
  * <p><b>This enum is an id handle, not a data carrier.</b> Every stat lives in
  * {@code data/marines/marine-weapons.weapon.json} and is served by
  * {@link WeaponRegistry}; the accessors below delegate there. The constants
- * survive because ~69 call sites name a specific weapon and because
- * {@code MarineSoldier} persists one — both are retired in
- * {@code roadmap/moddable-weapons/} W4, after which the id is the only handle.
+ * survive while code and persisted marine records still use enum identity;
+ * W4 in {@code moddable-weapons-nouns.md} retires that compatibility handle.
  * Deliberately, the javadoc here explains *intent* and no longer restates
  * numbers: a figure written in two places drifts, and several of these
  * paragraphs had already gone stale against the balance pass that moved them.
@@ -44,11 +43,9 @@ public enum MarineWeapon {
      * reward closing distance and taking a stable firing posture. It is
      * deliberately worse than the pulse rifle in cadence, accuracy, falloff
      * and burst pressure so the first energy-weapon upgrade is immediately
-     * meaningful; its one advantage is a heavier round, because a single-shot
-     * weapon that also loses on per-round damage cannot function at all
-     * against a 3-round burst (measured: it could not kill a marine even
-     * once in 120 trials before the S1 pass). Around 3x the pulse rifle's
-     * time-to-kill today.
+     * meaningful. Its one advantage is a heavier round: a single-shot weapon
+     * that also loses on per-round damage cannot provide a useful upgrade
+     * tradeoff against a burst rifle.
      */
     FIELD_RIFLE("weapon.field-rifle"),
     /**
