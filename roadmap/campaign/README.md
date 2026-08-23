@@ -43,7 +43,7 @@ Each thread is a sub-directory whose canonical target is `design/<noun>.md`,
 | --- | --- | --- |
 | [`framework/`](framework/overview.md) | **shipped** | SoA tables + `CampaignSystem` tick framework + the architecture commitments. The substrate everything else sits on. |
 | [`contracts/`](contracts/overview.md) | **G1-G30 shipped; no active story** | Five contract types, two modes, lifecycle state machine, three-layer salvage model, MRB rep, mission-resolver bridge, and reactive Cadre/Garrison obligations. |
-| [`early-operations/`](early-operations/overview.md) | **opening ladder shipped** | Two one-shot Independent jobs sized for a green company: local-line relief and a joint militia counterattack against finite ragtag forces. |
+| `early-operation-nouns.md` | **opening ladder shipped; acceptance ready** | Two one-shot Independent jobs sized for a green company: local-line relief and a joint militia counterattack against finite ragtag forces. |
 | [`living-world/`](living-world/overview.md) | **G9 active; Slice 2 complete** | Autonomous politics, Chronicle, civil-war participation/consequences, civilian rescue, defector asylum, and Silent Colony through deterministic dead-site signals and Dead Letter choices. |
 | `loot-nouns.md` | **ready for acceptance** | Manifest, picker, capacity-aware settlement, recovery modifiers, and rare AI-core gates are code-complete; one live in-game shipping check remains. Consumes the contract salvage entitlement. |
 | [`infrastructure/`](infrastructure/overview.md) | designed | Buildings that modulate garrison default rates and house power; the mitigation side of scale inefficiency. |
