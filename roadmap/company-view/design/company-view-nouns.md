@@ -2,7 +2,7 @@
 
 Status: ACTIVE — 11 open stories
 Written: 2026-08-23
-Updated: 2026-08-23 — shipped fire-team maneuver and player-authored immutable card revisions.
+Updated: 2026-08-23 — shipped fire-team maneuver, card availability and atomic team swaps.
 
 ## Purpose
 
@@ -111,9 +111,24 @@ fixtures and may be cloned. Player-authored cards have stable persisted ids;
 their names are metadata and may change in place, while changing billet issue
 is saved as a new card revision. Assigned teams therefore retain both their old
 card id and materialized issue until an explicit refit succeeds. A custom card
-cannot be deleted while any team still references it. Fast card swaps,
-three-card squad arrangements, conformance, and retirement of routine
+cannot be deleted while any team still references it. Three-card squad
+arrangements, conformance, and retirement of routine
 per-marine mutation remain in `c14-fire-team-template-cards.md`.
+
+Card availability has two deliberately different readings. **Fielded** counts
+the teams whose persisted assignment names that card, even when a team is
+currently degraded. **Ready to issue** counts additional complete copies that
+uncommitted fleet stock can supply without assuming any target team's returns.
+Selecting a specific team and card produces the contextual refit preview: free
+stock before the transaction, the target issue returned, and the candidate
+issue required. That preview is the same calculation used by assignment, not a
+UI estimate.
+
+Two assigned teams may exchange cards in one atomic transaction. Both teams'
+current equipment is returned before either candidate issue is checked, so a
+scarce kit can move directly between teams without a temporary extra copy. A
+failure leaves both teams, both assignment ids, and all materialized equipment
+unchanged.
 
 ## Deployment identity
 
@@ -283,7 +298,7 @@ production vehicle deployment seam exists.
 ## Planned direction
 
 The remaining work is equipment authoring, presentation, and tactical
-refinement: build the player-authored card designer and fast squad refits;
+refinement: add saved three-card squad arrangements and degraded-team conformance;
 derive one shared
 formation snapshot; show officer grouping, squad whereabouts, battle rollup, and
 after-action survival consistently; give late arrivals a safe rejoin state; make
