@@ -106,6 +106,14 @@ the battle setup publishes authored cover quality into tactical scoring and
 ballistic interception. Large rocks are non-structural fixtures rather than
 walls: they receive neither wall art nor destructible wall HP.
 
+Passability also selects the cover shape for doodads. A walkable doodad is a
+physical feature that may intercept a ray crossing its occupied cell. A
+navigation-blocking doodad instead publishes its authored level and height as
+directional edge cover on adjacent standable cells; it never publishes both
+shapes. Map generation must tag such props as fixtures so finalization does not
+promote them to walls. Water is the complementary zero-cover blocker: it is
+non-walkable and see-through but explicitly supplies no edge profile.
+
 `GenMappingRegistry` is also the storage location for surface-relief material
 overrides. The tile feature owns the mapping container and its load order;
 surface relief owns what those height values mean and how rendering uses them.

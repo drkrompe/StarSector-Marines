@@ -45,7 +45,7 @@ public class ResupplySystemTest {
             system.tick(ResupplySystem.TRANSFER_INTERVAL_SECONDS);
         }
 
-        assertEquals(MarineSecondary.ROCKET_LAUNCHER.startingAmmo,
+        assertEquals(MarineSecondary.ROCKET_LAUNCHER.startingAmmo(),
                 sim.world().secondaryAmmo(marine));
         for (MechWeaponMount mount : loadout.mounts()) {
             assertEquals(mount.component.ammoCapacity, mount.ammo);

@@ -14,9 +14,10 @@ public final class FireTeamTemplateCards {
     public static final String LINE_ID = "line";
     public static final String RECON_ID = "recon";
     public static final String FIRE_SUPPORT_ID = "fire_support";
+    public static final String ANTI_MATERIEL_ID = "anti_materiel";
 
     private static final Set<String> STARTER_IDS = Set.of(
-            FIELD_ID, LINE_ID, RECON_ID, FIRE_SUPPORT_ID);
+            FIELD_ID, LINE_ID, RECON_ID, FIRE_SUPPORT_ID, ANTI_MATERIEL_ID);
 
     private FireTeamTemplateCards() {}
 
@@ -58,7 +59,17 @@ public final class FireTeamTemplateCards {
                                 MarineArmorPattern.ARMY_GREEN),
                         billet("Anti-Armor", MarineWeapon.PULSE_RIFLE,
                                 MarineSecondary.ROCKET_LAUNCHER,
-                                MarineArmorPattern.ARMY_GREEN)));
+                                MarineArmorPattern.ARMY_GREEN)),
+                card(ANTI_MATERIEL_ID, "Anti-Materiel",
+                        billet("Team Leader", MarineWeapon.PULSE_RIFLE, null,
+                                MarineArmorPattern.CHARCOAL),
+                        billet("Spotter", MarineWeapon.DMR, null,
+                                MarineArmorPattern.CHARCOAL),
+                        billet("Security", MarineWeapon.PULSE_RIFLE, null,
+                                MarineArmorPattern.CHARCOAL),
+                        billet("Heavy Marksman", MarineWeapon.PULSE_RIFLE,
+                                MarineSecondary.ANTI_MATERIEL_RIFLE,
+                                MarineArmorPattern.CHARCOAL)));
     }
 
     /** Built-in templates are permanent library fixtures; players clone them before editing. */

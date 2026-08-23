@@ -144,6 +144,70 @@
         "projectileVisualCells": 0.0
       },
       "audio": { "fireSound": "pulse_laser_fire" }
+    },
+    {
+      "id": "weapon.annihilator-launcher",
+      "mount": "marine-secondary",
+      "catalog": {
+        "displayName": "Annihilator Rocket Launcher",
+        "modelName": "Annihilator",
+        "designation": "RKT-1",
+        "designationTiered": false
+      },
+      "sim": {
+        "range": 32.0,
+        "damage": 162.0,
+        "accuracy": 0.85,
+        "cooldown": 3.0,
+        "vsHardenedMult": 3.5,
+        "roundVelocity": 45.714286,
+        "flightSec": 0.70,
+        "aimDuration": 0.65,
+        "aoeRadius": 1.5,
+        "wallDamage": 50,
+        "wallDamageRadius": 1.5
+      },
+      "render": {
+        "tracerColor": "FFC080",
+        "impact": "he",
+        "projectileSprite": "graphics/missiles/missile_annihilator.png",
+        "projectileVisualCells": 0.5
+      },
+      "audio": {
+        "fireSound": "annihilator_fire",
+        "impactSound": "marines_explosion"
+      }
+    },
+    {
+      "id": "weapon.anti-materiel-rifle",
+      "mount": "marine-secondary",
+      "catalog": {
+        "displayName": "Breachlight Anti-Materiel Rifle",
+        "modelName": "Breachlight",
+        "designation": "AMR-1",
+        "designationTiered": false
+      },
+      "sim": {
+        "range": 38.0,
+        "damage": 42.0,
+        "accuracy": 0.92,
+        "cooldown": 3.4,
+        "vsHardenedMult": 3.0,
+        "accuracyFalloff": 0.05,
+        "hitSpread": 0.05,
+        "roundVelocity": 145.0,
+        "flightSec": 0.262,
+        "aimDuration": 1.6
+      },
+      "render": {
+        "tracerColor": "D8F4FF",
+        "impact": "kinetic",
+        "projectileSprite": null,
+        "projectileVisualCells": 0.0
+      },
+      "audio": {
+        "fireSound": "gauss_cannon_fire"
+      }
     }
   ]
 }

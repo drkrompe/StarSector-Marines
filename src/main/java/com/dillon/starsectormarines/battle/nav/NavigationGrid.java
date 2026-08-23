@@ -71,7 +71,16 @@ public class NavigationGrid {
          * blocks iff it is non-walkable AND not see-through. This bit is the
          * positive opt-out for that rule.
          */
-        SEE_THROUGH;
+        SEE_THROUGH,
+
+        /**
+         * Non-walkable cell that must not create directional edge cover on
+         * adjacent standable cells. Water uses this opt-out: it blocks
+         * navigation without supplying a ballistic silhouette. Windows and
+         * non-structural fixtures deliberately leave this clear because their
+         * wall or authored doodad profile supplies edge cover.
+         */
+        NO_EDGE_COVER;
 
         public long mask() { return 1L << ordinal(); }
     }
@@ -197,6 +206,14 @@ public class NavigationGrid {
 
     public boolean isSeeThrough(int x, int y)             { return hasTag(x, y, CellTag.SEE_THROUGH); }
     public void    setSeeThrough(int x, int y, boolean v) { setTag(x, y, CellTag.SEE_THROUGH, v); }
+
+    public boolean isEdgeCoverSuppressed(int x, int y) {
+        return hasTag(x, y, CellTag.NO_EDGE_COVER);
+    }
+
+    public void setEdgeCoverSuppressed(int x, int y, boolean v) {
+        setTag(x, y, CellTag.NO_EDGE_COVER, v);
+    }
 
     /** Marks the cell walkable and opens all eight edges. */
     public void setWalkableFloor(int x, int y) {
@@ -325,10 +342,12 @@ public class NavigationGrid {
 
     /**
      * Recomputes per-facing cover for the cell at (x, y) from its 4 cardinal
-     * neighbors. Each facing gets 1 if a wall sits in that direction, else 0
+     * neighbors. Each facing gets 1 if an edge-cover blocker sits in that
+     * direction, else 0
      * — a marine on this cell is covered from threats in any direction that
-     * has an adjacent wall. No-op for non-walkable cells (cover only applies
-     * to standable cells).
+     * has an adjacent wall, window, or fixture. Non-walkable cells such as
+     * water may explicitly suppress this contribution. No-op for non-walkable
+     * cells (cover only applies to standable cells).
      *
      * <p>This is the per-facing replacement for the old scalar bake: a cell
      * with walls north + east now reads {@code N=1, E=1, S=0, W=0} instead
@@ -337,10 +356,16 @@ public class NavigationGrid {
      */
     public void recomputeCoverAt(int x, int y) {
         if (!inBounds(x, y) || !isWalkable(x, y)) return;
-        setCoverAtFacing(x, y, FACING_N, isWalkable(x, y - 1) ? 0 : 1);
-        setCoverAtFacing(x, y, FACING_E, isWalkable(x + 1, y) ? 0 : 1);
-        setCoverAtFacing(x, y, FACING_S, isWalkable(x, y + 1) ? 0 : 1);
-        setCoverAtFacing(x, y, FACING_W, isWalkable(x - 1, y) ? 0 : 1);
+        setCoverAtFacing(x, y, FACING_N, providesEdgeCover(x, y - 1) ? 1 : 0);
+        setCoverAtFacing(x, y, FACING_E, providesEdgeCover(x + 1, y) ? 1 : 0);
+        setCoverAtFacing(x, y, FACING_S, providesEdgeCover(x, y + 1) ? 1 : 0);
+        setCoverAtFacing(x, y, FACING_W, providesEdgeCover(x - 1, y) ? 1 : 0);
+    }
+
+    /** Map bounds remain hard cover; in-bounds blockers may explicitly opt out. */
+    private boolean providesEdgeCover(int x, int y) {
+        return !inBounds(x, y)
+                || (!isWalkable(x, y) && !isEdgeCoverSuppressed(x, y));
     }
 
     // ----- Doorways (zone-graph barriers) -----

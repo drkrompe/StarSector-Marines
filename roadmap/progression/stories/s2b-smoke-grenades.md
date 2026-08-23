@@ -3,7 +3,7 @@
 > Change the line of sight instead of dealing damage.
 
 Status: PLANNED — depends on the shared special-equipment identity established
-by `s2a-anti-materiel-rifle.md`; it is not a `WeaponDef` migration.
+in `progression-nouns.md`; it is not a `WeaponDef` migration.
 
 Written: 2026-08-23
 

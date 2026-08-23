@@ -66,8 +66,28 @@ class DirectFireUnificationTest {
         assertEquals(1, sim.getActiveProjectiles().size());
         Projectile projectile = sim.getActiveProjectiles().get(0);
         assertEquals(WALL_X + 0.5f, projectile.onArrival.endpointX, EPS);
-        assertTrue(projectile.totalFlightTime < MarineSecondary.ROCKET_LAUNCHER.flightSec,
+        assertTrue(projectile.totalFlightTime < MarineSecondary.ROCKET_LAUNCHER.flightSec(),
                 "a nearer wall arrives sooner than the old fixed maximum-range timing");
+    }
+
+    @Test
+    void antiMaterielRoundStopsAtWallWithoutProjectileOrDetonation() {
+        BattleSimulation sim = arena(true);
+        long shooter = sim.spawn(new EntitySpec("heavy marksman", Faction.MARINE,
+                UnitType.MARINE, 2, ROW)
+                .secondary(MarineSecondary.ANTI_MATERIEL_RIFLE, 1));
+
+        sim.fireSecondary(shooter, target(sim));
+
+        ShotEvent shot = onlyShot(sim);
+        assertSame(MarineSecondary.ANTI_MATERIEL_RIFLE, shot.marineSecondary);
+        assertEquals(BallisticResolver.StopKind.WALL, shot.stopKind);
+        assertEquals(WALL_X + 0.5f, shot.toX, EPS);
+        assertTrue(sim.getActiveProjectiles().isEmpty(),
+                "a precision heavy round is not a missile entity");
+        assertTrue(sim.getInflightDetonations().isEmpty(),
+                "the AMR carries no splash or structural payload");
+        assertEquals(0, sim.world().secondaryAmmo(shooter));
     }
 
     @Test
