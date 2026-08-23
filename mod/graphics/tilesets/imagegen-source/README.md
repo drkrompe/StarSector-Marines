@@ -10,8 +10,9 @@ pre-ImageGen atlases and temporary `*-imagegen.png` candidates are no longer
 kept alongside them.
 
 `normalize_tilesets.py` converts the general raw sources into exact-size RGBA
-runtime atlases in the parent directory. The spaceport road sheet uses its own
-panel-extraction script.
+runtime atlases in the parent directory, then invokes the manifest-driven
+`pack_texture_atlas.py` to place individual material textures. The spaceport
+road sheet uses its own panel-extraction script.
 
 Regenerate the canonical atlases with:
 
@@ -21,12 +22,54 @@ python mod\graphics\tilesets\imagegen-source\normalize_spaceport_apron.py
 .\gradlew.bat :asset-pipeline:deriveTileMaps
 ```
 
-`forest-material-source/` contains the small checked-in authoring inputs for
-the nature strip's repeating grass and dirt fields. They are 52x52 wrap-aware
+`atlas-material-source/` contains the small checked-in authoring inputs used by
+`texture-atlases.json`. The current grass and dirt inputs are 52x52 wrap-aware
 FFmpeg downsamples of Game Buffs' 4K `Grass_3_Albedo.png` and
-`Dirt_7_Albedo.png`; the normalization script adds a 2px wrapped guard band to
-match the runtime ground-frame inset. Both hash-selected variants intentionally
-use the same material so unlike variants cannot expose a join.
+`Dirt_7_Albedo.png`. Both hash-selected variants intentionally use the same
+material so unlike variants cannot expose a join.
+
+## Individual-material atlas packer
+
+The packer supports auto-sliced strips, fixed grids, and explicit rectangles.
+Each material can target multiple frames or cells. `guardPx` wraps the opposite
+material edge into the atlas border, matching the renderer's source inset
+without reintroducing a seam. It validates source dimensions, opacity when
+requested, atlas bounds, duplicate ids, overlapping targets, and every output
+before atomically replacing any atlas.
+
+Validate or repack directly with:
+
+```powershell
+python mod\graphics\tilesets\imagegen-source\pack_texture_atlas.py pack `
+  mod\graphics\tilesets\imagegen-source\texture-atlases.json --check
+python mod\graphics\tilesets\imagegen-source\pack_texture_atlas.py pack `
+  mod\graphics\tilesets\imagegen-source\texture-atlases.json
+```
+
+Import a large tileable source without ever checking in or visually loading the
+4K original. The importer tiles it 3x3 in FFmpeg, downsamples the whole periodic
+field with Lanczos, and crops the center tile so the resize filter sees wrapped
+neighbors instead of clamped image edges:
+
+```powershell
+python mod\graphics\tilesets\imagegen-source\pack_texture_atlas.py import-tileable `
+  "C:\path\to\Sand_Albedo.png" `
+  mod\graphics\tilesets\imagegen-source\atlas-material-source\new-pack\sand.png `
+  --size 14
+```
+
+For the 16px `Floors_Tiles` sand pool, a 1px runtime guard means the checked-in
+material is 14x14. Add a grid atlas entry with `cellPx: 16`, then target cells
+`[6, 14]`, `[7, 14]`, and `[8, 14]`. Using the same imported material for all
+three cells guarantees that hash-selected variants meet cleanly.
+
+Run the packer tests with:
+
+```powershell
+python -m unittest discover `
+  -s mod\graphics\tilesets\imagegen-source\tests `
+  -p "test_*.py"
+```
 
 ## Outputs
 
@@ -37,7 +80,7 @@ use the same material so unlike variants cannot expose a join.
 | `urban-tileset-3.png` | `urban-tileset-3.raw.png` (2166x726 RGB) | All 7 auto-sliced frames retained in order |
 | `Floors_Tiles.png` | `Floors_Tiles.raw.png` (1225x1284 RGB) | Material families retained; most topology drift and blank-cell pollution |
 | `Water_tiles.png` | `Water_tiles.raw.png` (1254x1254 RGB) | Strong macro-layout preservation; some edge spill into empty cells |
-| `nature-tiles.png` | `nature-tiles.raw.png` (2172x724 RGB) + `forest-material-source/` (52x52 RGBA) | All 20 auto-sliced frames retained in order; grass/dirt fields use seamless material overrides |
+| `nature-tiles.png` | `nature-tiles.raw.png` (2172x724 RGB) + `atlas-material-source/` (52x52 RGBA) | All 20 auto-sliced frames retained in order; grass/dirt fields use manifest-packed seamless materials |
 
 ## Shared prompt frame
 

@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "atlases": [
+    {
+      "id": "nature-materials",
+      "base": "../nature-tiles.png",
+      "output": "../nature-tiles.png",
+      "layout": {
+        "mode": "auto-strip",
+        "alphaThreshold": 16,
+        "minGap": 4,
+        "expectedFrames": 20
+      },
+      "materials": [
+        {
+          "id": "game-buffs-forest-grass",
+          "source": "atlas-material-source/game-buffs-forest/grass.png",
+          "guardPx": 2,
+          "requireOpaque": true,
+          "targets": [
+            { "rect": [8, 12, 56, 56] },
+            { "rect": [72, 12, 56, 56] }
+          ]
+        },
+        {
+          "id": "game-buffs-forest-dirt",
+          "source": "atlas-material-source/game-buffs-forest/dirt.png",
+          "guardPx": 2,
+          "requireOpaque": true,
+          "targets": [
+            { "rect": [136, 12, 56, 56] },
+            { "rect": [200, 12, 56, 56] }
+          ]
+        }
+      ]
+    }
+  ]
+}
