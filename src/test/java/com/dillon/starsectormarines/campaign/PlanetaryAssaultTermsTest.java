@@ -1,13 +1,11 @@
 package com.dillon.starsectormarines.campaign;
 
-import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.ops.Mission;
 import com.dillon.starsectormarines.ops.MissionSource;
 import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -52,13 +50,23 @@ class PlanetaryAssaultTermsTest {
     }
 
     private static Mission mission(int contractNegotiated, int cashMultiplier) {
-        return new Mission("contract:1:phase:0:attempt:0", "Recon",
-                MissionType.SABOTAGE, MissionSource.GENERATED, 27_000,
-                RiskLevel.LOW, "", "", 0.5f, 0.5f,
-                FlybyRoster.EMPTY, FlybyRoster.EMPTY, 1, 1,
-                "Target", null, null, 1L,
-                (byte) 20, (byte) Math.min(20, contractNegotiated),
-                (byte) cashMultiplier, (byte) 80, (byte) contractNegotiated,
-                Collections.emptyList());
+        return Mission.builder()
+                .id("contract:1:phase:0:attempt:0")
+                .name("Recon")
+                .type(MissionType.SABOTAGE)
+                .source(MissionSource.GENERATED)
+                .payout(27_000)
+                .risk(RiskLevel.LOW)
+                .mapPosition(0.5f, 0.5f)
+                .requiredDrops(1)
+                .employerShuttles(1)
+                .targetPlanetName("Target")
+                .contractId(1L)
+                .salvageBaseline(20)
+                .salvageNegotiated(Math.min(20, contractNegotiated))
+                .cashMultiplier(cashMultiplier)
+                .contractSalvageBaseline(80)
+                .contractSalvageNegotiated(contractNegotiated)
+                .build();
     }
 }

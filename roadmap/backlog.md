@@ -298,15 +298,24 @@ as separate entries below.
 
 ## Constructor sprawl
 
-- **`Mission` has six constructors** and twenty-one construction sites, for
-  the same reason `MissionOutcome` did: every new frozen field was bolted on
-  as one more overload delegating inward. `MissionOutcome` was converted to a
-  builder on 2026-08-22 and its constructors deleted; `Mission` is the same
-  fix and was deliberately left alone to keep that change reviewable.
+Both offenders are fixed; kept here as the shape to reach for next time.
 
-  Worth doing next time `Mission` gains a field. The blast radius is three
-  times larger, but no worse in kind: `Mission` is not `Serializable` and is
-  regenerated rather than persisted, so there is no save shape to preserve.
+- **`MissionOutcome`** — six constructors, thirty-six positional parameters,
+  seven call sites. Replaced by `MissionOutcome.builder()` on 2026-08-22.
+- **`Mission`** — six constructors, twenty-eight positional parameters,
+  twenty-one call sites. Replaced by `Mission.builder()` the same day, plus
+  `Mission.builder(Mission)` for copy-with-changes.
+
+The pattern in both: every new frozen field arrives as one more overload
+delegating inward, and the older overloads keep passing whatever sentinel
+meant "absent" at the time. Call sites decay into runs of bare literals, and
+a caller picking the wrong overload silently gets defaults it never asked
+for. Make builder defaults the absent-values the class already normalizes to,
+and the overloads stop being necessary at all.
+
+`MissionBuilderTest` pins the defaults and asserts `builder(Mission)` copies
+every field — that second test is the guard against a new field being added
+to the class and not to the copy path.
 
 ## Translation / community
 

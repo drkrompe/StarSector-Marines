@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.command.objective.ColonyArchiveObjective;
 import com.dillon.starsectormarines.battle.command.objective.EliminateFactionObjective;
-import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -12,7 +11,6 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.campaign.AbandonedColonyArchiveOutcome;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -97,13 +95,21 @@ class SilentColonyOutcomeReportTest {
     }
 
     private static Mission mission(int survivors) {
-        return new Mission("silent-colony:7", "Silent Colony",
-                MissionType.EXTRACTION, MissionSource.CAMPAIGN_EVENT,
-                0, RiskLevel.HIGH, "Funded blind expedition", "",
-                0.5f, 0.5f, FlybyRoster.EMPTY, FlybyRoster.EMPTY,
-                4, 0, "Eidolon", null, "neutral",
-                -1L, 7L, 3, survivors, 55L,
-                (byte) 0, (byte) 0, (byte) 100,
-                (byte) 0, (byte) 0, Collections.emptyList());
+        return Mission.builder()
+                .id("silent-colony:7")
+                .name("Silent Colony")
+                .type(MissionType.EXTRACTION)
+                .source(MissionSource.CAMPAIGN_EVENT)
+                .risk(RiskLevel.HIGH)
+                .requirements("Funded blind expedition")
+                .mapPosition(0.5f, 0.5f)
+                .requiredDrops(4)
+                .targetPlanetName("Eidolon")
+                .targetFactionId("neutral")
+                .campaignEventId(7L)
+                .campaignEventMarketId(3)
+                .civiliansAtRisk(survivors)
+                .campaignEventThreatSeed(55L)
+                .build();
     }
 }
