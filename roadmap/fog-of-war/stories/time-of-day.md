@@ -1,79 +1,81 @@
 # Time of day
 
-> A *night raid* mission where the player wants to be done before dawn.
-> If the battle drags, the sun comes up and enemy reinforcements arrive —
-> the dawn transition is a soft deadline that turns a stealth/ambush
-> mission into a meatgrinder if mishandled. The visual cycle is the
-> diegetic clock telling the player how long they've been fighting.
+Status: DEFERRED
 
-> **Status (2026-06-29): UNIMPLEMENTED.** The V1 lightmap-multiply implementation
-> (`LightAccumulator`, `Light`, `LightKernel`, `WeaponLights`, `TimeOfDay`) was
-> removed 2026-06-29 — it was a fun experiment but was hard-coded to DAY (bypass)
-> and dormant in every shipped battle. The day/night *feature* design below is
-> still the direction; if revived, the lightmap approach is recoverable from git
-> history. Not a near-term priority.
+Written: 2026-06-01
 
-Time of day is a **gameplay system, not just a render effect** — it lives in
-this feature dir because night shrinks vision (the fog/vision tie-in). It is
-[world-reactive, not expressive][world-reactive]: the clock is a mechanical
-deadline the mission reads, not a cosmetic skybox.
+Updated: 2026-08-23 — migrated after the dormant lighting experiment was removed; waits for a concrete night-raid mission.
 
-## Why
+Read `fog-of-war-nouns.md` before implementing this story.
 
-The vision above is the payoff. A diegetic day/night clock gives the player a
-felt sense of mission pacing and ties a hard mechanical consequence (dawn
-reinforcements) to a value they can read off the screen without a HUD timer.
-Night also multiplies `visionRange` down, so the same clock that pressures the
-player on the deadline also tightens their fog-of-war — one knob, two effects.
+## Intent
 
-## Design
+A night raid should make the player want to finish before dawn. Darkness
+tightens player vision; the visible approach of dawn is a diegetic clock; and
+crossing the threshold authorizes defender reinforcements. A mishandled ambush
+therefore turns into a harder daylight fight without relying on an arbitrary
+HUD countdown.
 
-- **V1** ships as a single ambient knob set at battle start (Day / Dusk /
-  Night presets), implemented as a lightmap-multiply pass in the
-  [`render2d`][render2d-batching] pipeline. Night also multiplies
-  `visionRange` down — the fog/vision tie-in.
-- **Design the `TimeOfDay` type so an animated cycle slots in without
-  rework** — ambient color should be a function of battle-elapsed-time even
-  when v1 returns a constant. Don't bury TOD inside the renderer; it's a
-  gameplay-visible value the mission script reads.
-- **When the animated cycle lands**, the same clock drives reinforcement
-  triggers in Conquest/Assault (dawn-arrival reinforcements) — the soft
-  deadline becomes mechanical.
-- Light kernels and emitters (muzzle flash / HE / wreck fire) are reusable
-  regardless of TOD value; the only thing the cycle changes is ambient color
-  (and the vision multiplier).
+Time of day is a gameplay value with presentation, not a renderer effect that
+other systems infer. Mission policy owns the start state and dawn consequence;
+fog consumes a sight multiplier; reinforcement owns delivery.
 
-## Slices
+## Current state and dependencies
 
-### Slice 1: `TimeOfDay` value + ambient multiply
+No time-of-day or lightmap implementation is installed. The former ambient
+lightmap experiment was deleted because every shipped battle bypassed it at
+DAY. Its code is recoverable from Git, but it is not the default design.
 
-`TimeOfDay` type whose ambient color is a function of battle-elapsed-time
-(constant in v1, returning the battle-start preset). Lightmap-multiply pass in
-the [`render2d`][render2d-batching] pipeline reads it. Day / Dusk / Night
-presets selectable at battle start.
+Reinforcement trigger/means orchestration now exists, so that old blocker is
+gone. Revival instead waits for a concrete night-raid mission that fixes the
+cycle length, start phase, dawn consequence, and required presentation. It also
+depends on `fog-observation-footprint-invalidation.md`, because a stationary
+observer must react when the time multiplier changes its sight range.
 
-### Slice 2: vision multiplier
+## Scope
 
-Night multiplies `visionRange` down through `FogOfWarService`. The multiplier
-reads from the same `TimeOfDay` value so an animated cycle later tightens fog
-continuously rather than per-preset.
+- Add one simulation-time battle clock with authored day, dusk, night, and dawn
+  phases suitable for a selected mission.
+- Expose the current phase and transition events to mission, fog, and
+  presentation consumers without duplicating clocks.
+- Apply the phase's player-vision multiplier through the normal sight-input and
+  fog invalidation seam.
+- Present the cycle in both battle hosts using the narrowest viable ambient
+  treatment; do not assume the deleted lightmap architecture must return.
+- Post one dawn reinforcement request through the existing reinforcement
+  service when the selected mission authorizes it.
 
-### Slice 3: animated cycle + dawn reinforcements
+## Constraints
 
-`TimeOfDay` ambient becomes a real function of elapsed time. The crossing of a
-dawn threshold fires reinforcement triggers in Conquest/Assault — the soft
-deadline becomes mechanical. Blocked on the reinforcement orchestration layer.
+- Advance on deterministic simulation time: pause freezes the clock and battle
+  speed scales it with the rest of the simulation.
+- Keep AI perception independent unless a separate gameplay decision changes
+  it; this story modifies player-visible fog.
+- A disabled or day-only configuration preserves current rendering, vision,
+  and reinforcement behavior.
+- Dawn is an edge-triggered event, not a per-tick condition that can post
+  duplicate waves.
+- Both render hosts read the same clock and ambient state.
 
-## Cross-refs
+## Acceptance
 
-- [`../overview.md`](../overview.md) — fog-of-war feature this plugs into.
-- [`../complete/fog-of-war-v1.md`](../complete/fog-of-war-v1.md) — the
-  `FogOfWarService` / `visionRange` surface the night multiplier hooks.
-- [`render2d` batching][render2d-batching] — the lightmap-multiply pass slots
-  into this pipeline.
-- [`../../conquest/`](../../conquest/README.md) /
-  [`../../reinforcement/`](../../reinforcement/) — dawn-arrival reinforcement
-  triggers when the animated cycle lands.
+- [ ] The chosen mission supplies its start phase, cycle timing, and dawn
+  policy; battles without that policy behave exactly as they do now.
+- [ ] The current phase is simulation-owned and observable without reading
+  renderer state.
+- [ ] Night changes player vision through the normal sight inputs, and a
+  stationary contributor's footprint updates by the next vision cadence.
+- [ ] The phase transition is legible in both presentation hosts.
+- [ ] Crossing dawn posts at most one authorized reinforcement request through
+  the existing reinforcement service.
+- [ ] Pause/speed behavior and deterministic transition timing are covered by
+  focused tests.
 
-[render2d-batching]: ../../battle-render/overview.md
-[world-reactive]: ../../README.md
+## Plan
+
+1. Select the mission and lock its time curve, start phase, ambient treatment,
+   vision multiplier, and dawn wave policy.
+2. Add the simulation-owned clock and phase-transition contract.
+3. Wire shared presentation in both hosts.
+4. Apply fog-range changes through the invalidation seam.
+5. Add the one-shot dawn reinforcement trigger and focused acceptance coverage.
