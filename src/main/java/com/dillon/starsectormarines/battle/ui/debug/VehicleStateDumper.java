@@ -6,6 +6,8 @@ import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
+import com.dillon.starsectormarines.battle.vehicle.Pose;
+import com.dillon.starsectormarines.battle.vehicle.Trajectory;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -58,6 +60,16 @@ public final class VehicleStateDumper {
             root.put("trajectoryProgress", round(ctl != null ? ctl.trajectoryProgress() : 0f));
             root.put("wallStuckTime", round(ctl != null ? ctl.wallStuckTime() : 0f));
             root.put("hasTrajectory", ctl != null && ctl.hasTrajectory());
+            root.put("recovery", ctl != null ? ctl.recovery.name() : "NONE");
+            root.put("recoveryAttempts", ctl != null ? ctl.recoveryAttempts : 0);
+            root.put("recoveryBestRemaining", round(ctl != null ? ctl.recoveryBestRemaining : 0f));
+            root.put("timeSinceProgress", round(ctl != null ? ctl.timeSinceProgress : 0f));
+            root.put("localPlanFailureTime", round(ctl != null ? ctl.localPlanFailureTime : 0f));
+            root.put("localPlanFailureRerouteAttempted",
+                    ctl != null && ctl.localPlanFailureRerouteAttempted);
+            root.put("rescueFirstStepTriedMask", ctl != null ? ctl.rescueFirstStepTriedMask : 0);
+            root.put("rerouteAvoidCount", ctl != null ? ctl.rerouteAvoidCount : 0);
+            root.put("trajectory", trajectoryJson(ctl != null ? ctl.trajectory : null));
             root.put("marinesRemaining", v.marinesRemaining);
             root.put("overwatchCountdown", round(v.overwatchCountdown));
             root.put("turretAmmo", turret != null ? turret.ammo : 0);
@@ -84,6 +96,23 @@ public final class VehicleStateDumper {
             a.put(wp);
         }
         return a;
+    }
+
+    private static JSONArray trajectoryJson(Trajectory trajectory) throws Exception {
+        JSONArray points = new JSONArray();
+        if (trajectory == null) return points;
+        for (int i = 0; i < trajectory.size(); i++) {
+            putPose(points, trajectory.pose(i));
+        }
+        return points;
+    }
+
+    private static void putPose(JSONArray points, Pose pose) throws Exception {
+        JSONObject point = new JSONObject();
+        point.put("x", round(pose.x));
+        point.put("y", round(pose.y));
+        point.put("facing", round(pose.facingDeg));
+        points.put(point);
     }
 
     private static JSONArray historyJson(VehicleMission v) throws Exception {

@@ -150,8 +150,9 @@ public final class ConvoyMeans implements ReinforcementMeans {
             return;
         }
 
-        float[][] inboundCells = VehicleRoutePlanner.route(
-                entryCell[0], entryCell[1], destCell[0], destCell[1], sim.getGrid(), cost, clr);
+        float[][] inboundCells = VehicleRoutePlanner.routeDrivable(
+                entryCell[0], entryCell[1], destCell[0], destCell[1],
+                sim.getGrid(), cost, clr, VehicleType.HEAVY_APC);
         if (inboundCells == null) {
             LOG.warn("ConvoyMeans: cost route failed entry=(" + entry.cellX + "," + entry.cellY
                     + ")→dest=(" + dest.cellX + "," + dest.cellY + ") for HEAVY_APC (r=" + radius + ")");
@@ -180,14 +181,15 @@ public final class ConvoyMeans implements ReinforcementMeans {
         int[] exitCell = VehicleRoutePlanner.snapToMask(clr, exitNode.cellX, exitNode.cellY, SNAP_RADIUS);
         float[][] outCells = null;
         if (exitCell != null) {
-            outCells = VehicleRoutePlanner.route(
-                    destCell[0], destCell[1], exitCell[0], exitCell[1], sim.getGrid(), cost, clr);
+            outCells = VehicleRoutePlanner.routeDrivable(
+                    destCell[0], destCell[1], exitCell[0], exitCell[1],
+                    sim.getGrid(), cost, clr, VehicleType.HEAVY_APC);
         }
         if (outCells == null) {
-            // Exit unreachable across terrain for this footprint (or no clearance
-            // cell near it) — fall back to a single-cell stub at the LZ; the
-            // off-map waypoint appended below still pulls the truck off the board.
-            outCells = new float[][]{ new float[]{destCell[0] + 0.5f}, new float[]{destCell[1] + 0.5f} };
+            LOG.warn("ConvoyMeans: no turn-feasible outbound route dest=("
+                    + dest.cellX + "," + dest.cellY + ")→exit=("
+                    + exitNode.cellX + "," + exitNode.cellY + ") for HEAVY_APC — skipping dispatch");
+            return;
         }
 
         int inLast = inboundCells[0].length - 1;
