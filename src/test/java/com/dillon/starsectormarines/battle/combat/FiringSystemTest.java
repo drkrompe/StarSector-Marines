@@ -1,7 +1,10 @@
 package com.dillon.starsectormarines.battle.combat;
 
+import com.dillon.starsectormarines.battle.infantry.ExperienceTier;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.RepositionToCover;
+import com.dillon.starsectormarines.battle.infantry.SoldierAptitude;
+import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -63,6 +66,110 @@ public class FiringSystemTest {
         return new FiringSystem(sim.getGrid(), sim.getRoster());
     }
 
+    /** Bypasses reflex registration for tests focused on another fire gate. */
+    private static void readyFireIntent(BattleSimulation sim, long shooter, long target,
+                                        FireStance stance, boolean repositionAfter) {
+        sim.combat().setTargetId(shooter, target);
+        sim.combat().setReflexTimer(shooter, 0f);
+        sim.combat().setFireIntent(shooter, target, stance, repositionAfter);
+    }
+
+    private static int ticksUntilFirstShot(ExperienceTier tier) {
+        BattleSimulation sim = openArena(30, 10);
+        SoldierProfile profile = new SoldierProfile(SoldierAptitude.STEADY, tier.minimumXp);
+        long shooter = sim.spawn(new EntitySpec("shooter", Faction.MARINE,
+                UnitType.MARINE, 5, 5).soldierProfile(profile));
+        long target = combatant(sim, Faction.DEFENDER, 10, 5);
+        sim.world().setAttackRange(shooter, 10f);
+        FiringSystem system = systemFor(sim);
+
+        for (int tick = 1; tick <= 60; tick++) {
+            // Re-authoring intent for the same observed threat must advance,
+            // never restart, its registration clock.
+            sim.combat().setFireIntent(shooter, target, FireStance.STANCED, false);
+            system.tick(sim);
+            if (sim.world().cooldownTimer(shooter) > 0f) return tick;
+        }
+        throw new AssertionError("shooter never registered target for tier " + tier);
+    }
+
+    @Test
+    public void reflexSkillDefinesDistinctNewThreatRegistrationWindows() {
+        assertEquals(0.50f, ExperienceTier.GREEN.reflexDelaySeconds, 1e-6f);
+        assertEquals(0.35f, ExperienceTier.REGULAR.reflexDelaySeconds, 1e-6f);
+        assertEquals(0.20f, ExperienceTier.VETERAN.reflexDelaySeconds, 1e-6f);
+        assertEquals(0.05f, ExperienceTier.ELITE.reflexDelaySeconds, 1e-6f);
+
+        assertEquals(15, ticksUntilFirstShot(ExperienceTier.GREEN));
+        assertEquals(11, ticksUntilFirstShot(ExperienceTier.REGULAR));
+        assertEquals(6, ticksUntilFirstShot(ExperienceTier.VETERAN));
+        assertEquals(2, ticksUntilFirstShot(ExperienceTier.ELITE));
+    }
+
+    @Test
+    public void selectedThreatRegistersWhileClosingAndDoesNotRestartWhenReasserted() {
+        BattleSimulation sim = openArena(30, 10);
+        long shooter = combatant(sim, Faction.MARINE, 5, 5);
+        long target = combatant(sim, Faction.DEFENDER, 20, 5);
+
+        sim.combat().setTargetId(shooter, target);
+        assertEquals(target, sim.combat().reflexTargetId(shooter));
+        assertEquals(ExperienceTier.REGULAR.reflexDelaySeconds,
+                sim.combat().reflexTimer(shooter), 1e-6f);
+
+        systemFor(sim).tick(sim); // no fire intent; passive clock still advances
+        float afterOneTick = sim.combat().reflexTimer(shooter);
+        assertTrue(afterOneTick < ExperienceTier.REGULAR.reflexDelaySeconds);
+
+        sim.combat().setTargetId(shooter, target);
+        assertEquals(afterOneTick, sim.combat().reflexTimer(shooter), 1e-6f,
+                "maintaining the same selected target must not restart reflex registration");
+    }
+
+    @Test
+    public void switchingThreatRestartsRegistrationButSameThreatDoesNotTaxFollowUpFire() {
+        BattleSimulation sim = openArena(30, 10);
+        long shooter = combatant(sim, Faction.MARINE, 5, 5);
+        long first = combatant(sim, Faction.DEFENDER, 9, 5);
+        long second = combatant(sim, Faction.DEFENDER, 10, 5);
+        sim.world().setAttackRange(shooter, 10f);
+
+        readyFireIntent(sim, shooter, first, FireStance.STANCED, false);
+        systemFor(sim).tick(sim);
+        assertTrue(sim.world().cooldownTimer(shooter) > 0f, "ready first threat fires");
+
+        sim.world().setCooldownTimer(shooter, 0f);
+        sim.combat().setFireIntent(shooter, first, FireStance.STANCED, false);
+        systemFor(sim).tick(sim);
+        assertTrue(sim.world().cooldownTimer(shooter) > 0f,
+                "reflexes are an acquisition cost, not a sustained cadence tax");
+
+        sim.world().setCooldownTimer(shooter, 0f);
+        sim.combat().setTargetId(shooter, second);
+        sim.combat().setFireIntent(shooter, second, FireStance.STANCED, false);
+        systemFor(sim).tick(sim);
+        assertEquals(0f, sim.world().cooldownTimer(shooter), 1e-6f,
+                "a genuinely new threat is held until its registration window expires");
+        assertEquals(second, sim.combat().reflexTargetId(shooter));
+        assertTrue(sim.combat().reflexTimer(shooter) > 0f);
+    }
+
+    @Test
+    public void nonSoldierCombatantsDoNotInheritSyntheticRegularReflexes() {
+        BattleSimulation sim = openArena(30, 10);
+        long alien = sim.spawn(new EntitySpec("alien", Faction.MARINE,
+                UnitType.ALIEN, 5, 5));
+        long target = combatant(sim, Faction.DEFENDER, 7, 5);
+        sim.world().setAttackRange(alien, 10f);
+
+        sim.combat().setFireIntent(alien, target, FireStance.STANCED, false);
+        systemFor(sim).tick(sim);
+
+        assertEquals(sim.world().attackCooldown(alien), sim.world().cooldownTimer(alien), 1e-6f);
+        assertEquals(0L, sim.combat().reflexTargetId(alien));
+        assertEquals(0f, sim.combat().reflexTimer(alien), 1e-6f);
+    }
+
     @Test
     public void intentInRangeWithLosAndCooldownReadyFiresExactlyOnce() {
         BattleSimulation sim = openArena(30, 10);
@@ -74,7 +181,7 @@ public class FiringSystemTest {
         sim.world().setAttackRange(shooter, 10f);
         // cooldownTimer defaults to 0 — ready to fire.
 
-        sim.combat().setFireIntent(shooter, target, FireStance.STANCED, false);
+        readyFireIntent(sim, shooter, target, FireStance.STANCED, false);
         systemFor(sim).tick(sim);
 
         assertEquals(0L, sim.combat().fireTargetId(shooter), "consume-once: intent cleared");
@@ -106,7 +213,7 @@ public class FiringSystemTest {
         long target = combatant(sim, Faction.DEFENDER, 10, 5);
         sim.world().setAttackRange(shooter, 10f);
         sim.world().setCooldownTimer(shooter, 0.5f);
-        sim.combat().setFireIntent(shooter, target, FireStance.STANCED, false);
+        readyFireIntent(sim, shooter, target, FireStance.STANCED, false);
 
         systemFor(sim).tick(sim);
 
@@ -122,7 +229,7 @@ public class FiringSystemTest {
         long shooter = combatant(sim, Faction.MARINE, 5, 5);
         long target = combatant(sim, Faction.DEFENDER, 30, 5); // dist 25
         sim.world().setAttackRange(shooter, 10f); // well short of 25
-        sim.combat().setFireIntent(shooter, target, FireStance.STANCED, false);
+        readyFireIntent(sim, shooter, target, FireStance.STANCED, false);
 
         systemFor(sim).tick(sim);
 
@@ -138,7 +245,7 @@ public class FiringSystemTest {
         long shooter = combatant(sim, Faction.MARINE, 5, 5);
         long target = combatant(sim, Faction.DEFENDER, 12, 5);
         sim.world().setAttackRange(shooter, 15f); // in range were it not for the wall
-        sim.combat().setFireIntent(shooter, target, FireStance.STANCED, false);
+        readyFireIntent(sim, shooter, target, FireStance.STANCED, false);
 
         systemFor(sim).tick(sim);
 
@@ -152,7 +259,7 @@ public class FiringSystemTest {
         long shooter = combatant(sim, Faction.MARINE, 5, 5);
         long target = combatant(sim, Faction.DEFENDER, 10, 5);
         sim.world().setAttackRange(shooter, 10f);
-        sim.combat().setFireIntent(shooter, target, FireStance.STANCED, false);
+        readyFireIntent(sim, shooter, target, FireStance.STANCED, false);
         // Inline kill — no drain/advance needed; the world row transmute is
         // buffered to the death-dispatcher drain, so the COMBAT table this
         // walk touches is untouched, but the roster pops the target.
@@ -170,7 +277,7 @@ public class FiringSystemTest {
         long shooter = combatant(sim, Faction.MARINE, 5, 5);
         long target = combatant(sim, Faction.DEFENDER, 10, 5);
         sim.world().setAttackRange(shooter, 10f);
-        sim.combat().setFireIntent(shooter, target, FireStance.STANCED, false);
+        readyFireIntent(sim, shooter, target, FireStance.STANCED, false);
         // Kill the shooter after intent was written — a different shot
         // landing earlier in the same walk, per the story's ordering.
         sim.applyDamage(shooter, 100_000f, 1f, 1f);
@@ -198,7 +305,7 @@ public class FiringSystemTest {
         // production EngagePosture always sets this during target selection
         // before it ever considers firing.
         sim.world().setTargetId(shooter, target);
-        sim.combat().setFireIntent(shooter, target, FireStance.STANCED, true);
+        readyFireIntent(sim, shooter, target, FireStance.STANCED, true);
 
         systemFor(sim).tick(sim);
 
@@ -220,7 +327,7 @@ public class FiringSystemTest {
         // variable here is the reposition flag.
         grid.setCoverAtFacing(10, 9, NavigationGrid.FACING_E, 2);
         sim.world().setTargetId(shooter, target);
-        sim.combat().setFireIntent(shooter, target, FireStance.STANCED, false);
+        readyFireIntent(sim, shooter, target, FireStance.STANCED, false);
 
         systemFor(sim).tick(sim);
 
@@ -244,7 +351,7 @@ public class FiringSystemTest {
         // shot itself never happened.
         grid.setCoverAtFacing(10, 9, NavigationGrid.FACING_E, 2);
         sim.world().setTargetId(shooter, target);
-        sim.combat().setFireIntent(shooter, target, FireStance.STANCED, true);
+        readyFireIntent(sim, shooter, target, FireStance.STANCED, true);
 
         systemFor(sim).tick(sim);
 
@@ -354,8 +461,8 @@ public class FiringSystemTest {
         sim.world().setAccuracy(shooterA, 1f);
         sim.world().setAccuracy(shooterB, 1f);
         sim.world().setHp(target, 1f);
-        sim.combat().setFireIntent(shooterA, target, FireStance.STANCED, false);
-        sim.combat().setFireIntent(shooterB, target, FireStance.STANCED, false);
+        readyFireIntent(sim, shooterA, target, FireStance.STANCED, false);
+        readyFireIntent(sim, shooterB, target, FireStance.STANCED, false);
 
         sim.advance(BattleSimulation.TICK_DT);
 

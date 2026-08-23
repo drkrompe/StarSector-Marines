@@ -166,6 +166,10 @@ public final class BattleComponents {
     public static final int COMBAT_EQUIPMENT_GRADE = 13;
     /** {@link #COMBAT} field 14: the combatant's immutable {@link com.dillon.starsectormarines.battle.infantry.SoldierProfile} (OBJECT). */
     public static final int COMBAT_SOLDIER_PROFILE = 14;
+    /** {@link #COMBAT} field 15: threat entity id currently being registered by the reflex passive (LONG), {@code 0L} = no threat. */
+    public static final int COMBAT_REFLEX_TARGET_ID = 15;
+    /** {@link #COMBAT} field 16: sim-seconds remaining before {@link #COMBAT_REFLEX_TARGET_ID} is registered and may receive primary fire (FLOAT). */
+    public static final int COMBAT_REFLEX_TIMER = 16;
 
     /** {@link #MOVEMENT} field 0: repeating [0,1) walk-stride phase, advanced by distance traveled — one full cycle per cell (FLOAT). Presentation-only: read by {@code battle.appearance.FacingSystem} for the locomotion pose; the sim never gates on it. */
     public static final int MOVEMENT_GAIT_PHASE = 0;
@@ -874,7 +878,8 @@ public final class BattleComponents {
                 FieldKind.LONG, FieldKind.INT, FieldKind.FLOAT, FieldKind.LONG,
                 FieldKind.FLOAT, FieldKind.OBJECT,
                 FieldKind.LONG, FieldKind.INT, FieldKind.INT,
-                FieldKind.OBJECT, FieldKind.OBJECT);
+                FieldKind.OBJECT, FieldKind.OBJECT,
+                FieldKind.LONG, FieldKind.FLOAT);
         SECONDARY_WEAPON = world.register(7, "SecondaryWeapon",
                 FieldKind.OBJECT, FieldKind.INT, FieldKind.FLOAT, FieldKind.FLOAT,
                 FieldKind.LONG, FieldKind.INT);
