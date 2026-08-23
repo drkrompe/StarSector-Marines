@@ -348,8 +348,10 @@ universe over time, not retrofitted into intel slots.
    [`command-powers/next-session.md`](command-powers/next-session.md).
 6. **Specialist mech playtest** — use **Spawn mech family** in the battle debug
    panel to compare Hound/Sirocco against the unchanged Bulwark, then playtest
-   Hound-led infantry screens and tune chassis identities plus the formation
-   leash. Budgeted production defender composition is already approved. See
+   the reciprocal Hound/infantry screen: the Hound should lead by no more than
+   six cells and hold rather than solo-charge when its infantry or lance-mate
+   support is lost. Tune chassis identities plus that formation leash.
+   Budgeted production defender composition is already approved. See
    [`mechs/next-session.md`](mechs/next-session.md).
 7. **Manual verification queue (deferred this session)** — the loot loop's
    visual/cargo/core shipping check, squad/debrief UI feel, and swarm wave cadence
