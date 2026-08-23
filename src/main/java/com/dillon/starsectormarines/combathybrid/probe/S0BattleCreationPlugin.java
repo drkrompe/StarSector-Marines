@@ -125,10 +125,11 @@ public class S0BattleCreationPlugin implements BattleCreationPlugin {
      *
      * <p><b>Air stays {@link AirProvider#INTERNAL}</b> (the default): the sim owns its own shuttles
      * and flyby. The vanilla carriers' air-to-ground is <em>additive</em> pressure on a
-     * self-contained battle — unifying air ownership (EXTERNAL + the external-landing handoff) is
-     * S3d's job. The targetable tier is the defense-post structures (turrets + drone hubs) that
+     * self-contained battle. A future EXTERNAL-air host is a separate authority contract described
+     * by {@code vanilla-combat-bridge-nouns.md}. The targetable tier is the defense-post structures
+     * (turrets + drone hubs) that
      * {@link SimProxyMirror} mirrors as proxies; defender/marine infantry are never directly proxied
-     * (architecture Decision 2 — infantry take area damage, not lock-on).
+     * (per the noun's targetability law: infantry take area damage, not lock-on).
      *
      * <p>One {@link BattleSimulation}, built here in the definition phase (called once) and handed
      * to the {@link CombatBridgeSession} via the config — never rebuilt by the per-frame plugins'

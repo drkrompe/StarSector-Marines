@@ -179,7 +179,7 @@ public final class DevConfig {
      * fleet, with the mod owning when the battle ends (press {@code F10} in combat).
      *
      * <p>Throwaway feasibility scaffolding for
-     * {@code roadmap/vanilla-combat-bridge/} (the {@code combathybrid} package).
+     * {@code vanilla-combat-bridge-nouns.md} (the {@code combathybrid} package).
      * Registers {@code CombatHybridCampaignPlugin} + {@code CombatHybridInputListener}
      * at game load; both are no-ops until the hotkey arms them. Flip off (or strip
      * the {@code combathybrid} probe classes) for prod builds.

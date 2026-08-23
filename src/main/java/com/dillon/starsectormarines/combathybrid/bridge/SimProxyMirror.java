@@ -47,10 +47,10 @@ import java.util.List;
  * <h2>Scale</h2>
  * {@link GroundBattleConfig#damageScale()} maps vanilla ship-gun damage (hundreds/sec,
  * bursty fighter passes) onto the sim's infantry-scale turret HP (50–85) so a turret
- * attrits over several passes rather than dying on the first salvo. Placeholder for the
- * real cross-scale damage convention deferred to S3c.
+ * attrits over several passes rather than dying on the first salvo. It remains a
+ * working host-tuning knob covered by {@code s3f-units-layer.md} acceptance.
  *
- * <p>Durable coupling core (see {@code roadmap/vanilla-combat-bridge/production-architecture.md}).
+ * <p>Durable coupling core (see {@code vanilla-combat-bridge-nouns.md}).
  * Reachable only via the dev probe today ({@code DevConfig.S0_COMBAT_PROBE}); production triggers
  * it through the mission flow once that seam lands.
  */

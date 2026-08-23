@@ -20,7 +20,7 @@ import java.util.Map;
 
 /**
  * Contextual see-through probe for the (future) ground battle control mode — see
- * {@code roadmap/vanilla-combat-bridge/stories/ground-control-mode.md}. Press <b>X</b>
+ * {@code ground-control-mode.md}. Press <b>X</b>
  * ("x-ray") during a SIM_COUPLED bridge battle to toggle a <b>cursor reveal disk</b>:
  * player ships near the cursor lerp their alpha down so the ground scene drawn on the
  * below-ships layer is legible through them, and lerp back up when the cursor moves away.

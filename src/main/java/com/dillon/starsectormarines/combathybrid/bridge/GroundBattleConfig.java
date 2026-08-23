@@ -16,9 +16,9 @@ import java.util.EnumSet;
  * sim is built once (via {@code BattleSetup.buildMap}) and this record carries everything the
  * bridge adapters need to render and couple it. One config → one {@code CombatBridgeSession}.
  *
- * <p>The {@link #sceneLayers} set is the knob the render-layers thread (S3f–S3j) grows: each
- * story adds a {@link RenderLayer} here rather than editing a hardcoded constant in
- * {@link GroundSceneBackdrop}.
+ * <p>The {@link #sceneLayers} set declares which existing ground render passes the
+ * host can project with genuinely supplied context; the backdrop contains no
+ * parallel hardcoded layer list.
  *
  * @param sim               the externally-owned ground sim (source of truth; never built here)
  * @param gridW             sim grid width in cells (cell→world projection)
@@ -66,8 +66,8 @@ public record GroundBattleConfig(
     /**
      * Vanilla-damage → sim-damage divisor: maps ship-gun damage (hundreds/sec, bursty fighter
      * passes) onto infantry-scale turret HP (50–85) so a turret attrits over several passes. A
-     * placeholder for the real cross-scale convention (architecture.md, S3c) — the knob, not the
-     * answer.
+     * working bridge-host tuning knob rather than an independent ground-health authority. See
+     * {@code vanilla-combat-bridge-nouns.md}.
      */
     public static final float DEFAULT_DAMAGE_SCALE = 0.02f;
 

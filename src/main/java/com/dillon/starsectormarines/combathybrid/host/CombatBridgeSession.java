@@ -32,7 +32,7 @@ import com.fs.starfarer.api.mission.MissionDefinitionAPI;
  * invoked by the launcher and {@link SpectatorCanvasPlugin}); the spawn of the vanilla ships
  * "above" is scenario content the caller owns, not session lifecycle.
  *
- * <p>Durable host core (see {@code roadmap/vanilla-combat-bridge/production-architecture.md}).
+ * <p>Durable host core (see {@code vanilla-combat-bridge-nouns.md}).
  * Reachable only via the dev probe today; production triggers it through the mission flow once that
  * seam lands.
  */
@@ -84,7 +84,7 @@ public final class CombatBridgeSession {
         // S3d foundation: press L in-combat to take over one carrier and fly it down to the band.
         engine.addPlugin(new CarrierDescentPlugin(config, FleetSide.PLAYER));
         // Ground-control-mode probe: press X to toggle the cursor reveal disk (fade player ships
-        // near the cursor so the ground scene shows through). See stories/ground-control-mode.md.
+        // near the cursor so the ground scene shows through). See ground-control-mode.md.
         engine.addPlugin(new SeeThroughPlugin());
     }
 }
