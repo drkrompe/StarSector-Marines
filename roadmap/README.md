@@ -189,8 +189,8 @@ universe over time, not retrofitted into intel slots.
   S2 and S4-S10 remain, S1's own last acceptance item is an in-game feel pass,
   and the synthesis found one proposed XP-authority cleanup. See
   `progression-nouns.md`; its adjacent board is the open-work list.
-- **Company view** *(active — C7 shipped)* — the player's force as one legible
-  hierarchy, company → squad → marine, in the fleet and in the field.
+- **Company view** *(active — C14 Slice 1 shipped)* — the player's force as one legible
+  hierarchy, company → squad → fire team → marine, in the fleet and in the field.
   The mod already models captains, persistent six-marine squads, and
   named soldiers, but every surface renders them as a flat list and the
   organization is destroyed at deployment: `CampaignMarineDeployment.freeze`
@@ -218,10 +218,16 @@ universe over time, not retrofitted into intel slots.
   lethality scale makes a six-marine squad combat-ineffective within
   seconds of contact; lifts are denominated in fire teams, so only a
   Valkyrie lands a squad intact and an assembling squad forms up at its LZ
-  before advancing. Fire teams are modelled but behind the scenes — the
-  AI's maneuver element (bounding, fix-and-flank), never a level of the
-  player's hierarchy. Read-only throughout — in-battle orders are
-  explicitly out of scope. A tenth story (C10) settles where the company is
+  before advancing. Fire teams are the AI's maneuver element (bounding,
+  fix-and-flank) and, in C14, the Fleet Armory's player-facing equipment tier:
+  reusable four-billet template cards are assigned only when finite fleet
+  stock can supply a complete kit. Squads remain the deployment and command
+  target; fire-team battle orders are explicitly out of scope. **C14 Slice 1
+  ships the first end-to-end version:** four reusable starter cards, mixed
+  four-billet issues including support weapons, atomic stock checks net of
+  returned gear, persistent per-team assignments, and Alpha/Bravo/Charlie on
+  the Fleet Armory LOADOUTS surface. The player-authored designer is next. A tenth story
+  (C10) settles where the company is
   readable *between* contracts: a campaign-map ability-bar button opening the
   planet-free dialog host G32 shipped, rather than another route inside the
   planet-scoped Marine Ops screen — most roster work turned out to be gated
