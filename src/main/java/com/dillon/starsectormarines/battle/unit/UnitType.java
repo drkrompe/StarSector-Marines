@@ -34,7 +34,7 @@ public enum UnitType {
     /** Hostile fauna / xeno boarder. Aggressive glass-cannon brawler — low HP, high damage, slightly faster, mid accuracy. Above-baseline morale impact (animal panic). */
     ALIEN      ("graphics/battle/alien.png",       "graphics/battle/alien-dead.png",       true, 15.0f, 3.0f, 2.2f, 0.32f, 1.1f, 22.0f, 34.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.2f, 0.3f, 0.45f),
     /** Compatibility archetype for modular strider mechs. The persistent {@link com.dillon.starsectormarines.battle.mech.MechVariant} supplies each body's actual stats, geometry, and installed {@link MechLoadoutComponent}; an unspecified profile defaults to the stock heavy Bulwark. Defender mechs show up when the target planet produces or demands heavy armaments. */
-    HEAVY_MECH ("graphics/battle/heavy-mech.png",  "graphics/battle/heavy-mech-dead.png",  true, 4860f, 36.0f, 1.15f, 0.40f, 0.6f, 40.0f, 55.0f, FrameLayout.EIGHT_WAY_NO_WEAPON_UP, 1.6f, 1.5f, 0.6f, 0.80f),
+    HEAVY_MECH ("graphics/battle/heavy-mech.png",  "graphics/battle/heavy-mech-dead.png",  true,  550f, 36.0f, 1.15f, 0.40f, 0.6f, 40.0f, 55.0f, FrameLayout.EIGHT_WAY_NO_WEAPON_UP, 1.6f, 1.5f, 0.6f, 0.80f),
     /** Random urban resident. Wanders the map and flees gunfire. Non-combatant; combat stats are unused but kept zero-safe. No corpse — civilian death just removes them from the map. */
     CIVILIAN   ("graphics/battle/civilian.png",    null,                                   false,  8f, 0f,   2.4f, 0f,    1f,   0f,    12.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.3f, 0.45f),
     /** Maintenance / industrial worker. Same role as civilian — wanders, flees. */

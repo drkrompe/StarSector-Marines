@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.World;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.function.LongPredicate;
 
 /**
  * Bucketed spatial index over alive units. Rebuilt once per sim tick so AI
@@ -63,18 +64,21 @@ public final class UnitSpatialIndex {
         long[] ids = new long[8];
         float[] posX = new float[8];
         float[] posY = new float[8];
+        byte[] factionOrdinals = new byte[8];
         int size;
 
-        void add(long id, float x, float y) {
+        void add(long id, float x, float y, Faction faction) {
             if (size == ids.length) {
                 int cap = size << 1;
                 ids = Arrays.copyOf(ids, cap);
                 posX = Arrays.copyOf(posX, cap);
                 posY = Arrays.copyOf(posY, cap);
+                factionOrdinals = Arrays.copyOf(factionOrdinals, cap);
             }
             ids[size] = id;
             posX[size] = x;
             posY[size] = y;
+            factionOrdinals[size] = (byte) faction.ordinal();
             size++;
         }
 
@@ -134,7 +138,7 @@ public final class UnitSpatialIndex {
             float x = world.x(id);
             float y = world.y(id);
             Bucket bucket = bucketAt((int) Math.floor(x), (int) Math.floor(y));
-            if (bucket != null) bucket.add(id, x, y);
+            if (bucket != null) bucket.add(id, x, y, roster.identity().faction(id));
         }
     }
 
@@ -159,7 +163,7 @@ public final class UnitSpatialIndex {
         float x = world.x(id);
         float y = world.y(id);
         Bucket bucket = bucketAt((int) Math.floor(x), (int) Math.floor(y));
-        if (bucket != null) bucket.add(id, x, y);
+        if (bucket != null) bucket.add(id, x, y, roster.identity().faction(id));
     }
 
     /**
@@ -193,6 +197,21 @@ public final class UnitSpatialIndex {
      * index is a primitive over <em>all</em> alive units, not a slice.
      */
     public void gather(float cx, float cy, float radius, LongBucket out) {
+        gather(cx, cy, radius, -1, out);
+    }
+
+    /**
+     * Faction-filtered form of {@link #gather}. Faction is denormalized into
+     * each spatial bucket at rebuild, so non-matching candidates are rejected
+     * before any by-id liveness probe.
+     */
+    public void gatherFaction(float cx, float cy, float radius,
+                              Faction faction, LongBucket out) {
+        gather(cx, cy, radius, faction.ordinal(), out);
+    }
+
+    private void gather(float cx, float cy, float radius,
+                        int factionOrdinal, LongBucket out) {
         out.clear();
         if (radius <= 0f) return;
         int loX = (int) Math.floor(cx - radius);
@@ -211,8 +230,10 @@ public final class UnitSpatialIndex {
                 long[] ids = bucket.ids;
                 float[] bpx = bucket.posX;
                 float[] bpy = bucket.posY;
+                byte[] factions = bucket.factionOrdinals;
                 for (int i = 0, n = bucket.size; i < n; i++) {
                     long id = ids[i];
+                    if (factionOrdinal >= 0 && factions[i] != factionOrdinal) continue;
                     // Skip units released since the last rebuild — the index is a
                     // per-tick snapshot, so a unit killed (and registry-released)
                     // mid-tick lingers in its old bucket until then. The snapshot
@@ -220,13 +241,93 @@ public final class UnitSpatialIndex {
                     // "alive units only" contract still requires the skip so dead
                     // units aren't handed back. (Callers also filter, but gather
                     // owns the contract.)
-                    if (!roster.isAliveById(id)) continue;
+                    if (!roster.isLive(id) || !roster.isAliveById(id)) continue;
                     float dx = bpx[i] - cx;
                     float dy = bpy[i] - cy;
                     if (dx * dx + dy * dy <= r2) out.add(id);
                 }
             }
         }
+    }
+
+    /**
+     * Nearest live unit of {@code faction} to the query point, or {@code 0L}
+     * when that faction has no indexed unit. Bucket rings expand from the
+     * query and stop once the best squared distance is inside the nearest
+     * possible unvisited bucket boundary. Equal-distance ties resolve by id.
+     */
+    public long nearestFaction(float cx, float cy, Faction faction) {
+        return nearestFaction(cx, cy, faction, null);
+    }
+
+    /**
+     * Filtered nearest-faction query. The primitive predicate is evaluated
+     * only for live, faction-matching bucket entries, allowing callers with a
+     * narrow eligibility rule to keep expanding spatially instead of falling
+     * back to a full faction scan.
+     */
+    public long nearestFaction(float cx, float cy, Faction faction,
+                               LongPredicate eligibility) {
+        if (roster.factionLiveCount(faction) == 0) return 0L;
+        int centerBx = Math.max(0, Math.min(bucketsX - 1,
+                Math.floorDiv((int) Math.floor(cx), BUCKET)));
+        int centerBy = Math.max(0, Math.min(bucketsY - 1,
+                Math.floorDiv((int) Math.floor(cy), BUCKET)));
+        int maxRing = Math.max(Math.max(centerBx, bucketsX - 1 - centerBx),
+                Math.max(centerBy, bucketsY - 1 - centerBy));
+        int factionOrdinal = faction.ordinal();
+        long best = 0L;
+        float bestDistanceSquared = Float.MAX_VALUE;
+
+        for (int ring = 0; ring <= maxRing; ring++) {
+            int x0 = Math.max(0, centerBx - ring);
+            int x1 = Math.min(bucketsX - 1, centerBx + ring);
+            int y0 = Math.max(0, centerBy - ring);
+            int y1 = Math.min(bucketsY - 1, centerBy + ring);
+            for (int by = y0; by <= y1; by++) {
+                for (int bx = x0; bx <= x1; bx++) {
+                    if (Math.max(Math.abs(bx - centerBx),
+                            Math.abs(by - centerBy)) != ring) continue;
+                    Bucket bucket = buckets[by * bucketsX + bx];
+                    if (bucket == null) continue;
+                    for (int i = 0, n = bucket.size; i < n; i++) {
+                        if (bucket.factionOrdinals[i] != factionOrdinal) continue;
+                        long id = bucket.ids[i];
+                        if (!roster.isLive(id) || !roster.isAliveById(id)) continue;
+                        if (eligibility != null && !eligibility.test(id)) continue;
+                        float dx = bucket.posX[i] - cx;
+                        float dy = bucket.posY[i] - cy;
+                        float distanceSquared = dx * dx + dy * dy;
+                        if (distanceSquared < bestDistanceSquared
+                                || (distanceSquared == bestDistanceSquared
+                                && (best == 0L || id < best))) {
+                            best = id;
+                            bestDistanceSquared = distanceSquared;
+                        }
+                    }
+                }
+            }
+            if (best != 0L && bestDistanceSquared < nearestOutsideDistanceSquared(
+                    cx, cy, centerBx, centerBy, ring)) break;
+        }
+        return best;
+    }
+
+    private float nearestOutsideDistanceSquared(float cx, float cy,
+                                                 int centerBx, int centerBy,
+                                                 int ring) {
+        float nearest = Float.MAX_VALUE;
+        int left = centerBx - ring;
+        int right = centerBx + ring;
+        int top = centerBy - ring;
+        int bottom = centerBy + ring;
+        if (left > 0) nearest = Math.min(nearest, cx - left * BUCKET);
+        if (right < bucketsX - 1) nearest = Math.min(nearest,
+                (right + 1) * BUCKET - cx);
+        if (top > 0) nearest = Math.min(nearest, cy - top * BUCKET);
+        if (bottom < bucketsY - 1) nearest = Math.min(nearest,
+                (bottom + 1) * BUCKET - cy);
+        return nearest * nearest;
     }
 
     /**

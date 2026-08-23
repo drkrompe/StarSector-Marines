@@ -151,7 +151,7 @@ public final class SquadMoraleSystem {
             // that isn't read for mech squads (predicate consults
             // {@link Squad#moraleBroken}, not raw morale).
             if (squad.isMechSquad()) {
-                updateMechSquadMorale(squad, dense, roster, liveCount, dt);
+                updateMechSquadMorale(squad, roster, dt);
                 squad._moraleBrokenChangedThisTick =
                         squad.moraleBroken != wasMoraleBroken;
                 continue;
@@ -225,15 +225,14 @@ public final class SquadMoraleSystem {
      * once that lands, this aggregator could be relaxed to "any broken."
      * Today majority is what gives a stable squad-level signal.
      */
-    private void updateMechSquadMorale(Squad squad, long[] dense,
-                                       UnitRosterService roster, int liveCount, float dt) {
+    private void updateMechSquadMorale(Squad squad,
+                                       UnitRosterService roster, float dt) {
         World world = roster.world();
         int aliveMechs = 0;
         int brokenMechs = 0;
-        for (int i = 0; i < liveCount; i++) {
-            long u = dense[i];
-            // Dense iteration excludes released units — no isAlive() needed.
-            if (!roster.squad().hasSquad(u) || roster.squad().squadId(u) != squad.id) continue;
+        long[] members = roster.squadMemberArray(squad.id);
+        for (int i = 0, n = roster.squadMemberCount(squad.id); i < n; i++) {
+            long u = members[i];
             // Capability-as-presence: a mech is an entity with a loadout
             // component (was the nullable u.mech field). Null-safe by-id read off
             // the MECH_LOADOUT world component.

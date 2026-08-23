@@ -5,8 +5,6 @@ import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.sim.World;
-import it.unimi.dsi.fastutil.longs.LongArrayList;
-import it.unimi.dsi.fastutil.longs.LongComparator;
 
 import java.util.List;
 import java.util.function.LongConsumer;
@@ -38,9 +36,6 @@ public final class SquadFallbackSystem {
 
     /** Squared cell distance from a unit to its home cell counted as "arrived." */
     private static final float HOME_ARRIVAL_RADIUS_SQ = 2.0f * 2.0f;
-
-    /** Reused scratch for a squad's live members, gathered in entityId (= spawn) order before cover redistribution. Serial-phase use only. */
-    private final LongArrayList memberScratch = new LongArrayList();
 
     private final NavigationService navigation;
     private final UnitRosterService roster;
@@ -87,9 +82,9 @@ public final class SquadFallbackSystem {
     /** True when every alive squad member is within {@link #HOME_ARRIVAL_RADIUS_SQ} of their home cell — caller treats that as "the retreat is finished." */
     private boolean allMembersHome(Squad squad, UnitRosterService roster) {
         World world = roster.world();
-        for (int i = 0, n = roster.liveCount(); i < n; i++) {
-            long u = roster.get(i);
-            if (!roster.squad().hasSquad(u) || roster.squad().squadId(u) != squad.id) continue;
+        long[] members = roster.squadMemberArray(squad.id);
+        for (int i = 0, n = roster.squadMemberCount(squad.id); i < n; i++) {
+            long u = members[i];
             if (!roster.home().hasHome(u)) continue;
             float dx = (roster.home().homeCellX(u) + 0.5f) - world.x(u);
             float dy = (roster.home().homeCellY(u) + 0.5f) - world.y(u);
@@ -99,38 +94,21 @@ public final class SquadFallbackSystem {
     }
 
     /**
-     * Gathers {@code squad}'s live members into {@link #memberScratch}, sorted
-     * by {@code entityId} so the iteration order matches the old units-list
-     * (insertion = spawn) order the cover-priority assignment relied on — the
-     * dense registry reorders on swap-and-pop release, so we re-establish spawn
-     * order explicitly. Returns the reused scratch list (valid until the next
-     * call).
-     */
-    private LongArrayList squadMembersInSpawnOrder(Squad squad, UnitRosterService roster) {
-        memberScratch.clear();
-        for (int i = 0, n = roster.liveCount(); i < n; i++) {
-            long u = roster.get(i);
-            if (roster.squad().hasSquad(u) && roster.squad().squadId(u) == squad.id) memberScratch.add(u);
-        }
-        memberScratch.sort((LongComparator) Long::compare);
-        return memberScratch;
-    }
-
-    /**
      * Distributes new home cells around {@code newNode}'s anchor to every
      * surviving member of {@code squad}. Reuses
      * {@link BattleSetup#pickCellsNear} so the cover-sorted ordering is the
      * same one the original spawn used — the highest-rank survivors (taken in
-     * spawn order via {@link #squadMembersInSpawnOrder}, which preserves spawn
-     * priority) take the best new cover stacks.
+     * stable per-squad member slice, which preserves spawn priority) take the
+     * best new cover stacks.
      */
     private void assignFallbackHomes(Squad squad, TacticalNode newNode, UnitRosterService roster) {
         List<int[]> cells = BattleSetup.pickCellsNear(navigation.getGrid(), navigation.getZoneGraph(),
                 newNode.anchorX, newNode.anchorY, 5, squad.aliveMembers);
-        LongArrayList members = squadMembersInSpawnOrder(squad, roster);
+        long[] members = roster.squadMemberArray(squad.id);
+        int memberCount = roster.squadMemberCount(squad.id);
         int idx = 0;
-        for (int i = 0, n = members.size(); i < n; i++) {
-            long u = members.getLong(i);
+        for (int i = 0; i < memberCount; i++) {
+            long u = members[i];
             if (idx >= cells.size()) {
                 // Out of cells — keep the survivor's current home so they
                 // don't end up homeless. They'll just hold where they are.

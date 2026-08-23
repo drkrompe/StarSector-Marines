@@ -43,13 +43,8 @@ public final class WeaponDef {
     public final float accuracy;
     /** Seconds between trigger pulls. */
     public final float cooldown;
-    /**
-     * Damage multiplier against hardened classes (turrets, drone hubs, heavy
-     * mechs). Named honestly here; the Java field it feeds is still called
-     * {@code vsTurretMult}, which {@code DamageResolver} already documents as
-     * "misnamed history".
-     */
-    public final float vsHardenedMult;
+    /** Efficiency input against actor armor; does not amplify exposed-structure damage. */
+    public final float penetration;
     /** Rounds per fire decision. 1 = single shot. */
     public final int burstCount;
     /** Sim-seconds between burst rounds. Ignored when {@link #burstCount} is 1. */
@@ -97,7 +92,7 @@ public final class WeaponDef {
     private WeaponDef(String id, MountClass mount, String displayName, String modelName,
                       String designation, boolean designationTiered,
                       float range, float damage, float accuracy, float cooldown,
-                      float vsHardenedMult, int burstCount, float burstSpacing,
+                      float penetration, int burstCount, float burstSpacing,
                       float accuracyFalloff, float hitSpread, float roundVelocity,
                       float minRange, float aoeRadius, int wallDamage,
                       float wallDamageRadius, float aimDuration, float flightSec,
@@ -115,7 +110,7 @@ public final class WeaponDef {
         this.damage = damage;
         this.accuracy = accuracy;
         this.cooldown = cooldown;
-        this.vsHardenedMult = vsHardenedMult;
+        this.penetration = penetration;
         this.burstCount = burstCount;
         this.burstSpacing = burstSpacing;
         this.accuracyFalloff = accuracyFalloff;
@@ -169,7 +164,7 @@ public final class WeaponDef {
                 (float) sim.getDouble("damage"),
                 (float) sim.getDouble("accuracy"),
                 (float) sim.getDouble("cooldown"),
-                (float) sim.optDouble("vsHardenedMult", 1.0),
+                (float) sim.getDouble("penetration"),
                 sim.optInt("burstCount", 1),
                 (float) sim.optDouble("burstSpacing", 0.0),
                 (float) sim.optDouble("accuracyFalloff", 0.0),

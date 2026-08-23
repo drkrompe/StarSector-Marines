@@ -40,7 +40,7 @@ A trait the player cannot notice is no better than an inert one.
 
 | Trait | Intended effect | Natural implementation seam |
 | --- | --- | --- |
-| `SIEGE_SPECIALIST` | Bonus vs fortified targets | Anti-structure damage or emplacement handling; the shipped `vsTurretMult` path is the obvious hook |
+| `SIEGE_SPECIALIST` | Bonus vs fortified targets | Anti-structure damage or emplacement handling; penetration and wall damage are distinct candidate hooks |
 | `SAPPER` | Reduces collateral / civilian casualties | Civilian-rescue and living-world scenarios already track this precisely |
 | `SCOUT` | More recon info before the raid | Ties to fog-of-war initial reveal and the recon command power |
 | `COMBAT_ENGINEER` | Bonuses operating vehicles / mechs | Reads against the shipped mech roster and convoy tracks |

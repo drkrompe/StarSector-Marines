@@ -9,13 +9,13 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
  * that builds the corpse home. Subscribed to the battle's death dispatcher; on
  * each {@link DeathEvent} it {@code transmute}s the entity (one row-move) from
  * the live {@code {IDENTITY, POSITION, HEALTH, VISION, ROLE}}
- * archetype (plus the optional {@code COMBAT} a combatant carries, the
+ * archetype (plus optional {@code ARMOR}, the optional {@code COMBAT} a combatant carries, the
  * {@code MOVEMENT}, {@code AI_STATE}, {@code SECONDARY_WEAPON}, {@code SQUAD} a
  * mobile/armed/squadded unit carries, and the {@code SPRITE} every sheet-drawn
  * unit — {@link UnitType#drawnAsSheet()} — already carries live, authored
  * per-tick by {@code battle.appearance.FacingSystem}) to the
  * corpse archetype {@code {IDENTITY, POSITION, SPRITE, CORPSE}}:
- * {@code HEALTH}, the universal {@code VISION} + {@code ROLE}, and any {@code COMBAT},
+ * {@code HEALTH}, any {@code ARMOR}, the universal {@code VISION} + {@code ROLE}, and any {@code COMBAT},
  * {@code MOVEMENT}, {@code AI_STATE}, {@code SECONDARY_WEAPON}, or {@code SQUAD} are
  * removed (a corpse neither lives, sees, acts, fights, moves, thinks, nor belongs to
  * a squad — and "lacks HEALTH" is half the liveness definition);
@@ -63,7 +63,7 @@ public final class DeadBodySystem {
         // unit that already has it, and still adds it fresh for a non-sheet death
         // (turret / drone-hub / drone) that never carried one live.
         this.corpseAdd = new ComponentType[]{components.SPRITE, components.CORPSE};
-        // COMBAT, MOVEMENT, AI_STATE, SECONDARY_WEAPON, SQUAD, HUB_STATE,
+        // ARMOR, COMBAT, MOVEMENT, AI_STATE, SECONDARY_WEAPON, SQUAD, HUB_STATE,
         // TURRET_STATE, and DRONE_STATE are all optional (a non-combatant civilian
         // has no COMBAT; a static turret/hub has no MOVEMENT/AI_STATE; only armed
         // units carry a secondary; only squad members carry SQUAD; only a drone hub
@@ -85,7 +85,7 @@ public final class DeadBodySystem {
         // drone doesn't patrol), so DRONE_STATE is removed like every other
         // live-only optional component.
         this.corpseRemove = new ComponentType[]{
-                components.HEALTH, components.COMBAT, components.MOVEMENT,
+                components.HEALTH, components.ARMOR, components.COMBAT, components.MOVEMENT,
                 components.AI_STATE, components.SECONDARY_WEAPON, components.VISION,
                 components.SQUAD, components.ROLE, components.HOME, components.TASK,
                 components.HUB_STATE, components.TURRET_STATE, components.DRONE_STATE,

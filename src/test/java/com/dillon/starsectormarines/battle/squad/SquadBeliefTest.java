@@ -108,6 +108,9 @@ class SquadBeliefTest {
         for (int y = 0; y < sim.getGrid().getHeight(); y++) {
             sim.getGrid().setWalkableFloor(12, y);
         }
+        assertFalse(WorldStateBuilder.build(squad, sim)
+                        .get(Predicate.HAS_LOS_TO_TARGET),
+                "opening LOS after the alert pass must not leak through a planner-side global rescan");
         sim.advance(BattleSimulation.TICK_DT);
         assertTrue(WorldStateBuilder.build(squad, sim)
                 .get(Predicate.HAS_LOS_TO_TARGET));
@@ -115,6 +118,9 @@ class SquadBeliefTest {
         for (int y = 0; y < sim.getGrid().getHeight(); y++) {
             sim.getGrid().setWalkable(12, y, false);
         }
+        assertTrue(WorldStateBuilder.build(squad, sim)
+                        .get(Predicate.HAS_LOS_TO_TARGET),
+                "the current alert snapshot stays authoritative until the next serial alert pass");
         sim.advance(BattleSimulation.TICK_DT);
         BelievedContact fading = squad.believedContacts().get(0);
         assertTrue(fading.confidence() < 1f);

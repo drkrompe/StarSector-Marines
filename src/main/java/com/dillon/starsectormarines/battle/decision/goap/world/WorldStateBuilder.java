@@ -1,8 +1,6 @@
 package com.dillon.starsectormarines.battle.decision.goap.world;
 import com.dillon.starsectormarines.battle.sim.BattleView;
-import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.squad.BelievedContact;
-import com.dillon.starsectormarines.battle.squad.BeliefSource;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.infantry.InfantryCohesion;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -102,20 +100,14 @@ public final class WorldStateBuilder {
      * the parallel planner does not rediscover enemies from global live state.
      */
     private static boolean evalHasLosToTarget(Squad squad, BattleView sim) {
-        int tick = sim.getSimTickIndex();
-        for (BelievedContact contact : squad.believedContacts()) {
-            if (contact.source() == BeliefSource.DIRECT
-                    && contact.observedOnTick(tick)) return true;
-        }
-        return false;
+        return squad.hasDirectContactThisTick();
     }
 
     private static boolean evalInRangeOfTarget(Squad squad, BattleView sim) {
         List<BelievedContact> contacts = squad.believedContacts();
         if (contacts.isEmpty()) return false;
-        for (int mi = 0, n = sim.liveUnitCount(); mi < n; mi++) {
-            long member = sim.liveUnitAt(mi);
-            if (!sim.squad().hasSquad(member) || sim.squad().squadId(member) != squad.id) continue;
+        for (int mi = 0, n = sim.squadMemberCount(squad.id); mi < n; mi++) {
+            long member = sim.squadMemberAt(squad.id, mi);
             for (BelievedContact contact : contacts) {
                 float d = TacticalScoring.cellDistance(sim.world().x(member),
                         sim.world().y(member), contact.lastSeenCellX() + 0.5f,
@@ -151,9 +143,8 @@ public final class WorldStateBuilder {
      * loop doesn't gate on it — the cooldown gate happens inside the action.
      */
     private static boolean evalCanReposition(Squad squad, BattleView sim) {
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            long u = sim.liveUnitAt(i);
-            if (!sim.squad().hasSquad(u) || sim.squad().squadId(u) != squad.id) continue;
+        for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
+            long u = sim.squadMemberAt(squad.id, i);
             if (sim.world().repositionCooldown(u) <= 0f) return true;
         }
         return false;
@@ -162,9 +153,8 @@ public final class WorldStateBuilder {
     private static boolean evalWithinCohesionRadius(Squad squad, BattleView sim) {
         if (squad.aliveMembers <= 1) return true;
         float r2 = InfantryCohesion.COHESION_RADIUS * InfantryCohesion.COHESION_RADIUS;
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            long u = sim.liveUnitAt(i);
-            if (!sim.squad().hasSquad(u) || sim.squad().squadId(u) != squad.id) continue;
+        for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
+            long u = sim.squadMemberAt(squad.id, i);
             float dx = sim.world().x(u) - squad.centroidX;
             float dy = sim.world().y(u) - squad.centroidY;
             if (dx * dx + dy * dy > r2) return false;
@@ -227,7 +217,7 @@ public final class WorldStateBuilder {
      *       {@link SquadAlertSystem#KILL_ZONE_LOS_TICKS_THRESHOLD} — LOS to a
      *       close enemy has been stable for ~0.2s, suppressing flicker on
      *       transient sightings; AND
-     *       at least one squadmate currently has LOS to an enemy combatant
+     *       the serial alert pass currently sees an enemy combatant
      *       within {@link SquadAlertSystem#KILL_ZONE_RANGE_CELLS} cells —
      *       the trigger doesn't latch; once the enemy retreats out of the
      *       kill zone the gate closes again (unless the ambush-blown
@@ -238,24 +228,7 @@ public final class WorldStateBuilder {
         if (!squad.holdsFireUntilKillZone) return true;
         if (squad.timeUnderSustainedFire >= SquadAlertSystem.KILL_ZONE_AMBUSH_BLOWN_SECONDS) return true;
         if (squad.killZoneLosTicks < SquadAlertSystem.KILL_ZONE_LOS_TICKS_THRESHOLD) return false;
-        NavigationGrid grid = sim.getGrid();
-        int range2 = SquadAlertSystem.KILL_ZONE_RANGE_CELLS * SquadAlertSystem.KILL_ZONE_RANGE_CELLS;
-        for (int mi = 0, n = sim.liveUnitCount(); mi < n; mi++) {
-            long member = sim.liveUnitAt(mi);
-            if (!sim.squad().hasSquad(member) || sim.squad().squadId(member) != squad.id) continue;
-            for (int ei = 0; ei < n; ei++) {
-                long enemy = sim.liveUnitAt(ei);
-                if (!sim.identity().type(enemy).combatant) continue;
-                if (sim.identity().faction(enemy) == squad.faction) continue;
-                float dx = sim.world().x(enemy) - sim.world().x(member);
-                float dy = sim.world().y(enemy) - sim.world().y(member);
-                if (dx * dx + dy * dy > range2) continue;
-                if (grid.hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member), sim.world().cellX(enemy), sim.world().cellY(enemy))) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return squad.hasEnemyInKillZoneThisTick();
     }
 
     /**
@@ -265,37 +238,11 @@ public final class WorldStateBuilder {
      * BreakLOS posture when this trips, so a squad caught in return fire
      * ducks for cover instead of trading blows at parity.
      *
-     * <p>Scans {@link BattleView#snapshotActiveShots()} for hostile shots whose
-     * target endpoint is within 2 cells of any squadmate. A squadmate at the
-     * shot's target area with LOS back to {@code (fromX, fromY)} qualifies —
-     * the LOS test is what distinguishes "shot through a wall (impossible,
-     * but the shot grazed past a corner)" from "we're standing in the firing
-     * lane."
+     * <p>The serial alert pass owns the active-shot, proximity, and LOS scan.
+     * Planning consumes that published result so every parallel replan sees
+     * the same tick snapshot without copying shots or revisiting the roster.
      */
     private static boolean evalUnderFireAtLos(Squad squad, BattleView sim) {
-        // Snapshot — runs during parallel UPDATE_UNITS dispatch, can't iterate
-        // the live activeShots list because concurrent postShot() appends will
-        // CME the iterator.
-        List<ShotEvent> shots = sim.snapshotActiveShots();
-        if (shots.isEmpty()) return false;
-        NavigationGrid grid = sim.getGrid();
-        for (ShotEvent shot : shots) {
-            if (shot.shooterFaction == squad.faction) continue;
-            for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-                long member = sim.liveUnitAt(i);
-                if (!sim.squad().hasSquad(member) || sim.squad().squadId(member) != squad.id) continue;
-                float dx = shot.toX - sim.world().x(member);
-                float dy = shot.toY - sim.world().y(member);
-                if (dx * dx + dy * dy > 4f) continue; // 2 cells squared
-                // Shot fromX/fromY are cell-centers (the shooter's cell + 0.5);
-                // floor recovers the integer cell.
-                int fromCellX = (int) Math.floor(shot.fromX);
-                int fromCellY = (int) Math.floor(shot.fromY);
-                if (grid.hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member), fromCellX, fromCellY)) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return squad.isUnderFireAtLosThisTick();
     }
 }

@@ -17,10 +17,10 @@ import java.util.Random;
  * Tick phase 3a: produces fresh contract offers for the player to pick up.
  *
  * <p>Walks active Tier 1-3 patron houses; each rolls a small daily chance to put
- * a rank-gated mission-mode offer on the table.
+ * a rank-gated contract offer on the table.
  * Offers land in {@link CampaignState#contractId contracts[]} with state
- * {@link ContractState#OFFERED OFFERED} — the briefing UI flips OFFERED → ACTIVE
- * on acceptance.
+ * {@link ContractState#OFFERED OFFERED} and remain eligible until acceptance or
+ * expiry policy advances them.
  *
  * <p>Two caps prevent runaway generation:
  * <ul>

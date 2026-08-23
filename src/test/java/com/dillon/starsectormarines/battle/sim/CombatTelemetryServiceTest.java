@@ -124,7 +124,7 @@ public class CombatTelemetryServiceTest {
         BattleSimulation sim = openArena(20, 20);
         long victim = unit(sim, "victim", Faction.DEFENDER, UnitType.MILITIA, 8, 5);
 
-        sim.applyExternalDamage(victim, 3f);
+        sim.applyExternalDamage(victim, 3f, 0f);
 
         assertEquals(3f, sim.telemetry().damageTaken(victim), 0.001f,
                 "a strafing run still costs the target HP even though no entity is credited");

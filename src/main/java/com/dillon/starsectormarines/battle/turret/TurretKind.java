@@ -45,7 +45,7 @@ public enum TurretKind {
                   "graphics/missiles/shell_small_yellow.png",
                   "vulcan_cannon_fire",
                   "Vulcan Cannon",
-                  22f, 10.8f, 0.45f,  1.40f, 450f, 120f, 1.6f, 0.22f, TurretRole.A2G, 120,
+                  22f, 10.8f, 0.45f,  1.40f, 60f, 120f, 1.6f, 0.22f, TurretRole.A2G, 120,
                   /*burst*/ 6, 0.08f, /*aoe*/ 0.6f, /*wallDmg*/ 3, /*wallDmgRadius*/ 0f,
                   /*arc*/ 0f, /*flightSec*/ 0.14f, /*hitSpread*/ 1.3f,
                   /*minRange*/ 0f, /*smokeTrail*/ false),
@@ -55,14 +55,14 @@ public enum TurretKind {
                   "graphics/missiles/shell_large_green.png",
                   "autocannon_fire",
                   "Arbalest Autocannon",
-                  30f, 45.0f, 0.50f,  1.50f, 585f,  90f, 1.8f, 0.30f, TurretRole.A2G,  60),
+                  30f, 45.0f, 0.50f,  1.50f, 70f,  90f, 1.8f, 0.30f, TurretRole.A2G,  60),
     /** Long-range high-damage — sniper turret. Slow turn rate so flanking matters. */
     HEAVY_MORTAR ("graphics/weapons/heavy_mortar_turret.png",
                   "graphics/weapons/heavy_mortar_turret_recoil.png",
                   "graphics/missiles/shell_round_lrg.png",
                   "heavy_mortar_fire",
                   "Heavy Mortar",
-                  36f, 81.0f, 0.55f,  2.50f, 675f,  60f, 1.8f, 0.32f, TurretRole.A2G,  15,
+                  36f, 81.0f, 0.55f,  2.50f, 80f,  60f, 1.8f, 0.32f, TurretRole.A2G,  15,
                   /*burst*/ 1, 0f, /*aoe*/ 1.35f, /*wallDmg*/ 24, /*wallDmgRadius*/ 1.15f,
                   /*arc*/ 0f, /*flightSec*/ 0.60f, /*hitSpread*/ 0.18f,
                   /*minRange*/ 0f, /*smokeTrail*/ false),
@@ -72,14 +72,14 @@ public enum TurretKind {
                   "graphics/missiles/shell_large_blue.png",
                   "flak_fire",
                   "Dual Flak Cannon",
-                  26f, 36.0f, 0.40f,  0.80f, 630f, 100f, 2.0f, 0.28f, TurretRole.A2G,  80),
+                  26f, 36.0f, 0.40f,  0.80f, 75f, 100f, 2.0f, 0.28f, TurretRole.A2G,  80),
     /** Heavy assault — high DPS at medium range. */
     HEPHAESTUS   ("graphics/weapons/hephaestus_turret_base.png",
                   "graphics/weapons/hephaestus_turret_recoil.png",
                   "graphics/missiles/shell_hephag.png",
                   "hephaestus_fire",
                   "Hephaestus Assault Gun",
-                  32f, 58.5f, 0.50f,  1.20f, 765f,  75f, 2.2f, 0.35f, TurretRole.A2G,  50),
+                  32f, 58.5f, 0.50f,  1.20f, 90f,  75f, 2.2f, 0.35f, TurretRole.A2G,  50),
     /**
      * Burst-fire grenade launcher — shuttle-mounted indirect-fire pod that lobs
      * a 4-round salvo of arc'd grenades with a smoke trail, then waits out a
@@ -93,7 +93,7 @@ public enum TurretKind {
                   "graphics/missiles/mortar_round.png",
                   "light_mortar_fire",
                   "Grenade Launcher",
-                  28f, 36.0f, 0.55f,  4.00f, 630f,  80f, 1.7f, 0.55f, TurretRole.A2G,  60,
+                  28f, 36.0f, 0.55f,  4.00f, 75f,  80f, 1.7f, 0.55f, TurretRole.A2G,  60,
                   /*burst*/ 4, 0.18f, /*aoe*/ 1.5f, /*wallDmg*/ 30, /*wallDmgRadius*/ 1.5f,
                   /*arc*/ 2.5f, /*flightSec*/ 0.65f, /*hitSpread*/ 0.6f,
                   /*minRange*/ 5f, /*smokeTrail*/ true),
@@ -122,7 +122,7 @@ public enum TurretKind {
                   "graphics/missiles/missile_locust.png",
                   "swarmer_fire",
                   "Locust Rocket Battery",
-                  100f, 45.0f, 0.25f,  10.00f, 720f,  50f, 2.0f, 0.45f, TurretRole.A2G,  30,
+                  100f, 45.0f, 0.25f,  10.00f, 85f,  50f, 2.0f, 0.45f, TurretRole.A2G,  30,
                   /*burst*/ 8, 0.08f, /*aoe*/ 1.4f, /*wallDmg*/ 20, /*wallDmgRadius*/ 1.4f,
                   /*arc*/ 3.5f, /*flightSec*/ 1.50f, /*hitSpread*/ 8.0f,
                   /*minRange*/ 30f, /*smokeTrail*/ true,
@@ -139,7 +139,7 @@ public enum TurretKind {
                   "graphics/missiles/shell_small_yellow.png",
                   "autocannon_fire",
                   "Heavy MG",
-                  24f, 22.5f, 0.50f,  2.20f, 585f, 110f, 1.6f, 0.22f, TurretRole.A2G, 200,
+                  24f, 22.5f, 0.50f,  2.20f, 70f, 110f, 1.6f, 0.22f, TurretRole.A2G, 200,
                   /*burst*/ 10, 0.07f, /*aoe*/ 0.8f, /*wallDmg*/ 5, /*wallDmgRadius*/ 0f,
                   /*arc*/ 0f, /*flightSec*/ 0.18f, /*hitSpread*/ 2.0f,
                   /*minRange*/ 3f, /*smokeTrail*/ false);
@@ -160,8 +160,8 @@ public enum TurretKind {
     public final float accuracy;
     /** Sim-seconds between shots. */
     public final float cooldown;
-    /** HP before the mount goes down. */
-    public final float maxHp;
+    /** Exposed structure before the emplacement goes down. */
+    public final float maxStructure;
     /** How fast the turret can rotate, in degrees per sim-second. Slower turrets reward flanking. */
     public final float turnRateDegPerSec;
     /** Visual sprite size in cells (long axis). Aspect comes from the loaded PNG. Slightly larger than 1 cell so the turret reads as a real emplacement, not a floor decal. */
@@ -259,10 +259,10 @@ public enum TurretKind {
     TurretKind(String spritePath, String recoilSpritePath, String projectileSpritePath, String fireSoundId,
                String displayName,
                float range, float damage, float accuracy, float cooldown,
-               float maxHp, float turnRateDegPerSec, float visualCells, float projectileVisualCells,
+               float maxStructure, float turnRateDegPerSec, float visualCells, float projectileVisualCells,
                TurretRole role, int startingAmmo) {
         this(spritePath, recoilSpritePath, projectileSpritePath, fireSoundId, displayName,
-                range, damage, accuracy, cooldown, maxHp, turnRateDegPerSec, visualCells, projectileVisualCells,
+                range, damage, accuracy, cooldown, maxStructure, turnRateDegPerSec, visualCells, projectileVisualCells,
                 role, startingAmmo,
                 /*burstCount*/ 1, /*burstSpacing*/ 0f, /*aoeRadius*/ 0f, /*wallDamage*/ 0, /*wallDamageRadius*/ 0f,
                 /*arcHeight*/ 0f, /*flightSec*/ 0f, /*hitSpread*/ 0f, /*minRange*/ 0f,
@@ -273,13 +273,13 @@ public enum TurretKind {
     TurretKind(String spritePath, String recoilSpritePath, String projectileSpritePath, String fireSoundId,
                String displayName,
                float range, float damage, float accuracy, float cooldown,
-               float maxHp, float turnRateDegPerSec, float visualCells, float projectileVisualCells,
+               float maxStructure, float turnRateDegPerSec, float visualCells, float projectileVisualCells,
                TurretRole role, int startingAmmo,
                int burstCount, float burstSpacing, float aoeRadius, int wallDamage, float wallDamageRadius,
                float arcHeight, float flightSec, float hitSpread, float minRange,
                boolean smokeTrail) {
         this(spritePath, recoilSpritePath, projectileSpritePath, fireSoundId, displayName,
-                range, damage, accuracy, cooldown, maxHp, turnRateDegPerSec, visualCells, projectileVisualCells,
+                range, damage, accuracy, cooldown, maxStructure, turnRateDegPerSec, visualCells, projectileVisualCells,
                 role, startingAmmo,
                 burstCount, burstSpacing, aoeRadius, wallDamage, wallDamageRadius,
                 arcHeight, flightSec, hitSpread, minRange, smokeTrail,
@@ -289,7 +289,7 @@ public enum TurretKind {
     TurretKind(String spritePath, String recoilSpritePath, String projectileSpritePath, String fireSoundId,
                String displayName,
                float range, float damage, float accuracy, float cooldown,
-               float maxHp, float turnRateDegPerSec, float visualCells, float projectileVisualCells,
+               float maxStructure, float turnRateDegPerSec, float visualCells, float projectileVisualCells,
                TurretRole role, int startingAmmo,
                int burstCount, float burstSpacing, float aoeRadius, int wallDamage, float wallDamageRadius,
                float arcHeight, float flightSec, float hitSpread, float minRange,
@@ -303,7 +303,7 @@ public enum TurretKind {
         this.damage = damage;
         this.accuracy = accuracy;
         this.cooldown = cooldown;
-        this.maxHp = maxHp;
+        this.maxStructure = maxStructure;
         this.turnRateDegPerSec = turnRateDegPerSec;
         this.visualCells = visualCells;
         this.projectileVisualCells = projectileVisualCells;
@@ -352,6 +352,41 @@ public enum TurretKind {
     public float directRoundVelocity() {
         if (!(flightSec > 0f)) return 60f;
         return range / flightSec;
+    }
+
+    /** Actor-armor penetration for this transitional turret weapon catalog. */
+    public float penetration() {
+        return switch (this) {
+            case VULCAN -> 3f;
+            case ARBALEST -> 8f;
+            case HEAVY_MORTAR, HEPHAESTUS -> 10f;
+            case DUAL_FLAK -> 5f;
+            case GRENADE_LAUNCHER -> 6f;
+            case LOCUST -> 14f;
+            case HEAVY_MG -> 4f;
+        };
+    }
+
+    public float armorPool() {
+        return switch (this) {
+            case VULCAN -> 80f;
+            case ARBALEST -> 110f;
+            case HEAVY_MORTAR -> 130f;
+            case DUAL_FLAK, GRENADE_LAUNCHER -> 120f;
+            case HEPHAESTUS -> 145f;
+            case LOCUST -> 135f;
+            case HEAVY_MG -> 110f;
+        };
+    }
+
+    public float armorRating() {
+        return switch (this) {
+            case VULCAN -> 8f;
+            case ARBALEST, DUAL_FLAK, GRENADE_LAUNCHER -> 10f;
+            case HEAVY_MORTAR, LOCUST -> 12f;
+            case HEPHAESTUS -> 14f;
+            case HEAVY_MG -> 10f;
+        };
     }
 
     /**

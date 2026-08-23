@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.smoke.SmokeFieldService;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationTracker;
 
@@ -46,6 +47,9 @@ public interface BattleView {
 
     NavigationGrid getGrid();
 
+    /** Simulation-owned, faction-neutral smoke fields and throws. */
+    SmokeFieldService smokeFields();
+
     /** Honest per-faction commander picture, or {@code null} for non-combat factions. */
     CommanderInfluenceSnapshot getCommanderInfluence(Faction faction);
 
@@ -71,6 +75,15 @@ public interface BattleView {
      * dense roster holds only live entities, so every index in range is a real id.
      */
     long liveUnitAt(int index);
+
+    /** Number of live members in one squad's primitive member slice. */
+    int squadMemberCount(int squadId);
+
+    /**
+     * Live member id at {@code [0, squadMemberCount(squadId))}. Member order
+     * follows spawn order and remains stable when another member is released.
+     */
+    long squadMemberAt(int squadId, int index);
 
     /** Per-cell unit count, indexed by {@link NavigationGrid#index(int, int)}. */
     byte[] getOccupancyMap();

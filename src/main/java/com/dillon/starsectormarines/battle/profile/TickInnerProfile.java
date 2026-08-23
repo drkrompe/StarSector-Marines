@@ -10,8 +10,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * counters:
  *
  * <ul>
- *   <li><b>Behavior buckets</b> — per-class wall time spent inside
- *       {@code updateUnit}'s dispatch. Tells us "is the spike coming from
+ *   <li><b>Behavior buckets</b> — aggregate worker time spent inside
+ *       {@code updateUnit}'s dispatch. Per-unit durations are summed across
+ *       parallel workers, so this value can exceed UPDATE_UNITS or whole-tick
+ *       wall time. Tells us "is the spike coming from
  *       infantry GOAP behaviors, turret behaviors, drone behaviors, or
  *       something else?"</li>
  *   <li><b>Primitive buckets</b> — heavy primitives (pathfind, target picking,
@@ -33,8 +35,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * access (rather than passing through every signature) is justified by the
  * 6+ call sites in {@code GridPathfinder} / {@code TacticalScoring} that
  * don't otherwise carry a {@link com.dillon.starsectormarines.battle.sim.BattleSimulation}
- * reference and shouldn't have to. The sim is single-threaded, so the
- * static slot races on nothing.
+ * reference and shouldn't have to. The thread-local slot keeps parallel unit
+ * workers isolated until their counters are merged after dispatch.
  *
  * <p>Cost: each {@link #record} call is one nanoTime delta plus a long+int
  * array increment — ~5ns. At ~5 record sites per unit × ~400 units = ~10µs
@@ -52,8 +54,10 @@ public final class TickInnerProfile {
         BEHAVIOR_STRUCTURE,
         BEHAVIOR_DRONE_HUB,
         BEHAVIOR_GOAP_DRONE,
+        BEHAVIOR_SWARM_PRESSURE,
         // ---- Per-primitive buckets — heavy ops counted wherever they fire. ----
         PATHFIND,
+        SWARM_PATHFIND,
         TARGET_PICK,
         FIRING_POSITION,
         FALLBACK_POSITION;
@@ -94,6 +98,15 @@ public final class TickInnerProfile {
     }
 
     /**
+     * Clears every auto-created worker scratch profile before a new simulation
+     * tick starts. This prevents out-of-band/test calls that used
+     * {@link #current()} from leaking counters into the next dispatch merge.
+     */
+    public static void resetAllWorkers() {
+        for (TickInnerProfile profile : ALL_INSTANCES) profile.reset();
+    }
+
+    /**
      * Sums every auto-created worker profile's per-bucket nanos and counts
      * into {@code dest}, then resets each worker profile so the next tick's
      * recordings accumulate fresh. Call at the end of the parallel UPDATE_UNITS
@@ -111,15 +124,44 @@ public final class TickInnerProfile {
 
     private final long[] nanos = new long[Bucket.VALUES.length];
     private final int[] counts = new int[Bucket.VALUES.length];
+    private Bucket activeBehavior;
 
     /** Zeros all counters. Call once per tick. */
     public void reset() {
         Arrays.fill(nanos, 0L);
         Arrays.fill(counts, 0);
+        activeBehavior = null;
     }
 
-    /** Adds {@code deltaNanos} to {@code bucket}'s nanos sum and increments its count. */
+    /**
+     * Marks the behavior currently executing on this profile's thread. Heavy
+     * primitive recordings can use this scope to retain caller attribution
+     * without passing profiler metadata through navigation APIs.
+     */
+    public void enterBehavior(Bucket behaviorBucket) {
+        activeBehavior = behaviorBucket;
+    }
+
+    /** Clears the caller-attribution scope established by {@link #enterBehavior}. */
+    public void exitBehavior() {
+        activeBehavior = null;
+    }
+
+    /**
+     * Adds {@code deltaNanos} to {@code bucket}'s nanos sum and increments its
+     * count. Pathfinding executed inside swarm-pressure dispatch is also
+     * recorded in {@link Bucket#SWARM_PATHFIND}; {@link Bucket#PATHFIND}
+     * remains the all-callers aggregate.
+     */
     public void record(Bucket bucket, long deltaNanos) {
+        add(bucket, deltaNanos);
+        if (bucket == Bucket.PATHFIND
+                && activeBehavior == Bucket.BEHAVIOR_SWARM_PRESSURE) {
+            add(Bucket.SWARM_PATHFIND, deltaNanos);
+        }
+    }
+
+    private void add(Bucket bucket, long deltaNanos) {
         int idx = bucket.ordinal();
         nanos[idx] += deltaNanos;
         counts[idx]++;

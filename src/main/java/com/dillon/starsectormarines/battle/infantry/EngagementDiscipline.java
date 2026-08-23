@@ -54,10 +54,8 @@ final class EngagementDiscipline {
     }
 
     private static void clearSquadPursuit(Squad squad, BattleControl sim) {
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            long squadmate = sim.liveUnitAt(i);
-            if (!sim.squad().hasSquad(squadmate)
-                    || sim.squad().squadId(squadmate) != squad.id) continue;
+        for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
+            long squadmate = sim.squadMemberAt(squad.id, i);
             sim.world().setTargetId(squadmate, 0L);
             sim.clearPath(squadmate);
         }
