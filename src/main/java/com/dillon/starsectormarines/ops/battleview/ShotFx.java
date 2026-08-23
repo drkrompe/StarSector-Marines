@@ -155,8 +155,12 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
     }
 
     private static ShotFx deriveSecondary(MarineSecondary w) {
-        return new ShotFx(new Sprite(w.projectileSpritePath, w.projectileVisualCells),
-                0f, false, false, false, ContrailStyle.MISSILE_SMOKE);
+        Body body = w.projectileSpritePath() != null
+                ? new Sprite(w.projectileSpritePath(), w.projectileVisualCells())
+                : new Bolt(RAIL_NEEDLE_SPRITE_PATH, w.tracerColor(), 2.2f, 0.20f);
+        return new ShotFx(body, 0f, false, false, false,
+                w.activation() == com.dillon.starsectormarines.marine.SpecialActivation.DIRECT_EXPLOSIVE
+                        ? ContrailStyle.MISSILE_SMOKE : null);
     }
 
     private static ShotFx deriveMech(MechWeapon w) {

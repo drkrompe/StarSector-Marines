@@ -4,7 +4,7 @@
 
 Status: PLANNED — preserves the frag grenade from the original combined S2
 catalog story and depends on the shared special-equipment identity established
-by `s2a-anti-materiel-rifle.md`.
+in `progression-nouns.md`.
 
 Written: 2026-08-23
 
