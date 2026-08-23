@@ -21,8 +21,8 @@
     { "id": "nature.rock-small-3", "frame": 14, "layer": "rock", "validOn": ["layer:ground", "!nature.water-1", "!nature.water-2"], "name": "rocks-small-3" },
     { "id": "nature.rock-medium-1", "frame": 15, "layer": "rock", "cover": "light", "validOn": ["layer:ground", "!nature.water-1", "!nature.water-2"], "name": "rock-medium" },
     { "id": "nature.rock-medium-2", "frame": 16, "layer": "rock", "cover": "light", "validOn": ["layer:ground", "!nature.water-1", "!nature.water-2"], "name": "rock-medium-2" },
-    { "id": "nature.rock-large-1", "frame": 17, "layer": "rock", "passable": false, "validOn": ["layer:ground", "!nature.water-1", "!nature.water-2"], "name": "rock-large" },
-    { "id": "nature.rock-large-2", "frame": 18, "layer": "rock", "passable": false, "validOn": ["layer:ground", "!nature.water-1", "!nature.water-2"], "name": "rock-large-2" },
-    { "id": "nature.rock-large-3", "frame": 19, "layer": "rock", "passable": false, "validOn": ["layer:ground", "!nature.water-1", "!nature.water-2"], "name": "rock-large-3" }
+    { "id": "nature.rock-large-1", "frame": 17, "layer": "rock", "cover": "heavy", "passable": false, "validOn": ["layer:ground", "!nature.water-1", "!nature.water-2"], "name": "rock-large" },
+    { "id": "nature.rock-large-2", "frame": 18, "layer": "rock", "cover": "heavy", "passable": false, "validOn": ["layer:ground", "!nature.water-1", "!nature.water-2"], "name": "rock-large-2" },
+    { "id": "nature.rock-large-3", "frame": 19, "layer": "rock", "cover": "heavy", "passable": false, "validOn": ["layer:ground", "!nature.water-1", "!nature.water-2"], "name": "rock-large-3" }
   ]
 }
