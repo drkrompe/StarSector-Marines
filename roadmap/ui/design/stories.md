@@ -9,5 +9,5 @@ Read `ui-nouns.md` and `ui-toolkit.md` before changing a UI-foundation story.
 | --- | --- | --- |
 | `u1-retained-layout-workbench.md` | IN PROGRESS — live acceptance | Java tree, host adapter, row/column/stack boxes, paint/hit parity, and reachable preview are implemented and headless-tested. |
 | `u2-clipping-scroll-and-focus.md` | IN PROGRESS — live acceptance | Clipping, retained scrolling, semantic keys/focus, explicit capture, and procedural canvas input are implemented and headless-tested in the reachable workbench. |
-| `u3-theme-and-transitions.md` | Planned | Depends on U1–U2 interaction states; centralizes the visual language and retained animation. |
+| `u3-theme-and-transitions.md` | IN PROGRESS — live acceptance | Closed CSS-named cascade, responsive lengths, scoped component rules, replaceable themes, semantic states, and retained transitions are headless-tested in the workbench. |
 | `u4-mlx-components-and-bindings.md` | Planned | Depends on the authoritative Java tree and theme surface; adds scoped components, signals, keyed rows, and explicit hot reload. |
