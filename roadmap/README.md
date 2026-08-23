@@ -160,7 +160,7 @@ universe over time, not retrofitted into intel slots.
   S2 and S4-S10 remain, S1's own last acceptance item is an in-game feel pass,
   and the synthesis found one proposed XP-authority cleanup. See
   `progression-nouns.md`; its adjacent board is the open-work list.
-- **Company view** *(active — C9 and C14 Slices 1–3 shipped)* — the player's force as one legible
+- **Company view** *(active — C9 and C14 Slices 1–4 shipped)* — the player's force as one legible
   hierarchy, company → squad → fire team → marine, in the fleet and in the field.
   The mod already models captains, persistent six-marine squads, and
   named soldiers, but every surface renders them as a flat list and the
@@ -180,14 +180,19 @@ universe over time, not retrofitted into intel slots.
   squad per sortie, lift capacity is declared in whole four-marine fire
   teams so only a Valkyrie lands a squad intact, and a squad still arriving
   holds at its LZ rather than feeding itself forward a team at a time.
-  Remaining: a derived formation model, the card stack, whereabouts, a
+  Remaining: a derived formation model, the company presentation stack, whereabouts, a
   battle-HUD company rollup, after-action by squad, C8's rejoin state for
   late arrivals. **C9 now ships fire teams as the AI's maneuver element:**
   campaign billets survive the deployment seam, generated squads receive the
   same stable four-person partition, infantry advances in team-local shapes
   across a shallow squad arc, one team bounds while its siblings cover, and
-  fix-and-flank keeps a team on axis while another maneuvers. The settled
-  decisions: a card is one officer's command, so the rank ladder changes
+  fix-and-flank keeps a team on axis while another maneuvers. Team spacing and
+  squad-arc anchors now release before doorways and narrow runs, allowing a
+  natural pathing queue and automatic reformation beyond the constraint;
+  unreachable or structurally indirect flank positions fall back to ordinary
+  engagement. The settled
+  decisions: one officer command is the company-view grouping, so the rank
+  ladder changes
   (officers command, NCOs lead squads); **a squad becomes twelve marines in
   three four-marine fire teams**, because progression S1's shipped 9x
   lethality scale makes a six-marine squad combat-ineffective within
@@ -195,21 +200,24 @@ universe over time, not retrofitted into intel slots.
   Valkyrie lands a squad intact and an assembling squad forms up at its LZ
   before advancing. Fire teams are the AI's maneuver element (bounding,
   fix-and-flank) and, in C14, the Fleet Armory's player-facing equipment tier:
-  reusable four-billet template cards are assigned only when finite fleet
+  reusable four-billet fire-team templates are assigned only when finite fleet
   stock can supply a complete kit. Squads remain the deployment and command
   target; fire-team battle orders are explicitly out of scope. **C14 Slice 1
-  ships the first end-to-end version:** four reusable starter cards, mixed
+  ships the first end-to-end version:** four reusable starter templates, mixed
   four-billet issues including support weapons, atomic stock checks net of
   returned gear, persistent per-team assignments, and Alpha/Bravo/Charlie on
-  the Fleet Armory LOADOUTS surface. The Card Designer now creates, clones and
-  renames persistent custom cards, edits all four billets without stock gates,
+  the Fleet Armory LOADOUTS surface. The Template Designer now creates, clones and
+  renames persistent custom templates, edits all four billets without stock gates,
   and saves equipment changes as new revisions so assigned teams never refit
   silently. Both the designer library and LOADOUTS picker page beyond the four
-  starters. Cards now report fielded and ready-to-issue counts, selecting one
+  starters. Templates now report fielded and ready-to-issue counts, selecting one
   previews the selected team's exact free + returned / required transaction,
   direct Alpha/Bravo/Charlie issue actions support rapid reuse, and two assigned
-  teams can exchange scarce kits as one atomic transaction. Three-card squad
-  arrangements are next. A tenth story
+  teams can exchange scarce kits as one atomic transaction. Saved squad
+  arrangements now compose Alpha, Bravo and Charlie from three templates,
+  preview all twelve billets net of all returns, and issue the whole squad as
+  one atomic action. Templates are equipment plans, not a collectible-card
+  mechanic. Degraded-team conformance is next. A tenth story
   (C10) settles where the company is
   readable *between* contracts: a campaign-map ability-bar button opening the
   planet-free dialog host G32 shipped, rather than another route inside the

@@ -2,7 +2,7 @@
 
 Status: ACTIVE — 11 open stories
 Written: 2026-08-23
-Updated: 2026-08-23 — shipped fire-team maneuver, card availability and atomic team swaps.
+Updated: 2026-08-23 — hardened maneuver constraints; non-card templates and atomic squad arrangements ship.
 
 ## Purpose
 
@@ -32,17 +32,18 @@ company view composes their stable outputs.
   the Fleet Armory's player-facing equipment tier, the lift-capacity unit, and
   battle AI maneuver element. It is not another deployment selection or
   player command target.
-- **Template card** — a reusable four-billet equipment design owned by the
-  armory. The card is not physical inventory and is never consumed by
+- **Fire-team template** — a reusable four-billet equipment design owned by the
+  armory. The template is not physical inventory and is never consumed by
   assignment; each fielded copy still needs a complete physical kit.
-- **Billet** — one equipment position on a template card. Cards describe
+- **Billet** — one equipment position on a fire-team template. Templates describe
   positions rather than named marines; the current team materializes them.
-- **Card assignment** — the template id bound to one squad's Alpha, Bravo, or
+- **Template assignment** — the template id bound to one squad's Alpha, Bravo, or
   Charlie team after an atomic inventory transaction succeeds.
 - **Squad arrangement** — a planned quick-refit composition of three template
-  cards. It is not a separate kind of equipment or organization.
+  assignments. It is not a separate kind of equipment or organization, and
+  applying one leaves the three team assignments as the only fielded intent.
 - **Conformance** — whether a team's current personnel and materialized issue
-  match its assigned card. Wounds, vacancies, later individual mutations, and
+  match its assigned template. Wounds, vacancies, later individual mutations, and
   future equipment loss can degrade conformance without erasing intent.
 - **Marine** — the persistent individual. Their equipment and quality belong
   to the personnel and progression domains; company view presents them in
@@ -82,53 +83,67 @@ leave a second stored partition behind.
 temporary mission borrowing. Stationed squads remain under one officer because
 a garrison is a posting, not a task force.
 
-## Armory template cards
+## Armory equipment templates
 
 The Fleet Armory authors routine equipment at fire-team scale. `MarineArmory`
-owns a reusable card library; `MarineSquad` persists one assigned card id for
-each of its three team slots. A card has exactly four billets, and each billet
+owns a reusable template library; `MarineSquad` persists one assigned template id for
+each of its three team slots. A template has exactly four billets, and each billet
 may specify primary family, grade, armour, and optional secondary. Special gear
 therefore belongs to a scarce team design rather than a parallel per-marine
 override system.
 
 Assignment is atomic and inventory-aware. The target team's current equipment
-is counted as returned before the candidate card is checked. Locked recipes or
+is counted as returned before the candidate template is checked. Locked recipes or
 insufficient primaries, armour, or secondaries leave every marine and the prior
-card id untouched. Slice 1 requires a complete four-marine RTD team before a
-new card can be assigned; later conformance work owns degraded and replacement
+template id untouched. A complete four-marine RTD team is currently required before a
+new template can be assigned; later conformance work owns degraded and replacement
 teams.
 
-The card is intent, while `MarineSoldier` equipment remains the materialized
+The template is intent, while `MarineSoldier` equipment remains the materialized
 state consumed by deployment and battle. This preserves the campaign-to-battle
 contract while the designer grows. The initial library contains Field, Line,
-Recon, and mixed Fire Support cards, and the LOADOUTS surface exposes
-Alpha/Bravo/Charlie plus each assigned card.
+Recon, and mixed Fire Support templates, and the LOADOUTS surface exposes
+Alpha/Bravo/Charlie plus each assigned template.
 
-Cards are reusable but equipment is finite. Design itself must not be gated by
-stock; the designer may save an unfieldable card, while assignment is allowed
-only when the armory can supply it. Built-in cards are immutable library
-fixtures and may be cloned. Player-authored cards have stable persisted ids;
+Templates are reusable but equipment is finite. Design itself must not be gated by
+stock; the designer may save an unfieldable template, while assignment is allowed
+only when the armory can supply it. Built-in templates are immutable library
+fixtures and may be cloned. Player-authored templates have stable persisted ids;
 their names are metadata and may change in place, while changing billet issue
-is saved as a new card revision. Assigned teams therefore retain both their old
-card id and materialized issue until an explicit refit succeeds. A custom card
-cannot be deleted while any team still references it. Three-card squad
-arrangements, conformance, and retirement of routine
-per-marine mutation remain in `c14-fire-team-template-cards.md`.
+is saved as a new template revision. Assigned teams therefore retain both their old
+template id and materialized issue until an explicit refit succeeds. A custom template
+cannot be deleted while any team or saved arrangement still references it.
+Conformance and retirement of routine per-marine mutation remain in
+`c14-fire-team-equipment-templates.md`.
 
-Card availability has two deliberately different readings. **Fielded** counts
-the teams whose persisted assignment names that card, even when a team is
+Template availability has two deliberately different readings. **Fielded** counts
+the teams whose persisted assignment names that template, even when a team is
 currently degraded. **Ready to issue** counts additional complete copies that
 uncommitted fleet stock can supply without assuming any target team's returns.
-Selecting a specific team and card produces the contextual refit preview: free
+Selecting a specific team and template produces the contextual refit preview: free
 stock before the transaction, the target issue returned, and the candidate
 issue required. That preview is the same calculation used by assignment, not a
 UI estimate.
 
-Two assigned teams may exchange cards in one atomic transaction. Both teams'
+Two assigned teams may exchange templates in one atomic transaction. Both teams'
 current equipment is returned before either candidate issue is checked, so a
 scarce kit can move directly between teams without a temporary extra copy. A
 failure leaves both teams, both assignment ids, and all materialized equipment
 unchanged.
+
+A squad arrangement saves exactly one template id for Alpha, Bravo and Charlie.
+It is a reusable refit plan, not a persisted fourth binding on the squad. The
+player may author or capture one without owning its equipment, then target any
+line squad from the arrangement management view. Preview and issue evaluate all
+twelve billets as one transaction: all three current team issues return before
+the candidate composition is checked. Success writes the three ordinary
+template assignments and materialized kits; any invalid team, locked recipe or
+stock shortfall leaves the whole squad unchanged. Deleting the arrangement
+later cannot rewrite a squad that used it.
+
+“Card” is not part of this model. Compact tiles or rows may make templates quick
+to scan and assign, but the Fleet Armory has no collectible-card, deck, hand or
+consumption semantics.
 
 ## Deployment identity
 
@@ -169,15 +184,23 @@ shape; coherently moving sibling teams then occupy laterally separated anchors
 in a shallow squad arc. A team moving on a different path is formed around its
 own heading and is not pulled back toward the squad-wide arc. This replaces the
 old whole-squad ring dispersion for infantry while leaving mech formations
-independent.
+independent. Navigation has authority in contained terrain: each team reads its
+near path clearance, contracts both its local interval and squad-arc anchor
+before a doorway or narrow run, queues through under ordinary pathing and
+collision separation, then reforms automatically after clearing the constraint.
 
 Bounding overwatch rotates one intact team forward while every sibling team
 with a firing solution covers it. With three healthy teams this is one moving
 and two overwatching; degraded two-team squads use one and one. Fix-and-flank
 likewise leaves at least one team on the contact axis while a sibling maneuvers
-to the flank waypoint. A team with fewer than two survivors is dissolved for
-tactical purposes and its survivors fold deterministically into the nearest
-viable sibling; the underlying campaign billet identity remains unchanged.
+to the flank waypoint. Flank positions must be reachable without an extreme
+structural detour; if the room or portal layout cannot support the maneuver,
+the flank step yields to ordinary engagement instead of orbiting the building.
+Bounding retains the same all-or-nothing fallback when the contained space
+cannot supply distinct reachable firing positions. A team with fewer than two
+survivors is dissolved for tactical purposes and its survivors fold
+deterministically into the nearest viable sibling; the underlying campaign
+billet identity remains unchanged.
 
 ## Lift and arrival
 
@@ -282,9 +305,10 @@ production vehicle deployment seam exists.
   never reaches back into campaign state.
 - Fire-team membership is derived from billet order and never persisted twice.
 - Fire teams are equipment/AI/lift units, not player command targets.
-- Template cards are reusable designs; every assignment remains bounded by
+- Fire-team templates are reusable designs; every assignment remains bounded by
   finite physical stock.
-- A failed card assignment changes neither issued equipment nor assignment.
+- A failed template or arrangement assignment changes neither issued equipment
+  nor assignment.
 - Per-soldier kit remains the battle-facing materialization until the deployment
   seam explicitly adopts another representation.
 - Officer capacity is checked per command; task forces do not flatten back into
@@ -298,7 +322,7 @@ production vehicle deployment seam exists.
 ## Planned direction
 
 The remaining work is equipment authoring, presentation, and tactical
-refinement: add saved three-card squad arrangements and degraded-team conformance;
+refinement: add degraded-team conformance;
 derive one shared
 formation snapshot; show officer grouping, squad whereabouts, battle rollup, and
 after-action survival consistently; give late arrivals a safe rejoin state; make
