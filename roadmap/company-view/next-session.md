@@ -3,12 +3,13 @@
 ## Where we are
 
 Track opened 2026-08-22 from an inventory of the shipped squad AI and
-commander ("squad of squads") tiers. Eleven stories contracted (C1–C11).
+commander ("squad of squads") tiers. Twelve stories contracted (C1–C12).
 **Four have shipped work.** `c7-organization-and-ranks.md` and
 `c1-fireteam-identity-through-the-drop.md` are complete;
-`c8-lift-capacity-and-multi-pass-drops.md` has three of four slices in, and
+`c8-lift-capacity-and-multi-pass-drops.md` has three of four slices in,
 `c10-company-between-contracts.md` is complete — all four slices, now in
-`complete/`. Everything else is design stage.
+`complete/` — and `c12-the-debug-company.md` has two of three. Everything
+else is design stage.
 
 The organization is now settled in code, so every later story renders a
 real hierarchy rather than a proposed one:
@@ -33,6 +34,12 @@ real hierarchy rather than a proposed one:
   `Squad.FIRE_TEAM_SIZE` is the single authority for the number.
 - `SquadFormUpSystem` holds a still-arriving squad at its LZ by clearing the
   advancing assignment, once, after the commander pass.
+- **Debug missions field a real company.** `DebugCompany.roster(stage)`
+  builds a detached `MarineRoster`, so a debug deployment goes through the
+  same `freezeSelection` the campaign does and earns the same tags, NCO
+  leaders and multi-lift joins. `DebugCompanyStage` picks the point on the
+  campaign arc (First Contract / Established / Veteran Company) and moves
+  squad count, experience, kit and mech support together.
 
 Read [`overview.md`](overview.md) first — it holds the inventory of what
 exists today and the seven design commitments the stories assume.
@@ -54,13 +61,19 @@ blocked on that seam. That is C1 (`c1-fireteam-identity-through-the-drop.md`).
 
 ## Recommended pickup
 
-**Play a mission first.** Three shipped stories changed what a deployment
+**Play a mission first.** Four shipped stories changed what a deployment
 *is* — twelve-marine squads, lifts denominated in fire teams, a squad that
-assembles at its LZ before it steps off — and none of the behavioural half
-has been seen in play. Two numbers are first guesses:
+assembles at its LZ before it steps off, and a debug company that finally
+exercises all three — and none of the behavioural half has been seen in
+play. Two numbers are first guesses:
 `SquadFormUpSystem.FORM_UP_TIMEOUT` (60s) and the opening ladder's force
 ratios, which `../campaign/early-operations/next-session.md` has been
 holding for exactly this.
+
+C12 makes that pass cheap: a DEBUG mission at **Established** fields three
+twelve-marine squads with NCO leaders, and a transport picker set below the
+company's strength forces the multi-lift path the form-up gate exists for.
+Before C12 a debug mission could not reach any of it.
 
 **Then C2 (`c2-formation-model.md`).** It is the prerequisite for all three
 UI stories, and its second slice (rewire `SquadDeploymentScreen`'s counts,
@@ -208,6 +221,8 @@ and nothing was tuned to compensate.
 - `00ace1b0` — C1 (all four slices) + C8 slice 1: the identity seam, and
   lift capacity in fire teams
 - `6e3908b0` — C8 slice 3: an assembling squad holds at its LZ
+- C12 slices 1-2: the debug company — a detached `MarineRoster` through the
+  same deployment path, staged along the campaign arc
 
 - `2b959e44` — C10 slice 1: a campaign-map door into the company
 - `b204c237` — C10 slice 2: standing, led by months of payroll
@@ -217,6 +232,9 @@ and nothing was tuned to compensate.
   through the presenter
 - `822065cd` — C10 slice 4: the people move under the ROSTER header; formation
   band, next recovery, and the armory door
+- `ce031aba` — fix: an armed convoy vehicle no longer crashes the damage
+  pipeline (an APC turret's attacker id has `GROUND_IDENTITY`, not
+  `IDENTITY`, and the telemetry seam's faction read is fail-loud)
 - `2e187f54` — C7 slices 1+2: squad of twelve in three fire teams; officer
   ranks counted in squads
 - `976bb87a` — C7 slice 3: `EnlistedRank`, squad leaders, deterministic

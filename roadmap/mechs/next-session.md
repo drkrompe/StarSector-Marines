@@ -2,6 +2,12 @@
 
 ## State of play
 
+The Sirocco screened-overwatch follow-up shipped in `98fcc3fb`. Its LR Support
+posture now searches a 24–36-cell medium/long band, strongly favors angles with
+a same-faction combatant on the firing axis, and explicitly refuses to treat
+another Sirocco as that front line. It re-picks when the screen dies or leaves
+the lane and exposes the chosen ally in the squad dump.
+
 The Hound cohesion follow-up shipped in `eaef38b2`: its ASSAULT advance now
 requires nearby same-faction combat infantry or another live mech, and the
 route stays within a six-cell lead of that support. Losing support cancels the
@@ -86,8 +92,10 @@ while moving and turning. In particular, separate a Hound from its infantry or
 lance-mates and confirm it holds and fires, then bring support back within
 twelve cells and confirm it resumes the push without getting more than six
 cells ahead. Then compare
-range behavior, time-to-kill, missile density, and whether Sirocco's heavy
-cannon remains an anti-armor fallback rather than a second primary role. Also
+range behavior, time-to-kill, and missile density. For Sirocco, confirm it
+angles behind infantry, Hounds, or Bulwarks but not another Sirocco; check that
+its 24–36-cell band produces occasional heavy-cannon shots near the inner edge
+without turning that anti-armor fallback into a second primary role. Also
 check that its shell remains visible at normal zoom, the muzzle/impact reads as
 a gun rather than a missile, and the 1-cell splash does not erase Sirocco's
 close-range weakness.
@@ -113,6 +121,8 @@ close-range weakness.
    faction-neutral ASSAULT doctrine (`1ef74f23`).
 9. Reciprocal assault cohesion: nearby infantry/mechs release the Hound's
    advance, bounded by a six-cell formation lead (`eaef38b2`).
+10. Sirocco screened overwatch: a 24–36-cell medium/long firing band with a
+    non-Sirocco ally preference and live screen re-evaluation (`98fcc3fb`).
 
 Tune profile/component numbers from the production encounters; mixed-group
 adoption itself is complete.

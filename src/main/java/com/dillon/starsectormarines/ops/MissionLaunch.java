@@ -15,10 +15,13 @@ import com.dillon.starsectormarines.ops.detachment.TargetProfileResolver;
 import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import com.dillon.starsectormarines.ops.detachment.CampaignCommandPowerResources;
 import com.dillon.starsectormarines.ops.detachment.CommandDeck;
+import com.dillon.starsectormarines.ops.detachment.DebugCompany;
+import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 /**
@@ -154,9 +157,13 @@ public final class MissionLaunch {
                 det.shuttleManifest, firstPlayerShuttle);
         ctx.setMarineDeploymentCapacity(playerSeats);
         MarineRosterScript personnel = MarineRosterScript.getInstance();
+        // One deployment shape for both sources: a debug mission fields a
+        // detached MarineRoster built by DebugCompany, so it earns the same
+        // squad tags, NCO leaders and multi-lift joins the campaign gets.
         if (m.source.isDebug()) {
-            CampaignMarineDeployment.debugFixture(
-                    ctx.getDebugPersonnelPreset(), playerSeats)
+            MarineRoster company = ctx.getDebugCompanyRoster();
+            CampaignMarineDeployment.freezeSelection(company,
+                    new LinkedHashSet<>(DebugCompany.lineSquadIds(company)), playerSeats)
                     .applyTo(sim, firstPlayerShuttle);
         } else if (personnel != null) {
             CampaignMarineDeployment.freezeSelection(personnel.roster(),

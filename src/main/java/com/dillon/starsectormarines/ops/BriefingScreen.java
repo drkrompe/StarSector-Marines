@@ -27,6 +27,7 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import com.dillon.starsectormarines.ops.detachment.CommandDeck;
+import com.dillon.starsectormarines.ops.detachment.DebugCompanyStage;
 import com.dillon.starsectormarines.ops.detachment.PlayerFleetPowerSources;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.MechSupport;
@@ -141,8 +142,13 @@ public class BriefingScreen implements Screen {
     private ShuttleType debugTransportType = ShuttleType.VALKYRIE;
     private int debugTransportCount = 1;
 
-    /** Debug mission Mech Support roster controls; stable across ordinary rebuilds. */
-    private int debugMechCount = DebugMechRoster.DEFAULT_COUNT;
+    /**
+     * Debug mission Mech Support roster controls; stable across ordinary
+     * rebuilds. Seeded from the debug company's stage and re-seeded whenever
+     * the stage changes, so supporting arms move with the campaign point —
+     * the picker still overrides, since it is the mech-family testing tool.
+     */
+    private int debugMechCount = DebugCompanyStage.FIRST_CONTRACT.mechs;
     private int debugMechRoll;
 
     /**
@@ -434,7 +440,7 @@ public class BriefingScreen implements Screen {
         if (m.source.isDebug()) {
             widgets.add(new LabelWidget(Fonts.ORBITRON_20, "Personnel", x, y, LABEL_COLOR));
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                    ctx.getDebugPersonnelPreset().displayName + " fixture",
+                    ctx.getDebugCompanyStage().summary(),
                     valueX, y, ACCEPT_COLOR));
         } else {
             PersonnelReadiness readiness = personnelReadiness(m);
@@ -655,13 +661,14 @@ public class BriefingScreen implements Screen {
 
         ButtonWidget squads = new ButtonWidget(squadsX, btnY, btnW, BTN_H,
                 debugPersonnel ? () -> {
-                    ctx.cycleDebugPersonnelPreset();
+                    ctx.cycleDebugCompanyStage();
+                    debugMechCount = ctx.getDebugCompanyStage().mechs;
                     rebuild();
                 } : this::openSquadDeployment);
         widgets.add(squads);
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                 debugPersonnel
-                        ? "Fixture: " + ctx.getDebugPersonnelPreset().displayName
+                        ? "Company: " + ctx.getDebugCompanyStage().displayName
                         : "Assign Squads",
                 squadsX + 8f, btnY + BTN_H - 6f, HEADER_COLOR));
 
