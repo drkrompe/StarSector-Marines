@@ -11,8 +11,9 @@ import com.dillon.starsectormarines.battle.decision.TacticalNode;
  *
  * <p>Most fields are slot-typed: not every {@link AssignmentKind} uses every
  * field. {@code CLEAR_ZONE} populates {@link #targetZoneId} (the zone to
- * push into) and leaves {@link #targetNode} null; {@code HOLD_NODE} is the
- * reverse. Consumers read the field appropriate to {@link #kind} — assigning
+ * push into), {@code SWEEP_SECTOR} populates the exact-cell pair, and
+ * {@code HOLD_NODE} populates {@link #targetNode}. Consumers read the field
+ * appropriate to {@link #kind} — assigning
  * a node to a {@code CLEAR_ZONE} task has no defined meaning and is ignored.
  *
  * <p>Mutable on {@code Squad} but immutable as a record — a re-assignment
@@ -46,6 +47,12 @@ public record ObjectiveAssignment(
     public static ObjectiveAssignment clearZone(int squadId, int zoneId) {
         return new ObjectiveAssignment(squadId, AssignmentKind.CLEAR_ZONE,
                 zoneId, null, UNSCOPED, UNSCOPED, UNSCOPED);
+    }
+
+    /** Assault search waypoint. The commander retains sector ownership; the squad receives only a cell to investigate. */
+    public static ObjectiveAssignment sweepSector(int squadId, int cellX, int cellY) {
+        return new ObjectiveAssignment(squadId, AssignmentKind.SWEEP_SECTOR,
+                UNSCOPED, null, UNSCOPED, cellX, cellY);
     }
 
     /** Convenience: zone-scoped compound capture — push, clear, hold until captured. */

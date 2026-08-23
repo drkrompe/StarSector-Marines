@@ -29,6 +29,18 @@ What's worth keeping from `flyby/` is the **loadout data**, not the movement:
 audio, and the faction→profile pool. That's the cosmetic/armament half; the
 kinematic half is new.
 
+### Current flyby balance
+
+Until the entity rewrite replaces it, campaign fighter support participates in
+the battle-start force score. Each scheduled sortie has a fixed cost, which
+captures the current overlay's ongoing passive attrition: dangerous against a
+small number of squads, but proportionally less meaningful as a battle grows.
+Projectile/AoE profiles carry a premium because clustered large forces do not
+dilute their effect in the same way. Allied and employer wings strengthen the
+attacking score; enemy wings spend the resulting defender budget after mechs
+and before static turrets. A wing is an indivisible commitment rather than a
+bag of sorties the balancer may partially erase.
+
 ## Loadout vs kinematics
 
 `FighterProfile` (loadout) and the new kinematic profile share the `hullId` key.
