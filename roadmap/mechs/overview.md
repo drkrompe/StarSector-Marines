@@ -34,9 +34,13 @@ it carries.
 
 ASSAULT Hounds now advance only with nearby combat infantry or a different
 live mech chassis; other Hounds cannot bootstrap the support gate. Independently
-of doctrine, moving same-faction mechs of every current variant receive a soft
-short-range separation force so lances travel loosely spaced without shifting
-idle firing posts.
+of doctrine, coherently moving members of one mech squad take role-aware
+formation slots: assault chassis forward, armored support on the shoulders,
+and long-range support rearward. Open ground uses roughly six-cell intervals;
+terrain constraints progressively release the slot steer while every moving
+allied mech pair retains a 2.5-cell compression floor. Idle firing posts do not
+shift, hostile walkers do not repel one another, and separate squads are not
+merged into one formation.
 
 The renderer composes distinct Bulwark, Hound, and Sirocco chassis, several arm
 modules, and empty, SRM, LRM, or heavy-SRM shoulder slots. Hound now owns the

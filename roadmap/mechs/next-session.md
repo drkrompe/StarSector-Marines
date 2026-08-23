@@ -2,11 +2,18 @@
 
 ## State of play
 
-The mech-formation discipline follow-up shipped in `861a5bf1`. Hounds no
-longer count another Hound as the nearby support required to advance; combat
-infantry or a different live mech chassis still releases the push. All allied
-mech variants now receive a gentle movement-scoped separation force toward
-2.5-cell center spacing, while idle posts and enemy pairs remain untouched.
+The adaptive-formation follow-up shipped in `4c0864d9`, superseding the
+original 2.5-cell open-ground tuning from `861a5bf1`. A coherently moving mech
+squad now takes role-aware slots at roughly six-cell open-ground intervals:
+ASSAULT forward, ARMORED_SUPPORT on the shoulders, and LR_SUPPORT rearward.
+Terrain clearance fades that slot steer while preserving a 2.5-cell
+same-faction mech floor, so lances can compress through streets and expand
+afterward. Separate squads receive only the floor. The shared engine also
+forms infantry at a smaller 0.75–1.75-cell scale.
+
+The original mech-formation discipline follow-up shipped in `861a5bf1`.
+Hounds no longer count another Hound as the nearby support required to advance;
+combat infantry or a different live mech chassis still releases the push.
 
 The Sirocco screened-overwatch follow-up shipped in `98fcc3fb`. Its LR Support
 posture now searches a 24–36-cell medium/long band, strongly favors angles with
@@ -107,10 +114,14 @@ check that its shell remains visible at normal zoom, the muzzle/impact reads as
 a gun rather than a missile, and the 1-cell splash does not erase Sirocco's
 close-range weakness.
 
-For the lance as a whole, confirm moving Bulwarks, Hounds, and Siroccos fan out
-without orbiting or falling behind their paths, and that distinct idle firing
-posts do not drift. Tune `MECH_FORMATION_DISTANCE` and
-`MECH_FORMATION_STIFFNESS` only from that visible result.
+For the lance as a whole, confirm moving Bulwarks, Hounds, and Siroccos form at
+roughly six-cell intervals on open terrain without orbiting or falling behind
+their paths, compress toward 2.5 cells in genuine constraints, and expand
+after clearing them. Distinct idle firing posts must not drift. Tune
+`MECH_FORMATION_OPEN_DISTANCE`, `MECH_FORMATION_MIN_DISTANCE`, and
+`FORMATION_STIFFNESS` only from that visible result. Also watch ordinary marine
+fireteams: their 1.75-cell open interval should improve readability without
+fighting cover or bounding-overwatch destinations.
 
 ## What shipped
 
@@ -138,6 +149,9 @@ posts do not drift. Tune `MECH_FORMATION_DISTANCE` and
     non-Sirocco ally preference and live screen re-evaluation (`98fcc3fb`).
 11. Movement-scoped allied-mech separation across all current variants, with
     idle and hostile non-interference (`861a5bf1`).
+12. Terrain-adaptive, role-aware squad formation slots: six-cell open mech
+    lances with a 2.5-cell compression floor, plus the shared infantry-scale
+    profile (`4c0864d9`).
 
 Tune profile/component numbers from the production encounters; mixed-group
 adoption itself is complete.
