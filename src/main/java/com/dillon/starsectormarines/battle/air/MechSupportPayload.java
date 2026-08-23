@@ -7,7 +7,7 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 
-/** A single operational heavy mech unloaded into its own commander-visible squad. */
+/** One or more operational mechs unloaded into one commander-visible squad. */
 public enum MechSupportPayload implements AirDeliveryPayload {
     INSTANCE;
 
@@ -36,8 +36,7 @@ public enum MechSupportPayload implements AirDeliveryPayload {
                 }
             }
         }
-        MechVariant variant = context.mission.mechVariant != null
-                ? context.mission.mechVariant : MechVariant.BULWARK;
+        MechVariant variant = variantForDeboard(context.mission);
         EntitySpec spec = new EntitySpec("support-" + context.nextUnitName(), context.faction,
                 UnitType.HEAVY_MECH, cell[0], cell[1])
                 .mechVariant(variant)
@@ -49,9 +48,19 @@ public enum MechSupportPayload implements AirDeliveryPayload {
                 variant.createLoadout(variant.defaultRole));
         Squad squad = context.squad(context.mission.squadId);
         if (squad != null) {
-            squad.leaderId = mech;
+            if (squad.leaderId == 0L) squad.leaderId = mech;
             squad.originalSize++;
         }
         return true;
+    }
+
+    private static MechVariant variantForDeboard(ShuttleMission mission) {
+        if (mission.mechVariants != null && mission.mechVariants.length > 0) {
+            int index = Math.min(mission.deboardedThisSortie,
+                    mission.mechVariants.length - 1);
+            MechVariant variant = mission.mechVariants[index];
+            if (variant != null) return variant;
+        }
+        return mission.mechVariant != null ? mission.mechVariant : MechVariant.BULWARK;
     }
 }

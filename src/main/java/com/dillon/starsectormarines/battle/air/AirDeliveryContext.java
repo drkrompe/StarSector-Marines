@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.logistics.ResupplyCache;
 import com.dillon.starsectormarines.battle.logistics.ResupplyService;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
+import com.dillon.starsectormarines.battle.squad.CampaignSquadTag;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -76,6 +77,12 @@ public final class AirDeliveryContext {
 
     public Squad squad(int squadId) {
         return roster.getSquad(squadId);
+    }
+
+    /** Mint-or-join the battle squad for a tagged campaign marine at this mission's LZ. */
+    public int squadForCampaign(UnitType type, CampaignSquadTag tag) {
+        return roster.squadForCampaign(faction, type, tag,
+                (int) Math.floor(mission.lzX), (int) Math.floor(mission.lzY));
     }
 
     public String nextUnitName() {

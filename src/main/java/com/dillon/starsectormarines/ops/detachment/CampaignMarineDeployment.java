@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.battle.squad.CampaignSquadTag;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
@@ -14,8 +15,11 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
+import com.dillon.starsectormarines.marine.MarineSquad;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -61,19 +65,41 @@ public final class CampaignMarineDeployment {
         if (roster == null || requiredSeats <= 0) return EMPTY;
         List<MarineLoadout> frozen = new ArrayList<>(requiredSeats);
         List<MarineSoldier> active = new ArrayList<>();
+        // Parallel to `active`: the squad each seat came from, so the manifest
+        // carries organizational identity across the seam and not just names.
+        List<MarineSquad> owners = new ArrayList<>();
         boolean hasExplicitSelection = explicitSelection
                 || selectedSquadIds != null && !selectedSquadIds.isEmpty();
         if (hasExplicitSelection) {
-            for (String squadId : selectedSquadIds) {
-                for (MarineSoldier soldier : roster.squadMembers(roster.squadById(squadId))) {
+            // Roster order, not Set order: seat assignment has to be the same on
+            // every run for the same roster and selection, and iterating the
+            // selection Set is not. Members of one squad stay adjacent, so a lift
+            // carries whole fire teams rather than a slice across two squads.
+            for (MarineSquad squad : roster.squads()) {
+                if (selectedSquadIds == null || !selectedSquadIds.contains(squad.id())) continue;
+                for (MarineSoldier soldier : roster.squadMembers(squad)) {
                     if (soldier.status() == MarineSoldierStatus.ACTIVE) {
                         active.add(soldier);
+                        owners.add(squad);
                     }
                 }
             }
+        } else {
+            for (MarineSoldier soldier : roster.lineReadySoldiers()) {
+                active.add(soldier);
+                owners.add(roster.squadForSoldier(soldier.id()));
+            }
         }
-        if (!hasExplicitSelection) active.addAll(roster.lineReadySoldiers());
-        for (int i = 0; i < Math.min(requiredSeats, active.size()); i++) {
+        int seats = Math.min(requiredSeats, active.size());
+        // Counted over the seats that actually fit, not the squad's manning:
+        // a manifest can be short, and the battle tier assembles toward what
+        // was loaded rather than toward what is back home.
+        Map<String, Integer> strengths = new HashMap<>();
+        for (int i = 0; i < seats; i++) {
+            MarineSquad owner = owners.get(i);
+            if (owner != null) strengths.merge(owner.id(), 1, Integer::sum);
+        }
+        for (int i = 0; i < seats; i++) {
             MarineSoldier soldier = active.get(i);
             MarineSecondary secondary = soldier.secondary();
             frozen.add(new MarineLoadout(UnitRole.COMBATANT, null,
@@ -81,7 +107,8 @@ public final class CampaignMarineDeployment {
                     secondary, secondary != null ? secondary.startingAmmo : 0,
                     soldier.id(), armorFamily(soldier.armor()),
                     soldier.armor().bonusHp, soldier.armor().damageReduction,
-                    soldier.armor().moveSpeedMult, soldier.armor().incomingAccuracyMult));
+                    soldier.armor().moveSpeedMult, soldier.armor().incomingAccuracyMult,
+                    tag(owners.get(i), soldier, strengths)));
         }
         return new CampaignMarineDeployment(frozen);
     }
@@ -151,7 +178,21 @@ public final class CampaignMarineDeployment {
                 allocation.secondary, allocation.secondaryAmmo,
                 allocation.campaignSoldierId, allocation.armorFamily,
                 allocation.armorBonusHp, allocation.armorDamageReduction,
-                allocation.armorMoveSpeedMult, allocation.armorIncomingAccuracyMult);
+                allocation.armorMoveSpeedMult, allocation.armorIncomingAccuracyMult,
+                allocation.campaignSquad);
+    }
+
+    /**
+     * Freezes the squad's identity onto one seat. The label is copied, not
+     * referenced — the battle tier has no roster access, and a rename back home
+     * mid-battle must not change what the HUD says.
+     */
+    private static CampaignSquadTag tag(MarineSquad squad, MarineSoldier soldier,
+                                        Map<String, Integer> strengths) {
+        if (squad == null || squad.reserve()) return null;
+        return new CampaignSquadTag(squad.id(), squad.name(),
+                soldier.id().equals(squad.leaderSoldierId()),
+                strengths.getOrDefault(squad.id(), 0));
     }
 
     public static int requiredSeats(List<ShuttleAssignment> manifest, int firstAssignment) {

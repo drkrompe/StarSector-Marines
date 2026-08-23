@@ -73,6 +73,12 @@ public final class ShuttleMission {
     public boolean rescuePickupMechTransport;
     /** Optional physical mech variant carried by a mech-support sortie. */
     public MechVariant mechVariant;
+    /**
+     * Ordered chassis carried by a multi-mech support sortie. The payload uses
+     * {@link #deboardedThisSortie} as its index; null/empty falls back to
+     * {@link #mechVariant} for ordinary one-mech and rescue deliveries.
+     */
+    public MechVariant[] mechVariants;
     /** Ordered rescue-perimeter points patrolled by a delivered pickup mech. */
     public int[] rescuePatrolCells;
     /** Fixed perimeter anchor assigned to the militia squad when it deboards. */

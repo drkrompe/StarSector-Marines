@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import com.dillon.starsectormarines.battle.squad.CampaignSquadTag;
 
 /**
  * Per-slot loadout for a shuttle's marine roster. One {@code MarineLoadout}
@@ -38,6 +39,12 @@ public final class MarineLoadout {
     public final int secondaryAmmo;
     /** Stable campaign identity, null for generated defender/employer soldiers. */
     public final String campaignSoldierId;
+    /**
+     * Campaign squad this seat belongs to; null for generated personnel, which
+     * keeps them on the per-shuttle squad minting. Grouped into one value
+     * because the id, the label and the leader flag always travel together.
+     */
+    public final CampaignSquadTag campaignSquad;
     /** Persisted modular armor allocation; null keeps the archetype default. */
     public final LayeredArmorFamily armorFamily;
     public final float armorBonusHp;
@@ -76,6 +83,20 @@ public final class MarineLoadout {
                          String campaignSoldierId, LayeredArmorFamily armorFamily,
                          float armorBonusHp, float armorDamageReduction,
                          float armorMoveSpeedMult, float armorIncomingAccuracyMult) {
+        this(role, objective, primary, equipmentGrade, soldierProfile, secondary,
+                secondaryAmmo, campaignSoldierId, armorFamily, armorBonusHp,
+                armorDamageReduction, armorMoveSpeedMult, armorIncomingAccuracyMult,
+                null);
+    }
+
+    public MarineLoadout(UnitRole role, Objective objective, MarineWeapon primary,
+                         EquipmentGrade equipmentGrade, SoldierProfile soldierProfile,
+                         MarineSecondary secondary, int secondaryAmmo,
+                         String campaignSoldierId, LayeredArmorFamily armorFamily,
+                         float armorBonusHp, float armorDamageReduction,
+                         float armorMoveSpeedMult, float armorIncomingAccuracyMult,
+                         CampaignSquadTag campaignSquad) {
+        this.campaignSquad = campaignSquad;
         this.role = role;
         this.objective = objective;
         this.primary = primary;

@@ -28,6 +28,7 @@ import com.dillon.starsectormarines.battle.air.AirProvider;
 import com.dillon.starsectormarines.battle.air.AirSystem;
 import com.dillon.starsectormarines.battle.command.BattleResources;
 import com.dillon.starsectormarines.battle.command.CommanderService;
+import com.dillon.starsectormarines.battle.squad.SquadFormUpSystem;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceService;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
 import com.dillon.starsectormarines.battle.command.compound.CompoundCaptureSystem;
@@ -225,6 +226,8 @@ public class BattleSimulation implements BattleControl {
     private final com.dillon.starsectormarines.battle.logistics.ResupplySystem resupplySystem;
     /** Per-faction strategic commander tier. Owns the slow-tick cadence; the {@link #setCommander}/{@link #getCommander} delegates below forward here, and the COMMANDER phase calls {@link CommanderService#tick}. */
     private final CommanderService commanders = new CommanderService();
+    /** Holds a campaign squad at its LZ until its remaining lifts land. */
+    private final SquadFormUpSystem squadFormUp;
     /** Read-only per-faction belief aggregation and topology-aware tactical fields. */
     private final CommanderInfluenceService commanderInfluence;
 
@@ -440,6 +443,7 @@ public class BattleSimulation implements BattleControl {
         this.squadMorale = new com.dillon.starsectormarines.battle.squad.SquadMoraleSystem(
                 rosterService, shots);
         this.squadReplan = new com.dillon.starsectormarines.battle.squad.SquadReplanSystem(rosterService);
+        this.squadFormUp = new SquadFormUpSystem(rosterService);
         this.attackerIndex = new com.dillon.starsectormarines.battle.decision.AttackerIndexService(rosterService);
         this.tacticalScoring = new com.dillon.starsectormarines.battle.decision.TacticalScoring(
                 navigation, rosterService, attackerIndex, shots, doodadService);
@@ -1118,6 +1122,10 @@ public class BattleSimulation implements BattleControl {
         // assignment written this tick is visible to the GOAP relevance pass
         // below. Cadence + early-skip-when-empty live inside the registry.
         commanders.tick(TICK_DT, cmd -> cmd.tick(this));
+        // A campaign squad still arriving by lift holds at its LZ: this clears
+        // the advancing assignment the commanders just wrote, for every
+        // commander at once. Must run after them, not inside them.
+        squadFormUp.tick(TICK_DT);
         // Player command powers — commit any activations the UI queued this
         // frame (pay command points + start cooldown + resolve the effect),
         // regen the pool, and age cooldowns + transient reveals down. Folds
