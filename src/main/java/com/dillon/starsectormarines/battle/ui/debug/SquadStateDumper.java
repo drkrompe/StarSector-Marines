@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.BelievedContact;
 import com.dillon.starsectormarines.battle.squad.AudibleBearing;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
@@ -91,7 +92,7 @@ public final class SquadStateDumper {
         return StarsectorMarinesModPlugin.MOD_ID + "/debug/squad_" + squad.id + ".json";
     }
 
-    private static JSONObject buildSquadJson(Squad squad, BattleSimulation sim) throws Exception {
+    static JSONObject buildSquadJson(Squad squad, BattleSimulation sim) throws Exception {
         JSONObject o = new JSONObject();
         o.put("id", squad.id);
         o.put("faction", squad.faction != null ? squad.faction.name() : null);
@@ -158,9 +159,11 @@ public final class SquadStateDumper {
                 ? sim.identity().name(rejectedTarget) : null);
         o.put("engagementDisciplineThreatDensity",
                 squad.engagementDisciplineThreatDensity);
-        var picture = squad.contactPicture;
+        SquadContactPicture picture = squad.contactPicture;
         JSONObject contactPicture = new JSONObject();
         contactPicture.put("tick", picture.tick());
+        contactPicture.put("ageTicks", Math.max(0,
+                sim.simTickIndex - picture.tick()));
         contactPicture.put("posture", picture.posture().name());
         contactPicture.put("axisX", picture.axisX());
         contactPicture.put("axisY", picture.axisY());
@@ -168,14 +171,23 @@ public final class SquadStateDumper {
         contactPicture.put("directContactCount", picture.directContactCount());
         contactPicture.put("hostileStrength", picture.hostileStrength());
         contactPicture.put("friendlyStrength", picture.friendlyStrength());
+        contactPicture.put("hostileToFriendlyRatio",
+                picture.hostileStrength() / Math.max(1, picture.friendlyStrength()));
         contactPicture.put("forceBalance", picture.forceBalance().name());
         contactPicture.put("dominantSector", picture.dominantSector().name());
         contactPicture.put("primaryMotion", picture.primaryMotion().name());
         contactPicture.put("primaryContactId", picture.primaryContactId());
+        long livePrimary = sim.resolveUnit(picture.primaryContactId());
+        contactPicture.put("primaryContactName", livePrimary != 0L
+                ? sim.identity().name(livePrimary) : null);
         contactPicture.put("primaryCellX", picture.primaryCellX());
         contactPicture.put("primaryCellY", picture.primaryCellY());
         contactPicture.put("primaryConfidence", picture.primaryConfidence());
         contactPicture.put("doctrine", picture.doctrine().name());
+        contactPicture.put("doctrineChangedThisTick",
+                squad._contactDoctrineChangedThisTick);
+        contactPicture.put("primaryEvidence",
+                buildPrimaryEvidenceJson(squad, picture, sim.simTickIndex));
         o.put("contactPicture", contactPicture);
         o.put("advanceEngageWeight", squad.advanceEngageWeight);
         o.put("advanceEngageCommitted", squad.advanceEngageCommitted);
@@ -235,6 +247,31 @@ public final class SquadStateDumper {
             screenTargets.put(target);
         }
         o.put("mechScreenTargets", screenTargets);
+        return o;
+    }
+
+    /**
+     * Describes only the belief sample that fed the published contact picture.
+     * This intentionally does not resolve or serialize the hostile's live cell.
+     */
+    private static JSONObject buildPrimaryEvidenceJson(Squad squad,
+                                                       SquadContactPicture picture,
+                                                       int simTick) throws Exception {
+        if (picture.primaryContactId() == 0L) return null;
+        BelievedContact evidence = squad.believedContact(picture.primaryContactId());
+        if (evidence == null) return null;
+
+        JSONObject o = new JSONObject();
+        o.put("source", evidence.source().name());
+        o.put("lastSeenTick", evidence.lastSeenTick());
+        o.put("ageTicks", Math.max(0, simTick - evidence.lastSeenTick()));
+        o.put("observedThisTick", evidence.observedOnTick(simTick));
+        o.put("freshMotionSample", evidence.hasFreshMotionSample(simTick));
+        if (evidence.hasFreshMotionSample(simTick)) {
+            o.put("previousDirectCellX", evidence.previousDirectCellX());
+            o.put("previousDirectCellY", evidence.previousDirectCellY());
+            o.put("previousDirectTick", evidence.previousDirectTick());
+        }
         return o;
     }
 

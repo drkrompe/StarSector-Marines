@@ -189,8 +189,11 @@ and the briefing loop remain parked. Story 32
 and morale interrupts, belief-gated threat reads, fireteam-scoped ambush
 recovery, and one immutable contact picture that selects sticky
 advance/hold/disengage doctrine from threat sector, fresh motion, and local
-odds. Automated implementation acceptance is green; player-facing threshold
-tuning remains deferred.
+odds. Selecting a squad now exposes that published decision and a bounded
+world-space tactical axis, while the manual squad dump preserves the same
+snapshot and its primary belief evidence for offline diagnosis. Automated
+implementation acceptance is green; player-facing threshold tuning remains
+deferred.
 
 ### Mech GOAP tree (Stage 1 complete, Stage 2 in progress)
 

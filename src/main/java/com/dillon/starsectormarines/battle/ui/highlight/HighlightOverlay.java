@@ -39,6 +39,7 @@ public final class HighlightOverlay {
     public static final String SRC_CAPTAIN         = "captain";
     public static final String SRC_BELIEVED_CONTACTS = "believed-contacts";
     public static final String SRC_HEARD_NOISE      = "heard-noise";
+    public static final String SRC_CONTACT_DOCTRINE = "contact-doctrine";
     public static final String SRC_MARINE_FRIENDLY_INFLUENCE = "marine-friendly-influence";
     public static final String SRC_MARINE_HOSTILE_INFLUENCE = "marine-hostile-influence";
     public static final String SRC_DEFENDER_FRIENDLY_INFLUENCE = "defender-friendly-influence";
@@ -51,6 +52,9 @@ public final class HighlightOverlay {
     public static final Color COLOR_BELIEVED_CONTACT = new Color(0xFF, 0x50, 0xA0, 0xFF); // magenta
     public static final Color COLOR_AUDIO_CONTACT  = new Color(0xFF, 0xA0, 0x38, 0xFF); // amber
     public static final Color COLOR_HEARD_NOISE    = new Color(0xFF, 0xE0, 0x40, 0xFF); // yellow
+    public static final Color COLOR_DOCTRINE_ADVANCE = new Color(0x40, 0xE0, 0xA0, 0xA0); // green-cyan
+    public static final Color COLOR_DOCTRINE_HOLD = new Color(0xFF, 0xD0, 0x40, 0xA0); // gold
+    public static final Color COLOR_DOCTRINE_DISENGAGE = new Color(0xFF, 0x60, 0x60, 0xA0); // red
 
     private final Map<String, List<CellHighlight>> sources = new LinkedHashMap<>();
 
