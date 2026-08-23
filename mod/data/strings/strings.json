@@ -119,6 +119,7 @@
 		"companyHqUpkeep":        "Upkeep last month: Cr. {0}",
 		"companyHqNet":           "Net last month: Cr. {0}",
 		"companyHqDebt":          "Debt: Cr. {0}",
+		"companyHqNoReport":      "No monthly report yet — upkeep, debt, and runway appear after the first month rolls over.",
 		"companyHqRetainers":     "Retainers: Cr. {0} / month across {1} assignments",
 		"companyHqNoRetainers":   "No retainers — nothing is paying between contracts.",
 		"companyHqPersonnelHeader": "PERSONNEL",

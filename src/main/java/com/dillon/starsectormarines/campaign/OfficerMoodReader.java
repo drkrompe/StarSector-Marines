@@ -78,9 +78,24 @@ public final class OfficerMoodReader {
         public final int activeCaptains;
         public final int ships;
         public final int mrbRep;
+        /**
+         * Whether a monthly report existed to read. Vanilla only produces one at the
+         * first month rollover, and before then every figure derived from it is zero
+         * because it is <em>unknown</em>, not because it is nil — a surface that prints
+         * "upkeep Cr. 0" in that window is stating something false.
+         */
+        public final boolean hasMonthlyReport;
 
         Snapshot(float credits, float netLastMonth, float upkeepLastMonth,
                  int debt, int previousDebt, int activeCaptains, int ships, int mrbRep) {
+            this(credits, netLastMonth, upkeepLastMonth, debt, previousDebt,
+                    activeCaptains, ships, mrbRep, upkeepLastMonth > 0f);
+        }
+
+        Snapshot(float credits, float netLastMonth, float upkeepLastMonth,
+                 int debt, int previousDebt, int activeCaptains, int ships, int mrbRep,
+                 boolean hasMonthlyReport) {
+            this.hasMonthlyReport = hasMonthlyReport;
             this.credits = credits;
             this.netLastMonth = netLastMonth;
             this.upkeepLastMonth = upkeepLastMonth;
@@ -114,7 +129,7 @@ public final class OfficerMoodReader {
     /** Reads the live player state. Every external lookup is guarded; see {@link #currentMood}. */
     public static Snapshot read() {
         SectorAPI sector = Global.getSector();
-        if (sector == null) return new Snapshot(0f, 0f, 0f, 0, 0, 0, 0, 0);
+        if (sector == null) return new Snapshot(0f, 0f, 0f, 0, 0, 0, 0, 0, false);
 
         float credits = 0f;
         int ships = 0;
@@ -133,7 +148,8 @@ public final class OfficerMoodReader {
         int debt = 0;
         int previousDebt = 0;
         MonthlyReport prev = SharedData.getData().getPreviousReport();
-        if (prev != null && prev.getRoot() != null) {
+        boolean hasReport = prev != null && prev.getRoot() != null;
+        if (hasReport) {
             netLastMonth = prev.getRoot().totalIncome - prev.getRoot().totalUpkeep;
             upkeepLastMonth = prev.getRoot().totalUpkeep;
             debt = prev.getDebt();
@@ -154,7 +170,7 @@ public final class OfficerMoodReader {
         }
 
         return new Snapshot(credits, netLastMonth, upkeepLastMonth, debt, previousDebt,
-                activeCaptains, ships, mrbRep);
+                activeCaptains, ships, mrbRep, hasReport);
     }
 
     /**

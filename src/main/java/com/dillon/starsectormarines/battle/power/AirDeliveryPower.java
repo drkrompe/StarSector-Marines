@@ -63,6 +63,12 @@ abstract class AirDeliveryPower extends CommandPower {
         mission.payload = payload;
         mission.marinesRemaining = payload.unitsPerSortie(carrier);
         mission.totalCycles = 1;
+        configureMission(mission, carrier, service);
+    }
+
+    /** Payload-specific setup that may inspect the post-commit power state. */
+    protected void configureMission(ShuttleMission mission, ShuttleType carrier,
+                                    CommandPowerService service) {
         configureMission(mission, carrier);
     }
 

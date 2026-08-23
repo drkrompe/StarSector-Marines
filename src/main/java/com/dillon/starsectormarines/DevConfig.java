@@ -129,6 +129,14 @@ public final class DevConfig {
     public static final boolean DEBUG_CLIENT = true;
 
     /**
+     * When {@code true}: DEBUG mission briefings expose a count + reroll picker
+     * for marine-side Bulwark/Hound/Sirocco support. The selected roster becomes
+     * real Mech Support charges delivered by targetable Valkyrie sorties.
+     */
+    @DebugOnly
+    public static final boolean DEBUG_MECH_SUPPORT_PICKER = true;
+
+    /**
      * When {@code true}: every battle grants the recon-ping command power for
      * free, regardless of fleet or employer. A dev convenience so the
      * command-power loop stays exercised while the roster is shallow.

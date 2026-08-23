@@ -98,8 +98,11 @@ stops degrading.
 The reading of `getDay()` is from vanilla source, not from a live run. Before
 building further time-based mechanics on top, confirm in a running campaign
 that `CampaignClock.day()` advances by one per in-game day and crosses a month
-boundary without resetting. The debug intel's contract panel and its "Force
-daily tick" toggle are the fastest way to watch it.
+boundary without resetting. The debug intel's **Skip 1 / 7 / 30 days** buttons
+are the way to watch it — they re-anchor through `CampaignClock.skipDays` and
+run one full system pass per day crossed. Its "Force daily tick" button is
+**not**: that re-runs every system at the current day and never advances the
+counter (`8ac4116a`).
 
 Two assumptions to sanity-check at the same time:
 
