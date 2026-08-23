@@ -85,6 +85,10 @@ Locked before the stories were written; change these here, not in a story.
    wrong unit at one unstated UI scale. Display/header keep Orbitron;
    body and data use vanilla's actual text faces. Bars and icons still
    carry density before text does.
+9. **Experience changes first action, not only output.** Reflexes are a
+   universal new-threat registration passive: better troops act sooner on a
+   contact, while sustained weapon cadence remains the weapon/handling axis.
+   Do not couple this to doorways, room tags, or global AI replan frequency.
 
 ## Story decomposition
 
@@ -103,6 +107,7 @@ in [`stories/`](stories/).
 | [S8 — Roster legibility: aptitude, career, traits](stories/s8-roster-legibility.md) | 4 | S3 |
 | [S9 — In-battle quality conveyance](stories/s9-in-battle-quality-conveyance.md) | 4 | S3 |
 | [S10 — Trait mechanics](stories/s10-trait-mechanics.md) | 4 | S8 |
+| [S11 — Combat reflexes](complete/s11-combat-reflexes.md) | 2 | — |
 
 ### Suggested ship order
 
