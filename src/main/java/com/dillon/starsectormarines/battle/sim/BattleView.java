@@ -18,6 +18,7 @@ import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationTracker;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Read-only window onto the battle, for code that runs during the
@@ -103,6 +104,16 @@ public interface BattleView {
 
     /** Entity-access facade — by-id hot primitives ({@code world().hp(id)}) over the dense SoA + cold {@code world().id(id).getOrNull(Cmp.class)} component projection. See {@link World}. */
     World world();
+
+    /**
+     * The battle's single seeded random stream.
+     *
+     * <p>On the read interface because the AI tier consults it and holds nothing else,
+     * and because determinism requires <em>one</em> stream — a behavior that reached for
+     * its own source would put the battle back to being unreproducible. Drawing advances
+     * it; that is the point.
+     */
+    Random random();
 
     /** Data owner for the COMBAT component — {@code combat().attackCooldown(id)} etc. The per-component Service that replaces piling combat accessors onto {@link World}. */
     CombatService combat();

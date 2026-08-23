@@ -8,8 +8,8 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.IntSupplier;
+import java.util.Random;
 
 /**
  * Per-hit response logic — fallback rolls and target-reprioritization rolls
@@ -69,15 +69,19 @@ public final class HitResponseSystem {
     private final DamageService damageService;
     private final IntSupplier tickIndexSupplier;
 
+    /** The battle's seeded stream — see {@code BattleSimulation.random()}. */
+    private final Random rng;
+
     public HitResponseSystem(NavigationGrid grid, UnitRosterService roster,
                              TacticalScoring tacticalScoring,
                              DamageService damageService,
-                             IntSupplier tickIndexSupplier) {
+                             IntSupplier tickIndexSupplier, Random rng) {
         this.grid = grid;
         this.roster = roster;
         this.tacticalScoring = tacticalScoring;
         this.damageService = damageService;
         this.tickIndexSupplier = tickIndexSupplier;
+        this.rng = rng;
     }
 
     public void rollFallbackOnHit(long target) {
@@ -94,7 +98,7 @@ public final class HitResponseSystem {
         if (roster.role().role(target) == UnitRole.SWARM_PRESSURE) return;
         if (world.fallbackTimer(target) > 0f) return;
         if (roster.squad().hasSquad(target)) return;
-        if (ThreadLocalRandom.current().nextFloat() >= FALLBACK_CHANCE) return;
+        if (rng.nextFloat() >= FALLBACK_CHANCE) return;
         int[] fallback = tacticalScoring.findFallbackPosition(target);
         if (roster.movement().atCell(target, fallback[0], fallback[1])) return;
         damageService.applyFallback(target, fallback[0], fallback[1]);
@@ -129,7 +133,7 @@ public final class HitResponseSystem {
                 world.cellX(expectedTargetId), world.cellY(expectedTargetId),
                 vision.airLosRadius(target), vision.airLosRadius(expectedTargetId));
         float chance = hasLosToCurrentTarget ? REPRIORITIZE_BASE_CHANCE : REPRIORITIZE_NO_LOS_CHANCE;
-        if (ThreadLocalRandom.current().nextFloat() >= chance) return;
+        if (rng.nextFloat() >= chance) return;
         damageService.applyReprio(target, expectedTargetId);
     }
 }

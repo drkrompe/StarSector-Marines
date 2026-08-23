@@ -12,8 +12,8 @@ import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
-import java.util.concurrent.ThreadLocalRandom;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
+import java.util.Random;
 
 /**
  * Chassis-mounted weapons on motorized / heavy units. Modular mech hardpoints
@@ -53,14 +53,18 @@ public class HeavyWeapons {
      */
     private final LongArrayList mechScratch = new LongArrayList();
 
+    /** The battle's seeded stream — see {@code BattleSimulation.random()}. */
+    private final Random rng;
+
     public HeavyWeapons(UnitRosterService roster, NavigationGrid grid,
                         BallisticResolver resolver,
-                        ShotService shots, Detonations detonations) {
+                        ShotService shots, Detonations detonations, Random rng) {
         this.roster = roster;
         this.grid = grid;
         this.resolver = resolver;
         this.shots = shots;
         this.detonations = detonations;
+        this.rng = rng;
     }
 
     /** Per-tick pass: drains queued rounds from every installed mech mount. */
@@ -111,7 +115,7 @@ public class HeavyWeapons {
         float effectiveSpread = RangeFalloff.spread(weapon.hitSpread, distToTarget, weapon.range);
         BallisticResolver.Resolution res = resolver.resolve(shooter, target,
                 effectiveAccuracy, effectiveSpread, weapon.roundVelocity(),
-                ThreadLocalRandom.current());
+                rng);
 
         if (weapon.aoeRadius <= 0f && res.victimId() != 0L) {
             float appliedDamage = res.friendlyHit()
@@ -165,10 +169,10 @@ public class HeavyWeapons {
         float distToTarget = RangeFalloff.dist(world.x(shooter), world.y(shooter),
                 world.x(target), world.y(target));
         float effectiveSpread = RangeFalloff.spread(weapon.hitSpread, distToTarget, weapon.range);
-        boolean hit = ThreadLocalRandom.current().nextFloat() < weapon.accuracy * accuracyMult;
+        boolean hit = rng.nextFloat() < weapon.accuracy * accuracyMult;
         ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(
                 world.renderX(target), world.renderY(target),
-                hit, effectiveSpread, ThreadLocalRandom.current());
+                hit, effectiveSpread, rng);
 
         PendingDetonation onArrival = new PendingDetonation(
                 shooter,
