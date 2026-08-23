@@ -9,7 +9,7 @@
 
 ## Problem
 
-The hierarchy the player is meant to perceive — company, fireteam, marine —
+The hierarchy the player is meant to perceive — company, squad, marine —
 exists in `MarineRoster` only as separate lists plus lookup helpers
 (`squadsCommandedBy`, `squadMembers`, `readyCount`, `manningCount`,
 `vacancies`, `squadsStationedOn`). Every consumer assembles its own view:
@@ -26,7 +26,7 @@ of them can disagree.
 ## Goal
 
 One derived, read-only snapshot of the player's organization that every
-surface reads: company rollup → captain command → fireteam → marine, each
+surface reads: company rollup → captain command → squad → marine, each
 level carrying its own counts and state, with deterministic ordering.
 
 ## Design
@@ -37,18 +37,18 @@ live roster references:
 ```
 CompanySnapshot
   strength / ready / wounded / missing / lost    (marine counts)
-  fireteamsTotal / fireteamsDeployable
+  squadsTotal / squadsDeployable
   commands: List<CommandSnapshot>                (one per active captain)
-  unassigned: List<FireteamSnapshot>             (no homeCaptainId)
-  reserve: FireteamSnapshot                      (the reserve pool)
+  unassigned: List<SquadSnapshot>             (no homeCaptainId)
+  reserve: SquadSnapshot                      (the reserve pool)
 
 CommandSnapshot
   captainId / captainName / rank / captainStatus
-  fireteamCap  (Rank.fireteamCap)
-  fireteams: List<FireteamSnapshot>
+  squadCap     (the officer's rank cap, in squads — C7)
+  squads: List<SquadSnapshot>
   + the same count rollup, scoped to this command
 
-FireteamSnapshot
+SquadSnapshot
   squadId / name / captainId
   manning / vacancies / ready / wounded / missing / lost
   whereabouts   (C4 fills this; HOME until then)
@@ -65,11 +65,11 @@ MarineSnapshot
 - **Derived, never persisted.** No `Serializable`, no xstream exposure, no
   save migration. Built from the roster each time the view rebuilds; the
   roster stays authoritative.
-- **Deterministic order.** Captains in roster order, fireteams in roster
+- **Deterministic order.** Captains in roster order, squads in roster
   order within a captain, members in `memberIds` order. Two builds of an
   unchanged roster are equal.
 - **Both groupings available.** `commands` gives the per-captain shape;
-  a flat `fireteams()` accessor over all commands + unassigned gives the
+  a flat `squads()` accessor over all commands + unassigned gives the
   whole-roster shape. The open question in the overview (card = command vs
   card = company) is then a C3 rendering choice, not a model change.
 - **Counts defined once.** "Ready" is `MarineRoster.readyCount` semantics
@@ -100,7 +100,7 @@ mission concern, not an organization concern.
 
 - `SquadDeploymentScreen` renders exactly the same numbers it does today,
   sourced from the snapshot.
-- A roster with two captains, one unassigned fireteam, and a reserve pool
+- A roster with two captains, one unassigned squad, and a reserve pool
   produces a snapshot that accounts for every soldier exactly once.
 - Building twice without mutating the roster yields equal snapshots.
 - No new serialized state; a save round-trip is unaffected.
@@ -108,7 +108,7 @@ mission concern, not an organization concern.
 ## Files touched
 
 - New: `ops/detachment/CompanySnapshot.java` (+ `CommandSnapshot`,
-  `FireteamSnapshot`, `MarineSnapshot`, or nested records in one file).
+  `SquadSnapshot`, `MarineSnapshot`, or nested records in one file).
   `detachment/` already owns the "frozen view of the player's committed
   force" concept (`Detachment`, `CampaignMarineDeployment`,
   `PersonnelReadiness`) and has a `package-info.java` charter to update.

@@ -1,7 +1,7 @@
-# C1 — Fireteam identity through the drop seam
+# C1 — Squad identity through the drop seam
 
 > A battle squad is currently "whoever rode this dropship." Make it able to
-> name the campaign fireteam it came from.
+> name the campaign squad it came from.
 
 **Status:** not started. No dependencies. Enabling slice for
 [C5](c5-battle-hud-company-rollup.md) and
@@ -14,9 +14,9 @@ The campaign→battle handoff preserves *individual* identity and destroys
 
 - `CampaignMarineDeployment.freeze` walks the selected `MarineSquad`s,
   collects their ACTIVE members into one flat `List<MarineSoldier>`, and
-  emits a flat `List<MarineLoadout>` seat list. The fireteam boundary is
+  emits a flat `List<MarineLoadout>` seat list. The squad boundary is
   gone at that line.
-- `MarineLoadout` carries `campaignSoldierId` (good) and no fireteam id.
+- `MarineLoadout` carries `campaignSoldierId` (good) and no squad id.
 - `CampaignMarineDeployment.applyTo` pours those seats into
   `ShuttleMission.cycleLoadouts` in index order, skipping employer-owned
   missions.
@@ -27,16 +27,16 @@ The campaign→battle handoff preserves *individual* identity and destroys
 Two consequences:
 
 1. Nothing downstream — HUD, debrief, comms, telemetry — can say "1st
-   Fireteam". It can only say `SQUAD 3`.
+   Squad". It can only say `SQUAD 3`.
 2. The grouping is arbitrary. `ShuttleType.AEROSHUTTLE` and `KITE` carry
    **4** seats against a `MarineSquad.CAPACITY` of **6**, so even a single
-   selected fireteam is split across lifts, and two half-teams routinely
+   selected squad is split across lifts, and two half-teams routinely
    land as one battle squad.
 
 ## Goal
 
 A battle `Squad` spawned from player personnel knows which campaign
-fireteam it is, and carries a display label. No AI behavior changes.
+squad it is, and carries a display label. No AI behavior changes.
 
 ## Design
 
@@ -44,8 +44,8 @@ fireteam it is, and carries a display label. No AI behavior changes.
 
 `battle/` stays campaign-free. Two plain fields cross the seam:
 
-- `MarineLoadout` gains `campaignFireteamId` (String, null for generated
-  employer/defender personnel) and `fireteamLabel` (String, the display
+- `MarineLoadout` gains `campaignSquadId` (String, null for generated
+  employer/defender personnel) and `squadLabel` (String, the display
   name frozen at deploy time — the battle tier must never look a name up).
 - `Squad` gains the same two fields, defaulted to null / `NO_SQUAD`-style
   absent, so every existing spawn path (defenders, militia, drones, mechs,
@@ -56,27 +56,28 @@ fireteam it is, and carries a display label. No AI behavior changes.
 `(scenario, allocation)` — the two new fields ride the allocation side with
 the rest of the campaign-owned data.
 
-### Seat the manifest fireteam-contiguously
+### Seat the manifest squad-contiguously
 
 `freeze` currently appends members in selection-set iteration order, which
-is already fireteam-major by accident. Make it deliberate and stable:
+is already squad-major by accident. Make it deliberate and stable:
 
-- Iterate selected fireteams in roster order (not `Set` order — today's
+- Iterate selected squads in roster order (not `Set` order — today's
   iteration is over a `Set<String>`, so seat assignment is not
   deterministic across runs).
-- Keep each fireteam's members adjacent, and prefer not to straddle a
-  shuttle-capacity boundary when a whole team still fits in the next lift.
-  A 4-seat lift cannot hold a 6-marine team, so straddling is sometimes
-  forced — that is the split case below.
+- Keep each squad's members adjacent, and pack **whole fire teams** into
+  lifts. With [C8](c8-lift-capacity-and-multi-pass-drops.md)'s
+  team-denominated capacities (4 / 8 / 12) that always divides cleanly, so
+  a lift never carries three-quarters of a team; a twelve-marine squad
+  simply spans one to three lifts.
 
-### Mint by fireteam, per landing zone
+### Mint by squad, per landing zone
 
 Replace the "one squad per shuttle mission" rule for player marines with
-"one squad per (fireteam, landing zone)":
+"one battle squad per (campaign squad, landing zone)":
 
 - `InfantryPayload.tryDeploy` looks up an existing battle squad for the
-  seat's `campaignFireteamId` at this LZ before minting.
-- Seats with no fireteam id keep the current per-mission minting exactly.
+  seat's `campaignSquadId` at this LZ before minting.
+- Seats with no squad id keep the current per-mission minting exactly.
 - Members arriving on a later lift to the same LZ join the existing squad
   and bump `originalSize`, so morale ratios stay honest.
 - A team that lands at two different LZs becomes two squads, labelled
@@ -84,13 +85,14 @@ Replace the "one squad per shuttle mission" rule for player marines with
   members across the map between landings — the alternative (one squad
   spanning LZs) is a known cohesion hazard.
 
-**Decided (2026-08-22): the split case is a fallback, not the norm.**
-[C8](c8-lift-capacity-and-multi-pass-drops.md) raises every transport's
-capacity floor to one whole squad, so a squad normally rides one lift. When
-it still cannot — a heavy hull flying multiple passes, a reinforcement wave
-— later arrivals **join the existing squad and catch up** rather than
-forming a second unit. The `(A)`/`(B)` labelling survives only for the
-genuinely-two-landing-zones case. Note `AirSystem` currently resets
+**Decided (2026-08-22): a split squad stays one squad.**
+[C8](c8-lift-capacity-and-multi-pass-drops.md) denominates lift capacity in
+four-marine fire teams, so a twelve-marine squad normally arrives across
+one to three passes — only the heaviest transport lands it intact. Later
+arrivals **join the existing squad and catch up** rather than forming a
+second unit, and the squad holds at its LZ until it has formed up. The
+`(A)`/`(B)` labelling survives only for the genuinely-two-landing-zones
+case. Note `AirSystem` currently resets
 `mission.squadId` on each cycle (`AirSystem.java:471`), so today every wave
 mints a new squad; scoping that reset is C8's slice 2.
 
@@ -107,21 +109,21 @@ to re-read it anyway.
 ## Slices
 
 1. **Fields + freeze.** Add the two fields to `MarineLoadout`, populate in
-   `freeze`/`merge`, make fireteam iteration deterministic (roster order).
+   `freeze`/`merge`, make squad iteration deterministic (roster order).
    No consumer yet. Pure plumbing; verifiable by test.
-2. **Fireteam-keyed minting.** `Squad` fields + the `(fireteam, LZ)` lookup
+2. **Squad-keyed minting.** `Squad` fields + the `(campaign squad, LZ)` lookup
    in `InfantryPayload`. Fallback path for null ids unchanged.
-3. **Split labelling.** `(A)` / `(B)` suffixes when one fireteam lands at
+3. **Split labelling.** `(A)` / `(B)` suffixes when one squad lands at
    more than one LZ.
 
 ## Acceptance
 
-- Deploying two fireteams into a 3-lift manifest produces battle squads
-  whose members all share one `campaignFireteamId`, with no mixed squads
+- Deploying two squads into a 3-lift manifest produces battle squads
+  whose members all share one `campaignSquadId`, with no mixed squads
   at a single LZ.
 - A player marine spawned outside the campaign path (debug fixture,
   `MarineInsertion` power, walk-in reinforcement) still spawns cleanly with
-  a null fireteam id and today's behavior.
+  a null squad id and today's behavior.
 - Employer/militia/defender spawns are byte-identical in behavior — the
   `applyTo` employer-mission skip still holds.
 - No change to any AI decision: alert, morale, fallback, GOAP, and the
@@ -131,25 +133,25 @@ to re-read it anyway.
 
 ## Tests
 
-- `freeze` with two selected fireteams: seats are fireteam-contiguous and
+- `freeze` with two selected squads: seats are squad-contiguous and
   ordered by roster position, not `Set` iteration order.
 - `applyTo` with an employer mission first: skip count still correct once
   the new fields exist.
-- Deboard simulation: one fireteam across two lifts to one LZ ⇒ one squad,
-  `originalSize == 6`; across two LZs ⇒ two squads.
-- Mixed manifest: player fireteams + generated militia in the same battle,
+- Deboard simulation: one squad across three lifts to one LZ ⇒ one squad,
+  `originalSize == 12`; across two LZs ⇒ two squads.
+- Mixed manifest: player squads + generated militia in the same battle,
   militia squads unaffected.
 
 ## Files touched
 
 - `battle/infantry/MarineLoadout.java` — two fields, constructor overloads.
 - `ops/detachment/CampaignMarineDeployment.java` — `freeze`, `merge`,
-  deterministic fireteam iteration.
+  deterministic squad iteration.
 - `battle/squad/Squad.java` — two fields (lifecycle-documented per the
   field-doc convention in that file).
-- `battle/air/InfantryPayload.java` — fireteam-keyed squad lookup.
+- `battle/air/InfantryPayload.java` — squad-keyed squad lookup.
 - `battle/air/ShuttleMission.java` / `AirDeliveryContext` — likely a
-  per-LZ fireteam→squadId map lives here rather than on the mission.
+  per-LZ squad→squadId map lives here rather than on the mission.
 
 ## Out of scope
 
@@ -163,7 +165,7 @@ to re-read it anyway.
 ## Open questions
 
 - Should `MarineInsertion` (the reinforcement command power) draw from
-  named reserve personnel and therefore carry a fireteam id too? It
+  named reserve personnel and therefore carry a squad id too? It
   currently spawns generic marines. Deferring, but it is the one
   player-side spawn path that would look wrong once everything else has a
   name.

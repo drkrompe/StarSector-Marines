@@ -3,8 +3,8 @@
 ## Where we are
 
 Track opened 2026-08-22 from an inventory of the shipped squad AI and
-commander ("squad of squads") tiers. **Design stage: eight stories
-contracted (C1–C8), none started, no code written.**
+commander ("squad of squads") tiers. **Design stage: nine stories
+contracted (C1–C9), none started, no code written.**
 
 Read [`overview.md`](overview.md) first — it holds the inventory of what
 exists today and the seven design commitments the stories assume.
@@ -50,15 +50,21 @@ enum can change outright.
    six-marine teams had to fit), so it changes: officer ranks denominated
    in squads, a separate enlisted ladder, and an explicit squad leader.
    That is [C7](stories/c7-organization-and-ranks.md).
-2. **A lift carries at least one whole squad, and a split squad stays one
-   squad.** Capacity is denominated in squads with a floor of six; larger
-   hulls carry multiple squads or a squad plus equipment; late arrivals
-   join their squad and catch up rather than forming a new unit. That is
+2. **A lift carries at least one whole fire team, and a split squad stays
+   one squad.** Capacity is denominated in four-marine teams — only a
+   Valkyrie lands a whole squad in one pass — and late arrivals join their
+   squad and catch up rather than forming a new unit. That is
    [C8](stories/c8-lift-capacity-and-multi-pass-drops.md), and it settles
    C1's open split-lift question.
-3. **Squad size stays 6.** Between a real fire team (4) and a real rifle
-   squad (12+); chosen so the group count stays readable and every
-   transport can carry one.
+3. **A squad is twelve marines in three fire teams of four.** *Revised
+   from six.* Progression S1 shipped a **9x infantry lethality scale**
+   (pulse rifle vs an unarmored marine: ~30 s to ~3.3 s), so six puts a
+   squad past `SquadFallbackSystem`'s trigger ratio within seconds and
+   leaves the shipped two-team bounding overwatch nothing to split. Fire
+   teams are modelled but behind the scenes — the AI's maneuver element
+   ([C9](stories/c9-fire-teams-as-the-maneuver-element.md)), not a card
+   level. Lifts are denominated in teams, so only a Valkyrie lands a squad
+   intact and an assembling squad forms up at its LZ before advancing.
 4. **Large organizations degrade, never get forbidden.** Past ~8 squads the
    UI compacts, past ~20 it paginates within the officer grouping, and the
    off-screen count is always stated. C3 and C5 carry the tiers.
