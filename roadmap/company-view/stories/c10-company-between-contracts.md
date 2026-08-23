@@ -1,0 +1,332 @@
+# C10 — The company between contracts: a campaign-map home
+
+> The mod models a merc company in detail and gives the player nowhere to
+> stand and look at it. Every roster surface hangs off a planet
+> interaction, so "how is my army doing" is only answerable while docked.
+
+**Status:** not started. Independent of [C1](c1-fireteam-identity-through-the-drop.md)
+— see [Sequencing](#sequencing) below.
+
+## Problem
+
+Marine Ops is reached one way: fly to a planet, open the interaction menu,
+click through. From there the roster hangs off briefing → deployment →
+armory. `StationingScreen` is reachable only through a patron client at the
+market that contract belongs to.
+
+That gating is an accident of where the entry point was built, not a
+fiction. Checked against the code:
+
+- `ArmoryScreen` (1406 lines) has **zero** market or planet references. Gear
+  allocation, grades, and armour patterns are pure roster/armory work.
+- `StationingWithdrawalService.withdraw(state, contractId, day)` takes no
+  planet either. `StationingScreen.onWithdraw` is planet-bound only because
+  of the screen it sits on.
+- `roster.squadsCommandedBy(captainId)` — the company hierarchy the whole of
+  this track renders — needs nothing but the roster.
+
+The one thing that genuinely needs a planet is *responding* to a stationing
+event, because a response builds a ground battle and a battle needs a map.
+And contracts [G32](../../campaign/contracts/complete/g32-player-event-popup.md)
+already solved reaching that from anywhere: the event popup's **Deploy Now**
+opens Marine Ops against the *contract's own* market regardless of where the
+fleet is.
+
+So the player now gets interrupted by a decision they can answer from deep
+space, and then has no standing surface to review the decisions they
+deferred, the contracts already running, or the company that would fight
+them.
+
+### What [C4](c4-whereabouts-and-deployed-state.md) already asked for, and why it is not enough
+
+C4 names this exactly — *"there is also no way to look at the company at all
+except inside a pre-battle flow"* — and its slice 3 contracts a "standalone
+entry". But its design is a new `ScreenId` and an entry row **inside Marine
+Ops**, which still requires the planet interaction to reach. That delivers
+"readable without accepting a mission"; it does not deliver "readable while
+not at a planet".
+
+**C10 supersedes C4 slice 3.** C4 keeps the whereabouts model and the chips;
+the standalone entry moves here, where the host and the entry point are the
+actual work.
+
+## Goal
+
+A campaign-map button that opens the company's home: what shape the company
+is in, what clocks are running against it, and the army-management work that
+never needed a planet in the first place.
+
+The organising test for every element on this screen is **"what decision does
+this inform, and can it be made here?"** A destination that is only a readout
+gets opened twice and then ignored.
+
+## Design
+
+### The entry point is an ability-bar button
+
+The ability bar *is* the campaign-only HUD element. It is present on the
+campaign map and vanishes with the rest of the HUD whenever a core tab,
+dialog, or menu takes over — so the "visible in campaign view, gone when
+other UI is open" requirement needs **no gating code of ours at all**.
+
+- One row in `mod/data/campaign/abilities.csv` (merges with vanilla; columns
+  `name, id, type, icon, plugin, desc, sortOrder, unlockedAtStart, …`).
+- One `BaseAbilityPlugin` subclass overriding **`pressButton()`**, which is
+  empty in the base class and is the click hook.
+- Granted once from `onGameLoad` alongside the other `ensure*` registrations:
+  `Global.getSector().getCharacterData().addAbility(id)`, then assigned to
+  the first free `AbilitySlotAPI`. Vanilla's `AddAbility` rulecmd
+  (`api/impl/campaign/rulecmd/AddAbility.java`, the slot-scan loop around
+  line 30) is the copy-paste reference. Idempotent via
+  `getCharacterData().getAbilities().contains(id)`, so it covers new games
+  and existing saves through one path — same shape as every other `ensure`.
+
+**Why not a custom HUD widget.** `CampaignUIRenderingListener` is real and
+dispatched (`ListenerUtil.renderInUICoordsBelowUI` and its two siblings), and
+paired with `CampaignInputListener` it would let the existing widget kit draw
+anything we like. But we would then own hit-testing, z-order against vanilla
+chrome, and an explicit visibility gate — the same
+`getCurrentCoreTab() == null && !isShowingDialog() && !isShowingMenu()` triple
+that `PlayerEventPresenter.isQuiet` already carries. That cost buys nothing
+until the button needs to show live state (a badge when a response is
+pending, a count of recovering marines). Keep it as the named escape hatch:
+the `pressButton()` handler moves across unchanged.
+
+**Why not an intel entry.** G32 already established that the mod's five intel
+plugins are load-time singletons that only ever notify at creation. A sixth
+would be pull-only and tell nobody anything.
+
+### Implementation risk, with a fallback
+
+Vanilla ships only `TOGGLE` and `DURATION` ability types; a press-only button
+is not a shape vanilla uses. The plan is a `TOGGLE` whose `activate()` /
+`deactivate()` are no-ops, with `isActive`, `isActiveOrInProgress`,
+`showActiveIndicator`, `showProgressIndicator`, and `showCooldownIndicator`
+all forced false, so only `pressButton()` does anything.
+
+**Confirm in game before building the panes on top of it:** that
+`pressButton()` fires on click, and that a TOGGLE with a no-op `activate()`
+does not latch the active indicator. If it latches, try `DURATION` with no
+`durationDays`; if that also misbehaves, fall back to the
+`CampaignUIRenderingListener` + `CampaignInputListener` widget above. Slice 1
+exists to settle this cheaply.
+
+### The host is G32's planet-free dialog
+
+`MarineOpsDialogPlugin` shipped in `89ad8bac`: it hosts the takeover as an
+interaction of its own, with no planet menu behind it, and dismisses the
+whole interaction when the panel closes rather than restoring empty vanilla
+panels. That is already the host. The button calls it.
+
+**The constraint that matters.** `MarineOpsContext` is planet-scoped by
+construction. With a null planet it does not throw — `resolveClients` guards
+every lookup — but it yields no market, no missions, and a client list that
+degrades to Independent and Pirates. So:
+
+> The company host opens on a new `ScreenId.COMPANY_HQ` and **never routes to
+> `MISSION_SELECT`, `BRIEFING`, `SQUAD_DEPLOYMENT`, `BATTLE`, `RESULTS`, or
+> `LOOT`.** Those screens assume a market, a mission, or a battle. The only
+> transition out of HQ is to `ARMORY` and back.
+
+`ctx.openArmoryFrom(ScreenId.COMPANY_HQ, 0)` already gives the armory the
+right return screen, so that route needs no new plumbing.
+
+### Three panes, ordered by what the player came for
+
+#### Pane 1 — Standing
+
+Headline: **runway, in months of payroll.** `OfficerMoodReader` already
+assembles credits, `MonthlyReport.totalUpkeep`, debt and its trend, active
+captains, ships, and MRB rep, and already owns the 6-month / 12-month bands
+(`DESPERATE_RUNWAY_MONTHS`, `SEASONED_RUNWAY_MONTHS`). This pane **reuses the
+reader** and does not re-derive any of it.
+
+Runway earns the headline because it governs every other decision on the
+screen: whether to take a retainer at a bad rate, whether to keep a squad
+stationed, whether the company can afford the recovery time. It is also the
+number that makes bankruptcy read as earned rather than sprung.
+
+Also here:
+
+- retainer income — sum of `contractRetainerPerMonth` over ACTIVE /
+  IN_PROGRESS stationing rows, one loop;
+- MRB standing (`playerMrbRep`) and employer standing from `repValue`;
+- strength vs. available strength — [C4](c4-whereabouts-and-deployed-state.md)
+  names the gap between "living marines on the books" and "deployable right
+  now" as the interesting number; this pane is where it belongs.
+
+The line at the top is the comms officer's, through
+`CommsOfficerSummary` + `OfficerMoodReader.currentMood()` — the same
+mood-driven composable voice axis the mission-select header already uses, per
+day-seeded so it does not jitter. No new narrator, no new chrome.
+
+#### Pane 2 — The clock
+
+One list of everything with a deadline running against it, **sorted by days
+remaining** — not a ledger organised by contract. The player's actual
+question is "is anything about to bite me?"
+
+Three row sources, already persisted:
+
+| Row | Field | Shipped by |
+| --- | --- | --- |
+| Pending response | `contractResponseDeadlineTick` | [G31](../../campaign/contracts/complete/g31-stationing-response-deadlines.md) |
+| Stationing term ending | `contractExpiresTick` | G5 |
+| Offer lapsing | `contractOfferExpiresTick` | offer expiry |
+
+`PlayerEventInbox.pending(state, roster, day)` already returns the
+pending-response rows as notices in exactly this order — soonest deadline
+first, contract id as tiebreak — so that source is a direct render of a
+shipped projection, not a new query.
+
+**This pane is where Hold goes.** G32's popup offers Deploy Now / Hold /
+Write Them Off, and Hold currently dismisses into nowhere; G32 logged its own
+follow-up asking for a surface where a popup dismissed in a hurry can be
+reviewed. This is it. The popup and this list become one loop rather than two
+features, and the deferred decision sits here with its countdown visibly
+running.
+
+**Respond** on a pending row calls
+`PlayerEventPresenter.requestDeployment(notice)` — the identical path Deploy
+Now already takes, which opens Marine Ops at the contract's own market from
+anywhere in the sector. A route, not a second battle path, and not a
+mutation.
+
+#### Pane 3 — The company
+
+Today this pane ships the army-management work that never needed a planet:
+
+- a strength / ready / recovering rollup;
+- a route into `ArmoryScreen`, verified planet-free, returning to HQ.
+
+Tomorrow [C3](c3-company-card-stack.md)'s card stack lands **in this pane**
+and [C4](c4-whereabouts-and-deployed-state.md)'s whereabouts chips with it.
+C10 reserves the space and builds the room; C3 and C4 furnish it.
+
+**Do not build a second card stack here.** Until C2/C3 land, the rollup is a
+band and a count, deliberately thin — the pane's value before C3 is that the
+armory is reachable at all.
+
+## Sequencing
+
+**Independent of C1, and can land before it.** C1 carries fireteam identity
+across the drop seam to unblock the *deployed*-force views (C5, C6). C10
+touches nothing in `battle/`, no drop seam, and no `MarineLoadout`. The two
+can run in parallel worktrees with no conflict.
+
+Against the rest of the track:
+
+- **Panes 1 and 2 need nothing from C2 or C3.** Every number they show is
+  already persisted or already computed. They are complete on the day C10
+  ships.
+- **Pane 3 upgrades in place** as C2 → C3 → C4 land. C10 does not block them
+  and they do not block it.
+- **C4 slice 3 folds into this story** (see above). C4's own note that the
+  contracts track owns stationing mechanics still stands and is honoured
+  below.
+
+Recommendation: C10 first, because it converts C4's "a `ScreenId` inside a
+planet dialog" into a real campaign-map home, and because it makes G32's Hold
+option mean something. C1 remains the right pickup for anyone working the
+battle seam.
+
+## Slices
+
+1. **The button.** `abilities.csv` row, `BaseAbilityPlugin` subclass,
+   `ensure`-style grant + slot assignment. `pressButton()` opens the G32
+   host on an empty `COMPANY_HQ` screen. Settles the TOGGLE-latching risk
+   before anything is built on top.
+2. **Standing.** Runway headline through `OfficerMoodReader`, retainer sum,
+   MRB and employer standing, comms-officer line.
+3. **The clock.** Merged deadline list over the three sources, with
+   **Respond** routing through `PlayerEventPresenter.requestDeployment`.
+4. **The company pane.** Strength rollup and the armory route.
+
+Slices 2–4 are independently valuable and can ship in any order after 1.
+
+## Acceptance
+
+- The button is on the campaign map, and absent in the fleet, refit, intel,
+  and map tabs, in an interaction dialog, and in the pause menu — **with no
+  visibility gate in our code**.
+- Opening it from deep space, with no market in sensor range, produces the
+  full screen with every pane populated.
+- Runway reads in months of payroll and agrees with `OfficerMoodReader`'s
+  band for the same inputs.
+- Every clock row states its days remaining. If the list is capped, the
+  off-screen count is stated — silent truncation is never acceptable
+  (design commitment 9).
+- A response the player pressed **Hold** on in the G32 popup appears in the
+  clock pane, with its countdown running.
+- **Respond** on a pending row reaches the same briefing, with the same
+  detachment, that G32's Deploy Now reaches.
+- The armory opens from the company pane and returns to HQ — not to mission
+  select.
+- No route from the HQ host reaches mission select, a briefing, or a battle.
+- Dismissing the screen by any route returns to the campaign map and never
+  strands the player in an option-less dialog.
+- The screen writes no campaign or roster state.
+- `gradlew.bat build` green.
+
+## Automated verification
+
+The pane math is pure and testable; the dialog half ships on in-game smoke,
+the same gate as G5, G13, and G32.
+
+- Runway banding is already covered by `OfficerMoodReader`'s tests — assert
+  the pane consumes the reader rather than re-deriving.
+- Retainer-income sum over a fixture contracts table, including that
+  OFFERED and terminal rows contribute nothing.
+- Clock-row merge and ordering across all three sources, with ties broken
+  deterministically, and the empty case.
+- **Manual smoke (shipping gate):** the button's presence/absence across
+  every core tab and the pause menu; opening from deep space; layout at
+  1.0x / 1.25x / 1.5x UI scale; the armory round trip; **Respond** into a
+  real battle; and that no dismissal path strands the player.
+
+## Files touched
+
+- `mod/data/campaign/abilities.csv` — new, merges with vanilla.
+- `campaign/ability/CompanyViewAbility.java` — new; `pressButton()` only.
+- `StarsectorMarinesModPlugin.java` — `ensureCompanyViewAbility()`.
+- `ops/ScreenId.java` — `COMPANY_HQ`.
+- `ops/CompanyHqScreen.java` — new; the three panes.
+- `ops/MarineOpsPanelPlugin.java` — register the screen; the routing
+  constraint above.
+- Read-only use of `campaign/` (contracts table, `PlayerEventInbox`,
+  `OfficerMoodReader`) and `marine/` (roster rollups). No writes.
+
+## Out of scope
+
+- **Withdrawing from a stationing contract here.** `StationingWithdrawalService`
+  is already planet-free, so this is a deliberate hold rather than a technical
+  limit: withdrawal is a contract mutation with reputation consequences, and
+  design commitment 4 keeps mutation where it already lives. C4 draws the same
+  line for recalling a stationed team. If it is wanted, it belongs to the
+  contracts track.
+- **Changing stationing mechanics, terms, or payloads.**
+  [`campaign/contracts/`](../../campaign/contracts/) owns those; G31 and G32
+  have just reshaped them.
+- **Deployment selection.** Seats and missions exist only in a briefing flow;
+  that surface stays there.
+- **A second card stack.** Pane 3 is a reserved space, not a competing
+  implementation of C3.
+- **New persisted state.** Every rollup is derived (design commitment 3).
+- **Migrating the planet entry.** `MarineOpsCMD` and the patron-client route
+  are untouched; this is an additional door, not a replacement.
+
+## Open questions
+
+- **Does the button belong to the player or to the company?** Granting it
+  unconditionally at load is simplest. Gating it behind having a captain at
+  all would make the early game read as an escalation, at the cost of a
+  first-hour surface the player cannot find.
+- **Should the clock pane show contracts the player has not accepted?**
+  Offers lapsing is a real deadline, but an offer is only actionable at its
+  market, so a countdown here may read as a promise the screen cannot keep.
+  Worth deciding against the G32 principle that a pushed decision should be
+  answerable where it is shown.
+- **Does Standing want a trend, not just a level?** "Four months of payroll"
+  is less useful than "four months, down from seven." `MonthlyReport` carries
+  the previous report, so the data is there; whether one extra number earns
+  its space is a layout call for slice 2.

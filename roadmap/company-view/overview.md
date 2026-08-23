@@ -110,6 +110,9 @@ player has to remember which teams are out.
   across passes staying one squad (C8).
 - Fire teams as the AI's maneuver element — stable bounding pairs, fix-and-
   flank, team-aware role assignment (C9).
+- A campaign-map home for the company, reachable while not at a planet,
+  carrying standing, running deadlines, and the army management that never
+  needed a market (C10).
 
 **Out:**
 
@@ -203,12 +206,15 @@ player has to remember which teams are out.
 | [C7](stories/c7-organization-and-ranks.md) | Organization and ranks | — |
 | [C8](stories/c8-lift-capacity-and-multi-pass-drops.md) | Lift capacity in fire teams, multi-pass drops | pairs with C1 |
 | [C9](stories/c9-fire-teams-as-the-maneuver-element.md) | Fire teams as the maneuver element | C7 |
+| [C10](stories/c10-company-between-contracts.md) | The company between contracts: a campaign-map home | — |
 
-C1, C2, and C7 are independent and can land in any order. C1 is the
+C1, C2, C7, and C10 are independent and can land in any order. C1 is the
 enabling slice for anything that shows a *deployed* force under its real
 names; C8 is what makes the deployed force match the one the player
 selected; C7 settles the language and the command scope the UI stories
-render.
+render. C10 builds the between-contracts home the track's first surface
+needs — the campaign-map entry point and a planet-free host — and reserves
+the pane C3 and C4 later furnish.
 
 ## Cross-refs
 
@@ -241,6 +247,15 @@ render.
   the shipped two-team bounding overwatch nothing to split. Twelve restores
   the headroom those systems assume, matches the real structure, and keeps
   the row count low — a 72-marine company is six rows.
+
+- **Where is the company readable between contracts?** From a campaign-map
+  ability-bar button opening a planet-free host, not from a route inside the
+  planet-scoped Marine Ops dialog. *Settled 2026-08-22.* The ability bar is
+  already the campaign-only HUD element, so it hides itself with the rest of
+  the HUD and needs no visibility gate of ours; the host is the one
+  [G32](../campaign/contracts/complete/g32-player-event-popup.md) shipped.
+  See [C10](stories/c10-company-between-contracts.md), which supersedes C4's
+  slice 3.
 
 ## Open questions
 
