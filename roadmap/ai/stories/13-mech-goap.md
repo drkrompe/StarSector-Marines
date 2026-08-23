@@ -206,8 +206,9 @@ Implementation ordering:
 [`14-mech-stage1.md`](../complete/14-mech-stage1.md). Stage 1 covers two roles
 (LR Support + Armored Support) via spawn-time assignment. Stage 2A's
 faction-neutral Assault role and risk-scaled production roster shipped in
-[`22-assault-mech-and-difficulty-roster.md`](../complete/22-assault-mech-and-difficulty-roster.md).
-Recon and broad dynamic re-assignment remain.
+`22-assault-mech-and-difficulty-roster.md`; its reciprocal infantry/mech
+cohesion leash shipped in `28-assault-mech-cohesion.md`. Recon and broad
+dynamic re-assignment remain.
 
 ## Cross-references
 
