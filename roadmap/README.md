@@ -117,14 +117,15 @@ universe over time, not retrofitted into intel slots.
   lighting is code-complete (`c92d5b9a`) and awaits an in-game smoke/tuning
   pass; its fixed eight-light budget consumes muzzle, impact, heavy-blast, and
   burning-wreck events. See [`surface-relief/`](surface-relief/overview.md).
-- **Battle radio** *(expanded event slice shipped)* — 214 standard-pilot clips
+- **Battle radio** *(expanded event slice shipped; acceptance active)* — 214 standard-pilot clips
   now cover positional contact, fallback, friendly-fire, enemy-mech sighting,
   enemy-down, and sparse sustained-combat calls. Friendly warnings follow
   landed rounds, mech calls require current squad LOS, and every pool shares
   one global voice budget. The standalone battle and vanilla-combat bridge
   share one presentation-only cue policy, so audio never perturbs sim
   determinism. An in-game mix/content feel pass remains queued. See
-  [`battle-radio/`](battle-radio/overview.md).
+  `battle-radio-nouns.md`; its adjacent `stories.md` board tracks the queued
+  mix pass and the proposed credits cleanup.
 - **Mech roster** *(active)* — the modular arm/shoulder component substrate and
   Bulwark/Hound/Sirocco debug comparison ship in `2d3f044b`, including SRM/LRM
   -5 and -15 rack classes and profile-aware physical geometry. Hound and
@@ -138,8 +139,9 @@ universe over time, not retrofitted into intel slots.
   propose deterministic mech groups by risk (`1ef74f23`): LOW has none, MEDIUM
   proposes one Bulwark, and HIGH proposes budget-preserving mixed
   Bulwark/Hound/Sirocco groups. A battle-start force score now removes chassis
-  the combined player/allied attack cannot support, keeping small Raids
-  playable without making mechs categorically late-game. Hound's ASSAULT
+  and static turret candidates the combined player/allied attack cannot support,
+  keeping small Raids playable without making heavy defenses categorically
+  late-game. Hound's ASSAULT
   doctrine works for either side;
   it now requires infantry or a different chassis rather than letting Hounds
   screen one another. Coherently moving mech squads now take role-aware
@@ -188,8 +190,8 @@ universe over time, not retrofitted into intel slots.
   S2 and S4-S10 remain, S1's own last acceptance item is an in-game feel pass,
   and the synthesis found one proposed XP-authority cleanup. See
   `progression-nouns.md`; its adjacent board is the open-work list.
-- **Company view** *(active — C7 shipped)* — the player's force as one legible
-  hierarchy, company → squad → marine, in the fleet and in the field.
+- **Company view** *(active — C14 Slice 1 shipped)* — the player's force as one legible
+  hierarchy, company → squad → fire team → marine, in the fleet and in the field.
   The mod already models captains, persistent six-marine squads, and
   named soldiers, but every surface renders them as a flat list and the
   organization is destroyed at deployment: `CampaignMarineDeployment.freeze`
@@ -217,10 +219,16 @@ universe over time, not retrofitted into intel slots.
   lethality scale makes a six-marine squad combat-ineffective within
   seconds of contact; lifts are denominated in fire teams, so only a
   Valkyrie lands a squad intact and an assembling squad forms up at its LZ
-  before advancing. Fire teams are modelled but behind the scenes — the
-  AI's maneuver element (bounding, fix-and-flank), never a level of the
-  player's hierarchy. Read-only throughout — in-battle orders are
-  explicitly out of scope. A tenth story (C10) settles where the company is
+  before advancing. Fire teams are the AI's maneuver element (bounding,
+  fix-and-flank) and, in C14, the Fleet Armory's player-facing equipment tier:
+  reusable four-billet template cards are assigned only when finite fleet
+  stock can supply a complete kit. Squads remain the deployment and command
+  target; fire-team battle orders are explicitly out of scope. **C14 Slice 1
+  ships the first end-to-end version:** four reusable starter cards, mixed
+  four-billet issues including support weapons, atomic stock checks net of
+  returned gear, persistent per-team assignments, and Alpha/Bravo/Charlie on
+  the Fleet Armory LOADOUTS surface. The player-authored designer is next. A tenth story
+  (C10) settles where the company is
   readable *between* contracts: a campaign-map ability-bar button opening the
   planet-free dialog host G32 shipped, rather than another route inside the
   planet-scoped Marine Ops screen — most roster work turned out to be gated

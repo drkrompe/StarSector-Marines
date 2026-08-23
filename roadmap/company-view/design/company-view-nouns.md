@@ -1,15 +1,18 @@
 # Company view nouns
 
-Status: ACTIVE — 11 open stories
+Status: ACTIVE — 12 open stories
 Written: 2026-08-23
-Updated: 2026-08-23 — folded shipped organization, deployment identity, lift, debug-company, task-force, and campaign-home work.
+Updated: 2026-08-23 — made fire-team template cards the Fleet Armory's equipment-authoring tier.
 
 ## Purpose
 
 Company view makes the player's force legible as an organization wherever a
 decision depends on it: between contracts, while assembling a deployment, in
-battle, and after action. It is a read model over the campaign roster and
-contract state, not a second company simulation and not a player-order layer.
+battle, and after action. Most of the domain is a read model over the campaign
+roster and contract state, not a second company simulation and not a
+player-order layer. The Fleet Armory is its deliberate authoring seam: it
+assigns reusable equipment designs to the fire teams the organization already
+contains.
 
 This domain owns the shared language and presentation shape of the company. It
 does not own personnel persistence, equipment progression, contract resolution,
@@ -26,8 +29,21 @@ company view composes their stable outputs.
   three fire teams. Its identity, name, roster order, officer assignment,
   stationing binding, and NCO billet live in the campaign roster.
 - **Fire team** — four adjacent squad billets derived from roster order. It is
-  the lift-capacity unit and intended AI maneuver element, not another player
-  command tier.
+  the Fleet Armory's player-facing equipment tier, the lift-capacity unit, and
+  intended AI maneuver element. It is not another deployment selection or
+  player command target.
+- **Template card** — a reusable four-billet equipment design owned by the
+  armory. The card is not physical inventory and is never consumed by
+  assignment; each fielded copy still needs a complete physical kit.
+- **Billet** — one equipment position on a template card. Cards describe
+  positions rather than named marines; the current team materializes them.
+- **Card assignment** — the template id bound to one squad's Alpha, Bravo, or
+  Charlie team after an atomic inventory transaction succeeds.
+- **Squad arrangement** — a planned quick-refit composition of three template
+  cards. It is not a separate kind of equipment or organization.
+- **Conformance** — whether a team's current personnel and materialized issue
+  match its assigned card. Wounds, vacancies, later individual mutations, and
+  future equipment loss can degrade conformance without erasing intent.
 - **Marine** — the persistent individual. Their equipment and quality belong
   to the personnel and progression domains; company view presents them in
   formation context.
@@ -43,9 +59,10 @@ company view composes their stable outputs.
 
 ## Organization and leadership
 
-The hierarchy presented to the player is **company → officer command → squad →
-marine**. Fire teams may appear as grouping within a squad, but never as a card
-level or player order target.
+The full organizational hierarchy is **company → officer command → squad → fire
+team → marine**. Hosts stop at the depth their decision needs: the Fleet Armory
+opens the fire-team equipment tier, while deployment and battle command remain
+squad-granular.
 
 Officer command and enlisted leadership are separate ladders. Lieutenant,
 Captain, Major, Lieutenant Colonel, and Colonel caps are respectively 3, 6, 10,
@@ -64,6 +81,36 @@ leave a second stored partition behind.
 `homeCaptainId` is a squad's durable organizational default, not a history of
 temporary mission borrowing. Stationed squads remain under one officer because
 a garrison is a posting, not a task force.
+
+## Armory template cards
+
+The Fleet Armory authors routine equipment at fire-team scale. `MarineArmory`
+owns a reusable card library; `MarineSquad` persists one assigned card id for
+each of its three team slots. A card has exactly four billets, and each billet
+may specify primary family, grade, armour, and optional secondary. Special gear
+therefore belongs to a scarce team design rather than a parallel per-marine
+override system.
+
+Assignment is atomic and inventory-aware. The target team's current equipment
+is counted as returned before the candidate card is checked. Locked recipes or
+insufficient primaries, armour, or secondaries leave every marine and the prior
+card id untouched. Slice 1 requires a complete four-marine RTD team before a
+new card can be assigned; later conformance work owns degraded and replacement
+teams.
+
+The card is intent, while `MarineSoldier` equipment remains the materialized
+state consumed by deployment and battle. This preserves the campaign-to-battle
+contract while the designer grows. The initial library contains Field, Line,
+Recon, and mixed Fire Support cards, and the LOADOUTS surface exposes
+Alpha/Bravo/Charlie plus each assigned card.
+
+Cards are reusable but equipment is finite. Design itself must not be gated by
+stock; the planned designer may save an unfieldable card, while assignment is
+allowed only when the armory can supply it. Editing a card must never silently
+refit every fielded team: a changed design becomes a pending revision or a new
+card, followed by an explicit inventory transaction. Fast card swaps,
+three-card squad arrangements, conformance, and retirement of routine
+per-marine mutation remain in `c14-fire-team-template-cards.md`.
 
 ## Deployment identity
 
@@ -158,11 +205,13 @@ stories will expand.
 
 ## Presentation boundaries
 
-Company surfaces are read-only explanations. Mission command owns battle
-assignments; `Selection` remains view state. Campaign surfaces consume the live
-roster, while battle and results surfaces consume the frozen deployment. A UI
-must not silently regroup marines, invent persistence, or feed presentation
-state back into simulation.
+Company reporting surfaces are read-only explanations. The Fleet Armory is the
+exception that authors personnel organization and equipment through roster and
+armory services; its UI does not mutate those facts independently. Mission
+command owns battle assignments; `Selection` remains view state. Campaign
+surfaces consume the live roster, while battle and results surfaces consume the
+frozen deployment. A UI must not silently regroup marines, invent persistence,
+or feed presentation state back into simulation.
 
 The eventual formation snapshot should give campaign HQ, deployment, battle
 rollup, and after-action views one shared organizational vocabulary without
@@ -190,7 +239,12 @@ production vehicle deployment seam exists.
 - Squad and marine identity are frozen across the deployment seam; battle code
   never reaches back into campaign state.
 - Fire-team membership is derived from billet order and never persisted twice.
-- Fire teams are AI/lift units, not player command targets.
+- Fire teams are equipment/AI/lift units, not player command targets.
+- Template cards are reusable designs; every assignment remains bounded by
+  finite physical stock.
+- A failed card assignment changes neither issued equipment nor assignment.
+- Per-soldier kit remains the battle-facing materialization until the deployment
+  seam explicitly adopts another representation.
 - Officer capacity is checked per command; task forces do not flatten back into
   one officer's cap.
 - Reserve personnel do not count as formations or field-ready strength.
@@ -201,7 +255,9 @@ production vehicle deployment seam exists.
 
 ## Planned direction
 
-The remaining work is presentation and tactical refinement: derive one shared
+The remaining work is equipment authoring, presentation, and tactical
+refinement: build the player-authored card designer and fast squad refits;
+derive one shared
 formation snapshot; show officer grouping, squad whereabouts, battle rollup, and
 after-action survival consistently; give late arrivals a safe rejoin state; make
 fire teams stable AI maneuver elements; resolve outcomes for every participating
