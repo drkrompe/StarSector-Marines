@@ -81,9 +81,10 @@ transient LoS blocker the shadowcast pass respects.
   `s6-unlock-ladder-expansion.md`, or an explicit note saying which.
   **Nothing ships stranded** — that is the exact failure the audit found
   with four armor patterns.
-- Presets in `SquadEquipmentPreset` are revisited so the new families feed
-  at least one team archetype (an ASSAULT/BREACH preset is the obvious
-  addition).
+- The reusable `FireTeamTemplateCard` library is revisited so the new families
+  feed at least one four-billet team archetype (an ASSAULT/BREACH card is the
+  obvious addition). The player-authored designer belongs to
+  `c14-fire-team-template-cards.md`.
 - Defender rosters (`InfantryLoadoutRolls`, `DefenderRoster`) get an
   explicit decision per family: enemy-available or player-only. Shotguns in
   defender hands change interior assaults substantially.
