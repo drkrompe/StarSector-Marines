@@ -2,7 +2,7 @@
 
 Implementation half of the contract design from
 [`../overview.md`](../overview.md). Builds on the skeleton +
-Systems framework from [`skeleton-and-systems-framework.md`](../../framework/complete/skeleton-and-systems-framework.md).
+Systems framework described by `campaign-framework-nouns.md`.
 This pass takes the contract layer from "design doc + empty SoA table
 slot" to a **playable loop**: T1 patrons spawn offers, patrons show up
 as clients on local planets, the player picks a mission with a

@@ -46,8 +46,7 @@ every duration in the campaign tier — retainer months, default checkpoints,
 incident cadence, offer expiry, injury recovery, and G31's own deadlines —
 failed silently across month boundaries. Fixed by `CampaignClock`, a monotonic
 counter anchored so existing saves keep their numbering; all 28 call sites now
-read it. See
-[`../framework/complete/monotonic-campaign-clock.md`](../framework/complete/monotonic-campaign-clock.md).
+read it. See `campaign-framework-nouns.md`.
 
 **It still wants an in-game confirmation pass** — the diagnosis came from
 vanilla source, not a live run. Confirm the counter advances one per day and

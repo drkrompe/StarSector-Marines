@@ -120,7 +120,7 @@ whole campaign tick layer measured durations from a calendar component that
 wraps monthly, so a 7-day window armed on calendar day 27 targeted day 34 and
 was never reached. `CampaignClock` now supplies a monotonic counter, anchored so
 existing saves keep their numbering, and all 28 call sites read it. See
-[`../../framework/complete/monotonic-campaign-clock.md`](../../framework/complete/monotonic-campaign-clock.md).
+`campaign-framework-nouns.md`.
 G31's deadlines needed no change — they were already written against whatever
 `day` the tick loop supplies. An in-game confirmation pass is still queued.
 
