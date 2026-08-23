@@ -2,6 +2,10 @@
 
 **Shipped 2026-08-22 in `861a5bf1`.**
 
+**Formation tuning superseded by `31-adaptive-squad-formations.md`**
+(`4c0864d9`): 2.5 cells is now the constrained-terrain floor rather than the
+open-ground target, and members of one squad receive terrain-aware slots.
+
 ## Player-facing result
 
 Hounds no longer convince one another that an unsupported close-assault push

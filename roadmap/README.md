@@ -139,8 +139,10 @@ universe over time, not retrofitted into intel slots.
   introduces one Bulwark, and HIGH fields budget-preserving mixed
   Bulwark/Hound/Sirocco groups. Hound's ASSAULT doctrine works for either side;
   it now requires infantry or a different chassis rather than letting Hounds
-  screen one another, and moving allied mechs of every variant softly spread
-  into a loose formation (`861a5bf1`). A scout follows only when recon behavior
+  screen one another. Coherently moving mech squads now take role-aware
+  six-cell open-ground slots, compress toward a 2.5-cell floor with terrain,
+  and reform after clearing it; infantry squads use the same generic engine at
+  fireteam scale (`4c0864d9`). A scout follows only when recon behavior
   can make it meaningful. See
   [`mechs/`](mechs/overview.md). Objective-advancing infantry now consumes the
   ASSAULT point unit for a faction-neutral mech-screened advance (`0daf058e`):
@@ -357,7 +359,10 @@ universe over time, not retrofitted into intel slots.
    the reciprocal Hound/infantry screen: the Hound should lead by no more than
    six cells and hold rather than solo-charge when its infantry or
    different-chassis support is lost; a second Hound must not release it.
-   Confirm moving lances spread gently without idle posts drifting. Confirm
+   Confirm moving lances adopt role-aware six-cell open-ground spacing,
+   compress cleanly at streets and doors, and expand afterward without idle
+   posts drifting. Check that ordinary marine fireteams also spread without
+   fighting cover or divergent orders. Confirm
    Sirocco angles behind a non-Sirocco ally in its
    new 24–36-cell firing band and uses both the heavy-cannon opportunity band
    and longer LRM band. Tune chassis identities plus those formation rules.
