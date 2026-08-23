@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
+import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
@@ -24,10 +25,13 @@ import java.util.Random;
  * path.
  *
  * <h2>Geometry</h2>
- * Wall is an axis-aligned rectangle inset {@link #SETBACK_CELLS} into the
- * fortress biome's bounding box, leaving a "kill zone" buffer between the
- * biome edge and the wall. Only three sides are drawn — the back side abuts
- * the map edge, which is impassable already. For
+ * Wall is an axis-aligned rectangle whose nominal position is inset
+ * {@link #SETBACK_CELLS} into the fortress biome. The actual envelope expands
+ * toward the map edge and attacker as needed to wrap the generated fortress
+ * compound with {@link #KEEP_COMPOUND_CLEARANCE} cells of outer ward. This
+ * makes the keep's claimed footprint authoritative instead of letting an
+ * unrelated fixed biome inset strand it outside the wall. Only three sides
+ * are drawn — the back side abuts the map edge, which is impassable already. For
  * {@link TraversalAxis#SOUTH_TO_NORTH} the attacker-facing wall is the south
  * edge; the east/west walls are returns that meet the map edge at the north.
  *
@@ -66,6 +70,8 @@ public final class FortressWallStamper implements GenStage {
 
     /** Pull the wall this many cells back from the fortress biome's bounding box. Larger = bigger kill-zone buffer; smaller = wall hugs the biome edge. */
     private static final int SETBACK_CELLS = 12;
+    /** Minimum courtyard depth between the fortress compound bbox and every closed side of the outer wall. The compound already owns its own perimeter, so this gap creates a distinct outer ward between two defensive layers. */
+    private static final int KEEP_COMPOUND_CLEARANCE = 6;
     /** Wall HP. Higher than building walls (100) and military-base perimeter (150) — this is THE wall, breaching it is a mission objective. */
     private static final int WALL_HP_FORTIFIED = 240;
     /** Tower side length. 3×3 is large enough to read as a tower and small enough that two heavy towers don't fight for space at typical spacings. */
@@ -126,13 +132,17 @@ public final class FortressWallStamper implements GenStage {
         int h = grid.getHeight();
         int[] bbox = fortressBbox(biomeMap, w, h);
         if (bbox == null) return;
-        boolean[][] compoundExclusion = buildCompoundExclusion(ctx.get(BspKeys.COMPOUNDS), w, h);
+        List<Compound> compounds = ctx.get(BspKeys.COMPOUNDS);
+        Compound keepCompound = findKeepCompound(compounds);
+        boolean[][] compoundExclusion = buildCompoundExclusion(compounds, w, h);
         boolean[][] skip = mergeExclusions(ctx.get(BspKeys.ROAD_RESERVATION), compoundExclusion, w, h);
         boolean[][] wallMask = new boolean[w][h];
         if (axis == TraversalAxis.SOUTH_TO_NORTH) {
-            stampSouthToNorth(grid, topology, bbox, wallMask, skip, ctx.tactical, w, h, rng);
+            stampSouthToNorth(grid, topology, bbox, keepCompound,
+                    wallMask, skip, ctx.tactical, w, h, rng);
         } else {
-            stampWestToEast(grid, topology, bbox, wallMask, skip, ctx.tactical, w, h, rng);
+            stampWestToEast(grid, topology, bbox, keepCompound,
+                    wallMask, skip, ctx.tactical, w, h, rng);
         }
         demolishIntersectedBuildings(grid, topology, ctx.doodads, wallMask, w, h);
         sealOrphanedPockets(grid, w, h);
@@ -159,6 +169,16 @@ public final class FortressWallStamper implements GenStage {
             }
         }
         return mask;
+    }
+
+    /** The one conquest fortress base is the inner keep compound the outer ward must enclose. */
+    private static Compound findKeepCompound(List<Compound> compounds) {
+        if (compounds == null) return null;
+        for (Compound compound : compounds) {
+            if (compound.kind == BlockKind.MILITARY_BASE
+                    && compound.biome == BiomeKind.FORTRESS_DISTRICT) return compound;
+        }
+        return null;
     }
 
     private static boolean[][] mergeExclusions(boolean[][] road, boolean[][] compound, int w, int h) {
@@ -195,7 +215,8 @@ public final class FortressWallStamper implements GenStage {
      * are vertical returns up to the map edge.
      */
     private static void stampSouthToNorth(NavigationGrid grid, CellTopology topology,
-                                          int[] bbox, boolean[][] wallMask,
+                                          int[] bbox, Compound keepCompound,
+                                          boolean[][] wallMask,
                                           boolean[][] roadReservation,
                                           List<TacticalNode> tactical,
                                           int w, int h, Random rng) {
@@ -208,6 +229,19 @@ public final class FortressWallStamper implements GenStage {
         int wRight  = Math.min(w - 3, fRight - SETBACK_CELLS);
         int wBot    = fBot + SETBACK_CELLS;
         int wTop    = Math.min(h - 1, fTop);
+
+        // The biome inset supplies the default silhouette; the generated keep
+        // compound supplies the hard containment constraint. Expanding only
+        // outward preserves the broad fortress scale while guaranteeing an
+        // inner compound -> open ward -> outer curtain-wall sequence.
+        if (keepCompound != null) {
+            wLeft = Math.min(wLeft, keepCompound.left - KEEP_COMPOUND_CLEARANCE);
+            wRight = Math.max(wRight, keepCompound.right + KEEP_COMPOUND_CLEARANCE);
+            wBot = Math.min(wBot, keepCompound.top - KEEP_COMPOUND_CLEARANCE);
+        }
+        wLeft = Math.max(2, wLeft);
+        wRight = Math.min(w - 3, wRight);
+        wBot = Math.max(2, wBot);
 
         if (wRight - wLeft < 2 * HEAVY_TOWER_SPACING) return;
         if (wTop - wBot < 6) return;
@@ -284,24 +318,25 @@ public final class FortressWallStamper implements GenStage {
         List<int[]> bunkerCenters = new ArrayList<>();
         int killZoneTop = wBot - 3;   // leave 2-cell gap between bunker and wall
         int killZoneBot = fBot + 2;   // small buffer on the biome-edge side too
-        if (killZoneTop - killZoneBot < BUNKER_SIZE) return;
-        int bxAttempts = bunkerCount * 50;
-        for (int a = 0; a < bxAttempts && bunkerCenters.size() < bunkerCount; a++) {
-            int bx = wLeft + 4 + rng.nextInt(Math.max(1, span - 8));
-            int by = killZoneBot + rng.nextInt(Math.max(1, killZoneTop - killZoneBot));
-            boolean tooClose = false;
-            for (int[] b : bunkerCenters) {
-                int dx = b[0] - bx;
-                int dy = b[1] - by;
-                if (dx * dx + dy * dy < BUNKER_MIN_SEPARATION * BUNKER_MIN_SEPARATION) {
-                    tooClose = true;
-                    break;
+        if (killZoneTop - killZoneBot >= BUNKER_SIZE) {
+            int bxAttempts = bunkerCount * 50;
+            for (int a = 0; a < bxAttempts && bunkerCenters.size() < bunkerCount; a++) {
+                int bx = wLeft + 4 + rng.nextInt(Math.max(1, span - 8));
+                int by = killZoneBot + rng.nextInt(Math.max(1, killZoneTop - killZoneBot));
+                boolean tooClose = false;
+                for (int[] b : bunkerCenters) {
+                    int dx = b[0] - bx;
+                    int dy = b[1] - by;
+                    if (dx * dx + dy * dy < BUNKER_MIN_SEPARATION * BUNKER_MIN_SEPARATION) {
+                        tooClose = true;
+                        break;
+                    }
                 }
+                if (tooClose) continue;
+                stampTower3x3(grid, topology, bx, by, wallMask, roadReservation);
+                emitForwardBunker(tactical, bx, by);
+                bunkerCenters.add(new int[]{bx, by});
             }
-            if (tooClose) continue;
-            stampTower3x3(grid, topology, bx, by, wallMask, roadReservation);
-            emitForwardBunker(tactical, bx, by);
-            bunkerCenters.add(new int[]{bx, by});
         }
 
         // Final pass — set wall direction masks for every painted wall cell.
@@ -320,7 +355,8 @@ public final class FortressWallStamper implements GenStage {
      * north/south walls are horizontal returns to the map edge at x=w-1.
      */
     private static void stampWestToEast(NavigationGrid grid, CellTopology topology,
-                                        int[] bbox, boolean[][] wallMask,
+                                        int[] bbox, Compound keepCompound,
+                                        boolean[][] wallMask,
                                         boolean[][] roadReservation,
                                         List<TacticalNode> tactical,
                                         int w, int h, Random rng) {
@@ -333,6 +369,15 @@ public final class FortressWallStamper implements GenStage {
         int wTop    = Math.min(h - 3, fTop - SETBACK_CELLS);
         int wLeft   = fLeft + SETBACK_CELLS;
         int wRight  = Math.min(w - 1, fRight);
+
+        if (keepCompound != null) {
+            wBot = Math.min(wBot, keepCompound.top - KEEP_COMPOUND_CLEARANCE);
+            wTop = Math.max(wTop, keepCompound.bottom + KEEP_COMPOUND_CLEARANCE);
+            wLeft = Math.min(wLeft, keepCompound.left - KEEP_COMPOUND_CLEARANCE);
+        }
+        wBot = Math.max(2, wBot);
+        wTop = Math.min(h - 3, wTop);
+        wLeft = Math.max(2, wLeft);
 
         if (wTop - wBot < 2 * HEAVY_TOWER_SPACING) return;
         if (wRight - wLeft < 6) return;
@@ -390,24 +435,25 @@ public final class FortressWallStamper implements GenStage {
         List<int[]> bunkerCenters = new ArrayList<>();
         int killZoneLeft  = fLeft + 2;
         int killZoneRight = wLeft - 3;
-        if (killZoneRight - killZoneLeft < BUNKER_SIZE) return;
-        int bxAttempts = bunkerCount * 50;
-        for (int a = 0; a < bxAttempts && bunkerCenters.size() < bunkerCount; a++) {
-            int bx = killZoneLeft + rng.nextInt(Math.max(1, killZoneRight - killZoneLeft));
-            int by = wBot + 4 + rng.nextInt(Math.max(1, span - 8));
-            boolean tooClose = false;
-            for (int[] b : bunkerCenters) {
-                int dx = b[0] - bx;
-                int dy = b[1] - by;
-                if (dx * dx + dy * dy < BUNKER_MIN_SEPARATION * BUNKER_MIN_SEPARATION) {
-                    tooClose = true;
-                    break;
+        if (killZoneRight - killZoneLeft >= BUNKER_SIZE) {
+            int bxAttempts = bunkerCount * 50;
+            for (int a = 0; a < bxAttempts && bunkerCenters.size() < bunkerCount; a++) {
+                int bx = killZoneLeft + rng.nextInt(Math.max(1, killZoneRight - killZoneLeft));
+                int by = wBot + 4 + rng.nextInt(Math.max(1, span - 8));
+                boolean tooClose = false;
+                for (int[] b : bunkerCenters) {
+                    int dx = b[0] - bx;
+                    int dy = b[1] - by;
+                    if (dx * dx + dy * dy < BUNKER_MIN_SEPARATION * BUNKER_MIN_SEPARATION) {
+                        tooClose = true;
+                        break;
+                    }
                 }
+                if (tooClose) continue;
+                stampTower3x3(grid, topology, bx, by, wallMask, roadReservation);
+                emitForwardBunker(tactical, bx, by);
+                bunkerCenters.add(new int[]{bx, by});
             }
-            if (tooClose) continue;
-            stampTower3x3(grid, topology, bx, by, wallMask, roadReservation);
-            emitForwardBunker(tactical, bx, by);
-            bunkerCenters.add(new int[]{bx, by});
         }
 
         // Final pass — courtyard rect spans (wLeft+1..wRight) × (wBot+1..wTop-1).

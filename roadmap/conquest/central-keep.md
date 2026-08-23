@@ -173,8 +173,9 @@ the visual + systemic climax:
   fortress complex deep in the fortress district. Largest building on
   the map. The "throne room" for the storming sequence. Generation
   normalizes natural military-base rolls to one reserved base per target
-  biome, emits the COMMAND_POST only from the fortress base, and fails
-  closed unless the finished tactical map contains exactly one.
+  biome, reserves lateral space around the fortress seed for its outer ward,
+  emits the COMMAND_POST only from the fortress base, and fails closed unless
+  the finished tactical map contains exactly one.
 - **Tiered compounds spread along the axis**: BARRACKS and ARMORY
   nodes scatter through PORT / KILL_ZONE / fortress edges so the
   player encounters them as they push. Outer compounds fall first
@@ -244,11 +245,24 @@ with the rest of the defender count.
 > chamber using label-driven detection. The full three-chamber layout
 > (entry / inner / throne) is live on Conquest maps.
 
-The keep is one big compound but with **multi-room internal structure**
-so the storming sequence reads as a sequence of rooms, not a single
-push. Generator layout:
+The keep is a **layered compound** whose generated footprint is authoritative
+for every enclosing defense. The outer fortress wall begins from its broad
+biome-inset silhouette, then expands toward the attacker or map sides until the
+finished fortress compound has at least a six-cell outer ward on every closed
+side. Fortress claiming will not absorb a lateral edge leaf that would consume
+that ward. This prevents a fixed defensive line from leaving an unusually wide
+or forward keep outside it and gives the assault an explicit progression:
 
-- Outer perimeter wall with one gate facing the attacker side.
+1. forward bunkers and the outer curtain wall;
+2. the open outer ward / courtyard;
+3. the military compound's own perimeter wall and role buildings;
+4. the multi-chamber command building, ending at the throne room.
+
+The command building itself has **multi-room internal structure** so the final
+storming sequence reads as a sequence of rooms, not a single push. Generator
+layout:
+
+- Inner compound perimeter wall with one gate facing the attacker side.
 - A courtyard / anteroom between the gate and the inner structure,
   with its own garrison + 1-2 turret emplacements (the "outer
   guards").
