@@ -111,7 +111,7 @@ public class InfantryWeapons {
             // invalidate these post-fire writes — no slot re-resolve needed.
             int remaining = world.burstRemaining(id) - 1;
             world.setBurstRemaining(id, remaining);
-            world.setBurstTimer(id, weapon.burstSpacing);
+            world.setBurstTimer(id, weapon.burstSpacing());
             if (remaining == 0) world.setBurstTargetId(id, 0L);
         }
         burstScratch.clear();
@@ -155,9 +155,9 @@ public class InfantryWeapons {
         if (weapon != null) {
             float effectiveRange = world.attackRange(shooter);
             accuracy = RangeFalloff.accuracy(world.accuracy(shooter),
-                    weapon.accuracyFalloff, dist, effectiveRange);
+                    weapon.accuracyFalloff(), dist, effectiveRange);
             damage   = world.attackDamage(shooter);
-            vsTurretMult = weapon.vsTurretMult;
+            vsTurretMult = weapon.vsTurretMult();
             effectiveSpread = RangeFalloff.spread(
                     InfantryCombatStats.spread(weapon,
                             roster.combat().equipmentGrade(shooter),
@@ -170,8 +170,8 @@ public class InfantryWeapons {
         // Round velocity: weapon-owned where available; null-weapon militia /
         // alien callers use the shared default, while static turrets resolve
         // through their kind's direct-fire timing.
-        float roundVelocity = weapon != null && weapon.roundVelocity > 0f
-                ? weapon.roundVelocity
+        float roundVelocity = weapon != null && weapon.roundVelocity() > 0f
+                ? weapon.roundVelocity()
                 : tk != null
                         ? tk.directRoundVelocity()
                         : BallisticResolver.DEFAULT_ROUND_VELOCITY;
