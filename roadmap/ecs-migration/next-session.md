@@ -257,6 +257,8 @@ Full designs in the linked stories. Struck-through items are shipped/decided.
 ## Recent ECS-track commits
 
 ```
+<pending> sim determinism: one seeded stream owned by the sim; no unseeded draw
+          survives under battle/ (see complete/seeded-battle-determinism.md)
 40aafd4e ecs-migration: identity-collapse F6-S5b - flip drive loop, delete controller shim
 a081900c ecs-migration: identity-collapse F6-S5a - stateless VehicleControlSystem
 (F6-S1..S4: 7fe601c9 92842b4d d485c3ea 63b1e1cc — see stories/vehicle-control-ecs.md)
@@ -301,6 +303,16 @@ ead4ec0d ecs-migration: identity-collapse A - rehome Entity base methods to serv
 
 Older history is in git + the `complete/` docs. Sibling tracks (battle-render,
 goap, campaign) interleave on HEAD.
+
+## A rule the sim now holds
+
+**Nothing under `battle/` may draw from an unseeded source.** Every roll goes
+through `BattleSimulation.random()`, a single stream seeded at construction, so a
+battle replays exactly from its seed. `NoUnseededRandomTest` enforces it by
+scanning the tree; `BattleDeterminismTest` proves the property holds today. Three
+presentation files (`BattleRadioChatter`, `ImpactFx`, `FlybyOverlay`) are exempt
+by name because they cannot change an outcome. Full write-up in
+`seeded-battle-determinism.md`.
 
 ## Sanity check before resuming
 
