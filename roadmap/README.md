@@ -138,8 +138,9 @@ universe over time, not retrofitted into intel slots.
   propose deterministic mech groups by risk (`1ef74f23`): LOW has none, MEDIUM
   proposes one Bulwark, and HIGH proposes budget-preserving mixed
   Bulwark/Hound/Sirocco groups. A battle-start force score now removes chassis
-  the combined player/allied attack cannot support, keeping small Raids
-  playable without making mechs categorically late-game. Hound's ASSAULT
+  and static turret candidates the combined player/allied attack cannot support,
+  keeping small Raids playable without making heavy defenses categorically
+  late-game. Hound's ASSAULT
   doctrine works for either side;
   it now requires infantry or a different chassis rather than letting Hounds
   screen one another. Coherently moving mech squads now take role-aware
