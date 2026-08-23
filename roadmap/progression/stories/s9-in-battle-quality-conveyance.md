@@ -64,7 +64,7 @@ beat, this is where it lives — a marine crossing into Veteran or Elite gets
 a readable moment, while the actual stat change still settles
 post-mission. Presentation of a threshold crossed, not a live stat mutation.
 
-The `battle-radio.md` pipeline is the
+The `battle-radio-nouns.md` pipeline is the
 obvious delivery vehicle and already has a global voice budget and a
 presentation-only cue policy that keeps audio out of sim determinism.
 

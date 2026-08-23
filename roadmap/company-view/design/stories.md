@@ -1,8 +1,8 @@
 # Company view open work
 
-Status: ACTIVE — 11 open stories
+Status: ACTIVE — 12 open stories
 Written: 2026-08-23
-Updated: 2026-08-23 — migrated the legacy overview and handoff into an open-work-only board.
+Updated: 2026-08-23 — added C14 after its built-in template-card slice shipped.
 
 Read `company-view-nouns.md` before changing a company-view story.
 
@@ -18,4 +18,5 @@ Read `company-view-nouns.md` before changing a company-view story.
 | `c11-the-contract-board.md` | Planned | Uses the shipped campaign-map home; owns offers, not obligation clocks. |
 | `c12-the-debug-company.md` | Deferred | Slices 1–2 are folded; combined arms waits for player-side vehicle deployment. |
 | `c13-the-task-force.md` | Partial | Slice 1 is folded; per-officer outcomes and scalable assignment remain. |
+| `c14-fire-team-template-cards.md` | Partial | Slice 1 ships built-in cards and atomic one-team assignment; the player-authored designer is next. |
 | `squad-id-terminology-cleanup.md` | Proposed | Terra finding: squad IDs cross APIs and persisted payloads under legacy fire-team names; requires an explicit save-compatibility plan. |

@@ -29,8 +29,9 @@ import java.util.List;
  * one Bulwark when heavy armor is available, and HIGH replaces the old flat
  * mech count with complementary Bulwark/Hound/Sirocco groups. The candidate
  * mechs must then fit beneath the combined attacker's
- * {@link BattleForceScore}; this keeps small unsupported operations playable
- * while allowing allied or otherwise reinforced attacks to face armor.
+ * {@link BattleForceScore}; static turret candidates spend any score left after
+ * that roster is resolved. This keeps small unsupported operations playable
+ * while allowing allied or otherwise reinforced attacks to face heavy support.
  * Infantry ratios also tighten from 70/30 at LOW to 50/40 at HIGH.
  */
 public final class DefenderRoster {

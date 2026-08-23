@@ -175,6 +175,9 @@ public final class BattleSetup {
      */
     public record MapBuild(BattleSimulation sim, LongList structures) {}
 
+    private record DefenderForcePlan(DefenderRoster roster,
+                                     List<DefensePost> defensePosts) {}
+
     /**
      * Builds the host-agnostic <b>map layer</b> — the part shared by every
      * {@code createX} factory and the combat-bridge host. Constructs the sim
@@ -307,11 +310,14 @@ public final class BattleSetup {
         DefensePostStamper.stampNonConquest(map.grid, map.topology,
                 RoadReservation.mask(map.roadGraph, map.grid.getWidth(), map.grid.getHeight()),
                 map.pointsOfInterest, map.doodads, defensePosts, rng);
+        DefenderForcePlan defenders = defenderForcePlan(
+                MissionType.SABOTAGE, tier, risk, enemyHasHeavyArmor,
+                assignments, defensePosts);
         List<LandingPad> lzCells = LandingPadSelector.select(
                 map, assignments.size(), LZ_MIN_SEPARATION);
         List<ParkedAircraft> parkedAircraft = stampParkedAircraft(map, lzCells, rng);
         BattleSimulation sim = buildMap(
-                map, vehiclePlacements, defensePosts, parkedAircraft, seed).sim();
+                map, vehiclePlacements, defenders.defensePosts(), parkedAircraft, seed).sim();
 
         // Pick charge sites: prefer high-value POIs (lab/comms/depot) in the
         // defender half of the map. Fall back to any POI if not enough qualify.
@@ -362,9 +368,7 @@ public final class BattleSetup {
             equipDefaultTurrets(sim, shuttleId);
         }
 
-        allocateDefenders(sim, map, DefenderRoster.forMission(
-                MissionType.SABOTAGE, tier, risk, enemyHasHeavyArmor,
-                BattleForceScore.attackers(assignments)), rng);
+        allocateDefenders(sim, map, defenders.roster(), rng);
         spawnAmbientCivilians(sim, map, rng);
         spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
         // Marine commander: routes non-planter squads toward the closest
@@ -538,11 +542,13 @@ public final class BattleSetup {
         DefensePostStamper.stampNonConquest(map.grid, map.topology,
                 RoadReservation.mask(map.roadGraph, map.grid.getWidth(), map.grid.getHeight()),
                 map.pointsOfInterest, map.doodads, defensePosts, rng);
+        DefenderForcePlan defenders = defenderForcePlan(
+                type, tier, risk, enemyHasHeavyArmor, assignments, defensePosts);
         List<LandingPad> lzCells = LandingPadSelector.select(
                 map, assignments.size(), LZ_MIN_SEPARATION);
         List<ParkedAircraft> parkedAircraft = stampParkedAircraft(map, lzCells, rng);
         BattleSimulation sim = buildMap(
-                map, vehiclePlacements, defensePosts, parkedAircraft, seed).sim();
+                map, vehiclePlacements, defenders.defensePosts(), parkedAircraft, seed).sim();
 
         // Default ASSAULT objectives — eliminate the other side. Mission-specific
         // setups (sabotage, raid, extraction) will swap or add to this pair.
@@ -582,9 +588,7 @@ public final class BattleSetup {
         // pegged to the highest-priority posts; leftovers form patrol squads).
         // Legacy maps with no tactical layer fall back to the single-cluster
         // spawn around the defender anchor.
-        allocateDefenders(sim, map, DefenderRoster.forMission(
-                type, tier, risk, enemyHasHeavyArmor,
-                BattleForceScore.attackers(assignments)), rng);
+        allocateDefenders(sim, map, defenders.roster(), rng);
         spawnAmbientCivilians(sim, map, rng);
         spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
         installReinforcementLayer(sim, map, null);
@@ -953,6 +957,10 @@ public final class BattleSetup {
         MapResult map = MAP_GEN.generate(gridW, gridH, seed, axis, profile);
 
         List<MapVehicle> vehiclePlacements = stampVehicles(map, rng);
+        List<ShuttleAssignment> assignments = resolveManifest(manifest);
+        DefenderForcePlan defenders = defenderForcePlan(
+                MissionType.CONQUEST, tier, risk, enemyHasHeavyArmor,
+                assignments, map.defensePosts);
         // Conquest defense posts come pre-stamped by the biome-aware
         // DefensePostStamper inside BspCityGenerator (BEACH→PORT→kill-zone
         // tiers + rear ARTILLERY battery), so buildMap consumes map.defensePosts
@@ -960,7 +968,7 @@ public final class BattleSetup {
         // {@link #linkGuardpostSquads} below — that's the difference from the
         // non-conquest path, which stamps the same shapes unmanned via
         // {@code DefensePostStamper.stampNonConquest}.
-        MapBuild build = buildMap(map, vehiclePlacements, map.defensePosts, seed);
+        MapBuild build = buildMap(map, vehiclePlacements, defenders.defensePosts(), seed);
         BattleSimulation sim = build.sim();
 
         // Conquest win condition: marines dismantle defender supply
@@ -975,7 +983,6 @@ public final class BattleSetup {
         sim.addObjective(new ConquestObjective(sim.getCompoundService()));
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
 
-        List<ShuttleAssignment> assignments = resolveManifest(manifest);
         // Conquest = beach landing — spread LZs along the attacker frontage
         // rather than clustered around a single anchor. Other mission types
         // use the BFS picker until they get their own tuned strategies.
@@ -1005,10 +1012,8 @@ public final class BattleSetup {
             equipDefaultTurrets(sim, shuttleId);
         }
 
-        allocateDefenders(sim, map, DefenderRoster.forMission(
-                MissionType.CONQUEST, tier, risk, enemyHasHeavyArmor,
-                BattleForceScore.attackers(assignments)), rng);
-        linkGuardpostSquads(sim, map.defensePosts);
+        allocateDefenders(sim, map, defenders.roster(), rng);
+        linkGuardpostSquads(sim, defenders.defensePosts());
         spawnAmbientCivilians(sim, map, rng);
         // Marine commander: lateral-strip partition perpendicular to the
         // traversal axis. Each shuttle squad gets sticky-assigned to one
@@ -1020,6 +1025,18 @@ public final class BattleSetup {
         sim.setGarrisonSystem(new CompoundGarrisonSystem(axis));
         installReinforcementLayer(sim, map, axis);
         return new MapBuild(sim, build.structures());
+    }
+
+    private static DefenderForcePlan defenderForcePlan(
+            MissionType type, OperationTier tier, RiskLevel risk,
+            boolean enemyHasHeavyArmor, List<ShuttleAssignment> assignments,
+            List<DefensePost> defensePosts) {
+        float attackerScore = BattleForceScore.attackers(assignments);
+        DefenderRoster roster = DefenderRoster.forMission(
+                type, tier, risk, enemyHasHeavyArmor, attackerScore);
+        List<DefensePost> affordablePosts = BattleForceScore.affordableDefensePosts(
+                defensePosts, roster, attackerScore);
+        return new DefenderForcePlan(roster, affordablePosts);
     }
 
     /**

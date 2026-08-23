@@ -12,9 +12,8 @@ import java.util.UUID;
  * A persistent campaign squad: twelve marines organized as three four-marine
  * fire teams. Tactical battle squads remain ephemeral.
  *
- * <p>Fire teams are the AI's maneuver element and the unit lift capacity is
- * denominated in, not a level of the player's command hierarchy — the player
- * commands squads.
+ * <p>Fire teams are the Fleet Armory's equipment-card tier and the AI's
+ * maneuver element. The player still deploys and commands whole squads.
  */
 public final class MarineSquad implements Serializable {
 
@@ -36,6 +35,8 @@ public final class MarineSquad implements Serializable {
     private long stationingContractId = -1L;
     /** The NCO leading this squad; null while it has nobody fit to lead. Derived by the roster. */
     private String leaderSoldierId;
+    /** Reusable armory card assigned to each team; null until that team is first refit. */
+    private String[] teamTemplateCardIds = new String[TEAMS_PER_SQUAD];
 
     public MarineSquad(String name) {
         this(UUID.randomUUID().toString(), name);
@@ -59,6 +60,10 @@ public final class MarineSquad implements Serializable {
     public long stationingContractId() { return stationingContractId; }
     public boolean stationed() { return stationingContractId > 0L; }
     public List<String> memberIds() { return Collections.unmodifiableList(memberIds); }
+    public String teamTemplateCardId(int teamIndex) {
+        return teamIndex >= 0 && teamIndex < TEAMS_PER_SQUAD
+                ? teamTemplateCardIds[teamIndex] : null;
+    }
 
     /**
      * Fire team holding this billet, or {@code -1} when the soldier is not a
@@ -96,6 +101,11 @@ public final class MarineSquad implements Serializable {
 
     void setHomeCaptainId(String value) { homeCaptainId = value; }
     void setLeaderSoldierId(String value) { leaderSoldierId = value; }
+    void setTeamTemplateCardId(int teamIndex, String value) {
+        if (teamIndex >= 0 && teamIndex < TEAMS_PER_SQUAD) {
+            teamTemplateCardIds[teamIndex] = value;
+        }
+    }
     void setStationingContractId(long value) {
         stationingContractId = value > 0L ? value : -1L;
     }
@@ -104,6 +114,14 @@ public final class MarineSquad implements Serializable {
         if (id == null) id = UUID.randomUUID().toString();
         if (name == null) name = "Squad";
         if (memberIds == null) memberIds = new ArrayList<>();
+        if (teamTemplateCardIds == null || teamTemplateCardIds.length != TEAMS_PER_SQUAD) {
+            String[] repaired = new String[TEAMS_PER_SQUAD];
+            if (teamTemplateCardIds != null) {
+                System.arraycopy(teamTemplateCardIds, 0, repaired, 0,
+                        Math.min(teamTemplateCardIds.length, repaired.length));
+            }
+            teamTemplateCardIds = repaired;
+        }
         if (stationingContractId <= 0L) stationingContractId = -1L;
         return this;
     }
