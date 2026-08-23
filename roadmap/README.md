@@ -117,14 +117,15 @@ universe over time, not retrofitted into intel slots.
   lighting is code-complete (`c92d5b9a`) and awaits an in-game smoke/tuning
   pass; its fixed eight-light budget consumes muzzle, impact, heavy-blast, and
   burning-wreck events. See [`surface-relief/`](surface-relief/overview.md).
-- **Battle radio** *(expanded event slice shipped)* — 214 standard-pilot clips
+- **Battle radio** *(expanded event slice shipped; acceptance active)* — 214 standard-pilot clips
   now cover positional contact, fallback, friendly-fire, enemy-mech sighting,
   enemy-down, and sparse sustained-combat calls. Friendly warnings follow
   landed rounds, mech calls require current squad LOS, and every pool shares
   one global voice budget. The standalone battle and vanilla-combat bridge
   share one presentation-only cue policy, so audio never perturbs sim
   determinism. An in-game mix/content feel pass remains queued. See
-  [`battle-radio/`](battle-radio/overview.md).
+  `battle-radio-nouns.md`; its adjacent `stories.md` board tracks the queued
+  mix pass and the proposed credits cleanup.
 - **Mech roster** *(active)* — the modular arm/shoulder component substrate and
   Bulwark/Hound/Sirocco debug comparison ship in `2d3f044b`, including SRM/LRM
   -5 and -15 rack classes and profile-aware physical geometry. Hound and
