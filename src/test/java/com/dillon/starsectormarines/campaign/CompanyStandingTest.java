@@ -119,7 +119,7 @@ class CompanyStandingTest {
     @Test
     void aStationedSquadLeavesTheAvailablePoolWithoutLeavingTheBooks() {
         MarineRoster roster = new MarineRoster();
-        MarineCaptain captain = new MarineCaptain("Lead", null, Rank.PRIVATE, 0f);
+        MarineCaptain captain = new MarineCaptain("Lead", null, Rank.LIEUTENANT, 0f);
         roster.add(captain);
         roster.ensureActiveSoldiers(12);
         MarineSquad squad = roster.squads().get(0);
