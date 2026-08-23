@@ -124,7 +124,7 @@ public final class TurretFireSystem implements TurretFireSink {
         if (!isAoe && hit) {
             if (!aerialDelivery || !topology.isRoofIntact(tcx, tcy)) {
                 telemetry.recordRoundHit(shooterId);
-                damageService.applyDamage(target, shooterId, kind.damage, 1f, 1f);
+                damageService.applyDamage(target, shooterId, kind.damage, kind.penetration(), 1f);
                 hitResponse.rollFallbackOnHit(target);
             }
         }
@@ -134,7 +134,7 @@ public final class TurretFireSystem implements TurretFireSink {
             detonationSink.queue(new PendingDetonation(
                     shooterId,
                     toX, toY, flight,
-                    kind.aoeRadius, kind.damage, /*vsTurretMult*/ 1f,
+                    kind.aoeRadius, kind.damage, kind.penetration(),
                     kind.wallDamage, shooterFaction, aerialDelivery,
                     kind.wallDamageRadius, /*spawnDustOnWallBreak*/ true, /*friendlyFireImmune*/ false));
         }
@@ -160,7 +160,7 @@ public final class TurretFireSystem implements TurretFireSink {
             detonationSink.queue(new PendingDetonation(
                     shooterId,
                     res.endX(), res.endY(), res.flightTime(),
-                    kind.aoeRadius, kind.damage, /*vsTurretMult*/ 1f,
+                    kind.aoeRadius, kind.damage, kind.penetration(),
                     kind.wallDamage, shooterFaction, /*aerialDelivery*/ false,
                     kind.wallDamageRadius, /*spawnDustOnWallBreak*/ true,
                     /*friendlyFireImmune*/ false));
@@ -170,7 +170,7 @@ public final class TurretFireSystem implements TurretFireSink {
                     : kind.damage;
             shots.queueImpact(new ShotService.PendingImpact(
                     res.victimId(), shooterId, res.flightTime(), appliedDamage,
-                    /*vsTurretMult*/ 1f, /*moraleImpact*/ 1f, res.friendlyHit()));
+                    kind.penetration(), /*moraleImpact*/ 1f, res.friendlyHit()));
         }
 
         shots.postShot(new ShotEvent(fromX, fromY, 0f,
@@ -206,7 +206,7 @@ public final class TurretFireSystem implements TurretFireSink {
         PendingDetonation onArrival = new PendingDetonation(
                 shooterId,
                 toX, toY, flightTime,
-                kind.aoeRadius, kind.damage, /*vsTurretMult*/ 1f,
+                kind.aoeRadius, kind.damage, kind.penetration(),
                 kind.wallDamage, shooterFaction, aerialDelivery,
                 kind.wallDamageRadius, /*spawnDustOnWallBreak*/ true, /*friendlyFireImmune*/ false);
         shots.queueProjectile(new Projectile(fromX, fromY, toX, toY,

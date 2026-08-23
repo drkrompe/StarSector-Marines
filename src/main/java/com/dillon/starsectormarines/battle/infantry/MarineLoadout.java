@@ -47,8 +47,8 @@ public final class MarineLoadout {
     public final CampaignSquadTag campaignSquad;
     /** Persisted modular armor allocation; null keeps the archetype default. */
     public final LayeredArmorFamily armorFamily;
-    public final float armorBonusHp;
-    public final float armorDamageReduction;
+    public final float armorPool;
+    public final float armorRating;
     public final float armorMoveSpeedMult;
     public final float armorIncomingAccuracyMult;
 
@@ -81,11 +81,11 @@ public final class MarineLoadout {
                          EquipmentGrade equipmentGrade, SoldierProfile soldierProfile,
                          MarineSecondary secondary, int secondaryAmmo,
                          String campaignSoldierId, LayeredArmorFamily armorFamily,
-                         float armorBonusHp, float armorDamageReduction,
+                         float armorPool, float armorRating,
                          float armorMoveSpeedMult, float armorIncomingAccuracyMult) {
         this(role, objective, primary, equipmentGrade, soldierProfile, secondary,
-                secondaryAmmo, campaignSoldierId, armorFamily, armorBonusHp,
-                armorDamageReduction, armorMoveSpeedMult, armorIncomingAccuracyMult,
+                secondaryAmmo, campaignSoldierId, armorFamily, armorPool,
+                armorRating, armorMoveSpeedMult, armorIncomingAccuracyMult,
                 null);
     }
 
@@ -93,7 +93,7 @@ public final class MarineLoadout {
                          EquipmentGrade equipmentGrade, SoldierProfile soldierProfile,
                          MarineSecondary secondary, int secondaryAmmo,
                          String campaignSoldierId, LayeredArmorFamily armorFamily,
-                         float armorBonusHp, float armorDamageReduction,
+                         float armorPool, float armorRating,
                          float armorMoveSpeedMult, float armorIncomingAccuracyMult,
                          CampaignSquadTag campaignSquad) {
         this.campaignSquad = campaignSquad;
@@ -106,8 +106,8 @@ public final class MarineLoadout {
         this.secondaryAmmo = secondaryAmmo;
         this.campaignSoldierId = campaignSoldierId;
         this.armorFamily = armorFamily;
-        this.armorBonusHp = armorBonusHp;
-        this.armorDamageReduction = armorDamageReduction;
+        this.armorPool = armorPool;
+        this.armorRating = armorRating;
         this.armorMoveSpeedMult = armorMoveSpeedMult;
         this.armorIncomingAccuracyMult = armorIncomingAccuracyMult;
     }
@@ -135,7 +135,7 @@ public final class MarineLoadout {
         marine.campaignSoldierId(campaignSoldierId);
         if (armorFamily != null) {
             marine.layeredArmorFamily(armorFamily);
-            marine.armor(armorBonusHp, armorDamageReduction,
+            marine.armor(armorPool, armorRating,
                     armorMoveSpeedMult, armorIncomingAccuracyMult);
         }
     }

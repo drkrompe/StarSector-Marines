@@ -57,7 +57,7 @@ public final class DamageService {
          *        damage). Carried for telemetry attribution only — it does
          *        not affect what the hit does.
          */
-        void apply(long targetId, long attackerId, float damage, float vsTurretMult, float moraleImpact);
+        void apply(long targetId, long attackerId, float damage, float penetration, float moraleImpact);
     }
     @FunctionalInterface public interface ReprioApplier {
         /**
@@ -100,7 +100,7 @@ public final class DamageService {
     private long[] dmgTargetId = new long[INITIAL_DAMAGE_CAPACITY];
     private long[] dmgAttackerId = new long[INITIAL_DAMAGE_CAPACITY];
     private float[] dmgDamage = new float[INITIAL_DAMAGE_CAPACITY];
-    private float[] dmgVsTurretMult = new float[INITIAL_DAMAGE_CAPACITY];
+    private float[] dmgPenetration = new float[INITIAL_DAMAGE_CAPACITY];
     private float[] dmgMoraleImpact = new float[INITIAL_DAMAGE_CAPACITY];
     private int dmgCount = 0;
     private final Object dmgLock = new Object();
@@ -184,9 +184,9 @@ public final class DamageService {
      * {@link #flushPendingDamage()}. No per-call object allocation in either
      * path.
      */
-    public void applyDamage(long target, long attackerId, float damage, float vsTurretMult, float moraleImpact) {
+    public void applyDamage(long target, long attackerId, float damage, float penetration, float moraleImpact) {
         if (!insideParallel && !deferCombatEffects) {
-            damageApplier.apply(target, attackerId, damage, vsTurretMult, moraleImpact);
+            damageApplier.apply(target, attackerId, damage, penetration, moraleImpact);
             return;
         }
         synchronized (dmgLock) {
@@ -195,7 +195,7 @@ public final class DamageService {
             dmgTargetId[i] = target;
             dmgAttackerId[i] = attackerId;
             dmgDamage[i] = damage;
-            dmgVsTurretMult[i] = vsTurretMult;
+            dmgPenetration[i] = penetration;
             dmgMoraleImpact[i] = moraleImpact;
             dmgCount = i + 1;
         }
@@ -205,7 +205,7 @@ public final class DamageService {
         dmgTargetId = Arrays.copyOf(dmgTargetId, newCapacity);
         dmgAttackerId = Arrays.copyOf(dmgAttackerId, newCapacity);
         dmgDamage = Arrays.copyOf(dmgDamage, newCapacity);
-        dmgVsTurretMult = Arrays.copyOf(dmgVsTurretMult, newCapacity);
+        dmgPenetration = Arrays.copyOf(dmgPenetration, newCapacity);
         dmgMoraleImpact = Arrays.copyOf(dmgMoraleImpact, newCapacity);
     }
 
@@ -286,7 +286,7 @@ public final class DamageService {
         int n = dmgCount;
         if (n == 0) return;
         for (int i = 0; i < n; i++) {
-            damageApplier.apply(dmgTargetId[i], dmgAttackerId[i], dmgDamage[i], dmgVsTurretMult[i], dmgMoraleImpact[i]);
+            damageApplier.apply(dmgTargetId[i], dmgAttackerId[i], dmgDamage[i], dmgPenetration[i], dmgMoraleImpact[i]);
         }
         dmgCount = 0;
     }

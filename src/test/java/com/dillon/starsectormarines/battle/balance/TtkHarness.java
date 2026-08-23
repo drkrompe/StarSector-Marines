@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.combat.BallisticResolver;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.combat.FiringSystem;
 import com.dillon.starsectormarines.battle.combat.ShotService;
+import com.dillon.starsectormarines.battle.combat.DurabilityModel;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
 import com.dillon.starsectormarines.battle.infantry.InfantryUnitPrep;
@@ -177,8 +178,12 @@ public final class TtkHarness {
         for (int trial = 0; trial < trials; trial++) {
             long target = sim.spawn(defenderSpec(scenario.defender(), trial, targetCellX));
             if (trial == 0) {
-                effectiveHp = world.maxHp(target)
-                        / Math.max(0.0001f, world.damageTakenMult(target));
+                effectiveHp = world.maxHp(target);
+                if (world.hasArmor(target)) {
+                    float efficiency = DurabilityModel.armorEfficiency(
+                            scenario.weapon().penetration(), world.armorRating(target));
+                    effectiveHp += world.armor(target) / efficiency;
+                }
             }
             // A previous trial's kill leaves the shooter mid-burst against a
             // corpse and mid-cooldown; both are cleared so every trial starts
@@ -205,7 +210,7 @@ public final class TtkHarness {
                     tally.roundsLanded++;
                     // moraleImpact 0: this is a lethality measurement, and a
                     // squadless defender has no morale state to drain anyway.
-                    sim.applyDamage(impact.victimId, impact.damage, impact.vsTurretMult, 0f);
+                    sim.applyDamage(impact.victimId, impact.damage, impact.penetration, 0f);
                 });
                 // The sim clears these in advance(); this harness never calls
                 // it, so they are drained here to keep a long run flat.
@@ -240,7 +245,7 @@ public final class TtkHarness {
                 defender.type(), cellX, FIRING_ROW);
         MarineArmorPattern armor = defender.armor();
         if (armor != null) {
-            spec.armor(armor.bonusHp, armor.damageReduction, armor.moveSpeedMult,
+            spec.armor(armor.armorPool, armor.armorRating, armor.moveSpeedMult,
                     armor.incomingAccuracyMult);
         }
         return spec;
