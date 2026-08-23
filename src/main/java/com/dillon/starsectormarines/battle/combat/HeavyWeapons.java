@@ -88,6 +88,7 @@ public class HeavyWeapons {
      * passes {@link MechWeapon#LRM_NO_LOS_ACC_MULT}.
      */
     public void fireMechWeapon(long shooter, long target, MechWeapon weapon, float accuracyMult) {
+        roster.telemetry().recordRoundFired(shooter);
         if (weapon.arcHeight <= 0f) {
             fireDirectRound(shooter, target, weapon, accuracyMult);
             return;
@@ -124,6 +125,7 @@ public class HeavyWeapons {
         if (weapon.aoeRadius > 0f) {
             PendingDetonation onArrival = res.impacts()
                     ? new PendingDetonation(
+                            shooter,
                             res.endX(), res.endY(), res.flightTime(),
                             weapon.aoeRadius, weapon.damage, weapon.vsTurretMult,
                             weapon.wallDamage, shooterFaction, /*aerialDelivery*/ false,
@@ -169,6 +171,7 @@ public class HeavyWeapons {
                 hit, effectiveSpread, ThreadLocalRandom.current());
 
         PendingDetonation onArrival = new PendingDetonation(
+                shooter,
                 ep.x(), ep.y(), weapon.flightSec,
                 weapon.aoeRadius, weapon.damage, weapon.vsTurretMult,
                 weapon.wallDamage, shooterFaction, /*aerialDelivery*/ true,

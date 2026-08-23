@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.squad;
 
+import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
@@ -74,6 +75,7 @@ class SquadAudioBeliefTest {
     void detonationProducesOnlyAnAnonymousBearing() {
         Fixture fixture = fixture(Faction.MARINE, Faction.DEFENDER);
         fixture.sim.detonateNow(new PendingDetonation(
+                CombatTelemetryService.NO_ATTACKER,
                 9.5f, 5.5f, 0f, 0f, 0f, 1f,
                 0, Faction.DEFENDER, false));
 

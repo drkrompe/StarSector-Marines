@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentDropService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.squad.SquadMoraleSystem;
+import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.DeathDispatcher;
 import com.dillon.starsectormarines.battle.unit.DeathEvent;
@@ -23,6 +24,8 @@ import java.util.function.LongConsumer;
  * <ol>
  *   <li>Cover lookup + cover-reduction curve</li>
  *   <li>HP write + death detection</li>
+ *   <li>Telemetry attribution — applied damage to attacker and target,
+ *       plus a kill credit when the hit was fatal</li>
  *   <li>Death cascade — death-pose roll, death-sink emit ({@code deathsThisFrame}),
  *       equipment drop, squad-leader promotion if the dead unit led one,
  *       {@link DeathDispatcher#publish death-event publish} for the migrated
@@ -37,9 +40,11 @@ import java.util.function.LongConsumer;
  * (serial path) or out of the flush drain (parallel-dispatch path). Same
  * applier method ref both ways — semantics are identical across paths.
  *
- * <p>Method ref shape: {@link DamageService.DamageApplier} — four positional
- * args (target, damage, vsTurretMult, moraleImpact). No event class; the
- * SoA queue stores those four values in parallel arrays.
+ * <p>Method ref shape: {@link DamageService.DamageApplier} — five positional
+ * args (target, attacker, damage, vsTurretMult, moraleImpact). No event
+ * class; the SoA queue stores those five values in parallel arrays. The
+ * attacker id is carried for telemetry attribution only and never changes
+ * what the hit does.
  *
  * <p>Dependencies are constructor-injected. No state — safe to share across
  * the lifetime of a {@code BattleSimulation}.
@@ -93,7 +98,7 @@ public final class DamageResolver {
      * inside this method, so {@code !wasAlive} means the target is already dead
      * — and the damage is moot anyway.
      */
-    public void resolve(long targetId, float damage, float vsTurretMult, float moraleImpact) {
+    public void resolve(long targetId, long attackerId, float damage, float vsTurretMult, float moraleImpact) {
         World world = roster.world();
         boolean wasAlive = roster.isAliveById(targetId);
         if (!wasAlive) return;
@@ -110,10 +115,26 @@ public final class DamageResolver {
         // assuming 3.5×, which suppressed the second/third volley rocket the
         // squad gate actually needed). One contract, one classifier.
         float effectiveMult = TacticalScoring.isHardened(roster.identity().type(targetId)) ? vsTurretMult : 1f;
-        float newHp = world.hp(targetId) - damage * effectiveMult * (1f - dr)
+        float hpBefore = world.hp(targetId);
+        float newHp = hpBefore - damage * effectiveMult * (1f - dr)
                 * world.damageTakenMult(targetId);
         world.setHp(targetId, newHp);
         boolean died = newHp <= 0f;   // wasAlive is guaranteed by the early return above
+        // Telemetry runs here, at the one point in the sim that knows both what
+        // the hit actually cost after cover / armor / hardened scaling and
+        // whether it was fatal. Credited HP is clamped to the pool that was
+        // left, so overkill from a rocket doesn't read as output the shooter
+        // produced. Both writes are safe on a target that is about to be
+        // released: TELEMETRY is not in the corpse-remove mask.
+        float applied = hpBefore - Math.max(0f, newHp);
+        CombatTelemetryService telemetry = roster.telemetry();
+        telemetry.recordDamageTaken(targetId, applied);
+        if (attackerId != CombatTelemetryService.NO_ATTACKER && attackerId != targetId) {
+            boolean friendly = roster.identity().faction(attackerId)
+                    == roster.identity().faction(targetId);
+            telemetry.recordDamageDealt(attackerId, applied, friendly);
+            if (died && !friendly) telemetry.recordKill(attackerId);
+        }
         if (died) {
             deathSink.accept(targetId);
             equipmentDrops.emitIfApplicable(targetId);

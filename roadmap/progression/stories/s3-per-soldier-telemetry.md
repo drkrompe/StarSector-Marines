@@ -3,7 +3,9 @@
 > Track what each marine actually did, so progression can be earned and
 > balance can be measured instead of guessed.
 
-**Status:** not started. No dependencies. **Unblocks S4, S8, and S9** — the
+**Status:** slice 1 shipped (in-battle recording + attribution + debug
+readout). Slices 2 (crossing the seam) and 3 (career record) remain. No
+dependencies. **Unblocks S4, S8, and S9** — the
 highest-leverage story in the track after S1.
 
 ## Problem
@@ -88,6 +90,94 @@ Lifetime totals only. Per-mission history is a bigger commitment (save
 size, UI surface) and is not needed for the consumers in this track — flag
 it as a follow-up if the debrief ever wants a timeline.
 
+## What shipped — slice 1
+
+Everything in-battle: recording, attribution, and the debug readout. Nothing
+crosses to the campaign yet.
+
+**Storage is a lifecycle-stable component, not a service-side map.**
+`BattleComponents.TELEMETRY` registers seven columns — `roundsFired`,
+`roundsHit`, `damageDealt`, `friendlyFireDamage`, `damageTaken`, `kills`,
+`secondaryUsed` — added at spawn on the same gate as `COMBAT` (so presence
+means "this entity's fighting is being recorded") and deliberately **absent
+from `DeadBodySystem`'s corpse-remove mask**, so the record rides the death
+transmute. `CombatTelemetryService` is its data owner, in the same shape as
+`HubStateService` and reached as `roster.telemetry()` / `sim.telemetry()`.
+
+Its one deviation from the sibling services: the **mutators are
+presence-tolerant while the readers stay fail-loud**. The write sites are the
+damage and firing pipelines, which are already reached by civilians,
+wall-only detonations, and the no-attacker sentinel; making each re-derive
+"is this a combatant" would put the same guard at seven call sites for
+nothing. A gather that walks the wrong set still says so.
+
+**The attacker is now threaded through the damage pipeline.** This was the
+real work. `DamageService`'s SoA queue grew a fifth parallel array
+(`dmgAttackerId`), `DamageApplier` grew a positional arg, and
+`DamageResolver.resolve` takes an attacker id. `PendingDetonation` grew a
+`shooterId` so splash damage is attributable too. The id is carried for
+telemetry only and never changes what a hit does.
+
+That choice is what makes the numbers mean anything. **Attribution has to
+happen at `DamageResolver.resolve`**, because that is the only point in the
+sim that knows what a hit actually cost after cover reduction, the
+`damageTakenMult` armor term, and the hardened-class multiplier — the queued
+damage value is a raw request, not an outcome. Two consequences fell out of
+putting it there:
+
+- **Overkill is not credited.** `applied` is clamped to the pool that was
+  left, so a rocket that does 900 to a 30 HP militiaman reports 30. Without
+  the clamp, "damage dealt" would have measured how much a weapon overshoots
+  rather than what it produced.
+- **AoE, melee, turret fire and ballistic rounds all attribute through one
+  seam**, since they all end at `resolve`. No per-weapon bookkeeping.
+
+**`roundsHit` is counted at a different seam on purpose** — the arriving
+`PendingImpact`, not the damage event. One round is one landed round even
+when its detonation damages six units; counting at the damage seam would
+have made a rocketeer's accuracy scale with how crowded the target was.
+
+**Uncredited damage is not silently dropped from the victim's side.** A
+strafing run through `applyExternalDamage`, or the vanilla-combat bridge's
+mirrored hull damage, passes `CombatTelemetryService.NO_ATTACKER` (`0L`,
+safe because entity ids start at 1). Nobody is credited, but the target's
+`damageTaken` still records what it absorbed.
+
+**`CombatTelemetryReport`** gathers the columns into immutable
+`CombatTelemetryRow` snapshots — a plain-data carrier with no entity handles,
+which is what slice 2 will put on `MissionOutcome`. The gather is a column
+walk over a `{TELEMETRY, IDENTITY}` query with no exclusion mask, so the
+fallen come back with `survived = false`; it is not exposed to the dense
+registry's swap-and-pop, and rows sort by entity id so two runs of the same
+scenario can be diffed. `MissionResolver.compute` logs the formatted table
+for every mission played, covering defenders and employer militia — the
+balance artifact the acceptance asks for.
+
+### Open questions, resolved as the story recommended
+
+- **AoE kills count per victim.** One detonation that kills three credits
+  three. The splash loop already visits each victim separately.
+- **Friendly fire is a separate counter, never netted into `damageDealt`,
+  and never a kill.** Netting it in would hide it, which is the opposite of
+  what it is for.
+- **Structural damage is deferred, not dropped.** Walls are not entities, so
+  wall damage never reaches `resolve` and cannot inflate anti-personnel
+  output today. Damage to *hardened entities* (turrets, hubs, mechs) does
+  land in `damageDealt`. If anti-materiel work needs to be visible on its
+  own, that is a column to add, not a semantic to change.
+
+### Two things worth carrying into slice 2
+
+- **The corpse transmute is buffered**, so a gather taken between the killing
+  blow and the next tick still sees the dead as live rows. Production is
+  fine — `MissionResolver` runs long after — but a test that kills and
+  gathers in the same breath must advance one tick first. Same shape as
+  [[battle_death_path_live_only_readable]].
+- **`MissionResolver` already walks live-plus-corpses keyed by
+  `IDENTITY_CAMPAIGN_SOLDIER_ID`**, for the survivor / casualty tally. Slice
+  2's gather is the same walk, so it should join that one rather than open a
+  second.
+
 ## Out of scope
 
 - Converting any of this into XP. That is
@@ -115,10 +205,7 @@ it as a follow-up if the debrief ever wants a timeline.
 
 ## Open questions
 
-- Attribution for AoE and friendly fire: does a rocket that kills three
-  count three kills, and does a friendly-fire kill count at all? Leaning:
-  yes to AoE kills, and friendly-fire damage tracked separately rather than
-  netted into `damageDealt`, so it stays visible.
-- Does `damageDealt` count damage to walls and emplacements? Leaning: track
-  structural damage as its own counter so anti-materiel work is visible and
-  does not inflate anti-personnel output.
+All three are answered above under "Open questions, resolved as the story
+recommended" — AoE kills count per victim, friendly fire stays a separate
+counter and never a kill, and a structural-damage counter is deferred
+because walls are not entities and never reach the damage resolver.

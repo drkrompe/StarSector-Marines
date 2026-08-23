@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.sim.CombatService;
+import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
 import com.dillon.starsectormarines.battle.sim.IdentityService;
 import com.dillon.starsectormarines.battle.sim.MovementService;
 import com.dillon.starsectormarines.battle.sim.VisionService;
@@ -140,6 +141,7 @@ public final class UnitRosterService {
     private final TurretStateService turretStateService = new TurretStateService(entityWorld, components);
     private final DroneStateService droneStateService = new DroneStateService(entityWorld, components);
     private final TaskService taskService = new TaskService(entityWorld, components);
+    private final CombatTelemetryService combatTelemetryService = new CombatTelemetryService(entityWorld, components);
     // Data owner for the convoy-vehicle world entities (ground archetype). Takes `this`
     // because adoption must mint through the shared allocateVehicle; the ref is stored,
     // not dereferenced during construction (used at spawn time).
@@ -290,6 +292,13 @@ public final class UnitRosterService {
     /** Data owner for the TASK component (objective/kit assignment) — inject into consumers that read/reassign a unit's task. */
     public TaskService task() { return taskService; }
 
+    /**
+     * Data owner for the TELEMETRY component (what this combatant did) — the
+     * fire and damage pipelines write it, the end-of-battle gather reads it.
+     * Lifecycle-stable: valid on a released entity, so never gate it on liveness.
+     */
+    public CombatTelemetryService telemetry() { return combatTelemetryService; }
+
     /** Data owner for the IDENTITY component (type/faction/name) — {@code identity().name(id)} is the greppable-name read for debug dumps / logs / tests. */
     public IdentityService identity() { return identityService; }
 
@@ -416,7 +425,7 @@ public final class UnitRosterService {
         boolean isDrone = spec.type.isDrone();
         boolean mechLayerDrawn = spec.type.drawnAsMechLayers();
         ComponentType[] archetype = new ComponentType[
-                5 + (combatant ? 1 : 0) + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0)
+                5 + (combatant ? 2 : 0) + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0)
                   + (hasBody ? 1 : 0) + (inSquad ? 1 : 0) + (hasHome ? 1 : 0) + (hasTask ? 1 : 0)
                   + (sheetDrawn ? 1 : 0) + (layerDrawn ? 1 : 0) + (mechLayerDrawn ? 2 : 0)
                   + (isHub ? 1 : 0) + (isTurret ? 1 : 0) + (isDrone ? 1 : 0)];
@@ -427,6 +436,10 @@ public final class UnitRosterService {
         archetype[c++] = components.VISION;
         archetype[c++] = components.ROLE;
         if (combatant) archetype[c++] = components.COMBAT;
+        // TELEMETRY rides the same combatant gate as COMBAT, but is deliberately
+        // absent from the corpse-remove mask — a dead marine's record is the one
+        // the campaign most wants. See CombatTelemetryService.
+        if (combatant) archetype[c++] = components.TELEMETRY;
         if (mobile) {
             archetype[c++] = components.MOVEMENT;
             archetype[c++] = components.AI_STATE;
