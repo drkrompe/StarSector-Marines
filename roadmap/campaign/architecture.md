@@ -7,12 +7,12 @@
 ## 1. Structure-of-arrays in primitive arrays
 
 All persistent campaign-tier state lives in
-[`CampaignState`](../../src/main/java/com/dillon/starsectormarines/campaign/CampaignState.java)
+`CampaignState`
 as parallel primitive arrays. One table = N parallel arrays + a count.
 
 - **No boxed types in row data.** `int[]` not `Integer[]`. `long[]` not
   `List<Long>`. Strings get interned via
-  [`IdRegistry`](../../src/main/java/com/dillon/starsectormarines/campaign/IdRegistry.java)
+  `IdRegistry`
   before they enter SoA columns.
 - **No `Map<Long, RowObject>`** as the primary row container. Row data
   lives in arrays; lookup *into* those arrays is a separate concern
@@ -27,13 +27,13 @@ fast as state grows.
 
 ## 2. Behavior lives in Systems, not on the data class
 
-[`CampaignState`](../../src/main/java/com/dillon/starsectormarines/campaign/CampaignState.java)
+`CampaignState`
 holds data + low-level mutators (`addHouse`, `addStake`, etc.). It does
 *not* contain promotion logic, relationship rolls, chain advancement,
 discovery propagation, or any other tick-time behavior.
 
 Each tick-time behavior is a class implementing
-[`CampaignSystem`](../../src/main/java/com/dillon/starsectormarines/campaign/CampaignSystem.java).
+`CampaignSystem`.
 
 - **One system per phase.** Promotion, relationship interactions,
   chain advancement, garrison defaults, discovery propagation are
@@ -54,7 +54,7 @@ systems can't be tested in isolation, the daily tick becomes one
 ## 3. Read/write declaration for future parallelization
 
 Every System declares the tables it reads and the tables it writes via
-[`CampaignTable`](../../src/main/java/com/dillon/starsectormarines/campaign/CampaignTable.java)
+`CampaignTable`
 enum sets. The scheduler currently runs systems serially in order — but
 the declaration lets a future scheduler:
 
@@ -83,7 +83,7 @@ are banned.
   through `IdRegistry`: `intern(string) → int`, `get(int) → string`.
   Slots persist across save/load.
 - **Long ids** (`houseId`, `stakeId`, `chainId`) round-trip through
-  [`LongIntMap`](../../src/main/java/com/dillon/starsectormarines/campaign/LongIntMap.java):
+  `LongIntMap`:
   `index(id) → rowIndex`, then `houseId[rowIndex]` to get the id back.
   Map maintained on every `addX`.
 - **Sparse aligned lookups** (player rep row for a given house) use

@@ -1,8 +1,8 @@
 # Spatial index — future shape options
 
 Design notes for the next time we touch
-[`UnitSpatialIndex`](../../src/main/java/com/dillon/starsectormarines/battle/UnitSpatialIndex.java)
-/ [`UnitDestinationSpatialIndex`](../../src/main/java/com/dillon/starsectormarines/battle/UnitDestinationSpatialIndex.java)
+`UnitSpatialIndex`
+/ `UnitDestinationSpatialIndex`
 beyond the cellX/cellY rebuild migration that landed in `4edb1f4`.
 
 **Not active work.** Captured here because the user pointed at the
@@ -175,7 +175,7 @@ adjacent units in the same bucket would share cache lines.
 
 Same triggers: meaningful at higher N. Not worth the bookkeeping at
 N=200. Same memory.md entry will track it
-([`battle_services_systems`](../../memory)) when the time comes.
+([[battle_services_systems]]) when the time comes.
 
 ## References
 

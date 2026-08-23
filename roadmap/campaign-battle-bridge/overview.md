@@ -30,7 +30,7 @@ and hangs consumers off it incrementally.
 `battle.world.gen` stays **campaign-free** — no `MarketAPI` import anywhere in
 it. It is the headless-testable core every generator/taxonomy test drives
 without a running game. So the bridge is a **plain value object**
-([`TargetProfile`](../../src/main/java/com/dillon/starsectormarines/battle/world/gen/TargetProfile.java))
+(`TargetProfile`)
 — primitives + enums + an interned faction id, no game API — **extracted at the
 campaign boundary** and threaded inward.
 

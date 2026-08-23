@@ -8,7 +8,7 @@ that any future campaign code has to honor, and hung a dev-gated debug
 intel off the state so subsequent systems have something concrete to
 playtest against.
 
-Source session: [`../../../sessions/2026-05-21.md`](../../../sessions/2026-05-21.md).
+Source session: 2026-05-21 (the `sessions/` logs were retired).
 
 ## SoA data model
 

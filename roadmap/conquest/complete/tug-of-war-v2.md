@@ -84,10 +84,10 @@ zone. Garrison squads hold; assault squads push.
 
 ## Cross-refs
 
-- [`central-keep.md`](central-keep.md) — V1 compound capture design
+- `central-keep.md` — V1 compound capture design
   (all 6 slices shipped). V2 section there outlines the full north-star
   territory model.
-- [`../reinforcement/architecture.md`](../reinforcement/architecture.md)
+- `architecture.md`
   — the trigger/means pipeline that drives defender counter-attacks.
 - [[battle_services_systems]] — Services vs Systems convention the
   garrison system follows.
