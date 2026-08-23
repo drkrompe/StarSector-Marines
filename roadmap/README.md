@@ -373,8 +373,8 @@ universe over time, not retrofitted into intel slots.
    measured same-market engagement; selected history variants can now name the
    prior operation's frozen target location. Contract the next narrative story
    before adding patron evolution, captain observations, or longer-form
-   continuity. See
-   [`campaign/narrative/next-session.md`](campaign/narrative/next-session.md).
+   continuity. See `narrative-nouns.md` and
+   `narrative-live-acceptance.md`.
 5. **Command Powers S8 acceptance** — use the shipped canonical briefing to
    hold back individual source ships, verify cards disappear and return, deploy
    a mixed deck, and confirm that the battle receives exactly the selected
