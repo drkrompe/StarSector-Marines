@@ -64,8 +64,10 @@ option somewhere to go — today a deferred event popup dismisses into nothing.
 **Slices 1-2 shipped** (`2b959e44`, `b204c237`): the ability, the planet-free host, and a
 standing pane led by runway in months of payroll. The spike question slice 1
 existed to answer is **settled in game**: the ability opens the screen and the
-host dismisses cleanly. Slices 3 (running clocks) and 4 (roster) are next; the
-clocks pane is where G32's **Hold** finally goes.
+host dismisses cleanly. A follow-up (`8ac4116a`) fixed the pane printing an
+unknown upkeep as `Cr. 0` and gave the debug panel a day-skip that actually
+moves the clock. Slices 3 (running clocks) and 4 (roster) are next; the clocks
+pane is where G32's **Hold** finally goes.
 
 ~~C7 — Organization and ranks~~ **shipped 2026-08-22**; the record is in
 `c7-organization-and-ranks.md` under `complete/`. One consequence worth
@@ -124,6 +126,15 @@ and nothing was tuned to compensate.
 
 ### Consequences worth knowing before starting
 
+- **A derived number with no input says so.** `MonthlyReport` does not exist
+  until an in-game month rolls over, and `PlayerEventInbox` is empty before any
+  contract arrives, so every pane in C10 has a legitimate blank state. Render
+  the reason, never a zero — a zero is a claim about the company.
+- **Dated behaviour is testable now.** The debug intel's **Skip 1 / 7 / 30
+  days** advances every campaign-tier timer, one full system pass per day
+  crossed. It does **not** advance vanilla's economy, so no amount of skipping
+  produces a monthly report.
+
 - **Scale is governed at the source, not by the UI.** The officer rank cap
   and the lift capacity together bound what reaches one battle — a dozen
   squads, realistically. Hundreds of squads is a state neither the meta
@@ -158,6 +169,8 @@ and nothing was tuned to compensate.
 
 - `2b959e44` — C10 slice 1: a campaign-map door into the company
 - `b204c237` — C10 slice 2: standing, led by months of payroll
+- `8ac4116a` — C10 slice 2 follow-up: an unknown month says so; debug
+  **Skip 1 / 7 / 30 days** via `CampaignClock.skipDays`
 - `2e187f54` — C7 slices 1+2: squad of twelve in three fire teams; officer
   ranks counted in squads
 - `976bb87a` — C7 slice 3: `EnlistedRank`, squad leaders, deterministic
