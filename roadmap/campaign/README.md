@@ -41,7 +41,7 @@ Each thread is a sub-directory whose canonical target is `design/<noun>.md`,
 
 | Thread | Status | What it is |
 | --- | --- | --- |
-| [`framework/`](framework/overview.md) | **shipped** | SoA tables + `CampaignSystem` tick framework + the architecture commitments. The substrate everything else sits on. |
+| `campaign-framework-nouns.md` | **shipped; clock acceptance ready** | Persisted campaign state, monotonic time, and ordered autonomous systems. The runtime substrate below campaign features. |
 | [`contracts/`](contracts/overview.md) | **G1-G30 shipped; no active story** | Five contract types, two modes, lifecycle state machine, three-layer salvage model, MRB rep, mission-resolver bridge, and reactive Cadre/Garrison obligations. |
 | `early-operation-nouns.md` | **opening ladder shipped; acceptance ready** | Two one-shot Independent jobs sized for a green company: local-line relief and a joint militia counterattack against finite ragtag forces. |
 | [`living-world/`](living-world/overview.md) | **G9 active; Slice 2 complete** | Autonomous politics, Chronicle, civil-war participation/consequences, civilian rescue, defector asylum, and Silent Colony through deterministic dead-site signals and Dead Letter choices. |
@@ -59,10 +59,6 @@ History is sharded per-thread — each feature owns its `complete/` log,
 mirroring the [`../ai/complete/`](../ai/complete/) pattern but split by
 thread rather than a single numbered spine:
 
-- [`framework/complete/skeleton-and-systems-framework.md`](framework/complete/skeleton-and-systems-framework.md)
-  — initial SoA data model, the four architecture commitments,
-  `CampaignSystem` framework with five stub systems, `LongIntMap` +
-  O(1) id↔index lookups, dev-gated `CampaignDebugIntel`.
 - [`contracts/complete/contracts-loop.md`](contracts/complete/contracts-loop.md)
   — `contracts[]` SoA table, `ContractType` + `ContractState` enums,
   MissionResolver bridge (battle outcomes write back to contracts +
