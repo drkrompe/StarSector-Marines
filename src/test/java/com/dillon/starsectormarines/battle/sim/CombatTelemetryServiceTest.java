@@ -138,11 +138,15 @@ public class CombatTelemetryServiceTest {
         long target = unit(sim, "target", Faction.DEFENDER, UnitType.MILITIA, 9, 5);
         sim.combat().setPrimaryWeapon(shooter, MarineWeapon.PULSE_RIFLE);
         // Certain accuracy and a pool the target cannot burn through. The
-        // firing pipeline rolls on ThreadLocalRandom, so a nominal 0.35
-        // accuracy leaves an 11% chance all five rounds miss -- which is a
-        // flaky test, not a finding. What is under test is the counting, not
-        // the marksmanship.
-        sim.combat().setAccuracy(shooter, 1f);
+        // firing pipeline rolls on ThreadLocalRandom, so leaving the nominal
+        // 0.35 accuracy in place makes this a coin-flip test rather than a
+        // measurement of the counting. 1.0 is not enough either: fireShot
+        // feeds the stat through RangeFalloff and the grade/profile
+        // multipliers, so even at a sixth of the weapon's range it lands just
+        // under certain and one round in twenty still misses. Overshoot the
+        // roll instead — what is under test is the bookkeeping, not the
+        // marksmanship.
+        sim.combat().setAccuracy(shooter, 10f);
         sim.world().setMaxHp(target, 1_000_000f);
         sim.world().setHp(target, 1_000_000f);
 
