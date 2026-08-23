@@ -94,6 +94,24 @@ class CampaignSquadIdentityTest {
     }
 
     @Test
+    void eachTagCarriesTheStrengthItsSquadIsAssemblingToward() {
+        MarineRoster roster = rosterOfSquads(2);
+        List<MarineSquad> line = lineSquads(roster);
+        Set<String> selected = new LinkedHashSet<>();
+        for (MarineSquad squad : line) selected.add(squad.id());
+
+        // A manifest one team short of both squads: the second squad loads
+        // only what fits, and must assemble toward that, not toward twelve.
+        int seats = 2 * MarineSquad.CAPACITY - Squad.FIRE_TEAM_SIZE;
+        CampaignMarineDeployment frozen = CampaignMarineDeployment.freezeSelection(
+                roster, selected, seats);
+
+        assertEquals(MarineSquad.CAPACITY, frozen.seat(0).campaignSquad.strength);
+        assertEquals(MarineSquad.CAPACITY - Squad.FIRE_TEAM_SIZE,
+                frozen.seat(seats - 1).campaignSquad.strength);
+    }
+
+    @Test
     void theLabelIsFrozenNotLive() {
         MarineRoster roster = rosterOfSquads(1);
         MarineSquad squad = lineSquads(roster).get(0);
