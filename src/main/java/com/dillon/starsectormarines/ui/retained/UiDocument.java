@@ -62,20 +62,52 @@ public final class UiDocument {
         return true;
     }
 
-    UiElement hit(float x, float y) {
-        return hit(root, x, y, viewport);
+    /**
+     * Applies a vertical wheel delta to the nearest scroll surface that can
+     * move, then walks outward when an inner surface reaches its boundary.
+     * A wheel over a scroll surface remains handled at its terminal boundary
+     * so the host cannot also act on the same notch.
+     */
+    public boolean pointerScrolled(float x, float y, float deltaY) {
+        if (deltaY == 0f) return false;
+        boolean overScrollSurface = false;
+        for (UiElement target = elementAt(x, y); target != null; target = target.parent()) {
+            if (target.overflow() != Overflow.SCROLL) continue;
+            overScrollSurface = true;
+            float range = target.box().maxScrollTop();
+            if (range <= 0f) continue;
+            float from = Math.min(target.scrollTop(), range);
+            float to = Math.max(0f, Math.min(from + deltaY, range));
+            if (to == from) continue;
+            target.scrollTop(to);
+            layout.layout(root, viewport.width(), viewport.height());
+            pointerMoved(x, y);
+            return true;
+        }
+        return overScrollSurface;
     }
 
-    private static UiElement hit(UiElement element, float x, float y, Rect inheritedClip) {
+    UiElement hit(float x, float y) {
+        for (UiElement target = elementAt(x, y); target != null; target = target.parent()) {
+            if (target.clickable()) return target;
+        }
+        return null;
+    }
+
+    UiElement elementAt(float x, float y) {
+        return elementAt(root, x, y, viewport);
+    }
+
+    private static UiElement elementAt(UiElement element, float x, float y,
+                                       Rect inheritedClip) {
         Rect childClip = UiLayoutEngine.clipForChildren(
                 element.overflow(), element.box(), inheritedClip);
         List<UiElement> children = element.children();
         for (int i = children.size() - 1; i >= 0; i--) {
-            UiElement hit = hit(children.get(i), x, y, childClip);
+            UiElement hit = elementAt(children.get(i), x, y, childClip);
             if (hit != null) return hit;
         }
-        return element.clickable()
-                && inheritedClip.contains(x, y)
+        return inheritedClip.contains(x, y)
                 && element.box().borderBox().contains(x, y)
                 ? element : null;
     }

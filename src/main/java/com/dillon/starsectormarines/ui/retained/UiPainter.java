@@ -34,6 +34,11 @@ import static org.lwjgl.opengl.GL20.glUseProgram;
 /** Paints retained boxes into Starsector's fixed-function UI pass. */
 final class UiPainter {
 
+    private static final float SCROLL_THUMB_WIDTH = 4f;
+    private static final float SCROLL_THUMB_INSET = 2f;
+    private static final float SCROLL_THUMB_MIN_HEIGHT = 12f;
+    private static final Color SCROLL_THUMB = new Color(0xC8, 0xD0, 0xD8, 0xA6);
+
     void paint(UiElement root, UiViewport viewport, float alphaMult) {
         glPushAttrib(GL_COLOR_BUFFER_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT
                 | GL_LINE_BIT | GL_TEXTURE_BIT | GL_SCISSOR_BIT);
@@ -75,6 +80,40 @@ final class UiPainter {
         for (UiElement child : element.children()) {
             paintElement(child, viewport, alphaMult, childClip);
         }
+        Rect thumb = scrollThumbRect(element);
+        if (thumb != null) {
+            Rect thumbClip = inheritedClip.intersect(element.box().paddingBox());
+            if (thumbClip.width() > 0f && thumbClip.height() > 0f) {
+                applyClip(viewport, thumbClip);
+                fill(thumb, viewport, SCROLL_THUMB, alphaMult);
+            }
+        }
+    }
+
+    /** Pure geometry seam for the overlay scrollbar and its headless tests. */
+    static Rect scrollThumbRect(UiElement element) {
+        if (element.overflow() != Overflow.SCROLL) return null;
+        LayoutBox box = element.box();
+        float range = box.maxScrollTop();
+        if (range <= 0f) return null;
+        Rect padding = box.paddingBox();
+        float trackHeight = padding.height() - SCROLL_THUMB_INSET * 2f;
+        float visible = box.contentBox().height();
+        float content = box.scrollHeight();
+        if (trackHeight <= 0f || visible <= 0f || content <= 0f
+                || padding.width() < SCROLL_THUMB_WIDTH + SCROLL_THUMB_INSET) {
+            return null;
+        }
+        float thumbHeight = Math.min(trackHeight, Math.max(SCROLL_THUMB_MIN_HEIGHT,
+                trackHeight * visible / content));
+        float travel = trackHeight - thumbHeight;
+        float fraction = travel <= 0f ? 0f
+                : Math.max(0f, Math.min(1f, element.scrollTop() / range));
+        return new Rect(
+                padding.right() - SCROLL_THUMB_INSET - SCROLL_THUMB_WIDTH,
+                padding.y() + SCROLL_THUMB_INSET + travel * fraction,
+                SCROLL_THUMB_WIDTH,
+                thumbHeight);
     }
 
     private static void applyClip(UiViewport viewport, Rect clip) {

@@ -21,6 +21,8 @@ public final class UiElement {
     private final List<UiElement> children = new ArrayList<>();
     private final LayoutBox box = new LayoutBox();
 
+    private UiElement parent;
+
     private UiLayout layout = UiLayout.COLUMN;
     private Insets padding = Insets.ZERO;
     private float gap;
@@ -31,6 +33,7 @@ public final class UiElement {
     private UiAlign verticalAlign = UiAlign.STRETCH;
     private Overflow overflow = Overflow.VISIBLE;
     private float borderWidth;
+    private float scrollTop;
 
     private Color background;
     private Color hoverBackground;
@@ -56,6 +59,10 @@ public final class UiElement {
         return Collections.unmodifiableList(children);
     }
 
+    public UiElement parent() {
+        return parent;
+    }
+
     public LayoutBox box() {
         return box;
     }
@@ -70,8 +77,23 @@ public final class UiElement {
     }
 
     public UiElement child(UiElement child) {
-        children.add(Objects.requireNonNull(child, "child"));
+        Objects.requireNonNull(child, "child");
+        if (child == this || child.isAncestorOf(this)) {
+            throw new IllegalArgumentException("Adding " + child.id + " would create a cycle");
+        }
+        if (child.parent != null) {
+            throw new IllegalArgumentException(child.id + " already has a parent");
+        }
+        child.parent = this;
+        children.add(child);
         return this;
+    }
+
+    private boolean isAncestorOf(UiElement other) {
+        for (UiElement candidate = other.parent; candidate != null; candidate = candidate.parent) {
+            if (candidate == this) return true;
+        }
+        return false;
     }
 
     public UiElement padding(float all) {
@@ -151,6 +173,20 @@ public final class UiElement {
 
     public Overflow overflow() {
         return overflow;
+    }
+
+    /** How far this element's content is scrolled up, in document pixels. */
+    public float scrollTop() {
+        return scrollTop;
+    }
+
+    /**
+     * Stores a non-negative scroll offset. Layout owns the bottom clamp because
+     * it alone knows the current content extent.
+     */
+    public UiElement scrollTop(float value) {
+        scrollTop = Math.max(0f, value);
+        return this;
     }
 
     public UiElement background(Color color) {

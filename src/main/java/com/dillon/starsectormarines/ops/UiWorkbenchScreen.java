@@ -101,7 +101,7 @@ public final class UiWorkbenchScreen implements Screen {
         footer.child(button("back", "BACK TO COMPANY HQ", 188f,
                 () -> context.goTo(ScreenId.COMPANY_HQ)));
         footer.child(label("retained-status",
-                "RETAINED TREE  |  OVERFLOW CLIPS PAINT + HIT TEST  |  U2 PROOF",
+                "RETAINED TREE  |  CLIPPED SCROLL + HIT TEST  |  U2 PROOF",
                 GOOD).grow(1f).align(UiAlign.STRETCH, UiAlign.CENTER));
         root.child(footer);
 
@@ -148,22 +148,33 @@ public final class UiWorkbenchScreen implements Screen {
                 .border(1f, BORDER);
         pane.child(label("template-heading", "TEMPLATE LIBRARY", EDGE)
                 .preferredHeight(34f));
+        UiElement list = new UiElement("template-list")
+                .layout(UiLayout.COLUMN)
+                .grow(1f)
+                .gap(7f)
+                .padding(2f)
+                .overflow(Overflow.SCROLL);
         String[] templates = {
                 "LINE  ·  FIELDED 2  ·  READY 3",
                 "RECON  ·  FIELDED 1  ·  READY 1",
                 "FIRE SUPPORT  ·  FIELDED 1  ·  READY 0",
-                "BREACH  ·  FIELDED 0  ·  READY 1"
+                "BREACH  ·  FIELDED 0  ·  READY 1",
+                "BOARDING  ·  FIELDED 0  ·  READY 2",
+                "ANTI-ARMOR  ·  FIELDED 0  ·  READY 0",
+                "SECURITY  ·  FIELDED 0  ·  READY 4",
+                "HAZARD RESPONSE  ·  FIELDED 0  ·  READY 1"
         };
         for (int i = 0; i < templates.length; i++) {
             final int index = i;
             UiElement template = button("template-" + i, templates[i], Float.NaN,
                     () -> selectTemplate(index)).preferredHeight(50f);
             templateButtons.add(template);
-            pane.child(template);
+            list.child(template);
         }
+        pane.child(list);
         pane.child(label("library-note",
                 "Plans are reusable. Finite equipment gates assignment, not design.", MUTED)
-                .grow(1f)
+                .preferredHeight(52f)
                 .align(UiAlign.STRETCH, UiAlign.END));
         return pane;
     }
@@ -263,7 +274,10 @@ public final class UiWorkbenchScreen implements Screen {
 
     private void updateSelectionReadouts() {
         String[] teams = {"ALPHA", "BRAVO", "CHARLIE"};
-        String[] templates = {"LINE", "RECON", "FIRE SUPPORT", "BREACH"};
+        String[] templates = {
+                "LINE", "RECON", "FIRE SUPPORT", "BREACH",
+                "BOARDING", "ANTI-ARMOR", "SECURITY", "HAZARD RESPONSE"
+        };
         for (int i = 0; i < teamButtons.size(); i++) {
             teamButtons.get(i).background(i == selectedTeam ? SELECTED : BUTTON);
         }
@@ -307,6 +321,10 @@ public final class UiWorkbenchScreen implements Screen {
             float y = viewport.documentY(event.getY());
             if (event.isMouseMoveEvent()) {
                 document.pointerMoved(x, y);
+            } else if (event.isMouseScrollEvent()) {
+                int raw = event.getEventValue();
+                float delta = raw > 0 ? -53f : (raw < 0 ? 53f : 0f);
+                if (document.pointerScrolled(x, y, delta)) event.consume();
             } else if (event.isLMBDownEvent()) {
                 if (document.pointerDown(x, y)) event.consume();
             } else if (event.isLMBUpEvent()) {
