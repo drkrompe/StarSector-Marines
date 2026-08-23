@@ -40,6 +40,22 @@ public final class PendingDetonation {
     public final float damage;
     /** Efficiency input against actor armor. */
     public final float penetration;
+    /**
+     * Optional actor physically contacted by the incoming round. {@code 0}
+     * means the detonation has only its area payload. A live contacted actor
+     * receives {@link #directDamage} with {@link #directPenetration} before
+     * area damage is gathered, and is excluded from that area payload so the
+     * direct value remains the authored total for a contact hit.
+     */
+    public final long directTargetId;
+    /**
+     * Damage carried by the physical contact, before ordinary target-side
+     * resolution. The firing procedure owns any source-side multiplier: a
+     * friendly direct hit therefore carries its already-reduced value here.
+     */
+    public final float directDamage;
+    /** Efficiency input against actor armor for the physical contact. */
+    public final float directPenetration;
     /** Wall HP knocked off the endpoint cell on detonation. 0 = no structural damage. */
     public final int wallDamage;
     /** Faction of the firing unit. Currently unused (FF on); captured for future per-side filters. */
@@ -77,6 +93,8 @@ public final class PendingDetonation {
      * default — players deciding to fire those have aim control).
      */
     public final boolean friendlyFireImmune;
+    /** Whether the impact leaves a short-lived fire-and-smoke plume instead of smoke alone. */
+    public final boolean burningPlume;
 
     /**
      * Compact constructor — defaults the heavy-blast knobs off. Used by mech
@@ -90,7 +108,9 @@ public final class PendingDetonation {
                              boolean aerialDelivery) {
         this(shooterId, endpointX, endpointY, remainingTime, aoeRadius, damage, penetration,
                 wallDamage, shooterFaction, aerialDelivery,
-                /*wallDamageRadius*/ 0f, /*spawnDustOnWallBreak*/ false, /*friendlyFireImmune*/ false);
+                /*wallDamageRadius*/ 0f, /*spawnDustOnWallBreak*/ false, /*friendlyFireImmune*/ false,
+                /*directTargetId*/ 0L, /*directDamage*/ 0f, /*directPenetration*/ 0f,
+                /*burningPlume*/ false);
     }
 
     public PendingDetonation(long shooterId,
@@ -101,6 +121,25 @@ public final class PendingDetonation {
                              float wallDamageRadius,
                              boolean spawnDustOnWallBreak,
                              boolean friendlyFireImmune) {
+        this(shooterId, endpointX, endpointY, remainingTime, aoeRadius, damage, penetration,
+                wallDamage, shooterFaction, aerialDelivery,
+                wallDamageRadius, spawnDustOnWallBreak, friendlyFireImmune,
+                /*directTargetId*/ 0L, /*directDamage*/ 0f, /*directPenetration*/ 0f,
+                /*burningPlume*/ false);
+    }
+
+    public PendingDetonation(long shooterId,
+                             float endpointX, float endpointY, float remainingTime,
+                             float aoeRadius, float damage, float penetration,
+                             int wallDamage, Faction shooterFaction,
+                             boolean aerialDelivery,
+                             float wallDamageRadius,
+                             boolean spawnDustOnWallBreak,
+                             boolean friendlyFireImmune,
+                             long directTargetId,
+                             float directDamage,
+                             float directPenetration,
+                             boolean burningPlume) {
         this.shooterId     = shooterId;
         this.endpointX     = endpointX;
         this.endpointY     = endpointY;
@@ -108,11 +147,15 @@ public final class PendingDetonation {
         this.aoeRadius     = aoeRadius;
         this.damage        = damage;
         this.penetration   = penetration;
+        this.directTargetId = directTargetId;
+        this.directDamage = directDamage;
+        this.directPenetration = directPenetration;
         this.wallDamage    = wallDamage;
         this.shooterFaction = shooterFaction;
         this.aerialDelivery = aerialDelivery;
         this.wallDamageRadius = wallDamageRadius;
         this.spawnDustOnWallBreak = spawnDustOnWallBreak;
         this.friendlyFireImmune = friendlyFireImmune;
+        this.burningPlume = burningPlume;
     }
 }

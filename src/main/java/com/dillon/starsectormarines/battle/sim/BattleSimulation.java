@@ -499,7 +499,7 @@ public class BattleSimulation implements BattleControl {
                 grid, rosterService, tacticalScoring, damageService,
                 () -> simTickIndex, rng);
         this.detonations = new Detonations(rosterService, grid, topology, damageService,
-                mapEditor, effects, noiseEvents);
+                mapEditor, effects, noiseEvents, this::applyPendingImpact);
         this.ballisticResolver = new BallisticResolver(grid, doodadService, unitIndex, rosterService);
         this.turretFire = new TurretFireSystem(
                 rng, topology, shots, damageService,
@@ -1387,23 +1387,7 @@ public class BattleSimulation implements BattleControl {
         // expires. Outside the parallel dispatch and FIRING's deferral window,
         // so DamageService.applyDamage resolves inline through this sink rather
         // than re-queuing for a drain that already ran this tick.
-        shots.tickImpacts(TICK_DT, impact -> {
-            if (!rosterService.isAliveById(impact.victimId)) return;
-            int friendlyFireSquad = Squad.NO_SQUAD;
-            if (impact.friendly
-                    && rosterService.identity().faction(impact.victimId) == Faction.MARINE
-                    && rosterService.squad().hasSquad(impact.victimId)) {
-                friendlyFireSquad = rosterService.squad().squadId(impact.victimId);
-            }
-            rosterService.telemetry().recordRoundHit(impact.shooterId);
-            damageService.applyDamage(impact.victimId, impact.shooterId, impact.damage,
-                    impact.penetration, impact.moraleImpact);
-            if (friendlyFireSquad != Squad.NO_SQUAD && impact.damage > 0f) {
-                friendlyFireSquadsThisFrame.add(friendlyFireSquad);
-            }
-            hitResponse.rollFallbackOnHit(impact.victimId);
-            hitResponse.rollReprioritizeOnHit(impact.victimId, impact.shooterId);
-        });
+        shots.tickImpacts(TICK_DT, this::applyPendingImpact);
         shots.tickShots(TICK_DT);
         tickProfile.lap(TickProfile.Phase.SHOTS);
         equipmentDropSystem.tick();
@@ -1457,6 +1441,25 @@ public class BattleSimulation implements BattleControl {
         // and fall through to live Bresenham (preserving the old off-tick
         // behavior that tests + UI hooks depend on).
         navigation.endTick();
+    }
+
+    /** Shared arrival seam for ordinary rounds and direct-contact explosive payloads. */
+    private void applyPendingImpact(ShotService.PendingImpact impact) {
+        if (!rosterService.isAliveById(impact.victimId)) return;
+        int friendlyFireSquad = Squad.NO_SQUAD;
+        if (impact.friendly
+                && rosterService.identity().faction(impact.victimId) == Faction.MARINE
+                && rosterService.squad().hasSquad(impact.victimId)) {
+            friendlyFireSquad = rosterService.squad().squadId(impact.victimId);
+        }
+        rosterService.telemetry().recordRoundHit(impact.shooterId);
+        damageService.applyDamage(impact.victimId, impact.shooterId, impact.damage,
+                impact.penetration, impact.moraleImpact);
+        if (friendlyFireSquad != Squad.NO_SQUAD && impact.damage > 0f) {
+            friendlyFireSquadsThisFrame.add(friendlyFireSquad);
+        }
+        hitResponse.rollFallbackOnHit(impact.victimId);
+        hitResponse.rollReprioritizeOnHit(impact.victimId, impact.shooterId);
     }
 
     /** Delegates to {@link com.dillon.starsectormarines.battle.decision.AttackerIndexService#getAttackersOf(long)}. The list is mutated in-place each tick — callers must not retain it across tick boundaries. */
