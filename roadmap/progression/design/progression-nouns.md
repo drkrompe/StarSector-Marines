@@ -2,7 +2,7 @@
 
 Status: ACTIVE — 13 open stories
 Written: 2026-08-23
-Updated: 2026-08-23 — shipped the AMR and stable special-equipment activation seam.
+Updated: 2026-08-23 — shipped faction-neutral smoke utility, crossing plans, and campaign issue.
 
 ## Purpose
 
@@ -108,8 +108,9 @@ assignment, fabrication value, and reachability; battle AI owns when legal
 issued equipment is used. The same use policy is faction-neutral even when
 campaign availability differs by faction.
 
-The first two built-in identities are the rocket launcher and anti-materiel
-rifle. Both are direct-fire activations, but only the item definition owns
+The first three built-in identities are the rocket launcher, anti-materiel
+rifle, and Wayfarer smoke grenades. The first two are direct-fire activations,
+while smoke is a utility activation, but only the item definition owns
 loadout identity, initial ammunition, Armory art, and activation type; the
 referenced weapon definition owns range, damage, accuracy, impact, projectile,
 and audio behavior. Persisted marines, billets, stock, and recipes use the
@@ -126,6 +127,22 @@ drives player and defender carriers; current authored availability is one
 starter player rifle plus one carrier in high-risk non-militia defender
 fireteams. Its report is an ordinary localized shot noise, not omniscient
 identity disclosure.
+
+Smoke grenades are two-canister tactical utility. A short authored throw
+creates a simulation-owned, several-cell cloud for one maneuver bound. Its
+cells are temporary opacity in the shared tactical line-of-sight layer: they
+block observation and direct fire for both factions, but never movement,
+ballistic travel, audio, damage, or remembered belief. Overlapping clouds
+reference-count that opacity until the last field expires.
+
+Smoke is planned at squad level, not fired as a target-of-opportunity weapon.
+An exposed objective bound reserves one carrier and lane, pauses until the
+cloud is actually opaque, then resumes; a breaking squad may supplement its
+fallback with one useful throw while the other survivors keep moving. Active
+or airborne coverage prevents redundant throws. The same rules drive player
+and defender carriers. Player issue includes two starter canisters and a
+Screen template; medium/high-risk non-militia defender fireteams may carry
+smoke explicitly.
 
 ### Telemetry and career
 
@@ -191,7 +208,7 @@ The following are direction, not current behavior:
 - Expand primary families and special-equipment options, and extend the unlock
   ladder so every authored player asset has either starter status or a
   reachable path. The anti-materiel rifle is shipped; the next planned
-  additions are smoke grenades, satchel charges, and fragmentation grenades.
+  additions are satchel charges and fragmentation grenades; smoke is shipped.
 - Split common printable feedstock from operation-earned advanced components;
   advanced progression remains operation-gated rather than purchasable.
 - Make grade, aptitude, experience, career, and captain traits legible in

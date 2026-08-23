@@ -195,6 +195,7 @@ public final class TurretAim {
         while (true) {
             boolean endpoint = (x == x0 && y == y0) || (x == x1 && y == y1);
             if (!endpoint && grid.blocksLineOfSight(x, y)) {
+                if (grid.hasTransientOpacity(x, y)) return false;
                 float distSqOrigin = (float) ((x - x0) * (x - x0) + (y - y0) * (y - y0));
                 float distSqEnd    = (float) ((x - x1) * (x - x1) + (y - y1) * (y - y1));
                 boolean nearOrigin = ro2 >= 0f && distSqOrigin <= ro2;

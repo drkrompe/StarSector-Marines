@@ -120,6 +120,7 @@ public final class Shadowcast {
     private static boolean isOpaque(NavigationGrid grid, int cx, int cy,
                                      int sx, int sy, float airR2) {
         if (!grid.blocksLineOfSight(cx, cy)) return false;
+        if (grid.hasTransientOpacity(cx, cy)) return true;
         if (airR2 <= 0f) return true;
         float dx = cx - sx;
         float dy = cy - sy;
