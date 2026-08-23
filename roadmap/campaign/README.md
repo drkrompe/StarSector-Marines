@@ -11,8 +11,10 @@ horizon, it's the path from desperate Tier-1 Capo runs to a Tier-4
 faction-flip endgame.
 
 This is an **epic**, not a single feature: it's a whole tier with
-cross-cutting design docs plus several feature-sized threads, each laid
-out like its own mini-roadmap (`overview.md` + `stories/` + `complete/`).
+cross-cutting design docs plus several feature-sized threads. Each migrated
+thread keeps its durable model and shipped ledger under `design/`, with only
+genuinely open work under `stories/`; legacy overview/complete layouts remain
+migration input until their thread is folded.
 
 ## Cross-cutting design docs
 
@@ -34,8 +36,8 @@ Read these before changing campaign-tier code.
 
 ## Feature threads
 
-Each thread is a sub-directory with its own `overview.md`, `stories/`
-(active slices), and `complete/` (shipped history).
+Each thread is a sub-directory whose canonical target is `design/<noun>.md`,
+`design/stories.md`, `design/shipped.md`, and bounded files under `stories/`.
 
 | Thread | Status | What it is |
 | --- | --- | --- |
@@ -43,7 +45,7 @@ Each thread is a sub-directory with its own `overview.md`, `stories/`
 | [`contracts/`](contracts/overview.md) | **G1-G30 shipped; no active story** | Five contract types, two modes, lifecycle state machine, three-layer salvage model, MRB rep, mission-resolver bridge, and reactive Cadre/Garrison obligations. |
 | [`early-operations/`](early-operations/overview.md) | **opening ladder shipped** | Two one-shot Independent jobs sized for a green company: local-line relief and a joint militia counterattack against finite ragtag forces. |
 | [`living-world/`](living-world/overview.md) | **G9 active; Slice 2 complete** | Autonomous politics, Chronicle, civil-war participation/consequences, civilian rescue, defector asylum, and Silent Colony through deterministic dead-site signals and Dead Letter choices. |
-| [`loot/`](loot/overview.md) | **active** | Manifest + picker + capacity-aware settlement are code-complete; in-game shipping check and recovery modifiers are next. Consumes the contract salvage entitlement. Highest user value. |
+| `loot-nouns.md` | **ready for acceptance** | Manifest, picker, capacity-aware settlement, recovery modifiers, and rare AI-core gates are code-complete; one live in-game shipping check remains. Consumes the contract salvage entitlement. |
 | [`infrastructure/`](infrastructure/overview.md) | designed | Buildings that modulate garrison default rates and house power; the mitigation side of scale inefficiency. |
 | [`narrative/`](narrative/overview.md) | **S1–S5 shipped** | Comms-officer narration with exact-once patron history, two-engagement patterns, bounded local/Chronicle context, and remembered target locations. |
 | [`t3-endgame/`](t3-endgame/overview.md) | **shipped** | Tier-4 faction-flip handoff and complete kingmaker Last Testament capstone. The only System allowed to write back to vanilla state. |
@@ -80,7 +82,7 @@ campaign tier as the active surface and tracks the next-up list there.
 - `convoy-nouns.md` — ground-vehicle reinforcement
   for the battle layer.
 - See also: [architecture](architecture.md), [mechanics](mechanics.md),
-  [themes](themes.md), [loot](loot/overview.md),
+  [themes](themes.md), `loot-nouns.md`,
   [backgrounds](backgrounds.md), [events](events.md),
   [moral compass](moral-compass.md).
 - Memory: [[user-battletech-campaign-lineage]],

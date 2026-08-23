@@ -205,7 +205,6 @@ public final class MissionResolver {
         if (cashMult <= 0) cashMult = 100;
         int payoutEarned = victory ? (int) ((long) mission.payout * cashMult / 100L) : 0;
 
-        // Salvage entitlement carries into the (deferred) loot UI. For now it's
         // Freeze the negotiated claim and current Layer-3 recovery modifiers so
         // reopening Results cannot change the manifest with later fleet edits.
         int salvageEntitlement = victory ? (mission.salvageNegotiated & 0xFF) : 0;

@@ -389,8 +389,8 @@ universe over time, not retrofitted into intel slots.
    `s1-specialist-striders.md`.
 7. **Manual verification queue (deferred this session)** — the loot loop's
    visual/cargo/core shipping check, squad/debrief UI feel, and swarm wave cadence
-   plus post-rebalance combat feel remain pending. See
-   [`campaign/loot/next-session.md`](campaign/loot/next-session.md).
+   plus post-rebalance combat feel remain pending. The loot checkpoint is
+   `loot-in-game-acceptance.md`.
 8. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
    (MARINE_HELD → CONTESTED → DEFENDER_HELD), AutoGarrisonTrigger,
    marine-side compound supply, defender positive win condition. Blocked

@@ -147,8 +147,8 @@ the player never sees it. It leaks through:
   defenders' treatment).
 - [Black-swan event](events.md) responses — the densest compass-touching
   moments.
-- Salvage choices (taking blueprints/weapons vs leaving them for the
-  population — see [`loot/overview.md`](loot/overview.md)).
+- Salvage choices (taking valuable recovery vs leaving it behind — see
+  `loot-nouns.md`).
 - Chain participation (running an ELEVATE_HEIR vs a SABOTAGE_PROMOTION
   shifts different axes).
 
