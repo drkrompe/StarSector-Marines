@@ -1,7 +1,7 @@
 # C3 — Company card stack (fleet view)
 
 > Replace the two-column checkbox list with the thing the player actually
-> has: a company, made of fireteams, made of marines.
+> has: a company, made of squads, made of marines.
 
 **Status:** not started. Depends on [C2](c2-formation-model.md).
 
@@ -10,7 +10,7 @@
 `SquadDeploymentScreen` is 140 lines of flat list: `[X] Name  n/6 RTD`
 plus a WIA/MIA/KIA string, two columns, no captain, no individuals, no
 sense of an organization. It is also the *only* place the player sees their
-fireteams as fireteams — `ArmoryScreen` organizes by marine and by
+squads as squads — `ArmoryScreen` organizes by marine and by
 inventory, and `StationingScreen` by contract.
 
 The result is that a company of seven teams reads as fourteen unlabelled
@@ -19,7 +19,7 @@ list rows, and the player cannot see the shape of their force.
 ## Goal
 
 A card stack: a company band, one card per formation, each card made of
-fireteam rows, each fireteam expandable to its marines. Same selection
+squad rows, each squad expandable to its marines. Same selection
 semantics as today — this is a presentation replacement, not a rules
 change.
 
@@ -27,30 +27,35 @@ change.
 
 ### Three levels, one screen
 
-> Language note: [C7](c7-organization-and-ranks.md) settles the six-marine
-> unit as a **squad** led by an NCO, and the card as **one officer's
-> command**. Where this doc says "fireteam row", read "squad row" — the
-> class has always been `MarineSquad`; only the UI string changes.
+> Language note: [C7](c7-organization-and-ranks.md) settles the unit as a
+> **twelve-marine squad** of three four-marine fire teams, led by an NCO,
+> and the card as **one officer's command**. The screens say "fireteam"
+> today; that word moves to the four-marine element, and the row the player
+> sees is a squad row. The class has always been `MarineSquad`; only the UI
+> string changes. Fire teams are not a card level
+> ([C9](c9-fire-teams-as-the-maneuver-element.md)); they show up only as
+> pip grouping.
 
-**Company band (top).** Strength / ready / wounded / recovering, fireteams
+**Company band (top).** Strength / ready / wounded / recovering, squads
 deployable vs. rank cap, seats required vs. filled for this sortie. This is
 the `READY SEATS … COMPANY … SHORT … FIRETEAMS n/cap` line that exists
 today, promoted from a single label into a real header with bars.
 
 **Formation card (per captain command).** Captain name + rank + status +
-portrait thumb, the command's own rollup, and its fireteam rows. Cards
-stack vertically in a scroll region. Unassigned fireteams get a card with
+portrait thumb, the command's own rollup, and its squad rows. Cards
+stack vertically in a scroll region. Unassigned squads get a card with
 no captain; the reserve pool gets a distinct, visually quieter band rather
 than a card (it is a holding pen, not a formation).
 
-**Fireteam row (inside a card).** Name, six member pips coloured by status
-(ACTIVE / WIA / MIA / KIA / vacant), a readiness bar, a whereabouts chip
+**Squad row (inside a card).** Name, twelve member pips coloured by status
+(ACTIVE / WIA / MIA / KIA / vacant) and grouped 4 / 4 / 4 so a gutted fire
+team is visible at a glance, a readiness bar, a whereabouts chip
 ([C4](c4-whereabouts-and-deployed-state.md)), and the selection toggle with
 today's `CaptainDeploymentPolicy` gate and `COMMAND LIMIT` state. The pips
 are the density win: six glyphs say what `4/6 RTD  1 WIA  1 KIA` says, at a
 glance, in less space.
 
-**Marine rows (expanded).** Click a fireteam row to expand it in place:
+**Marine rows (expanded).** Click a squad row to expand it in place:
 name, status (with return day when recovering), and the kit/quality marks
 that progression [S8](../../progression/stories/s8-roster-legibility.md)
 defines. **Leave S8's row design to S8** — C3 reserves the space and owns
@@ -65,7 +70,7 @@ inside the card rect) → `ScrollRegionWidget` (scroll capture behind the
 content) → `SelectableRowWidget` / `CaptainRowWidget` (row with hover +
 selected tints and a left accent) → `StatBarWidget`, `SpriteThumbWidget`.
 
-Build the fireteam card on that vocabulary rather than a new container
+Build the squad card on that vocabulary rather than a new container
 model. Keep the flat widget tree — it is a deliberate constraint of
 `WidgetRoot`, and `ExpandedCardWidget` documents why.
 
@@ -89,7 +94,7 @@ off-page, the count says so.
 ### Typography and density
 
 Per the overview's commitment and S8's measured table: header
-`orbitron20aa`, body `insignia17LTaa`, dense fireteam rows
+`orbitron20aa`, body `insignia17LTaa`, dense squad rows
 `insignia15LTaa`, all numeric columns `arial14` (the only vanilla face with
 tabular digits — Orbitron's narrow `1` makes columns wobble). Bars and pips
 before text. Verify at UI scale 1.0x / 1.25x / 1.5x, not one unstated
@@ -107,7 +112,7 @@ pre-battle flow.
 
 1. **Company band.** Promote the readiness line into a header with bars.
    Cheap, independently valuable, exercises C2's snapshot.
-2. **Fireteam rows with pips.** Replace the checkbox rows; selection
+2. **Squad rows with pips.** Replace the checkbox rows; selection
    semantics unchanged.
 3. **Formation cards.** Group rows under captain cards; scroll region.
 4. **Expand to marines.** In-place expansion with a placeholder leaf row
@@ -115,7 +120,7 @@ pre-battle flow.
 
 ## Acceptance
 
-- Every selection behavior of today's screen is preserved: whole-fireteam
+- Every selection behavior of today's screen is preserved: whole-squad
   toggle, rank-capped `COMMAND LIMIT` block, reserve exclusion, the two
   navigation buttons.
 - A seven-squad company is readable without scrolling past the fold at
@@ -135,7 +140,7 @@ pre-battle flow.
 - The contents of the marine leaf row (S8).
 - Moving marines between teams — `ArmoryScreen` owns transfers; the card
   links to it.
-- Renaming fireteams from the card (roster supports it; not this story).
+- Renaming squads from the card (roster supports it; not this story).
 - Orders of any kind.
 
 ## Open questions

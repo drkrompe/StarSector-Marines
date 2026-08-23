@@ -99,21 +99,23 @@ player has to remember which teams are out.
 - The hierarchy as a derived data model (C2).
 - Fireteam identity surviving the drop, so a battle squad can name itself
   back to a campaign fireteam (C1).
-- The card stack in Marine Ops — company band, fireteam cards, expand to
+- The card stack in Marine Ops — company band, squad rows, expand to
   individuals (C3).
 - Whereabouts and deployed state on the card (C4).
 - The same three levels in the battle HUD (C5).
 - After-action attributed per squad (C6).
 - The organization itself: squad leaders, a coherent officer ladder, and
-  one word for the six-marine unit (C7).
-- Transport capacity denominated in squads, and squads that arrive across
-  passes staying one squad (C8).
+  the squad's size and one word for it (C7).
+- Transport capacity denominated in fire teams, and squads that arrive
+  across passes staying one squad (C8).
+- Fire teams as the AI's maneuver element — stable bounding pairs, fix-and-
+  flank, team-aware role assignment (C9).
 
 **Out:**
 
 - **Giving the player in-battle orders.** `Selection` stays view-only in
   this track. The card is the natural surface for orders later — it is
-  where "2nd Fireteam" becomes a clickable object — but proving the view
+  where "2nd Squad" becomes a clickable object — but proving the view
   comes first, and an order channel needs a design pass against the
   `MissionCommand` tier that currently owns `Squad.assignedObjective`
   (see [`../ai/stories/12-squad-of-squads.md`](../ai/stories/12-squad-of-squads.md)).
@@ -122,10 +124,10 @@ player has to remember which teams are out.
   [S8](../progression/stories/s8-roster-legibility.md). This track owns the
   *grouping*; S8 owns the *contents* of the leaf row. C3 reuses S8's type
   scale and leaves room for its row rather than re-litigating it.
-- Changing the six-marine squad size, or the deployment-selection *rules*.
-  C7 re-denominates the rank caps (marines → squads) and adds enlisted
-  ranks, but `CaptainDeploymentPolicy`'s logic — whole-squad selection,
-  capped by the commanding officer — is consumed as-is.
+- Changing the deployment-selection *rules*. C7 resizes the squad, adds
+  enlisted ranks and re-denominates the rank caps (marines → squads), but
+  `CaptainDeploymentPolicy`'s logic — whole-squad selection, capped by the
+  commanding officer — is consumed as-is.
 - New persisted state *for the view*. The roster stays the single source of
   truth and every rollup here is derived (and therefore xstream-free). The
   one exception is C7's two genuine pieces of organizational data — a
@@ -135,9 +137,12 @@ player has to remember which teams are out.
 
 1. **The squad is the persistent unit of organization; the battle squad
    is its in-battle instance.** One id maps them. Everything else in this
-   track follows from that. (The six-marine element is a *squad* led by an
-   NCO — see [C7](stories/c7-organization-and-ranks.md); "fireteam" retires
-   from the display language.)
+   track follows from that. A squad is **twelve marines in three
+   four-marine fire teams**, led by an NCO — see
+   [C7](stories/c7-organization-and-ranks.md). Fire teams are modelled but
+   behind the scenes: they are the AI's maneuver element
+   ([C9](stories/c9-fire-teams-as-the-maneuver-element.md)), not a level of
+   the player's hierarchy.
 2. **A card is one officer's command — the company.** *Settled
    2026-08-22.* The named officer is the company commander; the squads
    under them are led by NCOs who are not officers. Early game that is one
@@ -155,7 +160,7 @@ player has to remember which teams are out.
    [C7](stories/c7-organization-and-ranks.md).)
 4. **Read-only first.** Every story here ships a view. Mutation stays where
    it already lives (armory transfers, deployment toggles, stationing).
-5. **One selection model, two hosts.** Company → fireteam → marine behaves
+5. **One selection model, two hosts.** Company → squad → marine behaves
    the same in the ops screens and in the battle HUD, so the player learns
    it once.
 6. **Type scale per role, not one font.** Display `orbitron24aabold`,
@@ -168,11 +173,13 @@ player has to remember which teams are out.
    string across the seam — never a roster reference, never a lookup from
    inside `battle/`. Same rule the campaign→battle bridge already follows
    with `TargetProfile`.
-8. **A lift carries at least one whole squad.** *Settled 2026-08-22.*
-   Transport capacity is denominated in squads, not arbitrary seats, with a
-   floor of six; larger hulls carry multiple squads or a squad plus
-   equipment. Where a squad still arrives across passes, the later arrivals
-   join the same squad and catch up rather than forming a second unit
+8. **A lift carries at least one whole fire team, and a squad forms up
+   before it advances.** *Settled 2026-08-22.* Transport capacity is
+   denominated in four-marine teams; only the heaviest transport lands a
+   whole squad in one pass. Later arrivals join the same squad and catch
+   up, and a still-assembling squad holds at its landing zone rather than
+   feeding in piecemeal — under the shipped 9x lethality scale, trickling a
+   squad forward is a wipe
    ([C8](stories/c8-lift-capacity-and-multi-pass-drops.md)).
 9. **Scale is governed at the source, and the view degrades rather than
    forbids.** Hundreds of squads is not a state the meta game or the UI can
@@ -187,14 +194,15 @@ player has to remember which teams are out.
 
 | Story | Title | Depends on |
 | --- | --- | --- |
-| [C1](stories/c1-fireteam-identity-through-the-drop.md) | Fireteam identity through the drop seam | — |
+| [C1](stories/c1-fireteam-identity-through-the-drop.md) | Squad identity through the drop seam | — |
 | [C2](stories/c2-formation-model.md) | Formation model — the hierarchy as data | — |
 | [C3](stories/c3-company-card-stack.md) | Company card stack (fleet view) | C2 |
 | [C4](stories/c4-whereabouts-and-deployed-state.md) | Whereabouts: where every team actually is | C2, C3 |
 | [C5](stories/c5-battle-hud-company-rollup.md) | Battle HUD company rollup | C1, C2 |
-| [C6](stories/c6-after-action-by-fireteam.md) | After-action by fireteam | C1 |
+| [C6](stories/c6-after-action-by-fireteam.md) | After-action by squad | C1 |
 | [C7](stories/c7-organization-and-ranks.md) | Organization and ranks | — |
-| [C8](stories/c8-lift-capacity-and-multi-pass-drops.md) | Lift capacity in squads, multi-pass drops | pairs with C1 |
+| [C8](stories/c8-lift-capacity-and-multi-pass-drops.md) | Lift capacity in fire teams, multi-pass drops | pairs with C1 |
+| [C9](stories/c9-fire-teams-as-the-maneuver-element.md) | Fire teams as the maneuver element | C7 |
 
 C1, C2, and C7 are independent and can land in any order. C1 is the
 enabling slice for anything that shows a *deployed* force under its real
@@ -224,9 +232,15 @@ render.
   capacity floor makes the split rare, and where it still happens the later
   arrivals join the same squad and catch up. See commitment 8 and
   [C8](stories/c8-lift-capacity-and-multi-pass-drops.md).
-- **How big is a squad?** Six — a deliberate middle between a four-marine
-  fire team and a twelve-plus rifle squad, chosen so the group count stays
-  readable and every transport can carry one whole squad.
+- **How big is a squad?** Twelve, in three fire teams of four. *Revised
+  from six on 2026-08-22.* Progression
+  [S1](../progression/stories/s1-lethality-and-tier-spread.md) shipped a
+  **9x infantry lethality scale** (pulse rifle vs an unarmored marine:
+  ~30 s to ~3.3 s), which leaves a six-marine squad past
+  `SquadFallbackSystem`'s trigger ratio within seconds of contact and gives
+  the shipped two-team bounding overwatch nothing to split. Twelve restores
+  the headroom those systems assume, matches the real structure, and keeps
+  the row count low — a 72-marine company is six rows.
 
 ## Open questions
 
