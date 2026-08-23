@@ -151,17 +151,23 @@ universe over time, not retrofitted into intel slots.
   measured time-to-kill rather than 1.75x. S2-S10 are contracted and
   unstarted, and S1's own last acceptance item is an in-game feel pass. See
   [`progression/`](progression/overview.md).
-- **Company view** *(design stage)* — the player's force as one legible
+- **Company view** *(active — C7 shipped)* — the player's force as one legible
   hierarchy, company → squad → marine, in the fleet and in the field.
   The mod already models captains, persistent six-marine squads, and
   named soldiers, but every surface renders them as a flat list and the
   organization is destroyed at deployment: `CampaignMarineDeployment.freeze`
   flattens squads into a seat list carrying no squad id, and
   `InfantryPayload` mints one battle squad per *shuttle mission*, so a
-  battle squad is "whoever rode this dropship". Nine stories (C1-C9) are
+  battle squad is "whoever rode this dropship". **C7 shipped 2026-08-22**
+  (`2e187f54`, `976bb87a`, `2786a3ed`): a squad is now twelve marines in
+  three four-marine fire teams derived from roster order, officer rank caps
+  command in squads (Lieutenant 3 through Colonel 24, the company starting
+  under a Lieutenant), squads have NCOs with deterministic
+  promotion-on-loss, and the UI says "squad" for the twelve and "fire team"
+  for the four. Nine stories are still
   contracted and unstarted: the identity seam, a derived formation model,
   the card stack, whereabouts, a battle-HUD company rollup, after-action by
-  squad, the organization/rank restructure, lift capacity denominated in
+  squad, lift capacity denominated in
   fire teams, and fire teams as the AI's maneuver element. The settled
   decisions: a card is one officer's command, so the rank ladder changes
   (officers command, NCOs lead squads); **a squad becomes twelve marines in

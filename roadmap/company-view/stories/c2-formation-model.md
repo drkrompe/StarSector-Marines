@@ -4,8 +4,8 @@
 > Build the rollup once.
 
 **Status:** not started. No dependencies. Prerequisite for
-[C3](c3-company-card-stack.md), [C4](c4-whereabouts-and-deployed-state.md),
-[C5](c5-battle-hud-company-rollup.md).
+C3 (`c3-company-card-stack.md`), C4 (`c4-whereabouts-and-deployed-state.md`),
+C5 (`c5-battle-hud-company-rollup.md`).
 
 ## Problem
 
@@ -117,7 +117,7 @@ mission concern, not an organization concern.
 
 ## Out of scope
 
-- Whereabouts beyond a `HOME` placeholder — [C4](c4-whereabouts-and-deployed-state.md).
+- Whereabouts beyond a `HOME` placeholder — C4 (`c4-whereabouts-and-deployed-state.md`).
 - Career/telemetry fields on `MarineSnapshot` — progression
   [S3](../../progression/stories/s3-per-soldier-telemetry.md) creates that
   data; add the field when it exists.

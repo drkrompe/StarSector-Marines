@@ -4,8 +4,8 @@
 > name the campaign squad it came from.
 
 **Status:** not started. No dependencies. Enabling slice for
-[C5](c5-battle-hud-company-rollup.md) and
-[C6](c6-after-action-by-fireteam.md).
+C5 (`c5-battle-hud-company-rollup.md`) and
+C6 (`c6-after-action-by-fireteam.md`).
 
 ## Problem
 
@@ -65,7 +65,7 @@ is already squad-major by accident. Make it deliberate and stable:
   iteration is over a `Set<String>`, so seat assignment is not
   deterministic across runs).
 - Keep each squad's members adjacent, and pack **whole fire teams** into
-  lifts. With [C8](c8-lift-capacity-and-multi-pass-drops.md)'s
+  lifts. With C8 (`c8-lift-capacity-and-multi-pass-drops.md`)'s
   team-denominated capacities (4 / 8 / 12) that always divides cleanly, so
   a lift never carries three-quarters of a team; a twelve-marine squad
   simply spans one to three lifts.
@@ -86,7 +86,7 @@ Replace the "one squad per shuttle mission" rule for player marines with
   spanning LZs) is a known cohesion hazard.
 
 **Decided (2026-08-22): a split squad stays one squad.**
-[C8](c8-lift-capacity-and-multi-pass-drops.md) denominates lift capacity in
+C8 (`c8-lift-capacity-and-multi-pass-drops.md`) denominates lift capacity in
 four-marine fire teams, so a twelve-marine squad normally arrives across
 one to three passes — only the heaviest transport lands it intact. Later
 arrivals **join the existing squad and catch up** rather than forming a
@@ -115,6 +115,16 @@ to re-read it anyway.
    in `InfantryPayload`. Fallback path for null ids unchanged.
 3. **Split labelling.** `(A)` / `(B)` suffixes when one squad lands at
    more than one LZ.
+4. **Seed the battle squad's leader.** Carry `MarineSquad.leaderSoldierId`
+   through the seat data alongside `campaignSquadId`, and seed
+   `Squad.leaderId` from it instead of "whichever member spawned first".
+   Leader-pull cohesion then follows the person the player thinks is in
+   charge, and a leader death is a named event. *Absorbed from
+   `c7-organization-and-ranks.md` slice 5, which shipped everything except
+   this: the campaign half of the leader model exists
+   (`MarineRoster.squadLeader`, deterministic promotion on loss), and only
+   the seat-data crossing is left. It could not ship with C7 because the
+   seam this story builds is what carries it.*
 
 ## Acceptance
 

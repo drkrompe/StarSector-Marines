@@ -3,7 +3,7 @@
 > Replace the two-column checkbox list with the thing the player actually
 > has: a company, made of squads, made of marines.
 
-**Status:** not started. Depends on [C2](c2-formation-model.md).
+**Status:** not started. Depends on C2 (`c2-formation-model.md`).
 
 ## Problem
 
@@ -27,13 +27,13 @@ change.
 
 ### Three levels, one screen
 
-> Language note: [C7](c7-organization-and-ranks.md) settles the unit as a
+> Language note: C7 (`c7-organization-and-ranks.md`) settles the unit as a
 > **twelve-marine squad** of three four-marine fire teams, led by an NCO,
 > and the card as **one officer's command**. The screens say "fireteam"
 > today; that word moves to the four-marine element, and the row the player
 > sees is a squad row. The class has always been `MarineSquad`; only the UI
 > string changes. Fire teams are not a card level
-> ([C9](c9-fire-teams-as-the-maneuver-element.md)); they show up only as
+> (C9 (`c9-fire-teams-as-the-maneuver-element.md`)); they show up only as
 > pip grouping.
 
 **Company band (top).** Strength / ready / wounded / recovering, squads
@@ -50,7 +50,7 @@ than a card (it is a holding pen, not a formation).
 **Squad row (inside a card).** Name, twelve member pips coloured by status
 (ACTIVE / WIA / MIA / KIA / vacant) and grouped 4 / 4 / 4 so a gutted fire
 team is visible at a glance, a readiness bar, a whereabouts chip
-([C4](c4-whereabouts-and-deployed-state.md)), and the selection toggle with
+(C4 (`c4-whereabouts-and-deployed-state.md`)), and the selection toggle with
 today's `CaptainDeploymentPolicy` gate and `COMMAND LIMIT` state. The pips
 are the density win: six glyphs say what `4/6 RTD  1 WIA  1 KIA` says, at a
 glance, in less space.
@@ -104,7 +104,7 @@ setting.
 
 Extend `SquadDeploymentScreen` rather than adding a screen shell — it is
 already routed from the briefing and already owns the selection state on
-`MarineOpsContext`. [C4](c4-whereabouts-and-deployed-state.md) then adds
+`MarineOpsContext`. C4 (`c4-whereabouts-and-deployed-state.md`) then adds
 the non-mission entry point so the same stack is readable outside a
 pre-battle flow.
 

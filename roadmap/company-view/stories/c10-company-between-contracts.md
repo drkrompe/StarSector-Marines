@@ -4,7 +4,7 @@
 > stand and look at it. Every roster surface hangs off a planet
 > interaction, so "how is my army doing" is only answerable while docked.
 
-**Status:** not started. Independent of [C1](c1-fireteam-identity-through-the-drop.md)
+**Status:** not started. Independent of C1 (`c1-fireteam-identity-through-the-drop.md`)
 — see [Sequencing](#sequencing) below.
 
 ## Problem
@@ -37,7 +37,7 @@ space, and then has no standing surface to review the decisions they
 deferred, the contracts already running, or the company that would fight
 them.
 
-### What [C4](c4-whereabouts-and-deployed-state.md) already asked for, and why it is not enough
+### What C4 (`c4-whereabouts-and-deployed-state.md`) already asked for, and why it is not enough
 
 C4 names this exactly — *"there is also no way to look at the company at all
 except inside a pre-battle flow"* — and its slice 3 contracts a "standalone
@@ -151,7 +151,7 @@ Also here:
 - retainer income — sum of `contractRetainerPerMonth` over ACTIVE /
   IN_PROGRESS stationing rows, one loop;
 - MRB standing (`playerMrbRep`) and employer standing from `repValue`;
-- strength vs. available strength — [C4](c4-whereabouts-and-deployed-state.md)
+- strength vs. available strength — C4 (`c4-whereabouts-and-deployed-state.md`)
   names the gap between "living marines on the books" and "deployable right
   now" as the interesting number; this pane is where it belongs.
 
@@ -199,8 +199,8 @@ Today this pane ships the army-management work that never needed a planet:
 - a strength / ready / recovering rollup;
 - a route into `ArmoryScreen`, verified planet-free, returning to HQ.
 
-Tomorrow [C3](c3-company-card-stack.md)'s card stack lands **in this pane**
-and [C4](c4-whereabouts-and-deployed-state.md)'s whereabouts chips with it.
+Tomorrow C3 (`c3-company-card-stack.md`)'s card stack lands **in this pane**
+and C4 (`c4-whereabouts-and-deployed-state.md`)'s whereabouts chips with it.
 C10 reserves the space and builds the room; C3 and C4 furnish it.
 
 **Do not build a second card stack here.** Until C2/C3 land, the rollup is a
