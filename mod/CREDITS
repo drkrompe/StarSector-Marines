@@ -5,7 +5,7 @@ Terrain Textures
 ----------------
 "110+ Realistic Forest Environment Textures" by Game Buffs
   Materials adapted:
-    Grass_3_Albedo.png (nature grass)
+    Grass_4_Albedo.png (nature grass)
     Dirt_7_Albedo.png  (nature dirt)
   Source: Purchased Game Buffs / Unity Asset Store package
   Modifications: Wrap-aware FFmpeg downsample from 4096x4096 to 52x52;
