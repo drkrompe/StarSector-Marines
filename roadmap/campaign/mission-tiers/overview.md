@@ -123,18 +123,17 @@ and static turret emplacements consume one opposing score budget. This is
 intentionally not whole-encounter rubber-banding: committing more lift does not
 add infantry defenders or reroll the map. It only allows otherwise eligible
 heavy-support candidates to remain when the combined attack has enough force
-to answer them. Mechs retain roster priority; turrets then keep a deterministic
-prefix of the map-authored candidates with the remaining score. Balanced-out
-guns leave their fortification geometry behind, while a post with no live guns
-is not linked to a Conquest guard squad. The score table is provisional;
-equipment, air, command powers, terrain, and telemetry-derived values remain
-future inputs.
-
-First Contract also has one categorical support floor: the enemy brings no
-fighter wings, regardless of faction or the procedural air-support roll.
-Marine-side employer or committed fighter cover remains valid, so allied air
-can tip a difficult opening battle without the procedural defender receiving
-the same high-impact support. Enemy fighter support begins at Established.
+to answer them. Allied and employer fighter sorties add to the attacking score;
+enemy fighter wings consume defender score after the roster's mech candidates,
+with static turrets then keeping a deterministic prefix from what remains.
+Conventional strafing carries a fixed per-sortie cost, so its attrition is
+significant against a small force but proportionally fades in a large battle.
+Missile profiles carry an AoE premium because they remain meaningful against
+large clustered forces. Wings are indivisible commitments: the whole scheduled
+wing fits or it stays out. Balanced-out guns leave their fortification geometry
+behind, while a post with no live guns is not linked to a Conquest guard squad.
+The score table is provisional; equipment, command powers, terrain, and
+telemetry-derived values remain future inputs.
 
 ## Scope boundary
 

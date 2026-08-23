@@ -19,9 +19,7 @@ import java.util.List;
  *
  * <p>{@link #clientFighterSupport} / {@link #enemyFighterSupport} are the air
  * support each side brings into the battle. Both default to {@link FlybyRoster#EMPTY}
- * when the generator decides nobody can spare anything. First Contract work
- * always normalizes enemy support to empty; marine-side employer or committed
- * cover remains available.
+ * when the generator decides nobody can spare anything.
  */
 public final class Mission {
 
@@ -136,10 +134,8 @@ public final class Mission {
         this.normalizedY  = b.normalizedY;
         this.clientFighterSupport = b.clientFighterSupport != null
                 ? b.clientFighterSupport : FlybyRoster.EMPTY;
-        this.enemyFighterSupport  = this.tier == OperationTier.FIRST_CONTRACT
-                ? FlybyRoster.EMPTY
-                : b.enemyFighterSupport != null
-                        ? b.enemyFighterSupport : FlybyRoster.EMPTY;
+        this.enemyFighterSupport  = b.enemyFighterSupport  != null
+                ? b.enemyFighterSupport  : FlybyRoster.EMPTY;
         this.employerPowerIds     = b.employerPowerIds != null
                 ? Collections.unmodifiableList(new ArrayList<>(b.employerPowerIds))
                 : Collections.emptyList();

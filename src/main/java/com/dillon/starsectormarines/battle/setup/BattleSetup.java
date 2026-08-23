@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacemen
 import com.dillon.starsectormarines.battle.evacuation.RescueShelterGarrison;
 import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmDefenseRoster;
+import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.colony.SilentColonyThreatProfile;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.MapScale;
@@ -176,7 +177,8 @@ public final class BattleSetup {
     public record MapBuild(BattleSimulation sim, LongList structures) {}
 
     private record DefenderForcePlan(DefenderRoster roster,
-                                     List<DefensePost> defensePosts) {}
+                                     List<DefensePost> defensePosts,
+                                     FlybyRoster enemyFighterSupport) {}
 
     /**
      * Builds the host-agnostic <b>map layer</b> — the part shared by every
@@ -296,6 +298,17 @@ public final class BattleSetup {
                                                   boolean enemyHasHeavyArmor,
                                                   OperationTier tier, RiskLevel risk,
                                                   TargetProfile profile) {
+        return createSabotage(seed, manifest, enemyHasHeavyArmor, tier, risk,
+                profile, FlybyRoster.EMPTY, FlybyRoster.EMPTY);
+    }
+
+    /** Tier-aware sabotage with both sides' authored fighter commitments. */
+    public static BattleSimulation createSabotage(long seed, List<ShuttleAssignment> manifest,
+                                                  boolean enemyHasHeavyArmor,
+                                                  OperationTier tier, RiskLevel risk,
+                                                  TargetProfile profile,
+                                                  FlybyRoster marineFighterSupport,
+                                                  FlybyRoster enemyFighterSupport) {
         MapScale scale = MapScale.forTier(tier);
         MapResult map = MAP_GEN.generate(scale.width, scale.height, seed, null, profile);
         Random rng = new Random(seed);
@@ -312,12 +325,14 @@ public final class BattleSetup {
                 map.pointsOfInterest, map.doodads, defensePosts, rng);
         DefenderForcePlan defenders = defenderForcePlan(
                 MissionType.SABOTAGE, tier, risk, enemyHasHeavyArmor,
-                assignments, defensePosts);
+                assignments, defensePosts, marineFighterSupport,
+                enemyFighterSupport);
         List<LandingPad> lzCells = LandingPadSelector.select(
                 map, assignments.size(), LZ_MIN_SEPARATION);
         List<ParkedAircraft> parkedAircraft = stampParkedAircraft(map, lzCells, rng);
         BattleSimulation sim = buildMap(
                 map, vehiclePlacements, defenders.defensePosts(), parkedAircraft, seed).sim();
+        sim.setFlybyRoster(defenders.enemyFighterSupport());
 
         // Pick charge sites: prefer high-value POIs (lab/comms/depot) in the
         // defender half of the map. Fall back to any POI if not enough qualify.
@@ -533,6 +548,17 @@ public final class BattleSetup {
                                                      boolean enemyHasHeavyArmor,
                                                      OperationTier tier, RiskLevel risk,
                                                      MissionType type, TargetProfile profile) {
+        return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
+                type, profile, FlybyRoster.EMPTY, FlybyRoster.EMPTY);
+    }
+
+    /** Tier-aware catch-all with both sides' authored fighter commitments. */
+    public static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest,
+                                                     boolean enemyHasHeavyArmor,
+                                                     OperationTier tier, RiskLevel risk,
+                                                     MissionType type, TargetProfile profile,
+                                                     FlybyRoster marineFighterSupport,
+                                                     FlybyRoster enemyFighterSupport) {
         MapScale scale = MapScale.forTier(tier);
         MapResult map = MAP_GEN.generate(scale.width, scale.height, seed, null, profile);
         Random rng = new Random(seed);
@@ -543,12 +569,14 @@ public final class BattleSetup {
                 RoadReservation.mask(map.roadGraph, map.grid.getWidth(), map.grid.getHeight()),
                 map.pointsOfInterest, map.doodads, defensePosts, rng);
         DefenderForcePlan defenders = defenderForcePlan(
-                type, tier, risk, enemyHasHeavyArmor, assignments, defensePosts);
+                type, tier, risk, enemyHasHeavyArmor, assignments, defensePosts,
+                marineFighterSupport, enemyFighterSupport);
         List<LandingPad> lzCells = LandingPadSelector.select(
                 map, assignments.size(), LZ_MIN_SEPARATION);
         List<ParkedAircraft> parkedAircraft = stampParkedAircraft(map, lzCells, rng);
         BattleSimulation sim = buildMap(
                 map, vehiclePlacements, defenders.defensePosts(), parkedAircraft, seed).sim();
+        sim.setFlybyRoster(defenders.enemyFighterSupport());
 
         // Default ASSAULT objectives — eliminate the other side. Mission-specific
         // setups (sabotage, raid, extraction) will swap or add to this pair.
@@ -945,6 +973,17 @@ public final class BattleSetup {
                                                boolean enemyHasHeavyArmor,
                                                OperationTier tier, RiskLevel risk,
                                                TargetProfile profile) {
+        return createConquestBuild(seed, manifest, enemyHasHeavyArmor, tier, risk,
+                profile, FlybyRoster.EMPTY, FlybyRoster.EMPTY);
+    }
+
+    /** Tier-aware Conquest build with both sides' authored fighter commitments. */
+    public static MapBuild createConquestBuild(long seed, List<ShuttleAssignment> manifest,
+                                               boolean enemyHasHeavyArmor,
+                                               OperationTier tier, RiskLevel risk,
+                                               TargetProfile profile,
+                                               FlybyRoster marineFighterSupport,
+                                               FlybyRoster enemyFighterSupport) {
         int gridW = CONQUEST_GRID_W;
         int gridH = CONQUEST_GRID_H;
         Random rng = new Random(seed);
@@ -960,7 +999,8 @@ public final class BattleSetup {
         List<ShuttleAssignment> assignments = resolveManifest(manifest);
         DefenderForcePlan defenders = defenderForcePlan(
                 MissionType.CONQUEST, tier, risk, enemyHasHeavyArmor,
-                assignments, map.defensePosts);
+                assignments, map.defensePosts, marineFighterSupport,
+                enemyFighterSupport);
         // Conquest defense posts come pre-stamped by the biome-aware
         // DefensePostStamper inside BspCityGenerator (BEACH→PORT→kill-zone
         // tiers + rear ARTILLERY battery), so buildMap consumes map.defensePosts
@@ -970,6 +1010,7 @@ public final class BattleSetup {
         // {@code DefensePostStamper.stampNonConquest}.
         MapBuild build = buildMap(map, vehiclePlacements, defenders.defensePosts(), seed);
         BattleSimulation sim = build.sim();
+        sim.setFlybyRoster(defenders.enemyFighterSupport());
 
         // Conquest win condition: marines dismantle defender supply
         // structures, not "kill every defender." Pre-slice-4 this was
@@ -1031,12 +1072,25 @@ public final class BattleSetup {
             MissionType type, OperationTier tier, RiskLevel risk,
             boolean enemyHasHeavyArmor, List<ShuttleAssignment> assignments,
             List<DefensePost> defensePosts) {
-        float attackerScore = BattleForceScore.attackers(assignments);
+        return defenderForcePlan(type, tier, risk, enemyHasHeavyArmor,
+                assignments, defensePosts, FlybyRoster.EMPTY, FlybyRoster.EMPTY);
+    }
+
+    private static DefenderForcePlan defenderForcePlan(
+            MissionType type, OperationTier tier, RiskLevel risk,
+            boolean enemyHasHeavyArmor, List<ShuttleAssignment> assignments,
+            List<DefensePost> defensePosts, FlybyRoster marineFighterSupport,
+            FlybyRoster enemyFighterSupport) {
+        float attackerScore = BattleForceScore.attackers(
+                assignments, marineFighterSupport);
         DefenderRoster roster = DefenderRoster.forMission(
                 type, tier, risk, enemyHasHeavyArmor, attackerScore);
+        FlybyRoster affordableFighters = BattleForceScore.affordableFighterSupport(
+                enemyFighterSupport, roster, attackerScore);
         List<DefensePost> affordablePosts = BattleForceScore.affordableDefensePosts(
-                defensePosts, roster, attackerScore);
-        return new DefenderForcePlan(roster, affordablePosts);
+                defensePosts, roster, attackerScore,
+                BattleForceScore.fighterSupport(affordableFighters));
+        return new DefenderForcePlan(roster, affordablePosts, affordableFighters);
     }
 
     /**
@@ -1056,6 +1110,18 @@ public final class BattleSetup {
                                                   TargetProfile profile) {
         return createConquestBuild(seed, manifest, enemyHasHeavyArmor,
                 tier, risk, profile).sim();
+    }
+
+    /** Tier-aware conquest with both sides' authored fighter commitments. */
+    public static BattleSimulation createConquest(long seed, List<ShuttleAssignment> manifest,
+                                                  boolean enemyHasHeavyArmor,
+                                                  OperationTier tier, RiskLevel risk,
+                                                  TargetProfile profile,
+                                                  FlybyRoster marineFighterSupport,
+                                                  FlybyRoster enemyFighterSupport) {
+        return createConquestBuild(seed, manifest, enemyHasHeavyArmor,
+                tier, risk, profile, marineFighterSupport,
+                enemyFighterSupport).sim();
     }
 
     /**
