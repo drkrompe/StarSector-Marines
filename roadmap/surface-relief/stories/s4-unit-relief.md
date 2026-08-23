@@ -1,5 +1,13 @@
 # S4 — Unit relief: soldiers / vehicles / agents (stretch, design sketch)
 
+Status: DEFERRED — begin only after S3 ground-light acceptance.
+
+Written: 2026-08-13
+
+Updated: 2026-08-23 — unit lighting only; ground parallax stays ground-only.
+
+Read `surface-relief-nouns.md` before refining this story.
+
 Extend the derived-maps approach to unit sprites, so soldiers, vehicles,
 and mechs pick up the same dynamic lighting as the ground (S3): a mech lit
 from the side by an explosion, muzzle-flash glint on armor.
@@ -21,4 +29,5 @@ Notes for when this is picked up:
   needs a per-pass shader (sample albedo + normal, apply light array), not
   the fullscreen composite. Alpha/transparency needs care at sprite edges.
 
-Blocked on: S1 (kernel vendored), S3 (light-source plumbing).
+Blocked on: S3 in-game ground-light acceptance. S1's derivation substrate is
+already shipped.

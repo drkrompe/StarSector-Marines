@@ -270,4 +270,32 @@ public class ReinforceContactTest {
         assertTrue(dx <= 1 && dy <= 1,
                 "Snapped cell should be adjacent to the original target");
     }
+
+    @Test
+    public void flankWaypointFallsBackWhenStructureMakesItAnExtremeDetour() {
+        int width = 30;
+        int height = 20;
+        NavigationGrid grid = new NavigationGrid(width, height);
+        for (int y = 1; y < height - 1; y++) {
+            for (int x = 1; x < width - 1; x++) {
+                if (x != 15) grid.setWalkableFloor(x, y);
+            }
+        }
+        grid.setWalkableFloor(15, 1);
+        grid.setDoorway(15, 1, true);
+        BattleSimulation sim = new BattleSimulation(
+                grid, new CellTopology(width, height));
+        long leader = sim.spawn(new EntitySpec("leader", Faction.MARINE,
+                UnitType.MARINE, 10, 15));
+        int squadId = sim.mintSquad(Faction.MARINE, leader);
+        sim.squad().assignSquad(leader, squadId);
+        Squad squad = sim.getSquad(squadId);
+        squad.centroidX = 10.5f;
+        squad.centroidY = 15.5f;
+
+        int[] waypoint = ReinforceContact.snapToReachable(20, 15, squad, sim);
+
+        assertEquals(10, waypoint[0]);
+        assertEquals(15, waypoint[1]);
+    }
 }

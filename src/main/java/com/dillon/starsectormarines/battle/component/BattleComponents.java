@@ -333,7 +333,7 @@ public final class BattleComponents {
     /**
      * Continuous position — {@code float x, y} in cell space (cell {@code (cx,cy)}
      * spans {@code [cx,cx+1) x [cy,cy+1)}, center at {@code (cx+0.5, cy+0.5)}; see
-     * {@code roadmap/continuous-positions/overview.md}).
+     * {@code continuous-positions-nouns.md}).
      * {@link com.dillon.starsectormarines.battle.sim.World#cellX}/
      * {@link com.dillon.starsectormarines.battle.sim.World#cellY} derive the grid
      * cell via {@code floor}. Every spatially-present entity, corpse included.
