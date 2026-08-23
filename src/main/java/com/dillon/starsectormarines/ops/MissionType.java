@@ -13,7 +13,7 @@ import java.awt.Color;
  * actual defender count. Together these replace the fifteen hand-written
  * numbers in {@code DefenderRoster.totalFor}, which encoded tier inside type
  * and so could not express a late-game raid or a beginner's conquest — the
- * latter correctly, the former by accident. See `mission-tiers/overview.md`.
+ * latter correctly, the former by accident. See `mission-tier-nouns.md`.
  */
 public enum MissionType {
 

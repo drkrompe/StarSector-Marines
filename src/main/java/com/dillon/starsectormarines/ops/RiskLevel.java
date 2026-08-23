@@ -11,7 +11,7 @@ import java.awt.Color;
  * uncertainty — defender quality, the elite fraction, patrol strength, loot,
  * and a modest {@link #forceMult} nudge so a high-risk job at a given tier
  * really does field more than the brochure said. See
- * `mission-tiers/overview.md`.
+ * `mission-tier-nouns.md`.
  */
 public enum RiskLevel {
 

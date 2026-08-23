@@ -8,8 +8,8 @@ import java.awt.Color;
  * Star Fortress), planetary shield, and stability — then bucketed into five tiers.
  *
  * <p>This is the bridge between the campaign's economy data and our gameplay-facing
- * "how hard is this fight" number. The mission generator uses it to derive a
- * {@code RiskLevel}; the battle layer can read it later to scale enemy unit counts.
+ * "how uncertain is this fight" signal. The mission generator uses it to
+ * derive a {@code RiskLevel}; operation tier separately owns the base scale.
  */
 public enum DefenseLevel {
     UNDEFENDED("Undefended",    new Color(0xA0, 0xC0, 0xA0)),

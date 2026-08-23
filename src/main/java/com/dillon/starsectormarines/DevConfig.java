@@ -22,11 +22,11 @@ public final class DevConfig {
      * for every <em>debug-generated</em> mission to this value. Clamps both the mission's
      * authored drop count and the employer's coverage roll, so the briefing
      * and battlefield both see the override. {@code 0} disables the override
-     * and the per-(type, risk) table in {@code MissionGenerator.requiredDropsFor}
+     * and the type/tier curve in {@code MissionGenerator.requiredDropsFor}
      * drives drops as usual.
      *
      * <p>Useful for iterating on shuttle / drop-flow behavior without sitting
-     * through a CONQUEST-HIGH 40-drop wave to test one thing.
+     * through a CONQUEST/FULL_STRENGTH 40-drop wave to test one thing.
      */
     @DebugOnly
     public static final int DROP_COUNT_OVERRIDE = 0;
@@ -123,10 +123,10 @@ public final class DevConfig {
 
     /**
      * When {@code true}: prepend a synthetic "DEBUG — All Missions" client to
-     * every planet's client list, exposing the full {@link com.dillon.starsectormarines.ops.MissionType}
-     * × {@link com.dillon.starsectormarines.ops.RiskLevel} grid (5×3 = 15
-     * missions) for playtesting any mission type at any difficulty without
-     * waiting on the RNG to roll the combo you want.
+     * every planet's client list, exposing each eligible
+     * {@link com.dillon.starsectormarines.ops.MissionType} ×
+     * {@link com.dillon.starsectormarines.ops.OperationTier} pairing at medium
+     * risk for playtesting operation scale without waiting on offer RNG.
      *
      * <p>The debug client bypasses {@code MissionGenerator.MAX_MISSIONS}; the
      * tactical map list gets long. That's the point — flip off for any build

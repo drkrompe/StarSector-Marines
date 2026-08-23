@@ -6,9 +6,9 @@ import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
 /**
- * Mission map size tier. Used by {@link BattleSetup} factories to scale the
- * generated grid with the mission's {@link RiskLevel}: bigger missions get
- * more terrain to fight across, smaller ones stay tight and quick.
+ * Mission map size band. Ordinary {@link BattleSetup} factories select it
+ * from the mission's {@link OperationTier}: bigger operations get more terrain
+ * to fight across, while risk varies pressure within that space.
  *
  * <p>Cell counts grow roughly 1× / 1.6× / 2.5× to keep the perf budget on a
  * known curve — the largest tier is still well below the conquest preview
@@ -16,11 +16,11 @@ import com.dillon.starsectormarines.ops.RiskLevel;
  */
 public enum MapScale {
 
-    /** LOW-risk fallback. Tight map, quick op — recommended 20+ marines. */
+    /** First-contract scale. Tight map, quick op — recommended 20+ marines. */
     SMALL (112,  64),
-    /** MEDIUM-risk default. Mid-sized urban fight — recommended 50+ marines. */
+    /** Established/veteran scale. Mid-sized urban fight — recommended 50+ marines. */
     MEDIUM(144, 80),
-    /** HIGH-risk siege scale. Full city push — recommended 100+ marines. */
+    /** Reinforced/full-strength scale. Full city push — recommended 100+ marines. */
     LARGE (240, 160);
 
     public final int width;
