@@ -1,8 +1,8 @@
 # U2 — Clipping, scrolling, focus, and canvas input
 
-Status: IN PROGRESS — overflow clipping implemented; scrolling, focus, capture, and canvas remain
+Status: IN PROGRESS — overflow clipping and vertical scrolling implemented; focus, capture, and canvas remain
 Written: 2026-08-23
-Updated: 2026-08-23 — ported MoonLight's overflow vocabulary and shared clip walk to the Starsector backend.
+Updated: 2026-08-23 — ported MoonLight's retained scroll state, layout extent, wheel ancestry, and overlay thumb.
 
 Read `ui-nouns.md` and `ui-toolkit.md` first. Depends on U1.
 
@@ -42,6 +42,25 @@ This is deliberately a port of MoonLight's contract rather than a legacy Armory
 widget patch. The existing Armory screenshot is acceptance evidence for C15: the
 production rewrite must move onto this retained geometry before the flat widget
 screen can be retired.
+
+## Implemented slice — vertical scrolling
+
+- `scrollTop` lives on stable `UiElement` identity; `LayoutBox` records the current
+  `scrollHeight` and derives the bottom clamp from its content box.
+- Layout first arranges ordinary retained boxes, measures the direct content extent,
+  and then translates descendants by the effective clamped offset. Paint and input
+  therefore move together without a second geometry path.
+- Wheel targeting starts from the deepest geometric element, including non-clickable
+  rows, and walks outward to the nearest `overflow: scroll` ancestor that can move.
+  A blocked inner surface hands the wheel to a movable outer one.
+- Starsector's raw wheel sign and platform-specific magnitude are normalized once at
+  the workbench host boundary. A notch aimed at a retained scroll surface remains
+  consumed at its terminal boundary so campaign input cannot act beneath it.
+- A four-pixel overlay thumb paints after the scrolled children at the padding edge.
+  It is visual browser chrome, not an element and not a hit target.
+- The workbench template library is now a bounded eight-row scroll proof. Headless
+  tests cover both clamps, retained offset, shifted hit-testing, nested handoff,
+  terminal consumption, fitting/visible content, and thumb travel.
 
 ## Acceptance
 

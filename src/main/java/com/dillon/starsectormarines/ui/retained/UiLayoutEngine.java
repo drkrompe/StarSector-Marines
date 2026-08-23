@@ -33,6 +33,7 @@ public final class UiLayoutEngine {
         element.box().place(rect, element.padding(), element.borderWidth());
         Rect content = element.box().contentBox();
         List<UiElement> children = element.children();
+        element.box().scrollHeight(0f);
         if (children.isEmpty()) return;
 
         if (element.layout() == UiLayout.STACK) {
@@ -40,6 +41,23 @@ public final class UiLayoutEngine {
         } else {
             arrangeFlow(element, children, content, element.layout() == UiLayout.ROW);
         }
+
+        if (element.overflow().clips()) {
+            float contentBottom = content.y();
+            for (UiElement child : children) {
+                contentBottom = Math.max(contentBottom, child.box().borderBox().bottom());
+            }
+            element.box().scrollHeight(contentBottom - content.y());
+            float scrollTop = Math.min(element.scrollTop(), element.box().maxScrollTop());
+            if (scrollTop > 0f) {
+                for (UiElement child : children) translate(child, 0f, -scrollTop);
+            }
+        }
+    }
+
+    private static void translate(UiElement element, float deltaX, float deltaY) {
+        element.box().translate(deltaX, deltaY);
+        for (UiElement child : element.children()) translate(child, deltaX, deltaY);
     }
 
     private void arrangeFlow(UiElement parent, List<UiElement> children,

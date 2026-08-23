@@ -1,8 +1,8 @@
 # Marine Ops UI nouns
 
-Status: ACTIVE — four foundation stories open; overflow clipping implemented
+Status: ACTIVE — four foundation stories open; overflow clipping and vertical scrolling implemented
 Written: 2026-08-23
-Updated: 2026-08-23 — adopted MoonLight's CSS overflow contract for retained paint and hit-testing.
+Updated: 2026-08-23 — adopted MoonLight's CSS overflow and retained vertical-scroll contracts.
 
 ## Purpose
 
@@ -110,6 +110,25 @@ and reverse-order hit test. A clipped-away child is therefore neither visible no
 clickable. Only the OpenGL backend converts that document rectangle into physical
 framebuffer pixels; the conversion observes Starsector UI scale and flips the
 top-left document Y axis exactly once.
+
+## Vertical scrolling
+
+`scrollTop` is retained content state on the element, while `scrollHeight` is a
+layout result on its box. Layout clamps the effective offset to
+`max(0, scrollHeight - content height)` and translates descendants only: the
+scroll surface, padding-box clip, and host viewport do not move.
+
+Wheel input uses the geometric target chain rather than a clickable-only hit. It
+walks from the deepest element outward, skips `overflow: hidden`, and moves the
+nearest `overflow: scroll` surface that has room in the requested direction. At a
+nested boundary the next movable ancestor receives the delta. At the Starsector
+host seam, a wheel aimed at a retained scroll surface is still consumed when every
+candidate is at its boundary, preventing the campaign layer from receiving the
+same notch.
+
+The scrollbar thumb is overlay chrome painted after descendants and clipped to the
+surface's padding box. It advertises position and range but does not reserve layout
+space or participate in hit-testing.
 
 ## Authority boundaries
 
