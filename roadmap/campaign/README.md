@@ -77,7 +77,7 @@ campaign tier as the active surface and tracks the next-up list there.
 
 - [`../ai/`](../ai/) — battle AI roadmap (GOAP for infantry/mechs).
   Per-squad tactical AI inside the missions the campaign tier generates.
-- [`../convoy/`](../convoy/overview.md) — ground-vehicle reinforcement
+- `convoy-nouns.md` — ground-vehicle reinforcement
   for the battle layer.
 - See also: [architecture](architecture.md), [mechanics](mechanics.md),
   [themes](themes.md), [loot](loot/overview.md),

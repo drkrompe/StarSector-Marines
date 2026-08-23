@@ -1275,7 +1275,7 @@ public final class BattleSetup {
         }
         // Coarse road-graph corridor only — no spawn-time HA* refine, no
         // synthetic per-waypoint headings. The VehicleController's rolling
-        // local planner rounds corners on the fly (navigation-rework/overview.md).
+        // local planner rounds corners on the fly (see convoy-nouns.md).
         float[][] inboundCells = ConvoyPlanner.expandToWaypoints(path, entry);
 
         // Prepend an off-map staging waypoint perpendicular to the entry's

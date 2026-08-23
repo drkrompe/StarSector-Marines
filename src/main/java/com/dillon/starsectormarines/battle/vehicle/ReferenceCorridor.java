@@ -9,7 +9,7 @@ import com.dillon.starsectormarines.battle.air.AirBody;
  * {@code waypointIndex} on {@code Vehicle}.
  *
  * <p>The corridor is a <em>suggestion</em> the controller tracks, not a rail
- * the body is snapped to — see {@code navigation-rework/overview.md}. The
+ * the body is snapped to — see {@code convoy-nouns.md}. The
  * planner-facing queries ({@link #targetAhead}, {@link #offCorridorDistance})
  * exist so slices 1–2 have a stable seam to plug into; slice-0 motion only
  * uses {@link #carrot}, {@link #remainingLength} and {@link #atEnd}.
