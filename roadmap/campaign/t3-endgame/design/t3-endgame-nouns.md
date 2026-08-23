@@ -12,7 +12,7 @@ resolved civil war into a replay-safe faction transition, then—only for a
 decisive, attributed player victory—into private moral correspondence.
 
 `mechanics.md` owns rank, ambition, and the political chain vocabulary.
-`civil-war-participation.md` owns the player's choices while a civil war is
+`living-world-nouns.md` owns the player's choices while a civil war is
 open. `moral-compass.md` owns the hidden record of those choices. This feature
 owns the irreversible handoff and its epilogue, not a second political
 simulation.

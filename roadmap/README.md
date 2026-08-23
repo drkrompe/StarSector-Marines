@@ -312,8 +312,9 @@ universe over time, not retrofitted into intel slots.
    with production-shaped debug reachability and no inferred moral or cargo
    reward (`4d50805d`, `33b073bd`, `9a87c85b`, `43bd3693`). Contract the next
    living-world story before implementation.
-   The first swarm-feel correction now quarters alien HP and prefers a
-   marine-style layered top-down actor over the fallback sheet (`bccbbe16`),
+   The current swarm-feel balance uses 15 HP for generic `ALIEN` and 20 HP for
+   `SWARM_RUNNER`, while preferring a marine-style layered top-down actor over
+   the fallback sheet (`bccbbe16`),
    with generated fore-claws that alternate a foreground contact swipe
    (`20d3bcb0`). Runners now choose opportunistically between nearby marines
    and exposed evacuees, allowing soldiers to peel pressure from the objective
@@ -333,8 +334,8 @@ universe over time, not retrofitted into intel slots.
    into that body at a 100% base catch chance (`5f2c083d`). The star now spans
    25x25 cells around a fifteen-cell-inset LZ, and allied infantry apply a
    density-aware avoidance steer to hostile aliens inside five cells
-   (`c6589910`). Generic alien health remains 1.875 HP, while rescue runners
-   now carry 2.5 HP—three service pulse hits, four SMG hits, or one DMR hit.
+   (`c6589910`). Generic alien health is 15 HP, while rescue runners carry
+   20 HP—three service pulse hits, four SMG hits, or two DMR hits.
    Canonical rescue openings rise to 20/40/64 runners, and DEBUG now exposes a
    production-shaped HIGH/four-drop launch beside the retained force-scaled
    stress fights. Marine
@@ -364,8 +365,8 @@ universe over time, not retrofitted into intel slots.
    shelter and pickup footprints; contact immediately restores opportunistic
    pursuit (`100110c2`). Manual cadence and post-rebalance feel validation
    remain queued.
-   See
-   [`campaign/living-world/next-session.md`](campaign/living-world/next-session.md).
+   See `living-world-nouns.md`, `campaign-event-nouns.md`, and
+   `campaign-event-surface-acceptance.md`.
 4. **Campaign narrative follow-through** — S1 patron engagement memory through
    S5 remembered target locations are shipped (`1b950e48`, `cbfebaef`,
    `53cda364`, `03d8a24e`, `7b5367d4`). The comms officer prioritizes direct

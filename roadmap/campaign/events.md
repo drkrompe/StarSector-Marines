@@ -334,7 +334,7 @@ with this payload; evacuation accounting, zero-economy terms, and moral mapping
 do not change.
 
 The payload is shipped. LOW/MEDIUM/HIGH missions install deterministic
-12/24/40-runner rosters; incomplete placement discards the map attempt before
+20/40/64-runner rosters; incomplete placement discards the map attempt before
 it becomes player-visible. Focused runner, pressure, roster, and factory tests
 plus the full Gradle build pass. Manual playtesting remains intentionally
 deferred for this session.
@@ -352,10 +352,9 @@ so they remain reinforcement depth; debug runners also begin at least 24 cells
 from the shelter. This preserves a large opening swarm without changing
 production event balance.
 
-The first stat/art feel pass quarters both alien archetypes' HP: generic
-`ALIEN` falls from 30 to 7.5 and `SWARM_RUNNER` from 24 to 6. This deliberately
-lets marine fire delete individual bodies while roster count and implacable
-movement preserve swarm pressure. Both types now carry the same presentation-only
+The current combat balance gives generic `ALIEN` 15 HP and `SWARM_RUNNER` 20 HP.
+Service-grade fire reaches those breakpoints in three pulse hits, four SMG hits,
+or two DMR hits for a runner. Both types now carry the same presentation-only
 layered animation component as marines, with continuous facing, independent head
 look, and alternating feet; weapon layers are explicitly suppressed. Manual
 playtesting still owns roster size and post-rebalance time-to-contact (`bccbbe16`).
@@ -411,14 +410,14 @@ That dispatch exposes no hidden moral axes and creates no economic reward.
   abandoned colony with unknown threat, defector arriving with intel).
 
 The second concrete archetype is complete as **defector asylum** in
-[`living-world/complete/slice-g8-defector-asylum.md`](living-world/complete/slice-g8-defector-asylum.md).
+`campaign-event-nouns.md`.
 It is intentionally campaign-only: an already-discovered political chain
 produces a costly asylum request and a delayed buyout, forcing the player to
 keep or explicitly break a promise. This adds an honest integrity source and a
 two-stage event lifecycle without cloning the rescue battle.
 
 The third archetype is complete as **Silent Colony** in
-[`living-world/complete/slice-g9-silent-colony.md`](living-world/complete/slice-g9-silent-colony.md).
+`campaign-event-nouns.md`.
 It persists a blind expedition promise, selects one-shot live
 decivilized/abandoned/ruins sites deterministically, and reconstructs exact-cost
 choices through the registered Dead Letter. Its dedicated mission reveals a

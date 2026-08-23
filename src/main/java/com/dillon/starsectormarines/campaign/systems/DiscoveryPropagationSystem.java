@@ -17,7 +17,8 @@ import java.util.EnumSet;
  * <p>The first editor rule implements the living-world two-band discipline:
  * outcomes involving a house the player has touched are intimate; untouched
  * Tier-3+ outcomes are epic; the middle is deliberately silent. Active-chain
- * rumor rolls and relationship consequences remain later discovery layers.
+ * rumor rolls now use the same deterministic discovery pass; relationship
+ * consequences remain a later layer.
  */
 public final class DiscoveryPropagationSystem implements CampaignSystem {
 
