@@ -21,9 +21,10 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
  * zone, then closes to a short standoff from its contact while keeping every
  * installed weapon live. With no assignment it advances on the squad's known
  * contact, which gives the same behavior to attacker and defender squads.
- * The point advance is formation-leashed to nearby combat infantry or another
- * live mech: an unsupported assault mech holds and fires instead of making a
- * solo close-range charge.
+ * The point advance is formation-leashed to nearby combat infantry or a live
+ * mech of another chassis: an unsupported assault mech holds and fires instead
+ * of making a solo close-range charge. Same-chassis assault mechs cannot
+ * bootstrap one another into an unsupported push.
  *
  * <p>Mixed-role mech squads keep their existing doctrine inside the shared
  * step: LR Support delegates to overwatch and Armored Support delegates to
@@ -100,6 +101,7 @@ public final class BreachAndAssault implements Action {
             Squad candidateSquad = sim.squadOf(candidate);
             if (candidateSquad == null || candidateSquad.aliveMembers == 0
                     || type.isMech() && candidateSquad.rescuePickupMech) continue;
+            if (type.isMech() && sameMechVariant(member, candidate, sim)) continue;
 
             float dx = sim.world().x(candidate) - memberX;
             float dy = sim.world().y(candidate) - memberY;
@@ -112,6 +114,19 @@ public final class BreachAndAssault implements Action {
             }
         }
         return best;
+    }
+
+    private static boolean sameMechVariant(long first, long second,
+                                           BattleView sim) {
+        MechVariant firstVariant = mechVariant(first, sim);
+        return firstVariant != null && firstVariant == mechVariant(second, sim);
+    }
+
+    private static MechVariant mechVariant(long mech, BattleView sim) {
+        MechVariant identityVariant = sim.identity().mechVariant(mech);
+        if (identityVariant != null) return identityVariant;
+        MechLoadoutComponent loadout = sim.world().mechLoadout(mech);
+        return loadout != null ? loadout.variant : null;
     }
 
     private static boolean isCombatInfantry(UnitType type) {
