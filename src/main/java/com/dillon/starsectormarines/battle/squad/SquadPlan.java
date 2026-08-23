@@ -34,9 +34,9 @@ public final class SquadPlan {
     /**
      * One slot in the plan: an action plus the squadmates assigned to execute
      * it, partitioned by <b>role slot</b>. A step's {@code action} declares
-     * its role slots via {@link Action#roles}; the role assigner then fills
-     * each slot's candidate list with squad members ranked by that slot's
-     * scorer.
+     * its role slots via {@link Action#assignRoles}; the default implementation
+     * fills scored {@link Action#roles}, while coordinated actions may keep
+     * organizational fire teams intact.
      *
      * <p>The simple "every member does the same thing" case
      * ({@link Action}'s default role behavior) populates a single
@@ -66,7 +66,7 @@ public final class SquadPlan {
         /**
          * Looks up which slot {@code unit} fills in this step, or {@code null}
          * if it's not assigned. Linear scan over slot lists; squads cap around
-         * 8 members and slot counts cap around 4, so this is O(squad size) in
+         * 12 members and slot counts cap around 5 after consolidation, so this is O(squad size) in
          * the worst case — fine for the per-member dispatch path.
          */
         public String slotOf(long unitId) {

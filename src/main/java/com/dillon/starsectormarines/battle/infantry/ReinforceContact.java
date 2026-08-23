@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.sim.BattleView;
-import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
@@ -14,11 +13,9 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * <b>Story D — Patrol intercept.</b> A defender patrol squad that hears
- * gunfire converges on the firefight at a flanking angle relative to any
- * friendly squad already engaged, rather than walking straight toward the
- * contact. Produces a visible two-angle crossfire that forces the player
- * to reposition.
+ * <b>Fire-team fix and flank.</b> An infantry squad that has a contact beyond
+ * immediate engagement distance approaches from a flanking angle. One intact
+ * fire team maneuvers while its siblings hold the contact axis.
  *
  * <p>{@link Priority#ENGAGEMENT} — reinforcing a firefight is a combat
  * maneuver, not an objective whose completion should outrank survival. The
@@ -27,9 +24,9 @@ import java.util.List;
  * the squad goes ENGAGED and {@link EliminateEnemiesGoal} picks up the
  * actual engagement from the flanking position.
  *
- * <p>Custom-plan: computes a flanking waypoint ~90° off the garrison's
- * engagement axis and emits a single {@link FlankApproach} step. Members
- * continue toward the waypoint while taking legal shots of opportunity.
+ * <p>Custom-plan: computes a flanking waypoint ~90° off the friendly
+ * engagement axis and emits a single {@link FlankApproach} step. One team
+ * moves to the waypoint while the remaining teams hold and take legal shots.
  *
  * <p>Its engagement priority means both {@link SurviveContact} and
  * {@link RecoverFromAmbush} preempt it. A mauled patrol retreats; an exposed
@@ -59,7 +56,6 @@ public final class ReinforceContact implements Goal {
 
     @Override
     public float relevance(WorldState state, Squad squad, BattleView sim) {
-        if (squad.faction != Faction.DEFENDER) return 0f;
         if (squad.holdsFireUntilKillZone) return 0f;
         if (squad.alertLevel == SquadAlertLevel.UNAWARE) return 0f;
         if (squad.lastSeenEnemyX < 0 || squad.lastSeenEnemyY < 0) return 0f;

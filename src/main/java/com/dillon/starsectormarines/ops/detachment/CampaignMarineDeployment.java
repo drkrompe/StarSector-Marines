@@ -179,7 +179,8 @@ public final class CampaignMarineDeployment {
         if (squad == null || squad.reserve()) return null;
         return new CampaignSquadTag(squad.id(), squad.name(),
                 soldier.id().equals(squad.leaderSoldierId()),
-                strengths.getOrDefault(squad.id(), 0));
+                strengths.getOrDefault(squad.id(), 0),
+                squad.teamIndexOf(soldier.id()));
     }
 
     public static int requiredSeats(List<ShuttleAssignment> manifest, int firstAssignment) {

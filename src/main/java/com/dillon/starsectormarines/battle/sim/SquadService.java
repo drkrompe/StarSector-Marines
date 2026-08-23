@@ -46,6 +46,11 @@ public final class SquadService {
     /** The unit's squad id — a key into {@code UnitRosterService.getSquad}. Fail-loud on a non-member; gate on {@link #hasSquad}. */
     public int squadId(long id) { return entityWorld.getInt(id, components.SQUAD, BattleComponents.SQUAD_ID); }
 
+    /** Stable organizational fire-team index. */
+    public int fireTeamIndex(long id) {
+        return entityWorld.getInt(id, components.SQUAD, BattleComponents.SQUAD_FIRE_TEAM_INDEX);
+    }
+
     /**
      * Joins {@code id} to {@code squadId} — the post-spawn membership seam (the
      * deboard / setup / reinforcement paths seed it at {@code adopt} from
@@ -56,7 +61,13 @@ public final class SquadService {
      * (leaving a squad isn't a modeled operation — membership is set once at spawn).
      */
     public void assignSquad(long id, int squadId) {
+        assignSquad(id, squadId, 0);
+    }
+
+    public void assignSquad(long id, int squadId, int fireTeamIndex) {
         if (!entityWorld.has(id, components.SQUAD)) entityWorld.addComponent(id, components.SQUAD);
         entityWorld.setInt(id, components.SQUAD, BattleComponents.SQUAD_ID, squadId);
+        entityWorld.setInt(id, components.SQUAD, BattleComponents.SQUAD_FIRE_TEAM_INDEX,
+                Math.max(0, fireTeamIndex));
     }
 }
