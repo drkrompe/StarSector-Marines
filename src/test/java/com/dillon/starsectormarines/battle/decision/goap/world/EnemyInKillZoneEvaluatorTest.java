@@ -82,18 +82,15 @@ public class EnemyInKillZoneEvaluatorTest {
         squad.aliveMembers = 1;
         squad.holdsFireUntilKillZone = true;
         squad.killZoneLosTicks = SquadAlertSystem.KILL_ZONE_LOS_TICKS_THRESHOLD;
-
-        long defender = defenderAt(sim, 5, 5, squadId);
-        // Marine within kill-zone range (8 cells), LOS clear on open floor.
-        marineAt(sim, 8, 5);
+        squad._killZoneSightedThisTick = true;
 
         WorldState s = WorldStateBuilder.build(squad, sim);
         assertTrue(s.get(Predicate.ENEMY_IN_KILL_ZONE),
-                "garrison with full LOS-tick count + a visible close enemy must trip the gate");
+                "planner consumes the alert pass's published kill-zone fact without rescanning live units");
     }
 
     @Test
-    public void garrisonReadsFalseEvenWithTicksWhenNoCloseEnemyVisible() {
+    public void garrisonReadsFalseWhenCurrentAlertFactIsAbsent() {
         BattleSimulation sim = openSim();
         int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.MARINE);
         Squad squad = sim.getSquad(squadId);
@@ -101,13 +98,12 @@ public class EnemyInKillZoneEvaluatorTest {
         squad.holdsFireUntilKillZone = true;
         squad.killZoneLosTicks = SquadAlertSystem.KILL_ZONE_LOS_TICKS_THRESHOLD;
 
-        long defender = defenderAt(sim, 2, 2, squadId);
-        // Marine far beyond KILL_ZONE_RANGE_CELLS (8).
-        marineAt(sim, 14, 14);
+        defenderAt(sim, 5, 5, squadId);
+        marineAt(sim, 8, 5);
 
         WorldState s = WorldStateBuilder.build(squad, sim);
         assertFalse(s.get(Predicate.ENEMY_IN_KILL_ZONE),
-                "the gate also requires a currently-visible enemy in the kill zone — if everyone retreats out the gate closes again");
+                "a visible close enemy cannot leak through a global rescan when the alert snapshot says the kill zone is clear");
     }
 
     @Test
@@ -118,6 +114,7 @@ public class EnemyInKillZoneEvaluatorTest {
         squad.aliveMembers = 1;
         squad.holdsFireUntilKillZone = true;
         squad.killZoneLosTicks = 1; // one tick, not enough
+        squad._killZoneSightedThisTick = true;
 
         long defender = defenderAt(sim, 5, 5, squadId);
         marineAt(sim, 8, 5);

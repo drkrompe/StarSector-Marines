@@ -72,6 +72,15 @@ public interface BattleView {
      */
     long liveUnitAt(int index);
 
+    /** Number of live members in one squad's primitive member slice. */
+    int squadMemberCount(int squadId);
+
+    /**
+     * Live member id at {@code [0, squadMemberCount(squadId))}. Member order
+     * follows spawn order and remains stable when another member is released.
+     */
+    long squadMemberAt(int squadId, int index);
+
     /** Per-cell unit count, indexed by {@link NavigationGrid#index(int, int)}. */
     byte[] getOccupancyMap();
 

@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.infantry.GoapInfantryBehavior;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.SeparationSystem;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -45,6 +46,28 @@ class SwarmPressureBehaviorTest {
                     Paths.cellX(path, i), Paths.cellY(path, i)),
                     "roaming must preserve the shelter and pickup opening space");
         }
+    }
+
+    @Test
+    void enclosedTargetlessRunnerDoesNotMultiplyFailedPathSearches() {
+        BattleSimulation sim = simulation(24, 20);
+        long runner = runner(sim, 12, 10);
+        for (int y = 9; y <= 11; y++) {
+            for (int x = 11; x <= 13; x++) {
+                if (x != 12 || y != 10) sim.getGrid().setWalkable(x, y, false);
+            }
+        }
+        TickInnerProfile profile = new TickInnerProfile();
+        TickInnerProfile.setCurrent(profile);
+        try {
+            SwarmPressureBehavior.INSTANCE.update(runner, sim);
+        } finally {
+            TickInnerProfile.setCurrent(null);
+        }
+
+        assertTrue(profile.countOf(TickInnerProfile.Bucket.PATHFIND) <= 1,
+                "one roam decision may perform at most one A* search");
+        assertTrue(Paths.isEmpty(sim.movement().path(runner)));
     }
 
     @Test

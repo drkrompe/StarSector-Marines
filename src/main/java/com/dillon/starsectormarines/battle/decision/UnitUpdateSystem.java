@@ -135,20 +135,28 @@ public final class UnitUpdateSystem {
      */
     private void updateUnit(long u, BattleSimulation sim) {
         long t0 = System.nanoTime();
+        UnitBehavior behavior;
         TickInnerProfile.Bucket bucket;
         if (sim.world().hasAiState(u) && sim.world().fallbackTimer(u) > 0f) {
-            FallbackBehavior.INSTANCE.update(u, sim);
+            behavior = FallbackBehavior.INSTANCE;
             bucket = TickInnerProfile.Bucket.BEHAVIOR_FALLBACK;
         } else {
             UnitRole role = sim.role().role(u);
-            behaviorFor(role).update(u, sim);
+            behavior = behaviorFor(role);
             bucket = innerBucketForRole(role);
+        }
+        TickInnerProfile profile = TickInnerProfile.current();
+        profile.enterBehavior(bucket);
+        try {
+            behavior.update(u, sim);
+        } finally {
+            profile.exitBehavior();
+            profile.record(bucket, System.nanoTime() - t0);
         }
         // Route through TickInnerProfile.current() so workers in the parallel
         // dispatch write to their per-thread profile (ThreadLocal auto-init),
         // not directly to the canonical sim instance. mergeAllInto folds the
         // per-worker recordings into the canonical at the end of the tick.
-        TickInnerProfile.current().record(bucket, System.nanoTime() - t0);
     }
 
     /**
@@ -182,7 +190,7 @@ public final class UnitUpdateSystem {
      * behavior classes. Default falls into {@code BEHAVIOR_COMBATANT}
      * because {@code behaviorFor} also defaults to {@link CombatantBehavior}.
      */
-    private static TickInnerProfile.Bucket innerBucketForRole(UnitRole role) {
+    static TickInnerProfile.Bucket innerBucketForRole(UnitRole role) {
         switch (role) {
             case KIT_RETRIEVER: return TickInnerProfile.Bucket.BEHAVIOR_KIT_RETRIEVER;
             case FLEE:          return TickInnerProfile.Bucket.BEHAVIOR_FLEE;
@@ -190,7 +198,7 @@ public final class UnitUpdateSystem {
             case STRUCTURE:     return TickInnerProfile.Bucket.BEHAVIOR_STRUCTURE;
             case DRONE_HUB:     return TickInnerProfile.Bucket.BEHAVIOR_DRONE_HUB;
             case DRONE_PATROL:  return TickInnerProfile.Bucket.BEHAVIOR_GOAP_DRONE;
-            case SWARM_PRESSURE:return TickInnerProfile.Bucket.BEHAVIOR_COMBATANT;
+            case SWARM_PRESSURE:return TickInnerProfile.Bucket.BEHAVIOR_SWARM_PRESSURE;
             default:            return TickInnerProfile.Bucket.BEHAVIOR_COMBATANT;
         }
     }
