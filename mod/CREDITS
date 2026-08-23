@@ -11,6 +11,20 @@ Terrain Textures
   Modifications: Wrap-aware FFmpeg downsample from 4096x4096 to 52x52;
                  packed into the nature atlas with a 2px wrapped guard band.
 
+"80+ Realistic Desert Environment Textures" by Game Buffs
+  Material adapted:
+    Beach_Sand_Dry_1_Albedo.png (outdoor sand)
+  Source: Purchased Game Buffs / Unity Asset Store package
+  Modifications: Wrap-aware FFmpeg downsample from 4096x4096 to 14x14;
+                 packed into the floor atlas with a 1px wrapped guard band.
+
+"70+ Realistic Mountain Environment Textures" by Game Buffs
+  Material adapted:
+    Gravel_11_Albedo.png (outdoor stone)
+  Source: Purchased Game Buffs / Unity Asset Store package
+  Modifications: Wrap-aware FFmpeg downsample from 4096x4096 to 14x14;
+                 packed into the floor atlas with a 1px wrapped guard band.
+
 Music
 -----
 "Interstellar EDM/Metal Music Pack" by David KBD
