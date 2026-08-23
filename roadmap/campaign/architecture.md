@@ -112,8 +112,8 @@ transitively, the indices remain valid across save/load.
 - [`contracts/overview.md`](contracts/overview.md) — contract resolution
   writes to `STAKES`, `HOUSES` (promotion progress), `PLAYER_REP`.
   Landed as `ContractLifecycleSystem`.
-- [`infrastructure/overview.md`](infrastructure/overview.md) — buildings
-  modulate `housePower` / default-rate math. Probably a passive modifier
-  table read by multiple systems.
+- `infrastructure-nouns.md` — future location-bound investments expose
+  passive modifiers to owning policy systems without inflating political
+  `housePower`.
 - `t3-endgame-nouns.md` — the only System
   allowed to write back to vanilla state.

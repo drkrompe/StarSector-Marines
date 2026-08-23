@@ -1,8 +1,8 @@
 # Progression nouns
 
-Status: ACTIVE — 13 open stories
+Status: ACTIVE — 12 open stories; infantry armor is aligning with combat durability
 Written: 2026-08-23
-Updated: 2026-08-23 — shipped faction-neutral smoke utility, crossing plans, and campaign issue.
+Updated: 2026-08-23 — shipped faction-neutral smoke utility and aligned issued armor with the combat-durability contract.
 
 ## Purpose
 
@@ -99,6 +99,11 @@ two-currency split, recipe recovery, and full asset reachability are planned.
 Armor patterns are authored player kit with distinct defensive and mobility
 tradeoffs. Some authored patterns are not presently reachable by the live
 unlock ladder; their existence is not evidence of a shipped acquisition path.
+The pattern owns the deployed armor pool, rating, movement modifier, and
+incoming-accuracy tradeoff; `combat-durability-nouns.md` owns how battle damage
+removes that armor and exposed structure. The current bonus-HP and permanent
+damage-reduction representation is transitional until
+`d1-armor-structure-foundation.md` ships.
 
 Each billet has at most one special-equipment slot. The item is a stable
 loadout identity with a typed activation: weapon-like specials reference the
@@ -216,6 +221,9 @@ The following are direction, not current behavior:
 - Give only traits with an observable, domain-appropriate consequence a
   mechanic, and define a deliberate acquisition model before promising
   level-up rewards.
+- Replace infantry armor's bonus-health and permanent-reduction proxy with the
+  armor pool and rating supplied to `combat-durability-nouns.md`; keep armor
+  acquisition and loadout authority here.
 
 ## Invariants for future work
 
@@ -233,7 +241,8 @@ The following are direction, not current behavior:
 - All combat telemetry may inform balance; only identity-bound campaign rows
   may affect campaign careers or rewards.
 - Attribution measures resolved outcomes, not requested damage or visual
-  effects.
+  effects. Resolved armor and structure loss may be reported separately while
+  remaining one aggregate career contribution.
 - Persistent experience is awarded from a frozen campaign outcome; battle-local
   state must not become a second progression authority.
 - Presentation conveys existing quality but never changes sim state.

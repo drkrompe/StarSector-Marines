@@ -142,6 +142,14 @@ universe over time, not retrofitted into intel slots.
   (`4e7089d0`), propagate through fine-connectivity-aware 8×8 tactical blocks,
   and expose four read-only debug heatmaps. No commander assignments consume
   the fields yet.
+- **Combat durability** *(implementation starting)* — a real armor pool now has
+  a contracted place in front of structure, with weapon penetration replacing
+  target-type hardened multipliers. The model separates mech endurance from
+  weapon effectiveness, preserves cover and wall boundaries, and provides one
+  armor-break transition for AI, morale, telemetry, and presentation. D1 is
+  the active foundation slice; decision, evidence/UI, and measured balance
+  follow-ons are planned. See `combat-durability-nouns.md` and its adjacent
+  open-story board.
 - **Progression** *(in progress)* — a cross-tier track covering the
   meta-progression axes: weapon lethality and equipment tiering, earned
   per-soldier experience, the fabrication parts economy, and the legibility
@@ -365,8 +373,8 @@ universe over time, not retrofitted into intel slots.
    measured same-market engagement; selected history variants can now name the
    prior operation's frozen target location. Contract the next narrative story
    before adding patron evolution, captain observations, or longer-form
-   continuity. See
-   [`campaign/narrative/next-session.md`](campaign/narrative/next-session.md).
+   continuity. See `narrative-nouns.md` and
+   `narrative-live-acceptance.md`.
 5. **Command Powers S8 acceptance** — use the shipped canonical briefing to
    hold back individual source ships, verify cards disappear and return, deploy
    a mixed deck, and confirm that the battle receives exactly the selected

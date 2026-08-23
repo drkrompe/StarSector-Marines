@@ -29,7 +29,7 @@ is new.
 | Layer | What it is | Status |
 | --- | --- | --- |
 | **Flavor** | The *value system* — what this culture thinks is worth wanting. Corporate = growth (the legitimate psychopaths); Feudal = honor / legitimacy / bloodline; Underworld = territory / respect; Sectarian = purity / conversion. | Exists ([`../themes.md`](../themes.md)); today just a nameset |
-| **Archetype** | The house's *situation*. FALLEN_NOBLE wants restoration; ESTABLISHED wants to *preserve* (a satisfied actor); SUSPICIOUS is the pure opportunist; TIME_RUSHED is cornered. | Exists ([`../narrative/overview.md`](../narrative/overview.md)) as **narrative-only** — promote to a behavioral driver |
+| **Archetype** | The house's *situation*. FALLEN_NOBLE wants restoration; ESTABLISHED wants to *preserve* (a satisfied actor); SUSPICIOUS is the pure opportunist; TIME_RUSHED is cornered. | Exists (`narrative-nouns.md`) as **narrative-only** — promote to a behavioral driver |
 | **Traits** | CK3-style disposition tags that bias *choices*. A house carries 1–2. The new layer. | New — extends the narrative doc's "modifier traits (SPITEFUL/RESIGNED/DELUSIONAL)" from flavor-text to behavior |
 
 One byte does double duty: the same trait that shapes how the comms
@@ -155,7 +155,8 @@ Texture that falls out:
 - **A reason to scout.** Low-commitment contracts (and the Cadre type,
   high political access) become a way to *feel out* a patron before a big
   commitment. The `SCOUT` captain trait and intel
-  [`../infrastructure/`](../infrastructure/overview.md) speed the reveal.
+  future intelligence investment described by `infrastructure-nouns.md` may
+  speed the reveal.
 - **Discipline guard:** marks represent *earned knowledge and
   relationship*, not raw stats. No completionist trait-grid to optimize
   against; the satisfaction is "I know these people now," not "I collected
@@ -244,7 +245,7 @@ character. Decision pending.
 ## Related
 
 - [overview.md](overview.md) — the two-tempo engine traits drive.
-- [`../narrative/overview.md`](../narrative/overview.md) — the modifier-trait
+- `narrative-nouns.md` — the modifier-trait
   axis this promotes to behavior; the comms-officer discovery narrator.
 - [`../mechanics.md`](../mechanics.md) — `houseAmbition` / `relationships[]`
   / rank-visibility this builds on.

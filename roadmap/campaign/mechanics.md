@@ -73,7 +73,7 @@ status              byte      // ACTIVE / DORMANT / HIDDEN_PRETENDER / DEPOSED
 archetype           byte      // TIME_RUSHED / FALLEN_NOBLE / TRUE_BELIEVER /
                               // ESTABLISHED / SUSPICIOUS / NEWCOMER — patron
                               // content-axis; drives briefing register
-                              // (see narrative/overview.md). May shift on state events.
+                              // (see narrative-nouns.md). May shift on state events.
 ambitionType        byte      // CONSOLIDATE_STAKE / DISPLACE_RIVAL /
                               // PROMOTE / CLAIM_THRONE / etc.
 ambitionTargetId    long      // stake / industry / rival house id
@@ -371,11 +371,10 @@ status quo paying. Both are valid, both have rep consequences.
 - [`contracts/overview.md`](contracts/overview.md) — contract-type
   specifications, how each rank-tier maps to which contracts appear,
   salvage/payment/time terms.
-- [`infrastructure/overview.md`](infrastructure/overview.md) —
-  per-planet and per-region buildings, their in-game effects on the
-  data model (stake influence, garrison default rate reduction).
+- `infrastructure-nouns.md` — future location-bound investments and their
+  bounded modifier seam; political stake power remains separate.
 - `t3-endgame-nouns.md` — Tier-4 promotion
   attempts: vanilla faction flip, splinter faction creation, market
   ownership change. Where this doc crosses into vanilla state.
-- [`narrative/overview.md`](narrative/overview.md) — hidden heirs, story
+- `narrative-nouns.md` — hidden heirs, story
   missions, scripted character arcs that layer onto the procedural graph.
