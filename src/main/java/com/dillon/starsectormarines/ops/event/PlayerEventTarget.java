@@ -21,11 +21,15 @@ public final class PlayerEventTarget {
     private PlayerEventTarget() {}
 
     public static MarketAPI market(PlayerEventNotice notice) {
-        if (notice == null) return null;
+        return notice == null ? null : market(notice.marketId);
+    }
+
+    /** Resolves a market registry slot directly, for callers that hold a row rather than a notice. */
+    public static MarketAPI market(int marketSlot) {
         CampaignStateScript script = CampaignStateScript.getInstance();
-        if (script == null) return null;
+        if (script == null || marketSlot < 0) return null;
         CampaignState state = script.state();
-        String marketId = state.marketRegistry.get(notice.marketId);
+        String marketId = state.marketRegistry.get(marketSlot);
         SectorAPI sector = Global.getSector();
         if (marketId == null || sector == null || sector.getEconomy() == null) return null;
         return sector.getEconomy().getMarket(marketId);
@@ -43,7 +47,11 @@ public final class PlayerEventTarget {
     }
 
     public static String displayName(PlayerEventNotice notice) {
-        MarketAPI market = market(notice);
+        return notice == null ? null : displayName(notice.marketId);
+    }
+
+    public static String displayName(int marketSlot) {
+        MarketAPI market = market(marketSlot);
         return market != null ? market.getName() : null;
     }
 }
