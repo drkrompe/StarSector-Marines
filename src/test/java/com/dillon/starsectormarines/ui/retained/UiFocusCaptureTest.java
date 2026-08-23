@@ -165,6 +165,25 @@ class UiFocusCaptureTest {
         assertEquals(37f, button.scrollTop());
     }
 
+    @Test
+    void detachingAnActiveElementClearsFocusCaptureAndArmedStateOnNextInput() {
+        UiElement button = button("button", () -> { })
+                .onPointerDown(UiPointerEvent::capturePointer);
+        UiElement root = new UiElement("root").child(button);
+        UiDocument document = document(root);
+        document.pointerDown(50f, 20f);
+        assertSame(button, document.pointerCapture());
+        assertTrue(button.armed());
+
+        root.remove(button);
+        document.pointerMoved(70f, 70f);
+
+        assertNull(document.focusedElement());
+        assertNull(document.pointerCapture());
+        assertFalse(button.armed());
+        assertFalse(button.hovered());
+    }
+
     private static UiElement button(String id, Runnable click) {
         return new UiElement(id)
                 .tag(UiTag.BUTTON)

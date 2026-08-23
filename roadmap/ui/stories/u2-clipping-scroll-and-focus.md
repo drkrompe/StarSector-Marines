@@ -1,8 +1,8 @@
 # U2 — Clipping, scrolling, focus, and canvas input
 
-Status: IN PROGRESS — clipping, scrolling, focus, and pointer capture implemented; canvas remains
+Status: IN PROGRESS — implementation complete; live workbench acceptance remains
 Written: 2026-08-23
-Updated: 2026-08-23 — added semantic Starsector input translation, document focus actions, and explicit pointer capture.
+Updated: 2026-08-23 — completed the canvas registry, surface mapping, clipped producer context, and captured workbench drag.
 
 Read `ui-nouns.md` and `ui-toolkit.md` first. Depends on U1.
 
@@ -83,6 +83,27 @@ screen can be retired.
   focus, armed keys, pressed buttons, and capture while preserving retained scroll.
 - Headless tests cover traversal/wrapping, focus eligibility, Enter/Space/Escape,
   nearest-focusable pointer targeting, captured outside delivery/click, and detach.
+
+## Implemented slice — procedural canvas
+
+- `CANVAS` elements carry an independent drawing-surface size, defaulting to HTML's
+  300 × 150, while retained layout owns the rendered content box. An otherwise
+  auto-sized canvas uses that surface as its intrinsic size.
+- `CanvasMetrics` is the single forward/inverse mapping between surface units and
+  document pixels. UI scale does not enter point conversion; device-pixel ratio is
+  carried separately only for physical-resolution decisions.
+- A document-owned `CanvasRegistry` wires attached canvas identity to one Java
+  `CanvasProducer`, supports replacement/clear, and exposes explicit invalidation.
+  The current backend still repaints the full document, as the design permits.
+- The fixed-function `CanvasContext` offers clipped canvas-local rectangles, lines,
+  and bitmap text without exposing raw OpenGL. Producers receive their visible
+  surface bounds after ancestor/content-box clip intersection.
+- The workbench's refit pane now contains a procedural transaction flow. Its issue
+  marker maps pointer input back through `CanvasMetrics`, captures during a drag,
+  clamps legitimately out-of-surface samples, and releases outside the canvas.
+- Headless tests cover intrinsic size, 1:1/stretched/anisotropic and scale-invariant
+  mappings, collapsed surfaces, visible bounds, content-box authority, and registry
+  attachment/replacement/invalidation lifetime.
 
 ## Acceptance
 

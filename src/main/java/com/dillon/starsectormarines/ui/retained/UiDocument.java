@@ -16,6 +16,7 @@ public final class UiDocument {
     private final UiElement root;
     private final UiLayoutEngine layout = new UiLayoutEngine();
     private final UiPainter painter = new UiPainter();
+    private final CanvasRegistry canvases = new CanvasRegistry(this);
     private Rect viewport = Rect.EMPTY;
     private List<UiElement> hovered = List.of();
     private UiElement pressed;
@@ -36,16 +37,30 @@ public final class UiDocument {
         return root;
     }
 
+    public CanvasRegistry canvases() {
+        return canvases;
+    }
+
+    public CanvasMetrics canvasMetrics(UiElement canvas, float devicePixelRatio) {
+        if (!containsElement(canvas)) {
+            throw new IllegalArgumentException("Canvas must belong to this document");
+        }
+        return CanvasMetrics.of(canvas, canvas.box(), devicePixelRatio);
+    }
+
     public void layout(float width, float height) {
+        validateInteractionReferences();
         viewport = new Rect(0f, 0f, Math.max(0f, width), Math.max(0f, height));
         layout.layout(root, viewport.width(), viewport.height());
+        canvases.prune();
     }
 
     public void render(UiViewport viewport, float alphaMult) {
-        painter.paint(root, viewport, alphaMult);
+        painter.paint(root, viewport, alphaMult, canvases);
     }
 
     public void pointerMoved(float x, float y) {
+        validateInteractionReferences();
         rememberPointer(x, y);
         UiElement target = pointerCapture != null ? pointerCapture : elementAt(x, y);
         updateHover(target);
@@ -57,6 +72,7 @@ public final class UiDocument {
     }
 
     public boolean pointerDown(float x, float y, PointerButton button) {
+        validateInteractionReferences();
         rememberPointer(x, y);
         UiElement target = pointerCapture != null ? pointerCapture : elementAt(x, y);
         updateHover(target);
@@ -77,6 +93,7 @@ public final class UiDocument {
     }
 
     public boolean pointerUp(float x, float y, PointerButton button) {
+        validateInteractionReferences();
         rememberPointer(x, y);
         UiElement captureAtRelease = pointerCapture;
         UiElement target = captureAtRelease != null ? captureAtRelease : elementAt(x, y);
@@ -149,6 +166,7 @@ public final class UiDocument {
     }
 
     public boolean keyPressed(UiKey key, Set<KeyModifier> modifiers, boolean repeat) {
+        validateInteractionReferences();
         Set<KeyModifier> held = modifiers == null ? Set.of() : modifiers;
         if (key == UiKey.TAB && onlyShift(held)) {
             return moveFocus(held.contains(KeyModifier.SHIFT));
@@ -173,6 +191,7 @@ public final class UiDocument {
     }
 
     public boolean keyReleased(UiKey key, Set<KeyModifier> modifiers) {
+        validateInteractionReferences();
         if (key != UiKey.SPACE || spaceArmed == null) return false;
         UiElement armed = spaceArmed;
         spaceArmed = null;
@@ -188,6 +207,7 @@ public final class UiDocument {
      * so the host cannot also act on the same notch.
      */
     public boolean pointerScrolled(float x, float y, float deltaY) {
+        validateInteractionReferences();
         if (deltaY == 0f) return false;
         rememberPointer(x, y);
         boolean overScrollSurface = false;
@@ -320,6 +340,10 @@ public final class UiDocument {
         return false;
     }
 
+    boolean containsElement(UiElement element) {
+        return element != null && attached(element);
+    }
+
     private static boolean isAncestor(UiElement ancestor, UiElement element) {
         for (UiElement candidate = element.parent(); candidate != null; candidate = candidate.parent()) {
             if (candidate == ancestor) return true;
@@ -330,6 +354,31 @@ public final class UiDocument {
     private static boolean onlyShift(Set<KeyModifier> modifiers) {
         return modifiers.isEmpty()
                 || modifiers.size() == 1 && modifiers.contains(KeyModifier.SHIFT);
+    }
+
+    private void validateInteractionReferences() {
+        if (focused != null && (!attached(focused) || !focused.focusable())) {
+            requestFocus(null, false);
+        }
+        if (spaceArmed != null && (!attached(spaceArmed) || !spaceArmed.clickable())) {
+            cancelSpaceAction();
+        }
+        if (pressed != null && (!attached(pressed) || !pressed.clickable())) {
+            pressed.armed(false);
+            pressed = null;
+        }
+        if (pointerCapture != null && !attached(pointerCapture)) {
+            pointerCapture = null;
+            updateHover(pointerKnown ? elementAt(pointerX, pointerY) : null);
+        }
+        boolean staleHover = false;
+        for (UiElement element : hovered) {
+            if (!attached(element)) {
+                staleHover = true;
+                break;
+            }
+        }
+        if (staleHover) updateHover(pointerKnown ? elementAt(pointerX, pointerY) : null);
     }
 
     private enum PointerPhase {

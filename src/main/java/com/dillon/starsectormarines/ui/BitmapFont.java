@@ -92,12 +92,22 @@ public class BitmapFont {
 
     /** Top-edge y in screen GL coords; renders left-to-right from (x, y). */
     public void drawString(String s, float x, float y, Color color, float alphaMult) {
+        drawStringScaled(s, x, y, 1f, 1f, color, alphaMult);
+    }
+
+    /** Draws one line with independent screen-space glyph scaling on each axis. */
+    public void drawStringScaled(String s, float x, float y, float scaleX, float scaleY,
+                                 Color color, float alphaMult) {
         if (!ensureLoaded()) return;
         if (s == null || s.isEmpty()) return;
+        if (!Float.isFinite(scaleX) || !Float.isFinite(scaleY)
+                || scaleX <= 0f || scaleY <= 0f) {
+            throw new IllegalArgumentException("Font scale must be finite and positive");
+        }
 
         beginTextDraw(color, alphaMult);
         glBegin(GL_QUADS);
-        emitLineQuads(s, x, y);
+        emitLineQuads(s, x, y, scaleX, scaleY);
         glEnd();
         endTextDraw();
     }
@@ -198,6 +208,11 @@ public class BitmapFont {
 
     /** Emits textured quads for one line. Caller must wrap with glBegin/glEnd(GL_QUADS). */
     private void emitLineQuads(String s, float x, float y) {
+        emitLineQuads(s, x, y, 1f, 1f);
+    }
+
+    private void emitLineQuads(String s, float x, float y, float drawScaleX,
+                               float drawScaleY) {
         if (s == null || s.isEmpty()) return;
         float texU = page.getTextureWidth();
         float texV = page.getTextureHeight();
@@ -207,10 +222,10 @@ public class BitmapFont {
             Glyph g = glyphs.get((int) s.charAt(i));
             if (g == null) continue;
             if (g.w > 0 && g.h > 0) {
-                float qx0 = cursorX + g.xoffset;
-                float qy0 = y - g.yoffset;
-                float qx1 = qx0 + g.w;
-                float qy1 = qy0 - g.h;
+                float qx0 = x + (cursorX - x + g.xoffset) * drawScaleX;
+                float qy0 = y - g.yoffset * drawScaleY;
+                float qx1 = qx0 + g.w * drawScaleX;
+                float qy1 = qy0 - g.h * drawScaleY;
 
                 float u0 = ((float) g.x         / scaleW) * texU;
                 float u1 = ((float)(g.x + g.w)  / scaleW) * texU;
