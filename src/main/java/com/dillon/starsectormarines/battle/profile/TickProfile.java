@@ -49,6 +49,7 @@ public final class TickProfile {
         FIRING,
         INFANTRY_TICK,
         HEAVY_TICK,
+        SATCHELS,
         PROJECTILES,
         DETONATIONS,
         APPLY_DAMAGE,

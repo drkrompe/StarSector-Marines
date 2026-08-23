@@ -33,6 +33,8 @@ public enum RenderLayer {
     FOG,
     /** Turret bodies → hub bodies → dead → live infantry → HP bars (bars last = on top). */
     UNITS,
+    /** Armed demolition packs and their known blast footprints. */
+    HAZARDS,
     /** Simulation-owned smoke clouds. Above units so opacity reads honestly. */
     SMOKE,
     /** Opaque roof tiles over interiors the player can't see — above units (hides

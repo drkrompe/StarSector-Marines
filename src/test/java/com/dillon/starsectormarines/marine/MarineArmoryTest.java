@@ -164,6 +164,27 @@ class MarineArmoryTest {
     }
 
     @Test
+    void breachTemplateIssuesAReusableKitWithAStableIdentity() throws Exception {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(MarineSquad.TEAM_SIZE);
+        MarineSquad squad = roster.squads().get(0);
+        assertEquals(2, roster.armory().ownedSecondary(MarineSecondary.SATCHEL_CHARGE));
+
+        assertEquals(FireTeamTemplateResult.APPLIED,
+                roster.applyFireTeamTemplate(squad.id(), 0,
+                        FireTeamTemplateCards.BREACH_ID));
+        MarineSoldier carrier = roster.soldierById(squad.teamMembers(0).get(1));
+        assertEquals(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID,
+                carrier.specialEquipmentId());
+
+        MarineRoster loaded = roundTrip(roster);
+        MarineSoldier persisted = loaded.soldierById(carrier.id());
+        assertEquals(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID,
+                persisted.specialEquipmentId());
+        assertEquals(MarineSecondary.SATCHEL_CHARGE, persisted.secondary());
+    }
+
+    @Test
     void reusableCardCannotBeOverAssignedPastFiniteStock() {
         MarineRoster roster = new MarineRoster();
         roster.ensureActiveSoldiers(2 * MarineSquad.TEAM_SIZE);
@@ -470,7 +491,7 @@ class MarineArmoryTest {
         assertEquals(EquipmentGrade.MASTERWORK, persisted.billet(0).grade());
         assertEquals(MarineSecondary.ROCKET_LAUNCHER, persisted.billet(0).secondary());
         assertEquals(MarineArmorPattern.RED_ELITE, persisted.billet(0).armor());
-        assertEquals(7, loaded.templateCards().size(),
+        assertEquals(8, loaded.templateCards().size(),
                 "readResolve restores missing starters without duplicating existing ones");
     }
 

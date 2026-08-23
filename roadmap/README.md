@@ -170,9 +170,9 @@ universe over time, not retrofitted into intel slots.
   `SoldierCareer` of lifetime missions, rounds, damage, kills and wounds.
   That table is the balance artifact S1's tuning was argued without, and the
   career record is what lets S4 make experience earned rather than issued.
-  S2 separates primary breadth from special-equipment stories. AMR and smoke
-  are shipped, while satchels and the retained frag grenade remain contracted
-  with their gameplay-AI use and counterplay;
+  S2 separates primary breadth from special-equipment stories. AMR, smoke, and
+  reusable contact-demolition satchels are shipped, while the retained frag
+  grenade remains contracted with its gameplay-AI use and counterplay;
   S4-S10 remain, S1's own last acceptance item is an in-game feel pass, and the
   synthesis found one proposed XP-authority cleanup. See
   `progression-nouns.md`; its adjacent board is the open-work list.
