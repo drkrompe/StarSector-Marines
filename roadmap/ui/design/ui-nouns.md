@@ -6,7 +6,7 @@ Written: 2026-08-23
 
 Updated: 2026-08-24 — folded the retained-toolkit direction into this sole
 canonical model, including responsive grids, backend-neutral canvas evidence,
-and safe offline layer-authoring history.
+and safe clip-based offline layer authoring.
 
 ## Purpose
 
@@ -221,10 +221,14 @@ headless sink resolves the same tokens to source PNGs in a controlled Java2D con
 Both therefore exercise one layout, pose, occlusion, and actor-composition recipe.
 
 Layered character authoring is a separate desktop concern rather than another game
-screen. A unit-layer document describes frames as ordered sprite layers in normalized
-actor coordinates, including source path, offset, independent scale, angle, pivot,
-visibility, and duration. The authoring workbench edits that contract, plays its frame
-sequence, and renders combined PNG sheets in a controlled Java2D context. Live render
+screen. A unit-layer document separates a unit's equipment variants from its named
+animation clips, so playback cannot accidentally treat a loadout change as motion.
+Each clip owns ordered keyframes of sprite layers in normalized actor coordinates,
+including source path, offset, independent scale, angle, pivot, visibility, and
+transition duration. Playback smoothsteps matching layer transforms, including the
+independent scale used by an articulated mech thigh stretching toward its foot. The
+authoring workbench edits that contract, plays one selected clip, and renders combined
+PNG sheets in a controlled Java2D context. Live render
 adapters remain responsible for consuming the same contract. The editor keeps bounded
 whole-document undo/redo history, while JSON and image overwrites require explicit
 confirmation; the tool never reaches

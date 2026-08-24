@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.tools.layerauthoring;
 
+import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.AnimationDefinition;
+import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.AppearanceVariant;
 import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.FrameDefinition;
 import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.LayerDefinition;
 import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.UnitComposition;
@@ -83,8 +85,16 @@ public final class CompositionRenderer {
     }
 
     public BufferedImage renderSheet(UnitComposition unit, int cellWidth, int cellHeight) {
-        int columns = Math.max(1, (int) Math.ceil(Math.sqrt(unit.frames().size())));
-        int rows = (unit.frames().size() + columns - 1) / columns;
+        List<SheetFrame> frames = new ArrayList<>();
+        for (AppearanceVariant variant : unit.variants()) {
+            for (AnimationDefinition animation : variant.animations()) {
+                for (FrameDefinition frame : animation.frames()) {
+                    frames.add(new SheetFrame(variant, animation, frame));
+                }
+            }
+        }
+        int columns = Math.max(1, (int) Math.ceil(Math.sqrt(frames.size())));
+        int rows = (frames.size() + columns - 1) / columns;
         int labelHeight = 30;
         BufferedImage sheet = new BufferedImage(columns * cellWidth,
                 rows * (cellHeight + labelHeight), BufferedImage.TYPE_INT_ARGB);
@@ -93,12 +103,14 @@ public final class CompositionRenderer {
         graphics.setColor(new Color(0x05, 0x09, 0x0E));
         graphics.fillRect(0, 0, sheet.getWidth(), sheet.getHeight());
         graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
-        for (int index = 0; index < unit.frames().size(); index++) {
-            FrameDefinition frame = unit.frames().get(index);
+        for (int index = 0; index < frames.size(); index++) {
+            SheetFrame item = frames.get(index);
+            FrameDefinition frame = item.frame();
             int x = index % columns * cellWidth;
             int y = index / columns * (cellHeight + labelHeight);
             graphics.setColor(new Color(0xD9, 0xE8, 0xF1));
-            graphics.drawString(frame.label() + "  ·  " + frame.durationMs() + " ms",
+            graphics.drawString(item.variant().label() + " / " + item.animation().label()
+                            + " / " + frame.label() + "  ·  " + frame.durationMs() + " ms",
                     x + 10, y + 20);
             BufferedImage cell = renderFrame(unit, frame, cellWidth, cellHeight,
                     null, false);
@@ -106,6 +118,45 @@ public final class CompositionRenderer {
         }
         graphics.dispose();
         return sheet;
+    }
+
+    /** Samples one keyframe transition using smooth transform interpolation. */
+    public FrameDefinition sample(AnimationDefinition animation, int frameIndex,
+                                  double progress) {
+        if (animation.frames().isEmpty()) {
+            throw new IllegalArgumentException("Animation has no keyframes");
+        }
+        int currentIndex = Math.max(0, Math.min(frameIndex,
+                animation.frames().size() - 1));
+        FrameDefinition current = animation.frames().get(currentIndex);
+        int nextIndex = currentIndex + 1;
+        if (nextIndex >= animation.frames().size()) {
+            if (!animation.loop() || animation.frames().size() == 1) return current;
+            nextIndex = 0;
+        }
+        FrameDefinition next = animation.frames().get(nextIndex);
+        double t = smoothstep(Math.max(0.0, Math.min(1.0, progress)));
+        Map<String, LayerDefinition> nextLayers = new LinkedHashMap<>();
+        for (LayerDefinition layer : next.layers()) nextLayers.put(layer.id(), layer);
+        List<LayerDefinition> sampled = new ArrayList<>();
+        for (LayerDefinition from : current.layers()) {
+            LayerDefinition to = nextLayers.get(from.id());
+            LayerDefinition layer = from.copy();
+            if (to != null && from.spritePath().equals(to.spritePath())) {
+                layer.offset(lerp(from.offsetX(), to.offsetX(), t),
+                        lerp(from.offsetY(), to.offsetY(), t));
+                layer.scale(lerp(from.scaleX(), to.scaleX(), t),
+                        lerp(from.scaleY(), to.scaleY(), t));
+                layer.angleDegrees(interpolateAngle(from.angleDegrees(),
+                        to.angleDegrees(), t));
+                layer.pivot(lerp(from.pivotX(), to.pivotX(), t),
+                        lerp(from.pivotY(), to.pivotY(), t));
+                layer.z(t < 0.5 ? from.z() : to.z());
+                layer.visible(t < 0.5 ? from.visible() : to.visible());
+            }
+            sampled.add(layer);
+        }
+        return FrameDefinition.preview(current, sampled);
     }
 
     public static double pixelsPerUnit(int width, int height) {
@@ -172,6 +223,22 @@ public final class CompositionRenderer {
         graphics.setRenderingHint(RenderingHints.KEY_RENDERING,
                 RenderingHints.VALUE_RENDER_QUALITY);
     }
+
+    private static double lerp(double start, double end, double progress) {
+        return start + (end - start) * progress;
+    }
+
+    private static double interpolateAngle(double start, double end, double progress) {
+        double delta = (end - start + 540.0) % 360.0 - 180.0;
+        return start + delta * progress;
+    }
+
+    private static double smoothstep(double progress) {
+        return progress * progress * (3.0 - 2.0 * progress);
+    }
+
+    private record SheetFrame(AppearanceVariant variant, AnimationDefinition animation,
+                              FrameDefinition frame) { }
 
     public record RenderedLayer(LayerDefinition layer, Shape outline) {
         public boolean contains(Point point) { return outline.contains(point); }

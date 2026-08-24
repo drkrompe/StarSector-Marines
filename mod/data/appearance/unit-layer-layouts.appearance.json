@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "coordinateSystem": {
     "origin": "actor-center",
     "x": "right",
@@ -12,136 +12,226 @@
       "id": "marine-line",
       "label": "Marine — army-green line kit",
       "referencePixels": 150.0,
-      "frames": [
+      "variants": [
         {
-          "id": "carried",
-          "label": "Rifle carried",
-          "durationMs": 500,
-          "layers": [
-            { "id": "left-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [-0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
-            { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
-            { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.1867, 0.08], "scale": [1.0, 1.0], "angleDegrees": 45.0, "pivot": [0.5, 0.7449], "z": 20 },
-            { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.12], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
-            { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.0, 0.08], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
+          "id": "rifle",
+          "label": "Rifle loadout",
+          "animations": [
+            {
+              "id": "idle", "label": "Idle", "loop": true,
+              "frames": [
+                { "id": "settled", "label": "Settled", "durationMs": 500, "layers": [
+                  { "id": "left-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [-0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+                  { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+                  { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.1867, 0.08], "scale": [1.0, 1.0], "angleDegrees": 45.0, "pivot": [0.5, 0.7449], "z": 20 },
+                  { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.12], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.0, 0.08], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
+                ] }
+              ]
+            },
+            {
+              "id": "aiming", "label": "Aiming", "loop": false,
+              "frames": [
+                { "id": "carry", "label": "Carry", "durationMs": 180, "layers": [
+                  { "id": "left-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [-0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+                  { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+                  { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.1867, 0.08], "scale": [1.0, 1.0], "angleDegrees": 45.0, "pivot": [0.5, 0.7449], "z": 20 },
+                  { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.12], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.0, 0.08], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
+                ] },
+                { "id": "aimed", "label": "Aimed", "durationMs": 120, "layers": [
+                  { "id": "left-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [-0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+                  { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+                  { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.1733, 0.12], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.7449], "z": 20 },
+                  { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.12], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.0, 0.08], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
+                ] }
+              ]
+            },
+            {
+              "id": "walking", "label": "Walking", "loop": true,
+              "frames": [
+                { "id": "left-stride", "label": "Left stride", "durationMs": 220, "layers": [
+                  { "id": "left-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [-0.12, -0.17], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+                  { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.29], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+                  { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.1867, 0.08], "scale": [1.0, 1.0], "angleDegrees": 45.0, "pivot": [0.5, 0.7449], "z": 20 },
+                  { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.11], "scale": [1.0, 1.0], "angleDegrees": -1.5, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.0, 0.09], "scale": [1.0, 1.0], "angleDegrees": 1.5, "pivot": [0.5, 0.5], "z": 40 }
+                ] },
+                { "id": "right-stride", "label": "Right stride", "durationMs": 220, "layers": [
+                  { "id": "left-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [-0.12, -0.29], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+                  { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.17], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+                  { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.1867, 0.08], "scale": [1.0, 1.0], "angleDegrees": 45.0, "pivot": [0.5, 0.7449], "z": 20 },
+                  { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.13], "scale": [1.0, 1.0], "angleDegrees": 1.5, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.0, 0.07], "scale": [1.0, 1.0], "angleDegrees": -1.5, "pivot": [0.5, 0.5], "z": 40 }
+                ] }
+              ]
+            },
+            {
+              "id": "firing", "label": "Firing", "loop": false,
+              "frames": [
+                { "id": "ready", "label": "Ready", "durationMs": 65, "layers": [
+                  { "id": "left-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [-0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+                  { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+                  { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.1733, 0.12], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.7449], "z": 20 },
+                  { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.12], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.0, 0.08], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
+                ] },
+                { "id": "recoil", "label": "Recoil", "durationMs": 100, "layers": [
+                  { "id": "left-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [-0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+                  { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+                  { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.1733, 0.085], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.7449], "z": 20 },
+                  { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.145], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.0, 0.055], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
+                ] },
+                { "id": "recover", "label": "Recover", "durationMs": 100, "layers": [
+                  { "id": "left-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [-0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+                  { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+                  { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.1733, 0.12], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.7449], "z": 20 },
+                  { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.12], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.0, 0.08], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
+                ] }
+              ]
+            }
           ]
         },
         {
-          "id": "aimed",
-          "label": "Rifle aimed",
-          "durationMs": 300,
-          "layers": [
-            { "id": "left-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [-0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
-            { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
-            { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.1733, 0.12], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.7449], "z": 20 },
-            { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.12], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
-            { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.0, 0.08], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
-          ]
-        },
-        {
-          "id": "rocket",
-          "label": "Rocket launcher aimed",
-          "durationMs": 450,
-          "layers": [
-            { "id": "left-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [-0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
-            { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
-            { "id": "rocket-launcher", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rocket-launcher.png", "offset": [0.3333, 0.12], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5385], "z": 20 },
-            { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.12], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
-            { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.0, 0.08], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
+          "id": "rocket", "label": "Rocket launcher loadout",
+          "animations": [
+            {
+              "id": "aiming", "label": "Aiming", "loop": false,
+              "frames": [
+                { "id": "aimed", "label": "Launcher aimed", "durationMs": 450, "layers": [
+                  { "id": "left-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [-0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+                  { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+                  { "id": "rocket-launcher", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rocket-launcher.png", "offset": [0.3333, 0.12], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5385], "z": 20 },
+                  { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/body.png", "offset": [0.0, -0.12], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
+                  { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/army-green/head.png", "offset": [0.0, 0.08], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
+                ] }
+              ]
+            }
           ]
         }
       ]
     },
     {
-      "id": "mech-bulwark",
-      "label": "Mech — Bulwark",
-      "referencePixels": 208.0,
-      "frames": [
-        {
-          "id": "planted",
-          "label": "Planted",
-          "durationMs": 400,
-          "layers": [
-            { "id": "left-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [-0.17, -0.28], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
-            { "id": "right-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [0.17, -0.28], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
-            { "id": "left-chaingun", "sprite": "graphics/battle/mech-modular-topdown/chaingun-arm.png", "offset": [-0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 20 },
-            { "id": "right-chaingun", "sprite": "graphics/battle/mech-modular-topdown/chaingun-arm.png", "offset": [0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 21 },
-            { "id": "chassis", "sprite": "graphics/battle/mech-modular-topdown/chassis.png", "offset": [0.0, 0.0], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
-            { "id": "left-srm", "sprite": "graphics/battle/mech-modular-topdown/srm-pod.png", "offset": [-0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 40 },
-            { "id": "right-lrm", "sprite": "graphics/battle/mech-modular-topdown/lrm-pod.png", "offset": [0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 41 }
-          ]
-        },
-        {
-          "id": "left-step",
-          "label": "Left step",
-          "durationMs": 180,
-          "layers": [
-            { "id": "left-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [-0.17, -0.335], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
-            { "id": "right-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [0.17, -0.28], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
-            { "id": "left-chaingun", "sprite": "graphics/battle/mech-modular-topdown/chaingun-arm.png", "offset": [-0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 20 },
-            { "id": "right-chaingun", "sprite": "graphics/battle/mech-modular-topdown/chaingun-arm.png", "offset": [0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 21 },
-            { "id": "chassis", "sprite": "graphics/battle/mech-modular-topdown/chassis.png", "offset": [0.0, 0.0], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
-            { "id": "left-srm", "sprite": "graphics/battle/mech-modular-topdown/srm-pod.png", "offset": [-0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 40 },
-            { "id": "right-lrm", "sprite": "graphics/battle/mech-modular-topdown/lrm-pod.png", "offset": [0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 41 }
-          ]
-        },
-        {
-          "id": "right-step",
-          "label": "Right step",
-          "durationMs": 180,
-          "layers": [
-            { "id": "left-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [-0.17, -0.28], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
-            { "id": "right-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [0.17, -0.335], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
-            { "id": "left-chaingun", "sprite": "graphics/battle/mech-modular-topdown/chaingun-arm.png", "offset": [-0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 20 },
-            { "id": "right-chaingun", "sprite": "graphics/battle/mech-modular-topdown/chaingun-arm.png", "offset": [0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 21 },
-            { "id": "chassis", "sprite": "graphics/battle/mech-modular-topdown/chassis.png", "offset": [0.0, 0.0], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
-            { "id": "left-srm", "sprite": "graphics/battle/mech-modular-topdown/srm-pod.png", "offset": [-0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 40 },
-            { "id": "right-lrm", "sprite": "graphics/battle/mech-modular-topdown/lrm-pod.png", "offset": [0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 41 }
-          ]
-        }
+      "id": "mech-bulwark", "label": "Mech — Bulwark", "referencePixels": 208.0,
+      "variants": [
+        { "id": "field-loadout", "label": "Field loadout", "animations": [
+          { "id": "idle", "label": "Idle", "loop": true, "frames": [
+            { "id": "planted", "label": "Planted", "durationMs": 400, "layers": [
+              { "id": "left-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [-0.17, -0.28], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+              { "id": "right-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [0.17, -0.28], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+              { "id": "left-chaingun", "sprite": "graphics/battle/mech-modular-topdown/chaingun-arm.png", "offset": [-0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 20 },
+              { "id": "right-chaingun", "sprite": "graphics/battle/mech-modular-topdown/chaingun-arm.png", "offset": [0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 21 },
+              { "id": "chassis", "sprite": "graphics/battle/mech-modular-topdown/chassis.png", "offset": [0.0, 0.0], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
+              { "id": "left-srm", "sprite": "graphics/battle/mech-modular-topdown/srm-pod.png", "offset": [-0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 40 },
+              { "id": "right-lrm", "sprite": "graphics/battle/mech-modular-topdown/lrm-pod.png", "offset": [0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 41 }
+            ] }
+          ] },
+          { "id": "walking", "label": "Walking", "loop": true, "frames": [
+            { "id": "left-step", "label": "Left step", "durationMs": 180, "layers": [
+              { "id": "left-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [-0.17, -0.335], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+              { "id": "right-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [0.17, -0.28], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+              { "id": "left-chaingun", "sprite": "graphics/battle/mech-modular-topdown/chaingun-arm.png", "offset": [-0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 20 },
+              { "id": "right-chaingun", "sprite": "graphics/battle/mech-modular-topdown/chaingun-arm.png", "offset": [0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 21 },
+              { "id": "chassis", "sprite": "graphics/battle/mech-modular-topdown/chassis.png", "offset": [0.0, 0.0], "scale": [1.0, 1.0], "angleDegrees": -1.0, "pivot": [0.5, 0.5], "z": 30 },
+              { "id": "left-srm", "sprite": "graphics/battle/mech-modular-topdown/srm-pod.png", "offset": [-0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": -1.0, "pivot": [0.5, 1.0], "z": 40 },
+              { "id": "right-lrm", "sprite": "graphics/battle/mech-modular-topdown/lrm-pod.png", "offset": [0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": -1.0, "pivot": [0.5, 1.0], "z": 41 }
+            ] },
+            { "id": "right-step", "label": "Right step", "durationMs": 180, "layers": [
+              { "id": "left-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [-0.17, -0.28], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+              { "id": "right-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [0.17, -0.335], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+              { "id": "left-chaingun", "sprite": "graphics/battle/mech-modular-topdown/chaingun-arm.png", "offset": [-0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 20 },
+              { "id": "right-chaingun", "sprite": "graphics/battle/mech-modular-topdown/chaingun-arm.png", "offset": [0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 21 },
+              { "id": "chassis", "sprite": "graphics/battle/mech-modular-topdown/chassis.png", "offset": [0.0, 0.0], "scale": [1.0, 1.0], "angleDegrees": 1.0, "pivot": [0.5, 0.5], "z": 30 },
+              { "id": "left-srm", "sprite": "graphics/battle/mech-modular-topdown/srm-pod.png", "offset": [-0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": 1.0, "pivot": [0.5, 1.0], "z": 40 },
+              { "id": "right-lrm", "sprite": "graphics/battle/mech-modular-topdown/lrm-pod.png", "offset": [0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": 1.0, "pivot": [0.5, 1.0], "z": 41 }
+            ] }
+          ] }
+        ] }
       ]
     },
     {
-      "id": "mech-hound",
-      "label": "Mech — Hound",
-      "referencePixels": 208.0,
-      "frames": [
-        {
-          "id": "planted",
-          "label": "Planted",
-          "durationMs": 400,
-          "layers": [
-            { "id": "left-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [-0.22, -0.05], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
-            { "id": "right-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [0.22, -0.05], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
-            { "id": "left-thigh", "sprite": "graphics/battle/mech-modular-topdown/thigh-bone.png", "offset": [0.0, 0.0], "scale": [1.0, 0.265], "angleDegrees": 102.8, "pivot": [0.5, 1.0], "z": 20 },
-            { "id": "right-thigh", "sprite": "graphics/battle/mech-modular-topdown/thigh-bone.png", "offset": [0.0, 0.0], "scale": [1.0, 0.265], "angleDegrees": -102.8, "pivot": [0.5, 1.0], "z": 21 },
-            { "id": "nose-chaingun", "sprite": "graphics/battle/mech-modular-topdown/chaingun-arm.png", "offset": [0.0, -0.02], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 25 },
-            { "id": "chassis", "sprite": "graphics/battle/mech-modular-topdown/chassis-hound.png", "offset": [0.0, 0.0], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
-            { "id": "dorsal-srm", "sprite": "graphics/battle/mech-modular-topdown/srm-pod.png", "offset": [0.0, -0.30], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 40 }
-          ]
-        }
+      "id": "mech-hound", "label": "Mech — Hound", "referencePixels": 208.0,
+      "variants": [
+        { "id": "field-loadout", "label": "Field loadout", "animations": [
+          { "id": "idle", "label": "Idle", "loop": true, "frames": [
+            { "id": "planted", "label": "Planted", "durationMs": 400, "layers": [
+              { "id": "left-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [-0.22, -0.05], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+              { "id": "right-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [0.22, -0.05], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+              { "id": "left-thigh", "sprite": "graphics/battle/mech-modular-topdown/thigh-bone.png", "offset": [0.0, 0.0], "scale": [1.0, 0.265], "angleDegrees": 102.8, "pivot": [0.5, 1.0], "z": 20 },
+              { "id": "right-thigh", "sprite": "graphics/battle/mech-modular-topdown/thigh-bone.png", "offset": [0.0, 0.0], "scale": [1.0, 0.265], "angleDegrees": -102.8, "pivot": [0.5, 1.0], "z": 21 },
+              { "id": "nose-chaingun", "sprite": "graphics/battle/mech-modular-topdown/chaingun-arm.png", "offset": [0.0, -0.02], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 25 },
+              { "id": "chassis", "sprite": "graphics/battle/mech-modular-topdown/chassis-hound.png", "offset": [0.0, 0.0], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
+              { "id": "dorsal-srm", "sprite": "graphics/battle/mech-modular-topdown/srm-pod.png", "offset": [0.0, -0.30], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 40 }
+            ] }
+          ] },
+          { "id": "walking", "label": "Walking", "loop": true, "frames": [
+            { "id": "left-step", "label": "Left extension", "durationMs": 240, "layers": [
+              { "id": "left-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [-0.22, -0.21], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+              { "id": "right-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [0.22, -0.05], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+              { "id": "left-thigh", "sprite": "graphics/battle/mech-modular-topdown/thigh-bone.png", "offset": [0.0, 0.0], "scale": [1.0, 0.408], "angleDegrees": 133.7, "pivot": [0.5, 1.0], "z": 20 },
+              { "id": "right-thigh", "sprite": "graphics/battle/mech-modular-topdown/thigh-bone.png", "offset": [0.0, 0.0], "scale": [1.0, 0.265], "angleDegrees": -102.8, "pivot": [0.5, 1.0], "z": 21 },
+              { "id": "nose-chaingun", "sprite": "graphics/battle/mech-modular-topdown/chaingun-arm.png", "offset": [0.0, -0.02], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 25 },
+              { "id": "chassis", "sprite": "graphics/battle/mech-modular-topdown/chassis-hound.png", "offset": [0.0, 0.0], "scale": [1.0, 1.0], "angleDegrees": -1.5, "pivot": [0.5, 0.5], "z": 30 },
+              { "id": "dorsal-srm", "sprite": "graphics/battle/mech-modular-topdown/srm-pod.png", "offset": [0.0, -0.30], "scale": [1.0, 1.0], "angleDegrees": -1.5, "pivot": [0.5, 1.0], "z": 40 }
+            ] },
+            { "id": "right-step", "label": "Right extension", "durationMs": 240, "layers": [
+              { "id": "left-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [-0.22, -0.05], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+              { "id": "right-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [0.22, -0.21], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+              { "id": "left-thigh", "sprite": "graphics/battle/mech-modular-topdown/thigh-bone.png", "offset": [0.0, 0.0], "scale": [1.0, 0.265], "angleDegrees": 102.8, "pivot": [0.5, 1.0], "z": 20 },
+              { "id": "right-thigh", "sprite": "graphics/battle/mech-modular-topdown/thigh-bone.png", "offset": [0.0, 0.0], "scale": [1.0, 0.408], "angleDegrees": -133.7, "pivot": [0.5, 1.0], "z": 21 },
+              { "id": "nose-chaingun", "sprite": "graphics/battle/mech-modular-topdown/chaingun-arm.png", "offset": [0.0, -0.02], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 25 },
+              { "id": "chassis", "sprite": "graphics/battle/mech-modular-topdown/chassis-hound.png", "offset": [0.0, 0.0], "scale": [1.0, 1.0], "angleDegrees": 1.5, "pivot": [0.5, 0.5], "z": 30 },
+              { "id": "dorsal-srm", "sprite": "graphics/battle/mech-modular-topdown/srm-pod.png", "offset": [0.0, -0.30], "scale": [1.0, 1.0], "angleDegrees": 1.5, "pivot": [0.5, 1.0], "z": 40 }
+            ] }
+          ] }
+        ] }
       ]
     },
     {
-      "id": "mech-sirocco",
-      "label": "Mech — Sirocco",
-      "referencePixels": 208.0,
-      "frames": [
-        {
-          "id": "planted",
-          "label": "Planted",
-          "durationMs": 400,
-          "layers": [
-            { "id": "left-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [-0.22, -0.05], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
-            { "id": "right-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [0.22, -0.05], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
-            { "id": "left-thigh", "sprite": "graphics/battle/mech-modular-topdown/thigh-bone.png", "offset": [0.0, 0.0], "scale": [1.0, 0.265], "angleDegrees": 102.8, "pivot": [0.5, 1.0], "z": 20 },
-            { "id": "right-thigh", "sprite": "graphics/battle/mech-modular-topdown/thigh-bone.png", "offset": [0.0, 0.0], "scale": [1.0, 0.265], "angleDegrees": -102.8, "pivot": [0.5, 1.0], "z": 21 },
-            { "id": "left-linear-cannon", "sprite": "graphics/battle/mech-modular-topdown/linear-cannon-variant.png", "offset": [-0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 24 },
-            { "id": "right-linear-cannon", "sprite": "graphics/battle/mech-modular-topdown/linear-cannon-variant.png", "offset": [0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 25 },
-            { "id": "left-lrm", "sprite": "graphics/battle/mech-modular-topdown/lrm-pod.png", "offset": [-0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 26 },
-            { "id": "right-lrm", "sprite": "graphics/battle/mech-modular-topdown/lrm-pod.png", "offset": [0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 27 },
-            { "id": "chassis", "sprite": "graphics/battle/mech-modular-topdown/chassis-sirocco.png", "offset": [0.0, 0.0], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 }
-          ]
-        }
+      "id": "mech-sirocco", "label": "Mech — Sirocco", "referencePixels": 208.0,
+      "variants": [
+        { "id": "field-loadout", "label": "Field loadout", "animations": [
+          { "id": "idle", "label": "Idle", "loop": true, "frames": [
+            { "id": "planted", "label": "Planted", "durationMs": 400, "layers": [
+              { "id": "left-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [-0.22, -0.05], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+              { "id": "right-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [0.22, -0.05], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+              { "id": "left-thigh", "sprite": "graphics/battle/mech-modular-topdown/thigh-bone.png", "offset": [0.0, 0.0], "scale": [1.0, 0.265], "angleDegrees": 102.8, "pivot": [0.5, 1.0], "z": 20 },
+              { "id": "right-thigh", "sprite": "graphics/battle/mech-modular-topdown/thigh-bone.png", "offset": [0.0, 0.0], "scale": [1.0, 0.265], "angleDegrees": -102.8, "pivot": [0.5, 1.0], "z": 21 },
+              { "id": "left-linear-cannon", "sprite": "graphics/battle/mech-modular-topdown/linear-cannon-variant.png", "offset": [-0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 24 },
+              { "id": "right-linear-cannon", "sprite": "graphics/battle/mech-modular-topdown/linear-cannon-variant.png", "offset": [0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 25 },
+              { "id": "left-lrm", "sprite": "graphics/battle/mech-modular-topdown/lrm-pod.png", "offset": [-0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 26 },
+              { "id": "right-lrm", "sprite": "graphics/battle/mech-modular-topdown/lrm-pod.png", "offset": [0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 27 },
+              { "id": "chassis", "sprite": "graphics/battle/mech-modular-topdown/chassis-sirocco.png", "offset": [0.0, 0.0], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 }
+            ] }
+          ] },
+          { "id": "walking", "label": "Walking", "loop": true, "frames": [
+            { "id": "left-step", "label": "Left extension", "durationMs": 240, "layers": [
+              { "id": "left-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [-0.22, -0.21], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+              { "id": "right-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [0.22, -0.05], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+              { "id": "left-thigh", "sprite": "graphics/battle/mech-modular-topdown/thigh-bone.png", "offset": [0.0, 0.0], "scale": [1.0, 0.408], "angleDegrees": 133.7, "pivot": [0.5, 1.0], "z": 20 },
+              { "id": "right-thigh", "sprite": "graphics/battle/mech-modular-topdown/thigh-bone.png", "offset": [0.0, 0.0], "scale": [1.0, 0.265], "angleDegrees": -102.8, "pivot": [0.5, 1.0], "z": 21 },
+              { "id": "left-linear-cannon", "sprite": "graphics/battle/mech-modular-topdown/linear-cannon-variant.png", "offset": [-0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 24 },
+              { "id": "right-linear-cannon", "sprite": "graphics/battle/mech-modular-topdown/linear-cannon-variant.png", "offset": [0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 25 },
+              { "id": "left-lrm", "sprite": "graphics/battle/mech-modular-topdown/lrm-pod.png", "offset": [-0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": -1.0, "pivot": [0.5, 1.0], "z": 26 },
+              { "id": "right-lrm", "sprite": "graphics/battle/mech-modular-topdown/lrm-pod.png", "offset": [0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": -1.0, "pivot": [0.5, 1.0], "z": 27 },
+              { "id": "chassis", "sprite": "graphics/battle/mech-modular-topdown/chassis-sirocco.png", "offset": [0.0, 0.0], "scale": [1.0, 1.0], "angleDegrees": -1.0, "pivot": [0.5, 0.5], "z": 30 }
+            ] },
+            { "id": "right-step", "label": "Right extension", "durationMs": 240, "layers": [
+              { "id": "left-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [-0.22, -0.05], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+              { "id": "right-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [0.22, -0.21], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+              { "id": "left-thigh", "sprite": "graphics/battle/mech-modular-topdown/thigh-bone.png", "offset": [0.0, 0.0], "scale": [1.0, 0.265], "angleDegrees": 102.8, "pivot": [0.5, 1.0], "z": 20 },
+              { "id": "right-thigh", "sprite": "graphics/battle/mech-modular-topdown/thigh-bone.png", "offset": [0.0, 0.0], "scale": [1.0, 0.408], "angleDegrees": -133.7, "pivot": [0.5, 1.0], "z": 21 },
+              { "id": "left-linear-cannon", "sprite": "graphics/battle/mech-modular-topdown/linear-cannon-variant.png", "offset": [-0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 24 },
+              { "id": "right-linear-cannon", "sprite": "graphics/battle/mech-modular-topdown/linear-cannon-variant.png", "offset": [0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 25 },
+              { "id": "left-lrm", "sprite": "graphics/battle/mech-modular-topdown/lrm-pod.png", "offset": [-0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": 1.0, "pivot": [0.5, 1.0], "z": 26 },
+              { "id": "right-lrm", "sprite": "graphics/battle/mech-modular-topdown/lrm-pod.png", "offset": [0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": 1.0, "pivot": [0.5, 1.0], "z": 27 },
+              { "id": "chassis", "sprite": "graphics/battle/mech-modular-topdown/chassis-sirocco.png", "offset": [0.0, 0.0], "scale": [1.0, 1.0], "angleDegrees": 1.0, "pivot": [0.5, 0.5], "z": 30 }
+            ] }
+          ] }
+        ] }
       ]
     }
   ]
