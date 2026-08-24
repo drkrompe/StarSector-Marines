@@ -97,6 +97,32 @@ public class UnitSpatialIndexTest {
         assertFalse(contains(out, released));
         assertEquals(0L,
                 index.nearestFaction(10.5f, 10.5f, Faction.MARINE));
+        index.gatherAlongSegment(6.5f, 10.5f, 14.5f, 10.5f, 1f, out);
+        assertFalse(contains(out, released));
+    }
+
+    @Test
+    public void releasePreservesRemainingSnapshotOrder() {
+        UnitSpatialIndex index = new UnitSpatialIndex(64, 64);
+        UnitRosterService roster = new UnitRosterService(index, null);
+        long first = roster.spawn(unit("first", 10, 10));
+        long released = roster.spawn(unit("released", 10, 10));
+        long last = roster.spawn(unit("last", 10, 10));
+
+        roster.releaseFromRegistry(released);
+
+        LongBucket out = new LongBucket();
+        index.gather(10.5f, 10.5f, 4f, out);
+        assertEquals(2, out.size);
+        assertEquals(first, out.ids[0]);
+        assertEquals(last, out.ids[1]);
+
+        roster.releaseFromRegistry(released);
+        roster.releaseFromRegistry(Long.MAX_VALUE);
+        index.gather(10.5f, 10.5f, 4f, out);
+        assertEquals(2, out.size);
+        assertEquals(first, out.ids[0]);
+        assertEquals(last, out.ids[1]);
     }
 
     @Test
