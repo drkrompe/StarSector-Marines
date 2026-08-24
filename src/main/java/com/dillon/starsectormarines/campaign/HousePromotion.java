@@ -7,14 +7,14 @@ import org.apache.log4j.Logger;
  * Higher-level operations on the rank ladder in {@code houses[]} — the
  * promotion-progress + promote step that {@link CampaignState}'s low-level
  * mutators leave out (see
- * {@code roadmap/campaign/design/architecture.md}). Stateless; operates on
+ * {@code architecture.md}). Stateless; operates on
  * a passed-in {@link CampaignState}.
  *
  * <p>The single primitive every promotion-driving caller routes through: the
  * player path (a backed patron's mission victories bump progress, via
  * {@code MissionResolver}) and the autonomous {@code AutonomousPromotionSystem}
  * described by
- * {@code roadmap/campaign/living-world/design/living-world-nouns.md}. One implementation means
+ * {@code living-world-nouns.md}. One implementation means
  * the player-fast / autonomous-glacial distinction lives purely in the *delta*
  * each caller passes — the threshold-crossing + cascade logic is shared.
  *
@@ -83,7 +83,7 @@ public final class HousePromotion {
      * <ul>
      *   <li><b>Visibility recompute / new relationship edges</b> — the
      *       relationship seam remains an explicit no-op until
-     *       {@code roadmap/campaign/living-world/design/house-disposition.md}
+     *       {@code house-disposition.md}
      *       defines visibility-gated edges.</li>
      *   <li><b>Contract-type unlock</b> — pull-based: {@code ContractGenerator}
      *       reads {@code houseRank} live each tick, so there's nothing to push.</li>

@@ -8,8 +8,7 @@
  * <br>Boundary: one-shot setup only. Per-tick logic belongs in
  *           {@code sim/} + its Systems, never here. {@code BattleSetup}
  *           is large and mixes mission-specific wiring; decomposing it is
- *           known future work (out of scope of the reorg) — see
- *           {@code overview.md}.
+ *           known future work, outside the shipped reorganization.
  *
  * <p>See {@link com.dillon.starsectormarines.battle} for the full taxonomy.
  */

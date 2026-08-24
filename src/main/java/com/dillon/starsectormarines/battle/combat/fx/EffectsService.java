@@ -20,10 +20,7 @@ import java.util.Set;
  *
  * <p>First slice of the services refactor: this class owns the state and the
  * tick logic; {@link com.dillon.starsectormarines.battle.sim.BattleSimulation}
- * keeps a single instance and delegates the matching accessors. The
- * {@code WeaponSimContext}
- * spawn methods on the sim forward here too — once that context interface is
- * deprecated, weapon subsystems will hold an {@link EffectsService} directly.
+ * keeps a single instance and delegates the matching accessors.
  */
 public final class EffectsService {
 

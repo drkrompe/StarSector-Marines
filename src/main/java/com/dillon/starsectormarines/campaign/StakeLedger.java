@@ -4,13 +4,13 @@ package com.dillon.starsectormarines.campaign;
  * Higher-level operations on the {@code stakes[]} table — the "transfer N stake
  * from A to B" layer that {@link CampaignState}'s low-level mutators deliberately
  * leave out (see that class's header and
- * {@code roadmap/campaign/design/architecture.md}). Stateless;
+ * {@code architecture.md}). Stateless;
  * every method operates on a passed-in {@link CampaignState}.
  *
  * <p>This is the single primitive every stake-moving caller routes through —
  * the player path ({@code MissionResolver}'s contract bridge today) and the
  * autonomous drift / chain loops described by
- * {@code roadmap/campaign/living-world/design/living-world-nouns.md}.
+ * {@code living-world-nouns.md}.
  * Centralising it keeps the conservation + ceiling invariants in one place.
  *
  * <h2>Zero-share stake rows</h2>

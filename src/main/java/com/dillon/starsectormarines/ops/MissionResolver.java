@@ -117,7 +117,7 @@ public final class MissionResolver {
      * victorious contract mission. ~8% of an industry — a seeded plurality is
      * ~110/255, so a backed patron flips one over a handful of strikes, while
      * autonomous drift would take many months (the decisive-accelerant principle,
-     * {@code roadmap/campaign/living-world/design/living-world-nouns.md}).
+     * {@code living-world-nouns.md}).
      * Tier-scaling (T2/T3 move more) is a later
      * refinement.
      */
@@ -201,7 +201,7 @@ public final class MissionResolver {
                 : rawMarinesLost;
 
         // Cash multiplier applies the salvage-traded-for-cash bump from briefing
-        // acceptance (see roadmap/campaign/contracts/design/contracts-nouns.md). 100 = baseline.
+        // acceptance (see contracts-nouns.md). 100 = baseline.
         int cashMult = mission.cashMultiplier & 0xFF;
         if (cashMult <= 0) cashMult = 100;
         int payoutEarned = victory ? (int) ((long) mission.payout * cashMult / 100L) : 0;
@@ -563,7 +563,7 @@ public final class MissionResolver {
      * script is registered yet (skeleton path — predates the campaign script's
      * install).
      *
-     * <p>Resolution rules (per roadmap/campaign/contracts/design/contracts-nouns.md):
+     * <p>Resolution rules (per contracts-nouns.md):
      * <ul>
      *   <li>Victory advances {@code phasesDone}; on {@code phasesDone >= phasesTotal}
      *       the current non-terminal state flips to COMPLETED.</li>
@@ -754,7 +754,7 @@ public final class MissionResolver {
      * Writes a victorious mission's result into the political simulation: the
      * patron accrues promotion progress; territorial contract types also seize a
      * slice of the struck industry from the target. This is the Slice-B impact-ladder rung
-     * ({@code roadmap/campaign/living-world/design/living-world-nouns.md}) — the first
+     * ({@code living-world-nouns.md}) — the first
      * time player ops leave a *permanent* mark on the houses graph rather than just
      * on contract state.
      *

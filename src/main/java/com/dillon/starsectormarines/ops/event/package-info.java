@@ -11,6 +11,6 @@
  * the same seam the local Manage → Respond button uses. If a class in this package
  * starts mutating contract or personnel state directly, it is in the wrong package.
  *
- * <p><b>Pointer:</b> {@code roadmap/campaign/contracts/stories/contracts-live-acceptance.md}.
+ * <p><b>Pointer:</b> {@code contracts-live-acceptance.md}.
  */
 package com.dillon.starsectormarines.ops.event;
