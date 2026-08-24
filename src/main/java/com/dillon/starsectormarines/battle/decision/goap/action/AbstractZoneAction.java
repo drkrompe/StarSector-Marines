@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.decision.goap.action;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture.ContactInitiative;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Doctrine;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Posture;
 import com.dillon.starsectormarines.battle.combat.FireStance;
@@ -99,6 +100,7 @@ abstract class AbstractZoneAction implements Action {
                                          int destX, int destY, boolean haltOnContact) {
         boolean committed = false;
         boolean doctrineHold = false;
+        boolean prosecuteContact = false;
         float engageLeash = 0f;
         long advanceThreat = 0L;
         int threatAnchorX = -1;
@@ -112,14 +114,24 @@ abstract class AbstractZoneAction implements Action {
                 BreakContact.INSTANCE.execute(member, squad, sim);
                 return;
             }
-            doctrineHold = advancingPicture && doctrine == Doctrine.HOLD
-                    && TacticalScoring.contactHoldIsFresh(squad,
+            doctrineHold = TacticalScoring.shouldHardHoldAdvance(squad,
                     squad.contactPicture, sim.getSimTickIndex());
+            prosecuteContact = advancingPicture && doctrine == Doctrine.HOLD
+                    && squad.contactPicture.contactInitiative()
+                    == ContactInitiative.PROSECUTE
+                    && sim.resolveUnit(squad.contactPicture.primaryContactId()) != 0L;
             committed |= doctrineHold;
+            committed |= prosecuteContact;
             engageLeash = squad.advanceEngageLeash;
             advanceThreat = squad.advanceThreatId;
             threatAnchorX = squad.advanceThreatAnchorX;
             threatAnchorY = squad.advanceThreatAnchorY;
+            if (prosecuteContact) {
+                advanceThreat = squad.contactPicture.primaryContactId();
+                threatAnchorX = Math.round(squad.centroidX - 0.5f);
+                threatAnchorY = Math.round(squad.centroidY - 0.5f);
+                engageLeash = ADVANCE_LEASH_MAX;
+            }
         }
 
         long target = sim.targetOf(member);

@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture.ContactInitiative;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Doctrine;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture.ForceBalance;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Motion;
@@ -136,6 +137,61 @@ class TacticalScoringContactPictureTest {
                 Posture.ADVANCING, ForceBalance.FAVORABLE, Sector.LEFT_FLANK,
                 Motion.UNKNOWN, false, Doctrine.HOLD, true, false),
                 "lost contact cannot sustain a doctrine-only hold indefinitely");
+    }
+
+    @Test
+    void contactInitiativeReceivesApproachButProsecutesPartialLateralLine() {
+        assertEquals(ContactInitiative.RECEIVE,
+                TacticalScoring.selectContactInitiative(Doctrine.HOLD,
+                        Posture.ADVANCING, ForceBalance.FAVORABLE,
+                        Motion.APPROACHING, false, true,
+                        1, 12, 1, 3));
+        assertEquals(ContactInitiative.RECEIVE,
+                TacticalScoring.selectContactInitiative(Doctrine.HOLD,
+                        Posture.ADVANCING, ForceBalance.FAVORABLE,
+                        Motion.LATERAL, false, true,
+                        6, 12, 2, 3));
+        assertEquals(ContactInitiative.PROSECUTE,
+                TacticalScoring.selectContactInitiative(Doctrine.HOLD,
+                        Posture.ADVANCING, ForceBalance.FAVORABLE,
+                        Motion.LATERAL, false, true,
+                        1, 12, 1, 3));
+        assertEquals(ContactInitiative.NONE,
+                TacticalScoring.selectContactInitiative(Doctrine.HOLD,
+                        Posture.ADVANCING, ForceBalance.FAVORABLE,
+                        Motion.LATERAL, false, false,
+                        1, 12, 1, 3),
+                "remembered intel guides awareness but cannot start a close maneuver");
+    }
+
+    @Test
+    void publishedPictureCountsMembersAndTeamsOnPrimaryFiringLine() {
+        BattleSimulation sim = openSim();
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        for (int i = 0; i < 12; i++) {
+            long member = sim.spawn(new EntitySpec("line-m" + i, Faction.MARINE,
+                    UnitType.MARINE, 8 + i % 4, 17 + i / 4)
+                    .squad(squadId).fireTeam(i / 4).visionRange(40f)
+                    .attackRange(i == 0 ? 30f : 6f));
+            if (i == 0) squad.leaderId = member;
+        }
+        long enemy = sim.spawn(new EntitySpec("lateral", Faction.DEFENDER,
+                UnitType.MARINE, 10, 32).visionRange(40f));
+        squad.assignedObjective = ObjectiveAssignment.escort(squadId, 55, 18);
+
+        sim.advance(BattleSimulation.TICK_DT);
+        sim.world().setCellPos(enemy, 11, 32);
+        sim.advance(BattleSimulation.TICK_DT);
+
+        SquadContactPicture picture = squad.contactPicture;
+        assertEquals(Motion.LATERAL, picture.primaryMotion());
+        assertEquals(1, picture.primaryEngageableMembers());
+        assertEquals(1, picture.primaryEngageableFireTeams());
+        assertEquals(3, picture.liveFireTeams());
+        assertEquals(ContactInitiative.PROSECUTE, picture.contactInitiative());
+        assertFalse(TacticalScoring.shouldHardHoldAdvance(squad, picture,
+                sim.getSimTickIndex()));
     }
 
     @Test

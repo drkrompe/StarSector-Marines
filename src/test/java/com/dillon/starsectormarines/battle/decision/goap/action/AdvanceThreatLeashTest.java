@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture.ContactInitiative;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Doctrine;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture.ForceBalance;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Motion;
@@ -239,7 +240,8 @@ public class AdvanceThreatLeashTest {
         squad.contactPicture = new SquadContactPicture(sim.getSimTickIndex(),
                 Posture.ADVANCING, 1f, 0f, 1, 0, 0.6f, 4,
                 ForceBalance.FAVORABLE, Sector.RIGHT_FLANK, Motion.UNKNOWN,
-                enemy, 20, 25, 0.6f, Doctrine.HOLD);
+                enemy, 20, 25, 0.6f, Doctrine.HOLD, 0, 4, 0, 1,
+                ContactInitiative.NONE);
 
         new ProbeZoneAction().advance(leader, squad, sim, DEST_X, DEST_Y);
 
@@ -248,6 +250,45 @@ public class AdvanceThreatLeashTest {
                 "stale doctrine memory may guide aim but must not plant the advance");
         assertEquals(DEST_X, Paths.destX(sim.world().path(leader)));
         assertEquals(DEST_Y, Paths.destY(sim.world().path(leader)));
+    }
+
+    @Test
+    public void partialFiringLineHoldsShooterWhileSquadmatesCloseOnPrimary() {
+        BattleSimulation sim = openSim();
+        Squad squad = marineSquad(sim, 4);
+        long primary = defender(sim, "direct", 24, 15);
+        long stale = defender(sim, "stale-target", 42, 28);
+        observeContacts(sim);
+        long shooter = squad.leaderId;
+        long mover = sim.squadMemberAt(squad.id, 1);
+        sim.world().setAttackRange(shooter, 30f);
+        sim.world().setAttackRange(mover, 6f);
+        sim.world().setTargetId(mover, stale);
+        squad.contactPicture = new SquadContactPicture(sim.getSimTickIndex(),
+                Posture.ADVANCING, 1f, 0f, 1, 1, 1f, 4,
+                ForceBalance.FAVORABLE, Sector.FRONT, Motion.LATERAL,
+                primary, 24, 15, 1f, Doctrine.HOLD, 1, 4, 1, 1,
+                ContactInitiative.PROSECUTE);
+
+        ProbeZoneAction action = new ProbeZoneAction();
+        action.advance(shooter, squad, sim, DEST_X, DEST_Y);
+        action.advance(mover, squad, sim, DEST_X, DEST_Y);
+
+        assertTrue(Paths.isEmpty(sim.world().path(shooter)),
+                "the marine with a firing line holds rather than advancing in lockstep");
+        assertEquals(primary, sim.combat().fireTargetId(shooter));
+        assertEquals(FireStance.STANCED.ordinal(), fireStance(sim, shooter));
+        assertEquals(primary, sim.targetOf(mover),
+                "shared contact intel replaces the mover's stale individual target");
+        assertFalse(Paths.isEmpty(sim.world().path(mover)));
+        assertTrue(Paths.destX(sim.world().path(mover)) != DEST_X
+                        || Paths.destY(sim.world().path(mover)) != DEST_Y,
+                "the non-shooter establishes a bounded firing position instead of idling");
+        assertTrue(TacticalScoring.cellDistance(Paths.destX(sim.world().path(mover)),
+                        Paths.destY(sim.world().path(mover)),
+                        Math.round(squad.centroidX - 0.5f),
+                        Math.round(squad.centroidY - 0.5f))
+                        <= AbstractZoneAction.ADVANCE_LEASH_MAX);
     }
 
     private static int fireStance(BattleSimulation sim, long member) {
