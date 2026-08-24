@@ -2,7 +2,7 @@
   <div id="company-list" class="company-list panel">
     <button each="company in companyCards" key="{company.id}" id="{company.id}" class="{company.classes}" onclick="{company.open}">
       <div id="{company.designationId}" class="company-designation label heading tone-accent">{company.designation}</div>
-      <div id="{company.nameId}" class="company-name label heading tone-edge">{company.name}</div>
+      <div id="{company.nameId}" class="company-name label tone-edge">{company.name}</div>
       <div id="{company.statusId}" class="{company.statusClasses}">{company.status}</div>
       <div id="{company.marineSquadsId}" class="company-stat label">{company.marineSquads}</div>
       <div id="{company.mechSquadsId}" class="company-stat label">{company.mechSquads}</div>
@@ -17,8 +17,8 @@
   .company-list {
     display: grid;
     flex-grow: 1;
-    gap: 14px;
-    padding: 14px;
+    gap: 10px;
+    padding: 10px;
     overflow: scroll;
   }
 
@@ -27,47 +27,47 @@
 
   .company-card {
     flex-direction: column;
-    width: 182px;
-    height: 602px;
-    padding: 12px;
-    gap: 10px;
-    border-width: 2px;
+    width: 134px;
+    height: 446px;
+    padding: 10px;
+    gap: 6px;
+    border-width: 1px;
     overflow: hidden;
     font-family: body;
     text-align: left;
   }
 
-  .company-designation { height: 24px; }
-  .company-name { height: 66px; }
+  .company-designation { height: 18px; }
+  .company-name { height: 38px; }
 
   .company-status {
-    height: 48px;
-    padding: 9px;
+    height: 30px;
+    padding: 5px;
     border-width: 1px;
     text-align: center;
   }
 
   .company-stat {
-    height: 54px;
-    padding: 10px 8px;
+    height: 36px;
+    padding: 6px;
     border-width: 1px;
   }
 
   .company-readiness {
-    height: 62px;
-    padding: 12px 8px;
+    height: 44px;
+    padding: 7px 6px;
     border-width: 1px;
   }
 
   .company-stationing {
-    height: 50px;
+    height: 42px;
     flex-grow: 1;
-    padding: 9px 8px;
+    padding: 6px;
   }
 
   .company-open {
-    height: 42px;
-    padding: 9px 8px;
+    height: 30px;
+    padding: 5px 6px;
     border-width: 1px;
     text-align: center;
   }

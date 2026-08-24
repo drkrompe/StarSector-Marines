@@ -143,8 +143,8 @@ public final class FleetArmoryViewModel {
             lineSquads++;
             ready += roster.readyCount(squad);
         }
-        return lineSquads + " line squads  ·  " + ready + " marines RTD  ·  "
-                + roster.armory().templateCards().size() + " reusable templates";
+        return lineSquads + " squads  ·  " + ready + " RTD  ·  "
+                + roster.armory().templateCards().size() + " templates";
     }
 
     private List<SelectionRow> buildSquadRows() {

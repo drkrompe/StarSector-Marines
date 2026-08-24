@@ -13,20 +13,19 @@ public final class Fonts {
 
     private Fonts() {}
 
-    // UI minimum is Orbitron 20 — Victor 10 / similar small fonts are deliberately
-    // not exposed here. Past playtest feedback: small fonts are unreadable in this
-    // dense 3-column layout. Re-add only if a specific secondary-text need arises.
+    // Legacy immediate-mode surfaces still use the larger Orbitron faces directly.
+    // Retained documents instead assign the compact faces below by semantic role.
     public static final BitmapFont ORBITRON_20 = new BitmapFont("graphics/fonts/orbitron20aa.fnt");
     public static final BitmapFont ORBITRON_20_BOLD = new BitmapFont("graphics/fonts/orbitron20aabold.fnt");
     public static final BitmapFont ORBITRON_24_BOLD = new BitmapFont("graphics/fonts/orbitron24aabold.fnt");
     public static final BitmapFont INSIGNIA_LARGE = new BitmapFont("graphics/fonts/insignia21LTaa.fnt");
 
-    /**
-     * Debug-only smaller font. Reserved for the GOAP debug overlay
-     * ({@code SquadPlanDebugPanel}'s filtered detail mode) where information
-     * density beats readability — long predicate names + per-step assignments
-     * blow the panel bounds at Orbitron 20. Do not use in gameplay UI; the
-     * font-minimum rule above still stands for player-facing surfaces.
-     */
+    /** Regular mixed-case body face for retained gameplay documents and dense diagnostics. */
     public static final BitmapFont INSIGNIA_15_AA = new BitmapFont("graphics/fonts/insignia15LTaa.fnt");
+
+    /** Compact all-caps face for retained section headings. */
+    public static final BitmapFont ORBITRON_12_BOLD = new BitmapFont("graphics/fonts/orbitron12bold.fnt");
+
+    /** Restrained display face reserved for retained screen titles. */
+    public static final BitmapFont ORBITRON_16 = new BitmapFont("graphics/fonts/orbitron16.fnt");
 }
