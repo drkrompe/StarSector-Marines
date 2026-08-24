@@ -1,8 +1,11 @@
 # ECS story board
 
-Status: ACTIVE — five bounded acceptance or presentation follow-ons remain open.
+Status: ACTIVE — five bounded acceptance or presentation follow-ons and one
+coordinator-boundary cleanup remain open.
 
 Written: 2026-08-23
+
+Updated: 2026-08-24
 
 The ECS storage and identity migration is shipped. This board contains only
 bounded work that remains genuinely open; completed migration slices are in
@@ -15,6 +18,7 @@ bounded work that remains genuinely open; completed migration slices are in
 | `secondary-aim-facing.md` | PROPOSED | Finish the existing secondary-aim facing contract with an explicit absent/dead-target fallback. | Choose the fallback and cover the live, absent, and dead target paths. |
 | `fx-child-entities.md` | PARKED | Decide whether muzzle, smoke, and impact effects should become lifecycle-owned child entities. | A separate effects design; do not subsume current working effects opportunistically. |
 | `fire-stance-normalization.md` | PARKED | Normalize moving/stanced firing semantics as a deliberate behavior change. | A dedicated playtest/acceptance scope defines intended stance semantics before code changes. |
+| `neutral-battle-timestep.md` | PROPOSED | Put the shared 30 Hz timestep behind a coordinator-independent battle contract. | Preserve cadence and remove all `BattleSimulation.TICK_DT` consumers without expanding `BattleView` or `BattleControl`. |
 
 No generic “systems to columns” continuation is queued. The prior conversion
 reached its positive-value terminus: a candidate must bring a current profile,
