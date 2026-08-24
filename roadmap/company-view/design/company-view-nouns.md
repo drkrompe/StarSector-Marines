@@ -298,8 +298,14 @@ loses an opportunity. Responding to an obligation follows the same deployment
 route as its campaign event notice. Long lists state hidden counts, and missing
 derived inputs are explained rather than silently collapsed.
 
-The HQ introduces no persisted state and no second company-card hierarchy. Its
-roster area is the host that the formation, whereabouts, and contract-board
+The HQ introduces no persisted state and no second company hierarchy. Opening its
+Armory transition first shows the owned-company collection as a responsive grid of
+literal selectable portrait cards, then enters the selected company's retained
+workspace. A company card is only a presentation container over the canonical
+company authority; it is not a collectible/template noun and does not persist a
+parallel organization. Until a multi-company campaign authority exists, that grid
+contains exactly the one real campaign roster rather than fixture companies. The HQ
+roster area remains the host that the formation, whereabouts, and contract-board
 stories will expand.
 
 ## Presentation boundaries

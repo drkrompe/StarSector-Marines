@@ -86,7 +86,7 @@ public final class FleetArmoryScreen implements Screen {
             built = new UiDocument(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard())
-                    .onCancel(() -> context.returnFromArmory());
+                    .onCancel(() -> context.returnFromFleetArmoryWorkspace());
             if (viewport != null) built.layout(viewport.width(), viewport.height());
         } catch (RuntimeException failure) {
             candidate.close();
@@ -119,7 +119,7 @@ public final class FleetArmoryScreen implements Screen {
         props.put("apply", viewModel.applyAction());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
-        props.put("back", (Runnable) () -> context.returnFromArmory());
+        props.put("back", (Runnable) () -> context.returnFromFleetArmoryWorkspace());
         props.put("legacy", (Runnable) () -> context.goTo(ScreenId.ARMORY));
         props.put("reload", (Runnable) () -> reloadRequested = true);
         props.put("reloadStatus", reloadStatus);

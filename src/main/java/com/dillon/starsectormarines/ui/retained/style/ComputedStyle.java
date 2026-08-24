@@ -17,6 +17,7 @@ public final class ComputedStyle {
     private final Map<StyleProperty, Object> values = new EnumMap<>(StyleProperty.class);
 
     public ComputedStyle() {
+        values.put(StyleProperty.DISPLAY, UiDisplay.FLEX);
         values.put(StyleProperty.FLEX_DIRECTION, UiLayout.COLUMN);
         values.put(StyleProperty.WIDTH, Length.AUTO);
         values.put(StyleProperty.HEIGHT, Length.AUTO);
@@ -58,6 +59,7 @@ public final class ComputedStyle {
     }
 
     public UiLayout direction() {
+        if (value(StyleProperty.DISPLAY) == UiDisplay.GRID) return UiLayout.GRID;
         return (UiLayout) value(StyleProperty.FLEX_DIRECTION);
     }
 
@@ -77,6 +79,14 @@ public final class ComputedStyle {
         return direction() == UiLayout.ROW
                 ? ((Length) value(StyleProperty.COLUMN_GAP)).resolve(basis)
                 : ((Length) value(StyleProperty.ROW_GAP)).resolve(basis);
+    }
+
+    public float rowGap(float basis) {
+        return ((Length) value(StyleProperty.ROW_GAP)).resolve(basis);
+    }
+
+    public float columnGap(float basis) {
+        return ((Length) value(StyleProperty.COLUMN_GAP)).resolve(basis);
     }
 
     public Insets padding(float basis) {

@@ -3,8 +3,8 @@ package com.dillon.starsectormarines.ui.retained;
 import java.util.List;
 
 /**
- * U1 retained layout: row, column, and stack with explicit preferred sizes and
- * flexible growth.
+ * Retained layout: row, column, responsive grid, and stack with explicit
+ * preferred sizes and flexible growth.
  *
  * <p>This is deliberately smaller than MoonLightEngine's CSS layout engine,
  * but preserves its most important boundary: the engine writes one retained
@@ -47,6 +47,8 @@ public final class UiLayoutEngine {
 
         if (element.layout() == UiLayout.STACK) {
             arrangeStack(children, content);
+        } else if (element.layout() == UiLayout.GRID) {
+            arrangeGrid(element, children, content);
         } else {
             arrangeFlow(element, children, content, element.layout() == UiLayout.ROW);
         }
@@ -104,6 +106,57 @@ public final class UiLayoutEngine {
                     : new Rect(crossOrigin, cursor, cross, main);
             arrange(child, childRect, content.width());
             cursor += main + gap;
+        }
+    }
+
+    /**
+     * Auto-filling fixed-item grid. The widest preferred child defines the
+     * column width; columns wrap responsively as the content box changes.
+     * Rows use their tallest child's preferred height and participate in the
+     * existing vertical overflow/scroll contract.
+     */
+    private void arrangeGrid(UiElement parent, List<UiElement> children, Rect content) {
+        float columnGap = parent.resolvedColumnGap(content.width());
+        float rowGap = parent.resolvedRowGap(content.width());
+        float columnWidth = 0f;
+        for (UiElement child : children) {
+            columnWidth = Math.max(columnWidth,
+                    preferredMain(child, true, content.width(), content.height()));
+        }
+        if (columnWidth <= 0f) columnWidth = content.width();
+        columnWidth = Math.min(content.width(), columnWidth);
+
+        int columns = Math.max(1, (int) Math.floor(
+                (content.width() + columnGap) / (columnWidth + columnGap)));
+        int rows = (children.size() + columns - 1) / columns;
+        float[] rowHeights = new float[rows];
+        for (int index = 0; index < children.size(); index++) {
+            float height = preferredMain(children.get(index), false,
+                    content.width(), content.height());
+            rowHeights[index / columns] = Math.max(rowHeights[index / columns], height);
+        }
+
+        float[] rowOrigins = new float[rows];
+        float y = content.y();
+        for (int row = 0; row < rows; row++) {
+            rowOrigins[row] = y;
+            y += rowHeights[row] + rowGap;
+        }
+
+        for (int index = 0; index < children.size(); index++) {
+            UiElement child = children.get(index);
+            int column = index % columns;
+            int row = index / columns;
+            float preferredWidth = preferredMain(child, true,
+                    content.width(), content.height());
+            float width = preferredWidth > 0f
+                    ? Math.min(columnWidth, preferredWidth) : columnWidth;
+            float preferredHeight = preferredMain(child, false,
+                    content.width(), content.height());
+            float height = preferredHeight > 0f ? preferredHeight : rowHeights[row];
+            arrange(child, new Rect(
+                    content.x() + column * (columnWidth + columnGap),
+                    rowOrigins[row], width, height), content.width());
         }
     }
 
