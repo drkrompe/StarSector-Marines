@@ -98,25 +98,29 @@ class SharedGoalPathfinderTest {
                 new SharedGoalPathfinder(grid, occupancy);
         shared.beginSnapshot();
 
-        for (int goalY = 0; goalY < 6; goalY++) {
-            for (int goalX = 0; goalX < 8; goalX++) {
-                if (!grid.isWalkable(goalX, goalY)) continue;
-                for (int startY = 0; startY < 6; startY++) {
-                    for (int startX = 0; startX < 8; startX++) {
-                        if (!grid.isWalkable(startX, startY)) continue;
-                        int[] expected = GridPathfinder.findPath(grid,
-                                startX, startY, goalX, goalY, occupancy);
-                        int[] actual = shared.findPath(startX, startY,
-                                goalX, goalY, false);
+        for (boolean cardinalOnly : new boolean[]{false, true}) {
+            for (int goalY = 0; goalY < 6; goalY++) {
+                for (int goalX = 0; goalX < 8; goalX++) {
+                    if (!grid.isWalkable(goalX, goalY)) continue;
+                    for (int startY = 0; startY < 6; startY++) {
+                        for (int startX = 0; startX < 8; startX++) {
+                            if (!grid.isWalkable(startX, startY)) continue;
+                            int[] expected = GridPathfinder.findPath(grid,
+                                    startX, startY, goalX, goalY,
+                                    cardinalOnly, occupancy);
+                            int[] actual = shared.findPath(startX, startY,
+                                    goalX, goalY, cardinalOnly);
 
-                        assertEquals(Paths.isEmpty(expected),
-                                Paths.isEmpty(actual));
-                        if (!Paths.isEmpty(expected)) {
-                            assertEquals(pathCost(expected, occupancy, grid),
-                                    pathCost(actual, occupancy, grid), 0.0001f,
-                                    "minimum cost must match for start "
-                                            + startX + "," + startY + " goal "
-                                            + goalX + "," + goalY);
+                            assertEquals(Paths.isEmpty(expected),
+                                    Paths.isEmpty(actual));
+                            if (!Paths.isEmpty(expected)) {
+                                assertEquals(pathCost(expected, occupancy, grid),
+                                        pathCost(actual, occupancy, grid), 0.0001f,
+                                        "minimum cost must match for start "
+                                                + startX + "," + startY + " goal "
+                                                + goalX + "," + goalY
+                                                + " cardinalOnly=" + cardinalOnly);
+                            }
                         }
                     }
                 }

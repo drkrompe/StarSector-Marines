@@ -64,6 +64,9 @@ public final class GridPathfinder {
     private static final int[] DIR_ADJ1_DY;
     private static final int[] DIR_ADJ2_DX;
     private static final int[] DIR_ADJ2_DY;
+    /** Representative direction indices for equal-cost cardinal/diagonal steps. */
+    static final int FIRST_CARDINAL_DIRECTION = 0;
+    static final int FIRST_DIAGONAL_DIRECTION = 4;
 
     static {
         Direction[] all = Direction.ALL;
