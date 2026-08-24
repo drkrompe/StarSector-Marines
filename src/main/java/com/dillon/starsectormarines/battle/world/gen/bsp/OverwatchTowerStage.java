@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
@@ -142,6 +143,7 @@ public final class OverwatchTowerStage implements GenStage {
                     && !ALLOWED_BANDS.contains(stand.depthBand)) {
                 continue;
             }
+            if (insideAuthoredInfantryPlace(ctx.tactical, x, y)) continue;
             if (tooClose(posts, placed, x, y)) continue;
             // Turning this single cell non-walkable must not sever the walkable
             // graph (a tower mounted in a 1-wide gap would wall it off).
@@ -176,6 +178,16 @@ public final class OverwatchTowerStage implements GenStage {
         for (int[] t : placed) {
             int dx = t[0] - x, dy = t[1] - y;
             if (dx * dx + dy * dy < minSq) return true;
+        }
+        return false;
+    }
+
+    /** A later positional consumer may not overwrite a node's authored member geometry. */
+    private static boolean insideAuthoredInfantryPlace(List<TacticalNode> nodes, int x, int y) {
+        for (TacticalNode node : nodes) {
+            if (node.standPositions().isEmpty()) continue;
+            if (x >= node.left && x <= node.right
+                    && y >= node.top && y <= node.bottom) return true;
         }
         return false;
     }
