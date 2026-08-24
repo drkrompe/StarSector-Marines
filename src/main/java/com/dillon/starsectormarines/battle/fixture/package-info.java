@@ -8,7 +8,7 @@
  *           test-only scene builders, command logs, and checkpoints do not
  *           belong here.
  *
- * <p>Design pointer: {@code roadmap/battle-fixtures/design/battle-fixtures-nouns.md}.
+ * <p>Design pointer: {@code battle-fixtures-nouns.md}.
  * See {@link com.dillon.starsectormarines.battle} for the full taxonomy.
  */
 package com.dillon.starsectormarines.battle.fixture;
