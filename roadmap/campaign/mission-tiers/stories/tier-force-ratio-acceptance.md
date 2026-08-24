@@ -1,8 +1,10 @@
 # Tier force-ratio acceptance
 
-Status: READY
+Status: IN PROGRESS — the Full Strength Conquest population failure is corrected; live force-ratio acceptance remains.
 
 Written: 2026-08-23
+
+Updated: 2026-08-24 — raised fixed Conquest pressure and removed attacker-derived support trimming after a Full Strength city fight proved underpopulated.
 
 Read `mission-tier-nouns.md` before accepting this story.
 
@@ -20,6 +22,10 @@ measure whether each authored scale asks for the intended commitment.
 - Preserve the distinction between tier baseline and risk variance when tuning
   any measured value.
 - Confirm a tier floor prevents invalid mission-type/scale combinations.
+- Confirm nominal Full Strength Conquest fields 630 initial defenders against
+  the intended forty-drop player force, rises to 725 at high risk, and retains
+  all authored mechs, fighter support, and static weapons when the attacking
+  manifest is understrength.
 
 ## Out of scope
 
