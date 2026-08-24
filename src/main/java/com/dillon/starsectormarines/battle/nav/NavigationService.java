@@ -45,6 +45,7 @@ public final class NavigationService {
 
     /** Per-cell unit count (current cell + path destination), rebuilt at the top of each tick and incrementally updated via {@link #applyOccupancyDeltaInline}. Read by the pathfinder so units route around ally-held cells. Saturates at 255. */
     private final byte[] occupancyMap;
+    private final SharedGoalPathfinder sharedGoalPathfinder;
 
     /** Bucketed spatial index over alive units. Rebuilt once per tick by {@link #rebuildSpatialIndices}. */
     private final UnitSpatialIndex unitIndex;
@@ -95,6 +96,7 @@ public final class NavigationService {
         this.grid = grid;
         this.topology = topology;
         this.occupancyMap = new byte[grid.getWidth() * grid.getHeight()];
+        this.sharedGoalPathfinder = new SharedGoalPathfinder(grid, occupancyMap);
         this.unitIndex = new UnitSpatialIndex(grid.getWidth(), grid.getHeight());
         this.destIndex = new UnitDestinationSpatialIndex(grid.getWidth(), grid.getHeight());
         this.zoneGraph = new ZoneGraph(grid);
@@ -250,6 +252,25 @@ public final class NavigationService {
                 }
             }
         }
+    }
+
+    /**
+     * Occupancy-aware path extraction from a reverse field shared by callers
+     * pursuing the same goal during the frozen UPDATE_UNITS window. Outside
+     * that explicitly bracketed phase the implementation falls back to A*.
+     */
+    public int[] findSharedPathToGoal(int startX, int startY,
+                                      int goalX, int goalY) {
+        return sharedGoalPathfinder.findPath(startX, startY, goalX, goalY,
+                GridPathfinder.USE_CARDINAL_NAVIGATION);
+    }
+
+    public void beginSharedGoalPathSnapshot() {
+        sharedGoalPathfinder.beginSnapshot();
+    }
+
+    public void endSharedGoalPathSnapshot() {
+        sharedGoalPathfinder.endSnapshot();
     }
 
     /**

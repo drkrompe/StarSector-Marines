@@ -43,6 +43,41 @@ class TickInnerProfileTest {
     }
 
     @Test
+    void pathRequestMetricsMeasureGoalFanInAndReset() {
+        TickInnerProfile profile = new TickInnerProfile();
+        profile.recordPathfindRequest(1, 2, 9, 10, true);
+        profile.recordPathfindRequest(3, 4, 9, 10, true);
+        profile.recordPathfindRequest(1, 2, 9, 10, false);
+        profile.recordPathfindRequest(5, 6, 11, 12, false);
+
+        assertEquals(4, profile.pathfindRequestCount());
+        assertEquals(2, profile.occupancyPathfindRequestCount());
+        assertEquals(3, profile.uniquePathfindRequestCount());
+        assertEquals(2, profile.uniquePathfindGoalCount());
+        assertEquals(3, profile.maximumPathfindGoalFanIn());
+
+        profile.reset();
+
+        assertEquals(0, profile.pathfindRequestCount());
+        assertEquals(0, profile.uniquePathfindGoalCount());
+        assertEquals(0, profile.maximumPathfindGoalFanIn());
+    }
+
+    @Test
+    void workerMergeUnionsPathRequestMetrics() {
+        TickInnerProfile aggregate = new TickInnerProfile();
+        TickInnerProfile worker = new TickInnerProfile();
+        aggregate.recordPathfindRequest(1, 1, 8, 8, true);
+        worker.recordPathfindRequest(2, 2, 8, 8, true);
+
+        aggregate.addFrom(worker);
+
+        assertEquals(2, aggregate.pathfindRequestCount());
+        assertEquals(1, aggregate.uniquePathfindGoalCount());
+        assertEquals(2, aggregate.maximumPathfindGoalFanIn());
+    }
+
+    @Test
     void tickBoundaryClearsAndReleaseDeregistersWorkerScratch() {
         TickInnerProfile.releaseCurrentThread();
         int before = TickInnerProfile.trackedWorkerCount();

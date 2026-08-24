@@ -58,6 +58,8 @@ public final class TickInnerProfile {
         // ---- Per-primitive buckets — heavy ops counted wherever they fire. ----
         PATHFIND,
         SWARM_PATHFIND,
+        SHARED_PATH_FIELD_BUILD,
+        SHARED_PATH_FIELD_EXTRACT,
         TARGET_PICK,
         FIRING_POSITION,
         FALLBACK_POSITION;
@@ -144,12 +146,17 @@ public final class TickInnerProfile {
 
     private final long[] nanos = new long[Bucket.VALUES.length];
     private final int[] counts = new int[Bucket.VALUES.length];
+    private long[] pathfindRequests = new long[0];
+    private int pathfindRequestCount;
+    private int occupancyPathfindRequestCount;
     private Bucket activeBehavior;
 
     /** Zeros all counters. Call once per tick. */
     public void reset() {
         Arrays.fill(nanos, 0L);
         Arrays.fill(counts, 0);
+        pathfindRequestCount = 0;
+        occupancyPathfindRequestCount = 0;
         activeBehavior = null;
     }
 
@@ -187,16 +194,104 @@ public final class TickInnerProfile {
         counts[idx]++;
     }
 
+    /**
+     * Retains compact request keys only for opt-in fixture profiling. Ordinary
+     * game runs never call this seam, so destination-clustering evidence does
+     * not add allocation or hashing to production pathfinding.
+     */
+    public void recordPathfindRequest(int startX, int startY,
+                                      int goalX, int goalY,
+                                      boolean usesOccupancy) {
+        ensurePathfindRequestCapacity(pathfindRequestCount + 1);
+        pathfindRequests[pathfindRequestCount++] = packRequest(
+                startX, startY, goalX, goalY);
+        if (usesOccupancy) occupancyPathfindRequestCount++;
+    }
+
+    private void ensurePathfindRequestCapacity(int required) {
+        if (pathfindRequests.length >= required) return;
+        pathfindRequests = Arrays.copyOf(pathfindRequests,
+                Math.max(required, Math.max(64, pathfindRequests.length * 2)));
+    }
+
+    private static long packRequest(int startX, int startY,
+                                    int goalX, int goalY) {
+        return ((long) (startX & 0xFFFF) << 48)
+                | ((long) (startY & 0xFFFF) << 32)
+                | ((long) (goalX & 0xFFFF) << 16)
+                | (goalY & 0xFFFFL);
+    }
+
     /** Per-bucket sum of another profile's nanos + counts. Used by {@link #mergeAllInto(TickInnerProfile)} to fold per-worker recordings into the sim's canonical instance after a parallel dispatch phase. */
     public void addFrom(TickInnerProfile other) {
         for (int i = 0; i < nanos.length; i++) {
             nanos[i] += other.nanos[i];
             counts[i] += other.counts[i];
         }
+        ensurePathfindRequestCapacity(
+                pathfindRequestCount + other.pathfindRequestCount);
+        System.arraycopy(other.pathfindRequests, 0, pathfindRequests,
+                pathfindRequestCount, other.pathfindRequestCount);
+        pathfindRequestCount += other.pathfindRequestCount;
+        occupancyPathfindRequestCount += other.occupancyPathfindRequestCount;
     }
 
     public long nanosOf(Bucket b)  { return nanos[b.ordinal()]; }
     public int countOf(Bucket b)   { return counts[b.ordinal()]; }
+
+    public int pathfindRequestCount() { return pathfindRequestCount; }
+
+    public int occupancyPathfindRequestCount() {
+        return occupancyPathfindRequestCount;
+    }
+
+    /** Exact distinct start+goal pairs requested in this tick. */
+    public int uniquePathfindRequestCount() {
+        int unique = 0;
+        for (int i = 0; i < pathfindRequestCount; i++) {
+            long request = pathfindRequests[i];
+            boolean seen = false;
+            for (int j = 0; j < i; j++) {
+                if (pathfindRequests[j] == request) {
+                    seen = true;
+                    break;
+                }
+            }
+            if (!seen) unique++;
+        }
+        return unique;
+    }
+
+    /** Distinct destination cells requested in this tick. */
+    public int uniquePathfindGoalCount() {
+        int unique = 0;
+        for (int i = 0; i < pathfindRequestCount; i++) {
+            int goal = (int) pathfindRequests[i];
+            boolean seen = false;
+            for (int j = 0; j < i; j++) {
+                if ((int) pathfindRequests[j] == goal) {
+                    seen = true;
+                    break;
+                }
+            }
+            if (!seen) unique++;
+        }
+        return unique;
+    }
+
+    /** Largest number of requests sharing one destination in this tick. */
+    public int maximumPathfindGoalFanIn() {
+        int maximum = 0;
+        for (int i = 0; i < pathfindRequestCount; i++) {
+            int goal = (int) pathfindRequests[i];
+            int count = 0;
+            for (int j = 0; j < pathfindRequestCount; j++) {
+                if ((int) pathfindRequests[j] == goal) count++;
+            }
+            maximum = Math.max(maximum, count);
+        }
+        return maximum;
+    }
 
     /** Returns a frozen copy of the current bucket state. The caller owns the arrays — mutating them won't affect this profile or vice-versa. */
     public Snapshot snapshot() {

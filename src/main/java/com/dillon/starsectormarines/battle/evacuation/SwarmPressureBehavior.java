@@ -12,6 +12,18 @@ import com.dillon.starsectormarines.battle.unit.LongBucket;
 public final class SwarmPressureBehavior implements UnitBehavior {
 
     private static final float CURRENT_TARGET_LEEWAY_SQUARED = 1.25f * 1.25f;
+    private static final boolean USE_SHARED_TARGET_FIELDS = Boolean.parseBoolean(
+            System.getProperty("battle.pathfinding.sharedSwarmGoals", "true"));
+    public static final String MINIMUM_SHARED_GOAL_UNITS_PROPERTY =
+            "battle.pathfinding.minimumSharedGoalUnits";
+    /**
+     * Fixed-slice crossover: A* wins at 202 live units, shared fields win at
+     * 322 and above. Use 0 to force fields or {@link Integer#MAX_VALUE} to
+     * force A* for repeatable profiler comparisons.
+     */
+    static final int DEFAULT_MINIMUM_SHARED_GOAL_UNITS = 300;
+    private static final int MINIMUM_SHARED_GOAL_UNITS =
+            loadMinimumSharedGoalUnits();
     private static final int ROAM_MIN_DISTANCE = 3;
     private static final int ROAM_RADIUS = 7;
     private static final int ROAM_SAMPLE_ATTEMPTS = 16;
@@ -59,11 +71,36 @@ public final class SwarmPressureBehavior implements UnitBehavior {
         boolean targetChanged = target != previousTarget;
         if ((targetChanged || sim.movement().mayRepath(runner))
                 && needsPath(runner, targetX, targetY, sim)) {
-            sim.setPath(runner, GridPathfinder.findPath(sim.getGrid(),
-                    runnerX, runnerY, targetX, targetY,
-                    sim.getOccupancyMap()));
+            int[] path = usesSharedTargetFields(sim.liveUnitCount())
+                    ? sim.findSharedPathToGoal(
+                            runnerX, runnerY, targetX, targetY)
+                    : GridPathfinder.findPath(sim.getGrid(),
+                            runnerX, runnerY, targetX, targetY,
+                            sim.getOccupancyMap());
+            sim.setPath(runner, path);
         }
         sim.advanceMovement(runner);
+    }
+
+    static boolean usesSharedTargetFields(int liveUnits) {
+        return USE_SHARED_TARGET_FIELDS
+                && liveUnits >= MINIMUM_SHARED_GOAL_UNITS;
+    }
+
+    public static int configuredMinimumSharedGoalUnits() {
+        return MINIMUM_SHARED_GOAL_UNITS;
+    }
+
+    private static int loadMinimumSharedGoalUnits() {
+        int configured = Integer.getInteger(
+                MINIMUM_SHARED_GOAL_UNITS_PROPERTY,
+                DEFAULT_MINIMUM_SHARED_GOAL_UNITS);
+        if (configured < 0) {
+            throw new IllegalArgumentException(
+                    MINIMUM_SHARED_GOAL_UNITS_PROPERTY
+                            + " must be non-negative");
+        }
+        return configured;
     }
 
     /**

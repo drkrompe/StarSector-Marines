@@ -1233,7 +1233,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         tickProfile.lap(TickProfile.Phase.GOAP_REPLAN);
         // Parallel per-unit dispatch — entity for-loop. See UnitUpdateSystem
         // class doc for the parallelism + ECS-promotion notes.
-        unitUpdate.tick(this);
+        navigation.beginSharedGoalPathSnapshot();
+        try {
+            unitUpdate.tick(this);
+        } finally {
+            navigation.endSharedGoalPathSnapshot();
+        }
         tickProfile.lap(TickProfile.Phase.UPDATE_UNITS);
         // Apply occupancy + destIndex deltas queued by setPath during the
         // per-unit dispatch. Runs at the end of UPDATE_UNITS, before any
@@ -1504,6 +1509,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      */
     public void setPath(long u, int[] newPath) {
         navigation.setPath(u, newPath);
+    }
+
+    /** Shared-goal path seam for dense target-pursuit behaviors. */
+    public int[] findSharedPathToGoal(int startX, int startY,
+                                      int goalX, int goalY) {
+        return navigation.findSharedPathToGoal(startX, startY, goalX, goalY);
     }
 
     /** Applies occupancy + destIndex deltas queued by {@link #setPath} during the per-unit dispatch. Delegates to {@link DamageService#flushPendingOccupancyDeltas()}. */
