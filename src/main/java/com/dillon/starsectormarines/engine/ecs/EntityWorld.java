@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.engine.ecs;
 
 import it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,8 +13,10 @@ import java.util.Map;
  * by entity id. An entity is a bare {@code long}; its archetype is the set of
  * component columns its id lives in, identified by a {@code long} bitmask.
  *
- * <p>The location index ({@code entityId -> packed(tableIndex, row)}) and the
- * mask-&gt;table index are fastutil primitive maps (no boxing). A structural
+ * <p>The location index ({@code entityId -> packed(tableIndex, row)}) uses
+ * direct array addressing for ordinary monotonic ids with a sparse fallback
+ * for unusually large externally adopted ids. The mask-&gt;table index remains
+ * a fastutil primitive map. A structural
  * change moves the entity's row between tables and fixes the location of both the
  * moved entity and the source tail that filled its hole. Serial-only — built for
  * the single-threaded sim tick.
@@ -29,7 +30,7 @@ public final class EntityWorld {
     private final List<ArchetypeTable> tables = new ArrayList<>();
     private final Long2IntOpenHashMap tableIndexByMask = new Long2IntOpenHashMap();
     /** entityId -> {@code (tableIndex << 32) | row}. */
-    private final Long2LongOpenHashMap location = new Long2LongOpenHashMap();
+    private final EntityLocationIndex location = new EntityLocationIndex();
     private final CommandBuffer commands = new CommandBuffer();
 
     private long nextEntityId = 1L;
@@ -37,7 +38,6 @@ public final class EntityWorld {
 
     public EntityWorld() {
         tableIndexByMask.defaultReturnValue(-1);
-        location.defaultReturnValue(-1L);
     }
 
     // ---- component-type registration (code-driven, no reflection) ----
