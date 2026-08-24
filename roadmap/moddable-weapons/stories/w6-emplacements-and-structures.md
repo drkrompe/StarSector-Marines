@@ -2,11 +2,11 @@
 
 > A turret is a platform, a mount, and a gun. Today it is one enum.
 
-Status: PLANNED
+Status: IN PROGRESS
 
 Written: 2026-08-22
 
-Updated: 2026-08-23 — follows W3 and must precede W4 enum retirement.
+Updated: 2026-08-24 — implementation started with authored turret FX and a deterministic catalog preview.
 
 Read `moddable-weapons-nouns.md` before implementing this story.
 
@@ -21,13 +21,15 @@ platforms, and only one of them uses its HP.**
 | --- | --- | --- | --- | --- |
 | Static emplacement | `MapTurret.create` | **yes** | no — "bolted-down defenses don't run dry" | no — forced A2G |
 | Shuttle hardpoint | `MountedTurret` / `AirSystem` | no — the shuttle owns HP | **yes** | **yes** |
-| Ground vehicle turret | `GroundSystem` | no — the vehicle owns HP | no | no |
+| Ground vehicle turret | `GroundSystem` / `ConvoyService` | no — the vehicle owns HP | **yes** | no |
 
 The javadoc already documents the conflict rather than resolving it:
-`startingAmmo` says "Static `MapTurret`s ignore this", and `role` says
-"Static `MapTurret`s default to `A2G`; mounted shuttle turrets honor the
-role for target filtering." Those are not weapon properties with awkward
-exceptions. They are **platform** properties living on the wrong object.
+`startingAmmo` says "Static `MapTurret`s ignore this" while both shuttle and
+vehicle carriers consume it. The authored `role` value is not currently read;
+shuttle kits choose their mission role independently. These are not weapon
+properties with awkward exceptions. Capacity is **mount** policy, while
+targeting role belongs to the carrier/mission and must not be preserved as
+dead catalog data.
 
 Two more things are already true and make the split cheap:
 
@@ -58,11 +60,15 @@ Applied to emplacements:
   makes this a *structure* model rather than a *turret* model. Future
   bunkers and wall emplacements have one or more.
 - **`TurretMountDef`** (mount hardware) — which `WeaponDef` is installed,
-  ammo capacity, traverse rate, visual scale, and the base/barrel appearance
-  layers. Everything the three platforms above genuinely share.
+  ammo capacity, traverse rate and optional emplacement appearance: visual
+  scale, base/barrel layers and local muzzle offset. Shuttle hardpoints may use
+  those layers; ground vehicles keep the turret baked into their chassis sheet
+  and therefore override/omit mount appearance rather than pretending every
+  carrier shares the pedestal art.
 - **`WeaponDef`** (already exists) — range, damage, accuracy, cooldown,
   burst, AoE, wall damage, arc, flight time, spread, minimum range, indirect
-  fire, and its W2 effect layers.
+  fire, and its W2 effect layers. Turret weapons land the first production
+  consumer of W2's pure seeded composer, including lingering aftermath.
 
 `maxHp` leaves the weapon entirely. Shuttles and vehicles keep supplying
 their own, exactly as they already do; static emplacements get theirs from
@@ -92,7 +98,23 @@ today's emplacements and is there for structures that have a visible body of
 their own, like the drone hub.
 
 That means **no new art is required to land this.** It is a re-keying of
-sprites that already exist.
+sprites that already exist. Appearance is optional because vehicle renderers
+use chassis-sheet geometry instead of the emplacement pair.
+
+### Runtime transition and preview
+
+`TurretKind` may remain during this story only as a thin stable-id handle for
+the many established carrier and persistence call sites. It may not retain a
+second stat table: every accessor resolves the structure, mount or weapon
+catalog. Deleting the handle and migrating persisted enum names remains W4's
+compatibility work.
+
+The catalog is also an executable authoring surface. A deterministic headless
+preview writes a storyboard strip for every mount: rest, recoil plus muzzle,
+projectile plus trail, impact, early aftermath and late smoke. It loads the
+same registries, uses the same pure turret-layer pose and seeded FX composer as
+runtime, and differs only in the final Java2D painter. A stable id-derived seed
+makes regenerated preview bytes reviewable.
 
 ## Out of scope
 
@@ -105,14 +127,24 @@ sprites that already exist.
 
 ## Acceptance
 
-- `TurretKind` is gone, replaced by a structure catalog, a mount catalog and
-  `WeaponDef` entries.
+- Structure and mount catalogs plus turret `WeaponDef` entries are the only
+  authored values; `TurretKind`, if retained, is an id-only compatibility
+  handle with no values of its own.
 - The three platforms each supply their own HP, with no field that two of
   them ignore.
 - A single weapon def is mounted by at least two different platforms in the
   shipped data, proving the split is real rather than a renaming.
 - Turret behavior, aim, recoil rendering and shuttle mounts are unchanged —
   parity-pinned the same way W1 and W2 pin theirs.
+- Muzzle, traveling-shot, impact and aftermath presentation for every shipped
+  turret are data-authored and interpreted by the seeded W2 composer. No
+  turret id appears in an FX switch or special-case boolean.
+- The catalog preview emits a deterministic six-state strip per mount from
+  the same parsed definitions, pose helper and composed particle commands used
+  at runtime. Tests prove repeated renders are byte-identical and that every
+  authored slot contributes visible output.
+- Every sprite reference and cross-catalog id is validated at load; unknown
+  definitions, FX kinds and assets fail loudly.
 
 ## Open questions
 

@@ -1,10 +1,10 @@
 # Moddable Weapons
 
-Status: ACTIVE — handheld weapons are data-owned; mech and emplacement migrations remain
+Status: ACTIVE — handheld weapons are data-owned; turret catalog migration is in progress
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — replaced migration chronology with durable transition boundaries.
+Updated: 2026-08-24 — defined turret catalog, optional appearance and shared preview-consumer boundaries.
 
 ## Purpose
 
@@ -50,6 +50,9 @@ without turning a JSON typo into a silent zero-damage battle.
   `MarineSecondary` enum conflates these concepts and is transitional.
 - **Effects** are presentation descriptions. A shot's simulation result never
   depends on particles, tracer art, or fire audio.
+- A **catalog preview** is another consumer of authoritative definitions, not
+  a parallel recipe. It shares pure pose and seeded effect composition with
+  runtime while owning only its headless painter and storyboard layout.
 
 ## Authority flow
 
@@ -92,6 +95,10 @@ shared consumer exists.
 - Data-authored effects compose layers rather than select a fixed global
   recipe. Until that migration ships, the current named impact profile is a
   compatibility bridge, not the final extension surface.
+- Mount appearance is optional and carrier-overridable. Emplacements and
+  shuttle mounts may composite base/barrel layers while a ground vehicle keeps
+  equivalent art in its chassis sheet; absent appearance never changes weapon
+  behavior.
 - Shared mod discovery and merge rules are one cross-catalog concern with
   moddable tilesets, not two independently invented override schemes.
 - A utility activation may reuse projectiles, detonations, and authored FX,
@@ -106,10 +113,12 @@ id-backed compatibility handles rather than parallel stat authorities; a
 weapon-like special reaches its definition through the distinct
 progression-owned special-equipment identity.
 
-Mech weapons and turret stat carriers remain temporary transition boundaries
-until their definitions and mount rules enter the registry. They still obey
-the same penetration and mutually exclusive contact-versus-area payload laws;
-transitional storage does not create a second combat model.
+Mech weapon stat carriers remain a temporary transition boundary until their
+definitions and mount rules enter the registry. During the turret migration,
+`TurretKind` is permitted only as a stable-id compatibility handle whose
+accessors resolve catalog definitions; it may not own duplicate authored
+values. Both families still obey the same penetration and mutually exclusive
+contact-versus-area payload laws.
 
 Catalog expansion and mount validation, layered effects, compatibility-enum
 retirement and persistence repair, the emplacement platform/mount split, and
