@@ -1,8 +1,10 @@
 package com.dillon.starsectormarines.battle.turret;
 
 import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
+import com.dillon.starsectormarines.battle.weapon.ContrailProfile;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.battle.weapon.fx.FxSlot;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
@@ -71,8 +73,8 @@ class TurretCatalogRegistryTest {
         assertKind(TurretKind.LOCUST, "Locust Rocket Battery", 100f, 45f, 14f, .25f, 10f,
                 85f, 135f, 12f, 50f, 2f, .45f, 30,
                 8, .08f, 1.4f, 20, 1.4f, 3.5f, 1.5f, 8f, 30f,
-                true, true, .55f, 70f, 0f, 0f, true, true, ImpactProfile.HE,
-                "graphics/weapons/locust_turret.png", "graphics/weapons/locust_turret.png",
+                false, true, .55f, 70f, 0f, 0f, true, true, ImpactProfile.HE,
+                "graphics/weapons/locust_turret.png", null,
                 "graphics/missiles/missile_locust.png", "swarmer_fire");
         assertKind(TurretKind.HEAVY_MG, "Heavy MG", 24f, 22.5f, 4f, .5f, 2.2f,
                 70f, 110f, 10f, 110f, 1.6f, .22f, 200,
@@ -104,6 +106,14 @@ class TurretCatalogRegistryTest {
         assertEquals(0f, TurretKind.HEAVY_MORTAR.cellsPerSec(), EPS,
                 "authored flight timing must not turn a resolved shell into a projectile entity");
         assertEquals(60f, TurretKind.HEAVY_MORTAR.directRoundVelocity(), EPS);
+    }
+
+    @Test
+    void locustPresentationRemainsMissileArtillery() {
+        assertSame(ContrailProfile.MISSILE_SMOKE, TurretKind.LOCUST.contrailProfile());
+        assertEquals("marines_missile_impact", TurretKind.LOCUST.impactSoundId());
+        assertTrue(TurretKind.LOCUST.hasLaunchBackblast());
+        assertFalse(TurretKind.LOCUST.fx().layers(FxSlot.LAUNCH).isEmpty());
     }
 
     @Test

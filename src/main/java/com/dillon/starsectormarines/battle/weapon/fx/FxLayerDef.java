@@ -22,11 +22,16 @@ public record FxLayerDef(
         FxFloatRange delay,
         FxFloatRange emissionDuration,
         FxFloatRange emissionInterval,
+        FxFloatRange offsetForward,
+        FxFloatRange offsetLateral,
+        FxFloatRange velocityForward,
+        FxFloatRange velocityLateral,
         Color color) {
 
     private static final Set<String> FIELDS = Set.of(
             "kind", "radius", "lifetime", "count", "jitter", "delay",
-            "emissionDuration", "emissionInterval", "color");
+            "emissionDuration", "emissionInterval", "offsetForward",
+            "offsetLateral", "velocityForward", "velocityLateral", "color");
 
     public FxLayerDef {
         if (kind == null || radius == null || lifetime == null || count == null
@@ -78,11 +83,17 @@ public record FxLayerDef(
         FxFloatRange emissionInterval = json.has("emissionInterval")
                 ? FxFloatRange.parse(json.get("emissionInterval"), "emissionInterval", where)
                 : null;
+        FxFloatRange offsetForward = optionalRange(json, "offsetForward", where);
+        FxFloatRange offsetLateral = optionalRange(json, "offsetLateral", where);
+        FxFloatRange velocityForward = optionalRange(json, "velocityForward", where);
+        FxFloatRange velocityLateral = optionalRange(json, "velocityLateral", where);
         Color color = json.has("color") ? parseColor(json.get("color"), where) : null;
 
         try {
             FxLayerDef layer = new FxLayerDef(kind, radius, lifetime, count, jitter,
-                    delay, emissionDuration, emissionInterval, color);
+                    delay, emissionDuration, emissionInterval,
+                    offsetForward, offsetLateral, velocityForward, velocityLateral,
+                    color);
             validateScheduleBound(layer, where);
             return layer;
         } catch (IllegalArgumentException e) {
@@ -106,6 +117,12 @@ public record FxLayerDef(
             throw new JSONException("FX layer '" + where + "' is missing required field '" + field + "'");
         }
         return FxFloatRange.parse(json.get(field), field, where);
+    }
+
+    private static FxFloatRange optionalRange(JSONObject json, String field, String where)
+            throws JSONException {
+        return json.has(field) && !json.isNull(field)
+                ? FxFloatRange.parse(json.get(field), field, where) : null;
     }
 
     private static float scalar(Object value, String field, String where) throws JSONException {
