@@ -4,7 +4,7 @@ Status: ACTIVE — `EntityWorld` is the battle composition substrate; capability
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — made authored layered clips the pose authority sampled from simulation-owned procedural phases.
+Updated: 2026-08-24 — separated secondary equipment identity/carry presentation from its authored action pose.
 
 The battle simulation has one composition substrate: an `EntityWorld`.  This
 document names the durable model, ownership, and safety laws of that substrate.
@@ -124,6 +124,13 @@ runtime-selected armor and equipment sprites. Fixed ordering for dynamic
 equipment remains compositor-owned. Mech thigh stretch is ordinary authored
 layer scale, not a separate animation system. Actors or clips without a usable
 layered definition retain their existing procedural or sheet fallback.
+
+Secondary equipment definitions own the selected item's sprite identity, ordinary
+carry state, occlusion fallback, and references to its using/firing clips. The
+referenced equipment-specific unit-layer variant owns the combined action pose
+while that item is in use, including an optional `special` layer transform. Combat
+timing and AI policy do not move into the clip; they continue to supply the
+normalized action phase that the clip samples.
 
 The standalone layer workbench consumes the same document and duration-weighted
 sampling law. Its driver scrubber is therefore acceptance evidence for the live

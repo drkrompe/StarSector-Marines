@@ -5,7 +5,7 @@
 
 Status: PLANNED — no hard dependency; pairs with `s6-unlock-ladder-expansion.md`.
 Written: 2026-08-22
-Updated: 2026-08-23 — migrated references to stable slugs.
+Updated: 2026-08-24 — tied hardened-site income to frozen intact/destroyed installation recovery rather than generic victory context.
 
 ## Problem
 
@@ -68,6 +68,11 @@ manifest with parts entries rather than building a parallel drop system.
 - **Advanced components** drop rarely, weighted toward high-risk operations
   and hardened sites (military bases, armories, C2). This is the primary
   advanced-component faucet.
+- Hardened-site weighting consumes the frozen installation outcomes from
+  `intact-installation-recovery.md`. CAPTURED_INTACT or explicitly eligible
+  DISABLED_INTACT sites may admit advanced assemblies; DESTROYED sites normally
+  admit scrap/common parts only. The parts story must not inspect the ended
+  battle or award pristine components because a market merely had an industry.
 - Existing salvage entitlement and recovery-modifier machinery
   (`LootRecoveryModifiers`, `Trait.SALVAGE_EXPERT`) should apply, so the
   one already-wired captain trait gets more to do.
@@ -113,6 +118,8 @@ Recovered enemy weapons and armor break down into common parts.
   vanilla commodities off-book.
 - Deterministic and replay-safe: recomputing a mission outcome does not
   double-pay.
+- Capture-for-client and DEFEND objectives do not grant site parts unless the
+  accepted contract explicitly gives the player a recovery allotment.
 - Legacy saves migrate — existing `fabricationMaterials` becomes common
   parts, advanced components start at zero.
 - The total income curve is stated explicitly in the story record: roughly

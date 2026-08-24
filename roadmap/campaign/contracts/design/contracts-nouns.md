@@ -4,6 +4,8 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
+Updated: 2026-08-24 — established objective mandate and faction/target fit as contract-term and offer-policy extensions.
+
 Campaign contracts turn the player's relationship with a patron into a bounded
 piece of work. They sit between the campaign's political chains and an
 operation: a chain supplies strategic context, a contract fixes the commercial
@@ -22,6 +24,16 @@ not own the political simulation, battle presentation, cargo, or narrator.
   kind, payout shape, salvage entitlement, and—where applicable—the committed
   detachment and duration. Terms establish a right to recovery; they do not
   create or choose the recovery manifest. That belongs to `loot-nouns.md`.
+- An **objective mandate** is the term that says what the employer requires to
+  happen to a mission asset: defend it, capture it intact, recover something
+  from it, disable it, or destroy it. A related collateral policy may restrict
+  damage beyond the named target. Mission type still supplies tactical shape;
+  it does not silently choose the mandate.
+- An **objective result** is the operation-frozen fact describing how that
+  named asset ended: preserved, captured intact, disabled intact, destroyed, or
+  not secured. The owning mission freezes the fact; contract settlement tests
+  it against the mandate, while loot may consume the same immutable fact for
+  recovery eligibility.
 - A **mission contract** is resolved through one or more player operations.
   Strike and Escort are single-operation work; Planetary Assault is a phased
   sequence whose non-terminal setback can require another attempt.
@@ -88,6 +100,16 @@ second roster.
 7. Employer breach/default is distinct from player abandonment and battle
    failure. It leads to recovery of stranded stationing personnel rather than
    silently returning them or treating the breach as player fault.
+8. Offer generation establishes target fit before weighting flavor. The
+   employer/target relationship and the target's actual assets decide which
+   work is admissible; faction identity may weight and describe that eligible
+   pool but may not make a nonsensical target valid.
+9. Destruction of employer-owned productive or civic infrastructure is an
+   authored exception with a stated denial or containment reason, never a
+   routine consequence of rolling Strike work.
+10. Settlement evaluates the accepted mandate against frozen objective results.
+    Contracts do not inspect the ended simulation, and presentation or loot may
+    not reinterpret a result to change success.
 
 ## Flow
 
@@ -111,6 +133,11 @@ authority. New stationing event sources may join the notice projection only by
 exposing a persisted pending payload and the same deadline/settlement contract.
 Do not add type-specific reputation or duplicate launch paths around shared
 eligibility, response, and settlement policy.
+
+`faction-ground-contract-policy.md` owns the planned vertical that adds
+objective mandates, asset/relationship admissibility, faction weighting, and
+briefing disclosure to production offers. Those additions extend terms and
+shared eligibility; they do not create a parallel faction contract system.
 
 The remaining work is listed in `stories.md`. Completed slices are recorded in
 `shipped.md`.

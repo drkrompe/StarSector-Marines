@@ -41,7 +41,9 @@ public final class TurretCatalogPreviewDocument {
     private static final int HEADER_HEIGHT = 34;
     private static final int SCENE_HEIGHT = STRIP_HEIGHT - HEADER_HEIGHT;
     private static final float CELL_PX = 42f;
-    private static final float FACING_DEGREES = 90f;
+    // Starsector sprite angles are north-based and counter-clockwise, so an
+    // eastbound storyboard uses -90 degrees.
+    static final float FACING_DEGREES = -90f;
     private static final float TURRET_X = -1.45f;
     private static final float TURRET_Y = 0f;
     private static final float IMPACT_X = 1.65f;
@@ -389,11 +391,11 @@ public final class TurretCatalogPreviewDocument {
         return sceneCenterY() - worldY * CELL_PX;
     }
 
-    private static float directionX() {
-        return (float) Math.sin(Math.toRadians(FACING_DEGREES));
+    static float directionX() {
+        return -(float) Math.sin(Math.toRadians(FACING_DEGREES));
     }
 
-    private static float directionY() {
+    static float directionY() {
         return (float) Math.cos(Math.toRadians(FACING_DEGREES));
     }
 
