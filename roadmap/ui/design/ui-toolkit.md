@@ -2,7 +2,7 @@
 
 Status: SHIPPED — foundation active as production infrastructure
 Written: 2026-08-23
-Updated: 2026-08-24 — dotted MLX reads now use explicit sandbox-safe property sources rather than reflection.
+Updated: 2026-08-24 — production canvas recipes can emit deterministic PNG evidence through a headless raster backend.
 
 ## Decision
 
@@ -156,6 +156,10 @@ idle guarantee here is zero style resolution and zero layout work once settled.
   coordinate mismatch is visible rather than inferred from a crowded screen.
 - Production surface acceptance includes a screenshot review, but domain behavior is
   asserted below the renderer.
+- Backend-neutral production previews render through a controlled Java2D sink as well
+  as the live canvas sink. `gradlew.bat renderArmoryPreviews` writes individual Fleet
+  Armory loadouts and a contact sheet under `build/headless-armory-previews/`; this is
+  deterministic visual evidence, while the final host-scale feel pass remains in-game.
 
 ## Rejected directions
 

@@ -2,7 +2,7 @@
 
 Status: IN PROGRESS — formation, template issue, and live billet preview migrated; broader parity remains
 Written: 2026-08-23
-Updated: 2026-08-24 — selected template billets now drive a retained equipment doll and battlefield-composed sample soldier.
+Updated: 2026-08-24 — the live billet preview and headless PNG evidence now share one backend-neutral composition recipe.
 
 Read `company-view-nouns.md`, `ui-nouns.md`, and
 `c14-fire-team-equipment-templates.md` first.
@@ -64,6 +64,8 @@ workspace. Templates remain plans, never collectible cards.
 - Template and arrangement previews exactly match the operation that applies them.
 - The billet preview shows candidate armour, primary grade, and special equipment;
   its sample soldier shares battlefield layer recipes rather than a UI-only pose table.
+- The same billet recipe renders deterministic PNGs without a game or OpenGL context;
+  live acceptance remains responsible only for host scaling and feel.
 - No player-facing use of card/deck/hand/consume terminology or behavior exists.
 - Layout remains usable for a large company and at UI scales 1.0, 1.25, and 1.5.
 - Mouse, keyboard, and drag interactions reach the same domain commands.

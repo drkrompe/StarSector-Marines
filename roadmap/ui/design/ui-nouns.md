@@ -2,7 +2,7 @@
 
 Status: SHIPPED — retained UI foundation proven in-engine
 Written: 2026-08-23
-Updated: 2026-08-24 — bounded canvas drawing now includes whole-texture sprites for composed domain previews.
+Updated: 2026-08-24 — composed canvas previews now share one recipe across live sprites and deterministic headless PNGs.
 
 ## Purpose
 
@@ -196,7 +196,11 @@ content. Its output is clipped to the canvas content box intersected with ancest
 clips, and its `visibleBounds` is expressed in canvas-local units. Whole-texture
 sprites are another bounded canvas primitive: canvas metrics place and scale them,
 the producer supplies the domain composition, and the retained painter continues
-to own clipping and borrowed OpenGL state.
+to own clipping and borrowed OpenGL state. A composed preview expresses its ordered
+primitives against a backend-neutral sink and identifies sprite assets independently
+of a loaded game texture. The live sink resolves those tokens to `SpriteAPI`; the
+headless sink resolves the same tokens to source PNGs in a controlled Java2D context.
+Both therefore exercise one layout, pose, occlusion, and actor-composition recipe.
 
 ## Authority boundaries
 

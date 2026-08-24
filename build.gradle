@@ -102,6 +102,22 @@ test {
     systemProperty 'ecs.bench', System.getProperty('ecs.bench', 'false')
 }
 
+tasks.register('renderArmoryPreviews', JavaExec) {
+    group = 'verification'
+    description = 'Render deterministic Fleet Armory loadout PNGs without launching Starsector'
+    dependsOn tasks.named('testClasses')
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer'
+    workingDir projectDir
+    outputs.upToDateWhen { false }
+    doFirst {
+        File output = providers.gradleProperty('armoryPreviewDir').isPresent()
+                ? file(providers.gradleProperty('armoryPreviewDir').get())
+                : layout.buildDirectory.dir('headless-armory-previews').get().asFile
+        args projectDir.absolutePath, output.absolutePath
+    }
+}
+
 // The default `jar` task only produces the thin jar (our classes), which we
 // don't ship. The shaded `shadowJar` below is the deliverable — it bundles
 // asset-pipeline + JOML + fastutil (relocated) into mod/jars/StarsectorMarines.jar.

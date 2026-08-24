@@ -8,7 +8,6 @@ import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.marine.EquipmentLayerDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialUsePose;
-import com.fs.starfarer.api.graphics.SpriteAPI;
 
 /** Emits one modular infantry actor from shoulder-relative authored transforms. */
 final class LayeredUnitComposer {
@@ -33,8 +32,8 @@ final class LayeredUnitComposer {
                      float actorX, float actorY, float shoulderPx,
                      float facingDeg, float headLookDeg, float locomotionPhase,
                      float weaponPhase, int pose, int flags, float alpha) {
-        emit((sprite, centerX, centerY, width, height, angleDegrees, red, green, blue, opacity) ->
-                        out.addSprite(RenderLayer.UNITS, sprite, centerX, centerY,
+        emit((layer, centerX, centerY, width, height, angleDegrees, red, green, blue, opacity) ->
+                        out.addSprite(RenderLayer.UNITS, layer.sprite, centerX, centerY,
                                 width, height, angleDegrees, red, green, blue, opacity),
                 assets, head, primary, drawWeaponLayers, special, equipmentGrade,
                 actorX, actorY, shoulderPx, facingDeg, headLookDeg, locomotionPhase,
@@ -281,7 +280,7 @@ final class LayeredUnitComposer {
                                    float cx, float cy, float swPx,
                                    float angleDeg, float alpha) {
         float scale = swPx / SOURCE_SHOULDER_PX;
-        out.add(layer.sprite, cx, cy,
+        out.add(layer, cx, cy,
                 layer.pxWidth * scale, layer.pxHeight * scale, angleDeg,
                 1f, 1f, 1f, alpha);
     }
@@ -289,7 +288,7 @@ final class LayeredUnitComposer {
     private static void emitEquipmentLayer(SpriteEmitter out, LayeredSpriteCache layer,
                                            EquipmentLayerComposer.Placement placement,
                                            float alpha) {
-        out.add(layer.sprite,
+        out.add(layer,
                 placement.centerX(), placement.centerY(),
                 placement.width(), placement.height(), placement.angleDegrees(),
                 1f, 1f, 1f, alpha);
@@ -332,7 +331,7 @@ final class LayeredUnitComposer {
 
     @FunctionalInterface
     interface SpriteEmitter {
-        void add(SpriteAPI sprite, float centerX, float centerY,
+        void add(LayeredSpriteCache layer, float centerX, float centerY,
                  float width, float height, float angleDegrees,
                  float red, float green, float blue, float alpha);
     }
