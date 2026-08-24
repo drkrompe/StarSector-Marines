@@ -4,7 +4,7 @@ Status: ACTIVE — side-owned requests separate trigger, supply, means, delivery
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — tied the target-faction roster extension to concrete armor roles, patterns, and provenance.
+Updated: 2026-08-24 — tied target-faction rosters to concrete armor, primary-family, and special-item selection without granting faction combat rules.
 
 ## Vocabulary
 
@@ -61,4 +61,8 @@ force quantity, delivery, mission command, or player-owned personnel. Armor
 selection names concrete patterns from the shared assault-armor role and
 provenance catalog. Encounter risk may change which candidates are eligible,
 but reinforcement may not reinterpret light, line, and heavy as a hidden
-quality ladder or manufacture faction-wide armor rules.
+quality ladder or manufacture faction-wide armor rules. Primary and special
+issue likewise names concrete family/item ids; the roster never turns faction
+labels such as corporate, elite, fanatic, or outlaw into damage, targeting,
+morale, self-detonation, or equipment-use behavior when the corresponding item
+is absent.
