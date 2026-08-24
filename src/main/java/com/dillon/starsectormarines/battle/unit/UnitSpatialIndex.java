@@ -57,6 +57,52 @@ public final class UnitSpatialIndex {
     public static final int BUCKET = 16;
 
     /**
+     * Faction-filtered snapshot slice for one spatial bucket. The primitive
+     * position data is deliberately duplicated from the all-unit slice: dense
+     * opposing swarms then query the handful of relevant targets without
+     * streaming past hundreds of wrong-faction entries first.
+     */
+    private static final class FactionSlice {
+        long[] ids = new long[8];
+        float[] posX = new float[8];
+        float[] posY = new float[8];
+        int size;
+
+        void add(long id, float x, float y) {
+            if (size == ids.length) {
+                int capacity = size << 1;
+                ids = Arrays.copyOf(ids, capacity);
+                posX = Arrays.copyOf(posX, capacity);
+                posY = Arrays.copyOf(posY, capacity);
+            }
+            ids[size] = id;
+            posX[size] = x;
+            posY[size] = y;
+            size++;
+        }
+
+        void removeStable(long id) {
+            int index = 0;
+            while (index < size && ids[index] != id) index++;
+            if (index == size) {
+                throw new IllegalStateException(
+                        "unit missing from faction spatial slice: " + id);
+            }
+            int moved = size - index - 1;
+            if (moved > 0) {
+                System.arraycopy(ids, index + 1, ids, index, moved);
+                System.arraycopy(posX, index + 1, posX, index, moved);
+                System.arraycopy(posY, index + 1, posY, index, moved);
+            }
+            size--;
+        }
+
+        void clear() {
+            size = 0;
+        }
+    }
+
+    /**
      * One spatial bucket: parallel arrays of unit ids and their rebuild-time
      * snapshot TRUE position, grown on demand and recycled across rebuilds so
      * steady-state allocation stays zero. The snapshot position is what lets
@@ -68,6 +114,8 @@ public final class UnitSpatialIndex {
         float[] posX = new float[8];
         float[] posY = new float[8];
         byte[] factionOrdinals = new byte[8];
+        final FactionSlice[] byFaction =
+                new FactionSlice[Faction.values().length];
         int size;
 
         void add(long id, float x, float y, byte factionOrdinal) {
@@ -83,6 +131,13 @@ public final class UnitSpatialIndex {
             posY[size] = y;
             factionOrdinals[size] = factionOrdinal;
             size++;
+            int ordinal = factionOrdinal & 0xFF;
+            FactionSlice faction = byFaction[ordinal];
+            if (faction == null) {
+                faction = new FactionSlice();
+                byFaction[ordinal] = faction;
+            }
+            faction.add(id, x, y);
         }
 
         /**
@@ -95,6 +150,7 @@ public final class UnitSpatialIndex {
             int index = 0;
             while (index < size && ids[index] != id) index++;
             if (index == size) return false;
+            int factionOrdinal = factionOrdinals[index] & 0xFF;
             int moved = size - index - 1;
             if (moved > 0) {
                 System.arraycopy(ids, index + 1, ids, index, moved);
@@ -104,12 +160,16 @@ public final class UnitSpatialIndex {
                         factionOrdinals, index, moved);
             }
             size--;
+            byFaction[factionOrdinal].removeStable(id);
             return true;
         }
 
         /** Clears for reuse. Ids are primitives, so there's no reference to null out — a released unit isn't pinned (the bucket holds no object). */
         void clear() {
             size = 0;
+            for (FactionSlice faction : byFaction) {
+                if (faction != null) faction.clear();
+            }
         }
     }
 
@@ -318,12 +378,24 @@ public final class UnitSpatialIndex {
             for (int bx = x0; bx <= x1; bx++) {
                 Bucket bucket = buckets[by * bucketsX + bx];
                 if (bucket == null) continue;
-                long[] ids = bucket.ids;
-                float[] bpx = bucket.posX;
-                float[] bpy = bucket.posY;
-                byte[] factions = bucket.factionOrdinals;
-                for (int i = 0, n = bucket.size; i < n; i++) {
-                    if (factionOrdinal >= 0 && factions[i] != factionOrdinal) continue;
+                long[] ids;
+                float[] bpx;
+                float[] bpy;
+                int count;
+                if (factionOrdinal >= 0) {
+                    FactionSlice faction = bucket.byFaction[factionOrdinal];
+                    if (faction == null) continue;
+                    ids = faction.ids;
+                    bpx = faction.posX;
+                    bpy = faction.posY;
+                    count = faction.size;
+                } else {
+                    ids = bucket.ids;
+                    bpx = bucket.posX;
+                    bpy = bucket.posY;
+                    count = bucket.size;
+                }
+                for (int i = 0; i < count; i++) {
                     float dx = bpx[i] - cx;
                     float dy = bpy[i] - cy;
                     if (dx * dx + dy * dy <= r2) out.add(ids[i]);
@@ -372,12 +444,14 @@ public final class UnitSpatialIndex {
                             Math.abs(by - centerBy)) != ring) continue;
                     Bucket bucket = buckets[by * bucketsX + bx];
                     if (bucket == null) continue;
-                    for (int i = 0, n = bucket.size; i < n; i++) {
-                        if (bucket.factionOrdinals[i] != factionOrdinal) continue;
-                        long id = bucket.ids[i];
+                    FactionSlice factionSlice =
+                            bucket.byFaction[factionOrdinal];
+                    if (factionSlice == null) continue;
+                    for (int i = 0, n = factionSlice.size; i < n; i++) {
+                        long id = factionSlice.ids[i];
                         if (eligibility != null && !eligibility.test(id)) continue;
-                        float dx = bucket.posX[i] - cx;
-                        float dy = bucket.posY[i] - cy;
+                        float dx = factionSlice.posX[i] - cx;
+                        float dy = factionSlice.posY[i] - cy;
                         float distanceSquared = dx * dx + dy * dy;
                         if (distanceSquared < bestDistanceSquared
                                 || (distanceSquared == bestDistanceSquared

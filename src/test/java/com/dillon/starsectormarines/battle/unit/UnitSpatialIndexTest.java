@@ -65,6 +65,25 @@ public class UnitSpatialIndexTest {
     }
 
     @Test
+    public void factionGatherRetainsFilteredDenseOrderInAMixedBucket() {
+        UnitSpatialIndex index = new UnitSpatialIndex(64, 64);
+        UnitRosterService roster = new UnitRosterService(index, null);
+        long firstMarine = roster.spawn(unit("first marine", 10, 10));
+        for (int i = 0; i < 80; i++) {
+            roster.spawn(new EntitySpec("swarm-" + i, Faction.DEFENDER,
+                    UnitType.SWARM_RUNNER, 10, 10));
+        }
+        long secondMarine = roster.spawn(unit("second marine", 10, 10));
+
+        LongBucket out = new LongBucket();
+        index.gatherFaction(10.5f, 10.5f, 4f, Faction.MARINE, out);
+
+        assertEquals(2, out.size);
+        assertEquals(firstMarine, out.ids[0]);
+        assertEquals(secondMarine, out.ids[1]);
+    }
+
+    @Test
     public void nearestFactionCrossesEmptyBucketRingsAndBreaksTiesById() {
         UnitSpatialIndex index = new UnitSpatialIndex(96, 64);
         UnitRosterService roster = new UnitRosterService(index, null);
@@ -113,6 +132,11 @@ public class UnitSpatialIndexTest {
 
         LongBucket out = new LongBucket();
         index.gather(10.5f, 10.5f, 4f, out);
+        assertEquals(2, out.size);
+        assertEquals(first, out.ids[0]);
+        assertEquals(last, out.ids[1]);
+
+        index.gatherFaction(10.5f, 10.5f, 4f, Faction.MARINE, out);
         assertEquals(2, out.size);
         assertEquals(first, out.ids[0]);
         assertEquals(last, out.ids[1]);
