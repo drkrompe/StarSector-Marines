@@ -31,6 +31,63 @@ class SquadBeliefTest {
     }
 
     @Test
+    void beliefSnapshotSortsContactsByUnitIdIndependentOfStoreOrder() {
+        Squad squad = new Squad(1, Faction.MARINE);
+        int simTick = 7;
+        squad.beginBeliefTick(BattleSimulation.TICK_DT, simTick);
+        squad.observeDirectContact(30L, 30, 3, simTick);
+        squad.observeDirectContact(10L, 10, 1, simTick);
+        squad.observeDirectContact(20L, 20, 2, simTick);
+
+        squad.publishBeliefSnapshot();
+
+        assertEquals(3, squad.believedContacts().size());
+        assertEquals(10L, squad.believedContacts().get(0).unitId());
+        assertEquals(20L, squad.believedContacts().get(1).unitId());
+        assertEquals(30L, squad.believedContacts().get(2).unitId());
+        assertEquals(10, squad.lastSeenEnemyX,
+                "equal-tick freshest-contact ties resolve to the lowest unit id");
+        assertEquals(1, squad.lastSeenEnemyY);
+    }
+
+    @Test
+    void multipleObserversPreserveConsecutiveTickMotionSample() {
+        BattleSimulation sim = openSim();
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        EntitySpec observerSpec = new EntitySpec("observer-a", Faction.MARINE,
+                UnitType.MARINE, 5, 5).squad(squadId);
+        observerSpec.moveSpeed = 0f;
+        sim.spawn(observerSpec);
+        EntitySpec secondObserverSpec = new EntitySpec("observer-b", Faction.MARINE,
+                UnitType.MARINE, 5, 6).squad(squadId);
+        secondObserverSpec.moveSpeed = 0f;
+        sim.spawn(secondObserverSpec);
+        EntitySpec targetSpec = new EntitySpec("target", Faction.DEFENDER,
+                UnitType.MARINE, 10, 5);
+        targetSpec.moveSpeed = 0f;
+        long target = sim.spawn(targetSpec);
+
+        sim.advance(BattleSimulation.TICK_DT);
+        BelievedContact first = squad.believedContact(target);
+        assertNotNull(first);
+
+        sim.world().setCellPos(target, 11, 6);
+        sim.advance(BattleSimulation.TICK_DT);
+
+        BelievedContact refreshed = squad.believedContact(target);
+        assertNotNull(refreshed);
+        assertEquals(1, squad.believedContacts().size(),
+                "same-tick observations replace one primitive-keyed contact");
+        assertEquals(11, refreshed.lastSeenCellX());
+        assertEquals(6, refreshed.lastSeenCellY());
+        assertEquals(first.lastSeenCellX(), refreshed.previousDirectCellX());
+        assertEquals(first.lastSeenCellY(), refreshed.previousDirectCellY());
+        assertEquals(first.lastSeenTick(), refreshed.previousDirectTick(),
+                "a second squadmate must not overwrite the prior-tick motion sample");
+    }
+
+    @Test
     void directObservationSharesEveryContactAndRefreshesMovedCell() {
         BattleSimulation sim = openSim();
         int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
