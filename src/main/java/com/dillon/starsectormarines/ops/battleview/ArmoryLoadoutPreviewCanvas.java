@@ -17,6 +17,7 @@ import java.util.function.Supplier;
 public final class ArmoryLoadoutPreviewCanvas implements CanvasProducer {
 
     private final Supplier<FireTeamBillet> selectedBillet;
+    private final ArmoryLoadoutPreviewComposer.Assets injectedAssets;
     private final BattleSprites sprites = new BattleSprites();
     private final Map<String, LayeredSpriteCache> catalogIcons = new LinkedHashMap<>();
     private final ArmoryLoadoutPreviewComposer.Assets previewAssets =
@@ -34,14 +35,23 @@ public final class ArmoryLoadoutPreviewCanvas implements CanvasProducer {
     private boolean loadAttempted;
 
     public ArmoryLoadoutPreviewCanvas(Supplier<FireTeamBillet> selectedBillet) {
+        this(selectedBillet, null);
+    }
+
+    /** Uses caller-supplied assets for a non-Starsector paint backend. */
+    public ArmoryLoadoutPreviewCanvas(
+            Supplier<FireTeamBillet> selectedBillet,
+            ArmoryLoadoutPreviewComposer.Assets injectedAssets) {
         if (selectedBillet == null) throw new IllegalArgumentException("selected billet is required");
         this.selectedBillet = selectedBillet;
+        this.injectedAssets = injectedAssets;
     }
 
     @Override
     public void draw(CanvasContext context) {
-        ensureLoaded();
-        ArmoryLoadoutPreviewComposer.compose(new CanvasSink(context), previewAssets,
+        if (injectedAssets == null) ensureLoaded();
+        ArmoryLoadoutPreviewComposer.compose(new CanvasSink(context),
+                injectedAssets != null ? injectedAssets : previewAssets,
                 selectedBillet.get(), context.metrics().surfaceWidth(),
                 context.metrics().surfaceHeight());
     }
@@ -84,7 +94,7 @@ public final class ArmoryLoadoutPreviewCanvas implements CanvasProducer {
         @Override
         public void sprite(LayeredSpriteCache sprite, float centerX, float centerY,
                            float width, float height, float angleDegrees, Color tint) {
-            context.sprite(sprite.sprite, centerX, centerY,
+            context.sprite(sprite.sourcePath, sprite.sprite, centerX, centerY,
                     width, height, angleDegrees, tint);
         }
     }
