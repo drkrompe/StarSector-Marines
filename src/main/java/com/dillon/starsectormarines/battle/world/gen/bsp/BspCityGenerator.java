@@ -340,10 +340,10 @@ public final class BspCityGenerator implements MapGenerator {
     }
 
     /**
-     * A Conquest map without one central keep has no trustworthy win condition:
-     * zero lets the aggregate objective complete without the climax, while more
-     * than one turns incidental theme rolls into extra keeps. Fail at generation
-     * time rather than launching a malformed match.
+     * A Conquest map must have exactly one canonical central keep because that
+     * command post is the required territorial climax. Zero omits the climax;
+     * more than one creates competing command posts. The objective also fails
+     * closed, but generation should reject the malformed match first.
      */
     private static void requireExactlyOneCentralKeep(GenContext ctx) {
         int keeps = 0;

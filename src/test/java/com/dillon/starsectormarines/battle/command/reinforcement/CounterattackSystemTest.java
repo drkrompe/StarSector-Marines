@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Slices 1/2/4 coverage for {@link CounterattackSystem} (the staged bulge
- * counterattack, {@code roadmap/conquest/stories/biome-counterattack.md}):
+ * counterattack, {@code reinforcement-nouns.md}):
  * the muster gate (surplus budget + stable front + a reclaimable conceded
  * slice + at least one deliverable means, all-or-nothing lump earmark), the
  * telegraph/assault-launch abort/refund and its churn-guard cooldown, the

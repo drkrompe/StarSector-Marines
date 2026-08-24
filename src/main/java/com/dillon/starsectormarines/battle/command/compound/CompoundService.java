@@ -17,17 +17,17 @@ import java.util.Map;
  * that the state machine in {@link CompoundCaptureSystem} drives.
  *
  * <p>Naming follows the {@code *Service} convention per
- * {@code memory/battle_services_systems.md} — state owner, constructor-
+ * [[battle_services_systems]] — state owner, constructor-
  * injected into {@link com.dillon.starsectormarines.battle.sim.BattleSimulation}.
  * The companion stateless tick consumer is {@link CompoundCaptureSystem};
- * v2's auto-garrison shuttle trigger and the slice-3 trigger/means gates
- * read this service without ever writing back.
+ * the marine garrison system and the trigger/means gates read this service
+ * without ever writing back.
  *
- * <p>V1 ships the forward transitions only (DEFENDER_HELD → CONTESTED →
- * MARINE_HELD). The reverse path is wired in
- * {@link CompoundCaptureSystem} so v2 lights up without re-architecting,
- * but no v1 production driver targets a marine-held compound so MARINE_HELD
- * is effectively absorbing in v1.
+ * <p>The same state machine handles capture and recapture:
+ * DEFENDER_HELD → CONTESTED → MARINE_HELD, with defender re-entry from
+ * MARINE_HELD returning through CONTESTED toward DEFENDER_HELD. A captured
+ * compound receives a marine holding garrison while defender reinforcement
+ * can drive the recapture path.
  */
 public final class CompoundService {
 
@@ -58,9 +58,9 @@ public final class CompoundService {
     /**
      * Sim-seconds defenders alone in a contested zone need to push it back to
      * {@link CompoundState#DEFENDER_HELD}. Faster than {@link #MARINE_HOLD_TIME}:
-     * the defender has the home-territory advantage. Fires in v1 as the natural
-     * "marines started the capture but got pushed off" recovery; v2's
-     * AutoGarrisonTrigger drives the symmetric reverse from MARINE_HELD.
+     * the defender has the home-territory advantage. It handles both a
+     * capture that is pushed off before completion and a defender re-entry
+     * into a marine-held compound.
      */
     public static final float DEFENDER_HOLD_TIME = 1.5f;
 
@@ -141,7 +141,8 @@ public final class CompoundService {
      * {@code faction} draw supply from it. Defender-side reads "still
      * defender-held or contested" — supply hasn't fully fallen yet, so the
      * trigger/means gate still allows reinforcement. Marine-side reads
-     * "marine-held" — the captured-supply-line story for v2.
+     * "marine-held" — the captured-supply ownership state used by the
+     * marine resource and future marine delivery policies.
      *
      * <p>Slice 3's trigger/means {@code canFulfill} gates and slice 4's
      * win-condition objective are the consumers. Defined here in slice 1

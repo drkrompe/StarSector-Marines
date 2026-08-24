@@ -12,7 +12,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
  * {@link #reason} is dispatch-neutral context and never selects a means.
  *
  * <p>Delivery vs. objective — the two-coordinate split (see
- * {@code roadmap/conquest/stories/progressive-reinforcement.md}):
+ * {@code reinforcement-nouns.md}):
  * <ul>
  *   <li>{@link #rallyX} / {@link #rallyY} is the <b>delivery hint</b> —
  *       where the {@link ReinforcementMeans} should try to land troops (a
@@ -27,7 +27,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
  * behavior where the rally served double duty.
  *
  * <p>Prepaid requests (see {@link #prepaid}) are the bulge counterattack's
- * ({@code roadmap/conquest/stories/biome-counterattack.md}) up-front ticket
+ * ({@code reinforcement-nouns.md}) up-front ticket
  * earmark: the poster already debited the cost in one lump at muster, so
  * {@link ReinforcementSystem#tick} must neither debit nor refund on dispatch
  * — the earmark is a sunk bet, win or lose.
@@ -41,7 +41,7 @@ public final class ReinforcementRequest {
         SCRIPTED_TIMER,
         /**
          * The staged bulge counterattack's massed wave — see
-         * {@code roadmap/conquest/stories/biome-counterattack.md} and
+         * {@code reinforcement-nouns.md} and
          * {@link CounterattackSystem}. Informational like the others; it does
          * not branch dispatch logic. Production counterattack requests are
          * posted as {@link #prepaid}.
@@ -70,7 +70,7 @@ public final class ReinforcementRequest {
     /**
      * True when the poster already paid the ticket cost in a single up-front
      * lump (the bulge counterattack's earmark — see {@link Reason#COUNTERATTACK}
-     * and {@code roadmap/conquest/stories/biome-counterattack.md}), rather than
+     * and {@code reinforcement-nouns.md}), rather than
      * per-dispatch. {@link ReinforcementSystem#tick} skips both the debit on
      * dispatch and the refund on the no-means path for a prepaid request: the
      * commitment was the point, so a wave request no means can deliver still

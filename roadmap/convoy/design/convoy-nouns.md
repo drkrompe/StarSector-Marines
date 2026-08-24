@@ -132,7 +132,7 @@ selection still use it. Only its former role as the sole vehicle router is
 retired. `[[road_graph_design]]` remains the durable generator rationale.
 
 Convoy meets `reinforcement-nouns.md` at the orchestration, supply-gate, and
-faction-roster boundary, and `central-keep.md` at compound capture ownership.
+faction-roster boundary, and `conquest-nouns.md` at compound capture ownership.
 The air domain remains the delivery counterpart, while the future air-to-ground
 interaction depends on a real vehicle damage model.
 

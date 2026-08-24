@@ -82,7 +82,7 @@ public final class VehicleMission {
      * Tactical node stamped as the deboarded squad's {@link Squad#assignedNode}
      * at squad mint — the recapture-target objective a progressive-reinforcement
      * delivery should advance on and re-man (see
-     * {@code roadmap/conquest/stories/progressive-reinforcement.md}, the "assign
+     * {@code reinforcement-nouns.md}, the "assign
      * at deboard, not on arrival" contract). Distinct from a marine
      * {@code HOLD_NODE} <em>objective</em> assignment — this only sets the
      * squad's spawn-time anchor. {@code null} for deliveries with no objective.

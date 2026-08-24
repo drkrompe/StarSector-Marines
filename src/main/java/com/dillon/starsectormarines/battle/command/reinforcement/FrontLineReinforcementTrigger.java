@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 
 /**
  * Biome-slice round-robin reinforcement trigger — the front-line dispatch
- * design in {@code roadmap/conquest/stories/progressive-reinforcement.md}
+ * design in {@code reinforcement-nouns.md}
  * (slice 3). Replaces {@link GarrisonDepletedTrigger} on maps that carry a
  * {@link RecaptureTargetService} (conquest only; see
  * {@code BattleSetup#installReinforcementLayer}).
