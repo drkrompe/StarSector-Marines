@@ -2,9 +2,9 @@
 
 Status: IN PROGRESS — company/squad/fire-team drill-down and template issue migrated; broader parity remains
 Written: 2026-08-23
-Updated: 2026-08-24 — The fire-team workspace now leads with four stable named
-marine slots cycling the authored idle clip; an on-demand comparison tray previews
-only contextually available loadouts and their equipment/stat deltas before equip.
+Updated: 2026-08-24 — Squad cards again own inspection while reinforcement remains
+a secondary action; the old catch-all is now the explicitly transitional Armory
+Administration workspace.
 
 Read `company-view-nouns.md`, `ui-nouns.md`, and
 `c14-fire-team-equipment-templates.md` first.
@@ -38,7 +38,9 @@ drill-down reachable. Templates remain plans, never collectible cards.
   companies or persistence.
 - **Company squad overview:** a matching responsive gallery of literal squad cards.
   Each card reports strength, equipped-team count, officer command, whereabouts, and
-  readiness before the player enters that squad's equipment workspace.
+  readiness before the player enters that squad's equipment workspace. The card body
+  remains the inspect target; reinforcement is a compact secondary action rather than
+  a replacement inspect button.
 - **Fire-team context:** Alpha, Bravo, and Charlie report strength and current
   assignment together; the selected fire team is the transaction target.
 - **Workspace:** the selected squad's Alpha, Bravo, and Charlie teams sit beside one
@@ -59,6 +61,11 @@ drill-down reachable. Templates remain plans, never collectible cards.
 - **Mech Lab mode:** active support squad -> chassis -> installed loadout, with fixed
   hardpoints presented beside the finite subsystem inventory and its explicit
   install action. It invokes `MechBay` rather than adapting fire-team templates.
+- **Armory Administration:** a named transitional destination for Personnel,
+  Template Designer, Squad Arrangements, Mech Lab, and the remaining individual-kit
+  compatibility inspector. Formation browsing and routine refits do not return to
+  this older tab shell; each authoring job migrates independently before the shell is
+  removed.
 
 ## Scope
 

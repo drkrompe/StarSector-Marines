@@ -289,7 +289,7 @@ public final class FleetArmoryViewModel {
                     "squad-card-status heading " + readinessTone(ready, MarineSquad.CAPACITY),
                     squad.name(), readiness, ready + " / " + MarineSquad.CAPACITY + " RTD",
                     assigned + " / " + MarineSquad.TEAMS_PER_SQUAD + " equipped",
-                    command, location, compactRecoverySummary(squad), "Inspect Squad",
+                    command, location, compactRecoverySummary(squad),
                     reinforcementLabel(squad), reinforcementCapacity(squad) <= 0,
                     () -> {
                         selectSquad(squad.id());
@@ -846,7 +846,7 @@ public final class FleetArmoryViewModel {
             String openId, String reinforceId,
             String classes, String statusClasses, String name, String status,
             String strength, String teams, String command, String location,
-            String recovery, String openLabel, String reinforceLabel,
+            String recovery, String reinforceLabel,
             boolean reinforceDisabled, Runnable open, Runnable reinforce)
             implements MarkupPropertySource {
         @Override
@@ -871,7 +871,6 @@ public final class FleetArmoryViewModel {
                 case "command" -> command;
                 case "location" -> location;
                 case "recovery" -> recovery;
-                case "openLabel" -> openLabel;
                 case "reinforceLabel" -> reinforceLabel;
                 case "reinforceDisabled" -> reinforceDisabled;
                 case "open" -> open;
