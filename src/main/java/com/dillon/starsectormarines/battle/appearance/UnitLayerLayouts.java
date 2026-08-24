@@ -187,6 +187,22 @@ public final class UnitLayerLayouts {
         }
 
         /**
+         * Returns this pose with the named layers replaced by their transforms
+         * from {@code source}. Missing source layers leave the base pose alone.
+         * Used when two independent presentation drivers own disjoint parts of
+         * one actor, such as locomotion feet under a primary-weapon upper-body
+         * action.
+         */
+        public LayerPose withLayersFrom(LayerPose source, String... layerIds) {
+            Map<String, LayerTransform> combined = new LinkedHashMap<>(layers);
+            for (String layerId : layerIds) {
+                LayerTransform replacement = source.layers.get(layerId);
+                if (replacement != null) combined.put(layerId, replacement);
+            }
+            return new LayerPose(Collections.unmodifiableMap(combined));
+        }
+
+        /**
          * Blends layers shared by both poses while retaining the destination's
          * equipment-specific layer set. This lets an action settle out of a
          * sampled locomotion pose without inventing equipment layers in the
