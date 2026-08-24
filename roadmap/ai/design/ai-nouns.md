@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns mission command, squad planning, belief-derived conta
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — replaced work sequencing with durable strategic-analysis and action-authority boundaries.
+Updated: 2026-08-24 — replaced work sequencing with durable analysis/action boundaries and added the target-faction doctrine extension.
 
 AI turns mission context and what a side has learned into coordinated
 movement, posture, and fire intent. It is a decision system, not the authority
@@ -146,3 +146,9 @@ requires its own mission-specific authority contract. Diagnostic analysis does
 not itself authorize action. Mechanical suppression, cross-squad briefing,
 defender strategic response, recon doctrine, and dynamic mech reassignment are
 separate extensions and must preserve the same knowledge and ownership laws.
+
+Target-faction doctrine is likewise a bounded mission-command extension, not a
+new planner or a source of hidden knowledge. `target-faction-command-doctrine.md`
+may bias legal assignment, reserve, recapture, and local posture choices from a
+frozen battle-facing profile; it may not change objectives, force composition,
+combat resolution, or the belief facts available to a squad.
