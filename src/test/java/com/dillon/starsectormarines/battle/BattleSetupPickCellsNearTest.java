@@ -2,8 +2,10 @@ package com.dillon.starsectormarines.battle;
 
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
@@ -49,6 +51,29 @@ public class BattleSetupPickCellsNearTest {
 
     private static long key(int x, int y) {
         return ((long) x << 32) | (y & 0xFFFFFFFFL);
+    }
+
+    @Test
+    public void authoredStandPositionsPrecedeDerivedNearbyCells() {
+        NavigationGrid grid = openGrid();
+        grid.setWalkable(10, 10, false);
+        TacticalNode node = new TacticalNode(TacticalNode.Kind.FORWARD_BUNKER,
+                10, 10, 8, 9, 12, 11,
+                Faction.DEFENDER, 65, 3,
+                List.of(new TacticalNode.StandPosition(9, 10),
+                        new TacticalNode.StandPosition(11, 10)));
+
+        List<int[]> cells = BattleSetup.pickCellsForNode(
+                grid, zonesFor(grid), node, 4, 3);
+
+        assertTrue(cells.size() == 3, "authored cells plus one fallback fill the request");
+        assertTrue(cells.get(0)[0] == 9 && cells.get(0)[1] == 10,
+                "first authored cell retains assignment order");
+        assertTrue(cells.get(1)[0] == 11 && cells.get(1)[1] == 10,
+                "second authored cell retains assignment order");
+        assertFalse(key(cells.get(2)[0], cells.get(2)[1]) == key(9, 10)
+                        || key(cells.get(2)[0], cells.get(2)[1]) == key(11, 10),
+                "derived fallback does not duplicate an authored cell");
     }
 
     @Test

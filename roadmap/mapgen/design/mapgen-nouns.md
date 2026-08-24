@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — made defense-post geometry data-authored and named target-faction facility treatment as a bounded consumer.
+Updated: 2026-08-24 — made emplacement geometry and infantry stand positions authored tactical facts and named target-faction facility treatment as a bounded consumer.
 
 Map generation turns a deterministic request into a validated tactical world. It
 owns authored spatial intent; runtime systems own subsequent mutation and play.
@@ -53,6 +53,13 @@ such as overwatch; they do not replace tile topology. Buildings and compounds
 are coherent tactical places with circulation, a readable identity, and a
 reason for their interior geometry.
 
+A tactical node's **anchor** is the stable identity of a place and may sit on
+an intentionally non-walkable wall or turret mount. An authored **stand
+position** is different: it is an exact walkable member cell belonging to that
+place, such as the protected cell behind a bunker firing aperture. Consumers
+prefer authored stand positions before deriving nearby cells, and later
+generation stages must not overwrite their enclosing authored footprint.
+
 Parcel ownership is established before content fills. A filler may own one leaf
 or an already-claimed compound, but it must not infer a multi-leaf building by
 overwriting roads or neighboring fills after dispatch. Cross-leaf structures
@@ -81,6 +88,13 @@ a referenced turret structure or the distinct drone-hub occupant. Layouts own
 initial geometry only. Defense-post tiers continue to own garrison size,
 tactical priority, patrol and budget policy, while turret catalogs own the
 behavior and durability of every referenced structure.
+
+The Conquest fortress's open-backed forward bunkers use the same separation of
+place from position: a blocked center turret remains the bunker anchor, while
+two walkable cells behind attacker-facing, see-through windows are authored as
+the garrison's member positions. The road reservation and a reachable rear
+approach are placement requirements, so a bunker is omitted rather than
+publishing unusable fighting cells.
 
 The layout catalog loads after turret structures and rejects unknown structure
 ids, duplicate or out-of-bounds cells, turrets placed off ordinary pads, and
