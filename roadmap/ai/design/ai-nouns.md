@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns mission command, squad planning, belief-derived conta
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — replaced work sequencing with durable strategic-analysis and action-authority boundaries.
+Updated: 2026-08-24 — replaced work sequencing with durable analysis/action boundaries and added the target-faction doctrine extension.
 
 AI turns mission context and what a side has learned into coordinated
 movement, posture, and fire intent. It is a decision system, not the authority
@@ -78,6 +78,16 @@ authority. An explicitly authored must-hold position can make its last infantry
 survivor hold rather than take an ordinary structural fallback. Morale survival
 behavior remains an independent higher-priority safety boundary elsewhere.
 
+An advancing HOLD also publishes a contact initiative: **RECEIVE** or
+**PROSECUTE**. A defending or overmatched squad, an approaching enemy, or a
+useful firing line tells the squad to receive the contact from its current
+ground. A non-approaching direct contact that only part of the squad can engage
+tells it to prosecute: members with legal fire hold and shoot while the others
+use the shared track to establish bounded firing positions. Prosecution never
+authorizes an unbounded chase or abandonment of the mission route; if no legal
+position exists inside the maneuver leash, the member continues its assigned
+advance.
+
 Fireteams are the infantry maneuver unit. They can receive distinct roles in a
 shared squad step: a recoverable ambush can displace the exposed team while a
 sibling covers, and a committed advance can bound rather than send every
@@ -136,3 +146,9 @@ requires its own mission-specific authority contract. Diagnostic analysis does
 not itself authorize action. Mechanical suppression, cross-squad briefing,
 defender strategic response, recon doctrine, and dynamic mech reassignment are
 separate extensions and must preserve the same knowledge and ownership laws.
+
+Target-faction doctrine is likewise a bounded mission-command extension, not a
+new planner or a source of hidden knowledge. `target-faction-command-doctrine.md`
+may bias legal assignment, reserve, recapture, and local posture choices from a
+frozen battle-facing profile; it may not change objectives, force composition,
+combat resolution, or the belief facts available to a squad.

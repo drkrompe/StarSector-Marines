@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
@@ -125,9 +126,16 @@ public final class HeadlessArmoryPreviewRenderer {
         private final Map<String, LayeredSpriteCache> sprites = new LinkedHashMap<>();
         private final EnumMap<LayeredArmorFamily, LayeredUnitAssets> families =
                 new EnumMap<>(LayeredArmorFamily.class);
+        private final UnitLayerLayouts unitLayerLayouts;
 
         private RasterAssets(Path modRoot) {
             this.modRoot = modRoot;
+            try {
+                unitLayerLayouts = UnitLayerLayouts.parse(new JSONObject(Files.readString(
+                        modRoot.resolve(UnitLayerLayouts.CONTENT_PATH))));
+            } catch (Exception failure) {
+                throw new IllegalStateException("Could not load unit-layer layouts", failure);
+            }
         }
 
         @Override
@@ -139,6 +147,11 @@ public final class HeadlessArmoryPreviewRenderer {
         @Override
         public LayeredSpriteCache icon(String path) {
             return path != null ? sprite(path) : null;
+        }
+
+        @Override
+        public UnitLayerLayouts unitLayerLayouts() {
+            return unitLayerLayouts;
         }
 
         private LayeredUnitAssets loadFamily(LayeredArmorFamily family) {

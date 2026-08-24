@@ -161,6 +161,11 @@ final class LayeredUnitComposer {
                         weaponPhase,
                         actorX, actorY, pxPerSw, facingDeg)
                 : null;
+        LayerTransform specialTransform = layer(authoredPose, "special");
+        if (specialPlacement != null && specialTransform != null) {
+            specialPlacement = authoredEquipmentPlacement(specialSprite, specialTransform,
+                    actorX, actorY, pxPerSw, facingDeg, specialPlacement);
+        }
 
         if (specialPlacement != null
                 && specialPlacement.occlusion() == EquipmentLayerDef.Occlusion.UNDER_BODY) {
@@ -247,6 +252,26 @@ final class LayeredUnitComposer {
                 sprite.pxWidth / SOURCE_SHOULDER_PX * transform.scaleX() * swPx,
                 sprite.pxHeight / SOURCE_SHOULDER_PX * transform.scaleY() * swPx,
                 angle, 1f, 1f, 1f, alpha);
+    }
+
+    private static EquipmentLayerComposer.Placement authoredEquipmentPlacement(
+            LayeredSpriteCache sprite, LayerTransform transform,
+            float actorX, float actorY, float swPx, float facingDeg,
+            EquipmentLayerComposer.Placement fallback) {
+        if (sprite == null || !transform.visible()) return null;
+        float[] pivot = worldPoint(actorX, actorY, transform.offsetX(),
+                transform.offsetY(), swPx, facingDeg);
+        float localCenterX = (0.5f - transform.pivotX())
+                * sprite.pxWidth / SOURCE_SHOULDER_PX * transform.scaleX() * swPx;
+        float localCenterY = (transform.pivotY() - 0.5f)
+                * sprite.pxHeight / SOURCE_SHOULDER_PX * transform.scaleY() * swPx;
+        float angle = facingDeg + transform.angleDegrees();
+        float[] centerOffset = rotate(localCenterX, localCenterY, angle);
+        return new EquipmentLayerComposer.Placement(
+                pivot[0] + centerOffset[0], pivot[1] + centerOffset[1],
+                sprite.pxWidth / SOURCE_SHOULDER_PX * transform.scaleX() * swPx,
+                sprite.pxHeight / SOURCE_SHOULDER_PX * transform.scaleY() * swPx,
+                angle, fallback.occlusion());
     }
 
     private static void emitFoot(SpriteEmitter out, LayeredSpriteCache foot,

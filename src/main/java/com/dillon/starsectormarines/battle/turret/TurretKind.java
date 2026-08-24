@@ -26,6 +26,15 @@ public enum TurretKind {
         this.structureId = structureId;
     }
 
+    /** Compatibility resolution used only where runtime APIs still require this enum. */
+    public static TurretKind fromStructureId(String structureId) {
+        for (TurretKind kind : values()) {
+            if (kind.structureId.equals(structureId)) return kind;
+        }
+        throw new IllegalStateException("No compatibility turret kind for structure '"
+                + structureId + "'");
+    }
+
     public StructureDef structure() { return TurretCatalogRegistry.requireStructure(structureId); }
 
     public TurretMountDef mount() { return structure().mount; }

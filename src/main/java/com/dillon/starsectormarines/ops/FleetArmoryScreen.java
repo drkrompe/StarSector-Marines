@@ -113,7 +113,7 @@ public final class FleetArmoryScreen implements Screen {
                     int billet = index;
                     built.canvases().set(candidate.requireElement("marine-preview:" + index),
                             new ArmoryMarinePreviewCanvas(
-                                    () -> viewModel.billetAt(billet), previewAssets));
+                                    () -> viewModel.viewerBilletAt(billet), previewAssets));
                 }
             }
             if (viewport != null) built.layout(viewport.width(), viewport.height());
@@ -143,12 +143,16 @@ public final class FleetArmoryScreen implements Screen {
         props.put("templateTiles", viewModel.templateTiles());
         props.put("targetSummary", viewModel.targetSummary());
         props.put("candidateSummary", viewModel.candidateSummary());
+        props.put("pickerClasses", viewModel.pickerClasses());
+        props.put("pickerToggleLabel", viewModel.pickerToggleLabel());
+        props.put("togglePicker", viewModel.toggleLoadoutPickerAction());
         props.put("billetRows", viewModel.billetRows());
         props.put("marineCards", viewModel.marineCards());
         props.put("previewSummary", viewModel.previewSummary());
         props.put("transactionSummary", viewModel.transactionSummary());
         props.put("transactionClasses", viewModel.transactionClasses());
         props.put("applyDisabled", viewModel.applyDisabled());
+        props.put("applyClasses", viewModel.applyClasses());
         props.put("applyLabel", viewModel.applyLabel());
         props.put("apply", viewModel.applyAction());
         props.put("feedbackText", viewModel.feedbackText());
@@ -168,6 +172,7 @@ public final class FleetArmoryScreen implements Screen {
                 "fireteam-rail", "fireteam-list", "template-library", "template-list",
                 "refit-transaction", "viewer-context", "target-summary",
                 "candidate-summary", "marine-card-grid", "equip-row",
+                "toggle-loadout-picker",
                 "transaction-result", "apply-template", "transaction-feedback", "fireteam-footer",
                 "fireteam-back", "fireteam-legacy", "fireteam-reload",
                 "fireteam-reload-status", "marine-preview:0", "marine-preview:1",

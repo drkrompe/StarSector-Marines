@@ -1,8 +1,10 @@
 # Contact-reaction doctrine
 
-Status: PARKED — implementation is shipped; live battle tuning remains.
+Status: IN PROGRESS — live battle found and implementation closes the contact-initiative gap.
 
 Written: 2026-08-23
+
+Updated: 2026-08-24
 
 Read `ai-nouns.md` before running this acceptance.
 
@@ -15,6 +17,12 @@ Read `ai-nouns.md` before running this acceptance.
   favorable, even, and unfavorable nearby forces. Confirm its published
   ADVANCE, HOLD, or DISENGAGE doctrine reads as stable and its short
   lost-contact hold does not strand it for the full memory lifetime.
+- [ ] Give only one member or fireteam a legal shot on a lateral or withdrawing
+  direct contact. Confirm the published initiative is PROSECUTE: legal shooters
+  hold and fire while the remainder close to bounded firing positions using
+  the shared primary track. Then advance the enemy on a useful squad firing
+  line and confirm the initiative becomes RECEIVE rather than surrendering
+  cover and lines of fire.
 - [ ] Ambush one fireteam of a multi-team squad. Confirm the exposed team
   displaces while an unexposed sibling holds and covers, with ordinary
   bounding behavior still intact on a committed advance.
@@ -24,6 +32,9 @@ Read `ai-nouns.md` before running this acceptance.
 - [ ] Observe several similarly placed hostiles. Confirm acquisition remains
   stable long enough for legal fire and that visual turning stays legible
   without becoming a new fire gate.
+- [ ] Select the squad and create a state dump during both initiatives. Confirm
+  the UI and JSON agree on initiative, engageable members, engageable teams,
+  total live teams, and whether the advancing hard hold is active.
 
 ## Out of scope
 

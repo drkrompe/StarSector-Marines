@@ -4,6 +4,8 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
+Updated: 2026-08-24 — made defense-post geometry data-authored and named target-faction facility treatment as a bounded consumer.
+
 Map generation turns a deterministic request into a validated tactical world. It
 owns authored spatial intent; runtime systems own subsequent mutation and play.
 
@@ -71,6 +73,24 @@ spatial premises, not separate game modes. Stations must preserve a legible
 entry-to-objective structure while allowing deliberately chosen loops and
 hardpoints.
 
+## Defense-post layouts
+
+A **defense-post layout** is a bounded, anchor-relative arrangement of occupied
+cells. Barrier cells own their appearance and outward facing; pad cells may host
+a referenced turret structure or the distinct drone-hub occupant. Layouts own
+initial geometry only. Defense-post tiers continue to own garrison size,
+tactical priority, patrol and budget policy, while turret catalogs own the
+behavior and durability of every referenced structure.
+
+The layout catalog loads after turret structures and rejects unknown structure
+ids, duplicate or out-of-bounds cells, turrets placed off ordinary pads, and
+invalid tier composition. Generation selects among the layouts authored for a
+tier through its request-owned random stream. A tier with one layout consumes
+no selection draw; a tier with several variants consumes exactly one, preserving
+determinism as fixed stamps become data. Connectivity checks and tactical-node
+bounds consume the selected layout's actual occupied cells and declared bounds,
+not a parallel hard-coded silhouette.
+
 ## Target profile and economic identity
 
 A **target profile** carries campaign-resolved facts into generation without
@@ -91,9 +111,18 @@ Generator-published tactical facts need a named consumer. Do not widen
 consumer reads the context, while an external consumer justifies the result
 contract it needs.
 
+Target faction identity may select an authored treatment for a facility only
+through a named content consumer. Such a treatment can express materials,
+footprint composition, cover, and approach character, but it may not change the
+facility's owning battle semantics or bypass connectivity/deployment validation.
+`target-faction-facility-treatment.md` owns the first bounded consumer over the
+hard-installation family.
+
 ## Boundaries
 
-Generation authors the initial world. Map-editor or battle services may mutate
+Generation authors the initial world. The desktop emplacement editor stages and
+validates layout data, but does not decide runtime placement or become a second
+geometry authority. Map-editor or battle services may mutate
 topology later, but they must not be smuggled into recipe logic. Content-specific
 fillers own their geometry; broad generator facades own recipe selection and
 result assembly. Current active work is indexed in `stories.md`; completed
