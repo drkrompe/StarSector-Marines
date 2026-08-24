@@ -2,12 +2,13 @@ package com.dillon.starsectormarines.battle.world.gen.bsp;
 
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
+import com.dillon.starsectormarines.battle.turret.DefensePostLayoutDef;
+import com.dillon.starsectormarines.battle.turret.DefensePostLayoutRegistry;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
@@ -22,8 +23,10 @@ import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * Stamps manned turret emplacements (defense posts) into conquest maps. Runs
@@ -342,11 +345,7 @@ public final class DefensePostStamper implements GenStage {
             // Per-attempt shape pick — varies the silhouette across placements
             // so a row of LARGE posts reads as distinct emplacements. LIGHT and
             // MEDIUM ignore this; their stampers use a fixed ring.
-            DefensePostShape shape = (tier == DefensePostKind.LARGE)
-                    ? DefensePostShape.pickForLarge(rng) : null;
-            int halfX = shapeHalfX(tier, shape);
-            int halfY = shapeHalfY(tier, shape);
-
+            DefensePostLayoutDef layout = DefensePostLayoutRegistry.requireInstalled().pick(tier, rng);
             int cx, cy;
             if (seedIdx < seedCount) {
                 int[] seed = seeds.get(seedIdx++);
@@ -357,8 +356,9 @@ public final class DefensePostStamper implements GenStage {
                 cy = bTop  + rng.nextInt(bBot  - bTop  + 1);
             }
             if (biomeMap != null && biomeMap.biomeAt(cx, cy) != biome) continue;
-            if (!hasValidFootprint(grid, topology, roadReservation, cx, cy, halfX, halfY)) {
-                int[] slid = slideToValid(grid, topology, biomeMap, biome, roadReservation, cx, cy, halfX, halfY);
+            if (!hasValidFootprint(grid, topology, roadReservation, cx, cy, layout)) {
+                int[] slid = slideToValid(grid, topology, biomeMap, biome,
+                        roadReservation, cx, cy, layout);
                 if (slid == null) continue;
                 cx = slid[0];
                 cy = slid[1];
@@ -372,101 +372,43 @@ public final class DefensePostStamper implements GenStage {
             // Pass the actual blocked cells, not the bbox — sparse footprints
             // (LIGHT cross, WEDGE/TRAPEZOID notches) leave bbox cells walkable,
             // and those open cells must stay in the connectivity check.
-            if (PlacementGuards.wouldPartitionWalkable(grid, blockedFootprint(tier, shape, cx, cy))) continue;
-            DefensePost post = stampPost(grid, topology, doodads, tier, shape, cx, cy, rng);
+            if (PlacementGuards.wouldPartitionWalkable(grid, blockedFootprint(layout, cx, cy))) continue;
+            DefensePost post = stampPost(grid, topology, doodads, layout, cx, cy);
             defensePosts.add(post);
             // Tiers with a zero garrison (DRONE_HUB) defend themselves via
             // their own spawned units, so we skip the GUARDPOST emission that
             // would otherwise pull an infantry squad off the defender roster.
             if (tactical != null && tier.garrisonSize > 0) {
-                tactical.add(emitGuardpostNode(tier, shape, post));
+                tactical.add(emitGuardpostNode(tier, layout, post));
             }
             placed++;
         }
     }
 
-    /** Footprint half-extent on X for the given tier+shape combo. ARTILLERY shares LARGE's 5×3 LINE_H footprint (halfX=2). */
-    private static int shapeHalfX(DefensePostKind tier, DefensePostShape shape) {
-        if (shape != null) return shape.halfX;
-        if (tier == DefensePostKind.LARGE || tier == DefensePostKind.ARTILLERY) return 2;
-        return 1;
-    }
-
-    /** Footprint half-extent on Y for the given tier+shape combo. */
-    private static int shapeHalfY(DefensePostKind tier, DefensePostShape shape) {
-        if (shape != null) return shape.halfY;
-        return 1;
+    /** Resolves a compatibility tier/shape request to its authoritative layout. */
+    private static DefensePostLayoutDef layout(DefensePostKind tier, DefensePostShape shape) {
+        String variant = shape != null ? shape.key : "default";
+        return DefensePostLayoutRegistry.requireInstalled().require(tier, variant);
     }
 
     /**
-     * The exact cells a post of {@code tier}/{@code shape} centered at
-     * {@code (cx, cy)} turns non-walkable. Must mirror the per-tier stamp
-     * methods cell-for-cell — {@code DefensePostFootprintTest} pins that
-     * correspondence. Used by the partition guard so it sees the post's real
+     * The exact data-authored cells a post of {@code tier}/{@code shape}
+     * centered at {@code (cx, cy)} turns non-walkable. Used by the partition
+     * guard so it sees the post's real
      * (often sparse) silhouette rather than a solid bbox: LIGHT is a cardinal
      * cross with open corners, WEDGE/TRAPEZOID notch their back row, and only
      * those open cells can be boxed in by adjacent water/walls.
      */
     static int[][] blockedFootprint(DefensePostKind tier, DefensePostShape shape, int cx, int cy) {
-        int[][] offsets;
-        switch (tier) {
-            case LIGHT:
-                offsets = new int[][]{{0, -1}, {0, 1}, {-1, 0}, {1, 0}, {0, 0}};
-                break;
-            case MEDIUM:
-            case DRONE_HUB:
-                offsets = solidRectOffsets(1, 1);
-                break;
-            case ARTILLERY:
-                offsets = solidRectOffsets(2, 1);
-                break;
-            case LARGE:
-                offsets = largeOffsets(shape);
-                break;
-            default:
-                throw new IllegalStateException("Unhandled tier " + tier);
-        }
-        int[][] out = new int[offsets.length][2];
-        for (int i = 0; i < offsets.length; i++) {
-            out[i][0] = cx + offsets[i][0];
-            out[i][1] = cy + offsets[i][1];
-        }
-        return out;
+        return blockedFootprint(layout(tier, shape), cx, cy);
     }
 
-    /** Non-walkable offsets per LARGE silhouette. LINE_H/LINE_V/TRIANGLE fill their bbox; WEDGE/TRAPEZOID leave back-row cells open. */
-    private static int[][] largeOffsets(DefensePostShape shape) {
-        switch (shape) {
-            case LINE_H:
-            case TRIANGLE_FORMATION:
-                return solidRectOffsets(2, 1);
-            case LINE_V:
-                return solidRectOffsets(1, 2);
-            case WEDGE:
-                return new int[][]{
-                        {-2, 1}, {-1, 1}, {0, 1}, {1, 1}, {2, 1},
-                        {-1, 0}, {0, 0}, {1, 0},
-                        {0, -1}};
-            case TRAPEZOID:
-                return new int[][]{
-                        {-2, 1}, {-1, 1}, {0, 1}, {1, 1}, {2, 1},
-                        {-2, 0}, {-1, 0}, {0, 0}, {1, 0}, {2, 0},
-                        {-1, -1}, {0, -1}, {1, -1}};
-            default:
-                throw new IllegalStateException("Unhandled shape " + shape);
-        }
-    }
-
-    /** All offsets of a solid {@code (2*halfX+1)×(2*halfY+1)} block centered on the origin. */
-    private static int[][] solidRectOffsets(int halfX, int halfY) {
-        int[][] out = new int[(2 * halfX + 1) * (2 * halfY + 1)][2];
-        int i = 0;
-        for (int dy = -halfY; dy <= halfY; dy++) {
-            for (int dx = -halfX; dx <= halfX; dx++) {
-                out[i][0] = dx;
-                out[i][1] = dy;
-                i++;
-            }
+    private static int[][] blockedFootprint(DefensePostLayoutDef layout, int cx, int cy) {
+        List<DefensePostLayoutDef.Offset> offsets = layout.blockedOffsets();
+        int[][] out = new int[offsets.size()][2];
+        for (int i = 0; i < offsets.size(); i++) {
+            out[i][0] = cx + offsets.get(i).x();
+            out[i][1] = cy + offsets.get(i).y();
         }
         return out;
     }
@@ -501,9 +443,9 @@ public final class DefensePostStamper implements GenStage {
      */
     private static boolean hasValidFootprint(NavigationGrid grid, CellTopology topology,
                                              boolean[][] roadReservation,
-                                             int cx, int cy, int halfX, int halfY) {
-        for (int dy = -halfY; dy <= halfY; dy++) {
-            for (int dx = -halfX; dx <= halfX; dx++) {
+                                             int cx, int cy, DefensePostLayoutDef layout) {
+        for (int dy = layout.minOffsetY; dy <= layout.maxOffsetY; dy++) {
+            for (int dx = layout.minOffsetX; dx <= layout.maxOffsetX; dx++) {
                 int x = cx + dx;
                 int y = cy + dy;
                 if (!grid.inBounds(x, y)) return false;
@@ -546,7 +488,7 @@ public final class DefensePostStamper implements GenStage {
     private static int[] slideToValid(NavigationGrid grid, CellTopology topology,
                                       BiomeMap biomeMap, BiomeKind biome,
                                       boolean[][] roadReservation,
-                                      int cx, int cy, int halfX, int halfY) {
+                                      int cx, int cy, DefensePostLayoutDef layout) {
         for (int r = 1; r <= ANCHOR_SLIDE_RADIUS; r++) {
             for (int dy = -r; dy <= r; dy++) {
                 for (int dx = -r; dx <= r; dx++) {
@@ -555,7 +497,8 @@ public final class DefensePostStamper implements GenStage {
                     int ny = cy + dy;
                     if (!grid.inBounds(nx, ny)) continue;
                     if (biomeMap != null && biomeMap.biomeAt(nx, ny) != biome) continue;
-                    if (hasValidFootprint(grid, topology, roadReservation, nx, ny, halfX, halfY)) return new int[]{nx, ny};
+                    if (hasValidFootprint(grid, topology, roadReservation,
+                            nx, ny, layout)) return new int[]{nx, ny};
                 }
             }
         }
@@ -574,10 +517,8 @@ public final class DefensePostStamper implements GenStage {
     }
 
     /**
-     * Dispatch to the per-tier stamper. Each returns a {@link DefensePost}
-     * record with the anchor + turret specs for the battle setup to consume.
-     * {@code shape} is non-null for LARGE only and selects the per-placement
-     * silhouette variant; LIGHT/MEDIUM ignore it.
+     * Compatibility entry for tests requesting a shipped LARGE variant. The
+     * resolved catalog layout is the only geometry and composition authority.
      */
     // Package-private (not private) so DefensePostFootprintTest can stamp a
     // single post and confirm its non-walkable cells match blockedFootprint.
@@ -585,305 +526,50 @@ public final class DefensePostStamper implements GenStage {
                                          List<Doodad> doodads, DefensePostKind tier,
                                          DefensePostShape shape,
                                          int cx, int cy, Random rng) {
-        switch (tier) {
-            case LIGHT:     return stampLight(grid, topology, doodads, cx, cy);
-            case MEDIUM:    return stampMedium(grid, topology, doodads, cx, cy);
-            case LARGE:     return stampLarge(grid, topology, doodads, shape, cx, cy);
-            case ARTILLERY: return stampArtillery(grid, topology, doodads, cx, cy);
-            case DRONE_HUB: return stampDroneHub(grid, topology, doodads, cx, cy);
+        return stampPost(grid, topology, doodads, layout(tier, shape), cx, cy);
+    }
+
+    private static DefensePost stampPost(NavigationGrid grid, CellTopology topology,
+                                         List<Doodad> doodads, DefensePostLayoutDef layout,
+                                         int cx, int cy) {
+        for (DefensePostLayoutDef.Cell cell : layout.cells) {
+            if (cell.kind() != DefensePostLayoutDef.CellKind.BARRIER) continue;
+            DefensePostLayoutDef.Offset offset = cell.offset();
+            stampRingCell(grid, topology, doodads, cx + offset.x(), cy + offset.y(),
+                    barrierTile(cell));
         }
-        throw new IllegalStateException("Unhandled tier " + tier);
-    }
 
-    /**
-     * LIGHT post: single turret centered at {@code (cx, cy)} with 4 cardinal
-     * vent doodads (N/S/E/W). Corners stay open ground — reads as an industrial
-     * stack rather than a fortified bunker.
-     */
-    private static DefensePost stampLight(NavigationGrid grid, CellTopology topology,
-                                          List<Doodad> doodads, int cx, int cy) {
-        stampRingCell(grid, topology, doodads, cx, cy - 1, TileManifest.LIGHT_POST_VENT);
-        stampRingCell(grid, topology, doodads, cx, cy + 1, TileManifest.LIGHT_POST_VENT);
-        stampRingCell(grid, topology, doodads, cx - 1, cy, TileManifest.LIGHT_POST_VENT);
-        stampRingCell(grid, topology, doodads, cx + 1, cy, TileManifest.LIGHT_POST_VENT);
-        stampTurretCenter(grid, topology, cx, cy);
-
-        List<DefensePost.TurretSpec> turrets = new ArrayList<>(1);
-        turrets.add(new DefensePost.TurretSpec(TurretKind.VULCAN, cx, cy));
-        return new DefensePost(DefensePostKind.LIGHT, cx, cy, turrets);
-    }
-
-    /**
-     * MEDIUM post: single turret centered at {@code (cx, cy)} with the full
-     * 8-cell sandbag embankment ring (urban-2 cols 3-5 rows 0-2). Each ring
-     * cell pulls its directional art from {@link TileManifest#turretEmbankment}
-     * so the embankment caps face outward.
-     */
-    private static DefensePost stampMedium(NavigationGrid grid, CellTopology topology,
-                                           List<Doodad> doodads, int cx, int cy) {
-        for (int dy = -1; dy <= 1; dy++) {
-            for (int dx = -1; dx <= 1; dx++) {
-                if (dx == 0 && dy == 0) continue;
-                stampRingCell(grid, topology, doodads, cx + dx, cy + dy,
-                        TileManifest.turretEmbankment(dx, dy));
-            }
+        Set<DefensePostLayoutDef.Offset> turretPads = new HashSet<>();
+        for (DefensePostLayoutDef.TurretPlacement turret : layout.turrets) {
+            turretPads.add(turret.offset());
         }
-        stampTurretCenter(grid, topology, cx, cy);
-
-        List<DefensePost.TurretSpec> turrets = new ArrayList<>(1);
-        turrets.add(new DefensePost.TurretSpec(TurretKind.ARBALEST, cx, cy));
-        return new DefensePost(DefensePostKind.MEDIUM, cx, cy, turrets);
-    }
-
-    /**
-     * LARGE post dispatch. Each shape uses a different embankment silhouette
-     * and turret arrangement; the kill zone reads as a varied line of distinct
-     * positions rather than a row of clones. See {@link DefensePostShape}.
-     */
-    private static DefensePost stampLarge(NavigationGrid grid, CellTopology topology,
-                                          List<Doodad> doodads, DefensePostShape shape,
-                                          int cx, int cy) {
-        switch (shape) {
-            case LINE_H:             return stampLargeLineH(grid, topology, doodads, cx, cy);
-            case LINE_V:             return stampLargeLineV(grid, topology, doodads, cx, cy);
-            case WEDGE:              return stampLargeWedge(grid, topology, doodads, cx, cy);
-            case TRAPEZOID:          return stampLargeTrapezoid(grid, topology, doodads, cx, cy);
-            case TRIANGLE_FORMATION: return stampLargeTriangleFormation(grid, topology, doodads, cx, cy);
+        for (DefensePostLayoutDef.Cell cell : layout.cells) {
+            if (cell.kind() != DefensePostLayoutDef.CellKind.PAD) continue;
+            int x = cx + cell.offset().x();
+            int y = cy + cell.offset().y();
+            if (turretPads.contains(cell.offset())) stampTurretCenter(grid, topology, x, y);
+            else sealInnerCell(grid, topology, x, y);
         }
-        throw new IllegalStateException("Unhandled shape " + shape);
-    }
 
-    /**
-     * LINE_H: 5×3 horizontal embankment with two turrets at {@code (cx±1, cy)}.
-     * <pre>
-     *   NW  N  N  N  NE
-     *   W   T1 .  T2 E
-     *   SW  S  S  S  SE
-     * </pre>
-     */
-    private static DefensePost stampLargeLineH(NavigationGrid grid, CellTopology topology,
-                                               List<Doodad> doodads, int cx, int cy) {
-        stampRingCell(grid, topology, doodads, cx - 2, cy + 1, TileManifest.turretEmbankment(-1,  1));
-        stampRingCell(grid, topology, doodads, cx - 1, cy + 1, TileManifest.turretEmbankment( 0,  1));
-        stampRingCell(grid, topology, doodads, cx,     cy + 1, TileManifest.turretEmbankment( 0,  1));
-        stampRingCell(grid, topology, doodads, cx + 1, cy + 1, TileManifest.turretEmbankment( 0,  1));
-        stampRingCell(grid, topology, doodads, cx + 2, cy + 1, TileManifest.turretEmbankment( 1,  1));
-        stampRingCell(grid, topology, doodads, cx - 2, cy - 1, TileManifest.turretEmbankment(-1, -1));
-        stampRingCell(grid, topology, doodads, cx - 1, cy - 1, TileManifest.turretEmbankment( 0, -1));
-        stampRingCell(grid, topology, doodads, cx,     cy - 1, TileManifest.turretEmbankment( 0, -1));
-        stampRingCell(grid, topology, doodads, cx + 1, cy - 1, TileManifest.turretEmbankment( 0, -1));
-        stampRingCell(grid, topology, doodads, cx + 2, cy - 1, TileManifest.turretEmbankment( 1, -1));
-        stampRingCell(grid, topology, doodads, cx - 2, cy,     TileManifest.turretEmbankment(-1,  0));
-        stampRingCell(grid, topology, doodads, cx + 2, cy,     TileManifest.turretEmbankment( 1,  0));
-        stampTurretCenter(grid, topology, cx - 1, cy);
-        stampTurretCenter(grid, topology, cx + 1, cy);
-        sealInnerCell(grid, topology, cx, cy);
-
-        List<DefensePost.TurretSpec> turrets = new ArrayList<>(2);
-        turrets.add(new DefensePost.TurretSpec(TurretKind.HEPHAESTUS, cx - 1, cy));
-        turrets.add(new DefensePost.TurretSpec(TurretKind.HEPHAESTUS, cx + 1, cy));
-        return new DefensePost(DefensePostKind.LARGE, cx, cy, turrets);
-    }
-
-    /**
-     * LINE_V: 3×5 vertical embankment with two turrets at {@code (cx, cy±1)}.
-     * Rotated mirror of LINE_H.
-     * <pre>
-     *   NW  N  NE
-     *   W   T1 E
-     *   W   .  E
-     *   W   T2 E
-     *   SW  S  SE
-     * </pre>
-     */
-    private static DefensePost stampLargeLineV(NavigationGrid grid, CellTopology topology,
-                                               List<Doodad> doodads, int cx, int cy) {
-        stampRingCell(grid, topology, doodads, cx - 1, cy + 2, TileManifest.turretEmbankment(-1,  1));
-        stampRingCell(grid, topology, doodads, cx,     cy + 2, TileManifest.turretEmbankment( 0,  1));
-        stampRingCell(grid, topology, doodads, cx + 1, cy + 2, TileManifest.turretEmbankment( 1,  1));
-        stampRingCell(grid, topology, doodads, cx - 1, cy + 1, TileManifest.turretEmbankment(-1,  0));
-        stampRingCell(grid, topology, doodads, cx + 1, cy + 1, TileManifest.turretEmbankment( 1,  0));
-        stampRingCell(grid, topology, doodads, cx - 1, cy,     TileManifest.turretEmbankment(-1,  0));
-        stampRingCell(grid, topology, doodads, cx + 1, cy,     TileManifest.turretEmbankment( 1,  0));
-        stampRingCell(grid, topology, doodads, cx - 1, cy - 1, TileManifest.turretEmbankment(-1,  0));
-        stampRingCell(grid, topology, doodads, cx + 1, cy - 1, TileManifest.turretEmbankment( 1,  0));
-        stampRingCell(grid, topology, doodads, cx - 1, cy - 2, TileManifest.turretEmbankment(-1, -1));
-        stampRingCell(grid, topology, doodads, cx,     cy - 2, TileManifest.turretEmbankment( 0, -1));
-        stampRingCell(grid, topology, doodads, cx + 1, cy - 2, TileManifest.turretEmbankment( 1, -1));
-        stampTurretCenter(grid, topology, cx, cy + 1);
-        stampTurretCenter(grid, topology, cx, cy - 1);
-        sealInnerCell(grid, topology, cx, cy);
-
-        List<DefensePost.TurretSpec> turrets = new ArrayList<>(2);
-        turrets.add(new DefensePost.TurretSpec(TurretKind.HEPHAESTUS, cx, cy + 1));
-        turrets.add(new DefensePost.TurretSpec(TurretKind.HEPHAESTUS, cx, cy - 1));
-        return new DefensePost(DefensePostKind.LARGE, cx, cy, turrets);
-    }
-
-    /**
-     * WEDGE: 5×3 chevron with a 1-cell apex at {@code (cx, cy-1)} and a wide
-     * back row. Single turret at the center. Uses the chunkier
-     * {@link TileManifest#turretBowOut bow-out} art so the apex reads as a
-     * heavier earthwork protruding into the kill zone.
-     * <pre>
-     *   NW  N  N  N  NE
-     *   .   W  T  E  .
-     *   .   .  S  .  .
-     * </pre>
-     */
-    private static DefensePost stampLargeWedge(NavigationGrid grid, CellTopology topology,
-                                               List<Doodad> doodads, int cx, int cy) {
-        stampRingCell(grid, topology, doodads, cx - 2, cy + 1, TileManifest.turretBowOut(-1,  1));
-        stampRingCell(grid, topology, doodads, cx - 1, cy + 1, TileManifest.turretBowOut( 0,  1));
-        stampRingCell(grid, topology, doodads, cx,     cy + 1, TileManifest.turretBowOut( 0,  1));
-        stampRingCell(grid, topology, doodads, cx + 1, cy + 1, TileManifest.turretBowOut( 0,  1));
-        stampRingCell(grid, topology, doodads, cx + 2, cy + 1, TileManifest.turretBowOut( 1,  1));
-        stampRingCell(grid, topology, doodads, cx - 1, cy,     TileManifest.turretBowOut(-1,  0));
-        stampRingCell(grid, topology, doodads, cx + 1, cy,     TileManifest.turretBowOut( 1,  0));
-        stampRingCell(grid, topology, doodads, cx,     cy - 1, TileManifest.turretBowOut( 0, -1));
-        stampTurretCenter(grid, topology, cx, cy);
-
-        List<DefensePost.TurretSpec> turrets = new ArrayList<>(1);
-        turrets.add(new DefensePost.TurretSpec(TurretKind.HEPHAESTUS, cx, cy));
-        return new DefensePost(DefensePostKind.LARGE, cx, cy, turrets);
-    }
-
-    /**
-     * TRAPEZOID: 5×3 with a 5-cell back row, 5-cell middle, and a narrowed
-     * 3-cell south row. Two turrets E/W of center. Uses the same bow-out art
-     * as WEDGE so the two "protruding silhouette" shapes share their heavier
-     * read.
-     * <pre>
-     *   NW  N  N  N  NE
-     *   W   T1 .  T2 E
-     *   .   SW S  SE .
-     * </pre>
-     */
-    private static DefensePost stampLargeTrapezoid(NavigationGrid grid, CellTopology topology,
-                                                   List<Doodad> doodads, int cx, int cy) {
-        stampRingCell(grid, topology, doodads, cx - 2, cy + 1, TileManifest.turretBowOut(-1,  1));
-        stampRingCell(grid, topology, doodads, cx - 1, cy + 1, TileManifest.turretBowOut( 0,  1));
-        stampRingCell(grid, topology, doodads, cx,     cy + 1, TileManifest.turretBowOut( 0,  1));
-        stampRingCell(grid, topology, doodads, cx + 1, cy + 1, TileManifest.turretBowOut( 0,  1));
-        stampRingCell(grid, topology, doodads, cx + 2, cy + 1, TileManifest.turretBowOut( 1,  1));
-        stampRingCell(grid, topology, doodads, cx - 2, cy,     TileManifest.turretBowOut(-1,  0));
-        stampRingCell(grid, topology, doodads, cx + 2, cy,     TileManifest.turretBowOut( 1,  0));
-        stampRingCell(grid, topology, doodads, cx - 1, cy - 1, TileManifest.turretBowOut(-1, -1));
-        stampRingCell(grid, topology, doodads, cx,     cy - 1, TileManifest.turretBowOut( 0, -1));
-        stampRingCell(grid, topology, doodads, cx + 1, cy - 1, TileManifest.turretBowOut( 1, -1));
-        stampTurretCenter(grid, topology, cx - 1, cy);
-        stampTurretCenter(grid, topology, cx + 1, cy);
-        sealInnerCell(grid, topology, cx, cy);
-
-        List<DefensePost.TurretSpec> turrets = new ArrayList<>(2);
-        turrets.add(new DefensePost.TurretSpec(TurretKind.HEPHAESTUS, cx - 1, cy));
-        turrets.add(new DefensePost.TurretSpec(TurretKind.HEPHAESTUS, cx + 1, cy));
-        return new DefensePost(DefensePostKind.LARGE, cx, cy, turrets);
-    }
-
-    /**
-     * TRIANGLE_FORMATION: 3 turrets in a spearhead with apex south. Reads as
-     * a coordinated battery — more firepower per post than the line shapes,
-     * fully enclosed by wall + sealed stone platform. Uses bow-out art to
-     * match the other "protruding" silhouettes.
-     * <pre>
-     *   NW  T1  N   T3  NE
-     *   W   S   S   S   E
-     *   SS  SW  T2  SE  SS
-     * </pre>
-     * The middle row and bbox corner cells are sealed (non-walkable STONE
-     * pad, no doodad) rather than left open — keeps the 3 turrets inside one
-     * non-walkable mass so no isolated walkable pocket forms between them.
-     */
-    private static DefensePost stampLargeTriangleFormation(NavigationGrid grid, CellTopology topology,
-                                                           List<Doodad> doodads, int cx, int cy) {
-        stampRingCell(grid, topology, doodads, cx - 2, cy + 1, TileManifest.turretBowOut(-1,  1));
-        stampRingCell(grid, topology, doodads, cx,     cy + 1, TileManifest.turretBowOut( 0,  1));
-        stampRingCell(grid, topology, doodads, cx + 2, cy + 1, TileManifest.turretBowOut( 1,  1));
-        stampRingCell(grid, topology, doodads, cx - 2, cy,     TileManifest.turretBowOut(-1,  0));
-        stampRingCell(grid, topology, doodads, cx + 2, cy,     TileManifest.turretBowOut( 1,  0));
-        stampRingCell(grid, topology, doodads, cx - 1, cy - 1, TileManifest.turretBowOut(-1, -1));
-        stampRingCell(grid, topology, doodads, cx + 1, cy - 1, TileManifest.turretBowOut( 1, -1));
-        stampTurretCenter(grid, topology, cx - 1, cy + 1);
-        stampTurretCenter(grid, topology, cx + 1, cy + 1);
-        stampTurretCenter(grid, topology, cx,     cy - 1);
-        sealInnerCell(grid, topology, cx - 1, cy);
-        sealInnerCell(grid, topology, cx,     cy);
-        sealInnerCell(grid, topology, cx + 1, cy);
-        sealInnerCell(grid, topology, cx - 2, cy - 1);
-        sealInnerCell(grid, topology, cx + 2, cy - 1);
-
-        List<DefensePost.TurretSpec> turrets = new ArrayList<>(3);
-        turrets.add(new DefensePost.TurretSpec(TurretKind.HEPHAESTUS, cx - 1, cy + 1));
-        turrets.add(new DefensePost.TurretSpec(TurretKind.HEPHAESTUS, cx + 1, cy + 1));
-        turrets.add(new DefensePost.TurretSpec(TurretKind.HEPHAESTUS, cx,     cy - 1));
-        return new DefensePost(DefensePostKind.LARGE, cx, cy, turrets);
-    }
-
-    /**
-     * ARTILLERY post: 5×3 bow-out embankment with two LOCUST rocket batteries
-     * at {@code (cx±1, cy)}. Footprint geometry mirrors {@link #stampLargeLineH}
-     * — same 10-cell ring, same two turret pads, same sealed inner cell — but
-     * uses the chunkier {@link TileManifest#turretBowOut} art instead of the
-     * thinner sandbag embankment, and stamps {@link TurretKind#LOCUST} instead
-     * of {@code HEPHAESTUS}. Reads as a fortified rocket battery deep in the
-     * kremlin interior, lobbing salvos over the wall.
-     * <pre>
-     *   NW  N  N  N  NE
-     *   W   T1 .  T2 E
-     *   SW  S  S  S  SE
-     * </pre>
-     */
-    private static DefensePost stampArtillery(NavigationGrid grid, CellTopology topology,
-                                              List<Doodad> doodads, int cx, int cy) {
-        stampRingCell(grid, topology, doodads, cx - 2, cy + 1, TileManifest.turretBowOut(-1,  1));
-        stampRingCell(grid, topology, doodads, cx - 1, cy + 1, TileManifest.turretBowOut( 0,  1));
-        stampRingCell(grid, topology, doodads, cx,     cy + 1, TileManifest.turretBowOut( 0,  1));
-        stampRingCell(grid, topology, doodads, cx + 1, cy + 1, TileManifest.turretBowOut( 0,  1));
-        stampRingCell(grid, topology, doodads, cx + 2, cy + 1, TileManifest.turretBowOut( 1,  1));
-        stampRingCell(grid, topology, doodads, cx - 2, cy - 1, TileManifest.turretBowOut(-1, -1));
-        stampRingCell(grid, topology, doodads, cx - 1, cy - 1, TileManifest.turretBowOut( 0, -1));
-        stampRingCell(grid, topology, doodads, cx,     cy - 1, TileManifest.turretBowOut( 0, -1));
-        stampRingCell(grid, topology, doodads, cx + 1, cy - 1, TileManifest.turretBowOut( 0, -1));
-        stampRingCell(grid, topology, doodads, cx + 2, cy - 1, TileManifest.turretBowOut( 1, -1));
-        stampRingCell(grid, topology, doodads, cx - 2, cy,     TileManifest.turretBowOut(-1,  0));
-        stampRingCell(grid, topology, doodads, cx + 2, cy,     TileManifest.turretBowOut( 1,  0));
-        stampTurretCenter(grid, topology, cx - 1, cy);
-        stampTurretCenter(grid, topology, cx + 1, cy);
-        sealInnerCell(grid, topology, cx, cy);
-
-        List<DefensePost.TurretSpec> turrets = new ArrayList<>(2);
-        turrets.add(new DefensePost.TurretSpec(TurretKind.LOCUST, cx - 1, cy));
-        turrets.add(new DefensePost.TurretSpec(TurretKind.LOCUST, cx + 1, cy));
-        return new DefensePost(DefensePostKind.ARTILLERY, cx, cy, turrets);
-    }
-
-    /**
-     * DRONE_HUB post: 3×3 sandbag embankment ring around a sealed STONE launch
-     * pad at {@code (cx, cy)}. Geometry mirrors {@link #stampMedium} — same
-     * 8-cell ring, same outward-facing embankment art — but the center cell is
-     * sealed (non-walkable STONE, no doodad) instead of hosting a turret.
-     * {@code BattleSetup} spawns a {@code DroneHub}-built entity at the sealed
-     * center cell to drive periodic drone launches; the empty
-     * {@link DefensePost#turrets} list keeps the existing
-     * {@code BattleSetup.spawnDefensePostTurrets} loop a no-op for this tier.
-     * <pre>
-     *   NW  N  NE
-     *   W   .  E
-     *   SW  S  SE
-     * </pre>
-     */
-    private static DefensePost stampDroneHub(NavigationGrid grid, CellTopology topology,
-                                             List<Doodad> doodads, int cx, int cy) {
-        for (int dy = -1; dy <= 1; dy++) {
-            for (int dx = -1; dx <= 1; dx++) {
-                if (dx == 0 && dy == 0) continue;
-                stampRingCell(grid, topology, doodads, cx + dx, cy + dy,
-                        TileManifest.turretEmbankment(dx, dy));
-            }
+        List<DefensePost.TurretSpec> turrets = new ArrayList<>(layout.turrets.size());
+        for (DefensePostLayoutDef.TurretPlacement turret : layout.turrets) {
+            turrets.add(new DefensePost.TurretSpec(turret.structureId(),
+                    cx + turret.offset().x(), cy + turret.offset().y()));
         }
-        sealInnerCell(grid, topology, cx, cy);
-        return new DefensePost(DefensePostKind.DRONE_HUB, cx, cy, new ArrayList<>(0));
+        DefensePostLayoutDef.Offset hub = layout.droneHubOffset();
+        return new DefensePost(layout.tier, layout.id, cx, cy, turrets,
+                hub != null ? cx + hub.x() : null,
+                hub != null ? cy + hub.y() : null);
+    }
+
+    private static TileManifest.TileFrame barrierTile(DefensePostLayoutDef.Cell cell) {
+        return switch (cell.appearance()) {
+            case VENT -> TileManifest.LIGHT_POST_VENT;
+            case EMBANKMENT -> TileManifest.turretEmbankment(
+                    cell.facing().x(), cell.facing().y());
+            case BOW_OUT -> TileManifest.turretBowOut(
+                    cell.facing().x(), cell.facing().y());
+        };
     }
 
     /**
@@ -988,13 +674,13 @@ public final class DefensePostStamper implements GenStage {
      * spawns the squad within the embankment perimeter (or at adjacent cells
      * if the perimeter is fully ring + turret).
      */
-    private static TacticalNode emitGuardpostNode(DefensePostKind tier, DefensePostShape shape, DefensePost post) {
-        int halfX = shapeHalfX(tier, shape);
-        int halfY = shapeHalfY(tier, shape);
+    private static TacticalNode emitGuardpostNode(DefensePostKind tier,
+                                                  DefensePostLayoutDef layout,
+                                                  DefensePost post) {
         return new TacticalNode(TacticalNode.Kind.GUARDPOST,
                 post.anchorX, post.anchorY,
-                post.anchorX - halfX, post.anchorY - halfY,
-                post.anchorX + halfX, post.anchorY + halfY,
+                post.anchorX + layout.minOffsetX, post.anchorY + layout.minOffsetY,
+                post.anchorX + layout.maxOffsetX, post.anchorY + layout.maxOffsetY,
                 Faction.DEFENDER, tier.priorityScore, tier.garrisonSize);
     }
 }

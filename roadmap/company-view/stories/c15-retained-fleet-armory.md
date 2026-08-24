@@ -2,9 +2,9 @@
 
 Status: IN PROGRESS — company/squad/fire-team drill-down and template issue migrated; broader parity remains
 Written: 2026-08-23
-Updated: 2026-08-24 — The fire-team workspace now leads with four named marine
-cards; loadout selection and the equip action flow beneath that viewer without a
-stock-return ledger.
+Updated: 2026-08-24 — The fire-team workspace now leads with four stable named
+marine slots; an on-demand comparison tray previews only contextually available
+loadouts and their equipment/stat deltas before explicit equip.
 
 Read `company-view-nouns.md`, `ui-nouns.md`, and
 `c14-fire-team-equipment-templates.md` first.
@@ -45,9 +45,11 @@ drill-down reachable. Templates remain plans, never collectible cards.
   primary viewer of the selected team's four persistent marines. Each card presents
   rank, name, readiness, aptitude, experience, career, candidate role, battle-composed
   appearance, equipment names, and resolved combat figures.
-- **Loadout editing:** a horizontal strip of compact four-soldier template selectors
-  flows beneath the marine viewer. Selection previews candidate issue on the named
-  marines; one readiness result and explicit equip action commit it.
+- **Loadout editing:** the ordinary viewer shows current equipment without a library.
+  **Change Loadout** opens a temporary horizontal strip of compact four-soldier
+  selectors. Contextually unavailable templates are disabled; an available selection
+  projects candidate equipment and combat-stat deltas onto the same named marines.
+  One readiness result and explicit equip action commit it.
 - **Inventory boundary:** the roster's exact atomic preview still gates assignment,
   but this viewer omits its free-stock/returns/required-issue ledger.
 - **Squad arrangements:** a fast squad-level composition view using the same templates
@@ -76,7 +78,8 @@ drill-down reachable. Templates remain plans, never collectible cards.
 - Breadcrumb actions return directly to the company collection or selected company's
   squad overview without routing through footer utilities.
 - Selecting teams and templates preserves scroll/focus and does not rebuild unrelated
-  panes.
+  panes. The four marine/canvas slots remain retained across Alpha/Bravo/Charlie
+  changes so renderer registration follows the slot while its marine data changes.
 - Designing remains legal without stock; assigning remains stock-gated and atomic.
 - Template and arrangement previews exactly match the operation that applies them.
 - Company overview cards are literal selectable presentation containers. Fire-team
@@ -90,8 +93,10 @@ drill-down reachable. Templates remain plans, never collectible cards.
 - Every library selector shows the same four billet recipes as a compact formation;
   selecting it projects that equipment onto the named marines rather than replacing
   them with anonymous template mannequins.
-- The ordinary viewer exposes a concise ready/blocked answer and equip action, not
-  the transaction's free/return/required material rows.
+- The ordinary viewer exposes current issue and one **Change Loadout** action. Its
+  temporary comparison state exposes a concise ready/blocked answer, per-marine
+  equipment/stat deltas, and explicit equip action—not the transaction's
+  free/return/required material rows.
 - The same billet recipe renders deterministic PNGs without a game or OpenGL context;
   live acceptance remains responsible only for host scaling and feel.
 - Layout remains usable for a large company and at UI scales 1.0, 1.25, and 1.5.

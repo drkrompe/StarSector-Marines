@@ -21,18 +21,26 @@ public record SquadContactPicture(
         int primaryCellX,
         int primaryCellY,
         float primaryConfidence,
-        Doctrine doctrine) {
+        Doctrine doctrine,
+        int primaryEngageableMembers,
+        int liveMembers,
+        int primaryEngageableFireTeams,
+        int liveFireTeams,
+        ContactInitiative contactInitiative) {
 
     public enum Posture { ADVANCING, DEFENDING, UNCOMMITTED }
     public enum Sector { NONE, FRONT, LEFT_FLANK, RIGHT_FLANK, REAR, UNKNOWN }
     public enum Motion { UNKNOWN, APPROACHING, LATERAL, WITHDRAWING }
     public enum ForceBalance { NONE, FAVORABLE, EVEN, UNFAVORABLE }
     public enum Doctrine { ADVANCE, HOLD, DISENGAGE }
+    /** How an advancing HOLD doctrine is realized against the current contact. */
+    public enum ContactInitiative { NONE, RECEIVE, PROSECUTE }
 
     public static final SquadContactPicture NONE = new SquadContactPicture(
             -1, Posture.UNCOMMITTED, 0f, 0f, 0, 0, 0f, 0,
             ForceBalance.NONE, Sector.NONE, Motion.UNKNOWN, 0L,
-            -1, -1, 0f, Doctrine.ADVANCE);
+            -1, -1, 0f, Doctrine.ADVANCE, 0, 0, 0, 0,
+            ContactInitiative.NONE);
 
     public boolean hasContacts() {
         return contactCount > 0;

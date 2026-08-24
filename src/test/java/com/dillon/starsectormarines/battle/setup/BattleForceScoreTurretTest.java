@@ -41,8 +41,10 @@ class BattleForceScoreTurretTest {
                 candidates(), roster, BattleForceScore.attackers(attackers));
 
         assertEquals(2, selected.size());
-        assertEquals(TurretKind.VULCAN, selected.get(0).turrets.get(0).kind);
-        assertEquals(TurretKind.ARBALEST, selected.get(1).turrets.get(0).kind);
+        assertEquals(TurretKind.VULCAN.structureId,
+                selected.get(0).turrets.get(0).structureId);
+        assertEquals(TurretKind.ARBALEST.structureId,
+                selected.get(1).turrets.get(0).structureId);
     }
 
     @Test
@@ -55,7 +57,8 @@ class BattleForceScoreTurretTest {
 
         assertEquals(List.of(MechVariant.BULWARK), roster.mechVariants);
         assertEquals(1, selected.size());
-        assertEquals(TurretKind.VULCAN, selected.get(0).turrets.get(0).kind);
+        assertEquals(TurretKind.VULCAN.structureId,
+                selected.get(0).turrets.get(0).structureId);
     }
 
     @Test
@@ -89,7 +92,8 @@ class BattleForceScoreTurretTest {
         assertEquals(6, selected.get(0).anchorX);
         assertEquals(7, selected.get(0).anchorY);
         assertEquals(List.of(TurretKind.VULCAN, TurretKind.ARBALEST),
-                selected.get(0).turrets.stream().map(spec -> spec.kind).toList());
+                selected.get(0).turrets.stream()
+                        .map(spec -> TurretKind.fromStructureId(spec.structureId)).toList());
         assertEquals(3, large.turrets.size(), "map-authored candidates stay untouched");
     }
 

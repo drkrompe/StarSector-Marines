@@ -24,28 +24,54 @@ import java.util.List;
 public final class DefensePost {
 
     public final DefensePostKind tier;
+    /** Authoritative data layout id; null only for legacy one-off tower stamps. */
+    public final String layoutId;
     public final int anchorX;
     public final int anchorY;
     /** Turret cell positions + kinds. One entry for LIGHT/MEDIUM; 2-3 for LARGE. */
     public final List<TurretSpec> turrets;
+    /** Optional occupied drone-hub platform cell authored by the layout. */
+    public final Integer droneHubCellX;
+    public final Integer droneHubCellY;
 
     public DefensePost(DefensePostKind tier, int anchorX, int anchorY, List<TurretSpec> turrets) {
+        this(tier, null, anchorX, anchorY, turrets, null, null);
+    }
+
+    public DefensePost(DefensePostKind tier, String layoutId,
+                       int anchorX, int anchorY, List<TurretSpec> turrets,
+                       Integer droneHubCellX, Integer droneHubCellY) {
         this.tier = tier;
+        this.layoutId = layoutId;
         this.anchorX = anchorX;
         this.anchorY = anchorY;
-        this.turrets = turrets;
+        this.turrets = List.copyOf(turrets);
+        this.droneHubCellX = droneHubCellX;
+        this.droneHubCellY = droneHubCellY;
     }
 
     /** Where to spawn one MapTurret + what kind. Coupled here so the generator picks the kind alongside the position rather than the setup re-rolling per cell. */
     public static final class TurretSpec {
-        public final TurretKind kind;
+        public final String structureId;
         public final int cellX;
         public final int cellY;
 
-        public TurretSpec(TurretKind kind, int cellX, int cellY) {
-            this.kind = kind;
+        public TurretSpec(String structureId, int cellX, int cellY) {
+            if (structureId == null || structureId.isBlank()) {
+                throw new IllegalArgumentException("turret structure id may not be blank");
+            }
+            this.structureId = structureId;
             this.cellX = cellX;
             this.cellY = cellY;
+        }
+
+        /** Compatibility constructor for one-off Java-authored tower placements. */
+        public TurretSpec(TurretKind kind, int cellX, int cellY) {
+            this(kind.structureId, cellX, cellY);
+        }
+
+        public StructureDef structure() {
+            return TurretCatalogRegistry.requireStructure(structureId);
         }
     }
 }

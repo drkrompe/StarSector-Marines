@@ -92,7 +92,9 @@ public class OverwatchTowerStageTest {
 
     private static int countKind(List<DefensePost> posts, TurretKind kind) {
         int c = 0;
-        for (DefensePost p : posts) if (p.turrets.get(0).kind == kind) c++;
+        for (DefensePost p : posts) {
+            if (p.turrets.get(0).structureId.equals(kind.structureId)) c++;
+        }
         return c;
     }
 

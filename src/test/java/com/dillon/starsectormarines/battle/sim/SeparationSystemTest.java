@@ -804,6 +804,35 @@ public class SeparationSystemTest {
         assertTrue(withoutSeparation.movement().settled(baseline), "baseline should have finished its path");
     }
 
+    @Test
+    public void denseCollisionCacheSurvivesGrowthAndSwapPop() {
+        BattleSimulation sim = openArena(80, 80);
+        long[] fillers = new long[65];
+        for (int i = 0; i < fillers.length; i++) {
+            fillers[i] = sim.spawn(new EntitySpec("filler-" + i,
+                    Faction.CIVILIAN, UnitType.CIVILIAN,
+                    2 + (i % 16) * 4, 2 + (i / 16) * 4));
+        }
+        long first = sim.spawn(new EntitySpec("first", Faction.MARINE,
+                UnitType.MARINE, 70, 70));
+        long swappedTail = sim.spawn(new EntitySpec("swapped tail",
+                Faction.MARINE, UnitType.MARINE, 70, 70));
+        sim.world().setPos(first, 70.4f, 70.5f);
+        sim.world().setPos(swappedTail, 70.6f, 70.5f);
+
+        sim.getRoster().releaseFromRegistry(fillers[1]);
+        float before = Math.abs(sim.world().x(first)
+                - sim.world().x(swappedTail));
+
+        separationFor(sim).tick(BattleSimulation.TICK_DT);
+
+        float dx = sim.world().x(first) - sim.world().x(swappedTail);
+        float dy = sim.world().y(first) - sim.world().y(swappedTail);
+        float after = (float) Math.sqrt(dx * dx + dy * dy);
+        assertTrue(after > before,
+                "the tail unit moved into a released dense slot must still resolve overlap");
+    }
+
     /**
      * Wiring check: every test above constructs a {@link SeparationSystem}
      * directly and calls {@code tick(dt)} by hand, so none of them would
