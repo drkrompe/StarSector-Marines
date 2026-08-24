@@ -114,9 +114,9 @@ contact and area payloads through those semantics. The open work is on
 W2 turns effect recipes into ordered authored layers. W3 has migrated the
 current rocket and added marine mount validation; its remaining slice moves
 the mech weapon families and validates their mount rules. Progression's
-special-equipment identity may point at those weapon ids; later smoke and
-satchel stories add non-weapon activations,
-while the frag story adds another weapon-like activation.
+special-equipment identity may point at those weapon ids; shipped smoke and
+satchel utilities use non-weapon activations, while the frag story adds
+another weapon-like activation.
 W4 retires enum stat carriers and owns the save migration. W6 applies the
 platform/mount/weapon split to emplacements and structures. W5 is deferred
 direction: a real submod should establish shared weapon/tile discovery and

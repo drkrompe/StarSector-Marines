@@ -18,9 +18,10 @@ import java.util.Set;
 public final class UiDocument {
 
     private final UiElement root;
-    private final UiLayoutEngine layout = new UiLayoutEngine();
-    private final UiPainter painter = new UiPainter();
     private final StyleResolver styles = new StyleResolver();
+    private final UiTextMeasurer text = new UiTextMeasurer(styles);
+    private final UiLayoutEngine layout = new UiLayoutEngine(text);
+    private final UiPainter painter = new UiPainter();
     private final CanvasRegistry canvases = new CanvasRegistry(this);
     private Rect viewport = Rect.EMPTY;
     private List<UiElement> hovered = List.of();
@@ -85,14 +86,15 @@ public final class UiDocument {
 
     public void render(UiViewport viewport, float alphaMult) {
         synchronizeStyles();
-        painter.paint(root, viewport, alphaMult, canvases, styles);
+        painter.paint(root, viewport, alphaMult, canvases, text);
     }
 
     /** Resolves targets, advances retained motion on real time, and relayouts only when needed. */
     public FrameStats advance(float realSeconds) {
         StyleResolver.ResolveResult resolved = styles.resolve(root);
         StyleResolver.AdvanceResult advanced = styles.advance(realSeconds);
-        boolean relayout = resolved.layoutChanged() || advanced.layoutChanged();
+        boolean relayout = resolved.layoutChanged() || advanced.layoutChanged()
+                || root.layoutDirty() || root.descendantLayoutDirty();
         if (relayout) {
             layout.layout(root, viewport.width(), viewport.height());
             layoutPasses++;
@@ -114,7 +116,8 @@ public final class UiDocument {
 
     private void synchronizeStyles() {
         StyleResolver.ResolveResult resolved = styles.resolve(root);
-        if (!resolved.layoutChanged()) return;
+        if (!resolved.layoutChanged() && !root.layoutDirty()
+                && !root.descendantLayoutDirty()) return;
         layout.layout(root, viewport.width(), viewport.height());
         layoutPasses++;
         canvases.prune();

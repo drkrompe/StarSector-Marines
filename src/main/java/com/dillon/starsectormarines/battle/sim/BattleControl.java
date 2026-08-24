@@ -50,6 +50,9 @@ public interface BattleControl extends BattleView {
     /** Consume a smoke grenade and lob it toward a world-space cell center. */
     void throwSmoke(long carrier, float targetX, float targetY);
 
+    /** Complete a reserved contact-demolition plant and begin its fuse. */
+    boolean plantSatchel(long carrier, long target);
+
     void fireMechWeapon(long shooter, long target, MechWeapon weapon);
 
     /** Mech fire with explicit accuracy multiplier (LRM indirect-fire path). */

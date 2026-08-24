@@ -16,7 +16,14 @@ final class MarineOpsThemes {
             .workbench-root { padding: 14px; row-gap: 10px; border-width: 3px; overflow: hidden; }
             .panel { border-width: 1px; overflow: hidden; }
             .label { overflow: hidden; }
-            button { padding: 9px; border-width: 1px; overflow: hidden; }
+            .heading { font-family: heading; }
+            button {
+                padding: 5px 10px;
+                border-width: 1px;
+                overflow: hidden;
+                font-family: body;
+                text-align: center;
+            }
             """).scopedTo("ui-workbench");
 
     private MarineOpsThemes() {
@@ -25,7 +32,7 @@ final class MarineOpsThemes {
     static UiTheme standard() {
         return theme("""
                 :root {
-                    font-family: orbitron;
+                    font-family: body;
                     color: #e4eefa;
                     background-color: #080d15;
                 }
@@ -56,7 +63,7 @@ final class MarineOpsThemes {
     static UiTheme highContrast() {
         return theme("""
                 :root {
-                    font-family: orbitron;
+                    font-family: body;
                     color: #ffffff;
                     background-color: #000000;
                 }
@@ -103,7 +110,8 @@ final class MarineOpsThemes {
 
     private static UiTheme theme(String css) {
         return new UiTheme(StyleSheet.parse(SHEET_NAME, css),
-                Map.of("orbitron", Fonts.ORBITRON_20));
+                Map.of("body", Fonts.INSIGNIA_LARGE,
+                        "heading", Fonts.ORBITRON_20_BOLD));
     }
 
     record CanvasPalette(Color button, Color selected, Color danger, Color valid,

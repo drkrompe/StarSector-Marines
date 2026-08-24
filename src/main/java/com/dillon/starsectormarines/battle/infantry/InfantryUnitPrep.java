@@ -46,6 +46,9 @@ public final class InfantryUnitPrep {
         if (sec.activation() == SpecialActivation.UTILITY_SMOKE) {
             return tickSmokeThrow(unit, sec, sim);
         }
+        if (sec.activation() == SpecialActivation.UTILITY_SATCHEL) {
+            return tickSatchelPlant(unit, sec, sim);
+        }
         w.setSecondaryActionTimer(id, w.secondaryActionTimer(id) - BattleSimulation.TICK_DT);
         float fireAt = sec.aimDuration() * 0.5f;
         if (!w.secondaryFired(id) && w.secondaryActionTimer(id) <= fireAt) {
@@ -108,33 +111,35 @@ public final class InfantryUnitPrep {
     }
 
     /**
-     * Reactive special fire on a hardened target of opportunity. When the unit
-     * is mid-pathing (any posture — approach, regroup, even the engage
-     * out-of-range fallback), has a loaded rocket and an idle aim, and an
-     * enemy hardened target ({@link TacticalScoring#isHardened} — turrets,
-     * drone hubs, heavy mechs) sits inside special range with LOS, this
-     * initiates the aim window. The aim animation freezes movement (handled
-     * by {@link #tickAimAndShortCircuit} on subsequent ticks); fire resolves
-     * at the aim midpoint.
+     * Reactive special-equipment use against a hardened target of opportunity.
+     * Direct-fire equipment begins its ordinary aim when a legal target is in
+     * range. A satchel is stricter: it considers only a target already inside
+     * contact range, creates no approach path, and channels the plant through
+     * the same movement-freezing action window.
      *
-     * <p>The squad-coordination gate ({@link TacticalScoring#shouldCommitSpecial})
+     * <p>For direct-fire equipment, the squad-coordination gate
+     * ({@link TacticalScoring#shouldCommitSpecial})
      * is what prevents the 4-marine volley failure: once one squadmate locks
      * onto a hardened target, the projected damage projection blocks the rest
      * from committing until the projection no longer kills.
      *
      * <p>Returns {@code true} when an aim was started (caller short-circuits the
      * rest of its tick — same convention as {@link #tickAimAndShortCircuit}).
-     * Returns {@code false} when nothing changed.
+     * Satchels instead use one atomic target reservation. Returns {@code false}
+     * when nothing changed.
      */
-    public static boolean tryOpportunitySpecial(long unit, BattleView sim) {
+    public static boolean tryOpportunitySpecial(long unit, BattleControl sim) {
         long id = unit;
         if (!sim.world().hasSecondaryWeapon(id)) return false;
-        if (sim.world().secondaryAmmo(id) <= 0) return false;
         if (sim.world().secondaryCooldownTimer(id) > 0f) return false;
         if (sim.world().secondaryActionTimer(id) > 0f) return false;
 
         MarineSecondary sec = sim.world().secondaryWeapon(id);
+        if (!sec.hasAvailableUse(sim.world().secondaryAmmo(id))) return false;
         if (sec.activation() == SpecialActivation.UTILITY_SMOKE) return false;
+        if (sec.activation() == SpecialActivation.UTILITY_SATCHEL) {
+            return tryOpportunitySatchel(unit, sec, sim);
+        }
         float range = sec.range();
         // Hardened-target scan: any MapTurret, drone hub, or HEAVY_MECH in
         // special range with LoS that the squad-coordination gate doesn't
@@ -169,7 +174,7 @@ public final class InfantryUnitPrep {
     }
 
     /** Compatibility name retained for focused rocket behavior tests. */
-    public static boolean tryOpportunityRocket(long unit, BattleView sim) {
+    public static boolean tryOpportunityRocket(long unit, BattleControl sim) {
         return tryOpportunitySpecial(unit, sim);
     }
 
@@ -212,5 +217,63 @@ public final class InfantryUnitPrep {
             world.setSecondaryAimTargetId(unit, 0L);
         }
         return true;
+    }
+
+    private static boolean tryOpportunitySatchel(long unit, MarineSecondary special,
+                                                  BattleControl sim) {
+        float range = special.satchelChargeSpec().contactRange();
+        long bestTarget = 0L;
+        float bestDistanceSq = Float.MAX_VALUE;
+        LongBucket scratch = new LongBucket();
+        sim.getUnitIndex().gather(sim.world().x(unit), sim.world().y(unit), range, scratch);
+        for (int i = 0; i < scratch.size; i++) {
+            long target = scratch.ids[i];
+            if (!legalSatchelTarget(unit, target, special, sim)) continue;
+            float dx = sim.world().x(target) - sim.world().x(unit);
+            float dy = sim.world().y(target) - sim.world().y(unit);
+            float distanceSq = dx * dx + dy * dy;
+            if (distanceSq >= bestDistanceSq) continue;
+            if (sim.satchelCharges().hasChargeForTarget(target)) continue;
+            bestTarget = target;
+            bestDistanceSq = distanceSq;
+        }
+        if (bestTarget == 0L || !sim.satchelCharges().tryReserve(unit, bestTarget)) return false;
+        sim.world().setSecondaryActionTimer(unit, special.aimDuration());
+        sim.world().setSecondaryFired(unit, false);
+        sim.world().setSecondaryAimTargetId(unit, bestTarget);
+        return true;
+    }
+
+    private static boolean tickSatchelPlant(long unit, MarineSecondary special,
+                                            BattleControl sim) {
+        World world = sim.world();
+        world.setSecondaryActionTimer(unit,
+                world.secondaryActionTimer(unit) - BattleSimulation.TICK_DT);
+        if (world.secondaryActionTimer(unit) > 0f) return true;
+        long target = sim.resolveUnit(world.secondaryAimTargetId(unit));
+        boolean planted = legalSatchelTarget(unit, target, special, sim)
+                && sim.plantSatchel(unit, target);
+        if (!planted) sim.satchelCharges().releaseReservation(unit);
+        world.setSecondaryFired(unit, planted);
+        world.setSecondaryActionTimer(unit, 0f);
+        world.setSecondaryAimTargetId(unit, 0L);
+        return true;
+    }
+
+    private static boolean legalSatchelTarget(long unit, long target,
+                                               MarineSecondary special,
+                                               BattleView sim) {
+        if (target == 0L || !TacticalScoring.isHardened(sim.identity().type(target))) {
+            return false;
+        }
+        if (!sim.world().isAlive(target)
+                || sim.identity().faction(target) == sim.identity().faction(unit)) return false;
+        float dx = sim.world().x(target) - sim.world().x(unit);
+        float dy = sim.world().y(target) - sim.world().y(unit);
+        float range = special.satchelChargeSpec().contactRange();
+        return dx * dx + dy * dy <= range * range
+                && sim.getGrid().hasLineOfSight(sim.world().cellX(unit),
+                sim.world().cellY(unit), sim.world().cellX(target),
+                sim.world().cellY(target));
     }
 }
