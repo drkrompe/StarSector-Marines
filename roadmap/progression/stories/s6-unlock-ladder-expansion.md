@@ -4,10 +4,10 @@
 > patterns are fully authored and unreachable.
 
 Status: PLANNED — depends on `s5-parts-acquisition-channels.md`,
-`s2-primary-weapon-catalog-expansion.md`, and the S2A–S2D special-equipment
+`s2-primary-weapon-catalog-expansion.md`, and the S2A–S2G special-equipment
 stories; armor expansion also depends on `powered-assault-armor-roles.md`.
 Written: 2026-08-22
-Updated: 2026-08-24 — routed armor unlocks through the light/line/heavy role and faction-pattern catalog.
+Updated: 2026-08-24 — added weapon-mechanism, boarding-tool, stim, and faction-demolition provenance to the unlock contract.
 
 ## Problem
 
@@ -101,14 +101,22 @@ Starsector's factions differ enormously and the mod should read that:
 
 | Flavor | Gear character |
 | --- | --- |
-| Hegemony | Rugged, ballistic, cheap to keep running, unglamorous |
-| Tri-Tachyon | Energy-based, high ceiling, finicky and expensive |
-| Persean League | Balanced midline families, dependable mass issue, flexible support |
-| Luddic Church | Maintained low-tech patterns, protective and durable, limited taboo equipment |
-| Luddic Path | Crude, brutal, dangerous to the user as well as the target |
-| Sindrian Diktat | State-issue ballistic/energy mix, concentrated prestige grades |
-| Pirate / outlaw | Unreliable with a nasty edge; erratic grade quality |
-| Independent / MRB | The neutral baseline the company starts on |
+| Hegemony | Standardized slug rifles and gauss marksman weapons, rugged squad automatics, and limited elite pulse/laser issue; utilitarian and maintainable |
+| Tri-Tachyon | Pulse and eventual distinct laser families, precision gauss weapons, micro-missile candidates, and visible neural/HUD integration; high ceiling, finicky and expensive |
+| Persean League | Balanced slug, gauss, pulse, grenade, and support-weapon mix with dependable mass issue and flexible local manufacture |
+| Luddic Church | Maintained slug/gauss patterns, industrial arc cutters, protective gear, and tightly sanctioned advanced energy equipment |
+| Luddic Path | Crude slugthrowers, shredder carbines, combat stims, carried IEDs, and defender-only martyr rigs; dangerous to user and target alike |
+| Sindrian Diktat | State-issue ballistic/energy mix, grenade/support weapons, and concentrated prestige grades for guard formations |
+| Pirate / outlaw | Scavenged shredder and slug weapons, stolen energy gear, illicit stims, and carried improvised charges; widest condition variance |
+| Independent / MRB | Service slug baseline with mixed gauss, energy, breaching, and mercenary specialist acquisitions |
+
+Mechanism guides plausible sources without becoming a faction lock. Elite
+Hegemony troops may field energy weapons, a mercenary may recover a Church arc
+cutter, and Tri-Tachyon does not own every laser forever. Neural/HUD housings
+remain provenance/presentation until a separate mechanic earns an authority.
+Defender-only martyr rigs and any defender-only IED variant carry an explicit
+non-player catalog reason rather than becoming unreachable player assets by
+accident.
 
 Why this fits the mod's existing commitments:
 
@@ -186,10 +194,12 @@ Where a milestone gate is still the right tool, gate on more than a count:
 
 - Where parts come from — `s5-parts-acquisition-channels.md`.
 - New weapons and special equipment to unlock —
-  `s2-primary-weapon-catalog-expansion.md` and `s2d-frag-grenades.md`. New armor
-  roles and patterns belong to `powered-assault-armor-roles.md`. The shipped
-  AMR, smoke grenades, and satchel kits are already starter issue and must
-  remain covered by the stranded-asset check.
+  `s2-primary-weapon-catalog-expansion.md`, `s2d-frag-grenades.md`,
+  `s2e-close-contact-boarding-tools.md`, `s2f-combat-stim-injectors.md`, and
+  `s2g-martyr-rigs-and-carried-ieds.md`. New armor roles and patterns belong to
+  `powered-assault-armor-roles.md`. The shipped AMR, smoke grenades, and satchel
+  kits are already starter issue and must remain covered by the stranded-asset
+  check.
 - Visual differentiation of unlocked tiers —
   `s7-grade-visual-identity.md`.
 - Any change to printing costs beyond repricing against S5's stated income

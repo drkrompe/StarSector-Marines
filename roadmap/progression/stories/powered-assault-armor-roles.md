@@ -6,6 +6,8 @@ shared perception contract.
 
 Written: 2026-08-24
 
+Updated: 2026-08-24 — routed suit-integrated stims and neural/HUD language to explicit equipment stories rather than armor-wide bonuses.
+
 Read `progression-nouns.md`, `combat-durability-nouns.md`, and `mechs-nouns.md`
 before implementing this story.
 
@@ -71,7 +73,10 @@ The first catalog covers every core faction plus the neutral fallback:
 Faction language describes authored availability, visuals, maintenance, and
 bounded pattern tradeoffs. Neural uplinks, combat stims, consecration, or drone
 integration do not become automatic faction-wide buffs. A mechanic exists only
-when a typed capability and its owning battle system implement it.
+when a typed capability and its owning battle system implement it. Finite stim
+utility belongs to `s2f-combat-stim-injectors.md`; neural/HUD integration is
+provenance and presentation until `s2-primary-weapon-catalog-expansion.md` or a
+later dedicated interface story names a non-duplicative mechanic.
 
 ## Data and authority
 
@@ -146,6 +151,9 @@ an oversized armor pattern.
   readiness are setting truth, not a new hazard meter in this story.
 - Jump traversal, vertical movement, or a universal jet ability.
 - Digital-disguise mission logic.
+- Combat-stim activation, contact boarding weapons, and martyr/IED equipment;
+  those retain their own special-item stories rather than becoming armor
+  pattern powers.
 - New mech chassis, vehicle frames, or faction-wide set bonuses.
 - Making all faction suits immediately player-printable; acquisition remains
   `s6-unlock-ladder-expansion.md` authority.

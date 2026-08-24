@@ -4,7 +4,7 @@ Status: ACTIVE — handheld, special-item and turret weapon data is owned; mech 
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — defined cross-catalog turret authoring and its boundary with emplacement layouts.
+Updated: 2026-08-24 — distinguished weapon delivery mechanism from tactical family, progression provenance, and quality.
 
 ## Purpose
 
@@ -27,6 +27,11 @@ without turning a JSON typo into a silent zero-damage battle.
 - A **weapon id** is the durable reference to a definition. It is the future
   persistence and cross-catalog handle; Java enums are transitional handles,
   not a second source of weapon values.
+- A **delivery mechanism** describes how the definition reaches its payload:
+  direct chemical or electromagnetic kinetic fire, flechette sub-munitions,
+  pulse/laser energy, rocket or arcing grenade, or a close-contact implement.
+  It constrains applicable trajectory, payload, and presentation fields. It is
+  not the weapon's tactical role, grade, provenance, or faction availability.
 - A **mount class** is the compatibility family for a definition: handheld
   primary or secondary, mech mount, or turret mount. It distinguishes what
   may use a definition; it is not a statement about which individual unit
@@ -107,6 +112,10 @@ shared consumer exists.
 - One weapon behavior has one authoritative authored value. Transitional
   parity evidence may compare the old enum values with data, but it is not a
   permanent second catalogue.
+- Mechanism does not justify a clone. A chemical slug rifle and a gauss carbine
+  become separate definitions only when their engagement behavior, payload, or
+  readable shot treatment creates a real choice; a renamed tracer is not a new
+  family.
 - Penetration replaces anti-hardened and anti-turret damage multipliers. A
   weapon never owns a list of platform types against which its damage changes.
 - Contact privilege comes from physical interception. An explosive direct-fire
@@ -142,6 +151,10 @@ shared consumer exists.
 - A utility activation may reuse projectiles, detonations, and authored FX,
   but those shared execution primitives do not make its cloud or placement
   channel a weapon definition.
+- A weapon-like close-contact tool still references a weapon definition for
+  damage, penetration, audio, and effects. Its typed executor replaces the
+  traveling trajectory; the special-equipment item still owns stock, resource
+  mode, use policy, and carrier presentation.
 
 ## Transition boundaries
 
