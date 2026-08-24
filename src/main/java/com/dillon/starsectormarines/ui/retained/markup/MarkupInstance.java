@@ -31,8 +31,18 @@ public final class MarkupInstance implements AutoCloseable {
 
     public UiElement requireElement(String id) {
         UiElement element = ids.get(id);
+        if (element == null) element = findElement(root, id);
         if (element == null) throw new IllegalArgumentException("No markup element has id \"" + id + "\"");
         return element;
+    }
+
+    private static UiElement findElement(UiElement element, String id) {
+        if (element.id().equals(id)) return element;
+        for (UiElement child : element.children()) {
+            UiElement match = findElement(child, id);
+            if (match != null) return match;
+        }
+        return null;
     }
 
     @Override

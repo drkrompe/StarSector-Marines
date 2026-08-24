@@ -18,6 +18,7 @@ public final class ArmoryLoadoutPreviewCanvas implements CanvasProducer {
 
     private final Supplier<FireTeamBillet> selectedBillet;
     private final ArmoryLoadoutPreviewComposer.Assets injectedAssets;
+    private final boolean mannequin;
     private final BattleSprites sprites = new BattleSprites();
     private final Map<String, LayeredSpriteCache> catalogIcons = new LinkedHashMap<>();
     private final ArmoryLoadoutPreviewComposer.Assets previewAssets =
@@ -35,25 +36,48 @@ public final class ArmoryLoadoutPreviewCanvas implements CanvasProducer {
     private boolean loadAttempted;
 
     public ArmoryLoadoutPreviewCanvas(Supplier<FireTeamBillet> selectedBillet) {
-        this(selectedBillet, null);
+        this(selectedBillet, null, false);
+    }
+
+    /** Uses the portrait mannequin composition for one billet in a four-unit template view. */
+    public ArmoryLoadoutPreviewCanvas(
+            Supplier<FireTeamBillet> selectedBillet, boolean mannequin) {
+        this(selectedBillet, null, mannequin);
     }
 
     /** Uses caller-supplied assets for a non-Starsector paint backend. */
     public ArmoryLoadoutPreviewCanvas(
             Supplier<FireTeamBillet> selectedBillet,
             ArmoryLoadoutPreviewComposer.Assets injectedAssets) {
+        this(selectedBillet, injectedAssets, false);
+    }
+
+    /** Uses caller-supplied assets and the requested composition shape. */
+    public ArmoryLoadoutPreviewCanvas(
+            Supplier<FireTeamBillet> selectedBillet,
+            ArmoryLoadoutPreviewComposer.Assets injectedAssets,
+            boolean mannequin) {
         if (selectedBillet == null) throw new IllegalArgumentException("selected billet is required");
         this.selectedBillet = selectedBillet;
         this.injectedAssets = injectedAssets;
+        this.mannequin = mannequin;
     }
 
     @Override
     public void draw(CanvasContext context) {
         if (injectedAssets == null) ensureLoaded();
-        ArmoryLoadoutPreviewComposer.compose(new CanvasSink(context),
-                injectedAssets != null ? injectedAssets : previewAssets,
-                selectedBillet.get(), context.metrics().surfaceWidth(),
-                context.metrics().surfaceHeight());
+        ArmoryLoadoutPreviewComposer.Sink sink = new CanvasSink(context);
+        ArmoryLoadoutPreviewComposer.Assets assets = injectedAssets != null
+                ? injectedAssets : previewAssets;
+        if (mannequin) {
+            ArmoryLoadoutPreviewComposer.composeMannequin(sink, assets,
+                    selectedBillet.get(), context.metrics().surfaceWidth(),
+                    context.metrics().surfaceHeight());
+        } else {
+            ArmoryLoadoutPreviewComposer.compose(sink, assets,
+                    selectedBillet.get(), context.metrics().surfaceWidth(),
+                    context.metrics().surfaceHeight());
+        }
     }
 
     private void ensureLoaded() {
