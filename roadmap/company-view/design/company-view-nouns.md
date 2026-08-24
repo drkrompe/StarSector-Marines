@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — defined the Armory's fire-team viewer as named, idling marine cards with an on-demand loadout comparison tray.
+Updated: 2026-08-24 — separated the retained formation viewer from the transitional Armory Administration workspace.
 
 ## Purpose
 
@@ -66,6 +66,23 @@ company view composes their stable outputs.
   and finite mech subsystem stock defined by `mechs-nouns.md`. It presents
   chassis and hardpoints but mutates only inventory authorities that actually
   exist.
+- **Armory Administration** — the transitional host for personnel management,
+  template design, squad arrangements, Mech Lab work, and the remaining
+  compatibility inspector. It is not the formation-browsing home and disappears
+  only after those authoring jobs have retained replacements.
+
+## Surface boundary
+
+The retained Company -> Squad -> Fire Team hierarchy is the Fleet Armory's home.
+Its selectable company and squad cards own inspection, readiness, recovery, and
+reinforcement in formation context. A reinforcement control is a secondary card
+action; selecting the rest of a squad card still enters that squad.
+
+Armory Administration contains only work that has not yet migrated: personnel
+and reserve organization, reusable-template design, squad-arrangement authoring,
+Mech Lab refits, and the temporary individual-kit compatibility path. Player-facing
+navigation names this destination explicitly instead of presenting a second Fleet
+Armory or an undifferentiated legacy-menu escape hatch.
 
 ## Organization and leadership
 

@@ -56,7 +56,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
-/** Fabrication plus squad-centric persistent personnel management. */
+/** Transitional administration for personnel and authoring work not yet retained. */
 public final class ArmoryScreen implements Screen {
 
     private enum Tab { PERSONNEL, LOADOUTS, DESIGNER, ARRANGEMENTS, MECH_LAB }
@@ -164,7 +164,7 @@ public final class ArmoryScreen implements Screen {
         addButton(left, position.getY() + PAD, 120f, "Back",
                 ctx::returnFromArmory, HEADER);
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
-                "Fleet Armory", left, top, HEADER));
+                "Armory Administration", left, top, HEADER));
         if (roster == null) {
             widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                     "Marine roster unavailable.", left, top - 38f, MUTED));
@@ -172,19 +172,18 @@ public final class ArmoryScreen implements Screen {
         }
 
         float tabY = top - 52f;
-        addButton(left, tabY, 130f, "Personnel",
+        addButton(left, tabY, 130f, "Company View",
+                () -> ctx.goTo(ScreenId.FLEET_ARMORY_OVERVIEW), HEADER);
+        addButton(left + 140f, tabY, 130f, "Personnel",
                 () -> { tab = Tab.PERSONNEL; rebuild(); },
                 tab == Tab.PERSONNEL ? VALUE : HEADER);
-        addButton(left + 140f, tabY, 174f, "Fire-team Loadouts",
-                () -> ctx.openFleetArmoryWorkspaceFrom(ScreenId.ARMORY),
-                tab == Tab.LOADOUTS ? VALUE : HEADER);
-        addButton(left + 324f, tabY, 174f, "Template Designer",
+        addButton(left + 280f, tabY, 174f, "Template Designer",
                 () -> { tab = Tab.DESIGNER; ensureDesignerDraft(); rebuild(); },
                 tab == Tab.DESIGNER ? VALUE : HEADER);
-        addButton(left + 508f, tabY, 190f, "Squad Arrangements",
+        addButton(left + 464f, tabY, 190f, "Squad Arrangements",
                 () -> { tab = Tab.ARRANGEMENTS; ensureArrangementDraft(); rebuild(); },
                 tab == Tab.ARRANGEMENTS ? VALUE : HEADER);
-        addButton(left + 708f, tabY, 142f, "Mech Lab",
+        addButton(left + 664f, tabY, 142f, "Mech Lab",
                 () -> { tab = Tab.MECH_LAB; ensureMechSelection(); rebuild(); },
                 tab == Tab.MECH_LAB ? VALUE : HEADER);
 
@@ -230,8 +229,8 @@ public final class ArmoryScreen implements Screen {
         }
 
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                "Organize squads, personnel, command assignments and reserves.",
-                left + 394f, tabY + BUTTON_H - 6f, MUTED));
+                "Personnel, reusable designs, arrangements, and support refits.",
+                left + 816f, tabY + BUTTON_H - 6f, MUTED));
         float managementTop = top - 112f;
         float managementBottom = position.getY() + PAD + BUTTON_H + 12f;
         managementTop = buildCandidateIntake(left, managementTop,
@@ -2299,7 +2298,7 @@ public final class ArmoryScreen implements Screen {
                     roster.transferSoldier(soldier.id(), target.id());
                     rebuild();
                 } : null, !stationed && (reserve || target != null) ? HEADER : MUTED);
-        addButton(x + w - moveW - loadoutW - 8f, y + 4f, loadoutW, "Loadout",
+        addButton(x + w - moveW - loadoutW - 8f, y + 4f, loadoutW, "Inspect Kit",
                 () -> {
                     selectedSoldierId = soldier.id();
                     previewTemplateId = null;

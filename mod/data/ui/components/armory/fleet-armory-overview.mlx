@@ -15,7 +15,7 @@
 
     <div id="company-overview-footer" class="panel surface-dark">
       <button id="company-overview-back" onclick="{back}">Return to Company HQ</button>
-      <button id="company-overview-legacy" onclick="{legacy}">Personnel / Designer / Mech Lab</button>
+      <button id="company-overview-legacy" onclick="{legacy}">Armory Administration</button>
       <button id="company-overview-reload" onclick="{reload}">Reload UI</button>
       <div id="company-overview-reload-status" class="label tone-good">{reloadStatus}</div>
     </div>
