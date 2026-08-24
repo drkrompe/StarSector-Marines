@@ -65,7 +65,7 @@ public final class SquadMoraleSystem {
 
     // ---- Mech morale (Stage 2) ----
     //
-    // Per-roadmap/ai/14-mech-stage1.md "Mech survival" — mechs use a tougher
+    // Per the mech-survival boundary in ai-nouns.md, mechs use a tougher
     // morale model than infantry: HP-threshold drain (not per-hit), stricter
     // broken/clear thresholds, faster recovery, hard cap once damaged. Read
     // by {@link #updateMechSquadMorale} + the HP-drain pass inside
@@ -125,7 +125,7 @@ public final class SquadMoraleSystem {
                 Squad target = squadHitByMiss(shot, dense, roster, liveCount);
                 if (target == null) continue;
                 // Mech squads don't take near-miss morale — their drain model
-                // is HP-threshold only (per roadmap/ai/14-mech-stage1.md). A
+                // is HP-threshold only (per ai-nouns.md). A
                 // mech that didn't catch a round isn't rattled by air.
                 if (target.isMechSquad()) continue;
                 // Recovery gate: a near-miss always resets the "under fire"

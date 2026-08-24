@@ -25,11 +25,11 @@ import com.dillon.starsectormarines.battle.nav.Paths;
  * gate, fires, resets cooldown, starts the burst, and (this posture only)
  * chains the post-fire reposition. Members who don't have LOS/range continue
  * advancing toward a firing position via the inline cohesion-override
- * fallback. Mixed-state behavior in a single tick — kept here because Stage 1
- * plans are squad-wide single-action, so the "in-range marines fire while
- * out-of-range squadmates close" rhythm has nowhere else to live. Stage 2
- * with per-member action assignment is where this fallback retires; see
- * {@code roadmap/ai/README.md}.
+ * fallback. Mixed-state behavior in a single tick stays here because this
+ * engagement plan is one squad-wide action, so the "in-range marines fire
+ * while out-of-range squadmates close" rhythm has nowhere else to live. A
+ * future member-partitioned engagement action may retire the fallback; see
+ * {@code ai-nouns.md}.
  *
  * <p>Always returns {@link ActionStatus#RUNNING} during normal engagement;
  * invalidates with {@link ActionStatus#FAILURE} when the target evaporates,

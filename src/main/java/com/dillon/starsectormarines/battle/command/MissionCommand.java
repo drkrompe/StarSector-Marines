@@ -23,10 +23,9 @@ import com.dillon.starsectormarines.battle.unit.Faction;
  * That keeps the layer opt-in: existing missions that don't wire a commander
  * keep the Stage 1 behavior.
  *
- * <p>Per the design doc ({@code roadmap/ai/12-squad-of-squads.md}), event
- * triggers (zone flip, squad wipe, objective explosion) eventually augment
- * the slow tick. Stage 1 ships the slow tick only — the implementation can
- * add event hooks later without changing the interface.
+ * <p>Per {@code ai-nouns.md}, strategic command runs on the slow tick. Event
+ * hooks such as a zone flip, squad wipe, or objective explosion may augment
+ * that cadence later without changing the interface.
  */
 public interface MissionCommand {
 

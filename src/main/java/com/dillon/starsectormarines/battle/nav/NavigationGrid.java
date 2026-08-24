@@ -530,9 +530,9 @@ public class NavigationGrid {
      *
      * <p>Used for perception-side callers ({@link com.dillon.starsectormarines.battle.decision.TacticalScoring#isHiddenFromAllEnemies}
      * and {@link com.dillon.starsectormarines.battle.decision.TacticalScoring#countEnemiesWithLos}).
-     * Weapons, AoE splash filtering, building-visibility, and GOAP target
-     * predicates keep using {@link #hasLineOfSight} until the full perception
-     * layer ships — see roadmap/ai/15-perception-and-influence.md.
+     * Physics and presentation callers keep their geometric LOS contracts;
+     * the AI perception layer decides when observed geometry becomes a
+     * believed contact. See {@code ai-nouns.md}.
      */
     public boolean hasLineOfSightWithin(int x0, int y0, int x1, int y1, float maxCells) {
         if (maxCells <= 0f) return false;
