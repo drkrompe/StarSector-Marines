@@ -54,6 +54,7 @@ public final class FleetArmoryScreen implements Screen {
     private MarkupInstance markupInstance;
     private StarsectorUiInputAdapter input;
     private boolean reloadRequested;
+    private float previewAnimationSeconds;
     private View view = View.SQUADS;
 
     @Override
@@ -110,10 +111,11 @@ public final class FleetArmoryScreen implements Screen {
                                     previewAssets));
                 }
                 for (int index = 0; index < MarineSquad.TEAM_SIZE; index++) {
-                    int billet = index;
+                    int slot = index;
                     built.canvases().set(candidate.requireElement("marine-preview:" + index),
                             new ArmoryMarinePreviewCanvas(
-                                    () -> viewModel.viewerBilletAt(billet), previewAssets));
+                                    () -> viewModel.viewerBilletAt(slot), previewAssets,
+                                    () -> previewAnimationSeconds + slot * 0.31d));
                 }
             }
             if (viewport != null) built.layout(viewport.width(), viewport.height());
@@ -192,6 +194,7 @@ public final class FleetArmoryScreen implements Screen {
 
     private void showSelectedSquad() {
         view = View.FIRETEAMS;
+        previewAnimationSeconds = 0f;
         if (viewport != null) installDocument(false);
     }
 
@@ -218,6 +221,9 @@ public final class FleetArmoryScreen implements Screen {
             reloadDocument();
         }
         if (markupInstance != null) markupInstance.flush();
+        if (view == View.FIRETEAMS && Float.isFinite(dt) && dt > 0f) {
+            previewAnimationSeconds = (previewAnimationSeconds + dt) % 60f;
+        }
         if (document != null) document.advance(dt);
     }
 
