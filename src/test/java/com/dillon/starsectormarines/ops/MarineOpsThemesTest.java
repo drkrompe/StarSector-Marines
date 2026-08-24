@@ -61,23 +61,28 @@ class MarineOpsThemesTest {
     }
 
     @Test
-    void bodyAndHeadingRolesResolveToDistinctDesignedFaces() throws IOException {
+    void bodyHeadingAndTitleRolesResolveToTheRetainedTypographyHierarchy() throws IOException {
         UiElement body = new UiElement("body").addClass("mlx-ui-workbench");
         UiElement heading = new UiElement("heading")
                 .addClass("mlx-ui-workbench")
                 .addClass("heading");
+        UiElement title = new UiElement("title")
+                .addClass("mlx-ui-workbench")
+                .addClass("title");
         UiElement root = new UiElement("root")
                 .addClass("mlx-ui-workbench")
                 .child(body)
-                .child(heading);
+                .child(heading)
+                .child(title);
         UiDocument document = new UiDocument(root)
                 .addStyleSheet(workbenchStyle())
                 .theme(MarineOpsThemes.standard());
 
         document.styles().resolve(root);
 
-        assertSame(Fonts.INSIGNIA_LARGE, document.styles().fontFor(body));
-        assertSame(Fonts.ORBITRON_20_BOLD, document.styles().fontFor(heading));
+        assertSame(Fonts.INSIGNIA_15_AA, document.styles().fontFor(body));
+        assertSame(Fonts.ORBITRON_12_BOLD, document.styles().fontFor(heading));
+        assertSame(Fonts.ORBITRON_16, document.styles().fontFor(title));
     }
 
     private static StyleSheet workbenchStyle() throws IOException {

@@ -1,0 +1,329 @@
+package com.dillon.starsectormarines.ui.retained.headless;
+
+import com.dillon.starsectormarines.ui.BitmapFont;
+import com.dillon.starsectormarines.ui.retained.CanvasContext;
+import com.dillon.starsectormarines.ui.retained.CanvasMetrics;
+import com.dillon.starsectormarines.ui.retained.Rect;
+import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.ui.retained.UiElement;
+import com.dillon.starsectormarines.ui.retained.UiPaintTarget;
+import com.fs.starfarer.api.graphics.SpriteAPI;
+
+import javax.imageio.ImageIO;
+import java.awt.AlphaComposite;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Renders any retained document to a deterministic Java2D image without a
+ * Starsector process or OpenGL context.
+ */
+public final class HeadlessUiRenderer {
+
+    private final ResourceStore resources;
+
+    public HeadlessUiRenderer(Path... resourceRoots) {
+        this(List.of(resourceRoots));
+    }
+
+    public HeadlessUiRenderer(List<Path> resourceRoots) {
+        resources = new ResourceStore(resourceRoots);
+    }
+
+    public BufferedImage render(UiDocument document, int width, int height) {
+        return render(document, width, height, 1f);
+    }
+
+    public BufferedImage render(UiDocument document, int width, int height, float alphaMult) {
+        if (document == null) throw new IllegalArgumentException("document is required");
+        if (width <= 0 || height <= 0) {
+            throw new IllegalArgumentException("viewport dimensions must be positive");
+        }
+        document.styles().resolve(document.root());
+        installFontMetrics(document, document.root(), new IdentityHashMap<>());
+        document.layout(width, height);
+
+        BufferedImage output = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = output.createGraphics();
+        configure(graphics);
+        document.render(new RasterTarget(graphics, resources), alphaMult);
+        graphics.dispose();
+        return output;
+    }
+
+    private void installFontMetrics(UiDocument document, UiElement element,
+                                    IdentityHashMap<BitmapFont, Boolean> installed) {
+        BitmapFont font = document.styles().fontFor(element);
+        if (font != null && installed.put(font, Boolean.TRUE) == null) {
+            font.installMetrics(resources.readString(font.sourcePath()));
+        }
+        for (UiElement child : element.children()) {
+            installFontMetrics(document, child, installed);
+        }
+    }
+
+    private static void configure(Graphics2D graphics) {
+        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                RenderingHints.VALUE_ANTIALIAS_ON);
+        graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        graphics.setRenderingHint(RenderingHints.KEY_RENDERING,
+                RenderingHints.VALUE_RENDER_QUALITY);
+        graphics.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL,
+                RenderingHints.VALUE_STROKE_PURE);
+    }
+
+    private static final class RasterTarget implements UiPaintTarget {
+        private final Graphics2D graphics;
+        private final ResourceStore resources;
+        private Shape initialClip;
+
+        private RasterTarget(Graphics2D graphics, ResourceStore resources) {
+            this.graphics = graphics;
+            this.resources = resources;
+        }
+
+        @Override
+        public void begin() {
+            initialClip = graphics.getClip();
+        }
+
+        @Override
+        public void end() {
+            graphics.setClip(initialClip);
+        }
+
+        @Override
+        public float devicePixelRatio() {
+            return 1f;
+        }
+
+        @Override
+        public void clip(Rect clip) {
+            graphics.setClip(new Rectangle2D.Float(
+                    clip.x(), clip.y(), clip.width(), clip.height()));
+        }
+
+        @Override
+        public void fill(Rect rect, Color color, float alphaMult) {
+            withAlpha(color, alphaMult, () -> {
+                graphics.setColor(opaque(color));
+                graphics.fill(new Rectangle2D.Float(
+                        rect.x(), rect.y(), rect.width(), rect.height()));
+            });
+        }
+
+        @Override
+        public void outline(Rect rect, Color color, float width, float alphaMult) {
+            withAlpha(color, alphaMult, () -> {
+                graphics.setColor(opaque(color));
+                graphics.setStroke(new BasicStroke(width));
+                graphics.draw(new Rectangle2D.Float(
+                        rect.x(), rect.y(), rect.width(), rect.height()));
+            });
+        }
+
+        @Override
+        public void text(BitmapFont font, String text, Rect lineBox,
+                         Color color, float alphaMult) {
+            resources.drawText(graphics, font, text, lineBox.x(), lineBox.y(),
+                    1f, 1f, color, alphaMult);
+        }
+
+        @Override
+        public CanvasContext canvasContext(CanvasMetrics metrics, Rect visibleBounds,
+                                           float alphaMult) {
+            return new RasterCanvasContext(graphics, resources, metrics,
+                    visibleBounds, alphaMult);
+        }
+
+        private void withAlpha(Color color, float alphaMult, Runnable draw) {
+            var previous = graphics.getComposite();
+            graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
+                    clampAlpha(color.getAlpha() / 255f * alphaMult)));
+            draw.run();
+            graphics.setComposite(previous);
+        }
+    }
+
+    private static final class RasterCanvasContext extends CanvasContext {
+        private final Graphics2D graphics;
+        private final ResourceStore resources;
+
+        private RasterCanvasContext(Graphics2D graphics, ResourceStore resources,
+                                    CanvasMetrics metrics, Rect visibleBounds,
+                                    float alphaMult) {
+            super(metrics, visibleBounds, alphaMult);
+            this.graphics = graphics;
+            this.resources = resources;
+        }
+
+        @Override
+        protected void drawFillRect(float x, float y, float width, float height, Color color) {
+            CanvasMetrics metrics = metrics();
+            var previous = graphics.getComposite();
+            graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
+                    clampAlpha(color.getAlpha() / 255f * alphaMult())));
+            graphics.setColor(opaque(color));
+            graphics.fill(new Rectangle2D.Float(metrics.toDocumentX(x),
+                    metrics.toDocumentY(y), width * metrics.scaleX(),
+                    height * metrics.scaleY()));
+            graphics.setComposite(previous);
+        }
+
+        @Override
+        protected void drawLine(float x1, float y1, float x2, float y2,
+                                Color color, float strokeWidth) {
+            CanvasMetrics metrics = metrics();
+            var previous = graphics.getComposite();
+            graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
+                    clampAlpha(color.getAlpha() / 255f * alphaMult())));
+            graphics.setColor(opaque(color));
+            graphics.setStroke(new BasicStroke(strokeWidth * strokeScale(
+                    metrics, x2 - x1, y2 - y1)));
+            graphics.drawLine(Math.round(metrics.toDocumentX(x1)),
+                    Math.round(metrics.toDocumentY(y1)),
+                    Math.round(metrics.toDocumentX(x2)),
+                    Math.round(metrics.toDocumentY(y2)));
+            graphics.setComposite(previous);
+        }
+
+        @Override
+        protected void drawText(BitmapFont font, String text, float x, float y, Color color) {
+            CanvasMetrics metrics = metrics();
+            resources.drawText(graphics, font, text, metrics.toDocumentX(x),
+                    metrics.toDocumentY(y), metrics.scaleX(), metrics.scaleY(),
+                    color, alphaMult());
+        }
+
+        @Override
+        protected void drawSprite(String sourcePath, SpriteAPI liveSprite,
+                                  float centerX, float centerY, float width, float height,
+                                  float angleDegrees, Color tint) {
+            if (sourcePath == null || sourcePath.isBlank()) {
+                throw new IllegalArgumentException(
+                        "Headless canvas sprites require their source path");
+            }
+            BufferedImage image = resources.image(sourcePath);
+            CanvasMetrics metrics = metrics();
+            AffineTransform transform = graphics.getTransform();
+            var composite = graphics.getComposite();
+            graphics.translate(metrics.toDocumentX(centerX), metrics.toDocumentY(centerY));
+            graphics.rotate(Math.toRadians(-angleDegrees));
+            graphics.scale(width * metrics.scaleX() / image.getWidth(),
+                    height * metrics.scaleY() / image.getHeight());
+            graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
+                    clampAlpha(tint.getAlpha() / 255f * alphaMult())));
+            graphics.drawImage(image, -image.getWidth() / 2, -image.getHeight() / 2, null);
+            graphics.setComposite(composite);
+            graphics.setTransform(transform);
+        }
+    }
+
+    private static final class ResourceStore {
+        private final List<Path> roots;
+        private final Map<String, BufferedImage> images = new LinkedHashMap<>();
+        private final Map<TintKey, BufferedImage> tintedFonts = new LinkedHashMap<>();
+
+        private ResourceStore(List<Path> roots) {
+            if (roots == null || roots.isEmpty()) {
+                throw new IllegalArgumentException("at least one resource root is required");
+            }
+            this.roots = new ArrayList<>(roots.size());
+            for (Path root : roots) this.roots.add(root.toAbsolutePath().normalize());
+        }
+
+        private String readString(String resourcePath) {
+            try {
+                return Files.readString(resolve(resourcePath));
+            } catch (IOException failure) {
+                throw new IllegalStateException("Could not read " + resourcePath, failure);
+            }
+        }
+
+        private BufferedImage image(String resourcePath) {
+            return images.computeIfAbsent(resourcePath, path -> {
+                try {
+                    BufferedImage image = ImageIO.read(resolve(path).toFile());
+                    if (image == null) throw new IOException("Unsupported image format");
+                    return image;
+                } catch (IOException failure) {
+                    throw new IllegalStateException("Could not load " + path, failure);
+                }
+            });
+        }
+
+        private void drawText(Graphics2D graphics, BitmapFont font, String text,
+                              float x, float y, float scaleX, float scaleY,
+                              Color color, float alphaMult) {
+            if (text == null || text.isEmpty()) return;
+            int alpha = Math.round(255f * clampAlpha(color.getAlpha() / 255f * alphaMult));
+            TintKey key = new TintKey(font.pagePath(), color.getRGB() & 0x00FFFFFF, alpha);
+            BufferedImage atlas = tintedFonts.computeIfAbsent(key,
+                    ignored -> tint(image(font.pagePath()), color, alpha));
+            float cursor = x;
+            for (int index = 0; index < text.length(); index++) {
+                BitmapFont.Glyph glyph = font.glyph(text.charAt(index));
+                if (glyph == null) continue;
+                if (glyph.w > 0 && glyph.h > 0) {
+                    int dx1 = Math.round(cursor + glyph.xoffset * scaleX);
+                    int dy1 = Math.round(y + glyph.yoffset * scaleY);
+                    int dx2 = Math.round(dx1 + glyph.w * scaleX);
+                    int dy2 = Math.round(dy1 + glyph.h * scaleY);
+                    graphics.drawImage(atlas, dx1, dy1, dx2, dy2,
+                            glyph.x, glyph.y, glyph.x + glyph.w, glyph.y + glyph.h, null);
+                }
+                cursor += glyph.xadvance * scaleX;
+            }
+        }
+
+        private Path resolve(String resourcePath) {
+            String local = resourcePath.replace('/', java.io.File.separatorChar);
+            for (Path root : roots) {
+                Path candidate = root.resolve(local).normalize();
+                if (candidate.startsWith(root) && Files.isRegularFile(candidate)) return candidate;
+            }
+            throw new IllegalStateException("Resource not found in " + roots + ": " + resourcePath);
+        }
+
+        private static BufferedImage tint(BufferedImage source, Color color, int alpha) {
+            BufferedImage tinted = new BufferedImage(
+                    source.getWidth(), source.getHeight(), BufferedImage.TYPE_INT_ARGB);
+            int rgb = color.getRGB() & 0x00FFFFFF;
+            for (int y = 0; y < source.getHeight(); y++) {
+                for (int x = 0; x < source.getWidth(); x++) {
+                    int sourcePixel = source.getRGB(x, y);
+                    int sourceAlpha = sourcePixel >>> 24;
+                    int coverage = Math.max(sourceAlpha, sourcePixel & 0xFF);
+                    int tintedAlpha = coverage * alpha / 255;
+                    tinted.setRGB(x, y, tintedAlpha << 24 | rgb);
+                }
+            }
+            return tinted;
+        }
+    }
+
+    private record TintKey(String path, int rgb, int alpha) { }
+
+    private static Color opaque(Color color) {
+        return new Color(color.getRed(), color.getGreen(), color.getBlue());
+    }
+
+    private static float clampAlpha(float alpha) {
+        return Math.max(0f, Math.min(1f, alpha));
+    }
+}
