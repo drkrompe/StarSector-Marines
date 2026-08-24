@@ -1,8 +1,10 @@
 # Campaign → Battle Bridge
 
-Status: ACTIVE — 3 open stories
+Status: ACTIVE — target-profile transport is campaign-free, while ground consumers own interpretation.
 
 Written: 2026-08-23
+
+Updated: 2026-08-24 — replaced work sequencing with durable consumer and target-market authority boundaries.
 
 Read `stories.md` for open work.
 
@@ -121,9 +123,13 @@ owns the district-content program.
 
 ## Extension boundary
 
-The next bridge-shaped uses are hard installations as real terrain features
-and, after the profile becomes the sole target-market read, a unified defender
-heavy-armament decision. Per-function weights and new economic district types
-belong with economic districts. Faction-specific cosmetics or rosters, morale
-from stability, and campaign outcomes need a consumer story that names the
+Hard installations may become real terrain consumers, but their owning map
+feature defines geometry, tactical meaning, and validity. A unified defender
+heavy-armament decision requires `TargetProfile` to become the sole
+target-market read; `target-profile-defense-authority-cleanup.md` owns removal
+of the current duplicate market-derived seam.
+
+Per-function weights and new economic district types remain economic-district
+content rather than bridge policy. Faction-specific cosmetics or rosters,
+morale from stability, and campaign outcomes require a consumer that names its
 authority and preserves these boundary laws.
