@@ -2,15 +2,20 @@ package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.FireTeamGroups;
+import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
 import java.util.Arrays;
@@ -146,6 +151,8 @@ public final class SeparationSystem {
     private static final byte HAS_MECH_LOADOUT = 1 << 3;
     private static final byte ESCAPE_ACTIVE = 1 << 4;
     private static final byte ACTIVE_PATH = 1 << 5;
+    /** Scratch-integrity marker: this dense slot was populated by the current table walk. */
+    private static final byte POPULATED = 1 << 6;
 
     private final UnitRosterService roster;
     private final World world;
@@ -328,36 +335,95 @@ public final class SeparationSystem {
     }
 
     private void cacheCollisionState(long[] dense, int liveCount) {
-        for (int i = 0; i < liveCount; i++) {
-            long id = dense[i];
-            float radius = roster.radius(id);
-            byte flags = 0;
-            if (roster.isAliveById(id)
-                    && !world.hasKinematics(id) && radius > 0f) {
-                flags |= PARTICIPATES;
-            }
-            UnitType type = roster.identity().type(id);
-            if (type.isStatic()
-                    || roster.role().role(id) == UnitRole.STRUCTURE) {
-                flags |= IMMOVABLE;
-            }
-            if (type.isMech()) {
-                flags |= MECH;
-                if (hasActivePath(id)) flags |= ACTIVE_PATH;
-            }
-            if (world.hasMechLoadout(id)) {
-                flags |= HAS_MECH_LOADOUT;
-                if (world.mechLoadout(id).collisionEscapeActive) {
-                    flags |= ESCAPE_ACTIVE;
+        Arrays.fill(collisionFlags, 0, liveCount, (byte) 0);
+        for (ArchetypeTable table : entityWorld.matched(components.gridOccupants)) {
+            // POSITION-minus-CORPSE is deliberately broader than the ground
+            // roster. Ignore any future position-only family before asking for
+            // the universal ground-unit columns.
+            if (!table.has(components.IDENTITY) || !table.has(components.ROLE)) continue;
+
+            float[] posX = table.floats(components.POSITION,
+                    BattleComponents.POSITION_X).array();
+            float[] posY = table.floats(components.POSITION,
+                    BattleComponents.POSITION_Y).array();
+            Object[] types = table.objects(components.IDENTITY,
+                    BattleComponents.IDENTITY_TYPE).array();
+            Object[] factions = table.objects(components.IDENTITY,
+                    BattleComponents.IDENTITY_FACTION).array();
+            Object[] variants = table.objects(components.IDENTITY,
+                    BattleComponents.IDENTITY_MECH_VARIANT).array();
+            int[] roles = table.ints(components.ROLE,
+                    BattleComponents.ROLE_ORDINAL).array();
+
+            boolean hasHealth = table.has(components.HEALTH);
+            float[] hp = hasHealth
+                    ? table.floats(components.HEALTH,
+                    BattleComponents.HEALTH_HP).array() : null;
+            boolean hasKinematics = table.has(components.KINEMATICS);
+            boolean hasMovement = table.has(components.MOVEMENT);
+            Object[] paths = hasMovement
+                    ? table.objects(components.MOVEMENT,
+                    BattleComponents.MOVEMENT_PATH).array() : null;
+            int[] pathIndices = hasMovement
+                    ? table.ints(components.MOVEMENT,
+                    BattleComponents.MOVEMENT_PATH_IDX).array() : null;
+            boolean hasMechLoadout = table.has(components.MECH_LOADOUT);
+            Object[] mechLoadouts = hasMechLoadout
+                    ? table.objects(components.MECH_LOADOUT,
+                    BattleComponents.MECH_LOADOUT_STATE).array() : null;
+            boolean hasTurretState = table.has(components.TURRET_STATE);
+            Object[] turretKinds = hasTurretState
+                    ? table.objects(components.TURRET_STATE,
+                    BattleComponents.TURRET_STATE_KIND).array() : null;
+
+            for (int row = 0, rows = table.rowCount(); row < rows; row++) {
+                long id = table.entityAt(row);
+                int slot = collisionSlot(id, dense, liveCount);
+                if (slot == UnitRosterService.INVALID_INDEX) continue;
+
+                UnitType type = (UnitType) types[row];
+                MechVariant variant = (MechVariant) variants[row];
+                TurretKind turretKind = hasTurretState
+                        ? (TurretKind) turretKinds[row] : null;
+                float radius = turretKind != null
+                        ? turretKind.structure().radius
+                        : variant != null ? variant.radius : type.radius;
+                byte flags = POPULATED;
+                if (hasHealth && hp[row] > 0f
+                        && !hasKinematics && radius > 0f) {
+                    flags |= PARTICIPATES;
                 }
+                if (type.isStatic()
+                        || roles[row] == UnitRole.STRUCTURE.ordinal()) {
+                    flags |= IMMOVABLE;
+                }
+                if (type.isMech()) {
+                    flags |= MECH;
+                    if (hasMovement
+                            && pathIndices[row] < Paths.cellCount((int[]) paths[row])) {
+                        flags |= ACTIVE_PATH;
+                    }
+                }
+                if (hasMechLoadout) {
+                    flags |= HAS_MECH_LOADOUT;
+                    if (((MechLoadoutComponent) mechLoadouts[row]).collisionEscapeActive) {
+                        flags |= ESCAPE_ACTIVE;
+                    }
+                }
+                collisionX[slot] = posX[row];
+                collisionY[slot] = posY[row];
+                collisionRadius[slot] = radius;
+                collisionMass[slot] = radius * radius;
+                collisionFlags[slot] = flags;
+                collisionFaction[slot] =
+                        (byte) ((Faction) factions[row]).ordinal();
             }
-            collisionX[i] = world.x(id);
-            collisionY[i] = world.y(id);
-            collisionRadius[i] = radius;
-            collisionMass[i] = radius * radius;
-            collisionFlags[i] = flags;
-            collisionFaction[i] =
-                    (byte) roster.identity().faction(id).ordinal();
+        }
+        for (int i = 0; i < liveCount; i++) {
+            if (!hasFlag(collisionFlags[i], POPULATED)) {
+                throw new IllegalStateException(
+                        "live unit missing from gridOccupants query: " + dense[i]);
+            }
         }
     }
 
