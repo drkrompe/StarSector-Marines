@@ -32,6 +32,8 @@ import java.util.Arrays;
 public final class GridPathfinder {
 
     private static final Logger LOG = Logger.getLogger(GridPathfinder.class);
+    private static final boolean PROFILE_PATH_REQUESTS =
+            Boolean.getBoolean("battle.profile.pathRequests");
 
     public static boolean USE_CARDINAL_NAVIGATION = false;
 
@@ -241,7 +243,14 @@ public final class GridPathfinder {
             return findPathInner(grid, startX, startY, goalX, goalY, cardinalOnly, occupancy, costField, passable);
         } finally {
             TickInnerProfile p = TickInnerProfile.current();
-            if (p != null) p.record(TickInnerProfile.Bucket.PATHFIND, System.nanoTime() - _profT0);
+            if (p != null) {
+                p.record(TickInnerProfile.Bucket.PATHFIND,
+                        System.nanoTime() - _profT0);
+                if (PROFILE_PATH_REQUESTS) {
+                    p.recordPathfindRequest(startX, startY, goalX, goalY,
+                            occupancy != null);
+                }
+            }
         }
     }
 
@@ -320,37 +329,12 @@ public final class GridPathfinder {
 
                 int nIdx = ny * w + nx;
 
-                if ((cellFlags[nIdx] & 1L) == 0L) continue;
-                if (passable != null && !passable[nIdx]) continue;
-                // Dual-side edge check: source cell's edge AND destination's reciprocal.
-                if ((edgePass[currentIdx] & DIR_EDGE_MASK[dirI]) == 0) continue;
-                if ((edgePass[nIdx]       & DIR_OPP_EDGE_MASK[dirI]) == 0) continue;
-
-                if (DIR_IS_DIAGONAL[dirI]) {
-                    // Both adjacent cardinal edges must be passable on both sides,
-                    // and both adjacent cells walkable — prevents diagonal corner-cutting.
-                    if ((edgePass[currentIdx] & DIR_CARD1_MASK[dirI]) == 0) continue;
-                    if ((edgePass[currentIdx] & DIR_CARD2_MASK[dirI]) == 0) continue;
-                    if ((edgePass[nIdx]       & DIR_OPP_CARD1_MASK[dirI]) == 0) continue;
-                    if ((edgePass[nIdx]       & DIR_OPP_CARD2_MASK[dirI]) == 0) continue;
-                    int a1x = cx + DIR_ADJ1_DX[dirI];
-                    int a1y = cy + DIR_ADJ1_DY[dirI];
-                    int a2x = cx + DIR_ADJ2_DX[dirI];
-                    int a2y = cy + DIR_ADJ2_DY[dirI];
-                    if (a1x < 0 || a1x >= w || a1y < 0 || a1y >= h) continue;
-                    if (a2x < 0 || a2x >= w || a2y < 0 || a2y >= h) continue;
-                    if ((cellFlags[a1y * w + a1x] & 1L) == 0L) continue;
-                    if ((cellFlags[a2y * w + a2x] & 1L) == 0L) continue;
-                }
+                if (!canStep(currentIdx, cx, cy, nIdx, dirI, w, h,
+                        cellFlags, edgePass, passable)) continue;
 
                 if (heapPos[nIdx] == CLOSED) continue;
 
-                float stepCost = DIR_COST[dirI];
-                if (costField != null) stepCost *= costField[nIdx];
-                if (occupancy != null) {
-                    int occCount = occupancy[nIdx] & 0xFF;
-                    if (occCount > 0) stepCost += OCCUPANCY_PENALTY * occCount;
-                }
+                float stepCost = stepCost(dirI, nIdx, occupancy, costField);
                 float tentativeG = gCost[currentIdx] + stepCost;
 
                 if (tentativeG < gCost[nIdx]) {
@@ -449,6 +433,53 @@ public final class GridPathfinder {
         if (cardinalOnly) return dx + dy; // Manhattan
         return Math.max(dx, dy) + (SQRT2 - 1) * Math.min(dx, dy); // Octile
     }
+
+    static int directionCount(boolean cardinalOnly) {
+        return cardinalOnly ? 4 : 8;
+    }
+
+    static int directionX(int direction) { return DIR_DX[direction]; }
+    static int directionY(int direction) { return DIR_DY[direction]; }
+
+    /** Shared forward-edge contract used by A* and reverse-field construction. */
+    static boolean canStep(int fromIdx, int fromX, int fromY,
+                           int toIdx, int direction, int width, int height,
+                           long[] cellFlags, byte[] edgePass,
+                           boolean[] passable) {
+        if ((cellFlags[toIdx] & 1L) == 0L) return false;
+        if (passable != null && !passable[toIdx]) return false;
+        if ((edgePass[fromIdx] & DIR_EDGE_MASK[direction]) == 0) return false;
+        if ((edgePass[toIdx] & DIR_OPP_EDGE_MASK[direction]) == 0) return false;
+        if (!DIR_IS_DIAGONAL[direction]) return true;
+
+        if ((edgePass[fromIdx] & DIR_CARD1_MASK[direction]) == 0) return false;
+        if ((edgePass[fromIdx] & DIR_CARD2_MASK[direction]) == 0) return false;
+        if ((edgePass[toIdx] & DIR_OPP_CARD1_MASK[direction]) == 0) return false;
+        if ((edgePass[toIdx] & DIR_OPP_CARD2_MASK[direction]) == 0) return false;
+        int adjacent1X = fromX + DIR_ADJ1_DX[direction];
+        int adjacent1Y = fromY + DIR_ADJ1_DY[direction];
+        int adjacent2X = fromX + DIR_ADJ2_DX[direction];
+        int adjacent2Y = fromY + DIR_ADJ2_DY[direction];
+        if (adjacent1X < 0 || adjacent1X >= width
+                || adjacent1Y < 0 || adjacent1Y >= height) return false;
+        if (adjacent2X < 0 || adjacent2X >= width
+                || adjacent2Y < 0 || adjacent2Y >= height) return false;
+        return (cellFlags[adjacent1Y * width + adjacent1X] & 1L) != 0L
+                && (cellFlags[adjacent2Y * width + adjacent2X] & 1L) != 0L;
+    }
+
+    /** Forward cost of entering {@code destinationIdx}. */
+    static float stepCost(int direction, int destinationIdx,
+                          byte[] occupancy, float[] costField) {
+        float cost = DIR_COST[direction];
+        if (costField != null) cost *= costField[destinationIdx];
+        if (occupancy != null) {
+            cost += OCCUPANCY_PENALTY * (occupancy[destinationIdx] & 0xFF);
+        }
+        return cost;
+    }
+
+    static boolean profilePathRequests() { return PROFILE_PATH_REQUESTS; }
 
     private static void heapSiftUp(int[] heap, int[] heapPos, float[] fCost, int pos) {
         int nodeIdx = heap[pos];

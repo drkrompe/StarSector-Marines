@@ -116,13 +116,16 @@ tasks.register('profileBattleFixture', Test) {
     outputs.upToDateWhen { false }
     systemProperty 'starsectorDir', starsectorDir.absolutePath
     systemProperty 'battle.profile.outputDir', layout.buildDirectory.dir('profiles').get().asFile.absolutePath
+    systemProperty 'battle.profile.pathRequests', 'true'
     def selectedFixture = System.getProperty('battle.fixture.path', '')
     if (!selectedFixture.isBlank()) {
         systemProperty 'battle.fixture.path', selectedFixture
     }
     ['battle.profile.warmupTicks', 'battle.profile.prerollTicks',
      'battle.profile.sliceTicks', 'battle.profile.minimumMillis',
-     'battle.unitUpdate.minimumParallelUnits'].each { propertyName ->
+     'battle.unitUpdate.minimumParallelUnits',
+     'battle.pathfinding.sharedSwarmGoals',
+     'battle.pathfinding.minimumSharedGoalUnits'].each { propertyName ->
         def propertyValue = System.getProperty(propertyName, '')
         if (!propertyValue.isBlank()) {
             systemProperty propertyName, propertyValue

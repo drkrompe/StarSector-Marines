@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.fixture;
 
 import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
+import com.dillon.starsectormarines.battle.evacuation.SwarmPressureBehavior;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import jdk.jfr.Category;
@@ -101,6 +102,8 @@ class BattleFixtureJfrProfileTest {
                 UnitUpdateSystem.configuredMinimumParallelUnits();
         boundary.unitUpdateParallelism =
                 UnitUpdateSystem.configuredPoolParallelism();
+        boundary.minimumSharedGoalUnits =
+                SwarmPressureBehavior.configuredMinimumSharedGoalUnits();
 
         RunStats measured;
         // Construct the ordinary measured sim before recording so map/scenario
@@ -124,6 +127,17 @@ class BattleFixtureJfrProfileTest {
             boundary.maximumSliceStartLiveUnits = measured.maximumSliceStartLiveUnits();
             boundary.pathfindCalls = measured.pathfindCalls();
             boundary.pathfindNanos = measured.pathfindNanos();
+            boundary.swarmPathfindCalls = measured.swarmPathfindCalls();
+            boundary.swarmPathfindNanos = measured.swarmPathfindNanos();
+            boundary.sharedFieldBuilds = measured.sharedFieldBuilds();
+            boundary.sharedFieldBuildNanos = measured.sharedFieldBuildNanos();
+            boundary.sharedFieldExtractions = measured.sharedFieldExtractions();
+            boundary.sharedFieldExtractionNanos =
+                    measured.sharedFieldExtractionNanos();
+            boundary.occupancyPathfindCalls = measured.occupancyPathfindCalls();
+            boundary.uniquePathfindGoals = measured.uniquePathfindGoals();
+            boundary.uniquePathfindRequests = measured.uniquePathfindRequests();
+            boundary.maximumGoalFanIn = measured.maximumGoalFanIn();
             boundary.end();
             boundary.commit();
             recording.stop();
@@ -139,7 +153,10 @@ class BattleFixtureJfrProfileTest {
                 + measured.replays() + " fixed slices; "
                 + Math.round(measured.ticksPerSecond()) + " active ticks/s; "
                 + measured.firstSliceLiveUnits() + " live units at slice start; "
-                + measured.pathfindCallsPerTick() + " pathfinds/tick)");
+                + measured.pathfindCallsPerTick() + " pathfinds/tick; "
+                + measured.uniquePathfindGoalsPerTick() + " unique goals/tick; "
+                + measured.sharedFieldBuildsPerTick() + " shared fields/tick; "
+                + measured.maximumGoalFanIn() + " max same-goal fan-in)");
     }
 
     private static void verifyRecording(
@@ -234,6 +251,16 @@ class BattleFixtureJfrProfileTest {
         int maximumSliceStartLiveUnits = firstSliceLiveUnits;
         long pathfindCalls = 0L;
         long pathfindNanos = 0L;
+        long swarmPathfindCalls = 0L;
+        long swarmPathfindNanos = 0L;
+        long sharedFieldBuilds = 0L;
+        long sharedFieldBuildNanos = 0L;
+        long sharedFieldExtractions = 0L;
+        long sharedFieldExtractionNanos = 0L;
+        long occupancyPathfindCalls = 0L;
+        long uniquePathfindGoals = 0L;
+        long uniquePathfindRequests = 0L;
+        int maximumGoalFanIn = 0;
         BattleSimulation sim = firstSimulation;
         try {
             while (activeTickNanos < minimumNanos) {
@@ -242,22 +269,42 @@ class BattleFixtureJfrProfileTest {
                         minimumSliceStartLiveUnits, liveUnits);
                 maximumSliceStartLiveUnits = Math.max(
                         maximumSliceStartLiveUnits, liveUnits);
-                long sliceStart = System.nanoTime();
                 for (int tick = 0; tick < sliceTicks; tick++) {
                     if (sim.isComplete()) {
                         throw new IllegalStateException(
                                 "fixture completed inside measured profile slice at tick "
                                         + (prerollTicks + tick));
                     }
+                    long tickStart = System.nanoTime();
                     advanceOneTick(sim);
+                    activeTickNanos += System.nanoTime() - tickStart;
                     TickInnerProfile innerProfile = sim.getTickInnerProfile();
                     pathfindCalls += innerProfile.countOf(
                             TickInnerProfile.Bucket.PATHFIND);
                     pathfindNanos += innerProfile.nanosOf(
                             TickInnerProfile.Bucket.PATHFIND);
+                    swarmPathfindCalls += innerProfile.countOf(
+                            TickInnerProfile.Bucket.SWARM_PATHFIND);
+                    swarmPathfindNanos += innerProfile.nanosOf(
+                            TickInnerProfile.Bucket.SWARM_PATHFIND);
+                    sharedFieldBuilds += innerProfile.countOf(
+                            TickInnerProfile.Bucket.SHARED_PATH_FIELD_BUILD);
+                    sharedFieldBuildNanos += innerProfile.nanosOf(
+                            TickInnerProfile.Bucket.SHARED_PATH_FIELD_BUILD);
+                    sharedFieldExtractions += innerProfile.countOf(
+                            TickInnerProfile.Bucket.SHARED_PATH_FIELD_EXTRACT);
+                    sharedFieldExtractionNanos += innerProfile.nanosOf(
+                            TickInnerProfile.Bucket.SHARED_PATH_FIELD_EXTRACT);
+                    occupancyPathfindCalls +=
+                            innerProfile.occupancyPathfindRequestCount();
+                    uniquePathfindGoals +=
+                            innerProfile.uniquePathfindGoalCount();
+                    uniquePathfindRequests +=
+                            innerProfile.uniquePathfindRequestCount();
+                    maximumGoalFanIn = Math.max(maximumGoalFanIn,
+                            innerProfile.maximumPathfindGoalFanIn());
                     ticks++;
                 }
-                activeTickNanos += System.nanoTime() - sliceStart;
 
                 if (activeTickNanos < minimumNanos) {
                     // Every repetition profiles the same logical battle age.
@@ -278,7 +325,12 @@ class BattleFixtureJfrProfileTest {
         }
         return new RunStats(ticks, replays, activeTickNanos,
                 firstSliceLiveUnits, minimumSliceStartLiveUnits,
-                maximumSliceStartLiveUnits, pathfindCalls, pathfindNanos);
+                maximumSliceStartLiveUnits, pathfindCalls, pathfindNanos,
+                swarmPathfindCalls, swarmPathfindNanos,
+                sharedFieldBuilds, sharedFieldBuildNanos,
+                sharedFieldExtractions, sharedFieldExtractionNanos,
+                occupancyPathfindCalls, uniquePathfindGoals,
+                uniquePathfindRequests, maximumGoalFanIn);
     }
 
     private static void advanceOneTick(BattleSimulation sim) {
@@ -294,13 +346,26 @@ class BattleFixtureJfrProfileTest {
             long ticks, int replays, long activeTickNanos,
             int firstSliceLiveUnits, int minimumSliceStartLiveUnits,
             int maximumSliceStartLiveUnits,
-            long pathfindCalls, long pathfindNanos) {
+            long pathfindCalls, long pathfindNanos,
+            long swarmPathfindCalls, long swarmPathfindNanos,
+            long sharedFieldBuilds, long sharedFieldBuildNanos,
+            long sharedFieldExtractions, long sharedFieldExtractionNanos,
+            long occupancyPathfindCalls, long uniquePathfindGoals,
+            long uniquePathfindRequests, int maximumGoalFanIn) {
         double ticksPerSecond() {
             return ticks * 1_000_000_000.0 / activeTickNanos;
         }
 
         double pathfindCallsPerTick() {
             return Math.round(pathfindCalls * 100.0 / ticks) / 100.0;
+        }
+
+        double uniquePathfindGoalsPerTick() {
+            return Math.round(uniquePathfindGoals * 100.0 / ticks) / 100.0;
+        }
+
+        double sharedFieldBuildsPerTick() {
+            return Math.round(sharedFieldBuilds * 100.0 / ticks) / 100.0;
         }
     }
 
@@ -332,6 +397,8 @@ class BattleFixtureJfrProfileTest {
         int minimumParallelUnits;
         @Label("Unit-update pool parallelism")
         int unitUpdateParallelism;
+        @Label("Minimum units for shared swarm goal fields")
+        int minimumSharedGoalUnits;
         @Label("First slice live units")
         int firstSliceLiveUnits;
         @Label("Minimum live units at slice start")
@@ -342,5 +409,25 @@ class BattleFixtureJfrProfileTest {
         long pathfindCalls;
         @Label("Accumulated pathfind nanoseconds")
         long pathfindNanos;
+        @Label("Swarm pathfind calls")
+        long swarmPathfindCalls;
+        @Label("Accumulated swarm pathfind nanoseconds")
+        long swarmPathfindNanos;
+        @Label("Shared reverse-field builds")
+        long sharedFieldBuilds;
+        @Label("Shared reverse-field build nanoseconds")
+        long sharedFieldBuildNanos;
+        @Label("Shared reverse-field extractions")
+        long sharedFieldExtractions;
+        @Label("Shared reverse-field extraction nanoseconds")
+        long sharedFieldExtractionNanos;
+        @Label("Occupancy-aware pathfind calls")
+        long occupancyPathfindCalls;
+        @Label("Sum of per-tick unique pathfind goals")
+        long uniquePathfindGoals;
+        @Label("Sum of per-tick unique start-goal requests")
+        long uniquePathfindRequests;
+        @Label("Maximum same-goal fan-in in one tick")
+        int maximumGoalFanIn;
     }
 }
