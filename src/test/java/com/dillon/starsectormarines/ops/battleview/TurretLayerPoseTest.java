@@ -30,12 +30,12 @@ class TurretLayerPoseTest {
                 120f, 80f, 0f, 2f, 20f,
                 0f, DURATION, DISTANCE_FRACTION);
         TurretLayerPose east = TurretLayerPose.resolve(
-                120f, 80f, 90f, 2f, 20f,
+                120f, 80f, -90f, 2f, 20f,
                 0f, DURATION, DISTANCE_FRACTION);
 
         assertEquals(120f, north.recoilCenterX(), EPS);
         assertEquals(76f, north.recoilCenterY(), EPS);
-        assertEquals(124f, east.recoilCenterX(), EPS);
+        assertEquals(116f, east.recoilCenterX(), EPS);
         assertEquals(80f, east.recoilCenterY(), EPS);
         assertEquals(north.spriteHeightPx(), east.spriteHeightPx(), EPS);
     }

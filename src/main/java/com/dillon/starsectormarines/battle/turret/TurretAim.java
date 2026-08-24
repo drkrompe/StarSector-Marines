@@ -147,7 +147,7 @@ public final class TurretAim {
 
     /**
      * Bearing in the Starsector sprite-angle convention: 0° = +Y (north),
-     * positive clockwise.
+     * positive counter-clockwise.
      */
     public static float bearingTo(float fromX, float fromY, float toX, float toY) {
         float dx = toX - fromX;
