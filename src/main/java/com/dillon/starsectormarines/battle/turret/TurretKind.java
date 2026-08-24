@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.turret;
 
 import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxDef;
 
 /**
  * Id-only compatibility handle for the shipped turret catalog. Simulation,
@@ -111,6 +112,8 @@ public enum TurretKind {
     public boolean hasBoostRamp() { return weapon().boostRamp; }
 
     public boolean hasLaunchBackblast() { return weapon().launchBackblast; }
+
+    public WeaponFxDef fx() { return weapon().fx; }
 
     public ImpactProfile impactProfile() { return weapon().impactProfile; }
 }

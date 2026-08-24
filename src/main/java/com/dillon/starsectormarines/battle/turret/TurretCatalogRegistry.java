@@ -8,6 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -44,6 +45,7 @@ public final class TurretCatalogRegistry {
                 throw new IllegalStateException("Failed to load turret catalog " + path, e);
             }
         }
+        registry.validateAssets();
         install(registry);
         LOG.info("Turret catalog installed with " + registry.mountCount()
                 + " mounts and " + registry.structureCount() + " structures");
@@ -123,4 +125,22 @@ public final class TurretCatalogRegistry {
     public int mountCount() { return mountsById.size(); }
 
     public int structureCount() { return structuresById.size(); }
+
+    private void validateAssets() {
+        for (TurretMountDef mount : mountsById.values()) {
+            validateAsset(mount.id, "sprite", mount.spritePath);
+            validateAsset(mount.id, "recoilSprite", mount.recoilSpritePath);
+            validateAsset(mount.weapon.id, "projectileSprite", mount.weapon.projectileSpritePath);
+        }
+    }
+
+    private static void validateAsset(String ownerId, String field, String path) {
+        if (path == null) return;
+        try (InputStream ignored = Global.getSettings().openStream(path)) {
+            // Opening the stream is the load-time existence check; rendering remains lazy.
+        } catch (Exception e) {
+            throw new IllegalStateException("Definition '" + ownerId + "' field '" + field
+                    + "' references missing asset '" + path + "'", e);
+        }
+    }
 }

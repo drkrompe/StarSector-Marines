@@ -13,6 +13,16 @@
         "impact": "rifle", "projectileSprite": "graphics/missiles/shell_small_yellow.png",
         "projectileVisualCells": 0.22
       },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.44, "lifetime": 0.07, "color": "FFE080" },
+          { "kind": "fire", "radius": 0.20, "lifetime": 0.12 }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.28, "lifetime": 0.10, "color": "FFE080" },
+          { "kind": "dust", "radius": 0.22, "lifetime": 0.18 }
+        ]
+      },
       "audio": { "fireSound": "vulcan_cannon_fire" }
     },
     {
@@ -23,6 +33,18 @@
       "render": {
         "impact": "kinetic", "projectileSprite": "graphics/missiles/shell_large_green.png",
         "projectileVisualCells": 0.3
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.58, "lifetime": 0.09, "color": "FFE080" },
+          { "kind": "fire", "radius": 0.28, "lifetime": 0.16 },
+          { "kind": "smoke", "radius": 0.24, "lifetime": 0.42 }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.42, "lifetime": 0.14, "color": "FFC860" },
+          { "kind": "dust", "radius": 0.32, "lifetime": 0.28 },
+          { "kind": "smoke", "radius": 0.35, "lifetime": 0.70 }
+        ]
       },
       "audio": { "fireSound": "autocannon_fire" }
     },
@@ -39,6 +61,27 @@
         "impact": "cannon-he", "projectileSprite": "graphics/missiles/shell_round_lrg.png",
         "projectileVisualCells": 0.32
       },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.82, "lifetime": 0.11, "color": "FFE080" },
+          { "kind": "fire", "radius": 0.42, "lifetime": 0.28 },
+          { "kind": "smoke", "radius": [0.30, 0.42], "lifetime": [0.65, 0.95], "count": 2, "jitter": 0.25 }
+        ],
+        "trail": [
+          { "kind": "smoke", "radius": [0.16, 0.22], "lifetime": [0.40, 0.55], "jitter": 0.08 }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 1.05, "lifetime": 0.18, "color": "FFE080" },
+          { "kind": "explosion", "radius": 0.72, "lifetime": 0.42 },
+          { "kind": "ring", "radius": 0.48, "lifetime": 0.34 },
+          { "kind": "fire", "radius": 0.80, "lifetime": 0.62 },
+          { "kind": "smoke", "radius": [0.65, 1.00], "lifetime": [1.25, 1.80], "count": [4, 6], "jitter": 0.75 },
+          { "kind": "dust", "radius": 0.90, "lifetime": 0.46 }
+        ],
+        "aftermath": [
+          { "kind": "smoke", "radius": [0.45, 0.85], "lifetime": [1.00, 1.70], "jitter": 0.60, "delay": [0.10, 0.25], "emissionDuration": 1.80, "emissionInterval": [0.28, 0.42] }
+        ]
+      },
       "audio": { "fireSound": "heavy_mortar_fire" }
     },
     {
@@ -49,6 +92,18 @@
       "render": {
         "impact": "kinetic", "projectileSprite": "graphics/missiles/shell_large_blue.png",
         "projectileVisualCells": 0.28
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.52, "lifetime": 0.08, "color": "FFE080" },
+          { "kind": "fire", "radius": 0.24, "lifetime": 0.14 },
+          { "kind": "smoke", "radius": 0.22, "lifetime": 0.38 }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.42, "lifetime": 0.14, "color": "FFC860" },
+          { "kind": "dust", "radius": 0.32, "lifetime": 0.28 },
+          { "kind": "smoke", "radius": 0.35, "lifetime": 0.70 }
+        ]
       },
       "audio": { "fireSound": "flak_fire" }
     },
@@ -66,6 +121,25 @@
         "impact": "cannon-he", "projectileSprite": "graphics/missiles/shell_hephag.png",
         "projectileVisualCells": 0.35
       },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.96, "lifetime": 0.12, "color": "FFE080" },
+          { "kind": "fire", "radius": 0.52, "lifetime": 0.32 },
+          { "kind": "smoke", "radius": [0.35, 0.50], "lifetime": [0.75, 1.10], "count": 3, "jitter": 0.30 }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 1.30, "lifetime": 0.20, "color": "FFE080" },
+          { "kind": "explosion", "radius": 0.96, "lifetime": 0.48 },
+          { "kind": "ring", "radius": 0.68, "lifetime": 0.42 },
+          { "kind": "fire", "radius": 1.00, "lifetime": 0.75 },
+          { "kind": "smoke", "radius": [0.80, 1.30], "lifetime": [1.45, 2.15], "count": [6, 8], "jitter": 0.90 },
+          { "kind": "dust", "radius": 1.15, "lifetime": 0.55 }
+        ],
+        "aftermath": [
+          { "kind": "fire", "radius": [0.32, 0.58], "lifetime": [0.40, 0.68], "jitter": 0.48, "delay": [0.05, 0.12], "emissionDuration": 0.80, "emissionInterval": [0.16, 0.24] },
+          { "kind": "smoke", "radius": [0.55, 1.05], "lifetime": [1.25, 2.00], "jitter": 0.85, "delay": [0.42, 0.58], "emissionDuration": 2.10, "emissionInterval": [0.24, 0.36] }
+        ]
+      },
       "audio": { "fireSound": "hephaestus_fire" }
     },
     {
@@ -81,6 +155,25 @@
       "render": {
         "impact": "he", "projectileSprite": "graphics/missiles/mortar_round.png",
         "projectileVisualCells": 0.55, "smokeTrail": true
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.46, "lifetime": 0.09, "color": "FFE080" },
+          { "kind": "fire", "radius": 0.24, "lifetime": 0.15 },
+          { "kind": "smoke", "radius": 0.24, "lifetime": 0.48 }
+        ],
+        "trail": [
+          { "kind": "smoke", "radius": [0.18, 0.25], "lifetime": [0.42, 0.60], "jitter": 0.10 }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.70, "lifetime": 0.16, "color": "FFE080" },
+          { "kind": "fire", "radius": 0.55, "lifetime": 0.45 },
+          { "kind": "smoke", "radius": [0.55, 0.80], "lifetime": [1.10, 1.50], "count": [2, 3], "jitter": 0.45 },
+          { "kind": "dust", "radius": 0.55, "lifetime": 0.32 }
+        ],
+        "aftermath": [
+          { "kind": "smoke", "radius": [0.38, 0.68], "lifetime": [0.90, 1.40], "jitter": 0.48, "delay": [0.08, 0.20], "emissionDuration": 1.25, "emissionInterval": [0.30, 0.44] }
+        ]
       },
       "audio": { "fireSound": "light_mortar_fire" }
     },
@@ -99,6 +192,26 @@
         "impact": "he", "projectileSprite": "graphics/missiles/missile_locust.png",
         "projectileVisualCells": 0.45, "smokeTrail": true, "launchBackblast": true
       },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.52, "lifetime": 0.11, "color": "FF9040" },
+          { "kind": "fire", "radius": 0.30, "lifetime": 0.22 },
+          { "kind": "smoke", "radius": [0.28, 0.40], "lifetime": [0.75, 1.00], "count": 4, "jitter": 0.36 }
+        ],
+        "trail": [
+          { "kind": "fire", "radius": [0.15, 0.22], "lifetime": [0.18, 0.28], "color": "FF9040" },
+          { "kind": "smoke", "radius": [0.24, 0.34], "lifetime": [0.65, 0.95], "jitter": 0.12 }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.70, "lifetime": 0.16, "color": "FFE080" },
+          { "kind": "fire", "radius": 0.55, "lifetime": 0.45 },
+          { "kind": "smoke", "radius": [0.55, 0.80], "lifetime": [1.10, 1.50], "count": [2, 3], "jitter": 0.45 },
+          { "kind": "dust", "radius": 0.55, "lifetime": 0.32 }
+        ],
+        "aftermath": [
+          { "kind": "smoke", "radius": [0.42, 0.78], "lifetime": [1.00, 1.60], "jitter": 0.58, "delay": [0.10, 0.24], "emissionDuration": 1.55, "emissionInterval": [0.26, 0.40] }
+        ]
+      },
       "audio": { "fireSound": "swarmer_fire" }
     },
     {
@@ -113,6 +226,17 @@
       "render": {
         "impact": "kinetic", "projectileSprite": "graphics/missiles/shell_small_yellow.png",
         "projectileVisualCells": 0.22
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.42, "lifetime": 0.07, "color": "FFE080" },
+          { "kind": "fire", "radius": 0.18, "lifetime": 0.11 }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.42, "lifetime": 0.14, "color": "FFC860" },
+          { "kind": "dust", "radius": 0.32, "lifetime": 0.28 },
+          { "kind": "smoke", "radius": 0.35, "lifetime": 0.70 }
+        ]
       },
       "audio": { "fireSound": "autocannon_fire" }
     }

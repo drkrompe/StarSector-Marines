@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.weapon.fx.FxSlot;
 import com.dillon.starsectormarines.ops.battleview.ShotFx.Bolt;
 import com.dillon.starsectormarines.ops.battleview.ShotFx.Sprite;
 import com.dillon.starsectormarines.ops.battleview.ShotFx.Tracer;
@@ -65,7 +66,7 @@ public class ShotFxTest {
     }
 
     @Test
-    public void turretsAreSpritesCarryingTheirArcBoostAndSmokeDeclarations() {
+    public void turretBodiesKeepBallisticsWhileParticlesComeFromAuthoredFx() {
         for (TurretKind k : TurretKind.values()) {
             ShotFx fx = ShotFx.of(turretShot(k));
             Sprite body = assertSprite(fx, "turret " + k);
@@ -76,19 +77,19 @@ public class ShotFxTest {
             assertFalse(fx.engineTrail(), "turrets carry no engine trail: " + k);
             assertTrue(fx.travels(), "turret body travels: " + k);
 
-            boolean ribbon = k == TurretKind.LOCUST;
-            assertEquals(ribbon ? ContrailStyle.MISSILE_SMOKE : null, fx.contrail(), "contrail for " + k);
-            // Ribbon kinds suppress the smoke puff; otherwise smokeTrail tracks the kind's flag.
-            assertEquals(k.smokeTrail() && !ribbon, fx.smokeTrail(), "smokeTrail for " + k);
+            assertNull(fx.contrail(), "turret trails no longer use a kind-switched ribbon: " + k);
+            assertFalse(fx.smokeTrail(), "turret trails come from the authored FX slot: " + k);
         }
     }
 
     @Test
-    public void locustIsTheBoostingContrailKind() {
+    public void locustBoostsAndCarriesAnAuthoredTrail() {
         ShotFx fx = ShotFx.of(turretShot(TurretKind.LOCUST));
         assertTrue(fx.boostRamp(), "Locust boosts");
-        assertSame(ContrailStyle.MISSILE_SMOKE, fx.contrail(), "Locust ribbons");
-        assertFalse(fx.smokeTrail(), "ribbon suppresses the smoke puff");
+        assertNull(fx.contrail(), "Locust no longer needs a turret-id ribbon switch");
+        assertFalse(fx.smokeTrail(), "Locust trail is not the compatibility puff");
+        assertFalse(TurretKind.LOCUST.fx().layers(FxSlot.TRAIL).isEmpty(),
+                "Locust authored data owns the trail composition");
     }
 
     @Test

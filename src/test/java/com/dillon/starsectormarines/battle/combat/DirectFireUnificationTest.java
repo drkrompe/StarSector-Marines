@@ -212,8 +212,8 @@ class DirectFireUnificationTest {
         assertEquals(1.6f, blast.aoeRadius, EPS);
         assertEquals(30, blast.wallDamage);
         assertEquals(1.25f, blast.wallDamageRadius, EPS);
-        assertTrue(blast.burningPlume,
-                "the cannon blast owns the smoke-and-fire aftermath at impact");
+        assertTrue(blast.authoredAftermath,
+                "the authored cannon FX owns the smoke-and-fire aftermath at impact");
     }
 
     @Test

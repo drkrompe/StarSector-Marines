@@ -93,8 +93,8 @@ public final class PendingDetonation {
      * default — players deciding to fire those have aim control).
      */
     public final boolean friendlyFireImmune;
-    /** Whether the impact leaves a short-lived fire-and-smoke plume instead of smoke alone. */
-    public final boolean burningPlume;
+    /** True when the weapon's authored impact FX owns the plume instead of the compatibility emitter. */
+    public final boolean authoredAftermath;
 
     /**
      * Compact constructor — defaults the heavy-blast knobs off. Used by mech
@@ -110,7 +110,7 @@ public final class PendingDetonation {
                 wallDamage, shooterFaction, aerialDelivery,
                 /*wallDamageRadius*/ 0f, /*spawnDustOnWallBreak*/ false, /*friendlyFireImmune*/ false,
                 /*directTargetId*/ 0L, /*directDamage*/ 0f, /*directPenetration*/ 0f,
-                /*burningPlume*/ false);
+                /*authoredAftermath*/ false);
     }
 
     public PendingDetonation(long shooterId,
@@ -125,7 +125,22 @@ public final class PendingDetonation {
                 wallDamage, shooterFaction, aerialDelivery,
                 wallDamageRadius, spawnDustOnWallBreak, friendlyFireImmune,
                 /*directTargetId*/ 0L, /*directDamage*/ 0f, /*directPenetration*/ 0f,
-                /*burningPlume*/ false);
+                /*authoredAftermath*/ false);
+    }
+
+    public PendingDetonation(long shooterId,
+                             float endpointX, float endpointY, float remainingTime,
+                             float aoeRadius, float damage, float penetration,
+                             int wallDamage, Faction shooterFaction,
+                             boolean aerialDelivery,
+                             float wallDamageRadius,
+                             boolean spawnDustOnWallBreak,
+                             boolean friendlyFireImmune,
+                             boolean authoredAftermath) {
+        this(shooterId, endpointX, endpointY, remainingTime, aoeRadius, damage, penetration,
+                wallDamage, shooterFaction, aerialDelivery,
+                wallDamageRadius, spawnDustOnWallBreak, friendlyFireImmune,
+                0L, 0f, 0f, authoredAftermath);
     }
 
     public PendingDetonation(long shooterId,
@@ -139,7 +154,7 @@ public final class PendingDetonation {
                              long directTargetId,
                              float directDamage,
                              float directPenetration,
-                             boolean burningPlume) {
+                             boolean authoredAftermath) {
         this.shooterId     = shooterId;
         this.endpointX     = endpointX;
         this.endpointY     = endpointY;
@@ -156,6 +171,6 @@ public final class PendingDetonation {
         this.wallDamageRadius = wallDamageRadius;
         this.spawnDustOnWallBreak = spawnDustOnWallBreak;
         this.friendlyFireImmune = friendlyFireImmune;
-        this.burningPlume = burningPlume;
+        this.authoredAftermath = authoredAftermath;
     }
 }

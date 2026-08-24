@@ -136,7 +136,8 @@ public final class TurretFireSystem implements TurretFireSink {
                     toX, toY, flight,
                     kind.aoeRadius(), kind.damage(), kind.penetration(),
                     kind.wallDamage(), shooterFaction, aerialDelivery,
-                    kind.wallDamageRadius(), /*spawnDustOnWallBreak*/ true, /*friendlyFireImmune*/ false));
+                    kind.wallDamageRadius(), /*spawnDustOnWallBreak*/ true,
+                    /*friendlyFireImmune*/ false, /*authoredAftermath*/ true));
         }
         float lifetime = kind.flightSec() > 0f ? kind.flightSec() : SHOT_LIFETIME;
         shots.postShot(new ShotEvent(shooterId, fromX, fromY, toX, toY, hit, shooterFaction,
@@ -190,7 +191,7 @@ public final class TurretFireSystem implements TurretFireSink {
                 /*friendlyFireImmune*/ false,
                 hasDirectPayload ? res.victimId() : 0L,
                 directDamage, hasDirectPayload ? kind.contactPenetration() : 0f,
-                /*burningPlume*/ kind == TurretKind.HEPHAESTUS));
+                /*authoredAftermath*/ true));
     }
 
     private void spawnProjectile(long shooterId, float fromX, float fromY, Faction shooterFaction,
@@ -221,7 +222,8 @@ public final class TurretFireSystem implements TurretFireSink {
                 toX, toY, flightTime,
                 kind.aoeRadius(), kind.damage(), kind.penetration(),
                 kind.wallDamage(), shooterFaction, aerialDelivery,
-                kind.wallDamageRadius(), /*spawnDustOnWallBreak*/ true, /*friendlyFireImmune*/ false);
+                kind.wallDamageRadius(), /*spawnDustOnWallBreak*/ true,
+                /*friendlyFireImmune*/ false, /*authoredAftermath*/ true);
         shots.queueProjectile(new Projectile(fromX, fromY, toX, toY,
                 kind.hasBoostRamp(), kind.arcHeight(),
                 shooterFaction, aerialDelivery, flightTime, onArrival));

@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.audio.BattleRadioChatter;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
+import com.dillon.starsectormarines.battle.weapon.fx.TurretFxRuntime;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -107,17 +108,22 @@ public final class GroundSimPresentation {
             if (s.mechWeapon == MechWeapon.CHAINGUN) {
                 fx.spawnMuzzleFlash(s.fromX, s.fromY, 0.55f, 0.08f);
             }
-            if (s.impactProfile() == ImpactProfile.CANNON_HE) {
+            if (s.turretKind != null) {
+                TurretFxRuntime.spawnMuzzle(fx, s);
+            } else if (s.impactProfile() == ImpactProfile.CANNON_HE) {
                 fx.spawnCannonMuzzleBlast(
                         s.fromX, s.fromY, bearingDeg(s.fromX, s.fromY, s.toX, s.toY));
             }
-            if (s.turretKind != null && s.turretKind.hasLaunchBackblast()) {
-                fx.spawnLaunchBackblast(s.fromX, s.fromY, bearingDeg(s.fromX, s.fromY, s.toX, s.toY));
-            }
             if (ShotFx.of(s).travels()) continue;
             if (!s.impacts()) continue;
-            ImpactProfile profile = (s.marineWeapon != null) ? s.marineWeapon.impactProfile() : ImpactProfile.RIFLE;
-            fx.spawnImpact(profile, s.toX, s.visualToY(), isWallAt(grid, s.toX, s.toY));
+            if (s.turretKind != null) {
+                TurretFxRuntime.spawnImpactAndAftermath(
+                        fx, s, isWallAt(grid, s.toX, s.toY));
+            } else {
+                ImpactProfile profile = s.marineWeapon != null
+                        ? s.marineWeapon.impactProfile() : ImpactProfile.RIFLE;
+                fx.spawnImpact(profile, s.toX, s.visualToY(), isWallAt(grid, s.toX, s.toY));
+            }
         }
     }
 
@@ -130,7 +136,7 @@ public final class GroundSimPresentation {
             boolean isWall = isWallAt(grid, s.toX, s.toY);
             if (s.turretKind != null) {
                 ImpactProfile profile = s.turretKind.impactProfile();
-                fx.spawnImpact(profile, s.toX, s.visualToY(), isWall);
+                TurretFxRuntime.spawnImpactAndAftermath(fx, s, isWall);
                 if (profile.explosive()) {
                     playExplosion(s.toX, s.toY,
                             profile == ImpactProfile.CANNON_HE ? 0.82f : 0.55f, rng);
