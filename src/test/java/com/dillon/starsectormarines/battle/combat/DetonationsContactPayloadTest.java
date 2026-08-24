@@ -31,7 +31,7 @@ class DetonationsContactPayloadTest {
                 /*wallDamageRadius*/ 0f, /*spawnDustOnWallBreak*/ false,
                 /*friendlyFireImmune*/ false,
                 direct, /*directDamage*/ 40f, /*directPenetration*/ 20f,
-                /*burningPlume*/ false));
+                /*authoredAftermath*/ false));
 
         assertEquals(60f, sim.world().armor(direct), EPS,
                 "the contact target takes one full-efficiency direct payload and no splash");
@@ -57,7 +57,7 @@ class DetonationsContactPayloadTest {
                 /*wallDamageRadius*/ 0f, /*spawnDustOnWallBreak*/ false,
                 /*friendlyFireImmune*/ false,
                 friendly, /*already source-multiplied*/ 7.5f, /*directPenetration*/ 20f,
-                /*burningPlume*/ false));
+                /*authoredAftermath*/ false));
 
         assertEquals(92.5f, sim.world().hp(friendly), EPS,
                 "the detonation must not multiply or add splash to the carried direct value");
@@ -93,7 +93,7 @@ class DetonationsContactPayloadTest {
                 /*wallDamageRadius*/ 0f, /*spawnDustOnWallBreak*/ false,
                 /*friendlyFireImmune*/ false,
                 direct, /*directDamage*/ 0f, /*directPenetration*/ 0f,
-                /*burningPlume*/ false));
+                /*authoredAftermath*/ false));
 
         assertEquals(96f, sim.world().armor(direct), EPS,
                 "area-only weapons still splash the actor at the impact point");

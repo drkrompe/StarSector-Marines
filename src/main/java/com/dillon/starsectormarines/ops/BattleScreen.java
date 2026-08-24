@@ -39,6 +39,7 @@ import com.dillon.starsectormarines.battle.mech.MechFamilyDebugSpawner;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactDecals;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
+import com.dillon.starsectormarines.battle.weapon.fx.TurretFxRuntime;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.i18n.Strings;
@@ -813,28 +814,23 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (s.mechWeapon == MechWeapon.CHAINGUN) {
                 renderer.getImpactFx().spawnMuzzleFlash(s.fromX, s.fromY, 0.55f, 0.08f);
             }
-            if (s.impactProfile() == ImpactProfile.CANNON_HE) {
+            if (s.turretKind != null) {
+                TurretFxRuntime.spawnMuzzle(renderer.getImpactFx(), s);
+            } else if (s.impactProfile() == ImpactProfile.CANNON_HE) {
                 renderer.getImpactFx().spawnCannonMuzzleBlast(
                         s.fromX, s.fromY, bearingDeg(s.fromX, s.fromY, s.toX, s.toY));
-            }
-            // SAM-site launch backblast — kinds flagged hasLaunchBackblast
-            // emit a directional cone of smoke puffs out the back of the
-            // launcher as the missile leaves the tube. Computed off the
-            // (from → to) firing vector so the cone always points away from
-            // the target. Fires at the moment of launch, before the projectile
-            // sprite even leaves the mount.
-            if (s.turretKind != null && s.turretKind.hasLaunchBackblast()) {
-                float fireBearing = bearingDeg(s.fromX, s.fromY, s.toX, s.toY);
-                renderer.getImpactFx().spawnLaunchBackblast(s.fromX, s.fromY, fireBearing);
             }
             // Line tracers (no projectile sprite) land their impact instantly;
             // projectile-sprite shots defer it to arrival (handled below).
             if (ShotFx.of(s).travels()) continue;
             if (!s.impacts()) continue;
             boolean isWall = isWallAt(grid, s.toX, s.toY);
-            ImpactProfile profile = (s.marineWeapon != null)
-                    ? s.marineWeapon.impactProfile() : ImpactProfile.RIFLE;
-            renderer.getImpactFx().spawnImpact(profile, s.toX, s.visualToY(), isWall);
+            ImpactProfile profile = s.impactProfile();
+            if (s.turretKind != null) {
+                TurretFxRuntime.spawnImpactAndAftermath(renderer.getImpactFx(), s, isWall);
+            } else {
+                renderer.getImpactFx().spawnImpact(profile, s.toX, s.visualToY(), isWall);
+            }
             renderer.getGroundLights().spawnImpact(profile, s.toX, s.visualToY());
             ImpactDecals.spawnImpact(sim, rng, profile, s.toX, s.toY, isWall);
         }
@@ -845,7 +841,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             ImpactProfile profile;
             if (s.turretKind != null) {
                 profile = s.turretKind.impactProfile();
-                renderer.getImpactFx().spawnImpact(profile, s.toX, s.visualToY(), isWall);
+                TurretFxRuntime.spawnImpactAndAftermath(renderer.getImpactFx(), s, isWall);
                 // Any HE-profile turret round (mortar, grenade launcher,
                 // LOCUST artillery) pairs the flame plume with the explosion
                 // clip — matches the mech HE branch below. Previously gated
@@ -916,7 +912,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             // playSound — vanilla weapon SFX are mono, which the spatial pipeline
             // requires; distance attenuation does the volume-falloff work.
             if (s.turretKind != null) {
-                Global.getSoundPlayer().playSound(s.turretKind.fireSoundId, pitch, 1.0f, loc, zeroVel);
+                Global.getSoundPlayer().playSound(s.turretKind.fireSoundId(), pitch, 1.0f, loc, zeroVel);
             } else if (s.marineSecondary != null) {
                 Global.getSoundPlayer().playSound(s.marineSecondary.fireSoundId(),
                         pitch, 1.0f, loc, zeroVel);
