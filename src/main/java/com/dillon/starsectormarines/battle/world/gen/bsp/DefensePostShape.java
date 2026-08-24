@@ -5,9 +5,9 @@ import java.util.Random;
 /**
  * Visual variant for a LARGE-tier defense post. Picked randomly per placement
  * so the kill zone reads as a built-up line of distinct emplacements rather
- * than a row of clones. All shapes fit a 5×3 or 3×5 bbox; the stamper picks
- * the bbox via {@link #halfX}/{@link #halfY} for footprint validation and the
- * partition-connectivity check.
+ * than a row of clones. This enum is only a compatibility key for callers
+ * that request one shipped variant; catalog data owns its bounds, cells, art,
+ * and turret composition.
  *
  * <ul>
  *   <li>{@link #LINE_H} — current horizontal embankment line, 2 turrets E/W.
@@ -34,20 +34,17 @@ import java.util.Random;
  */
 public enum DefensePostShape {
 
-    LINE_H            (2, 1),
-    LINE_V            (1, 2),
-    WEDGE             (2, 1),
-    TRAPEZOID         (2, 1),
-    TRIANGLE_FORMATION(2, 1);
+    LINE_H            ("line-h"),
+    LINE_V            ("line-v"),
+    WEDGE             ("wedge"),
+    TRAPEZOID         ("trapezoid"),
+    TRIANGLE_FORMATION("triangle-formation");
 
-    /** Footprint half-extent on the X axis. Full footprint width is {@code 2 * halfX + 1}. */
-    public final int halfX;
-    /** Footprint half-extent on the Y axis. Full footprint height is {@code 2 * halfY + 1}. */
-    public final int halfY;
+    /** Stable compatibility key for the data-authored LARGE layout variant. */
+    public final String key;
 
-    DefensePostShape(int halfX, int halfY) {
-        this.halfX = halfX;
-        this.halfY = halfY;
+    DefensePostShape(String key) {
+        this.key = key;
     }
 
     private static final DefensePostShape[] LARGE_SHAPES = values();

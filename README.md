@@ -86,7 +86,7 @@ gradlew.bat deployMod        # sync mod/ into <starsectorDir>/mods/StarsectorMar
 gradlew.bat undeployMod      # remove the deployed copy
 gradlew.bat runStarsector    # deploy + launch the game
 gradlew.bat createSnapshots  # render all deterministic visual-evidence suites
-gradlew.bat layerAuthoring   # launch the marine/mech sprite-layer editor
+gradlew.bat layerAuthoring   # launch the layer, turret, and emplacement authoring workbench
 
 # Asset pipeline (only needed if you modify 3D models or source audio)
 gradlew.bat :asset-pipeline:processModels
@@ -127,12 +127,21 @@ Outputs are grouped beneath `build/snapshots/<suite>/` unless
 matching PNGs without prompting; they do not remove obsolete files left by an
 earlier run.
 
-The `layerAuthoring` workbench edits
-`mod/data/appearance/unit-layer-layouts.appearance.json` and exposes the same
-catalog through its **Snapshots** tab. Snapshot rendering runs in the
-background, asks before replacing PNGs, and requires pending layer edits to be
-saved before the `layers` suite runs. It can render all suites or one selected
-suite and does not remove obsolete PNGs. See
+The `layerAuthoring` task opens one extensible authoring workbench. Its
+**Layers** page edits `mod/data/appearance/unit-layer-layouts.appearance.json`
+and exposes the shared catalog through its **Snapshots** tab. Its **Turrets**
+page edits the linked weapon, mount, structure, effect, and defense-post layout
+catalogs, with the same deterministic six-state turret renderer used by the
+`turrets` snapshot suite. The **Emplacements** mode provides a bounded tile grid
+for painting barriers and pads, placing or moving multiple turret structures,
+and duplicating a large-post layout into a new seeded variant.
+
+Linked catalog saves prepare and validate every target before atomically
+replacing each file; if a later replacement fails, completed replacements are
+rolled back from their staged originals.
+Snapshot rendering runs in the background, asks before replacing PNGs, and
+requires pending layer edits to be saved before the `layers` suite runs. It can
+render all suites or one selected suite and does not remove obsolete PNGs. See
 [`tools/layer-authoring/README.md`](tools/layer-authoring/README.md) for the
 editor controls and data contract.
 

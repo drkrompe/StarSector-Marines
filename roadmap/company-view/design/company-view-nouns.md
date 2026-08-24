@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — defined the Armory's fire-team viewer as named marine cards with integrated loadout editing.
+Updated: 2026-08-24 — defined the Armory's fire-team viewer as named marine cards with an on-demand loadout comparison tray.
 
 ## Purpose
 
@@ -123,12 +123,18 @@ same family, grade and individual-profile combat rules used in battle; armour an
 special issue remain equally explicit. Vacant billets remain visibly vacant rather
 than acquiring a fixture identity.
 
-Template choice is an editing control inside that viewer, not a permanent peer
-column. The horizontal library presents each reusable template as a compact
-four-soldier formation projection with its fielded and ready-to-issue counts. This
+Template choice is an on-demand editing control inside that viewer, not a permanent
+peer column or a persistent part of its ordinary reading state. **Change Loadout**
+opens a temporary horizontal comparison tray; changing fire teams or cancelling
+closes it and restores the current-equipment viewer. The tray presents each reusable
+template as a compact four-soldier formation projection with its fielded count and
+contextual availability for the selected team. Unavailable choices remain visible
+but cannot become the candidate. This
 is a visual selector over the reusable plan, not a collectible card or a second
 equipment representation. Selecting a candidate projects its four billets onto the
-four named marines without changing campaign state. The soldiers use the same
+four named marines and adds resolved weapon and armour deltas without changing
+campaign state. One explicit equip action commits the same authoritative preview.
+The soldiers use the same
 layered actor composition and special-equipment presentation recipe as battlefield
 infantry. This projection is retained view state only: it does not materialize gear,
 reserve stock, or replace the exact refit transaction preview. The complete preview
@@ -154,8 +160,9 @@ uncommitted fleet stock can supply without assuming any target team's returns.
 Selecting a specific team and template produces the contextual refit preview: free
 stock before the transaction, the target issue returned, and the candidate
 issue required. That preview is the same calculation used by assignment, not a
-UI estimate. The ordinary fire-team viewer summarizes that answer as ready or
-blocked and offers one explicit equip action; its marine cards do not expose the
+UI estimate. The ordinary fire-team viewer shows current equipment; its temporary
+comparison state summarizes that answer as ready or blocked and offers one explicit
+equip action. Its marine cards do not expose the
 free/return/required material ledger used by authoring and diagnostic surfaces.
 
 Two assigned teams may exchange templates in one atomic transaction. Both teams'
