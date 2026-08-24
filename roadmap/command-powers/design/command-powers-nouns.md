@@ -1,8 +1,10 @@
 # Command Powers
 
-Status: ACTIVE — the fleet-sourced power and briefing spine is shipped; command capacity and drop-geography expansion remain open.
+Status: ACTIVE — fleet-sourced availability, pre-battle commitment, and simulation-owned activation form the standing command-power model.
 
 Written: 2026-08-23
+
+Updated: 2026-08-24 — replaced story sequencing with durable capacity, reach, and forward-base boundaries.
 
 ## Vocabulary
 
@@ -23,7 +25,7 @@ Mission launch resolves that input once into a detachment, filters it through th
 
 In battle, the command-power service owns command points, cooldowns, charges, pending activations, and transient power effects. The UI may arm a targeting mode and enqueue a request, but only the simulation commits it after checking roster membership, affordability, charges, cooldown, and target validity. A committed power spends its current at-use resources, begins pacing, then enacts its effect. Recon's temporary reveal is simulation state projected through the existing fog presentation seam; it is not a separate fog authority.
 
-The shipped catalog demonstrates five distinct expressions of the same contract: recon, mech support, emergency resupply, orbital barrage, and marine insertion. A capability may become a direct battlefield power or scale one; ship-only survival flavor does neither and is not a command-power source.
+The current catalog demonstrates five distinct expressions of the same contract: recon, mech support, emergency resupply, orbital barrage, and marine insertion. A capability may become a direct battlefield power or scale one; ship-only survival flavor does neither and is not a command-power source.
 
 ## Briefing and commitment contract
 
@@ -50,7 +52,7 @@ battle. Launch filters the selected identifiers against the freshly resolved
 available roster and budget, so stale or tampered selections cannot bypass
 commitment.
 
-## Shipped power families
+## Current power families
 
 - **Recon Ping** projects a temporary circular vision source through the
   existing fog seam. Sensor/survey fittings and the Apogee are player sources;
@@ -71,7 +73,8 @@ commitment.
   edge to a safe scored landing zone near the requested cell, then unloads a
   full infantry squad into the ordinary roster and commander flow. It is
   Valkyrie-only; selectable landing geography, air-defense pressure, and
-  alternate craft classes belong to S6 rather than this shipped power.
+  alternate craft classes are deferred shared-delivery concerns rather than
+  properties of this power.
 
 ## Laws
 
@@ -89,6 +92,13 @@ commitment.
 
 `ship-hullmod-survey.md` is the enduring flavor and projection evidence for future source mappings; it is not the runtime catalog or a promise to implement every candidate. The catalog remains the executable source-to-capability authority.
 
-S5 owns persistent command capacity: experience, command level, and the curves that replace the current fixed deck and pacing baseline. S6 owns named landing zones, air-defense contesting, and craft-class delivery risk on the shared insertion/delivery seam. S7 builds a forward operating base only after that reach model and its spoils-tier acquisition path exist.
+Command progression may change deck capacity, command-point pacing, and
+cooldown curves, but it never creates fleet-derived availability. Future
+reach geography may add named landing zones, air-defense contesting, and
+craft-specific delivery risk on the shared insertion/delivery seam.
+
+A forward operating base, if introduced, is a territory- and spoils-gated
+reach object. It may anchor delivery but is neither a command power nor a
+second campaign authority.
 
 Command powers complement the AI commander rather than replacing it. They reuse the battle's fog, combat, air, reinforcement, and campaign-resource seams while leaving those systems authoritative for their own state.
