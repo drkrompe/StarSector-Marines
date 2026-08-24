@@ -189,11 +189,18 @@ public final class SwarmPressureBehavior implements UnitBehavior {
     public static long selectTarget(long runner, BattleSimulation sim) {
         CivilianEvacuationTracker tracker =
                 sim.getCivilianEvacuationTracker();
+        boolean shelterProtected = sim.isCivilianShelterProtected();
+        float runnerPosX = sim.world().x(runner);
+        float runnerPosY = sim.world().y(runner);
+        int runnerCellX = (int) Math.floor(runnerPosX);
+        int runnerCellY = (int) Math.floor(runnerPosY);
+        float senseRange = sim.vision().visionRange(runner);
         long current = sim.combat().targetId(runner);
-        boolean currentValid = isEligibleRememberedTarget(current, tracker, sim);
+        boolean currentValid = isEligibleRememberedTarget(
+                current, tracker, shelterProtected, sim);
         long best = 0L;
         float bestDistance = Float.MAX_VALUE;
-        if (!sim.isCivilianShelterProtected()) {
+        if (!shelterProtected) {
             for (int i = 0, n = tracker.registeredCount(); i < n; i++) {
                 long candidate = tracker.entityIdAt(i);
                 if (tracker.state(candidate)
@@ -201,8 +208,12 @@ public final class SwarmPressureBehavior implements UnitBehavior {
                         || sim.resolveUnit(candidate) == 0L) {
                     continue;
                 }
-                if (!canSense(runner, candidate, sim)) continue;
-                float distance = distanceSquared(runner, candidate, sim);
+                float candidateX = sim.world().x(candidate);
+                float candidateY = sim.world().y(candidate);
+                if (!canSense(runnerCellX, runnerCellY,
+                        candidateX, candidateY, senseRange, sim)) continue;
+                float distance = distanceSquared(runnerPosX, runnerPosY,
+                        candidateX, candidateY);
                 if (isBetter(candidate, distance, best, bestDistance)) {
                     best = candidate;
                     bestDistance = distance;
@@ -211,14 +222,18 @@ public final class SwarmPressureBehavior implements UnitBehavior {
         }
 
         LongBucket nearby = TARGET_CANDIDATES.get();
-        float senseRange = sim.vision().visionRange(runner);
-        sim.getUnitIndex().gatherFaction(sim.world().x(runner), sim.world().y(runner),
+        sim.getUnitIndex().gatherFaction(runnerPosX, runnerPosY,
                 senseRange + SENSE_GATHER_PADDING, Faction.MARINE, nearby);
         for (int i = 0, n = nearby.size; i < n; i++) {
             long candidate = nearby.ids[i];
-            if (!eligibleMarine(candidate, sim)) continue;
-            if (!canSense(runner, candidate, sim)) continue;
-            float distance = distanceSquared(runner, candidate, sim);
+            if (!eligibleMarineKnownFaction(
+                    candidate, shelterProtected, sim)) continue;
+            float candidateX = sim.world().x(candidate);
+            float candidateY = sim.world().y(candidate);
+            if (!canSense(runnerCellX, runnerCellY,
+                    candidateX, candidateY, senseRange, sim)) continue;
+            float distance = distanceSquared(runnerPosX, runnerPosY,
+                    candidateX, candidateY);
             if (isBetter(candidate, distance, best, bestDistance)) {
                 best = candidate;
                 bestDistance = distance;
@@ -227,9 +242,12 @@ public final class SwarmPressureBehavior implements UnitBehavior {
 
         if (best != 0L) {
             if (currentValid) {
-                float currentDistance = distanceSquared(runner, current, sim);
-                if (current == best
-                        || currentDistance <= bestDistance * CURRENT_TARGET_LEEWAY_SQUARED) {
+                if (current == best) return current;
+                float currentDistance = distanceSquared(
+                        runnerPosX, runnerPosY,
+                        sim.world().x(current), sim.world().y(current));
+                if (currentDistance
+                        <= bestDistance * CURRENT_TARGET_LEEWAY_SQUARED) {
                     return current;
                 }
             }
@@ -241,32 +259,34 @@ public final class SwarmPressureBehavior implements UnitBehavior {
         // Strategic pressure fallback: the swarm still advances when all
         // marines are beyond local sensing range, but civilians remain unknown
         // until first contact reveals them.
-        if (sim.isCivilianShelterProtected()) {
+        if (shelterProtected) {
             return sim.getUnitIndex().nearestFaction(
-                    sim.world().x(runner), sim.world().y(runner),
-                    Faction.MARINE, candidate -> eligibleMarine(candidate, sim));
+                    runnerPosX, runnerPosY, Faction.MARINE,
+                    candidate -> eligibleMarineKnownFaction(
+                            candidate, true, sim));
         }
         return sim.getUnitIndex().nearestFaction(
-                sim.world().x(runner), sim.world().y(runner), Faction.MARINE);
+                runnerPosX, runnerPosY, Faction.MARINE);
     }
 
     private static boolean isEligibleRememberedTarget(
             long candidate, CivilianEvacuationTracker tracker,
-            BattleSimulation sim) {
+            boolean shelterProtected, BattleSimulation sim) {
         if (candidate == 0L || sim.resolveUnit(candidate) == 0L) return false;
         if (sim.identity().faction(candidate) == Faction.MARINE) {
-            return eligibleMarine(candidate, sim);
+            return eligibleMarineKnownFaction(
+                    candidate, shelterProtected, sim);
         }
-        return !sim.isCivilianShelterProtected()
+        return !shelterProtected
                 && tracker.state(candidate) == CivilianEvacuationTracker.State.ACTIVE;
     }
 
-    private static boolean eligibleMarine(long candidate,
-                                           BattleSimulation sim) {
-        if (sim.identity().faction(candidate) != Faction.MARINE) return false;
+    /** Caller has already established the immutable MARINE faction. */
+    private static boolean eligibleMarineKnownFaction(
+            long candidate, boolean shelterProtected, BattleSimulation sim) {
+        if (!shelterProtected) return true;
         Squad squad = sim.squadOf(candidate);
-        return !sim.isCivilianShelterProtected()
-                || squad == null || !squad.rescueShelterGuard;
+        return squad == null || !squad.rescueShelterGuard;
     }
 
     private static boolean isBetter(long candidate, float distance,
@@ -275,12 +295,13 @@ public final class SwarmPressureBehavior implements UnitBehavior {
                 || (distance == bestDistance && (best == 0L || candidate < best));
     }
 
-    private static boolean canSense(long runner, long candidate,
-                                    BattleSimulation sim) {
+    private static boolean canSense(int runnerCellX, int runnerCellY,
+                                    float candidateX, float candidateY,
+                                    float senseRange, BattleSimulation sim) {
         return sim.getGrid().hasLineOfSightWithin(
-                sim.world().cellX(runner), sim.world().cellY(runner),
-                sim.world().cellX(candidate), sim.world().cellY(candidate),
-                sim.vision().visionRange(runner));
+                runnerCellX, runnerCellY,
+                (int) Math.floor(candidateX), (int) Math.floor(candidateY),
+                senseRange);
     }
 
     private static boolean needsPath(long runner, int targetX, int targetY,
@@ -299,10 +320,10 @@ public final class SwarmPressureBehavior implements UnitBehavior {
         }
     }
 
-    private static float distanceSquared(long a, long b,
-                                         BattleSimulation sim) {
-        float dx = sim.world().x(a) - sim.world().x(b);
-        float dy = sim.world().y(a) - sim.world().y(b);
+    private static float distanceSquared(float ax, float ay,
+                                         float bx, float by) {
+        float dx = ax - bx;
+        float dy = ay - by;
         return dx * dx + dy * dy;
     }
 }
