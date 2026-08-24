@@ -46,6 +46,7 @@ public final class WeaponSymbols {
         if (s == MarineSecondary.ROCKET_LAUNCHER) return "RKT";
         if (s == MarineSecondary.ANTI_MATERIEL_RIFLE) return "AMR";
         if (s == MarineSecondary.SMOKE_GRENADE) return "SMK";
+        if (s == MarineSecondary.SATCHEL_CHARGE) return "SAT";
         return s.name().substring(0, 3);
     }
 

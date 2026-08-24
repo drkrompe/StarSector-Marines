@@ -43,6 +43,8 @@ public class BattleSprites {
             "graphics/ui/armory/special-smoke-grenades.png";
     private static final String SMOKE_PUFF_SPRITE =
             "graphics/battle/fx/smoke-field-puff.png";
+    private static final String SATCHEL_CHARGE_SPRITE =
+            "graphics/battle/fx/satchel-charge-armed.png";
 
     // ---- unit sheets --------------------------------------------------------
 
@@ -145,6 +147,8 @@ public class BattleSprites {
     private SpriteAPI smokeGrenadeSprite;
     private SpriteAPI smokePuffSprite;
     private boolean smokeSpritesLoadAttempted;
+    private SpriteAPI satchelChargeSprite;
+    private boolean satchelSpriteLoadAttempted;
 
     // =========================================================================
     // Accessors
@@ -162,6 +166,7 @@ public class BattleSprites {
     public java.util.EnumMap<MarineSecondary, UnitSpriteCache> marineSecondaryAimSheets() { return marineSecondaryAimSheets; }
     public SpriteAPI smokeGrenadeSprite() { return smokeGrenadeSprite; }
     public SpriteAPI smokePuffSprite() { return smokePuffSprite; }
+    public SpriteAPI satchelChargeSprite() { return satchelChargeSprite; }
     public SpriteAPI decalSheet()                  { return decalSheet; }
     public SpriteSheetFrames decalFrames()         { return decalFrames; }
     public ShuttleSpriteCache droneHubSprite()     { return droneHubSprite; }
@@ -462,6 +467,17 @@ public class BattleSprites {
             smokePuffSprite = Global.getSettings().getSprite(SMOKE_PUFF_SPRITE);
         } catch (Exception e) {
             LOG.error("BattleSprites: failed to load smoke utility sprites", e);
+        }
+    }
+
+    public void ensureSatchelSprite() {
+        if (satchelSpriteLoadAttempted) return;
+        satchelSpriteLoadAttempted = true;
+        try {
+            Global.getSettings().loadTexture(SATCHEL_CHARGE_SPRITE);
+            satchelChargeSprite = Global.getSettings().getSprite(SATCHEL_CHARGE_SPRITE);
+        } catch (Exception e) {
+            LOG.error("BattleSprites: failed to load satchel charge sprite", e);
         }
     }
 

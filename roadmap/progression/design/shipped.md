@@ -2,7 +2,7 @@
 
 Status: ACTIVE
 Written: 2026-08-23
-Updated: 2026-08-23 — folded the shipped smoke utility slice.
+Updated: 2026-08-23 — folded the shipped reusable satchel utility slice.
 
 | Story | Shipped | Commit(s) | Fold destination |
 | --- | --- | --- | --- |
@@ -11,3 +11,4 @@ Updated: 2026-08-23 — folded the shipped smoke utility slice.
 | `s11-combat-reflexes.md` | 2026-08-22 | `cb22c3d3`, `0d74d55f` | `progression-nouns.md` — aptitude and experience |
 | `s2a-anti-materiel-rifle.md` | 2026-08-23 | `97243ba2` | `progression-nouns.md` — stable special-equipment identity, precision heavy fire, AI use policy, and campaign availability |
 | `s2b-smoke-grenades.md` | 2026-08-23 | this commit | `progression-nouns.md` and `fog-of-war-nouns.md` — neutral transient opacity, AI maneuver reservations, campaign issue, and shared observation |
+| `s2c-satchel-charges.md` | 2026-08-23 | this commit | `progression-nouns.md` — reusable cooldown-gated contact demolition, attached fuses, opportunity AI, friendly hazard response, and campaign issue |

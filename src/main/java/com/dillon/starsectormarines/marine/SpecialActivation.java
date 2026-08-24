@@ -4,5 +4,6 @@ package com.dillon.starsectormarines.marine;
 public enum SpecialActivation {
     DIRECT_EXPLOSIVE,
     DIRECT_PRECISION,
-    UTILITY_SMOKE
+    UTILITY_SMOKE,
+    UTILITY_SATCHEL
 }

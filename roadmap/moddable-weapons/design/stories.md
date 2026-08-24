@@ -1,6 +1,6 @@
 # Moddable Weapons — Open Stories
 
-Status: ACTIVE — 1 ready story, 3 planned stories, 1 deferred story
+Status: ACTIVE — 1 story in progress, 1 ready story, 2 planned stories, 1 deferred story
 
 Written: 2026-08-23
 
