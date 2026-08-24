@@ -5,7 +5,14 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.decision.goap.world.GarrisonArea;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
+import com.dillon.starsectormarines.battle.command.influence.CommanderContact;
+import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
+import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.AssignmentReason;
+import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.Phase;
+import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.SquadDirective;
+import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.TrackState;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
@@ -18,6 +25,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Marine-side strategic commander for CONQUEST — the land-war pattern
@@ -40,14 +49,15 @@ import java.util.List;
  *       defender merely loitering in the open street nearby never blocks a
  *       capture order, and the unbounded outdoor flood never counts as "in"
  *       the compound. See {@code conquest-nouns.md}.</li>
- *   <li><b>Strip clear-zone push.</b> Every squad not pulled for capture
- *       falls through to the lateral-strip search-and-destroy: it is
- *       sticky-assigned to one of {@link #STRIP_COUNT} strips at first
- *       observation and pointed at the <em>nearest defender-occupied zone in
- *       its strip</em> (positive-forward bias on ties), iterating one defender
- *       position at a time as each clears — fixes the "drop-off then drive
- *       inland" bug where targeting the strip's deepest defender pulled
- *       squads past LZ-side defenders along the shortest open BFS route.</li>
+ *   <li><b>Track clear-zone push.</b> Every squad not pulled for capture
+ *       keeps a sticky preferred track, but may support one neighboring track
+ *       when its own has no actionable target. Tracks coordinate the front;
+ *       they are not ownership fences. Target selection still advances one
+ *       defender-occupied zone at a time.</li>
+ *   <li><b>Keep convergence.</b> Once the canonical command post is the only
+ *       uncaptured compound, every mobile assault squad converges on its
+ *       {@link AssignmentKind#SECURE_COMPOUND} objective. Born-holding
+ *       garrisons remain excluded, and recapture elsewhere ends convergence.</li>
  * </ol>
  *
  * <p>Distinct partition strategy from {@link SabotageCommand}'s
@@ -58,19 +68,18 @@ import java.util.List;
  * write {@code Squad.assignedObjective}; the per-mission specialization is
  * just in how sectors are computed.
  *
- * <p><b>First-pass shape — fixed strips, sticky assignment.</b> Strips
+ * <p><b>Command shape — fixed preferred tracks, soft support.</b> Tracks
  * are equal-width along the lateral axis, computed once at first tick from
- * the live {@link ZoneGraph}. A squad's strip is fixed at first
+ * the live {@link ZoneGraph}. A squad's preferred track is fixed at first
  * observation (by its centroid's lateral coordinate) and doesn't change
- * even if the squad drifts laterally during the battle. Mobility across
- * strips queues for the heatmap-driven follow-up (see "Improvement path"
- * in {@code conquest-nouns.md} — bulge detection on the tactical influence
- * map is the right place to introduce cross-strip reallocation, since "this
- * strip is bulging" is what justifies the migration).
+ * even if the squad drifts laterally during the battle. The effective track
+ * can temporarily be either adjacent track when the preferred track is idle;
+ * the command snapshot publishes both identities and the belief-derived
+ * pressure/progress picture that explains the order.
  *
- * <p>When the assigned strip is clear of defenders, the squad's
- * assignment is cleared (set to {@code null}); the squad falls through
- * to {@code EliminateEnemiesGoal} and engages whatever's nearest. The
+ * <p>When the preferred and adjacent tracks have no actionable defender
+ * zone, the squad's assignment is cleared (set to {@code null}); the squad
+ * falls through to {@code EliminateEnemiesGoal}. The
  * mission's {@code ConquestObjective} closes the battle when every
  * defender supply compound (COMMAND_POST / BARRACKS / ARMORY) is
  * MARINE_HELD — not "last defender drops"; reinforcement keeps
@@ -126,6 +135,10 @@ public final class ConquestCommand implements MissionCommand {
      * hash entirely.
      */
     private float[] zoneForwardCoord;
+    /** Per-zone lateral centroid used for adjacent-track target distance. */
+    private float[] zoneLateralCoord;
+    private float[] zoneCentroidX;
+    private float[] zoneCentroidY;
     /** Sticky squad → strip-index assignment. First observation by centroid lateral coord wins; survives squad death-and-respawn since squad ids are monotonic. Sentinel-default {@code -1} stands in for "no assignment yet." */
     private final Int2IntOpenHashMap squadStripIdx = new Int2IntOpenHashMap();
     {
@@ -167,11 +180,19 @@ public final class ConquestCommand implements MissionCommand {
      */
     private final List<CompoundTarget> compoundTargets = new ArrayList<>();
 
+    /** Once-per-command-tick explanation consumed by diagnostics and UI. */
+    private volatile ConquestFrontSnapshot frontSnapshot;
+
     private record CompoundTarget(CompoundService.Record record, int anchorZoneId,
                                   int[] garrisonZones, int desiredSquads) {}
 
     public ConquestCommand(TraversalAxis axis) {
         this.axis = axis;
+        this.frontSnapshot = ConquestFrontSnapshot.empty(axis);
+    }
+
+    public ConquestFrontSnapshot frontSnapshot() {
+        return frontSnapshot;
     }
 
     @Override
@@ -194,37 +215,73 @@ public final class ConquestCommand implements MissionCommand {
         // compound at capture. Skipping HOLD_NODE here leaves the garrison on
         // station and lets the capturing assault squad keep advancing.
         List<Squad> squads = new ArrayList<>();
+        Map<Integer, SquadDirective> directives = new TreeMap<>();
         for (Squad squad : sim.getSquads()) {
             if (squad.faction != Faction.MARINE) continue;
             if (squad.aliveMembers <= 0) continue;
             if (squad.assignedObjective != null
-                    && squad.assignedObjective.kind() == AssignmentKind.HOLD_NODE) continue;
+                    && squad.assignedObjective.kind() == AssignmentKind.HOLD_NODE) {
+                int preferred = stripFor(squad);
+                directives.put(squad.id, directive(squad, preferred, preferred,
+                        AssignmentReason.GARRISON_HOLD));
+                continue;
+            }
             squads.add(squad);
         }
 
-        // Pass 1: deliberate compound capture. Pulls a capped detachment off
-        // the hunt for each capturable compound; squads it commits are tracked
-        // in `committed` and skipped by the strip push below.
         IntOpenHashSet committed = new IntOpenHashSet();
-        assignCompoundCaptures(squads, committed, sim);
+        CompoundTarget keep = canonicalKeep();
+        int remainingCompounds = remainingCompounds();
+        boolean keepConvergence = keep != null
+                && keep.record.state != CompoundService.CompoundState.MARINE_HELD
+                && remainingCompounds == 1;
+        Phase phase = keepConvergence ? Phase.KEEP_CONVERGENCE : Phase.LANE_ADVANCE;
 
-        // Pass 2: every uncommitted squad runs the lateral-strip search-and-
-        // destroy push against the nearest defender-occupied zone in its strip.
-        for (Squad squad : squads) {
-            if (committed.contains(squad.id)) continue;
-            int stripIdx = stripFor(squad);
-            int targetZone = nearestDefenderZoneInStrip(squad, stripIdx, sim);
-            if (targetZone < 0) {
-                squad.assignedObjective = null;
-                continue;
+        if (keepConvergence) {
+            for (Squad squad : squads) {
+                commitCapture(squad, keep, committed, directives,
+                        AssignmentReason.KEEP_APPROACH);
             }
-            ObjectiveAssignment cur = squad.assignedObjective;
-            if (cur == null
-                    || cur.kind() != AssignmentKind.CLEAR_ZONE
-                    || cur.targetZoneId() != targetZone) {
-                squad.assignedObjective = ObjectiveAssignment.clearZone(squad.id, targetZone);
+        } else {
+            // Pass 1: deliberate compound capture. Pulls a capped detachment
+            // off the front while preserving ordinary compound quotas.
+            assignCompoundCaptures(squads, committed, directives, sim);
+        }
+
+        if (!keepConvergence) {
+            // Pass 2: preferred tracks remain sticky, but an idle track is a
+            // coordination gap rather than an ownership fence. Borrow useful
+            // work from one neighboring track without permanently re-homing.
+            for (Squad squad : squads) {
+                if (committed.contains(squad.id)) continue;
+                int preferredTrack = stripFor(squad);
+                TargetChoice choice = targetChoice(squad, preferredTrack, sim);
+                if (choice.targetZoneId < 0) {
+                    squad.assignedObjective = null;
+                    directives.put(squad.id, directive(squad, preferredTrack,
+                            preferredTrack,
+                            AssignmentReason.NO_ACTIONABLE_TRACK_TARGET));
+                    continue;
+                }
+                ObjectiveAssignment cur = squad.assignedObjective;
+                if (cur == null
+                        || cur.kind() != AssignmentKind.CLEAR_ZONE
+                        || cur.targetZoneId() != choice.targetZoneId) {
+                    squad.assignedObjective = ObjectiveAssignment.clearZone(
+                            squad.id, choice.targetZoneId);
+                }
+                AssignmentReason reason = choice.trackIndex == preferredTrack
+                        ? AssignmentReason.TRACK_ADVANCE
+                        : AssignmentReason.ADJACENT_TRACK_SUPPORT;
+                if (reason == AssignmentReason.ADJACENT_TRACK_SUPPORT) {
+                    phase = Phase.FRONT_ADJUST;
+                }
+                directives.put(squad.id, directive(squad, preferredTrack,
+                        choice.trackIndex, reason));
             }
         }
+
+        publishFrontSnapshot(sim, phase, remainingCompounds, keep, directives);
     }
 
     /**
@@ -248,7 +305,10 @@ public final class ConquestCommand implements MissionCommand {
      *       pull a fresh squad into a defended building.</li>
      * </ol>
      */
-    private void assignCompoundCaptures(List<Squad> squads, IntOpenHashSet committed, BattleView sim) {
+    private void assignCompoundCaptures(List<Squad> squads,
+                                        IntOpenHashSet committed,
+                                        Map<Integer, SquadDirective> directives,
+                                        BattleView sim) {
         if (compoundTargets.isEmpty() || squads.isEmpty()) return;
 
         int n = compoundTargets.size();
@@ -272,6 +332,8 @@ public final class ConquestCommand implements MissionCommand {
             if (idx < 0 || slots[idx] <= 0) continue;
             slots[idx]--;
             committed.add(squad.id);
+            putCompoundDirective(squad, compoundTargets.get(idx), directives,
+                    AssignmentReason.COMPOUND_CAPTURE_PRESERVED);
         }
 
         // Phase 2: greedy nearest-pair fill of uncontested compounds.
@@ -283,7 +345,8 @@ public final class ConquestCommand implements MissionCommand {
                 for (int i = 0; i < n; i++) {
                     if (slots[i] <= 0 || contested[i]) continue;
                     float d = distSq(squad, compoundTargets.get(i));
-                    if (d < bestDist) {
+                    if (d < bestDist || (d == bestDist
+                            && (bestSquad < 0 || squad.id < bestSquad))) {
                         bestDist = d;
                         bestSquad = squad.id;
                         bestTarget = i;
@@ -291,7 +354,9 @@ public final class ConquestCommand implements MissionCommand {
                 }
             }
             if (bestSquad < 0) break;
-            commitCapture(squadById(squads, bestSquad), compoundTargets.get(bestTarget), committed);
+            commitCapture(squadById(squads, bestSquad),
+                    compoundTargets.get(bestTarget), committed, directives,
+                    AssignmentReason.COMPOUND_CAPTURE_UNCONTESTED);
             slots[bestTarget]--;
         }
 
@@ -303,13 +368,17 @@ public final class ConquestCommand implements MissionCommand {
                 if (slots[i] <= 0) break;
                 if (committed.contains(squad.id)) continue;
                 if (!squadAdjacentToCompound(squad, t, sim)) continue;
-                commitCapture(squad, t, committed);
+                commitCapture(squad, t, committed, directives,
+                        AssignmentReason.COMPOUND_ASSAULT_ADJACENT);
                 slots[i]--;
             }
         }
     }
 
-    private void commitCapture(Squad squad, CompoundTarget t, IntOpenHashSet committed) {
+    private void commitCapture(Squad squad, CompoundTarget t,
+                               IntOpenHashSet committed,
+                               Map<Integer, SquadDirective> directives,
+                               AssignmentReason reason) {
         committed.add(squad.id);
         ObjectiveAssignment cur = squad.assignedObjective;
         if (cur == null
@@ -318,6 +387,7 @@ public final class ConquestCommand implements MissionCommand {
             squad.assignedObjective = ObjectiveAssignment.secureCompound(
                     squad.id, t.anchorZoneId, t.record.node);
         }
+        putCompoundDirective(squad, t, directives, reason);
     }
 
     /** True iff any of the compound's garrison rooms holds a live defender. The AABB-gated garrison-zone set excludes the open exterior, so a defender loitering in the street outside doesn't read as contesting the compound. */
@@ -365,6 +435,43 @@ public final class ConquestCommand implements MissionCommand {
         return null;
     }
 
+    private CompoundTarget canonicalKeep() {
+        CompoundTarget keep = null;
+        for (CompoundTarget target : compoundTargets) {
+            if (target.record.node.kind != TacticalNode.Kind.COMMAND_POST) continue;
+            if (keep != null) return null;
+            keep = target;
+        }
+        return keep;
+    }
+
+    private int remainingCompounds() {
+        int remaining = 0;
+        for (CompoundTarget target : compoundTargets) {
+            if (target.record.state != CompoundService.CompoundState.MARINE_HELD) {
+                remaining++;
+            }
+        }
+        return remaining;
+    }
+
+    private void putCompoundDirective(Squad squad, CompoundTarget target,
+                                      Map<Integer, SquadDirective> directives,
+                                      AssignmentReason reason) {
+        int preferred = stripFor(squad);
+        int effective = trackForZone(target.anchorZoneId);
+        directives.put(squad.id, directive(squad, preferred, effective, reason));
+    }
+
+    private SquadDirective directive(Squad squad, int preferredTrack,
+                                     int effectiveTrack,
+                                     AssignmentReason reason) {
+        ObjectiveAssignment assignment = squad.assignedObjective;
+        return new SquadDirective(squad.id, preferredTrack, effectiveTrack,
+                reason, assignment != null ? assignment.kind() : null,
+                assignment != null ? assignment.targetZoneId() : -1);
+    }
+
     /**
      * Lazy strip partition. Equal-width along the lateral axis (x for
      * SOUTH_TO_NORTH push, y for WEST_TO_EAST push); each zone is bucketed
@@ -382,6 +489,9 @@ public final class ConquestCommand implements MissionCommand {
         stripZones = new ArrayList<>(STRIP_COUNT);
         for (int i = 0; i < STRIP_COUNT; i++) stripZones.add(new ArrayList<>());
         zoneForwardCoord = new float[graph.getZones().size()];
+        zoneLateralCoord = new float[graph.getZones().size()];
+        zoneCentroidX = new float[graph.getZones().size()];
+        zoneCentroidY = new float[graph.getZones().size()];
         Arrays.fill(zoneForwardCoord, 0f);
 
         int largestCells = -1, secondCells = -1, largestZone = -1;
@@ -406,6 +516,9 @@ public final class ConquestCommand implements MissionCommand {
             float forward = (axis == TraversalAxis.SOUTH_TO_NORTH) ? cy : cx;
             if (zone.getZoneId() >= 0 && zone.getZoneId() < zoneForwardCoord.length) {
                 zoneForwardCoord[zone.getZoneId()] = forward;
+                zoneLateralCoord[zone.getZoneId()] = lateral;
+                zoneCentroidX[zone.getZoneId()] = cx;
+                zoneCentroidY[zone.getZoneId()] = cy;
             }
 
             int stripIdx = stripIndexForLateral(lateral, this.lateralExtent);
@@ -470,8 +583,8 @@ public final class ConquestCommand implements MissionCommand {
      * Squad → strip index. Sticky on first observation, looked up thereafter.
      * Returns the strip the squad's centroid currently falls in for the first
      * call, which is then memoized; lateral drift after first observation
-     * doesn't move the squad to a new strip. Cross-strip migration remains
-     * outside the current commander contract.
+     * doesn't move the squad to a new preferred track. Temporary support in
+     * an adjacent effective track does not rewrite this sticky identity.
      */
     private int stripFor(Squad squad) {
         int cached = squadStripIdx.get(squad.id);
@@ -482,6 +595,39 @@ public final class ConquestCommand implements MissionCommand {
         if (idx >= STRIP_COUNT) idx = STRIP_COUNT - 1;
         squadStripIdx.put(squad.id, idx);
         return idx;
+    }
+
+    private int trackForZone(int zoneId) {
+        if (zoneId < 0 || zoneId >= zoneLateralCoord.length) return -1;
+        return stripIndexForLateral(zoneLateralCoord[zoneId], lateralExtent);
+    }
+
+    private record TargetChoice(int trackIndex, int targetZoneId) { }
+
+    private TargetChoice targetChoice(Squad squad, int preferredTrack,
+                                      BattleView sim) {
+        int home = nearestDefenderZoneInStrip(squad, preferredTrack, sim);
+        if (home >= 0) return new TargetChoice(preferredTrack, home);
+
+        int bestTrack = -1;
+        int bestZone = -1;
+        float bestDistance = Float.MAX_VALUE;
+        for (int track = Math.max(0, preferredTrack - 1);
+             track <= Math.min(STRIP_COUNT - 1, preferredTrack + 1); track++) {
+            if (track == preferredTrack) continue;
+            int zone = nearestDefenderZoneInStrip(squad, track, sim);
+            if (zone < 0) continue;
+            float dx = squad.centroidX - zoneCentroidX[zone];
+            float dy = squad.centroidY - zoneCentroidY[zone];
+            float distance = dx * dx + dy * dy;
+            if (distance < bestDistance
+                    || (distance == bestDistance && track < bestTrack)) {
+                bestDistance = distance;
+                bestTrack = track;
+                bestZone = zone;
+            }
+        }
+        return new TargetChoice(bestTrack, bestZone);
     }
 
     /**
@@ -533,6 +679,116 @@ public final class ConquestCommand implements MissionCommand {
             }
         }
         return bestForwardZone >= 0 ? bestForwardZone : bestBackwardZone;
+    }
+
+    private void publishFrontSnapshot(BattleView sim, Phase phase,
+                                      int remainingCompounds,
+                                      CompoundTarget keep,
+                                      Map<Integer, SquadDirective> directives) {
+        int[] preferredSquads = new int[STRIP_COUNT];
+        int[] effectiveSquads = new int[STRIP_COUNT];
+        int[] effectiveMembers = new int[STRIP_COUNT];
+        int[] preferredMembers = new int[STRIP_COUNT];
+        float[] bodyProgressSum = new float[STRIP_COUNT];
+        float[] leadProgress = new float[STRIP_COUNT];
+        Arrays.fill(leadProgress, -1f);
+        int[] targetZones = new int[STRIP_COUNT];
+        Arrays.fill(targetZones, -1);
+
+        int forwardExtent = axis == TraversalAxis.SOUTH_TO_NORTH
+                ? sim.getGrid().getHeight() : sim.getGrid().getWidth();
+        for (Squad squad : sim.getSquads()) {
+            if (squad.faction != Faction.MARINE || squad.aliveMembers <= 0) continue;
+            SquadDirective directive = directives.get(squad.id);
+            if (directive != null
+                    && directive.reason() == AssignmentReason.GARRISON_HOLD) {
+                continue;
+            }
+            int preferred = directive != null
+                    ? directive.preferredTrack() : stripFor(squad);
+            if (preferred >= 0 && preferred < STRIP_COUNT) {
+                preferredSquads[preferred]++;
+                preferredMembers[preferred] += squad.aliveMembers;
+                float forward = axis == TraversalAxis.SOUTH_TO_NORTH
+                        ? squad.centroidY : squad.centroidX;
+                float progress = normalizedProgress(forward, forwardExtent);
+                bodyProgressSum[preferred] += progress * squad.aliveMembers;
+                leadProgress[preferred] = Math.max(leadProgress[preferred], progress);
+            }
+            if (directive == null) continue;
+            int effective = directive.effectiveTrack();
+            if (effective < 0 || effective >= STRIP_COUNT) continue;
+            effectiveSquads[effective]++;
+            effectiveMembers[effective] += squad.aliveMembers;
+            if (targetZones[effective] < 0 && directive.targetZoneId() >= 0) {
+                targetZones[effective] = directive.targetZoneId();
+            }
+        }
+
+        CommanderInfluenceSnapshot influence = sim.getCommanderInfluence(Faction.MARINE);
+        float[] knownHostileFront = new float[STRIP_COUNT];
+        Arrays.fill(knownHostileFront, -1f);
+        int[] knownContacts = new int[STRIP_COUNT];
+        float[] friendlyPressure = new float[STRIP_COUNT];
+        float[] hostilePressure = new float[STRIP_COUNT];
+        int influenceTick = -1;
+        if (influence != null) {
+            influenceTick = influence.updatedTick();
+            for (CommanderContact contact : influence.contacts()) {
+                int lateral = axis == TraversalAxis.SOUTH_TO_NORTH
+                        ? contact.cellX() : contact.cellY();
+                int track = stripIndexForLateral(lateral, lateralExtent);
+                if (track < 0 || track >= STRIP_COUNT) continue;
+                int forward = axis == TraversalAxis.SOUTH_TO_NORTH
+                        ? contact.cellY() : contact.cellX();
+                float progress = normalizedProgress(forward, forwardExtent);
+                knownContacts[track]++;
+                if (knownHostileFront[track] < 0f) {
+                    knownHostileFront[track] = progress;
+                } else {
+                    knownHostileFront[track] = Math.min(
+                            knownHostileFront[track], progress);
+                }
+            }
+            for (int by = 0; by < influence.height(); by++) {
+                for (int bx = 0; bx < influence.width(); bx++) {
+                    int worldX = influence.blockWorldX(bx)
+                            + influence.blockWorldWidth(bx) / 2;
+                    int worldY = influence.blockWorldY(by)
+                            + influence.blockWorldHeight(by) / 2;
+                    int lateral = axis == TraversalAxis.SOUTH_TO_NORTH
+                            ? worldX : worldY;
+                    int track = stripIndexForLateral(lateral, lateralExtent);
+                    if (track < 0 || track >= STRIP_COUNT) continue;
+                    friendlyPressure[track] += influence.friendlyAt(bx, by);
+                    hostilePressure[track] += influence.hostileAt(bx, by);
+                }
+            }
+        }
+
+        List<TrackState> tracks = new ArrayList<>(STRIP_COUNT);
+        for (int track = 0; track < STRIP_COUNT; track++) {
+            int lateralStart = track * lateralExtent / STRIP_COUNT;
+            int lateralEnd = ((track + 1) * lateralExtent / STRIP_COUNT) - 1;
+            float bodyProgress = preferredMembers[track] > 0
+                    ? bodyProgressSum[track] / preferredMembers[track] : -1f;
+            tracks.add(new TrackState(track, lateralStart, lateralEnd,
+                    preferredSquads[track], effectiveSquads[track],
+                    effectiveMembers[track], bodyProgress, leadProgress[track],
+                    knownHostileFront[track], knownContacts[track],
+                    friendlyPressure[track], hostilePressure[track],
+                    targetZones[track]));
+        }
+        frontSnapshot = new ConquestFrontSnapshot(sim.getSimTickIndex(),
+                influenceTick, axis, phase, remainingCompounds,
+                keep != null ? keep.anchorZoneId : -1,
+                keep != null ? keep.record.state : null,
+                tracks, new ArrayList<>(directives.values()));
+    }
+
+    private static float normalizedProgress(float forward, int extent) {
+        if (extent <= 1) return 0f;
+        return Math.max(0f, Math.min(1f, forward / (extent - 1f)));
     }
 
     // ---- Test/debug accessors ----
