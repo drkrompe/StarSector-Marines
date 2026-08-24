@@ -147,6 +147,23 @@ tasks.register('renderArmoryPreviews', JavaExec) {
     }
 }
 
+tasks.register('renderUiPreviews', JavaExec) {
+    group = 'verification'
+    description = 'Render authored retained UI views without launching Starsector'
+    dependsOn tasks.named('testClasses')
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.dillon.starsectormarines.ops.HeadlessUiPreviewCli'
+    workingDir projectDir
+    systemProperty 'starsectorDir', starsectorDir.absolutePath
+    outputs.upToDateWhen { false }
+    doFirst {
+        File output = providers.gradleProperty('uiPreviewDir').isPresent()
+                ? file(providers.gradleProperty('uiPreviewDir').get())
+                : layout.buildDirectory.dir('headless-ui-previews').get().asFile
+        args projectDir.absolutePath, starsectorCore.absolutePath, output.absolutePath
+    }
+}
+
 tasks.register('layerAuthoring') {
     group = 'development'
     description = 'Launch the standalone marine/mech layer authoring workbench'

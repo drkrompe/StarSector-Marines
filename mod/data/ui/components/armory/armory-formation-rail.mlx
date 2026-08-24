@@ -16,31 +16,31 @@
 <style>
   .formation-rail {
     flex-direction: column;
-    width: 340px;
-    padding: 10px;
-    gap: 7px;
+    width: 260px;
+    padding: 8px;
+    gap: 5px;
     overflow: hidden;
   }
 
   .label { overflow: hidden; }
   .heading { font-family: heading; }
-  #formation-heading { height: 30px; }
-  #company-summary { height: 42px; padding: 8px; }
-  #squad-heading, #team-heading { height: 24px; }
+  #formation-heading { height: 20px; }
+  #company-summary { height: 30px; padding: 5px 6px; }
+  #squad-heading, #team-heading { height: 18px; }
 
   .selection-list {
     flex-direction: column;
-    gap: 7px;
-    padding: 2px;
+    gap: 5px;
+    padding: 1px;
     overflow: scroll;
   }
 
   #squad-list { flex-grow: 1; }
-  #team-list { height: 150px; }
+  #team-list { height: 110px; }
 
   .selection-row {
-    height: 42px;
-    padding: 6px 10px;
+    height: 30px;
+    padding: 4px 7px;
     border-width: 1px;
     overflow: hidden;
     font-family: body;

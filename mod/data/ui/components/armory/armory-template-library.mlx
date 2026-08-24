@@ -1,7 +1,7 @@
 <template props="templateRows">
   <div id="template-library" class="panel template-library">
     <div id="library-heading" class="label heading tone-edge">TEMPLATE LIBRARY</div>
-    <div id="library-explainer" class="label tone-muted">Plans are reusable. Finite equipment gates assignment, not design.</div>
+    <div id="library-explainer" class="label tone-muted">Reusable plans; stock gates assignment.</div>
     <div id="template-list" class="selection-list">
       <button each="row in templateRows" key="{row.id}" id="{row.id}" class="{row.classes}" disabled="{row.disabled}" onclick="{row.select}">{row.label}</button>
     </div>
@@ -11,28 +11,28 @@
 <style>
   .template-library {
     flex-direction: column;
-    width: 360px;
-    padding: 10px;
-    gap: 7px;
+    width: 280px;
+    padding: 8px;
+    gap: 5px;
     overflow: hidden;
   }
 
   .label { overflow: hidden; }
   .heading { font-family: heading; }
-  #library-heading { height: 30px; }
-  #library-explainer { height: 52px; }
+  #library-heading { height: 20px; }
+  #library-explainer { height: 30px; }
 
   .selection-list {
     flex-direction: column;
     flex-grow: 1;
-    gap: 7px;
-    padding: 2px;
+    gap: 5px;
+    padding: 1px;
     overflow: scroll;
   }
 
   .selection-row {
-    height: 42px;
-    padding: 6px 10px;
+    height: 30px;
+    padding: 4px 7px;
     border-width: 1px;
     overflow: hidden;
     font-family: body;

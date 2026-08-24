@@ -66,6 +66,11 @@ public final class HeadlessArmoryPreviewRenderer {
         return output;
     }
 
+    /** Asset source shared by full retained-view previews using the live canvas producer. */
+    public ArmoryLoadoutPreviewComposer.Assets assets() {
+        return assets;
+    }
+
     public static void main(String[] args) throws Exception {
         Path projectRoot = args.length > 0 ? Path.of(args[0]) : Path.of(".");
         Path outputDir = args.length > 1

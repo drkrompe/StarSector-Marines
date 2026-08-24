@@ -4,9 +4,8 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — folded the retained-toolkit direction into this sole
-canonical model, including responsive grids, backend-neutral canvas evidence,
-and safe clip-based offline layer authoring.
+Updated: 2026-08-24 — the canonical model now includes full-view headless paint
+parity, responsive retained layout, and safe clip-based offline layer authoring.
 
 ## Purpose
 
@@ -37,8 +36,11 @@ them.
 - **Overflow** is CSS's relationship between a box and content that exceeds it.
   `visible` is the default; `hidden` and `scroll` establish the same padding-box
   clip, while `scroll` additionally promises navigation chrome and input.
-- A **painter** projects document-space boxes into Starsector's UI-space render
-  callback and restores every OpenGL state it changes.
+- A **painter** traverses the laid-out document once and emits boxes, text,
+  clipping, canvas, focus, and scroll chrome to a paint target.
+- A **paint target** projects those document-space operations into either
+  Starsector's UI pass or a controlled headless raster. The live target alone
+  owns OpenGL state and host-space conversion.
 - A **theme** maps semantic component roles and interaction states to typography,
   color, spacing, and decoration. Domain screens do not own a second palette.
 - A **binding** is an explicit invalidation edge from view-model state to one
@@ -57,6 +59,8 @@ them.
   ordinary boxes: formation connectors, graphs, paper dolls, or transaction flows.
 - A **surface** is a document plus its view model, navigation behavior, and host
   lifecycle. Fleet Armory, Company HQ, and the UI workbench are surfaces.
+- A **preview fixture** assembles a surface from controlled domain state for UX
+  evidence. It is presentation input, never a replacement campaign authority.
 
 ## Coordinate spaces
 
@@ -70,6 +74,10 @@ One host adapter owns each conversion. Layout never reads the framebuffer, and
 elements never add the dialog origin themselves. UI scale is observed at the host
 boundary rather than guessed from the physical monitor.
 
+A headless image is a document-pixel raster, so it requires no fourth layout
+space. Its target consumes document coordinates directly; requested viewport
+dimensions and controlled fixture state make the result reproducible.
+
 ## End-to-end flow
 
 For a stable frame:
@@ -80,6 +88,10 @@ domain invalidation -> view model -> bindings -> layout if geometry changed
 
 Starsector input -> host coordinate conversion -> reverse-order hit test
                                                    -> element behavior
+
+authored MLX + fixture state -> retained document -> shared painter
+                                                 -> Starsector paint target
+                                                 -> headless raster target
 ```
 
 The first implementation may repaint the whole document after a change. The
@@ -114,6 +126,9 @@ the retained model.
    it never reflects over arbitrary domain objects.
 10. **Exceptional drawing stays exceptional.** A new visual does not require a new
     element kind when a canvas producer can express it.
+11. **Preview the production path.** Headless UX evidence uses the production
+    document, layout, cascade, font metrics, clip calculation, and canvas producer.
+    A screenshot-specific reconstruction cannot establish retained-view parity.
 
 ## Intrinsic text and typography
 
@@ -147,9 +162,10 @@ the border remains visible while content cannot paint through it.
 
 The one `UiLayoutEngine.clipForChildren` expression is consumed by both the painter
 and reverse-order hit test. A clipped-away child is therefore neither visible nor
-clickable. Only the OpenGL backend converts that document rectangle into physical
+clickable. Only the live paint target converts that document rectangle into physical
 framebuffer pixels; the conversion observes Starsector UI scale and flips the
-top-left document Y axis exactly once.
+top-left document Y axis exactly once. A headless target applies the same clip in
+document pixels.
 
 ## Vertical scrolling
 
@@ -214,11 +230,11 @@ content. Its output is clipped to the canvas content box intersected with ancest
 clips, and its `visibleBounds` is expressed in canvas-local units. Whole-texture
 sprites are another bounded canvas primitive: canvas metrics place and scale them,
 the producer supplies the domain composition, and the retained painter continues
-to own clipping and borrowed OpenGL state. A composed preview expresses its ordered
-primitives against a backend-neutral sink and identifies sprite assets independently
-of a loaded game texture. The live sink resolves those tokens to `SpriteAPI`; the
-headless sink resolves the same tokens to source PNGs in a controlled Java2D context.
-Both therefore exercise one layout, pose, occlusion, and actor-composition recipe.
+to own clipping. A sprite operation carries both its stable asset path and, when
+live, its loaded `SpriteAPI` handle. The Starsector canvas consumes the handle and
+restores borrowed OpenGL state; the headless canvas resolves the path to the source
+PNG. Both therefore exercise one producer, layout, pose, occlusion, and
+actor-composition recipe.
 
 Layered character authoring is a separate desktop concern rather than another game
 screen. A unit-layer document separates a unit's equipment variants from its named
@@ -227,19 +243,20 @@ Each clip owns ordered keyframes of sprite layers in normalized actor coordinate
 including source path, offset, independent scale, angle, pivot, visibility, and
 transition duration. Playback smoothsteps matching layer transforms, including the
 independent scale used by an articulated mech thigh stretching toward its foot. The
-authoring workbench edits that contract, plays one selected clip, and renders combined
-PNG sheets in a controlled Java2D context. Live render
-adapters remain responsible for consuming the same contract. The editor keeps bounded
-whole-document undo/redo history, while JSON and image overwrites require explicit
-confirmation; the tool never reaches
-into a running battle or treats an editor-only transform as shipped behavior.
+authoring workbench edits that contract, plays one selected clip, and renders
+combined PNG sheets in a controlled Java2D context. Live render adapters remain
+responsible for consuming the same contract. The editor keeps bounded whole-document
+undo/redo history, while JSON and image overwrites require explicit confirmation;
+the tool never reaches into a running battle or treats an editor-only transform as
+shipped behavior.
 
 ## Authority boundaries
 
 - Starsector owns the campaign UI, custom-dialog placement, callback cadence, and
   final screen composition.
 - The retained UI toolkit owns document geometry, paint/hit ordering, interaction
-  state, styling, and host-space conversion inside the granted rectangle.
+  state, styling, backend-neutral paint traversal, and host-space conversion inside
+  the granted rectangle.
 - Each game feature owns its view model and commands. The toolkit imports no
   company, campaign, or battle type.
 - Existing immediate widgets remain supported while surfaces migrate. A retained

@@ -86,7 +86,15 @@ public final class UiDocument {
 
     public void render(UiViewport viewport, float alphaMult) {
         synchronizeStyles();
-        painter.paint(root, viewport, alphaMult, canvases, text);
+        painter.paint(root, this.viewport, alphaMult, canvases, text,
+                new StarsectorUiPaintTarget(viewport));
+    }
+
+    /** Paints through a non-host backend such as the headless UX renderer. */
+    public void render(UiPaintTarget target, float alphaMult) {
+        if (target == null) throw new IllegalArgumentException("paint target is required");
+        synchronizeStyles();
+        painter.paint(root, viewport, alphaMult, canvases, text, target);
     }
 
     /** Resolves targets, advances retained motion on real time, and relayouts only when needed. */

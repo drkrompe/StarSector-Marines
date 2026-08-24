@@ -1,0 +1,148 @@
+package com.dillon.starsectormarines.ops;
+
+import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.ops.battleview.ArmoryLoadoutPreviewCanvas;
+import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
+import com.dillon.starsectormarines.ui.retained.UiAlign;
+import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.ui.retained.headless.HeadlessUiRenderer;
+import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
+import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
+import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
+
+import javax.imageio.ImageIO;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+/** Command-line UX evidence for authored retained views; never boots Starsector. */
+public final class HeadlessUiPreviewCli {
+
+    private static final List<String> OVERVIEW_COMPONENTS = List.of(
+            "data/ui/components/armory/fleet-armory-overview.mlx",
+            "data/ui/components/armory/armory-company-list.mlx");
+    private static final List<String> WORKSPACE_COMPONENTS = List.of(
+            "data/ui/components/armory/fleet-armory.mlx",
+            "data/ui/components/armory/armory-formation-rail.mlx",
+            "data/ui/components/armory/armory-template-library.mlx",
+            "data/ui/components/armory/armory-refit-transaction.mlx");
+
+    private HeadlessUiPreviewCli() {
+    }
+
+    public static void main(String[] args) throws Exception {
+        Path projectRoot = args.length > 0 ? Path.of(args[0]) : Path.of(".");
+        Path starsectorCore = args.length > 1
+                ? Path.of(args[1])
+                : Path.of(System.getProperty("starsectorDir"), "starsector-core");
+        Path outputDir = args.length > 2
+                ? Path.of(args[2])
+                : projectRoot.resolve("build/headless-ui-previews");
+        Files.createDirectories(outputDir);
+
+        HeadlessUiRenderer renderer = new HeadlessUiRenderer(
+                projectRoot.resolve("mod"), starsectorCore);
+        renderFleetArmoryOverview(projectRoot, outputDir, renderer, 1744, 938,
+                "fleet-armory-overview-wide.png");
+        renderFleetArmoryOverview(projectRoot, outputDir, renderer, 1163, 625,
+                "fleet-armory-overview-compact.png");
+        renderFleetArmoryWorkspace(projectRoot, outputDir, renderer, 1744, 938,
+                "fleet-armory-workspace-wide.png");
+        System.out.println("Wrote retained UI previews to " + outputDir.toAbsolutePath());
+    }
+
+    private static void renderFleetArmoryWorkspace(
+            Path projectRoot, Path outputDir, HeadlessUiRenderer renderer,
+            int width, int height, String filename) throws Exception {
+        Reactor reactor = new Reactor();
+        MarineRoster roster = new MarineRoster();
+        roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
+        roster.reserveSquad();
+        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(reactor, roster);
+        HeadlessArmoryPreviewRenderer armoryPreview =
+                new HeadlessArmoryPreviewRenderer(projectRoot.resolve("mod"));
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                projectRoot.resolve("mod").resolve(path)), WORKSPACE_COMPONENTS);
+        loader.reload();
+
+        try (MarkupInstance instance = loader.build(
+                reactor, "fleet-armory", props(viewModel))) {
+            instance.requireElement("armory-reload-status")
+                    .align(UiAlign.STRETCH, UiAlign.CENTER);
+            instance.requireElement("transaction-feedback")
+                    .align(UiAlign.STRETCH, UiAlign.CENTER);
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            document.canvases().set(instance.requireElement("loadout-preview"),
+                    new ArmoryLoadoutPreviewCanvas(
+                            viewModel::selectedBillet, armoryPreview.assets()));
+            ImageIO.write(renderer.render(document, width, height), "PNG",
+                    outputDir.resolve(filename).toFile());
+        }
+    }
+
+    private static void renderFleetArmoryOverview(
+            Path projectRoot, Path outputDir, HeadlessUiRenderer renderer,
+            int width, int height, String filename) throws Exception {
+        Reactor reactor = new Reactor();
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(MarineSquad.CAPACITY * 2);
+        FleetArmoryOverviewViewModel viewModel = new FleetArmoryOverviewViewModel(
+                reactor, roster, () -> { });
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                projectRoot.resolve("mod").resolve(path)), OVERVIEW_COMPONENTS);
+        loader.reload();
+
+        try (MarkupInstance instance = loader.build(
+                reactor, "fleet-armory-overview", props(viewModel))) {
+            instance.requireElement("company-overview-summary")
+                    .align(UiAlign.STRETCH, UiAlign.CENTER);
+            instance.requireElement("company-overview-reload-status")
+                    .align(UiAlign.STRETCH, UiAlign.CENTER);
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            ImageIO.write(renderer.render(document, width, height), "PNG",
+                    outputDir.resolve(filename).toFile());
+        }
+    }
+
+    private static Map<String, Object> props(FleetArmoryOverviewViewModel viewModel) {
+        Map<String, Object> props = new LinkedHashMap<>();
+        props.put("fleetSummary", viewModel.fleetSummary());
+        props.put("companyCards", viewModel.companyCards());
+        props.put("back", (Runnable) () -> { });
+        props.put("legacy", (Runnable) () -> { });
+        props.put("reload", (Runnable) () -> { });
+        props.put("reloadStatus", "Headless UX preview  ·  No engine process");
+        return props;
+    }
+
+    private static Map<String, Object> props(FleetArmoryViewModel viewModel) {
+        Map<String, Object> props = new LinkedHashMap<>();
+        props.put("companySummary", viewModel.companySummary());
+        props.put("squadRows", viewModel.squadRows());
+        props.put("teamRows", viewModel.teamRows());
+        props.put("templateRows", viewModel.templateRows());
+        props.put("targetSummary", viewModel.targetSummary());
+        props.put("candidateSummary", viewModel.candidateSummary());
+        props.put("billetRows", viewModel.billetRows());
+        props.put("previewSummary", viewModel.previewSummary());
+        props.put("gearRows", viewModel.gearRows());
+        props.put("transactionSummary", viewModel.transactionSummary());
+        props.put("transactionClasses", viewModel.transactionClasses());
+        props.put("applyDisabled", viewModel.applyDisabled());
+        props.put("apply", viewModel.applyAction());
+        props.put("feedbackText", viewModel.feedbackText());
+        props.put("feedbackClasses", viewModel.feedbackClasses());
+        props.put("back", (Runnable) () -> { });
+        props.put("legacy", (Runnable) () -> { });
+        props.put("reload", (Runnable) () -> { });
+        props.put("reloadStatus", "Headless UX preview  ·  No engine process");
+        return props;
+    }
+}
