@@ -120,7 +120,9 @@ tasks.register('profileBattleFixture', Test) {
     if (!selectedFixture.isBlank()) {
         systemProperty 'battle.fixture.path', selectedFixture
     }
-    ['battle.profile.warmupTicks', 'battle.profile.minimumMillis'].each { propertyName ->
+    ['battle.profile.warmupTicks', 'battle.profile.prerollTicks',
+     'battle.profile.sliceTicks', 'battle.profile.minimumMillis',
+     'battle.unitUpdate.minimumParallelUnits'].each { propertyName ->
         def propertyValue = System.getProperty(propertyName, '')
         if (!propertyValue.isBlank()) {
             systemProperty propertyName, propertyValue

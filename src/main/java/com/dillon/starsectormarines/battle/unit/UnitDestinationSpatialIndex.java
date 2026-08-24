@@ -1,8 +1,12 @@
 package com.dillon.starsectormarines.battle.unit;
 
+import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
+import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Sister index to {@link UnitSpatialIndex}, but keyed on each unit's
@@ -40,6 +44,15 @@ public final class UnitDestinationSpatialIndex {
     private final int bucketsY;
     private final LongBucket[] buckets;
     private final ArrayList<LongBucket> pool = new ArrayList<>();
+    /**
+     * Grow-and-stay rebuild scratch keyed by roster-dense index. The column
+     * pass gathers eligible movement destinations in archetype-row order;
+     * the insertion pass then walks roster-dense order so bucket entry order
+     * remains exactly the same as the original by-id rebuild.
+     */
+    private long[] scratchIds = new long[64];
+    private int[] scratchDestX = new int[64];
+    private int[] scratchDestY = new int[64];
 
     public UnitDestinationSpatialIndex(int gridWidth, int gridHeight) {
         this.bucketsX = Math.max(1, (gridWidth + UnitSpatialIndex.BUCKET - 1) / UnitSpatialIndex.BUCKET);
@@ -53,12 +66,13 @@ public final class UnitDestinationSpatialIndex {
      * destination equals their current cell, are skipped — they're already
      * accounted for by the current-cell index.
      *
-     * <p>Dense iteration over {@code [0, liveCount())} excludes released slots.
-     * Everything the bin needs — MOVEMENT presence, the path array, the current
-     * cell — is read by id off the world columns; only the id is stored.
+     * <p>A column walk gathers movement paths and current positions into
+     * grow-and-stay scratch keyed by roster-dense index. The insertion pass
+     * then walks {@code [0, liveCount())}, preserving the roster-dense bucket
+     * order while avoiding repeated by-id location probes. Only the id is
+     * stored in the destination bucket.
      */
     public void rebuild(UnitRosterService roster) {
-        World world = roster.world();
         for (int i = 0; i < buckets.length; i++) {
             LongBucket b = buckets[i];
             if (b != null) {
@@ -69,27 +83,60 @@ public final class UnitDestinationSpatialIndex {
         }
         long[] dense = roster.denseArray();
         int liveCount = roster.liveCount();
+        ensureScratchCapacity(liveCount);
+        Arrays.fill(scratchIds, 0, liveCount, 0L);
+
+        EntityWorld world = roster.entityWorld();
+        BattleComponents components = roster.components();
+        for (ArchetypeTable table : world.matched(components.gridOccupants)) {
+            // Static emplacements carry POSITION but no MOVEMENT. Partition
+            // them once per table instead of probing component presence for
+            // every roster id.
+            if (!table.has(components.MOVEMENT)) continue;
+            Object[] paths = table.objects(components.MOVEMENT,
+                    BattleComponents.MOVEMENT_PATH).array();
+            float[] posX = table.floats(components.POSITION,
+                    BattleComponents.POSITION_X).array();
+            float[] posY = table.floats(components.POSITION,
+                    BattleComponents.POSITION_Y).array();
+            for (int row = 0, rows = table.rowCount(); row < rows; row++) {
+                long id = table.entityAt(row);
+                int denseIndex = roster.indexOf(id);
+                if (denseIndex == UnitRosterService.INVALID_INDEX) continue;
+                int[] path = (int[]) paths[row];
+                int cells = Paths.cellCount(path);
+                if (cells <= 0) continue;
+                int destX = Paths.cellX(path, cells - 1);
+                int destY = Paths.cellY(path, cells - 1);
+                // Cell compare, not an arrival test: this is an
+                // occupancy-style claim, so floor the continuous POSITION
+                // columns exactly as World.cellX/cellY did before.
+                if (destX == (int) Math.floor(posX[row])
+                        && destY == (int) Math.floor(posY[row])) continue;
+                scratchIds[denseIndex] = id;
+                scratchDestX[denseIndex] = destX;
+                scratchDestY[denseIndex] = destY;
+            }
+        }
+
         for (int i = 0; i < liveCount; i++) {
             long id = dense[i];
-            // Static emplacements (turrets, hubs) have no MOVEMENT component and
-            // never path — skip before the fail-loud path read (an empty path
-            // would be filtered by the cells<=0 check below anyway).
-            if (!world.hasMovement(id)) continue;
-            int[] path = world.path(id);
-            int cells = Paths.cellCount(path);
-            if (cells <= 0) continue;
-            int destX = Paths.cellX(path, cells - 1);
-            int destY = Paths.cellY(path, cells - 1);
-            // Cell compare, not an arrival test: this is an occupancy-style
-            // claim ("the unit's path already terminates on the cell it
-            // currently occupies," so there's nothing left to index) — not a
-            // check of whether the unit has arrived at a continuous position.
-            if (destX == world.cellX(id) && destY == world.cellY(id)) continue;
+            if (scratchIds[i] != id) continue;
+            int destX = scratchDestX[i];
+            int destY = scratchDestY[i];
             int bx = destX / UnitSpatialIndex.BUCKET;
             int by = destY / UnitSpatialIndex.BUCKET;
             if (bx < 0 || bx >= bucketsX || by < 0 || by >= bucketsY) continue;
             bucketAt(by * bucketsX + bx).add(id);
         }
+    }
+
+    private void ensureScratchCapacity(int need) {
+        if (need <= scratchIds.length) return;
+        int capacity = Math.max(need, scratchIds.length << 1);
+        scratchIds = Arrays.copyOf(scratchIds, capacity);
+        scratchDestX = Arrays.copyOf(scratchDestX, capacity);
+        scratchDestY = Arrays.copyOf(scratchDestY, capacity);
     }
 
     /**

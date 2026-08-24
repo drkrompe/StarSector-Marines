@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -111,6 +112,42 @@ public class UnitSpatialIndexTest {
         assertTrue(lowerIdAcrossBoundary < higherIdInCenterBucket);
         assertEquals(lowerIdAcrossBoundary,
                 index.nearestFaction(24f, 8f, Faction.MARINE));
+    }
+
+    @Test
+    public void rebuildRetainsDenseOrderAcrossArchetypesAndScratchGrowth() {
+        UnitSpatialIndex index = new UnitSpatialIndex(64, 64);
+        UnitRosterService roster = new UnitRosterService(index, null);
+        long released = 0L;
+        for (int i = 0; i < 70; i++) {
+            UnitType type = (i & 1) == 0
+                    ? UnitType.MARINE_BLUE : UnitType.CIVILIAN;
+            long id = roster.spawn(new EntitySpec("unit-" + i, Faction.MARINE,
+                    type, 10 + (i & 1), 10));
+            if (i == 7) released = id;
+        }
+        roster.releaseFromRegistry(released);
+
+        index.rebuild(roster);
+
+        LongBucket out = new LongBucket();
+        index.gather(10.5f, 10.5f, 4f, out);
+        assertEquals(roster.liveCount(), out.size);
+        for (int i = 0; i < roster.liveCount(); i++) {
+            assertEquals(roster.get(i), out.ids[i], "dense order at " + i);
+        }
+    }
+
+    @Test
+    public void rebuildDoesNotReuseStaleScratchForMalformedLiveUnit() {
+        UnitSpatialIndex index = new UnitSpatialIndex(64, 64);
+        UnitRosterService roster = new UnitRosterService(index, null);
+        long unit = roster.spawn(unit("unit", 10, 10));
+        index.rebuild(roster);
+
+        roster.entityWorld().removeComponent(unit, roster.components().POSITION);
+
+        assertThrows(IllegalStateException.class, () -> index.rebuild(roster));
     }
 
     private static boolean contains(LongBucket bucket, long id) {

@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.fixture;
 
+import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import jdk.jfr.Category;
 import jdk.jfr.Configuration;
@@ -26,14 +28,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Opt-in profiler harness; run with {@code gradlew profileBattleFixture}.
  * A captured fixture can be selected with
  * {@code -Dbattle.fixture.path=path/to/tick_profile.json}; tune preparation
- * and measurement with {@code -Dbattle.profile.warmupTicks=600} and
+ * and measurement with {@code -Dbattle.profile.warmupTicks=600},
+ * {@code -Dbattle.profile.prerollTicks=300},
+ * {@code -Dbattle.profile.sliceTicks=300}, and
  * {@code -Dbattle.profile.minimumMillis=5000}.
  */
 @Tag("battle-profile")
 class BattleFixtureJfrProfileTest {
 
     private static final int DEFAULT_WARMUP_TICKS = 300;
-    private static final long DEFAULT_MINIMUM_MILLIS = 3_000L;
+    private static final int DEFAULT_PREROLL_TICKS = 300;
+    private static final int DEFAULT_SLICE_TICKS = 300;
+    private static final long DEFAULT_MINIMUM_MILLIS = 5_000L;
     private static final Duration SAMPLE_PERIOD = Duration.ofMillis(10L);
     private static final String RUN_EVENT_NAME =
             "com.dillon.starsectormarines.BattleFixtureProfileRun";
@@ -47,6 +53,10 @@ class BattleFixtureJfrProfileTest {
         BattleFixture fixture = BattleFixtureTestSupport.loadSelectedFixture();
         int warmupTicks = Integer.getInteger(
                 "battle.profile.warmupTicks", DEFAULT_WARMUP_TICKS);
+        int prerollTicks = Integer.getInteger(
+                "battle.profile.prerollTicks", DEFAULT_PREROLL_TICKS);
+        int sliceTicks = Integer.getInteger(
+                "battle.profile.sliceTicks", DEFAULT_SLICE_TICKS);
         long minimumMillis = Long.getLong(
                 "battle.profile.minimumMillis", DEFAULT_MINIMUM_MILLIS);
         if (warmupTicks < 0) {
@@ -56,6 +66,14 @@ class BattleFixtureJfrProfileTest {
         if (minimumMillis < 1L) {
             throw new IllegalArgumentException(
                     "battle.profile.minimumMillis must be positive");
+        }
+        if (prerollTicks < 0) {
+            throw new IllegalArgumentException(
+                    "battle.profile.prerollTicks must be non-negative");
+        }
+        if (sliceTicks < 1) {
+            throw new IllegalArgumentException(
+                    "battle.profile.sliceTicks must be positive");
         }
 
         // Warm classloading/JIT on sacrificial reconstructions. A short scene
@@ -76,12 +94,18 @@ class BattleFixtureJfrProfileTest {
         boundary.fixtureSource = System.getProperty(
                 "battle.fixture.path", "checked-in-default");
         boundary.warmupTicks = warmupTicks;
+        boundary.prerollTicks = prerollTicks;
+        boundary.sliceTicks = sliceTicks;
         boundary.minimumMillis = minimumMillis;
+        boundary.minimumParallelUnits =
+                UnitUpdateSystem.configuredMinimumParallelUnits();
+        boundary.unitUpdateParallelism =
+                UnitUpdateSystem.configuredPoolParallelism();
 
         RunStats measured;
         // Construct the ordinary measured sim before recording so map/scenario
         // setup cannot masquerade as a tick-loop hotspot.
-        try (BattleSimulation firstSimulation = fixture.build();
+        try (BattleSimulation firstSimulation = prepareSimulation(fixture, prerollTicks);
              Recording recording = new Recording(
                 Configuration.getConfiguration("profile"))) {
             recording.setName("battle-fixture");
@@ -89,10 +113,17 @@ class BattleFixtureJfrProfileTest {
             recording.enable("jdk.ExecutionSample").withPeriod(SAMPLE_PERIOD);
             recording.start();
             boundary.begin();
-            measured = runForDuration(
-                    fixture, firstSimulation, recording, minimumMillis);
+            measured = runFixedSlices(
+                    fixture, firstSimulation, recording,
+                    prerollTicks, sliceTicks, minimumMillis);
             boundary.measuredTicks = measured.ticks();
             boundary.replayCount = measured.replays();
+            boundary.activeTickNanos = measured.activeTickNanos();
+            boundary.firstSliceLiveUnits = measured.firstSliceLiveUnits();
+            boundary.minimumSliceStartLiveUnits = measured.minimumSliceStartLiveUnits();
+            boundary.maximumSliceStartLiveUnits = measured.maximumSliceStartLiveUnits();
+            boundary.pathfindCalls = measured.pathfindCalls();
+            boundary.pathfindNanos = measured.pathfindNanos();
             boundary.end();
             boundary.commit();
             recording.stop();
@@ -105,7 +136,10 @@ class BattleFixtureJfrProfileTest {
         verifyRecording(recordingPath, fixture.kind(), minimumMillis);
         System.out.println("Battle fixture JFR: " + recordingPath
                 + " (" + measured.ticks() + " ticks across "
-                + measured.replays() + " replays)");
+                + measured.replays() + " fixed slices; "
+                + Math.round(measured.ticksPerSecond()) + " active ticks/s; "
+                + measured.firstSliceLiveUnits() + " live units at slice start; "
+                + measured.pathfindCallsPerTick() + " pathfinds/tick)");
     }
 
     private static void verifyRecording(
@@ -128,6 +162,9 @@ class BattleFixtureJfrProfileTest {
                 "JFR should contain the measured-region boundary");
         assertEquals(expectedKind, boundary.getString("fixtureKind"));
         assertTrue(boundary.getLong("measuredTicks") > 0L);
+        assertTrue(boundary.getLong("activeTickNanos")
+                        >= minimumMillis * 1_000_000L,
+                "active tick time should satisfy the requested minimum");
         assertTrue(boundary.getDuration().toMillis() >= minimumMillis);
         assertTrue(hasProductionSample,
                 "JFR should sample production battle code inside the measured run");
@@ -162,31 +199,76 @@ class BattleFixtureJfrProfileTest {
         }
     }
 
-    private static RunStats runForDuration(
-            BattleFixture fixture, BattleSimulation firstSimulation,
-            Recording recording, long minimumMillis) {
-        long deadline = System.nanoTime() + minimumMillis * 1_000_000L;
-        long ticks = 0L;
-        int replays = 1;
-        BattleSimulation sim = firstSimulation;
+    private static BattleSimulation prepareSimulation(
+            BattleFixture fixture, int prerollTicks) {
+        BattleSimulation sim = fixture.build();
         try {
-            while (System.nanoTime() < deadline) {
+            for (int tick = 0; tick < prerollTicks; tick++) {
                 if (sim.isComplete()) {
-                    // Short fixtures may need reconstruction to fill the sample
-                    // window. Pause execution sampling around setup/teardown so
-                    // those frames do not pollute the tick-loop hot methods.
-                    recording.disable("jdk.ExecutionSample");
-                    sim.close();
-                    sim = fixture.build();
-                    replays++;
-                    recording.enable("jdk.ExecutionSample").withPeriod(SAMPLE_PERIOD);
-                    if (sim.isComplete()) {
-                        throw new IllegalStateException(
-                                "fixture completes before its first tick");
-                    }
+                    throw new IllegalStateException(
+                            "fixture completed during profile pre-roll at tick " + tick);
                 }
                 advanceOneTick(sim);
-                ticks++;
+            }
+            if (sim.isComplete()) {
+                throw new IllegalStateException(
+                        "fixture completes before the measured profile slice");
+            }
+            return sim;
+        } catch (RuntimeException | Error failure) {
+            sim.close();
+            throw failure;
+        }
+    }
+
+    private static RunStats runFixedSlices(
+            BattleFixture fixture, BattleSimulation firstSimulation,
+            Recording recording, int prerollTicks, int sliceTicks,
+            long minimumMillis) {
+        long minimumNanos = minimumMillis * 1_000_000L;
+        long activeTickNanos = 0L;
+        long ticks = 0L;
+        int replays = 1;
+        int firstSliceLiveUnits = firstSimulation.liveUnitCount();
+        int minimumSliceStartLiveUnits = firstSliceLiveUnits;
+        int maximumSliceStartLiveUnits = firstSliceLiveUnits;
+        long pathfindCalls = 0L;
+        long pathfindNanos = 0L;
+        BattleSimulation sim = firstSimulation;
+        try {
+            while (activeTickNanos < minimumNanos) {
+                int liveUnits = sim.liveUnitCount();
+                minimumSliceStartLiveUnits = Math.min(
+                        minimumSliceStartLiveUnits, liveUnits);
+                maximumSliceStartLiveUnits = Math.max(
+                        maximumSliceStartLiveUnits, liveUnits);
+                long sliceStart = System.nanoTime();
+                for (int tick = 0; tick < sliceTicks; tick++) {
+                    if (sim.isComplete()) {
+                        throw new IllegalStateException(
+                                "fixture completed inside measured profile slice at tick "
+                                        + (prerollTicks + tick));
+                    }
+                    advanceOneTick(sim);
+                    TickInnerProfile innerProfile = sim.getTickInnerProfile();
+                    pathfindCalls += innerProfile.countOf(
+                            TickInnerProfile.Bucket.PATHFIND);
+                    pathfindNanos += innerProfile.nanosOf(
+                            TickInnerProfile.Bucket.PATHFIND);
+                    ticks++;
+                }
+                activeTickNanos += System.nanoTime() - sliceStart;
+
+                if (activeTickNanos < minimumNanos) {
+                    // Every repetition profiles the same logical battle age.
+                    // Pause sampling while reconstructing and pre-rolling so
+                    // lifecycle work cannot masquerade as tick-loop cost.
+                    recording.disable("jdk.ExecutionSample");
+                    sim.close();
+                    sim = prepareSimulation(fixture, prerollTicks);
+                    replays++;
+                    recording.enable("jdk.ExecutionSample").withPeriod(SAMPLE_PERIOD);
+                }
             }
         } finally {
             if (sim != firstSimulation) {
@@ -194,7 +276,9 @@ class BattleFixtureJfrProfileTest {
                 sim.close();
             }
         }
-        return new RunStats(ticks, replays);
+        return new RunStats(ticks, replays, activeTickNanos,
+                firstSliceLiveUnits, minimumSliceStartLiveUnits,
+                maximumSliceStartLiveUnits, pathfindCalls, pathfindNanos);
     }
 
     private static void advanceOneTick(BattleSimulation sim) {
@@ -206,7 +290,19 @@ class BattleFixtureJfrProfileTest {
         }
     }
 
-    private record RunStats(long ticks, int replays) {}
+    private record RunStats(
+            long ticks, int replays, long activeTickNanos,
+            int firstSliceLiveUnits, int minimumSliceStartLiveUnits,
+            int maximumSliceStartLiveUnits,
+            long pathfindCalls, long pathfindNanos) {
+        double ticksPerSecond() {
+            return ticks * 1_000_000_000.0 / activeTickNanos;
+        }
+
+        double pathfindCallsPerTick() {
+            return Math.round(pathfindCalls * 100.0 / ticks) / 100.0;
+        }
+    }
 
     @Name(RUN_EVENT_NAME)
     @Label("Battle fixture profile run")
@@ -220,11 +316,31 @@ class BattleFixtureJfrProfileTest {
         String fixtureSource;
         @Label("Warmup ticks")
         int warmupTicks;
+        @Label("Pre-roll ticks per slice")
+        int prerollTicks;
+        @Label("Measured ticks per slice")
+        int sliceTicks;
         @Label("Requested minimum milliseconds")
         long minimumMillis;
         @Label("Measured ticks")
         long measuredTicks;
         @Label("Replay count")
         int replayCount;
+        @Label("Active tick nanoseconds")
+        long activeTickNanos;
+        @Label("Minimum units for parallel dispatch")
+        int minimumParallelUnits;
+        @Label("Unit-update pool parallelism")
+        int unitUpdateParallelism;
+        @Label("First slice live units")
+        int firstSliceLiveUnits;
+        @Label("Minimum live units at slice start")
+        int minimumSliceStartLiveUnits;
+        @Label("Maximum live units at slice start")
+        int maximumSliceStartLiveUnits;
+        @Label("Pathfind calls")
+        long pathfindCalls;
+        @Label("Accumulated pathfind nanoseconds")
+        long pathfindNanos;
     }
 }

@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.battle.unit;
 
+import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
+import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -67,7 +70,7 @@ public final class UnitSpatialIndex {
         byte[] factionOrdinals = new byte[8];
         int size;
 
-        void add(long id, float x, float y, Faction faction) {
+        void add(long id, float x, float y, byte factionOrdinal) {
             if (size == ids.length) {
                 int cap = size << 1;
                 ids = Arrays.copyOf(ids, cap);
@@ -78,7 +81,7 @@ public final class UnitSpatialIndex {
             ids[size] = id;
             posX[size] = x;
             posY[size] = y;
-            factionOrdinals[size] = (byte) faction.ordinal();
+            factionOrdinals[size] = factionOrdinal;
             size++;
         }
 
@@ -92,6 +95,16 @@ public final class UnitSpatialIndex {
     private final int bucketsY;
     private final Bucket[] buckets;
     private final ArrayList<Bucket> pool = new ArrayList<>();
+    /**
+     * Grow-and-stay rebuild scratch keyed by the roster's dense index. The
+     * gather pass streams POSITION/IDENTITY columns in archetype-row order;
+     * the insertion pass then walks roster-dense order so bucket entry order
+     * remains exactly the same as the original by-id rebuild.
+     */
+    private long[] scratchIds = new long[64];
+    private float[] scratchX = new float[64];
+    private float[] scratchY = new float[64];
+    private byte[] scratchFactionOrdinals = new byte[64];
     /**
      * The registry the buckets were populated from, stashed by {@link #rebuild}
      * / {@link #add} so {@link #gather} can drop units released since the last
@@ -113,16 +126,16 @@ public final class UnitSpatialIndex {
      * its current cell. Called once per sim tick before per-unit updates.
      *
      * <p>Iterates the {@link UnitRosterService}'s dense {@code [0, liveCount())}
-     * range directly — released slots are excluded by the roster, so no
-     * per-call {@code isAlive()} branch in the inner loop. TRUE positions
-     * are read via the world POSITION columns by-id adapters
-     * ({@link World#x(long)} / {@link World#y(long)}), binned into a bucket
-     * by their floored cell, then stored (unfloored) alongside the id so
-     * {@link #gather} never has to read them back.
+     * range directly for insertion — released slots are excluded by the
+     * roster, so no per-call {@code isAlive()} branch in the inner loop.
+     * Before insertion, one column walk gathers TRUE positions and immutable
+     * factions into grow-and-stay scratch keyed by roster dense index. This
+     * avoids three entity-location probes per unit while retaining roster-dense
+     * bucket order. Positions are binned by their floored cell, then stored
+     * (unfloored) alongside the id so {@link #gather} never reads them back.
      */
     public void rebuild(UnitRosterService roster) {
         this.roster = roster;
-        World world = roster.world();
         for (int i = 0; i < buckets.length; i++) {
             Bucket b = buckets[i];
             if (b != null) {
@@ -133,13 +146,56 @@ public final class UnitSpatialIndex {
         }
         long[] dense = roster.denseArray();
         int liveCount = roster.liveCount();
+        ensureScratchCapacity(liveCount);
+        Arrays.fill(scratchIds, 0, liveCount, 0L);
+
+        EntityWorld world = roster.entityWorld();
+        BattleComponents components = roster.components();
+        for (ArchetypeTable table : world.matched(components.gridOccupants)) {
+            // gridOccupants is intentionally the broad POSITION-minus-CORPSE
+            // query shared with occupancy. Ignore any future position-only,
+            // non-roster family before asking for ground-unit identity columns.
+            if (!table.has(components.IDENTITY)) continue;
+            float[] posX = table.floats(components.POSITION,
+                    BattleComponents.POSITION_X).array();
+            float[] posY = table.floats(components.POSITION,
+                    BattleComponents.POSITION_Y).array();
+            Object[] factions = table.objects(components.IDENTITY,
+                    BattleComponents.IDENTITY_FACTION).array();
+            for (int row = 0, rows = table.rowCount(); row < rows; row++) {
+                long id = table.entityAt(row);
+                int denseIndex = roster.indexOf(id);
+                if (denseIndex == UnitRosterService.INVALID_INDEX) continue;
+                scratchIds[denseIndex] = id;
+                scratchX[denseIndex] = posX[row];
+                scratchY[denseIndex] = posY[row];
+                scratchFactionOrdinals[denseIndex] =
+                        (byte) ((Faction) factions[row]).ordinal();
+            }
+        }
+
         for (int i = 0; i < liveCount; i++) {
             long id = dense[i];
-            float x = world.x(id);
-            float y = world.y(id);
+            if (scratchIds[i] != id) {
+                throw new IllegalStateException(
+                        "live unit missing from gridOccupants query: " + id);
+            }
+            float x = scratchX[i];
+            float y = scratchY[i];
             Bucket bucket = bucketAt((int) Math.floor(x), (int) Math.floor(y));
-            if (bucket != null) bucket.add(id, x, y, roster.identity().faction(id));
+            if (bucket != null) {
+                bucket.add(id, x, y, scratchFactionOrdinals[i]);
+            }
         }
+    }
+
+    private void ensureScratchCapacity(int need) {
+        if (need <= scratchIds.length) return;
+        int capacity = Math.max(need, scratchIds.length << 1);
+        scratchIds = Arrays.copyOf(scratchIds, capacity);
+        scratchX = Arrays.copyOf(scratchX, capacity);
+        scratchY = Arrays.copyOf(scratchY, capacity);
+        scratchFactionOrdinals = Arrays.copyOf(scratchFactionOrdinals, capacity);
     }
 
     /**
@@ -163,7 +219,10 @@ public final class UnitSpatialIndex {
         float x = world.x(id);
         float y = world.y(id);
         Bucket bucket = bucketAt((int) Math.floor(x), (int) Math.floor(y));
-        if (bucket != null) bucket.add(id, x, y, roster.identity().faction(id));
+        if (bucket != null) {
+            bucket.add(id, x, y,
+                    (byte) roster.identity().faction(id).ordinal());
+        }
     }
 
     /**
