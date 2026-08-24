@@ -115,13 +115,17 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
     }
 
     private static ShotFx deriveTurret(TurretKind k) {
+        ContrailStyle contrail = switch (k.contrailProfile()) {
+            case NONE -> null;
+            case MISSILE_SMOKE -> ContrailStyle.MISSILE_SMOKE;
+        };
         return new ShotFx(
                 new Sprite(k.projectileSpritePath(), k.projectileVisualCells()),
                 k.arcHeight(),
                 k.hasBoostRamp(),
                 false,
-                false,
-                null);
+                k.smokeTrail() && contrail == null,
+                contrail);
     }
 
     private static ShotFx derivePrimary(MarineWeapon w) {

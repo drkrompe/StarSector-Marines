@@ -132,7 +132,10 @@ The `layerAuthoring` task opens one extensible authoring workbench. Its
 and exposes the shared catalog through its **Snapshots** tab. Its **Turrets**
 page edits the linked weapon, mount, structure, effect, and defense-post layout
 catalogs, with the same deterministic six-state turret renderer used by the
-`turrets` snapshot suite. The **Emplacements** mode provides a bounded tile grid
+`turrets` snapshot suite. Projectile/artillery controls include burst timing,
+velocity, minimum range, spread, arc, boost, indirect fire, projectile art,
+contrail profile, and fire/impact audio; authored launch FX can use
+bearing-relative offsets and velocities for backblast. The **Emplacements** mode provides a bounded tile grid
 for painting barriers and pads, placing or moving multiple turret structures,
 and duplicating a large-post layout into a new seeded variant.
 

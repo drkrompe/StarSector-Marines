@@ -4,7 +4,7 @@ Status: ACTIVE — handheld, special-item and turret weapon data is owned; mech 
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — defined cross-catalog turret authoring and its boundary with emplacement layouts.
+Updated: 2026-08-24 — defined behavior-aware artillery preview, directional launch FX, and weapon-owned contrails/audio.
 
 ## Purpose
 
@@ -85,6 +85,9 @@ Runtime and the deterministic six-state catalog preview consume the same pose
 and seeded effect commands. The preview mounts those commands into the retained
 document canvas seam, so its sprite layers, atlas frames, tint, and blend intent
 are rendered by the same live/headless target boundary as other authored UI.
+Its storyboard derives launch count, boost curve, arc, scatter character, and
+contrail from the resolved weapon definition, so an artillery rocket battery
+cannot silently degrade into a generic straight-flying turret round.
 
 Defense-post layouts load after turret structures so each placement resolves
 at ingestion. Map generation chooses an eligible layout through the seeded run
@@ -124,9 +127,13 @@ shared consumer exists.
   or geometry answers, that answer belongs to the platform or mount, never to
   the weapon.
 - Data-authored effects compose layers rather than select a fixed global
-  recipe. Turret muzzle, trail, impact and aftermath presentation already uses
+  recipe. Turret launch, muzzle, trail, impact and aftermath presentation already uses
   this model; the current named impact profile remains a compatibility bridge
   for unmigrated weapon families and shared decals, lights and audio.
+- Launch layers may author forward/lateral offsets and velocities in the
+  firing bearing's local frame. Persistent projectile ribbons and impact audio
+  are weapon presentation fields consumed consistently by runtime and preview;
+  neither is inferred from a turret id.
 - Mount appearance is optional and carrier-overridable. Emplacements and
   shuttle mounts may composite base/barrel layers while a ground vehicle keeps
   equivalent art in its chassis sheet; absent appearance never changes weapon

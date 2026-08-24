@@ -190,17 +190,20 @@
       },
       "render": {
         "impact": "he", "projectileSprite": "graphics/missiles/missile_locust.png",
-        "projectileVisualCells": 0.45, "smokeTrail": true, "launchBackblast": true
+        "projectileVisualCells": 0.45, "contrail": "missile-smoke"
       },
       "fx": {
+        "launch": [
+          { "kind": "smoke", "radius": [0.28, 0.38], "lifetime": [0.78, 1.05],
+            "count": 4, "offsetForward": [-0.28, -0.10], "offsetLateral": [-0.16, 0.16],
+            "velocityForward": [-1.90, -1.35], "velocityLateral": [-0.38, 0.38] }
+        ],
         "muzzle": [
           { "kind": "glow", "radius": 0.52, "lifetime": 0.11, "color": "FF9040" },
-          { "kind": "fire", "radius": 0.30, "lifetime": 0.22 },
-          { "kind": "smoke", "radius": [0.28, 0.40], "lifetime": [0.75, 1.00], "count": 4, "jitter": 0.36 }
+          { "kind": "fire", "radius": 0.30, "lifetime": 0.22 }
         ],
         "trail": [
-          { "kind": "fire", "radius": [0.15, 0.22], "lifetime": [0.18, 0.28], "color": "FF9040" },
-          { "kind": "smoke", "radius": [0.24, 0.34], "lifetime": [0.65, 0.95], "jitter": 0.12 }
+          { "kind": "fire", "radius": [0.15, 0.22], "lifetime": [0.18, 0.28], "color": "FF9040" }
         ],
         "impact": [
           { "kind": "glow", "radius": 0.70, "lifetime": 0.16, "color": "FFE080" },
@@ -212,7 +215,7 @@
           { "kind": "smoke", "radius": [0.42, 0.78], "lifetime": [1.00, 1.60], "jitter": 0.58, "delay": [0.10, 0.24], "emissionDuration": 1.55, "emissionInterval": [0.26, 0.40] }
         ]
       },
-      "audio": { "fireSound": "swarmer_fire" }
+      "audio": { "fireSound": "swarmer_fire", "impactSound": "marines_missile_impact" }
     },
     {
       "id": "weapon.turret-heavy-mg",

@@ -84,6 +84,9 @@ Do not run builds or leave generated task files there.
   `mod/data/appearance/unit-layer-layouts.appearance.json`.
   The Turrets page edits linked weapon, mount, structure, FX, and bounded
   multi-turret defense-post layout data with a live deterministic preview.
+  It exposes specialized projectile/artillery behavior and audio; preview
+  flight reads the authored burst, boost, arc, contrail, and directional
+  launch-FX data instead of substituting a generic projectile treatment.
   Both pages validate before replacement; the Turrets page prepares every
   linked target before replacing files atomically and rolls back earlier files
   if a later replacement fails.

@@ -431,6 +431,11 @@
 		{"file":"sounds/sfx_impacts/explosion_missile_01.ogg","pitch":1,"volume":1.0},
 		{"file":"sounds/sfx_impacts/explosion_missile_02.ogg","pitch":1,"volume":1.0},
 	],
+	# Shared missile detonation cue for ground-launched rockets and artillery.
+	"marines_missile_impact":[
+		{"file":"sounds/sfx_impacts/explosion_missile_01.ogg","pitch":1,"volume":1.0},
+		{"file":"sounds/sfx_impacts/explosion_missile_02.ogg","pitch":1,"volume":1.0},
+	],
 	"marines_flyby_impact":[
 		{"file":"sounds/sfx_impacts/beam_hit_01.ogg","pitch":1,"volume":0.6},
 		{"file":"sounds/sfx_impacts/beam_hit_02.ogg","pitch":1,"volume":0.6},
