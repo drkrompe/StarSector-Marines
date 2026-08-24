@@ -121,7 +121,9 @@ soldier. The doll reads the billet's armour, primary, grade, and optional specia
 item; the soldier uses the same layered actor composition and special-equipment
 presentation recipe as battlefield infantry. Billet selection is retained view
 state only. It does not materialize gear, reserve stock, or replace the exact
-refit transaction preview.
+refit transaction preview. The complete preview recipe is backend-neutral, so a
+controlled raster context can produce deterministic PNG evidence without booting
+the game while the live Armory resolves the same recipe to retained-canvas sprites.
 
 Templates are reusable but equipment is finite. Design itself must not be gated by
 stock; the designer may save an unfieldable template, while assignment is allowed
