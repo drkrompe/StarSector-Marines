@@ -61,16 +61,6 @@ https://davidkbd.itch.io/eternity-metal-scfi-music-pack
   around the bug; if garrisons feel too soft, tune `attackCooldown` data, don't
   resurrect the double-tick). Record:
   `ecs-nouns.md` and its shipped ledger.
-- **A marine mech can be recruited as `KIT_RETRIEVER`** —
-  `EquipmentDropSystem.nearestAvailableMarine` filters on faction only, so a
-  mech-loadout unit can win the recruitment and run `KitRetrieverBehavior`: it
-  then ticks infantry COMBAT cooldowns and authors an infantry fire-intent, so
-  `FiringSystem` executes an infantry `fireShot` for a mech (mechs otherwise
-  fire only via `HeavyWeapons` per-track). Pre-existing (the old inline fire
-  had the same shape); surfaced by the FiringSystem sweep critique
-  (`b418d835`). Fix candidate: exclude mech-loadout units in
-  `nearestAvailableMarine`.
-
 ## UI
 
 - **Briefing screen** (also gameplay item above).

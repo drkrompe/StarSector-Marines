@@ -2,7 +2,9 @@
 
 Status: SHIPPED — retained UI foundation proven in-engine
 Written: 2026-08-23
-Updated: 2026-08-24 — composed canvas previews now share one recipe across live sprites and deterministic headless PNGs.
+Updated: 2026-08-24 — retained layout now includes responsive grids, while
+composed canvas previews share one recipe across live sprites and deterministic
+headless PNGs.
 
 ## Purpose
 
@@ -27,8 +29,9 @@ them.
   presentation state, and optional interaction behavior.
 - A **layout box** is the computed border rectangle of one element. Painting and
   hit-testing consume the same box; neither independently derives geometry.
-- A **layout context** arranges a parent's children. The initial contexts are row,
-  column, and stack; later capability stories may add grid and absolute placement.
+- A **layout context** arranges a parent's children. The current contexts are row,
+  column, responsive grid, and stack; later capability stories may add absolute
+  placement.
 - **Overflow** is CSS's relationship between a box and content that exceeds it.
   `visible` is the default; `hidden` and `scroll` establish the same padding-box
   clip, while `scroll` additionally promises navigation chrome and input.
@@ -119,6 +122,16 @@ Typography roles remain ordinary semantic classes and inherited CSS properties. 
 a regular body face for controls, values, and prose and a display face for headings. Casing belongs
 to authored copy: all caps is a heading treatment, not a global font policy. Horizontal placement is
 `text-align`; button widgets center their measured line box vertically inside the content box.
+
+## Responsive grids
+
+`display: grid` is the retained fixed-item gallery context. The widest immediate
+child's preferred border-box width defines a column; the available content width
+determines how many complete columns fit, and document order fills each row before
+wrapping. Each row takes its tallest child's preferred height. `column-gap` and
+`row-gap` remain ordinary CSS lengths, and wrapped rows contribute to the existing
+vertical `scrollHeight` contract. The first production consumer is Fleet Armory's
+owned-company portrait-card gallery.
 
 ## Overflow and clipping
 
