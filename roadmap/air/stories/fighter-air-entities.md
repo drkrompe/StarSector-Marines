@@ -37,8 +37,9 @@ state.
 - Preserve the current wing schedule, strafing-run planning, cycling re-entry,
   tracers, audio, and debug picker while moving their state reads to the world
   entity and fighter mission.
-- Fighter damage/anti-air and modeled fighter fire remain separate follow-ups;
-  this story establishes the composed entity and movement/render seam only.
+- Fighter damage/anti-air and modeled fighter fire remain separate Air-owned
+  follow-ups; this story establishes the composed entity and movement/render
+  seam only.
 
 ## Acceptance
 
@@ -58,6 +59,7 @@ state.
 ## Out of scope
 
 - Anti-air health/death, fighter collision, and air-to-air or modeled fighter
-  fire; those require their own combat and ballistics stories.
+  fire; those remain future Air-world policy after the shared entity seam is
+  established.
 - Wing composition from `wing_data.csv` beyond the current spawn mapping.
 - Dense storage optimization; it follows measured fighter-swarm pressure.

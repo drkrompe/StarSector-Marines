@@ -129,7 +129,7 @@ public class InfantryWeapons {
      * MOVING applies the on-the-move suppression penalty. Cover is NOT part
      * of this accuracy stack — {@link BallisticResolver} re-expresses it as
      * physical interception along the round's flight (see
-     * {@code roadmap/ballistics/overview.md} §4).
+     * {@code ballistics-nouns.md}).
      *
      * <p>The round's full flight is resolved once, here, at fire time; damage
      * and hit-response are NOT applied inline. A victim contact queues a

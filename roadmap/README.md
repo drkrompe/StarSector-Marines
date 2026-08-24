@@ -152,6 +152,11 @@ universe over time, not retrofitted into intel slots.
   and wall boundaries. Armor-aware decisions, split evidence/UI, and measured
   balance remain follow-ons. See `combat-durability-nouns.md` and its adjacent
   open-story board.
+- **Ballistics** *(shipped; live feel pass parked)* — modeled ground direct
+  fire resolves one physical path at fire time, including target-plane aim,
+  moving contacts, ordered wall/cover/body interception, delayed payloads,
+  visible flight, and experience-scaled trigger discipline. Airborne fire
+  remains Air-owned policy. See `ballistics-nouns.md` and its adjacent board.
 - **Progression** *(in progress)* — a cross-tier track covering the
   meta-progression axes: weapon lethality and equipment tiering, earned
   per-soldier experience, the fabrication parts economy, and the legibility

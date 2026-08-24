@@ -462,7 +462,7 @@ public class FiringSystemTest {
      * target as dead when it fires (the {@code BallisticResolver}/{@code
      * ShotService.PendingImpact} damage is scheduled on the round's
      * flight-time clock, not applied inline — see
-     * {@code roadmap/ballistics/overview.md}), so both fire and reset their
+     * {@code ballistics-nouns.md}), so both fire and reset their
      * cooldown. The target actually dies once the queued impacts' flight
      * time elapses, a few ticks later; the later-arriving impact resolves
      * against an already-dead target and is a no-op ({@code PendingImpact}'s

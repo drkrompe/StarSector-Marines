@@ -68,8 +68,7 @@ public final class DoodadService {
      * which must roll a block chance only against a cell a round's ray
      * actually passes through a feature's own footprint and vertical silhouette
      * — the facing array's neighbor bleed is a firing-position-scoring concept,
-     * not a physical interception one (see {@code roadmap/ballistics/overview.md}
-     * §4).
+     * not a physical interception one (see {@code ballistics-nouns.md}).
      */
     private float[] doodadHalfHeightByLevelOnCell;
 

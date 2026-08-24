@@ -152,7 +152,7 @@ public class BattleSimulation implements BattleControl {
     private final FogOfWarService fogOfWar = new FogOfWarService();
     /** Handheld squad weapons (rifle / SMG / DMR / rocket launcher). Owns fireShot, fireSecondary, and the per-tick burst continuation pass. Pumped each tick via {@code infantry.tick()}; behavior call sites go through the delegating {@link #fireShot} / {@link #fireSecondary} wrappers on this class. */
     private final InfantryWeapons infantry;
-    /** Fire-time ballistic resolution for infantry primaries — ray vs walls/doodads/unit radii, walked in time order. Pure/stateless (reads only); constructed once and shared. See {@code roadmap/ballistics/overview.md}. */
+    /** Fire-time ballistic resolution for infantry primaries — ray vs walls/doodads/unit radii, walked in time order. Pure/stateless (reads only); constructed once and shared. See {@code ballistics-nouns.md}. */
     private final BallisticResolver ballisticResolver;
     /**
      * Consumes the per-tick {@code COMBAT} fire intent behaviors queue
