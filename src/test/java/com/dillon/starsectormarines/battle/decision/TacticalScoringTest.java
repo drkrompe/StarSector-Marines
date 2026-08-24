@@ -454,6 +454,81 @@ public class TacticalScoringTest {
                 "the close target itself is still a fine target to keep on");
     }
 
+    @Test
+    public void shouldKeepPursuingUsesStrictRetargetMargin() {
+        BattleSimulation sim = openArena(30, 12);
+        long marine = unit(sim, Faction.MARINE, 5, 5);
+        long current = unit(sim, Faction.DEFENDER, 15, 5); // distance 10
+        long alternative = unit(sim, Faction.DEFENDER, 10, 5); // distance 5
+
+        assertTrue(sim.getTacticalScoring().shouldKeepPursuing(marine, current),
+                "candidate + margin equal to current distance must keep the target");
+
+        sim.world().setPos(alternative, 10.49f, 5.5f);
+        assertFalse(sim.getTacticalScoring().shouldKeepPursuing(marine, current),
+                "a candidate just inside the strict margin must trigger retargeting");
+    }
+
+    @Test
+    public void shouldKeepPursuingIgnoresIneligibleCloserUnits() {
+        BattleSimulation sim = openArena(30, 20);
+        long marine = unit(sim, Faction.MARINE, 5, 5);
+        long current = unit(sim, Faction.DEFENDER, 20, 5);
+        unit(sim, Faction.MARINE, 7, 5);
+        unit(sim, Faction.DEFENDER, UnitType.CIVILIAN, 8, 5);
+        unit(sim, Faction.DEFENDER, 5, 11);
+        sim.getGrid().setWalkable(5, 8, false);
+
+        assertTrue(sim.getTacticalScoring().shouldKeepPursuing(marine, current),
+                "friendly, non-combatant, and occluded candidates must not retarget");
+    }
+
+    @Test
+    public void shouldKeepPursuingRetargetsForDefenderSymmetrically() {
+        BattleSimulation sim = openArena(30, 12);
+        long defender = unit(sim, Faction.DEFENDER, 5, 5);
+        long current = unit(sim, Faction.MARINE, 20, 5);
+        unit(sim, Faction.MARINE, 7, 5);
+
+        assertFalse(sim.getTacticalScoring().shouldKeepPursuing(defender, current),
+                "defenders must use the same closer-visible retarget rule");
+    }
+
+    @Test
+    public void shouldKeepPursuingInvisibleTargetRetargetsOnlyWhenAlternativeVisible() {
+        BattleSimulation withAlternative = openArena(24, 16);
+        long marine = unit(withAlternative, Faction.MARINE, 5, 5);
+        long hidden = unit(withAlternative, Faction.DEFENDER, 12, 5);
+        withAlternative.getGrid().setWalkable(8, 5, false);
+        unit(withAlternative, Faction.DEFENDER, 5, 11);
+
+        assertFalse(withAlternative.getTacticalScoring()
+                        .shouldKeepPursuing(marine, hidden),
+                "any visible alternative must replace an isolated hidden target");
+
+        BattleSimulation withoutAlternative = openArena(24, 16);
+        long otherMarine = unit(withoutAlternative, Faction.MARINE, 5, 5);
+        long otherHidden = unit(withoutAlternative, Faction.DEFENDER, 12, 5);
+        withoutAlternative.getGrid().setWalkable(8, 5, false);
+
+        assertTrue(withoutAlternative.getTacticalScoring()
+                        .shouldKeepPursuing(otherMarine, otherHidden),
+                "an isolated hidden target remains pursued when no alternative is visible");
+    }
+
+    @Test
+    public void shouldKeepPursuingPadsTickStartSpatialBoundary() {
+        BattleSimulation sim = openArena(30, 12);
+        long marine = unit(sim, Faction.MARINE, 5, 5);
+        long current = unit(sim, Faction.DEFENDER, 15, 5);
+        long crossing = unit(sim, Faction.DEFENDER, 11, 5); // snapshot distance 6
+        sim.world().setPos(current, 15.7f, 5.5f); // live distance 10.2
+        sim.world().setPos(crossing, 10.6f, 5.5f); // live distance 5.1
+
+        assertFalse(sim.getTacticalScoring().shouldKeepPursuing(marine, current),
+                "a mover crossing inside the margin after index rebuild must remain a candidate");
+    }
+
     // ---------------------------------------------------------------------
     // Part 4 — weapon-target affinity
     // ---------------------------------------------------------------------
