@@ -15,7 +15,7 @@
  *           real flying entities on {@code air/AirBody} (spawn on/off map,
  *           land at bases, be shot down), this folds into {@code air/} —
  *           deferred until it shares that code, not before (see
- *           {@code roadmap/backlog.md}).
+ *           {@code fighter-air-entities.md}).
  *
  * <p>See {@link com.dillon.starsectormarines.battle} for the full taxonomy.
  */

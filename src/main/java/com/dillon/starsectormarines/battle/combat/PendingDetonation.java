@@ -78,7 +78,7 @@ public final class PendingDetonation {
     public final float wallDamageRadius;
     /**
      * When {@code true}, every wall collapse caused by this detonation emits
-     * a dust-burst FX event via {@code WeaponSimContext.spawnDustBurst}. Used
+     * a dust-burst FX event through the shared effects service. Used
      * by the heavy-blast variants (fighter missile) where each collapse
      * should read as a chunky structural breach; cheaper rockets leave it
      * off so their endpoint-wall hits are quiet.

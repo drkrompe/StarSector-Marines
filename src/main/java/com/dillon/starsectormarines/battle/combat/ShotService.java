@@ -29,8 +29,7 @@ import java.util.List;
  * <p>The projectile-arrival → detonation and impact-arrival → damage hand-offs
  * both go through callback interfaces ({@link ProjectileArrivalSink},
  * {@link ImpactSink}) rather than a direct reference to the weapons
- * subsystem, so this class doesn't import the (deprecation-bound)
- * {@code WeaponSimContext} interface or take {@code Detonations} /
+ * subsystem, so this class doesn't take {@code Detonations} or
  * {@code DamageService} as a dependency. {@code BattleSimulation} provides
  * each sink as a lambda that routes back to {@code detonations.detonateNow}
  * / {@code damageService.applyDamage} + {@code HitResponseSystem}.

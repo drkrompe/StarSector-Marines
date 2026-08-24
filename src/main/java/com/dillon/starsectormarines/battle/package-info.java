@@ -4,10 +4,10 @@
  * <p>This is the taxonomy root. Every top-level subpackage carries its own
  * {@code package-info.java} charter (category / charter / boundary / pointer);
  * this file defines the <em>categories</em> those charters sort themselves
- * into and the boundary rules that decide where new code lands. It replaces
- * the retired {@code roadmap/battle-reorg/overview.md}, whose feature-vertical
- * reorg shipped in full (the {@code unit/} &rarr; {@code entity/} rename alone
- * is still deferred to the ECS migration).
+ * into and the boundary rules that decide where new code lands. It is the
+ * standing taxonomy produced by the shipped feature-vertical reorg; the
+ * {@code unit/} &rarr; {@code entity/} rename alone remains deferred to the
+ * ECS migration.
  *
  * <h2>Organizing principle: framework core vs feature domain</h2>
  *
