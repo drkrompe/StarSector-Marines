@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.squad.BelievedContact;
 import com.dillon.starsectormarines.battle.squad.BeliefSource;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture.ContactInitiative;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Doctrine;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture.ForceBalance;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Motion;
@@ -1213,7 +1214,8 @@ public final class TacticalScoring {
         if (squad.aliveMembers <= 0 || squad.believedContacts().isEmpty()) {
             return new SquadContactPicture(currentTick, postureOf(squad), 0f, 0f,
                     0, 0, 0f, 0, ForceBalance.NONE, Sector.NONE,
-                    Motion.UNKNOWN, 0L, -1, -1, 0f, Doctrine.ADVANCE);
+                    Motion.UNKNOWN, 0L, -1, -1, 0f, Doctrine.ADVANCE,
+                    0, 0, 0, 0, ContactInitiative.NONE);
         }
 
         Posture posture = postureOf(squad);
@@ -1253,7 +1255,8 @@ public final class TacticalScoring {
         if (primary == null) {
             return new SquadContactPicture(currentTick, posture, axis[0], axis[1],
                     0, 0, 0f, 0, ForceBalance.NONE, Sector.NONE,
-                    Motion.UNKNOWN, 0L, -1, -1, 0f, Doctrine.ADVANCE);
+                    Motion.UNKNOWN, 0L, -1, -1, 0f, Doctrine.ADVANCE,
+                    0, 0, 0, 0, ContactInitiative.NONE);
         }
 
         Sector dominant = dominantSector(sectorStrength);
@@ -1267,10 +1270,76 @@ public final class TacticalScoring {
         Doctrine doctrine = selectDoctrine(posture, balance, dominant, motion,
                 mustHold(squad), squad.contactPicture.doctrine(), true,
                 holdContactFresh);
+        FiringLineCoverage coverage = firingLineCoverage(squad, primary);
+        boolean primaryDirect = primary.source() == BeliefSource.DIRECT
+                && primary.observedOnTick(currentTick);
+        ContactInitiative initiative = selectContactInitiative(doctrine,
+                posture, balance, motion, mustHold(squad), primaryDirect,
+                coverage.engageableMembers(), coverage.liveMembers(),
+                coverage.engageableFireTeams(), coverage.liveFireTeams());
         return new SquadContactPicture(currentTick, posture, axis[0], axis[1],
                 contactCount, directCount, hostileStrength, friends, balance,
                 dominant, motion, primary.unitId(), primary.lastSeenCellX(),
-                primary.lastSeenCellY(), primary.confidence(), doctrine);
+                primary.lastSeenCellY(), primary.confidence(), doctrine,
+                coverage.engageableMembers(), coverage.liveMembers(),
+                coverage.engageableFireTeams(), coverage.liveFireTeams(),
+                initiative);
+    }
+
+    private FiringLineCoverage firingLineCoverage(Squad squad,
+                                                   BelievedContact primary) {
+        int liveMembers = 0;
+        int engageableMembers = 0;
+        int liveTeamsMask = 0;
+        int engageableTeamsMask = 0;
+        long[] members = roster.squadMemberArray(squad.id);
+        for (int i = 0, n = roster.squadMemberCount(squad.id); i < n; i++) {
+            long member = members[i];
+            if (!roster.isAliveById(member) || !roster.world().hasCombat(member)) continue;
+            liveMembers++;
+            int team = roster.squad().fireTeamIndex(member);
+            int teamBit = 1 << Math.min(30, Math.max(0, team));
+            liveTeamsMask |= teamBit;
+            float distance = cellDistance(roster.world().x(member),
+                    roster.world().y(member), primary.lastSeenCellX() + 0.5f,
+                    primary.lastSeenCellY() + 0.5f);
+            boolean engageable = distance <= roster.world().attackRange(member)
+                    && grid.hasLineOfSight(roster.world().cellX(member),
+                    roster.world().cellY(member), primary.lastSeenCellX(),
+                    primary.lastSeenCellY());
+            if (engageable) {
+                engageableMembers++;
+                engageableTeamsMask |= teamBit;
+            }
+        }
+        return new FiringLineCoverage(liveMembers, engageableMembers,
+                Integer.bitCount(liveTeamsMask),
+                Integer.bitCount(engageableTeamsMask));
+    }
+
+    private record FiringLineCoverage(int liveMembers, int engageableMembers,
+                                      int liveFireTeams,
+                                      int engageableFireTeams) { }
+
+    static ContactInitiative selectContactInitiative(
+            Doctrine doctrine, Posture posture, ForceBalance balance,
+            Motion motion, boolean mustHold, boolean primaryDirect,
+            int engageableMembers, int liveMembers,
+            int engageableFireTeams, int liveFireTeams) {
+        if (doctrine != Doctrine.HOLD || !primaryDirect) {
+            return ContactInitiative.NONE;
+        }
+        int usefulMemberLine = Math.max(1, (liveMembers + 1) / 2);
+        int usefulTeamLine = Math.min(2, Math.max(1, liveFireTeams));
+        boolean usefulFiringLine = engageableMembers >= usefulMemberLine
+                && engageableFireTeams >= usefulTeamLine;
+        if (posture == Posture.DEFENDING || mustHold
+                || balance == ForceBalance.UNFAVORABLE
+                || motion == Motion.APPROACHING || motion == Motion.UNKNOWN
+                || usefulFiringLine) {
+            return ContactInitiative.RECEIVE;
+        }
+        return ContactInitiative.PROSECUTE;
     }
 
     static Sector classifySector(float axisX, float axisY, float dx, float dy) {
@@ -1354,6 +1423,16 @@ public final class TacticalScoring {
                 picture.primaryContactId());
         return contactHoldIsFresh(primary, picture.directContactCount(),
                 currentTick);
+    }
+
+    /** True when HOLD means plant the whole advancing squad and receive contact. */
+    public static boolean shouldHardHoldAdvance(Squad squad,
+                                                SquadContactPicture picture,
+                                                int currentTick) {
+        return picture != null && picture.posture() == Posture.ADVANCING
+                && picture.doctrine() == Doctrine.HOLD
+                && picture.contactInitiative() == ContactInitiative.RECEIVE
+                && contactHoldIsFresh(squad, picture, currentTick);
     }
 
     private static boolean contactHoldIsFresh(BelievedContact primary,
