@@ -118,6 +118,18 @@ tasks.register('renderArmoryPreviews', JavaExec) {
     }
 }
 
+tasks.register('layerAuthoring') {
+    group = 'development'
+    description = 'Launch the standalone marine/mech layer authoring workbench'
+    dependsOn ':layer-authoring:run'
+}
+
+tasks.register('renderLayerAuthoringSheets') {
+    group = 'verification'
+    description = 'Render every authored marine/mech composition sheet without the game'
+    dependsOn ':layer-authoring:renderSheets'
+}
+
 // The default `jar` task only produces the thin jar (our classes), which we
 // don't ship. The shaded `shadowJar` below is the deliverable — it bundles
 // asset-pipeline + JOML + fastutil (relocated) into mod/jars/StarsectorMarines.jar.
