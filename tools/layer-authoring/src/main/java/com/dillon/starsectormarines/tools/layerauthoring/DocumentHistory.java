@@ -45,14 +45,16 @@ final class DocumentHistory {
         if (!canUndo()) return current;
         pending = null;
         redo.addLast(current.snapshot());
-        return AuthoringDocument.parse(current.projectRoot(), undo.removeLast());
+        return AuthoringDocument.parse(current.projectRoot(), undo.removeLast(),
+                current.sourceTemplate());
     }
 
     AuthoringDocument redo(AuthoringDocument current) throws JSONException {
         if (!canRedo()) return current;
         pending = null;
         undo.addLast(current.snapshot());
-        return AuthoringDocument.parse(current.projectRoot(), redo.removeLast());
+        return AuthoringDocument.parse(current.projectRoot(), redo.removeLast(),
+                current.sourceTemplate());
     }
 
     void clear() {
