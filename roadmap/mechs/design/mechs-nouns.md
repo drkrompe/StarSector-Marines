@@ -1,10 +1,10 @@
 # Mechs
 
-Status: ACTIVE — the specialist family, campaign support squad, first subsystem inventory, and production composition are implemented; battlefield tuning remains active.
+Status: ACTIVE — distinct chassis, persistent support loadouts, and production composition share one mech authority; battlefield tuning continues.
 
 Written: 2026-08-23
 
-Updated: 2026-08-23 — shipped chassis structure, live armor pools, and ratings through the shared combat-durability model.
+Updated: 2026-08-24 — replaced implementation sequencing with durable chassis, inventory, and catalog boundaries.
 
 ## Purpose
 
@@ -139,19 +139,18 @@ determines the payload, not the entitlement to call it.
   is explicitly scoped iteration scaffolding and must not leak into campaign
   progression.
 
-## Current direction
+## Extension boundaries
 
-Bulwark, Hound, and Sirocco now spawn with distinct live structure, armor pool,
-and armor rating profiles. Their relative identities are authoritative; the
-exact D1 numbers are initial values pending the combat-durability balance pass.
-The live `s1-specialist-striders.md` story retains manual comparison and tuning
-of the shipped family. A future recon strider needs actual information
-mechanics and a doctrine before its hardware is added. Further chassis
-acquisition, salvage, weapon-component inventory, and custom-hardpoint refit
-are separate progression work; the first lab slice intentionally makes those
-mounts visible but read-only. The broader weapon catalog
-migration may later data-drive projectile and mount definitions, but it must
-preserve this chassis/mount/weapon authority split.
+A new chassis requires a distinct information or combat doctrine and a real
+capability it gives up; hardware variety alone does not earn another variant.
+
+Chassis acquisition, salvage, weapon-component inventory, and custom-hardpoint
+refit belong to progression and economy authority. The Mech Lab remains an
+inventory-checked authoring surface over `MechBay`, and mounts remain visible
+but read-only until those acquisition and component authorities exist.
+
+A future shared weapon catalog may data-drive projectile, weapon, and mount
+definitions, but it must preserve the chassis/mount/weapon authority split.
 
 ## Boundaries
 
