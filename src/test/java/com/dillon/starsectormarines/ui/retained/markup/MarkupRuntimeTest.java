@@ -95,6 +95,24 @@ class MarkupRuntimeTest {
     }
 
     @Test
+    void dottedPathsRequireAnExplicitPropertySurface() {
+        record HiddenRow(String id) { }
+        Reactor values = new Reactor();
+        MutableSignal<List<HiddenRow>> rows = values.signal(List.of(new HiddenRow("hidden")));
+        MarkupLoader loader = loader("list-view.mlx", """
+                <template props="items">
+                  <div id="list">
+                    <div each="item in items" key="{item.id}" id="{item.id}">{item.id}</div>
+                  </div>
+                </template>
+                """);
+
+        UiMarkupException failure = assertThrows(UiMarkupException.class,
+                () -> loader.build(values, "list-view", Map.of("items", rows)));
+        assertTrue(failure.getMessage().contains("MarkupPropertySource"));
+    }
+
+    @Test
     void failedReloadLeavesThePreviousTemplateUsable() {
         AtomicReference<String> source = new AtomicReference<>(
                 "<template><div id=\"root\">Stable</div></template>");
@@ -167,5 +185,14 @@ class MarkupRuntimeTest {
         return loader;
     }
 
-    private record Row(String id, String label) { }
+    private record Row(String id, String label) implements MarkupPropertySource {
+        @Override
+        public Object markupProperty(String name) {
+            return switch (name) {
+                case "id" -> id;
+                case "label" -> label;
+                default -> throw new IllegalArgumentException("Unknown row property");
+            };
+        }
+    }
 }

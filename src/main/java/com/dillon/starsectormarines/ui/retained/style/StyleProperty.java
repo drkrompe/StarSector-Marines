@@ -9,6 +9,7 @@ import java.util.Map;
  * Unsupported names fail at authoring time rather than becoming silent no-ops.
  */
 public enum StyleProperty {
+    DISPLAY("display", false, true, false, false),
     FLEX_DIRECTION("flex-direction", false, true, false, false),
     WIDTH("width", false, true, false, true),
     HEIGHT("height", false, true, false, true),

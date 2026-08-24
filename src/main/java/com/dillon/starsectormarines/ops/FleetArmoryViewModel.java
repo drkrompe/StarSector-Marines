@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
@@ -31,13 +32,15 @@ public final class FleetArmoryViewModel {
     private final MutableSignal<String> selectedSquadId;
     private final MutableSignal<Integer> selectedTeamIndex;
     private final MutableSignal<String> selectedTemplateId;
+    private final MutableSignal<Integer> selectedBilletIndex;
     private final MutableSignal<Integer> domainRevision;
     private final MutableSignal<Feedback> feedback;
     private final ComputedSignal<String> companySummary;
     private final ComputedSignal<List<SelectionRow>> squadRows;
     private final ComputedSignal<List<SelectionRow>> teamRows;
     private final ComputedSignal<List<SelectionRow>> templateRows;
-    private final ComputedSignal<List<DetailRow>> billetRows;
+    private final ComputedSignal<List<SelectionRow>> billetRows;
+    private final ComputedSignal<String> previewSummary;
     private final ComputedSignal<FireTeamRefitPreview> preview;
     private final ComputedSignal<List<DetailRow>> gearRows;
     private final ComputedSignal<String> targetSummary;
@@ -59,6 +62,7 @@ public final class FleetArmoryViewModel {
         selectedSquadId = reactor.signal(initialSquad != null ? initialSquad.id() : null);
         selectedTeamIndex = reactor.signal(0);
         selectedTemplateId = reactor.signal(initialTemplate != null ? initialTemplate.id() : null);
+        selectedBilletIndex = reactor.signal(0);
         domainRevision = reactor.signal(0);
         feedback = reactor.signal(Feedback.neutral(
                 "Choose a squad, fire team, and reusable template to preview its exact issue."));
@@ -68,6 +72,7 @@ public final class FleetArmoryViewModel {
         teamRows = reactor.computed(this::buildTeamRows);
         templateRows = reactor.computed(this::buildTemplateRows);
         billetRows = reactor.computed(this::buildBilletRows);
+        previewSummary = reactor.computed(this::buildPreviewSummary);
         preview = reactor.computed(this::buildPreview);
         gearRows = reactor.computed(this::buildGearRows);
         targetSummary = reactor.computed(this::buildTargetSummary);
@@ -87,7 +92,8 @@ public final class FleetArmoryViewModel {
     public Signal<List<SelectionRow>> squadRows() { return squadRows; }
     public Signal<List<SelectionRow>> teamRows() { return teamRows; }
     public Signal<List<SelectionRow>> templateRows() { return templateRows; }
-    public Signal<List<DetailRow>> billetRows() { return billetRows; }
+    public Signal<List<SelectionRow>> billetRows() { return billetRows; }
+    public Signal<String> previewSummary() { return previewSummary; }
     public Signal<List<DetailRow>> gearRows() { return gearRows; }
     public Signal<String> targetSummary() { return targetSummary; }
     public Signal<String> candidateSummary() { return candidateSummary; }
@@ -99,7 +105,15 @@ public final class FleetArmoryViewModel {
     public String selectedSquadId() { return selectedSquadId.peek(); }
     public int selectedTeamIndex() { return selectedTeamIndex.peek(); }
     public String selectedTemplateId() { return selectedTemplateId.peek(); }
+    public int selectedBilletIndex() { return selectedBilletIndex.peek(); }
     public FireTeamRefitPreview currentPreview() { return preview.get(); }
+
+    public FireTeamBillet selectedBillet() {
+        FireTeamTemplateCard card = roster.armory().templateCardById(selectedTemplateId.peek());
+        int index = selectedBilletIndex.peek();
+        return card != null && index >= 0 && index < card.billets().size()
+                ? card.billet(index) : null;
+    }
 
     public Runnable applyAction() {
         return () -> applySelection();
@@ -183,21 +197,37 @@ public final class FleetArmoryViewModel {
         return List.copyOf(rows);
     }
 
-    private List<DetailRow> buildBilletRows() {
+    private List<SelectionRow> buildBilletRows() {
         domainRevision.get();
         FireTeamTemplateCard card = roster.armory().templateCardById(selectedTemplateId.get());
         if (card == null) return List.of();
-        List<DetailRow> rows = new ArrayList<>();
+        int selected = selectedBilletIndex.get();
+        List<SelectionRow> rows = new ArrayList<>();
         for (int index = 0; index < card.billets().size(); index++) {
+            int target = index;
             FireTeamBillet billet = card.billet(index);
             String special = specialName(billet.specialEquipmentId());
             String label = (index + 1) + "  ·  " + billet.name() + "  ·  "
                     + billet.primary().displayName() + " / " + billet.grade().displayName
                     + "  ·  " + billet.armor().displayName
                     + (special == null ? "" : "  ·  " + special);
-            rows.add(new DetailRow("billet:" + index, label, "detail-row"));
+            rows.add(new SelectionRow("billet:" + index, label,
+                    index == selected ? "billet-row selected" : "billet-row",
+                    false, () -> selectedBilletIndex.set(target)));
         }
         return List.copyOf(rows);
+    }
+
+    private String buildPreviewSummary() {
+        domainRevision.get();
+        selectedTemplateId.get();
+        selectedBilletIndex.get();
+        FireTeamBillet billet = selectedBillet();
+        if (billet == null) return "Select a billet to inspect its materialized field kit.";
+        String special = specialName(billet.specialEquipmentId());
+        return billet.name() + "  ·  " + billet.primary().catalogName(billet.grade())
+                + "  ·  " + billet.armor().displayName
+                + (special == null ? "" : "  ·  " + special);
     }
 
     private FireTeamRefitPreview buildPreview() {
@@ -293,9 +323,32 @@ public final class FleetArmoryViewModel {
     }
 
     public record SelectionRow(String id, String label, String classes,
-                               boolean disabled, Runnable select) { }
+                               boolean disabled, Runnable select) implements MarkupPropertySource {
+        @Override
+        public Object markupProperty(String name) {
+            return switch (name) {
+                case "id" -> id;
+                case "label" -> label;
+                case "classes" -> classes;
+                case "disabled" -> disabled;
+                case "select" -> select;
+                default -> throw new IllegalArgumentException("Unknown selection-row property");
+            };
+        }
+    }
 
-    public record DetailRow(String id, String label, String classes) { }
+    public record DetailRow(String id, String label,
+                            String classes) implements MarkupPropertySource {
+        @Override
+        public Object markupProperty(String name) {
+            return switch (name) {
+                case "id" -> id;
+                case "label" -> label;
+                case "classes" -> classes;
+                default -> throw new IllegalArgumentException("Unknown detail-row property");
+            };
+        }
+    }
 
     private record Feedback(String text, boolean succeeded) {
         private static Feedback neutral(String text) { return new Feedback(text, false); }

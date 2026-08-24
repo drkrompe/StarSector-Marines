@@ -11,6 +11,8 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
+import com.dillon.starsectormarines.marine.SpecialActivation;
+import com.dillon.starsectormarines.marine.SpecialUsePose;
 
 /**
  * Authors the {@code SPRITE} component's facing/pose frame for every live
@@ -234,9 +236,11 @@ public final class FacingSystem {
                 }
                 // Render-tier's frameIdx-out-of-range clamp (sheet-cache-dependent)
                 // stays out of this system — it authors the unclamped logical frame.
-                boolean utilityAction = inAim
-                        && (secondarySpec[r] == MarineSecondary.SMOKE_GRENADE
-                        || secondarySpec[r] == MarineSecondary.SATCHEL_CHARGE);
+                MarineSecondary secondary = inAim && secondarySpec != null
+                        ? (MarineSecondary) secondarySpec[r] : null;
+                boolean utilityAction = secondary != null
+                        && (secondary.activation() == SpecialActivation.UTILITY_SMOKE
+                        || secondary.activation() == SpecialActivation.UTILITY_SATCHEL);
                 sheetSel[r] = inAim && !utilityAction
                         ? LiveAppearance.SHEET_SECONDARY_AIM
                         : LiveAppearance.SHEET_BASE;
@@ -410,22 +414,24 @@ public final class FacingSystem {
             float duration = secondary != null ? secondary.aimDuration() : 1f;
             float progress = clamp01((duration - actionTimer[row]) / duration);
             boolean fired = secondaryFired[row] != 0 || progress >= 0.5f;
-            boolean amr = secondary == MarineSecondary.ANTI_MATERIEL_RIFLE;
-            boolean smoke = secondary == MarineSecondary.SMOKE_GRENADE;
-            boolean satchel = secondary == MarineSecondary.SATCHEL_CHARGE;
-            authoredPose = smoke ? LayeredAppearance.POSE_SMOKE_THROW
-                    : satchel ? LayeredAppearance.POSE_SATCHEL_PLANT
-                    : fired
-                            ? (amr ? LayeredAppearance.POSE_AMR_FIRE
-                                    : LayeredAppearance.POSE_ROCKET_FIRE)
-                            : (amr ? LayeredAppearance.POSE_AMR_AIM
-                                    : LayeredAppearance.POSE_ROCKET_AIM);
-            authoredPhase = fired ? clamp01((progress - 0.5f) * 2f)
-                    : clamp01(progress * 2f);
-            if (fired && !amr && !smoke && !satchel) {
+            SpecialUsePose usePose = secondary.specialDef().presentation().usePose();
+            boolean direct = secondary.activation() == SpecialActivation.DIRECT_EXPLOSIVE
+                    || secondary.activation() == SpecialActivation.DIRECT_PRECISION;
+            authoredPose = switch (usePose) {
+                case THROW -> LayeredAppearance.POSE_SMOKE_THROW;
+                case PLANT -> LayeredAppearance.POSE_SATCHEL_PLANT;
+                case BRACED_RIFLE -> fired ? LayeredAppearance.POSE_AMR_FIRE
+                        : LayeredAppearance.POSE_AMR_AIM;
+                case SHOULDER_LAUNCHER -> fired ? LayeredAppearance.POSE_ROCKET_FIRE
+                        : LayeredAppearance.POSE_ROCKET_AIM;
+            };
+            authoredPhase = direct
+                    ? fired ? clamp01((progress - 0.5f) * 2f) : clamp01(progress * 2f)
+                    : progress;
+            if (fired && usePose == SpecialUsePose.SHOULDER_LAUNCHER) {
                 authoredFlags |= LayeredAppearance.FLAG_WEAPON_OVER_SHOULDER;
             }
-            if (fired && !smoke && !satchel) {
+            if (fired && direct) {
                 float elapsedAfterFire = Math.max(0f, progress - 0.5f) * duration;
                 if (elapsedAfterFire <= LayeredAppearance.ROCKET_FLASH_SECONDS) {
                     authoredFlags |= LayeredAppearance.FLAG_MUZZLE_FLASH;

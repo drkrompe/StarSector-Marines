@@ -180,8 +180,8 @@ class DirectFireUnificationTest {
         assertEquals(BallisticResolver.StopKind.WALL, mortarShot.stopKind);
         assertEquals(1, turretSim.getInflightDetonations().size());
         PendingDetonation mortarBlast = turretSim.getInflightDetonations().get(0);
-        assertEquals(TurretKind.HEAVY_MORTAR.aoeRadius, mortarBlast.aoeRadius, EPS);
-        assertEquals(TurretKind.HEAVY_MORTAR.wallDamage, mortarBlast.wallDamage);
+        assertEquals(TurretKind.HEAVY_MORTAR.aoeRadius(), mortarBlast.aoeRadius, EPS);
+        assertEquals(TurretKind.HEAVY_MORTAR.wallDamage(), mortarBlast.wallDamage);
     }
 
     @Test
@@ -212,8 +212,8 @@ class DirectFireUnificationTest {
         assertEquals(1.6f, blast.aoeRadius, EPS);
         assertEquals(30, blast.wallDamage);
         assertEquals(1.25f, blast.wallDamageRadius, EPS);
-        assertTrue(blast.burningPlume,
-                "the cannon blast owns the smoke-and-fire aftermath at impact");
+        assertTrue(blast.authoredAftermath,
+                "the authored cannon FX owns the smoke-and-fire aftermath at impact");
     }
 
     @Test

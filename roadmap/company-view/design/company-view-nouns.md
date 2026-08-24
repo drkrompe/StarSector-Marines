@@ -1,8 +1,10 @@
 # Company view nouns
 
-Status: ACTIVE — 11 open stories
+Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface company read models continue to evolve.
+
 Written: 2026-08-23
-Updated: 2026-08-23 — clarified elastic battle fire-team tempo and contained-terrain authority.
+
+Updated: 2026-08-24 — made the selected billet's equipment doll and sample soldier one view-only projection of the materialized kit.
 
 ## Purpose
 
@@ -113,6 +115,15 @@ state consumed by deployment and battle. This preserves the campaign-to-battle
 contract while the designer grows. The built-in library contains Field, Line,
 Recon, Fire Support, Anti-Materiel, Screen, and Breach templates; the LOADOUTS
 surface exposes Alpha/Bravo/Charlie plus each assigned template.
+
+Selecting one candidate billet also projects an equipment doll beside a sample
+soldier. The doll reads the billet's armour, primary, grade, and optional special
+item; the soldier uses the same layered actor composition and special-equipment
+presentation recipe as battlefield infantry. Billet selection is retained view
+state only. It does not materialize gear, reserve stock, or replace the exact
+refit transaction preview. The complete preview recipe is backend-neutral, so a
+controlled raster context can produce deterministic PNG evidence without booting
+the game while the live Armory resolves the same recipe to retained-canvas sprites.
 
 Templates are reusable but equipment is finite. Design itself must not be gated by
 stock; the designer may save an unfieldable template, while assignment is allowed
@@ -296,8 +307,14 @@ loses an opportunity. Responding to an obligation follows the same deployment
 route as its campaign event notice. Long lists state hidden counts, and missing
 derived inputs are explained rather than silently collapsed.
 
-The HQ introduces no persisted state and no second company-card hierarchy. Its
-roster area is the host that the formation, whereabouts, and contract-board
+The HQ introduces no persisted state and no second company hierarchy. Opening its
+Armory transition first shows the owned-company collection as a responsive grid of
+literal selectable portrait cards, then enters the selected company's retained
+workspace. A company card is only a presentation container over the canonical
+company authority; it is not a collectible/template noun and does not persist a
+parallel organization. Until a multi-company campaign authority exists, that grid
+contains exactly the one real campaign roster rather than fixture companies. The HQ
+roster area remains the host that the formation, whereabouts, and contract-board
 stories will expand.
 
 ## Presentation boundaries
@@ -355,13 +372,15 @@ production vehicle deployment seam exists.
 - Missing or unavailable information is explained, not rendered as zero.
 - Presentation conveys organization but never changes simulation authority.
 
-## Planned direction
+## Extension boundaries
 
-The remaining work is equipment authoring, presentation, and tactical
-refinement: add degraded-team conformance;
-derive one shared
-formation snapshot; show officer grouping, squad whereabouts, battle rollup, and
-after-action survival consistently; give late arrivals a safe rejoin state; make
-fire teams stable AI maneuver elements; resolve outcomes for every participating
-officer; make large-company assignment practical; and add the sector contract
-board.
+Future extensions may add a shared formation read model, safe late-arrival
+rejoin, participating-officer outcomes, practical large-company assignment,
+and a sector contract board. Each extension must preserve the canonical
+company organization and frozen deployment identities rather than persisting
+a second presentation-owned roster.
+
+Equipment authoring remains bounded by finite stock and atomic assignment;
+read surfaces remain projections of their owning campaign or frozen mission
+state. A contract board may present offers and obligation clocks, but it does
+not become their authority or introduce a second clock lifecycle.

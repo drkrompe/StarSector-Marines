@@ -140,21 +140,18 @@ public final class UnitRenderService implements RenderSystem {
                 continue;
             }
 
+            TurretLayerPose pose = TurretLayerPose.resolve(
+                    cx, cy, facingDegrees, kind.visualCells(), cellPx,
+                    turretState.recoilTimer(id), BattleRenderer.RECOIL_DURATION,
+                    BattleRenderer.RECOIL_DISTANCE_FRAC);
+
             ShuttleSpriteCache barrel = sprites.turretRecoilSprites().get(kind);
             if (barrel != null) {
-                float recoilTimer = turretState.recoilTimer(id);
-                float recoilT = 0f;
-                if (recoilTimer < BattleRenderer.RECOIL_DURATION) {
-                    recoilT = 1f - recoilTimer / BattleRenderer.RECOIL_DURATION;
-                }
-                float pushPx = recoilT * BattleRenderer.RECOIL_DISTANCE_FRAC * kind.visualCells * cellPx;
-                double rad = Math.toRadians(facingDegrees);
-                float bx = (float) Math.sin(rad) * pushPx;
-                float by = -(float) Math.cos(rad) * pushPx;
-                emitWholeSprite(out, barrel, facingDegrees, kind.visualCells, cellPx,
-                        cx + bx, cy + by, alphaMult);
+                emitWholeSprite(out, barrel, pose.facingDegrees(), pose.spriteHeightPx(),
+                        pose.recoilCenterX(), pose.recoilCenterY(), alphaMult);
             }
-            emitWholeSprite(out, base, facingDegrees, kind.visualCells, cellPx, cx, cy, alphaMult);
+            emitWholeSprite(out, base, pose.facingDegrees(), pose.spriteHeightPx(),
+                    pose.baseCenterX(), pose.baseCenterY(), alphaMult);
         }
     }
 
@@ -176,21 +173,21 @@ public final class UnitRenderService implements RenderSystem {
             if (!ctx.sim.identity().type(u).isDroneHub()) continue;
             float cx = cam.cellToScreenX(world.renderX(u));
             float cy = cam.cellToScreenY(world.renderY(u));
-            emitWholeSprite(out, hub, 0f, DroneHub.VISUAL_CELLS, cellPx, cx, cy, alphaMult);
+            emitWholeSprite(out, hub, 0f, DroneHub.VISUAL_CELLS * cellPx,
+                    cx, cy, alphaMult);
         }
     }
 
     /**
-     * Emits one whole-texture rotated body sprite, sized {@code visualCells} tall
+     * Emits one whole-texture rotated body sprite, sized {@code spriteHeightPx} tall
      * (× the sprite's natural aspect wide). Mirrors
      * {@code ShuttleRenderSystem.emitTurretLayer} — the {@code SPRITE} drain owns
      * size/angle/alpha/blend/color and resets angle afterward.
      */
     private static void emitWholeSprite(DrawList out, ShuttleSpriteCache cache, float facingDegrees,
-                                        float visualCells, float cellPx, float cx, float cy, float alphaMult) {
-        float pxH = visualCells * cellPx;
-        float pxW = pxH * cache.aspect;
-        out.addSprite(RenderLayer.UNITS, cache.sprite, cx, cy, pxW, pxH, facingDegrees,
+                                        float spriteHeightPx, float cx, float cy, float alphaMult) {
+        float pxW = spriteHeightPx * cache.aspect;
+        out.addSprite(RenderLayer.UNITS, cache.sprite, cx, cy, pxW, spriteHeightPx, facingDegrees,
                 1f, 1f, 1f, alphaMult);
     }
 
@@ -524,7 +521,7 @@ public final class UnitRenderService implements RenderSystem {
             float cy = cam.cellToScreenY(world.renderY(u));
             float barY;
             if (ctx.sim.identity().type(u).isTurret()) {
-                barY = cy + turretState.kind(u).visualCells * cellPx / 2f + BattleRenderer.HP_BAR_GAP;
+                barY = cy + turretState.kind(u).visualCells() * cellPx / 2f + BattleRenderer.HP_BAR_GAP;
             } else if (ctx.sim.identity().type(u).isDroneHub()) {
                 barY = cy + DroneHub.VISUAL_CELLS * cellPx / 2f + BattleRenderer.HP_BAR_GAP;
             } else {

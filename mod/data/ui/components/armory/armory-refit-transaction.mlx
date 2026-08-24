@@ -1,12 +1,26 @@
-<template props="targetSummary,candidateSummary,billetRows,gearRows,transactionSummary,transactionClasses,applyDisabled,apply,feedbackText,feedbackClasses">
+<template props="targetSummary,candidateSummary,billetRows,previewSummary,gearRows,transactionSummary,transactionClasses,applyDisabled,apply,feedbackText,feedbackClasses">
   <div id="refit-transaction" class="panel refit-transaction">
     <div id="transaction-heading" class="label heading tone-edge">REFIT TRANSACTION</div>
     <div id="target-summary" class="label surface-dark tone-accent">{targetSummary}</div>
     <div id="candidate-summary" class="label surface-dark">{candidateSummary}</div>
 
-    <div id="billet-heading" class="label heading tone-muted">FOUR-BILLET TEMPLATE</div>
-    <div id="billet-list" class="detail-list">
-      <div each="row in billetRows" key="{row.id}" id="{row.id}" class="{row.classes}">{row.label}</div>
+    <div id="preview-workspace">
+      <div id="loadout-preview-panel" class="surface-dark">
+        <div id="preview-heading" class="label heading tone-muted">MATERIALIZED BILLET PREVIEW</div>
+        <div id="preview-summary" class="label tone-accent">{previewSummary}</div>
+        <canvas id="loadout-preview" width="640" height="230" />
+        <div id="preview-legend">
+          <div id="equipment-legend" class="label tone-muted">ARMOR  ·  PRIMARY  ·  SPECIAL</div>
+          <div id="soldier-legend" class="label tone-muted">SAMPLE SOLDIER</div>
+        </div>
+      </div>
+
+      <div id="billet-panel">
+        <div id="billet-heading" class="label heading tone-muted">FOUR-BILLET TEMPLATE</div>
+        <div id="billet-list" class="billet-list">
+          <button each="row in billetRows" key="{row.id}" id="{row.id}" class="{row.classes}" disabled="{row.disabled}" onclick="{row.select}">{row.label}</button>
+        </div>
+      </div>
     </div>
 
     <div id="issue-heading" class="label heading tone-muted">FREE STOCK  ·  RETURNS  ·  REQUIRED ISSUE</div>
@@ -35,7 +49,73 @@
   .heading { font-family: heading; }
   #transaction-heading { height: 30px; }
   #target-summary, #candidate-summary { height: 24px; padding: 8px; }
-  #billet-heading, #issue-heading { height: 24px; }
+  #billet-heading, #issue-heading, #preview-heading { height: 24px; }
+
+  #preview-workspace {
+    flex-direction: row;
+    height: 238px;
+    gap: 8px;
+    overflow: hidden;
+  }
+
+  #loadout-preview-panel {
+    flex-direction: column;
+    width: 0px;
+    flex-grow: 6;
+    padding: 6px;
+    gap: 4px;
+    border-width: 1px;
+    overflow: hidden;
+  }
+
+  #preview-summary { height: 22px; }
+
+  #loadout-preview {
+    width: 0px;
+    height: 0px;
+    flex-grow: 1;
+    border-width: 1px;
+    overflow: hidden;
+  }
+
+  #preview-legend {
+    flex-direction: row;
+    height: 18px;
+  }
+
+  #preview-legend .label {
+    width: 0px;
+    flex-grow: 1;
+  }
+
+  #soldier-legend { text-align: right; }
+
+  #billet-panel {
+    flex-direction: column;
+    width: 0px;
+    flex-grow: 4;
+    gap: 6px;
+    overflow: hidden;
+  }
+
+  .billet-list {
+    flex-direction: column;
+    flex-grow: 1;
+    gap: 6px;
+    padding: 2px;
+    overflow: scroll;
+  }
+
+  .billet-row {
+    height: 42px;
+    padding: 7px 9px;
+    border-width: 1px;
+    overflow: hidden;
+    background-color: #0e1621;
+    border-color: #405a78;
+    font-family: body;
+    text-align: left;
+  }
 
   .detail-list {
     flex-direction: column;
@@ -44,7 +124,6 @@
     overflow: scroll;
   }
 
-  #billet-list { height: 174px; }
   #gear-list { flex-grow: 1; }
 
   .detail-row {

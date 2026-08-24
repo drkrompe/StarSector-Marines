@@ -2,7 +2,9 @@ package com.dillon.starsectormarines.testsupport;
 
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import org.json.JSONObject;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -12,15 +14,16 @@ import java.nio.file.Paths;
 
 /**
  * Auto-registered JUnit extension that installs the disk-loaded
- * {@link TileRegistry}, {@link GenMappingRegistry} and {@link WeaponRegistry}
- * instances before any test runs — mirroring what
+ * {@link TileRegistry}, {@link GenMappingRegistry}, {@link WeaponRegistry}, and
+ * {@link SpecialEquipmentRegistry} instances before any test runs — mirroring what
  * {@code onApplicationLoad} does in-game. Without the tile registry, gen code
  * under test takes its {@code installed() == null} path: {@code NatureZoneFiller}
  * skips overlay scatter, which diverges the gen RNG stream (and therefore every
  * preview PNG) from production. Without the mapping registry, fillers that read
  * {@code GenMappingRegistry.doodadPool(theme)} (moddable-tilesets Phase 2) fail.
- * Without the weapon registry, every {@code MarineWeapon} stat read throws —
- * that one is deliberately fail-loud rather than degrading (moddable-weapons W1).
+ * Without the weapon registry, every {@code MarineWeapon} stat read throws;
+ * without special equipment, persisted loadout ids and utility presentation
+ * cannot resolve. Both catalogs deliberately fail loud rather than degrading.
  *
  * <p>Registered globally via {@code META-INF/services/org.junit.jupiter.api.extension.Extension}
  * + {@code junit.jupiter.extensions.autodetection.enabled=true} in
@@ -51,6 +54,22 @@ public final class TileRegistryTestInstaller implements BeforeAllCallback {
                 weapons.ingest(new JSONObject(Files.readString(Paths.get("mod", path))));
             }
             WeaponRegistry.install(weapons);
+        }
+        if (TurretCatalogRegistry.installed() == null) {
+            TurretCatalogRegistry turrets = new TurretCatalogRegistry();
+            for (String path : TurretCatalogRegistry.BUILTIN_CATALOGS) {
+                turrets.ingest(new JSONObject(Files.readString(Paths.get("mod", path))),
+                        WeaponRegistry.installed());
+            }
+            TurretCatalogRegistry.install(turrets);
+        }
+        if (SpecialEquipmentRegistry.installed() == null) {
+            SpecialEquipmentRegistry equipment = new SpecialEquipmentRegistry();
+            for (String path : SpecialEquipmentRegistry.BUILTIN_CATALOGS) {
+                equipment.ingest(new JSONObject(Files.readString(Paths.get("mod", path))));
+            }
+            equipment.validateReferences();
+            SpecialEquipmentRegistry.install(equipment);
         }
     }
 }
