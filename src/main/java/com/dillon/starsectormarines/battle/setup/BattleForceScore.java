@@ -21,8 +21,10 @@ import java.util.List;
  * sorties, defender militia/regulars, defender mech chassis, and static turret
  * emplacements. Mission tier still authors the infantry count and the map
  * still authors the defense-post candidates; the score only decides how much
- * heavy support the combined attack can support. Command powers, equipment,
- * and terrain are future score inputs rather than hidden adjustments here.
+ * heavy support the combined attack can support. Conquest deliberately passes
+ * an unbounded attacker score so its authored set-piece support is retained.
+ * Command powers, equipment, and terrain are future score inputs rather than
+ * hidden adjustments here.
  */
 public final class BattleForceScore {
 

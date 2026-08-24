@@ -13,21 +13,22 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *
  * <p>What these hold: a mission type can now span the whole ladder instead of
  * having its tier baked into its risk table, CONQUEST cannot be offered as a
- * beginner's job, and the one number play has actually measured —
- * CONQUEST at the top of the ladder — survives the migration.
+ * beginner's job, and CONQUEST retains its authored mass independently of
+ * what the campaign player can afford to bring.
  */
 class OperationTierTest {
 
     @Test
-    void conquestAtTheTopOfTheLadderKeepsTheForceThatWasMeasured() {
-        // The pre-split table put CONQUEST/HIGH at 320 defenders, and play
-        // established that it wants hundreds of marines. The tier curve has to
-        // land on the same fight or the measurement is invalidated.
-        DefenderRoster roster = DefenderRoster.forMission(MissionType.CONQUEST,
+    void conquestAtTheTopOfTheLadderOutnumbersFortyFullSquads() {
+        DefenderRoster nominal = DefenderRoster.forMission(MissionType.CONQUEST,
+                OperationTier.FULL_STRENGTH, RiskLevel.MEDIUM, true);
+        DefenderRoster high = DefenderRoster.forMission(MissionType.CONQUEST,
                 OperationTier.FULL_STRENGTH, RiskLevel.HIGH, true);
 
-        assertEquals(322, roster.totalCount,
-                "within rounding of the 320 the old CONQUEST/HIGH table produced");
+        assertEquals(630, nominal.totalCount,
+                "nominal Full Strength must exceed forty twelve-marine squads");
+        assertEquals(725, high.totalCount,
+                "risk may intensify the authored mass without reading attacker strength");
     }
 
     @Test
@@ -85,6 +86,9 @@ class OperationTierTest {
         // conquest is written for.
         assertEquals(40, MissionGenerator.requiredDropsFor(
                 MissionType.CONQUEST, OperationTier.FULL_STRENGTH));
+        assertEquals(630, DefenderRoster.forMission(MissionType.CONQUEST,
+                OperationTier.FULL_STRENGTH, RiskLevel.MEDIUM, false).totalCount,
+                "Conquest defender intensity must not inflate its lift demand");
         assertTrue(MissionGenerator.requiredDropsFor(
                 MissionType.SABOTAGE, OperationTier.FIRST_CONTRACT) >= 2,
                 "one drop is not an operation");
