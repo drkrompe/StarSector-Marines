@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.marine.EquipmentLayerDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialUsePose;
+import com.fs.starfarer.api.graphics.SpriteAPI;
 
 /** Emits one modular infantry actor from shoulder-relative authored transforms. */
 final class LayeredUnitComposer {
@@ -26,6 +27,21 @@ final class LayeredUnitComposer {
     private LayeredUnitComposer() {}
 
     static void emit(DrawList out, LayeredUnitAssets assets, LayeredSpriteCache head,
+                     MarineWeapon primary, boolean drawWeaponLayers,
+                     MarineSecondary special,
+                     EquipmentGrade equipmentGrade,
+                     float actorX, float actorY, float shoulderPx,
+                     float facingDeg, float headLookDeg, float locomotionPhase,
+                     float weaponPhase, int pose, int flags, float alpha) {
+        emit((sprite, centerX, centerY, width, height, angleDegrees, red, green, blue, opacity) ->
+                        out.addSprite(RenderLayer.UNITS, sprite, centerX, centerY,
+                                width, height, angleDegrees, red, green, blue, opacity),
+                assets, head, primary, drawWeaponLayers, special, equipmentGrade,
+                actorX, actorY, shoulderPx, facingDeg, headLookDeg, locomotionPhase,
+                weaponPhase, pose, flags, alpha);
+    }
+
+    static void emit(SpriteEmitter out, LayeredUnitAssets assets, LayeredSpriteCache head,
                      MarineWeapon primary, boolean drawWeaponLayers,
                      MarineSecondary special,
                      EquipmentGrade equipmentGrade,
@@ -151,7 +167,7 @@ final class LayeredUnitComposer {
         }
     }
 
-    private static void emitFoot(DrawList out, LayeredSpriteCache foot,
+    private static void emitFoot(SpriteEmitter out, LayeredSpriteCache foot,
                                  float actorX, float actorY, float swPx,
                                  float facingDeg, float offsetXSw, float offsetYSw,
                                  boolean mirror, float alpha) {
@@ -178,7 +194,7 @@ final class LayeredUnitComposer {
                 facingDeg + lerp(restingAngle, impactAngle, swipe));
     }
 
-    private static void emitClaw(DrawList out, LayeredSpriteCache claw,
+    private static void emitClaw(SpriteEmitter out, LayeredSpriteCache claw,
                                  ClawTransform transform, float swPx, float alpha) {
         float pivotX = claw.pxWidth * 0.5f;
         float pivotY = claw.pxHeight * CLAW_PIVOT_Y_FRACTION;
@@ -245,7 +261,7 @@ final class LayeredUnitComposer {
         };
     }
 
-    private static void emitFlash(DrawList out, LayeredSpriteCache flash,
+    private static void emitFlash(SpriteEmitter out, LayeredSpriteCache flash,
                                   WeaponTransform weaponTransform,
                                   LayeredSpriteCache weapon, float swPx, float alpha) {
         // Muzzle is at the north edge of every weapon source, centered on X.
@@ -261,25 +277,25 @@ final class LayeredUnitComposer {
                 swPx, weaponTransform.angleDeg, alpha);
     }
 
-    private static void emitSprite(DrawList out, LayeredSpriteCache layer,
+    private static void emitSprite(SpriteEmitter out, LayeredSpriteCache layer,
                                    float cx, float cy, float swPx,
                                    float angleDeg, float alpha) {
         float scale = swPx / SOURCE_SHOULDER_PX;
-        out.addSprite(RenderLayer.UNITS, layer.sprite, cx, cy,
+        out.add(layer.sprite, cx, cy,
                 layer.pxWidth * scale, layer.pxHeight * scale, angleDeg,
                 1f, 1f, 1f, alpha);
     }
 
-    private static void emitEquipmentLayer(DrawList out, LayeredSpriteCache layer,
+    private static void emitEquipmentLayer(SpriteEmitter out, LayeredSpriteCache layer,
                                            EquipmentLayerComposer.Placement placement,
                                            float alpha) {
-        out.addSprite(RenderLayer.UNITS, layer.sprite,
+        out.add(layer.sprite,
                 placement.centerX(), placement.centerY(),
                 placement.width(), placement.height(), placement.angleDegrees(),
                 1f, 1f, 1f, alpha);
     }
 
-    private static void emitEquipmentFlash(DrawList out, LayeredSpriteCache flash,
+    private static void emitEquipmentFlash(SpriteEmitter out, LayeredSpriteCache flash,
                                            EquipmentLayerComposer.Placement placement,
                                            float shoulderPx, float alpha) {
         float[] muzzleOffset = rotate(0f, placement.height() * 0.5f,
@@ -313,6 +329,13 @@ final class LayeredUnitComposer {
     private static float clamp01(float value) { return Math.max(0f, Math.min(1f, value)); }
     private static float lerp(float a, float b, float t) { return a + (b - a) * t; }
     private static float smoothstep(float t) { return t * t * (3f - 2f * t); }
+
+    @FunctionalInterface
+    interface SpriteEmitter {
+        void add(SpriteAPI sprite, float centerX, float centerY,
+                 float width, float height, float angleDegrees,
+                 float red, float green, float blue, float alpha);
+    }
 
     private static final class WeaponTransform {
         final float cx, cy;

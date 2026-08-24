@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — replaced the board-shaped roadmap recap with durable extension boundaries.
+Updated: 2026-08-24 — made the selected billet's equipment doll and sample soldier one view-only projection of the materialized kit.
 
 ## Purpose
 
@@ -115,6 +115,13 @@ state consumed by deployment and battle. This preserves the campaign-to-battle
 contract while the designer grows. The built-in library contains Field, Line,
 Recon, Fire Support, Anti-Materiel, Screen, and Breach templates; the LOADOUTS
 surface exposes Alpha/Bravo/Charlie plus each assigned template.
+
+Selecting one candidate billet also projects an equipment doll beside a sample
+soldier. The doll reads the billet's armour, primary, grade, and optional special
+item; the soldier uses the same layered actor composition and special-equipment
+presentation recipe as battlefield infantry. Billet selection is retained view
+state only. It does not materialize gear, reserve stock, or replace the exact
+refit transaction preview.
 
 Templates are reusable but equipment is finite. Design itself must not be gated by
 stock; the designer may save an unfieldable template, while assignment is allowed
