@@ -4,6 +4,8 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
+Updated: 2026-08-24 — named target-faction facility treatment as a bounded content consumer over shared installation semantics.
+
 Map generation turns a deterministic request into a validated tactical world. It
 owns authored spatial intent; runtime systems own subsequent mutation and play.
 
@@ -90,6 +92,13 @@ Generator-published tactical facts need a named consumer. Do not widen
 `MapResult` with preview-only or speculative analysis artifacts; an in-pipeline
 consumer reads the context, while an external consumer justifies the result
 contract it needs.
+
+Target faction identity may select an authored treatment for a facility only
+through a named content consumer. Such a treatment can express materials,
+footprint composition, cover, and approach character, but it may not change the
+facility's owning battle semantics or bypass connectivity/deployment validation.
+`target-faction-facility-treatment.md` owns the first bounded consumer over the
+hard-installation family.
 
 ## Boundaries
 
