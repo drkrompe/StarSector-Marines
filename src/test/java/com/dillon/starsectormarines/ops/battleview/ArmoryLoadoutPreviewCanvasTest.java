@@ -17,22 +17,22 @@ class ArmoryLoadoutPreviewCanvasTest {
     @Test
     void specialPreviewStateUsesTheBattlefieldPoseVocabulary() {
         assertEquals(LayeredAppearance.POSE_ROCKET_AIM,
-                ArmoryLoadoutPreviewCanvas.poseFor(MarineSecondary.ROCKET_LAUNCHER, USING));
+                ArmoryLoadoutPreviewComposer.poseFor(MarineSecondary.ROCKET_LAUNCHER, USING));
         assertEquals(LayeredAppearance.POSE_AMR_AIM,
-                ArmoryLoadoutPreviewCanvas.poseFor(MarineSecondary.ANTI_MATERIEL_RIFLE, USING));
+                ArmoryLoadoutPreviewComposer.poseFor(MarineSecondary.ANTI_MATERIEL_RIFLE, USING));
         assertEquals(LayeredAppearance.POSE_SMOKE_THROW,
-                ArmoryLoadoutPreviewCanvas.poseFor(MarineSecondary.SMOKE_GRENADE, USING));
+                ArmoryLoadoutPreviewComposer.poseFor(MarineSecondary.SMOKE_GRENADE, USING));
         assertEquals(LayeredAppearance.POSE_SATCHEL_PLANT,
-                ArmoryLoadoutPreviewCanvas.poseFor(MarineSecondary.SATCHEL_CHARGE, USING));
+                ArmoryLoadoutPreviewComposer.poseFor(MarineSecondary.SATCHEL_CHARGE, USING));
         assertEquals(LayeredAppearance.POSE_IDLE,
-                ArmoryLoadoutPreviewCanvas.poseFor(MarineSecondary.SATCHEL_CHARGE,
+                ArmoryLoadoutPreviewComposer.poseFor(MarineSecondary.SATCHEL_CHARGE,
                         new SpecialEquipmentPresentationDef.Preview("carried", 1f)));
     }
 
     @Test
     void everyCampaignArmorMapsToItsBattlefieldLayerFamily() {
         for (MarineArmorPattern armor : MarineArmorPattern.values()) {
-            LayeredArmorFamily family = ArmoryLoadoutPreviewCanvas.armorFamily(armor);
+            LayeredArmorFamily family = ArmoryLoadoutPreviewComposer.armorFamily(armor);
             assertEquals(armor.name(), family.name());
         }
     }

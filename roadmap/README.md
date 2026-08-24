@@ -70,7 +70,9 @@ See `mapgen-nouns.md`, `moddable-tilesets-nouns.md`, and
 The retained UI foundation is proven in-engine and is being adopted one
 production surface at a time. Fleet Armory is the active conversion; the UI
 toolkit remains presentation infrastructure rather than company or inventory
-authority. See `ui-nouns.md` and `company-view-nouns.md`.
+authority. Its complete selected-billet preview can also render as deterministic
+PNG evidence without launching the game. See `ui-nouns.md` and
+`company-view-nouns.md`.
 
 ## Immediate recommendation
 
