@@ -1,6 +1,13 @@
 package com.dillon.starsectormarines.battle.ui.panel;
 
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.command.AssignmentKind;
+import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
+import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.AssignmentReason;
+import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.Phase;
+import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.SquadDirective;
+import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.TrackState;
+import com.dillon.starsectormarines.battle.command.compound.CompoundService.CompoundState;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.combat.FiringSystem;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -18,6 +25,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -97,6 +105,24 @@ class SquadPlanDebugPanelTest {
 
         assertEquals("Fire Ready 0   Reg 1   CD 1   Last REGISTERING 0t",
                 SquadPlanDebugPanel.fireSummary(squad, sim));
+    }
+
+    @Test
+    void selectedSquadSummariesExplainConquestTrackSupport() {
+        TrackState track = new TrackState(1, 10, 20, 1, 2, 8,
+                0.72f, 0.81f, 0.68f, 3, 5.4f, 4.2f, 17);
+        SquadDirective directive = new SquadDirective(9, 2, 1,
+                AssignmentReason.ADJACENT_TRACK_SUPPORT,
+                AssignmentKind.CLEAR_ZONE, 17);
+        ConquestFrontSnapshot snapshot = new ConquestFrontSnapshot(44, 42,
+                TraversalAxis.SOUTH_TO_NORTH, Phase.FRONT_ADJUST, 2,
+                25, CompoundState.DEFENDER_HELD, List.of(track),
+                List.of(directive));
+
+        assertEquals("Command FRONT_ADJUST   Reason ADJACENT_TRACK_SUPPORT",
+                SquadPlanDebugPanel.commandSummary(snapshot, directive));
+        assertEquals("Track P2→E1   Front F0.72/H0.68   Press 5.4/4.2",
+                SquadPlanDebugPanel.trackSummary(snapshot, directive));
     }
 
     private static BattleSimulation openSim() {

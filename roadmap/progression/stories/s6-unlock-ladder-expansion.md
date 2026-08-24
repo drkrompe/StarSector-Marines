@@ -5,9 +5,9 @@
 
 Status: PLANNED — depends on `s5-parts-acquisition-channels.md`,
 `s2-primary-weapon-catalog-expansion.md`, and the S2A–S2D special-equipment
-stories.
+stories; armor expansion also depends on `powered-assault-armor-roles.md`.
 Written: 2026-08-22
-Updated: 2026-08-23 — expanded the reachability gate across the split primary and special-equipment stories.
+Updated: 2026-08-24 — routed armor unlocks through the light/line/heavy role and faction-pattern catalog.
 
 ## Problem
 
@@ -42,10 +42,14 @@ only tier of kit.
 
 The smallest correct fix, shippable on its own:
 
-- Every `MarineArmorPattern` gets a reachable unlock, laddered by its own
-  `tier` field: tier 2 (`BLUE_SCOUT`, `OUTLAW`, `MILITIA`) early, tier 3
+- Every `MarineArmorPattern` gets a reachable unlock, laddered by its own role
+  and actual capability rather than blindly by its current `tier` field. The
+  initial mapping from `powered-assault-armor-roles.md` keeps tier 2 light
+  patterns (`BLUE_SCOUT`, `OUTLAW`, `MILITIA`) early, tier 3 line patterns
   (`CHARCOAL`, `ARMY_GREEN`) mid — both currently starter issue, so decide
-  whether they stay starter — and tier 4 (`RED_ELITE`) as a genuine chase.
+  whether they stay starter — and the tier 4 `RED_ELITE` heavy battlesuit as a
+  genuine chase. Future high-end light suits remain eligible for late unlocks;
+  role is not tier.
 - Fill the grade matrix: MILSPEC and MASTERWORK for every primary family,
   not just `DMR`. Special equipment remains an item family rather than a grade
   matrix unless its own story explicitly authors grades.
@@ -78,6 +82,11 @@ story/special mission, MRB licensing tier, and a modest set of
 early-campaign milestone grants so a green company is not gated behind luck
 in its first hours.
 
+Installation recovery is specific: `intact-installation-recovery.md` may admit
+a faction-provenance schematic only when the matching site was secured in an
+eligible state and accepted terms grant recovery. Destroying the site or merely
+fighting on a market with that faction cannot produce the same pristine pool.
+
 ## Slice 3 — Factional equipment identity
 
 **The direction that makes this story worth doing.** Slices 1 and 2 make
@@ -94,7 +103,10 @@ Starsector's factions differ enormously and the mod should read that:
 | --- | --- |
 | Hegemony | Rugged, ballistic, cheap to keep running, unglamorous |
 | Tri-Tachyon | Energy-based, high ceiling, finicky and expensive |
+| Persean League | Balanced midline families, dependable mass issue, flexible support |
+| Luddic Church | Maintained low-tech patterns, protective and durable, limited taboo equipment |
 | Luddic Path | Crude, brutal, dangerous to the user as well as the target |
+| Sindrian Diktat | State-issue ballistic/energy mix, concentrated prestige grades |
 | Pirate / outlaw | Unreliable with a nasty edge; erratic grade quality |
 | Independent / MRB | The neutral baseline the company starts on |
 
@@ -123,6 +135,20 @@ source — the same shape `EquipmentGrade` already has, composed alongside
 it in `InfantryCombatStats` rather than duplicating `MarineWeapon` entries.
 A small number of genuinely faction-exclusive families can then exist as
 real chase items without the catalog exploding.
+
+For the first implementation, faction identity attaches to recipe provenance
+and a thin grade-side treatment. It supplies availability, presentation, and a
+bounded stat skew composed with family/grade/profile. It does **not** grant set
+bonuses. Genuinely exclusive weapon families remain separately authored content
+rather than empty cells in a faction cross-product.
+
+Armor uses the same provenance principle but not weapon grade. A recovered suit
+recipe names a concrete pattern whose light, line, or heavy role and faction
+tradition are authored by `powered-assault-armor-roles.md`. Do not flatten
+Hegemony Domain-pattern heavy armor, Tri-Tachyon composite recon armor, Church
+consecrated legacy suits, and Path/pirate industrial rigs into one faction tint
+over `RED_ELITE`; their silhouette, availability, maintenance, and bounded
+tradeoff must agree with the pattern the player actually prints.
 
 **2. Coherence versus mongrel.** Can the player field a matched
 single-faction kit, or are they always running whatever they scavenged?
@@ -159,9 +185,11 @@ Where a milestone gate is still the right tool, gate on more than a count:
 ## Out of scope
 
 - Where parts come from — `s5-parts-acquisition-channels.md`.
-- New gear to unlock — `s2-primary-weapon-catalog-expansion.md` and
-  `s2d-frag-grenades.md`. The shipped AMR, smoke grenades, and satchel kits are
-  already starter issue and must remain covered by the stranded-asset check.
+- New weapons and special equipment to unlock —
+  `s2-primary-weapon-catalog-expansion.md` and `s2d-frag-grenades.md`. New armor
+  roles and patterns belong to `powered-assault-armor-roles.md`. The shipped
+  AMR, smoke grenades, and satchel kits are already starter issue and must
+  remain covered by the stranded-asset check.
 - Visual differentiation of unlocked tiers —
   `s7-grade-visual-identity.md`.
 - Any change to printing costs beyond repricing against S5's stated income
@@ -174,6 +202,15 @@ Where a milestone gate is still the right tool, gate on more than a count:
 - The ladder has meaningful rungs past mission 30, verified against S5's
   stated income curve at missions 5, 15, and 30.
 - No rung is reachable by money alone.
+- Every core faction has at least one reachable, recognizable recipe-provenance
+  path or explicit catalog reason for having none in a given equipment family;
+  unknown/modded factions use the Independent baseline unless merged data
+  declares their own treatment.
+- Faction treatments are side-grades over the same family/grade/profile laws,
+  not a hidden faction power tier or set-bonus system.
+- The ladder contains useful light, line, and heavy suit choices beyond the
+  opening without ordering all light armor before all line armor before all
+  heavy armor as a disguised quality ladder.
 - Legacy saves migrate: existing `unlockedRecipes` are honored, and a
   long-running save is not retroactively stripped of anything it had.
   `MarineArmory.readResolve` already carries this responsibility — extend
@@ -192,11 +229,6 @@ Where a milestone gate is still the right tool, gate on more than a count:
   coexist, with milestones covering the guaranteed early ladder and
   schematics covering everything above it — so no player is ever hard-stuck
   behind a drop that did not come.
-- **Coherent versus mongrel factional kit** (Slice 3). Leaning mongrel by
-  default with coherence as a late aspiration, but this decides whether
-  set bonuses exist at all, and that in turn shapes the whole armory UI.
-  Worth answering before Slice 3 implementation.
-- Does factional identity attach to the **weapon family** or to the
-  **grade**? Attaching to grade composes with the existing resolver almost
-  for free; attaching to family is more expressive and more work. Leaning
-  grade-side, with a handful of faction-exclusive families on top.
+- Coherent faction kits remain an achievable collection/presentation goal, but
+  the first implementation has no set bonus; the default company is a mongrel
+  mercenary armory assembled from work and recovery across the Sector.

@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — separated durable direction from story sequencing and moved special-equipment activation, resources, AI policy, catalog copy, and presentation recipes into fail-loud data.
+Updated: 2026-08-24 — named assault-armor role and equipment provenance as axes distinct from tier, pattern, grade, and person.
 
 ## Purpose
 
@@ -39,14 +39,23 @@ legibility.
 - **Equipment grade** — the four-step manufacturing/condition quality axis:
   Surplus, Service, Milspec, Masterwork. Grade composes with family and profile;
   it does not create a separate unit type.
+- **Equipment provenance** — the manufacturing tradition or factional lineage
+  attached to a recipe and concrete item. Provenance governs availability,
+  presentation, and at most a bounded side-grade; it is not an allegiance lock,
+  a quality tier, or a set bonus.
 - **Special equipment** — one optional billet item carried alongside the
   marine's primary. Rocket launchers, anti-materiel rifles, and fragmentation
   grenades activate weapon definitions; smoke and satchel charges activate
   utility behavior. “Secondary” remains a transitional code/catalog name, not
   the enduring player-facing category.
-- **Armor pattern** — a player-owned infantry protection and appearance package.
-  Unlike grade, it changes survivability and movement tradeoffs as its own kit
-  choice.
+- **Assault-armor role** — the suit's battlefield weight and purpose: light
+  infiltration/recon, standard line combat, or heavy mechanized battlesuit.
+  Unpowered field kit remains outside those three powered roles. Role expresses
+  a protection/mobility silhouette, not a vertical quality tier.
+- **Armor pattern** — a concrete, player-owned infantry protection and
+  appearance package. A pattern realizes one assault-armor role and may carry
+  equipment provenance. Unlike weapon grade, it changes survivability and
+  movement tradeoffs as its own kit choice.
 - **Armory** — the persistent campaign inventory of permanent recipes, finite
   printed gear, and fabrication resources. Recipes grant permission; stock is
   what may be allocated.
@@ -110,6 +119,23 @@ incoming-accuracy tradeoff; `combat-durability-nouns.md` owns how battle damage
 removes that armor and exposed structure. Structure remains the platform's base
 pool; armor no longer adds health or applies a permanent damage-reduction
 multiplier after it breaks.
+
+The planned assault-armor role makes those trades legible without turning the
+current numeric `tier` into the suit's identity. Light armor favors mobility
+and concealment-capable patterns, line armor is the all-environment baseline,
+and heavy battlesuits trade speed for breach-level protection while remaining
+one-person infantry. Powered sealing, recoil assistance, tactical relays, and
+jump assistance are setting and presentation truths until a story names a
+mechanical consumer. Optical camouflage likewise requires an honest shared
+observation/perception contract; an armor description alone may not grant
+invisibility or erase an opponent's remembered contact.
+
+Equipment provenance composes beside role and pattern. It lets a Hegemony line
+suit and a Tri-Tachyon line suit share the same role while differing in source,
+visual language, maintainability, and a bounded authored skew. Player companies
+may mix recovered traditions. Provenance never rewrites the marine's weapon
+family, grade, aptitude, or experience, and faction identity never supplies a
+hidden universal combat bonus.
 
 Each billet has at most one special-equipment slot. The item is a stable
 loadout identity with a typed activation: weapon-like specials reference the
@@ -274,8 +300,13 @@ The following are direction, not current behavior:
 
 - Aptitude is permanent; experience is earned; captain rank is a separate
   leadership progression.
-- Family, grade, profile, and armor stay composable rather than being fused
-  into special unit variants.
+- Family, grade, profile, armor role, armor pattern, and provenance stay
+  composable rather than being fused into faction-specific unit variants.
+- Assault-armor role is not quality: a rare high-end recon suit may remain
+  light, while a crude industrial battlesuit may remain heavy.
+- A heavy battlesuit remains a one-person infantry billet using infantry
+  weapons, cover, pathing, and casualty authority. Mech chassis, mounts,
+  lances, and support delivery remain Mechs authority.
 - A recipe is not stock, and an authored item is not necessarily obtainable.
 - A billet carries at most one special item; utilities do not become
   `WeaponDef` entries merely because they share that loadout slot with guns.
