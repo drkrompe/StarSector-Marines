@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.appearance.LayeredWeaponFamily;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 
 import java.util.EnumMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /** Loaded modular armor family and shared equipment layers for one unit type. */
 public final class LayeredUnitAssets {
@@ -20,6 +22,7 @@ public final class LayeredUnitAssets {
     public final LayeredSpriteCache muzzleFlash;
     private final EnumMap<LayeredWeaponFamily, EnumMap<EquipmentGrade, LayeredSpriteCache>>
             gradeWeapons = new EnumMap<>(LayeredWeaponFamily.class);
+    private final Map<String, LayeredSpriteCache> specialEquipment = new LinkedHashMap<>();
 
     public LayeredUnitAssets(LayeredSpriteCache body, LayeredSpriteCache head,
                              LayeredSpriteCache foot, LayeredSpriteCache foreClaw,
@@ -58,6 +61,14 @@ public final class LayeredUnitAssets {
             case SMG -> smg;
             case DMR -> dmr;
         };
+    }
+
+    public void registerSpecialEquipment(String equipmentId, LayeredSpriteCache sprite) {
+        if (equipmentId != null && sprite != null) specialEquipment.put(equipmentId, sprite);
+    }
+
+    public LayeredSpriteCache specialEquipment(String equipmentId) {
+        return specialEquipment.get(equipmentId);
     }
 
     private void registerGrade(LayeredWeaponFamily family, EquipmentGrade grade,

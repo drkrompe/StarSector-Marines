@@ -139,9 +139,7 @@ public class Detonations {
         }
         if (det.aoeRadius > 0f) {
             if (det.aoeRadius >= 1.0f) {
-                if (det.burningPlume) {
-                    effects.spawnBurningSmokePlume(det.endpointX, det.endpointY);
-                } else {
+                if (!det.authoredAftermath) {
                     effects.spawnSmokePlume(det.endpointX, det.endpointY);
                 }
             }

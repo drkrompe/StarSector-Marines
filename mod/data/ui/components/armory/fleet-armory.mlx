@@ -1,4 +1,4 @@
-<template props="companySummary,squadRows,teamRows,templateRows,targetSummary,candidateSummary,billetRows,gearRows,transactionSummary,transactionClasses,applyDisabled,apply,feedbackText,feedbackClasses,back,legacy,reload,reloadStatus">
+<template props="companySummary,squadRows,teamRows,templateRows,targetSummary,candidateSummary,billetRows,previewSummary,gearRows,transactionSummary,transactionClasses,applyDisabled,apply,feedbackText,feedbackClasses,back,legacy,reload,reloadStatus">
   <div id="fleet-armory-root" class="fleet-armory-root">
     <div id="armory-header" class="panel surface-dark">
       <div id="armory-title" class="label heading tone-accent">FLEET ARMORY</div>
@@ -8,7 +8,7 @@
     <div id="armory-body">
       <armory-formation-rail companySummary="{companySummary}" squadRows="{squadRows}" teamRows="{teamRows}" />
       <armory-template-library templateRows="{templateRows}" />
-      <armory-refit-transaction targetSummary="{targetSummary}" candidateSummary="{candidateSummary}" billetRows="{billetRows}" gearRows="{gearRows}" transactionSummary="{transactionSummary}" transactionClasses="{transactionClasses}" applyDisabled="{applyDisabled}" apply="{apply}" feedbackText="{feedbackText}" feedbackClasses="{feedbackClasses}" />
+      <armory-refit-transaction targetSummary="{targetSummary}" candidateSummary="{candidateSummary}" billetRows="{billetRows}" previewSummary="{previewSummary}" gearRows="{gearRows}" transactionSummary="{transactionSummary}" transactionClasses="{transactionClasses}" applyDisabled="{applyDisabled}" apply="{apply}" feedbackText="{feedbackText}" feedbackClasses="{feedbackClasses}" />
     </div>
 
     <div id="armory-footer" class="panel surface-dark">

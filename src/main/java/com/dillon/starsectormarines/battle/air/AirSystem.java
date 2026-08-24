@@ -478,7 +478,7 @@ public class AirSystem {
                             AirTurrets rearm = world.airTurrets(id);
                             if (rearm != null) {
                                 for (MountedTurret mt : rearm.mounts) {
-                                    mt.ammo = mt.mount.kind.startingAmmo;
+                                    mt.ammo = mt.mount.kind.startingAmmo();
                                     mt.targetId = 0L;
                                     mt.cooldownTimer = 0f;
                                 }
@@ -562,11 +562,11 @@ public class AirSystem {
                 aim.squadId = Squad.NO_SQUAD;
                 aim.excludeFromCrowding = 0L;
                 aim.facingDegrees = mt.facingDegrees;
-                aim.turnRateDegPerSec = mt.mount.kind.turnRateDegPerSec;
-                aim.attackRange = mt.mount.kind.range;
-                aim.minRange = mt.mount.kind.minRange;
+                aim.turnRateDegPerSec = mt.mount.kind.turnRateDegPerSec();
+                aim.attackRange = mt.mount.kind.range();
+                aim.minRange = mt.mount.kind.minRange();
                 aim.cooldownTimer = mt.cooldownTimer;
-                aim.attackCooldown = mt.mount.kind.cooldown;
+                aim.attackCooldown = mt.mount.kind.cooldown();
                 aim.target = roster.isLive(mt.targetId) ? mt.targetId : 0L;
                 aim.ignoreCloseWalls = true;
                 aim.closeWallRadius = SHUTTLE_AIR_LOS_RADIUS;
@@ -595,7 +595,7 @@ public class AirSystem {
                         mt.recoilTimer = 0f;
                         mt.ammo--;
                         mt.burstRemaining--;
-                        mt.burstTimer = mt.mount.kind.burstSpacing;
+                        mt.burstTimer = mt.mount.kind.burstSpacing();
                         if (mt.burstRemaining == 0) mt.burstTargetId = 0L;
                     }
                     continue;
@@ -607,10 +607,10 @@ public class AirSystem {
                     mt.ammo--;
                     // Burst weapons latch the remaining rounds; single-shot
                     // kinds (burstCount == 1) skip this and behave as before.
-                    if (mt.mount.kind.burstCount > 1
+                    if (mt.mount.kind.burstCount() > 1
                             && aim.target != 0L && world.isAlive(aim.target)) {
-                        mt.burstRemaining = mt.mount.kind.burstCount - 1;
-                        mt.burstTimer = mt.mount.kind.burstSpacing;
+                        mt.burstRemaining = mt.mount.kind.burstCount() - 1;
+                        mt.burstTimer = mt.mount.kind.burstSpacing();
                         mt.setBurstTarget(aim.target);
                     }
                 }

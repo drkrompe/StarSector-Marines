@@ -1,8 +1,10 @@
 # Battle Radio
 
-Status: ACTIVE — 2 open stories
+Status: ACTIVE — one presentation-only cue policy spans both battle hosts; mix and release-audio provenance remain unsettled.
 
 Written: 2026-08-23
+
+Updated: 2026-08-24 — replaced the open-story count with direction-oriented status.
 
 Read `stories.md` for the open-work board.
 

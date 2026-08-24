@@ -2,7 +2,7 @@
 
 Status: SHIPPED — foundation active as production infrastructure
 Written: 2026-08-23
-Updated: 2026-08-24 — workbench live-accepted; Fleet Armory is the first production conversion.
+Updated: 2026-08-24 — production canvas recipes can emit deterministic PNG evidence through a headless raster backend.
 
 ## Decision
 
@@ -107,6 +107,11 @@ boolean negation, handlers are Java `Runnable` props, and repeated children requ
 both `each` and `key`. Unknown tags, attributes, names, malformed expressions, and
 unsupported CSS fail with file, line, and column context before a surface opens.
 
+Dotted traversal is opt-in: an intermediate value implements
+`MarkupPropertySource` or supplies a `Map`. The runtime never reflects over an
+arbitrary Java object. This keeps authored components inside Starsector's script
+sandbox and prevents a view model from accidentally exposing unrelated methods.
+
 Every emitted element carries the component's generated scope class and every
 component selector is scoped to the subject element before registration. Component
 sheets remain before the final named theme sheet. The builder uses only public
@@ -151,6 +156,10 @@ idle guarantee here is zero style resolution and zero layout work once settled.
   coordinate mismatch is visible rather than inferred from a crowded screen.
 - Production surface acceptance includes a screenshot review, but domain behavior is
   asserted below the renderer.
+- Backend-neutral production previews render through a controlled Java2D sink as well
+  as the live canvas sink. `gradlew.bat renderArmoryPreviews` writes individual Fleet
+  Armory loadouts and a contact sheet under `build/headless-armory-previews/`; this is
+  deterministic visual evidence, while the final host-scale feel pass remains in-game.
 
 ## Rejected directions
 

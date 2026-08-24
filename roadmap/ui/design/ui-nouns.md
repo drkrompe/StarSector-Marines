@@ -2,7 +2,9 @@
 
 Status: SHIPPED — retained UI foundation proven in-engine
 Written: 2026-08-23
-Updated: 2026-08-24 — live-accepted layout, typography, input, canvas, theme, transition, MLX, binding, and reload contracts.
+Updated: 2026-08-24 — retained layout now includes responsive grids, while
+composed canvas previews share one recipe across live sprites and deterministic
+headless PNGs.
 
 ## Purpose
 
@@ -27,8 +29,9 @@ them.
   presentation state, and optional interaction behavior.
 - A **layout box** is the computed border rectangle of one element. Painting and
   hit-testing consume the same box; neither independently derives geometry.
-- A **layout context** arranges a parent's children. The initial contexts are row,
-  column, and stack; later capability stories may add grid and absolute placement.
+- A **layout context** arranges a parent's children. The current contexts are row,
+  column, responsive grid, and stack; later capability stories may add absolute
+  placement.
 - **Overflow** is CSS's relationship between a box and content that exceeds it.
   `visible` is the default; `hidden` and `scroll` establish the same padding-box
   clip, while `scroll` additionally promises navigation chrome and input.
@@ -120,6 +123,16 @@ a regular body face for controls, values, and prose and a display face for headi
 to authored copy: all caps is a heading treatment, not a global font policy. Horizontal placement is
 `text-align`; button widgets center their measured line box vertically inside the content box.
 
+## Responsive grids
+
+`display: grid` is the retained fixed-item gallery context. The widest immediate
+child's preferred border-box width defines a column; the available content width
+determines how many complete columns fit, and document order fills each row before
+wrapping. Each row takes its tallest child's preferred height. `column-gap` and
+`row-gap` remain ordinary CSS lengths, and wrapped rows contribute to the existing
+vertical `scrollHeight` contract. The first production consumer is Fleet Armory's
+owned-company portrait-card gallery.
+
 ## Overflow and clipping
 
 An element paints its own background and border under the clip inherited from its
@@ -193,7 +206,14 @@ A document-owned registry associates attached canvas identity with one Java
 producer. The producer draws deterministic projection state through a bounded
 `CanvasContext`, not raw OpenGL, after the element background and before following
 content. Its output is clipped to the canvas content box intersected with ancestor
-clips, and its `visibleBounds` is expressed in canvas-local units.
+clips, and its `visibleBounds` is expressed in canvas-local units. Whole-texture
+sprites are another bounded canvas primitive: canvas metrics place and scale them,
+the producer supplies the domain composition, and the retained painter continues
+to own clipping and borrowed OpenGL state. A composed preview expresses its ordered
+primitives against a backend-neutral sink and identifies sprite assets independently
+of a loaded game texture. The live sink resolves those tokens to `SpriteAPI`; the
+headless sink resolves the same tokens to source PNGs in a controlled Java2D context.
+Both therefore exercise one layout, pose, occlusion, and actor-composition recipe.
 
 ## Authority boundaries
 

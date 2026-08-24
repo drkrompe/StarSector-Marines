@@ -5,6 +5,9 @@ import com.dillon.starsectormarines.battle.appearance.LayeredWeaponFamily;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.marine.EquipmentLayerDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialUsePose;
 
 /** Emits one modular infantry actor from shoulder-relative authored transforms. */
 final class LayeredUnitComposer {
@@ -29,6 +32,21 @@ final class LayeredUnitComposer {
                      float actorX, float actorY, float shoulderPx,
                      float facingDeg, float headLookDeg, float locomotionPhase,
                      float weaponPhase, int pose, int flags, float alpha) {
+        emit((layer, centerX, centerY, width, height, angleDegrees, red, green, blue, opacity) ->
+                        out.addSprite(RenderLayer.UNITS, layer.sprite, centerX, centerY,
+                                width, height, angleDegrees, red, green, blue, opacity),
+                assets, head, primary, drawWeaponLayers, special, equipmentGrade,
+                actorX, actorY, shoulderPx, facingDeg, headLookDeg, locomotionPhase,
+                weaponPhase, pose, flags, alpha);
+    }
+
+    static void emit(SpriteEmitter out, LayeredUnitAssets assets, LayeredSpriteCache head,
+                     MarineWeapon primary, boolean drawWeaponLayers,
+                     MarineSecondary special,
+                     EquipmentGrade equipmentGrade,
+                     float actorX, float actorY, float shoulderPx,
+                     float facingDeg, float headLookDeg, float locomotionPhase,
+                     float weaponPhase, int pose, int flags, float alpha) {
         float pxPerSw = shoulderPx;
         boolean moving = (flags & LayeredAppearance.FLAG_MOVING) != 0;
         boolean rocket = pose == LayeredAppearance.POSE_ROCKET_AIM
@@ -37,9 +55,29 @@ final class LayeredUnitComposer {
                 || pose == LayeredAppearance.POSE_AMR_FIRE;
         boolean overShoulder = (flags & LayeredAppearance.FLAG_WEAPON_OVER_SHOULDER) != 0;
 
-        LayeredWeaponFamily weaponFamily = drawWeaponLayers
+        SpecialEquipmentDef specialDef = special != null ? special.specialDef() : null;
+        EquipmentLayerDef specialLayer = specialDef != null
+                ? specialDef.presentation().carrierLayer() : null;
+        SpecialUsePose usePose = specialDef != null
+                ? specialDef.presentation().usePose() : null;
+        boolean specialUsing = switch (usePose != null ? usePose : SpecialUsePose.THROW) {
+            case SHOULDER_LAUNCHER -> rocket;
+            case BRACED_RIFLE -> amr;
+            case THROW -> pose == LayeredAppearance.POSE_SMOKE_THROW;
+            case PLANT -> pose == LayeredAppearance.POSE_SATCHEL_PLANT;
+        };
+        boolean specialFiring = pose == LayeredAppearance.POSE_ROCKET_FIRE
+                || pose == LayeredAppearance.POSE_AMR_FIRE;
+        boolean genericSpecialLayer = specialLayer != null;
+        boolean drawSpecialLayer = genericSpecialLayer
+                && (specialUsing || specialLayer.visibleWhileCarried());
+        boolean replacePrimary = drawSpecialLayer && specialUsing
+                && specialLayer.replacePrimaryWhileUsing();
+        boolean drawPrimaryLayers = drawWeaponLayers && !replacePrimary;
+
+        LayeredWeaponFamily weaponFamily = drawPrimaryLayers
                 ? LayeredWeaponFamily.fromPrimary(primary) : null;
-        LayeredSpriteCache weapon = drawWeaponLayers
+        LayeredSpriteCache weapon = drawPrimaryLayers
                 ? (rocket ? assets.rocketLauncher
                         : amr && special == MarineSecondary.ANTI_MATERIEL_RIFLE
                                 ? assets.antiMaterielRifle
@@ -73,12 +111,25 @@ final class LayeredUnitComposer {
             }
         }
 
-        WeaponTransform wt = drawWeaponLayers
+        WeaponTransform wt = drawPrimaryLayers
                 ? weaponTransform(weapon, weaponFamily, rocket, amr, pose, weaponPhase,
                     actorX, actorY, pxPerSw, facingDeg)
                 : null;
 
-        if (drawWeaponLayers && !overShoulder) {
+        LayeredSpriteCache specialSprite = drawSpecialLayer
+                ? assets.specialEquipment(specialDef.id()) : null;
+        EquipmentLayerComposer.Placement specialPlacement = specialSprite != null
+                ? EquipmentLayerComposer.resolve(specialLayer, specialUsing, specialFiring,
+                        weaponPhase,
+                        actorX, actorY, pxPerSw, facingDeg)
+                : null;
+
+        if (specialPlacement != null
+                && specialPlacement.occlusion() == EquipmentLayerDef.Occlusion.UNDER_BODY) {
+            emitEquipmentLayer(out, specialSprite, specialPlacement, alpha);
+        }
+
+        if (drawPrimaryLayers && !overShoulder) {
             emitSprite(out, weapon, wt.cx, wt.cy, pxPerSw, wt.angleDeg, alpha);
         }
 
@@ -91,8 +142,14 @@ final class LayeredUnitComposer {
                     pxPerSw, alpha);
         }
 
-        // Rocket firing deliberately changes occlusion: body -> weapon -> head.
-        if (drawWeaponLayers && overShoulder) {
+        if (specialPlacement != null
+                && specialPlacement.occlusion() == EquipmentLayerDef.Occlusion.OVER_BODY) {
+            emitEquipmentLayer(out, specialSprite, specialPlacement, alpha);
+        }
+
+        // Authored firing occlusion may deliberately move a shoulder weapon
+        // over the body while leaving a braced rifle underneath it.
+        if (drawPrimaryLayers && overShoulder) {
             emitSprite(out, weapon, wt.cx, wt.cy, pxPerSw, wt.angleDeg, alpha);
         }
 
@@ -100,12 +157,16 @@ final class LayeredUnitComposer {
         emitSprite(out, head, headCenter[0], headCenter[1], pxPerSw,
                 facingDeg + headLookDeg, alpha);
 
-        if (drawWeaponLayers && (flags & LayeredAppearance.FLAG_MUZZLE_FLASH) != 0) {
-            emitFlash(out, assets.muzzleFlash, wt, weapon, pxPerSw, alpha);
+        if ((flags & LayeredAppearance.FLAG_MUZZLE_FLASH) != 0) {
+            if (specialPlacement != null && specialFiring) {
+                emitEquipmentFlash(out, assets.muzzleFlash, specialPlacement, pxPerSw, alpha);
+            } else if (drawPrimaryLayers) {
+                emitFlash(out, assets.muzzleFlash, wt, weapon, pxPerSw, alpha);
+            }
         }
     }
 
-    private static void emitFoot(DrawList out, LayeredSpriteCache foot,
+    private static void emitFoot(SpriteEmitter out, LayeredSpriteCache foot,
                                  float actorX, float actorY, float swPx,
                                  float facingDeg, float offsetXSw, float offsetYSw,
                                  boolean mirror, float alpha) {
@@ -132,7 +193,7 @@ final class LayeredUnitComposer {
                 facingDeg + lerp(restingAngle, impactAngle, swipe));
     }
 
-    private static void emitClaw(DrawList out, LayeredSpriteCache claw,
+    private static void emitClaw(SpriteEmitter out, LayeredSpriteCache claw,
                                  ClawTransform transform, float swPx, float alpha) {
         float pivotX = claw.pxWidth * 0.5f;
         float pivotY = claw.pxHeight * CLAW_PIVOT_Y_FRACTION;
@@ -199,7 +260,7 @@ final class LayeredUnitComposer {
         };
     }
 
-    private static void emitFlash(DrawList out, LayeredSpriteCache flash,
+    private static void emitFlash(SpriteEmitter out, LayeredSpriteCache flash,
                                   WeaponTransform weaponTransform,
                                   LayeredSpriteCache weapon, float swPx, float alpha) {
         // Muzzle is at the north edge of every weapon source, centered on X.
@@ -215,13 +276,38 @@ final class LayeredUnitComposer {
                 swPx, weaponTransform.angleDeg, alpha);
     }
 
-    private static void emitSprite(DrawList out, LayeredSpriteCache layer,
+    private static void emitSprite(SpriteEmitter out, LayeredSpriteCache layer,
                                    float cx, float cy, float swPx,
                                    float angleDeg, float alpha) {
         float scale = swPx / SOURCE_SHOULDER_PX;
-        out.addSprite(RenderLayer.UNITS, layer.sprite, cx, cy,
+        out.add(layer, cx, cy,
                 layer.pxWidth * scale, layer.pxHeight * scale, angleDeg,
                 1f, 1f, 1f, alpha);
+    }
+
+    private static void emitEquipmentLayer(SpriteEmitter out, LayeredSpriteCache layer,
+                                           EquipmentLayerComposer.Placement placement,
+                                           float alpha) {
+        out.add(layer,
+                placement.centerX(), placement.centerY(),
+                placement.width(), placement.height(), placement.angleDegrees(),
+                1f, 1f, 1f, alpha);
+    }
+
+    private static void emitEquipmentFlash(SpriteEmitter out, LayeredSpriteCache flash,
+                                           EquipmentLayerComposer.Placement placement,
+                                           float shoulderPx, float alpha) {
+        float[] muzzleOffset = rotate(0f, placement.height() * 0.5f,
+                placement.angleDegrees());
+        float muzzleX = placement.centerX() + muzzleOffset[0];
+        float muzzleY = placement.centerY() + muzzleOffset[1];
+        float centerX = (flash.pxWidth * 0.5f - FLASH_PIVOT_X)
+                / SOURCE_SHOULDER_PX * shoulderPx;
+        float centerY = -(flash.pxHeight * 0.5f - FLASH_PIVOT_Y)
+                / SOURCE_SHOULDER_PX * shoulderPx;
+        float[] flashOffset = rotate(centerX, centerY, placement.angleDegrees());
+        emitSprite(out, flash, muzzleX + flashOffset[0], muzzleY + flashOffset[1],
+                shoulderPx, placement.angleDegrees(), alpha);
     }
 
     private static float[] worldPoint(float actorX, float actorY,
@@ -242,6 +328,13 @@ final class LayeredUnitComposer {
     private static float clamp01(float value) { return Math.max(0f, Math.min(1f, value)); }
     private static float lerp(float a, float b, float t) { return a + (b - a) * t; }
     private static float smoothstep(float t) { return t * t * (3f - 2f * t); }
+
+    @FunctionalInterface
+    interface SpriteEmitter {
+        void add(LayeredSpriteCache layer, float centerX, float centerY,
+                 float width, float height, float angleDegrees,
+                 float red, float green, float blue, float alpha);
+    }
 
     private static final class WeaponTransform {
         final float cx, cy;

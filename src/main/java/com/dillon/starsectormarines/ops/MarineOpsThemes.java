@@ -23,7 +23,7 @@ final class MarineOpsThemes {
                     background-color: #080d15;
                 }
                 .panel { background-color: #15202e; border-color: #6282a8; }
-                .workbench-root, .fleet-armory-root { border-color: #6ed7ff; }
+                .workbench-root, .fleet-armory-root, .fleet-armory-overview-root { border-color: #6ed7ff; }
                 .surface-dark { background-color: #0e1621; }
                 .tone-edge { color: #6ed7ff; }
                 .tone-muted { color: #8b9aaf; }
@@ -45,6 +45,9 @@ final class MarineOpsThemes {
                 .good-surface { background-color: #132b22; border-color: #78d494; }
                 .danger-surface { background-color: #3d2a26; border-color: #e98b83; }
                 .edge-surface { background-color: #183b50; border-color: #6ed7ff; }
+                .company-card-ready { border-color: #78d494; }
+                .company-card-operational { border-color: #ffd464; }
+                .company-card-unready { border-color: #e98b83; }
                 """);
     }
 
@@ -56,7 +59,7 @@ final class MarineOpsThemes {
                     background-color: #000000;
                 }
                 .panel { background-color: #071019; border-color: #d2f3ff; }
-                .workbench-root, .fleet-armory-root { border-color: #63e8ff; }
+                .workbench-root, .fleet-armory-root, .fleet-armory-overview-root { border-color: #63e8ff; }
                 .surface-dark { background-color: #000000; }
                 .tone-edge { color: #63e8ff; }
                 .tone-muted { color: #c4d1df; }
@@ -78,6 +81,9 @@ final class MarineOpsThemes {
                 .good-surface { background-color: #06361b; border-color: #78ff9d; }
                 .danger-surface { background-color: #501c16; border-color: #ff9d91; }
                 .edge-surface { background-color: #06374b; border-color: #63e8ff; }
+                .company-card-ready { border-color: #78ff9d; }
+                .company-card-operational { border-color: #ffe45c; }
+                .company-card-unready { border-color: #ff9d91; }
                 """);
     }
 

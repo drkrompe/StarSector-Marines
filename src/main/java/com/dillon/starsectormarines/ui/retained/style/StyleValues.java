@@ -27,6 +27,7 @@ final class StyleValues {
         String value = text.trim();
         if (value.isEmpty()) throw new UiStyleException(property.cssName() + " needs a value.");
         return switch (property) {
+            case DISPLAY -> parseDisplay(value);
             case FLEX_DIRECTION -> parseDirection(value);
             case WIDTH, HEIGHT -> parseLength(value, true);
             case FLEX_GROW -> nonNegativeNumber(property, value);
@@ -40,6 +41,15 @@ final class StyleValues {
             case TEXT_ALIGN -> parseTextAlign(value);
             case OPACITY -> opacity(value);
             case TRANSITION -> parseTransitions(value);
+        };
+    }
+
+    private static UiDisplay parseDisplay(String value) {
+        return switch (value.toLowerCase(Locale.ROOT)) {
+            case "flex" -> UiDisplay.FLEX;
+            case "grid" -> UiDisplay.GRID;
+            default -> throw new UiStyleException("display supports flex or grid, not \""
+                    + value + "\".");
         };
     }
 

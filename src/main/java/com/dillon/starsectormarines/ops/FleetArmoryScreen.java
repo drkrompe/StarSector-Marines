@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.ops.battleview.ArmoryLoadoutPreviewCanvas;
 import com.dillon.starsectormarines.ui.retained.UiAlign;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
@@ -86,7 +87,9 @@ public final class FleetArmoryScreen implements Screen {
             built = new UiDocument(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard())
-                    .onCancel(() -> context.returnFromArmory());
+                    .onCancel(() -> context.returnFromFleetArmoryWorkspace());
+            built.canvases().set(candidate.requireElement("loadout-preview"),
+                    new ArmoryLoadoutPreviewCanvas(viewModel::selectedBillet));
             if (viewport != null) built.layout(viewport.width(), viewport.height());
         } catch (RuntimeException failure) {
             candidate.close();
@@ -112,6 +115,7 @@ public final class FleetArmoryScreen implements Screen {
         props.put("targetSummary", viewModel.targetSummary());
         props.put("candidateSummary", viewModel.candidateSummary());
         props.put("billetRows", viewModel.billetRows());
+        props.put("previewSummary", viewModel.previewSummary());
         props.put("gearRows", viewModel.gearRows());
         props.put("transactionSummary", viewModel.transactionSummary());
         props.put("transactionClasses", viewModel.transactionClasses());
@@ -119,7 +123,7 @@ public final class FleetArmoryScreen implements Screen {
         props.put("apply", viewModel.applyAction());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
-        props.put("back", (Runnable) () -> context.returnFromArmory());
+        props.put("back", (Runnable) () -> context.returnFromFleetArmoryWorkspace());
         props.put("legacy", (Runnable) () -> context.goTo(ScreenId.ARMORY));
         props.put("reload", (Runnable) () -> reloadRequested = true);
         props.put("reloadStatus", reloadStatus);
@@ -131,6 +135,7 @@ public final class FleetArmoryScreen implements Screen {
                 "fleet-armory-root", "armory-header", "armory-body", "armory-footer",
                 "formation-rail", "squad-list", "team-list", "template-library",
                 "template-list", "refit-transaction", "billet-list", "gear-list",
+                "loadout-preview", "preview-summary",
                 "transaction-result", "apply-template", "transaction-feedback",
                 "armory-back", "legacy-armory", "reload-armory", "armory-reload-status")) {
             component.requireElement(id);

@@ -49,12 +49,12 @@ public final class MapTurret {
         // TurretKind stats override the UnitType.TURRET zero-base. Doing it here
         // (rather than in UnitType) keeps the per-kind balance in one place.
         return new EntitySpec(id, faction, UnitType.TURRET, cellX, cellY)
-                .health(kind.maxStructure)
+                .health(kind.maxStructure())
                 .armor(kind.armorPool(), kind.armorRating())
-                .attackDamage(kind.damage)
-                .attackRange(kind.range)
-                .attackCooldown(kind.cooldown)
-                .accuracy(kind.accuracy)
+                .attackDamage(kind.damage())
+                .attackRange(kind.range())
+                .attackCooldown(kind.cooldown())
+                .accuracy(kind.accuracy())
                 .moveSpeed(0f)
                 .role(UnitRole.TURRET)
                 .turretKind(kind);

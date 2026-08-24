@@ -6,7 +6,7 @@ Status: READY
 
 Written: 2026-08-22
 
-Updated: 2026-08-23 — W1 is folded; layered effects are the recommended next slice.
+Updated: 2026-08-24 — added deterministic composition, aftermath and preview-consumer laws discovered by W6.
 
 Read `moddable-weapons-nouns.md` before implementing this story.
 
@@ -60,11 +60,22 @@ Ranged values (`[min, max]`) and `count` / `jitter` cover the HE recipe's
 randomised puffs without special-casing it. A scalar is shorthand for a
 zero-width range.
 
-**Layer slots** — `impact`, `muzzle`, `tracer`, `trail`. A weapon supplies
-the ones it wants. This is the part that makes the design worth doing:
+**Layer slots** — `impact`, `muzzle`, `tracer`, `trail`, `aftermath`. A weapon
+supplies the ones it wants. `aftermath` is a timed emitter for lingering fire
+and smoke after arrival; it replaces weapon-specific booleans such as the
+Hephaestus burning plume rather than leaving that last visual recipe in the
+simulation. This is the part that makes the design worth doing:
 tracer particles become independent of impact particles, so a plasma bolt
 can trail sparks while landing like a rifle round, and a future slot is an
 additive schema change rather than a new enum arm.
+
+Layer interpretation is a pure, seeded composition step. It emits
+backend-neutral particle commands; the battle renderer turns them into
+`Particle`s and a catalog preview turns the same commands into pixels. A
+preview seed derives from the weapon id, never catalog order, so a definition
+renders byte-for-byte identically across runs. Sharing composition rather than
+the final painter is intentional: Starsector `SpriteAPI` cannot be used by the
+headless Java2D preview.
 
 ## Out of scope
 
@@ -84,6 +95,9 @@ additive schema change rather than a new enum arm.
 - `ImpactProfile` is deleted, or retained only as a named preset that
   expands to a layer list.
 - Adding a fifth impact character requires no Java change.
+- The seeded composer is parity-tested independently of either rendering
+  backend, and the battle and preview consumers both use it rather than
+  interpreting layer JSON separately.
 
 ## Open questions
 

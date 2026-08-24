@@ -1,8 +1,10 @@
 # Progression nouns
 
-Status: ACTIVE — 11 open stories; reusable contact-demolition satchels are shipped
+Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility continue to evolve.
+
 Written: 2026-08-23
-Updated: 2026-08-23 — shipped reusable contact-demolition satchels.
+
+Updated: 2026-08-24 — separated durable direction from story sequencing and moved special-equipment activation, resources, AI policy, catalog copy, and presentation recipes into fail-loud data.
 
 ## Purpose
 
@@ -120,12 +122,31 @@ campaign availability differs by faction.
 The first four built-in identities are the rocket launcher, anti-materiel
 rifle, Wayfarer smoke grenades, and Breachhand mag-clamp satchel. The first two
 are direct-fire activations, while smoke and satchels are utility activations,
-but only the item definition owns
-loadout identity, initial ammunition, Armory art, and activation type; the
+but only the item definition owns loadout identity, catalog copy, resource
+mode, initial ammunition, Armory art, activation type, AI policy, use-pose
+profile, and local presentation recipe; the
 referenced weapon definition owns range, damage, accuracy, impact, projectile,
 and audio behavior. Persisted marines, billets, stock, and recipes use the
 stable `special.*` id. `MarineSecondary` remains a transitional battle handle
 and legacy-save input, not a second stat catalogue.
+
+Those item definitions load from the built-in special-equipment JSON catalog
+after the weapon registry. Parsing and reference validation fail loud:
+unknown activation/resource/policy/pose vocabularies, invalid resource
+combinations, duplicate ids, malformed presentation transforms, or a
+weapon-like item pointing outside the marine-secondary mount class stop load.
+JSON selects only closed, typed execution policies; it does not name Java
+classes or inject simulation scripts.
+
+An equipment presentation separates catalog art, actor-local carrier layers,
+deployed-world art, and preview state. Carrier transforms are authored in
+shoulder-width coordinates with carried/using states, pivot, occlusion,
+optional recoil, and whether activation temporarily replaces the primary.
+The live layered-unit renderer and development preview gallery resolve those
+transforms through one composition helper. A later Armory sample-soldier scene
+should consume that same helper rather than recreate placement in UI code; the
+existing Armory thumbnail remains the current production surface until that
+scene is built.
 
 The anti-materiel rifle is a four-round precision answer to visible hardened
 targets. Its long brace locks one target and cancels when the target or direct
@@ -170,7 +191,7 @@ hazard and routes friendlies out, while opponents gain no omniscient avoidance.
 Player issue includes two physical kits and a Breach template. Physical Armory
 stock limits equipped billets; it does not count battle placements. Ground
 placement, infantry targeting, traps, disarming, and wall breaching are not
-part of this shipped identity.
+part of this equipment identity.
 
 ### Telemetry and career
 
@@ -216,6 +237,10 @@ system owns whether and how an attack resolves. Campaign loot owns salvage
 manifest and settlement. Progression owns neither, but consumes their stable
 outputs for troop-quality advancement and explanation.
 
+`company-view-nouns.md` owns fire-team template presentation and atomic
+assignment transactions. Progression supplies the equipment identities,
+recipes, finite stock, and quality meaning those transactions consume.
+
 ## Presentation law
 
 Progression information must be readable where the player assigns equipment,
@@ -226,7 +251,7 @@ belongs to the marine's profile, career, and current contribution. Avoid
 stacking redundant battlefield overlays; start with the closest decision
 surface and add in-world signal only when it materially improves play.
 
-## Planned direction
+## Growth directions
 
 The following are direction, not current behavior:
 
@@ -235,8 +260,8 @@ The following are direction, not current behavior:
   learning from losses.
 - Expand primary families and special-equipment options, and extend the unlock
   ladder so every authored player asset has either starter status or a
-  reachable path. The anti-materiel rifle is shipped; the next planned
-  addition is fragmentation grenades; AMR, smoke, and satchels are shipped.
+  reachable path. `stories.md` owns the concrete catalog additions and their
+  ordering.
 - Split common printable feedstock from operation-earned advanced components;
   advanced progression remains operation-gated rather than purchasable.
 - Make grade, aptitude, experience, career, and captain traits legible in
@@ -256,6 +281,10 @@ The following are direction, not current behavior:
   `WeaponDef` entries merely because they share that loadout slot with guns.
 - Special-equipment use policy is simulation-owned and faction-neutral;
   template cards express issue, not hidden battle orders.
+- Special-equipment data selects a closed activation and AI policy; executors
+  remain typed code, and presentation state never becomes simulation input.
+- Live carrier art and preview carrier art resolve the same actor-local recipe;
+  a UI mannequin may choose a pose but must not own a second placement table.
 - Career totals are lifetime evidence; adding a per-mission history requires a
   new retention and UI commitment.
 - All combat telemetry may inform balance; only identity-bound campaign rows
