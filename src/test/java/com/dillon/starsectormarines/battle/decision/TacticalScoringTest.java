@@ -1013,6 +1013,46 @@ public class TacticalScoringTest {
     }
 
     @Test
+    public void closestEnemyInAttackRangeRetainsPreferredThroughMargin() {
+        BattleSimulation sim = openArena(40, 10);
+        long marine = unit(sim, Faction.MARINE, 5, 5);
+        long preferred = unit(sim, Faction.DEFENDER, 13, 5);  // distance 8
+        long challenger = unit(sim, Faction.DEFENDER, 12, 5); // distance 7
+
+        assertEquals(preferred, sim.getTacticalScoring().closestEnemyInAttackRange(
+                        marine, preferred, TacticalScoring.OPPORTUNITY_RETARGET_DISTANCE_MARGIN),
+                "a near-equal challenger must not restart opportunity-fire acquisition");
+
+        sim.world().setPos(challenger, 9.5f, 5.5f); // live distance 4
+        assertEquals(challenger, sim.getTacticalScoring().closestEnemyInAttackRange(
+                        marine, preferred, TacticalScoring.OPPORTUNITY_RETARGET_DISTANCE_MARGIN),
+                "a challenger beyond the strict switch margin must replace the preferred threat");
+    }
+
+    @Test
+    public void closestEnemyInAttackRangePadsTickStartSpatialBoundary() {
+        BattleSimulation sim = openArena(30, 10);
+        long marine = unit(sim, Faction.MARINE, 5, 5);
+        long crossing = unit(sim, Faction.DEFENDER, 11, 5); // snapshot distance 6
+        sim.world().setAttackRange(marine, 5f);
+        sim.world().setPos(crossing, 10.5f, 5.5f); // live distance 5
+
+        assertEquals(crossing, sim.getTacticalScoring().closestEnemyInAttackRange(marine),
+                "a mover crossing into range after index rebuild must remain a candidate");
+    }
+
+    @Test
+    public void closestEnemyInAttackRangeSkipsKilledSpatialCandidate() {
+        BattleSimulation sim = openArena(20, 10);
+        long marine = unit(sim, Faction.MARINE, 5, 5);
+        long killed = unit(sim, Faction.DEFENDER, 8, 5);
+        TestUnits.kill(sim, killed);
+
+        assertEquals(0L, sim.getTacticalScoring().closestEnemyInAttackRange(marine),
+                "a killed unit lingering in the tick-start index cannot draw opportunity fire");
+    }
+
+    @Test
     public void closestEnemyInAttackRangeNullWhenAllOutOfRange() {
         // MARINE attack range is 24; an enemy at distance 30 can't be hit, so
         // the marching member gets no opportunistic shot and keeps advancing.

@@ -175,6 +175,23 @@ public class PatrolMotionTest {
     }
 
     @Test
+    public void fireIfAbleDoesNotReplacePursuitTarget() {
+        BattleSimulation sim = openArena();
+        long marine = add(sim, "m", 3, 3);
+        long opportune = sim.spawn(new EntitySpec("near", Faction.DEFENDER, UnitType.MARINE, 5, 3));
+        long pursuit = sim.spawn(new EntitySpec("far", Faction.DEFENDER, UnitType.MARINE, 10, 3));
+        sim.world().setAttackRange(marine, 3f);
+        sim.world().setTargetId(marine, pursuit);
+
+        PatrolMotion.fireIfAble(marine, sim);
+
+        assertEquals(opportune, sim.combat().fireTargetId(marine),
+                "opportunity fire must select the enemy that is shootable now");
+        assertEquals(pursuit, sim.world().targetId(marine),
+                "opportunity fire must not replace the movement pursuit target");
+    }
+
+    @Test
     public void fireIfAbleHoldsIntentWhenOutOfRange() {
         BattleSimulation sim = openArena();
         long marine = add(sim, "m", 3, 3);

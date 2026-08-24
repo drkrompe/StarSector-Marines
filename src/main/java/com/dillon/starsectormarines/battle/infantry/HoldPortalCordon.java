@@ -174,7 +174,7 @@ public final class HoldPortalCordon implements Action {
         boolean atPost = sim.movement().atCell(member, post.cellX, post.cellY);
         if (!atPost) {
             // Transit fire — MOVING penalty applies; the holder is mid-step.
-            opportunisticFire(member, sim, FireStance.MOVING);
+            PatrolMotion.fireIfAble(member, sim, FireStance.MOVING);
             if (sim.movement().mayRepath(member)) {
                 sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                         sim.world().cellX(member), sim.world().cellY(member), post.cellX, post.cellY,
@@ -186,34 +186,8 @@ public final class HoldPortalCordon implements Action {
         if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
         // On-post fire — STANCED, full accuracy. This is the whole reason
         // we stop and hold: the cordon's lethality comes from stanced shots.
-        opportunisticFire(member, sim, FireStance.STANCED);
+        PatrolMotion.fireIfAble(member, sim, FireStance.STANCED);
         return ActionStatus.RUNNING;
-    }
-
-    /**
-     * Shared one-shot fire pass: pick a target, author a fire intent when in
-     * LOS + range; {@code battle.combat.FiringSystem} applies the cooldown
-     * gate and executes the shot. Stance is caller-supplied because the same
-     * helper serves the transit phase ({@link FireStance#MOVING}) and the
-     * on-post phase ({@link FireStance#STANCED}) — the phase is the action's
-     * own state, so it needn't re-derive it from movement. Burst follow-ups
-     * queue the same way EngagePosture does it so machine-gun weapons still
-     * rip a burst from the post.
-     */
-    private static void opportunisticFire(long member, BattleControl sim, FireStance stance) {
-        long target = sim.targetOf(member);
-        if (target == 0L
-                || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
-            target = sim.getTacticalScoring().findBestTarget(member);
-            sim.world().setTargetId(member, target);
-        }
-        if (target == 0L) return;
-        float d = TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member),
-                sim.world().x(target), sim.world().y(target));
-        if (d > sim.world().attackRange(member)) return;
-        if (!sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
-                sim.world().cellX(target), sim.world().cellY(target))) return;
-        sim.combat().setFireIntent(member, target, stance, false);
     }
 
     private GuardPost postForSlot(String slotName) {

@@ -172,24 +172,23 @@ public final class PatrolMotion {
         sim.clearPath(member);
     }
 
-    /**
-     * Authors a MOVING-stance fire intent at a visible in-range enemy; no
-     * movement. {@code battle.combat.FiringSystem} owns the cooldown gate and
-     * executes the shot in the serial FIRING phase.
-     */
+    /** Authors a MOVING-stance shot of opportunity without changing pursuit. */
     public static void fireIfAble(long member, BattleControl sim) {
-        long target = sim.targetOf(member);
-        if (target == 0L || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
-            target = sim.getTacticalScoring().findBestTarget(member);
-            sim.world().setTargetId(member, target);
-        }
-        if (target == 0L) return;
-        float dist = TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member),
-                sim.world().x(target), sim.world().y(target));
-        boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
-                sim.world().cellX(target), sim.world().cellY(target));
-        if (dist <= sim.world().attackRange(member) && visible) {
-            sim.combat().setFireIntent(member, target, FireStance.MOVING, false);
+        fireIfAble(member, sim, FireStance.MOVING);
+    }
+
+    /**
+     * Authors a fire intent at the nearest enemy the member can shoot now,
+     * retaining the currently registered reflex threat through near-equal
+     * alternatives. Opportunity fire is an execution-only trigger: it never
+     * replaces the pursuit target that governs movement.
+     */
+    public static void fireIfAble(long member, BattleControl sim, FireStance stance) {
+        long target = sim.getTacticalScoring().closestEnemyInAttackRange(
+                member, sim.combat().reflexTargetId(member),
+                TacticalScoring.OPPORTUNITY_RETARGET_DISTANCE_MARGIN);
+        if (target != 0L) {
+            sim.combat().setFireIntent(member, target, stance, false);
         }
     }
 }
