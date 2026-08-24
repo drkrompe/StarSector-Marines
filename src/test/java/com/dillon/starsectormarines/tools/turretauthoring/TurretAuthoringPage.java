@@ -15,6 +15,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -140,6 +141,57 @@ public final class TurretAuthoringPage implements AuthoringPage {
                         (selection, value) -> mountRender(selection).put("sprite", value)),
                 text("Recoil sprite", selection -> mountRender(selection).optString("recoilSprite", ""),
                         (selection, value) -> mountRender(selection).put("recoilSprite", value))));
+
+        inspector.add(section("Projectile / artillery",
+                number("Burst rounds", 1, 100, 1,
+                        selection -> sim(selection).optInt("burstCount", 1),
+                        (selection, value) -> sim(selection).put("burstCount", (int) value)),
+                number("Burst spacing", 0, 10, 0.01,
+                        selection -> sim(selection).optDouble("burstSpacing", 0),
+                        (selection, value) -> sim(selection).put("burstSpacing", value)),
+                number("Round velocity", 0, 1000, 1,
+                        selection -> sim(selection).optDouble("roundVelocity", 0),
+                        (selection, value) -> sim(selection).put("roundVelocity", value)),
+                number("Minimum range", 0, 500, 0.5,
+                        selection -> sim(selection).optDouble("minRange", 0),
+                        (selection, value) -> sim(selection).put("minRange", value)),
+                number("Hit spread", 0, 100, 0.1,
+                        selection -> sim(selection).optDouble("hitSpread", 0),
+                        (selection, value) -> sim(selection).put("hitSpread", value)),
+                number("Flight seconds", 0, 60, 0.05,
+                        selection -> sim(selection).optDouble("flightSec", 0),
+                        (selection, value) -> sim(selection).put("flightSec", value)),
+                number("Arc height", 0, 50, 0.05,
+                        selection -> sim(selection).optDouble("arcHeight", 0),
+                        (selection, value) -> sim(selection).put("arcHeight", value)),
+                number("No-LOS accuracy", 0, 1, 0.01,
+                        selection -> sim(selection).optDouble("noLosAccuracyMult", 1),
+                        (selection, value) -> sim(selection).put("noLosAccuracyMult", value)),
+                toggle("Interceptable", selection -> sim(selection)
+                                .optBoolean("interceptableProjectile", false),
+                        (selection, value) -> sim(selection)
+                                .put("interceptableProjectile", value)),
+                toggle("Boost ramp", selection -> sim(selection).optBoolean("boostRamp", false),
+                        (selection, value) -> sim(selection).put("boostRamp", value)),
+                toggle("Indirect fire", selection -> sim(selection)
+                                .optBoolean("indirectFire", false),
+                        (selection, value) -> sim(selection).put("indirectFire", value)),
+                text("Projectile sprite", selection -> weaponRender(selection)
+                                .optString("projectileSprite", ""),
+                        (selection, value) -> weaponRender(selection)
+                                .put("projectileSprite", value)),
+                number("Projectile cells", 0, 20, 0.05,
+                        selection -> weaponRender(selection)
+                                .optDouble("projectileVisualCells", 0),
+                        (selection, value) -> weaponRender(selection)
+                                .put("projectileVisualCells", value)),
+                text("Contrail", selection -> weaponRender(selection)
+                                .optString("contrail", ""),
+                        (selection, value) -> weaponRender(selection).put("contrail", value)),
+                text("Fire sound", selection -> audio(selection).optString("fireSound", ""),
+                        (selection, value) -> audio(selection).put("fireSound", value)),
+                text("Impact sound", selection -> audio(selection).optString("impactSound", ""),
+                        (selection, value) -> audio(selection).put("impactSound", value))));
 
         inspector.add(section("Structure",
                 number("Structure", 0.01, 10000, 1, selection -> durability(selection).getDouble("structure"),
@@ -355,6 +407,16 @@ public final class TurretAuthoringPage implements AuthoringPage {
         return binding;
     }
 
+    private FieldBinding toggle(String label, BooleanRead read, BooleanWrite write) {
+        JCheckBox checkbox = new JCheckBox();
+        FieldBinding binding = new FieldBinding(label, checkbox,
+                selection -> checkbox.setSelected(read.get(selection)),
+                selection -> write.set(selection, checkbox.isSelected()));
+        checkbox.addActionListener(event -> mutate(() -> binding.write(selection())));
+        bindings.add(binding);
+        return binding;
+    }
+
     private boolean commitActiveEditor() {
         if (!fxTable.isEditing() || fxTable.getCellEditor().stopCellEditing()) return true;
         context.reportStatus("Finish the active FX value before saving");
@@ -421,6 +483,26 @@ public final class TurretAuthoringPage implements AuthoringPage {
     private static JSONObject mountRender(TurretAuthoringDocument.TurretSelection selection)
             throws Exception {
         return selection.mount().getJSONObject("render");
+    }
+
+    private static JSONObject weaponRender(TurretAuthoringDocument.TurretSelection selection)
+            throws Exception {
+        JSONObject render = selection.weapon().optJSONObject("render");
+        if (render == null) {
+            render = new JSONObject();
+            selection.weapon().put("render", render);
+        }
+        return render;
+    }
+
+    private static JSONObject audio(TurretAuthoringDocument.TurretSelection selection)
+            throws Exception {
+        JSONObject audio = selection.weapon().optJSONObject("audio");
+        if (audio == null) {
+            audio = new JSONObject();
+            selection.weapon().put("audio", audio);
+        }
+        return audio;
     }
 
     private static JSONObject durability(TurretAuthoringDocument.TurretSelection selection)
@@ -502,4 +584,6 @@ public final class TurretAuthoringPage implements AuthoringPage {
     @FunctionalInterface private interface NumberWrite { void set(TurretAuthoringDocument.TurretSelection selection, double value) throws Exception; }
     @FunctionalInterface private interface TextRead { String get(TurretAuthoringDocument.TurretSelection selection) throws Exception; }
     @FunctionalInterface private interface TextWrite { void set(TurretAuthoringDocument.TurretSelection selection, String value) throws Exception; }
+    @FunctionalInterface private interface BooleanRead { boolean get(TurretAuthoringDocument.TurretSelection selection) throws Exception; }
+    @FunctionalInterface private interface BooleanWrite { void set(TurretAuthoringDocument.TurretSelection selection, boolean value) throws Exception; }
 }

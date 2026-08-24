@@ -91,14 +91,34 @@ public final class WeaponFxComposer {
             float x = context.x() + (float) Math.cos(angle) * distance;
             float y = context.y() + (float) Math.sin(angle) * distance;
             ParticleDefaults defaults = defaults(layer.kind(), context.wallImpact(), rng);
+            LocalVector offset = localVector(layer.offsetForward(), layer.offsetLateral(),
+                    context.bearingDegrees(), rng);
+            LocalVector velocity = localVector(layer.velocityForward(), layer.velocityLateral(),
+                    context.bearingDegrees(), rng);
+            boolean authoredVelocity = layer.velocityForward() != null
+                    || layer.velocityLateral() != null;
             commands.add(new FxParticleCommand(
-                    layer.kind(), delay, x, y,
-                    defaults.velocityX, defaults.velocityY,
+                    layer.kind(), delay, x + offset.x(), y + offset.y(),
+                    authoredVelocity ? velocity.x() : defaults.velocityX,
+                    authoredVelocity ? velocity.y() : defaults.velocityY,
                     layer.radius().sample(rng), defaults.growth,
                     layer.lifetime().sample(rng),
                     layer.color() != null ? layer.color() : defaults.color,
                     defaults.blend, defaults.angleDegrees, defaults.variantIndex));
         }
+    }
+
+    /** Rotates authored local motion into the shared north-based, CCW world frame. */
+    private static LocalVector localVector(FxFloatRange forwardRange,
+                                           FxFloatRange lateralRange,
+                                           float bearingDegrees, Random rng) {
+        float forward = forwardRange != null ? forwardRange.sample(rng) : 0f;
+        float lateral = lateralRange != null ? lateralRange.sample(rng) : 0f;
+        double radians = Math.toRadians(bearingDegrees);
+        float sin = (float) Math.sin(radians);
+        float cos = (float) Math.cos(radians);
+        return new LocalVector(-sin * forward + cos * lateral,
+                cos * forward + sin * lateral);
     }
 
     private static ParticleDefaults defaults(FxLayerKind kind, boolean wallImpact, Random rng) {
@@ -134,4 +154,6 @@ public final class WeaponFxComposer {
     private record ParticleDefaults(float velocityX, float velocityY, float growth,
                                     Color color, FxBlend blend, float angleDegrees,
                                     int variantIndex) {}
+
+    private record LocalVector(float x, float y) {}
 }

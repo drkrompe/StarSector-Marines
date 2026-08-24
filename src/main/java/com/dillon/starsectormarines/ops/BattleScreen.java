@@ -40,6 +40,7 @@ import com.dillon.starsectormarines.battle.mech.MechFamilyDebugSpawner;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactDecals;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
+import com.dillon.starsectormarines.battle.turret.TurretImpactAudio;
 import com.dillon.starsectormarines.battle.weapon.fx.TurretFxRuntime;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
@@ -853,13 +854,15 @@ public class BattleScreen implements Screen, BattleUiContext {
                 // clip — matches the mech HE branch below. Previously gated
                 // on HEAVY_MORTAR only, so LOCUST salvos landed silently
                 // despite spawning a full HE detonation visual.
-                if (profile.explosive()) {
+                TurretImpactAudio.Cue cue = TurretImpactAudio.resolve(
+                        s.turretKind, SFX_NEAR_EXPLOSION);
+                if (cue != null) {
                     float pitch = 0.9f + rng.nextFloat() * 0.2f;
                     Vector2f loc = new Vector2f(
                             s.toX * AUDIO_WORLD_UNITS_PER_CELL,
                             s.toY * AUDIO_WORLD_UNITS_PER_CELL);
-                    float volume = profile == ImpactProfile.CANNON_HE ? 0.82f : 0.55f;
-                    Global.getSoundPlayer().playSound(SFX_NEAR_EXPLOSION, pitch, volume, loc, zeroVel);
+                    Global.getSoundPlayer().playSound(
+                            cue.soundId(), pitch, cue.volume(), loc, zeroVel);
                 }
             } else if (s.marineSecondary != null) {
                 profile = s.marineSecondary.impactProfile();

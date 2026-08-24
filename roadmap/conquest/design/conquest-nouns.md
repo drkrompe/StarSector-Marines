@@ -4,7 +4,7 @@ Status: ACTIVE — Conquest owns reversible compound territory, deliberate captu
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — replaced shipped and board narration with durable supply, victory, and extension boundaries.
+Updated: 2026-08-24 — defined preferred tracks, soft neighboring support, command observability, and keep convergence.
 
 Conquest is a territorial assault: marines establish a beachhead, take the
 defender's supply hubs through the city, and finish at the keep. It is not a
@@ -40,6 +40,22 @@ squad; only a squad already at its threshold may commit. Other squads keep
 pushing the broader front. This prevents both accidental capture avoidance and
 the entire assault force abandoning the fight for one building.
 
+The broader front is organized into lateral **tracks**. A squad keeps a sticky
+preferred track so the assault remains readable, but the track is a coordination
+frame rather than an ownership fence. When its preferred track has no actionable
+resistance, a mobile squad may support either neighboring track without being
+permanently re-homed. Useful resistance in the preferred track wins, preventing
+routine lateral churn.
+
+Conquest command publishes an immutable **front snapshot** after each command
+tick. It explains the current phase, every mobile squad's preferred and
+effective track, the reason and target behind its order, and each track's
+friendly progress and belief-derived hostile pressure/frontier. Selected-squad
+presentation and dumps consume that published command state; they do not infer
+a second plan or reveal hidden defenders. The assignment decision remains the
+commander's authority, while local squad doctrine decides how to prosecute the
+contact.
+
 On a marine capture, a free marine garrison shuttle answers once and its squad
 is born to hold that compound. The original assault may therefore continue its
 push. If defenders reclaim the compound, the garrison response re-arms for a
@@ -71,6 +87,13 @@ The Conquest traversal is PORT, CITY, then FORTRESS. The outer supply hubs
 give the player a readable progression before the fortress command post closes
 the assault. There is exactly one canonical COMMAND_POST keep: it is both the
 climactic territorial objective and a required part of a valid Conquest map.
+
+When that keep is the only compound not held by marines, command enters
+**keep convergence**. Every mobile assault squad receives the same culminating
+secure-compound context regardless of track boundary, allowing local approach
+and room-clear behavior to converge the force. Born-holding garrisons remain on
+station. If an earlier compound is recaptured, the front immediately reopens
+and ordinary compound and track priorities resume.
 
 `mapgen-nouns.md` owns the generator recipe, compound footprint, fortress
 geometry, and validation of that canonical keep. Conquest depends on the

@@ -80,19 +80,27 @@ class UnitLayerLayoutsTest {
     void secondaryUseClipsCoverEveryExistingActionPose() throws Exception {
         UnitLayerLayouts layouts = load();
 
+        AnimationClip rocketFire = layouts.clip("marine-line", "rocket", "firing");
         AnimationClip amrAim = layouts.clip("marine-line", "anti-materiel", "aiming");
         AnimationClip amrFire = layouts.clip("marine-line", "anti-materiel", "firing");
         AnimationClip smoke = layouts.clip("marine-line", "smoke", "throwing");
         AnimationClip satchel = layouts.clip("marine-line", "satchel", "planting");
 
         assertEquals(AnimationDriver.ACTION_PHASE, amrAim.driver());
+        assertEquals(400, rocketFire.totalDurationMs());
         assertEquals(400, amrAim.totalDurationMs());
-        assertEquals(330, amrFire.totalDurationMs());
+        assertEquals(400, amrFire.totalDurationMs());
         assertEquals(800, smoke.totalDurationMs());
         assertEquals(900, satchel.totalDurationMs());
         assertNotNull(amrFire.sample(0.5f).layer("special"));
         assertFalse(smoke.sample(0.5f).layer("primary").visible());
-        assertEquals(0.32f, satchel.sample(1f).layer("special").offsetY(), 0.000001f);
+        assertEquals(45f, rocketFire.sample(1f).layer("rocket-launcher")
+                .angleDegrees(), 0.000001f);
+        assertEquals(45f, amrFire.sample(1f).layer("special")
+                .angleDegrees(), 0.000001f);
+        assertFalse(smoke.sample(1f).layer("special").visible());
+        assertEquals(-0.08f, satchel.sample(1f).layer("special")
+                .offsetY(), 0.000001f);
     }
 
     @Test

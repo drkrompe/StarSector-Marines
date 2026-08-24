@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
@@ -75,6 +76,20 @@ class FleetArmoryOverviewViewModelTest {
             document.layout(1163f, 625f);
             assertTrue(list.box().maxScrollTop() > 0f);
         }
+    }
+
+    @Test
+    void companyCardSurfacesWoundedCountAndEarliestRecovery() {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
+        Map<String, MarineSoldierStatus> outcome = new LinkedHashMap<>();
+        outcome.put(roster.soldiers().get(0).id(), MarineSoldierStatus.WIA);
+        roster.applySoldierOutcome(outcome, 0, 50f, 0.5f);
+        FleetArmoryOverviewViewModel viewModel = new FleetArmoryOverviewViewModel(
+                new Reactor(), roster, () -> { }, () -> 50.5d);
+
+        assertEquals("1 WIA  ·  RTD 12h",
+                viewModel.companyCards().get().get(0).recovery());
     }
 
     private static Map<String, Object> props(FleetArmoryOverviewViewModel viewModel) {

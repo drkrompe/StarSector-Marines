@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineSquad;
@@ -55,6 +56,7 @@ public final class FleetArmoryScreen implements Screen {
     private StarsectorUiInputAdapter input;
     private boolean reloadRequested;
     private float previewAnimationSeconds;
+    private int projectedCampaignHour = Integer.MIN_VALUE;
     private View view = View.SQUADS;
 
     @Override
@@ -73,8 +75,12 @@ public final class FleetArmoryScreen implements Screen {
         if (viewModel == null || roster != liveRoster) {
             closeDocument();
             roster = liveRoster;
-            viewModel = new FleetArmoryViewModel(reactor, roster, this::showSelectedSquad);
+            viewModel = new FleetArmoryViewModel(reactor, roster, this::showSelectedSquad,
+                    CampaignClock::dayFloat);
+        } else {
+            viewModel.refresh();
         }
+        projectedCampaignHour = campaignHour();
         view = View.SQUADS;
         installDocument(true);
         document.layout(viewport.width(), viewport.height());
@@ -145,6 +151,10 @@ public final class FleetArmoryScreen implements Screen {
         props.put("templateTiles", viewModel.templateTiles());
         props.put("targetSummary", viewModel.targetSummary());
         props.put("candidateSummary", viewModel.candidateSummary());
+        props.put("selectedSquadReadiness", viewModel.selectedSquadReadiness());
+        props.put("reinforceLabel", viewModel.reinforceLabel());
+        props.put("reinforceDisabled", viewModel.reinforceDisabled());
+        props.put("reinforceSquad", viewModel.reinforceSelectedSquadAction());
         props.put("pickerClasses", viewModel.pickerClasses());
         props.put("pickerToggleLabel", viewModel.pickerToggleLabel());
         props.put("togglePicker", viewModel.toggleLoadoutPickerAction());
@@ -172,7 +182,8 @@ public final class FleetArmoryScreen implements Screen {
                 ? List.of("fleet-armory-fireteam-root", "fireteam-header",
                 "fireteam-breadcrumb", "back-to-squads", "fireteam-body",
                 "fireteam-rail", "fireteam-list", "template-library", "template-list",
-                "refit-transaction", "viewer-context", "target-summary",
+                "refit-transaction", "squad-readiness-row", "selected-squad-readiness",
+                "reinforce-selected-squad", "viewer-context", "target-summary",
                 "candidate-summary", "marine-card-grid", "equip-row",
                 "toggle-loadout-picker",
                 "transaction-result", "apply-template", "transaction-feedback", "fireteam-footer",
@@ -216,6 +227,11 @@ public final class FleetArmoryScreen implements Screen {
 
     @Override
     public void advance(float dt) {
+        int currentHour = campaignHour();
+        if (currentHour != projectedCampaignHour) {
+            projectedCampaignHour = currentHour;
+            viewModel.refresh();
+        }
         if (reloadRequested) {
             reloadRequested = false;
             reloadDocument();
@@ -225,6 +241,10 @@ public final class FleetArmoryScreen implements Screen {
             previewAnimationSeconds = (previewAnimationSeconds + dt) % 60f;
         }
         if (document != null) document.advance(dt);
+    }
+
+    private static int campaignHour() {
+        return (int) Math.floor(CampaignClock.dayFloat() * 24f);
     }
 
     @Override

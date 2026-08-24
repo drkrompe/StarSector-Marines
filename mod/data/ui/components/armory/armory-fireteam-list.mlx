@@ -7,6 +7,7 @@
         <div id="{team.nameId}" class="fire-team-name label tone-edge">{team.name}</div>
         <div id="{team.statusId}" class="{team.statusClasses}">{team.status}</div>
         <div id="{team.strengthId}" class="fire-team-strength label">{team.strength}</div>
+        <div id="{team.recoveryId}" class="fire-team-recovery label tone-accent">{team.recovery}</div>
         <div id="{team.templateId}" class="fire-team-template label surface-dark">{team.template}</div>
       </button>
     </div>
@@ -23,7 +24,7 @@
 
   .fire-team-overview {
     flex-direction: column;
-    height: 124px;
+    height: 144px;
     padding: 7px;
     gap: 4px;
     border-width: 1px;
@@ -35,5 +36,6 @@
   .fire-team-name { height: 18px; }
   .fire-team-status { height: 18px; }
   .fire-team-strength { height: 18px; }
+  .fire-team-recovery { height: 34px; }
   .fire-team-template { height: 30px; padding: 4px 5px; border-width: 1px; }
 </style>

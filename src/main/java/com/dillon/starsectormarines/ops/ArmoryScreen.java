@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
 import com.dillon.starsectormarines.marine.CaptainCandidate;
@@ -1253,7 +1254,7 @@ public final class ArmoryScreen implements Screen {
             widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
                     "TEAM MEMBERS", x, y - 4f, HEADER));
             y -= 50f;
-            for (String memberId : selectedSquad.teamMembers(selectedTeamIndex)) {
+            for (String memberId : roster.teamMemberIds(selectedSquad, selectedTeamIndex)) {
                 MarineSoldier soldier = roster.soldierById(memberId);
                 if (soldier == null || y < position.getY() + 136f) continue;
                 boolean selected = soldier.id().equals(selectedSoldierId);
@@ -2303,7 +2304,9 @@ public final class ArmoryScreen implements Screen {
                     selectedSoldierId = soldier.id();
                     previewTemplateId = null;
                     MarineSquad squad = roster.squadForSoldier(soldier.id());
-                    if (squad != null) selectedTeamIndex = squad.teamIndexOf(soldier.id());
+                    if (squad != null) {
+                        selectedTeamIndex = roster.teamIndexOf(squad, soldier.id());
+                    }
                     tab = Tab.LOADOUTS;
                     rebuild();
                 }, HEADER);
@@ -2312,7 +2315,8 @@ public final class ArmoryScreen implements Screen {
     private static String statusLabel(MarineSoldier soldier) {
         if (soldier.status() == MarineSoldierStatus.ACTIVE) return "RTD";
         if (soldier.status() == MarineSoldierStatus.WIA) {
-            return "WIA · D" + (int) Math.ceil(soldier.unavailableUntilDay());
+            return "WIA · RTD " + FleetArmoryViewModel.formatRemaining(
+                    soldier.unavailableUntilDay(), CampaignClock.dayFloat());
         }
         return soldier.status().name();
     }
@@ -2377,7 +2381,7 @@ public final class ArmoryScreen implements Screen {
 
     private int readyTeamMembers(MarineSquad squad, int teamIndex) {
         int ready = 0;
-        for (String memberId : squad.teamMembers(teamIndex)) {
+        for (String memberId : roster.teamMemberIds(squad, teamIndex)) {
             MarineSoldier soldier = roster.soldierById(memberId);
             if (soldier != null && soldier.status() == MarineSoldierStatus.ACTIVE) ready++;
         }
@@ -2398,10 +2402,10 @@ public final class ArmoryScreen implements Screen {
         MarineSoldier selected = roster.soldierById(selectedSoldierId);
         MarineSquad squad = roster.squadById(selectedSquadId);
         if (selected != null && squad != null
-                && squad.teamMembers(selectedTeamIndex).contains(selected.id())) return;
+                && roster.teamMemberIds(squad, selectedTeamIndex).contains(selected.id())) return;
         selectedSoldierId = null;
         if (squad == null) return;
-        List<String> members = squad.teamMembers(selectedTeamIndex);
+        List<String> members = roster.teamMemberIds(squad, selectedTeamIndex);
         if (!members.isEmpty()) selectedSoldierId = members.get(0);
     }
 

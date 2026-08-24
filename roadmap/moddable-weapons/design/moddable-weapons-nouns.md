@@ -4,7 +4,7 @@ Status: ACTIVE — handheld, special-item and turret weapon data is owned; mech 
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — defined cross-catalog turret authoring and its boundary with emplacement layouts.
+Updated: 2026-08-24 — distinguished delivery mechanism and defined behavior-aware artillery preview, directional launch FX, and weapon-owned contrails/audio.
 
 ## Purpose
 
@@ -27,6 +27,11 @@ without turning a JSON typo into a silent zero-damage battle.
 - A **weapon id** is the durable reference to a definition. It is the future
   persistence and cross-catalog handle; Java enums are transitional handles,
   not a second source of weapon values.
+- A **delivery mechanism** describes how the definition reaches its payload:
+  direct chemical or electromagnetic kinetic fire, flechette sub-munitions,
+  pulse/laser energy, rocket or arcing grenade, or a close-contact implement.
+  It constrains applicable trajectory, payload, and presentation fields. It is
+  not the weapon's tactical role, grade, provenance, or faction availability.
 - A **mount class** is the compatibility family for a definition: handheld
   primary or secondary, mech mount, or turret mount. It distinguishes what
   may use a definition; it is not a statement about which individual unit
@@ -85,6 +90,9 @@ Runtime and the deterministic six-state catalog preview consume the same pose
 and seeded effect commands. The preview mounts those commands into the retained
 document canvas seam, so its sprite layers, atlas frames, tint, and blend intent
 are rendered by the same live/headless target boundary as other authored UI.
+Its storyboard derives launch count, boost curve, arc, scatter character, and
+contrail from the resolved weapon definition, so an artillery rocket battery
+cannot silently degrade into a generic straight-flying turret round.
 
 Defense-post layouts load after turret structures so each placement resolves
 at ingestion. Map generation chooses an eligible layout through the seeded run
@@ -107,6 +115,10 @@ shared consumer exists.
 - One weapon behavior has one authoritative authored value. Transitional
   parity evidence may compare the old enum values with data, but it is not a
   permanent second catalogue.
+- Mechanism does not justify a clone. A chemical slug rifle and a gauss carbine
+  become separate definitions only when their engagement behavior, payload, or
+  readable shot treatment creates a real choice; a renamed tracer is not a new
+  family.
 - Penetration replaces anti-hardened and anti-turret damage multipliers. A
   weapon never owns a list of platform types against which its damage changes.
 - Contact privilege comes from physical interception. An explosive direct-fire
@@ -124,9 +136,13 @@ shared consumer exists.
   or geometry answers, that answer belongs to the platform or mount, never to
   the weapon.
 - Data-authored effects compose layers rather than select a fixed global
-  recipe. Turret muzzle, trail, impact and aftermath presentation already uses
+  recipe. Turret launch, muzzle, trail, impact and aftermath presentation already uses
   this model; the current named impact profile remains a compatibility bridge
   for unmigrated weapon families and shared decals, lights and audio.
+- Launch layers may author forward/lateral offsets and velocities in the
+  firing bearing's local frame. Persistent projectile ribbons and impact audio
+  are weapon presentation fields consumed consistently by runtime and preview;
+  neither is inferred from a turret id.
 - Mount appearance is optional and carrier-overridable. Emplacements and
   shuttle mounts may composite base/barrel layers while a ground vehicle keeps
   equivalent art in its chassis sheet; absent appearance never changes weapon
@@ -142,6 +158,10 @@ shared consumer exists.
 - A utility activation may reuse projectiles, detonations, and authored FX,
   but those shared execution primitives do not make its cloud or placement
   channel a weapon definition.
+- A weapon-like close-contact tool still references a weapon definition for
+  damage, penetration, audio, and effects. Its typed executor replaces the
+  traveling trajectory; the special-equipment item still owns stock, resource
+  mode, use policy, and carrier presentation.
 
 ## Transition boundaries
 
