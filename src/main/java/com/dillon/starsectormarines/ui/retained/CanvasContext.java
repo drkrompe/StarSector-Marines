@@ -1,8 +1,17 @@
 package com.dillon.starsectormarines.ui.retained;
 
 import com.dillon.starsectormarines.ui.BitmapFont;
+import com.fs.starfarer.api.graphics.SpriteAPI;
 
 import java.awt.Color;
+
+import static org.lwjgl.opengl.GL11.GL_BLEND;
+import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
+import static org.lwjgl.opengl.GL11.glBlendFunc;
+import static org.lwjgl.opengl.GL11.glColorMask;
+import static org.lwjgl.opengl.GL11.glEnable;
+import static org.lwjgl.opengl.GL20.glUseProgram;
 
 /** Fixed-function Starsector drawing surface exposed to canvas producers. */
 public final class CanvasContext {
@@ -61,6 +70,44 @@ public final class CanvasContext {
         font.drawStringScaled(text, viewport.screenXFor(metrics.toDocumentX(x)),
                 viewport.screenTopFor(metrics.toDocumentY(y)), metrics.scaleX(),
                 metrics.scaleY(), requireColor(color), alphaMult);
+    }
+
+    /**
+     * Draws one whole-texture Starsector sprite in canvas-local coordinates.
+     * The retained painter still owns clipping and restores the surrounding GL
+     * state; this method resets the shared sprite and the fixed-function state
+     * that {@link SpriteAPI#renderAtCenter(float, float)} mutates before later
+     * retained children paint.
+     */
+    public void sprite(SpriteAPI sprite, float centerX, float centerY,
+                       float width, float height, float angleDegrees, Color tint) {
+        if (sprite == null) throw new IllegalArgumentException("sprite required");
+        requireFinite(centerX, centerY, width, height, angleDegrees);
+        if (width < 0f || height < 0f) {
+            throw new IllegalArgumentException("sprite extent cannot be negative");
+        }
+        Color color = requireColor(tint);
+        try {
+            sprite.setSize(width * metrics.scaleX(), height * metrics.scaleY());
+            sprite.setAngle(angleDegrees);
+            sprite.setAlphaMult(alphaMult * color.getAlpha() / 255f);
+            sprite.setColor(color.getRed() == 255 && color.getGreen() == 255
+                    && color.getBlue() == 255
+                    ? Color.WHITE
+                    : new Color(color.getRed(), color.getGreen(), color.getBlue()));
+            sprite.setNormalBlend();
+            sprite.renderAtCenter(
+                    viewport.screenXFor(metrics.toDocumentX(centerX)),
+                    viewport.screenTopFor(metrics.toDocumentY(centerY)));
+        } finally {
+            sprite.setAngle(0f);
+            sprite.setAlphaMult(1f);
+            sprite.setColor(Color.WHITE);
+            glUseProgram(0);
+            glColorMask(true, true, true, true);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        }
     }
 
     /**

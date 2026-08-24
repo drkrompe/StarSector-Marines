@@ -1,10 +1,10 @@
 # Convoy
 
-Status: ACTIVE — the single-APC delivery, routing, control, and recovery spine is shipped; acceptance and expansion remain open.
+Status: ACTIVE — ground delivery uses a shared convoy lifecycle, with the defender `HEAVY_APC` as its operational variant and vehicle interaction, damage, variants, scale, and terminal recovery as extension paths.
 
 Written: 2026-08-23
 
-Updated: 2026-08-23 — made route bends minimum-radius-valid and on-grid planner failure explicit.
+Updated: 2026-08-24 — folded route and recovery slice narration into durable convoy boundaries.
 
 ## Purpose and boundary
 
@@ -60,8 +60,7 @@ behavior.
 
 Routing and motion are one convoy model, not separate features. The route layer
 chooses an advisory corridor; the control layer drives a physically plausible
-body toward it. Nested cost-field-routing and navigation-rework were narrow
-implementation tracks and are folded here.
+body toward it.
 
 Roads are a **cost preference**, not topology a vehicle must follow. A route
 search favors road and hardscape cells, accepts costlier open terrain for a
@@ -87,18 +86,14 @@ Coarse pursuit is limited to deliberate off-map entry and exit tails. Once the
 full footprint is on-grid, a missing local trajectory means brake and reroute,
 never "drive the rejected coarse corner anyway."
 
-Recovery is progressive rather than a permission to clip geometry:
-
-1. Ordinary feasible drift receives a fresh local trajectory.
-2. A wall-blocked or geometrically impossible forward turn commits to a bounded
-   reverse that creates room for a new forward plan.
-3. Lack of corridor progress re-routes around the failing area through the
-   cost field, choosing a new initial bearing when needed. Failed areas remain
-   excluded for that travel leg so later attempts cannot ping-pong through an
-   earlier bad bend.
-4. If no such route exists, reroute attempts are rate-limited while ordinary
-   tracking continues. A durable abort, hold, or deliver-in-place terminal
-   policy is open work.
+Recovery is progressive rather than permission to clip geometry. Ordinary
+feasible drift receives a fresh local trajectory. A wall-blocked or
+geometrically impossible forward turn commits to a bounded reverse that creates
+room for a new forward plan. Loss of corridor progress invokes a cost-field
+reroute around the failing area, with failed areas excluded for that travel leg
+so later attempts cannot ping-pong through an earlier bad bend. If no such route
+exists, reroute attempts are rate-limited while ordinary tracking continues;
+the durable abort, hold, or deliver-in-place terminal outcome remains open.
 
 The macro terrain cost and clearance inputs are built for a battle and reused
 by recovery. They do not currently rebake for every terrain change; the local
