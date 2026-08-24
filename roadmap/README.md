@@ -178,7 +178,9 @@ universe over time, not retrofitted into intel slots.
   That table is the balance artifact S1's tuning was argued without, and the
   career record is what lets S4 make experience earned rather than issued.
   S2 separates primary breadth from special-equipment stories. AMR, smoke, and
-  reusable contact-demolition satchels are shipped, while the retained frag
+  reusable contact-demolition satchels are shipped. Their shared special-item
+  catalog is now fail-loud JSON covering activation, resources, AI policy,
+  catalog copy, local equipment composition, and preview state, while the retained frag
   grenade remains contracted with its gameplay-AI use and counterplay;
   S4-S10 remain, S1's own last acceptance item is an in-game feel pass, and the
   synthesis found one proposed XP-authority cleanup. See

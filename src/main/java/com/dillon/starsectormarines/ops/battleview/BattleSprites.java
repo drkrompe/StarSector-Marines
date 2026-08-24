@@ -12,6 +12,9 @@ import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.tiles.SheetTexture;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetSlicer;
+import com.dillon.starsectormarines.marine.EquipmentLayerDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.apache.log4j.Logger;
@@ -19,6 +22,8 @@ import org.apache.log4j.Logger;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Asset/sprite-cache registry for the battle screen. Owns all loaded
@@ -39,12 +44,6 @@ public class BattleSprites {
     private static final String ICON_ALARM          = "graphics/icons/Alarm 512 px.png";
     private static final String ICON_DANGER         = "graphics/icons/Danger sign 1 512 px.png";
     private static final String ICON_STAR           = "graphics/icons/Star 512 px.png";
-    private static final String SMOKE_GRENADE_SPRITE =
-            "graphics/ui/armory/special-smoke-grenades.png";
-    private static final String SMOKE_PUFF_SPRITE =
-            "graphics/battle/fx/smoke-field-puff.png";
-    private static final String SATCHEL_CHARGE_SPRITE =
-            "graphics/battle/fx/satchel-charge-armed.png";
 
     // ---- unit sheets --------------------------------------------------------
 
@@ -60,6 +59,7 @@ public class BattleSprites {
             "graphics/battle/marine-modular-topdown/variants/";
     private final java.util.EnumMap<LayeredArmorFamily, LayeredUnitAssets> layeredUnitSprites =
             new java.util.EnumMap<>(LayeredArmorFamily.class);
+    private final Map<String, LayeredSpriteCache> specialEquipmentLayers = new LinkedHashMap<>();
     private boolean layeredUnitSpritesLoadAttempted;
 
     // ---- modular layered heavy mech ---------------------------------------
@@ -461,10 +461,18 @@ public class BattleSprites {
         if (smokeSpritesLoadAttempted) return;
         smokeSpritesLoadAttempted = true;
         try {
-            Global.getSettings().loadTexture(SMOKE_GRENADE_SPRITE);
-            smokeGrenadeSprite = Global.getSettings().getSprite(SMOKE_GRENADE_SPRITE);
-            Global.getSettings().loadTexture(SMOKE_PUFF_SPRITE);
-            smokePuffSprite = Global.getSettings().getSprite(SMOKE_PUFF_SPRITE);
+            SpecialEquipmentDef smoke = SpecialEquipmentRegistry.require(
+                    SpecialEquipmentRegistry.SMOKE_GRENADE_ID);
+            if (smoke.presentation().thrown() == null
+                    || smoke.presentation().fieldSpritePath() == null) {
+                throw new IllegalStateException("Smoke equipment has incomplete usage presentation");
+            }
+            String grenadePath = smoke.presentation().thrown().spritePath();
+            String fieldPath = smoke.presentation().fieldSpritePath();
+            Global.getSettings().loadTexture(grenadePath);
+            smokeGrenadeSprite = Global.getSettings().getSprite(grenadePath);
+            Global.getSettings().loadTexture(fieldPath);
+            smokePuffSprite = Global.getSettings().getSprite(fieldPath);
         } catch (Exception e) {
             LOG.error("BattleSprites: failed to load smoke utility sprites", e);
         }
@@ -474,8 +482,14 @@ public class BattleSprites {
         if (satchelSpriteLoadAttempted) return;
         satchelSpriteLoadAttempted = true;
         try {
-            Global.getSettings().loadTexture(SATCHEL_CHARGE_SPRITE);
-            satchelChargeSprite = Global.getSettings().getSprite(SATCHEL_CHARGE_SPRITE);
+            SpecialEquipmentDef satchel = SpecialEquipmentRegistry.require(
+                    SpecialEquipmentRegistry.SATCHEL_CHARGE_ID);
+            if (satchel.presentation().deployed() == null) {
+                throw new IllegalStateException("Satchel equipment has no deployed presentation recipe");
+            }
+            String path = satchel.presentation().deployed().spritePath();
+            Global.getSettings().loadTexture(path);
+            satchelChargeSprite = Global.getSettings().getSprite(path);
         } catch (Exception e) {
             LOG.error("BattleSprites: failed to load satchel charge sprite", e);
         }
@@ -505,6 +519,18 @@ public class BattleSprites {
         LayeredSpriteCache amr = loadLayeredSprite(MODULAR_ROOT + "weapons/anti-materiel-rifle.png");
         LayeredSpriteCache flash = loadLayeredSprite(
                 "graphics/battle/marine-modular-topdown/marine-muzzle-flash.png");
+        specialEquipmentLayers.clear();
+        SpecialEquipmentRegistry equipmentRegistry = SpecialEquipmentRegistry.installed();
+        if (equipmentRegistry != null) {
+            for (SpecialEquipmentDef def : equipmentRegistry.all()) {
+                EquipmentLayerDef layer = def.presentation().carrierLayer();
+                if (layer == null) continue;
+                LayeredSpriteCache sprite = def.id().equals(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID)
+                        ? rocket : def.id().equals(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID)
+                                ? amr : loadLayeredSprite(layer.spritePath());
+                if (sprite != null) specialEquipmentLayers.put(def.id(), sprite);
+            }
+        }
         if (foot == null || rifle == null || laser == null || smg == null || dmr == null
                 || rocket == null || amr == null || flash == null || surplusRifle == null
                 || masterworkDmr == null) {
@@ -619,9 +645,12 @@ public class BattleSprites {
                     + " incomplete; actors using it keep their legacy sheet");
             return;
         }
-        layeredUnitSprites.put(familyId,
-                new LayeredUnitAssets(body, head, foot, foreClaw, rifle, laser, smg, dmr,
-                        rocket, amr, flash, surplusRifle, masterworkDmr));
+        LayeredUnitAssets assets = new LayeredUnitAssets(body, head, foot, foreClaw,
+                rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
+        for (Map.Entry<String, LayeredSpriteCache> entry : specialEquipmentLayers.entrySet()) {
+            assets.registerSpecialEquipment(entry.getKey(), entry.getValue());
+        }
+        layeredUnitSprites.put(familyId, assets);
     }
 
     /** Whole transparent PNG loader that captures image pixels before SpriteAPI mutation. */
