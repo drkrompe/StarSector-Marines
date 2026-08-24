@@ -33,7 +33,7 @@
     {
       "id": "mount.turret-locust", "weapon": "weapon.turret-locust",
       "sim": { "ammoCapacity": 30, "turnRateDegPerSec": 50.0 },
-      "render": { "visualCells": 2.0, "muzzleOffsetCells": 0.58, "sprite": "graphics/weapons/locust_turret.png", "recoilSprite": "graphics/weapons/locust_turret.png" }
+      "render": { "visualCells": 2.0, "muzzleOffsetCells": 0.58, "sprite": "graphics/weapons/locust_turret.png" }
     },
     {
       "id": "mount.turret-heavy-mg", "weapon": "weapon.turret-heavy-mg",

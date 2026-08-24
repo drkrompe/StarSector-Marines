@@ -5,7 +5,7 @@
 
 Status: PLANNED — depends on the shipped quality scale in `progression-nouns.md`.
 Written: 2026-08-22
-Updated: 2026-08-23 — migrated dependencies and references to stable slugs.
+Updated: 2026-08-24 — separated grade modulation from slug, gauss, flechette, energy, explosive, and contact-mechanism presentation.
 
 ## Problem
 
@@ -33,7 +33,9 @@ select effects from it. No `MasterworkMarine` unit type, no parallel
 sprite family per grade.
 
 Practically: `ShotFx` and the appearance/render collectors take grade as an
-input the same way they take weapon family today. Appearance stays
+input beside weapon family and delivery mechanism. Mechanism owns the baseline
+slug, gauss, flechette, pulse/laser, explosive, or contact-tool read; grade may
+modulate it but never turn one mechanism into another. Appearance stays
 authored component data written by presentation systems
 ([[feedback_appearance_authored_component]]) — the sim must not read any
 of it.
@@ -46,7 +48,7 @@ Scale existing effect parameters by grade rather than authoring new assets:
   more saturated. The existing per-weapon `tracerColor` stays the family
   identity; grade modulates it.
 - **Muzzle flash scale and light contribution** — grade-scaled, feeding the
-  shipped `surface-relief.md`
+  shipped `surface-relief-nouns.md`
   dynamic light budget. Note that budget is a fixed eight lights; grade
   must modulate existing muzzle events, not add new ones.
 - **Impact weight** — `ImpactProfile` selection or scaling, so a Masterwork
@@ -54,6 +56,12 @@ Scale existing effect parameters by grade rather than authoring new assets:
 - **Fire audio** — a subtle layer or pitch/mix shift, not a new clip set.
   The mod ships a public-release licensing constraint
   ([[project_audio_licensing_policy]]); reuse before authoring.
+
+The expanded catalog must first make a flechette cloud, chemical slug, gauss
+bolt, pulse burst, explosive projectile, and close-contact tool readable as
+their own mechanisms. Grade chrome composes on top; a Masterwork slugthrower
+does not acquire a laser beam, and a Surplus energy carbine does not fire a
+physical shell merely to signal poor quality.
 
 Reuse-first is the rule here, matching how the ballistics S3a weapon-FX
 families were built.
@@ -80,6 +88,10 @@ marker on high-tier marines closes the loop:
 - Armor tier already varies the sprite family — `RED_ELITE` reads
   differently. Confirm that reads clearly at battle zoom; if it does not,
   that is a cheaper win than anything else in this story.
+- Armor role, silhouette, and faction provenance belong to
+  `powered-assault-armor-roles.md`. S7 may consume that visible suit, but must
+  not recolor it from weapon grade or invent a competing armor presentation
+  table.
 - A restrained kit marker for top-grade or veteran marines. Restraint
   matters: the battlefield already carries fog-of-war state, squad
   selection, contact ghosts, and objective markers. This must not become
@@ -95,6 +107,8 @@ owns anything driven by **the person**.
 - Armory screen presentation of grades — that surface exists and works.
 - New sprite families per grade. Modulation of existing assets only, unless
   a specific Masterwork silhouette earns its keep in Slice 2.
+- Armor-role and faction-provenance visuals; those are concrete armor-pattern
+  identity rather than weapon-grade chrome.
 - Sim behavior. This story changes nothing the simulation reads.
 
 ## Acceptance
@@ -107,6 +121,9 @@ owns anything driven by **the person**.
   presentation-only discipline for audio and it applies here.
 - Effects are grade-keyed, not type-keyed: adding a weapon family requires
   no new grade-specific code.
+- Representative slug, gauss, flechette, energy, explosive, and contact-tool
+  evidence remains distinguishable at the same grade before modulation is
+  judged.
 - The surface-relief light budget is respected; no new light sources.
 - Performance: no additional per-frame state queries in the render path
   ([[async_renderer_bridge_glget_stall]]).

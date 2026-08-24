@@ -32,6 +32,29 @@ public final class MarinePersonnelLogistics {
         return recruit;
     }
 
+    /**
+     * Fills every true open billet in one squad, drawing ready reserves first and then consuming
+     * generic cargo marines. WIA personnel still hold their billets, so this never overmans a
+     * temporarily degraded squad.
+     */
+    public static ReinforcementResult reinforceSquad(MarineRoster roster, String squadId) {
+        return reinforceSquad(roster, squadId, playerCargo());
+    }
+
+    static ReinforcementResult reinforceSquad(
+            MarineRoster roster, String squadId, CargoAPI cargo) {
+        if (roster == null || roster.squadById(squadId) == null) {
+            return new ReinforcementResult(0, 0);
+        }
+        int transferred = roster.fillVacanciesFromReserve(squadId);
+        int enlisted = 0;
+        while (roster.vacancies(roster.squadById(squadId)) > 0
+                && enlist(roster, squadId, cargo) != null) {
+            enlisted++;
+        }
+        return new ReinforcementResult(transferred, enlisted);
+    }
+
     /** Bulk-enlists line personnel, bounded by the request and real cargo. */
     public static int enlistLine(MarineRoster roster, int requested) {
         return enlistLine(roster, requested, playerCargo());
@@ -66,5 +89,9 @@ public final class MarinePersonnelLogistics {
     private static CargoAPI playerCargo() {
         if (Global.getSector() == null || Global.getSector().getPlayerFleet() == null) return null;
         return Global.getSector().getPlayerFleet().getCargo();
+    }
+
+    public record ReinforcementResult(int transferred, int enlisted) {
+        public int total() { return transferred + enlisted; }
     }
 }

@@ -4,6 +4,7 @@ import org.json.JSONException;
 
 /** Authored presentation moments a weapon may compose independently. */
 public enum FxSlot {
+    LAUNCH("launch"),
     MUZZLE("muzzle"),
     TRACER("tracer"),
     TRAIL("trail"),

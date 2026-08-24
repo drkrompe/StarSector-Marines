@@ -8,6 +8,8 @@ import com.dillon.starsectormarines.marine.FireTeamTemplateAvailability;
 import com.dillon.starsectormarines.marine.FireTeamTemplateCard;
 import com.dillon.starsectormarines.marine.FireTeamTemplateResult;
 import com.dillon.starsectormarines.marine.MarineCaptain;
+import com.dillon.starsectormarines.marine.MarinePersonnelLogistics;
+import com.dillon.starsectormarines.marine.MarinePersonnelLogistics.ReinforcementResult;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
@@ -24,6 +26,7 @@ import com.dillon.starsectormarines.ui.retained.reactive.Signal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.DoubleSupplier;
 
 /**
  * Retained presentation adapter for one authoritative fire-team refit workflow.
@@ -34,6 +37,7 @@ public final class FleetArmoryViewModel {
 
     private final MarineRoster roster;
     private final Runnable openSelectedSquad;
+    private final DoubleSupplier currentDay;
     private final MutableSignal<String> selectedSquadId;
     private final MutableSignal<Integer> selectedTeamIndex;
     private final MutableSignal<String> selectedTemplateId;
@@ -62,20 +66,30 @@ public final class FleetArmoryViewModel {
     private final ComputedSignal<Boolean> applyDisabled;
     private final ComputedSignal<String> feedbackText;
     private final ComputedSignal<String> feedbackClasses;
+    private final ComputedSignal<String> selectedSquadReadiness;
+    private final ComputedSignal<String> reinforceLabel;
+    private final ComputedSignal<Boolean> reinforceDisabled;
 
     public FleetArmoryViewModel(Reactor reactor, MarineRoster roster) {
-        this(reactor, roster, () -> { });
+        this(reactor, roster, () -> { }, () -> 0d);
     }
 
     public FleetArmoryViewModel(
             Reactor reactor, MarineRoster roster, Runnable openSelectedSquad) {
+        this(reactor, roster, openSelectedSquad, () -> 0d);
+    }
+
+    public FleetArmoryViewModel(Reactor reactor, MarineRoster roster,
+                                Runnable openSelectedSquad, DoubleSupplier currentDay) {
         if (reactor == null) throw new IllegalArgumentException("reactor is required");
         if (roster == null) throw new IllegalArgumentException("roster is required");
         if (openSelectedSquad == null) {
             throw new IllegalArgumentException("openSelectedSquad is required");
         }
+        if (currentDay == null) throw new IllegalArgumentException("currentDay is required");
         this.roster = roster;
         this.openSelectedSquad = openSelectedSquad;
+        this.currentDay = currentDay;
 
         MarineSquad initialSquad = firstLineSquad(roster);
         FireTeamTemplateCard initialTemplate = roster.armory().templateCards().isEmpty()
@@ -116,6 +130,11 @@ public final class FleetArmoryViewModel {
         feedbackText = reactor.computed(() -> feedback.get().text());
         feedbackClasses = reactor.computed(() -> feedback.get().succeeded()
                 ? "feedback tone-good" : "feedback tone-muted");
+        selectedSquadReadiness = reactor.computed(this::buildSelectedSquadReadiness);
+        reinforceLabel = reactor.computed(() -> reinforcementLabel(
+                roster.squadById(selectedSquadId.get())));
+        reinforceDisabled = reactor.computed(() -> reinforcementCapacity(
+                roster.squadById(selectedSquadId.get())) <= 0);
     }
 
     public MarineRoster roster() { return roster; }
@@ -139,6 +158,9 @@ public final class FleetArmoryViewModel {
     public Signal<Boolean> applyDisabled() { return applyDisabled; }
     public Signal<String> feedbackText() { return feedbackText; }
     public Signal<String> feedbackClasses() { return feedbackClasses; }
+    public Signal<String> selectedSquadReadiness() { return selectedSquadReadiness; }
+    public Signal<String> reinforceLabel() { return reinforceLabel; }
+    public Signal<Boolean> reinforceDisabled() { return reinforceDisabled; }
     public String selectedSquadId() { return selectedSquadId.peek(); }
     public int selectedTeamIndex() { return selectedTeamIndex.peek(); }
     public String selectedTemplateId() { return selectedTemplateId.peek(); }
@@ -173,11 +195,20 @@ public final class FleetArmoryViewModel {
         return this::toggleLoadoutPicker;
     }
 
+    public Runnable reinforceSelectedSquadAction() {
+        return () -> reinforceSquad(selectedSquadId.peek());
+    }
+
+    /** Reprojects campaign time, personnel, and cargo authority. */
+    public void refresh() {
+        domainRevision.update(value -> value + 1);
+    }
+
     public FireTeamBillet viewerBilletAt(int index) {
         if (loadoutPickerOpen.peek()) return billetAt(index);
         MarineSquad squad = roster.squadById(selectedSquadId.peek());
         if (squad == null) return null;
-        List<String> members = squad.teamMembers(selectedTeamIndex.peek());
+        List<String> members = roster.teamMemberIds(squad, selectedTeamIndex.peek());
         if (index < 0 || index >= members.size()) return null;
         MarineSoldier soldier = roster.soldierById(members.get(index));
         return soldier != null ? currentBillet(squad, selectedTeamIndex.peek(), index, soldier)
@@ -204,13 +235,16 @@ public final class FleetArmoryViewModel {
         domainRevision.get();
         int lineSquads = 0;
         int ready = 0;
+        int wounded = 0;
         for (MarineSquad squad : roster.squads()) {
             if (squad.reserve()) continue;
             lineSquads++;
             ready += roster.readyCount(squad);
+            wounded += woundedCount(squad);
         }
         return lineSquads + " squads  ·  " + ready + " RTD  ·  "
-                + roster.armory().templateCards().size() + " templates";
+                + wounded + " WIA  ·  " + roster.armory().templateCards().size()
+                + " templates";
     }
 
     private List<SelectionRow> buildSquadRows() {
@@ -249,15 +283,18 @@ public final class FleetArmoryViewModel {
             String id = "squad-card:" + squad.id();
             cards.add(new SquadCard(id, id + ":name", id + ":status",
                     id + ":strength", id + ":teams", id + ":command",
-                    id + ":location", id + ":open",
+                    id + ":location", id + ":recovery", id + ":open",
+                    id + ":reinforce",
                     "squad-card " + readinessClass,
                     "squad-card-status heading " + readinessTone(ready, MarineSquad.CAPACITY),
                     squad.name(), readiness, ready + " / " + MarineSquad.CAPACITY + " RTD",
                     assigned + " / " + MarineSquad.TEAMS_PER_SQUAD + " equipped",
-                    command, location, "Inspect Squad", () -> {
+                    command, location, compactRecoverySummary(squad), "Inspect Squad",
+                    reinforcementLabel(squad), reinforcementCapacity(squad) <= 0,
+                    () -> {
                         selectSquad(squad.id());
                         openSelectedSquad.run();
-                    }));
+                    }, () -> reinforceSquad(squad.id())));
         }
         return List.copyOf(cards);
     }
@@ -273,12 +310,13 @@ public final class FleetArmoryViewModel {
             int ready = readyTeamMembers(squad, team);
             String id = "fire-team:" + squad.id() + ":" + team;
             teams.add(new FireTeamOverview(id, id + ":name", id + ":status",
-                    id + ":strength", id + ":template",
+                    id + ":strength", id + ":recovery", id + ":template",
                     team == selected ? "fire-team-overview selected" : "fire-team-overview",
                     "fire-team-status heading " + readinessTone(ready, MarineSquad.TEAM_SIZE),
                     teamName(team), readinessLabel(ready, MarineSquad.TEAM_SIZE),
                     ready + " / " + MarineSquad.TEAM_SIZE + " RTD",
-                    assignedTemplateName(squad, team), () -> selectTeam(target)));
+                    recoverySummary(squad, team), assignedTemplateName(squad, team),
+                    () -> selectTeam(target)));
         }
         return List.copyOf(teams);
     }
@@ -353,7 +391,7 @@ public final class FleetArmoryViewModel {
         selectedTemplateId.get();
         boolean previewing = loadoutPickerOpen.get();
         if (squad == null) return List.of();
-        List<String> memberIds = squad.teamMembers(teamIndex);
+        List<String> memberIds = roster.teamMemberIds(squad, teamIndex);
         List<MarineViewerCard> marines = new ArrayList<>();
         for (int index = 0; index < MarineSquad.TEAM_SIZE; index++) {
             MarineSoldier soldier = index < memberIds.size()
@@ -412,7 +450,7 @@ public final class FleetArmoryViewModel {
         int team = selectedTeamIndex.get();
         return squad == null ? "Select a line squad"
                 : squad.name() + " / " + teamName(team) + "  ·  "
-                + squad.teamMembers(team).size() + " marines  ·  Current: "
+                + roster.teamMemberIds(squad, team).size() + " marines  ·  Current: "
                 + assignedTemplateName(squad, team);
     }
 
@@ -505,6 +543,52 @@ public final class FleetArmoryViewModel {
         feedback.set(Feedback.neutral("Showing the selected fire team's current equipment."));
     }
 
+    private void reinforceSquad(String squadId) {
+        MarineSquad squad = roster.squadById(squadId);
+        if (squad == null) return;
+        ReinforcementResult result = MarinePersonnelLogistics.reinforceSquad(roster, squadId);
+        if (result.total() <= 0) {
+            feedback.set(Feedback.neutral(reinforcementUnavailableReason(squad)));
+        } else {
+            String source = result.transferred() > 0 && result.enlisted() > 0
+                    ? result.transferred() + " reserve, " + result.enlisted() + " enlisted"
+                    : result.transferred() > 0 ? result.transferred() + " from reserve"
+                    : result.enlisted() + " enlisted";
+            feedback.set(Feedback.success(squad.name() + " reinforced  ·  " + source
+                    + ". Review replacement equipment before deployment."));
+        }
+        domainRevision.update(value -> value + 1);
+    }
+
+    private String buildSelectedSquadReadiness() {
+        domainRevision.get();
+        MarineSquad squad = roster.squadById(selectedSquadId.get());
+        if (squad == null) return "Select a line squad";
+        return roster.readyCount(squad) + " RTD  ·  " + roster.vacancies(squad)
+                + " open billets  ·  " + recoverySummary(squad);
+    }
+
+    private int reinforcementCapacity(MarineSquad squad) {
+        domainRevision.get();
+        if (squad == null || squad.stationed()) return 0;
+        int personnel = roster.readyReserveCount() + MarinePersonnelLogistics.availableRecruits();
+        return Math.min(roster.vacancies(squad), personnel);
+    }
+
+    private String reinforcementLabel(MarineSquad squad) {
+        int capacity = reinforcementCapacity(squad);
+        return capacity > 0 ? "Reinforce +" + capacity : "Reinforce";
+    }
+
+    private String reinforcementUnavailableReason(MarineSquad squad) {
+        if (squad.stationed()) return "Unavailable  ·  This squad is stationed away.";
+        if (roster.vacancies(squad) <= 0 && woundedCount(squad) > 0) {
+            return "No open billets  ·  WIA marines remain assigned while recovering.";
+        }
+        if (roster.vacancies(squad) <= 0) return "This squad is fully manned.";
+        return "No ready reserve or cargo marines are available.";
+    }
+
     private String assignedTemplateName(MarineSquad squad, int teamIndex) {
         FireTeamTemplateCard card = roster.armory().templateCardById(
                 squad.teamTemplateCardId(teamIndex));
@@ -513,11 +597,71 @@ public final class FleetArmoryViewModel {
 
     private int readyTeamMembers(MarineSquad squad, int teamIndex) {
         int ready = 0;
-        for (String memberId : squad.teamMembers(teamIndex)) {
+        for (String memberId : roster.teamMemberIds(squad, teamIndex)) {
             MarineSoldier soldier = roster.soldierById(memberId);
             if (soldier != null && soldier.status() == MarineSoldierStatus.ACTIVE) ready++;
         }
         return ready;
+    }
+
+    private int woundedCount(MarineSquad squad) {
+        int wounded = 0;
+        for (MarineSoldier soldier : roster.squadMembers(squad)) {
+            if (soldier.status() == MarineSoldierStatus.WIA) wounded++;
+        }
+        return wounded;
+    }
+
+    private String recoverySummary(MarineSquad squad) {
+        return recoverySummary(roster.teamMemberIds(squad, 0),
+                roster.teamMemberIds(squad, 1), roster.teamMemberIds(squad, 2));
+    }
+
+    private String recoverySummary(MarineSquad squad, int teamIndex) {
+        return recoverySummary(roster.teamMemberIds(squad, teamIndex));
+    }
+
+    private String compactRecoverySummary(MarineSquad squad) {
+        int wounded = 0;
+        float earliest = Float.POSITIVE_INFINITY;
+        for (String id : roster.manningMemberIds(squad)) {
+            MarineSoldier soldier = roster.soldierById(id);
+            if (soldier == null || soldier.status() != MarineSoldierStatus.WIA) continue;
+            wounded++;
+            earliest = Math.min(earliest, soldier.unavailableUntilDay());
+        }
+        return wounded == 0 ? "No WIA" : wounded + " WIA  ·  RTD "
+                + formatRemainingCompact(earliest, currentDay.getAsDouble());
+    }
+
+    @SafeVarargs
+    private final String recoverySummary(List<String>... groups) {
+        int wounded = 0;
+        float earliest = Float.POSITIVE_INFINITY;
+        for (List<String> group : groups) {
+            for (String id : group) {
+                MarineSoldier soldier = roster.soldierById(id);
+                if (soldier == null || soldier.status() != MarineSoldierStatus.WIA) continue;
+                wounded++;
+                earliest = Math.min(earliest, soldier.unavailableUntilDay());
+            }
+        }
+        return wounded == 0 ? "No wounded personnel"
+                : wounded + " WIA  ·  next RTD " + formatRemaining(earliest, currentDay.getAsDouble());
+    }
+
+    static String formatRemaining(double unavailableUntilDay, double currentDay) {
+        int hours = Math.max(0, (int) Math.ceil((unavailableUntilDay - currentDay) * 24d));
+        if (hours <= 0) return "now";
+        if (hours < 24) return "in " + hours + "h";
+        int days = hours / 24;
+        int remainder = hours % 24;
+        return "in " + days + "d" + (remainder == 0 ? "" : " " + remainder + "h");
+    }
+
+    static String formatRemainingCompact(double unavailableUntilDay, double currentDay) {
+        String remaining = formatRemaining(unavailableUntilDay, currentDay);
+        return remaining.startsWith("in ") ? remaining.substring(3) : remaining;
     }
 
     private static MarineSquad firstLineSquad(MarineRoster roster) {
@@ -585,11 +729,12 @@ public final class FleetArmoryViewModel {
                 : "Vacant billet";
     }
 
-    private static String marineStatus(MarineSoldier soldier) {
+    private String marineStatus(MarineSoldier soldier) {
         if (soldier == null) return "VACANT";
         return switch (soldier.status()) {
             case ACTIVE -> "READY";
-            case WIA -> "WOUNDED";
+            case WIA -> "WIA  ·  RTD " + formatRemaining(
+                    soldier.unavailableUntilDay(), currentDay.getAsDouble());
             case MIA -> "MISSING";
             case KIA -> "KILLED";
         };
@@ -697,10 +842,13 @@ public final class FleetArmoryViewModel {
 
     public record SquadCard(
             String id, String nameId, String statusId, String strengthId,
-            String teamsId, String commandId, String locationId, String openId,
+            String teamsId, String commandId, String locationId, String recoveryId,
+            String openId, String reinforceId,
             String classes, String statusClasses, String name, String status,
             String strength, String teams, String command, String location,
-            String openLabel, Runnable open) implements MarkupPropertySource {
+            String recovery, String openLabel, String reinforceLabel,
+            boolean reinforceDisabled, Runnable open, Runnable reinforce)
+            implements MarkupPropertySource {
         @Override
         public Object markupProperty(String property) {
             return switch (property) {
@@ -711,7 +859,9 @@ public final class FleetArmoryViewModel {
                 case "teamsId" -> teamsId;
                 case "commandId" -> commandId;
                 case "locationId" -> locationId;
+                case "recoveryId" -> recoveryId;
                 case "openId" -> openId;
+                case "reinforceId" -> reinforceId;
                 case "classes" -> classes;
                 case "statusClasses" -> statusClasses;
                 case "name" -> name;
@@ -720,8 +870,12 @@ public final class FleetArmoryViewModel {
                 case "teams" -> teams;
                 case "command" -> command;
                 case "location" -> location;
+                case "recovery" -> recovery;
                 case "openLabel" -> openLabel;
+                case "reinforceLabel" -> reinforceLabel;
+                case "reinforceDisabled" -> reinforceDisabled;
                 case "open" -> open;
+                case "reinforce" -> reinforce;
                 default -> throw new IllegalArgumentException("Unknown squad-card property");
             };
         }
@@ -729,8 +883,8 @@ public final class FleetArmoryViewModel {
 
     public record FireTeamOverview(
             String id, String nameId, String statusId, String strengthId,
-            String templateId, String classes, String statusClasses,
-            String name, String status, String strength, String template,
+            String recoveryId, String templateId, String classes, String statusClasses,
+            String name, String status, String strength, String recovery, String template,
             Runnable select) implements MarkupPropertySource {
         @Override
         public Object markupProperty(String property) {
@@ -739,12 +893,14 @@ public final class FleetArmoryViewModel {
                 case "nameId" -> nameId;
                 case "statusId" -> statusId;
                 case "strengthId" -> strengthId;
+                case "recoveryId" -> recoveryId;
                 case "templateId" -> templateId;
                 case "classes" -> classes;
                 case "statusClasses" -> statusClasses;
                 case "name" -> name;
                 case "status" -> status;
                 case "strength" -> strength;
+                case "recovery" -> recovery;
                 case "template" -> template;
                 case "select" -> select;
                 default -> throw new IllegalArgumentException("Unknown fire-team property");

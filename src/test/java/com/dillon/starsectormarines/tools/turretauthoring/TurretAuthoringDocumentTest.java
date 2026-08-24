@@ -48,6 +48,14 @@ class TurretAuthoringDocumentTest {
                 .put("armorRating", 16.0);
         hephaestus.weapon().getJSONObject("fx").getJSONArray("impact")
                 .getJSONObject(0).put("radius", 1.42);
+        TurretAuthoringDocument.TurretSelection locust =
+                document.selection("structure.turret-locust");
+        locust.weapon().getJSONObject("sim")
+                .put("burstCount", 6).put("arcHeight", 3.75)
+                .put("boostRamp", true).put("indirectFire", true);
+        locust.weapon().getJSONObject("render").put("contrail", "missile-smoke");
+        locust.weapon().getJSONObject("audio")
+                .put("impactSound", "marines_missile_impact");
 
         TurretMountDef preview = document.previewMount(hephaestus.structureId());
         assertEquals(52f, preview.weapon.damage, 0f);
@@ -68,6 +76,12 @@ class TurretAuthoringDocumentTest {
         assertEquals(52f, saved.weapon.damage, 0f);
         assertEquals(155f, reloaded.validateCatalogs().turrets()
                 .getStructure(hephaestus.structureId()).armorPool, 0f);
+        TurretMountDef savedLocust = reloaded.previewMount(locust.structureId());
+        assertEquals(6, savedLocust.weapon.burstCount);
+        assertEquals(3.75f, savedLocust.weapon.arcHeight, 0f);
+        assertTrue(savedLocust.weapon.boostRamp);
+        assertTrue(savedLocust.weapon.indirectFire);
+        assertEquals("marines_missile_impact", savedLocust.weapon.impactSoundId);
     }
 
     @Test

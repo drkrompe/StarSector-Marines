@@ -108,7 +108,7 @@ public final class CampaignMarineDeployment {
                     soldier.id(), armorFamily(soldier.armor()),
                     soldier.armor().armorPool, soldier.armor().armorRating,
                     soldier.armor().moveSpeedMult, soldier.armor().incomingAccuracyMult,
-                    tag(owners.get(i), soldier, strengths)));
+                    tag(roster, owners.get(i), soldier, strengths)));
         }
         return new CampaignMarineDeployment(frozen);
     }
@@ -174,13 +174,14 @@ public final class CampaignMarineDeployment {
      * referenced — the battle tier has no roster access, and a rename back home
      * mid-battle must not change what the HUD says.
      */
-    private static CampaignSquadTag tag(MarineSquad squad, MarineSoldier soldier,
+    private static CampaignSquadTag tag(MarineRoster roster, MarineSquad squad,
+                                        MarineSoldier soldier,
                                         Map<String, Integer> strengths) {
         if (squad == null || squad.reserve()) return null;
         return new CampaignSquadTag(squad.id(), squad.name(),
                 soldier.id().equals(squad.leaderSoldierId()),
                 strengths.getOrDefault(squad.id(), 0),
-                squad.teamIndexOf(soldier.id()));
+                roster.teamIndexOf(squad, soldier.id()));
     }
 
     public static int requiredSeats(List<ShuttleAssignment> manifest, int firstAssignment) {

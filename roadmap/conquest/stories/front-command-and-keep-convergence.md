@@ -1,0 +1,69 @@
+# Conquest front command and keep convergence
+
+Status: IN PROGRESS — implementation is complete; live keep-convergence acceptance remains.
+
+Written: 2026-08-24
+
+Updated: 2026-08-24 — implementation and automated acceptance are complete; live convergence acceptance remains with playtest.
+
+Read `conquest-nouns.md` and `ai-nouns.md` before implementing this story.
+
+## Intent
+
+Keep the useful lateral organization of the Conquest advance without treating
+track boundaries as exclusive ownership. Publish the front each track believes
+it is serving, let idle squads support nearby resistance across a boundary, and
+converge the assault force on the canonical keep when it becomes the remaining
+territorial objective.
+
+## Scope
+
+- Publish an immutable Conquest front snapshot with command phase, per-track
+  assignment/strength, attacker progress, believed defender frontier,
+  friendly/hostile pressure, and current target context.
+- Retain a squad's sticky preferred track as an organizational default, but
+  allow an uncommitted squad with no useful target in that track to support a
+  neighboring track.
+- Enter an explicit keep-convergence phase when the canonical command post is
+  the only uncaptured compound. Give every available assault squad useful
+  approach or room-clear work across track boundaries while preserving
+  distinct approach sectors where the keep geometry permits them.
+- Publish a per-squad command decision with preferred/effective track,
+  assignment reason, target, and convergence state through the selected-squad
+  panel and state dump.
+- Keep compound-capture quotas and born-holding garrisons distinct from the
+  mobile assault force.
+
+## Acceptance
+
+- [x] Put a squad just across a track boundary from the only defended reachable
+  room in its neighboring track. If its preferred track has no useful target,
+  confirm it receives a mission assignment instead of ambient Overwatch.
+- [x] Leave useful resistance in a squad's preferred track and confirm the
+  sticky track still wins rather than causing arbitrary lateral churn.
+- [x] Capture every supply compound except the canonical keep. Confirm command
+  enters keep convergence and every non-garrison assault squad receives useful
+  approach, clear, or capture work even when all keep rooms fall in one track.
+- [x] Confirm track metrics and squad decision reasons are deterministic and
+  identical between the selected-squad panel and JSON dump.
+- [x] Confirm hostile progress and pressure consume only the marine commander's
+  belief-derived influence snapshot; hidden defenders do not appear in the new
+  front metrics.
+- [x] Confirm existing compound quotas, capture preservation, strip preference,
+  and full Conquest victory tests remain green.
+
+## Constraints
+
+- Tracks coordinate a front; they are not ownership fences and do not own map
+  geometry.
+- Keep convergence may redirect mobile assault squads but must not overwrite
+  `HOLD_NODE` garrisons, morale survival behavior, or unrelated unit missions.
+- A front snapshot is published command state. Presentation consumes it and
+  never reconstructs assignments or hostile information from the live world.
+- Other mission types require their own command geometry and stories; this
+  story does not generalize Conquest tracks into a universal commander.
+
+## Exit
+
+Fold the durable track/front/convergence laws into `conquest-nouns.md`, add
+this story to `shipped.md`, and delete it after live acceptance is complete.

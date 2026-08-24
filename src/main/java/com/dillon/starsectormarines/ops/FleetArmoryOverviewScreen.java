@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineSquad;
@@ -44,6 +45,7 @@ public final class FleetArmoryOverviewScreen implements Screen {
     private MarkupInstance markupInstance;
     private StarsectorUiInputAdapter input;
     private boolean reloadRequested;
+    private int projectedCampaignHour = Integer.MIN_VALUE;
 
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
@@ -63,10 +65,11 @@ public final class FleetArmoryOverviewScreen implements Screen {
             roster = liveRoster;
             viewModel = new FleetArmoryOverviewViewModel(reactor, roster,
                     () -> context.openFleetArmoryWorkspaceFrom(
-                            ScreenId.FLEET_ARMORY_OVERVIEW));
+                            ScreenId.FLEET_ARMORY_OVERVIEW), CampaignClock::dayFloat);
         } else {
             viewModel.refresh();
         }
+        projectedCampaignHour = campaignHour();
         if (document == null) installDocument(true);
         document.layout(viewport.width(), viewport.height());
         input = new StarsectorUiInputAdapter(document, viewport);
@@ -140,12 +143,21 @@ public final class FleetArmoryOverviewScreen implements Screen {
 
     @Override
     public void advance(float dt) {
+        int currentHour = campaignHour();
+        if (currentHour != projectedCampaignHour) {
+            projectedCampaignHour = currentHour;
+            viewModel.refresh();
+        }
         if (reloadRequested) {
             reloadRequested = false;
             reloadDocument();
         }
         if (markupInstance != null) markupInstance.flush();
         if (document != null) document.advance(dt);
+    }
+
+    private static int campaignHour() {
+        return (int) Math.floor(CampaignClock.dayFloat() * 24f);
     }
 
     @Override

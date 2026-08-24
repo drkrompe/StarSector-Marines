@@ -6,9 +6,9 @@
 > design a four-billet template once, then assign it wherever the company owns a
 > complete kit.
 
-**Status:** IN PROGRESS — Slices 1–4 shipped; Slice 5 next
+**Status:** IN PROGRESS — Slices 1–4 shipped; Slice 5 personnel flow partial
 **Written:** 2026-08-23
-**Updated:** 2026-08-23 — Templates are explicitly not a card mechanic; atomic squad arrangements now ship.
+**Updated:** 2026-08-24 — One-click true-vacancy reinforcement and WIA recovery clocks ship; replacement equipment conformance remains.
 
 Read `company-view-nouns.md` first; it owns the standing organization and
 equipment-authority model this story extends.
@@ -101,9 +101,11 @@ surface once the designer replaces it.
 4. ~~**Squad arrangements.**~~ **Shipped 2026-08-23.** Save and apply a
    three-template squad composition atomically. A failure in any team leaves
    all three assignments unchanged.
-5. **Conformance and replacement flow.** Show vacancies, WIA-held gear and
-   missing recovered equipment per billet; reconcile returning/replacement
-   marines against the assigned template without reopening individual loadouts.
+5. **Conformance and replacement flow.** True-vacancy personnel reinforcement
+   now draws ready reserves before cargo recruits, preserves WIA-held billets,
+   and projects recovery time through the Armory hierarchy. Still show missing
+   or WIA-held equipment per billet and reconcile returning/replacement marines
+   against the assigned template without reopening individual loadouts.
 6. **Retire routine per-marine editing.** Keep the marine inspector and roster
    legibility owned by progression, but remove individual equipment mutation
    once every catalog item is expressible in the designer.
