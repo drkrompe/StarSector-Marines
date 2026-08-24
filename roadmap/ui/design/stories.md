@@ -1,10 +1,11 @@
 # UI foundation open work
 
-Status: SHIPPED — no open foundation stories
+Status: ACTIVE — one foundation story in progress
 Written: 2026-08-23
-Updated: 2026-08-24 — U1–U4 live-accepted; C15 added the first production-driven `display: grid` layout capability.
+Updated: 2026-08-24 — U5 extracts a full retained-view renderer for engine-free UX iteration.
 
 Read `ui-nouns.md` and `ui-toolkit.md` before changing a UI-foundation story.
 
-No UI-foundation stories are open. The next production use of this toolkit is
-`roadmap/company-view/stories/c15-retained-fleet-armory.md`.
+| Story | State |
+| --- | --- |
+| `u5-headless-view-renderer.md` | IN PROGRESS — generic paint target and Fleet Armory fixtures |
