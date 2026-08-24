@@ -52,11 +52,28 @@ repository command:
 .\gradlew.bat createSnapshots -Psnapshot=layers
 ```
 
+| Suite | Evidence |
+|-------|----------|
+| `armory` | Individual loadout previews and a contact sheet |
+| `layers` | One combined composition sheet per authored unit |
+| `turrets` | Mount-state strips with projectile and impact effects |
+| `ui` | Retained Marine Ops screens at authored viewport sizes |
+
 Run without `-Psnapshot` to create every discovered suite, or select a
 comma-separated set such as `'-Psnapshot=layers,turrets'` in PowerShell.
 Outputs live beneath `build/snapshots/<suite>/`; `-PsnapshotDir=<path>`
 redirects the shared output root. The layer suite writes one deterministic
-combined PNG per unit under `build/snapshots/layers/`.
+combined PNG per unit under `build/snapshots/layers/`. The command replaces
+matching PNGs without prompting, while the editor asks first. Neither front end
+removes obsolete PNGs left by an earlier run.
+
+### Adding a snapshot suite
+
+Implement the shared `SnapshotSuite` contract and register the provider through
+`META-INF/services`. Keep rendering deterministic, headless, and independent of
+a Starsector process or OpenGL context. The existing `createSnapshots` task and
+Snapshots tab discover the provider automatically; do not add a domain-specific
+Gradle task or standalone preview CLI.
 
 ## Data contract
 
