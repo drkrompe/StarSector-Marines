@@ -1,5 +1,9 @@
 package com.dillon.starsectormarines.tools.layerauthoring;
 
+import com.dillon.starsectormarines.tools.authoring.AuthoringPage;
+import com.dillon.starsectormarines.tools.authoring.AuthoringPageCatalog;
+import com.dillon.starsectormarines.tools.authoring.AuthoringPageContext;
+import com.dillon.starsectormarines.tools.authoring.AuthoringPageProvider;
 import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.AnimationDefinition;
 import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.AppearanceVariant;
 import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.FrameDefinition;
@@ -48,6 +52,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 /** Standalone Swing application for authoring modular marine and mech layouts. */
@@ -103,9 +108,11 @@ public final class LayerAuthoringWorkbench {
         private long frameElapsedMs;
         private int playbackFrameIndex;
         private final Timer timer;
+        private final List<MountedAuthoringPage> contributedPages = new ArrayList<>();
+        private boolean contributedPagesClosed;
 
         WorkbenchFrame(Path projectRoot) throws Exception {
-            super("Marine / Mech Layer Authoring");
+            super("Starsector Marines Authoring");
             this.projectRoot = projectRoot.toAbsolutePath().normalize();
             reloadDocument();
             savedSnapshot = document.snapshot();
@@ -116,7 +123,7 @@ public final class LayerAuthoringWorkbench {
             setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
             addWindowListener(new WindowAdapter() {
                 @Override public void windowClosing(WindowEvent event) {
-                    if (confirmDiscard()) dispose();
+                    if (confirmClose()) dispose();
                 }
             });
             setMinimumSize(new Dimension(1050, 680));
@@ -128,10 +135,11 @@ public final class LayerAuthoringWorkbench {
         @Override
         public void dispose() {
             timer.stop();
+            closeContributedPages();
             super.dispose();
         }
 
-        private void buildUi() {
+        private void buildUi() throws Exception {
             canvas = new CompositionCanvas(renderer);
             sheet = new SheetPanel();
             JPanel top = new JPanel();
@@ -189,10 +197,17 @@ public final class LayerAuthoringWorkbench {
             split.setResizeWeight(1.0);
             split.setDividerLocation(980);
 
+            JPanel layersPage = new JPanel(new BorderLayout());
+            layersPage.add(top, BorderLayout.NORTH);
+            layersPage.add(split, BorderLayout.CENTER);
+
+            JTabbedPane authoringTabs = new JTabbedPane();
+            authoringTabs.addTab("Layers", layersPage);
+            mountContributedPages(authoringTabs);
+
             status.setBorder(BorderFactory.createEmptyBorder(5, 10, 7, 10));
             setLayout(new BorderLayout());
-            add(top, BorderLayout.NORTH);
-            add(split, BorderLayout.CENTER);
+            add(authoringTabs, BorderLayout.CENTER);
             add(status, BorderLayout.SOUTH);
         }
 
@@ -201,6 +216,38 @@ public final class LayerAuthoringWorkbench {
             return configured.isEmpty()
                     ? projectRoot.resolve("starsector-core")
                     : Path.of(configured).resolve("starsector-core");
+        }
+
+        private void mountContributedPages(JTabbedPane tabs) throws Exception {
+            AuthoringPageContext context = new AuthoringPageContext(projectRoot,
+                    starsectorCoreRoot(), status::setText, this::updateTitle);
+            for (AuthoringPageProvider provider : AuthoringPageCatalog.discover().providers()) {
+                AuthoringPage page = provider.create(context);
+                if (page == null) {
+                    throw new IllegalStateException("Authoring page provider '" + provider.id()
+                            + "' returned no page");
+                }
+                if (page.component() == null) {
+                    page.close();
+                    throw new IllegalStateException("Authoring page provider '" + provider.id()
+                            + "' returned no component");
+                }
+                contributedPages.add(new MountedAuthoringPage(provider.label(), page));
+                tabs.addTab(provider.label(), page.component());
+            }
+        }
+
+        private void closeContributedPages() {
+            if (contributedPagesClosed) return;
+            contributedPagesClosed = true;
+            for (MountedAuthoringPage mounted : contributedPages) {
+                try {
+                    mounted.page().close();
+                } catch (RuntimeException failure) {
+                    status.setText("Could not close " + mounted.label() + ": "
+                            + failure.getMessage());
+                }
+            }
         }
 
         private JPanel inspector() {
@@ -584,6 +631,22 @@ public final class LayerAuthoringWorkbench {
                     JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
         }
 
+        private boolean confirmClose() {
+            List<String> unsaved = new ArrayList<>();
+            if (dirty) unsaved.add("Layers");
+            for (MountedAuthoringPage mounted : contributedPages) {
+                if (mounted.page().hasUnsavedChanges()) unsaved.add(mounted.label());
+            }
+            if (unsaved.isEmpty()) return true;
+            String changes = String.join("<br>", unsaved.stream()
+                    .map(label -> "• " + label)
+                    .toList());
+            return JOptionPane.showConfirmDialog(this,
+                    "<html>Discard unsaved changes in:<br><br>" + changes + "?</html>",
+                    "Unsaved changes", JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION;
+        }
+
         private void exportSheet() {
             UnitComposition unit = unit();
             if (unit == null) return;
@@ -814,8 +877,13 @@ public final class LayerAuthoringWorkbench {
         }
 
         private void updateTitle() {
-            setTitle((dirty ? "* " : "") + "Marine / Mech Layer Authoring — "
+            boolean anyDirty = dirty || contributedPages.stream()
+                    .anyMatch(mounted -> mounted.page().hasUnsavedChanges());
+            setTitle((anyDirty ? "* " : "") + "Starsector Marines Authoring — "
                     + document.sourcePath().getFileName());
+        }
+
+        private record MountedAuthoringPage(String label, AuthoringPage page) {
         }
 
         private UnitComposition unit() {
