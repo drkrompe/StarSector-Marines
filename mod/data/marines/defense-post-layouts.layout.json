@@ -1,0 +1,180 @@
+{
+  "layouts": [
+    {
+      "id": "layout.defense-post-light", "tier": "light", "variant": "default",
+      "anchor": [0, 0], "bounds": { "minOffset": [-1, -1], "maxOffset": [1, 1] },
+      "cells": [
+        { "offset": [0, -1], "kind": "barrier", "appearance": "vent", "facing": [0, -1] },
+        { "offset": [0, 1], "kind": "barrier", "appearance": "vent", "facing": [0, 1] },
+        { "offset": [-1, 0], "kind": "barrier", "appearance": "vent", "facing": [-1, 0] },
+        { "offset": [1, 0], "kind": "barrier", "appearance": "vent", "facing": [1, 0] },
+        { "offset": [0, 0], "kind": "pad" }
+      ],
+      "turrets": [
+        { "offset": [0, 0], "structure": "structure.turret-vulcan" }
+      ]
+    },
+    {
+      "id": "layout.defense-post-medium", "tier": "medium", "variant": "default",
+      "anchor": [0, 0], "bounds": { "minOffset": [-1, -1], "maxOffset": [1, 1] },
+      "cells": [
+        { "offset": [-1, -1], "kind": "barrier", "appearance": "embankment", "facing": [-1, -1] },
+        { "offset": [0, -1], "kind": "barrier", "appearance": "embankment", "facing": [0, -1] },
+        { "offset": [1, -1], "kind": "barrier", "appearance": "embankment", "facing": [1, -1] },
+        { "offset": [-1, 0], "kind": "barrier", "appearance": "embankment", "facing": [-1, 0] },
+        { "offset": [1, 0], "kind": "barrier", "appearance": "embankment", "facing": [1, 0] },
+        { "offset": [-1, 1], "kind": "barrier", "appearance": "embankment", "facing": [-1, 1] },
+        { "offset": [0, 1], "kind": "barrier", "appearance": "embankment", "facing": [0, 1] },
+        { "offset": [1, 1], "kind": "barrier", "appearance": "embankment", "facing": [1, 1] },
+        { "offset": [0, 0], "kind": "pad" }
+      ],
+      "turrets": [
+        { "offset": [0, 0], "structure": "structure.turret-arbalest" }
+      ]
+    },
+    {
+      "id": "layout.defense-post-large-line-h", "tier": "large", "variant": "line-h",
+      "anchor": [0, 0], "bounds": { "minOffset": [-2, -1], "maxOffset": [2, 1] },
+      "cells": [
+        { "offset": [-2, 1], "kind": "barrier", "appearance": "embankment", "facing": [-1, 1] },
+        { "offset": [-1, 1], "kind": "barrier", "appearance": "embankment", "facing": [0, 1] },
+        { "offset": [0, 1], "kind": "barrier", "appearance": "embankment", "facing": [0, 1] },
+        { "offset": [1, 1], "kind": "barrier", "appearance": "embankment", "facing": [0, 1] },
+        { "offset": [2, 1], "kind": "barrier", "appearance": "embankment", "facing": [1, 1] },
+        { "offset": [-2, -1], "kind": "barrier", "appearance": "embankment", "facing": [-1, -1] },
+        { "offset": [-1, -1], "kind": "barrier", "appearance": "embankment", "facing": [0, -1] },
+        { "offset": [0, -1], "kind": "barrier", "appearance": "embankment", "facing": [0, -1] },
+        { "offset": [1, -1], "kind": "barrier", "appearance": "embankment", "facing": [0, -1] },
+        { "offset": [2, -1], "kind": "barrier", "appearance": "embankment", "facing": [1, -1] },
+        { "offset": [-2, 0], "kind": "barrier", "appearance": "embankment", "facing": [-1, 0] },
+        { "offset": [2, 0], "kind": "barrier", "appearance": "embankment", "facing": [1, 0] },
+        { "offset": [-1, 0], "kind": "pad" }, { "offset": [0, 0], "kind": "pad" }, { "offset": [1, 0], "kind": "pad" }
+      ],
+      "turrets": [
+        { "offset": [-1, 0], "structure": "structure.turret-hephaestus" },
+        { "offset": [1, 0], "structure": "structure.turret-hephaestus" }
+      ]
+    },
+    {
+      "id": "layout.defense-post-large-line-v", "tier": "large", "variant": "line-v",
+      "anchor": [0, 0], "bounds": { "minOffset": [-1, -2], "maxOffset": [1, 2] },
+      "cells": [
+        { "offset": [-1, 2], "kind": "barrier", "appearance": "embankment", "facing": [-1, 1] },
+        { "offset": [0, 2], "kind": "barrier", "appearance": "embankment", "facing": [0, 1] },
+        { "offset": [1, 2], "kind": "barrier", "appearance": "embankment", "facing": [1, 1] },
+        { "offset": [-1, 1], "kind": "barrier", "appearance": "embankment", "facing": [-1, 0] },
+        { "offset": [1, 1], "kind": "barrier", "appearance": "embankment", "facing": [1, 0] },
+        { "offset": [-1, 0], "kind": "barrier", "appearance": "embankment", "facing": [-1, 0] },
+        { "offset": [1, 0], "kind": "barrier", "appearance": "embankment", "facing": [1, 0] },
+        { "offset": [-1, -1], "kind": "barrier", "appearance": "embankment", "facing": [-1, 0] },
+        { "offset": [1, -1], "kind": "barrier", "appearance": "embankment", "facing": [1, 0] },
+        { "offset": [-1, -2], "kind": "barrier", "appearance": "embankment", "facing": [-1, -1] },
+        { "offset": [0, -2], "kind": "barrier", "appearance": "embankment", "facing": [0, -1] },
+        { "offset": [1, -2], "kind": "barrier", "appearance": "embankment", "facing": [1, -1] },
+        { "offset": [0, 1], "kind": "pad" }, { "offset": [0, 0], "kind": "pad" }, { "offset": [0, -1], "kind": "pad" }
+      ],
+      "turrets": [
+        { "offset": [0, 1], "structure": "structure.turret-hephaestus" },
+        { "offset": [0, -1], "structure": "structure.turret-hephaestus" }
+      ]
+    },
+    {
+      "id": "layout.defense-post-large-wedge", "tier": "large", "variant": "wedge",
+      "anchor": [0, 0], "bounds": { "minOffset": [-2, -1], "maxOffset": [2, 1] },
+      "cells": [
+        { "offset": [-2, 1], "kind": "barrier", "appearance": "bow-out", "facing": [-1, 1] },
+        { "offset": [-1, 1], "kind": "barrier", "appearance": "bow-out", "facing": [0, 1] },
+        { "offset": [0, 1], "kind": "barrier", "appearance": "bow-out", "facing": [0, 1] },
+        { "offset": [1, 1], "kind": "barrier", "appearance": "bow-out", "facing": [0, 1] },
+        { "offset": [2, 1], "kind": "barrier", "appearance": "bow-out", "facing": [1, 1] },
+        { "offset": [-1, 0], "kind": "barrier", "appearance": "bow-out", "facing": [-1, 0] },
+        { "offset": [1, 0], "kind": "barrier", "appearance": "bow-out", "facing": [1, 0] },
+        { "offset": [0, -1], "kind": "barrier", "appearance": "bow-out", "facing": [0, -1] },
+        { "offset": [0, 0], "kind": "pad" }
+      ],
+      "turrets": [{ "offset": [0, 0], "structure": "structure.turret-hephaestus" }]
+    },
+    {
+      "id": "layout.defense-post-large-trapezoid", "tier": "large", "variant": "trapezoid",
+      "anchor": [0, 0], "bounds": { "minOffset": [-2, -1], "maxOffset": [2, 1] },
+      "cells": [
+        { "offset": [-2, 1], "kind": "barrier", "appearance": "bow-out", "facing": [-1, 1] },
+        { "offset": [-1, 1], "kind": "barrier", "appearance": "bow-out", "facing": [0, 1] },
+        { "offset": [0, 1], "kind": "barrier", "appearance": "bow-out", "facing": [0, 1] },
+        { "offset": [1, 1], "kind": "barrier", "appearance": "bow-out", "facing": [0, 1] },
+        { "offset": [2, 1], "kind": "barrier", "appearance": "bow-out", "facing": [1, 1] },
+        { "offset": [-2, 0], "kind": "barrier", "appearance": "bow-out", "facing": [-1, 0] },
+        { "offset": [2, 0], "kind": "barrier", "appearance": "bow-out", "facing": [1, 0] },
+        { "offset": [-1, -1], "kind": "barrier", "appearance": "bow-out", "facing": [-1, -1] },
+        { "offset": [0, -1], "kind": "barrier", "appearance": "bow-out", "facing": [0, -1] },
+        { "offset": [1, -1], "kind": "barrier", "appearance": "bow-out", "facing": [1, -1] },
+        { "offset": [-1, 0], "kind": "pad" }, { "offset": [0, 0], "kind": "pad" }, { "offset": [1, 0], "kind": "pad" }
+      ],
+      "turrets": [
+        { "offset": [-1, 0], "structure": "structure.turret-hephaestus" },
+        { "offset": [1, 0], "structure": "structure.turret-hephaestus" }
+      ]
+    },
+    {
+      "id": "layout.defense-post-large-triangle", "tier": "large", "variant": "triangle-formation",
+      "anchor": [0, 0], "bounds": { "minOffset": [-2, -1], "maxOffset": [2, 1] },
+      "cells": [
+        { "offset": [-2, 1], "kind": "barrier", "appearance": "bow-out", "facing": [-1, 1] },
+        { "offset": [0, 1], "kind": "barrier", "appearance": "bow-out", "facing": [0, 1] },
+        { "offset": [2, 1], "kind": "barrier", "appearance": "bow-out", "facing": [1, 1] },
+        { "offset": [-2, 0], "kind": "barrier", "appearance": "bow-out", "facing": [-1, 0] },
+        { "offset": [2, 0], "kind": "barrier", "appearance": "bow-out", "facing": [1, 0] },
+        { "offset": [-1, -1], "kind": "barrier", "appearance": "bow-out", "facing": [-1, -1] },
+        { "offset": [1, -1], "kind": "barrier", "appearance": "bow-out", "facing": [1, -1] },
+        { "offset": [-1, 1], "kind": "pad" }, { "offset": [1, 1], "kind": "pad" },
+        { "offset": [0, -1], "kind": "pad" }, { "offset": [-1, 0], "kind": "pad" },
+        { "offset": [0, 0], "kind": "pad" }, { "offset": [1, 0], "kind": "pad" },
+        { "offset": [-2, -1], "kind": "pad" }, { "offset": [2, -1], "kind": "pad" }
+      ],
+      "turrets": [
+        { "offset": [-1, 1], "structure": "structure.turret-hephaestus" },
+        { "offset": [1, 1], "structure": "structure.turret-hephaestus" },
+        { "offset": [0, -1], "structure": "structure.turret-hephaestus" }
+      ]
+    },
+    {
+      "id": "layout.defense-post-artillery", "tier": "artillery", "variant": "default",
+      "anchor": [0, 0], "bounds": { "minOffset": [-2, -1], "maxOffset": [2, 1] },
+      "cells": [
+        { "offset": [-2, 1], "kind": "barrier", "appearance": "bow-out", "facing": [-1, 1] },
+        { "offset": [-1, 1], "kind": "barrier", "appearance": "bow-out", "facing": [0, 1] },
+        { "offset": [0, 1], "kind": "barrier", "appearance": "bow-out", "facing": [0, 1] },
+        { "offset": [1, 1], "kind": "barrier", "appearance": "bow-out", "facing": [0, 1] },
+        { "offset": [2, 1], "kind": "barrier", "appearance": "bow-out", "facing": [1, 1] },
+        { "offset": [-2, -1], "kind": "barrier", "appearance": "bow-out", "facing": [-1, -1] },
+        { "offset": [-1, -1], "kind": "barrier", "appearance": "bow-out", "facing": [0, -1] },
+        { "offset": [0, -1], "kind": "barrier", "appearance": "bow-out", "facing": [0, -1] },
+        { "offset": [1, -1], "kind": "barrier", "appearance": "bow-out", "facing": [0, -1] },
+        { "offset": [2, -1], "kind": "barrier", "appearance": "bow-out", "facing": [1, -1] },
+        { "offset": [-2, 0], "kind": "barrier", "appearance": "bow-out", "facing": [-1, 0] },
+        { "offset": [2, 0], "kind": "barrier", "appearance": "bow-out", "facing": [1, 0] },
+        { "offset": [-1, 0], "kind": "pad" }, { "offset": [0, 0], "kind": "pad" }, { "offset": [1, 0], "kind": "pad" }
+      ],
+      "turrets": [
+        { "offset": [-1, 0], "structure": "structure.turret-locust" },
+        { "offset": [1, 0], "structure": "structure.turret-locust" }
+      ]
+    },
+    {
+      "id": "layout.defense-post-drone-hub", "tier": "drone-hub", "variant": "default",
+      "anchor": [0, 0], "bounds": { "minOffset": [-1, -1], "maxOffset": [1, 1] },
+      "cells": [
+        { "offset": [-1, -1], "kind": "barrier", "appearance": "embankment", "facing": [-1, -1] },
+        { "offset": [0, -1], "kind": "barrier", "appearance": "embankment", "facing": [0, -1] },
+        { "offset": [1, -1], "kind": "barrier", "appearance": "embankment", "facing": [1, -1] },
+        { "offset": [-1, 0], "kind": "barrier", "appearance": "embankment", "facing": [-1, 0] },
+        { "offset": [1, 0], "kind": "barrier", "appearance": "embankment", "facing": [1, 0] },
+        { "offset": [-1, 1], "kind": "barrier", "appearance": "embankment", "facing": [-1, 1] },
+        { "offset": [0, 1], "kind": "barrier", "appearance": "embankment", "facing": [0, 1] },
+        { "offset": [1, 1], "kind": "barrier", "appearance": "embankment", "facing": [1, 1] },
+        { "offset": [0, 0], "kind": "pad", "occupant": "drone-hub" }
+      ],
+      "turrets": []
+    }
+  ]
+}

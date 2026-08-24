@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+import com.dillon.starsectormarines.battle.turret.DefensePostLayoutRegistry;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.intel.BridgeIntel;
 import com.dillon.starsectormarines.intel.CampaignDebugIntel;
@@ -61,6 +62,9 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         // Turret mounts and static platforms resolve weapon ids eagerly, so this
         // catalog necessarily follows the weapon registry.
         TurretCatalogRegistry.loadBuiltins();
+        // Layout placements resolve turret structure ids, so stamp geometry
+        // loads only after the turret platform catalog is installed.
+        DefensePostLayoutRegistry.loadBuiltins();
         // Loadout identity, activation, AI policy, and equipment presentation.
         // Weapon-like items validate their referenced WeaponDef, so this follows
         // the weapon catalog and remains fail-loud for malformed built-in data.

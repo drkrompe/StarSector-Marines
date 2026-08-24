@@ -1,4 +1,4 @@
-# Marine / Mech Layer Authoring
+# Starsector Marines Authoring Workbench
 
 This is a standalone Java2D/Swing workbench. It does not launch Starsector or
 create an OpenGL context.
@@ -9,7 +9,13 @@ Launch it from the repository root:
 .\gradlew.bat layerAuthoring
 ```
 
-The workbench opens `mod/data/appearance/unit-layer-layouts.appearance.json`.
+The workbench has top-level **Layers** and **Turrets** pages. Additional
+mod-domain pages are discovered from the runtime classpath, while the generic
+host remains independent of the shipped mod and its catalogs.
+
+## Layers
+
+The Layers page opens `mod/data/appearance/unit-layer-layouts.appearance.json`.
 Select a unit, equipment variant, animation, keyframe, and layer, then:
 
 - drag the selected layer to change its normalized actor-local offset;
@@ -72,6 +78,45 @@ combined PNG per unit under `build/snapshots/layers/`. The command replaces
 matching PNGs without prompting, while the editor asks first. Neither front end
 removes obsolete PNGs left by an earlier run.
 
+## Turrets and emplacements
+
+The Turrets page edits one linked authoring document whose authorities remain
+separate on disk:
+
+- `mod/data/marines/turret-weapons.weapon.json` owns ballistics, contact and
+  area payloads, audio, projectiles, and composed FX layers;
+- `mod/data/marines/turret-emplacements.turret.json` owns mount capacity,
+  traverse and appearance plus structure durability, collision, and force
+  score; and
+- `mod/data/marines/defense-post-layouts.layout.json` owns bounded emplacement
+  cells and turret-structure placements.
+
+Choose a turret structure to edit its resolved weapon, mount, and structure
+fields together. The right side redraws the deterministic six-state catalog
+preview from the current in-memory definitions, so projectile and impact FX can
+be reviewed before saving. Existing FX layer properties are editable in the
+slot table; a layer's `kind` remains fixed because changing its schema requires
+an explicit catalog migration.
+
+The **Emplacements** mode draws the selected layout as a tile grid. Use the
+tools to paint barriers or ordinary pads, add or replace turret structures,
+move a turret between pads, or erase a cell. Barrier facing is derived from the
+cell's position relative to the anchor. **Duplicate layout** creates another
+seeded LARGE variant, and **Expand bounds** grows its editable area by one cell
+on every side, up to the catalog's 15-cell-per-axis limit. The white outlined
+cell is the `[0, 0]` generation anchor; a drone-hub occupant is protected from
+ordinary erase and turret operations.
+
+Save prepares all three outputs, validates weapon values, turret
+cross-references, layout bounds, unique cells and placements, one-cell turret
+footprints, tier completeness, and the drone-hub rule before atomically
+replacing each catalog file. If a later replacement fails, files already
+replaced are restored from their staged originals. Weapon and turret scalar
+edits retain surrounding JSON formatting; the layout catalog is rewritten in
+canonical indented form because creating and painting layouts changes its
+structure. Undo and redo cover the complete three-catalog document. Reload,
+save, and window close guard unsaved changes.
+
 ### Adding a snapshot suite
 
 Implement the shared `SnapshotSuite` contract and register the provider through
@@ -80,7 +125,7 @@ a Starsector process or OpenGL context. The existing `createSnapshots` task and
 Snapshots tab discover the provider automatically; do not add a domain-specific
 Gradle task or standalone preview CLI.
 
-## Data contract
+## Layer data contract
 
 Offsets are measured in one unit's `referencePixels` scale. Positive X is right,
 positive Y is forward/up, and positive angles are counter-clockwise. Pivots are
