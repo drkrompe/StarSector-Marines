@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
 /**
- * Parallel per-unit dispatch — owns the {@code UPDATE_UNITS} phase that
+ * Adaptive per-unit dispatch — owns the {@code UPDATE_UNITS} phase that
  * routes each alive {@code Entity} to its role-specific {@link UnitBehavior}.
  * This is the entity for-loop: the hot path that ticks every combatant on
  * the battlefield.
@@ -73,39 +73,73 @@ import java.util.stream.IntStream;
  */
 public final class UnitUpdateSystem implements AutoCloseable {
 
+    public static final String MINIMUM_PARALLEL_UNITS_PROPERTY =
+            "battle.unitUpdate.minimumParallelUnits";
+    /**
+     * Profiled crossover on the fixed-slice battle-fixture matrix. The tuning
+     * property accepts {@code 0} to force parallel and {@link Integer#MAX_VALUE}
+     * to force serial for repeatable A/B runs.
+     */
+    static final int DEFAULT_MINIMUM_PARALLEL_UNITS = 48;
+
     private final ForkJoinPool pool;
     private final DamageService damageService;
     private final TickInnerProfile tickInnerProfile;
     private final UnitRosterService roster;
+    private final int minimumParallelUnits;
 
     public UnitUpdateSystem(UnitRosterService roster,
                             DamageService damageService,
                             TickInnerProfile tickInnerProfile) {
         this.pool = new ForkJoinPool(
-                Math.max(1, Runtime.getRuntime().availableProcessors() - 1),
+                configuredPoolParallelism(),
                 BattleUpdateWorker::new,
                 null, false);
         this.roster = roster;
         this.damageService = damageService;
         this.tickInnerProfile = tickInnerProfile;
+        this.minimumParallelUnits = configuredMinimumParallelUnits();
+        if (minimumParallelUnits < 0) {
+            throw new IllegalArgumentException(
+                    MINIMUM_PARALLEL_UNITS_PROPERTY + " must be non-negative");
+        }
     }
 
     /**
      * Dispatch one tick of per-unit updates across the alive roster. Reads
      * the registry's dense array fresh each tick (the array reference can
      * be replaced by {@code allocate()} growth between ticks — see
-     * {@link UnitRosterService#denseArray()}). Workers iterate
-     * {@code [0, liveCount)} indices in parallel via {@link IntStream}; the
-     * submission to {@link #pool} pins the stream to our worker pool rather
-     * than the common one.
+     * {@link UnitRosterService#denseArray()}). Small snapshots walk ascending
+     * dense indices on the sim thread; snapshots at the profiled crossover use
+     * {@link IntStream#parallel()} pinned to this system's worker pool rather
+     * than the common one. Both routes stay inside the same mutation-deferral
+     * bracket so damage, occupancy, target changes, and spawns retain their
+     * established end-of-phase semantics.
      */
     public void tick(BattleSimulation sim) {
         long[] snapshot = roster.denseArray();
         int liveCount = roster.liveCount();
         damageService.enterParallel();
         try {
+            if (shouldDispatchInParallel(
+                    liveCount, minimumParallelUnits, pool.getParallelism())) {
+                dispatchParallel(snapshot, liveCount, sim);
+            } else {
+                for (int i = 0; i < liveCount; i++) {
+                    updateUnit(snapshot[i], sim);
+                }
+            }
+        } finally {
+            damageService.exitParallel();
+        }
+        TickInnerProfile.mergeAllInto(tickInnerProfile);
+    }
+
+    private void dispatchParallel(
+            long[] snapshot, int liveCount, BattleSimulation sim) {
+        try {
             pool.submit(() -> IntStream.range(0, liveCount).parallel()
-                    .forEach(i -> updateUnit(snapshot[i], sim)))
+                            .forEach(i -> updateUnit(snapshot[i], sim)))
                     .get();
         } catch (InterruptedException ie) {
             Thread.currentThread().interrupt();
@@ -114,10 +148,24 @@ public final class UnitUpdateSystem implements AutoCloseable {
             Throwable cause = ee.getCause();
             if (cause instanceof RuntimeException re) throw re;
             throw new RuntimeException("UPDATE_UNITS dispatch failed", cause);
-        } finally {
-            damageService.exitParallel();
         }
-        TickInnerProfile.mergeAllInto(tickInnerProfile);
+    }
+
+    static boolean shouldDispatchInParallel(
+            int liveCount, int minimumParallelUnits, int poolParallelism) {
+        return liveCount > 0
+                && poolParallelism > 1
+                && liveCount >= minimumParallelUnits;
+    }
+
+    public static int configuredMinimumParallelUnits() {
+        return Integer.getInteger(
+                MINIMUM_PARALLEL_UNITS_PROPERTY,
+                DEFAULT_MINIMUM_PARALLEL_UNITS);
+    }
+
+    public static int configuredPoolParallelism() {
+        return Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
     }
 
     /** Releases this battle's owned worker pool and worker-local registries. */

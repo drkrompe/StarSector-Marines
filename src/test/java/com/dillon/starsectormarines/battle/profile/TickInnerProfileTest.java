@@ -2,6 +2,9 @@ package com.dillon.starsectormarines.battle.profile;
 
 import com.dillon.starsectormarines.battle.fixture.BattleFixtureTestSupport;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -62,6 +65,11 @@ class TickInnerProfileTest {
         TickInnerProfile.releaseCurrentThread();
         int before = TickInnerProfile.trackedWorkerCount();
         BattleSimulation sim = BattleFixtureTestSupport.loadDefaultFixture().build();
+        while (sim.liveUnitCount() < 64) {
+            int suffix = sim.liveUnitCount();
+            sim.spawn(new EntitySpec("worker-profile-" + suffix,
+                    Faction.MARINE, UnitType.MARINE_BLUE, 1, 1));
+        }
         sim.advance(BattleSimulation.TICK_DT);
         assertTrue(TickInnerProfile.trackedWorkerCount() > before,
                 "real battle ticks should create worker-local profiles");

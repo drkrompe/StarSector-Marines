@@ -11,6 +11,8 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class UnitUpdateProfilerAttributionTest {
 
@@ -23,7 +25,15 @@ class UnitUpdateProfilerAttributionTest {
     }
 
     @Test
-    void parallelDispatchMergesSwarmPathfindingAttribution() {
+    void parallelDispatchPolicyHasAnExactCrossoverAndSkipsEmptyWork() {
+        assertFalse(UnitUpdateSystem.shouldDispatchInParallel(0, 0, 8));
+        assertFalse(UnitUpdateSystem.shouldDispatchInParallel(63, 64, 8));
+        assertTrue(UnitUpdateSystem.shouldDispatchInParallel(64, 64, 8));
+        assertFalse(UnitUpdateSystem.shouldDispatchInParallel(180, 64, 1));
+    }
+
+    @Test
+    void dispatchMergesSwarmPathfindingAttribution() {
         int width = 24;
         int height = 20;
         NavigationGrid grid = new NavigationGrid(width, height);
