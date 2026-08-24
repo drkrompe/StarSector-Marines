@@ -152,6 +152,20 @@ final class SharedGoalPathfinder {
 
                 int currentX = currentIdx % width;
                 int currentY = currentIdx / width;
+                // Every predecessor enters the same current cell. Occupancy is
+                // destination-based, while base cost differs only between the
+                // cardinal and diagonal direction families, so compute these
+                // two bit-identical candidates once per expansion rather than
+                // repeating the occupancy work for all 4/8 predecessors.
+                float currentDistance = distance[currentIdx];
+                float cardinalCandidate = currentDistance
+                        + GridPathfinder.stepCost(
+                        GridPathfinder.FIRST_CARDINAL_DIRECTION, currentIdx,
+                        occupancy, null);
+                float diagonalCandidate = cardinalOnly ? 0f
+                        : currentDistance + GridPathfinder.stepCost(
+                        GridPathfinder.FIRST_DIAGONAL_DIRECTION, currentIdx,
+                        occupancy, null);
                 for (int direction = 0;
                      direction < directionCount; direction++) {
                     int predecessorX = currentX
@@ -171,9 +185,9 @@ final class SharedGoalPathfinder {
                     }
                     if (heapPos[predecessorIdx] == CLOSED) continue;
 
-                    float candidate = distance[currentIdx]
-                            + GridPathfinder.stepCost(direction, currentIdx,
-                            occupancy, null);
+                    float candidate = direction
+                            < GridPathfinder.FIRST_DIAGONAL_DIRECTION
+                            ? cardinalCandidate : diagonalCandidate;
                     if (candidate >= distance[predecessorIdx]) continue;
                     distance[predecessorIdx] = candidate;
                     nextIdx[predecessorIdx] = currentIdx;
