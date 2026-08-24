@@ -26,7 +26,9 @@ public final class HeadlessUiPreviewCli {
             "data/ui/components/armory/armory-company-list.mlx");
     private static final List<String> WORKSPACE_COMPONENTS = List.of(
             "data/ui/components/armory/fleet-armory.mlx",
-            "data/ui/components/armory/armory-formation-rail.mlx",
+            "data/ui/components/armory/armory-squad-list.mlx",
+            "data/ui/components/armory/fleet-armory-fireteam.mlx",
+            "data/ui/components/armory/armory-fireteam-list.mlx",
             "data/ui/components/armory/armory-template-library.mlx",
             "data/ui/components/armory/armory-refit-transaction.mlx");
 
@@ -50,13 +52,15 @@ public final class HeadlessUiPreviewCli {
         renderFleetArmoryOverview(projectRoot, outputDir, renderer, 1163, 625,
                 "fleet-armory-overview-compact.png");
         renderFleetArmoryWorkspace(projectRoot, outputDir, renderer, 1744, 938,
-                "fleet-armory-workspace-wide.png");
+                "fleet-armory-squads-wide.png", false);
+        renderFleetArmoryWorkspace(projectRoot, outputDir, renderer, 1744, 938,
+                "fleet-armory-workspace-wide.png", true);
         System.out.println("Wrote retained UI previews to " + outputDir.toAbsolutePath());
     }
 
     private static void renderFleetArmoryWorkspace(
             Path projectRoot, Path outputDir, HeadlessUiRenderer renderer,
-            int width, int height, String filename) throws Exception {
+            int width, int height, String filename, boolean fireteam) throws Exception {
         Reactor reactor = new Reactor();
         MarineRoster roster = new MarineRoster();
         roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
@@ -69,17 +73,27 @@ public final class HeadlessUiPreviewCli {
         loader.reload();
 
         try (MarkupInstance instance = loader.build(
-                reactor, "fleet-armory", props(viewModel))) {
-            instance.requireElement("armory-reload-status")
+                reactor, fireteam ? "fleet-armory-fireteam" : "fleet-armory",
+                props(viewModel))) {
+            instance.requireElement(fireteam
+                            ? "fireteam-reload-status" : "armory-reload-status")
                     .align(UiAlign.STRETCH, UiAlign.CENTER);
-            instance.requireElement("transaction-feedback")
-                    .align(UiAlign.STRETCH, UiAlign.CENTER);
+            if (fireteam) {
+                instance.requireElement("transaction-feedback")
+                        .align(UiAlign.STRETCH, UiAlign.CENTER);
+            }
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
-            document.canvases().set(instance.requireElement("loadout-preview"),
-                    new ArmoryLoadoutPreviewCanvas(
-                            viewModel::selectedBillet, armoryPreview.assets()));
+            if (fireteam) {
+                for (int index = 0; index < MarineSquad.TEAM_SIZE; index++) {
+                    int billet = index;
+                    document.canvases().set(instance.requireElement("billet-preview:" + index),
+                            new ArmoryLoadoutPreviewCanvas(
+                                    () -> viewModel.billetAt(billet),
+                                    armoryPreview.assets(), true));
+                }
+            }
             ImageIO.write(renderer.render(document, width, height), "PNG",
                     outputDir.resolve(filename).toFile());
         }
@@ -125,12 +139,16 @@ public final class HeadlessUiPreviewCli {
     private static Map<String, Object> props(FleetArmoryViewModel viewModel) {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("companySummary", viewModel.companySummary());
+        props.put("selectedSquadName", viewModel.selectedSquadName());
+        props.put("squadCards", viewModel.squadCards());
+        props.put("fireTeamOverviews", viewModel.fireTeamOverviews());
         props.put("squadRows", viewModel.squadRows());
         props.put("teamRows", viewModel.teamRows());
         props.put("templateRows", viewModel.templateRows());
         props.put("targetSummary", viewModel.targetSummary());
         props.put("candidateSummary", viewModel.candidateSummary());
         props.put("billetRows", viewModel.billetRows());
+        props.put("billetMannequins", viewModel.billetMannequins());
         props.put("previewSummary", viewModel.previewSummary());
         props.put("gearRows", viewModel.gearRows());
         props.put("transactionSummary", viewModel.transactionSummary());
@@ -140,6 +158,7 @@ public final class HeadlessUiPreviewCli {
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         props.put("back", (Runnable) () -> { });
+        props.put("backToSquads", (Runnable) () -> { });
         props.put("legacy", (Runnable) () -> { });
         props.put("reload", (Runnable) () -> { });
         props.put("reloadStatus", "Headless UX preview  ·  No engine process");

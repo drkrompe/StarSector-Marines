@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — made the selected billet's equipment doll and sample soldier one view-only projection of the materialized kit.
+Updated: 2026-08-24 — defined the Armory's company-to-squad-to-fire-team drill-down and four-billet mannequin projection.
 
 ## Purpose
 
@@ -116,14 +116,16 @@ contract while the designer grows. The built-in library contains Field, Line,
 Recon, Fire Support, Anti-Materiel, Screen, and Breach templates; the LOADOUTS
 surface exposes Alpha/Bravo/Charlie plus each assigned template.
 
-Selecting one candidate billet also projects an equipment doll beside a sample
-soldier. The doll reads the billet's armour, primary, grade, and optional special
-item; the soldier uses the same layered actor composition and special-equipment
-presentation recipe as battlefield infantry. Billet selection is retained view
-state only. It does not materialize gear, reserve stock, or replace the exact
-refit transaction preview. The complete preview recipe is backend-neutral, so a
-controlled raster context can produce deterministic PNG evidence without booting
-the game while the live Armory resolves the same recipe to retained-canvas sprites.
+Selecting a candidate template projects all four billets as one fire-team
+breakdown. Each portrait mannequin surrounds the billet's battle-composed marine
+with armour, primary, and optional-special sockets, so the player sees the complete
+team rather than inferring it from one selected row. The soldiers use the same
+layered actor composition and special-equipment presentation recipe as battlefield
+infantry. This projection is retained view state only: it does not materialize gear,
+reserve stock, or replace the exact refit transaction preview. The complete preview
+recipe is backend-neutral, so a controlled raster context can produce deterministic
+PNG evidence without booting the game while the live Armory resolves the same recipe
+to retained-canvas sprites.
 
 Templates are reusable but equipment is finite. Design itself must not be gated by
 stock; the designer may save an unfieldable template, while assignment is allowed
@@ -309,13 +311,15 @@ derived inputs are explained rather than silently collapsed.
 
 The HQ introduces no persisted state and no second company hierarchy. Opening its
 Armory transition first shows the owned-company collection as a responsive grid of
-literal selectable portrait cards, then enters the selected company's retained
-workspace. A company card is only a presentation container over the canonical
-company authority; it is not a collectible/template noun and does not persist a
-parallel organization. Until a multi-company campaign authority exists, that grid
-contains exactly the one real campaign roster rather than fixture companies. The HQ
-roster area remains the host that the formation, whereabouts, and contract-board
-stories will expand.
+literal selectable portrait cards. Selecting one enters a company-specific squad
+gallery; selecting a squad then exposes its three fire teams, reusable template
+library, four-billet mannequin breakdown, and exact issue transaction. A breadcrumb
+keeps the completed company and squad levels directly reachable while drilling down.
+A company or squad card is only a presentation container over canonical roster
+authority; neither is a collectible/template noun or parallel organization. Until a
+multi-company campaign authority exists, the first grid contains exactly the one real
+campaign roster rather than fixture companies. The HQ roster area remains the host
+that the formation, whereabouts, and contract-board stories will expand.
 
 ## Presentation boundaries
 

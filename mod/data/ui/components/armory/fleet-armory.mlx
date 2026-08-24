@@ -1,18 +1,28 @@
-<template props="companySummary,squadRows,teamRows,templateRows,targetSummary,candidateSummary,billetRows,previewSummary,gearRows,transactionSummary,transactionClasses,applyDisabled,apply,feedbackText,feedbackClasses,back,legacy,reload,reloadStatus">
+<template props="companySummary,squadCards,back,legacy,reload,reloadStatus">
   <div id="fleet-armory-root" class="fleet-armory-root">
     <div id="armory-header" class="panel surface-dark">
       <div id="armory-title" class="label title tone-accent">FLEET ARMORY</div>
-      <div id="armory-purpose" class="label tone-edge">Company  /  Squad  /  Fire Team  ·  Reusable template issue</div>
+      <div id="armory-purpose" class="label tone-edge">Company  /  Squad overview</div>
     </div>
 
-    <div id="armory-body">
-      <armory-formation-rail companySummary="{companySummary}" squadRows="{squadRows}" teamRows="{teamRows}" />
-      <armory-template-library templateRows="{templateRows}" />
-      <armory-refit-transaction targetSummary="{targetSummary}" candidateSummary="{candidateSummary}" billetRows="{billetRows}" previewSummary="{previewSummary}" gearRows="{gearRows}" transactionSummary="{transactionSummary}" transactionClasses="{transactionClasses}" applyDisabled="{applyDisabled}" apply="{apply}" feedbackText="{feedbackText}" feedbackClasses="{feedbackClasses}" />
+    <div id="squad-breadcrumb" class="panel">
+      <button id="squad-breadcrumb-companies" onclick="{back}">Companies</button>
+      <div id="squad-breadcrumb-separator-company" class="breadcrumb-separator label tone-muted">/</div>
+      <div id="squad-breadcrumb-company" class="breadcrumb-current label tone-edge">Fleet Marine Company</div>
+      <div id="squad-breadcrumb-separator-squads" class="breadcrumb-separator label tone-muted">/</div>
+      <div id="squad-breadcrumb-current" class="breadcrumb-current label tone-accent">Squads</div>
     </div>
+
+    <div id="squad-overview-intro" class="panel">
+      <div id="squad-overview-heading" class="label heading tone-edge">PRIMARY FORMATION</div>
+      <div id="squad-overview-summary" class="label surface-dark">{companySummary}</div>
+      <div id="squad-overview-copy" class="label tone-muted">Select a squad to inspect its three fire teams and their equipment templates.</div>
+    </div>
+
+    <armory-squad-list squadCards="{squadCards}" />
 
     <div id="armory-footer" class="panel surface-dark">
-      <button id="armory-back" onclick="{back}">Return</button>
+      <button id="armory-back" onclick="{back}">Back to Companies</button>
       <button id="legacy-armory" onclick="{legacy}">Personnel / Designer / Mech Lab</button>
       <button id="reload-armory" onclick="{reload}">Reload UI</button>
       <div id="armory-reload-status" class="label tone-good">{reloadStatus}</div>
@@ -30,8 +40,8 @@
   }
 
   .label { overflow: hidden; }
-  .heading { font-family: heading; }
   .title { font-family: title; }
+  .heading { font-family: heading; }
 
   #armory-header {
     flex-direction: row;
@@ -43,12 +53,21 @@
   #armory-title { width: 220px; }
   #armory-purpose { flex-grow: 1; text-align: right; }
 
-  #armory-body {
-    flex-direction: row;
-    flex-grow: 1;
-    gap: 8px;
-    overflow: hidden;
+  #squad-breadcrumb { flex-direction: row; height: 28px; padding: 3px 4px; gap: 5px; }
+  #squad-breadcrumb button { padding: 2px 7px; border-width: 1px; font-family: body; }
+  .breadcrumb-separator { width: 10px; text-align: center; }
+  .breadcrumb-current { padding: 3px 4px; }
+
+  #squad-overview-intro {
+    flex-direction: column;
+    height: 72px;
+    padding: 7px 8px;
+    gap: 3px;
   }
+
+  #squad-overview-heading { height: 18px; }
+  #squad-overview-summary { height: 19px; padding: 2px 6px; }
+  #squad-overview-copy { height: 17px; }
 
   #armory-footer {
     flex-direction: row;
@@ -65,8 +84,5 @@
     text-align: center;
   }
 
-  #armory-reload-status {
-    width: 0px;
-    flex-grow: 1;
-  }
+  #armory-reload-status { width: 0px; flex-grow: 1; }
 </style>
