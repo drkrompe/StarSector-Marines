@@ -85,6 +85,28 @@ public final class UnitSpatialIndex {
             size++;
         }
 
+        /**
+         * Removes {@code id} without disturbing the relative order of the
+         * remaining snapshot entries. Releases are cold, serial lifecycle
+         * work; paying one compact array shift here removes liveness-map
+         * probes from every later candidate walk.
+         */
+        boolean removeStable(long id) {
+            int index = 0;
+            while (index < size && ids[index] != id) index++;
+            if (index == size) return false;
+            int moved = size - index - 1;
+            if (moved > 0) {
+                System.arraycopy(ids, index + 1, ids, index, moved);
+                System.arraycopy(posX, index + 1, posX, index, moved);
+                System.arraycopy(posY, index + 1, posY, index, moved);
+                System.arraycopy(factionOrdinals, index + 1,
+                        factionOrdinals, index, moved);
+            }
+            size--;
+            return true;
+        }
+
         /** Clears for reuse. Ids are primitives, so there's no reference to null out — a released unit isn't pinned (the bucket holds no object). */
         void clear() {
             size = 0;
@@ -107,11 +129,10 @@ public final class UnitSpatialIndex {
     private byte[] scratchFactionOrdinals = new byte[64];
     /**
      * The registry the buckets were populated from, stashed by {@link #rebuild}
-     * / {@link #add} so {@link #gather} can drop units released since the last
-     * rebuild ({@code isAliveById}) without taking a registry on its hot
-     * signature (it has many callers). The registry instance is stable for the
-     * battle, so caching the reference is safe; it's only dereferenced inside
-     * the bucket loop, which never runs until a populate path has set it.
+     * / {@link #add} for faction-count short-circuiting. The registry instance
+     * is stable for the battle. Released ids are physically removed from their
+     * snapshot bucket at the serial roster-release seam, so candidate walks do
+     * not need per-entry registry or entity-world liveness probes.
      */
     private UnitRosterService roster;
 
@@ -226,6 +247,17 @@ public final class UnitSpatialIndex {
     }
 
     /**
+     * Removes a released id from the current snapshot. A unit occupies at most
+     * one bucket, so stop at the first hit. Off-grid units have no entry and are
+     * a legitimate no-op. Called only from the roster's serial release seam.
+     */
+    void remove(long id) {
+        for (Bucket bucket : buckets) {
+            if (bucket != null && bucket.removeStable(id)) return;
+        }
+    }
+
+    /**
      * Returns the bucket covering ({@code cellX}, {@code cellY}), allocating
      * one from the pool on first use, or {@code null} if the cell is off-grid.
      */
@@ -291,19 +323,10 @@ public final class UnitSpatialIndex {
                 float[] bpy = bucket.posY;
                 byte[] factions = bucket.factionOrdinals;
                 for (int i = 0, n = bucket.size; i < n; i++) {
-                    long id = ids[i];
                     if (factionOrdinal >= 0 && factions[i] != factionOrdinal) continue;
-                    // Skip units released since the last rebuild — the index is a
-                    // per-tick snapshot, so a unit killed (and registry-released)
-                    // mid-tick lingers in its old bucket until then. The snapshot
-                    // position below is a stored float (no fail-loud read), but the
-                    // "alive units only" contract still requires the skip so dead
-                    // units aren't handed back. (Callers also filter, but gather
-                    // owns the contract.)
-                    if (!roster.isLive(id) || !roster.isAliveById(id)) continue;
                     float dx = bpx[i] - cx;
                     float dy = bpy[i] - cy;
-                    if (dx * dx + dy * dy <= r2) out.add(id);
+                    if (dx * dx + dy * dy <= r2) out.add(ids[i]);
                 }
             }
         }
@@ -352,7 +375,6 @@ public final class UnitSpatialIndex {
                     for (int i = 0, n = bucket.size; i < n; i++) {
                         if (bucket.factionOrdinals[i] != factionOrdinal) continue;
                         long id = bucket.ids[i];
-                        if (!roster.isLive(id) || !roster.isAliveById(id)) continue;
                         if (eligibility != null && !eligibility.test(id)) continue;
                         float dx = bucket.posX[i] - cx;
                         float dy = bucket.posY[i] - cy;
@@ -467,15 +489,13 @@ public final class UnitSpatialIndex {
         float len2 = len * len;
         float m2 = margin * margin;
         for (int i = 0, n = bucket.size; i < n; i++) {
-            long id = ids[i];
-            if (!roster.isAliveById(id)) continue;
             float px = bpx[i] - x0;
             float py = bpy[i] - y0;
             float t = len2 > 0f ? (px * dx + py * dy) / len2 : 0f;
             t = t < 0f ? 0f : (t > 1f ? 1f : t);
             float ex = px - dx * t;
             float ey = py - dy * t;
-            if (ex * ex + ey * ey <= m2) out.add(id);
+            if (ex * ex + ey * ey <= m2) out.add(ids[i]);
         }
     }
 }

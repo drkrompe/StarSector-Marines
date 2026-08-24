@@ -735,6 +735,10 @@ public final class UnitRosterService {
         if (id == 0L) return;
         int idx = indexById.get(id);
         if (idx == INVALID_INDEX) return;
+        // Keep the spatial snapshot live-only at the lifecycle seam. This
+        // turns every later bucket query into a primitive, self-contained
+        // walk instead of probing roster + HEALTH for each candidate.
+        unitIndex.remove(id);
         if (squadService.hasSquad(id)) {
             removeFromSquadSlice(id, squadService.squadId(id));
         }
