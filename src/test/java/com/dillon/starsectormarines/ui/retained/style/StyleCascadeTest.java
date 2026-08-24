@@ -63,6 +63,24 @@ class StyleCascadeTest {
     }
 
     @Test
+    void resettingInlineStyleRemovesPropertiesThatAreNoLongerPresent() {
+        UiElement child = new UiElement("child")
+                .preferredWidth(42f)
+                .style("background-color: #abcdef; color: #fedcba");
+        UiDocument document = new UiDocument(child).theme(theme("""
+                :root { color: #112233; background-color: #010203; }
+                """));
+        document.layout(100f, 100f);
+
+        child.style("color: #334455");
+        document.advance(0f);
+
+        assertEquals(new Color(0x01, 0x02, 0x03), child.background());
+        assertEquals(new Color(0x33, 0x44, 0x55), child.textColor());
+        assertEquals(42f, child.preferredWidth());
+    }
+
+    @Test
     void componentScopeNarrowsOnlyTheSubjectAndThemeStillWinsLast() {
         UiElement name = new UiElement("name").addClass("name").addClass("mlx-row");
         UiElement panel = new UiElement("panel").addClass("panel").child(name);

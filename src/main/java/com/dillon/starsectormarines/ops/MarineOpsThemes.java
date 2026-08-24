@@ -12,20 +12,6 @@ final class MarineOpsThemes {
 
     static final String SHEET_NAME = "marine-ops-theme";
 
-    static final StyleSheet WORKBENCH_COMPONENTS = StyleSheet.parse("ui-workbench", """
-            .workbench-root { padding: 14px; row-gap: 10px; border-width: 3px; overflow: hidden; }
-            .panel { border-width: 1px; overflow: hidden; }
-            .label { overflow: hidden; }
-            .heading { font-family: heading; }
-            button {
-                padding: 5px 10px;
-                border-width: 1px;
-                overflow: hidden;
-                font-family: body;
-                text-align: center;
-            }
-            """).scopedTo("ui-workbench");
-
     private MarineOpsThemes() {
     }
 
