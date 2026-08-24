@@ -15,6 +15,7 @@ import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Ellipse2D;
 import java.awt.geom.Path2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -79,6 +80,7 @@ public final class CompositionRenderer {
                 Point pivot = pivotPoint(layer, originX, originY, pixelsPerUnit);
                 graphics.drawLine(pivot.x - 6, pivot.y, pivot.x + 6, pivot.y);
                 graphics.drawLine(pivot.x, pivot.y - 6, pivot.x, pivot.y + 6);
+                drawRotationHandle(graphics, pivot, layer.angleDegrees());
             }
         }
         return rendered;
@@ -197,6 +199,23 @@ public final class CompositionRenderer {
                                     double originY, double pixelsPerUnit) {
         return new Point((int) Math.round(originX + layer.offsetX() * pixelsPerUnit),
                 (int) Math.round(originY - layer.offsetY() * pixelsPerUnit));
+    }
+
+    private static void drawRotationHandle(Graphics2D graphics, Point pivot,
+                                           double angleDegrees) {
+        int radius = CompositionCanvas.ROTATION_HANDLE_RADIUS;
+        Point handle = CompositionCanvas.rotationHandlePoint(pivot, angleDegrees);
+        graphics.setColor(new Color(SELECTED.getRed(), SELECTED.getGreen(),
+                SELECTED.getBlue(), 100));
+        graphics.setStroke(new BasicStroke(1f));
+        graphics.draw(new Ellipse2D.Double(pivot.x - radius, pivot.y - radius,
+                radius * 2.0, radius * 2.0));
+        graphics.setColor(SELECTED);
+        graphics.drawLine(pivot.x, pivot.y, handle.x, handle.y);
+        graphics.fill(new Ellipse2D.Double(handle.x - 5, handle.y - 5, 10, 10));
+        graphics.setColor(BACKGROUND);
+        graphics.setStroke(new BasicStroke(1.5f));
+        graphics.draw(new Ellipse2D.Double(handle.x - 5, handle.y - 5, 10, 10));
     }
 
     private static void drawGuides(Graphics2D graphics, int width, int height,
