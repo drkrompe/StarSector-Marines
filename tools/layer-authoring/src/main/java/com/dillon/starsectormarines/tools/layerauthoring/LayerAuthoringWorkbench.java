@@ -108,6 +108,8 @@ public final class LayerAuthoringWorkbench {
         private final JTextField sprite = new JTextField();
         private CompositionCanvas canvas;
         private SheetPanel sheet;
+        private final DocumentHistory history = new DocumentHistory();
+        private String savedSnapshot;
         private boolean refreshing;
         private boolean dirty;
         private long frameElapsedMs;
@@ -117,6 +119,7 @@ public final class LayerAuthoringWorkbench {
             super("Marine / Mech Layer Authoring");
             this.projectRoot = projectRoot.toAbsolutePath().normalize();
             reloadDocument();
+            savedSnapshot = document.snapshot();
             timer = new Timer(40, this::animate);
             timer.start();
             buildUi();
@@ -158,7 +161,7 @@ public final class LayerAuthoringWorkbench {
             top.add(Box.createHorizontalStrut(6));
             top.add(button("Export sheet", event -> exportSheet()));
             top.add(Box.createHorizontalStrut(6));
-            JButton save = button("Save JSON", event -> save());
+            JButton save = button("Save JSON…", event -> save());
             save.setFont(save.getFont().deriveFont(Font.BOLD));
             top.add(save);
 
@@ -205,7 +208,9 @@ public final class LayerAuthoringWorkbench {
             panel.add(Box.createVerticalStrut(18));
             JLabel help = new JLabel("<html><b>Canvas</b><br>Click to select<br>Drag to position<br>"
                     + "Wheel: scale<br>Shift-wheel: X only<br>Alt-wheel: Y only<br>"
-                    + "Ctrl-wheel: rotate<br><br><b>Save</b><br>Ctrl+S writes the mod JSON atomically.</html>");
+                    + "Ctrl-wheel: rotate<br><br><b>History</b><br>Ctrl+Z: undo<br>"
+                    + "Ctrl+Shift+Z: redo<br><br><b>Save</b><br>Ctrl+S opens a confirmation "
+                    + "before replacing the mod JSON.</html>");
             help.setForeground(new Color(0x55, 0x55, 0x55));
             panel.add(help);
             panel.add(Box.createVerticalGlue());
@@ -221,8 +226,9 @@ public final class LayerAuthoringWorkbench {
                 frameElapsedMs = 0L;
             });
             canvas.onSelection(layer -> layerBox.setSelectedItem(layer));
+            canvas.onChangeStarted(this::beginHistoryChange);
+            canvas.onChangeFinished(this::finishHistoryChange);
             canvas.onChange(() -> {
-                markDirty();
                 refreshFields();
                 sheet.repaint();
             });
@@ -236,6 +242,17 @@ public final class LayerAuthoringWorkbench {
             getRootPane().getActionMap().put("save", new AbstractAction() {
                 @Override public void actionPerformed(ActionEvent event) { save(); }
             });
+            getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                    KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.CTRL_DOWN_MASK), "undo");
+            getRootPane().getActionMap().put("undo", new AbstractAction() {
+                @Override public void actionPerformed(ActionEvent event) { undo(); }
+            });
+            getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                    KeyStroke.getKeyStroke(KeyEvent.VK_Z,
+                            KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK), "redo");
+            getRootPane().getActionMap().put("redo", new AbstractAction() {
+                @Override public void actionPerformed(ActionEvent event) { redo(); }
+            });
         }
 
         private void bindSpinner(JSpinner spinner) {
@@ -243,12 +260,46 @@ public final class LayerAuthoringWorkbench {
         }
 
         private void populateUnits() {
+            populateSelection(null, null, null);
+        }
+
+        private void populateSelection(String unitId, String frameId, String layerId) {
             refreshing = true;
             unitBox.removeAllItems();
-            for (UnitComposition unit : document.units()) unitBox.addItem(unit);
+            UnitComposition selectedUnit = null;
+            for (UnitComposition candidate : document.units()) {
+                unitBox.addItem(candidate);
+                if (candidate.id().equals(unitId)) selectedUnit = candidate;
+            }
+            if (selectedUnit != null) unitBox.setSelectedItem(selectedUnit);
+            else if (unitBox.getItemCount() > 0) unitBox.setSelectedIndex(0);
+
+            frameBox.removeAllItems();
+            FrameDefinition selectedFrame = null;
+            UnitComposition currentUnit = unit();
+            if (currentUnit != null) {
+                for (FrameDefinition candidate : currentUnit.frames()) {
+                    frameBox.addItem(candidate);
+                    if (candidate.id().equals(frameId)) selectedFrame = candidate;
+                }
+            }
+            if (selectedFrame != null) frameBox.setSelectedItem(selectedFrame);
+            else if (frameBox.getItemCount() > 0) frameBox.setSelectedIndex(0);
+
+            layerBox.removeAllItems();
+            LayerDefinition selectedLayer = null;
+            FrameDefinition currentFrame = frame();
+            if (currentFrame != null) {
+                for (LayerDefinition candidate : currentFrame.layers()) {
+                    layerBox.addItem(candidate);
+                    if (candidate.id().equals(layerId)) selectedLayer = candidate;
+                }
+            }
+            if (selectedLayer != null) layerBox.setSelectedItem(selectedLayer);
+            else if (layerBox.getItemCount() > 0) layerBox.setSelectedIndex(0);
             refreshing = false;
-            if (unitBox.getItemCount() > 0) unitBox.setSelectedIndex(0);
-            populateFrames(null);
+            refreshSelection();
+            sheet.repaint();
         }
 
         private void populateFrames(String preferredLayer) {
@@ -307,6 +358,7 @@ public final class LayerAuthoringWorkbench {
             LayerDefinition layer = layer();
             FrameDefinition frame = frame();
             if (layer == null || frame == null) return;
+            beginHistoryChange();
             layer.offset(value(offsetX), value(offsetY));
             layer.scale(value(scaleX), value(scaleY));
             layer.angleDegrees(value(angle));
@@ -315,7 +367,7 @@ public final class LayerAuthoringWorkbench {
             layer.visible(visible.isSelected());
             layer.spritePath(sprite.getText().trim());
             frame.durationMs(((Number) duration.getValue()).intValue());
-            markDirty();
+            finishHistoryChange();
             canvas.repaint();
             sheet.repaint();
         }
@@ -339,7 +391,18 @@ public final class LayerAuthoringWorkbench {
                             "Cannot save invalid layout", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
+                int choice = JOptionPane.showConfirmDialog(this,
+                        "<html><b>Replace the unit-layer layout JSON?</b><br><br>"
+                                + document.sourcePath().toAbsolutePath()
+                                + "<br><br>This writes the current editor state to disk.</html>",
+                        "Confirm JSON overwrite", JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE);
+                if (choice != JOptionPane.YES_OPTION) {
+                    status.setText("Save cancelled");
+                    return;
+                }
                 document.save();
+                savedSnapshot = document.snapshot();
                 dirty = false;
                 updateTitle();
                 status.setText("Saved " + document.sourcePath());
@@ -353,6 +416,8 @@ public final class LayerAuthoringWorkbench {
             if (!confirmDiscard()) return;
             try {
                 reloadDocument();
+                history.clear();
+                savedSnapshot = document.snapshot();
                 dirty = false;
                 populateUnits();
                 updateTitle();
@@ -392,6 +457,17 @@ public final class LayerAuthoringWorkbench {
             if (chooser.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
             try {
                 Path output = chooser.getSelectedFile().toPath();
+                if (Files.exists(output)) {
+                    int choice = JOptionPane.showConfirmDialog(this,
+                            "<html><b>Replace the existing PNG?</b><br><br>"
+                                    + output.toAbsolutePath() + "</html>",
+                            "Confirm PNG overwrite", JOptionPane.YES_NO_OPTION,
+                            JOptionPane.WARNING_MESSAGE);
+                    if (choice != JOptionPane.YES_OPTION) {
+                        status.setText("Export cancelled");
+                        return;
+                    }
+                }
                 if (output.getParent() != null) Files.createDirectories(output.getParent());
                 ImageIO.write(renderer.renderSheet(unit, 420, 420), "PNG", output.toFile());
                 status.setText("Exported " + output.toAbsolutePath());
@@ -401,11 +477,66 @@ public final class LayerAuthoringWorkbench {
             }
         }
 
-        private void markDirty() {
-            if (!dirty) {
+        private void beginHistoryChange() {
+            try {
+                history.begin(document);
+            } catch (Exception failure) {
+                history.cancel();
+                showHistoryFailure(failure);
+            }
+        }
+
+        private void finishHistoryChange() {
+            try {
+                history.commit(document);
+                updateDirtyFromDocument();
+            } catch (Exception failure) {
+                history.cancel();
                 dirty = true;
                 updateTitle();
+                showHistoryFailure(failure);
             }
+        }
+
+        private void updateDirtyFromDocument() {
+            try {
+                dirty = !document.snapshot().equals(savedSnapshot);
+            } catch (Exception failure) {
+                dirty = true;
+            }
+            updateTitle();
+        }
+
+        private void undo() {
+            restoreHistory(true);
+        }
+
+        private void redo() {
+            restoreHistory(false);
+        }
+
+        private void restoreHistory(boolean undo) {
+            boolean available = undo ? history.canUndo() : history.canRedo();
+            if (!available) {
+                status.setText(undo ? "Nothing to undo" : "Nothing to redo");
+                return;
+            }
+            String unitId = unit() != null ? unit().id() : null;
+            String frameId = frame() != null ? frame().id() : null;
+            String layerId = selectedLayerId();
+            try {
+                document = undo ? history.undo(document) : history.redo(document);
+                populateSelection(unitId, frameId, layerId);
+                updateDirtyFromDocument();
+                status.setText(undo ? "Undid last change" : "Redid last change");
+            } catch (Exception failure) {
+                showHistoryFailure(failure);
+            }
+        }
+
+        private void showHistoryFailure(Exception failure) {
+            JOptionPane.showMessageDialog(this, failure.getMessage(),
+                    "Edit history failed", JOptionPane.ERROR_MESSAGE);
         }
 
         private void duplicateFrame() {
@@ -428,9 +559,10 @@ public final class LayerAuthoringWorkbench {
             String label = JOptionPane.showInputDialog(this, "Frame label", frame.label());
             if (label == null) return;
             FrameDefinition copy = frame.copy(id, label.trim().isEmpty() ? id : label.trim());
+            beginHistoryChange();
             unit.frames().add(copy);
             rebuildFrames(copy, selectedLayerId());
-            markDirty();
+            finishHistoryChange();
             sheet.repaint();
         }
 
@@ -445,9 +577,10 @@ public final class LayerAuthoringWorkbench {
             }
             if (JOptionPane.showConfirmDialog(this, "Delete frame '" + frame.label() + "'?",
                     "Delete frame", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) return;
+            beginHistoryChange();
             unit.frames().remove(frame);
             rebuildFrames(unit.frames().get(0), null);
-            markDirty();
+            finishHistoryChange();
             sheet.repaint();
         }
 
