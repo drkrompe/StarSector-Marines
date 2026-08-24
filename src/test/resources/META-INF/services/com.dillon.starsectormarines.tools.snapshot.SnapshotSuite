@@ -1,0 +1,3 @@
+com.dillon.starsectormarines.ops.battleview.ArmorySnapshotSuite
+com.dillon.starsectormarines.ops.TurretSnapshotSuite
+com.dillon.starsectormarines.ops.UiSnapshotSuite

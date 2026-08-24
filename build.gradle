@@ -70,6 +70,7 @@ dependencies {
 
     testImplementation platform('org.junit:junit-bom:6.0.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation project(':layer-authoring')
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation files(
             new File(starsectorCore, 'starfarer.api.jar'),
@@ -133,66 +134,34 @@ tasks.register('profileBattleFixture', Test) {
     }
 }
 
-tasks.register('renderArmoryPreviews', JavaExec) {
+tasks.register('createSnapshots', JavaExec) {
     group = 'verification'
-    description = 'Render deterministic Fleet Armory loadout PNGs without launching Starsector'
+    description = 'Create deterministic visual snapshots without launching Starsector'
     dependsOn tasks.named('testClasses')
     classpath = sourceSets.test.runtimeClasspath
-    mainClass = 'com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer'
-    workingDir projectDir
-    outputs.upToDateWhen { false }
-    doFirst {
-        File output = providers.gradleProperty('armoryPreviewDir').isPresent()
-                ? file(providers.gradleProperty('armoryPreviewDir').get())
-                : layout.buildDirectory.dir('headless-armory-previews').get().asFile
-        args projectDir.absolutePath, output.absolutePath
-    }
-}
-
-tasks.register('renderUiPreviews', JavaExec) {
-    group = 'verification'
-    description = 'Render authored retained UI views without launching Starsector'
-    dependsOn tasks.named('testClasses')
-    classpath = sourceSets.test.runtimeClasspath
-    mainClass = 'com.dillon.starsectormarines.ops.HeadlessUiPreviewCli'
+    mainClass = 'com.dillon.starsectormarines.ops.CreateSnapshotsCli'
     workingDir projectDir
     systemProperty 'starsectorDir', starsectorDir.absolutePath
     outputs.upToDateWhen { false }
     doFirst {
-        File output = providers.gradleProperty('uiPreviewDir').isPresent()
-                ? file(providers.gradleProperty('uiPreviewDir').get())
-                : layout.buildDirectory.dir('headless-ui-previews').get().asFile
-        args projectDir.absolutePath, starsectorCore.absolutePath, output.absolutePath
+        File output = providers.gradleProperty('snapshotDir').isPresent()
+                ? file(providers.gradleProperty('snapshotDir').get())
+                : layout.buildDirectory.dir('snapshots').get().asFile
+        String selector = providers.gradleProperty('snapshot').getOrElse('all')
+        args projectDir.absolutePath, starsectorCore.absolutePath,
+                output.absolutePath, selector
     }
 }
 
-tasks.register('renderTurretPreviews', JavaExec) {
-    group = 'verification'
-    description = 'Render deterministic retained turret catalog strips without launching Starsector'
-    dependsOn tasks.named('testClasses')
-    classpath = sourceSets.test.runtimeClasspath
-    mainClass = 'com.dillon.starsectormarines.ops.HeadlessTurretPreviewCli'
-    workingDir projectDir
-    systemProperty 'starsectorDir', starsectorDir.absolutePath
-    outputs.upToDateWhen { false }
-    doFirst {
-        File output = providers.gradleProperty('turretPreviewDir').isPresent()
-                ? file(providers.gradleProperty('turretPreviewDir').get())
-                : layout.buildDirectory.dir('turret-previews/catalog').get().asFile
-        args projectDir.absolutePath, starsectorCore.absolutePath, output.absolutePath
-    }
-}
-
-tasks.register('layerAuthoring') {
+tasks.register('layerAuthoring', JavaExec) {
     group = 'development'
     description = 'Launch the standalone marine/mech layer authoring workbench'
-    dependsOn ':layer-authoring:run'
-}
-
-tasks.register('renderLayerAuthoringSheets') {
-    group = 'verification'
-    description = 'Render every authored marine/mech composition sheet without the game'
-    dependsOn ':layer-authoring:renderSheets'
+    dependsOn tasks.named('testClasses')
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.dillon.starsectormarines.tools.layerauthoring.LayerAuthoringWorkbench'
+    workingDir projectDir
+    systemProperty 'starsectorDir', starsectorDir.absolutePath
+    args projectDir.absolutePath
 }
 
 // The default `jar` task only produces the thin jar (our classes), which we
