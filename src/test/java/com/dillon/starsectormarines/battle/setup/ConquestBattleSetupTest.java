@@ -3,9 +3,12 @@ package com.dillon.starsectormarines.battle.setup;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.command.objective.ConquestObjective;
+import com.dillon.starsectormarines.battle.command.ConquestCommand;
+import com.dillon.starsectormarines.battle.command.ConquestDefenderCommand;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import org.junit.jupiter.api.Test;
@@ -33,6 +36,8 @@ public class ConquestBattleSetupTest {
         assertEquals(BattleSetup.CONQUEST_GRID_W, sim.getGrid().getWidth());
         assertEquals(BattleSetup.CONQUEST_GRID_H, sim.getGrid().getHeight());
         assertTrue(sim.getObjectives().stream().anyMatch(ConquestObjective.class::isInstance));
+        assertTrue(sim.getCommander(Faction.MARINE) instanceof ConquestCommand);
+        assertTrue(sim.getCommander(Faction.DEFENDER) instanceof ConquestDefenderCommand);
         assertEquals(1, sim.getCompoundService().getRecords().stream()
                 .filter(record -> record.node.kind == TacticalNode.Kind.COMMAND_POST)
                 .count());

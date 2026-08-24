@@ -4,7 +4,7 @@ Status: ACTIVE — Conquest owns reversible compound territory, deliberate captu
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — defined preferred tracks, soft neighboring support, command observability, and keep convergence.
+Updated: 2026-08-24 — defined shared track geometry, belief-honest defender mobilization, command observability, and keep convergence.
 
 Conquest is a territorial assault: marines establish a beachhead, take the
 defender's supply hubs through the city, and finish at the keep. It is not a
@@ -55,6 +55,21 @@ presentation and dumps consume that published command state; they do not infer
 a second plan or reveal hidden defenders. The assignment decision remains the
 commander's authority, while local squad doctrine decides how to prosecute the
 contact.
+
+The same three physical tracks organize defender response, but not through the
+marine commander's state. The defender commander reads only defender influence.
+An initial patrol squad that establishes contact raises a coarse threatened
+track and forward band; a bounded number of other initial patrol squads may
+rally into that track, preferring their home track and then one neighbor. The
+rally is an own-force destination, not a copied hostile identity or reported
+cell, and the receiving squad's local contact picture supersedes it on contact.
+
+Born garrisons never enter this mobile pool. Explicit hold or recapture work
+outranks a soft track response, at least one otherwise-free patrol remains in
+reserve when possible, and an expired faction report releases only assignments
+owned by defender command. Squads delivered later remain under reinforcement
+and counterattack authority rather than being silently absorbed into the
+starting reserve.
 
 On a marine capture, a free marine garrison shuttle answers once and its squad
 is born to hold that compound. The original assault may therefore continue its

@@ -1,10 +1,10 @@
 # AI nouns
 
-Status: ACTIVE — AI owns mission command, squad planning, belief-derived contact pictures, local doctrine, and faction-local read-only influence; strategic analysis, mech-behavior retirement, and live acceptance are bounded extensions.
+Status: ACTIVE — AI owns mission command, squad planning, belief-derived contact pictures, local doctrine, faction-local influence, and Conquest defender response; broader strategic analysis, mech-behavior retirement, and live acceptance are bounded extensions.
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — clarified mission-specific command pictures and the boundary between Conquest tracks and other mission geometries.
+Updated: 2026-08-24 — defined Conquest's belief-honest defender mobilization authority and shared physical track geometry.
 
 AI turns mission context and what a side has learned into coordinated
 movement, posture, and fire intent. It is a decision system, not the authority
@@ -63,9 +63,10 @@ belief lifetime.
 
 Each faction's commander has a separate **influence snapshot**. It aggregates
 only its own squads' beliefs and honest friendly combatant presence into
-topology-aware tactical fields. The current snapshots and heatmaps are
-read-only diagnostics: they do not yet reassign squads, create reserves, or
-brief subordinates.
+topology-aware tactical fields. The snapshot itself is read-only. A consumer
+may act on it only when a mission-specific command contract authorizes that
+action; diagnostics and heatmaps do not acquire assignment authority merely by
+reading the field.
 
 A mission command may publish a mission-specific command picture that combines
 its authored assignments with honest influence-derived metrics. Conquest's
@@ -73,6 +74,10 @@ front snapshot is the first such picture: its metrics explain track progress
 and pressure, while the command's explicit compound and neighboring-track laws
 remain the authority for reassignment. The presence of a generic influence
 field does not make Conquest tracks a universal commander abstraction.
+Conquest defender command is the first opposing-faction consumer: defender
+reports raise only a coarse threatened track/band and can mobilize a bounded
+starting patrol reserve. The briefing grants a rally context, not the source
+squad's hostile identity or exact reported position.
 
 ## Doctrine and maneuver
 
@@ -152,14 +157,17 @@ decision authority.
 ## Strategic-extension boundaries
 
 A commander influence snapshot is faction-local, belief-honest, immutable, and
-read-only. A frontline, bulge, or breakthrough analysis may derive only from
-that snapshot and must never expose hidden world state.
+read-only as data. A frontline, bulge, or breakthrough analysis may derive only
+from that snapshot and must never expose hidden world state. Conquest defender
+mobilization has explicit mission authority to translate its own snapshot into
+a coarse rally assignment; this does not grant that authority to other
+missions or diagnostic consumers.
 
 Any consumer that reallocates squads, creates reserves, or briefs subordinates
 requires its own mission-specific authority contract. Diagnostic analysis does
-not itself authorize action. Mechanical suppression, cross-squad briefing,
-defender strategic response, recon doctrine, and dynamic mech reassignment are
-separate extensions and must preserve the same knowledge and ownership laws.
+not itself authorize action. Mechanical suppression, richer cross-squad contact
+sharing, recon doctrine, and dynamic mech reassignment are separate extensions
+and must preserve the same knowledge and ownership laws.
 
 Target-faction doctrine is likewise a bounded mission-command extension, not a
 new planner or a source of hidden knowledge. `target-faction-command-doctrine.md`

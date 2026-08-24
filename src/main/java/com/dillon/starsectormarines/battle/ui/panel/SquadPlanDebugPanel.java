@@ -11,7 +11,7 @@ import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Doctrine;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
-import com.dillon.starsectormarines.battle.command.ConquestCommand;
+import com.dillon.starsectormarines.battle.command.ConquestFrontCommand;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
 import com.dillon.starsectormarines.battle.command.MissionCommand;
 import com.dillon.starsectormarines.battle.combat.FireGate;
@@ -516,6 +516,10 @@ public final class SquadPlanDebugPanel implements HudPanel {
                 if (a.targetZoneId() >= 0) sb.append(" zone:").append(a.targetZoneId());
                 if (a.targetNode() != null) sb.append(" node");
                 if (a.objectiveId() >= 0) sb.append(" obj:").append(a.objectiveId());
+                if (a.targetCellX() >= 0 && a.targetCellY() >= 0) {
+                    sb.append(" cell:").append(a.targetCellX())
+                            .append(',').append(a.targetCellY());
+                }
                 assignLabel = sb.toString();
             }
             font.drawString(assignLabel, lineX + 96f, lineY, DETAIL_VALUE_FG, alphaMult);
@@ -700,14 +704,14 @@ public final class SquadPlanDebugPanel implements HudPanel {
     private static ConquestFrontSnapshot conquestSnapshot(
             Squad squad, BattleSimulation sim) {
         MissionCommand command = sim.getCommander(squad.faction);
-        return command instanceof ConquestCommand conquest
-                ? conquest.frontSnapshot() : null;
+        return ConquestFrontCommand.snapshotOf(command);
     }
 
     static String commandSummary(ConquestFrontSnapshot snapshot,
                                  ConquestFrontSnapshot.SquadDirective directive) {
         String reason = directive != null ? directive.reason().name() : "—";
-        return String.format("Command %s   Reason %s", snapshot.phase(), reason);
+        return String.format("Command %s %s   Reason %s",
+                snapshot.perspective(), snapshot.phase(), reason);
     }
 
     static String trackSummary(ConquestFrontSnapshot snapshot,

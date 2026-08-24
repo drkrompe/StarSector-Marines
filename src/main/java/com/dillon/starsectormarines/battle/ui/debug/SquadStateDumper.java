@@ -15,7 +15,7 @@ import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.decision.goap.action.ClearZone;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
-import com.dillon.starsectormarines.battle.command.ConquestCommand;
+import com.dillon.starsectormarines.battle.command.ConquestFrontCommand;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
 import com.dillon.starsectormarines.battle.command.MissionCommand;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
@@ -312,8 +312,8 @@ public final class SquadStateDumper {
                                                    BattleSimulation sim)
             throws Exception {
         MissionCommand command = sim.getCommander(squad.faction);
-        if (!(command instanceof ConquestCommand conquest)) return JSONObject.NULL;
-        ConquestFrontSnapshot snapshot = conquest.frontSnapshot();
+        ConquestFrontSnapshot snapshot = ConquestFrontCommand.snapshotOf(command);
+        if (snapshot == null) return JSONObject.NULL;
         JSONObject out = new JSONObject();
         out.put("tick", snapshot.tick());
         out.put("ageTicks", snapshot.tick() >= 0
@@ -322,6 +322,7 @@ public final class SquadStateDumper {
         out.put("influenceAgeTicks", snapshot.influenceTick() >= 0
                 ? Math.max(0, sim.simTickIndex - snapshot.influenceTick()) : -1);
         out.put("axis", snapshot.axis().name());
+        out.put("perspective", snapshot.perspective().name());
         out.put("phase", snapshot.phase().name());
         out.put("remainingCompounds", snapshot.remainingCompounds());
         out.put("keepZoneId", snapshot.keepZoneId());
@@ -340,6 +341,8 @@ public final class SquadStateDumper {
             row.put("assignmentKind", directive.assignmentKind() != null
                     ? directive.assignmentKind().name() : JSONObject.NULL);
             row.put("targetZoneId", directive.targetZoneId());
+            row.put("targetCellX", directive.targetCellX());
+            row.put("targetCellY", directive.targetCellY());
             out.put("squadDirective", row);
         }
 

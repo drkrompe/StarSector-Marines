@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.ui.debug;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.command.ConquestCommand;
+import com.dillon.starsectormarines.battle.command.ConquestDefenderCommand;
+import com.dillon.starsectormarines.battle.command.ConquestTrackLayout;
 import com.dillon.starsectormarines.battle.combat.FireGate;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.combat.FiringSystem;
@@ -11,6 +13,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import org.json.JSONObject;
@@ -112,9 +115,36 @@ class SquadStateDumperTest {
         assertTrue(dump.isNull("assignedObjective"));
         JSONObject conquest = dump.getJSONObject("conquestCommand");
         assertEquals("SOUTH_TO_NORTH", conquest.getString("axis"));
+        assertEquals("MARINE", conquest.getString("perspective"));
         assertEquals("LANE_ADVANCE", conquest.getString("phase"));
         assertTrue(conquest.isNull("squadDirective"));
         assertEquals(0, conquest.getJSONArray("tracks").length());
+    }
+
+    @Test
+    void defenderDumpPublishesFactionLocalTrackDirective() throws Exception {
+        BattleSimulation sim = openSim();
+        long member = sim.spawn(new EntitySpec("reserve", Faction.DEFENDER,
+                UnitType.MILITIA, 5, 20).role(UnitRole.PATROL));
+        int squadId = sim.mintSquad(Faction.DEFENDER, member);
+        sim.squad().assignSquad(member, squadId);
+        Squad squad = sim.getSquad(squadId);
+        squad.leaderId = member;
+        squad.aliveMembers = 1;
+        squad.centroidX = 5;
+        squad.centroidY = 20;
+        ConquestDefenderCommand command = new ConquestDefenderCommand(
+                new ConquestTrackLayout(TraversalAxis.SOUTH_TO_NORTH, 32, 24));
+        sim.setCommander(Faction.DEFENDER, command);
+        command.tick(sim);
+
+        JSONObject conquest = SquadStateDumper.buildSquadJson(squad, sim)
+                .getJSONObject("conquestCommand");
+
+        assertEquals("DEFENDER", conquest.getString("perspective"));
+        assertEquals("DEFENDER_RESERVE_HOLD", conquest
+                .getJSONObject("squadDirective").getString("reason"));
+        assertEquals(3, conquest.getJSONArray("tracks").length());
     }
 
     private static BattleSimulation openSim() {

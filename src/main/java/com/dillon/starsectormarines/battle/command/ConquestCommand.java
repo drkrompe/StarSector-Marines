@@ -87,7 +87,7 @@ import java.util.TreeMap;
  * is now about dismantling supply infrastructure
  * (see {@code conquest-nouns.md}).
  */
-public final class ConquestCommand implements MissionCommand {
+public final class ConquestCommand implements ConquestFrontCommand {
 
     /**
      * Fixed strip count regardless of squad count. Three is reasonable for
@@ -96,7 +96,7 @@ public final class ConquestCommand implements MissionCommand {
      * can't hold its lane. Tunable; map-size-driven derivation queues
      * behind playtest.
      */
-    public static final int STRIP_COUNT = 3;
+    public static final int STRIP_COUNT = ConquestTrackLayout.DEFAULT_TRACK_COUNT;
 
     /**
      * Garrison-zone room count at or above which a compound rates a two-squad
@@ -116,6 +116,8 @@ public final class ConquestCommand implements MissionCommand {
     public static final int GARRISON_MARGIN = 2;
 
     private final TraversalAxis axis;
+    /** Shared production geometry; lazily synthesized only by the legacy axis constructor used in tests. */
+    private ConquestTrackLayout trackLayout;
 
     /** Lazy: built on first {@link #tick}. {@link ZoneGraph} isn't reliably populated at construction time (defender placement runs after sim creation), so we defer the partition until the first slow-tick where every spawn has settled. */
     private boolean initialized = false;
@@ -189,6 +191,12 @@ public final class ConquestCommand implements MissionCommand {
     public ConquestCommand(TraversalAxis axis) {
         this.axis = axis;
         this.frontSnapshot = ConquestFrontSnapshot.empty(axis);
+    }
+
+    public ConquestCommand(ConquestTrackLayout trackLayout) {
+        this.trackLayout = trackLayout;
+        this.axis = trackLayout.axis();
+        this.frontSnapshot = ConquestFrontSnapshot.empty(Faction.MARINE, axis);
     }
 
     public ConquestFrontSnapshot frontSnapshot() {
@@ -481,10 +489,14 @@ public final class ConquestCommand implements MissionCommand {
      */
     private void initializePartition(BattleView sim) {
         NavigationGrid grid = sim.getGrid();
+        if (trackLayout == null) {
+            trackLayout = new ConquestTrackLayout(axis,
+                    grid.getWidth(), grid.getHeight());
+        }
         ZoneGraph graph = sim.getZoneGraph();
         int gridW = grid.getWidth();
         int gridH = grid.getHeight();
-        this.lateralExtent = (axis == TraversalAxis.SOUTH_TO_NORTH) ? gridW : gridH;
+        this.lateralExtent = trackLayout.lateralExtent();
 
         stripZones = new ArrayList<>(STRIP_COUNT);
         for (int i = 0; i < STRIP_COUNT; i++) stripZones.add(new ArrayList<>());
@@ -521,7 +533,7 @@ public final class ConquestCommand implements MissionCommand {
                 zoneCentroidY[zone.getZoneId()] = cy;
             }
 
-            int stripIdx = stripIndexForLateral(lateral, this.lateralExtent);
+            int stripIdx = stripIndexForLateral(lateral);
             if (stripIdx < 0 || stripIdx >= STRIP_COUNT) continue;
             stripZones.get(stripIdx).add(zone.getZoneId());
         }
@@ -571,12 +583,8 @@ public final class ConquestCommand implements MissionCommand {
      * clamp catches the right-edge boundary (a coord exactly at {@code lateralExtent}
      * would land in bucket {@code STRIP_COUNT}, which doesn't exist).
      */
-    private static int stripIndexForLateral(float lateral, int lateralExtent) {
-        if (lateralExtent <= 0) return -1;
-        float fractional = lateral / lateralExtent;
-        if (fractional < 0f) return -1;
-        if (fractional >= 1f) return STRIP_COUNT - 1;
-        return Math.min((int) (fractional * STRIP_COUNT), STRIP_COUNT - 1);
+    private int stripIndexForLateral(float lateral) {
+        return trackLayout.trackForLateral(lateral);
     }
 
     /**
@@ -590,7 +598,7 @@ public final class ConquestCommand implements MissionCommand {
         int cached = squadStripIdx.get(squad.id);
         if (cached >= 0) return cached;
         float lateral = (axis == TraversalAxis.SOUTH_TO_NORTH) ? squad.centroidX : squad.centroidY;
-        int idx = stripIndexForLateral(lateral, lateralExtent);
+        int idx = stripIndexForLateral(lateral);
         if (idx < 0) idx = 0;
         if (idx >= STRIP_COUNT) idx = STRIP_COUNT - 1;
         squadStripIdx.put(squad.id, idx);
@@ -599,7 +607,7 @@ public final class ConquestCommand implements MissionCommand {
 
     private int trackForZone(int zoneId) {
         if (zoneId < 0 || zoneId >= zoneLateralCoord.length) return -1;
-        return stripIndexForLateral(zoneLateralCoord[zoneId], lateralExtent);
+        return stripIndexForLateral(zoneLateralCoord[zoneId]);
     }
 
     private record TargetChoice(int trackIndex, int targetZoneId) { }
@@ -737,7 +745,7 @@ public final class ConquestCommand implements MissionCommand {
             for (CommanderContact contact : influence.contacts()) {
                 int lateral = axis == TraversalAxis.SOUTH_TO_NORTH
                         ? contact.cellX() : contact.cellY();
-                int track = stripIndexForLateral(lateral, lateralExtent);
+                int track = stripIndexForLateral(lateral);
                 if (track < 0 || track >= STRIP_COUNT) continue;
                 int forward = axis == TraversalAxis.SOUTH_TO_NORTH
                         ? contact.cellY() : contact.cellX();
@@ -758,7 +766,7 @@ public final class ConquestCommand implements MissionCommand {
                             + influence.blockWorldHeight(by) / 2;
                     int lateral = axis == TraversalAxis.SOUTH_TO_NORTH
                             ? worldX : worldY;
-                    int track = stripIndexForLateral(lateral, lateralExtent);
+                    int track = stripIndexForLateral(lateral);
                     if (track < 0 || track >= STRIP_COUNT) continue;
                     friendlyPressure[track] += influence.friendlyAt(bx, by);
                     hostilePressure[track] += influence.hostileAt(bx, by);
@@ -768,8 +776,8 @@ public final class ConquestCommand implements MissionCommand {
 
         List<TrackState> tracks = new ArrayList<>(STRIP_COUNT);
         for (int track = 0; track < STRIP_COUNT; track++) {
-            int lateralStart = track * lateralExtent / STRIP_COUNT;
-            int lateralEnd = ((track + 1) * lateralExtent / STRIP_COUNT) - 1;
+            int lateralStart = trackLayout.lateralStartInclusive(track);
+            int lateralEnd = trackLayout.lateralEndInclusive(track);
             float bodyProgress = preferredMembers[track] > 0
                     ? bodyProgressSum[track] / preferredMembers[track] : -1f;
             tracks.add(new TrackState(track, lateralStart, lateralEnd,

@@ -44,6 +44,8 @@ import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.command.AssaultCommand;
 import com.dillon.starsectormarines.battle.command.ConquestCommand;
+import com.dillon.starsectormarines.battle.command.ConquestDefenderCommand;
+import com.dillon.starsectormarines.battle.command.ConquestTrackLayout;
 import com.dillon.starsectormarines.battle.command.OpeningOperationCommand;
 import com.dillon.starsectormarines.battle.command.SabotageCommand;
 import com.dillon.starsectormarines.battle.command.SilentColonyCommand;
@@ -1058,13 +1060,14 @@ public final class BattleSetup {
         allocateDefenders(sim, map, defenders.roster(), rng);
         linkGuardpostSquads(sim, defenders.defensePosts());
         spawnAmbientCivilians(sim, map, rng);
-        // Marine commander: lateral-strip partition perpendicular to the
-        // traversal axis. Each shuttle squad gets sticky-assigned to one
-        // strip on first observation; per slow-tick the commander writes
-        // CLEAR_ZONE on each squad pointed at the forward-most defender-
-        // occupied zone in its strip. Spreads marines across the frontage
-        // instead of dogpiling the nearest defender contact.
-        sim.setCommander(Faction.MARINE, new ConquestCommand(axis));
+        // Both Conquest commanders share one physical three-track layout but
+        // retain separate, faction-honest influence pictures and policies.
+        ConquestTrackLayout tracks = new ConquestTrackLayout(
+                axis, map.grid.getWidth(), map.grid.getHeight());
+        sim.setCommander(Faction.MARINE, new ConquestCommand(tracks));
+        ConquestDefenderCommand defenderCommand = new ConquestDefenderCommand(tracks);
+        defenderCommand.captureStartingForce(sim);
+        sim.setCommander(Faction.DEFENDER, defenderCommand);
         sim.setGarrisonSystem(new CompoundGarrisonSystem(axis));
         installReinforcementLayer(sim, map, axis);
         return new MapBuild(sim, build.structures());

@@ -14,6 +14,9 @@ package com.dillon.starsectormarines.battle.command;
  *   <li>{@link #SWEEP_SECTOR} — search an Assault sector via a commander-
  *       selected waypoint until the squad acquires a contact. The assignment
  *       carries an exact cell, but no enemy identity or position.</li>
+ *   <li>{@link #DEFEND_TRACK} — move to a coarse, commander-selected Conquest
+ *       track rally and hold for contact. The assignment carries no hostile
+ *       identity or reported position.</li>
  *   <li>{@link #SECURE_COMPOUND} — push into a compound's zone, clear it, then
  *       hold until the compound's capture timer completes. Issued by
  *       {@code ConquestCommand} for zones containing uncaptured compounds
@@ -36,6 +39,7 @@ package com.dillon.starsectormarines.battle.command;
 public enum AssignmentKind {
     CLEAR_ZONE,
     SWEEP_SECTOR,
+    DEFEND_TRACK,
     SECURE_COMPOUND,
     HOLD_NODE,
     RUSH_OBJECTIVE,
