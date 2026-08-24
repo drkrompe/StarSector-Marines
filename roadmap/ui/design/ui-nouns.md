@@ -39,6 +39,15 @@ them.
 - A **binding** is an explicit invalidation edge from view-model state to one
   element mutation. It updates retained identity rather than rebuilding the
   document.
+- A **signal** is a value in one reactor graph. Reading it while a binding or
+  computed value evaluates records the dependency; writing a different value
+  invalidates only those readers.
+- An **MLX component** is one authored template plus an optional component-scoped
+  style sheet. It builds ordinary retained elements and receives no privileged
+  layout, input, paint, or cascade behavior.
+- A **reload** is an explicit development transaction: every known edited component
+  parses successfully before the registry changes, then a fresh document is built
+  from the existing view model. Domain and view-model state are not component state.
 - A **canvas element** is the procedural escape hatch for visuals that do not fit
   ordinary boxes: formation connectors, graphs, paper dolls, or transaction flows.
 - A **surface** is a document plus its view model, navigation behavior, and host

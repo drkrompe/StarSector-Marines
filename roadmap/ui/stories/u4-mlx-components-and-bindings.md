@@ -1,7 +1,8 @@
 # U4 — `.mlx` components, bindings, and reload
 
-Status: PLANNED
+Status: IN PROGRESS — first workbench conversion ready for live acceptance
 Written: 2026-08-23
+Updated: 2026-08-23
 
 Read `ui-nouns.md` and `ui-toolkit.md` first. Depends on U1–U3.
 
@@ -34,3 +35,28 @@ view-model state.
 - Reloading a component replaces its tree and scoped rules while its view model and
   domain state survive.
 - Everything expressible in markup remains expressible through the Java API.
+
+## Implemented slice
+
+- The MoonLight reactive graph is adapted to Java 17: mutable and computed signals,
+  precise dependency recollection, binding scopes, cycle refusal, and keyed child
+  reconciliation all have headless coverage.
+- A positioned, strict `.mlx` parser accepts one template, optional scoped style,
+  declared props, whole-value dotted expressions, handler references, and keyed
+  repetition over the retained `div` / `button` / `canvas` subset.
+- The builder emits ordinary `UiElement` instances and ordinary component sheets.
+  It has no private layout, paint, input, or cascade path.
+- The retained UI workbench hierarchy and component CSS now live in
+  `data/ui/components/dev/ui-workbench.mlx`. Java retains only host navigation,
+  the procedural canvas producer/input, `stack` and exceptional alignment wiring
+  that the current CSS subset cannot express.
+- `Reload UI` explicitly reparses the known component set and constructs a fresh
+  document from the same screen/view-model state. A parse or build refusal keeps
+  the previous document installed.
+
+## Live acceptance requested
+
+- Open the retained UI workbench and confirm its geometry, typography, theme
+  switching, keyboard actions, scrolling, and canvas drag match the previous proof.
+- Change team/template/theme selection, press `Reload UI`, and confirm the selection,
+  active theme, and canvas issue marker survive while the authored tree is replaced.

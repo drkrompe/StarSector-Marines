@@ -92,9 +92,30 @@ necessary kind of work: layout when geometry changes, paint when appearance chan
 Collection bindings reconcile by stable key so focus, hover, scroll, and transitions
 stay attached to the same row.
 
-The workbench begins with direct retained mutations. General signals and keyed
-reconciliation belong to the authoring/binding story, where a real repeated Fleet
-Armory surface can prove their API.
+The reactor owns mutable signals, lazy computed values, bindings, and explicit
+binding scopes. Dependencies are recollected on each evaluation; same-value writes
+do no work; a bounded flush refuses cycles. Collection bindings reconcile by stable
+string key and move surviving `UiElement` instances rather than recreating them.
+
+## MLX authoring contract
+
+An `.mlx` file contains one `<template>` and an optional `<style>`. The current
+built-in vocabulary is the standard `div`, `button`, and `canvas` subset. Props are
+declared on the template, expressions are whole-value dotted paths with optional
+boolean negation, handlers are Java `Runnable` props, and repeated children require
+both `each` and `key`. Unknown tags, attributes, names, malformed expressions, and
+unsupported CSS fail with file, line, and column context before a surface opens.
+
+Every emitted element carries the component's generated scope class and every
+component selector is scoped to the subject element before registration. Component
+sheets remain before the final named theme sheet. The builder uses only public
+retained element mutations; CSS-unsupported `stack` and self-alignment remain
+bounded Java post-load wiring until the standard property surface grows.
+
+Reload is explicit, not watched. The loader parses the complete known component set
+before replacing its registry. A successful reload creates a fresh document and
+binding scope from the same typed view model; a failed reload leaves the installed
+document and previous templates intact.
 
 ## Theme and transition contract
 
