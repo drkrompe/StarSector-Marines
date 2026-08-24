@@ -2,7 +2,7 @@
 
 Status: SHIPPED — foundation active as production infrastructure
 Written: 2026-08-23
-Updated: 2026-08-24 — workbench live-accepted; Fleet Armory is the first production conversion.
+Updated: 2026-08-24 — dotted MLX reads now use explicit sandbox-safe property sources rather than reflection.
 
 ## Decision
 
@@ -106,6 +106,11 @@ declared on the template, expressions are whole-value dotted paths with optional
 boolean negation, handlers are Java `Runnable` props, and repeated children require
 both `each` and `key`. Unknown tags, attributes, names, malformed expressions, and
 unsupported CSS fail with file, line, and column context before a surface opens.
+
+Dotted traversal is opt-in: an intermediate value implements
+`MarkupPropertySource` or supplies a `Map`. The runtime never reflects over an
+arbitrary Java object. This keeps authored components inside Starsector's script
+sandbox and prevents a view model from accidentally exposing unrelated methods.
 
 Every emitted element carries the component's generated scope class and every
 component selector is scoped to the subject element before registration. Component

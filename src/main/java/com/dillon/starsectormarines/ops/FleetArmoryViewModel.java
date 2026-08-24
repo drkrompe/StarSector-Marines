@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
@@ -293,9 +294,32 @@ public final class FleetArmoryViewModel {
     }
 
     public record SelectionRow(String id, String label, String classes,
-                               boolean disabled, Runnable select) { }
+                               boolean disabled, Runnable select) implements MarkupPropertySource {
+        @Override
+        public Object markupProperty(String name) {
+            return switch (name) {
+                case "id" -> id;
+                case "label" -> label;
+                case "classes" -> classes;
+                case "disabled" -> disabled;
+                case "select" -> select;
+                default -> throw new IllegalArgumentException("Unknown selection-row property");
+            };
+        }
+    }
 
-    public record DetailRow(String id, String label, String classes) { }
+    public record DetailRow(String id, String label,
+                            String classes) implements MarkupPropertySource {
+        @Override
+        public Object markupProperty(String name) {
+            return switch (name) {
+                case "id" -> id;
+                case "label" -> label;
+                case "classes" -> classes;
+                default -> throw new IllegalArgumentException("Unknown detail-row property");
+            };
+        }
+    }
 
     private record Feedback(String text, boolean succeeded) {
         private static Feedback neutral(String text) { return new Feedback(text, false); }
