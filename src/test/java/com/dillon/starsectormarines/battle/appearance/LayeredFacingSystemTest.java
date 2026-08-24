@@ -191,6 +191,35 @@ public class LayeredFacingSystemTest {
     }
 
     @Test
+    public void secondaryEntryRetainsItsLastStrideUntilTheBlendFinishes() {
+        BattleSimulation sim = arena();
+        BattleComponents c = sim.getBattleComponents();
+        long marine = sim.spawn(new EntitySpec("m", Faction.MARINE,
+                UnitType.MARINE, 5, 5)
+                .secondary(MarineSecondary.ANTI_MATERIEL_RIFLE, 4));
+        sim.getEntityWorld().setFloat(marine, c.MOVEMENT,
+                BattleComponents.MOVEMENT_GAIT_PHASE, 0.25f);
+        sim.getEntityWorld().setInt(marine, c.LAYERED_ANIMATION,
+                BattleComponents.LAYERED_FLAGS, LayeredAppearance.FLAG_MOVING);
+        sim.world().setSecondaryActionTimer(marine,
+                MarineSecondary.ANTI_MATERIEL_RIFLE.aimDuration());
+
+        FacingSystem system = new FacingSystem(sim.getEntityWorld(), c, sim.getRoster());
+        system.tick();
+
+        assertEquals(0.25f, f(sim, marine,
+                BattleComponents.LAYERED_LOCOMOTION_PHASE), 0.001f);
+        assertTrue((i(sim, marine, BattleComponents.LAYERED_FLAGS)
+                & LayeredAppearance.FLAG_ACTION_FROM_MOVING) != 0);
+
+        sim.world().setSecondaryActionTimer(marine,
+                MarineSecondary.ANTI_MATERIEL_RIFLE.aimDuration() * 0.85f);
+        system.tick();
+        assertFalse((i(sim, marine, BattleComponents.LAYERED_FLAGS)
+                & LayeredAppearance.FLAG_ACTION_FROM_MOVING) != 0);
+    }
+
+    @Test
     public void antiMaterielBraceUsesDedicatedUnderBodyAimAndFirePoses() {
         BattleSimulation sim = arena();
         long marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 5, 5)

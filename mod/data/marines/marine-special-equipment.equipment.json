@@ -43,7 +43,8 @@
         },
         "layerClips": {
           "variant": "rocket",
-          "using": "aiming"
+          "using": "aiming",
+          "firing": "firing"
         },
         "preview": {
           "state": "using",
@@ -216,7 +217,7 @@
         },
         "preview": {
           "state": "using",
-          "phase": 0.75
+          "phase": 0.56
         }
       }
     }
