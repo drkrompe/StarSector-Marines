@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ops.battleview.ArmoryFireTeamPreviewCanvas;
-import com.dillon.starsectormarines.ops.battleview.ArmoryLoadoutPreviewCanvas;
+import com.dillon.starsectormarines.ops.battleview.ArmoryMarinePreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
@@ -100,10 +100,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 }
                 for (int index = 0; index < MarineSquad.TEAM_SIZE; index++) {
                     int billet = index;
-                    document.canvases().set(instance.requireElement("billet-preview:" + index),
-                            new ArmoryLoadoutPreviewCanvas(
+                    document.canvases().set(instance.requireElement("marine-preview:" + index),
+                            new ArmoryMarinePreviewCanvas(
                                     () -> viewModel.billetAt(billet),
-                                    armoryPreview.assets(), true));
+                                    armoryPreview.assets()));
                 }
             }
             return renderer.render(document, width, height);
@@ -158,12 +158,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("targetSummary", viewModel.targetSummary());
         props.put("candidateSummary", viewModel.candidateSummary());
         props.put("billetRows", viewModel.billetRows());
-        props.put("billetMannequins", viewModel.billetMannequins());
+        props.put("marineCards", viewModel.marineCards());
         props.put("previewSummary", viewModel.previewSummary());
-        props.put("gearRows", viewModel.gearRows());
         props.put("transactionSummary", viewModel.transactionSummary());
         props.put("transactionClasses", viewModel.transactionClasses());
         props.put("applyDisabled", viewModel.applyDisabled());
+        props.put("applyLabel", viewModel.applyLabel());
         props.put("apply", viewModel.applyAction());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
