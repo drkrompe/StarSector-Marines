@@ -67,9 +67,6 @@ ledger, code, tests, and Git.
 
 ## Cleanup candidates to promote
 
-- **Neutral battle timestep** — move the shared fixed-tick constant out of
-  `BattleSimulation` so narrow battle contracts do not import the coordinator
-  solely for a literal.
 - **Squad leadership order invariant** — decide whether roster order or leader
   identity is authoritative, then make undermanned leadership deterministic.
 
