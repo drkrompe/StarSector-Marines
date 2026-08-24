@@ -294,8 +294,8 @@ public final class SquadPlanDebugPanel implements HudPanel {
         // Section 1: 2 lines (status + garrison flags), 1 divider gap.
         int lines = 2;
         int dividers = 1;
-        // Section 2: 4 contact-doctrine lines + HOLD freshness + fire readiness.
-        lines += 6;
+        // Section 2: contact/doctrine, initiative, HOLD freshness, and fire readiness.
+        lines += 7;
         dividers += 1;
         // Section 3: goal + assignment, 1 divider gap.
         lines += 2;
@@ -475,6 +475,8 @@ public final class SquadPlanDebugPanel implements HudPanel {
                 DETAIL_VALUE_FG, alphaMult, vpBottomY, vpTopY);
         lineY = drawLineIfVisible(font, forceSummary(picture), lineX, lineY,
                 DETAIL_VALUE_FG, alphaMult, vpBottomY, vpTopY);
+        lineY = drawLineIfVisible(font, initiativeSummary(picture), lineX, lineY,
+                DETAIL_VALUE_FG, alphaMult, vpBottomY, vpTopY);
         String primary = primaryContactLabel(picture, ctx.getSim());
         lineY = drawLineIfVisible(font, primarySummary(picture, primary), lineX, lineY,
                 DETAIL_VALUE_FG, alphaMult, vpBottomY, vpTopY);
@@ -648,6 +650,13 @@ public final class SquadPlanDebugPanel implements HudPanel {
                 picture.axisX(), picture.axisY());
     }
 
+    static String initiativeSummary(SquadContactPicture picture) {
+        return String.format("Initiative %s   Line M%d/%d T%d/%d",
+                picture.contactInitiative(), picture.primaryEngageableMembers(),
+                picture.liveMembers(), picture.primaryEngageableFireTeams(),
+                picture.liveFireTeams());
+    }
+
     static String primarySummary(SquadContactPicture picture, String primaryLabel) {
         if (!picture.hasContacts() || picture.primaryContactId() == 0L) {
             return "Primary —";
@@ -661,8 +670,8 @@ public final class SquadPlanDebugPanel implements HudPanel {
         SquadContactPicture picture = squad.contactPicture;
         boolean fresh = TacticalScoring.contactHoldIsFresh(squad, picture,
                 sim.getSimTickIndex());
-        boolean active = picture.posture() == SquadContactPicture.Posture.ADVANCING
-                && picture.doctrine() == Doctrine.HOLD && fresh;
+        boolean active = TacticalScoring.shouldHardHoldAdvance(squad, picture,
+                sim.getSimTickIndex());
         BelievedContact evidence = squad.believedContact(
                 picture.primaryContactId());
         String age = evidence != null

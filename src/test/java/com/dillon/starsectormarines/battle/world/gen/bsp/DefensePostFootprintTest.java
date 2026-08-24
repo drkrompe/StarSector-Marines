@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.world.gen.bsp;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
+import com.dillon.starsectormarines.battle.turret.DefensePost;
+import com.dillon.starsectormarines.battle.turret.DefensePostLayoutRegistry;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -83,6 +85,30 @@ public class DefensePostFootprintTest {
         for (DefensePostShape shape : DefensePostShape.values()) {
             assertMatch(DefensePostKind.LARGE, shape);
         }
+    }
+
+    @Test
+    public void stampedPostsCarryAuthoredLayoutAndStructureIds() {
+        NavigationGrid grid = openGrid();
+        CellTopology topology = new CellTopology(W, H);
+        DefensePost post = DefensePostStamper.stampPost(grid, topology,
+                new ArrayList<>(), DefensePostKind.LARGE,
+                DefensePostShape.TRIANGLE_FORMATION, CX, CY, new Random(1));
+
+        assertEquals("layout.defense-post-large-triangle", post.layoutId);
+        assertEquals(List.of(
+                        "structure.turret-hephaestus",
+                        "structure.turret-hephaestus",
+                        "structure.turret-hephaestus"),
+                post.turrets.stream().map(spec -> spec.structureId).toList());
+
+        DefensePost hub = DefensePostStamper.stampPost(openGrid(),
+                new CellTopology(W, H), new ArrayList<>(),
+                DefensePostKind.DRONE_HUB, null, CX, CY, new Random(1));
+        assertEquals(DefensePostLayoutRegistry.requireInstalled()
+                .require(DefensePostKind.DRONE_HUB, "default").id, hub.layoutId);
+        assertEquals(CX, hub.droneHubCellX);
+        assertEquals(CY, hub.droneHubCellY);
     }
 
     @Test

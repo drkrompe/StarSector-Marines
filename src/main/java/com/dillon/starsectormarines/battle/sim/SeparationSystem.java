@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
 import java.util.Arrays;
@@ -47,16 +48,15 @@ import java.util.List;
  * via {@code allocateAir}/{@code allocateVehicle}), never enter the dense
  * roster this system walks, and carry no POSITION component at all.
  *
- * <p><b>Mass model.</b> Each participant's mass is {@code radius²} ({@link
- * #weightOf}); a heavier {@code b} yields less, so a mech (radius 0.6, mass
+ * <p><b>Mass model.</b> Each participant's mass is {@code radius²}; a heavier
+ * {@code b} yields less, so a mech (radius 0.6, mass
  * 0.36) shoves a marine (radius 0.3, mass 0.09) roughly 4× as far as the
  * marine shoves back. Static emplacements ({@link
  * com.dillon.starsectormarines.battle.unit.UnitType#isStatic()} — turrets
  * and drone hubs) are immovable — infinite mass: a mover overlapping one
- * yields the full overlap ({@code weightOf(mover, immovable) == 1}), and an
- * immovable unit never accumulates an impulse of its own ({@link
- * #accumulate} skips it as the outer participant entirely, via {@link
- * #isImmovable}).
+ * yields the full overlap (weight 1), and an immovable unit never accumulates
+ * an impulse of its own ({@link #accumulate} skips it as the outer
+ * participant entirely).
  *
  * <p><b>Algorithm.</b> Two-phase, order-independent, single-threaded:
  * <ol>
@@ -133,6 +133,13 @@ public final class SeparationSystem {
     /** Below this separation distance, two units are treated as coincident and steered apart by the deterministic id-hash tiebreak instead of a (division-by-zero) normalized delta. */
     private static final float COINCIDENT_EPS = 1e-4f;
 
+    private static final byte PARTICIPATES = 1;
+    private static final byte IMMOVABLE = 1 << 1;
+    private static final byte MECH = 1 << 2;
+    private static final byte HAS_MECH_LOADOUT = 1 << 3;
+    private static final byte ESCAPE_ACTIVE = 1 << 4;
+    private static final byte ACTIVE_PATH = 1 << 5;
+
     private final UnitRosterService roster;
     private final World world;
     private final UnitSpatialIndex unitIndex;
@@ -153,6 +160,18 @@ public final class SeparationSystem {
      */
     private float[] impulseX = new float[0];
     private float[] impulseY = new float[0];
+    /**
+     * Per-tick collision view keyed by dense roster slot. Separation evaluates
+     * the same nearby unit many times, so its immutable-for-this-pass position,
+     * footprint and classifications are read once instead of re-probing ECS
+     * components for every candidate pair.
+     */
+    private float[] collisionX = new float[0];
+    private float[] collisionY = new float[0];
+    private float[] collisionRadius = new float[0];
+    private float[] collisionMass = new float[0];
+    private byte[] collisionFlags = new byte[0];
+    private byte[] collisionFaction = new byte[0];
     /** Reused member buffer for one squad's active-path formation participants. */
     private long[] formationMembers = new long[0];
     /** Two-float reusable return buffer for path-heading calculation. */
@@ -184,6 +203,7 @@ public final class SeparationSystem {
         Arrays.fill(impulseX, 0, liveCount, 0f);
         Arrays.fill(impulseY, 0, liveCount, 0f);
         long[] dense = roster.denseArray();
+        cacheCollisionState(dense, liveCount);
 
         accumulate(dense, liveCount);
         accumulateSquadFormations(dense, liveCount, dt);
@@ -193,25 +213,40 @@ public final class SeparationSystem {
     private void accumulate(long[] dense, int liveCount) {
         for (int i = 0; i < liveCount; i++) {
             long a = dense[i];
-            if (!participates(a) || isImmovable(a)) continue;
-            float ax = world.x(a);
-            float ay = world.y(a);
-            float ra = radiusOf(a);
-            unitIndex.gather(ax, ay, neighborQueryRadius(a), scratch);
+            byte aFlags = collisionFlags[i];
+            if (!hasFlag(aFlags, PARTICIPATES)
+                    || hasFlag(aFlags, IMMOVABLE)) continue;
+            float ax = collisionX[i];
+            float ay = collisionY[i];
+            float ra = collisionRadius[i];
+            float queryRadius = hasFlag(aFlags, MECH)
+                    ? MECH_FORMATION_QUERY_RADIUS : QUERY_RADIUS;
+            unitIndex.gather(ax, ay, queryRadius, scratch);
             for (int k = 0, n = scratch.size; k < n; k++) {
                 long b = scratch.ids[k];
-                if (b == a || !participates(b)) continue;
-                if (allowsMechPassThrough(a, b)) continue;
-                float bx = world.x(b);
-                float by = world.y(b);
-                float rb = radiusOf(b);
+                if (b == a) continue;
+                int j = roster.indexOf(b);
+                if (j == UnitRosterService.INVALID_INDEX) continue;
+                byte bFlags = collisionFlags[j];
+                if (!hasFlag(bFlags, PARTICIPATES)) continue;
+                if (hasFlag(aFlags, HAS_MECH_LOADOUT)
+                        && hasFlag(bFlags, HAS_MECH_LOADOUT)
+                        && (hasFlag(aFlags, ESCAPE_ACTIVE)
+                        || hasFlag(bFlags, ESCAPE_ACTIVE))) continue;
+                float bx = collisionX[j];
+                float by = collisionY[j];
+                float rb = collisionRadius[j];
                 float sumR = ra + rb;
                 float dx = ax - bx;
                 float dy = ay - by;
                 float dist2 = dx * dx + dy * dy;
                 float dist = (float) Math.sqrt(dist2);
                 float physicalOverlap = Math.max(0f, sumR - dist);
-                float formationGap = movingAlliedMechPair(a, b)
+                float formationGap = hasFlag(aFlags, MECH)
+                        && hasFlag(bFlags, MECH)
+                        && collisionFaction[i] == collisionFaction[j]
+                        && (hasFlag(aFlags, ACTIVE_PATH)
+                        || hasFlag(bFlags, ACTIVE_PATH))
                         ? Math.max(0f, MECH_FORMATION_MIN_DISTANCE - Math.max(dist, sumR))
                         : 0f;
                 if (physicalOverlap <= 0f && formationGap <= 0f) continue;
@@ -232,11 +267,53 @@ public final class SeparationSystem {
 
                 float correction = physicalOverlap * STIFFNESS
                         + formationGap * FORMATION_STIFFNESS;
-                float mag = weightOf(a, b) * correction;
+                float weight = hasFlag(bFlags, IMMOVABLE)
+                        ? 1f
+                        : collisionMass[j]
+                        / (collisionMass[i] + collisionMass[j]);
+                float mag = weight * correction;
                 impulseX[i] += dirX * mag;
                 impulseY[i] += dirY * mag;
             }
         }
+    }
+
+    private void cacheCollisionState(long[] dense, int liveCount) {
+        for (int i = 0; i < liveCount; i++) {
+            long id = dense[i];
+            float radius = roster.radius(id);
+            byte flags = 0;
+            if (roster.isAliveById(id)
+                    && !world.hasKinematics(id) && radius > 0f) {
+                flags |= PARTICIPATES;
+            }
+            UnitType type = roster.identity().type(id);
+            if (type.isStatic()
+                    || roster.role().role(id) == UnitRole.STRUCTURE) {
+                flags |= IMMOVABLE;
+            }
+            if (type.isMech()) {
+                flags |= MECH;
+                if (hasActivePath(id)) flags |= ACTIVE_PATH;
+            }
+            if (world.hasMechLoadout(id)) {
+                flags |= HAS_MECH_LOADOUT;
+                if (world.mechLoadout(id).collisionEscapeActive) {
+                    flags |= ESCAPE_ACTIVE;
+                }
+            }
+            collisionX[i] = world.x(id);
+            collisionY[i] = world.y(id);
+            collisionRadius[i] = radius;
+            collisionMass[i] = radius * radius;
+            collisionFlags[i] = flags;
+            collisionFaction[i] =
+                    (byte) roster.identity().faction(id).ordinal();
+        }
+    }
+
+    private static boolean hasFlag(byte flags, byte flag) {
+        return (flags & flag) != 0;
     }
 
     private void accumulateSquadFormations(long[] dense, int liveCount, float dt) {
@@ -640,16 +717,6 @@ public final class SeparationSystem {
         }
     }
 
-    private float neighborQueryRadius(long id) {
-        return isMech(id) ? MECH_FORMATION_QUERY_RADIUS : QUERY_RADIUS;
-    }
-
-    private boolean movingAlliedMechPair(long a, long b) {
-        return isMech(a) && isMech(b)
-                && roster.identity().faction(a) == roster.identity().faction(b)
-                && (hasActivePath(a) || hasActivePath(b));
-    }
-
     private boolean isMech(long id) {
         return roster.identity().type(id).isMech();
     }
@@ -671,8 +738,8 @@ public final class SeparationSystem {
                 iy *= scale;
             }
             long a = dense[i];
-            float ax = world.x(a);
-            float ay = world.y(a);
+            float ax = collisionX[i];
+            float ay = collisionY[i];
             float nx = ax + ix;
             float ny = ay + iy;
             float appliedX, appliedY;
@@ -696,65 +763,6 @@ public final class SeparationSystem {
             }
             foldIntoVelocity(a, appliedX / dt, appliedY / dt);
         }
-    }
-
-    /** Participant gate: alive, has a footprint, and isn't steered by its own continuous-flight body. See the class doc for why each clause is there. */
-    private boolean participates(long id) {
-        return roster.isAliveById(id)
-                && !world.hasKinematics(id)
-                && roster.radius(id) > 0f;
-    }
-
-    private float radiusOf(long id) {
-        return roster.radius(id);
-    }
-
-    /**
-     * A mech that has been unable to reduce its path distance for the escape
-     * delay ignores only another mech's soft collision impulse. This prevents
-     * face-to-face walker deadlocks without letting it clip a wall or erase
-     * normal infantry spacing.
-     */
-    private boolean allowsMechPassThrough(long a, long b) {
-        if (!world.hasMechLoadout(a) || !world.hasMechLoadout(b)) return false;
-        return world.mechLoadout(a).collisionEscapeActive
-                || world.mechLoadout(b).collisionEscapeActive;
-    }
-
-    /**
-     * Fraction of a pair's overlap that {@code a} yields toward {@code b}:
-     * inverse-mass weighting, {@code w = m(b) / (m(a) + m(b))} with
-     * {@code m = radius²}. A heavier {@code b} yields less push onto itself,
-     * so {@code a} absorbs more of the overlap — a mech barely moves for a
-     * marine. {@code b} immovable ⇒ infinite mass ⇒ {@code w = 1} ({@code a}
-     * yields the overlap in full); {@code a} immovable never reaches here
-     * ({@link #accumulate} skips it via {@link #isImmovable} before calling
-     * this).
-     */
-    private float weightOf(long a, long b) {
-        if (isImmovable(b)) return 1f;
-        float ma = massOf(a);
-        float mb = massOf(b);
-        return mb / (ma + mb);
-    }
-
-    private float massOf(long id) {
-        float r = radiusOf(id);
-        return r * r;
-    }
-
-    /**
-     * Infinite-mass participants: emplacements ({@code UnitType.isStatic()} —
-     * turrets and drone hubs, the two types spawned without a {@code MOVEMENT}
-     * component; see {@link UnitRosterService#adopt}) push but are never
-     * pushed — they hold their emplacement anchor. {@link UnitRole#STRUCTURE}
-     * is checked too for forward compatibility with any future non-static
-     * role that wants the same treatment, but every emplacement type today is
-     * covered by {@code isStatic()} alone. Matches the immovable
-     * classification the story doc's Algorithm section specifies.
-     */
-    private boolean isImmovable(long id) {
-        return roster.identity().type(id).isStatic() || roster.role().role(id) == UnitRole.STRUCTURE;
     }
 
     /**
@@ -797,6 +805,12 @@ public final class SeparationSystem {
         int newCap = Math.max(required, Math.max(64, impulseX.length * 2));
         impulseX = new float[newCap];
         impulseY = new float[newCap];
+        collisionX = new float[newCap];
+        collisionY = new float[newCap];
+        collisionRadius = new float[newCap];
+        collisionMass = new float[newCap];
+        collisionFlags = new byte[newCap];
+        collisionFaction = new byte[newCap];
     }
 
     private void ensureFormationCapacity(int required) {

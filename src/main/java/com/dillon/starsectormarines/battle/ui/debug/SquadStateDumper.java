@@ -185,15 +185,21 @@ public final class SquadStateDumper {
         contactPicture.put("primaryCellY", picture.primaryCellY());
         contactPicture.put("primaryConfidence", picture.primaryConfidence());
         contactPicture.put("doctrine", picture.doctrine().name());
+        contactPicture.put("contactInitiative", picture.contactInitiative().name());
+        contactPicture.put("primaryEngageableMembers",
+                picture.primaryEngageableMembers());
+        contactPicture.put("liveMembers", picture.liveMembers());
+        contactPicture.put("primaryEngageableFireTeams",
+                picture.primaryEngageableFireTeams());
+        contactPicture.put("liveFireTeams", picture.liveFireTeams());
         boolean holdReactionFresh = TacticalScoring.contactHoldIsFresh(
                 squad, picture, sim.simTickIndex);
         contactPicture.put("holdReactionFresh", holdReactionFresh);
         contactPicture.put("holdAfterLosWindowTicks",
                 TacticalScoring.HOLD_AFTER_LOS_TICKS);
         contactPicture.put("advanceHardHoldActive",
-                picture.posture() == SquadContactPicture.Posture.ADVANCING
-                        && picture.doctrine() == SquadContactPicture.Doctrine.HOLD
-                        && holdReactionFresh);
+                TacticalScoring.shouldHardHoldAdvance(squad, picture,
+                        sim.simTickIndex));
         contactPicture.put("doctrineChangedThisTick",
                 squad._contactDoctrineChangedThisTick);
         contactPicture.put("primaryEvidence",
