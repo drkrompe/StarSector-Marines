@@ -243,6 +243,7 @@ public final class MarineArmory implements Serializable {
         unlockSecondary(MarineSecondary.ROCKET_LAUNCHER);
         unlockSecondary(MarineSecondary.ANTI_MATERIEL_RIFLE);
         unlockSecondary(MarineSecondary.SMOKE_GRENADE);
+        unlockSecondary(MarineSecondary.SATCHEL_CHARGE);
         unlockArmor(MarineArmorPattern.ARMORLESS);
         unlockArmor(MarineArmorPattern.CHARCOAL);
         unlockArmor(MarineArmorPattern.ARMY_GREEN);
@@ -253,6 +254,7 @@ public final class MarineArmory implements Serializable {
         printedGear.put(secondaryKey(MarineSecondary.ROCKET_LAUNCHER), 2);
         printedGear.put(secondaryKey(MarineSecondary.ANTI_MATERIEL_RIFLE), 1);
         printedGear.put(secondaryKey(MarineSecondary.SMOKE_GRENADE), 2);
+        printedGear.put(secondaryKey(MarineSecondary.SATCHEL_CHARGE), 2);
         printedGear.put(armorKey(MarineArmorPattern.ARMORLESS), 12);
         printedGear.put(armorKey(MarineArmorPattern.CHARCOAL), 6);
         printedGear.put(armorKey(MarineArmorPattern.ARMY_GREEN), 4);
@@ -319,6 +321,8 @@ public final class MarineArmory implements Serializable {
         putAtLeast(secondaryKey(MarineSecondary.ANTI_MATERIEL_RIFLE), 1);
         unlockSecondary(MarineSecondary.SMOKE_GRENADE);
         putAtLeast(secondaryKey(MarineSecondary.SMOKE_GRENADE), 2);
+        unlockSecondary(MarineSecondary.SATCHEL_CHARGE);
+        putAtLeast(secondaryKey(MarineSecondary.SATCHEL_CHARGE), 2);
         fabricationMaterials = Math.max(0, fabricationMaterials);
         victories = Math.max(0, victories);
         highRiskVictories = Math.max(0, highRiskVictories);

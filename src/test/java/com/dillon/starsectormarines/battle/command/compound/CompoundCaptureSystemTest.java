@@ -133,11 +133,8 @@ public class CompoundCaptureSystemTest {
 
     @Test
     public void marineHeldFlipsToContestedOnDefenderEntry() {
-        // V2 reverse path is wired but dormant in V1 — no production trigger
-        // drops defenders into a marine-held zone. This test simulates a
-        // future AutoGarrisonTrigger directly (synthetic defender unit) and
-        // pins that the state machine flips correctly. V1 production code
-        // shouldn't ever drive this branch.
+        // Synthetic defender ingress covers the recapture path after a
+        // marine garrison or defender reinforcement reaches the compound.
         BattleSimulation sim = openSim();
         CompoundService service = new CompoundService();
         CompoundCaptureSystem system = new CompoundCaptureSystem();
@@ -152,7 +149,7 @@ public class CompoundCaptureSystemTest {
         assertEquals(CompoundService.CompoundState.MARINE_HELD,
                 service.getRecord(node).state);
 
-        // Synthetic v2-style defender ingress.
+        // Synthetic defender ingress.
         sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MILITIA, 5, 5));
         tickN(system, sim, service, 1);
         assertEquals(CompoundService.CompoundState.CONTESTED,

@@ -19,11 +19,10 @@ import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
  * accumulator field is pure tick-pacing plumbing, same shape as the
  * accumulator in {@link com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementService}.
  *
- * <p>V1 ships forward transitions only — the MARINE_HELD &rarr; CONTESTED
- * branch is wired but dormant because no v1 production driver pushes
- * defenders into a marine-held zone. V2's {@code AutoGarrisonTrigger}
- * shuttle-drops defenders into recently-captured compounds and lights the
- * branch up without any state-machine changes here.
+ * <p>The same state machine handles capture and recapture. A defender
+ * re-entering a marine-held compound returns it to {@code CONTESTED}; the
+ * existing defender reinforcement path can then drive it back to
+ * {@code DEFENDER_HELD} without a state-machine rewrite.
  */
 public final class CompoundCaptureSystem {
 
@@ -82,9 +81,7 @@ public final class CompoundCaptureSystem {
                         }
                     } else if (defendersPresent && !marinesPresent) {
                         // Symmetric recovery: defenders alone in a contested
-                        // zone push it back to DEFENDER_HELD. Fires in v1 as
-                        // the natural "marines started the capture and got
-                        // pushed off" path.
+                        // zone push it back to DEFENDER_HELD during capture or recapture.
                         r.holdTimer += CAPTURE_TICK_PERIOD;
                         r.captureProgress = Math.min(1f,
                                 r.holdTimer / CompoundService.DEFENDER_HOLD_TIME);
@@ -101,13 +98,10 @@ public final class CompoundCaptureSystem {
                     // naturally.
                 }
                 case MARINE_HELD -> {
-                    // V2 reverse path: defender re-entry flips MARINE_HELD →
-                    // CONTESTED, and the CONTESTED branch above accumulates
-                    // toward DEFENDER_HELD. Wired now so the AutoGarrisonTrigger
-                    // lands as a v2 trigger registration and not a state-machine
-                    // rewrite. In v1 no production path drops defenders into a
-                    // marine-held zone, so this branch is dormant — MARINE_HELD
-                    // is effectively absorbing.
+                    // Defender re-entry flips MARINE_HELD → CONTESTED and
+                    // the CONTESTED branch above accumulates toward
+                    // DEFENDER_HELD. This is the recapture path; no separate
+                    // state-machine variant is needed for a garrison cycle.
                     if (defendersPresent) {
                         r.state = CompoundService.CompoundState.CONTESTED;
                         r.holdTimer = 0f;

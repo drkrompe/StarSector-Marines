@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.battle.turret;
 
+import com.dillon.starsectormarines.battle.combat.PendingDetonation;
+import com.dillon.starsectormarines.battle.combat.ShotEvent;
+import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -9,6 +12,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
 /**
  * Coverage for {@link TurretBehavior}'s ferry between a turret's
@@ -20,6 +24,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class TurretBehaviorTest {
 
     private static BattleSimulation openArena(int w, int h) {
+        return openArena(w, h, BattleSimulation.DEFAULT_SEED);
+    }
+
+    private static BattleSimulation openArena(int w, int h, long seed) {
         NavigationGrid grid = new NavigationGrid(w, h);
         CellTopology topology = new CellTopology(w, h);
         for (int y = 0; y < h; y++) {
@@ -27,7 +35,7 @@ public class TurretBehaviorTest {
                 grid.setWalkableFloor(x, y);
             }
         }
-        return new BattleSimulation(grid, topology);
+        return new BattleSimulation(grid, topology, seed);
     }
 
     @Test
@@ -45,7 +53,7 @@ public class TurretBehaviorTest {
 
     @Test
     public void burstKindLatchesRemainingRoundsIntoTurretStateOnFire() {
-        BattleSimulation sim = openArena(40, 40);
+        BattleSimulation sim = openArena(40, 40, 12345L);
         long turret = sim.spawn(MapTurret.create("t0", Faction.DEFENDER, TurretKind.VULCAN, 10, 10));
         // Due north of the turret (same cellX): bearing-to-target is exactly 0°,
         // matching the turret's zero-init facingDegrees, so the fire-arc gate
@@ -65,5 +73,54 @@ public class TurretBehaviorTest {
                 "firing resets the recoil timer so the renderer's slide restarts");
         assertEquals(0f, sim.turretState().facingDegrees(id), 1e-4f,
                 "already aligned with the due-north bearing — no slew needed to fire");
+    }
+
+    @Test
+    public void hephaestusIsAuthoredAsTheSlowDirectHitAntiArmorCannon() {
+        TurretKind cannon = TurretKind.HEPHAESTUS;
+
+        assertEquals("Hephaestus Heavy Cannon", cannon.displayName);
+        assertEquals(32f, cannon.range, 0f);
+        assertEquals(117f, cannon.contactDamage(), 0f);
+        assertEquals(24f, cannon.contactPenetration(), 0f);
+        assertEquals(45f, cannon.damage, 0f, "area payload damage");
+        assertEquals(4f, cannon.penetration(), 0f, "area payload penetration");
+        assertEquals(4.5f, cannon.cooldown, 0f);
+        assertEquals(0.65f, cannon.accuracy, 0f);
+        assertEquals(1.6f, cannon.aoeRadius, 0f);
+        assertEquals(30, cannon.wallDamage);
+        assertEquals(1.25f, cannon.wallDamageRadius, 0f);
+        assertSame(ImpactProfile.CANNON_HE, cannon.impactProfile());
+        assertEquals(1, cannon.burstCount);
+    }
+
+    @Test
+    public void hephaestusBehaviorFiresOneHeavyCannonRoundAndEntersTheFullCooldown() {
+        BattleSimulation sim = openArena(50, 50, 12345L);
+        long turret = sim.spawn(MapTurret.create(
+                "hephaestus", Faction.DEFENDER, TurretKind.HEPHAESTUS, 10, 10));
+        long enemy = sim.spawn(new EntitySpec(
+                "m0", Faction.MARINE, UnitType.MARINE, 10, 20));
+        sim.spawn(new EntitySpec(
+                "out-of-range-mech", Faction.MARINE, UnitType.HEAVY_MECH, 10, 45));
+
+        TurretBehavior.INSTANCE.update(turret, sim);
+
+        assertEquals(1, sim.getShotsThisFrame().size());
+        ShotEvent shot = sim.getShotsThisFrame().get(0);
+        assertSame(TurretKind.HEPHAESTUS, shot.turretKind);
+        assertSame(ImpactProfile.CANNON_HE, shot.impactProfile());
+        assertEquals(1, sim.getInflightDetonations().size(),
+                "single-shot cannon must queue its timed area payload through the turret fire path");
+        PendingDetonation blast = sim.getInflightDetonations().get(0);
+        assertEquals(enemy, blast.directTargetId,
+                "an out-of-range armored target cannot starve the in-range contact");
+        assertEquals(117f, blast.directDamage, 0f);
+        assertEquals(24f, blast.directPenetration, 0f);
+        assertEquals(45f, blast.damage, 0f);
+        assertEquals(4f, blast.penetration, 0f);
+        assertEquals(0, sim.turretState().burstRemaining(turret));
+        assertEquals(4.5f, sim.world().cooldownTimer(turret), 1e-4f,
+                "the cannon fires once and pays its deliberately slow cycle");
     }
 }

@@ -11,13 +11,23 @@ public record SpecialEquipmentDef(
         int startingAmmo,
         String aimSpritePath,
         String armoryIconPath,
-        SmokeGrenadeSpec smokeGrenadeSpec) implements Serializable {
+        SmokeGrenadeSpec smokeGrenadeSpec,
+        SatchelChargeSpec satchelChargeSpec) implements Serializable {
 
     public SpecialEquipmentDef(String id, String displayName,
                                SpecialActivation activation, String weaponId,
                                int startingAmmo, String aimSpritePath,
                                String armoryIconPath) {
         this(id, displayName, activation, weaponId, startingAmmo,
-                aimSpritePath, armoryIconPath, null);
+                aimSpritePath, armoryIconPath, null, null);
+    }
+
+    public SpecialEquipmentDef(String id, String displayName,
+                               SpecialActivation activation, String weaponId,
+                               int startingAmmo, String aimSpritePath,
+                               String armoryIconPath,
+                               SmokeGrenadeSpec smokeGrenadeSpec) {
+        this(id, displayName, activation, weaponId, startingAmmo,
+                aimSpritePath, armoryIconPath, smokeGrenadeSpec, null);
     }
 }

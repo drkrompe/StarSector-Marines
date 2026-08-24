@@ -9,11 +9,12 @@ import com.dillon.starsectormarines.battle.unit.Faction;
  * accumulates fractionally over time (driven by alive compounds) and is
  * debited in whole units by dispatch layers.
  *
- * <p>Production is compound-driven: each alive ARMORY ticks
- * {@link ResourceType#REINFORCEMENT} for its owning faction; each alive
- * COMMAND_POST ticks {@link ResourceType#AIRSTRIKE}. Capturing a compound
- * permanently removes its contribution — the resource rate degrades
- * proportionally as compounds fall.
+ * <p>Production is compound-driven: an ARMORY contributes
+ * {@link ResourceType#REINFORCEMENT} to its current owning faction, while the
+ * COMMAND_POST airstrike channel is reserved for the same ownership model.
+ * Capturing transfers a compound's contribution from defender to marine rather
+ * than deleting it; current reinforcement means consume defender-side pools,
+ * while marine accumulation remains available to a future delivery policy.
  *
  * <p>Follows the {@code *Service} convention — state owner, ticked by
  * {@link BattleSimulation}. Dispatch layers ({@link

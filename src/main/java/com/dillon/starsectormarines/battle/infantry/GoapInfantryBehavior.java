@@ -83,17 +83,19 @@ public final class GoapInfantryBehavior implements UnitBehavior {
 
     /**
      * Lifecycle prep called once before {@link Action#execute} each tick:
-     * advance the rocket-aim animation if mid-aim (short-circuits the action
+     * advance a committed special-equipment action if active (short-circuits the action
      * for this tick), tick cooldowns, then opportunistically commit a rocket
      * if the current action permits opportunity fire and a turret-of-opportunity
      * sits in range with LOS. Returns {@code false} when the unit is locked in
      * aim (existing or freshly initiated) — caller should skip
-     * {@code action.execute} this frame.
+     * {@code action.execute} this frame. Satchels use this seam only for a
+     * hardened target already in contact range; they never author an approach.
      */
     public static boolean prepareForAction(long unit, BattleControl sim,
                                            boolean permitsOpportunityFire) {
         if (InfantryUnitPrep.tickAimAndShortCircuit(unit, sim)) return false;
         InfantryUnitPrep.tickCooldowns(unit, sim.world());
+        if (SatchelTactics.evadeFriendlyCharge(unit, sim)) return false;
         if (permitsOpportunityFire && InfantryUnitPrep.tryOpportunitySpecial(unit, sim)) return false;
         return true;
     }

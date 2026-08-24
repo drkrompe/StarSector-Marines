@@ -1021,7 +1021,7 @@ public final class BattleSetup {
         // hardpoint fell. ConquestObjective reads CompoundService and
         // latches when every defender compound is MARINE_HELD. Defender
         // side keeps the elimination shape so "every marine died" still
-        // terminates the battle. See roadmap/conquest/central-keep.md
+        // terminates the battle. See conquest-nouns.md
         // slice 4.
         sim.addObjective(new ConquestObjective(sim.getCompoundService()));
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
@@ -1143,7 +1143,7 @@ public final class BattleSetup {
      *       depleted compound. {@link CounterattackSystem} (installed via
      *       {@link BattleSimulation#setCounterattackSystem}) rides the same
      *       {@link RecaptureTargetService} to stage the offensive-inverse
-     *       bulge — see {@code roadmap/conquest/stories/biome-counterattack.md}.</li>
+     *       bulge — see {@code reinforcement-nouns.md}.</li>
      *   <li><b>Everything else:</b> {@link GarrisonDepletedTrigger} — defender
      *       compound strength drops below threshold. Only reacts to
      *       COMMAND_POST/BARRACKS/ARMORY, not the wider defender node set.</li>

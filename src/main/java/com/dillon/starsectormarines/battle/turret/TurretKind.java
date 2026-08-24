@@ -73,13 +73,16 @@ public enum TurretKind {
                   "flak_fire",
                   "Dual Flak Cannon",
                   26f, 36.0f, 0.40f,  0.80f, 75f, 100f, 2.0f, 0.28f, TurretRole.A2G,  80),
-    /** Heavy assault — high DPS at medium range. */
+    /** Slow medium-range cannon — high-penetration direct contact plus a lower-penetration HE blast. */
     HEPHAESTUS   ("graphics/weapons/hephaestus_turret_base.png",
                   "graphics/weapons/hephaestus_turret_recoil.png",
                   "graphics/missiles/shell_hephag.png",
                   "hephaestus_fire",
-                  "Hephaestus Assault Gun",
-                  32f, 58.5f, 0.50f,  1.20f, 90f,  75f, 2.2f, 0.35f, TurretRole.A2G,  50),
+                  "Hephaestus Heavy Cannon",
+                  32f, 45.0f, 0.65f,  4.50f, 90f,  75f, 2.2f, 0.35f, TurretRole.A2G,  50,
+                  /*burst*/ 1, 0f, /*aoe*/ 1.6f, /*wallDmg*/ 30, /*wallDmgRadius*/ 1.25f,
+                  /*arc*/ 0f, /*flightSec*/ 0.55f, /*hitSpread*/ 0.14f,
+                  /*minRange*/ 0f, /*smokeTrail*/ false),
     /**
      * Burst-fire grenade launcher — shuttle-mounted indirect-fire pod that lobs
      * a 4-round salvo of arc'd grenades with a smoke trail, then waits out a
@@ -359,12 +362,32 @@ public enum TurretKind {
         return switch (this) {
             case VULCAN -> 3f;
             case ARBALEST -> 8f;
-            case HEAVY_MORTAR, HEPHAESTUS -> 10f;
+            case HEAVY_MORTAR -> 10f;
+            case HEPHAESTUS -> 4f;
             case DUAL_FLAK -> 5f;
             case GRENADE_LAUNCHER -> 6f;
             case LOCUST -> 14f;
             case HEAVY_MG -> 4f;
         };
+    }
+
+    /**
+     * Damage delivered only to the actor physically contacted by the round.
+     * Zero means the weapon has no contact payload distinct from its ordinary
+     * direct or area damage.
+     */
+    public float contactDamage() {
+        return this == HEPHAESTUS ? 117f : 0f;
+    }
+
+    /** Armor penetration delivered only by {@link #contactDamage()}. */
+    public float contactPenetration() {
+        return this == HEPHAESTUS ? 24f : 0f;
+    }
+
+    /** Strongest penetration the targeting compatibility layer may consider. */
+    public float targetAffinityPenetration() {
+        return Math.max(penetration(), contactPenetration());
     }
 
     public float armorPool() {
@@ -412,15 +435,15 @@ public enum TurretKind {
         return this == LOCUST;
     }
 
-    /** Visual impact profile for this kind — small spark for light weapons, kinetic flash for autocannons, rocket HE for launchers, and heavy cannon HE for the mortar. */
+    /** Visual impact profile for this kind — small spark for light weapons, kinetic flash for autocannons, rocket HE for launchers, and heavy cannon HE for the mortar/cannon pair. */
     public ImpactProfile impactProfile() {
         switch (this) {
             case GRENADE_LAUNCHER:
             case LOCUST:                             return ImpactProfile.HE;
-            case HEAVY_MORTAR:                       return ImpactProfile.CANNON_HE;
+            case HEAVY_MORTAR:
+            case HEPHAESTUS:                         return ImpactProfile.CANNON_HE;
             case ARBALEST:
             case DUAL_FLAK:
-            case HEPHAESTUS:
             case HEAVY_MG:                           return ImpactProfile.KINETIC;
             case VULCAN:
             default:                                 return ImpactProfile.RIFLE;

@@ -234,8 +234,10 @@ public final class FacingSystem {
                 }
                 // Render-tier's frameIdx-out-of-range clamp (sheet-cache-dependent)
                 // stays out of this system — it authors the unclamped logical frame.
-                boolean smokeThrow = inAim && secondarySpec[r] == MarineSecondary.SMOKE_GRENADE;
-                sheetSel[r] = inAim && !smokeThrow
+                boolean utilityAction = inAim
+                        && (secondarySpec[r] == MarineSecondary.SMOKE_GRENADE
+                        || secondarySpec[r] == MarineSecondary.SATCHEL_CHARGE);
+                sheetSel[r] = inAim && !utilityAction
                         ? LiveAppearance.SHEET_SECONDARY_AIM
                         : LiveAppearance.SHEET_BASE;
 
@@ -410,7 +412,9 @@ public final class FacingSystem {
             boolean fired = secondaryFired[row] != 0 || progress >= 0.5f;
             boolean amr = secondary == MarineSecondary.ANTI_MATERIEL_RIFLE;
             boolean smoke = secondary == MarineSecondary.SMOKE_GRENADE;
+            boolean satchel = secondary == MarineSecondary.SATCHEL_CHARGE;
             authoredPose = smoke ? LayeredAppearance.POSE_SMOKE_THROW
+                    : satchel ? LayeredAppearance.POSE_SATCHEL_PLANT
                     : fired
                             ? (amr ? LayeredAppearance.POSE_AMR_FIRE
                                     : LayeredAppearance.POSE_ROCKET_FIRE)
@@ -418,10 +422,10 @@ public final class FacingSystem {
                                     : LayeredAppearance.POSE_ROCKET_AIM);
             authoredPhase = fired ? clamp01((progress - 0.5f) * 2f)
                     : clamp01(progress * 2f);
-            if (fired && !amr && !smoke) {
+            if (fired && !amr && !smoke && !satchel) {
                 authoredFlags |= LayeredAppearance.FLAG_WEAPON_OVER_SHOULDER;
             }
-            if (fired && !smoke) {
+            if (fired && !smoke && !satchel) {
                 float elapsedAfterFire = Math.max(0f, progress - 0.5f) * duration;
                 if (elapsedAfterFire <= LayeredAppearance.ROCKET_FLASH_SECONDS) {
                     authoredFlags |= LayeredAppearance.FLAG_MUZZLE_FLASH;

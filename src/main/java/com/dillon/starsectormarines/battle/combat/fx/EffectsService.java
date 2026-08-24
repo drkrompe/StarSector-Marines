@@ -6,8 +6,10 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * Owner of every transient visual side-effect the battle accumulates:
@@ -47,6 +49,8 @@ public final class EffectsService {
     /** Min/max sim-seconds between puff emissions on a single plume. Tighter than wreck cadence — impact smoke is denser per-second during its brief life. */
     private static final float PLUME_PUFF_MIN_GAP = 0.18f;
     private static final float PLUME_PUFF_MAX_GAP = 0.32f;
+    /** Opening burn on a cannon impact plume before it settles into smoke only. */
+    private static final float CANNON_PLUME_FIRE_DURATION = 1.25f;
 
     private final Random rng;
 
@@ -64,6 +68,8 @@ public final class EffectsService {
 
     private final List<SmokingWreck> smokingWrecks = new ArrayList<>();
     private final List<SmokePlume> smokePlumes = new ArrayList<>();
+    /** Identity membership keeps the ordinary plume data object and smoke-only API unchanged. */
+    private final Set<SmokePlume> cannonPlumes = Collections.newSetFromMap(new IdentityHashMap<>());
 
     private final List<float[]> smokePuffsThisFrame = new ArrayList<>();
     private final List<float[]> fireBurstsThisFrame = new ArrayList<>();
@@ -102,6 +108,18 @@ public final class EffectsService {
 
     public void spawnSmokePlume(float x, float y) {
         smokePlumes.add(new SmokePlume(x, y, PLUME_LIFETIME));
+    }
+
+    /**
+     * Spawns a heavy gun impact plume whose opening smoke puffs carry a brief
+     * flame burst before the ordinary smoke-only tail. Both layers use the
+     * existing per-frame drains, so every presentation host gets the same
+     * effect without a cannon-specific render path.
+     */
+    public void spawnBurningSmokePlume(float x, float y) {
+        SmokePlume plume = new SmokePlume(x, y, PLUME_LIFETIME);
+        smokePlumes.add(plume);
+        cannonPlumes.add(plume);
     }
 
     // ---- Dust ----
@@ -201,6 +219,7 @@ public final class EffectsService {
             p.remainingLifetime -= dt;
             if (p.remainingLifetime <= 0f) {
                 smokePlumes.remove(i);
+                cannonPlumes.remove(p);
                 continue;
             }
             p.nextPuffTimer -= dt;
@@ -211,6 +230,11 @@ public final class EffectsService {
                 // shrinking to invisible.
                 float radius = 0.45f + Math.max(0.20f, lifeFrac) * 0.55f;
                 smokePuffsThisFrame.add(new float[]{p.x, p.y, radius});
+                float age = p.totalLifetime - p.remainingLifetime;
+                if (cannonPlumes.contains(p) && age < CANNON_PLUME_FIRE_DURATION) {
+                    float fireRadius = 0.35f + lifeFrac * 0.35f;
+                    fireBurstsThisFrame.add(new float[]{p.x, p.y, fireRadius});
+                }
                 p.nextPuffTimer = PLUME_PUFF_MIN_GAP
                         + rng.nextFloat() * (PLUME_PUFF_MAX_GAP - PLUME_PUFF_MIN_GAP);
             }
