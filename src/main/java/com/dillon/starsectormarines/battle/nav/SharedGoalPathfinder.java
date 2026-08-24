@@ -7,10 +7,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
- * Tick-scoped reverse shortest-path fields for many movers sharing one goal.
- * The owner must call {@link #beginSnapshot()} after freezing occupancy and
- * before any concurrent requests. Fields are immutable for the remainder of
- * that snapshot and recycled at the next boundary.
+ * Bounded-cadence reverse shortest-path fields for many movers sharing one
+ * goal. The owner must call {@link #beginSnapshot()} after freezing occupancy
+ * and before any concurrent requests. Fields are immutable for the remainder
+ * of that snapshot and may retain that frozen occupancy view across a small,
+ * fixed number of later snapshots before rebuilding.
  */
 final class SharedGoalPathfinder {
 
@@ -18,35 +19,67 @@ final class SharedGoalPathfinder {
     private static final int UNSEEN = -1;
     private static final int CLOSED = -2;
     private static final int MAX_RETAINED_FIELDS = 32;
+    static final int DEFAULT_MAX_BUILD_AGE_SNAPSHOTS = 15;
 
     private final NavigationGrid grid;
     private final byte[] occupancy;
+    private final int maxBuildAgeSnapshots;
     private final ConcurrentHashMap<Long, ReverseField> fields =
             new ConcurrentHashMap<>();
     private final ConcurrentLinkedQueue<ReverseField> recycled =
             new ConcurrentLinkedQueue<>();
     private volatile boolean snapshotReady;
+    private long snapshotIndex;
 
     SharedGoalPathfinder(NavigationGrid grid, byte[] occupancy) {
-        this.grid = grid;
-        this.occupancy = occupancy;
+        this(grid, occupancy, DEFAULT_MAX_BUILD_AGE_SNAPSHOTS);
     }
 
-    /** Serial tick boundary: retire the old immutable fields for reuse. */
+    SharedGoalPathfinder(NavigationGrid grid, byte[] occupancy,
+                         int maxBuildAgeSnapshots) {
+        if (maxBuildAgeSnapshots < 1) {
+            throw new IllegalArgumentException(
+                    "maxBuildAgeSnapshots must be positive");
+        }
+        this.grid = grid;
+        this.occupancy = occupancy;
+        this.maxBuildAgeSnapshots = maxBuildAgeSnapshots;
+    }
+
+    /**
+     * Serial tick boundary: expire fields whose frozen occupancy view reached
+     * its fixed age, then publish the retained immutable fields to workers.
+     */
     void beginSnapshot() {
         snapshotReady = false;
-        int retained = recycled.size();
-        for (ReverseField field : fields.values()) {
-            if (retained >= MAX_RETAINED_FIELDS) break;
-            recycled.offer(field);
-            retained++;
-        }
-        fields.clear();
+        snapshotIndex++;
+        expireOldFields();
+        trimRetainedFields();
         snapshotReady = true;
     }
 
     void endSnapshot() {
         snapshotReady = false;
+        trimRetainedFields();
+    }
+
+    /**
+     * Serial topology boundary: drop every retained tree so a newly opened
+     * cell is visible to the next shared request immediately.
+     */
+    void invalidateAll() {
+        if (snapshotReady) {
+            throw new IllegalStateException(
+                    "cannot invalidate shared fields during a live snapshot");
+        }
+        for (var entry : fields.entrySet()) {
+            ReverseField field = entry.getValue();
+            if (fields.remove(entry.getKey(), field)) recycle(field);
+        }
+    }
+
+    int retainedFieldCountForTest() {
+        return fields.size();
     }
 
     int[] findPath(int startX, int startY, int goalX, int goalY,
@@ -67,7 +100,8 @@ final class SharedGoalPathfinder {
             int goalIdx = grid.index(goalX, goalY);
             long key = ((long) goalIdx << 1) | (cardinalOnly ? 1L : 0L);
             ReverseField field = fields.computeIfAbsent(key,
-                    ignored -> buildField(goalIdx, cardinalOnly));
+                    ignored -> buildField(
+                            goalIdx, cardinalOnly, snapshotIndex));
             long extractStart = System.nanoTime();
             int[] path = field.extract(startX, startY);
             TickInnerProfile profile = TickInnerProfile.current();
@@ -89,19 +123,65 @@ final class SharedGoalPathfinder {
         }
     }
 
-    private ReverseField buildField(int goalIdx, boolean cardinalOnly) {
+    private ReverseField buildField(int goalIdx, boolean cardinalOnly,
+                                    long builtSnapshot) {
         ReverseField field = recycled.poll();
         if (field == null) {
             field = new ReverseField(grid.getWidth(), grid.getHeight());
         }
         long buildStart = System.nanoTime();
         field.rebuild(grid, occupancy, goalIdx, cardinalOnly);
+        field.builtSnapshot = builtSnapshot;
         TickInnerProfile profile = TickInnerProfile.current();
         if (profile != null) {
             profile.record(TickInnerProfile.Bucket.SHARED_PATH_FIELD_BUILD,
                     System.nanoTime() - buildStart);
         }
         return field;
+    }
+
+    private void expireOldFields() {
+        for (var entry : fields.entrySet()) {
+            ReverseField field = entry.getValue();
+            if (snapshotIndex - field.builtSnapshot
+                    < maxBuildAgeSnapshots) {
+                continue;
+            }
+            if (fields.remove(entry.getKey(), field)) recycle(field);
+        }
+    }
+
+    /** Keeps the live cache bounded after every serial worker boundary. */
+    private void trimRetainedFields() {
+        while (fields.size() > MAX_RETAINED_FIELDS) {
+            Long victimKey = null;
+            ReverseField victim = null;
+            for (var entry : fields.entrySet()) {
+                ReverseField candidate = entry.getValue();
+                if (victim == null
+                        || candidate.builtSnapshot < victim.builtSnapshot
+                        || (candidate.builtSnapshot == victim.builtSnapshot
+                        && entry.getKey() < victimKey)) {
+                    victimKey = entry.getKey();
+                    victim = candidate;
+                }
+            }
+            if (victim == null
+                    || !fields.remove(victimKey, victim)) {
+                break;
+            }
+            recycle(victim);
+        }
+    }
+
+    /**
+     * Reuse an evicted workspace when doing so stays inside the same 32-field
+     * retained-memory budget as the live cache.
+     */
+    private void recycle(ReverseField field) {
+        if (fields.size() + recycled.size() < MAX_RETAINED_FIELDS) {
+            recycled.offer(field);
+        }
     }
 
     private static final class ReverseField {
@@ -113,6 +193,7 @@ final class SharedGoalPathfinder {
         private final int[] heapPos;
         private final int[] heap;
         private int goalIdx;
+        private long builtSnapshot;
 
         ReverseField(int width, int height) {
             this.width = width;
