@@ -86,6 +86,42 @@ Do not run builds or leave generated task files there.
   `<starsectorDir>/mods/StarsectorMarines/`.
 - `gradlew.bat runStarsector` → deploys then launches via `starsector-core/starsector.bat`.
 
+### Visual snapshot workflow
+
+`createSnapshots` is the only top-level task for deterministic visual evidence.
+Do not add per-domain Gradle tasks such as `renderTurretPreviews`; add a
+`SnapshotSuite` provider to the shared catalog instead. Both the Gradle task and
+the layer-authoring workbench consume that catalog, so a registered suite is
+available from automation and the editor without a second integration path.
+
+The discovered suite ids and default output directories are:
+
+| Suite | Evidence | Output |
+|-------|----------|--------|
+| `armory` | Loadout previews and their contact sheet | `build/snapshots/armory/` |
+| `layers` | One combined composition sheet per authored unit | `build/snapshots/layers/` |
+| `turrets` | Authored mount-state strips, including projectile and impact effects | `build/snapshots/turrets/` |
+| `ui` | Retained Marine Ops screens at authored viewport sizes | `build/snapshots/ui/` |
+
+Run all suites with `gradlew.bat createSnapshots`. Use
+`-Psnapshot=<id>` for one suite or a comma-separated selector for several; quote
+the whole property in PowerShell, for example
+`'-Psnapshot=layers,turrets'`. `-PsnapshotDir=<path>` changes the shared output
+root while retaining the per-suite subdirectories. Command-line generation
+replaces matching PNGs without prompting and does not remove stale files.
+
+Snapshot generation is tool/test infrastructure and must not enter the shipped
+mod jar. Keep reusable catalog and runner code in `:layer-authoring`, keep
+mod-specific providers in the root test source set, register providers through
+`META-INF/services`, and keep renderers deterministic and independent of a
+Starsector process or OpenGL context.
+
+The `layerAuthoring` workbench's **Snapshots** tab invokes the same catalog in
+process. It renders off the Swing event thread, confirms before replacing PNGs,
+and refuses to create `layers` evidence while the authoring document has unsaved
+changes. It can render all suites or one selected suite and, like the command,
+does not remove obsolete PNGs from earlier runs.
+
 ## Mod layout
 
 The `mod/` folder in this repo is what ships. `mod_info.json` lists the jar at
