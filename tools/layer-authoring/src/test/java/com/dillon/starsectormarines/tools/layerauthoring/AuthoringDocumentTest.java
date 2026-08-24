@@ -4,9 +4,16 @@ import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.Anima
 import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.FrameDefinition;
 import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.LayerDefinition;
 import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.UnitComposition;
+import com.dillon.starsectormarines.tools.layerauthoring.CompositionRenderer.RenderedLayer;
+import com.dillon.starsectormarines.tools.snapshot.LayerSnapshotSuite;
+import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
+import com.dillon.starsectormarines.tools.snapshot.SnapshotRunner;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.awt.BasicStroke;
+import java.awt.Graphics2D;
+import java.awt.Shape;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.nio.file.Files;
@@ -65,13 +72,48 @@ class AuthoringDocumentTest {
     }
 
     @Test
+    void unchangedSavePreservesSourceTextExactly(@TempDir Path temporary)
+            throws Exception {
+        AuthoringDocument source = AuthoringDocument.load(Path.of("."));
+        copyFixture(source, temporary);
+        AuthoringDocument editable = AuthoringDocument.load(temporary);
+        String before = Files.readString(editable.sourcePath());
+
+        editable.save();
+
+        assertEquals(before, Files.readString(editable.sourcePath()));
+    }
+
+    @Test
+    void scalarSavePreservesFormattingAndUnrelatedDefaults(@TempDir Path temporary)
+            throws Exception {
+        AuthoringDocument source = AuthoringDocument.load(Path.of("."));
+        copyFixture(source, temporary);
+        AuthoringDocument editable = AuthoringDocument.load(temporary);
+        String before = Files.readString(editable.sourcePath());
+        LayerDefinition layer = firstFrame(editable).layers().get(0);
+        layer.offset(-0.321, layer.offsetY());
+
+        editable.save();
+
+        String after = Files.readString(editable.sourcePath());
+        assertEquals(before.lines().count(), after.lines().count());
+        assertEquals(1L, differingLines(before, after));
+        assertTrue(after.contains("\"offset\": [-0.321, -0.2333]"));
+        assertFalse(after.contains("\"visible\""));
+        assertTrue(after.contains("Marine — army-green line kit"));
+    }
+
+    @Test
     void batchExporterWritesOneCombinedSheetPerUnit(@TempDir Path temporary)
             throws Exception {
-        LayerAuthoringWorkbench.exportAll(Path.of("."), temporary);
-        assertTrue(Files.size(temporary.resolve("marine-line-sheet.png")) > 10_000L);
-        assertTrue(Files.size(temporary.resolve("mech-bulwark-sheet.png")) > 10_000L);
-        assertTrue(Files.size(temporary.resolve("mech-hound-sheet.png")) > 10_000L);
-        assertTrue(Files.size(temporary.resolve("mech-sirocco-sheet.png")) > 10_000L);
+        new SnapshotRunner().create(new SnapshotContext(Path.of("."), Path.of(".")),
+                List.of(new LayerSnapshotSuite()), temporary, false);
+        Path layers = temporary.resolve("layers");
+        assertTrue(Files.size(layers.resolve("marine-line-sheet.png")) > 10_000L);
+        assertTrue(Files.size(layers.resolve("mech-bulwark-sheet.png")) > 10_000L);
+        assertTrue(Files.size(layers.resolve("mech-hound-sheet.png")) > 10_000L);
+        assertTrue(Files.size(layers.resolve("mech-sirocco-sheet.png")) > 10_000L);
     }
 
     @Test
@@ -144,8 +186,61 @@ class AuthoringDocumentTest {
         assertEquals(118.25, leftThigh.angleDegrees(), 0.000001);
     }
 
+    @Test
+    void selectionOverlayRendersAboveHigherZLayers() throws Exception {
+        AuthoringDocument document = AuthoringDocument.load(Path.of("."));
+        UnitComposition marine = document.units().get(0);
+        FrameDefinition frame = firstFrame(document);
+        CompositionRenderer renderer = new CompositionRenderer(Path.of("."));
+        int size = 500;
+        BufferedImage plain = renderer.renderFrame(marine, frame, size, size,
+                null, true);
+        BufferedImage selected = renderer.renderFrame(marine, frame, size, size,
+                "primary", true);
+        BufferedImage geometry = new BufferedImage(size, size,
+                BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = geometry.createGraphics();
+        List<RenderedLayer> layers = renderer.renderFrame(graphics, marine, frame,
+                size, size, null, false);
+        graphics.dispose();
+
+        RenderedLayer primary = layers.stream()
+                .filter(layer -> layer.layer().id().equals("primary"))
+                .findFirst().orElseThrow();
+        Shape selectedEdge = new BasicStroke(3f).createStrokedShape(primary.outline());
+        List<RenderedLayer> higherLayers = layers.stream()
+                .filter(layer -> layer.layer().z() > primary.layer().z()).toList();
+        int overlappedEdgePixels = 0;
+        int visibleOverlayPixels = 0;
+        for (int y = 0; y < size; y++) {
+            for (int x = 0; x < size; x++) {
+                double sampleX = x + 0.5;
+                double sampleY = y + 0.5;
+                boolean covered = higherLayers.stream()
+                        .anyMatch(layer -> layer.outline().contains(sampleX, sampleY));
+                if (!covered || !selectedEdge.contains(sampleX, sampleY)) continue;
+                overlappedEdgePixels++;
+                if (plain.getRGB(x, y) != selected.getRGB(x, y)) visibleOverlayPixels++;
+            }
+        }
+
+        assertTrue(overlappedEdgePixels > 0);
+        assertTrue(visibleOverlayPixels > 0);
+    }
+
     private static int[] pixels(BufferedImage image) {
         return ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
+    }
+
+    private static long differingLines(String before, String after) {
+        String[] beforeLines = before.split("\\R", -1);
+        String[] afterLines = after.split("\\R", -1);
+        assertEquals(beforeLines.length, afterLines.length);
+        long different = 0L;
+        for (int index = 0; index < beforeLines.length; index++) {
+            if (!beforeLines[index].equals(afterLines[index])) different++;
+        }
+        return different;
     }
 
     private static FrameDefinition firstFrame(AuthoringDocument document) {

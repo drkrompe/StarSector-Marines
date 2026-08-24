@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ui.retained.headless;
 
 import com.dillon.starsectormarines.ui.Fonts;
+import com.dillon.starsectormarines.ui.retained.CanvasBlend;
+import com.dillon.starsectormarines.ui.retained.CanvasSpriteRegion;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.UiLayout;
@@ -8,9 +10,13 @@ import com.dillon.starsectormarines.ui.retained.UiTag;
 import com.dillon.starsectormarines.ui.retained.style.StyleSheet;
 import com.dillon.starsectormarines.ui.retained.style.UiTheme;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
+import javax.imageio.ImageIO;
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Map;
@@ -45,6 +51,45 @@ class HeadlessUiRendererTest {
         assertTrue(Arrays.equals(firstPixels, secondPixels));
         assertTrue(Arrays.stream(firstPixels).distinct().count() > 80,
                 "boxes, borders, and the vanilla bitmap font should all be present");
+    }
+
+    @Test
+    void canvasSpritesShareAtlasTintAndBlendSemantics(@TempDir Path resourceRoot)
+            throws Exception {
+        Path asset = resourceRoot.resolve("graphics/test-atlas.png");
+        Files.createDirectories(asset.getParent());
+        BufferedImage atlas = new BufferedImage(2, 1, BufferedImage.TYPE_INT_ARGB);
+        atlas.setRGB(0, 0, new Color(240, 20, 220).getRGB());
+        atlas.setRGB(1, 0, Color.WHITE.getRGB());
+        ImageIO.write(atlas, "PNG", asset.toFile());
+
+        UiElement canvas = new UiElement("canvas")
+                .tag(UiTag.CANVAS)
+                .canvasSize(40, 20);
+        UiDocument document = new UiDocument(canvas);
+        Color background = new Color(10, 10, 10);
+        Color tint = new Color(120, 80, 40);
+        CanvasSpriteRegion secondFrame = CanvasSpriteRegion.frame(2, 1, 1);
+        document.canvases().set(canvas, context -> {
+            context.fillRect(0f, 0f, 40f, 20f, background);
+            context.sprite("graphics/test-atlas.png", null,
+                    10f, 10f, 12f, 12f, 0f, tint,
+                    secondFrame, CanvasBlend.NORMAL);
+            context.sprite("graphics/test-atlas.png", null,
+                    30f, 10f, 12f, 12f, 0f, tint,
+                    secondFrame, CanvasBlend.ADDITIVE);
+        });
+
+        BufferedImage result = new HeadlessUiRenderer(resourceRoot).render(document, 40, 20);
+        Color normal = new Color(result.getRGB(10, 10), true);
+        Color additive = new Color(result.getRGB(30, 10), true);
+
+        assertEquals(tint.getRed(), normal.getRed());
+        assertEquals(tint.getGreen(), normal.getGreen());
+        assertEquals(tint.getBlue(), normal.getBlue());
+        assertEquals(background.getRed() + tint.getRed(), additive.getRed());
+        assertEquals(background.getGreen() + tint.getGreen(), additive.getGreen());
+        assertEquals(background.getBlue() + tint.getBlue(), additive.getBlue());
     }
 
     private static HeadlessUiRenderer renderer() {

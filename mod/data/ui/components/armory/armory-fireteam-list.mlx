@@ -1,0 +1,39 @@
+<template props="fireTeamOverviews">
+  <div id="fireteam-rail" class="panel fireteam-rail">
+    <div id="fireteam-list-heading" class="label heading tone-edge">FIRE TEAMS</div>
+    <div id="fireteam-list-copy" class="label tone-muted">Choose a team to refit.</div>
+    <div id="fireteam-list" class="fireteam-list">
+      <button each="team in fireTeamOverviews" key="{team.id}" id="{team.id}" class="{team.classes}" onclick="{team.select}">
+        <div id="{team.nameId}" class="fire-team-name label tone-edge">{team.name}</div>
+        <div id="{team.statusId}" class="{team.statusClasses}">{team.status}</div>
+        <div id="{team.strengthId}" class="fire-team-strength label">{team.strength}</div>
+        <div id="{team.templateId}" class="fire-team-template label surface-dark">{team.template}</div>
+      </button>
+    </div>
+  </div>
+</template>
+
+<style>
+  .fireteam-rail { flex-direction: column; width: 210px; padding: 8px; gap: 5px; overflow: hidden; }
+  .label { overflow: hidden; }
+  .heading { font-family: heading; }
+  #fireteam-list-heading { height: 20px; }
+  #fireteam-list-copy { height: 34px; }
+  .fireteam-list { flex-direction: column; flex-grow: 1; gap: 7px; padding: 1px; overflow: scroll; }
+
+  .fire-team-overview {
+    flex-direction: column;
+    height: 124px;
+    padding: 7px;
+    gap: 4px;
+    border-width: 1px;
+    overflow: hidden;
+    font-family: body;
+    text-align: left;
+  }
+
+  .fire-team-name { height: 18px; }
+  .fire-team-status { height: 18px; }
+  .fire-team-strength { height: 18px; }
+  .fire-team-template { height: 30px; padding: 4px 5px; border-width: 1px; }
+</style>

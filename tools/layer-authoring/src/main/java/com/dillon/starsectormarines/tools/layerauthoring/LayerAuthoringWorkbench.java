@@ -57,12 +57,6 @@ public final class LayerAuthoringWorkbench {
 
     public static void main(String[] args) throws Exception {
         Path projectRoot = args.length > 0 ? Path.of(args[0]) : Path.of(".");
-        if (args.length > 1 && "--export-all".equals(args[1])) {
-            Path output = args.length > 2 ? Path.of(args[2])
-                    : projectRoot.resolve("build/layer-authoring");
-            exportAll(projectRoot, output);
-            return;
-        }
         if (GraphicsEnvironment.isHeadless()) {
             throw new IllegalStateException("Layer authoring UI requires a desktop display");
         }
@@ -75,17 +69,6 @@ public final class LayerAuthoringWorkbench {
                         "Layer authoring failed", JOptionPane.ERROR_MESSAGE);
             }
         });
-    }
-
-    static void exportAll(Path projectRoot, Path outputDirectory) throws Exception {
-        AuthoringDocument document = AuthoringDocument.load(projectRoot);
-        CompositionRenderer renderer = new CompositionRenderer(projectRoot);
-        Files.createDirectories(outputDirectory);
-        for (UnitComposition unit : document.units()) {
-            Path output = outputDirectory.resolve(unit.id() + "-sheet.png");
-            ImageIO.write(renderer.renderSheet(unit, 420, 420), "PNG", output.toFile());
-            System.out.println("Wrote " + output.toAbsolutePath());
-        }
     }
 
     private static final class WorkbenchFrame extends JFrame {
@@ -127,7 +110,6 @@ public final class LayerAuthoringWorkbench {
             reloadDocument();
             savedSnapshot = document.snapshot();
             timer = new Timer(40, this::animate);
-            timer.start();
             buildUi();
             bind();
             populateUnits();
@@ -140,6 +122,13 @@ public final class LayerAuthoringWorkbench {
             setMinimumSize(new Dimension(1050, 680));
             setSize(1320, 840);
             setLocationByPlatform(true);
+            timer.start();
+        }
+
+        @Override
+        public void dispose() {
+            timer.stop();
+            super.dispose();
         }
 
         private void buildUi() {
@@ -191,6 +180,8 @@ public final class LayerAuthoringWorkbench {
             JTabbedPane tabs = new JTabbedPane();
             tabs.addTab("Animation", canvas);
             tabs.addTab("Combined sheet", new JScrollPane(sheet));
+            tabs.addTab("Snapshots", new SnapshotPanel(projectRoot,
+                    starsectorCoreRoot(), () -> !dirty));
 
             JPanel inspector = inspector();
             JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
@@ -203,6 +194,13 @@ public final class LayerAuthoringWorkbench {
             add(top, BorderLayout.NORTH);
             add(split, BorderLayout.CENTER);
             add(status, BorderLayout.SOUTH);
+        }
+
+        private Path starsectorCoreRoot() {
+            String configured = System.getProperty("starsectorDir", "").trim();
+            return configured.isEmpty()
+                    ? projectRoot.resolve("starsector-core")
+                    : Path.of(configured).resolve("starsector-core");
         }
 
         private JPanel inspector() {
@@ -232,7 +230,8 @@ public final class LayerAuthoringWorkbench {
             panel.add(Box.createVerticalStrut(18));
             JLabel help = new JLabel("<html><b>Playback</b><br>Play samples only the selected "
                     + "animation and blends matching layers between keyframes.<br><br>"
-                    + "<b>Canvas</b><br>Click to select<br>Drag to position<br>"
+                    + "<b>Canvas</b><br>Click to select<br>Drag layer to position<br>"
+                    + "Drag gold handle to rotate<br>"
                     + "Wheel: scale<br>Shift-wheel: X only<br>Alt-wheel: Y only<br>"
                     + "Ctrl-wheel: rotate<br><br><b>History</b><br>Ctrl+Z: undo<br>"
                     + "Ctrl+Shift+Z: redo<br><br><b>Save</b><br>Ctrl+S opens a confirmation "
@@ -264,7 +263,7 @@ public final class LayerAuthoringWorkbench {
             bindSpinner(scaleY); bindSpinner(angle); bindSpinner(pivotX);
             bindSpinner(pivotY); bindSpinner(z); bindSpinner(duration);
             visible.addActionListener(event -> updateFromFields());
-            loop.addActionListener(event -> updateFromFields());
+            loop.addActionListener(event -> updateLoop());
             sprite.addActionListener(event -> updateFromFields());
             getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
                     KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK), "save");
@@ -463,9 +462,16 @@ public final class LayerAuthoringWorkbench {
             layer.visible(visible.isSelected());
             layer.spritePath(sprite.getText().trim());
             frame.durationMs(((Number) duration.getValue()).intValue());
-            animation().loop(loop.isSelected());
             finishHistoryChange();
             canvas.repaint();
+            sheet.repaint();
+        }
+
+        private void updateLoop() {
+            if (refreshing || animation() == null) return;
+            beginHistoryChange();
+            animation().loop(loop.isSelected());
+            finishHistoryChange();
             sheet.repaint();
         }
 

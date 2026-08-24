@@ -26,12 +26,14 @@ public final class AuthoringDocument {
     private final Path projectRoot;
     private final Path sourcePath;
     private final List<UnitComposition> units;
+    private String sourceTemplate;
 
     private AuthoringDocument(Path projectRoot, Path sourcePath,
-                              List<UnitComposition> units) {
+                              List<UnitComposition> units, String sourceTemplate) {
         this.projectRoot = projectRoot;
         this.sourcePath = sourcePath;
         this.units = units;
+        this.sourceTemplate = sourceTemplate;
     }
 
     public static AuthoringDocument load(Path projectRoot) throws IOException, JSONException {
@@ -41,6 +43,11 @@ public final class AuthoringDocument {
     }
 
     static AuthoringDocument parse(Path projectRoot, String sourceJson) throws JSONException {
+        return parse(projectRoot, sourceJson, sourceJson);
+    }
+
+    static AuthoringDocument parse(Path projectRoot, String sourceJson,
+                                   String sourceTemplate) throws JSONException {
         Path normalizedRoot = projectRoot.toAbsolutePath().normalize();
         Path source = normalizedRoot.resolve(RELATIVE_PATH).normalize();
         JSONObject root = new JSONObject(sourceJson);
@@ -52,7 +59,8 @@ public final class AuthoringDocument {
         for (int index = 0; index < unitArray.length(); index++) {
             units.add(UnitComposition.parse(unitArray.getJSONObject(index)));
         }
-        AuthoringDocument document = new AuthoringDocument(normalizedRoot, source, units);
+        AuthoringDocument document = new AuthoringDocument(normalizedRoot, source, units,
+                sourceTemplate);
         List<String> errors = document.validate();
         if (!errors.isEmpty()) {
             throw new IllegalArgumentException(String.join(System.lineSeparator(), errors));
@@ -62,6 +70,10 @@ public final class AuthoringDocument {
 
     String snapshot() throws JSONException {
         return toJson().toString();
+    }
+
+    String sourceTemplate() {
+        return sourceTemplate;
     }
 
     public Path projectRoot() {
@@ -149,14 +161,20 @@ public final class AuthoringDocument {
         Files.createDirectories(sourcePath.getParent());
         Path temporary = sourcePath.resolveSibling(sourcePath.getFileName()
                 + "." + UUID.randomUUID() + ".tmp");
-        Files.writeString(temporary, root.toString(2) + System.lineSeparator(),
-                StandardCharsets.UTF_8);
+        String output;
+        try {
+            output = JsonTextPatcher.patch(sourceTemplate, root);
+        } catch (IllegalArgumentException structuralChange) {
+            output = root.toString(2) + System.lineSeparator();
+        }
+        Files.writeString(temporary, output, StandardCharsets.UTF_8);
         try {
             Files.move(temporary, sourcePath, StandardCopyOption.ATOMIC_MOVE,
                     StandardCopyOption.REPLACE_EXISTING);
         } catch (AtomicMoveNotSupportedException unsupported) {
             Files.move(temporary, sourcePath, StandardCopyOption.REPLACE_EXISTING);
         }
+        sourceTemplate = output;
     }
 
     private JSONObject toJson() throws JSONException {
