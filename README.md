@@ -59,6 +59,7 @@ asset-pipeline/              Sister Gradle module for 3D asset import
   src/main/java/             Runtime classes bundled into the mod jar (mesh, skeleton, animation)
   src/tool/java/             Build-time importers (Assimp, LWJGL 3) — never shipped
   src/tool/resources/        Source assets (models, audio) processed at build time
+tools/layer-authoring/       Standalone sprite-layer editor and shared snapshot framework
 roadmap/                     Design docs, session logs, and feature-track plans
 ```
 
@@ -84,6 +85,8 @@ gradlew.bat build            # compile + test → mod/jars/StarsectorMarines.jar
 gradlew.bat deployMod        # sync mod/ into <starsectorDir>/mods/StarsectorMarines/
 gradlew.bat undeployMod      # remove the deployed copy
 gradlew.bat runStarsector    # deploy + launch the game
+gradlew.bat createSnapshots  # render all deterministic visual-evidence suites
+gradlew.bat layerAuthoring   # launch the marine/mech sprite-layer editor
 
 # Asset pipeline (only needed if you modify 3D models or source audio)
 gradlew.bat :asset-pipeline:processModels
@@ -96,6 +99,45 @@ compile-only dependencies and are never bundled.
 
 Bytecode targets Java 17 (`--release 17`) to match the Zulu 17 JRE that
 Starsector ships.
+
+### Visual snapshots and sprite authoring
+
+`createSnapshots` is the single entry point for headless visual evidence. It
+discovers snapshot suites from the shared catalog and renders them without
+launching Starsector or creating an OpenGL context.
+
+| Suite | Evidence |
+|-------|----------|
+| `armory` | Individual loadout previews and a contact sheet |
+| `layers` | One combined composition sheet per authored unit |
+| `turrets` | Mount-state strips with projectile and impact effects |
+| `ui` | Retained Marine Ops screens at authored viewport sizes |
+
+```powershell
+.\gradlew.bat createSnapshots
+.\gradlew.bat createSnapshots -Psnapshot=turrets
+.\gradlew.bat createSnapshots '-Psnapshot=layers,turrets'
+.\gradlew.bat createSnapshots -PsnapshotDir=build/review-snapshots
+```
+
+With no selector, every discovered suite runs. A selector may contain one id
+or a comma-separated set; quote comma-separated properties in PowerShell.
+Outputs are grouped beneath `build/snapshots/<suite>/` unless
+`-PsnapshotDir=<path>` supplies another common root. Command-line runs replace
+matching PNGs without prompting; they do not remove obsolete files left by an
+earlier run.
+
+The `layerAuthoring` workbench edits
+`mod/data/appearance/unit-layer-layouts.appearance.json` and exposes the same
+catalog through its **Snapshots** tab. Snapshot rendering runs in the
+background, asks before replacing PNGs, and requires pending layer edits to be
+saved before the `layers` suite runs. It can render all suites or one selected
+suite and does not remove obsolete PNGs. See
+[`tools/layer-authoring/README.md`](tools/layer-authoring/README.md) for the
+editor controls and data contract.
+
+New visual-evidence families extend the shared snapshot catalog rather than
+adding another top-level Gradle task.
 
 ## For modders
 
