@@ -1,10 +1,10 @@
 # Moddable Weapons
 
-Status: ACTIVE — handheld weapons are data-owned; turret catalog migration is in progress
+Status: ACTIVE — handheld and turret weapons are data-owned; mech catalog migration remains
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — defined turret catalog, optional appearance and shared preview-consumer boundaries.
+Updated: 2026-08-24 — folded the shipped turret platform, mount, FX and preview model.
 
 ## Purpose
 
@@ -63,11 +63,22 @@ definition and use only the portion they own. The currently shipped
 marine-primary handle delegates to that registry, so gameplay and catalog
 presentation do not retain a duplicate Java stat table.
 
+Turret catalogs load after weapons and resolve structure → mount → weapon
+references immediately. A static emplacement takes durability, collision
+geometry and force value from its structure; carriers such as shuttles and
+vehicles keep their own durability and geometry. Mount capacity, traverse and
+optional layered appearance remain mount policy, while the shared weapon owns
+ballistics, contact and area payloads, audio and composed effects. The retained
+`TurretKind` is only a stable-id compatibility handle over those definitions.
+Runtime and the deterministic six-state catalog preview consume the same pose
+and seeded effect commands.
+
 Registry loading is deliberately fail-loud: a missing registry, unknown id,
 duplicate id, malformed required value, unknown mount class, or invalid
 impact-profile name stops loading instead of producing a harmless-looking but
-unwinnable weapon. Optional presentation values have defined neutral
-defaults. Built-in catalog discovery is currently explicit; cross-mod
+unwinnable weapon. Turret cross-catalog references and sprite assets are also
+validated before presentation consumers see them. Optional presentation
+values have defined neutral defaults. Built-in catalog discovery is currently explicit; cross-mod
 discovery, ordering, overrides, and diagnostics remain deferred until a real
 shared consumer exists.
 
@@ -93,8 +104,9 @@ shared consumer exists.
   or geometry answers, that answer belongs to the platform or mount, never to
   the weapon.
 - Data-authored effects compose layers rather than select a fixed global
-  recipe. Until that migration ships, the current named impact profile is a
-  compatibility bridge, not the final extension surface.
+  recipe. Turret muzzle, trail, impact and aftermath presentation already uses
+  this model; the current named impact profile remains a compatibility bridge
+  for unmigrated weapon families and shared decals, lights and audio.
 - Mount appearance is optional and carrier-overridable. Emplacements and
   shuttle mounts may composite base/barrel layers while a ground vehicle keeps
   equivalent art in its chassis sheet; absent appearance never changes weapon
@@ -114,16 +126,14 @@ weapon-like special reaches its definition through the distinct
 progression-owned special-equipment identity.
 
 Mech weapon stat carriers remain a temporary transition boundary until their
-definitions and mount rules enter the registry. During the turret migration,
-`TurretKind` is permitted only as a stable-id compatibility handle whose
-accessors resolve catalog definitions; it may not own duplicate authored
-values. Both families still obey the same penetration and mutually exclusive
-contact-versus-area payload laws.
+definitions and mount rules enter the registry. `TurretKind` remains only as a
+stable-id compatibility handle whose accessors resolve shipped catalog
+definitions; it owns no duplicate authored values. Both families still obey
+the same penetration and mutually exclusive contact-versus-area payload laws.
 
 Catalog expansion and mount validation, layered effects, compatibility-enum
-retirement and persistence repair, the emplacement platform/mount split, and
-shared catalog discovery belong to the work lifecycle tracked only by
-`stories.md`.
+completion, compatibility-enum retirement and persistence repair, and shared
+catalog discovery belong to the work lifecycle tracked only by `stories.md`.
 
 ## Boundaries
 

@@ -91,13 +91,13 @@ universe over time, not retrofitted into intel slots.
   real second content provider exists. `moddable-tilesets-nouns.md` carries the
   standing model; its adjacent `stories.md` board tracks the remaining narrow
   nature-pool authority cleanup.
-- **Moddable weapons** *(W1 shipped; W2 ready)* — marine-primary definitions
-  are id-addressed data behind fail-loud `WeaponRegistry`; the remaining
-  secondary, mech, and emplacement catalogs are planned migrations. The model
-  separates platform, mount, and weapon authority, with layered authored FX as
-  the next slice. Shared submod discovery/merge remains deferred until a real
-  provider exists. `moddable-weapons-nouns.md` carries the standing model; its
-  adjacent `stories.md` board tracks the five live stories.
+- **Moddable weapons** *(W1 and W6 shipped; W2 ready)* — marine-primary and
+  turret definitions are id-addressed data behind fail-loud registries. Turret
+  structures, mounts, layered FX and deterministic previews now prove the
+  platform/mount/weapon split; the remaining mech catalog and non-turret FX
+  migration stay open. Shared submod discovery/merge remains deferred until a
+  real provider exists. `moddable-weapons-nouns.md` carries the standing model;
+  its adjacent `stories.md` board tracks the four live stories.
 - **Surface relief** *(S1–S2 shipped; S3 acceptance ready)* — deterministic
   build-time height/normal derivation feeds a fail-soft screen-space ground
   composite with semantic structure height, micro relief, and land-safe water
