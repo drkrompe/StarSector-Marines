@@ -65,6 +65,39 @@ class AuthoringDocumentTest {
     }
 
     @Test
+    void unchangedSavePreservesSourceTextExactly(@TempDir Path temporary)
+            throws Exception {
+        AuthoringDocument source = AuthoringDocument.load(Path.of("."));
+        copyFixture(source, temporary);
+        AuthoringDocument editable = AuthoringDocument.load(temporary);
+        String before = Files.readString(editable.sourcePath());
+
+        editable.save();
+
+        assertEquals(before, Files.readString(editable.sourcePath()));
+    }
+
+    @Test
+    void scalarSavePreservesFormattingAndUnrelatedDefaults(@TempDir Path temporary)
+            throws Exception {
+        AuthoringDocument source = AuthoringDocument.load(Path.of("."));
+        copyFixture(source, temporary);
+        AuthoringDocument editable = AuthoringDocument.load(temporary);
+        String before = Files.readString(editable.sourcePath());
+        LayerDefinition layer = firstFrame(editable).layers().get(0);
+        layer.offset(-0.321, layer.offsetY());
+
+        editable.save();
+
+        String after = Files.readString(editable.sourcePath());
+        assertEquals(before.lines().count(), after.lines().count());
+        assertEquals(1L, differingLines(before, after));
+        assertTrue(after.contains("\"offset\": [-0.321, -0.2333]"));
+        assertFalse(after.contains("\"visible\""));
+        assertTrue(after.contains("Marine — army-green line kit"));
+    }
+
+    @Test
     void batchExporterWritesOneCombinedSheetPerUnit(@TempDir Path temporary)
             throws Exception {
         LayerAuthoringWorkbench.exportAll(Path.of("."), temporary);
@@ -146,6 +179,17 @@ class AuthoringDocumentTest {
 
     private static int[] pixels(BufferedImage image) {
         return ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
+    }
+
+    private static long differingLines(String before, String after) {
+        String[] beforeLines = before.split("\\R", -1);
+        String[] afterLines = after.split("\\R", -1);
+        assertEquals(beforeLines.length, afterLines.length);
+        long different = 0L;
+        for (int index = 0; index < beforeLines.length; index++) {
+            if (!beforeLines[index].equals(afterLines[index])) different++;
+        }
+        return different;
     }
 
     private static FrameDefinition firstFrame(AuthoringDocument document) {
