@@ -801,6 +801,9 @@ public final class TacticalScoring {
     /** Per-worker output for the parallel pursuit-assessment path. */
     private static final ThreadLocal<LongBucket> RETARGET_CANDIDATES =
             ThreadLocal.withInitial(LongBucket::new);
+    /** Per-worker output for shootable opportunity targets near the actor. */
+    private static final ThreadLocal<LongBucket> OPPORTUNITY_CANDIDATES =
+            ThreadLocal.withInitial(LongBucket::new);
     /** Smaller hysteresis for a shot of opportunity that does not change pursuit. */
     public static final float OPPORTUNITY_RETARGET_DISTANCE_MARGIN = 2f;
 
@@ -1035,25 +1038,30 @@ public final class TacticalScoring {
                                           float switchMargin) {
         World world = roster.world();
         Faction selfFaction = roster.identity().faction(self);
+        float selfX = world.x(self);
+        float selfY = world.y(self);
         int sx = world.cellX(self);
         int sy = world.cellY(self);
         float range = world.attackRange(self);
         VisionService vision = roster.vision();
         float selfAir = vision.airLosRadius(self);
 
-        long[] dense = roster.denseArray();
-        int liveCount = roster.liveCount();
+        LongBucket candidates = OPPORTUNITY_CANDIDATES.get();
+        unitIndex.gather(selfX, selfY,
+                range + RETARGET_QUERY_PADDING, candidates);
 
         long best = 0L;
         float bestDist = Float.MAX_VALUE;
         float preferredDist = Float.MAX_VALUE;
-        for (int i = 0; i < liveCount; i++) {
-            long other = dense[i];
+        for (int i = 0, n = candidates.size; i < n; i++) {
+            long other = candidates.ids[i];
+            if (other == self) continue;
+            if (!roster.isAliveById(other)) continue;
             if (roster.identity().faction(other) == selfFaction) continue;
             if (!roster.identity().type(other).combatant) continue;
             int ox = world.cellX(other);
             int oy = world.cellY(other);
-            float d = cellDistance(world.x(self), world.y(self), world.x(other), world.y(other));
+            float d = cellDistance(selfX, selfY, world.x(other), world.y(other));
             if (d > range) continue;
             if (!canSeePair(grid, sx, sy, ox, oy, selfAir, vision.airLosRadius(other))) continue;
             if (other == preferred) preferredDist = d;

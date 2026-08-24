@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
+import com.dillon.starsectormarines.battle.infantry.PatrolMotion;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.combat.FireStance;
@@ -55,7 +56,7 @@ public final class BreakContact implements Action {
                 sim.world().fallbackCellX(member), sim.world().fallbackCellY(member));
         if (!atDest) {
             // Transit — opportunistic suppression while pulling back.
-            opportunisticFire(member, sim, FireStance.MOVING);
+            PatrolMotion.fireIfAble(member, sim, FireStance.MOVING);
             if (sim.movement().mayRepath(member)) {
                 sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                         sim.world().cellX(member), sim.world().cellY(member),
@@ -66,31 +67,9 @@ public final class BreakContact implements Action {
         } else {
             // In position — hold and fire stanced at anything that drifts in.
             if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
-            opportunisticFire(member, sim, FireStance.STANCED);
+            PatrolMotion.fireIfAble(member, sim, FireStance.STANCED);
         }
         return ActionStatus.RUNNING;
     }
 
-    /**
-     * One-shot fire pass: pick a target, author a fire intent when in LOS +
-     * range; {@code battle.combat.FiringSystem} applies the cooldown gate and
-     * executes the shot. Mirrors {@code HoldPortalCordon.opportunisticFire}
-     * structurally — shared lift if a fourth caller shows up; for now
-     * duplication is cheaper than another helper class.
-     */
-    private static void opportunisticFire(long member, BattleControl sim, FireStance stance) {
-        long target = sim.targetOf(member);
-        if (target == 0L
-                || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
-            target = sim.getTacticalScoring().findBestTarget(member);
-            sim.world().setTargetId(member, target);
-        }
-        if (target == 0L) return;
-        float d = TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member),
-                sim.world().x(target), sim.world().y(target));
-        if (d > sim.world().attackRange(member)) return;
-        if (!sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
-                sim.world().cellX(target), sim.world().cellY(target))) return;
-        sim.combat().setFireIntent(member, target, stance, false);
-    }
 }

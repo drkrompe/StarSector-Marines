@@ -105,7 +105,7 @@ public final class GarrisonCordon implements Action {
     private ActionStatus executeHolder(long member, HoldPortalCordon.GuardPost post, BattleControl sim) {
         boolean atPost = sim.movement().atCell(member, post.cellX, post.cellY);
         if (!atPost) {
-            opportunisticFire(member, sim, FireStance.MOVING);
+            PatrolMotion.fireIfAble(member, sim, FireStance.MOVING);
             if (sim.movement().mayRepath(member)) {
                 sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
                         sim.world().cellX(member), sim.world().cellY(member), post.cellX, post.cellY,
@@ -115,31 +115,8 @@ public final class GarrisonCordon implements Action {
             return ActionStatus.RUNNING;
         }
         if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
-        opportunisticFire(member, sim, FireStance.STANCED);
+        PatrolMotion.fireIfAble(member, sim, FireStance.STANCED);
         return ActionStatus.RUNNING;
-    }
-
-    /**
-     * One-shot fire pass — pick a target, author a fire intent when in LOS +
-     * range; {@code battle.combat.FiringSystem} applies the cooldown gate and
-     * executes the shot. Mirrors {@link HoldPortalCordon}'s helper of the
-     * same shape; if a fourth opportunistic-fire caller appears we'll lift
-     * this to a shared static.
-     */
-    private static void opportunisticFire(long member, BattleControl sim, FireStance stance) {
-        long target = sim.targetOf(member);
-        if (target == 0L
-                || !sim.getTacticalScoring().shouldKeepPursuing(member, target)) {
-            target = sim.getTacticalScoring().findBestTarget(member);
-            sim.world().setTargetId(member, target);
-        }
-        if (target == 0L) return;
-        float d = TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member),
-                sim.world().x(target), sim.world().y(target));
-        if (d > sim.world().attackRange(member)) return;
-        if (!sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
-                sim.world().cellX(target), sim.world().cellY(target))) return;
-        sim.combat().setFireIntent(member, target, stance, false);
     }
 
     private HoldPortalCordon.GuardPost postForSlot(String slotName) {

@@ -156,6 +156,8 @@ public class GarrisonCordonTest {
         // The guard cell is one cardinal step inside from the doorway, so a
         // sibling cell two off should usually be in LoS.
         long attacker = sim.spawn(new EntitySpec("a1", Faction.MARINE, UnitType.MARINE, post.cellX, post.cellY + 2));
+        long pursuit = sim.spawn(new EntitySpec("a2", Faction.MARINE, UnitType.MARINE, 12, 12));
+        sim.world().setTargetId(d1, pursuit);
         assertTrue(sim.getGrid().hasLineOfSight(sim.world().cellX(d1), sim.world().cellY(d1), sim.world().cellX(attacker), sim.world().cellY(attacker)),
                 "test prerequisite: attacker must be visible from the guard cell");
 
@@ -171,6 +173,8 @@ public class GarrisonCordonTest {
 
         assertEquals(attacker, sim.combat().fireTargetId(d1),
                 "on-post holder with visible enemy in range → authors a fire intent (opportunistic, no portal trigger required)");
+        assertEquals(pursuit, sim.world().targetId(d1),
+                "cordon opportunity fire must not replace the holder's pursuit target");
 
         // This test owns the cordon's opportunity-fire decision, not the
         // independent experience/reflex contract. Fast-forward the threat's
