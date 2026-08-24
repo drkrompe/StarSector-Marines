@@ -1,0 +1,87 @@
+<template props="targetSummary,candidateSummary,billetRows,gearRows,transactionSummary,transactionClasses,applyDisabled,apply,feedbackText,feedbackClasses">
+  <div id="refit-transaction" class="panel refit-transaction">
+    <div id="transaction-heading" class="label heading tone-edge">REFIT TRANSACTION</div>
+    <div id="target-summary" class="label surface-dark tone-accent">{targetSummary}</div>
+    <div id="candidate-summary" class="label surface-dark">{candidateSummary}</div>
+
+    <div id="billet-heading" class="label heading tone-muted">FOUR-BILLET TEMPLATE</div>
+    <div id="billet-list" class="detail-list">
+      <div each="row in billetRows" key="{row.id}" id="{row.id}" class="{row.classes}">{row.label}</div>
+    </div>
+
+    <div id="issue-heading" class="label heading tone-muted">FREE STOCK  ·  RETURNS  ·  REQUIRED ISSUE</div>
+    <div id="gear-list" class="detail-list">
+      <div each="row in gearRows" key="{row.id}" id="{row.id}" class="{row.classes}">{row.label}</div>
+    </div>
+
+    <div id="transaction-result" class="{transactionClasses}">{transactionSummary}</div>
+    <div id="apply-row">
+      <button id="apply-template" class="apply-button" disabled="{applyDisabled}" onclick="{apply}">Issue Template to Fire Team</button>
+      <div id="transaction-feedback" class="{feedbackClasses}">{feedbackText}</div>
+    </div>
+  </div>
+</template>
+
+<style>
+  .refit-transaction {
+    flex-direction: column;
+    flex-grow: 1;
+    padding: 10px;
+    gap: 7px;
+    overflow: hidden;
+  }
+
+  .label { overflow: hidden; }
+  .heading { font-family: heading; }
+  #transaction-heading { height: 30px; }
+  #target-summary, #candidate-summary { height: 24px; padding: 8px; }
+  #billet-heading, #issue-heading { height: 24px; }
+
+  .detail-list {
+    flex-direction: column;
+    gap: 6px;
+    padding: 2px;
+    overflow: scroll;
+  }
+
+  #billet-list { height: 174px; }
+  #gear-list { flex-grow: 1; }
+
+  .detail-row {
+    height: 28px;
+    padding: 7px 9px;
+    border-width: 1px;
+    overflow: hidden;
+    background-color: #0e1621;
+    border-color: #405a78;
+  }
+
+  .transaction-result {
+    height: 24px;
+    padding: 9px;
+    border-width: 1px;
+    overflow: hidden;
+  }
+
+  #apply-row {
+    flex-direction: row;
+    height: 46px;
+    gap: 10px;
+  }
+
+  .apply-button {
+    width: 270px;
+    padding: 6px 12px;
+    border-width: 1px;
+    overflow: hidden;
+    font-family: body;
+    text-align: center;
+  }
+
+  .feedback {
+    width: 0px;
+    flex-grow: 1;
+    padding: 8px;
+    overflow: hidden;
+  }
+</style>

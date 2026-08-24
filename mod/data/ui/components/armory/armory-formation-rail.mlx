@@ -1,0 +1,49 @@
+<template props="companySummary,squadRows,teamRows">
+  <div id="formation-rail" class="panel formation-rail">
+    <div id="formation-heading" class="label heading tone-edge">FORMATION</div>
+    <div id="company-summary" class="label surface-dark">{companySummary}</div>
+    <div id="squad-heading" class="label heading tone-muted">SQUADS</div>
+    <div id="squad-list" class="selection-list">
+      <button each="row in squadRows" key="{row.id}" id="{row.id}" class="{row.classes}" disabled="{row.disabled}" onclick="{row.select}">{row.label}</button>
+    </div>
+    <div id="team-heading" class="label heading tone-muted">FIRE TEAMS</div>
+    <div id="team-list" class="selection-list">
+      <button each="row in teamRows" key="{row.id}" id="{row.id}" class="{row.classes}" disabled="{row.disabled}" onclick="{row.select}">{row.label}</button>
+    </div>
+  </div>
+</template>
+
+<style>
+  .formation-rail {
+    flex-direction: column;
+    width: 340px;
+    padding: 10px;
+    gap: 7px;
+    overflow: hidden;
+  }
+
+  .label { overflow: hidden; }
+  .heading { font-family: heading; }
+  #formation-heading { height: 30px; }
+  #company-summary { height: 42px; padding: 8px; }
+  #squad-heading, #team-heading { height: 24px; }
+
+  .selection-list {
+    flex-direction: column;
+    gap: 7px;
+    padding: 2px;
+    overflow: scroll;
+  }
+
+  #squad-list { flex-grow: 1; }
+  #team-list { height: 150px; }
+
+  .selection-row {
+    height: 42px;
+    padding: 6px 10px;
+    border-width: 1px;
+    overflow: hidden;
+    font-family: body;
+    text-align: left;
+  }
+</style>

@@ -1,8 +1,8 @@
 # Marine Ops UI nouns
 
-Status: ACTIVE — five foundation stories open; U1b implementation complete for live acceptance
+Status: SHIPPED — retained UI foundation proven in-engine
 Written: 2026-08-23
-Updated: 2026-08-23 — established intrinsic single-line text sizing and semantic typography roles.
+Updated: 2026-08-24 — live-accepted layout, typography, input, canvas, theme, transition, MLX, binding, and reload contracts.
 
 ## Purpose
 

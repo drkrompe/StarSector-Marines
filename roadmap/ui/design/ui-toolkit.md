@@ -1,7 +1,8 @@
 # Retained UI toolkit direction
 
-Status: ACTIVE
+Status: SHIPPED — foundation active as production infrastructure
 Written: 2026-08-23
+Updated: 2026-08-24 — workbench live-accepted; Fleet Armory is the first production conversion.
 
 ## Decision
 

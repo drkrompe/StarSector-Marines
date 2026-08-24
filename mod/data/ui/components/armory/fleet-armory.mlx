@@ -1,0 +1,71 @@
+<template props="companySummary,squadRows,teamRows,templateRows,targetSummary,candidateSummary,billetRows,gearRows,transactionSummary,transactionClasses,applyDisabled,apply,feedbackText,feedbackClasses,back,legacy,reload,reloadStatus">
+  <div id="fleet-armory-root" class="fleet-armory-root">
+    <div id="armory-header" class="panel surface-dark">
+      <div id="armory-title" class="label heading tone-accent">FLEET ARMORY</div>
+      <div id="armory-purpose" class="label tone-edge">Company  /  Squad  /  Fire Team  ·  Reusable template issue</div>
+    </div>
+
+    <div id="armory-body">
+      <armory-formation-rail companySummary="{companySummary}" squadRows="{squadRows}" teamRows="{teamRows}" />
+      <armory-template-library templateRows="{templateRows}" />
+      <armory-refit-transaction targetSummary="{targetSummary}" candidateSummary="{candidateSummary}" billetRows="{billetRows}" gearRows="{gearRows}" transactionSummary="{transactionSummary}" transactionClasses="{transactionClasses}" applyDisabled="{applyDisabled}" apply="{apply}" feedbackText="{feedbackText}" feedbackClasses="{feedbackClasses}" />
+    </div>
+
+    <div id="armory-footer" class="panel surface-dark">
+      <button id="armory-back" onclick="{back}">Return</button>
+      <button id="legacy-armory" onclick="{legacy}">Personnel / Designer / Mech Lab</button>
+      <button id="reload-armory" onclick="{reload}">Reload UI</button>
+      <div id="armory-reload-status" class="label tone-good">{reloadStatus}</div>
+    </div>
+  </div>
+</template>
+
+<style>
+  .fleet-armory-root {
+    flex-direction: column;
+    padding: 14px;
+    gap: 10px;
+    border-width: 3px;
+    overflow: hidden;
+  }
+
+  .label { overflow: hidden; }
+  .heading { font-family: heading; }
+
+  #armory-header {
+    flex-direction: row;
+    height: 42px;
+    padding: 12px;
+    gap: 14px;
+  }
+
+  #armory-title { width: 270px; }
+  #armory-purpose { flex-grow: 1; text-align: right; }
+
+  #armory-body {
+    flex-direction: row;
+    flex-grow: 1;
+    gap: 10px;
+    overflow: hidden;
+  }
+
+  #armory-footer {
+    flex-direction: row;
+    height: 34px;
+    padding: 7px;
+    gap: 10px;
+  }
+
+  #armory-footer button {
+    padding: 5px 10px;
+    border-width: 1px;
+    overflow: hidden;
+    font-family: body;
+    text-align: center;
+  }
+
+  #armory-reload-status {
+    width: 0px;
+    flex-grow: 1;
+  }
+</style>
