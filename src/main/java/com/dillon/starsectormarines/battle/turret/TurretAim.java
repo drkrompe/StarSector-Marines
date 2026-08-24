@@ -103,9 +103,10 @@ public final class TurretAim {
         float shooterAirR = s.ignoreCloseWalls ? s.closeWallRadius : 0f;
 
         if (s.target == 0L) {
-            s.target = scoring.findBestTarget(
+            s.target = scoring.findBestTargetWithinRange(
                     s.originX, s.originY, s.faction, s.squadId, s.excludeFromCrowding,
-                    shooterAirR, /*allowNoLos*/ s.indirectFire);
+                    shooterAirR, /*allowNoLos*/ s.indirectFire,
+                    s.minRange, s.attackRange);
         }
         if (s.cooldownTimer > 0f) s.cooldownTimer -= dt;
         if (s.target == 0L) return;

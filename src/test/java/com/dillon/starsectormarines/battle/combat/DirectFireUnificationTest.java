@@ -30,6 +30,10 @@ class DirectFireUnificationTest {
     private static final float EPS = 1e-4f;
 
     private static BattleSimulation arena(boolean wallColumn) {
+        return arena(wallColumn, BattleSimulation.DEFAULT_SEED);
+    }
+
+    private static BattleSimulation arena(boolean wallColumn, long seed) {
         NavigationGrid grid = new NavigationGrid(W, H);
         for (int y = 0; y < H; y++) {
             for (int x = 0; x < W; x++) grid.setWalkableFloor(x, y);
@@ -37,7 +41,7 @@ class DirectFireUnificationTest {
         if (wallColumn) {
             for (int y = 0; y < H; y++) grid.setWalkable(WALL_X, y, false);
         }
-        return new BattleSimulation(grid, new CellTopology(W, H));
+        return new BattleSimulation(grid, new CellTopology(W, H), seed);
     }
 
     private static long target(BattleSimulation sim) {
@@ -178,6 +182,38 @@ class DirectFireUnificationTest {
         PendingDetonation mortarBlast = turretSim.getInflightDetonations().get(0);
         assertEquals(TurretKind.HEAVY_MORTAR.aoeRadius, mortarBlast.aoeRadius, EPS);
         assertEquals(TurretKind.HEAVY_MORTAR.wallDamage, mortarBlast.wallDamage);
+    }
+
+    @Test
+    void hephaestusDirectHitCarriesContactAndAreaPayloadsThroughTheTurretFirePath() {
+        BattleSimulation sim = arena(false, 12345L);
+        long cannon = sim.spawn(MapTurret.create(
+                "hephaestus", Faction.MARINE, TurretKind.HEPHAESTUS, 2, ROW));
+        long victim = target(sim);
+
+        sim.fireShotFrom(cannon,
+                sim.world().x(cannon), sim.world().y(cannon),
+                Faction.MARINE, TurretKind.HEPHAESTUS, victim,
+                /*aerialShooter*/ false, /*hasLos*/ true);
+
+        ShotEvent shot = onlyShot(sim);
+        assertSame(TurretKind.HEPHAESTUS, shot.turretKind);
+        assertSame(ImpactProfile.CANNON_HE, shot.impactProfile());
+        assertEquals(BallisticResolver.StopKind.UNIT_HIT, shot.stopKind);
+        assertTrue(sim.getActiveProjectiles().isEmpty(),
+                "the cannon shell uses the modeled ground direct-fire path, not a missile entity");
+        assertEquals(1, sim.getInflightDetonations().size());
+        PendingDetonation blast = sim.getInflightDetonations().get(0);
+        assertEquals(victim, blast.directTargetId);
+        assertEquals(117f, blast.directDamage, EPS);
+        assertEquals(24f, blast.directPenetration, EPS);
+        assertEquals(45f, blast.damage, EPS);
+        assertEquals(4f, blast.penetration, EPS);
+        assertEquals(1.6f, blast.aoeRadius, EPS);
+        assertEquals(30, blast.wallDamage);
+        assertEquals(1.25f, blast.wallDamageRadius, EPS);
+        assertTrue(blast.burningPlume,
+                "the cannon blast owns the smoke-and-fire aftermath at impact");
     }
 
     @Test

@@ -46,6 +46,7 @@ public class Detonations {
     private final MapEditor mapEditor;
     private final EffectsService effects;
     private final NoiseEventBus noiseEvents;
+    private final ShotService.ImpactSink directImpactSink;
 
     /**
      * Reused per-detonation gather of the units in splash range before any
@@ -58,7 +59,8 @@ public class Detonations {
 
     public Detonations(UnitRosterService roster, NavigationGrid grid, CellTopology topology,
                        DamageService damageService, MapEditor mapEditor,
-                       EffectsService effects, NoiseEventBus noiseEvents) {
+                       EffectsService effects, NoiseEventBus noiseEvents,
+                       ShotService.ImpactSink directImpactSink) {
         this.roster = roster;
         this.grid = grid;
         this.topology = topology;
@@ -66,6 +68,7 @@ public class Detonations {
         this.mapEditor = mapEditor;
         this.effects = effects;
         this.noiseEvents = noiseEvents;
+        this.directImpactSink = directImpactSink;
     }
 
     /** Queues a detonation onto the in-flight list. Drained by {@link #tick}. */
@@ -109,8 +112,8 @@ public class Detonations {
      * Applies a detonation: AoE damage to every alive unit within
      * {@code aoeRadius} (expanded per-unit by its {@link UnitType#radius}
      * physical footprint) with line of sight to the endpoint, plus wall HP
-     * damage at the endpoint cell. Cover reduction + vsTurret multiplier
-     * flow through {@link DamageService#applyDamage}; LOS-blocked units
+     * damage at the endpoint cell. Cover reduction and armor resolution flow
+     * through {@link DamageService#applyDamage}; LOS-blocked units
      * are spared (the wall absorbed the splash for them).
      *
      * <p>Walks the live roster O(N) rather than querying a spatial index —
@@ -124,9 +127,23 @@ public class Detonations {
                 det.shooterFaction, NoiseKind.DETONATION);
         int targetCx = (int) Math.floor(det.endpointX);
         int targetCy = (int) Math.floor(det.endpointY);
+        boolean hasDirectPayload = det.directTargetId != 0L && det.directDamage > 0f;
+        if (hasDirectPayload
+                && roster.isAliveById(det.directTargetId)
+                && (!det.friendlyFireImmune
+                    || roster.identity().faction(det.directTargetId) != det.shooterFaction)) {
+            boolean friendly = roster.identity().faction(det.directTargetId) == det.shooterFaction;
+            directImpactSink.apply(new ShotService.PendingImpact(
+                    det.directTargetId, det.shooterId, 0f,
+                    det.directDamage, det.directPenetration, 1f, friendly));
+        }
         if (det.aoeRadius > 0f) {
             if (det.aoeRadius >= 1.0f) {
-                effects.spawnSmokePlume(det.endpointX, det.endpointY);
+                if (det.burningPlume) {
+                    effects.spawnBurningSmokePlume(det.endpointX, det.endpointY);
+                } else {
+                    effects.spawnSmokePlume(det.endpointX, det.endpointY);
+                }
             }
             float r2 = det.aoeRadius * det.aoeRadius;
             // Gather the in-range, LOS-visible, non-roof-shielded units first
@@ -136,6 +153,7 @@ public class Detonations {
             long[] dense = roster.denseArray();
             for (int i = 0, n = roster.liveCount(); i < n; i++) {
                 long u = dense[i];
+                if (hasDirectPayload && u == det.directTargetId) continue;
                 if (det.friendlyFireImmune && roster.identity().faction(u) == det.shooterFaction) continue;
                 // TRUE position, not cell center — a unit's physical footprint
                 // (UnitType.radius) is added to the blast radius so bigger units

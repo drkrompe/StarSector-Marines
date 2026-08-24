@@ -118,10 +118,13 @@ public final class TurretBehavior implements UnitBehavior {
                     turretState.setBurstTargetId(id, s.target);
                 }
             } else {
-                // Single-shot kinds keep the existing Entity-vs-Entity fire path
-                // so morale impact + ShotEvent tagging stay correct for the
-                // unchanged ground turrets (Arbalest, Hephaestus, etc.).
-                sim.fireShot(u, s.target);
+                // Single-shot turrets still own weapon-specific penetration,
+                // AoE, wall damage, and impact presentation. The old generic
+                // infantry path retained only their velocity and visual tag,
+                // silently discarding every other authored turret payload.
+                sim.fireShotFrom(id, sim.world().x(id), sim.world().y(id),
+                        sim.identity().faction(u), kind, s.target,
+                        /*aerialShooter*/ false, s.lastFireHadLos);
                 turretState.setRecoilTimer(id, 0f);
             }
         }

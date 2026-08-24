@@ -1,8 +1,8 @@
 # Progression nouns
 
-Status: ACTIVE — 12 open stories; issued infantry armor now supplies live durability profiles
+Status: ACTIVE — 11 open stories; reusable contact-demolition satchels are shipped
 Written: 2026-08-23
-Updated: 2026-08-23 — shipped smoke and live armor, and clarified stable multi-angle threat acquisition.
+Updated: 2026-08-23 — shipped reusable contact-demolition satchels.
 
 ## Purpose
 
@@ -117,9 +117,10 @@ assignment, fabrication value, and reachability; battle AI owns when legal
 issued equipment is used. The same use policy is faction-neutral even when
 campaign availability differs by faction.
 
-The first three built-in identities are the rocket launcher, anti-materiel
-rifle, and Wayfarer smoke grenades. The first two are direct-fire activations,
-while smoke is a utility activation, but only the item definition owns
+The first four built-in identities are the rocket launcher, anti-materiel
+rifle, Wayfarer smoke grenades, and Breachhand mag-clamp satchel. The first two
+are direct-fire activations, while smoke and satchels are utility activations,
+but only the item definition owns
 loadout identity, initial ammunition, Armory art, and activation type; the
 referenced weapon definition owns range, damage, accuracy, impact, projectile,
 and audio behavior. Persisted marines, billets, stock, and recipes use the
@@ -152,6 +153,24 @@ or airborne coverage prevents redundant throws. The same rules drive player
 and defender carriers. Player issue includes two starter canisters and a
 Screen template; medium/high-risk non-militia defender fireteams may carry
 smoke explicitly.
+
+The Breachhand is reusable close-contact demolition for a marine who already
+happens to be beside a hostile hardened target. Opportunity AI considers only
+living turrets, drone hubs, and heavy mechs already inside contact range and
+honest line of sight; it never assigns an approach or overrides survival
+movement to manufacture a plant. An interrupted channel releases its target
+reservation at no cost. A completed plant starts the carrier's personal
+equipment cooldown rather than consuming battle ammunition.
+
+The armed pack attaches to the target and follows even a moving mech until its
+fixed fuse expires. The shared detonation authority resolves a compact,
+friendly-fire-capable anti-materiel blast; light hardened targets die while a
+heavy platform may survive damaged. The planting faction knows the temporary
+hazard and routes friendlies out, while opponents gain no omniscient avoidance.
+Player issue includes two physical kits and a Breach template. Physical Armory
+stock limits equipped billets; it does not count battle placements. Ground
+placement, infantry targeting, traps, disarming, and wall breaching are not
+part of this shipped identity.
 
 ### Telemetry and career
 
@@ -217,7 +236,7 @@ The following are direction, not current behavior:
 - Expand primary families and special-equipment options, and extend the unlock
   ladder so every authored player asset has either starter status or a
   reachable path. The anti-materiel rifle is shipped; the next planned
-  additions are satchel charges and fragmentation grenades; smoke is shipped.
+  addition is fragmentation grenades; AMR, smoke, and satchels are shipped.
 - Split common printable feedstock from operation-earned advanced components;
   advanced progression remains operation-gated rather than purchasable.
 - Make grade, aptitude, experience, career, and captain traits legible in

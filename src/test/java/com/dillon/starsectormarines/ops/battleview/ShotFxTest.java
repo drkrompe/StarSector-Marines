@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
-import com.dillon.starsectormarines.marine.SpecialActivation;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
@@ -51,7 +50,7 @@ public class ShotFxTest {
         for (TurretKind k : TurretKind.values())      assertNotNull(ShotFx.of(turretShot(k)), "turret " + k);
         for (MarineWeapon w : MarineWeapon.values())  assertNotNull(ShotFx.of(shot(null, w, null, null)), "primary " + w);
         for (MarineSecondary w : MarineSecondary.values()) {
-            if (w.activation() != SpecialActivation.UTILITY_SMOKE) {
+            if (w.specialDef().weaponId() != null) {
                 assertNotNull(ShotFx.of(shot(null, null, w, null)), "secondary " + w);
             }
         }
@@ -167,7 +166,7 @@ public class ShotFxTest {
     @Test
     public void marineSecondariesDeriveProjectileBodiesFromTheirWeaponDefinitions() {
         for (MarineSecondary w : MarineSecondary.values()) {
-            if (w.activation() == SpecialActivation.UTILITY_SMOKE) continue;
+            if (w.specialDef().weaponId() == null) continue;
             ShotFx fx = ShotFx.of(shot(null, null, w, null));
             if (w.projectileSpritePath() != null) {
                 Sprite body = assertSprite(fx, "secondary " + w);

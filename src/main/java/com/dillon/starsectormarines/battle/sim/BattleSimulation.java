@@ -1,7 +1,10 @@
 package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.smoke.SmokeFieldService;
+import com.dillon.starsectormarines.battle.satchel.SatchelChargeService;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.battle.decision.TacticalScoring;
+import com.dillon.starsectormarines.marine.SatchelChargeSpec;
 import com.dillon.starsectormarines.marine.SpecialActivation;
 import com.dillon.starsectormarines.marine.SmokeGrenadeSpec;
 
@@ -135,6 +138,8 @@ public class BattleSimulation implements BattleControl {
     private final NavigationGrid grid;
     /** Temporary faction-neutral visual opacity and grenade-flight lifecycle. */
     private final SmokeFieldService smokeFields;
+    /** Contact-demolition reservations, target attachments, and fuse lifecycle. */
+    private final SatchelChargeService satchelCharges;
     /** Alias of {@link NavigationService#getTopology()}. */
     private final CellTopology topology;
     /** Runtime map-modification coordinator: wall breach / roof crack / structure-to-rubble. Sequences the topology writes + navigation walkability/zone-graph writes + the roof-collapse decal sink. Owns behavior {@link NavigationService} no longer holds. */
@@ -409,6 +414,7 @@ public class BattleSimulation implements BattleControl {
         // reads stay direct (no per-call accessor hop).
         this.grid = navigation.getGrid();
         this.smokeFields = new SmokeFieldService(this.grid);
+        this.satchelCharges = new SatchelChargeService();
         this.topology = navigation.getTopology();
         this.zoneGraph = navigation.getZoneGraph();
         this.occupancyMap = navigation.getOccupancyMap();
@@ -499,7 +505,7 @@ public class BattleSimulation implements BattleControl {
                 grid, rosterService, tacticalScoring, damageService,
                 () -> simTickIndex, rng);
         this.detonations = new Detonations(rosterService, grid, topology, damageService,
-                mapEditor, effects, noiseEvents);
+                mapEditor, effects, noiseEvents, this::applyPendingImpact);
         this.ballisticResolver = new BallisticResolver(grid, doodadService, unitIndex, rosterService);
         this.turretFire = new TurretFireSystem(
                 rng, topology, shots, damageService,
@@ -525,6 +531,7 @@ public class BattleSimulation implements BattleControl {
 
     public NavigationGrid getGrid() { return grid; }
     @Override public SmokeFieldService smokeFields() { return smokeFields; }
+    @Override public SatchelChargeService satchelCharges() { return satchelCharges; }
     /** Categorization tags (street / rubble / wall / vehicle / etc.) for renderer + placement filters. Sibling to {@link #grid}; the pathfinder doesn't touch this. */
     public CellTopology getTopology()      { return topology; }
     /** Zone+portal graph layered on the {@link NavigationGrid}. Rebuilt on wall destruction so AI queries reflect the current map. */
@@ -1283,6 +1290,10 @@ public class BattleSimulation implements BattleControl {
         // fires off the MechWreckSystem death handler, not this pass.)
         heavy.tick();
         tickProfile.lap(TickProfile.Phase.HEAVY_TICK);
+        // Armed contact charges follow their target and resolve through the
+        // ordinary AoE/durability pipeline when their fixed fuse expires.
+        satchelCharges.tick(TICK_DT, this);
+        tickProfile.lap(TickProfile.Phase.SATCHELS);
         // Simulated-projectile path — advance each in-flight Projectile by dt,
         // detonate its onArrival payload when remainingTime hits zero, and
         // emit an arrival record for the renderer's impact-FX dispatch.
@@ -1387,23 +1398,7 @@ public class BattleSimulation implements BattleControl {
         // expires. Outside the parallel dispatch and FIRING's deferral window,
         // so DamageService.applyDamage resolves inline through this sink rather
         // than re-queuing for a drain that already ran this tick.
-        shots.tickImpacts(TICK_DT, impact -> {
-            if (!rosterService.isAliveById(impact.victimId)) return;
-            int friendlyFireSquad = Squad.NO_SQUAD;
-            if (impact.friendly
-                    && rosterService.identity().faction(impact.victimId) == Faction.MARINE
-                    && rosterService.squad().hasSquad(impact.victimId)) {
-                friendlyFireSquad = rosterService.squad().squadId(impact.victimId);
-            }
-            rosterService.telemetry().recordRoundHit(impact.shooterId);
-            damageService.applyDamage(impact.victimId, impact.shooterId, impact.damage,
-                    impact.penetration, impact.moraleImpact);
-            if (friendlyFireSquad != Squad.NO_SQUAD && impact.damage > 0f) {
-                friendlyFireSquadsThisFrame.add(friendlyFireSquad);
-            }
-            hitResponse.rollFallbackOnHit(impact.victimId);
-            hitResponse.rollReprioritizeOnHit(impact.victimId, impact.shooterId);
-        });
+        shots.tickImpacts(TICK_DT, this::applyPendingImpact);
         shots.tickShots(TICK_DT);
         tickProfile.lap(TickProfile.Phase.SHOTS);
         equipmentDropSystem.tick();
@@ -1457,6 +1452,25 @@ public class BattleSimulation implements BattleControl {
         // and fall through to live Bresenham (preserving the old off-tick
         // behavior that tests + UI hooks depend on).
         navigation.endTick();
+    }
+
+    /** Shared arrival seam for ordinary rounds and direct-contact explosive payloads. */
+    private void applyPendingImpact(ShotService.PendingImpact impact) {
+        if (!rosterService.isAliveById(impact.victimId)) return;
+        int friendlyFireSquad = Squad.NO_SQUAD;
+        if (impact.friendly
+                && rosterService.identity().faction(impact.victimId) == Faction.MARINE
+                && rosterService.squad().hasSquad(impact.victimId)) {
+            friendlyFireSquad = rosterService.squad().squadId(impact.victimId);
+        }
+        rosterService.telemetry().recordRoundHit(impact.shooterId);
+        damageService.applyDamage(impact.victimId, impact.shooterId, impact.damage,
+                impact.penetration, impact.moraleImpact);
+        if (friendlyFireSquad != Squad.NO_SQUAD && impact.damage > 0f) {
+            friendlyFireSquadsThisFrame.add(friendlyFireSquad);
+        }
+        hitResponse.rollFallbackOnHit(impact.victimId);
+        hitResponse.rollReprioritizeOnHit(impact.victimId, impact.shooterId);
     }
 
     /** Delegates to {@link com.dillon.starsectormarines.battle.decision.AttackerIndexService#getAttackersOf(long)}. The list is mutated in-place each tick — callers must not retain it across tick boundaries. */
@@ -1604,6 +1618,25 @@ public class BattleSimulation implements BattleControl {
         rosterService.telemetry().recordSecondaryUsed(carrier);
         smokeFields.launch(carrier, identity().faction(carrier), fromX, fromY,
                 targetX, targetY, spec);
+    }
+
+    @Override
+    public boolean plantSatchel(long carrier, long target) {
+        if (!world.hasSecondaryWeapon(carrier) || resolveUnit(target) == 0L) return false;
+        MarineSecondary secondary = world.secondaryWeapon(carrier);
+        if (secondary.activation() != SpecialActivation.UTILITY_SATCHEL
+                || !TacticalScoring.isHardened(identity().type(target))
+                || identity().faction(carrier) == identity().faction(target)) return false;
+        SatchelChargeSpec spec = secondary.satchelChargeSpec();
+        float dx = world.x(target) - world.x(carrier);
+        float dy = world.y(target) - world.y(carrier);
+        if (dx * dx + dy * dy > spec.contactRange() * spec.contactRange()) return false;
+        boolean planted = satchelCharges.plant(carrier, target,
+                identity().faction(carrier), world.x(target), world.y(target), spec);
+        if (!planted) return false;
+        world.setSecondaryCooldownTimer(carrier, spec.cooldownSeconds());
+        rosterService.telemetry().recordSecondaryUsed(carrier);
+        return true;
     }
 
     /** Delegates to {@link TurretFireSystem}. Kept for TurretBehavior and any remaining sim-surface callers on the deprecation path. */

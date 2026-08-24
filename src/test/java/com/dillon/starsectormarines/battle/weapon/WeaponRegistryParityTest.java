@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
-import com.dillon.starsectormarines.marine.SpecialActivation;
 import org.junit.jupiter.api.Test;
 
 import java.awt.Color;
@@ -44,14 +43,14 @@ class WeaponRegistryParityTest {
                     weapon + " is a marine primary");
         }
         for (MarineSecondary weapon : MarineSecondary.values()) {
-            if (weapon.activation() == SpecialActivation.UTILITY_SMOKE) continue;
+            if (weapon.specialDef().weaponId() == null) continue;
             assertNotNull(weapon.def(), weapon + " must resolve through the registry");
             assertTrue(ids.add(weapon.def().id), "duplicate id " + weapon.def().id);
             assertSame(MountClass.MARINE_SECONDARY, weapon.def().mount,
                     weapon + " is weapon-like special equipment");
         }
         long weaponLikeSpecials = Arrays.stream(MarineSecondary.values())
-                .filter(weapon -> weapon.activation() != SpecialActivation.UTILITY_SMOKE)
+                .filter(weapon -> weapon.specialDef().weaponId() != null)
                 .count();
         assertEquals(MarineWeapon.values().length + weaponLikeSpecials,
                 WeaponRegistry.installed().size(),

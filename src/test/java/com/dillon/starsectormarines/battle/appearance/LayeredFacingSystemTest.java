@@ -221,6 +221,31 @@ public class LayeredFacingSystemTest {
     }
 
     @Test
+    public void satchelChannelUsesAPlantPoseWithoutWeaponFireFlags() {
+        BattleSimulation sim = arena();
+        long marine = sim.spawn(new EntitySpec("m", Faction.MARINE,
+                UnitType.MARINE, 5, 5)
+                .secondary(MarineSecondary.SATCHEL_CHARGE, 0));
+        long enemy = sim.spawn(new EntitySpec("e", Faction.DEFENDER,
+                UnitType.HEAVY_MECH, 6, 5));
+        sim.world().setTargetId(marine, enemy);
+        sim.world().setSecondaryAimTargetId(marine, enemy);
+        sim.world().setSecondaryActionTimer(marine,
+                MarineSecondary.SATCHEL_CHARGE.aimDuration() * 0.5f);
+
+        FacingSystem system = new FacingSystem(sim.getEntityWorld(),
+                sim.getBattleComponents(), sim.getRoster());
+        system.tick();
+
+        assertEquals(LayeredAppearance.POSE_SATCHEL_PLANT,
+                i(sim, marine, BattleComponents.LAYERED_WEAPON_POSE));
+        assertFalse((i(sim, marine, BattleComponents.LAYERED_FLAGS)
+                & LayeredAppearance.FLAG_WEAPON_OVER_SHOULDER) != 0);
+        assertFalse((i(sim, marine, BattleComponents.LAYERED_FLAGS)
+                & LayeredAppearance.FLAG_MUZZLE_FLASH) != 0);
+    }
+
+    @Test
     public void layeredStateIsLiveOnlyAndLegacyCorpseSpriteSurvives() {
         BattleSimulation sim = arena();
         long marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 5, 5));

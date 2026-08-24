@@ -157,13 +157,7 @@ public final class TurretFireSystem implements TurretFireSink {
                 kind.directRoundVelocity(), rng);
 
         if (kind.aoeRadius > 0f && res.impacts()) {
-            detonationSink.queue(new PendingDetonation(
-                    shooterId,
-                    res.endX(), res.endY(), res.flightTime(),
-                    kind.aoeRadius, kind.damage, kind.penetration(),
-                    kind.wallDamage, shooterFaction, /*aerialDelivery*/ false,
-                    kind.wallDamageRadius, /*spawnDustOnWallBreak*/ true,
-                    /*friendlyFireImmune*/ false));
+            queueGroundDetonation(shooterId, shooterFaction, kind, res);
         } else if (kind.aoeRadius <= 0f && res.victimId() != 0L) {
             float appliedDamage = res.friendlyHit()
                     ? kind.damage * BallisticResolver.FRIENDLY_FIRE_DAMAGE_MULT
@@ -178,6 +172,25 @@ public final class TurretFireSystem implements TurretFireSink {
                 res.hitIntended(), shooterFaction, Math.max(res.flightTime(), 0.05f),
                 kind, null, null, null, /*moraleImpact*/ 1f,
                 res.victimId() != 0L, res.kind(), shooterId));
+    }
+
+    private void queueGroundDetonation(long shooterId, Faction shooterFaction,
+                                       TurretKind kind,
+                                       BallisticResolver.Resolution res) {
+        boolean hasDirectPayload = res.victimId() != 0L && kind.contactDamage() > 0f;
+        float directDamage = hasDirectPayload && res.friendlyHit()
+                ? kind.contactDamage() * BallisticResolver.FRIENDLY_FIRE_DAMAGE_MULT
+                : hasDirectPayload ? kind.contactDamage() : 0f;
+        detonationSink.queue(new PendingDetonation(
+                shooterId,
+                res.endX(), res.endY(), res.flightTime(),
+                kind.aoeRadius, kind.damage, kind.penetration(),
+                kind.wallDamage, shooterFaction, /*aerialDelivery*/ false,
+                kind.wallDamageRadius, /*spawnDustOnWallBreak*/ true,
+                /*friendlyFireImmune*/ false,
+                hasDirectPayload ? res.victimId() : 0L,
+                directDamage, hasDirectPayload ? kind.contactPenetration() : 0f,
+                /*burningPlume*/ kind == TurretKind.HEPHAESTUS));
     }
 
     private void spawnProjectile(long shooterId, float fromX, float fromY, Faction shooterFaction,

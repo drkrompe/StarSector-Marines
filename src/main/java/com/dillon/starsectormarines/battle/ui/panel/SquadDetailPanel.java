@@ -81,7 +81,8 @@ public final class SquadDetailPanel implements HudPanel {
      */
     private record MemberRow(float hp, float maxHp, MarineWeapon primary,
                              EquipmentGrade grade, SoldierProfile profile,
-                             MarineSecondary secondary, int secondaryAmmo, UnitRole role) {}
+                             MarineSecondary secondary, int secondaryAmmo,
+                             float secondaryCooldown, UnitRole role) {}
 
     public SquadDetailPanel(BattleUiContext ctx) {
         this.ctx = ctx;
@@ -138,7 +139,9 @@ public final class SquadDetailPanel implements HudPanel {
             rows.add(new MemberRow(sim.world().hp(u), sim.world().maxHp(u), sim.combat().primaryWeapon(u),
                     sim.combat().equipmentGrade(u), sim.combat().soldierProfile(u),
                     hasSec ? sim.world().secondaryWeapon(u) : null,
-                    hasSec ? sim.world().secondaryAmmo(u) : 0, sim.role().role(u)));
+                    hasSec ? sim.world().secondaryAmmo(u) : 0,
+                    hasSec ? sim.world().secondaryCooldownTimer(u) : 0f,
+                    sim.role().role(u)));
         }
     }
 
@@ -232,8 +235,14 @@ public final class SquadDetailPanel implements HudPanel {
             if (m.secondary() != null) {
                 String sec = WeaponSymbols.secondaryAbbrev(m.secondary());
                 if (sec != null) {
-                    String text = m.secondaryAmmo() > 0 ? sec + "x" + m.secondaryAmmo() : sec;
-                    Color c = m.secondaryAmmo() > 0 ? WeaponSymbols.SECONDARY_FG : WeaponSymbols.SECONDARY_EMPTY;
+                    boolean reusable = !m.secondary().usesAmmunition();
+                    boolean ready = m.secondaryCooldown() <= 0f
+                            && m.secondary().hasAvailableUse(m.secondaryAmmo());
+                    String text = reusable && !ready
+                            ? sec + " " + (int) Math.ceil(m.secondaryCooldown()) + "s"
+                            : reusable ? sec : m.secondaryAmmo() > 0
+                                    ? sec + "x" + m.secondaryAmmo() : sec;
+                    Color c = ready ? WeaponSymbols.SECONDARY_FG : WeaponSymbols.SECONDARY_EMPTY;
                     Fonts.ORBITRON_20.drawString(text, rowLeft + COL_SECONDARY, textBaseline, c, alphaMult);
                 }
             }
