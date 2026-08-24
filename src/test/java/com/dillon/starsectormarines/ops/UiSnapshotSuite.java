@@ -58,20 +58,24 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                 context, renderer, 1163, 625)),
                 new SnapshotArtifact("fleet-armory-squads-wide.png",
                         renderFleetArmoryWorkspace(
-                                context, renderer, 1744, 938, false)),
+                                context, renderer, 1744, 938, false, false)),
                 new SnapshotArtifact("fleet-armory-workspace-wide.png",
                         renderFleetArmoryWorkspace(
-                                context, renderer, 1744, 938, true)));
+                                context, renderer, 1744, 938, true, false)),
+                new SnapshotArtifact("fleet-armory-loadout-preview-wide.png",
+                        renderFleetArmoryWorkspace(
+                                context, renderer, 1744, 938, true, true)));
     }
 
     private static BufferedImage renderFleetArmoryWorkspace(
             SnapshotContext context, HeadlessUiRenderer renderer,
-            int width, int height, boolean fireteam) throws Exception {
+            int width, int height, boolean fireteam, boolean pickerOpen) throws Exception {
         Reactor reactor = new Reactor();
         MarineRoster roster = new MarineRoster();
         roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
         roster.reserveSquad();
         FleetArmoryViewModel viewModel = new FleetArmoryViewModel(reactor, roster);
+        if (fireteam && pickerOpen) viewModel.toggleLoadoutPickerAction().run();
         HeadlessArmoryPreviewRenderer armoryPreview =
                 new HeadlessArmoryPreviewRenderer(context.modRoot());
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
@@ -102,7 +106,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     int billet = index;
                     document.canvases().set(instance.requireElement("marine-preview:" + index),
                             new ArmoryMarinePreviewCanvas(
-                                    () -> viewModel.billetAt(billet),
+                                    () -> viewModel.viewerBilletAt(billet),
                                     armoryPreview.assets()));
                 }
             }
@@ -157,12 +161,16 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("templateTiles", viewModel.templateTiles());
         props.put("targetSummary", viewModel.targetSummary());
         props.put("candidateSummary", viewModel.candidateSummary());
+        props.put("pickerClasses", viewModel.pickerClasses());
+        props.put("pickerToggleLabel", viewModel.pickerToggleLabel());
+        props.put("togglePicker", viewModel.toggleLoadoutPickerAction());
         props.put("billetRows", viewModel.billetRows());
         props.put("marineCards", viewModel.marineCards());
         props.put("previewSummary", viewModel.previewSummary());
         props.put("transactionSummary", viewModel.transactionSummary());
         props.put("transactionClasses", viewModel.transactionClasses());
         props.put("applyDisabled", viewModel.applyDisabled());
+        props.put("applyClasses", viewModel.applyClasses());
         props.put("applyLabel", viewModel.applyLabel());
         props.put("apply", viewModel.applyAction());
         props.put("feedbackText", viewModel.feedbackText());

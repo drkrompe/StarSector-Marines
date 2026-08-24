@@ -179,8 +179,10 @@ public final class BattleForceScore {
             if (take == post.turrets.size()) {
                 selected.add(post);
             } else {
-                selected.add(new DefensePost(post.tier, post.anchorX, post.anchorY,
-                        List.copyOf(post.turrets.subList(0, take))));
+                selected.add(new DefensePost(post.tier, post.layoutId,
+                        post.anchorX, post.anchorY,
+                        List.copyOf(post.turrets.subList(0, take)),
+                        post.droneHubCellX, post.droneHubCellY));
             }
             remaining -= take;
         }
@@ -199,7 +201,7 @@ public final class BattleForceScore {
         for (DefensePost post : posts) {
             for (DefensePost.TurretSpec spec : post.turrets) {
                 if (remaining-- <= 0) return score;
-                score += turret(spec.kind);
+                score += spec.structure().forceScore;
             }
         }
         return score;

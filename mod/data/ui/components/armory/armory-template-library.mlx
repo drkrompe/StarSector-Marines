@@ -1,9 +1,9 @@
-<template props="templateTiles">
-  <div id="template-library" class="panel template-library">
+<template props="templateTiles,pickerClasses">
+  <div id="template-library" class="{pickerClasses}">
     <div id="library-heading" class="label heading tone-edge">CHANGE LOADOUT</div>
     <div id="library-explainer" class="label tone-muted">Preview a reusable template below; the team changes only when equipped.</div>
     <div id="template-list" class="template-gallery">
-      <button each="tile in templateTiles" key="{tile.id}" id="{tile.id}" class="{tile.classes}" onclick="{tile.select}">
+      <button each="tile in templateTiles" key="{tile.id}" id="{tile.id}" class="{tile.classes}" disabled="{tile.disabled}" onclick="{tile.select}">
         <div id="{tile.nameId}" class="template-name label heading tone-edge">{tile.name}</div>
         <canvas id="{tile.canvasId}" class="template-preview" width="480" height="156" />
         <div id="{tile.availabilityId}" class="template-availability label tone-muted">{tile.availability}</div>
@@ -19,6 +19,14 @@
     padding: 6px;
     gap: 4px;
     overflow: hidden;
+  }
+
+  .template-library.picker-closed {
+    height: 0px;
+    padding: 0px;
+    gap: 0px;
+    border-width: 0px;
+    opacity: 0;
   }
 
   .label { overflow: hidden; }
@@ -45,6 +53,8 @@
     font-family: body;
     text-align: left;
   }
+
+  .template-tile.unavailable { opacity: 0.42; }
 
   .template-name { height: 17px; }
   .template-preview { width: 0px; height: 0px; flex-grow: 1; border-width: 1px; overflow: hidden; }

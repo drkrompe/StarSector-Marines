@@ -10,7 +10,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 /** Replaces changed JSON scalars while retaining the source document's exact layout. */
-final class JsonTextPatcher {
+public final class JsonTextPatcher {
 
     private final String source;
     private final StringBuilder output;
@@ -21,7 +21,7 @@ final class JsonTextPatcher {
         output = new StringBuilder(source.length());
     }
 
-    static String patch(String source, JSONObject desired) throws JSONException {
+    public static String patch(String source, JSONObject desired) throws JSONException {
         JsonTextPatcher patcher = new JsonTextPatcher(source);
         patcher.patchValue(desired);
         patcher.copyWhitespace();
