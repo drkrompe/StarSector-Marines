@@ -21,6 +21,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
+import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef.LayerClips;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 
 import java.awt.Color;
@@ -426,12 +427,15 @@ public final class UnitRenderService implements RenderSystem {
                 if (layeredAssets != null && layeredHeadAssets != null) {
                     float cx = cam.cellToScreenX(rx[r]);
                     float cy = cam.cellToScreenY(ry[r]);
-                    LayerPose authoredPose = infantryPose(type, layeredPose[r],
+                    MarineSecondary secondary = secSpec != null
+                            ? (MarineSecondary) secSpec[r] : null;
+                    LayerPose authoredPose = infantryPose(type.drawsLayeredWeapon(),
+                            secondary, layeredPose[r],
                             layeredLocomotion[r], layeredWeaponPhase[r], layeredFlags[r]);
                     LayeredUnitComposer.emit(out, layeredAssets, layeredHeadAssets.head,
                             primaryWeapon != null ? (MarineWeapon) primaryWeapon[r] : null,
                             type.drawsLayeredWeapon(),
-                            secSpec != null ? (MarineSecondary) secSpec[r] : null,
+                            secondary,
                             equipmentGrade != null ? (EquipmentGrade) equipmentGrade[r]
                                     : EquipmentGrade.SERVICE,
                             cx, cy, unitSize * type.renderScale * LAYERED_INFANTRY_SCALE,
@@ -464,9 +468,17 @@ public final class UnitRenderService implements RenderSystem {
         }
     }
 
-    private static LayerPose infantryPose(UnitType type, int pose, float locomotionPhase,
-                                          float actionPhase, int flags) {
-        if (!type.drawsLayeredWeapon()) return null;
+    static LayerPose infantryPose(boolean drawsLayeredWeapon, MarineSecondary secondary,
+                                  int pose,
+                                  float locomotionPhase, float actionPhase, int flags) {
+        return infantryPose(UnitLayerLayouts.get(), drawsLayeredWeapon, secondary,
+                pose, locomotionPhase, actionPhase, flags);
+    }
+
+    static LayerPose infantryPose(UnitLayerLayouts layouts, boolean drawsLayeredWeapon,
+                                  MarineSecondary secondary, int pose,
+                                  float locomotionPhase, float actionPhase, int flags) {
+        if (!drawsLayeredWeapon) return null;
         boolean moving = (flags & LayeredAppearance.FLAG_MOVING) != 0;
         String variantId = "rifle";
         String animationId;
@@ -484,17 +496,27 @@ public final class UnitRenderService implements RenderSystem {
                 animationId = "firing";
                 phase = actionPhase;
             }
-            case LayeredAppearance.POSE_ROCKET_AIM, LayeredAppearance.POSE_ROCKET_FIRE -> {
-                variantId = "rocket";
-                animationId = "aiming";
+            case LayeredAppearance.POSE_ROCKET_AIM, LayeredAppearance.POSE_ROCKET_FIRE,
+                 LayeredAppearance.POSE_AMR_AIM, LayeredAppearance.POSE_AMR_FIRE,
+                 LayeredAppearance.POSE_SMOKE_THROW,
+                 LayeredAppearance.POSE_SATCHEL_PLANT -> {
+                if (secondary == null
+                        || secondary.specialDef().presentation().layerClips() == null) {
+                    return null;
+                }
+                LayerClips layerClips = secondary.specialDef().presentation().layerClips();
+                boolean firing = pose == LayeredAppearance.POSE_ROCKET_FIRE
+                        || pose == LayeredAppearance.POSE_AMR_FIRE;
+                variantId = layerClips.variant();
+                animationId = firing && layerClips.firing() != null
+                        ? layerClips.firing() : layerClips.using();
                 phase = actionPhase;
             }
             default -> {
                 return null;
             }
         }
-        AnimationClip clip = UnitLayerLayouts.get().clip("marine-line", variantId,
-                animationId);
+        AnimationClip clip = layouts.clip("marine-line", variantId, animationId);
         return clip != null ? clip.sample(phase) : null;
     }
 

@@ -41,6 +41,10 @@
           "firingOcclusion": "over-body",
           "replacePrimaryWhileUsing": true
         },
+        "layerClips": {
+          "variant": "rocket",
+          "using": "aiming"
+        },
         "preview": {
           "state": "using",
           "phase": 1.0
@@ -87,6 +91,11 @@
           "recoilShoulders": 0.04,
           "replacePrimaryWhileUsing": true
         },
+        "layerClips": {
+          "variant": "anti-materiel",
+          "using": "aiming",
+          "firing": "firing"
+        },
         "preview": {
           "state": "using",
           "phase": 1.0
@@ -120,15 +129,35 @@
         "armoryIcon": "graphics/ui/armory/special-smoke-grenades.png",
         "aimSprite": null,
         "usePose": "throw",
+        "carrierLayer": {
+          "sprite": "graphics/ui/armory/special-smoke-grenades.png",
+          "widthShoulders": 0.2,
+          "heightShoulders": 0.2,
+          "pivot": [0.5, 0.5],
+          "carried": {
+            "offsetShoulders": [-0.16, 0.02],
+            "angleDegrees": -30.0,
+            "occlusion": "over-body"
+          },
+          "using": {
+            "offsetShoulders": [0.0, 0.32],
+            "angleDegrees": 0.0,
+            "occlusion": "over-body"
+          }
+        },
         "thrown": {
           "sprite": "graphics/ui/armory/special-smoke-grenades.png",
           "widthCells": 0.2016,
           "heightCells": 0.42
         },
+        "layerClips": {
+          "variant": "smoke",
+          "using": "throwing"
+        },
         "fieldSprite": "graphics/battle/fx/smoke-field-puff.png",
         "preview": {
-          "state": "carried",
-          "phase": 1.0
+          "state": "using",
+          "phase": 0.6
         }
       }
     },
@@ -180,6 +209,10 @@
         "deployed": {
           "sprite": "graphics/battle/fx/satchel-charge-armed.png",
           "visualCells": 0.54
+        },
+        "layerClips": {
+          "variant": "satchel",
+          "using": "planting"
         },
         "preview": {
           "state": "using",
