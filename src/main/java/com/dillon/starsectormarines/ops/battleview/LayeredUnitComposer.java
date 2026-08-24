@@ -5,6 +5,9 @@ import com.dillon.starsectormarines.battle.appearance.LayeredWeaponFamily;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.marine.EquipmentLayerDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialUsePose;
 
 /** Emits one modular infantry actor from shoulder-relative authored transforms. */
 final class LayeredUnitComposer {
@@ -37,9 +40,29 @@ final class LayeredUnitComposer {
                 || pose == LayeredAppearance.POSE_AMR_FIRE;
         boolean overShoulder = (flags & LayeredAppearance.FLAG_WEAPON_OVER_SHOULDER) != 0;
 
-        LayeredWeaponFamily weaponFamily = drawWeaponLayers
+        SpecialEquipmentDef specialDef = special != null ? special.specialDef() : null;
+        EquipmentLayerDef specialLayer = specialDef != null
+                ? specialDef.presentation().carrierLayer() : null;
+        SpecialUsePose usePose = specialDef != null
+                ? specialDef.presentation().usePose() : null;
+        boolean specialUsing = switch (usePose != null ? usePose : SpecialUsePose.THROW) {
+            case SHOULDER_LAUNCHER -> rocket;
+            case BRACED_RIFLE -> amr;
+            case THROW -> pose == LayeredAppearance.POSE_SMOKE_THROW;
+            case PLANT -> pose == LayeredAppearance.POSE_SATCHEL_PLANT;
+        };
+        boolean specialFiring = pose == LayeredAppearance.POSE_ROCKET_FIRE
+                || pose == LayeredAppearance.POSE_AMR_FIRE;
+        boolean genericSpecialLayer = specialLayer != null;
+        boolean drawSpecialLayer = genericSpecialLayer
+                && (specialUsing || specialLayer.visibleWhileCarried());
+        boolean replacePrimary = drawSpecialLayer && specialUsing
+                && specialLayer.replacePrimaryWhileUsing();
+        boolean drawPrimaryLayers = drawWeaponLayers && !replacePrimary;
+
+        LayeredWeaponFamily weaponFamily = drawPrimaryLayers
                 ? LayeredWeaponFamily.fromPrimary(primary) : null;
-        LayeredSpriteCache weapon = drawWeaponLayers
+        LayeredSpriteCache weapon = drawPrimaryLayers
                 ? (rocket ? assets.rocketLauncher
                         : amr && special == MarineSecondary.ANTI_MATERIEL_RIFLE
                                 ? assets.antiMaterielRifle
@@ -73,12 +96,25 @@ final class LayeredUnitComposer {
             }
         }
 
-        WeaponTransform wt = drawWeaponLayers
+        WeaponTransform wt = drawPrimaryLayers
                 ? weaponTransform(weapon, weaponFamily, rocket, amr, pose, weaponPhase,
                     actorX, actorY, pxPerSw, facingDeg)
                 : null;
 
-        if (drawWeaponLayers && !overShoulder) {
+        LayeredSpriteCache specialSprite = drawSpecialLayer
+                ? assets.specialEquipment(specialDef.id()) : null;
+        EquipmentLayerComposer.Placement specialPlacement = specialSprite != null
+                ? EquipmentLayerComposer.resolve(specialLayer, specialUsing, specialFiring,
+                        weaponPhase,
+                        actorX, actorY, pxPerSw, facingDeg)
+                : null;
+
+        if (specialPlacement != null
+                && specialPlacement.occlusion() == EquipmentLayerDef.Occlusion.UNDER_BODY) {
+            emitEquipmentLayer(out, specialSprite, specialPlacement, alpha);
+        }
+
+        if (drawPrimaryLayers && !overShoulder) {
             emitSprite(out, weapon, wt.cx, wt.cy, pxPerSw, wt.angleDeg, alpha);
         }
 
@@ -91,8 +127,14 @@ final class LayeredUnitComposer {
                     pxPerSw, alpha);
         }
 
-        // Rocket firing deliberately changes occlusion: body -> weapon -> head.
-        if (drawWeaponLayers && overShoulder) {
+        if (specialPlacement != null
+                && specialPlacement.occlusion() == EquipmentLayerDef.Occlusion.OVER_BODY) {
+            emitEquipmentLayer(out, specialSprite, specialPlacement, alpha);
+        }
+
+        // Authored firing occlusion may deliberately move a shoulder weapon
+        // over the body while leaving a braced rifle underneath it.
+        if (drawPrimaryLayers && overShoulder) {
             emitSprite(out, weapon, wt.cx, wt.cy, pxPerSw, wt.angleDeg, alpha);
         }
 
@@ -100,8 +142,12 @@ final class LayeredUnitComposer {
         emitSprite(out, head, headCenter[0], headCenter[1], pxPerSw,
                 facingDeg + headLookDeg, alpha);
 
-        if (drawWeaponLayers && (flags & LayeredAppearance.FLAG_MUZZLE_FLASH) != 0) {
-            emitFlash(out, assets.muzzleFlash, wt, weapon, pxPerSw, alpha);
+        if ((flags & LayeredAppearance.FLAG_MUZZLE_FLASH) != 0) {
+            if (specialPlacement != null && specialFiring) {
+                emitEquipmentFlash(out, assets.muzzleFlash, specialPlacement, pxPerSw, alpha);
+            } else if (drawPrimaryLayers) {
+                emitFlash(out, assets.muzzleFlash, wt, weapon, pxPerSw, alpha);
+            }
         }
     }
 
@@ -222,6 +268,31 @@ final class LayeredUnitComposer {
         out.addSprite(RenderLayer.UNITS, layer.sprite, cx, cy,
                 layer.pxWidth * scale, layer.pxHeight * scale, angleDeg,
                 1f, 1f, 1f, alpha);
+    }
+
+    private static void emitEquipmentLayer(DrawList out, LayeredSpriteCache layer,
+                                           EquipmentLayerComposer.Placement placement,
+                                           float alpha) {
+        out.addSprite(RenderLayer.UNITS, layer.sprite,
+                placement.centerX(), placement.centerY(),
+                placement.width(), placement.height(), placement.angleDegrees(),
+                1f, 1f, 1f, alpha);
+    }
+
+    private static void emitEquipmentFlash(DrawList out, LayeredSpriteCache flash,
+                                           EquipmentLayerComposer.Placement placement,
+                                           float shoulderPx, float alpha) {
+        float[] muzzleOffset = rotate(0f, placement.height() * 0.5f,
+                placement.angleDegrees());
+        float muzzleX = placement.centerX() + muzzleOffset[0];
+        float muzzleY = placement.centerY() + muzzleOffset[1];
+        float centerX = (flash.pxWidth * 0.5f - FLASH_PIVOT_X)
+                / SOURCE_SHOULDER_PX * shoulderPx;
+        float centerY = -(flash.pxHeight * 0.5f - FLASH_PIVOT_Y)
+                / SOURCE_SHOULDER_PX * shoulderPx;
+        float[] flashOffset = rotate(centerX, centerY, placement.angleDegrees());
+        emitSprite(out, flash, muzzleX + flashOffset[0], muzzleY + flashOffset[1],
+                shoulderPx, placement.angleDegrees(), alpha);
     }
 
     private static float[] worldPoint(float actorX, float actorY,

@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.smoke.SmokeFieldService;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
@@ -9,9 +12,12 @@ public final class SmokeRenderSystem implements RenderSystem {
 
     private static final int PUFF_COUNT = 9;
     private final BattleSprites sprites;
+    private final SpecialEquipmentDef equipment;
 
     public SmokeRenderSystem(BattleSprites sprites) {
         this.sprites = sprites;
+        this.equipment = SpecialEquipmentRegistry.require(
+                SpecialEquipmentRegistry.SMOKE_GRENADE_ID);
     }
 
     @Override public RenderLayer layer() { return RenderLayer.SMOKE; }
@@ -24,11 +30,13 @@ public final class SmokeRenderSystem implements RenderSystem {
         if (grenadeSprite != null) {
             for (SmokeFieldService.SmokeThrowView grenade
                     : ctx.sim.smokeFields().throwsInFlight()) {
-                float size = cellPx * 0.42f;
+                SpecialEquipmentPresentationDef.Thrown thrown =
+                        equipment.presentation().thrown();
                 out.addSprite(RenderLayer.SHOTS, grenadeSprite,
                         camera.cellToScreenX(grenade.x()),
                         camera.cellToScreenY(grenade.y() + grenade.z()),
-                        size * 0.48f, size, grenade.progress() * 540f,
+                        cellPx * thrown.widthCells(), cellPx * thrown.heightCells(),
+                        grenade.progress() * 540f,
                         0.82f, 0.88f, 0.90f, ctx.alphaMult);
             }
         }
