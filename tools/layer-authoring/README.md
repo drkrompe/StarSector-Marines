@@ -18,11 +18,13 @@ Select a unit, frame, and layer, then:
 - adjust pivot, visibility, z-order, source sprite, and frame duration;
 - duplicate frames to create additional animation keys and use Play to inspect timing;
 - inspect or export the combined sheet; and
-- use Save JSON or Ctrl+S to validate and atomically replace the mod data file.
+- use Ctrl+Z to undo and Ctrl+Shift+Z to redo the last edit; and
+- use Save JSON or Ctrl+S to validate, confirm, and atomically replace the mod data file.
 
 The editor refuses duplicate unit/frame/layer ids, non-positive sizes or durations,
 out-of-range pivots, missing sprites, and sprite paths outside `mod/`. Reload and
-window close both guard unsaved changes.
+window close both guard unsaved changes. Frame deletion, JSON replacement, and
+overwriting an exported PNG require an explicit confirmation.
 
 For a non-interactive evidence pass:
 
