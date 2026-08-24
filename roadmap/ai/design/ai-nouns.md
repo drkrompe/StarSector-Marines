@@ -78,6 +78,16 @@ authority. An explicitly authored must-hold position can make its last infantry
 survivor hold rather than take an ordinary structural fallback. Morale survival
 behavior remains an independent higher-priority safety boundary elsewhere.
 
+An advancing HOLD also publishes a contact initiative: **RECEIVE** or
+**PROSECUTE**. A defending or overmatched squad, an approaching enemy, or a
+useful firing line tells the squad to receive the contact from its current
+ground. A non-approaching direct contact that only part of the squad can engage
+tells it to prosecute: members with legal fire hold and shoot while the others
+use the shared track to establish bounded firing positions. Prosecution never
+authorizes an unbounded chase or abandonment of the mission route; if no legal
+position exists inside the maneuver leash, the member continues its assigned
+advance.
+
 Fireteams are the infantry maneuver unit. They can receive distinct roles in a
 shared squad step: a recoverable ambush can displace the exposed team while a
 sibling covers, and a committed advance can bound rather than send every

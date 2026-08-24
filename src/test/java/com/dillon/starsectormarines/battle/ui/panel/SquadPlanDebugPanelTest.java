@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.combat.FiringSystem;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture.ContactInitiative;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Doctrine;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture.ForceBalance;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Motion;
@@ -36,6 +37,8 @@ class SquadPlanDebugPanelTest {
                 SquadPlanDebugPanel.threatSummary(picture));
         assertEquals("Force H5.50/F3   Axis +1.00,+0.00",
                 SquadPlanDebugPanel.forceSummary(picture));
+        assertEquals("Initiative NONE   Line M2/3 T2/3",
+                SquadPlanDebugPanel.initiativeSummary(picture));
         assertEquals("Primary Raider @18,12   Confidence 0.75",
                 SquadPlanDebugPanel.primarySummary(picture, "Raider"));
         assertEquals("Primary —", SquadPlanDebugPanel.primarySummary(
@@ -110,6 +113,8 @@ class SquadPlanDebugPanelTest {
         return new SquadContactPicture(42, Posture.ADVANCING, axisX, axisY,
                 3, 2, 5.5f, 3, ForceBalance.UNFAVORABLE,
                 Sector.LEFT_FLANK, Motion.APPROACHING, 99L,
-                18, 12, 0.75f, doctrine);
+                18, 12, 0.75f, doctrine, 2, 3, 2, 3,
+                doctrine == Doctrine.HOLD ? ContactInitiative.RECEIVE
+                        : ContactInitiative.NONE);
     }
 }

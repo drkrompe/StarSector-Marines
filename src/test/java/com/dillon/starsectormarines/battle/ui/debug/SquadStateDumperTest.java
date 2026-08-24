@@ -16,6 +16,7 @@ import org.json.JSONArray;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SquadStateDumperTest {
@@ -49,6 +50,15 @@ class SquadStateDumperTest {
         assertEquals("Raider", picture.getString("primaryContactName"));
         assertTrue(picture.getBoolean("doctrineChangedThisTick"));
         assertTrue(picture.getBoolean("holdReactionFresh"));
+        assertEquals(squad.contactPicture.contactInitiative().name(),
+                picture.getString("contactInitiative"));
+        assertEquals(squad.contactPicture.primaryEngageableMembers(),
+                picture.getInt("primaryEngageableMembers"));
+        assertEquals(squad.contactPicture.primaryEngageableFireTeams(),
+                picture.getInt("primaryEngageableFireTeams"));
+        assertEquals(squad.contactPicture.liveFireTeams(),
+                picture.getInt("liveFireTeams"));
+        assertFalse(picture.getBoolean("advanceHardHoldActive"));
         assertEquals(TacticalScoring.HOLD_AFTER_LOS_TICKS,
                 picture.getInt("holdAfterLosWindowTicks"));
         assertEquals("DIRECT", evidence.getString("source"));
