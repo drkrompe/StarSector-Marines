@@ -4,7 +4,7 @@ Status: ACTIVE — fleet-sourced availability, pre-battle commitment, and simula
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — replaced story sequencing with durable capacity, reach, and forward-base boundaries.
+Updated: 2026-08-24 — retained capacity/reach boundaries and added map-authored shield and orbital-battery targeting constraints.
 
 ## Vocabulary
 
@@ -96,6 +96,14 @@ Command progression may change deck capacity, command-point pacing, and
 cooldown curves, but it never creates fleet-derived availability. Future
 reach geography may add named landing zones, air-defense contesting, and
 craft-specific delivery risk on the shared insertion/delivery seam.
+
+Map-authored orbital-defense state may constrain a power at target-validation
+time without removing its frozen source or deck identity. A local shield may
+deny only covered barrage targets, while a surface-to-orbit battery may hold
+new barrage commitments at standoff until ground forces neutralize its
+fire-control site. `shielded-fire-support-zones.md` and
+`orbital-battery-fire-support-lock.md` own those distinct extensions; neither
+may spend resources on a denied request or invent campaign fleet damage.
 
 A forward operating base, if introduced, is a territory- and spoils-gated
 reach object. It may anchor delivery but is neither a command power nor a

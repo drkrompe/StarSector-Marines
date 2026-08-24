@@ -1052,6 +1052,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     @Override
     public CommanderInfluenceSnapshot getCommanderInfluence(Faction faction) {
+        // Influence is a read-only diagnostic today. Preserve its 15-tick
+        // immutable publication cadence for actual readers without spending
+        // four topology propagations in battles where no debug overlay or
+        // diagnostic consumer requested a snapshot.
+        commanderInfluence.tick(simTickIndex);
         return commanderInfluence.snapshot(faction);
     }
 
@@ -1212,7 +1217,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // visible to garrison dispatch this same tick).
         squadFallback.tick();
         tickProfile.lap(TickProfile.Phase.SQUAD_FALLBACK);
-        commanderInfluence.tick(simTickIndex);
         // Commander-tier slow tick — runs before per-squad replan so any
         // assignment written this tick is visible to the GOAP relevance pass
         // below. Cadence + early-skip-when-empty live inside the registry.

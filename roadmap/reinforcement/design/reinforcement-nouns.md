@@ -4,7 +4,7 @@ Status: ACTIVE — side-owned requests separate trigger, supply, means, delivery
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — replaced shipped and story framing with durable request, delivery, and extension boundaries.
+Updated: 2026-08-24 — retained durable request/delivery boundaries and named the target-faction roster extension.
 
 ## Vocabulary
 
@@ -51,3 +51,10 @@ The installed means ladder is defender-only: convoy, then shuttle, then walk-in.
 The existing request shape is deliberately wider than the current delivery set. Marine-side reinforcement can reuse it only with explicit marine-held supply, legitimate marine triggers, and a policy for player authorization and readout. Scripted mission timings and commander-initiated requests are likewise trigger extensions, not new delivery systems.
 
 Request strength currently expresses desired scale, not a complete force, cost, and pacing contract. The installed ladder therefore uses one small, single-response baseline. Multi-squad, multi-vehicle, and multi-shuttle scale must be introduced as one coordinated contract rather than letting each means drift independently. A player-side ticket/inbound readout must project the same resource and in-flight reality that the simulation uses rather than invent a UI budget.
+
+The current faction roster is keyed by battle side and therefore gives every
+defender the same thematic unit identity. `target-faction-ground-rosters.md`
+owns the extension that resolves one target-faction ground roster at launch and
+reuses it for initial defenders, garrisons, convoys, shuttles, and walk-ins.
+That roster may choose equipment and unit identity; it still may not choose
+force quantity, delivery, mission command, or player-owned personnel.
