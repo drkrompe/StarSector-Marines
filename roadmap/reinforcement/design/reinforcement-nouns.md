@@ -1,8 +1,10 @@
 # Reinforcement
 
-Status: ACTIVE — defender-side reinforcement, supply gates, and counterattack waves are shipped; symmetric marine dispatch, scale, and player-facing status remain open.
+Status: ACTIVE — side-owned requests separate trigger, supply, means, delivery hint, objective, and ticket authority; the installed ladder is defender-side, with marine dispatch, force scale, player readout, and atomic delivery outcomes as extension paths.
 
 Written: 2026-08-23
+
+Updated: 2026-08-24 — replaced shipped and story framing with durable request, delivery, and extension boundaries.
 
 ## Vocabulary
 
@@ -28,7 +30,7 @@ For Conquest, recapture-target recomputation runs before reinforcement dispatch.
 
 Zone loss remains a parallel trigger: when marines take a previously defender-held objective, it posts a defender request that uses the lost zone as both delivery hint and tactical objective. This fallback operates alongside either the Conquest frontline trigger or the non-Conquest garrison trigger.
 
-The present production ladder is defender-only: convoy, then shuttle, then walk-in. It is ordered for readable, capability-shaped delivery, not because a request is intrinsically a truck or a shuttle. Each means rejects a request once its corresponding defender supply chain is gone, so captures visibly degrade the available response from mechanized delivery to air delivery to infantry, then exhaust it.
+The installed means ladder is defender-only: convoy, then shuttle, then walk-in. It is ordered for readable, capability-shaped delivery, not because a request is intrinsically a truck or a shuttle. Each means rejects a request once its corresponding defender supply chain is gone, so captures visibly degrade the available response from mechanized delivery to air delivery to infantry, then exhaust it.
 
 ## Standing laws
 
@@ -39,13 +41,13 @@ The present production ladder is defender-only: convoy, then shuttle, then walk-
 5. Supply gates live at means feasibility. Triggers may avoid obvious noise, but they must not duplicate the authoritative question of whether a delivery capability remains.
 6. Ordinary dispatch is paid before commitment and refunds only when no means can deliver. A prepaid counterattack is an intentional exception: its reserve is committed at muster and remains at risk after launch.
 7. A target may not stay suppressed merely because a delivery pipeline failed. Dispatch state is provisional until an assigned live squad closes the loop, with a bounded recovery path for lost deliveries.
-8. Faction identity is data on every request, but symmetric behavior is not implied by the type. Defender reinforcement is shipped; marine-side triggers, supply interpretation, and means eligibility require a dedicated story.
+8. Faction identity is data on every request, but symmetric behavior is not implied by the type. The installed ladder is defender-side; marine-side triggers, supply interpretation, and means eligibility require explicit authority.
 9. The faction roster chooses unit tier and visual/stat identity. It does not decide force quantity, delivery feasibility, or the player's campaign roster.
 
 ## Boundaries and extension paths
 
 `conquest-nouns.md` owns compound capture, ownership state, and the conquest win condition. Reinforcement reads compound availability as supply; it does not own capture progression. `convoy-nouns.md` owns vehicle routing, movement, and deboarding. `air-nouns.md` owns shuttle bodies and sorties. The commander/AI layer owns what a delivered squad does after its objective assignment, while reinforcement only supplies the initial tactical intent.
 
-The existing request shape is deliberately wider than the current delivery set. Marine-side reinforcement can reuse it only after the story establishes which marine-held compounds supply which response, what marine triggers are legitimate, and how the player reads and authorizes that capacity. Scripted mission timings and commander-initiated requests are likewise trigger extensions, not new delivery systems.
+The existing request shape is deliberately wider than the current delivery set. Marine-side reinforcement can reuse it only with explicit marine-held supply, legitimate marine triggers, and a policy for player authorization and readout. Scripted mission timings and commander-initiated requests are likewise trigger extensions, not new delivery systems.
 
-Current request strengths express desired scale, but the shipped ladder delivers its present small, single-response baseline. Multi-squad, multi-vehicle, and multi-shuttle scale must be introduced as one coordinated force-and-pacing contract rather than letting each means drift independently. A player-side ticket/inbound readout is also open; it must project the same resource and in-flight reality that the simulation uses rather than invent a UI budget.
+Request strength currently expresses desired scale, not a complete force, cost, and pacing contract. The installed ladder therefore uses one small, single-response baseline. Multi-squad, multi-vehicle, and multi-shuttle scale must be introduced as one coordinated contract rather than letting each means drift independently. A player-side ticket/inbound readout must project the same resource and in-flight reality that the simulation uses rather than invent a UI budget.

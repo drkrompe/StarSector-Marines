@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — replaced the board-shaped roadmap recap with durable extension boundaries.
+Updated: 2026-08-24 — made the selected billet's equipment doll and sample soldier one view-only projection of the materialized kit.
 
 ## Purpose
 
@@ -115,6 +115,13 @@ state consumed by deployment and battle. This preserves the campaign-to-battle
 contract while the designer grows. The built-in library contains Field, Line,
 Recon, Fire Support, Anti-Materiel, Screen, and Breach templates; the LOADOUTS
 surface exposes Alpha/Bravo/Charlie plus each assigned template.
+
+Selecting one candidate billet also projects an equipment doll beside a sample
+soldier. The doll reads the billet's armour, primary, grade, and optional special
+item; the soldier uses the same layered actor composition and special-equipment
+presentation recipe as battlefield infantry. Billet selection is retained view
+state only. It does not materialize gear, reserve stock, or replace the exact
+refit transaction preview.
 
 Templates are reusable but equipment is finite. Design itself must not be gated by
 stock; the designer may save an unfieldable template, while assignment is allowed
@@ -298,8 +305,14 @@ loses an opportunity. Responding to an obligation follows the same deployment
 route as its campaign event notice. Long lists state hidden counts, and missing
 derived inputs are explained rather than silently collapsed.
 
-The HQ introduces no persisted state and no second company-card hierarchy. Its
-roster area is the host that the formation, whereabouts, and contract-board
+The HQ introduces no persisted state and no second company hierarchy. Opening its
+Armory transition first shows the owned-company collection as a responsive grid of
+literal selectable portrait cards, then enters the selected company's retained
+workspace. A company card is only a presentation container over the canonical
+company authority; it is not a collectible/template noun and does not persist a
+parallel organization. Until a multi-company campaign authority exists, that grid
+contains exactly the one real campaign roster rather than fixture companies. The HQ
+roster area remains the host that the formation, whereabouts, and contract-board
 stories will expand.
 
 ## Presentation boundaries

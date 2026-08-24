@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.marine.SpecialActivation;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+import com.dillon.starsectormarines.marine.SpecialResourceMode;
 import com.dillon.starsectormarines.marine.SatchelChargeSpec;
 import com.dillon.starsectormarines.marine.SmokeGrenadeSpec;
 
@@ -56,7 +57,7 @@ public enum MarineSecondary {
     public SpecialActivation activation() { return specialDef().activation(); }
     public int startingAmmo() { return specialDef().startingAmmo(); }
     public boolean usesAmmunition() {
-        return activation() != SpecialActivation.UTILITY_SATCHEL;
+        return specialDef().resourceMode() == SpecialResourceMode.AMMUNITION;
     }
     public boolean hasAvailableUse(int ammo) { return !usesAmmunition() || ammo > 0; }
     public String aimSpritePath() { return specialDef().aimSpritePath(); }

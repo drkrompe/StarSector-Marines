@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.marine.FireTeamGearDelta;
+import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.FireTeamRefitPreview;
 import com.dillon.starsectormarines.marine.FireTeamTemplateResult;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -100,6 +101,9 @@ class FleetArmoryViewModelTest {
             }
 
             UiElement list = instance.requireElement("template-list");
+            UiElement preview = instance.requireElement("loadout-preview");
+            assertEquals(640, preview.canvasWidth());
+            assertEquals(230, preview.canvasHeight());
             UiElement first = list.childAt(0);
             UiElement second = list.childAt(1);
             viewModel.templateRows().get().get(1).select().run();
@@ -112,6 +116,22 @@ class FleetArmoryViewModelTest {
             assertEquals(viewModel.currentPreview().canApply(),
                     !instance.requireElement("apply-template").disabled());
         }
+    }
+
+    @Test
+    void billetSelectionDrivesTheMaterializedPreviewWithoutMutatingTheTemplate() {
+        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(new Reactor(), fullSquad());
+        FireTeamBillet first = viewModel.selectedBillet();
+
+        viewModel.billetRows().get().get(1).select().run();
+
+        assertEquals(1, viewModel.selectedBilletIndex());
+        assertSame(viewModel.selectedBillet(),
+                viewModel.roster().armory().templateCardById(viewModel.selectedTemplateId())
+                        .billet(1));
+        assertFalse(first == viewModel.selectedBillet());
+        assertTrue(viewModel.billetRows().get().get(1).classes().contains("selected"));
+        assertTrue(viewModel.previewSummary().get().contains(viewModel.selectedBillet().name()));
     }
 
     @Test
@@ -137,6 +157,7 @@ class FleetArmoryViewModelTest {
         props.put("targetSummary", viewModel.targetSummary());
         props.put("candidateSummary", viewModel.candidateSummary());
         props.put("billetRows", viewModel.billetRows());
+        props.put("previewSummary", viewModel.previewSummary());
         props.put("gearRows", viewModel.gearRows());
         props.put("transactionSummary", viewModel.transactionSummary());
         props.put("transactionClasses", viewModel.transactionClasses());

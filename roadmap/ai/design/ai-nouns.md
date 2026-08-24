@@ -1,8 +1,10 @@
 # AI nouns
 
-Status: ACTIVE — squad planning, mission command, belief, and local doctrine are shipped; bounded analysis, cleanup, and live tuning remain.
+Status: ACTIVE — AI owns mission command, squad planning, belief-derived contact pictures, local doctrine, and faction-local read-only influence; strategic analysis, mech-behavior retirement, and live acceptance are bounded extensions.
 
 Written: 2026-08-23
+
+Updated: 2026-08-24 — replaced work sequencing with durable strategic-analysis and action-authority boundaries.
 
 AI turns mission context and what a side has learned into coordinated
 movement, posture, and fire intent. It is a decision system, not the authority
@@ -31,10 +33,9 @@ only among goals in the highest active category. A must-hold mission context
 therefore cannot be displaced merely because an ordinary combat goal scores
 more highly.
 
-The current squad replan pass is serial. Its state, goals, actions, and
-read-only view boundary are deliberately parallel-ready, but no design or
-acceptance claim may treat cross-squad planning as parallel until that is
-actually introduced and measured.
+Squad replanning remains serial unless a measured, explicit parallel contract
+is introduced. Its state, goals, actions, and read-only view boundary may
+support that extension, but parallel behavior is not implied by their shape.
 
 ## Knowledge and contact
 
@@ -124,14 +125,14 @@ override their physical outcomes. `battle-render-nouns.md` owns rendering;
 debug presentation observes AI facts without becoming a sensor or a second
 decision authority.
 
-## Direction
+## Strategic-extension boundaries
 
-The next strategic extension is a read-only frontline, bulge, and breakthrough
-analysis over the shipped commander snapshots. Only after that analysis is
-observable and trustworthy may a mission-specific commander consume it for
-reallocation, reserves, or briefing. Mechanical suppression, cross-squad
-briefing, defender strategic response, recon doctrine, and broad dynamic mech
-reassignment are directions, not current AI contracts.
+A commander influence snapshot is faction-local, belief-honest, immutable, and
+read-only. A frontline, bulge, or breakthrough analysis may derive only from
+that snapshot and must never expose hidden world state.
 
-The live acceptance and bounded next work are indexed in `stories.md`.
-Completed slices are recorded in `shipped.md`.
+Any consumer that reallocates squads, creates reserves, or briefs subordinates
+requires its own mission-specific authority contract. Diagnostic analysis does
+not itself authorize action. Mechanical suppression, cross-squad briefing,
+defender strategic response, recon doctrine, and dynamic mech reassignment are
+separate extensions and must preserve the same knowledge and ownership laws.

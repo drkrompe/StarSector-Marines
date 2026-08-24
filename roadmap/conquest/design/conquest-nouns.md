@@ -1,8 +1,10 @@
 # Conquest nouns
 
-Status: ACTIVE — territorial assault, compound control, and the defender supply-pressure loop are shipped.
+Status: ACTIVE — Conquest owns reversible compound territory, deliberate capture and hold, defender supply pressure, canonical-keep progression, and territorial victory; defender positive victory, marine-side supply use, and inbound-garrison presentation are extensions.
 
 Written: 2026-08-23
+
+Updated: 2026-08-24 — replaced shipped and board narration with durable supply, victory, and extension boundaries.
 
 Conquest is a territorial assault: marines establish a beachhead, take the
 defender's supply hubs through the city, and finish at the keep. It is not a
@@ -58,9 +60,10 @@ recapture targets, and counterattack waves. Conquest owns the compound state
 that those means read as supply; it does not choose how a request is delivered.
 `convoy-nouns.md` owns convoy movement and deboarding, and `air-nouns.md` owns
 shuttle bodies and sorties. A marine-held compound is queryable as marine
-territory, and resource production transfers to its marine owner. Current
-delivery means still fulfill defender requests only, so marine resource accrual
-is not a shipped marine reinforcement loop.
+territory, and resource production transfers to its marine owner. Marine-held
+resource production does not by itself authorize delivery: the installed means
+fulfill defender requests only, and a marine reinforcement loop requires its
+own request, supply, and means policy.
 
 ## Progression and the keep
 
@@ -77,14 +80,11 @@ resulting tactical places and must not restate their carve or layout details.
 
 Marines win only when every compound is MARINE_HELD and the marine side still
 has a participant in play. A missing compound layer or missing command post is
-a malformed Conquest setup and fails the marine objective closed. Defenders
-currently win by eliminating all marines; they do not yet have a positive
-territory-hold victory condition.
+a malformed Conquest setup and fails the marine objective closed. Defender
+victory is elimination-based; a positive territory-hold victory is an
+extension.
 
-The current model leaves three intentional extension paths: a defender
-positive territory victory, marine-side supply from captured compounds, and a
-readable inbound-garrison indication. None is a contracted implementation
-story yet. Live reinforcement acceptance is owned by
-`progressive-reinforcement.md` and `biome-counterattack.md`; completed
-historical work is listed
-in `shipped.md`.
+The model has three extension paths: a defender positive territory victory,
+marine-side supply from captured compounds, and a readable inbound-garrison
+indication. Each must establish the objective, supply/delivery, or presentation
+authority it changes rather than inheriting authority from compound ownership.

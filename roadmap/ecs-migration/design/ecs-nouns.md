@@ -1,14 +1,14 @@
 # ECS nouns
 
-Status: ACTIVE — the battle ECS model is shipped and is the standing authority for future component work.
+Status: ACTIVE — `EntityWorld` is the battle composition substrate; capability membership, lifecycle transitions, narrow service/view boundaries, determinism, and profile-gated column work are standing laws.
 
 Written: 2026-08-23
 
+Updated: 2026-08-24 — replaced migration-journal and benchmark narration with durable composition and extension boundaries.
+
 The battle simulation has one composition substrate: an `EntityWorld`.  This
-document names the durable rules of that substrate.  It deliberately describes
-the model, ownership, and safety laws rather than preserving the migration
-journal; shipped evidence is in `shipped.md` and executable field layouts live in
-`BattleComponents`.
+document names the durable model, ownership, and safety laws of that substrate.
+`BattleComponents` owns the battle component vocabulary.
 
 ## The vocabulary
 
@@ -47,7 +47,7 @@ journal; shipped evidence is in `shipped.md` and executable field layouts live i
    work.** Systems that can operate on a table's raw arrays should retain a
    query and walk its matched rows. Rich, branchy control flow may use its
    owning service's by-id API. Convert only when behavior and profiling justify
-   it; the measured access-cost result is recorded in `shipped.md`.
+   it.
 7. **Object fields are not a failure of ECS.** They preserve a genuinely shared,
    small-population mutable payload (for example, an air or ground body) when
    scalar decomposition has no demonstrated ownership or locality benefit.
@@ -136,21 +136,15 @@ promise deterministic row order. Explicitly sort any order-sensitive candidate
 set, and seed all battle randomness through the simulation's battle-owned
 stream rather than ad-hoc random sources.
 
-Column walking is an available tool, not a rewrite mandate. The completed
-measurement found a large access-mechanism ratio but only about 7.3 μs per
-200-unit tick in absolute savings. `NavigationService`'s occupancy rebuild is
-the proven clean column-walk adopter. The remaining former systems-half
-candidates either require a behavior redesign or offer no demonstrated
-frame-time value; reopen them only with a new profile and a behavior-preserving
-scope.
+Column walking is an available tool, not a rewrite mandate. Use it only for a
+real homogeneous consumer with a current profile and a behavior-preserving
+scope. `NavigationService`'s occupancy rebuild is an existing example, not a
+mandate to convert branchy domain logic.
 
-## Boundaries and next work
+## Extension boundaries
 
-The ECS migration itself is complete. The only remaining items on its board are
-an acceptance checkpoint plus bounded presentation and combat-behavior follow-ons.
-They do not reopen the storage migration. See
-`stories.md` for their status and `shipped.md` for the completed arc.
-
-The old migration journals are historical inputs to be folded into this model;
-they are not design authorities. Related feature behavior belongs in its own
-noun package, including air craft, vehicle control, rendering, and combat.
+Presentation, firing, and vehicle follow-ons do not reopen the storage model.
+New components and systems must preserve the same ownership, lifecycle,
+structural-mutation, and phase contracts. Related feature behavior belongs in
+its own noun package, including air craft, vehicle control, rendering, and
+combat.

@@ -1,10 +1,10 @@
 # Moddable Weapons
 
-Status: ACTIVE — handheld and turret weapons are data-owned; mech catalog migration remains
+Status: ACTIVE — handheld, special-item and turret weapon data is owned; mech migration remains
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — folded the shipped turret platform, mount, FX and preview model.
+Updated: 2026-08-24 — folded shipped special-equipment references and the turret platform, mount, FX and preview model.
 
 ## Purpose
 
@@ -123,7 +123,11 @@ Registry-owned handheld primary and weapon-like-secondary definitions are the
 authoritative data boundary. `MarineWeapon` and `MarineSecondary` remain
 id-backed compatibility handles rather than parallel stat authorities; a
 weapon-like special reaches its definition through the distinct
-progression-owned special-equipment identity.
+progression-owned special-equipment identity. That identity now comes from a
+separate JSON catalog and validates that every weapon reference resolves
+through the marine-secondary mount class. Progression also owns actor-local
+equipment composition and preview recipes; the layered-effects weapon story
+remains specifically about muzzle, tracer, trail, and impact FX.
 
 Mech weapon stat carriers remain a temporary transition boundary until their
 definitions and mount rules enter the registry. `TurretKind` remains only as a

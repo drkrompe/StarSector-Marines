@@ -175,7 +175,7 @@ public final class ArmoryScreen implements Screen {
                 () -> { tab = Tab.PERSONNEL; rebuild(); },
                 tab == Tab.PERSONNEL ? VALUE : HEADER);
         addButton(left + 140f, tabY, 174f, "Fire-team Loadouts",
-                () -> ctx.goTo(ScreenId.FLEET_ARMORY),
+                () -> ctx.openFleetArmoryWorkspaceFrom(ScreenId.ARMORY),
                 tab == Tab.LOADOUTS ? VALUE : HEADER);
         addButton(left + 324f, tabY, 174f, "Template Designer",
                 () -> { tab = Tab.DESIGNER; ensureDesignerDraft(); rebuild(); },
@@ -2028,14 +2028,10 @@ public final class ArmoryScreen implements Screen {
         widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD, secondary.displayName(),
                 x + 190f, top - 48f, VALUE));
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
-                secondary.activation() == SpecialActivation.UTILITY_SMOKE
-                        ? "Limited-ammunition tactical utility"
-                        : secondary.activation() == SpecialActivation.UTILITY_SATCHEL
-                                ? "Reusable cooldown-gated demolition utility"
-                        : "Limited-ammunition support weapon",
+                secondary.specialDef().catalogSubtitle(),
                 x + 190f, top - 76f, MUTED));
         widgets.add(new SpriteThumbWidget(secondaryIcon(secondary), x, top - 260f, 170f, 150f));
-        addWrappedText(secondaryFlavor(secondary), x + 190f, top - 112f,
+        addWrappedText(secondary.specialDef().catalogDescription(), x + 190f, top - 112f,
                 Math.max(120f, width - 200f), MUTED, 6);
         addEquipSecondaryButton(x, top, width, soldier, secondary, unlocked);
 
@@ -2632,19 +2628,6 @@ public final class ArmoryScreen implements Screen {
                     + "Its extra layers favor protection over rapid repositioning.";
             case MILITIA -> "Standardized local-defense plates refurbished for fleet use. Modest protection "
                     + "without a meaningful mobility penalty.";
-        };
-    }
-
-    private static String secondaryFlavor(MarineSecondary secondary) {
-        return switch (secondary) {
-            case ROCKET_LAUNCHER -> "An Annihilator-pattern disposable tube cluster. Fire teams carry it for "
-                    + "hardened emplacements and emergency wall breaching; the blast does not distinguish friend from foe.";
-            case ANTI_MATERIEL_RIFLE -> "The Breachlight braces a magnetic heavy round through armor seams "
-                    + "without endangering friendlies nearby. It carries four shots and cannot breach walls.";
-            case SMOKE_GRENADE -> "Wayfarer canisters flood a crossing with dense multispectral smoke. "
-                    + "The cloud harms no one, blocks both sides equally, and buys only a few seconds to move.";
-            case SATCHEL_CHARGE -> "The Breachhand is a reusable mag-clamp demolition kit for targets already "
-                    + "within arm's reach. A successful plant starts its recharge cycle; a failed attempt costs nothing.";
         };
     }
 

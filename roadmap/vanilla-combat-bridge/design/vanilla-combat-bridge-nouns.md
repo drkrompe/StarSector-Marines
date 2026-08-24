@@ -1,8 +1,10 @@
 # Vanilla Combat Bridge
 
-Status: ACTIVE — the sim-authoritative bridge, live ground battle, and drop invasion are shipped in the debug host; a production mission entrypoint and player-facing ground control remain open.
+Status: ACTIVE — a sim-authoritative ground layer runs inside a host-owned vanilla combat session.
 
 Written: 2026-08-23
+
+Updated: 2026-08-24 — replaced debug and story chronology with durable production-launch and extension boundaries.
 
 ## Vocabulary
 
@@ -43,8 +45,15 @@ For an invasion, the player selects a drop zone in the host. A carrier commits t
 8. The player commits a drop through fleet logistics, not abstract command points. Depth, throughput, AA exposure, local threat, and the risk to the orbiting transport remain visible consequences of that commitment.
 9. Vanilla chrome can be starved only through supported host state and API levers. There is no supported master HUD-off switch or above-HUD bridge layer; reflection is not an escape hatch.
 
-## Boundaries and extension paths
+## Extension boundaries
 
 `air-nouns.md` owns the simulation's air bodies and transport lifecycle; the bridge owns only the host-side commitment and projection seam. `command-powers-nouns.md` owns fleet-sourced player commitments and must not be bypassed by a production bridge launch. `skybattle-fleet-control.md` tracks durable fleet-AI command, enemy fleet behavior, and the carrier-death pressure that makes an orbiting transport's stake fully live. `ground-control-mode.md` tracks the future player interaction layer for selecting and commanding ground forces beneath the fleet.
 
-The current launch path is debug-only. A production mission entrypoint must construct a frozen, battle-native configuration at the campaign boundary and retire the hotkey probe without smuggling live campaign objects into the simulation. Future direct-injection/external-air work, a full skybattle, dustoff extraction, proxy shapes or new targetable tiers, and FBO decal projection are all distinct extensions; none is implied by the shipped proxy bridge.
+A production mission entrypoint constructs a frozen `GroundBattleConfig` at
+the campaign boundary and carries no live campaign objects into simulation.
+The debug probe demonstrates the bridge but is never production launch
+authority.
+
+External-air or direct-injection ownership, fleet control, extraction, proxy
+shapes or new targetable tiers, and FBO decal projection each require an
+explicit authority decision. None is implied by the existing bridge.
