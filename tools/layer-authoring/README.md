@@ -19,6 +19,8 @@ Select a unit, equipment variant, animation, keyframe, and layer, then:
 - adjust pivot, visibility, z-order, source sprite, and frame duration;
 - duplicate animations or keyframes, set transition timing and looping, and use Play
   to inspect the selected clip without crossing into another equipment variant;
+- choose whether a clip is driven by time, locomotion phase, or action phase, and
+  scrub the normalized driver phase to preview the exact pose sampled in-game;
 - inspect or export the combined sheet; and
 - create deterministic layer, Armory, retained-UI, and turret snapshots from
   the Snapshots tab without launching Starsector;
@@ -29,6 +31,9 @@ Playback smoothsteps matching layers between adjacent keyframes, including offse
 independent scale, angle, and pivot. This makes articulated mech linkages directly
 authorable: a walk keyframe can move a foot while changing the connected thigh's
 angle and Y scale, and the preview shows the continuous stretch between both poses.
+Frame durations weight each segment of a normalized procedural phase; they do not
+force movement speed. The simulation advances locomotion phase from distance traveled
+and action phase from the active use, while this document owns the sampled pose.
 
 The editor refuses duplicate unit/variant/animation/keyframe/layer ids, non-positive
 sizes or durations,
@@ -52,11 +57,28 @@ repository command:
 .\gradlew.bat createSnapshots -Psnapshot=layers
 ```
 
+| Suite | Evidence |
+|-------|----------|
+| `armory` | Individual loadout previews and a contact sheet |
+| `layers` | One combined composition sheet per authored unit |
+| `turrets` | Mount-state strips with projectile and impact effects |
+| `ui` | Retained Marine Ops screens at authored viewport sizes |
+
 Run without `-Psnapshot` to create every discovered suite, or select a
 comma-separated set such as `'-Psnapshot=layers,turrets'` in PowerShell.
 Outputs live beneath `build/snapshots/<suite>/`; `-PsnapshotDir=<path>`
 redirects the shared output root. The layer suite writes one deterministic
-combined PNG per unit under `build/snapshots/layers/`.
+combined PNG per unit under `build/snapshots/layers/`. The command replaces
+matching PNGs without prompting, while the editor asks first. Neither front end
+removes obsolete PNGs left by an earlier run.
+
+### Adding a snapshot suite
+
+Implement the shared `SnapshotSuite` contract and register the provider through
+`META-INF/services`. Keep rendering deterministic, headless, and independent of
+a Starsector process or OpenGL context. The existing `createSnapshots` task and
+Snapshots tab discover the provider automatically; do not add a domain-specific
+Gradle task or standalone preview CLI.
 
 ## Data contract
 

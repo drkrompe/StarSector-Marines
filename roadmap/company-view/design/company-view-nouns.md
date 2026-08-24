@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — defined the Armory's company-to-squad-to-fire-team drill-down and four-billet mannequin projection.
+Updated: 2026-08-24 — defined the Armory's fire-team viewer as named marine cards with integrated loadout editing.
 
 ## Purpose
 
@@ -116,13 +116,19 @@ contract while the designer grows. The built-in library contains Field, Line,
 Recon, Fire Support, Anti-Materiel, Screen, and Breach templates; the LOADOUTS
 surface exposes Alpha/Bravo/Charlie plus each assigned template.
 
-The library presents each template as a compact four-soldier formation projection
-with its fielded and ready-to-issue counts. This is a visual selector over the
-reusable plan, not a collectible card or a second equipment representation.
-Selecting a candidate expands those same four billets into one fire-team breakdown.
-Each portrait mannequin surrounds the billet's battle-composed marine
-with armour, primary, and optional-special sockets, so the player sees the complete
-team at a glance before inspecting exact issue. The soldiers use the same
+The selected fire team is presented first as four named marine cards. Each card
+combines the persistent marine's rank, status, aptitude, experience and career with
+the candidate billet's role and equipment. Weapon figures are resolved through the
+same family, grade and individual-profile combat rules used in battle; armour and
+special issue remain equally explicit. Vacant billets remain visibly vacant rather
+than acquiring a fixture identity.
+
+Template choice is an editing control inside that viewer, not a permanent peer
+column. The horizontal library presents each reusable template as a compact
+four-soldier formation projection with its fielded and ready-to-issue counts. This
+is a visual selector over the reusable plan, not a collectible card or a second
+equipment representation. Selecting a candidate projects its four billets onto the
+four named marines without changing campaign state. The soldiers use the same
 layered actor composition and special-equipment presentation recipe as battlefield
 infantry. This projection is retained view state only: it does not materialize gear,
 reserve stock, or replace the exact refit transaction preview. The complete preview
@@ -148,7 +154,9 @@ uncommitted fleet stock can supply without assuming any target team's returns.
 Selecting a specific team and template produces the contextual refit preview: free
 stock before the transaction, the target issue returned, and the candidate
 issue required. That preview is the same calculation used by assignment, not a
-UI estimate.
+UI estimate. The ordinary fire-team viewer summarizes that answer as ready or
+blocked and offers one explicit equip action; its marine cards do not expose the
+free/return/required material ledger used by authoring and diagnostic surfaces.
 
 Two assigned teams may exchange templates in one atomic transaction. Both teams'
 current equipment is returned before either candidate issue is checked, so a
@@ -315,8 +323,8 @@ derived inputs are explained rather than silently collapsed.
 The HQ introduces no persisted state and no second company hierarchy. Opening its
 Armory transition first shows the owned-company collection as a responsive grid of
 literal selectable portrait cards. Selecting one enters a company-specific squad
-gallery; selecting a squad then exposes its three fire teams, reusable template
-library, four-billet mannequin breakdown, and exact issue transaction. A breadcrumb
+gallery; selecting a squad then exposes its three fire teams and a named-marine
+viewer with integrated template selection and one exact equip action. A breadcrumb
 keeps the completed company and squad levels directly reachable while drilling down.
 A company or squad card is only a presentation container over canonical roster
 authority; neither is a collectible/template noun or parallel organization. Until a

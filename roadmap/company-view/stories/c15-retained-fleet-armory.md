@@ -2,9 +2,9 @@
 
 Status: IN PROGRESS — company/squad/fire-team drill-down and template issue migrated; broader parity remains
 Written: 2026-08-23
-Updated: 2026-08-24 — The hierarchy reaches the fire-team workspace; its template
-library now previews all four battle-composed soldiers before selection expands the
-same billets into equipment mannequins.
+Updated: 2026-08-24 — The fire-team workspace now leads with four named marine
+cards; loadout selection and the equip action flow beneath that viewer without a
+stock-return ledger.
 
 Read `company-view-nouns.md`, `ui-nouns.md`, and
 `c14-fire-team-equipment-templates.md` first.
@@ -41,15 +41,15 @@ drill-down reachable. Templates remain plans, never collectible cards.
   readiness before the player enters that squad's equipment workspace.
 - **Fire-team context:** Alpha, Bravo, and Charlie report strength and current
   assignment together; the selected fire team is the transaction target.
-- **Template library:** compact visual selectors render all four equipped soldiers
-  beside fielded and ready-to-issue counts, searchable/filterable as library size
-  grows.
-- **Workspace:** the selected squad's Alpha, Bravo, and Charlie teams sit beside the
-  reusable library. Selecting a template projects all four billets simultaneously as
-  portrait mannequins with armour, primary, special-equipment sockets, and the
-  battlefield-composed marine without changing campaign state.
-- **Transaction rail:** free stock, returned issue, required issue, exact shortfall,
-  and the one explicit apply action.
+- **Workspace:** the selected squad's Alpha, Bravo, and Charlie teams sit beside one
+  primary viewer of the selected team's four persistent marines. Each card presents
+  rank, name, readiness, aptitude, experience, career, candidate role, battle-composed
+  appearance, equipment names, and resolved combat figures.
+- **Loadout editing:** a horizontal strip of compact four-soldier template selectors
+  flows beneath the marine viewer. Selection previews candidate issue on the named
+  marines; one readiness result and explicit equip action commit it.
+- **Inventory boundary:** the roster's exact atomic preview still gates assignment,
+  but this viewer omits its free-stock/returns/required-issue ledger.
 - **Squad arrangements:** a fast squad-level composition view using the same templates
   and transaction model, not a separate deck or persistence system.
 - **Marine inspector:** aptitude, career, wounds, and materialized billet equipment;
@@ -84,11 +84,14 @@ drill-down reachable. Templates remain plans, never collectible cards.
   behavior.
 - The company gallery auto-fills fixed portrait cards into columns, wraps into rows as
   the viewport narrows, and scrolls vertically without silent truncation.
-- The template breakdown shows all four billets together, including candidate armour,
-  primary grade, and special equipment; every mannequin shares battlefield layer
-  recipes rather than a UI-only pose table.
+- The fire-team viewer shows all four named marines together with candidate armour,
+  primary grade, special equipment, and combat statistics resolved from the same
+  rules used by battle.
 - Every library selector shows the same four billet recipes as a compact formation;
-  selecting it expands rather than substitutes that equipment truth.
+  selecting it projects that equipment onto the named marines rather than replacing
+  them with anonymous template mannequins.
+- The ordinary viewer exposes a concise ready/blocked answer and equip action, not
+  the transaction's free/return/required material rows.
 - The same billet recipe renders deterministic PNGs without a game or OpenGL context;
   live acceptance remains responsible only for host scaling and feel.
 - Layout remains usable for a large company and at UI scales 1.0, 1.25, and 1.5.
