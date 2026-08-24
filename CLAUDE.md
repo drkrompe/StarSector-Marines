@@ -77,10 +77,16 @@ Do not run builds or leave generated task files there.
   `build/snapshots/` without launching Starsector or creating an OpenGL context. Select
   suites with `-Psnapshot=armory,layers,turrets,ui` (default `all`) and redirect the
   common output root with `-PsnapshotDir=<path>`.
-- `gradlew.bat layerAuthoring` → standalone marine/mech layer workbench with drag,
-  scale, rotation, variant-scoped phase-driven animation playback, combined-sheet
-  export, the shared snapshot catalog, and validated atomic writes
-  to `mod/data/appearance/unit-layer-layouts.appearance.json`.
+- `gradlew.bat layerAuthoring` → extensible standalone authoring workbench. The
+  Layers page provides drag, scale, rotation, variant-scoped phase-driven
+  animation playback, combined-sheet export, the shared snapshot
+  catalog, and validated atomic writes to
+  `mod/data/appearance/unit-layer-layouts.appearance.json`.
+  The Turrets page edits linked weapon, mount, structure, FX, and bounded
+  multi-turret defense-post layout data with a live deterministic preview.
+  Both pages validate before replacement; the Turrets page prepares every
+  linked target before replacing files atomically and rolls back earlier files
+  if a later replacement fails.
 - `gradlew.bat deployMod` → generates the gitignored `mod/sounds/` outputs
   (requires `ffmpeg` on `PATH`) and syncs `mod/` into
   `<starsectorDir>/mods/StarsectorMarines/`.
@@ -121,6 +127,12 @@ process. It renders off the Swing event thread, confirms before replacing PNGs,
 and refuses to create `layers` evidence while the authoring document has unsaved
 changes. It can render all suites or one selected suite and, like the command,
 does not remove obsolete PNGs from earlier runs.
+
+The workbench discovers top-level authoring pages through `AuthoringPageProvider`
+services on the tool runtime classpath. Keep the generic host and lifecycle in
+`:layer-authoring`; keep mod-domain pages such as Turrets in root tool/test
+sources so the shipped mod jar and the generic tool module do not acquire each
+other's domain dependencies.
 
 ## Mod layout
 
