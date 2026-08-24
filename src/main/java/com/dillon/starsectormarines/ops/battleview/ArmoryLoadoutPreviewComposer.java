@@ -75,12 +75,18 @@ public final class ArmoryLoadoutPreviewComposer {
         float actorWidth = Math.max(1f, width - actorLeft - 8f);
         sink.line(actorLeft, height - 16f, width - 8f, height - 16f, ACCENT, 2f);
         drawSoldier(sink, assets, billet, actorLeft + actorWidth * 0.52f,
-                height * 0.48f, Math.min(height * 0.48f, actorWidth * 0.78f), height);
+                height * 0.48f, Math.min(height * 0.48f, actorWidth * 0.78f), height, 0f);
     }
 
     /** Soldier-first portrait for the selected fire team's named marine cards. */
     public static void composeMarinePortrait(Sink sink, Assets assets, FireTeamBillet billet,
                                              float width, float height) {
+        composeMarinePortrait(sink, assets, billet, width, height, 0f);
+    }
+
+    /** Soldier-first portrait at one elapsed point in the authored idle loop. */
+    public static void composeMarinePortrait(Sink sink, Assets assets, FireTeamBillet billet,
+                                             float width, float height, float idleSeconds) {
         if (sink == null || assets == null) {
             throw new IllegalArgumentException("preview sink and assets are required");
         }
@@ -89,7 +95,7 @@ public final class ArmoryLoadoutPreviewComposer {
         sink.fillRect(0f, 0f, width, height, BACKGROUND);
         sink.line(12f, height - 14f, width - 12f, height - 14f, ACCENT, 2f);
         drawSoldier(sink, assets, billet, width * 0.5f, height * 0.48f,
-                Math.min(height * 0.50f, width * 0.44f), height);
+                Math.min(height * 0.50f, width * 0.44f), height, idleSeconds);
     }
 
     /** Compact at-a-glance composition of all four template billets. */
@@ -115,7 +121,7 @@ public final class ArmoryLoadoutPreviewComposer {
                 sink.line(divider, 9f, divider, baseline - 5f, EDGE, 1f);
             }
             drawSoldier(sink, assets, billets.get(index), actorX,
-                    height * 0.48f, shoulder, height);
+                    height * 0.48f, shoulder, height, 0f);
         }
     }
 
@@ -173,12 +179,12 @@ public final class ArmoryLoadoutPreviewComposer {
 
         sink.fillRect(divider + 16f, height - 22f,
                 width - divider - 32f, 3f, ACCENT);
-        drawSoldier(sink, assets, billet, actorX, actorY, shoulderPx, height);
+        drawSoldier(sink, assets, billet, actorX, actorY, shoulderPx, height, 0f);
     }
 
     private static void drawSoldier(Sink sink, Assets assets, FireTeamBillet billet,
                                     float actorX, float actorY, float shoulderPx,
-                                    float surfaceHeight) {
+                                    float surfaceHeight, float idleSeconds) {
         LayeredUnitAssets layered = assets.layered(billet.armor());
         if (layered == null) return;
         MarineSecondary special = billet.secondary();
@@ -186,7 +192,9 @@ public final class ArmoryLoadoutPreviewComposer {
                 ? special.specialDef().presentation().preview() : null;
         float phase = preview != null ? preview.phase() : 1f;
         int pose = poseFor(special, preview);
-        LayerPose authoredPose = UnitRenderService.infantryPose(
+        LayerPose authoredPose = pose == LayeredAppearance.POSE_IDLE
+                ? idlePose(assets.unitLayerLayouts(), idleSeconds)
+                : UnitRenderService.infantryPose(
                 assets.unitLayerLayouts(), true, special, pose, 0f, phase, 0);
         LayeredUnitComposer.emit(
                 (layer, centerX, centerY, spriteWidth, spriteHeight, angle,
@@ -196,6 +204,14 @@ public final class ArmoryLoadoutPreviewComposer {
                 layered, layered.head, billet.primary(), true, special, billet.grade(),
                 actorX, actorY, shoulderPx, 0f, 0f, 0f,
                 phase, pose, 0, 1f, authoredPose);
+    }
+
+    static LayerPose idlePose(UnitLayerLayouts layouts, float elapsedSeconds) {
+        UnitLayerLayouts.AnimationClip clip = layouts != null
+                ? layouts.clip("marine-line", "rifle", "idle") : null;
+        if (clip == null) return null;
+        float phase = Math.max(0f, elapsedSeconds) * 1000f / clip.totalDurationMs();
+        return clip.sample(phase);
     }
 
     public static int poseFor(MarineSecondary special,

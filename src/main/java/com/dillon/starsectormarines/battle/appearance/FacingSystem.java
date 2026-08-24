@@ -364,6 +364,7 @@ public final class FacingSystem {
             float[] facing, float[] locomotion, float[] phase, float[] headLook,
             int[] pose, int[] flags) {
 
+        int previousFlags = flags[row];
         // Nonzero applied velocity — true iff the mover translated this tick,
         // so held units (aim freeze, dwell with a retained path) idle cleanly.
         boolean moving = hasMovement && haveTravelDelta;
@@ -398,8 +399,9 @@ public final class FacingSystem {
                     facing[row], torsoFacing, COMBATANT_TURN_STEP);
         }
         facing[row] = torsoFacing;
-        locomotion[row] = LayeredAppearance.locomotionPhase(
-                moving ? gaitPhase[row] : 0f);
+        // Retain the last gait sample while stationary. Idle clips ignore it,
+        // but a newly-started action can settle out of the exact prior stride.
+        locomotion[row] = LayeredAppearance.locomotionPhase(gaitPhase[row]);
         headLook[row] = haveTargetDelta
                 ? LayeredAppearance.headLookDegrees(torsoFacing,
                     LayeredAppearance.facingDegrees(targetDx, targetDy))
@@ -428,6 +430,11 @@ public final class FacingSystem {
             authoredPhase = direct
                     ? fired ? clamp01((progress - 0.5f) * 2f) : clamp01(progress * 2f)
                     : progress;
+            if (!fired && authoredPhase < LayeredAppearance.ACTION_ENTRY_BLEND_PHASE
+                    && (previousFlags & (LayeredAppearance.FLAG_MOVING
+                    | LayeredAppearance.FLAG_ACTION_FROM_MOVING)) != 0) {
+                authoredFlags |= LayeredAppearance.FLAG_ACTION_FROM_MOVING;
+            }
             if (fired && usePose == SpecialUsePose.SHOULDER_LAUNCHER) {
                 authoredFlags |= LayeredAppearance.FLAG_WEAPON_OVER_SHOULDER;
             }

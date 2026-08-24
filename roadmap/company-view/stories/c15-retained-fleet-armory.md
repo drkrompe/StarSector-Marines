@@ -3,8 +3,8 @@
 Status: IN PROGRESS — company/squad/fire-team drill-down and template issue migrated; broader parity remains
 Written: 2026-08-23
 Updated: 2026-08-24 — The fire-team workspace now leads with four stable named
-marine slots; an on-demand comparison tray previews only contextually available
-loadouts and their equipment/stat deltas before explicit equip.
+marine slots cycling the authored idle clip; an on-demand comparison tray previews
+only contextually available loadouts and their equipment/stat deltas before equip.
 
 Read `company-view-nouns.md`, `ui-nouns.md`, and
 `c14-fire-team-equipment-templates.md` first.
@@ -90,6 +90,8 @@ drill-down reachable. Templates remain plans, never collectible cards.
 - The fire-team viewer shows all four named marines together with candidate armour,
   primary grade, special equipment, and combat statistics resolved from the same
   rules used by battle.
+- Live selected-marine portraits cycle the authored idle clip with staggered phases;
+  compact template formations and headless snapshots remain fixed and deterministic.
 - Every library selector shows the same four billet recipes as a compact formation;
   selecting it projects that equipment onto the named marines rather than replacing
   them with anonymous template mannequins.

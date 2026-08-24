@@ -100,6 +100,26 @@ class CommanderInfluenceServiceTest {
                 "published snapshots must remain immutable after later refreshes");
     }
 
+    @Test
+    void firstDiagnosticReadBuildsCurrentSnapshotThenUsesFixedCadence() {
+        BattleSimulation sim = openSim(24, 12);
+        int squad = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        spawnStill(sim, "first", Faction.MARINE, UnitType.MARINE, 5, 5, squad);
+        spawnStill(sim, "enemy", Faction.DEFENDER,
+                UnitType.MARINE_RED, 20, 5, Squad.NO_SQUAD, 10_000f);
+
+        for (int i = 0; i < 30; i++) sim.advance(BattleSimulation.TICK_DT);
+
+        CommanderInfluenceSnapshot firstRead = sim.getCommanderInfluence(Faction.MARINE);
+        assertEquals(30, firstRead.updatedTick(),
+                "an unused diagnostic must build from current state on its first read");
+        for (int i = 0; i < 14; i++) sim.advance(BattleSimulation.TICK_DT);
+        assertEquals(30, sim.getCommanderInfluence(Faction.MARINE).updatedTick());
+
+        sim.advance(BattleSimulation.TICK_DT);
+        assertEquals(45, sim.getCommanderInfluence(Faction.MARINE).updatedTick());
+    }
+
     private static BattleSimulation compartmentSim() {
         BattleSimulation sim = openSim(40, 12);
         for (int y = 0; y < sim.getGrid().getHeight(); y++) {

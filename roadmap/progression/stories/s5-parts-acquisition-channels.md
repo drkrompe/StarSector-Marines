@@ -5,7 +5,7 @@
 
 Status: PLANNED — no hard dependency; pairs with `s6-unlock-ladder-expansion.md`.
 Written: 2026-08-22
-Updated: 2026-08-23 — migrated references to stable slugs.
+Updated: 2026-08-24 — made recovered armor breakdown respect concrete suit condition, role, and provenance.
 
 ## Problem
 
@@ -54,13 +54,13 @@ screen.
 
 Optional and worth considering: conversion efficiency scaled by something
 diegetic in the player's fleet, in the spirit of how
-`command-powers.md` sources powers
+`command-powers-nouns.md` sources powers
 from committed ships. A fabrication-capable hull or hullmod improving the
 rate would make fleet composition matter here too.
 
 ## Slice 2 — Battlefield loot
 
-Extend the shipped `loot.md`
+Extend the shipped `loot-nouns.md`
 manifest with parts entries rather than building a parallel drop system.
 
 - Common parts scale with mission risk and with what was actually cleared —
@@ -68,6 +68,11 @@ manifest with parts entries rather than building a parallel drop system.
 - **Advanced components** drop rarely, weighted toward high-risk operations
   and hardened sites (military bases, armories, C2). This is the primary
   advanced-component faucet.
+- Hardened-site weighting consumes the frozen installation outcomes from
+  `intact-installation-recovery.md`. CAPTURED_INTACT or explicitly eligible
+  DISABLED_INTACT sites may admit advanced assemblies; DESTROYED sites normally
+  admit scrap/common parts only. The parts story must not inspect the ended
+  battle or award pristine components because a market merely had an industry.
 - Existing salvage entitlement and recovery-modifier machinery
   (`LootRecoveryModifiers`, `Trait.SALVAGE_EXPERT`) should apply, so the
   one already-wired captain trait gets more to do.
@@ -80,6 +85,12 @@ Recovered enemy weapons and armor break down into common parts.
   answer to "why fight the rest of the base".
 - Yield keys off what the defenders were actually carrying, which makes the
   risk-scaled defender rosters legible as loot value.
+- Armor yield keys off the recovered concrete pattern and its post-battle
+  condition, not only the target faction or a generic armor tier. Ruined scrap
+  plate is common parts; an eligible intact heavy battlesuit or sophisticated
+  composite assembly may contribute to an advanced-component roll. Role alone
+  is not rarity, so a crude Path heavy rig does not automatically pay better
+  than a pristine Tri-Tachyon light suit.
 - Natural interaction with S3 telemetry: the marines who did the fighting
   produced the salvage.
 
@@ -113,6 +124,8 @@ Recovered enemy weapons and armor break down into common parts.
   vanilla commodities off-book.
 - Deterministic and replay-safe: recomputing a mission outcome does not
   double-pay.
+- Capture-for-client and DEFEND objectives do not grant site parts unless the
+  accepted contract explicitly gives the player a recovery allotment.
 - Legacy saves migrate — existing `fabricationMaterials` becomes common
   parts, advanced components start at zero.
 - The total income curve is stated explicitly in the story record: roughly
