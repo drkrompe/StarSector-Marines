@@ -1,10 +1,11 @@
 # Marine Ops UI nouns
 
 Status: SHIPPED — retained UI foundation proven in-engine
+
 Written: 2026-08-23
-Updated: 2026-08-24 — retained layout now includes responsive grids, while
-composed canvas previews share one recipe across live sprites and deterministic
-headless PNGs.
+
+Updated: 2026-08-24 — folded the retained-toolkit direction into this sole
+canonical model, including responsive grids and backend-neutral canvas evidence.
 
 ## Purpose
 
@@ -104,9 +105,12 @@ the retained model.
    buffers, textures, scissors, blend state, and matrices that it changes.
 8. **Standard vocabulary wins.** When HTML or CSS already names a layout or input
    concept, the toolkit uses that name and meaning. The supported surface may be a
-   subset; it does not become a private lookalike dialect.
+   subset; it does not become a private lookalike dialect. Unsupported authored
+   capabilities fail explicitly rather than silently parsing to different behavior.
 9. **Java is the authority.** Any later markup format must produce the same tree
-   the Java API produces and receives no privileged layout or behavior path.
+   the Java API produces and receives no privileged layout or behavior path. MLX
+   property traversal is opt-in through an explicit view-model property surface;
+   it never reflects over arbitrary domain objects.
 10. **Exceptional drawing stays exceptional.** A new visual does not require a new
     element kind when a canvas producer can express it.
 
@@ -234,6 +238,19 @@ into a running battle or treats an editor-only transform as shipped behavior.
 - Existing immediate widgets remain supported while surfaces migrate. A retained
   surface may coexist with legacy widgets in an explicit render order, but one
   interactive region must have one input owner.
+
+Retained documents replace `WidgetRoot` for long-lived interactive surfaces that
+need stable identity, nested layout, scrolling, focus, or reactive updates.
+Immediate widgets remain valid for small legacy and diagnostic surfaces; adoption
+is driven by a surface's interaction needs rather than a flag-day rewrite.
+
+## Evidence and acceptance
+
+Headless geometry and input tests prove document behavior without Starsector or
+an OpenGL context. The in-game workbench proves host coordinates, viewport grants,
+UI scaling, input routing, and GL-state seams. Live screenshot review proves final
+presentation and feel. Passing one evidence layer does not substitute for the
+others.
 
 ## Extension points
 

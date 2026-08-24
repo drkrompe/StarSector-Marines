@@ -1,8 +1,10 @@
 # Vanilla Combat Bridge stories
 
-Status: ACTIVE — open implementation and acceptance board.
+Status: ACTIVE — open implementation, acceptance, and bounded cleanup board.
 
 Written: 2026-08-23
+
+Updated: 2026-08-24 — added retirement of obsolete quadrant diagnostics.
 
 | Story | State | Intent |
 |---|---|---|
@@ -14,4 +16,5 @@ Written: 2026-08-23
 | `s3j-fx-fbo-retarget.md` | DEFERRED | Project persistent ground decals through the combat-world camera with explicit GL-state verification. |
 | `vanilla-combat-hud-time-policy.md` | PLANNED | Decide and implement the supported pause/time-control policy after validating the existing ship-info suppression. |
 | `proxy-lifecycle-authority.md` | PROPOSED | Make direct vanilla proxy destruction preserve sim authority instead of silently removing a still-live sim target. |
+| `bridge-debug-quadrant-retirement.md` | PROPOSED | Remove disabled FBO/direct quadrant diagnostics from `BridgeRenderer` while preserving its normal scene and GL-state path. |
 | `skybattle-fleet-control.md` | PARKED | Turn the fleet-above layer into a real contested battle with durable standoff, command, and cross-layer pressure. |

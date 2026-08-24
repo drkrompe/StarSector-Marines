@@ -1,6 +1,13 @@
 package com.dillon.starsectormarines.battle.combat.fx;
 
 import com.dillon.starsectormarines.render2d.BattleCamera;
+import com.dillon.starsectormarines.battle.weapon.fx.FxBlend;
+import com.dillon.starsectormarines.battle.weapon.fx.FxCompositionContext;
+import com.dillon.starsectormarines.battle.weapon.fx.FxLayerKind;
+import com.dillon.starsectormarines.battle.weapon.fx.FxParticleCommand;
+import com.dillon.starsectormarines.battle.weapon.fx.FxSlot;
+import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxComposer;
+import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxDef;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import org.apache.log4j.Logger;
@@ -99,15 +106,26 @@ public final class ImpactFx {
         if (dt <= 0f) return;
         for (int i = particles.size() - 1; i >= 0; i--) {
             Particle p = particles.get(i);
-            p.lifetimeRemaining -= dt;
-            if (p.lifetimeRemaining <= 0f) {
+            if (!advanceParticle(p, dt)) {
                 particles.remove(i);
-                continue;
             }
-            p.x += p.vx * dt;
-            p.y += p.vy * dt;
-            p.radiusCells += p.radiusGrowthPerSec * dt;
         }
+    }
+
+    static boolean advanceParticle(Particle particle, float dt) {
+        float activeDt = dt;
+        if (particle.delayRemaining > 0f) {
+            float priorDelay = particle.delayRemaining;
+            particle.delayRemaining = Math.max(0f, priorDelay - dt);
+            activeDt = Math.max(0f, dt - priorDelay);
+            if (activeDt == 0f) return true;
+        }
+        particle.lifetimeRemaining -= activeDt;
+        if (particle.lifetimeRemaining <= 0f) return false;
+        particle.x += particle.vx * activeDt;
+        particle.y += particle.vy * activeDt;
+        particle.radiusCells += particle.radiusGrowthPerSec * activeDt;
+        return true;
     }
 
     /** Draws every live particle. Iteration order = spawn order, so later spawns layer on top of earlier ones. */
@@ -115,8 +133,65 @@ public final class ImpactFx {
         if (particles.isEmpty() || camera == null) return;
         float cellPx = camera.cellPxSize();
         for (Particle p : particles) {
+            if (p.delayRemaining > 0f) continue;
             drawParticle(p, camera, cellPx, alphaMult);
         }
+    }
+
+    /**
+     * Expands one authored slot and installs its resolved commands in the
+     * runtime particle backend. Delayed aftermath remains queued in this
+     * engine, so callers submit the composition once at impact time.
+     */
+    public void spawnAuthored(WeaponFxDef definition, FxSlot slot,
+                              FxCompositionContext context) {
+        if (definition == null) return;
+        for (FxParticleCommand command : WeaponFxComposer.compose(definition, slot, context)) {
+            spawnAuthored(command);
+        }
+    }
+
+    private void spawnAuthored(FxParticleCommand command) {
+        SpriteAPI sprite;
+        int firstFrame = 0;
+        int frameCount = 0;
+        FxLayerKind kind = command.kind();
+        switch (kind) {
+            case GLOW, DUST -> sprite = glowSprite;
+            case SMOKE -> {
+                sprite = particleSheetSprite;
+                firstFrame = SMOKE_FIRST_FRAME;
+                frameCount = SMOKE_FRAME_COUNT;
+            }
+            case FIRE -> {
+                sprite = particleSheetSprite;
+                firstFrame = FIRE_FIRST_FRAME;
+                frameCount = FIRE_FRAME_COUNT;
+            }
+            case EXPLOSION -> sprite = explosionSprites[
+                    Math.floorMod(command.variantIndex(), explosionSprites.length)];
+            case RING -> sprite = explosionRingSprite;
+            default -> throw new IllegalStateException("Unsupported authored FX kind " + kind);
+        }
+        if (sprite == null) return;
+
+        Particle particle = new Particle();
+        particle.x = command.x();
+        particle.y = command.y();
+        particle.vx = command.velocityX();
+        particle.vy = command.velocityY();
+        particle.delayRemaining = command.delaySeconds();
+        particle.lifetimeRemaining = command.lifetimeSeconds();
+        particle.lifetimeMax = command.lifetimeSeconds();
+        particle.radiusCells = command.radiusCells();
+        particle.radiusGrowthPerSec = command.radiusGrowthPerSecond();
+        particle.color = command.color();
+        particle.sprite = sprite;
+        particle.additive = command.blend() == FxBlend.ADDITIVE;
+        particle.angleDeg = command.angleDegrees();
+        particle.firstFrame = firstFrame;
+        particle.frameCount = frameCount;
+        particles.add(particle);
     }
 
     /**

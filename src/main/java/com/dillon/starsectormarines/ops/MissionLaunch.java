@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.evacuation.SwarmDefenseRoster;
+import com.dillon.starsectormarines.battle.fixture.BattleFixture;
+import com.dillon.starsectormarines.battle.fixture.CivilianRescueBattleFixture;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -41,8 +43,8 @@ public final class MissionLaunch {
 
     /**
      * Build the battle for {@code m} from the player's committed support and
-     * store the resolved detachment on {@code ctx}. The caller is responsible for
-     * {@code ctx.setBattleSimulation(...)} + the screen transition.
+     * install its simulation, construction fixture, and detachment on
+     * {@code ctx}. The caller is responsible for the screen transition.
      *
      * @param committedShuttles the player's committed transports (priority-sorted)
      * @param committedWings    the player's committed marine-side fighter cover
@@ -93,6 +95,23 @@ public final class MissionLaunch {
                                                    Collection<String> selectedPowerIds,
                                                    List<FleetMemberAPI> committedPowerSources,
                                                    DebugMechRoster debugMechs) {
+        PreparedBattle prepared = prepareSimulation(ctx, m, committedShuttles,
+                committedWings, debugWings, selectedPowerIds,
+                committedPowerSources, debugMechs);
+        ctx.setBattle(prepared.simulation(), prepared.fixture(),
+                prepared.detachment());
+        return prepared.simulation();
+    }
+
+    /** Builds and overlays a battle without publishing it to the UI context. */
+    static PreparedBattle prepareSimulation(MarineOpsContext ctx,
+                                            Mission m,
+                                            List<ShuttleType> committedShuttles,
+                                            FlybyRoster committedWings,
+                                            FlybyRoster debugWings,
+                                            Collection<String> selectedPowerIds,
+                                            List<FleetMemberAPI> committedPowerSources,
+                                            DebugMechRoster debugMechs) {
         Detachment det = m.source == MissionSource.STATIONING
                 ? DetachmentResolver.resolveStationed(m)
                 : committedPowerSources == null
@@ -113,6 +132,7 @@ public final class MissionLaunch {
 
         long seed = System.currentTimeMillis();
         BattleSimulation sim;
+        BattleFixture fixture = null;
         OpeningOperationKind openingOperation = OpeningOperationKind.fromMission(m);
         if (openingOperation != null) {
             sim = BattleSetup.createOpeningOperation(seed,
@@ -130,9 +150,15 @@ public final class MissionLaunch {
                     ? SwarmDefenseRoster.debugCountFor(
                             m.risk, firstWaveMarineSeats)
                     : SwarmDefenseRoster.countFor(m.risk);
-            sim = BattleSetup.createCivilianRescue(seed,
-                    det.shuttleManifest, enemyHasHeavyArmor, m.risk,
-                    swarmCount, profile, stressTest);
+            CivilianRescueBattleFixture rescueFixture =
+                    CivilianRescueBattleFixture.fromFactoryInputs(seed,
+                            det.shuttleManifest, enemyHasHeavyArmor, m.risk,
+                            swarmCount, profile, stressTest);
+            // Production launch and headless replay intentionally meet here:
+            // the fixture carries inputs, while BattleSetup remains the only
+            // implementation of map/scenario/unit construction.
+            sim = rescueFixture.build();
+            fixture = rescueFixture;
         } else switch (m.type) {
             case SABOTAGE:
                 sim = BattleSetup.createSabotage(seed, det.shuttleManifest,
@@ -153,40 +179,53 @@ public final class MissionLaunch {
                         det.marineWings, m.enemyFighterSupport);
         }
 
-        // Scenario factories author seat roles/objectives first; the persistent
-        // roster then overlays each seat's identity, progression, armor and gear.
-        int firstPlayerShuttle = m.source == MissionSource.STATIONING
-                ? 0 : DetachmentResolver.employerPhysicalShipCount(m);
-        int playerSeats = CampaignMarineDeployment.requiredSeats(
-                det.shuttleManifest, firstPlayerShuttle);
-        ctx.setMarineDeploymentCapacity(playerSeats);
-        MarineRosterScript personnel = MarineRosterScript.getInstance();
-        // One deployment shape for both sources: a debug mission fields a
-        // detached MarineRoster built by DebugCompany, so it earns the same
-        // squad tags, NCO leaders and multi-lift joins the campaign gets.
-        if (m.source.isDebug()) {
-            MarineRoster company = ctx.getDebugCompanyRoster();
-            CampaignMarineDeployment.freezeSelection(company,
-                    new LinkedHashSet<>(DebugCompany.lineSquadIds(company)), playerSeats)
-                    .applyTo(sim, firstPlayerShuttle);
-        } else if (personnel != null) {
-            CampaignMarineDeployment.freezeSelection(personnel.roster(),
-                    ctx.getSelectedMarineSquadIds(), playerSeats)
-                    .applyTo(sim, firstPlayerShuttle);
+        try {
+            // Scenario factories author seat roles/objectives first; the persistent
+            // roster then overlays each seat's identity, progression, armor and gear.
+            int firstPlayerShuttle = m.source == MissionSource.STATIONING
+                    ? 0 : DetachmentResolver.employerPhysicalShipCount(m);
+            int playerSeats = CampaignMarineDeployment.requiredSeats(
+                    det.shuttleManifest, firstPlayerShuttle);
+            ctx.setMarineDeploymentCapacity(playerSeats);
+            MarineRosterScript personnel = MarineRosterScript.getInstance();
+            // One deployment shape for both sources: a debug mission fields a
+            // detached MarineRoster built by DebugCompany, so it earns the same
+            // squad tags, NCO leaders and multi-lift joins the campaign gets.
+            if (m.source.isDebug()) {
+                MarineRoster company = ctx.getDebugCompanyRoster();
+                CampaignMarineDeployment.freezeSelection(company,
+                        new LinkedHashSet<>(DebugCompany.lineSquadIds(company)), playerSeats)
+                        .applyTo(sim, firstPlayerShuttle);
+            } else if (personnel != null) {
+                CampaignMarineDeployment.freezeSelection(personnel.roster(),
+                        ctx.getSelectedMarineSquadIds(), playerSeats)
+                        .applyTo(sim, firstPlayerShuttle);
+            }
+
+            // Generic factories leave only the enemy wings that fit their shared
+            // force budget on the sim. Combine those with marine-side cover
+            // (committed bays + employer), then any force-spawned debug wings (both
+            // sides — each FighterWing carries its own side, so the overlay spawns
+            // it right); then install the active command-power roster.
+            sim.setFlybyRoster(FlybyRoster.combine(
+                    FlybyRoster.combine(det.marineWings, sim.getFlybyRoster()), debugWings));
+            sim.setCommandPowers(det.powers);
+            sim.setCommandPowerResources(new CampaignCommandPowerResources());
+
+            return new PreparedBattle(sim, fixture, det);
+        } catch (RuntimeException | Error failure) {
+            sim.close();
+            throw failure;
         }
+    }
 
-        // Generic factories leave only the enemy wings that fit their shared
-        // force budget on the sim. Combine those with marine-side cover
-        // (committed bays + employer), then any force-spawned debug wings (both
-        // sides — each FighterWing carries its own side, so the overlay spawns
-        // it right); then install the active command-power roster.
-        sim.setFlybyRoster(FlybyRoster.combine(
-                FlybyRoster.combine(det.marineWings, sim.getFlybyRoster()), debugWings));
-        sim.setCommandPowers(det.powers);
-        sim.setCommandPowerResources(new CampaignCommandPowerResources());
-
-        ctx.setDetachment(det);
-        return sim;
+    /** Frozen result published only after the caller's launch transaction succeeds. */
+    record PreparedBattle(BattleSimulation simulation, BattleFixture fixture,
+                          Detachment detachment) implements AutoCloseable {
+        @Override
+        public void close() {
+            simulation.close();
+        }
     }
 
     static boolean isCivilianRescueBattle(Mission mission) {

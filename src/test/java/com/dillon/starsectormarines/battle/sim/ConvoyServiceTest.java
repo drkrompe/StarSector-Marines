@@ -67,7 +67,7 @@ public class ConvoyServiceTest {
         // HEAVY_APC is armed → GROUND_TURRET present, ammo seeded from the TurretKind.
         assertTrue(r.entityWorld().has(id, r.components().GROUND_TURRET), "armed vehicle carries GROUND_TURRET");
         assertNotNull(convoy.turret(id), "GROUND_TURRET seeded for an armed variant");
-        assertEquals(VehicleType.HEAVY_APC.turretKind.startingAmmo, convoy.turret(id).ammo,
+        assertEquals(VehicleType.HEAVY_APC.turretKind.startingAmmo(), convoy.turret(id).ammo,
                 "turret ammo seeded from the TurretKind");
 
         // The handed-in mission bag is the VEHICLE_MISSION payload (the id→mission resolution).

@@ -81,20 +81,40 @@ public final class TickInnerProfile {
      */
     private static final List<TickInnerProfile> ALL_INSTANCES = new CopyOnWriteArrayList<>();
     private static final ThreadLocal<TickInnerProfile> CURRENT = new ThreadLocal<>();
+    private static final ThreadLocal<Boolean> AUTO_CREATED = new ThreadLocal<>();
 
     public static TickInnerProfile current() {
         TickInnerProfile p = CURRENT.get();
         if (p == null) {
             p = new TickInnerProfile();
             CURRENT.set(p);
+            AUTO_CREATED.set(true);
             ALL_INSTANCES.add(p);
         }
         return p;
     }
 
     public static void setCurrent(TickInnerProfile p) {
-        if (p == null) CURRENT.remove();
-        else CURRENT.set(p);
+        releaseCurrentThread();
+        if (p != null) CURRENT.set(p);
+    }
+
+    /**
+     * Removes auto-created scratch owned by the current worker. Called from
+     * the battle worker's termination hook so closed simulations do not leave
+     * permanent entries in the process-wide merge/reset sweep.
+     */
+    public static void releaseCurrentThread() {
+        TickInnerProfile current = CURRENT.get();
+        if (current != null && Boolean.TRUE.equals(AUTO_CREATED.get())) {
+            ALL_INSTANCES.remove(current);
+        }
+        CURRENT.remove();
+        AUTO_CREATED.remove();
+    }
+
+    static int trackedWorkerCount() {
+        return ALL_INSTANCES.size();
     }
 
     /**
