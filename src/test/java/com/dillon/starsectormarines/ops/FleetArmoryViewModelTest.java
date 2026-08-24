@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.marine.FireTeamRefitPreview;
 import com.dillon.starsectormarines.marine.FireTeamTemplateResult;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.ops.battleview.ArmoryLoadoutPreviewComposer;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
@@ -102,8 +103,10 @@ class FleetArmoryViewModelTest {
 
             UiElement list = instance.requireElement("template-list");
             UiElement preview = instance.requireElement("loadout-preview");
-            assertEquals(640, preview.canvasWidth());
-            assertEquals(230, preview.canvasHeight());
+            assertEquals(ArmoryLoadoutPreviewComposer.SURFACE_WIDTH,
+                    preview.canvasWidth());
+            assertEquals(ArmoryLoadoutPreviewComposer.SURFACE_HEIGHT,
+                    preview.canvasHeight());
             UiElement first = list.childAt(0);
             UiElement second = list.childAt(1);
             viewModel.templateRows().get().get(1).select().run();

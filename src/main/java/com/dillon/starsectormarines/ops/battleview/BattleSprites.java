@@ -670,7 +670,8 @@ public class BattleSprites {
                 }
                 LOG.info("BattleSprites: loaded modular layer " + path + " ("
                         + image.getWidth() + "x" + image.getHeight() + ")");
-                return new LayeredSpriteCache(sprite, image.getWidth(), image.getHeight());
+                return new LayeredSpriteCache(sprite, path,
+                        image.getWidth(), image.getHeight());
             }
         } catch (Exception e) {
             LOG.error("BattleSprites: failed to load modular layer " + path, e);
