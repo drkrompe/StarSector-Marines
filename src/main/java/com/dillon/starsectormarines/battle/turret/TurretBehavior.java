@@ -64,13 +64,13 @@ public final class TurretBehavior implements UnitBehavior {
         s.squadId = sim.squad().hasSquad(id) ? sim.squad().squadId(id) : Squad.NO_SQUAD;
         s.excludeFromCrowding = u;
         s.facingDegrees = turretState.facingDegrees(id);
-        s.turnRateDegPerSec = kind.turnRateDegPerSec;
+        s.turnRateDegPerSec = kind.turnRateDegPerSec();
         s.attackRange = sim.world().attackRange(id);
-        s.minRange = kind.minRange;
+        s.minRange = kind.minRange();
         s.cooldownTimer = sim.world().cooldownTimer(id);
         s.attackCooldown = sim.combat().attackCooldown(id);
         s.target = sim.targetOf(u);
-        s.indirectFire = kind.indirectFire;
+        s.indirectFire = kind.indirectFire();
 
         TurretAim.tick(s, sim.getTacticalScoring(), sim.getGrid(), sim.world(), sim.vision(), BattleSimulation.TICK_DT);
 
@@ -96,7 +96,7 @@ public final class TurretBehavior implements UnitBehavior {
                 turretState.setRecoilTimer(id, 0f);
                 burstRemaining--;
                 turretState.setBurstRemaining(id, burstRemaining);
-                turretState.setBurstTimer(id, kind.burstSpacing);
+                turretState.setBurstTimer(id, kind.burstSpacing());
                 if (burstRemaining == 0) turretState.setBurstTargetId(id, 0L);
             } else {
                 turretState.setBurstTimer(id, burstTimer);
@@ -105,7 +105,7 @@ public final class TurretBehavior implements UnitBehavior {
         }
 
         if (s.fireThisTick) {
-            if (kind.burstCount > 1) {
+            if (kind.burstCount() > 1) {
                 // Burst kinds route through fireShotFrom so their modeled
                 // round / AoE procedure applies. Latch the remaining rounds
                 // for the pump to drain.
@@ -113,8 +113,8 @@ public final class TurretBehavior implements UnitBehavior {
                         /*aerialShooter*/ false, s.lastFireHadLos);
                 turretState.setRecoilTimer(id, 0f);
                 if (s.target != 0L) {
-                    turretState.setBurstRemaining(id, kind.burstCount - 1);
-                    turretState.setBurstTimer(id, kind.burstSpacing);
+                    turretState.setBurstRemaining(id, kind.burstCount() - 1);
+                    turretState.setBurstTimer(id, kind.burstSpacing());
                     turretState.setBurstTargetId(id, s.target);
                 }
             } else {

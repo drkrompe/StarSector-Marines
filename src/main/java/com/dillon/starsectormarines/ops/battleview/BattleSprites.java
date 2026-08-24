@@ -653,11 +653,11 @@ public class BattleSprites {
         if (turretSpritesLoadAttempted) return;
         turretSpritesLoadAttempted = true;
         for (TurretKind kind : TurretKind.values()) {
-            loadTurretSpriteInto(turretSprites,       kind, kind.spritePath);
-            loadTurretSpriteInto(turretRecoilSprites, kind, kind.recoilSpritePath);
+            loadTurretSpriteInto(turretSprites,       kind, kind.spritePath());
+            loadTurretSpriteInto(turretRecoilSprites, kind, kind.recoilSpritePath());
             // Projectile sprite is path-keyed only (carrier-agnostic) — no per-kind map.
-            ShuttleSpriteCache proj = loadTurretSprite(kind.projectileSpritePath);
-            if (proj != null) projectileSpriteByPath.put(kind.projectileSpritePath, proj);
+            ShuttleSpriteCache proj = loadTurretSprite(kind.projectileSpritePath());
+            if (proj != null) projectileSpriteByPath.put(kind.projectileSpritePath(), proj);
         }
     }
 

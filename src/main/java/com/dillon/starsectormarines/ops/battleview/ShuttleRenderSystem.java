@@ -131,32 +131,27 @@ public final class ShuttleRenderSystem implements RenderSystem {
             // physical size on every hull, exactly like a ground MapTurret
             // (UnitRenderService draws it at visualCells flat). Only the altitude
             // visual zoom applies; the hull never scales turret size.
-            float layerVisualCells = mt.mount.kind.visualCells * scaleMult;
+            float layerVisualCells = mt.mount.kind.visualCells() * scaleMult;
+            TurretLayerPose pose = TurretLayerPose.resolve(
+                    screenX, screenY, mt.facingDegrees, layerVisualCells, cellPx,
+                    mt.recoilTimer, BattleRenderer.RECOIL_DURATION,
+                    BattleRenderer.RECOIL_DISTANCE_FRAC);
 
             ShuttleSpriteCache barrel = sprites.turretRecoilSprites().get(mt.mount.kind);
             if (barrel != null) {
-                float recoilT = 0f;
-                if (mt.recoilTimer < BattleRenderer.RECOIL_DURATION) {
-                    recoilT = 1f - mt.recoilTimer / BattleRenderer.RECOIL_DURATION;
-                }
-                float pushPx = recoilT * BattleRenderer.RECOIL_DISTANCE_FRAC * layerVisualCells * cellPx;
-                double brad = Math.toRadians(mt.facingDegrees);
-                float bx = (float) Math.sin(brad) * pushPx;
-                float by = -(float) Math.cos(brad) * pushPx;
-                emitTurretLayer(out, barrel, mt.facingDegrees, layerVisualCells, cellPx,
-                        screenX + bx, screenY + by, alphaMult);
+                emitTurretLayer(out, barrel, pose.facingDegrees(), pose.spriteHeightPx(),
+                        pose.recoilCenterX(), pose.recoilCenterY(), alphaMult);
             }
-            emitTurretLayer(out, base, mt.facingDegrees, layerVisualCells, cellPx,
-                    screenX, screenY, alphaMult);
+            emitTurretLayer(out, base, pose.facingDegrees(), pose.spriteHeightPx(),
+                    pose.baseCenterX(), pose.baseCenterY(), alphaMult);
         }
     }
 
     private static void emitTurretLayer(DrawList out, ShuttleSpriteCache cache, float facingDegrees,
-                                        float visualCells, float cellPx, float cx, float cy, float alphaMult) {
-        float pxH = visualCells * cellPx;
-        float pxW = pxH * cache.aspect;
+                                        float spriteHeightPx, float cx, float cy, float alphaMult) {
+        float pxW = spriteHeightPx * cache.aspect;
         out.addSprite(RenderLayer.SHUTTLES, cache.sprite,
-                cx, cy, pxW, pxH, facingDegrees,
+                cx, cy, pxW, spriteHeightPx, facingDegrees,
                 1f, 1f, 1f, alphaMult);
     }
 }

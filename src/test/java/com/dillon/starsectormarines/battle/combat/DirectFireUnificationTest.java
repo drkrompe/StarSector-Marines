@@ -180,8 +180,8 @@ class DirectFireUnificationTest {
         assertEquals(BallisticResolver.StopKind.WALL, mortarShot.stopKind);
         assertEquals(1, turretSim.getInflightDetonations().size());
         PendingDetonation mortarBlast = turretSim.getInflightDetonations().get(0);
-        assertEquals(TurretKind.HEAVY_MORTAR.aoeRadius, mortarBlast.aoeRadius, EPS);
-        assertEquals(TurretKind.HEAVY_MORTAR.wallDamage, mortarBlast.wallDamage);
+        assertEquals(TurretKind.HEAVY_MORTAR.aoeRadius(), mortarBlast.aoeRadius, EPS);
+        assertEquals(TurretKind.HEAVY_MORTAR.wallDamage(), mortarBlast.wallDamage);
     }
 
     @Test

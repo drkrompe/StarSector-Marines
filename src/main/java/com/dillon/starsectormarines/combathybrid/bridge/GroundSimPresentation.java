@@ -160,7 +160,7 @@ public final class GroundSimPresentation {
         for (ShotEvent s : sim.getShotsThisFrame()) {
             float pitch = 1f + (rng.nextFloat() * 2f - 1f) * RIFLE_PITCH_JITTER;
             if (s.turretKind != null) {
-                playAtCell(s.turretKind.fireSoundId, pitch, 1.0f, s.fromX, s.fromY);
+                playAtCell(s.turretKind.fireSoundId(), pitch, 1.0f, s.fromX, s.fromY);
             } else if (s.marineSecondary != null) {
                 playAtCell(s.marineSecondary.fireSoundId(), pitch, 1.0f, s.fromX, s.fromY);
             } else if (s.marineWeapon != null) {

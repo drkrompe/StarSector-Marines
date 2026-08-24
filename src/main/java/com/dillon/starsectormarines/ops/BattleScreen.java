@@ -916,7 +916,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             // playSound — vanilla weapon SFX are mono, which the spatial pipeline
             // requires; distance attenuation does the volume-falloff work.
             if (s.turretKind != null) {
-                Global.getSoundPlayer().playSound(s.turretKind.fireSoundId, pitch, 1.0f, loc, zeroVel);
+                Global.getSoundPlayer().playSound(s.turretKind.fireSoundId(), pitch, 1.0f, loc, zeroVel);
             } else if (s.marineSecondary != null) {
                 Global.getSoundPlayer().playSound(s.marineSecondary.fireSoundId(),
                         pitch, 1.0f, loc, zeroVel);

@@ -41,7 +41,8 @@ public final class WeaponRegistry {
      * the call {@code TileRegistry.BUILTIN_TILESETS} made.
      */
     public static final List<String> BUILTIN_CATALOGS = List.of(
-            "data/marines/marine-weapons.weapon.json");
+            "data/marines/marine-weapons.weapon.json",
+            "data/marines/turret-weapons.weapon.json");
 
     private static volatile WeaponRegistry installed;
 
