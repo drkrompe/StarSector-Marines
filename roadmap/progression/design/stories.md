@@ -2,7 +2,7 @@
 
 Status: ACTIVE — 11 open stories
 Written: 2026-08-23
-Updated: 2026-08-23 — shipped S2C reusable contact-demolition satchels.
+Updated: 2026-08-24 — tied S5/S6 recovery and faction-provenance work to the new installation and contract-policy stories.
 
 Read `progression-nouns.md` before changing a progression story.
 
@@ -13,8 +13,8 @@ Read `progression-nouns.md` before changing a progression story.
 | `xp-authority-cleanup.md` | Proposed | Terra synthesis finding; gated by S4 settling the frozen-outcome XP authority. |
 | `s2-primary-weapon-catalog-expansion.md` | Planned | Depends on the shipped lethality scale; adds close-quarters and sustained-fire primary roles. |
 | `s2d-frag-grenades.md` | Planned | Uses the shipped special-equipment identity seam; preserves the planned anti-personnel grenade with cluster, safety, and response policy. |
-| `s5-parts-acquisition-channels.md` | Planned | No hard code dependency; pairs with S6. Defines the economy before its expansion. |
-| `s6-unlock-ladder-expansion.md` | Planned | Depends on S5 plus the remaining S2 catalog stories. Must make every player asset starter issue or reachable. |
+| `s5-parts-acquisition-channels.md` | Planned | Pairs with S6; site-specific components consume frozen outcomes from `intact-installation-recovery.md`. |
+| `s6-unlock-ladder-expansion.md` | Planned | Depends on S5 plus the remaining S2 catalog stories; factional schematic recovery coordinates with `intact-installation-recovery.md`. Must make every player asset starter issue or reachable. |
 | `s7-grade-visual-identity.md` | Planned | Depends on shipped S1. Presentation-only grade signal. |
 | `s8-roster-legibility.md` | Ready | Requires shipped telemetry. Establishes campaign quality readout and UI-scale prerequisite. |
 | `s9-in-battle-quality-conveyance.md` | Ready | Requires shipped telemetry; coordinate its person-driven signal with S7. |
