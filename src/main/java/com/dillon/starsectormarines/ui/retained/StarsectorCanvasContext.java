@@ -50,12 +50,19 @@ final class StarsectorCanvasContext extends CanvasContext {
 
     @Override
     protected void drawSprite(String sourcePath, SpriteAPI sprite, float centerX, float centerY,
-                              float width, float height, float angleDegrees, Color tint) {
+                              float width, float height, float angleDegrees, Color tint,
+                              CanvasSpriteRegion region, CanvasBlend blend) {
         if (sprite == null) {
             throw new IllegalArgumentException("Starsector canvas requires a live sprite handle");
         }
         CanvasMetrics metrics = metrics();
+        float textureWidth = sprite.getTextureWidth();
+        float textureHeight = sprite.getTextureHeight();
         try {
+            sprite.setTexX(region.x() * textureWidth);
+            sprite.setTexY(region.y() * textureHeight);
+            sprite.setTexWidth(region.width() * textureWidth);
+            sprite.setTexHeight(region.height() * textureHeight);
             sprite.setSize(width * metrics.scaleX(), height * metrics.scaleY());
             sprite.setAngle(angleDegrees);
             sprite.setAlphaMult(alphaMult() * tint.getAlpha() / 255f);
@@ -63,14 +70,23 @@ final class StarsectorCanvasContext extends CanvasContext {
                     && tint.getBlue() == 255
                     ? Color.WHITE
                     : new Color(tint.getRed(), tint.getGreen(), tint.getBlue()));
-            sprite.setNormalBlend();
+            if (blend == CanvasBlend.ADDITIVE) {
+                sprite.setAdditiveBlend();
+            } else {
+                sprite.setNormalBlend();
+            }
             sprite.renderAtCenter(
                     viewport.screenXFor(metrics.toDocumentX(centerX)),
                     viewport.screenTopFor(metrics.toDocumentY(centerY)));
         } finally {
+            sprite.setTexX(0f);
+            sprite.setTexY(0f);
+            sprite.setTexWidth(textureWidth);
+            sprite.setTexHeight(textureHeight);
             sprite.setAngle(0f);
             sprite.setAlphaMult(1f);
             sprite.setColor(Color.WHITE);
+            sprite.setNormalBlend();
             glUseProgram(0);
             glColorMask(true, true, true, true);
             glEnable(GL_BLEND);

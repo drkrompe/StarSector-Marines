@@ -5,7 +5,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 Written: 2026-08-23
 
 Updated: 2026-08-24 — the canonical model now includes full-view headless paint
-parity, responsive retained layout, and safe clip-based offline layer authoring.
+parity, atlas-aware canvas sprites, and safe clip-based offline layer authoring.
 
 ## Purpose
 
@@ -234,7 +234,11 @@ to own clipping. A sprite operation carries both its stable asset path and, when
 live, its loaded `SpriteAPI` handle. The Starsector canvas consumes the handle and
 restores borrowed OpenGL state; the headless canvas resolves the path to the source
 PNG. Both therefore exercise one producer, layout, pose, occlusion, and
-actor-composition recipe.
+actor-composition recipe. Canvas sprite operations may select a normalized
+source region for atlas and flipbook art and declare normal or additive
+blending. Those are producer-owned visual intents rather than backend
+shortcuts: the live and headless targets apply the same region, RGB tint,
+opacity, rotation, and blend contract.
 
 Layered character authoring is a separate desktop concern rather than another game
 screen. A unit-layer document separates a unit's equipment variants from its named

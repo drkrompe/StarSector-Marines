@@ -4,7 +4,7 @@ Status: ACTIVE — handheld, special-item and turret weapon data is owned; mech 
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — folded shipped special-equipment references and the turret platform, mount, FX and preview model.
+Updated: 2026-08-24 — aligned the turret preview model with the shared retained headless renderer.
 
 ## Purpose
 
@@ -52,7 +52,9 @@ without turning a JSON typo into a silent zero-damage battle.
   depends on particles, tracer art, or fire audio.
 - A **catalog preview** is another consumer of authoritative definitions, not
   a parallel recipe. It shares pure pose and seeded effect composition with
-  runtime while owning only its headless painter and storyboard layout.
+  runtime while owning its storyboard projection as retained panels and
+  backend-neutral canvas producers. The shared retained paint targets own live
+  and headless rendering; the preview does not own a private raster painter.
 
 ## Authority flow
 
@@ -71,7 +73,9 @@ optional layered appearance remain mount policy, while the shared weapon owns
 ballistics, contact and area payloads, audio and composed effects. The retained
 `TurretKind` is only a stable-id compatibility handle over those definitions.
 Runtime and the deterministic six-state catalog preview consume the same pose
-and seeded effect commands.
+and seeded effect commands. The preview mounts those commands into the retained
+document canvas seam, so its sprite layers, atlas frames, tint, and blend intent
+are rendered by the same live/headless target boundary as other authored UI.
 
 Registry loading is deliberately fail-loud: a missing registry, unknown id,
 duplicate id, malformed required value, unknown mount class, or invalid
