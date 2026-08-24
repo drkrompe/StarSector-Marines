@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.appearance.LayeredWeaponFamily;
+import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
+import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerPose;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
@@ -184,6 +186,8 @@ public final class ArmoryLoadoutPreviewComposer {
                 ? special.specialDef().presentation().preview() : null;
         float phase = preview != null ? preview.phase() : 1f;
         int pose = poseFor(special, preview);
+        LayerPose authoredPose = UnitRenderService.infantryPose(
+                assets.unitLayerLayouts(), true, special, pose, 0f, phase, 0);
         LayeredUnitComposer.emit(
                 (layer, centerX, centerY, spriteWidth, spriteHeight, angle,
                  red, green, blue, alpha) -> sink.sprite(layer, centerX,
@@ -191,7 +195,7 @@ public final class ArmoryLoadoutPreviewComposer {
                         color(red, green, blue, alpha)),
                 layered, layered.head, billet.primary(), true, special, billet.grade(),
                 actorX, actorY, shoulderPx, 0f, 0f, 0f,
-                phase, pose, 0, 1f);
+                phase, pose, 0, 1f, authoredPose);
     }
 
     public static int poseFor(MarineSecondary special,
@@ -232,6 +236,10 @@ public final class ArmoryLoadoutPreviewComposer {
     public interface Assets {
         LayeredUnitAssets layered(MarineArmorPattern armor);
         LayeredSpriteCache icon(String path);
+
+        default UnitLayerLayouts unitLayerLayouts() {
+            return UnitLayerLayouts.get();
+        }
     }
 
     public interface Sink {
