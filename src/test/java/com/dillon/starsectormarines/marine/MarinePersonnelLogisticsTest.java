@@ -4,6 +4,8 @@ import com.fs.starfarer.api.campaign.CargoAPI;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Proxy;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -58,6 +60,30 @@ class MarinePersonnelLogisticsTest {
         assertEquals(0f, quantity[0]);
         assertEquals(MarineSquad.CAPACITY + 2, roster.lineReadySoldiers().size());
         assertEquals(2, roster.squads().stream().filter(squad -> !squad.reserve()).count());
+    }
+
+    @Test
+    void oneClickReinforcementUsesReserveThenCargoAndRebuildsCurrentBillets() {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
+        MarineSquad line = roster.squads().get(0);
+        Map<String, MarineSoldierStatus> losses = new LinkedHashMap<>();
+        losses.put(line.memberIds().get(0), MarineSoldierStatus.KIA);
+        losses.put(line.memberIds().get(4), MarineSoldierStatus.MIA);
+        roster.applySoldierOutcome(losses, 0, 20f, 3f);
+        MarineSoldier reserve = roster.recruitToSquad(roster.reserveSquad().id());
+        float[] quantity = {1f};
+
+        MarinePersonnelLogistics.ReinforcementResult result =
+                MarinePersonnelLogistics.reinforceSquad(roster, line.id(), cargo(quantity));
+
+        assertEquals(1, result.transferred());
+        assertEquals(1, result.enlisted());
+        assertEquals(0, roster.vacancies(line));
+        assertEquals(0f, quantity[0]);
+        assertTrue(roster.teamMemberIds(line, 2).contains(reserve.id()),
+                "replacement personnel occupy current fire-team billets");
+        assertFalse(roster.manningMemberIds(line).contains(line.memberIds().get(0)));
     }
 
     private static CargoAPI cargo(float[] quantity) {

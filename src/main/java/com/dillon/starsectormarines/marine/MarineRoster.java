@@ -386,6 +386,41 @@ public class MarineRoster implements Serializable {
         return result;
     }
 
+    /**
+     * Current billet holders in stable roster order. Permanent casualty records remain on the
+     * squad's historical roll, but do not displace a later replacement from a fire-team slot.
+     * WIA marines remain here because their billet is still theirs while they recover.
+     */
+    public List<String> manningMemberIds(MarineSquad squad) {
+        if (squad == null) return Collections.emptyList();
+        List<String> result = new ArrayList<>();
+        for (String id : squad.memberIds()) {
+            MarineSoldier soldier = soldierById(id);
+            if (soldier != null && (soldier.status() == MarineSoldierStatus.ACTIVE
+                    || soldier.status() == MarineSoldierStatus.WIA)) {
+                result.add(id);
+            }
+        }
+        return Collections.unmodifiableList(result);
+    }
+
+    /** Members of one current fire team in billet order. */
+    public List<String> teamMemberIds(MarineSquad squad, int teamIndex) {
+        if (teamIndex < 0 || teamIndex >= MarineSquad.TEAMS_PER_SQUAD) {
+            return Collections.emptyList();
+        }
+        List<String> members = manningMemberIds(squad);
+        int from = Math.min(teamIndex * MarineSquad.TEAM_SIZE, members.size());
+        int to = Math.min(from + MarineSquad.TEAM_SIZE, members.size());
+        return Collections.unmodifiableList(new ArrayList<>(members.subList(from, to)));
+    }
+
+    /** Current fire-team index, excluding historical KIA/MIA records from billet order. */
+    public int teamIndexOf(MarineSquad squad, String soldierId) {
+        int billet = manningMemberIds(squad).indexOf(soldierId);
+        return billet < 0 ? -1 : billet / MarineSquad.TEAM_SIZE;
+    }
+
     public int readyCount(MarineSquad squad) {
         int count = 0;
         for (MarineSoldier soldier : squadMembers(squad)) {
@@ -563,6 +598,19 @@ public class MarineRoster implements Serializable {
     public boolean fillVacancyFromReserve(String targetSquadId) {
         MarineSoldier reserve = firstReadyReserve();
         return reserve != null && transferSoldier(reserve.id(), targetSquadId);
+    }
+
+    /** Fills as many true open billets as possible from ready reserve personnel. */
+    public int fillVacanciesFromReserve(String targetSquadId) {
+        int filled = 0;
+        while (vacancies(squadById(targetSquadId)) > 0 && fillVacancyFromReserve(targetSquadId)) {
+            filled++;
+        }
+        return filled;
+    }
+
+    public int readyReserveCount() {
+        return readyCount(squadById(reserveSquadId));
     }
 
     public List<MarineSoldier> activeSoldiers() {
@@ -875,7 +923,7 @@ public class MarineRoster implements Serializable {
                 return new FireTeamRefitPreview(
                         FireTeamTemplateResult.UNKNOWN_TEMPLATE, Collections.emptyList());
             }
-            List<String> memberIds = squad.teamMembers(request.teamIndex);
+            List<String> memberIds = teamMemberIds(squad, request.teamIndex);
             if (memberIds.size() != MarineSquad.TEAM_SIZE) {
                 return new FireTeamRefitPreview(
                         FireTeamTemplateResult.TEAM_NOT_READY, Collections.emptyList());
@@ -971,7 +1019,7 @@ public class MarineRoster implements Serializable {
         for (RefitRequest request : requests) {
             MarineSquad squad = squadById(request.squadId);
             FireTeamTemplateCard card = armory.templateCardById(request.cardId);
-            List<String> members = squad.teamMembers(request.teamIndex);
+            List<String> members = teamMemberIds(squad, request.teamIndex);
             for (int i = 0; i < members.size(); i++) {
                 MarineSoldier soldier = soldierById(members.get(i));
                 FireTeamBillet billet = card.billet(i);
@@ -1196,7 +1244,7 @@ public class MarineRoster implements Serializable {
             MarineSoldier leader = Collections.min(onDuty, SENIORITY);
             squad.setLeaderSoldierId(leader.id());
             for (MarineSoldier soldier : onDuty) soldier.setEnlistedRank(EnlistedRank.MARINE);
-            int leaderTeam = squad.teamIndexOf(leader.id());
+            int leaderTeam = teamIndexOf(squad, leader.id());
             for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
                 if (team == leaderTeam) continue;
                 MarineSoldier teamLeader = seniorOnTeam(squad, team, onDuty);
@@ -1208,11 +1256,11 @@ public class MarineRoster implements Serializable {
         }
     }
 
-    private static MarineSoldier seniorOnTeam(MarineSquad squad, int team,
-                                              List<MarineSoldier> onDuty) {
+    private MarineSoldier seniorOnTeam(MarineSquad squad, int team,
+                                       List<MarineSoldier> onDuty) {
         MarineSoldier best = null;
         for (MarineSoldier soldier : onDuty) {
-            if (squad.teamIndexOf(soldier.id()) != team) continue;
+            if (teamIndexOf(squad, soldier.id()) != team) continue;
             if (best == null || SENIORITY.compare(soldier, best) < 0) best = soldier;
         }
         return best;

@@ -7,6 +7,7 @@
       <div id="{company.marineSquadsId}" class="company-stat label">{company.marineSquads}</div>
       <div id="{company.mechSquadsId}" class="company-stat label">{company.mechSquads}</div>
       <div id="{company.readinessId}" class="company-readiness label surface-dark">{company.readiness}</div>
+      <div id="{company.recoveryId}" class="company-recovery label tone-accent">{company.recovery}</div>
       <div id="{company.stationingId}" class="company-stationing label tone-muted">{company.stationing}</div>
       <div id="{company.openId}" class="company-open label tone-edge">{company.openLabel}</div>
     </button>
@@ -58,6 +59,8 @@
     padding: 7px 6px;
     border-width: 1px;
   }
+
+  .company-recovery { height: 42px; padding: 5px 1px; }
 
   .company-stationing {
     height: 42px;
