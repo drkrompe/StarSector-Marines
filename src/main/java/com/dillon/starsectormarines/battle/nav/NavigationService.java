@@ -159,10 +159,11 @@ public final class NavigationService {
     /**
      * Drains the zone-graph dirty state at the end of a tick (collapsing multiple in-tick breaches
      * into one update) and clears the vantage-point cache in lockstep so the next
-     * {@code findFiringPosition} stage-2 lookup recomputes against the new geometry. No-op when
-     * clean. Takes the incremental {@link ZoneGraph#applyCellsOpened} path when the changed cells
-     * are known and {@link DevConfig#ZONE_INCREMENTAL_REBUILD} is on; otherwise a full
-     * {@link ZoneGraph#rebuild()}.
+     * {@code findFiringPosition} stage-2 lookup recomputes against the new geometry. Retained
+     * shared-goal fields are invalidated at the same boundary so their older topology view cannot
+     * hide the new opening. No-op when clean. Takes the incremental {@link
+     * ZoneGraph#applyCellsOpened} path when the changed cells are known and {@link
+     * DevConfig#ZONE_INCREMENTAL_REBUILD} is on; otherwise a full {@link ZoneGraph#rebuild()}.
      */
     public void flushZoneGraphIfDirty() {
         if (!zoneGraphDirty) return;
@@ -172,6 +173,7 @@ public final class NavigationService {
             zoneGraph.rebuild();
         }
         vantagePointsByTargetCell.clear();
+        sharedGoalPathfinder.invalidateAll();
         zoneGraphDirty = false;
         zoneForceFullRebuild = false;
         openedCount = 0;
