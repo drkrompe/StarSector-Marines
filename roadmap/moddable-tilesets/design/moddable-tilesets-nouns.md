@@ -4,7 +4,7 @@ Status: ACTIVE — built-in data registry; external merge deferred
 
 Written: 2026-08-23
 
-Updated: 2026-08-23 — nature-overlay passability and physical cover are live
+Updated: 2026-08-24 — replaced migration phases with durable catalog, mapping, and external-provider boundaries.
 
 Read `stories.md` for open work.
 
@@ -18,7 +18,8 @@ keeping terrain generation deterministic and its tactical rules explicit.
 
 The feature currently makes the built-in catalog data-driven. It is not yet a
 submod loader: an external contribution cannot be discovered, merged, or given
-override precedence until Phase 3 establishes that contract.
+override precedence until a real additional provider establishes an explicit
+external-provider contract.
 
 ## Vocabulary and ownership
 
@@ -72,9 +73,9 @@ This prevents an art rearrangement from becoming a code edit, without falsely
 claiming that data can replace geometry, connectivity recovery, placement, or
 other procedural decisions.
 
-## Standing behavior
+## Catalog and mapping behavior
 
-### Phase 1: id-addressed visual catalog
+### Id-addressed visual catalog
 
 Both sliced sheets and fixed-grid sheets resolve by explicit ids rather than
 enum order or hardcoded origins. Sliced definitions pin their frame explicitly;
@@ -87,7 +88,7 @@ their established output, and cell overlay handles are resolved through the
 current registry. Changing a frame assignment now requires a reviewable
 manifest edit rather than changing an enum declaration order in code.
 
-### Phase 2: mapping-driven use
+### Mapping-driven use
 
 Generation now reads data-owned doodad membership and cover, fixed-grid and
 fallback ground-render dispatch, and nature-zone pools/chances. Primary sliced
@@ -137,18 +138,19 @@ surface relief owns what those height values mean and how rendering uses them.
    path that owns that tactical law.
 6. The current validation is for the known built-ins. Strict unknown-key
    diagnostics, asset-bound checks, cross-mapping preflight, and external
-   provenance/precedence are Phase 3 responsibilities.
+   provenance/precedence belong to the external-provider contract.
 7. Code may choose a layout from topology, but declared content owns the
    membership of a visual variant pool. A compatibility fallback may preserve
    output only while the registry is unavailable; it is not another catalog.
 
-## Phase 3 boundary
+## External-provider boundary
 
-Phase 3 begins only when a real second content provider needs to participate.
-It must define discovery and source provenance, deterministic load order,
-extend-versus-override semantics, collision diagnostics, strict schema and
-reference validation, and an atomic result that consumers can trust. It must
-not turn the present fixed-list loader into accidental last-one-wins behavior.
+This boundary opens only when a real additional content provider needs to
+participate. Its contract must define discovery and source provenance,
+deterministic load order, extend-versus-override semantics, collision
+diagnostics, strict schema and reference validation, and an atomic result that
+consumers can trust. It must not turn the present fixed-list loader into
+accidental last-one-wins behavior.
 
 Until then, a JSON edit can tune bundled content, but it cannot make a
 third-party tileset moddable at runtime.
