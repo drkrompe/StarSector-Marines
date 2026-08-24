@@ -51,7 +51,7 @@ public final class AuthoringDocument {
         Path normalizedRoot = projectRoot.toAbsolutePath().normalize();
         Path source = normalizedRoot.resolve(RELATIVE_PATH).normalize();
         JSONObject root = new JSONObject(sourceJson);
-        if (root.getInt("schemaVersion") != 2) {
+        if (root.getInt("schemaVersion") != 3) {
             throw new IllegalArgumentException("Unsupported unit-layer schema version");
         }
         JSONArray unitArray = root.getJSONArray("units");
@@ -179,7 +179,7 @@ public final class AuthoringDocument {
 
     private JSONObject toJson() throws JSONException {
         JSONObject root = new JSONObject();
-        root.put("schemaVersion", 2);
+        root.put("schemaVersion", 3);
         root.put("coordinateSystem", new JSONObject()
                 .put("origin", "actor-center")
                 .put("x", "right")
@@ -274,13 +274,16 @@ public final class AuthoringDocument {
     public static final class AnimationDefinition {
         private final String id;
         private final String label;
+        private AnimationDriver driver;
         private boolean loop;
         private final List<FrameDefinition> frames;
 
-        private AnimationDefinition(String id, String label, boolean loop,
+        private AnimationDefinition(String id, String label, AnimationDriver driver,
+                                    boolean loop,
                                     List<FrameDefinition> frames) {
             this.id = id;
             this.label = label;
+            this.driver = driver;
             this.loop = loop;
             this.frames = frames;
         }
@@ -292,6 +295,7 @@ public final class AuthoringDocument {
                 frames.add(FrameDefinition.parse(frameArray.getJSONObject(index)));
             }
             return new AnimationDefinition(json.getString("id"), json.getString("label"),
+                    AnimationDriver.parse(json.getString("driver")),
                     json.optBoolean("loop", false), frames);
         }
 
@@ -299,11 +303,14 @@ public final class AuthoringDocument {
             JSONArray frameArray = new JSONArray();
             for (FrameDefinition frame : frames) frameArray.put(frame.toJson());
             return new JSONObject().put("id", id).put("label", label)
+                    .put("driver", driver.jsonName())
                     .put("loop", loop).put("frames", frameArray);
         }
 
         public String id() { return id; }
         public String label() { return label; }
+        public AnimationDriver driver() { return driver; }
+        public void driver(AnimationDriver value) { driver = value; }
         public boolean loop() { return loop; }
         public void loop(boolean value) { loop = value; }
         public List<FrameDefinition> frames() { return frames; }
@@ -312,8 +319,33 @@ public final class AuthoringDocument {
             for (FrameDefinition frame : frames) {
                 copies.add(frame.copy(frame.id(), frame.label()));
             }
-            return new AnimationDefinition(newId, newLabel, loop, copies);
+            return new AnimationDefinition(newId, newLabel, driver, loop, copies);
         }
+        @Override public String toString() { return label; }
+    }
+
+    public enum AnimationDriver {
+        TIME("time", "Time"),
+        LOCOMOTION_PHASE("locomotionPhase", "Locomotion phase"),
+        ACTION_PHASE("actionPhase", "Action phase");
+
+        private final String jsonName;
+        private final String label;
+
+        AnimationDriver(String jsonName, String label) {
+            this.jsonName = jsonName;
+            this.label = label;
+        }
+
+        String jsonName() { return jsonName; }
+
+        static AnimationDriver parse(String value) {
+            for (AnimationDriver driver : values()) {
+                if (driver.jsonName.equals(value)) return driver;
+            }
+            throw new IllegalArgumentException("Unknown animation driver: " + value);
+        }
+
         @Override public String toString() { return label; }
     }
 
