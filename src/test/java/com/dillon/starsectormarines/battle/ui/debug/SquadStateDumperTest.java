@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.ui.debug;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.command.ConquestCommand;
 import com.dillon.starsectormarines.battle.combat.FireGate;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.combat.FiringSystem;
@@ -11,6 +12,7 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import org.json.JSONObject;
 import org.json.JSONArray;
 import org.junit.jupiter.api.Test;
@@ -94,6 +96,25 @@ class SquadStateDumperTest {
         assertEquals(FireGate.FIRED.name(), row.getString("lastFireGate"));
         assertEquals(sim.getSimTickIndex(), row.getInt("lastFireGateTick"));
         assertEquals(0, row.getInt("lastFireGateAgeTicks"));
+    }
+
+    @Test
+    void squadDumpMakesMissingAssignmentAndConquestPictureExplicit() throws Exception {
+        BattleSimulation sim = openSim();
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        ConquestCommand command = new ConquestCommand(
+                TraversalAxis.SOUTH_TO_NORTH);
+        sim.setCommander(Faction.MARINE, command);
+
+        JSONObject dump = SquadStateDumper.buildSquadJson(squad, sim);
+
+        assertTrue(dump.isNull("assignedObjective"));
+        JSONObject conquest = dump.getJSONObject("conquestCommand");
+        assertEquals("SOUTH_TO_NORTH", conquest.getString("axis"));
+        assertEquals("LANE_ADVANCE", conquest.getString("phase"));
+        assertTrue(conquest.isNull("squadDirective"));
+        assertEquals(0, conquest.getJSONArray("tracks").length());
     }
 
     private static BattleSimulation openSim() {

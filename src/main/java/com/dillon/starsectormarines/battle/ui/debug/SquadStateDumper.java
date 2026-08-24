@@ -15,6 +15,9 @@ import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.decision.goap.action.ClearZone;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.command.ConquestCommand;
+import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
+import com.dillon.starsectormarines.battle.command.MissionCommand;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
@@ -147,7 +150,9 @@ public final class SquadStateDumper {
         o.put("leaderId", leaderUnit != 0L ? sim.identity().name(leaderUnit) : null);
         o.put("assignedNode", squad.assignedNode != null ? squad.assignedNode.kind.name() : null);
         o.put("assignedNodeMustHold", squad.assignedNode != null && squad.assignedNode.mustHold);
-        o.put("assignedObjective", buildAssignmentJson(squad.assignedObjective));
+        o.put("assignedObjective", squad.assignedObjective != null
+                ? buildAssignmentJson(squad.assignedObjective) : JSONObject.NULL);
+        o.put("conquestCommand", buildConquestCommandJson(squad, sim));
         // Garrison-specific flags — load-bearing for "why won't this squad fire" diagnostics.
         o.put("holdsFireUntilKillZone", squad.holdsFireUntilKillZone);
         o.put("killZoneLosTicks", squad.killZoneLosTicks);
@@ -301,6 +306,64 @@ public final class SquadStateDumper {
         o.put("targetCellX", a.targetCellX());
         o.put("targetCellY", a.targetCellY());
         return o;
+    }
+
+    private static Object buildConquestCommandJson(Squad squad,
+                                                   BattleSimulation sim)
+            throws Exception {
+        MissionCommand command = sim.getCommander(squad.faction);
+        if (!(command instanceof ConquestCommand conquest)) return JSONObject.NULL;
+        ConquestFrontSnapshot snapshot = conquest.frontSnapshot();
+        JSONObject out = new JSONObject();
+        out.put("tick", snapshot.tick());
+        out.put("ageTicks", snapshot.tick() >= 0
+                ? Math.max(0, sim.simTickIndex - snapshot.tick()) : -1);
+        out.put("influenceTick", snapshot.influenceTick());
+        out.put("influenceAgeTicks", snapshot.influenceTick() >= 0
+                ? Math.max(0, sim.simTickIndex - snapshot.influenceTick()) : -1);
+        out.put("axis", snapshot.axis().name());
+        out.put("phase", snapshot.phase().name());
+        out.put("remainingCompounds", snapshot.remainingCompounds());
+        out.put("keepZoneId", snapshot.keepZoneId());
+        out.put("keepState", snapshot.keepState() != null
+                ? snapshot.keepState().name() : JSONObject.NULL);
+
+        ConquestFrontSnapshot.SquadDirective directive =
+                snapshot.directiveFor(squad.id);
+        if (directive == null) {
+            out.put("squadDirective", JSONObject.NULL);
+        } else {
+            JSONObject row = new JSONObject();
+            row.put("preferredTrack", directive.preferredTrack());
+            row.put("effectiveTrack", directive.effectiveTrack());
+            row.put("reason", directive.reason().name());
+            row.put("assignmentKind", directive.assignmentKind() != null
+                    ? directive.assignmentKind().name() : JSONObject.NULL);
+            row.put("targetZoneId", directive.targetZoneId());
+            out.put("squadDirective", row);
+        }
+
+        JSONArray tracks = new JSONArray();
+        for (ConquestFrontSnapshot.TrackState track : snapshot.tracks()) {
+            JSONObject row = new JSONObject();
+            row.put("index", track.index());
+            row.put("lateralStart", track.lateralStart());
+            row.put("lateralEnd", track.lateralEnd());
+            row.put("preferredSquads", track.preferredSquads());
+            row.put("effectiveSquads", track.effectiveSquads());
+            row.put("effectiveLiveMembers", track.effectiveLiveMembers());
+            row.put("friendlyBodyProgress", track.friendlyBodyProgress());
+            row.put("friendlyLeadProgress", track.friendlyLeadProgress());
+            row.put("knownHostileFrontProgress",
+                    track.knownHostileFrontProgress());
+            row.put("knownHostileContacts", track.knownHostileContacts());
+            row.put("friendlyPressure", track.friendlyPressure());
+            row.put("knownHostilePressure", track.knownHostilePressure());
+            row.put("targetZoneId", track.targetZoneId());
+            tracks.put(row);
+        }
+        out.put("tracks", tracks);
+        return out;
     }
 
     static JSONArray buildMembersJson(Squad squad, BattleSimulation sim,
