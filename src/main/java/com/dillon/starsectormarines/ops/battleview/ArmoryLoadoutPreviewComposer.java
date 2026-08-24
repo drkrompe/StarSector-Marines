@@ -6,11 +6,13 @@ import com.dillon.starsectormarines.battle.appearance.LayeredWeaponFamily;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
+import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef;
 import com.dillon.starsectormarines.marine.SpecialUsePose;
 
 import java.awt.Color;
+import java.util.List;
 
 /** Backend-neutral composition of the Fleet Armory's selected-billet preview. */
 public final class ArmoryLoadoutPreviewComposer {
@@ -38,6 +40,67 @@ public final class ArmoryLoadoutPreviewComposer {
         sink.line(divider, 12f, divider, height - 12f, EDGE, 1f);
         drawEquipmentDoll(sink, assets, billet, divider, height);
         drawSampleSoldier(sink, assets, billet, divider, width, height);
+    }
+
+    /** Portrait equipment mannequin used four-up for a complete fire-team template. */
+    public static void composeMannequin(Sink sink, Assets assets, FireTeamBillet billet,
+                                        float width, float height) {
+        if (sink == null || assets == null) {
+            throw new IllegalArgumentException("preview sink and assets are required");
+        }
+        if (billet == null || width <= 0f || height <= 0f) return;
+
+        sink.fillRect(0f, 0f, width, height, BACKGROUND);
+        float socketSize = Math.max(34f, Math.min(width * 0.24f, height * 0.19f));
+        float socketX = 10f;
+        float usable = Math.max(0f, height - socketSize - 20f);
+        float[] socketY = {10f, 10f + usable * 0.5f, 10f + usable};
+
+        LayeredUnitAssets layered = assets.layered(billet.armor());
+        LayeredSpriteCache armor = assets.icon(billet.armor().iconPath);
+        LayeredSpriteCache primary = layered != null
+                ? layered.weapon(LayeredWeaponFamily.fromPrimary(billet.primary()), billet.grade())
+                : null;
+        SpecialEquipmentDef special = billet.secondary() != null
+                ? billet.secondary().specialDef() : null;
+        LayeredSpriteCache specialIcon = special != null
+                ? assets.icon(special.armoryIconPath()) : null;
+        drawSocket(sink, armor, socketX, socketY[0], socketSize, socketSize);
+        drawSocket(sink, primary, socketX, socketY[1], socketSize, socketSize);
+        drawSocket(sink, specialIcon, socketX, socketY[2], socketSize, socketSize);
+
+        float actorLeft = socketX + socketSize + 8f;
+        float actorWidth = Math.max(1f, width - actorLeft - 8f);
+        sink.line(actorLeft, height - 16f, width - 8f, height - 16f, ACCENT, 2f);
+        drawSoldier(sink, assets, billet, actorLeft + actorWidth * 0.52f,
+                height * 0.48f, Math.min(height * 0.48f, actorWidth * 0.78f), height);
+    }
+
+    /** Compact at-a-glance composition of all four template billets. */
+    public static void composeFireTeam(Sink sink, Assets assets,
+                                       List<FireTeamBillet> billets,
+                                       float width, float height) {
+        if (sink == null || assets == null) {
+            throw new IllegalArgumentException("preview sink and assets are required");
+        }
+        if (billets == null || billets.isEmpty() || width <= 0f || height <= 0f) return;
+
+        sink.fillRect(0f, 0f, width, height, BACKGROUND);
+        float margin = 8f;
+        float baseline = height - 12f;
+        sink.line(margin, baseline, width - margin, baseline, ACCENT, 2f);
+        float cellWidth = width / MarineSquad.TEAM_SIZE;
+        int count = Math.min(MarineSquad.TEAM_SIZE, billets.size());
+        for (int index = 0; index < count; index++) {
+            float actorX = cellWidth * (index + 0.5f);
+            float shoulder = Math.min(height * 0.39f, cellWidth * 0.58f);
+            if (index > 0) {
+                float divider = cellWidth * index;
+                sink.line(divider, 9f, divider, baseline - 5f, EDGE, 1f);
+            }
+            drawSoldier(sink, assets, billets.get(index), actorX,
+                    height * 0.48f, shoulder, height);
+        }
     }
 
     private static void drawEquipmentDoll(Sink sink, Assets assets,
@@ -88,6 +151,18 @@ public final class ArmoryLoadoutPreviewComposer {
     private static void drawSampleSoldier(Sink sink, Assets assets,
                                           FireTeamBillet billet,
                                           float divider, float width, float height) {
+        float shoulderPx = Math.min(height * 0.54f, (width - divider) * 0.48f);
+        float actorX = divider + (width - divider) * 0.57f;
+        float actorY = height * 0.48f;
+
+        sink.fillRect(divider + 16f, height - 22f,
+                width - divider - 32f, 3f, ACCENT);
+        drawSoldier(sink, assets, billet, actorX, actorY, shoulderPx, height);
+    }
+
+    private static void drawSoldier(Sink sink, Assets assets, FireTeamBillet billet,
+                                    float actorX, float actorY, float shoulderPx,
+                                    float surfaceHeight) {
         LayeredUnitAssets layered = assets.layered(billet.armor());
         if (layered == null) return;
         MarineSecondary special = billet.secondary();
@@ -95,16 +170,10 @@ public final class ArmoryLoadoutPreviewComposer {
                 ? special.specialDef().presentation().preview() : null;
         float phase = preview != null ? preview.phase() : 1f;
         int pose = poseFor(special, preview);
-        float shoulderPx = Math.min(height * 0.54f, (width - divider) * 0.48f);
-        float actorX = divider + (width - divider) * 0.57f;
-        float actorY = height * 0.48f;
-
-        sink.fillRect(divider + 16f, height - 22f,
-                width - divider - 32f, 3f, ACCENT);
         LayeredUnitComposer.emit(
                 (layer, centerX, centerY, spriteWidth, spriteHeight, angle,
                  red, green, blue, alpha) -> sink.sprite(layer, centerX,
-                        height - centerY, spriteWidth, spriteHeight, angle,
+                        surfaceHeight - centerY, spriteWidth, spriteHeight, angle,
                         color(red, green, blue, alpha)),
                 layered, layered.head, billet.primary(), true, special, billet.grade(),
                 actorX, actorY, shoulderPx, 0f, 0f, 0f,
