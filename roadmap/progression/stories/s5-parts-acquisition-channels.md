@@ -5,7 +5,7 @@
 
 Status: PLANNED — no hard dependency; pairs with `s6-unlock-ladder-expansion.md`.
 Written: 2026-08-22
-Updated: 2026-08-24 — made recovered armor breakdown respect concrete suit condition, role, and provenance.
+Updated: 2026-08-24 — made recovered weapon breakdown respect mechanism, condition, provenance, and volatile-item safety.
 
 ## Problem
 
@@ -91,6 +91,15 @@ Recovered enemy weapons and armor break down into common parts.
   composite assembly may contribute to an advanced-component roll. Role alone
   is not rarity, so a crude Path heavy rig does not automatically pay better
   than a pristine Tri-Tachyon light suit.
+- Weapon yield follows the same law. Ordinary slug, flechette, cutter, and
+  launcher hardware normally becomes common parts; an eligible intact gauss,
+  energy, micro-missile, or neural-interface assembly may enter an advanced
+  pool because of its concrete definition and condition, not because its
+  mechanism name is intrinsically high tier.
+- Armed martyr rigs and unstable carried IEDs are never ordinary loot pickups.
+  Only an explicitly safe recovered state may yield components; otherwise the
+  outcome records destroyed/unsafe materiel rather than granting a pristine
+  recipe or inventory item.
 - Natural interaction with S3 telemetry: the marines who did the fighting
   produced the salvage.
 
