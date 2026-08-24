@@ -431,8 +431,8 @@ public final class SquadStateDumper {
      * <p>Signal hook for future "make-passage" actions: if an enemy is in
      * the target zone but no squadmate can pathfind to it, the squad is
      * geometrically stuck and needs a door-breach / wall-demo action to
-     * progress rather than another retry of the same plan (the SQ-82
-     * motivator — see {@code roadmap/sessions/}).
+     * progress rather than another retry of the same plan. This remains a
+     * diagnostic signal; no make-passage feature is currently contracted.
      */
     private static JSONObject buildClearZoneReachabilityJson(Squad squad, BattleSimulation sim) throws Exception {
         SquadPlan plan = squad.currentPlan;

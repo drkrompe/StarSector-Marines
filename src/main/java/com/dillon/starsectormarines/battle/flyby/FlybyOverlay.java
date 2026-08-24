@@ -263,10 +263,10 @@ public final class FlybyOverlay {
 
         simTime += dt;
 
-        // Drain wall-collapse dust events queued by Detonations (and any
-        // other caller via WeaponSimContext.spawnDustBurst). Centralizes the
-        // particle spawn in one place so the visual stays consistent whether
-        // the collapse came from a fighter missile, an LRM, or a tracer chip.
+        // Drain wall-collapse dust events queued through the shared effects
+        // service. Centralizes the particle spawn so the visual stays
+        // consistent whether the collapse came from a fighter missile, an
+        // LRM, or a tracer chip.
         if (sim != null) {
             for (float[] dust : sim.getWallDustsThisFrame()) {
                 spawnDustBurst(dust[0], dust[1]);

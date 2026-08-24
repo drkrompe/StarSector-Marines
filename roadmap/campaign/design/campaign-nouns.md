@@ -4,13 +4,20 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
+Updated: 2026-08-24 — folded the campaign umbrella's enduring scope and child-domain boundaries.
+
 ## Purpose
 
-The campaign tier is the persistent consequence layer around operations. The
-player is a named mercenary company working inside the political space beneath
-Starsector's faction graph, not a new faction that silently replaces it.
-Campaign play makes the company's commitments, relationships, and consequences
-survive the battle that produced them.
+The campaign tier is the persistent mercenary-company consequence layer around
+operations. The player is a named mercenary company working inside the
+political space beneath Starsector's faction graph, not a new faction that
+silently replaces it. Campaign play makes the company's commitments,
+relationships, and consequences survive the battle that produced them.
+
+It is an umbrella tier, not one universal policy feature. Its child domains
+own their own models and concrete work boards; this document preserves the
+shared vocabulary and authority boundaries that keep those domains from
+becoming parallel campaign simulators.
 
 ## Campaign shape
 
@@ -47,7 +54,11 @@ execution. `living-world-nouns.md` owns houses, stakes, ambition, political
 chains, and learned Chronicle truth. `contracts-nouns.md` owns agreements and
 settlements; `loot-nouns.md` owns recovery; `campaign-event-nouns.md` owns
 exceptional event lifecycle; `mission-tier-nouns.md` owns scale vocabulary;
-and `narrative-nouns.md` owns truthful presentation.
+`early-operation-nouns.md` owns the authored green-company opening ladder;
+`personnel-nouns.md` owns company identities, organization, availability, and
+outcomes; `infrastructure-nouns.md` owns future location-bound investments;
+`t3-endgame-nouns.md` owns the exceptional vanilla-state handoff; and
+`narrative-nouns.md` owns truthful presentation.
 
 `themes.md`, `economy.md`, and `backgrounds.md` are direction for future
 campaign work. `moral-compass.md` owns the hidden record that can connect

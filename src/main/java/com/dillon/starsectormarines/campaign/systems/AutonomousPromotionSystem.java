@@ -12,7 +12,7 @@ import java.util.EnumSet;
 /**
  * Tick phase 1: autonomous house promotion via stake-based progress.
  *
- * <p>Per <code>roadmap/campaign/living-world/design/living-world-nouns.md</code>,
+ * <p>Per <code>living-world-nouns.md</code>,
  * every ACTIVE house accrues
  * {@code promotionProgress} based on its current stake holdings vs the
  * market's total. Crossing {@code rankThreshold} promotes the house.

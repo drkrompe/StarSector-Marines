@@ -12,7 +12,7 @@ import java.util.EnumSet;
  * <p>Relationship interaction is intentionally an explicit no-op. The weekly
  * seam remains reserved for visibility-gated edges and interaction outcomes
  * described by
- * <code>roadmap/campaign/living-world/design/house-disposition.md</code>; no
+ * <code>house-disposition.md</code>; no
  * relationship edges are created here yet.
  */
 public final class RelationshipInteractionSystem implements CampaignSystem {
