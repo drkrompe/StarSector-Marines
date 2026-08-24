@@ -21,6 +21,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -100,18 +101,41 @@ class FleetArmoryViewModelTest {
             }
 
             UiElement list = instance.requireElement("template-list");
-            instance.requireElement("marine-preview:0");
+            UiElement marineCard = instance.requireElement("marine-card:0");
+            UiElement marineCanvas = instance.requireElement("marine-preview:0");
+            String alphaName = viewModel.marineCards().get().get(0).name();
+            viewModel.fireTeamOverviews().get().get(1).select().run();
+            instance.flush();
+
+            assertSame(marineCard, instance.requireElement("marine-card:0"));
+            assertSame(marineCanvas, instance.requireElement("marine-preview:0"));
+            assertNotEquals(alphaName, viewModel.marineCards().get().get(0).name());
+            assertEquals(viewModel.marineCards().get().get(0).name(),
+                    instance.requireElement("marine-card:0:name").text());
+
             UiElement first = list.childAt(0);
             UiElement second = list.childAt(1);
-            viewModel.templateTiles().get().get(1).select().run();
+            viewModel.toggleLoadoutPickerAction().run();
+            FleetArmoryViewModel.TemplateTile alternative = viewModel.templateTiles().get()
+                    .stream()
+                    .filter(tile -> !tile.disabled())
+                    .filter(tile -> !tile.templateId().equals(viewModel.selectedTemplateId()))
+                    .findFirst()
+                    .orElse(viewModel.templateTiles().get().get(0));
+            alternative.select().run();
             instance.flush();
 
             assertSame(first, list.childAt(0));
             assertSame(second, list.childAt(1));
-            assertFalse(first.selected());
-            assertTrue(second.selected());
+            assertTrue(viewModel.loadoutPickerOpen());
+            assertTrue(instance.requireElement(alternative.id()).selected());
             assertEquals(viewModel.currentPreview().canApply(),
                     !instance.requireElement("apply-template").disabled());
+            assertTrue(viewModel.marineCards().get().get(0).weaponDelta().contains("DMG"));
+            for (int slot = 0; slot < MarineSquad.TEAM_SIZE; slot++) {
+                assertEquals(viewModel.marineCards().get().get(slot).name(),
+                        instance.requireElement("marine-card:" + slot + ":name").text());
+            }
         }
     }
 
@@ -156,12 +180,16 @@ class FleetArmoryViewModelTest {
         props.put("templateTiles", viewModel.templateTiles());
         props.put("targetSummary", viewModel.targetSummary());
         props.put("candidateSummary", viewModel.candidateSummary());
+        props.put("pickerClasses", viewModel.pickerClasses());
+        props.put("pickerToggleLabel", viewModel.pickerToggleLabel());
+        props.put("togglePicker", viewModel.toggleLoadoutPickerAction());
         props.put("billetRows", viewModel.billetRows());
         props.put("marineCards", viewModel.marineCards());
         props.put("previewSummary", viewModel.previewSummary());
         props.put("transactionSummary", viewModel.transactionSummary());
         props.put("transactionClasses", viewModel.transactionClasses());
         props.put("applyDisabled", viewModel.applyDisabled());
+        props.put("applyClasses", viewModel.applyClasses());
         props.put("applyLabel", viewModel.applyLabel());
         props.put("apply", viewModel.applyAction());
         props.put("feedbackText", viewModel.feedbackText());
