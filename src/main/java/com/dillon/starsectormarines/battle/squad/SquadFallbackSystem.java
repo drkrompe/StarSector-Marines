@@ -96,14 +96,14 @@ public final class SquadFallbackSystem {
     /**
      * Distributes new home cells around {@code newNode}'s anchor to every
      * surviving member of {@code squad}. Reuses
-     * {@link BattleSetup#pickCellsNear} so the cover-sorted ordering is the
-     * same one the original spawn used — the highest-rank survivors (taken in
-     * stable per-squad member slice, which preserves spawn priority) take the
-     * best new cover stacks.
+     * {@link BattleSetup#pickCellsForNode} so authored member positions win
+     * when the fallback place supplies them, with the same cover-sorted nearby
+     * fallback the original spawn uses otherwise.
      */
     private void assignFallbackHomes(Squad squad, TacticalNode newNode, UnitRosterService roster) {
-        List<int[]> cells = BattleSetup.pickCellsNear(navigation.getGrid(), navigation.getZoneGraph(),
-                newNode.anchorX, newNode.anchorY, 5, squad.aliveMembers);
+        List<int[]> cells = BattleSetup.pickCellsForNode(
+                navigation.getGrid(), navigation.getZoneGraph(),
+                newNode, 5, squad.aliveMembers);
         long[] members = roster.squadMemberArray(squad.id);
         int memberCount = roster.squadMemberCount(squad.id);
         int idx = 0;

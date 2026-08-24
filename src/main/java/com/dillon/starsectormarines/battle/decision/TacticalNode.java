@@ -36,6 +36,14 @@ import java.util.List;
 public final class TacticalNode {
 
     /**
+     * One authored walkable cell where a member assigned to this tactical
+     * place should begin and return when idle. The node anchor remains the
+     * place's stable identity even when that anchor is a wall or turret mount;
+     * stand positions express the usable infantry geometry around it.
+     */
+    public record StandPosition(int x, int y) {}
+
+    /**
      * Tactical role categories. Each category implies a default
      * {@link Faction} guard, a priority score, and a garrison size — the
      * static factory methods in {@link #of(Kind, int, int, int, int, int, int)}
@@ -112,7 +120,7 @@ public final class TacticalNode {
     }
 
     public final Kind kind;
-    /** Single-cell anchor — turret mount for towers, gate-center for gates, doorway for compounds. AI uses this for "where to stand". */
+    /** Single-cell anchor — turret mount for towers, gate-center for gates, doorway for compounds. */
     public final int anchorX;
     public final int anchorY;
     /** Bounding box. For single-cell nodes (MG), all four equal anchor. */
@@ -123,6 +131,11 @@ public final class TacticalNode {
     public final int priorityScore;
     /** Suggested squad slot count at this node. Fixed per-kind for v1; future {@code requestedShare} ratio can supersede. */
     public final int garrisonSize;
+    /**
+     * Preferred member home cells authored with the node's geometry. Empty
+     * means the allocator derives suitable nearby cells as before.
+     */
+    private final List<StandPosition> standPositions;
     /**
      * Explicit mission-authoring exception: a lone assigned survivor holds
      * this node instead of yielding to survival or structural fallback logic.
@@ -150,13 +163,29 @@ public final class TacticalNode {
                         int left, int top, int right, int bottom,
                         Faction defaultGuard, int priorityScore, int garrisonSize) {
         this(kind, anchorX, anchorY, left, top, right, bottom,
-                defaultGuard, priorityScore, garrisonSize, false);
+                defaultGuard, priorityScore, garrisonSize, false, List.of());
+    }
+
+    public TacticalNode(Kind kind, int anchorX, int anchorY,
+                        int left, int top, int right, int bottom,
+                        Faction defaultGuard, int priorityScore, int garrisonSize,
+                        List<StandPosition> standPositions) {
+        this(kind, anchorX, anchorY, left, top, right, bottom,
+                defaultGuard, priorityScore, garrisonSize, false, standPositions);
     }
 
     public TacticalNode(Kind kind, int anchorX, int anchorY,
                         int left, int top, int right, int bottom,
                         Faction defaultGuard, int priorityScore, int garrisonSize,
                         boolean mustHold) {
+        this(kind, anchorX, anchorY, left, top, right, bottom,
+                defaultGuard, priorityScore, garrisonSize, mustHold, List.of());
+    }
+
+    public TacticalNode(Kind kind, int anchorX, int anchorY,
+                        int left, int top, int right, int bottom,
+                        Faction defaultGuard, int priorityScore, int garrisonSize,
+                        boolean mustHold, List<StandPosition> standPositions) {
         this.kind = kind;
         this.anchorX = anchorX;
         this.anchorY = anchorY;
@@ -168,6 +197,7 @@ public final class TacticalNode {
         this.priorityScore = priorityScore;
         this.garrisonSize = garrisonSize;
         this.mustHold = mustHold;
+        this.standPositions = List.copyOf(standPositions);
         // Default the garrison footprint to this node's own bbox; the compound
         // filler widens it for multi-building bases via setCompoundBounds.
         this.compoundLeft = left;
@@ -192,6 +222,11 @@ public final class TacticalNode {
     public int compoundTop()    { return compoundTop; }
     public int compoundRight()  { return compoundRight; }
     public int compoundBottom() { return compoundBottom; }
+
+    /** Authored member home cells in deterministic assignment order. */
+    public List<StandPosition> standPositions() {
+        return standPositions;
+    }
 
     public List<Link> links() {
         return Collections.unmodifiableList(links);
