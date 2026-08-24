@@ -6,7 +6,12 @@ import com.dillon.starsectormarines.battle.command.objective.ConquestObjective;
 import com.dillon.starsectormarines.battle.command.ConquestCommand;
 import com.dillon.starsectormarines.battle.command.ConquestDefenderCommand;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.flyby.FighterProfile;
+import com.dillon.starsectormarines.battle.flyby.FighterWing;
+import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.ops.OperationTier;
@@ -41,5 +46,46 @@ public class ConquestBattleSetupTest {
         assertEquals(1, sim.getCompoundService().getRecords().stream()
                 .filter(record -> record.node.kind == TacticalNode.Kind.COMMAND_POST)
                 .count());
+    }
+
+    @Test
+    public void conquestNeverTrimsAuthoredSupportToTheAttackingManifest() {
+        FlybyRoster enemyAir = new FlybyRoster(List.of(
+                new FighterWing(FighterProfile.DAGGER, Faction.DEFENDER,
+                        3, 10f, 20f)));
+        BattleSimulation sim = BattleSetup.createConquest(
+                91L,
+                List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1)),
+                true,
+                OperationTier.FIRST_CONTRACT,
+                RiskLevel.HIGH,
+                TargetProfile.NEUTRAL,
+                FlybyRoster.EMPTY,
+                enemyAir);
+
+        assertEquals(6, count(sim, UnitType.HEAVY_MECH),
+                "one tiny attacker shuttle must not trim Conquest's two mech groups");
+        assertTrue(turretCount(sim) > 0,
+                "one tiny attacker shuttle must not disarm Conquest fortifications");
+        assertEquals(enemyAir.wings, sim.getFlybyRoster().wings,
+                "one tiny attacker shuttle must not cancel authored enemy air");
+    }
+
+    private static int count(BattleSimulation sim, UnitType type) {
+        int count = 0;
+        for (int i = 0; i < sim.liveUnitCount(); i++) {
+            long unit = sim.liveUnitAt(i);
+            if (sim.identity().faction(unit) == Faction.DEFENDER
+                    && sim.identity().type(unit) == type) count++;
+        }
+        return count;
+    }
+
+    private static int turretCount(BattleSimulation sim) {
+        int count = 0;
+        for (int i = 0; i < sim.liveUnitCount(); i++) {
+            if (sim.identity().type(sim.liveUnitAt(i)).isTurret()) count++;
+        }
+        return count;
     }
 }

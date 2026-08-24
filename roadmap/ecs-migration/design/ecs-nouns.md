@@ -4,7 +4,7 @@ Status: ACTIVE — `EntityWorld` is the battle composition substrate; capability
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — defined the locomotion-to-equipment blend seam and authored action recovery.
+Updated: 2026-08-24 — kept locomotion legible beneath moving primary-weapon actions.
 
 The battle simulation has one composition substrate: an `EntityWorld`.  This
 document names the durable model, ownership, and safety laws of that substrate.
@@ -138,6 +138,11 @@ sampled stride into the destination action pose; equipment-specific destination
 layers remain action-owned. Returning to carry or idle is authored as the action
 clip's final recovery frame. This seam needs no renderer history and does not delay
 or reinterpret the gameplay action.
+
+Primary aim and fire remain upper-body actions while a marine translates. Their
+authored body, head, and weapon transforms therefore keep action authority, while
+both feet continue sampling the live distance-driven walking clip. A primary shot
+cannot visually plant a marine that the simulation is still moving.
 
 The standalone layer workbench consumes the same document and duration-weighted
 sampling law. Its driver scrubber is therefore acceptance evidence for the live

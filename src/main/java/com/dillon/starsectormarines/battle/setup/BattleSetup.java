@@ -1086,8 +1086,13 @@ public final class BattleSetup {
             boolean enemyHasHeavyArmor, List<ShuttleAssignment> assignments,
             List<DefensePost> defensePosts, FlybyRoster marineFighterSupport,
             FlybyRoster enemyFighterSupport) {
-        float attackerScore = BattleForceScore.attackers(
-                assignments, marineFighterSupport);
+        // Conquest is an authored late-game set piece, not an encounter that
+        // softens itself to match the committed detachment. Its population,
+        // mech groups, fighter wings, and fortifications all survive intact
+        // however much or little force the campaign player can afford to bring.
+        float attackerScore = type == MissionType.CONQUEST
+                ? Float.POSITIVE_INFINITY
+                : BattleForceScore.attackers(assignments, marineFighterSupport);
         DefenderRoster roster = DefenderRoster.forMission(
                 type, tier, risk, enemyHasHeavyArmor, attackerScore);
         FlybyRoster affordableFighters = BattleForceScore.affordableFighterSupport(
@@ -1687,7 +1692,8 @@ public final class BattleSetup {
             int sourceSize = spawningMechs ? mechQueue.size() : infQueue.size();
             if (sourceSize == 0) { patrolAnchors.add(node); continue; }
             int want = Math.min(node.garrisonSize, sourceSize);
-            List<int[]> cells = pickCellsNear(map.grid, sim.getZoneGraph(), node.anchorX, node.anchorY, GARRISON_SPAWN_RADIUS, want);
+            List<int[]> cells = pickCellsForNode(map.grid, sim.getZoneGraph(),
+                    node, GARRISON_SPAWN_RADIUS, want);
             if (cells.isEmpty()) { patrolAnchors.add(node); continue; }
             Squad squad = null;
             int spawned = 0;
@@ -1734,7 +1740,8 @@ public final class BattleSetup {
             anchorIdx++;
             int sourceSize = spawningMechs ? mechQueue.size() : infQueue.size();
             int want = Math.min(roster.patrolSquadSize, sourceSize);
-            List<int[]> cells = pickCellsNear(map.grid, sim.getZoneGraph(), anchor.anchorX, anchor.anchorY, GARRISON_SPAWN_RADIUS + 2, want);
+            List<int[]> cells = pickCellsForNode(map.grid, sim.getZoneGraph(),
+                    anchor, GARRISON_SPAWN_RADIUS + 2, want);
             if (cells.isEmpty()) {
                 // Couldn't spawn here — drop this anchor from the pool so we
                 // don't get stuck cycling. If the pool empties, the remaining
@@ -1853,6 +1860,42 @@ public final class BattleSetup {
             sim.world().attachMechLoadout(unit,
                     mechVariant.createLoadout(mechVariant.defaultRole));
         }
+    }
+
+    /**
+     * Resolves member cells for an authored tactical place. Valid authored
+     * stand positions win in their declared order; a derived nearby pool fills
+     * any remaining slots. Nodes without stand positions retain the historical
+     * cover-sorted nearby-cell behavior exactly.
+     */
+    public static List<int[]> pickCellsForNode(NavigationGrid grid, ZoneGraph zones,
+                                               TacticalNode node, int radius, int count) {
+        if (count <= 0) return Collections.emptyList();
+        List<TacticalNode.StandPosition> authored = node.standPositions();
+        if (authored.isEmpty()) {
+            return pickCellsNear(grid, zones, node.anchorX, node.anchorY, radius, count);
+        }
+
+        List<int[]> out = new ArrayList<>(count);
+        Set<Long> claimed = new HashSet<>();
+        for (TacticalNode.StandPosition position : authored) {
+            if (out.size() >= count) break;
+            if (!grid.inBounds(position.x(), position.y())
+                    || !grid.isWalkable(position.x(), position.y())
+                    || zones.zoneIdAt(position.x(), position.y()) < 0) continue;
+            long cellKey = key(position.x(), position.y());
+            if (!claimed.add(cellKey)) continue;
+            out.add(new int[]{position.x(), position.y()});
+        }
+        if (out.size() >= count) return out;
+
+        for (int[] fallback : pickCellsNear(grid, zones,
+                node.anchorX, node.anchorY, radius, count)) {
+            if (out.size() >= count) break;
+            if (!claimed.add(key(fallback[0], fallback[1]))) continue;
+            out.add(fallback);
+        }
+        return out;
     }
 
     /**

@@ -19,6 +19,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -200,6 +201,55 @@ class FleetArmoryViewModelTest {
         assertTrue(viewModel.feedbackText().get().contains("reinforced"));
         assertEquals(MarineSquad.TEAM_SIZE,
                 roster.teamMemberIds(squad, 2).size());
+    }
+
+    @Test
+    void squadCardBodyInspectsWhileReinforceRemainsAnIndependentAction() throws Exception {
+        MarineRoster roster = fullSquad();
+        MarineSquad squad = roster.squads().get(0);
+        Map<String, MarineSoldierStatus> outcome = new LinkedHashMap<>();
+        outcome.put(squad.memberIds().get(0), MarineSoldierStatus.KIA);
+        roster.applySoldierOutcome(outcome, 0, 20f, 1f);
+        roster.recruitToSquad(roster.reserveSquad().id());
+        AtomicInteger inspections = new AtomicInteger();
+        Reactor reactor = new Reactor();
+        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(
+                reactor, roster, inspections::incrementAndGet);
+        MarkupLoader loader = new MarkupLoader(
+                path -> Files.readString(Path.of(path)), COMPONENTS);
+        loader.reload();
+
+        try (MarkupInstance instance = loader.build(reactor, "fleet-armory",
+                props(viewModel))) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            document.layout(1163f, 938f);
+
+            FleetArmoryViewModel.SquadCard card = viewModel.squadCards().get().get(0);
+            UiElement inspect = instance.requireElement(card.openId());
+            UiElement reinforce = instance.requireElement(card.reinforceId());
+            assertSame(inspect, instance.requireElement(card.nameId()).parent());
+            assertSame(instance.requireElement(card.id()), reinforce.parent());
+            assertFalse(reinforce.disabled());
+
+            click(document, inspect);
+            assertEquals(1, inspections.get());
+            assertEquals(1, roster.vacancies(squad));
+
+            click(document, reinforce);
+            assertEquals(1, inspections.get());
+            assertEquals(0, roster.vacancies(squad),
+                    "inspect=" + inspect.box() + " reinforce=" + reinforce.box()
+                            + " card=" + reinforce.parent().box());
+        }
+    }
+
+    private static void click(UiDocument document, UiElement element) {
+        float x = element.box().borderBox().x() + element.box().borderBox().width() / 2f;
+        float y = element.box().borderBox().y() + element.box().borderBox().height() / 2f;
+        document.pointerDown(x, y);
+        document.pointerUp(x, y);
     }
 
     private static MarineRoster fullSquad() {

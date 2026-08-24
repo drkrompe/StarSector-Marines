@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns mission command, squad planning, belief-derived conta
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — defined Conquest's belief-honest defender mobilization authority and shared physical track geometry.
+Updated: 2026-08-24 — defined belief-honest Conquest defender mobilization, shared track geometry, and authored member positions at defensive places.
 
 AI turns mission context and what a side has learned into coordinated
 movement, posture, and fire intent. It is a decision system, not the authority
@@ -116,6 +116,13 @@ room-clear objective, and removing the live post context returns its squad to
 an ordinary local hold. Whether a wiped garrison is replaced or a defender
 force is strategically recommitted belongs to mission command, not the local
 guard plan.
+
+When a tactical place supplies authored stand positions, initial allocation
+and structural fallback assign those cells as member homes before deriving
+nearby cover cells. The ordinary hold returns an idle member to that home, so a
+bunker window is a durable defensive post rather than spawn-time decoration.
+Invalid or unavailable authored cells fall back to the bounded nearby picker;
+they do not make the entire garrison undeployable.
 
 The shared planner does not make all actors tactically identical. Infantry,
 mech, and drone groups use distinct goal/action libraries for their different
