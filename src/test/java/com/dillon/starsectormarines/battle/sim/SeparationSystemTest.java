@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -831,6 +832,40 @@ public class SeparationSystemTest {
         float after = (float) Math.sqrt(dx * dx + dy * dy);
         assertTrue(after > before,
                 "the tail unit moved into a released dense slot must still resolve overlap");
+    }
+
+    @Test
+    public void pendingDeathDoesNotParticipateBeforeCorpseTransmute() {
+        BattleSimulation sim = openArena(20, 20);
+        long alive = sim.spawn(new EntitySpec("alive", Faction.MARINE,
+                UnitType.MARINE, 10, 10));
+        long pendingDeath = sim.spawn(new EntitySpec("pending death",
+                Faction.DEFENDER, UnitType.MARINE, 10, 10));
+        sim.world().setHp(pendingDeath, 0f);
+
+        float aliveX = sim.world().x(alive);
+        float aliveY = sim.world().y(alive);
+        float deadX = sim.world().x(pendingDeath);
+        float deadY = sim.world().y(pendingDeath);
+
+        separationFor(sim).tick(BattleSimulation.TICK_DT);
+
+        assertEquals(aliveX, sim.world().x(alive), 0f);
+        assertEquals(aliveY, sim.world().y(alive), 0f);
+        assertEquals(deadX, sim.world().x(pendingDeath), 0f);
+        assertEquals(deadY, sim.world().y(pendingDeath), 0f);
+    }
+
+    @Test
+    public void collisionCacheRejectsDenseUnitMissingFromGridQuery() {
+        BattleSimulation sim = openArena(20, 20);
+        long malformed = sim.spawn(new EntitySpec("malformed", Faction.MARINE,
+                UnitType.MARINE, 10, 10));
+        sim.getEntityWorld().removeComponent(malformed,
+                sim.getBattleComponents().POSITION);
+
+        assertThrows(IllegalStateException.class,
+                () -> separationFor(sim).tick(BattleSimulation.TICK_DT));
     }
 
     /**
