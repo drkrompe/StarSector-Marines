@@ -14,8 +14,8 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
  * fallback) and before {@link com.dillon.starsectormarines.battle.decision.UnitUpdateSystem}.
  *
  * <p>Serial today; the planner + WorldStateBuilder + actions are designed
- * for parallel execution across squads (see {@code roadmap/ai/README.md}
- * parallelism section) and we'll fork-join here once we feel the cost.
+ * for parallel execution across squads (see {@code ai-nouns.md}) and we'll
+ * fork-join here once we feel the cost.
  * When that happens, the for-loop becomes the next entity for-loop seam —
  * sibling shape to {@link com.dillon.starsectormarines.battle.decision.UnitUpdateSystem},
  * just keyed on {@link Squad} instead of {@code Entity}.

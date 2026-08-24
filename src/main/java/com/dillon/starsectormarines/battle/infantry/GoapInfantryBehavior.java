@@ -186,9 +186,10 @@ public final class GoapInfantryBehavior implements UnitBehavior {
      *
      * <p><b>Parallelism candidate.</b> Planning is purely functional and
      * per-squad — this method is safe to invoke across squads concurrently
-     * once the sim is willing to parallelize the alert-update pass. Stage 1
-     * calls it serially; the data-oriented WorldState + stateless actions
-     * (see {@code roadmap/ai/README.md} parallelism section) are sized for
+     * once the sim is willing to parallelize the alert-update pass. The
+     * current replan system calls it serially; the value-oriented WorldState
+     * and stateless actions
+     * (see {@code ai-nouns.md}) are sized for
      * the parallel future.
      */
     public static void replanIfNeeded(Squad squad, BattleSimulation sim) {

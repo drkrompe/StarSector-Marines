@@ -36,7 +36,7 @@ universe over time, not retrofitted into intel slots.
   uncontracted extension paths. See `conquest-nouns.md`. The battle tier's
   ongoing parallel tracks are convoy kinematics (`convoy-nouns.md`), bounded
   ECS acceptance/presentation follow-ons (`ecs-nouns.md`), fog-of-war
-  (`fog-of-war-nouns.md`), and AI (GOAP + commander).
+  (`fog-of-war-nouns.md`), and AI (`ai-nouns.md`).
   The **feature-vertical package reorg** of `battle/` is **complete** (all
   10 slices shipped; entity identity is now a bare `long`). On the render side, the **`BattleScreen` god-class
   decomposition into a layered draw-list pipeline is complete**: `renderWorld`

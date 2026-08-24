@@ -35,11 +35,11 @@ public enum Predicate {
     /** Goal-side marker — set true by {@code EngagePosture.effects}. The {@code EliminateEnemies} goal's desired state. */
     ENEMY_DAMAGED,
 
-    // --- Stage 2: pre-declared surface (Story-bank: see roadmap/ai/10-tactical-stories.md) ---
+    // --- Stage 2: pre-declared surface (see ai-nouns.md) ---
     //
-    // Each predicate is reserved here so subagent-implemented stories don't
-    // collide on the shared enum. Evaluators are stubbed to `false` in
-    // WorldStateBuilder until the owning story lands.
+    // Each predicate is reserved here so independent feature slices do not
+    // collide on the shared enum. Evaluators remain stubbed false in
+    // WorldStateBuilder until a contracted owner lands.
 
     /**
      * Squad strength has dropped to ≤50% of {@link com.dillon.starsectormarines.battle.squad.Squad#originalSize}.
@@ -79,7 +79,7 @@ public enum Predicate {
     /** The squad's primary target sits in a high-density cluster of enemy combatants. Story I gating predicate — high density makes pursuit costly. */
     THREAT_DENSITY_HIGH_AT_TARGET,
 
-    // --- Mech GOAP Stage 1 surface (see roadmap/ai/14-mech-stage1.md) ---
+    // --- Mech GOAP surface (see ai-nouns.md) ---
 
     /**
      * An LR Support mech in this squad has reached its overwatch cell and is

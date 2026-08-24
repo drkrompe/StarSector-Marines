@@ -40,7 +40,8 @@ import com.dillon.starsectormarines.battle.unit.LongBucket;
  * LRMs in that fallback posture until every installed rack is full, then
  * returns to the normal medium/long band as one deliberate rearm cycle instead
  * of oscillating for each restored trigger. A future morale-driven pressured
- * override can unlock SRM as a pressure-release valve; see `14-mech-stage1.md`.
+ * override can unlock SRM as a pressure-release valve; see
+ * {@code ai-nouns.md}.
  *
  * <p>Always returns {@link ActionStatus#RUNNING} — same lifecycle as
  * {@link EngageAtCurrentBand}; replan handles posture changes.

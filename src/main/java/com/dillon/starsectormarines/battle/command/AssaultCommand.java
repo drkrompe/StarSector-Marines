@@ -31,7 +31,7 @@ import java.util.Map;
  * squads outnumber active sectors, surplus squads double up on the
  * busiest sector — implicit convergence without an explicit mechanism.
  *
- * @see <a href="file:roadmap/ai/stories/16-assault-command.md">Design doc</a>
+ * @see {@code ai-nouns.md}
  */
 public final class AssaultCommand implements MissionCommand {
 

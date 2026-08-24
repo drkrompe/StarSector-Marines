@@ -4,7 +4,7 @@ package com.dillon.starsectormarines.battle.command;
  * The kind of strategic task a {@link MissionCommand} hands down to a squad.
  * Each value implies which MISSION-priority goal becomes relevant on the
  * squad once {@link ObjectiveAssignment#kind()} is set to it; see
- * {@code roadmap/ai/12-squad-of-squads.md} for the layer's design.
+ * {@code ai-nouns.md} for the layer's design.
  *
  * <p>Stage 1 kinds:
  * <ul>

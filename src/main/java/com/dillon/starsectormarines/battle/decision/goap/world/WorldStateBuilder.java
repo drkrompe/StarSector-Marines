@@ -46,10 +46,9 @@ public final class WorldStateBuilder {
         // EngagePosture.effects() sets it; the planner regresses through it.
         EVALUATORS.put(Predicate.ENEMY_DAMAGED,           STUB_FALSE);
 
-        // Stage 2 surface — predicates reserved for stories in
-        // roadmap/ai/10-tactical-stories.md. Each story's subagent will
-        // replace its STUB_FALSE entry with a real evaluator alongside the
-        // story's action/goal implementation.
+        // Reserved extension predicates follow ai-nouns.md. A contracted
+        // story replaces its STUB_FALSE entry with a real evaluator alongside
+        // the story's action/goal implementation.
         // SQUAD_BELOW_HALF_STRENGTH is deprecated — superseded by MORALE_BROKEN,
         // which recovers over time. Stub kept here so any stragglers reading
         // the predicate see a stable false until they're swept.

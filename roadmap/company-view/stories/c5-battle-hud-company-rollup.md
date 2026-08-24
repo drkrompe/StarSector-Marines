@@ -124,7 +124,7 @@ Untouched. The overview panel already filters to the player's faction.
 - Orders, waypoints, target designation, or any write path from HUD to
   `Squad.assignedObjective`. That field is owned by the `MissionCommand`
   tier; a player order channel needs its own design against
-  `12-squad-of-squads.md` in the AI track.
+  `ai-nouns.md` in the AI track.
 - A minimap or objective panel (long-standing HUD backlog, unrelated).
 - Changing the squad-selection highlight in the world.
 

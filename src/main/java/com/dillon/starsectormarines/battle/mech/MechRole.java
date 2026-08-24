@@ -11,13 +11,12 @@ import com.dillon.starsectormarines.battle.squad.Squad;
  *
  * <p>Stage 1 shipped {@link #LR_SUPPORT} and {@link #ARMORED_SUPPORT}.
  * Stage 2 adds {@link #ASSAULT}; {@code RECON} remains parked (see
- * {@code 13-mech-goap.md}).
+ * {@code ai-nouns.md}).
  *
- * <p>Assigned at spawn time by {@link BattleSetup}'s defender cluster mint.
- * The commander tier (parked, see {@code 12-squad-of-squads.md})
- * will eventually overwrite the field via {@code ObjectiveAssignment} —
- * spawn assignment is the stub that lets the planner start expressing
- * doctrinal differentiation before the commander layer lands.
+ * <p>Assigned with the mech loadout at spawn or deployment by
+ * {@link BattleSetup}. A mission commander may supply objective context
+ * without rewriting this role; role-specific goals decide how to serve that
+ * assignment.
  */
 public enum MechRole {
     /**

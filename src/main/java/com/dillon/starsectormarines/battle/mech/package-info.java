@@ -15,7 +15,7 @@
  *           {@code combat/}. Mech and infantry likely share a combatant
  *           core eventually — but per the lean-engine rule, promote shared
  *           pieces to a common base only when a third consumer appears,
- *           not preemptively (see {@code overview.md} Future direction).
+ *           not preemptively (see {@code ai-nouns.md}, Direction).
  *
  * <p>See {@link com.dillon.starsectormarines.battle} for the full taxonomy.
  */

@@ -64,9 +64,8 @@ import java.util.List;
  * observation (by its centroid's lateral coordinate) and doesn't change
  * even if the squad drifts laterally during the battle. Mobility across
  * strips queues for the heatmap-driven follow-up (see "Improvement path"
- * in {@code roadmap/ai/12-squad-of-squads.md} — bulge detection on the
- * influence map from {@code roadmap/ai/15-perception-and-influence.md}
- * is the right place to introduce cross-strip reallocation, since "this
+ * in {@code conquest-nouns.md} — bulge detection on the tactical influence
+ * map is the right place to introduce cross-strip reallocation, since "this
  * strip is bulging" is what justifies the migration).
  *
  * <p>When the assigned strip is clear of defenders, the squad's

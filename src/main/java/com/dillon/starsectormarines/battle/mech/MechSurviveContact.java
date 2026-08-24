@@ -30,7 +30,7 @@ import java.util.List;
  * {@link com.dillon.starsectormarines.battle.squad.SquadMoraleSystem#MECH_MORALE_ARMOR_GONE_CAP}, the squad is locked
  * in MechSurviveContact for the rest of the fight once a majority of its
  * members cross the bottom HP threshold — the intended "wounded mech
- * withdraws" moment from roadmap/ai/14-mech-stage1.md.
+ * withdraws" moment from {@code ai-nouns.md}.
  */
 public final class MechSurviveContact implements Goal {
 
