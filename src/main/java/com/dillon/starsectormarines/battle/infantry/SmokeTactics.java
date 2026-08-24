@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.squad.BelievedContact;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.marine.SpecialActivation;
+import com.dillon.starsectormarines.marine.SpecialAiPolicy;
 import com.dillon.starsectormarines.marine.SmokeGrenadeSpec;
 
 /** Squad-level reservation and utility scoring for smoke-assisted maneuvers. */
@@ -77,7 +77,7 @@ public final class SmokeTactics {
             if (!sim.squad().hasSquad(candidate) || sim.squad().squadId(candidate) != squad.id) continue;
             if (!sim.world().hasSecondaryWeapon(candidate)) continue;
             MarineSecondary special = sim.world().secondaryWeapon(candidate);
-            if (special.activation() != SpecialActivation.UTILITY_SMOKE
+            if (special.specialDef().aiPolicy() != SpecialAiPolicy.SQUAD_SMOKE_SCREEN
                     || sim.world().secondaryAmmo(candidate) <= 0
                     || sim.world().secondaryActionTimer(candidate) > 0f
                     || sim.world().secondaryCooldownTimer(candidate) > 0f) continue;

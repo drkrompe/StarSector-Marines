@@ -1,10 +1,10 @@
 # Moddable Weapons
 
-Status: ACTIVE — handheld weapons are data-owned; mech and emplacement migrations remain
+Status: ACTIVE — handheld weapons and special-item references are data-owned; mech and emplacement migrations remain
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — replaced migration chronology with durable transition boundaries.
+Updated: 2026-08-24 — recorded the shipped progression-owned JSON special-equipment catalog and its validated weapon-reference seam.
 
 ## Purpose
 
@@ -104,7 +104,11 @@ Registry-owned handheld primary and weapon-like-secondary definitions are the
 authoritative data boundary. `MarineWeapon` and `MarineSecondary` remain
 id-backed compatibility handles rather than parallel stat authorities; a
 weapon-like special reaches its definition through the distinct
-progression-owned special-equipment identity.
+progression-owned special-equipment identity. That identity now comes from a
+separate JSON catalog and validates that every weapon reference resolves
+through the marine-secondary mount class. Progression also owns actor-local
+equipment composition and preview recipes; the layered-effects weapon story
+remains specifically about muzzle, tracer, trail, and impact FX.
 
 Mech weapons and turret stat carriers remain temporary transition boundaries
 until their definitions and mount rules enter the registry. They still obey

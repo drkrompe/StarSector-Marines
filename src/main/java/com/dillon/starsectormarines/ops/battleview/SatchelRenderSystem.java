@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.satchel.SatchelChargeService;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.PolyMesh;
 import com.dillon.starsectormarines.render2d.PolyTess;
@@ -12,10 +14,13 @@ public final class SatchelRenderSystem implements RenderSystem {
 
     private static final int RING_SEGMENTS = 48;
     private final BattleSprites sprites;
+    private final SpecialEquipmentDef equipment;
     private final PolyMesh rings = new PolyMesh(96);
 
     public SatchelRenderSystem(BattleSprites sprites) {
         this.sprites = sprites;
+        this.equipment = SpecialEquipmentRegistry.require(
+                SpecialEquipmentRegistry.SATCHEL_CHARGE_ID);
     }
 
     @Override
@@ -52,7 +57,8 @@ public final class SatchelRenderSystem implements RenderSystem {
                     0.75f * ctx.alphaMult);
 
             if (pack != null) {
-                float size = cellPx * (0.54f + urgency * 0.05f);
+                float authoredSize = equipment.presentation().deployed().visualCells();
+                float size = cellPx * (authoredSize + urgency * 0.05f);
                 out.addSprite(RenderLayer.HAZARDS, pack, sx, sy,
                         size, size, (charge.id() * 37f) % 360f,
                         1f, 0.84f + 0.16f * pulse, 0.72f * pulse,

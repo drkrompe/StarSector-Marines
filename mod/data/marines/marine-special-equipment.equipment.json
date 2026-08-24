@@ -1,0 +1,191 @@
+{
+  "equipment": [
+    {
+      "id": "special.rocket-launcher",
+      "catalog": {
+        "displayName": "Annihilator Rocket Launcher",
+        "subtitle": "Limited-ammunition support weapon",
+        "description": "An Annihilator-pattern disposable tube cluster. Fire teams carry it for hardened emplacements and emergency wall breaching; the blast does not distinguish friend from foe."
+      },
+      "activation": {
+        "type": "direct-explosive",
+        "weaponId": "weapon.annihilator-launcher"
+      },
+      "resource": {
+        "mode": "ammunition",
+        "startingAmmo": 3
+      },
+      "ai": {
+        "policy": "hardened-direct-fire"
+      },
+      "presentation": {
+        "armoryIcon": "graphics/battle/marine-modular-topdown/variants/weapons/rocket-launcher.png",
+        "aimSprite": "graphics/battle/marine-rocket.png",
+        "usePose": "shoulder-launcher",
+        "carrierLayer": {
+          "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rocket-launcher.png",
+          "widthShoulders": 0.4267,
+          "heightShoulders": 1.04,
+          "pivot": [0.5, 0.5385],
+          "carried": {
+            "offsetShoulders": [0.28, 0.05],
+            "angleDegrees": 45.0,
+            "occlusion": "under-body"
+          },
+          "using": {
+            "offsetShoulders": [0.3333, 0.12],
+            "angleDegrees": 0.0,
+            "occlusion": "under-body"
+          },
+          "recoilShoulders": 0.055,
+          "firingOcclusion": "over-body",
+          "replacePrimaryWhileUsing": true
+        },
+        "preview": {
+          "state": "using",
+          "phase": 1.0
+        }
+      }
+    },
+    {
+      "id": "special.anti-materiel-rifle",
+      "catalog": {
+        "displayName": "Breachlight Anti-Materiel Rifle",
+        "subtitle": "Limited-ammunition support weapon",
+        "description": "The Breachlight braces a magnetic heavy round through armor seams without endangering friendlies nearby. It carries four shots and cannot breach walls."
+      },
+      "activation": {
+        "type": "direct-precision",
+        "weaponId": "weapon.anti-materiel-rifle"
+      },
+      "resource": {
+        "mode": "ammunition",
+        "startingAmmo": 4
+      },
+      "ai": {
+        "policy": "hardened-direct-fire"
+      },
+      "presentation": {
+        "armoryIcon": "graphics/ui/armory/special-anti-materiel-rifle.png",
+        "aimSprite": null,
+        "usePose": "braced-rifle",
+        "carrierLayer": {
+          "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/anti-materiel-rifle.png",
+          "widthShoulders": 0.5267,
+          "heightShoulders": 0.96,
+          "pivot": [0.5, 0.75],
+          "carried": {
+            "offsetShoulders": [0.1867, 0.08],
+            "angleDegrees": 45.0,
+            "occlusion": "under-body"
+          },
+          "using": {
+            "offsetShoulders": [0.1733, 0.12],
+            "angleDegrees": 0.0,
+            "occlusion": "under-body"
+          },
+          "recoilShoulders": 0.04,
+          "replacePrimaryWhileUsing": true
+        },
+        "preview": {
+          "state": "using",
+          "phase": 1.0
+        }
+      }
+    },
+    {
+      "id": "special.smoke-grenade",
+      "catalog": {
+        "displayName": "Wayfarer Smoke Grenades",
+        "subtitle": "Limited-ammunition tactical utility",
+        "description": "Wayfarer canisters flood a crossing with dense multispectral smoke. The cloud harms no one, blocks both sides equally, and buys only a few seconds to move."
+      },
+      "activation": {
+        "type": "utility-smoke",
+        "throwRange": 8.0,
+        "throwDuration": 0.8,
+        "flightSeconds": 0.65,
+        "arcHeight": 1.8,
+        "cloudRadius": 2.25,
+        "cloudDuration": 12.0
+      },
+      "resource": {
+        "mode": "ammunition",
+        "startingAmmo": 2
+      },
+      "ai": {
+        "policy": "squad-smoke-screen"
+      },
+      "presentation": {
+        "armoryIcon": "graphics/ui/armory/special-smoke-grenades.png",
+        "aimSprite": null,
+        "usePose": "throw",
+        "thrown": {
+          "sprite": "graphics/ui/armory/special-smoke-grenades.png",
+          "widthCells": 0.2016,
+          "heightCells": 0.42
+        },
+        "fieldSprite": "graphics/battle/fx/smoke-field-puff.png",
+        "preview": {
+          "state": "carried",
+          "phase": 1.0
+        }
+      }
+    },
+    {
+      "id": "special.satchel-charge",
+      "catalog": {
+        "displayName": "Mag-Clamp Satchel Kit",
+        "subtitle": "Reusable cooldown-gated demolition utility",
+        "description": "The Breachhand is a reusable mag-clamp demolition kit for targets already within arm's reach. A successful plant starts its recharge cycle; a failed attempt costs nothing."
+      },
+      "activation": {
+        "type": "utility-satchel",
+        "contactRange": 1.6,
+        "plantDuration": 0.9,
+        "fuseSeconds": 2.4,
+        "blastRadius": 1.75,
+        "damage": 850.0,
+        "penetration": 30.0
+      },
+      "resource": {
+        "mode": "cooldown",
+        "cooldownSeconds": 22.0
+      },
+      "ai": {
+        "policy": "contact-demolition"
+      },
+      "presentation": {
+        "armoryIcon": "graphics/ui/armory/special-satchel-charge.png",
+        "aimSprite": null,
+        "usePose": "plant",
+        "carrierLayer": {
+          "sprite": "graphics/battle/fx/satchel-charge-armed.png",
+          "widthShoulders": 0.38,
+          "heightShoulders": 0.38,
+          "pivot": [0.5, 0.5],
+          "carried": {
+            "offsetShoulders": [-0.24, -0.08],
+            "angleDegrees": -18.0,
+            "occlusion": "under-body"
+          },
+          "using": {
+            "offsetShoulders": [0.0, 0.32],
+            "angleDegrees": 0.0,
+            "occlusion": "over-body"
+          },
+          "visibleWhileCarried": true,
+          "replacePrimaryWhileUsing": true
+        },
+        "deployed": {
+          "sprite": "graphics/battle/fx/satchel-charge-armed.png",
+          "visualCells": 0.54
+        },
+        "preview": {
+          "state": "using",
+          "phase": 0.75
+        }
+      }
+    }
+  ]
+}
