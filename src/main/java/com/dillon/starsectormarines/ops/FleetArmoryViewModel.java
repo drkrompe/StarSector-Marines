@@ -42,7 +42,7 @@ public final class FleetArmoryViewModel {
     private final ComputedSignal<List<FireTeamOverview>> fireTeamOverviews;
     private final ComputedSignal<List<SelectionRow>> squadRows;
     private final ComputedSignal<List<SelectionRow>> teamRows;
-    private final ComputedSignal<List<SelectionRow>> templateRows;
+    private final ComputedSignal<List<TemplateTile>> templateTiles;
     private final ComputedSignal<List<SelectionRow>> billetRows;
     private final ComputedSignal<List<BilletMannequin>> billetMannequins;
     private final ComputedSignal<String> previewSummary;
@@ -86,7 +86,7 @@ public final class FleetArmoryViewModel {
         fireTeamOverviews = reactor.computed(this::buildFireTeamOverviews);
         squadRows = reactor.computed(this::buildSquadRows);
         teamRows = reactor.computed(this::buildTeamRows);
-        templateRows = reactor.computed(this::buildTemplateRows);
+        templateTiles = reactor.computed(this::buildTemplateTiles);
         billetRows = reactor.computed(this::buildBilletRows);
         billetMannequins = reactor.computed(this::buildBilletMannequins);
         previewSummary = reactor.computed(this::buildPreviewSummary);
@@ -110,7 +110,7 @@ public final class FleetArmoryViewModel {
     public Signal<List<FireTeamOverview>> fireTeamOverviews() { return fireTeamOverviews; }
     public Signal<List<SelectionRow>> squadRows() { return squadRows; }
     public Signal<List<SelectionRow>> teamRows() { return teamRows; }
-    public Signal<List<SelectionRow>> templateRows() { return templateRows; }
+    public Signal<List<TemplateTile>> templateTiles() { return templateTiles; }
     public Signal<List<SelectionRow>> billetRows() { return billetRows; }
     public Signal<List<BilletMannequin>> billetMannequins() { return billetMannequins; }
     public Signal<String> previewSummary() { return previewSummary; }
@@ -140,6 +140,11 @@ public final class FleetArmoryViewModel {
         FireTeamTemplateCard card = roster.armory().templateCardById(selectedTemplateId.peek());
         return card != null && index >= 0 && index < card.billets().size()
                 ? card.billet(index) : null;
+    }
+
+    public List<FireTeamBillet> billetsForTemplate(String templateId) {
+        FireTeamTemplateCard card = roster.armory().templateCardById(templateId);
+        return card != null ? List.copyOf(card.billets()) : List.of();
     }
 
     public Runnable applyAction() {
@@ -262,20 +267,22 @@ public final class FleetArmoryViewModel {
         return List.copyOf(rows);
     }
 
-    private List<SelectionRow> buildTemplateRows() {
+    private List<TemplateTile> buildTemplateTiles() {
         domainRevision.get();
         String selected = selectedTemplateId.get();
-        List<SelectionRow> rows = new ArrayList<>();
+        List<TemplateTile> tiles = new ArrayList<>();
         for (FireTeamTemplateCard card : roster.armory().templateCards()) {
             FireTeamTemplateAvailability availability =
                     roster.fireTeamTemplateAvailability(card.id());
-            String label = card.displayName() + "  ·  Fielded " + availability.fielded()
-                    + "  ·  Ready " + availability.readyToIssue();
-            rows.add(new SelectionRow("template:" + card.id(), label,
-                    card.id().equals(selected) ? "selection-row selected" : "selection-row",
-                    false, () -> selectedTemplateId.set(card.id())));
+            String id = "template-tile:" + card.id();
+            tiles.add(new TemplateTile(id, id + ":name", id + ":availability",
+                    "template-preview:" + card.id(), card.id(),
+                    card.id().equals(selected) ? "template-tile selected" : "template-tile",
+                    card.displayName(), "Fielded " + availability.fielded()
+                    + "  ·  Ready " + availability.readyToIssue(),
+                    () -> selectedTemplateId.set(card.id())));
         }
-        return List.copyOf(rows);
+        return List.copyOf(tiles);
     }
 
     private List<SelectionRow> buildBilletRows() {
@@ -523,6 +530,27 @@ public final class FleetArmoryViewModel {
                 case "template" -> template;
                 case "select" -> select;
                 default -> throw new IllegalArgumentException("Unknown fire-team property");
+            };
+        }
+    }
+
+    public record TemplateTile(
+            String id, String nameId, String availabilityId, String canvasId,
+            String templateId, String classes, String name, String availability,
+            Runnable select) implements MarkupPropertySource {
+        @Override
+        public Object markupProperty(String property) {
+            return switch (property) {
+                case "id" -> id;
+                case "nameId" -> nameId;
+                case "availabilityId" -> availabilityId;
+                case "canvasId" -> canvasId;
+                case "templateId" -> templateId;
+                case "classes" -> classes;
+                case "name" -> name;
+                case "availability" -> availability;
+                case "select" -> select;
+                default -> throw new IllegalArgumentException("Unknown template-tile property");
             };
         }
     }

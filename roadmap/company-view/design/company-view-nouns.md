@@ -116,10 +116,13 @@ contract while the designer grows. The built-in library contains Field, Line,
 Recon, Fire Support, Anti-Materiel, Screen, and Breach templates; the LOADOUTS
 surface exposes Alpha/Bravo/Charlie plus each assigned template.
 
-Selecting a candidate template projects all four billets as one fire-team
-breakdown. Each portrait mannequin surrounds the billet's battle-composed marine
+The library presents each template as a compact four-soldier formation projection
+with its fielded and ready-to-issue counts. This is a visual selector over the
+reusable plan, not a collectible card or a second equipment representation.
+Selecting a candidate expands those same four billets into one fire-team breakdown.
+Each portrait mannequin surrounds the billet's battle-composed marine
 with armour, primary, and optional-special sockets, so the player sees the complete
-team rather than inferring it from one selected row. The soldiers use the same
+team at a glance before inspecting exact issue. The soldiers use the same
 layered actor composition and special-equipment presentation recipe as battlefield
 infantry. This projection is retained view state only: it does not materialize gear,
 reserve stock, or replace the exact refit transaction preview. The complete preview

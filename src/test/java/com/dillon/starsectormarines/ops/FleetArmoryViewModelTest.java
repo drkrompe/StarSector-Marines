@@ -106,7 +106,7 @@ class FleetArmoryViewModelTest {
             instance.requireElement("billet-preview:0");
             UiElement first = list.childAt(0);
             UiElement second = list.childAt(1);
-            viewModel.templateRows().get().get(1).select().run();
+            viewModel.templateTiles().get().get(1).select().run();
             instance.flush();
 
             assertSame(first, list.childAt(0));
@@ -156,7 +156,7 @@ class FleetArmoryViewModelTest {
         props.put("fireTeamOverviews", viewModel.fireTeamOverviews());
         props.put("squadRows", viewModel.squadRows());
         props.put("teamRows", viewModel.teamRows());
-        props.put("templateRows", viewModel.templateRows());
+        props.put("templateTiles", viewModel.templateTiles());
         props.put("targetSummary", viewModel.targetSummary());
         props.put("candidateSummary", viewModel.candidateSummary());
         props.put("billetRows", viewModel.billetRows());

@@ -1,9 +1,13 @@
-<template props="templateRows">
+<template props="templateTiles">
   <div id="template-library" class="panel template-library">
     <div id="library-heading" class="label heading tone-edge">TEMPLATE LIBRARY</div>
-    <div id="library-explainer" class="label tone-muted">Reusable plans; stock gates assignment.</div>
-    <div id="template-list" class="selection-list">
-      <button each="row in templateRows" key="{row.id}" id="{row.id}" class="{row.classes}" disabled="{row.disabled}" onclick="{row.select}">{row.label}</button>
+    <div id="library-explainer" class="label tone-muted">Select a formation to inspect its complete issue.</div>
+    <div id="template-list" class="template-gallery">
+      <button each="tile in templateTiles" key="{tile.id}" id="{tile.id}" class="{tile.classes}" onclick="{tile.select}">
+        <div id="{tile.nameId}" class="template-name label heading tone-edge">{tile.name}</div>
+        <canvas id="{tile.canvasId}" class="template-preview" width="480" height="156" />
+        <div id="{tile.availabilityId}" class="template-availability label tone-muted">{tile.availability}</div>
+      </button>
     </div>
   </div>
 </template>
@@ -11,7 +15,7 @@
 <style>
   .template-library {
     flex-direction: column;
-    width: 280px;
+    width: 350px;
     padding: 8px;
     gap: 5px;
     overflow: hidden;
@@ -20,22 +24,28 @@
   .label { overflow: hidden; }
   .heading { font-family: heading; }
   #library-heading { height: 20px; }
-  #library-explainer { height: 30px; }
+  #library-explainer { height: 34px; }
 
-  .selection-list {
+  .template-gallery {
     flex-direction: column;
     flex-grow: 1;
-    gap: 5px;
+    gap: 8px;
     padding: 1px;
     overflow: scroll;
   }
 
-  .selection-row {
-    height: 30px;
-    padding: 4px 7px;
+  .template-tile {
+    flex-direction: column;
+    height: 142px;
+    padding: 7px;
+    gap: 4px;
     border-width: 1px;
     overflow: hidden;
     font-family: body;
     text-align: left;
   }
+
+  .template-name { height: 18px; }
+  .template-preview { width: 0px; height: 0px; flex-grow: 1; border-width: 1px; overflow: hidden; }
+  .template-availability { height: 18px; text-align: right; }
 </style>

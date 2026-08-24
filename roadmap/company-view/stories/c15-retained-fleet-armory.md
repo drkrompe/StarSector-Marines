@@ -2,9 +2,9 @@
 
 Status: IN PROGRESS — company/squad/fire-team drill-down and template issue migrated; broader parity remains
 Written: 2026-08-23
-Updated: 2026-08-24 — Company selection now opens a squad-card gallery, squad
-selection opens the fire-team workspace, and template selection projects all four
-billets as battle-composed equipment mannequins.
+Updated: 2026-08-24 — The hierarchy reaches the fire-team workspace; its template
+library now previews all four battle-composed soldiers before selection expands the
+same billets into equipment mannequins.
 
 Read `company-view-nouns.md`, `ui-nouns.md`, and
 `c14-fire-team-equipment-templates.md` first.
@@ -41,8 +41,9 @@ drill-down reachable. Templates remain plans, never collectible cards.
   readiness before the player enters that squad's equipment workspace.
 - **Fire-team context:** Alpha, Bravo, and Charlie report strength and current
   assignment together; the selected fire team is the transaction target.
-- **Template library:** reusable designs with fielded and ready-to-issue counts,
-  searchable/filterable as library size grows.
+- **Template library:** compact visual selectors render all four equipped soldiers
+  beside fielded and ready-to-issue counts, searchable/filterable as library size
+  grows.
 - **Workspace:** the selected squad's Alpha, Bravo, and Charlie teams sit beside the
   reusable library. Selecting a template projects all four billets simultaneously as
   portrait mannequins with armour, primary, special-equipment sockets, and the
@@ -86,6 +87,8 @@ drill-down reachable. Templates remain plans, never collectible cards.
 - The template breakdown shows all four billets together, including candidate armour,
   primary grade, and special equipment; every mannequin shares battlefield layer
   recipes rather than a UI-only pose table.
+- Every library selector shows the same four billet recipes as a compact formation;
+  selecting it expands rather than substitutes that equipment truth.
 - The same billet recipe renders deterministic PNGs without a game or OpenGL context;
   live acceptance remains responsible only for host scaling and feel.
 - Layout remains usable for a large company and at UI scales 1.0, 1.25, and 1.5.

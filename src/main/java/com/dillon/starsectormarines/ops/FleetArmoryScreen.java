@@ -3,7 +3,9 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.ops.battleview.ArmoryFireTeamPreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.ArmoryLoadoutPreviewCanvas;
+import com.dillon.starsectormarines.ops.battleview.ArmoryPreviewAssets;
 import com.dillon.starsectormarines.ui.retained.UiAlign;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
@@ -42,6 +44,7 @@ public final class FleetArmoryScreen implements Screen {
             "Retained production slice  ·  C15 formation / template / transaction");
     private final MarkupLoader markup = new MarkupLoader(
             path -> Global.getSettings().loadText(path), COMPONENT_PATHS);
+    private final ArmoryPreviewAssets previewAssets = new ArmoryPreviewAssets();
 
     private MarineOpsContext context;
     private MarineRoster roster;
@@ -100,11 +103,17 @@ public final class FleetArmoryScreen implements Screen {
                             ? () -> context.returnFromFleetArmoryWorkspace()
                             : this::showSquadOverview);
             if (view == View.FIRETEAMS) {
+                for (FleetArmoryViewModel.TemplateTile tile : viewModel.templateTiles().get()) {
+                    built.canvases().set(candidate.requireElement(tile.canvasId()),
+                            new ArmoryFireTeamPreviewCanvas(
+                                    () -> viewModel.billetsForTemplate(tile.templateId()),
+                                    previewAssets));
+                }
                 for (int index = 0; index < MarineSquad.TEAM_SIZE; index++) {
                     int billet = index;
                     built.canvases().set(candidate.requireElement("billet-preview:" + index),
                             new ArmoryLoadoutPreviewCanvas(
-                                    () -> viewModel.billetAt(billet), true));
+                                    () -> viewModel.billetAt(billet), previewAssets, true));
                 }
             }
             if (viewport != null) built.layout(viewport.width(), viewport.height());
@@ -131,7 +140,7 @@ public final class FleetArmoryScreen implements Screen {
         props.put("fireTeamOverviews", viewModel.fireTeamOverviews());
         props.put("squadRows", viewModel.squadRows());
         props.put("teamRows", viewModel.teamRows());
-        props.put("templateRows", viewModel.templateRows());
+        props.put("templateTiles", viewModel.templateTiles());
         props.put("targetSummary", viewModel.targetSummary());
         props.put("candidateSummary", viewModel.candidateSummary());
         props.put("billetRows", viewModel.billetRows());
@@ -167,6 +176,11 @@ public final class FleetArmoryScreen implements Screen {
                 "armory-back", "legacy-armory", "reload-armory", "armory-reload-status");
         for (String id : required) {
             component.requireElement(id);
+        }
+        if (view == View.FIRETEAMS) {
+            for (FleetArmoryViewModel.TemplateTile tile : viewModel.templateTiles().get()) {
+                component.requireElement(tile.canvasId());
+            }
         }
     }
 

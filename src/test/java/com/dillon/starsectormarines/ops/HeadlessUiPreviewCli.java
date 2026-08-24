@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.ops.battleview.ArmoryFireTeamPreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.ArmoryLoadoutPreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
 import com.dillon.starsectormarines.ui.retained.UiAlign;
@@ -86,6 +87,12 @@ public final class HeadlessUiPreviewCli {
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
             if (fireteam) {
+                for (FleetArmoryViewModel.TemplateTile tile : viewModel.templateTiles().get()) {
+                    document.canvases().set(instance.requireElement(tile.canvasId()),
+                            new ArmoryFireTeamPreviewCanvas(
+                                    () -> viewModel.billetsForTemplate(tile.templateId()),
+                                    armoryPreview.assets()));
+                }
                 for (int index = 0; index < MarineSquad.TEAM_SIZE; index++) {
                     int billet = index;
                     document.canvases().set(instance.requireElement("billet-preview:" + index),
@@ -144,7 +151,7 @@ public final class HeadlessUiPreviewCli {
         props.put("fireTeamOverviews", viewModel.fireTeamOverviews());
         props.put("squadRows", viewModel.squadRows());
         props.put("teamRows", viewModel.teamRows());
-        props.put("templateRows", viewModel.templateRows());
+        props.put("templateTiles", viewModel.templateTiles());
         props.put("targetSummary", viewModel.targetSummary());
         props.put("candidateSummary", viewModel.candidateSummary());
         props.put("billetRows", viewModel.billetRows());
