@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
+import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerPose;
+import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerTransform;
 
 /**
  * Emits a mech as hull-width-relative, independently animated hardpoints.
@@ -9,6 +11,8 @@ import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
  * independently traversed upper-body bearing around the waist pivot.
  */
 final class LayeredMechComposer {
+
+    private static final float SOURCE_REFERENCE_PX = 208f;
 
     private LayeredMechComposer() {}
 
@@ -19,6 +23,18 @@ final class LayeredMechComposer {
                      int flags, int chassis, int arms,
                      int leftShoulder, int rightShoulder,
                      float alpha) {
+        emit(out, assets, actorX, actorY, hullWidth, hipFacingDeg, torsoFacingDeg,
+                locomotionPhase, chaingunPhase, srmPhase, lrmPhase, flags, chassis,
+                arms, leftShoulder, rightShoulder, alpha, null);
+    }
+
+    static void emit(DrawList out, LayeredMechAssets assets,
+                     float actorX, float actorY, float hullWidth,
+                     float hipFacingDeg, float torsoFacingDeg, float locomotionPhase,
+                     float chaingunPhase, float srmPhase, float lrmPhase,
+                     int flags, int chassis, int arms,
+                     int leftShoulder, int rightShoulder,
+                     float alpha, LayerPose authoredPose) {
         boolean moving = (flags & LayeredMechAppearance.FLAG_MOVING) != 0;
         boolean turning = (flags & LayeredMechAppearance.FLAG_TURNING) != 0;
         boolean stepping = moving || turning;
@@ -35,14 +51,41 @@ final class LayeredMechComposer {
         float footStepReach = LayeredMechAppearance.footStepReach(chassis);
         float leftFootY = footY - footStepReach * leftStep;
         float rightFootY = footY - footStepReach * rightStep;
-        emitCentered(out, assets.foot, actorX, actorY, hullWidth, hipFacingDeg,
-                -footX, leftFootY, 0f, alpha);
-        emitCentered(out, assets.foot, actorX, actorY, hullWidth, hipFacingDeg,
-                footX, rightFootY, 0f, alpha);
+        LayerTransform leftFoot = layer(authoredPose, "left-foot");
+        LayerTransform rightFoot = layer(authoredPose, "right-foot");
+        if (leftFoot != null) {
+            emitAuthored(out, assets.foot, leftFoot, actorX, actorY, hullWidth,
+                    hipFacingDeg, alpha);
+            leftFootY = leftFoot.offsetY();
+        } else {
+            emitCentered(out, assets.foot, actorX, actorY, hullWidth, hipFacingDeg,
+                    -footX, leftFootY, 0f, alpha);
+        }
+        if (rightFoot != null) {
+            emitAuthored(out, assets.foot, rightFoot, actorX, actorY, hullWidth,
+                    hipFacingDeg, alpha);
+            rightFootY = rightFoot.offsetY();
+        } else {
+            emitCentered(out, assets.foot, actorX, actorY, hullWidth, hipFacingDeg,
+                    footX, rightFootY, 0f, alpha);
+        }
+
+        LayerTransform leftThigh = layer(authoredPose, "left-thigh");
+        LayerTransform rightThigh = layer(authoredPose, "right-thigh");
+        if (leftThigh != null && rightThigh != null) {
+            emitAuthored(out, assets.thighBone, leftThigh, actorX, actorY, hullWidth,
+                    hipFacingDeg, alpha);
+            emitAuthored(out, assets.thighBone, rightThigh, actorX, actorY, hullWidth,
+                    hipFacingDeg, alpha);
+        }
+
+        LayerTransform chassisTransform = layer(authoredPose, "chassis");
+        float upperFacingDeg = torsoFacingDeg
+                + (chassisTransform != null ? chassisTransform.angleDegrees() : 0f);
 
         float cgKick = 0.025f * LayeredMechAppearance.recoil(chaingunPhase);
         emitArms(out, assets, chassis, arms, actorX, actorY, hullWidth,
-                torsoFacingDeg, cgKick, alpha);
+                upperFacingDeg, cgKick, alpha);
 
         float srmKick = ((flags & LayeredMechAppearance.FLAG_SRM_ACTIVE) != 0)
                 ? 0.018f * LayeredMechAppearance.recoil(srmPhase) : 0f;
@@ -52,17 +95,23 @@ final class LayeredMechComposer {
                 || chassis == LayeredMechAppearance.CHASSIS_HOUND;
         if (!podsAboveChassis) {
             emitShoulderPods(out, assets, chassis, leftShoulder, rightShoulder,
-                    actorX, actorY, hullWidth, torsoFacingDeg, srmKick, lrmKick, alpha);
+                    actorX, actorY, hullWidth, upperFacingDeg, srmKick, lrmKick, alpha);
         }
 
         LayeredSpriteCache chassisSprite = selectChassis(assets, chassis);
-        emitCentered(out, chassisSprite, actorX, actorY, hullWidth, torsoFacingDeg,
-                0f, 0f, 0f, alpha);
+        if (chassisTransform != null) {
+            emitAuthored(out, chassisSprite, chassisTransform, actorX, actorY, hullWidth,
+                    torsoFacingDeg, alpha);
+        } else {
+            emitCentered(out, chassisSprite, actorX, actorY, hullWidth, torsoFacingDeg,
+                    0f, 0f, 0f, alpha);
+        }
 
         // Surface linkages originate at the waist and stop one foot-radius
         // short of the pad, preserving the pad's lower layer and clean outline.
-        if (chassis == LayeredMechAppearance.CHASSIS_HOUND
-                || chassis == LayeredMechAppearance.CHASSIS_SIROCCO) {
+        if (leftThigh == null && rightThigh == null
+                && (chassis == LayeredMechAppearance.CHASSIS_HOUND
+                || chassis == LayeredMechAppearance.CHASSIS_SIROCCO)) {
             emitConnection(out, assets.thighBone, actorX, actorY, hullWidth, hipFacingDeg,
                     -footX, leftFootY, alpha);
             emitConnection(out, assets.thighBone, actorX, actorY, hullWidth, hipFacingDeg,
@@ -73,21 +122,45 @@ final class LayeredMechComposer {
         // SRM rack. Sirocco's paired LRMs stay beneath its broader hull.
         if (podsAboveChassis) {
             emitShoulderPods(out, assets, chassis, leftShoulder, rightShoulder,
-                    actorX, actorY, hullWidth, torsoFacingDeg, srmKick, lrmKick, alpha);
+                    actorX, actorY, hullWidth, upperFacingDeg, srmKick, lrmKick, alpha);
         }
 
         if ((flags & LayeredMechAppearance.FLAG_CHAINGUN_FLASH) != 0) {
             emitArmsFlash(out, assets, arms, actorX, actorY, hullWidth,
-                    torsoFacingDeg, cgKick, alpha);
+                    upperFacingDeg, cgKick, alpha);
         }
         if ((flags & LayeredMechAppearance.FLAG_SRM_FLASH) != 0) {
             emitShoulderFlashes(out, assets, chassis, leftShoulder, rightShoulder, true,
-                    actorX, actorY, hullWidth, torsoFacingDeg, alpha);
+                    actorX, actorY, hullWidth, upperFacingDeg, alpha);
         }
         if ((flags & LayeredMechAppearance.FLAG_LRM_FLASH) != 0) {
             emitShoulderFlashes(out, assets, chassis, leftShoulder, rightShoulder, false,
-                    actorX, actorY, hullWidth, torsoFacingDeg, alpha);
+                    actorX, actorY, hullWidth, upperFacingDeg, alpha);
         }
+    }
+
+    private static LayerTransform layer(LayerPose pose, String id) {
+        return pose != null ? pose.layer(id) : null;
+    }
+
+    private static void emitAuthored(DrawList out, LayeredSpriteCache sprite,
+                                     LayerTransform transform,
+                                     float actorX, float actorY, float hullWidth,
+                                     float facingDeg, float alpha) {
+        if (sprite == null || transform == null || !transform.visible()) return;
+        float[] pivot = rotate(transform.offsetX() * hullWidth,
+                transform.offsetY() * hullWidth, facingDeg);
+        float angle = facingDeg + transform.angleDegrees();
+        float localCenterX = (0.5f - transform.pivotX())
+                * sprite.pxWidth / SOURCE_REFERENCE_PX * transform.scaleX() * hullWidth;
+        float localCenterY = (transform.pivotY() - 0.5f)
+                * sprite.pxHeight / SOURCE_REFERENCE_PX * transform.scaleY() * hullWidth;
+        float[] center = rotate(localCenterX, localCenterY, angle);
+        out.addSprite(RenderLayer.UNITS, sprite.sprite,
+                actorX + pivot[0] + center[0], actorY + pivot[1] + center[1],
+                sprite.pxWidth / SOURCE_REFERENCE_PX * transform.scaleX() * hullWidth,
+                sprite.pxHeight / SOURCE_REFERENCE_PX * transform.scaleY() * hullWidth,
+                angle, 1f, 1f, 1f, alpha);
     }
 
     private static void emitArms(DrawList out, LayeredMechAssets assets,

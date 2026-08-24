@@ -25,6 +25,8 @@ Select a unit, equipment variant, animation, keyframe, and layer, then:
 - adjust pivot, visibility, z-order, source sprite, and frame duration;
 - duplicate animations or keyframes, set transition timing and looping, and use Play
   to inspect the selected clip without crossing into another equipment variant;
+- choose whether a clip is driven by time, locomotion phase, or action phase, and
+  scrub the normalized driver phase to preview the exact pose sampled in-game;
 - inspect or export the combined sheet; and
 - create deterministic layer, Armory, retained-UI, and turret snapshots from
   the Snapshots tab without launching Starsector;
@@ -35,6 +37,9 @@ Playback smoothsteps matching layers between adjacent keyframes, including offse
 independent scale, angle, and pivot. This makes articulated mech linkages directly
 authorable: a walk keyframe can move a foot while changing the connected thigh's
 angle and Y scale, and the preview shows the continuous stretch between both poses.
+Frame durations weight each segment of a normalized procedural phase; they do not
+force movement speed. The simulation advances locomotion phase from distance traveled
+and action phase from the active use, while this document owns the sampled pose.
 
 The editor refuses duplicate unit/variant/animation/keyframe/layer ids, non-positive
 sizes or durations,

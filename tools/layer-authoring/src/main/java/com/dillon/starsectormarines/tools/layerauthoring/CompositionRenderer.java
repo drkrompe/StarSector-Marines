@@ -160,6 +160,32 @@ public final class CompositionRenderer {
         return FrameDefinition.preview(current, sampled);
     }
 
+    /** Samples the same duration-weighted normalized phase consumed by the game. */
+    public FrameDefinition samplePhase(AnimationDefinition animation, double phase) {
+        if (animation.frames().isEmpty()) {
+            throw new IllegalArgumentException("Animation has no keyframes");
+        }
+        if (animation.frames().size() == 1) return animation.frames().get(0);
+        double normalized = animation.loop()
+                ? phase - Math.floor(phase) : Math.max(0.0, Math.min(1.0, phase));
+        if (!animation.loop() && normalized >= 1.0) {
+            return animation.frames().get(animation.frames().size() - 1);
+        }
+        int totalDuration = animation.frames().stream()
+                .mapToInt(FrameDefinition::durationMs).sum();
+        double timeMs = normalized * totalDuration;
+        int frameIndex = 0;
+        int elapsedMs = 0;
+        while (frameIndex + 1 < animation.frames().size()
+                && timeMs >= elapsedMs + animation.frames().get(frameIndex).durationMs()) {
+            elapsedMs += animation.frames().get(frameIndex).durationMs();
+            frameIndex++;
+        }
+        FrameDefinition frame = animation.frames().get(frameIndex);
+        return sample(animation, frameIndex,
+                (timeMs - elapsedMs) / frame.durationMs());
+    }
+
     public static double pixelsPerUnit(int width, int height) {
         return Math.min(width, height) * 0.40;
     }

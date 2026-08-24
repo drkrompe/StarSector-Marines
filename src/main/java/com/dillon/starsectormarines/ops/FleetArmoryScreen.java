@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ops.battleview.ArmoryFireTeamPreviewCanvas;
-import com.dillon.starsectormarines.ops.battleview.ArmoryLoadoutPreviewCanvas;
+import com.dillon.starsectormarines.ops.battleview.ArmoryMarinePreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.ArmoryPreviewAssets;
 import com.dillon.starsectormarines.ui.retained.UiAlign;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
@@ -111,9 +111,9 @@ public final class FleetArmoryScreen implements Screen {
                 }
                 for (int index = 0; index < MarineSquad.TEAM_SIZE; index++) {
                     int billet = index;
-                    built.canvases().set(candidate.requireElement("billet-preview:" + index),
-                            new ArmoryLoadoutPreviewCanvas(
-                                    () -> viewModel.billetAt(billet), previewAssets, true));
+                    built.canvases().set(candidate.requireElement("marine-preview:" + index),
+                            new ArmoryMarinePreviewCanvas(
+                                    () -> viewModel.billetAt(billet), previewAssets));
                 }
             }
             if (viewport != null) built.layout(viewport.width(), viewport.height());
@@ -144,12 +144,12 @@ public final class FleetArmoryScreen implements Screen {
         props.put("targetSummary", viewModel.targetSummary());
         props.put("candidateSummary", viewModel.candidateSummary());
         props.put("billetRows", viewModel.billetRows());
-        props.put("billetMannequins", viewModel.billetMannequins());
+        props.put("marineCards", viewModel.marineCards());
         props.put("previewSummary", viewModel.previewSummary());
-        props.put("gearRows", viewModel.gearRows());
         props.put("transactionSummary", viewModel.transactionSummary());
         props.put("transactionClasses", viewModel.transactionClasses());
         props.put("applyDisabled", viewModel.applyDisabled());
+        props.put("applyLabel", viewModel.applyLabel());
         props.put("apply", viewModel.applyAction());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
@@ -166,11 +166,12 @@ public final class FleetArmoryScreen implements Screen {
                 ? List.of("fleet-armory-fireteam-root", "fireteam-header",
                 "fireteam-breadcrumb", "back-to-squads", "fireteam-body",
                 "fireteam-rail", "fireteam-list", "template-library", "template-list",
-                "refit-transaction", "mannequin-grid", "gear-list", "transaction-result",
-                "apply-template", "transaction-feedback", "fireteam-footer",
+                "refit-transaction", "viewer-context", "target-summary",
+                "candidate-summary", "marine-card-grid", "equip-row",
+                "transaction-result", "apply-template", "transaction-feedback", "fireteam-footer",
                 "fireteam-back", "fireteam-legacy", "fireteam-reload",
-                "fireteam-reload-status", "billet-preview:0", "billet-preview:1",
-                "billet-preview:2", "billet-preview:3")
+                "fireteam-reload-status", "marine-preview:0", "marine-preview:1",
+                "marine-preview:2", "marine-preview:3")
                 : List.of("fleet-armory-root", "armory-header", "squad-breadcrumb",
                 "squad-overview-intro", "squad-card-list", "armory-footer",
                 "armory-back", "legacy-armory", "reload-armory", "armory-reload-status");

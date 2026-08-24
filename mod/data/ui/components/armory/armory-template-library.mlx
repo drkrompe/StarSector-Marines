@@ -1,7 +1,7 @@
 <template props="templateTiles">
   <div id="template-library" class="panel template-library">
-    <div id="library-heading" class="label heading tone-edge">TEMPLATE LIBRARY</div>
-    <div id="library-explainer" class="label tone-muted">Select a formation to inspect its complete issue.</div>
+    <div id="library-heading" class="label heading tone-edge">CHANGE LOADOUT</div>
+    <div id="library-explainer" class="label tone-muted">Preview a reusable template below; the team changes only when equipped.</div>
     <div id="template-list" class="template-gallery">
       <button each="tile in templateTiles" key="{tile.id}" id="{tile.id}" class="{tile.classes}" onclick="{tile.select}">
         <div id="{tile.nameId}" class="template-name label heading tone-edge">{tile.name}</div>
@@ -15,37 +15,38 @@
 <style>
   .template-library {
     flex-direction: column;
-    width: 350px;
-    padding: 8px;
-    gap: 5px;
+    height: 174px;
+    padding: 6px;
+    gap: 4px;
     overflow: hidden;
   }
 
   .label { overflow: hidden; }
   .heading { font-family: heading; }
-  #library-heading { height: 20px; }
-  #library-explainer { height: 34px; }
+  #library-heading { height: 18px; }
+  #library-explainer { height: 18px; }
 
   .template-gallery {
-    flex-direction: column;
+    flex-direction: row;
     flex-grow: 1;
-    gap: 8px;
+    gap: 6px;
     padding: 1px;
     overflow: scroll;
   }
 
   .template-tile {
     flex-direction: column;
-    height: 142px;
-    padding: 7px;
-    gap: 4px;
+    width: 218px;
+    height: 116px;
+    padding: 5px;
+    gap: 3px;
     border-width: 1px;
     overflow: hidden;
     font-family: body;
     text-align: left;
   }
 
-  .template-name { height: 18px; }
+  .template-name { height: 17px; }
   .template-preview { width: 0px; height: 0px; flex-grow: 1; border-width: 1px; overflow: hidden; }
-  .template-availability { height: 18px; text-align: right; }
+  .template-availability { height: 17px; text-align: right; }
 </style>
