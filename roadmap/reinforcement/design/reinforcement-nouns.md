@@ -4,7 +4,7 @@ Status: ACTIVE — side-owned requests separate trigger, supply, means, delivery
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — retained durable request/delivery boundaries and named the target-faction roster extension.
+Updated: 2026-08-24 — tied the target-faction roster extension to concrete armor roles, patterns, and provenance.
 
 ## Vocabulary
 
@@ -57,4 +57,8 @@ defender the same thematic unit identity. `target-faction-ground-rosters.md`
 owns the extension that resolves one target-faction ground roster at launch and
 reuses it for initial defenders, garrisons, convoys, shuttles, and walk-ins.
 That roster may choose equipment and unit identity; it still may not choose
-force quantity, delivery, mission command, or player-owned personnel.
+force quantity, delivery, mission command, or player-owned personnel. Armor
+selection names concrete patterns from the shared assault-armor role and
+provenance catalog. Encounter risk may change which candidates are eligible,
+but reinforcement may not reinterpret light, line, and heavy as a hidden
+quality ladder or manufacture faction-wide armor rules.
