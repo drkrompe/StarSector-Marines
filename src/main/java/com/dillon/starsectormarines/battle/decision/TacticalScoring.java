@@ -294,6 +294,15 @@ public final class TacticalScoring {
      * better, swap to a per-unit max queried off {@link UnitType}.
      */
     public static final float MAX_PLAUSIBLE_ATTACK_RANGE = 60f;
+    /** Per-worker scratch for target-density gathers; kept separate from nested tactical queries. */
+    private static final ThreadLocal<LongBucket> THREAT_DENSITY_CANDIDATES =
+            ThreadLocal.withInitial(LongBucket::new);
+    /** Per-worker scratch for local force tallies published by the serial contact-picture pass. */
+    private static final ThreadLocal<LongBucket> LOCAL_FORCE_CANDIDATES =
+            ThreadLocal.withInitial(LongBucket::new);
+    /** Per-worker scratch for fallback visibility checks; may run inside parallel unit updates. */
+    private static final ThreadLocal<LongBucket> HIDDEN_ENEMY_CANDIDATES =
+            ThreadLocal.withInitial(LongBucket::new);
 
 
     /**
@@ -754,7 +763,7 @@ public final class TacticalScoring {
     }
 
     private int threatDensityAt(long candidate, float candX, float candY, Faction selfFaction) {
-        LongBucket scratch = new LongBucket();
+        LongBucket scratch = THREAT_DENSITY_CANDIDATES.get();
         unitIndex.gather(candX, candY, THREAT_DENSITY_RADIUS, scratch);
         int count = 0;
         for (int i = 0, n = scratch.size; i < n; i++) {
@@ -1210,7 +1219,7 @@ public final class TacticalScoring {
      * count (they're combatants); civilians don't.
      */
     public int countCombatantsWithin(Faction faction, int cx, int cy, float radius) {
-        LongBucket scratch = new LongBucket();
+        LongBucket scratch = LOCAL_FORCE_CANDIDATES.get();
         unitIndex.gather(cx + 0.5f, cy + 0.5f, radius, scratch);
         int count = 0;
         for (int i = 0, n = scratch.size; i < n; i++) {
@@ -2412,7 +2421,7 @@ public final class TacticalScoring {
 
         World world = roster.world();
         Faction selfFaction = roster.identity().faction(self);
-        LongBucket scratch = new LongBucket();
+        LongBucket scratch = HIDDEN_ENEMY_CANDIDATES.get();
         unitIndex.gather(cx + 0.5f, cy + 0.5f, MAX_PLAUSIBLE_ATTACK_RANGE, scratch);
         for (int i = 0, n = scratch.size; i < n; i++) {
             long other = scratch.ids[i];
