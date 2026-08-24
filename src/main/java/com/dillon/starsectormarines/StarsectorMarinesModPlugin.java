@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.campaign.HouseSeeder;
 import com.dillon.starsectormarines.campaign.personnel.CaptainDiscoverySalvageListener;
 import com.dillon.starsectormarines.combathybrid.probe.CombatHybridCampaignPlugin;
 import com.dillon.starsectormarines.combathybrid.probe.CombatHybridInputListener;
+import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
@@ -64,6 +65,9 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         // Weapon-like items validate their referenced WeaponDef, so this follows
         // the weapon catalog and remains fail-loud for malformed built-in data.
         SpecialEquipmentRegistry.loadBuiltins();
+        // Modular unit clips turn simulation-authored locomotion/action phases
+        // into layer transforms. The standalone editor reads the same document.
+        UnitLayerLayouts.loadBuiltins();
     }
 
     @Override

@@ -3,6 +3,10 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.appearance.LiveAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
+import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
+import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.AnimationClip;
+import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerPose;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
@@ -404,10 +408,13 @@ public final class UnitRenderService implements RenderSystem {
                     // overhang remains close to the legacy 1.6-cell silhouette.
                     float hullWidth = unitSize * roster.renderScale(entityId) * 0.82f
                             * LAYERED_MECH_SCALE;
+                    LayerPose authoredPose = mechPose(mechChassis[r], mechLocomotion[r],
+                            mechFlags[r]);
                     LayeredMechComposer.emit(out, mechAssets, cx, cy, hullWidth,
                             mechHipFacing[r], mechFacing[r], mechLocomotion[r], mechChaingunPhase[r],
                             mechSrmPhase[r], mechLrmPhase[r], mechFlags[r], mechChassis[r],
-                            mechArms[r], mechLeftShoulder[r], mechRightShoulder[r], unitAlpha);
+                            mechArms[r], mechLeftShoulder[r], mechRightShoulder[r], unitAlpha,
+                            authoredPose);
                     continue;
                 }
                 LayeredUnitAssets layeredAssets = hasLayered
@@ -419,6 +426,8 @@ public final class UnitRenderService implements RenderSystem {
                 if (layeredAssets != null && layeredHeadAssets != null) {
                     float cx = cam.cellToScreenX(rx[r]);
                     float cy = cam.cellToScreenY(ry[r]);
+                    LayerPose authoredPose = infantryPose(type, layeredPose[r],
+                            layeredLocomotion[r], layeredWeaponPhase[r], layeredFlags[r]);
                     LayeredUnitComposer.emit(out, layeredAssets, layeredHeadAssets.head,
                             primaryWeapon != null ? (MarineWeapon) primaryWeapon[r] : null,
                             type.drawsLayeredWeapon(),
@@ -427,7 +436,8 @@ public final class UnitRenderService implements RenderSystem {
                                     : EquipmentGrade.SERVICE,
                             cx, cy, unitSize * type.renderScale * LAYERED_INFANTRY_SCALE,
                             layeredFacing[r], layeredHeadLook[r], layeredLocomotion[r],
-                            layeredWeaponPhase[r], layeredPose[r], layeredFlags[r], unitAlpha);
+                            layeredWeaponPhase[r], layeredPose[r], layeredFlags[r], unitAlpha,
+                            authoredPose);
                     continue;
                 }
                 UnitSpriteCache cache = sprites.unitSprites().get(type);
@@ -452,6 +462,53 @@ public final class UnitRenderService implements RenderSystem {
                         rx[r], ry[r], unitSize, unitAlpha);
             }
         }
+    }
+
+    private static LayerPose infantryPose(UnitType type, int pose, float locomotionPhase,
+                                          float actionPhase, int flags) {
+        if (!type.drawsLayeredWeapon()) return null;
+        boolean moving = (flags & LayeredAppearance.FLAG_MOVING) != 0;
+        String variantId = "rifle";
+        String animationId;
+        float phase;
+        switch (pose) {
+            case LayeredAppearance.POSE_IDLE -> {
+                animationId = moving ? "walking" : "idle";
+                phase = moving ? locomotionPhase : 0f;
+            }
+            case LayeredAppearance.POSE_AIMED -> {
+                animationId = "aiming";
+                phase = actionPhase;
+            }
+            case LayeredAppearance.POSE_FIRING -> {
+                animationId = "firing";
+                phase = actionPhase;
+            }
+            case LayeredAppearance.POSE_ROCKET_AIM, LayeredAppearance.POSE_ROCKET_FIRE -> {
+                variantId = "rocket";
+                animationId = "aiming";
+                phase = actionPhase;
+            }
+            default -> {
+                return null;
+            }
+        }
+        AnimationClip clip = UnitLayerLayouts.get().clip("marine-line", variantId,
+                animationId);
+        return clip != null ? clip.sample(phase) : null;
+    }
+
+    private static LayerPose mechPose(int chassis, float locomotionPhase, int flags) {
+        String unitId = switch (chassis) {
+            case LayeredMechAppearance.CHASSIS_HOUND -> "mech-hound";
+            case LayeredMechAppearance.CHASSIS_SIROCCO -> "mech-sirocco";
+            default -> "mech-bulwark";
+        };
+        boolean stepping = (flags & (LayeredMechAppearance.FLAG_MOVING
+                | LayeredMechAppearance.FLAG_TURNING)) != 0;
+        AnimationClip clip = UnitLayerLayouts.get().clip(unitId, "field-loadout",
+                stepping ? "walking" : "idle");
+        return clip != null ? clip.sample(stepping ? locomotionPhase : 0f) : null;
     }
 
     /**

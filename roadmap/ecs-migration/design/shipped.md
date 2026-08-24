@@ -13,6 +13,7 @@ commit log. Dates below are commit dates verified from Git.
 | `ai-timer-primitives.md` | 2026-05-28 | `b620e77`, `9104c85` | `ecs-nouns.md` — primitive state belongs to a component. |
 | `aistate-onto-world.md` | 2026-06-25 | `8001f78` | `ecs-nouns.md` — capability and lifecycle membership. |
 | `archetype-storage.md` | 2026-06-03 | `88d55117`, `955b6e54`, `0faa8bda` | `ecs-nouns.md` — storage, queries, and structural safety laws. |
+| `authored-walk-animation.md` | 2026-08-24 | `d4a773b5` | `ecs-nouns.md` — simulation-driven phase and authored layered pose authority. |
 | `burst-fire-primitives.md` | 2026-05-28 | `024344f` | `ecs-nouns.md` — component data, not handle fields. |
 | `collapse-unit-handle.md` | 2026-06-01 → 2026-06-02 | `c50e50d`, `e038706`, `31058bf`, `335cce8`, `a708ce8` | `ecs-nouns.md` — bare-id identity. |
 | `component-grouping.md` | 2026-06-27 | `88d55117`, `5a79941a` | `ecs-nouns.md` — capability grouping and presence. |
@@ -26,7 +27,7 @@ commit log. Dates below are commit dates verified from Git.
 | `firing-system.md` | 2026-07-01 | `c07a11ef`, `426f21db`, `b418d835` | `ecs-nouns.md`; residual behavior change is `fire-stance-normalization.md`. |
 | `health-onto-world.md` | 2026-06-03 | `e720e988`, `adb4bc93` | `ecs-nouns.md` — live/dead lifecycle ownership. |
 | `identity-collapse.md` | 2026-07-01 → 2026-07-05 | `a4180ef0`, `2d9eb894`, `38764ca7`, `1ed54dc4` | `ecs-nouns.md` — entity is a `long`. |
-| `live-appearance.md` | 2026-07-01 | `9f1c33f0`, `ee215e14`, `9bd3c7fa` | `ecs-nouns.md`; residual work is `authored-walk-animation.md`, `secondary-aim-facing.md`, and `fx-child-entities.md`. |
+| `live-appearance.md` | 2026-07-01 | `9f1c33f0`, `ee215e14`, `9bd3c7fa` | `ecs-nouns.md`; residual work is `secondary-aim-facing.md` and `fx-child-entities.md`. |
 | `map-service-coordinator-slice1.md` | 2026-05-28 | `c49eea7` | `ecs-nouns.md` — MapEditor runtime-mutation coordination only. |
 | `map-service-coordinator.md` | 2026-05-28 | `c49eea7` | `ecs-nouns.md` — generation remains separate; its deferred slice is not queued. |
 | `move-render-primitives.md` | 2026-05-27 | `489b1db` | historical only; ground position authority is `continuous-positions-nouns.md`. |

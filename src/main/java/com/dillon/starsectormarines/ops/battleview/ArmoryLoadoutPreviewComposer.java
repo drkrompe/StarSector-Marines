@@ -76,6 +76,20 @@ public final class ArmoryLoadoutPreviewComposer {
                 height * 0.48f, Math.min(height * 0.48f, actorWidth * 0.78f), height);
     }
 
+    /** Soldier-first portrait for the selected fire team's named marine cards. */
+    public static void composeMarinePortrait(Sink sink, Assets assets, FireTeamBillet billet,
+                                             float width, float height) {
+        if (sink == null || assets == null) {
+            throw new IllegalArgumentException("preview sink and assets are required");
+        }
+        if (billet == null || width <= 0f || height <= 0f) return;
+
+        sink.fillRect(0f, 0f, width, height, BACKGROUND);
+        sink.line(12f, height - 14f, width - 12f, height - 14f, ACCENT, 2f);
+        drawSoldier(sink, assets, billet, width * 0.5f, height * 0.48f,
+                Math.min(height * 0.50f, width * 0.44f), height);
+    }
+
     /** Compact at-a-glance composition of all four template billets. */
     public static void composeFireTeam(Sink sink, Assets assets,
                                        List<FireTeamBillet> billets,
