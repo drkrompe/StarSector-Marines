@@ -4,7 +4,7 @@ Status: ACTIVE — handheld, special-item and turret weapon data is owned; mech 
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — aligned the turret preview model with the shared retained headless renderer.
+Updated: 2026-08-24 — defined cross-catalog turret authoring and its boundary with emplacement layouts.
 
 ## Purpose
 
@@ -55,6 +55,15 @@ without turning a JSON typo into a silent zero-damage battle.
   runtime while owning its storyboard projection as retained panels and
   backend-neutral canvas producers. The shared retained paint targets own live
   and headless rendering; the preview does not own a private raster painter.
+- A **turret authoring document** is an editor transaction over the linked
+  weapon, mount, structure, and defense-post layout catalogs. It presents one
+  resolved turret without merging those authorities: saves return every value
+  to the catalog that owns it, validate all cross-references, and cannot create
+  an editor-only behavior path.
+- A **defense-post layout** is map-generation-owned bounded cell geometry that
+  references turret structure ids. It may place several structures and barrier
+  or pad cells, but it does not own their weapon stats, durability, garrison,
+  placement budget, or tactical priority.
 
 ## Authority flow
 
@@ -76,6 +85,13 @@ Runtime and the deterministic six-state catalog preview consume the same pose
 and seeded effect commands. The preview mounts those commands into the retained
 document canvas seam, so its sprite layers, atlas frames, tint, and blend intent
 are rendered by the same live/headless target boundary as other authored UI.
+
+Defense-post layouts load after turret structures so each placement resolves
+at ingestion. Map generation chooses an eligible layout through the seeded run
+stream and interprets its cells; singleton tiers consume no layout-selection
+draw, while a tier with several authored variants consumes one. The desktop
+authoring surface resolves the same chain in memory and feeds current edits to
+the same catalog preview before a validated multi-file save.
 
 Registry loading is deliberately fail-loud: a missing registry, unknown id,
 duplicate id, malformed required value, unknown mount class, or invalid
@@ -115,6 +131,12 @@ shared consumer exists.
   shuttle mounts may composite base/barrel layers while a ground vehicle keeps
   equivalent art in its chassis sheet; absent appearance never changes weapon
   behavior.
+- Multi-turret composition references structure ids rather than copying turret
+  kind values into a stamp. Layout bounds and occupied cells are explicit, and
+  every turret placement must sit on an ordinary pad inside those bounds.
+- An authoring tool stages catalog mutations; it does not become a catalog.
+  Preview, save validation, and runtime consumption resolve the same definitions,
+  and undo/redo spans the linked document so cross-catalog edits cannot drift.
 - Shared mod discovery and merge rules are one cross-catalog concern with
   moddable tilesets, not two independently invented override schemes.
 - A utility activation may reuse projectiles, detonations, and authored FX,

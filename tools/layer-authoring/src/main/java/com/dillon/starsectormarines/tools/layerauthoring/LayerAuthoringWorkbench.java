@@ -28,6 +28,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
@@ -222,19 +223,46 @@ public final class LayerAuthoringWorkbench {
             AuthoringPageContext context = new AuthoringPageContext(projectRoot,
                     starsectorCoreRoot(), status::setText, this::updateTitle);
             for (AuthoringPageProvider provider : AuthoringPageCatalog.discover().providers()) {
-                AuthoringPage page = provider.create(context);
-                if (page == null) {
-                    throw new IllegalStateException("Authoring page provider '" + provider.id()
-                            + "' returned no page");
+                try {
+                    AuthoringPage page = provider.create(context);
+                    if (page == null) {
+                        throw new IllegalStateException("Authoring page provider '"
+                                + provider.id() + "' returned no page");
+                    }
+                    if (page.component() == null) {
+                        page.close();
+                        throw new IllegalStateException("Authoring page provider '"
+                                + provider.id() + "' returned no component");
+                    }
+                    contributedPages.add(new MountedAuthoringPage(provider.label(), page));
+                    tabs.addTab(provider.label(), page.component());
+                } catch (Exception failure) {
+                    tabs.addTab(provider.label() + " (error)",
+                            providerFailurePage(provider, failure));
+                    status.setText("Could not load " + provider.label() + ": "
+                            + failureMessage(failure));
                 }
-                if (page.component() == null) {
-                    page.close();
-                    throw new IllegalStateException("Authoring page provider '" + provider.id()
-                            + "' returned no component");
-                }
-                contributedPages.add(new MountedAuthoringPage(provider.label(), page));
-                tabs.addTab(provider.label(), page.component());
             }
+        }
+
+        private static JPanel providerFailurePage(AuthoringPageProvider provider,
+                                                  Exception failure) {
+            JPanel panel = new JPanel(new BorderLayout(8, 8));
+            panel.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
+            JLabel heading = new JLabel("Could not load " + provider.label());
+            heading.setFont(heading.getFont().deriveFont(Font.BOLD, 18f));
+            panel.add(heading, BorderLayout.NORTH);
+            JTextArea detail = new JTextArea(failureMessage(failure));
+            detail.setEditable(false);
+            detail.setLineWrap(true);
+            detail.setWrapStyleWord(true);
+            detail.setOpaque(false);
+            panel.add(detail, BorderLayout.CENTER);
+            return panel;
+        }
+
+        private static String failureMessage(Exception failure) {
+            return failure.getMessage() != null ? failure.getMessage() : failure.toString();
         }
 
         private void closeContributedPages() {
