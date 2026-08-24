@@ -733,8 +733,13 @@ public class BattleSprites {
         }
     }
 
-    /** Loads one turret-related sprite + its native aspect (captured before any {@code setSize} clobbers {@code getWidth/getHeight}); null on failure. */
+    /**
+     * Loads one turret-related sprite + its native aspect (captured before any
+     * {@code setSize} clobbers {@code getWidth/getHeight}); null when the
+     * optional path is absent or loading fails.
+     */
     public ShuttleSpriteCache loadTurretSprite(String path) {
+        if (path == null) return null;
         try {
             Global.getSettings().loadTexture(path);
             SpriteAPI sprite = Global.getSettings().getSprite(path);

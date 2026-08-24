@@ -28,11 +28,11 @@ import java.util.List;
  * <p>Risk authors candidate composition: LOW has no mechs, MEDIUM introduces
  * one Bulwark when heavy armor is available, and HIGH replaces the old flat
  * mech count with complementary Bulwark/Hound/Sirocco groups. The candidate
- * mechs must then fit beneath the combined attacker's
+ * mechs ordinarily fit beneath the combined attacker's
  * {@link BattleForceScore}; enemy fighter wings and static turret candidates
- * spend the score left after that roster is resolved. This keeps small
- * unsupported operations playable while allowing allied or otherwise
- * reinforced attacks to face heavy support.
+ * spend the score left after that roster is resolved. Conquest is the authored
+ * set-piece exception: setup retains all of its eligible support independently
+ * of the attacking manifest.
  * Infantry ratios also tighten from 70/30 at LOW to 50/40 at HIGH.
  */
 public final class DefenderRoster {

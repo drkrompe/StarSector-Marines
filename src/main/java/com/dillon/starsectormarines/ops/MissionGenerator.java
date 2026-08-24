@@ -614,7 +614,7 @@ public final class MissionGenerator {
 
     static int requiredDropsFor(MissionType type, OperationTier tier) {
         OperationTier resolved = tier != null ? tier : OperationTier.ESTABLISHED;
-        float weight = type != null ? type.defenderWeight : 0.6f;
+        float weight = type != null ? type.liftWeight : 0.6f;
         return Math.max(2, Math.round(resolved.drops * weight));
     }
 
