@@ -78,7 +78,7 @@ Do not run builds or leave generated task files there.
   suites with `-Psnapshot=armory,layers,turrets,ui` (default `all`) and redirect the
   common output root with `-PsnapshotDir=<path>`.
 - `gradlew.bat layerAuthoring` → standalone marine/mech layer workbench with drag,
-  scale, rotation, variant-scoped interpolated animation playback, combined-sheet
+  scale, rotation, variant-scoped phase-driven animation playback, combined-sheet
   export, the shared snapshot catalog, and validated atomic writes
   to `mod/data/appearance/unit-layer-layouts.appearance.json`.
 - `gradlew.bat deployMod` → generates the gitignored `mod/sounds/` outputs

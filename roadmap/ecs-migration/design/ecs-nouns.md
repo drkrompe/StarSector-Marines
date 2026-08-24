@@ -4,7 +4,7 @@ Status: ACTIVE — `EntityWorld` is the battle composition substrate; capability
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — replaced migration-journal and benchmark narration with durable composition and extension boundaries.
+Updated: 2026-08-24 — made authored layered clips the pose authority sampled from simulation-owned procedural phases.
 
 The battle simulation has one composition substrate: an `EntityWorld`.  This
 document names the durable model, ownership, and safety laws of that substrate.
@@ -105,6 +105,29 @@ These families may share the same `EntityWorld` without being forced through a
 false common component. A new component must have a stable capability/lifecycle
 reason; a new query should name a real consumer set, not a speculative generic
 API.
+
+### Authored layered motion
+
+Layered unit motion splits driver authority from pose authority. Simulation
+systems author tier-neutral facing, state flags, and normalized phases into the
+layered-animation components. Locomotion phase advances from distance traveled;
+action phase advances from the active weapon or equipment use. The simulation
+therefore still owns whether an actor is moving or acting and how quickly that
+progress changes.
+
+The unit-layer layout document owns what each normalized phase looks like. Every
+clip declares a time, locomotion-phase, or action-phase driver; its keyframe
+durations weight segments within normalized progress rather than dictating
+simulation speed. The live renderer samples those clips read-only and applies
+their offsets, independent scale, pivot, angle, and visibility to compatible
+runtime-selected armor and equipment sprites. Fixed ordering for dynamic
+equipment remains compositor-owned. Mech thigh stretch is ordinary authored
+layer scale, not a separate animation system. Actors or clips without a usable
+layered definition retain their existing procedural or sheet fallback.
+
+The standalone layer workbench consumes the same document and duration-weighted
+sampling law. Its driver scrubber is therefore acceptance evidence for the live
+pose at a given simulation phase, not an editor-only approximation.
 
 ## Authority and tier boundaries
 
