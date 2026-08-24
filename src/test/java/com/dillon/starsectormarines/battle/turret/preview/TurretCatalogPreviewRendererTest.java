@@ -37,16 +37,19 @@ class TurretCatalogPreviewRendererTest {
                 "Starsector core preview assets are unavailable");
 
         TurretCatalogRegistry registry = loadRegistry();
-        TurretCatalogPreviewRenderer renderer = new TurretCatalogPreviewRenderer(
+        HeadlessTurretCatalogPreviewRenderer renderer =
+                new HeadlessTurretCatalogPreviewRenderer(
                 Path.of("mod"), core);
 
         for (TurretMountDef mount : registry.mounts()) {
-            TurretCatalogPreviewRenderer.RenderedPreview first = renderer.render(mount);
-            TurretCatalogPreviewRenderer.RenderedPreview second = renderer.render(mount);
+            HeadlessTurretCatalogPreviewRenderer.RenderedPreview first =
+                    renderer.render(mount);
+            HeadlessTurretCatalogPreviewRenderer.RenderedPreview second =
+                    renderer.render(mount);
             assertArrayEquals(png(first.image()), png(second.image()),
                     mount.id + " preview must be byte-stable");
-            assertEquals(TurretCatalogPreviewRenderer.STRIP_WIDTH, first.image().getWidth());
-            assertEquals(TurretCatalogPreviewRenderer.STRIP_HEIGHT, first.image().getHeight());
+            assertEquals(TurretCatalogPreviewDocument.STRIP_WIDTH, first.image().getWidth());
+            assertEquals(TurretCatalogPreviewDocument.STRIP_HEIGHT, first.image().getHeight());
             assertTrue(distinctColorCount(first.image()) > 64,
                     mount.id + " preview should contain body and effect pixels");
             assertEveryAuthoredSlotContributed(mount, first.slotContributions());
@@ -57,8 +60,8 @@ class TurretCatalogPreviewRendererTest {
         for (Path output : outputs) {
             assertTrue(Files.size(output) > 0, "empty preview " + output);
             BufferedImage image = ImageIO.read(output.toFile());
-            assertEquals(TurretCatalogPreviewRenderer.STRIP_WIDTH, image.getWidth());
-            assertEquals(TurretCatalogPreviewRenderer.STRIP_HEIGHT, image.getHeight());
+            assertEquals(TurretCatalogPreviewDocument.STRIP_WIDTH, image.getWidth());
+            assertEquals(TurretCatalogPreviewDocument.STRIP_HEIGHT, image.getHeight());
         }
         System.out.println("TurretCatalogPreviewRendererTest: wrote " + outputs.size()
                 + " deterministic strips to " + OUTPUT.toAbsolutePath());

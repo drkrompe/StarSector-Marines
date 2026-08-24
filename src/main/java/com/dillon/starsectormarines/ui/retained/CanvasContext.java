@@ -69,6 +69,18 @@ public abstract class CanvasContext {
     public final void sprite(String sourcePath, SpriteAPI liveSprite,
                              float centerX, float centerY, float width, float height,
                              float angleDegrees, Color tint) {
+        sprite(sourcePath, liveSprite, centerX, centerY, width, height,
+                angleDegrees, tint, CanvasSpriteRegion.FULL, CanvasBlend.NORMAL);
+    }
+
+    /**
+     * Draws a normalized source region with explicit blend intent. The source
+     * region uses top-left, Y-down image coordinates just like the canvas.
+     */
+    public final void sprite(String sourcePath, SpriteAPI liveSprite,
+                             float centerX, float centerY, float width, float height,
+                             float angleDegrees, Color tint, CanvasSpriteRegion region,
+                             CanvasBlend blend) {
         if ((sourcePath == null || sourcePath.isBlank()) && liveSprite == null) {
             throw new IllegalArgumentException("sprite path or live sprite required");
         }
@@ -76,8 +88,11 @@ public abstract class CanvasContext {
         if (width < 0f || height < 0f) {
             throw new IllegalArgumentException("sprite extent cannot be negative");
         }
+        if (region == null || blend == null) {
+            throw new IllegalArgumentException("sprite region and blend are required");
+        }
         drawSprite(sourcePath, liveSprite, centerX, centerY, width, height,
-                angleDegrees, requireColor(tint));
+                angleDegrees, requireColor(tint), region, blend);
     }
 
     /** Compatibility overload for producers that do not yet retain an asset path. */
@@ -97,7 +112,8 @@ public abstract class CanvasContext {
 
     protected abstract void drawSprite(String sourcePath, SpriteAPI liveSprite,
                                        float centerX, float centerY, float width, float height,
-                                       float angleDegrees, Color tint);
+                                       float angleDegrees, Color tint,
+                                       CanvasSpriteRegion region, CanvasBlend blend);
 
     /** Document scaling of a line's normal under anisotropic canvas stretching. */
     protected static float strokeScale(CanvasMetrics metrics, float deltaX, float deltaY) {

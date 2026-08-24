@@ -166,6 +166,23 @@ tasks.register('renderUiPreviews', JavaExec) {
     }
 }
 
+tasks.register('renderTurretPreviews', JavaExec) {
+    group = 'verification'
+    description = 'Render deterministic retained turret catalog strips without launching Starsector'
+    dependsOn tasks.named('testClasses')
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.dillon.starsectormarines.ops.HeadlessTurretPreviewCli'
+    workingDir projectDir
+    systemProperty 'starsectorDir', starsectorDir.absolutePath
+    outputs.upToDateWhen { false }
+    doFirst {
+        File output = providers.gradleProperty('turretPreviewDir').isPresent()
+                ? file(providers.gradleProperty('turretPreviewDir').get())
+                : layout.buildDirectory.dir('turret-previews/catalog').get().asFile
+        args projectDir.absolutePath, starsectorCore.absolutePath, output.absolutePath
+    }
+}
+
 tasks.register('layerAuthoring') {
     group = 'development'
     description = 'Launch the standalone marine/mech layer authoring workbench'
