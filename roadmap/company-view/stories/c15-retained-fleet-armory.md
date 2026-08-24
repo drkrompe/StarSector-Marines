@@ -1,8 +1,8 @@
 # C15 — Retained Fleet Armory
 
-Status: IN PROGRESS — retained foundation accepted; production migration underway
+Status: IN PROGRESS — formation, template issue, and live billet preview migrated; broader parity remains
 Written: 2026-08-23
-Updated: 2026-08-24 — beginning with the live squad/fire-team/template assignment workflow while legacy modes remain available for parity.
+Updated: 2026-08-24 — selected template billets now drive a retained equipment doll and battlefield-composed sample soldier.
 
 Read `company-view-nouns.md`, `ui-nouns.md`, and
 `c14-fire-team-equipment-templates.md` first.
@@ -31,7 +31,9 @@ workspace. Templates remain plans, never collectible cards.
 - **Template library:** reusable designs with fielded and ready-to-issue counts,
   searchable/filterable as library size grows.
 - **Workspace:** four billets and current members, template authoring, or the selected
-  template's issue preview depending on the active task.
+  template's issue preview depending on the active task. Selecting a billet projects
+  its materialized equipment doll and a sample soldier through the battlefield actor
+  composition path without changing campaign state.
 - **Transaction rail:** free stock, returned issue, required issue, exact shortfall,
   and the one explicit apply action.
 - **Squad arrangements:** a fast squad-level composition view using the same templates
@@ -60,6 +62,8 @@ workspace. Templates remain plans, never collectible cards.
   panes.
 - Designing remains legal without stock; assigning remains stock-gated and atomic.
 - Template and arrangement previews exactly match the operation that applies them.
+- The billet preview shows candidate armour, primary grade, and special equipment;
+  its sample soldier shares battlefield layer recipes rather than a UI-only pose table.
 - No player-facing use of card/deck/hand/consume terminology or behavior exists.
 - Layout remains usable for a large company and at UI scales 1.0, 1.25, and 1.5.
 - Mouse, keyboard, and drag interactions reach the same domain commands.
