@@ -67,8 +67,6 @@ ledger, code, tests, and Git.
 
 ## Cleanup candidates to promote
 
-- **Bridge debug quadrants** — retire the remaining false quadrant scaffolding
-  from `BridgeRenderer` with a bounded render smoke check.
 - **Neutral battle timestep** — move the shared fixed-tick constant out of
   `BattleSimulation` so narrow battle contracts do not import the coordinator
   solely for a literal.
