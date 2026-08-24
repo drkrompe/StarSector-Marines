@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -26,6 +27,7 @@ class SpecialEquipmentRegistryTest {
             SpecialEquipmentDef def = SpecialEquipmentRegistry.require(handle.id);
             assertEquals(handle.id, def.id());
             assertNotNull(def.presentation());
+            assertNotNull(def.presentation().layerClips());
         }
     }
 
@@ -44,6 +46,17 @@ class SpecialEquipmentRegistryTest {
         assertTrue(satchel.presentation().carrierLayer().replacePrimaryWhileUsing());
         assertEquals("using", satchel.presentation().preview().state());
         assertEquals(0.54f, satchel.presentation().deployed().visualCells(), EPS);
+    }
+
+    @Test
+    void smokeDataProvidesAnActionLayerForCombinedPoseAuthoring() {
+        SpecialEquipmentDef smoke = SpecialEquipmentRegistry.require(
+                SpecialEquipmentRegistry.SMOKE_GRENADE_ID);
+
+        assertSame(SpecialUsePose.THROW, smoke.presentation().usePose());
+        assertNotNull(smoke.presentation().carrierLayer());
+        assertEquals(0.2f, smoke.presentation().carrierLayer().widthShoulders(), EPS);
+        assertFalse(smoke.presentation().carrierLayer().visibleWhileCarried());
     }
 
     @Test
@@ -73,6 +86,11 @@ class SpecialEquipmentRegistryTest {
         JSONObject rocket = builtInEntry(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID);
         rocket.getJSONObject("resource").put("startingAmmo", 0);
         assertThrows(JSONException.class, () -> SpecialEquipmentDef.parse(rocket));
+
+        JSONObject smoke = builtInEntry(SpecialEquipmentRegistry.SMOKE_GRENADE_ID);
+        smoke.getJSONObject("presentation").getJSONObject("layerClips")
+                .remove("using");
+        assertThrows(JSONException.class, () -> SpecialEquipmentDef.parse(smoke));
     }
 
     @Test
