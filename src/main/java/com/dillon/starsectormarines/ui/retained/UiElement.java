@@ -29,8 +29,10 @@ public final class UiElement {
     private final LayoutBox box = new LayoutBox();
     private final Set<String> classes = new LinkedHashSet<>();
     private final StyleDeclaration authoredStyle = StyleDeclaration.empty();
+    private StyleDeclaration inlineStyle = StyleDeclaration.empty();
 
     private UiElement parent;
+    private String key;
     private UiTag tag = UiTag.DIV;
     private Integer tabIndex;
     private boolean disabled;
@@ -90,6 +92,24 @@ public final class UiElement {
         return parent;
     }
 
+    /** Stable reconciliation identity when this element belongs to a bound child list. */
+    public String key() {
+        return key;
+    }
+
+    public UiElement key(String key) {
+        this.key = key;
+        return this;
+    }
+
+    public int childCount() {
+        return children.size();
+    }
+
+    public UiElement childAt(int index) {
+        return children.get(index);
+    }
+
     public LayoutBox box() {
         return box;
     }
@@ -139,8 +159,7 @@ public final class UiElement {
     }
 
     public UiElement style(String declaration) {
-        StyleDeclaration parsed = StyleDeclaration.parse(declaration);
-        parsed.values().forEach(authoredStyle::put);
+        inlineStyle = StyleDeclaration.parse(declaration);
         touchStyle();
         return this;
     }
@@ -230,7 +249,15 @@ public final class UiElement {
     }
 
     public UiElement child(UiElement child) {
+        return insert(children.size(), child);
+    }
+
+    /** Inserts or moves a child while preserving the child's retained identity. */
+    public UiElement insert(int index, UiElement child) {
         Objects.requireNonNull(child, "child");
+        if (index < 0 || index > children.size()) {
+            throw new IndexOutOfBoundsException("Child index " + index + " for " + children.size());
+        }
         if (child == this || child.isAncestorOf(this)) {
             throw new IllegalArgumentException("Adding " + child.id + " would create a cycle");
         }
@@ -241,7 +268,7 @@ public final class UiElement {
             previousParent.touchLayout();
         }
         child.parent = this;
-        children.add(child);
+        children.add(Math.min(index, children.size()), child);
         child.touchStyle();
         touchLayout();
         return this;
@@ -581,7 +608,9 @@ public final class UiElement {
     }
 
     public StyleDeclaration authoredStyle() {
-        return authoredStyle.copy();
+        StyleDeclaration combined = authoredStyle.copy();
+        inlineStyle.values().forEach(combined::put);
+        return combined;
     }
 
     public long styleRevision() {

@@ -1,0 +1,262 @@
+<template>
+  <div id="workbench-root" class="workbench-root">
+    <div id="header" class="panel">
+      <div id="title" class="label tone-accent heading">RETAINED UI WORKBENCH</div>
+      <div id="viewport-readout" class="label tone-edge"></div>
+    </div>
+
+    <div id="body">
+      <div id="formation-pane" class="panel">
+        <div id="formation-heading" class="label tone-edge heading">COMPANY / SQUAD / FIRE TEAM</div>
+        <div id="squad" class="label tone-text surface-dark">1st Squad  ·  12 / 12 RTD</div>
+        <button id="team-0">Alpha  ·  4 RTD  ·  Line template</button>
+        <button id="team-1">Bravo  ·  4 RTD  ·  Recon template</button>
+        <button id="team-2">Charlie  ·  4 RTD  ·  Fire support</button>
+        <div id="formation-note" class="label tone-muted">Selection stays on these retained elements; no screen rebuild.</div>
+      </div>
+
+      <div id="template-pane" class="panel">
+        <div id="template-heading" class="label tone-edge heading">TEMPLATE LIBRARY</div>
+        <div id="template-list">
+          <button id="template-0">Line  ·  Fielded 2  ·  Ready 3</button>
+          <button id="template-1">Recon  ·  Fielded 1  ·  Ready 1</button>
+          <button id="template-2">Fire Support  ·  Fielded 1  ·  Ready 0</button>
+          <button id="template-3">Breach  ·  Fielded 0  ·  Ready 1</button>
+          <button id="template-4">Boarding  ·  Fielded 0  ·  Ready 2</button>
+          <button id="template-5">Anti-Armor  ·  Fielded 0  ·  Ready 0</button>
+          <button id="template-6">Security  ·  Fielded 0  ·  Ready 4</button>
+          <button id="template-7">Hazard Response  ·  Fielded 0  ·  Ready 1</button>
+        </div>
+        <div id="library-note" class="label tone-muted">Plans are reusable. Finite equipment gates assignment, not design.</div>
+      </div>
+
+      <div id="workspace-stack" class="panel">
+        <div id="workspace-content">
+          <div id="workspace-heading" class="label tone-edge heading">REFIT TRANSACTION</div>
+          <div id="selected-team" class="label tone-accent surface-dark"></div>
+          <div id="selected-template" class="label tone-text surface-dark"></div>
+
+          <div id="state-gallery">
+            <button id="state-focus">Tab: Focus</button>
+            <button id="state-live">Hover / Press</button>
+            <button id="state-selected" class="selected">Selected</button>
+            <button id="state-disabled" disabled="">Disabled</button>
+          </div>
+
+          <canvas id="transaction-canvas" class="panel surface-dark" width="900" height="150" />
+
+          <div id="free">
+            <div id="free-label" class="label tone-muted">Free stock</div>
+            <div id="free-value" class="label tone-text">18 rifles  ·  4 armor  ·  1 support</div>
+          </div>
+          <div id="returns">
+            <div id="returns-label" class="label tone-muted">Returned issue</div>
+            <div id="returns-value" class="label tone-text">+4 rifles  ·  +4 armor</div>
+          </div>
+          <div id="required">
+            <div id="required-label" class="label tone-muted">Required issue</div>
+            <div id="required-value" class="label tone-text">-3 rifles  ·  -4 armor  ·  -1 support</div>
+          </div>
+
+          <div id="transaction-result" class="label tone-good good-surface panel"></div>
+          <div id="workspace-note" class="label tone-muted">This pane is a stack: the badge below overlays without moving content.</div>
+        </div>
+
+        <div id="stack-proof" class="label tone-edge edge-surface panel">Stack overlay</div>
+      </div>
+    </div>
+
+    <div id="footer" class="panel surface-dark">
+      <button id="back">Back to Company HQ</button>
+      <button id="theme-standard">Standard</button>
+      <button id="theme-contrast">High Contrast</button>
+      <button id="reload-ui">Reload UI</button>
+      <div id="retained-status" class="label tone-good">MLX component  |  Explicit reload  |  U4 proof</div>
+    </div>
+  </div>
+</template>
+
+<style>
+  .workbench-root {
+    flex-direction: column;
+    padding: 14px;
+    row-gap: 10px;
+    border-width: 3px;
+    overflow: hidden;
+  }
+
+  .panel {
+    border-width: 1px;
+    overflow: hidden;
+  }
+
+  .label {
+    overflow: hidden;
+  }
+
+  .heading {
+    font-family: heading;
+  }
+
+  button {
+    padding: 5px 10px;
+    border-width: 1px;
+    overflow: hidden;
+    font-family: body;
+    text-align: center;
+  }
+
+  #header {
+    flex-direction: row;
+    height: 44px;
+    padding: 12px;
+    gap: 12px;
+  }
+
+  #title {
+    flex-grow: 1;
+  }
+
+  #viewport-readout {
+    width: 520px;
+  }
+
+  #body {
+    flex-direction: row;
+    flex-grow: 1;
+    gap: 10px;
+  }
+
+  #formation-pane {
+    flex-direction: column;
+    flex-grow: 0.85;
+    padding: 10px;
+    gap: 7px;
+  }
+
+  #formation-heading,
+  #template-heading,
+  #workspace-heading {
+    height: 34px;
+  }
+
+  #squad {
+    height: 20px;
+    padding: 7px;
+  }
+
+  #team-0,
+  #team-1,
+  #team-2 {
+    height: 44px;
+  }
+
+  #formation-note,
+  #workspace-note {
+    flex-grow: 1;
+  }
+
+  #template-pane {
+    flex-direction: column;
+    flex-grow: 1.15;
+    padding: 10px;
+    gap: 7px;
+  }
+
+  #template-list {
+    flex-direction: column;
+    flex-grow: 1;
+    gap: 7px;
+    padding: 2px;
+    overflow: scroll;
+  }
+
+  #template-0,
+  #template-1,
+  #template-2,
+  #template-3,
+  #template-4,
+  #template-5,
+  #template-6,
+  #template-7 {
+    height: 38px;
+  }
+
+  #library-note {
+    height: 52px;
+  }
+
+  #workspace-stack {
+    flex-grow: 1.45;
+  }
+
+  #workspace-content {
+    flex-direction: column;
+    padding: 12px;
+    gap: 8px;
+    overflow: scroll;
+  }
+
+  #selected-team,
+  #selected-template {
+    height: 22px;
+    padding: 8px;
+  }
+
+  #state-gallery {
+    flex-direction: row;
+    height: 48px;
+    gap: 6px;
+  }
+
+  #state-gallery button {
+    flex-grow: 1;
+  }
+
+  #transaction-canvas {
+    height: 148px;
+  }
+
+  #free,
+  #returns,
+  #required {
+    flex-direction: row;
+    height: 42px;
+    gap: 8px;
+  }
+
+  #free-label,
+  #returns-label,
+  #required-label {
+    width: 170px;
+  }
+
+  #free-value,
+  #returns-value,
+  #required-value {
+    flex-grow: 1;
+  }
+
+  #transaction-result {
+    height: 24px;
+    padding: 10px;
+  }
+
+  #stack-proof {
+    width: 162px;
+    height: 18px;
+    padding: 7px;
+  }
+
+  #footer {
+    flex-direction: row;
+    height: 32px;
+    padding: 7px;
+    gap: 10px;
+  }
+
+  #retained-status {
+    width: 0px;
+    flex-grow: 1;
+  }
+</style>
