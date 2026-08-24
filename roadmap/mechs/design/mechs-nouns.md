@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — replaced implementation sequencing with durable chassis, inventory, and catalog boundaries.
+Updated: 2026-08-24 — replaced implementation sequencing with durable chassis, inventory, catalog, and authored-Conquest force boundaries.
 
 ## Purpose
 
@@ -57,8 +57,9 @@ increasing an encounter's total armored threat.
   squad. Formation and separation apply within that moving squad; unrelated
   squads do not become one formation. This does not define campaign ownership
   or lift organization.
-- A **force budget** is the encounter authority that admits defender mechs and
-  static defenses only when the attacker-side force can support them.
+- A **force budget** is the ordinary-encounter authority that admits defender
+  mechs and static defenses only when the attacker-side force can support them.
+  Authored set pieces may explicitly decline that protection; Conquest does.
 
 ## Family and doctrine
 
@@ -133,8 +134,10 @@ determines the payload, not the entitlement to call it.
   structural damage. It must not be represented as a boost-ramping missile
   merely to obtain spectacle.
 - Defender variants replace equivalent encounter allocation; they do not add
-  bodies or bypass the defender-vs-attacker force budget. Static turrets spend
-  from the remaining defended budget after mobile defenders.
+  bodies. Ordinary encounters apply the defender-vs-attacker force budget and
+  let static turrets spend from the remainder after mobile defenders. Conquest
+  deliberately bypasses that budget and retains its authored mechs and static
+  weapons as part of the fixed siege.
 - Production behavior is deterministic from its setup inputs. Debug variation
   is explicitly scoped iteration scaffolding and must not leak into campaign
   progression.
