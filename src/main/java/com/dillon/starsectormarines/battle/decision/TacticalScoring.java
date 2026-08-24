@@ -295,6 +295,15 @@ public final class TacticalScoring {
      * better, swap to a per-unit max queried off {@link UnitType}.
      */
     public static final float MAX_PLAUSIBLE_ATTACK_RANGE = 60f;
+    /** Per-worker scratch for target-density gathers; kept separate from nested tactical queries. */
+    private static final ThreadLocal<LongBucket> THREAT_DENSITY_CANDIDATES =
+            ThreadLocal.withInitial(LongBucket::new);
+    /** Per-worker scratch for local force tallies published by the serial contact-picture pass. */
+    private static final ThreadLocal<LongBucket> LOCAL_FORCE_CANDIDATES =
+            ThreadLocal.withInitial(LongBucket::new);
+    /** Per-worker scratch for fallback visibility checks; may run inside parallel unit updates. */
+    private static final ThreadLocal<LongBucket> HIDDEN_ENEMY_CANDIDATES =
+            ThreadLocal.withInitial(LongBucket::new);
 
 
     /**
@@ -755,7 +764,7 @@ public final class TacticalScoring {
     }
 
     private int threatDensityAt(long candidate, float candX, float candY, Faction selfFaction) {
-        LongBucket scratch = new LongBucket();
+        LongBucket scratch = THREAT_DENSITY_CANDIDATES.get();
         unitIndex.gather(candX, candY, THREAT_DENSITY_RADIUS, scratch);
         int count = 0;
         for (int i = 0, n = scratch.size; i < n; i++) {
@@ -782,6 +791,16 @@ public final class TacticalScoring {
      * close mech walks up next to a marine engaged on a distant turret.
      */
     public static final float RETARGET_DISTANCE_MARGIN = 5f;
+    /**
+     * The unit index stores tick-start positions while UPDATE_UNITS may have
+     * already advanced a candidate before another worker assesses pursuit.
+     * One cell covers more than a tick of every current ground mover; the
+     * live-distance check below remains the exact retarget authority.
+     */
+    private static final float RETARGET_QUERY_PADDING = 1f;
+    /** Per-worker output for the parallel pursuit-assessment path. */
+    private static final ThreadLocal<LongBucket> RETARGET_CANDIDATES =
+            ThreadLocal.withInitial(LongBucket::new);
     /** Smaller hysteresis for a shot of opportunity that does not change pursuit. */
     public static final float OPPORTUNITY_RETARGET_DISTANCE_MARGIN = 2f;
 
@@ -827,10 +846,13 @@ public final class TacticalScoring {
         int sy = world.cellY(self);
         int tx = world.cellX(currentTarget);
         int ty = world.cellY(currentTarget);
+        float selfAir = vision.airLosRadius(self);
         boolean visible = canSeePair(grid, sx, sy, tx, ty,
-                vision.airLosRadius(self), vision.airLosRadius(currentTarget));
+                selfAir, vision.airLosRadius(currentTarget));
 
-        float currentDist = cellDistance(world.x(self), world.y(self),
+        float selfX = world.x(self);
+        float selfY = world.y(self);
+        float currentDist = cellDistance(selfX, selfY,
                 world.x(currentTarget), world.y(currentTarget));
         float effectiveRange = effectiveAttackRange(self, currentTarget,
                 world.attackRange(self));
@@ -847,15 +869,9 @@ public final class TacticalScoring {
         // alternative exists, switch unconditionally. If current is visible,
         // switch only when the alternative is closer by at least
         // RETARGET_DISTANCE_MARGIN to dampen thrashing.
-        long closerVisible = closestVisibleOtherEnemy(self, currentTarget);
-        if (closerVisible != 0L) {
-            if (!visible) return PursuitDecision.RETARGET;
-            float candidateDist = cellDistance(world.x(self), world.y(self),
-                    world.x(closerVisible),
-                    world.y(closerVisible));
-            if (candidateDist + RETARGET_DISTANCE_MARGIN < currentDist) {
-                return PursuitDecision.RETARGET;
-            }
+        if (hasRetargetingVisibleEnemy(self, currentTarget, selfFaction,
+                selfX, selfY, sx, sy, selfAir, visible, currentDist)) {
+            return PursuitDecision.RETARGET;
         }
 
         return PursuitDecision.KEEP;
@@ -914,38 +930,79 @@ public final class TacticalScoring {
     }
 
     /**
-     * Nearest visible enemy combatant to {@code self} that isn't
-     * {@code exclude}, or null when none. Used by {@link #shouldKeepPursuing}'s
-     * "closer visible target appeared" check. Linear scan; the caller pays
-     * once per posture tick.
+     * True when pursuit should yield to another visible enemy. For a visible
+     * current target, only an enemy more than
+     * {@link #RETARGET_DISTANCE_MARGIN} cells closer can change the answer, so
+     * a faction-filtered spatial query prunes the global roster before the
+     * exact live-position and LoS checks. For an invisible current target the
+     * legacy rule is "any visible alternative"; that unbounded case retains a
+     * dense scan but returns on its first qualifying candidate instead of
+     * computing a global nearest id the caller never used.
      */
-    private long closestVisibleOtherEnemy(long self, long exclude) {
-        long best = 0L;
-        float bestDist = Float.MAX_VALUE;
+    private boolean hasRetargetingVisibleEnemy(
+            long self, long exclude, Faction selfFaction,
+            float selfX, float selfY, int selfCellX, int selfCellY,
+            float selfAir, boolean currentVisible, float currentDistance) {
+        if (!currentVisible) {
+            return hasVisibleOtherEnemyDense(self, exclude, selfFaction,
+                    selfX, selfY, selfCellX, selfCellY, selfAir,
+                    Float.POSITIVE_INFINITY);
+        }
 
+        float closerThan = currentDistance - RETARGET_DISTANCE_MARGIN;
+        if (!(closerThan > 0f)) return false;
+        Faction enemyFaction = selfFaction == Faction.MARINE
+                ? Faction.DEFENDER
+                : selfFaction == Faction.DEFENDER ? Faction.MARINE : null;
+        if (enemyFaction == null) {
+            return hasVisibleOtherEnemyDense(self, exclude, selfFaction,
+                    selfX, selfY, selfCellX, selfCellY, selfAir,
+                    currentDistance);
+        }
+
+        LongBucket candidates = RETARGET_CANDIDATES.get();
+        unitIndex.gatherFaction(selfX, selfY,
+                closerThan + RETARGET_QUERY_PADDING, enemyFaction, candidates);
         World world = roster.world();
         VisionService vision = roster.vision();
-        Faction selfFaction = roster.identity().faction(self);
+        for (int i = 0, n = candidates.size; i < n; i++) {
+            long u = candidates.ids[i];
+            if (u == exclude || u == self) continue;
+            if (!roster.identity().type(u).combatant) continue;
+            float distance = cellDistance(selfX, selfY,
+                    world.x(u), world.y(u));
+            if (!(distance + RETARGET_DISTANCE_MARGIN < currentDistance)) continue;
+            int ux = world.cellX(u);
+            int uy = world.cellY(u);
+            if (canSeePair(grid, selfCellX, selfCellY, ux, uy,
+                    selfAir, vision.airLosRadius(u))) return true;
+        }
+        return false;
+    }
+
+    /** Unbounded legacy fallback, optionally constrained by the exact margin. */
+    private boolean hasVisibleOtherEnemyDense(
+            long self, long exclude, Faction selfFaction,
+            float selfX, float selfY, int selfCellX, int selfCellY,
+            float selfAir, float currentDistance) {
+        World world = roster.world();
+        VisionService vision = roster.vision();
         long[] dense = roster.denseArray();
         int liveCount = roster.liveCount();
-        int sx = world.cellX(self);
-        int sy = world.cellY(self);
-        float selfAir = vision.airLosRadius(self);
         for (int i = 0; i < liveCount; i++) {
             long u = dense[i];
             if (u == exclude || u == self) continue;
-            if (roster.identity().faction(u) == selfFaction || !roster.identity().type(u).combatant) continue;
+            if (roster.identity().faction(u) == selfFaction
+                    || !roster.identity().type(u).combatant) continue;
+            if (Float.isFinite(currentDistance)
+                    && !(cellDistance(selfX, selfY, world.x(u), world.y(u))
+                    + RETARGET_DISTANCE_MARGIN < currentDistance)) continue;
             int ux = world.cellX(u);
             int uy = world.cellY(u);
-            if (!canSeePair(grid, sx, sy, ux, uy,
-                    selfAir, vision.airLosRadius(u))) continue;
-            float d = cellDistance(world.x(self), world.y(self), world.x(u), world.y(u));
-            if (d < bestDist) {
-                bestDist = d;
-                best = u;
-            }
+            if (canSeePair(grid, selfCellX, selfCellY, ux, uy,
+                    selfAir, vision.airLosRadius(u))) return true;
         }
-        return best;
+        return false;
     }
 
     /**
@@ -1163,7 +1220,7 @@ public final class TacticalScoring {
      * count (they're combatants); civilians don't.
      */
     public int countCombatantsWithin(Faction faction, int cx, int cy, float radius) {
-        LongBucket scratch = new LongBucket();
+        LongBucket scratch = LOCAL_FORCE_CANDIDATES.get();
         unitIndex.gather(cx + 0.5f, cy + 0.5f, radius, scratch);
         int count = 0;
         for (int i = 0, n = scratch.size; i < n; i++) {
@@ -2443,7 +2500,7 @@ public final class TacticalScoring {
 
         World world = roster.world();
         Faction selfFaction = roster.identity().faction(self);
-        LongBucket scratch = new LongBucket();
+        LongBucket scratch = HIDDEN_ENEMY_CANDIDATES.get();
         unitIndex.gather(cx + 0.5f, cy + 0.5f, MAX_PLAUSIBLE_ATTACK_RANGE, scratch);
         for (int i = 0, n = scratch.size; i < n; i++) {
             long other = scratch.ids[i];
