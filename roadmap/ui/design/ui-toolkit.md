@@ -2,7 +2,8 @@
 
 Status: SHIPPED — foundation active as production infrastructure
 Written: 2026-08-23
-Updated: 2026-08-24 — production canvas recipes can emit deterministic PNG evidence through a headless raster backend.
+Updated: 2026-08-24 — authored retained documents can render through live
+Starsector or deterministic Java2D paint targets.
 
 ## Decision
 
@@ -12,11 +13,13 @@ stable elements, one box tree shared by layout and input, component-owned styles
 explicit bindings, and an authored component format layered over an authoritative
 Java API.
 
-The rendering backend does not transfer wholesale. MoonLight owns a Vulkan frame
+The live rendering backend does not transfer wholesale. MoonLight owns a Vulkan frame
 graph and post-tone-map overlay; Marine Ops borrows an OpenGL compatibility context
 inside Starsector's UI pass. Its painter therefore targets the existing sprite,
 font, batch, shader, and FBO infrastructure and treats GL-state restoration as part
-of every rendering contract.
+of every live rendering contract. The document painter itself is backend-neutral:
+it emits the same laid-out boxes, clips, text, and canvases to the Starsector target
+or to an engine-free Java2D target used for UX iteration.
 
 ## Why retained
 
@@ -77,7 +80,10 @@ such as scissors and FBO allocation.
 
 Ordinary elements paint boxes, borders, sprites, and text through a shared painter.
 The existing `BitmapFont`, `SpriteAPI`, render2d batches, shader helper, and FBO
-renderers remain valid backend material. A procedural canvas is the escape hatch for
+renderers remain valid live-target material. BMFont parsing separates metrics from
+texture loading so headless layout uses the same glyph advances and line heights;
+the raster target reads the matching vanilla atlas directly from the configured
+Starsector installation. A procedural canvas is the escape hatch for
 formation lines, equipment illustrations, transaction diagrams, and other visuals
 whose geometry should not expand the ordinary layout vocabulary.
 
@@ -156,10 +162,15 @@ idle guarantee here is zero style resolution and zero layout work once settled.
   coordinate mismatch is visible rather than inferred from a crowded screen.
 - Production surface acceptance includes a screenshot review, but domain behavior is
   asserted below the renderer.
-- Backend-neutral production previews render through a controlled Java2D sink as well
-  as the live canvas sink. `gradlew.bat renderArmoryPreviews` writes individual Fleet
-  Armory loadouts and a contact sheet under `build/headless-armory-previews/`; this is
-  deterministic visual evidence, while the final host-scale feel pass remains in-game.
+- `gradlew.bat renderUiPreviews` builds authored Fleet Armory documents from controlled
+  view-model state and writes wide/compact overview plus full-workspace PNGs under
+  `build/headless-ui-previews/`. Layout, cascade, exact bitmap fonts, clipping,
+  scrollbar chrome, and registered canvases travel through the production traversal.
+- `gradlew.bat renderArmoryPreviews` remains the focused equipment-composition harness;
+  it writes individual loadouts and a contact sheet under
+  `build/headless-armory-previews/` without assembling a full view.
+- Headless images make iteration and regression evidence cheap. Final host grant,
+  input feel, UI-scale composition, and borrowed GL-state acceptance remain in-game.
 
 ## Rejected directions
 

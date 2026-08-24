@@ -5,47 +5,42 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
 
 import java.awt.Color;
 
-import static org.lwjgl.opengl.GL11.GL_BLEND;
-import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.GL_SRC_ALPHA;
-import static org.lwjgl.opengl.GL11.glBlendFunc;
-import static org.lwjgl.opengl.GL11.glColorMask;
-import static org.lwjgl.opengl.GL11.glEnable;
-import static org.lwjgl.opengl.GL20.glUseProgram;
-
-/** Fixed-function Starsector drawing surface exposed to canvas producers. */
-public final class CanvasContext {
+/** Backend-neutral drawing surface exposed to retained canvas producers. */
+public abstract class CanvasContext {
 
     private final CanvasMetrics metrics;
     private final Rect visibleBounds;
-    private final UiViewport viewport;
     private final float alphaMult;
 
-    CanvasContext(CanvasMetrics metrics, Rect visibleBounds, UiViewport viewport,
-                  float alphaMult) {
+    protected CanvasContext(CanvasMetrics metrics, Rect visibleBounds, float alphaMult) {
+        if (metrics == null || visibleBounds == null) {
+            throw new IllegalArgumentException("metrics and visible bounds are required");
+        }
         this.metrics = metrics;
         this.visibleBounds = visibleBounds;
-        this.viewport = viewport;
         this.alphaMult = alphaMult;
     }
 
-    public CanvasMetrics metrics() {
+    public final CanvasMetrics metrics() {
         return metrics;
     }
 
     /** Visible portion of this paint in canvas-local coordinates. */
-    public Rect visibleBounds() {
+    public final Rect visibleBounds() {
         return visibleBounds;
     }
 
-    public void fillRect(float x, float y, float width, float height, Color color) {
-        requireRect(x, y, width, height);
-        UiPainter.fill(documentRect(x, y, width, height), viewport,
-                requireColor(color), alphaMult);
+    public final float alphaMult() {
+        return alphaMult;
     }
 
-    public void strokeRect(float x, float y, float width, float height,
-                           Color color, float strokeWidth) {
+    public final void fillRect(float x, float y, float width, float height, Color color) {
+        requireRect(x, y, width, height);
+        drawFillRect(x, y, width, height, requireColor(color));
+    }
+
+    public final void strokeRect(float x, float y, float width, float height,
+                                 Color color, float strokeWidth) {
         requireRect(x, y, width, height);
         requirePositive(strokeWidth, "stroke width");
         line(x, y, x + width, y, color, strokeWidth);
@@ -54,68 +49,58 @@ public final class CanvasContext {
         line(x, y + height, x, y, color, strokeWidth);
     }
 
-    public void line(float x1, float y1, float x2, float y2,
-                     Color color, float strokeWidth) {
+    public final void line(float x1, float y1, float x2, float y2,
+                           Color color, float strokeWidth) {
         requireFinite(x1, y1, x2, y2);
         requirePositive(strokeWidth, "stroke width");
-        UiPainter.line(metrics.toDocumentX(x1), metrics.toDocumentY(y1),
-                metrics.toDocumentX(x2), metrics.toDocumentY(y2), viewport,
-                requireColor(color), strokeWidth * strokeScale(metrics, x2 - x1, y2 - y1),
-                alphaMult);
+        drawLine(x1, y1, x2, y2, requireColor(color), strokeWidth);
     }
 
-    public void text(BitmapFont font, String text, float x, float y, Color color) {
+    public final void text(BitmapFont font, String text, float x, float y, Color color) {
         if (font == null || text == null) throw new IllegalArgumentException("font and text required");
         requireFinite(x, y);
-        font.drawStringScaled(text, viewport.screenXFor(metrics.toDocumentX(x)),
-                viewport.screenTopFor(metrics.toDocumentY(y)), metrics.scaleX(),
-                metrics.scaleY(), requireColor(color), alphaMult);
+        drawText(font, text, x, y, requireColor(color));
     }
 
     /**
-     * Draws one whole-texture Starsector sprite in canvas-local coordinates.
-     * The retained painter still owns clipping and restores the surrounding GL
-     * state; this method resets the shared sprite and the fixed-function state
-     * that {@link SpriteAPI#renderAtCenter(float, float)} mutates before later
-     * retained children paint.
+     * Draws one whole-texture asset. The path is the headless authority while
+     * the optional live sprite is the Starsector rendering handle.
      */
-    public void sprite(SpriteAPI sprite, float centerX, float centerY,
-                       float width, float height, float angleDegrees, Color tint) {
-        if (sprite == null) throw new IllegalArgumentException("sprite required");
+    public final void sprite(String sourcePath, SpriteAPI liveSprite,
+                             float centerX, float centerY, float width, float height,
+                             float angleDegrees, Color tint) {
+        if ((sourcePath == null || sourcePath.isBlank()) && liveSprite == null) {
+            throw new IllegalArgumentException("sprite path or live sprite required");
+        }
         requireFinite(centerX, centerY, width, height, angleDegrees);
         if (width < 0f || height < 0f) {
             throw new IllegalArgumentException("sprite extent cannot be negative");
         }
-        Color color = requireColor(tint);
-        try {
-            sprite.setSize(width * metrics.scaleX(), height * metrics.scaleY());
-            sprite.setAngle(angleDegrees);
-            sprite.setAlphaMult(alphaMult * color.getAlpha() / 255f);
-            sprite.setColor(color.getRed() == 255 && color.getGreen() == 255
-                    && color.getBlue() == 255
-                    ? Color.WHITE
-                    : new Color(color.getRed(), color.getGreen(), color.getBlue()));
-            sprite.setNormalBlend();
-            sprite.renderAtCenter(
-                    viewport.screenXFor(metrics.toDocumentX(centerX)),
-                    viewport.screenTopFor(metrics.toDocumentY(centerY)));
-        } finally {
-            sprite.setAngle(0f);
-            sprite.setAlphaMult(1f);
-            sprite.setColor(Color.WHITE);
-            glUseProgram(0);
-            glColorMask(true, true, true, true);
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        }
+        drawSprite(sourcePath, liveSprite, centerX, centerY, width, height,
+                angleDegrees, requireColor(tint));
     }
 
-    /**
-     * Document scaling of a line's normal. This preserves anisotropic canvas
-     * stretching for horizontal and vertical strokes despite OpenGL's scalar
-     * line-width API.
-     */
-    static float strokeScale(CanvasMetrics metrics, float deltaX, float deltaY) {
+    /** Compatibility overload for producers that do not yet retain an asset path. */
+    public final void sprite(SpriteAPI liveSprite, float centerX, float centerY,
+                             float width, float height, float angleDegrees, Color tint) {
+        sprite(null, liveSprite, centerX, centerY, width, height, angleDegrees, tint);
+    }
+
+    protected abstract void drawFillRect(float x, float y, float width, float height,
+                                         Color color);
+
+    protected abstract void drawLine(float x1, float y1, float x2, float y2,
+                                     Color color, float strokeWidth);
+
+    protected abstract void drawText(BitmapFont font, String text, float x, float y,
+                                     Color color);
+
+    protected abstract void drawSprite(String sourcePath, SpriteAPI liveSprite,
+                                       float centerX, float centerY, float width, float height,
+                                       float angleDegrees, Color tint);
+
+    /** Document scaling of a line's normal under anisotropic canvas stretching. */
+    protected static float strokeScale(CanvasMetrics metrics, float deltaX, float deltaY) {
         float length = (float) Math.hypot(deltaX, deltaY);
         if (!(length > 0f)) {
             return (float) Math.sqrt(metrics.scaleX() * metrics.scaleY());
@@ -124,11 +109,6 @@ public final class CanvasContext {
         float normalY = deltaX / length;
         return (float) Math.hypot(normalX * metrics.scaleX(),
                 normalY * metrics.scaleY());
-    }
-
-    private Rect documentRect(float x, float y, float width, float height) {
-        return new Rect(metrics.toDocumentX(x), metrics.toDocumentY(y),
-                width * metrics.scaleX(), height * metrics.scaleY());
     }
 
     private static Color requireColor(Color color) {

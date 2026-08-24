@@ -2,6 +2,7 @@
 
 Status: IN PROGRESS
 Written: 2026-08-24
+Updated: 2026-08-24 — implementation complete; final full-suite verification remains.
 
 Read `ui-nouns.md` and `ui-toolkit.md` first. Depends on U1–U4.
 
