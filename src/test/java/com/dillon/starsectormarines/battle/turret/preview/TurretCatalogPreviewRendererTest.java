@@ -14,7 +14,6 @@ import java.io.ByteArrayOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -24,10 +23,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /** Regression and dev-output coverage for the data-authored turret preview. */
 class TurretCatalogPreviewRendererTest {
 
-    private static final Path OUTPUT = Path.of("build", "turret-previews", "catalog");
-
     @Test
-    void catalogRendersStableSixStateStripsAndWritesActualOutputs() throws Exception {
+    void catalogRendersStableSixStateStrips() throws Exception {
         String install = System.getProperty("starsectorDir");
         Assumptions.assumeTrue(install != null && !install.isBlank(),
                 "starsectorDir is not configured");
@@ -37,31 +34,25 @@ class TurretCatalogPreviewRendererTest {
                 "Starsector core preview assets are unavailable");
 
         TurretCatalogRegistry registry = loadRegistry();
-        TurretCatalogPreviewRenderer renderer = new TurretCatalogPreviewRenderer(
+        HeadlessTurretCatalogPreviewRenderer renderer =
+                new HeadlessTurretCatalogPreviewRenderer(
                 Path.of("mod"), core);
 
         for (TurretMountDef mount : registry.mounts()) {
-            TurretCatalogPreviewRenderer.RenderedPreview first = renderer.render(mount);
-            TurretCatalogPreviewRenderer.RenderedPreview second = renderer.render(mount);
+            HeadlessTurretCatalogPreviewRenderer.RenderedPreview first =
+                    renderer.render(mount);
+            HeadlessTurretCatalogPreviewRenderer.RenderedPreview second =
+                    renderer.render(mount);
             assertArrayEquals(png(first.image()), png(second.image()),
                     mount.id + " preview must be byte-stable");
-            assertEquals(TurretCatalogPreviewRenderer.STRIP_WIDTH, first.image().getWidth());
-            assertEquals(TurretCatalogPreviewRenderer.STRIP_HEIGHT, first.image().getHeight());
+            assertEquals(TurretCatalogPreviewDocument.STRIP_WIDTH, first.image().getWidth());
+            assertEquals(TurretCatalogPreviewDocument.STRIP_HEIGHT, first.image().getHeight());
             assertTrue(distinctColorCount(first.image()) > 64,
                     mount.id + " preview should contain body and effect pixels");
             assertEveryAuthoredSlotContributed(mount, first.slotContributions());
         }
 
-        List<Path> outputs = renderer.writeCatalog(registry, OUTPUT);
-        assertEquals(registry.mountCount(), outputs.size());
-        for (Path output : outputs) {
-            assertTrue(Files.size(output) > 0, "empty preview " + output);
-            BufferedImage image = ImageIO.read(output.toFile());
-            assertEquals(TurretCatalogPreviewRenderer.STRIP_WIDTH, image.getWidth());
-            assertEquals(TurretCatalogPreviewRenderer.STRIP_HEIGHT, image.getHeight());
-        }
-        System.out.println("TurretCatalogPreviewRendererTest: wrote " + outputs.size()
-                + " deterministic strips to " + OUTPUT.toAbsolutePath());
+        assertEquals(8, registry.mountCount());
     }
 
     private static void assertEveryAuthoredSlotContributed(

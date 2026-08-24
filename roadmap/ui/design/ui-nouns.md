@@ -4,8 +4,8 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — the canonical model now includes full-view headless paint
-parity, responsive retained layout, and safe clip-based offline layer authoring.
+Updated: 2026-08-24 — visual evidence now flows through one selectable snapshot
+catalog shared by command-line and authoring tools.
 
 ## Purpose
 
@@ -61,6 +61,9 @@ them.
   lifecycle. Fleet Armory, Company HQ, and the UI workbench are surfaces.
 - A **preview fixture** assembles a surface from controlled domain state for UX
   evidence. It is presentation input, never a replacement campaign authority.
+- A **snapshot suite** is one named, deterministic collection of visual evidence.
+  The suite owns its fixtures and render recipes; the shared snapshot workflow
+  owns discovery, selection, output layout, overwrite policy, and PNG writing.
 
 ## Coordinate spaces
 
@@ -92,6 +95,9 @@ Starsector input -> host coordinate conversion -> reverse-order hit test
 authored MLX + fixture state -> retained document -> shared painter
                                                  -> Starsector paint target
                                                  -> headless raster target
+
+saved data + controlled fixtures -> selected snapshot suites -> shared writer
+                                                           -> visual evidence root
 ```
 
 The first implementation may repaint the whole document after a change. The
@@ -129,6 +135,10 @@ the retained model.
 11. **Preview the production path.** Headless UX evidence uses the production
     document, layout, cascade, font metrics, clip calculation, and canvas producer.
     A screenshot-specific reconstruction cannot establish retained-view parity.
+12. **One snapshot workflow.** Feature suites may provide different fixtures and
+    images, but they register with one catalog and writer. Command-line generation
+    and authoring tools select from that same catalog rather than inventing
+    feature-specific build commands or output policy.
 
 ## Intrinsic text and typography
 
@@ -234,7 +244,11 @@ to own clipping. A sprite operation carries both its stable asset path and, when
 live, its loaded `SpriteAPI` handle. The Starsector canvas consumes the handle and
 restores borrowed OpenGL state; the headless canvas resolves the path to the source
 PNG. Both therefore exercise one producer, layout, pose, occlusion, and
-actor-composition recipe.
+actor-composition recipe. Canvas sprite operations may select a normalized
+source region for atlas and flipbook art and declare normal or additive
+blending. Those are producer-owned visual intents rather than backend
+shortcuts: the live and headless targets apply the same region, RGB tint,
+opacity, rotation, and blend contract.
 
 Layered character authoring is a separate desktop concern rather than another game
 screen. A unit-layer document separates a unit's equipment variants from its named
@@ -270,11 +284,12 @@ is driven by a surface's interaction needs rather than a flag-day rewrite.
 
 ## Evidence and acceptance
 
-Headless geometry and input tests prove document behavior without Starsector or
-an OpenGL context. The in-game workbench proves host coordinates, viewport grants,
-UI scaling, input routing, and GL-state seams. Live screenshot review proves final
-presentation and feel. Passing one evidence layer does not substitute for the
-others.
+Headless geometry and input tests prove document behavior without Starsector or an
+OpenGL context. Selectable snapshot suites capture deterministic visual evidence
+through the shared runner from either the command line or authoring workbench. The
+in-game workbench proves host coordinates, viewport grants, UI scaling, input
+routing, and GL-state seams. Live screenshot review proves final presentation and
+feel. Passing one evidence layer does not substitute for the others.
 
 ## Extension points
 

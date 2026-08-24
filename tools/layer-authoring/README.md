@@ -14,11 +14,14 @@ Select a unit, equipment variant, animation, keyframe, and layer, then:
 
 - drag the selected layer to change its normalized actor-local offset;
 - use the wheel to scale both axes, Shift-wheel for X only, or Alt-wheel for Y only;
-- use Ctrl-wheel to rotate, or enter exact values in the inspector;
+- drag the gold pivot handle to rotate, use Ctrl-wheel, or enter an exact value
+  in the inspector;
 - adjust pivot, visibility, z-order, source sprite, and frame duration;
 - duplicate animations or keyframes, set transition timing and looping, and use Play
   to inspect the selected clip without crossing into another equipment variant;
 - inspect or export the combined sheet; and
+- create deterministic layer, Armory, retained-UI, and turret snapshots from
+  the Snapshots tab without launching Starsector;
 - use Ctrl+Z to undo and Ctrl+Shift+Z to redo the last edit; and
 - use Save JSON or Ctrl+S to validate, confirm, and atomically replace the mod data file.
 
@@ -32,15 +35,28 @@ sizes or durations,
 out-of-range pivots, missing sprites, and sprite paths outside `mod/`. Reload and
 window close both guard unsaved changes. Frame deletion, JSON replacement, and
 overwriting an exported PNG require an explicit confirmation.
+Ordinary transform saves replace only changed JSON scalar values, retaining the
+document's existing whitespace, compact arrays, number spelling, key order, and
+Unicode text. Closing the workbench also stops its preview timer so the Gradle
+launcher exits with the application.
 
-For a non-interactive evidence pass:
+The Snapshots tab uses saved repository data. Save pending layer edits before
+creating layer snapshots; replacing existing PNGs requires confirmation in the
+editor. Rendering runs in the background so animation and editing controls do
+not freeze while a suite is being created.
+
+For a non-interactive evidence pass, use the same snapshot catalog through the
+repository command:
 
 ```powershell
-.\gradlew.bat renderLayerAuthoringSheets
+.\gradlew.bat createSnapshots -Psnapshot=layers
 ```
 
-This writes one deterministic combined PNG per unit under
-`build/layer-authoring/`.
+Run without `-Psnapshot` to create every discovered suite, or select a
+comma-separated set such as `'-Psnapshot=layers,turrets'` in PowerShell.
+Outputs live beneath `build/snapshots/<suite>/`; `-PsnapshotDir=<path>`
+redirects the shared output root. The layer suite writes one deterministic
+combined PNG per unit under `build/snapshots/layers/`.
 
 ## Data contract
 

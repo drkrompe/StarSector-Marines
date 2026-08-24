@@ -73,18 +73,14 @@ Do not run builds or leave generated task files there.
   at compile time.
 - `gradlew.bat build` → `mod/jars/StarsectorMarines.jar` (directly into the mod folder; no
   intermediate copy step).
-- `gradlew.bat renderArmoryPreviews` → deterministic equipment-doll and sample-soldier PNGs
-  in `build/headless-armory-previews/` without launching Starsector or creating an OpenGL
-  context. Pass `-ParmoryPreviewDir=<path>` to redirect the output.
-- `gradlew.bat renderUiPreviews` → authored retained-view PNGs in
-  `build/headless-ui-previews/`, using the same document layout, styles, bitmap fonts,
-  clipping, and canvas producers as the live UI. Pass `-PuiPreviewDir=<path>` to redirect.
+- `gradlew.bat createSnapshots` → every deterministic visual-evidence suite under
+  `build/snapshots/` without launching Starsector or creating an OpenGL context. Select
+  suites with `-Psnapshot=armory,layers,turrets,ui` (default `all`) and redirect the
+  common output root with `-PsnapshotDir=<path>`.
 - `gradlew.bat layerAuthoring` → standalone marine/mech layer workbench with drag,
   scale, rotation, variant-scoped interpolated animation playback, combined-sheet
-  export, and validated atomic writes
+  export, the shared snapshot catalog, and validated atomic writes
   to `mod/data/appearance/unit-layer-layouts.appearance.json`.
-- `gradlew.bat renderLayerAuthoringSheets` → headless combined sheets for every unit in
-  that authoring document under `build/layer-authoring/`.
 - `gradlew.bat deployMod` → generates the gitignored `mod/sounds/` outputs
   (requires `ffmpeg` on `PATH`) and syncs `mod/` into
   `<starsectorDir>/mods/StarsectorMarines/`.
