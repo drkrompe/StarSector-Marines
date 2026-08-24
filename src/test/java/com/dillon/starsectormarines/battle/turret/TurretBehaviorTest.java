@@ -64,9 +64,9 @@ public class TurretBehaviorTest {
         TurretBehavior.INSTANCE.update(turret, sim);
 
         long id = turret;
-        assertEquals(TurretKind.VULCAN.burstCount - 1, sim.turretState().burstRemaining(id),
+        assertEquals(TurretKind.VULCAN.burstCount() - 1, sim.turretState().burstRemaining(id),
                 "the trigger pull fires round 1; the burst pump latches the remaining rounds");
-        assertEquals(TurretKind.VULCAN.burstSpacing, sim.turretState().burstTimer(id), 1e-4f);
+        assertEquals(TurretKind.VULCAN.burstSpacing(), sim.turretState().burstTimer(id), 1e-4f);
         assertEquals(enemy, sim.turretState().burstTargetId(id),
                 "the burst locks onto the acquired target's id");
         assertEquals(0f, sim.turretState().recoilTimer(id), 1e-4f,
@@ -79,19 +79,19 @@ public class TurretBehaviorTest {
     public void hephaestusIsAuthoredAsTheSlowDirectHitAntiArmorCannon() {
         TurretKind cannon = TurretKind.HEPHAESTUS;
 
-        assertEquals("Hephaestus Heavy Cannon", cannon.displayName);
-        assertEquals(32f, cannon.range, 0f);
+        assertEquals("Hephaestus Heavy Cannon", cannon.displayName());
+        assertEquals(32f, cannon.range(), 0f);
         assertEquals(117f, cannon.contactDamage(), 0f);
         assertEquals(24f, cannon.contactPenetration(), 0f);
-        assertEquals(45f, cannon.damage, 0f, "area payload damage");
+        assertEquals(45f, cannon.damage(), 0f, "area payload damage");
         assertEquals(4f, cannon.penetration(), 0f, "area payload penetration");
-        assertEquals(4.5f, cannon.cooldown, 0f);
-        assertEquals(0.65f, cannon.accuracy, 0f);
-        assertEquals(1.6f, cannon.aoeRadius, 0f);
-        assertEquals(30, cannon.wallDamage);
-        assertEquals(1.25f, cannon.wallDamageRadius, 0f);
+        assertEquals(4.5f, cannon.cooldown(), 0f);
+        assertEquals(0.65f, cannon.accuracy(), 0f);
+        assertEquals(1.6f, cannon.aoeRadius(), 0f);
+        assertEquals(30, cannon.wallDamage());
+        assertEquals(1.25f, cannon.wallDamageRadius(), 0f);
         assertSame(ImpactProfile.CANNON_HE, cannon.impactProfile());
-        assertEquals(1, cannon.burstCount);
+        assertEquals(1, cannon.burstCount());
     }
 
     @Test

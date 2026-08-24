@@ -79,14 +79,14 @@ public final class TurretFireSystem implements TurretFireSink {
         float distToTarget = (float) Math.sqrt(
                 (tcx + 0.5f - fromX) * (tcx + 0.5f - fromX) +
                 (tcy + 0.5f - fromY) * (tcy + 0.5f - fromY));
-        float effectiveAccuracy = kind.accuracy;
-        if (kind.indirectFire) {
-            float distNorm = Math.min(1f, distToTarget / Math.max(0.0001f, kind.range));
+        float effectiveAccuracy = kind.accuracy();
+        if (kind.indirectFire()) {
+            float distNorm = Math.min(1f, distToTarget / Math.max(0.0001f, kind.range()));
             float distFalloff = Math.max(0f, 1f - distNorm * distNorm);
-            float losMult = hasLos ? 1f : kind.noLosAccuracyMult;
+            float losMult = hasLos ? 1f : kind.noLosAccuracyMult();
             effectiveAccuracy *= distFalloff * losMult;
         }
-        if (!aerialShooter && kind.arcHeight <= 0f && kind.cellsPerSec() <= 0f) {
+        if (!aerialShooter && kind.arcHeight() <= 0f && kind.cellsPerSec() <= 0f) {
             fireGroundDirect(shooterId, fromX, fromY, shooterFaction,
                     kind, target, distToTarget, effectiveAccuracy);
             return;
@@ -99,9 +99,9 @@ public final class TurretFireSystem implements TurretFireSink {
         }
 
         boolean hit = rng.nextFloat() < effectiveAccuracy;
-        boolean isAoe = kind.aoeRadius > 0f;
-        boolean aerialDelivery = aerialShooter || kind.arcHeight > 0f;
-        float effectiveSpread = kind.hitSpread * Math.min(1f, distToTarget / kind.range);
+        boolean isAoe = kind.aoeRadius() > 0f;
+        boolean aerialDelivery = aerialShooter || kind.arcHeight() > 0f;
+        float effectiveSpread = kind.hitSpread() * Math.min(1f, distToTarget / kind.range());
 
         float toX, toY;
         if (hit) {
@@ -124,21 +124,22 @@ public final class TurretFireSystem implements TurretFireSink {
         if (!isAoe && hit) {
             if (!aerialDelivery || !topology.isRoofIntact(tcx, tcy)) {
                 telemetry.recordRoundHit(shooterId);
-                damageService.applyDamage(target, shooterId, kind.damage, kind.penetration(), 1f);
+                damageService.applyDamage(target, shooterId, kind.damage(), kind.penetration(), 1f);
                 hitResponse.rollFallbackOnHit(target);
             }
         }
 
         if (isAoe) {
-            float flight = kind.flightSec > 0f ? kind.flightSec : SHOT_LIFETIME;
+            float flight = kind.flightSec() > 0f ? kind.flightSec() : SHOT_LIFETIME;
             detonationSink.queue(new PendingDetonation(
                     shooterId,
                     toX, toY, flight,
-                    kind.aoeRadius, kind.damage, kind.penetration(),
-                    kind.wallDamage, shooterFaction, aerialDelivery,
-                    kind.wallDamageRadius, /*spawnDustOnWallBreak*/ true, /*friendlyFireImmune*/ false));
+                    kind.aoeRadius(), kind.damage(), kind.penetration(),
+                    kind.wallDamage(), shooterFaction, aerialDelivery,
+                    kind.wallDamageRadius(), /*spawnDustOnWallBreak*/ true,
+                    /*friendlyFireImmune*/ false, /*authoredAftermath*/ true));
         }
-        float lifetime = kind.flightSec > 0f ? kind.flightSec : SHOT_LIFETIME;
+        float lifetime = kind.flightSec() > 0f ? kind.flightSec() : SHOT_LIFETIME;
         shots.postShot(new ShotEvent(shooterId, fromX, fromY, toX, toY, hit, shooterFaction,
                 lifetime, kind, null, null));
     }
@@ -148,20 +149,20 @@ public final class TurretFireSystem implements TurretFireSink {
                                   Faction shooterFaction, TurretKind kind,
                                   long target, float distToTarget,
                                   float effectiveAccuracy) {
-        float effectiveSpread = kind.hitSpread
-                * Math.min(1f, distToTarget / Math.max(0.0001f, kind.range));
+        float effectiveSpread = kind.hitSpread()
+                * Math.min(1f, distToTarget / Math.max(0.0001f, kind.range()));
         BallisticResolver.Source source = new BallisticResolver.Source(
                 shooterId, fromX, fromY, 0f, shooterFaction);
         BallisticResolver.Resolution res = resolver.resolve(
                 source, target, effectiveAccuracy, effectiveSpread,
                 kind.directRoundVelocity(), rng);
 
-        if (kind.aoeRadius > 0f && res.impacts()) {
+        if (kind.aoeRadius() > 0f && res.impacts()) {
             queueGroundDetonation(shooterId, shooterFaction, kind, res);
-        } else if (kind.aoeRadius <= 0f && res.victimId() != 0L) {
+        } else if (kind.aoeRadius() <= 0f && res.victimId() != 0L) {
             float appliedDamage = res.friendlyHit()
-                    ? kind.damage * BallisticResolver.FRIENDLY_FIRE_DAMAGE_MULT
-                    : kind.damage;
+                    ? kind.damage() * BallisticResolver.FRIENDLY_FIRE_DAMAGE_MULT
+                    : kind.damage();
             shots.queueImpact(new ShotService.PendingImpact(
                     res.victimId(), shooterId, res.flightTime(), appliedDamage,
                     kind.penetration(), /*moraleImpact*/ 1f, res.friendlyHit()));
@@ -184,23 +185,23 @@ public final class TurretFireSystem implements TurretFireSink {
         detonationSink.queue(new PendingDetonation(
                 shooterId,
                 res.endX(), res.endY(), res.flightTime(),
-                kind.aoeRadius, kind.damage, kind.penetration(),
-                kind.wallDamage, shooterFaction, /*aerialDelivery*/ false,
-                kind.wallDamageRadius, /*spawnDustOnWallBreak*/ true,
+                kind.aoeRadius(), kind.damage(), kind.penetration(),
+                kind.wallDamage(), shooterFaction, /*aerialDelivery*/ false,
+                kind.wallDamageRadius(), /*spawnDustOnWallBreak*/ true,
                 /*friendlyFireImmune*/ false,
                 hasDirectPayload ? res.victimId() : 0L,
                 directDamage, hasDirectPayload ? kind.contactPenetration() : 0f,
-                /*burningPlume*/ kind == TurretKind.HEPHAESTUS));
+                /*authoredAftermath*/ true));
     }
 
     private void spawnProjectile(long shooterId, float fromX, float fromY, Faction shooterFaction,
                                  TurretKind kind, int tcx, int tcy, boolean aerialShooter,
                                  float distToTarget, float effectiveAccuracy) {
-        boolean aerialDelivery = aerialShooter || kind.arcHeight > 0f;
+        boolean aerialDelivery = aerialShooter || kind.arcHeight() > 0f;
 
-        float distScale = Math.min(1f, distToTarget / Math.max(0.0001f, kind.range));
+        float distScale = Math.min(1f, distToTarget / Math.max(0.0001f, kind.range()));
         boolean hit = rng.nextFloat() < effectiveAccuracy;
-        float scatterRadius = kind.hitSpread * distScale;
+        float scatterRadius = kind.hitSpread() * distScale;
         if (!hit) {
             // Projectile kinds still resolve the same real accuracy roll as
             // instant/tracer kinds. A miss expands beyond the nominal impact
@@ -219,11 +220,12 @@ public final class TurretFireSystem implements TurretFireSink {
         PendingDetonation onArrival = new PendingDetonation(
                 shooterId,
                 toX, toY, flightTime,
-                kind.aoeRadius, kind.damage, kind.penetration(),
-                kind.wallDamage, shooterFaction, aerialDelivery,
-                kind.wallDamageRadius, /*spawnDustOnWallBreak*/ true, /*friendlyFireImmune*/ false);
+                kind.aoeRadius(), kind.damage(), kind.penetration(),
+                kind.wallDamage(), shooterFaction, aerialDelivery,
+                kind.wallDamageRadius(), /*spawnDustOnWallBreak*/ true,
+                /*friendlyFireImmune*/ false, /*authoredAftermath*/ true);
         shots.queueProjectile(new Projectile(fromX, fromY, toX, toY,
-                kind.hasBoostRamp(), kind.arcHeight,
+                kind.hasBoostRamp(), kind.arcHeight(),
                 shooterFaction, aerialDelivery, flightTime, onArrival));
         shots.postShot(new ShotEvent(shooterId, fromX, fromY, toX, toY, hit, shooterFaction,
                 flightTime, kind, null, null));

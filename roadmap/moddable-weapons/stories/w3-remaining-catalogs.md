@@ -40,12 +40,9 @@ progression stories.
 
 ## Out of scope
 
-- **`TurretKind`.** It was scoped here and has been moved to
-  `w6-emplacements-and-structures.md`. It is not one catalog entry with an
-  awkward field — it is a platform, a mount and a gun fused into one enum,
-  already mounted on three different platforms that disagree about which of
-  its fields mean anything. Migrating it as "just another weapon" would bake
-  that fusion into the schema.
+- **`TurretKind`.** The shipped platform → mount → weapon split is defined in
+  `moddable-weapons-nouns.md`; this story does not reopen that catalog or its
+  id-only compatibility handle.
 - `MechVariant` chassis stats and `MechWeaponComponent` mount geometry.
   Those describe the platform and the hardpoint; they stay where they are.
 - A generic special-equipment schema or utility activation. W3 moves weapons,

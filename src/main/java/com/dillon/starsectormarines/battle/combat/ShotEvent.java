@@ -194,14 +194,14 @@ public class ShotEvent {
     public boolean isIndirectFire() {
         if (mechWeapon != null && mechWeapon.arcHeight > 0f) return true;
         return turretKind != null
-                && (turretKind.indirectFire || turretKind.arcHeight > 0f);
+                && (turretKind.indirectFire() || turretKind.arcHeight() > 0f);
     }
 
     /** Coarse ground-combat loudness used by the squad hearing model. */
     public float noiseMagnitude() {
         if (marineSecondary != null) return 2.5f;
         if (mechWeapon != null) return Math.min(4f, 2f + mechWeapon.aoeRadius);
-        if (turretKind != null) return Math.min(4f, 1.5f + turretKind.aoeRadius);
+        if (turretKind != null) return Math.min(4f, 1.5f + turretKind.aoeRadius());
         if (marineWeapon != null && marineWeapon.impactProfile() == ImpactProfile.KINETIC) {
             return 1.4f;
         }

@@ -148,9 +148,13 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
      * dismissed mid-screen.
      */
     public void dismiss() {
-        if (lastScreenId == null) return;
-        screens.get(lastScreenId).detach();
-        lastScreenId = null;
+        if (lastScreenId != null) {
+            screens.get(lastScreenId).detach();
+            lastScreenId = null;
+        }
+        // The context is abandoned with the dialog. Release a battle even if
+        // the player dismissed mid-fight rather than reaching Results/Loot.
+        ctx.setBattleSimulation(null);
         stopIntelAudio();
     }
 

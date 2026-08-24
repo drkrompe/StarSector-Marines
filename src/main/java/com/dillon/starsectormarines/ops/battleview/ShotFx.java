@@ -115,18 +115,13 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
     }
 
     private static ShotFx deriveTurret(TurretKind k) {
-        // The one render-side per-kind mapping: which turrets ribbon (and its
-        // style). A future contrail-bearing weapon opts in here — the sweep stays
-        // carrier-agnostic (it keys on contrail != null). Mirrors the boost decision,
-        // which the weapon already owns via hasBoostRamp().
-        boolean ribbon = k == TurretKind.LOCUST;
         return new ShotFx(
-                new Sprite(k.projectileSpritePath, k.projectileVisualCells),
-                k.arcHeight,
+                new Sprite(k.projectileSpritePath(), k.projectileVisualCells()),
+                k.arcHeight(),
                 k.hasBoostRamp(),
-                false,                       // turrets carry no engine trail
-                k.smokeTrail && !ribbon,     // ribbon kinds suppress the smoke puff
-                ribbon ? ContrailStyle.MISSILE_SMOKE : null);
+                false,
+                false,
+                null);
     }
 
     private static ShotFx derivePrimary(MarineWeapon w) {
