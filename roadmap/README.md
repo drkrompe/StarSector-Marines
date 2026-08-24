@@ -191,8 +191,8 @@ universe over time, not retrofitted into intel slots.
   nested padding-box clips, retained/nested scrolling, semantic key focus actions,
   explicit pointer capture, and a procedural canvas whose paint/input mappings share
   one geometry authority. U2 is ready for live workbench acceptance; themes,
-  transitions, and MoonLight-style `.mlx` components remain ordered follow-ons under
-  `roadmap/ui/`. Fleet Armory is the first planned production conversion.
+  transitions, and MoonLight-style `.mlx` components remain ordered follow-ons in
+  `ui-nouns.md`. Fleet Armory is the first planned production conversion.
 - **Company view** *(active — C9 and C14 Slices 1–4 shipped)* — the player's force as one legible
   hierarchy, company → squad → fire team → marine, in the fleet and in the field.
   The mod already models captains, persistent six-marine squads, and

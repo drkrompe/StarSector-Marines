@@ -9,8 +9,7 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
 /**
  * Shared accessors a {@link HudPanel} needs to read state and write selection.
  * Implemented by {@link com.dillon.starsectormarines.ops.BattleScreen} (or a
- * thin holder) so panels stay free of direct screen-internal coupling — same
- * shape as the sim's {@code WeaponSimContext}.
+ * thin holder) so panels stay free of direct screen-internal coupling.
  *
  * <p>Selection is the one piece of shared mutable state: panels read it to
  * decide visibility / content, and click handlers write to it. A future

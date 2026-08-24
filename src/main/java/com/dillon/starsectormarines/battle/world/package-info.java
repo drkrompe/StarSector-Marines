@@ -22,6 +22,6 @@
  *           don't grow a generator inside {@code model/} or a data type
  *           inside {@code gen/}.
  *
- * <p>See {@link com.dillon.starsectormarines.battle} and {@code roadmap/mapgen/}.
+ * <p>See {@link com.dillon.starsectormarines.battle} and {@code mapgen-nouns.md}.
  */
 package com.dillon.starsectormarines.battle.world;
