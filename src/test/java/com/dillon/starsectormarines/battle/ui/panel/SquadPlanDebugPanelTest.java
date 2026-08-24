@@ -119,7 +119,7 @@ class SquadPlanDebugPanelTest {
                 25, CompoundState.DEFENDER_HELD, List.of(track),
                 List.of(directive));
 
-        assertEquals("Command FRONT_ADJUST   Reason ADJACENT_TRACK_SUPPORT",
+        assertEquals("Command MARINE FRONT_ADJUST   Reason ADJACENT_TRACK_SUPPORT",
                 SquadPlanDebugPanel.commandSummary(snapshot, directive));
         assertEquals("Track P2→E1   Front F0.72/H0.68   Press 5.4/4.2",
                 SquadPlanDebugPanel.trackSummary(snapshot, directive));

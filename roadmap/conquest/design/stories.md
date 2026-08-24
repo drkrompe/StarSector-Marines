@@ -1,6 +1,6 @@
 # Conquest stories
 
-Status: ACTIVE — front command and terminal keep convergence are in implementation.
+Status: ACTIVE — front command, keep convergence, and defender mobilization are in implementation.
 
 Written: 2026-08-23
 
@@ -12,6 +12,7 @@ Reinforcement feature:
 | Story | State | Intent |
 |---|---|---|
 | `front-command-and-keep-convergence.md` | IN PROGRESS | Replace exclusive strips with inspectable tracks, cross-track support, and a culminating keep assault. |
+| `defender-track-mobilization.md` | IN PROGRESS | Turn faction-honest first contact into bounded patrol mobilization along the shared Conquest tracks. |
 | `progressive-reinforcement.md` | PARKED | Manually verify defender frontline response, safe delivery, and supply degradation across a Conquest push. |
 | `biome-counterattack.md` | PARKED | Manually tune and verify the telegraphed defender counterattack as a territorial swing. |
 

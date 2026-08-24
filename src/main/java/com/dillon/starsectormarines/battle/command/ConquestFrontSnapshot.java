@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.command;
 
 import com.dillon.starsectormarines.battle.command.compound.CompoundService.CompoundState;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.List;
 public record ConquestFrontSnapshot(
         int tick,
         int influenceTick,
+        Faction perspective,
         TraversalAxis axis,
         Phase phase,
         int remainingCompounds,
@@ -27,7 +29,13 @@ public record ConquestFrontSnapshot(
         TRACK_ADVANCE,
         ADJACENT_TRACK_SUPPORT,
         KEEP_APPROACH,
-        NO_ACTIONABLE_TRACK_TARGET
+        NO_ACTIONABLE_TRACK_TARGET,
+        DEFENDER_GARRISON_HOLD,
+        DEFENDER_LOCAL_CONTACT,
+        DEFENDER_TRACK_RESPONSE,
+        DEFENDER_ADJACENT_TRACK_RESPONSE,
+        DEFENDER_RESERVE_HOLD,
+        DEFENDER_EXTERNAL_ASSIGNMENT_PRESERVED
     }
 
     public record TrackState(
@@ -51,11 +59,32 @@ public record ConquestFrontSnapshot(
             int effectiveTrack,
             AssignmentReason reason,
             AssignmentKind assignmentKind,
-            int targetZoneId) { }
+            int targetZoneId,
+            int targetCellX,
+            int targetCellY) {
+
+        public SquadDirective(int squadId, int preferredTrack,
+                              int effectiveTrack, AssignmentReason reason,
+                              AssignmentKind assignmentKind, int targetZoneId) {
+            this(squadId, preferredTrack, effectiveTrack, reason,
+                    assignmentKind, targetZoneId, -1, -1);
+        }
+    }
 
     public ConquestFrontSnapshot {
         tracks = List.copyOf(tracks);
         directives = List.copyOf(directives);
+    }
+
+    /** Back-compatible marine-perspective constructor for fixtures and older callers. */
+    public ConquestFrontSnapshot(int tick, int influenceTick,
+                                 TraversalAxis axis, Phase phase,
+                                 int remainingCompounds, int keepZoneId,
+                                 CompoundState keepState,
+                                 List<TrackState> tracks,
+                                 List<SquadDirective> directives) {
+        this(tick, influenceTick, Faction.MARINE, axis, phase,
+                remainingCompounds, keepZoneId, keepState, tracks, directives);
     }
 
     public SquadDirective directiveFor(int squadId) {
@@ -72,8 +101,13 @@ public record ConquestFrontSnapshot(
         return null;
     }
 
-    public static ConquestFrontSnapshot empty(TraversalAxis axis) {
-        return new ConquestFrontSnapshot(-1, -1, axis, Phase.LANE_ADVANCE,
+    public static ConquestFrontSnapshot empty(Faction perspective,
+                                               TraversalAxis axis) {
+        return new ConquestFrontSnapshot(-1, -1, perspective, axis, Phase.LANE_ADVANCE,
                 -1, -1, null, List.of(), List.of());
+    }
+
+    public static ConquestFrontSnapshot empty(TraversalAxis axis) {
+        return empty(Faction.MARINE, axis);
     }
 }

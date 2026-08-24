@@ -11,7 +11,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalNode;
  *
  * <p>Most fields are slot-typed: not every {@link AssignmentKind} uses every
  * field. {@code CLEAR_ZONE} populates {@link #targetZoneId} (the zone to
- * push into), {@code SWEEP_SECTOR} populates the exact-cell pair, and
+ * push into), {@code SWEEP_SECTOR}/{@code DEFEND_TRACK} populate the exact-cell pair, and
  * {@code HOLD_NODE} populates {@link #targetNode}. Consumers read the field
  * appropriate to {@link #kind} — assigning
  * a node to a {@code CLEAR_ZONE} task has no defined meaning and is ignored.
@@ -52,6 +52,12 @@ public record ObjectiveAssignment(
     /** Assault search waypoint. The commander retains sector ownership; the squad receives only a cell to investigate. */
     public static ObjectiveAssignment sweepSector(int squadId, int cellX, int cellY) {
         return new ObjectiveAssignment(squadId, AssignmentKind.SWEEP_SECTOR,
+                UNSCOPED, null, UNSCOPED, cellX, cellY);
+    }
+
+    /** Coarse Conquest defensive rally. Carries an own-force destination, never hostile identity. */
+    public static ObjectiveAssignment defendTrack(int squadId, int cellX, int cellY) {
+        return new ObjectiveAssignment(squadId, AssignmentKind.DEFEND_TRACK,
                 UNSCOPED, null, UNSCOPED, cellX, cellY);
     }
 
