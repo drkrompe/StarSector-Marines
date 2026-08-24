@@ -519,6 +519,18 @@ public final class UnitRenderService implements RenderSystem {
         AnimationClip clip = layouts.clip("marine-line", variantId, animationId);
         if (clip == null) return null;
         LayerPose sampled = clip.sample(phase);
+        if (moving && (pose == LayeredAppearance.POSE_AIMED
+                || pose == LayeredAppearance.POSE_FIRING)) {
+            // A primary-weapon action owns the upper body, but it must not
+            // erase locomotion while the simulation is still translating the
+            // marine. Keep the action body/head/weapon and take both feet from
+            // the current distance-driven stride sample.
+            AnimationClip walking = layouts.clip("marine-line", "rifle", "walking");
+            if (walking != null) {
+                sampled = sampled.withLayersFrom(walking.sample(locomotionPhase),
+                        "left-foot", "right-foot");
+            }
+        }
         boolean enteringSecondary = pose == LayeredAppearance.POSE_ROCKET_AIM
                 || pose == LayeredAppearance.POSE_AMR_AIM
                 || pose == LayeredAppearance.POSE_SMOKE_THROW

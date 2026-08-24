@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class UnitRenderServiceLayerPoseTest {
@@ -56,6 +57,30 @@ class UnitRenderServiceLayerPoseTest {
                         .sample(LayeredAppearance.ACTION_ENTRY_BLEND_PHASE)
                         .layer("body").angleDegrees(),
                 settled.layer("body").angleDegrees(), 0.000001f);
+    }
+
+    @Test
+    void movingPrimaryActionKeepsDistanceDrivenStrideFeet() throws Exception {
+        UnitLayerLayouts layouts = UnitLayerLayouts.parse(new JSONObject(Files.readString(
+                Path.of("mod/data/appearance/unit-layer-layouts.appearance.json"))));
+        float locomotionPhase = 0.125f;
+        float actionPhase = 0.5f;
+        LayerPose stride = layouts.clip("marine-line", "rifle", "walking")
+                .sample(locomotionPhase);
+        LayerPose aimed = layouts.clip("marine-line", "rifle", "aiming")
+                .sample(actionPhase);
+
+        LayerPose movingAim = UnitRenderService.infantryPose(layouts, true, null,
+                LayeredAppearance.POSE_AIMED, locomotionPhase, actionPhase,
+                LayeredAppearance.FLAG_MOVING);
+
+        assertEquals(stride.layer("left-foot"), movingAim.layer("left-foot"));
+        assertEquals(stride.layer("right-foot"), movingAim.layer("right-foot"));
+        assertEquals(aimed.layer("body"), movingAim.layer("body"),
+                "primary action retains upper-body authority");
+        assertEquals(aimed.layer("primary"), movingAim.layer("primary"));
+        assertNotEquals(aimed.layer("left-foot"), movingAim.layer("left-foot"),
+                "moving aim must not collapse to planted action feet");
     }
 
     private static void assertSpecial(UnitLayerLayouts layouts,
