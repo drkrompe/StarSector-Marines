@@ -38,7 +38,7 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
  * disables −; negotiated == baseline disables +). Track click jumps to that
  * percentage (snapped to {@link #SNAP}).
  *
- * <p>Per {@code roadmap/campaign/contracts/design/contracts-nouns.md}: cash bonus
+ * <p>Per {@code contracts-nouns.md}: cash bonus
  * curve = {@code (baseline − negotiated) / 2}.
  */
 public class SalvageSliderWidget extends BaseWidget {

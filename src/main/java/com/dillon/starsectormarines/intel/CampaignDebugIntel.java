@@ -693,7 +693,7 @@ public class CampaignDebugIntel extends BaseIntelPlugin {
      *  that needs a struck industry from a real mission resolution, which this pure
      *  contract-state poke has no source for. The debug divergence and its
      *  playtest-value follow-up are tracked in
-     *  {@code roadmap/campaign/living-world/stories/debug-political-contract-completion.md}.
+     *  {@code debug-political-contract-completion.md}.
      */
     private static void forceComplete(CampaignState s, long id) {
         int row = s.contractIndex(id);

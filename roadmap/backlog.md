@@ -19,7 +19,7 @@ https://davidkbd.itch.io/eternity-metal-scfi-music-pack
   deferred Personnel review (`055abb97`, `d780e345`, `7a32e771`).
 - **Roster cap scaling** — replace hardcoded 10 with `f(playerLevel)`.
 - ~~**Trait mechanics**~~ — **absorbed into the progression track** as
-  [`progression/stories/s10-trait-mechanics.md`](progression/stories/s10-trait-mechanics.md),
+  `s10-trait-mechanics.md`,
   which also covers the missing trait UI and the level-up acquisition path
   the `Trait` Javadoc already promises. Six of eleven traits are still
   inert enums.
@@ -49,7 +49,7 @@ https://davidkbd.itch.io/eternity-metal-scfi-music-pack
   `GroundParallaxPipeline`, and `BridgeRenderer` each derive the same
   quantity by hand as `Display.getWidth() / getScreenWidth()`; consolidate
   rather than adding a fourth. Scoped as
-  [`progression/stories/s8-roster-legibility.md`](progression/stories/s8-roster-legibility.md)
+  `s8-roster-legibility.md`
   Slice 0, but worth landing independently.
 - ~~**`HoldPost` double-ticks the attack cooldown**~~ — **FIXED `b418d835`
   (2026-07-01, FiringSystem sweep)**, along with two more instances the epic's

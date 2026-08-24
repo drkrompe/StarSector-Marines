@@ -50,7 +50,7 @@ import java.util.List;
  *
  * <p>The state is persisted; the {@link CampaignSystem} list is not. Systems
  * are pure behavior, reconstructed from {@link #defaultSystems()} on every
- * game load. See <code>roadmap/campaign/design/architecture.md</code>.
+ * game load. See <code>architecture.md</code>.
  *
  * <p>{@link #advance(float)} fires the daily tick when the sector clock crosses
  * a day boundary, then walks the systems list in registration order. The

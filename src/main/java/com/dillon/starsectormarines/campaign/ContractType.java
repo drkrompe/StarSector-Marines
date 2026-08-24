@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.campaign;
 
 /**
  * Contract archetype — drives generation, payment structure, work mode, and
- * settlement policy per <code>roadmap/campaign/contracts/design/contracts-nouns.md</code>.
+ * settlement policy per <code>contracts-nouns.md</code>.
  *
  * <p>Two modes hang off this:
  * <ul>

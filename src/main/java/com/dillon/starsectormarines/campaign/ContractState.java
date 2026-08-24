@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.campaign;
 
 /**
  * Lifecycle state of a {@link ContractType contract} — see
- * <code>roadmap/campaign/contracts/design/contracts-nouns.md</code>.
+ * <code>contracts-nouns.md</code>.
  *
  * <p>{@code OFFERED} is the pre-commitment state and may expire. Accepted
  * stationing work remains {@code ACTIVE}; phased missions use

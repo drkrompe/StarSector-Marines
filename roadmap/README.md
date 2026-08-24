@@ -69,7 +69,7 @@ universe over time, not retrofitted into intel slots.
   this layer. The first green-company ladder now ships two Independent jobs:
   reinforce a fixed local militia line, then return for a joint counterattack,
   both against militia-only bandits with no heavy support. See
-  [`campaign/`](campaign/) and `early-operation-nouns.md`.
+  `campaign-nouns.md` and `early-operation-nouns.md`.
 - **Map generation** — room-purpose refactor complete (Slices A–D), with that
   substrate now paying off in both station layouts and ground maps. Tactical
   commercial interiors ship purpose-labeled sales floors/stockrooms plus real
