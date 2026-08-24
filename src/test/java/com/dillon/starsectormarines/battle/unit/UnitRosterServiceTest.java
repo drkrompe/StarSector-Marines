@@ -253,6 +253,23 @@ public class UnitRosterServiceTest {
     }
 
     @Test
+    public void hpZeroRemainsRosterLiveUntilRelease() {
+        UnitRosterService r = roster();
+        long unit = r.spawn(unit("pending-death"));
+
+        r.world().setHp(unit, 0f);
+
+        assertFalse(r.isAliveById(unit), "hp liveness ends immediately");
+        assertTrue(r.isLive(unit), "roster liveness ends only at release");
+        assertEquals(0, r.indexOf(unit));
+
+        r.release(unit);
+
+        assertFalse(r.isLive(unit));
+        assertEquals(UnitRosterService.INVALID_INDEX, r.indexOf(unit));
+    }
+
+    @Test
     public void allocateSeedsHealthIntoTheEntityWorldFromUnitsSeedFields() {
         UnitRosterService r = roster();
         World w = r.world();

@@ -119,7 +119,7 @@ public final class UnitRosterService {
     private long[] dense = new long[INITIAL_CAPACITY];
     private int liveCount = 0;
     private long nextId = 1L;
-    private final Long2IntOpenHashMap indexById = new Long2IntOpenHashMap();
+    private final RosterSlotIndex indexById = new RosterSlotIndex();
 
     /**
      * Dense live-only faction slices. Identity faction is immutable for a
@@ -204,10 +204,6 @@ public final class UnitRosterService {
     public UnitRosterService(UnitSpatialIndex unitIndex, DamageService damageService) {
         this.unitIndex = unitIndex;
         this.damageService = damageService;
-        // Make missing-key lookups return INVALID_INDEX; the remove path relies on
-        // this too (Long2IntOpenHashMap.remove returns the default when the key is
-        // absent), so a duplicate release is a no-op without the caller checking.
-        indexById.defaultReturnValue(INVALID_INDEX);
         factionIndexById.defaultReturnValue(INVALID_INDEX);
     }
 
@@ -838,7 +834,7 @@ public final class UnitRosterService {
 
     /** True iff {@code id} is currently in the roster (allocated and not yet released). */
     public boolean isLive(long id) {
-        return indexById.containsKey(id);
+        return indexById.get(id) != INVALID_INDEX;
     }
 
     /**
