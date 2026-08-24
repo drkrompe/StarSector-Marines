@@ -7,7 +7,11 @@ import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef;
 import org.junit.jupiter.api.Test;
 
+import java.nio.file.Path;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class ArmoryLoadoutPreviewCanvasTest {
 
@@ -35,5 +39,23 @@ class ArmoryLoadoutPreviewCanvasTest {
             LayeredArmorFamily family = ArmoryLoadoutPreviewComposer.armorFamily(armor);
             assertEquals(armor.name(), family.name());
         }
+    }
+
+    @Test
+    void selectedMarinePreviewCyclesTheAuthoredIdleClip() {
+        HeadlessArmoryPreviewRenderer renderer =
+                new HeadlessArmoryPreviewRenderer(Path.of("mod"));
+
+        var settled = ArmoryLoadoutPreviewComposer.idlePose(
+                renderer.assets().unitLayerLayouts(), 0f);
+        var breathing = ArmoryLoadoutPreviewComposer.idlePose(
+                renderer.assets().unitLayerLayouts(), 0.9f);
+        var looped = ArmoryLoadoutPreviewComposer.idlePose(
+                renderer.assets().unitLayerLayouts(), 1.8f);
+
+        assertNotNull(settled);
+        assertNotNull(breathing);
+        assertNotEquals(settled.layer("head"), breathing.layer("head"));
+        assertEquals(settled.layer("head"), looped.layer("head"));
     }
 }
