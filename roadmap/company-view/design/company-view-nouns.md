@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — defined the Armory's fire-team viewer as named marine cards with an on-demand loadout comparison tray.
+Updated: 2026-08-24 — defined the Armory's fire-team viewer as named, idling marine cards with an on-demand loadout comparison tray.
 
 ## Purpose
 
@@ -121,7 +121,9 @@ combines the persistent marine's rank, status, aptitude, experience and career w
 the candidate billet's role and equipment. Weapon figures are resolved through the
 same family, grade and individual-profile combat rules used in battle; armour and
 special issue remain equally explicit. Vacant billets remain visibly vacant rather
-than acquiring a fixture identity.
+than acquiring a fixture identity. Live selected-marine portraits cycle the authored
+idle clip with a small per-slot phase offset; template selectors and deterministic
+headless evidence hold a controlled phase so scanning and comparison remain stable.
 
 Template choice is an on-demand editing control inside that viewer, not a permanent
 peer column or a persistent part of its ordinary reading state. **Change Loadout**

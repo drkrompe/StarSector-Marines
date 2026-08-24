@@ -4,8 +4,11 @@ Status: PLANNED — requires the target profile to be the sole target-market rea
 
 Written: 2026-08-24
 
-Read `reinforcement-nouns.md`, `campaign-battle-bridge-nouns.md`, and
-`progression-nouns.md` before implementing this story.
+Updated: 2026-08-24 — replaced generic armor treatment with shared powered-armor roles and concrete faction issue.
+
+Read `reinforcement-nouns.md`, `campaign-battle-bridge-nouns.md`,
+`progression-nouns.md`, and `powered-assault-armor-roles.md` before implementing
+this story.
 
 ## Problem
 
@@ -24,9 +27,10 @@ initial forces, authored garrisons, convoy passengers, shuttle payloads,
 walk-ins, and eligible heavy support.
 
 The profile chooses thematic bulk/elite identities, equipment family and grade
-weights, armor treatment, special-equipment availability, and optional heavy
-support. It does not choose force count, risk, tier, reinforcement tickets,
-delivery means, mission objective, or AI behavior.
+weights, concrete armor-pattern weights from `powered-assault-armor-roles.md`,
+special-equipment availability, and optional heavy support. It does not choose
+force count, risk, tier, reinforcement tickets, delivery means, mission
+objective, or AI behavior.
 
 ## Core-faction catalog
 
@@ -34,14 +38,14 @@ The first mergeable catalog covers all core factions and an explicit fallback:
 
 | Faction | Bulk and elite character | Equipment/composition direction |
 | --- | --- | --- |
-| Hegemony | Disciplined armored regulars with durable elites | Rugged ballistic families, dependable grades, heavier protection, conventional heavy support |
-| Tri-Tachyon | Compact corporate-security teams with high-quality specialists | Energy/high-tech side-grades, smoke and precision tools; compact identity without changing tier-authored count |
+| Hegemony | Disciplined armored regulars with durable elites | Rugged ballistic families, dependable grades, standardized line armor, and utilitarian heavy battlesuits; light recon remains specialist issue |
+| Tri-Tachyon | Compact corporate-security teams with high-quality specialists | Energy/high-tech side-grades, smoke and precision tools, composite light/line suits, and drone-paired specialists; compact identity without changing tier-authored count |
 | Persean League | Balanced line infantry and flexible local regulars | Midline family mix, dependable service/milspec issue, broad support rather than one extreme |
-| Luddic Church | Local militia stiffened by well-equipped faithful | Rugged low-tech weapons, protective gear concentrated in elites, limited taboo equipment |
-| Luddic Path | Fanatical assault cells and demolition specialists | Crude/high-output weapons, explosives and breach tools, erratic quality, no hidden immunity to their risks |
-| Sindrian Diktat | Rigid state-security troops and selected guard formations | Mixed ballistic/energy issue, concentrated elite equipment, fuel-state industrial treatment |
-| Pirates | Irregular raiders with dangerous specialists | Scavenged family mix, broad grade variance, improvised explosives and outlaw armor |
-| Independents | Local militia with mercenary or professional stiffening | Existing neutral baseline and widest compatibility fallback |
+| Luddic Church | Local militia stiffened by well-equipped faithful | Rugged low-tech weapons, maintained legacy line suits, and artisan heavy armor concentrated among spiritually sanctioned elites; limited taboo equipment |
+| Luddic Path | Fanatical assault cells and demolition specialists | Crude/high-output weapons, explosives, industrial exoskeletons, welded light/line plate, and rare brutal heavy rigs; no hidden immunity to their risks |
+| Sindrian Diktat | Rigid state-security troops and selected guard formations | Mixed ballistic/energy issue, state-security line suits, prestige heavy guard armor, and fuel-state industrial treatment |
+| Pirates | Irregular raiders with dangerous specialists | Scavenged family mix, broad grade variance, stolen recon suits, civilian load frames, scrap plate, and dangerously modified heavy rigs |
+| Independents | Local militia with mercenary or professional stiffening | Existing neutral baseline with mixed light/line patterns, acquired heavy suits, and the widest compatibility fallback |
 
 Unknown and modded factions use the Independent profile unless merged content
 declares their own entry. Missing art or equipment references fail validation
@@ -56,6 +60,10 @@ loudly; an unknown faction id itself does not fail the battle.
   family remains role, grade remains quality, armor remains defense, and profile
   weights choose among those existing authorities. Do not create a full
   faction x weapon x grade enum cross-product.
+- Armor selection chooses concrete patterns whose light, line, or heavy role
+  remains distinct from encounter tier. A high-risk profile may admit more
+  heavy suits, but it may also admit high-end light specialists; risk does not
+  mechanically promote every defender into the next armor weight.
 - Player marines continue to use their persisted individual kits. The target
   faction profile is defender content, not a way to overwrite player stock or
   templates.
@@ -64,6 +72,9 @@ loudly; an unknown faction id itself does not fail the battle.
   or substitute its own payload theme.
 - Special-equipment activation remains faction-neutral. The profile controls
   availability, never a hidden faction-only execution rule.
+- Neural uplinks, drone integration, combat stims, and optical camouflage exist
+  only where the selected pattern or composition has an implemented typed
+  capability. Faction prose must not create invisible blanket modifiers.
 
 ## Acceptance
 
@@ -73,6 +84,10 @@ loudly; an unknown faction id itself does not fail the battle.
 - Each core profile is observably distinct in at least composition, equipment,
   or protection without changing the operation tier's force count or the
   reinforcement means ladder.
+- Hegemony, Tri-Tachyon, Church, Path, and pirate fixtures demonstrate their
+  distinct suit-role weights and concrete patterns; every selected heavy
+  battlesuit still enters the ordinary infantry lifecycle rather than the mech
+  or vehicle roster.
 - Unknown/modded factions produce the documented Independent baseline and can
   override it through merged data without Java changes.
 - Risk and target hardening still decide whether elite/heavy candidates are
@@ -91,5 +106,7 @@ loudly; an unknown faction id itself does not fail the battle.
 - Faction facility geometry — `target-faction-facility-treatment.md`.
 - Player schematic acquisition and factional recipe provenance —
   `s6-unlock-ladder-expansion.md`.
+- Armor-role mechanics and concrete pattern catalog —
+  `powered-assault-armor-roles.md`.
 - New mech chassis or vehicle families. Existing heavy-support eligibility may
   choose only currently authored content until those owning features expand it.

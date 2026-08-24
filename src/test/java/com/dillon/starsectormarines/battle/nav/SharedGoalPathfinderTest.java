@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SharedGoalPathfinderTest {
 
@@ -14,7 +15,7 @@ class SharedGoalPathfinderTest {
         NavigationGrid grid = openGrid(4, 1);
         byte[] occupancy = new byte[4];
         SharedGoalPathfinder pathfinder =
-                new SharedGoalPathfinder(grid, occupancy);
+                new SharedGoalPathfinder(grid, occupancy, 1);
         pathfinder.beginSnapshot();
 
         assertArrayEquals(new int[]{1, 0},
@@ -65,11 +66,11 @@ class SharedGoalPathfinderTest {
     }
 
     @Test
-    void fieldIsReusedWithinSnapshotAndRebuiltForNewOccupancySnapshot() {
+    void maxAgeOneRebuildsForEveryNewOccupancySnapshot() {
         NavigationGrid grid = openGrid(5, 3);
         byte[] occupancy = new byte[15];
         SharedGoalPathfinder pathfinder =
-                new SharedGoalPathfinder(grid, occupancy);
+                new SharedGoalPathfinder(grid, occupancy, 1);
         pathfinder.beginSnapshot();
 
         int[] first = pathfinder.findPath(0, 1, 4, 1, false);
@@ -82,6 +83,76 @@ class SharedGoalPathfinderTest {
         int[] rebuilt = pathfinder.findPath(0, 1, 4, 1, false);
         assertFalse(contains(rebuilt, 2, 1),
                 "the next snapshot must rebuild against the new occupancy map");
+    }
+
+    @Test
+    void retainedFieldKeepsFrozenOccupancyUntilExactExpiry() {
+        NavigationGrid grid = openGrid(5, 3);
+        byte[] occupancy = new byte[15];
+        SharedGoalPathfinder pathfinder =
+                new SharedGoalPathfinder(grid, occupancy, 3);
+        pathfinder.beginSnapshot();
+        int[] first = pathfinder.findPath(0, 1, 4, 1, false);
+        assertTrue(contains(first, 2, 1));
+        pathfinder.endSnapshot();
+
+        occupancy[grid.index(2, 1)] = 1;
+        pathfinder.beginSnapshot();
+        assertArrayEquals(first,
+                pathfinder.findPath(0, 1, 4, 1, false));
+        pathfinder.endSnapshot();
+        pathfinder.beginSnapshot();
+        assertArrayEquals(first,
+                pathfinder.findPath(0, 1, 4, 1, false),
+                "age two remains below the max age of three");
+        pathfinder.endSnapshot();
+
+        pathfinder.beginSnapshot();
+        int[] rebuilt = pathfinder.findPath(0, 1, 4, 1, false);
+        assertFalse(contains(rebuilt, 2, 1),
+                "age three expires and rebuilds against current occupancy");
+    }
+
+    @Test
+    void explicitInvalidationRebuildsBeforeCadenceExpiry() {
+        NavigationGrid grid = openGrid(5, 3);
+        byte[] occupancy = new byte[15];
+        SharedGoalPathfinder pathfinder =
+                new SharedGoalPathfinder(grid, occupancy, 15);
+        pathfinder.beginSnapshot();
+        int[] first = pathfinder.findPath(0, 1, 4, 1, false);
+        assertTrue(contains(first, 2, 1));
+        pathfinder.endSnapshot();
+
+        occupancy[grid.index(2, 1)] = 1;
+        pathfinder.invalidateAll();
+        pathfinder.beginSnapshot();
+
+        assertFalse(contains(
+                        pathfinder.findPath(0, 1, 4, 1, false), 2, 1),
+                "topology invalidation must not wait for occupancy cadence");
+    }
+
+    @Test
+    void retainedCacheIsBoundedAtSerialSnapshotBoundary() {
+        NavigationGrid grid = openGrid(42, 1);
+        SharedGoalPathfinder pathfinder =
+                new SharedGoalPathfinder(grid, new byte[42], 100);
+        pathfinder.beginSnapshot();
+        for (int goalX = 1; goalX <= 40; goalX++) {
+            pathfinder.findPath(0, 0, goalX, 0, false);
+        }
+        assertEquals(40, pathfinder.retainedFieldCountForTest());
+
+        pathfinder.endSnapshot();
+
+        assertEquals(32, pathfinder.retainedFieldCountForTest());
+    }
+
+    @Test
+    void productionCadenceRetainsFieldsForFifteenSnapshots() {
+        assertEquals(15,
+                SharedGoalPathfinder.DEFAULT_MAX_BUILD_AGE_SNAPSHOTS);
     }
 
     @Test
