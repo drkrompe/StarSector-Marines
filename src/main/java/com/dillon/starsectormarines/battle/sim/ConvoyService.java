@@ -68,7 +68,7 @@ public final class ConvoyService {
         float spawnX = mission.inboundX[0], spawnY = mission.inboundY[0];
         float nextX = mission.inboundX[1], nextY = mission.inboundY[1];
         body.teleport(spawnX, spawnY, AirBody.facingToward(nextX - spawnX, nextY - spawnY));
-        GroundTurret turret = type.hasTurretWeapon() ? new GroundTurret(type.turretKind.startingAmmo) : null;
+        GroundTurret turret = type.hasTurretWeapon() ? new GroundTurret(type.turretKind.startingAmmo()) : null;
 
         // VEHICLE_MISSION (mission bag) + VEHICLE_CONTROL (motion-control bag) are universal;
         // GROUND_TURRET is present only when armed.

@@ -69,9 +69,9 @@ public class ShotFxTest {
         for (TurretKind k : TurretKind.values()) {
             ShotFx fx = ShotFx.of(turretShot(k));
             Sprite body = assertSprite(fx, "turret " + k);
-            assertEquals(k.projectileSpritePath, body.spritePath(), "sprite path for " + k);
-            assertEquals(k.projectileVisualCells, body.visualCells(), 0f, "visualCells for " + k);
-            assertEquals(k.arcHeight, fx.arcHeight(), 0f, "arcHeight for " + k);
+            assertEquals(k.projectileSpritePath(), body.spritePath(), "sprite path for " + k);
+            assertEquals(k.projectileVisualCells(), body.visualCells(), 0f, "visualCells for " + k);
+            assertEquals(k.arcHeight(), fx.arcHeight(), 0f, "arcHeight for " + k);
             assertEquals(k.hasBoostRamp(), fx.boostRamp(), "boostRamp for " + k);
             assertFalse(fx.engineTrail(), "turrets carry no engine trail: " + k);
             assertTrue(fx.travels(), "turret body travels: " + k);
@@ -79,7 +79,7 @@ public class ShotFxTest {
             boolean ribbon = k == TurretKind.LOCUST;
             assertEquals(ribbon ? ContrailStyle.MISSILE_SMOKE : null, fx.contrail(), "contrail for " + k);
             // Ribbon kinds suppress the smoke puff; otherwise smokeTrail tracks the kind's flag.
-            assertEquals(k.smokeTrail && !ribbon, fx.smokeTrail(), "smokeTrail for " + k);
+            assertEquals(k.smokeTrail() && !ribbon, fx.smokeTrail(), "smokeTrail for " + k);
         }
     }
 

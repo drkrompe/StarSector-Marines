@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.combathybrid.probe.CombatHybridCampaignPlugi
 import com.dillon.starsectormarines.combathybrid.probe.CombatHybridInputListener;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.intel.BridgeIntel;
 import com.dillon.starsectormarines.intel.CampaignDebugIntel;
@@ -55,6 +56,9 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         // consumer that walks the catalog at load time — BattleSprites preloads every
         // primary's projectile sprite through it.
         WeaponRegistry.loadBuiltins();
+        // Turret mounts and static platforms resolve weapon ids eagerly, so this
+        // catalog necessarily follows the weapon registry.
+        TurretCatalogRegistry.loadBuiltins();
     }
 
     @Override

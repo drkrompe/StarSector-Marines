@@ -121,11 +121,11 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
         // which the weapon already owns via hasBoostRamp().
         boolean ribbon = k == TurretKind.LOCUST;
         return new ShotFx(
-                new Sprite(k.projectileSpritePath, k.projectileVisualCells),
-                k.arcHeight,
+                new Sprite(k.projectileSpritePath(), k.projectileVisualCells()),
+                k.arcHeight(),
                 k.hasBoostRamp(),
                 false,                       // turrets carry no engine trail
-                k.smokeTrail && !ribbon,     // ribbon kinds suppress the smoke puff
+                k.smokeTrail() && !ribbon,     // ribbon kinds suppress the smoke puff
                 ribbon ? ContrailStyle.MISSILE_SMOKE : null);
     }
 
