@@ -1,2 +1,4 @@
 rootProject.name = 'starsectormarines'
 include ':asset-pipeline'
+include ':layer-authoring'
+project(':layer-authoring').projectDir = file('tools/layer-authoring')

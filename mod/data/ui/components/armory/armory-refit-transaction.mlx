@@ -40,21 +40,21 @@
   .refit-transaction {
     flex-direction: column;
     flex-grow: 1;
-    padding: 10px;
-    gap: 7px;
+    padding: 8px;
+    gap: 5px;
     overflow: hidden;
   }
 
   .label { overflow: hidden; }
   .heading { font-family: heading; }
-  #transaction-heading { height: 30px; }
-  #target-summary, #candidate-summary { height: 24px; padding: 8px; }
-  #billet-heading, #issue-heading, #preview-heading { height: 24px; }
+  #transaction-heading { height: 20px; }
+  #target-summary, #candidate-summary { height: 20px; padding: 3px 6px; }
+  #billet-heading, #issue-heading, #preview-heading { height: 18px; }
 
   #preview-workspace {
     flex-direction: row;
-    height: 238px;
-    gap: 8px;
+    height: 190px;
+    gap: 6px;
     overflow: hidden;
   }
 
@@ -62,13 +62,13 @@
     flex-direction: column;
     width: 0px;
     flex-grow: 6;
-    padding: 6px;
-    gap: 4px;
+    padding: 4px;
+    gap: 3px;
     border-width: 1px;
     overflow: hidden;
   }
 
-  #preview-summary { height: 22px; }
+  #preview-summary { height: 18px; }
 
   #loadout-preview {
     width: 0px;
@@ -80,7 +80,7 @@
 
   #preview-legend {
     flex-direction: row;
-    height: 18px;
+    height: 15px;
   }
 
   #preview-legend .label {
@@ -94,21 +94,21 @@
     flex-direction: column;
     width: 0px;
     flex-grow: 4;
-    gap: 6px;
+    gap: 4px;
     overflow: hidden;
   }
 
   .billet-list {
     flex-direction: column;
     flex-grow: 1;
-    gap: 6px;
-    padding: 2px;
+    gap: 4px;
+    padding: 1px;
     overflow: scroll;
   }
 
   .billet-row {
-    height: 42px;
-    padding: 7px 9px;
+    height: 26px;
+    padding: 5px 7px;
     border-width: 1px;
     overflow: hidden;
     background-color: #0e1621;
@@ -119,16 +119,16 @@
 
   .detail-list {
     flex-direction: column;
-    gap: 6px;
-    padding: 2px;
+    gap: 4px;
+    padding: 1px;
     overflow: scroll;
   }
 
   #gear-list { flex-grow: 1; }
 
   .detail-row {
-    height: 28px;
-    padding: 7px 9px;
+    height: 22px;
+    padding: 3px 6px;
     border-width: 1px;
     overflow: hidden;
     background-color: #0e1621;
@@ -136,21 +136,21 @@
   }
 
   .transaction-result {
-    height: 24px;
-    padding: 9px;
+    height: 22px;
+    padding: 4px 6px;
     border-width: 1px;
     overflow: hidden;
   }
 
   #apply-row {
     flex-direction: row;
-    height: 46px;
-    gap: 10px;
+    height: 34px;
+    gap: 6px;
   }
 
   .apply-button {
-    width: 270px;
-    padding: 6px 12px;
+    width: 220px;
+    padding: 4px 8px;
     border-width: 1px;
     overflow: hidden;
     font-family: body;
@@ -160,7 +160,7 @@
   .feedback {
     width: 0px;
     flex-grow: 1;
-    padding: 8px;
+    padding: 4px 6px;
     overflow: hidden;
   }
 </style>

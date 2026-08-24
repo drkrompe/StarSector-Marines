@@ -71,7 +71,7 @@ public final class FleetArmoryOverviewViewModel {
                 counts.mechSquads + (counts.mechSquads == 1
                         ? " mech squad" : " mech squads"),
                 counts.readyMarines + " / " + counts.authorizedMarines + " marines RTD",
-                stationed, "Open company armory", openPrimaryCompany);
+                stationed, "Open Armory", openPrimaryCompany);
     }
 
     private CompanyCounts counts() {

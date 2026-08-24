@@ -1,0 +1,55 @@
+plugins {
+    id 'application'
+}
+
+def starsectorDir = rootProject.file(rootProject.providers.gradleProperty('starsectorDir').get())
+def starsectorCore = new File(starsectorDir, 'starsector-core')
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 17
+    options.encoding = 'UTF-8'
+}
+
+dependencies {
+    implementation files(new File(starsectorCore, 'json.jar'))
+    testImplementation platform('org.junit:junit-bom:6.0.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+application {
+    mainClass = 'com.dillon.starsectormarines.tools.layerauthoring.LayerAuthoringWorkbench'
+}
+
+tasks.named('run') {
+    workingDir rootProject.projectDir
+    args rootProject.projectDir.absolutePath
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+    workingDir rootProject.projectDir
+}
+
+tasks.register('renderSheets', JavaExec) {
+    group = 'verification'
+    description = 'Render all unit-layer-layout sheets to build/layer-authoring'
+    dependsOn tasks.named('classes')
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = application.mainClass
+    workingDir rootProject.projectDir
+    args rootProject.projectDir.absolutePath, '--export-all',
+            rootProject.layout.buildDirectory.dir('layer-authoring').get().asFile.absolutePath
+    outputs.dir rootProject.layout.buildDirectory.dir('layer-authoring')
+    outputs.upToDateWhen { false }
+}

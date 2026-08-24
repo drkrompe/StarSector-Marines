@@ -4,8 +4,10 @@ Status: PARKED — contract only after a measured scale trigger.
 
 Written: 2026-08-23
 
-Read `battle-render-nouns.md` and `large-map-scaling.md` before reviving this
-story.
+Updated: 2026-08-24 — the durable residency boundary now lives entirely in
+`battle-render-nouns.md`.
+
+Read `battle-render-nouns.md` before reviving this story.
 
 ## Current substrate
 

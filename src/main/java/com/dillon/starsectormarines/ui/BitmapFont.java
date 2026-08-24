@@ -52,12 +52,15 @@ public class BitmapFont {
     private final String fntPath;
     private final Map<Integer, Glyph> glyphs = new HashMap<>();
     private SpriteAPI page;
+    private String pagePath;
     private int lineHeight;
     private int base;
     private int scaleW;
     private int scaleH;
-    private boolean loaded;
-    private boolean failed;
+    private boolean metricsLoaded;
+    private boolean metricsFailed;
+    private boolean pageLoaded;
+    private boolean pageFailed;
 
     public BitmapFont(String fntPath) {
         this.fntPath = fntPath;
@@ -65,29 +68,75 @@ public class BitmapFont {
 
     /** Returns true if the font is ready to render after this call. */
     public boolean ensureLoaded() {
-        if (loaded) return true;
-        if (failed) return false;
+        if (pageLoaded) return true;
+        if (pageFailed || !ensureMetricsLoaded()) return false;
         try {
-            String text = Global.getSettings().loadText(fntPath);
-            String pageRelative = parse(text);
-            String dir = fntPath.substring(0, fntPath.lastIndexOf('/') + 1);
-            String pagePath = dir + pageRelative;
             Global.getSettings().loadTexture(pagePath);
             page = Global.getSettings().getSprite(pagePath);
             if (page == null) {
                 LOG.error("BitmapFont: page sprite missing for " + fntPath + " (" + pagePath + ")");
-                failed = true;
+                pageFailed = true;
                 return false;
             }
-            loaded = true;
+            pageLoaded = true;
             LOG.info("BitmapFont: loaded " + fntPath + " (" + glyphs.size()
                     + " glyphs, lineHeight=" + lineHeight + ", base=" + base + ")");
             return true;
         } catch (Exception e) {
             LOG.error("BitmapFont: failed to load " + fntPath, e);
-            failed = true;
+            pageFailed = true;
             return false;
         }
+    }
+
+    /** Loads only BMFont geometry, which is sufficient for layout and headless paint. */
+    public boolean ensureMetricsLoaded() {
+        if (metricsLoaded) return true;
+        if (metricsFailed) return false;
+        try {
+            installMetrics(Global.getSettings().loadText(fntPath));
+            return true;
+        } catch (Exception e) {
+            LOG.error("BitmapFont: failed to load metrics " + fntPath, e);
+            metricsFailed = true;
+            return false;
+        }
+    }
+
+    /** Installs a manifest supplied by tooling without consulting Starsector globals. */
+    public void installMetrics(String manifest) {
+        if (manifest == null) throw new IllegalArgumentException("font manifest is required");
+        String pageRelative = parse(manifest);
+        if (pageRelative.isBlank()) {
+            throw new IllegalArgumentException("BMFont manifest has no page: " + fntPath);
+        }
+        int separator = fntPath.lastIndexOf('/');
+        String dir = separator >= 0 ? fntPath.substring(0, separator + 1) : "";
+        pagePath = dir + pageRelative;
+        metricsLoaded = true;
+        metricsFailed = false;
+    }
+
+    public String sourcePath() {
+        return fntPath;
+    }
+
+    public String pagePath() {
+        if (!ensureMetricsLoaded()) return null;
+        return pagePath;
+    }
+
+    public Glyph glyph(int codePoint) {
+        if (!ensureMetricsLoaded()) return null;
+        return glyphs.get(codePoint);
+    }
+
+    public int atlasWidth() {
+        return ensureMetricsLoaded() ? scaleW : 0;
+    }
+
+    public int atlasHeight() {
+        return ensureMetricsLoaded() ? scaleH : 0;
     }
 
     /** Top-edge y in screen GL coords; renders left-to-right from (x, y). */
@@ -139,7 +188,7 @@ public class BitmapFont {
 
     /** Preflight: returns the height {@link #drawStringWrapped} would consume, without drawing. */
     public float measureWrappedHeight(String s, float maxWidth) {
-        if (!ensureLoaded() || s == null || s.isEmpty()) return 0f;
+        if (!ensureMetricsLoaded() || s == null || s.isEmpty()) return 0f;
         return wrapLines(s, maxWidth).size() * (float) lineHeight;
     }
 
@@ -147,7 +196,7 @@ public class BitmapFont {
     public List<String> wrapLines(String s, float maxWidth) {
         List<String> out = new ArrayList<>();
         if (s == null || s.isEmpty()) return out;
-        if (!ensureLoaded()) {
+        if (!ensureMetricsLoaded()) {
             out.add(s);
             return out;
         }
@@ -173,7 +222,7 @@ public class BitmapFont {
     }
 
     public float measureWidth(String s) {
-        if (!ensureLoaded() || s == null) return 0f;
+        if (!ensureMetricsLoaded() || s == null) return 0f;
         float w = 0f;
         for (int i = 0; i < s.length(); i++) {
             Glyph g = glyphs.get((int) s.charAt(i));
@@ -183,7 +232,7 @@ public class BitmapFont {
     }
 
     public int getLineHeight() {
-        return lineHeight;
+        return ensureMetricsLoaded() ? lineHeight : 0;
     }
 
     // ---- internal helpers -------------------------------------------------
@@ -337,6 +386,7 @@ public class BitmapFont {
 
     /** Returns the page file name from the manifest. */
     private String parse(String text) {
+        glyphs.clear();
         String pageFile = "";
         for (String line : text.split("\\r?\\n")) {
             line = line.trim();

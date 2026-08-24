@@ -2,9 +2,8 @@
 
 Status: IN PROGRESS — formation, template issue, and live billet preview migrated; broader parity remains
 Written: 2026-08-23
-Updated: 2026-08-24 — Company HQ now enters through an owned-company card grid;
-the live billet preview and deterministic headless PNG evidence share one
-backend-neutral battlefield composition recipe.
+Updated: 2026-08-24 — Headless production rendering now calibrates a compact
+body/heading/title hierarchy and denser Armory geometry before live scale acceptance.
 
 Read `company-view-nouns.md`, `ui-nouns.md`, and
 `c14-fire-team-equipment-templates.md` first.
@@ -83,6 +82,9 @@ workspace. Templates remain plans, never collectible cards.
 - The same billet recipe renders deterministic PNGs without a game or OpenGL context;
   live acceptance remains responsible only for host scaling and feel.
 - Layout remains usable for a large company and at UI scales 1.0, 1.25, and 1.5.
+- Body copy and values use the regular mixed-case face; compact display faces are
+  reserved for section headings and the screen title, with geometry sized from their
+  measured line heights rather than the legacy 20-pixel minimum.
 - Mouse, keyboard, and drag interactions reach the same domain commands.
 - Mech subsystem counts and enabled install actions come from `MechBay`; the
   retained surface neither recomputes stock nor creates another loadout authority.
