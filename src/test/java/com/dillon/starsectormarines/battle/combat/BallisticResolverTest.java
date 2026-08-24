@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Coverage for {@link BallisticResolver#resolve} against the "Resolution
- * algorithm" section of {@code roadmap/ballistics/complete/s1-resolver-core.md}.
+ * algorithm" section of {@code ballistics-nouns.md}.
  * Every scenario drives a {@link QueueRandom} stub so the exact roll each
  * event consumes is pinned — the geometry is chosen so a wrong walk order or
  * a mis-wired cover source changes the observable outcome, not just the
@@ -737,7 +737,7 @@ class BallisticResolverTest {
     }
 
     // ---- S2: time-domain contact solve + shooter lead ----
-    // roadmap/ballistics/complete/s2-moving-targets.md, "Tests" section.
+    // ballistics-nouns.md, moving-contact tests.
 
     // ---- stationary regression: w = 0 collapses to S1's math exactly ----
 
@@ -799,7 +799,7 @@ class BallisticResolverTest {
         // (10.5, 11.5) instead of the led point — same shooter, same mover
         // motion — never intersects its 0.3-cell radius (disc < 0). This is
         // the same quadratic resolve() solves internally
-        // (roadmap/ballistics/stories/s2-moving-targets.md, "Time-domain
+        // (ballistics-nouns.md, "Time-domain
         // contact solve"), evaluated here against the unled direction to
         // prove lead and extrapolation only balance as a pair: extrapolation
         // without lead systematically misses a lateral mover.

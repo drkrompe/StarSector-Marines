@@ -24,17 +24,9 @@ import java.util.Random;
  * {@link Resolution#flightTime()}; this class only decides <em>where the
  * round physically ends up</em>.
  *
- * <p>See {@code roadmap/ballistics/overview.md} (design record) and
- * {@code roadmap/ballistics/complete/s2-moving-targets.md} (the "Time-domain
- * contact solve" and "Shooter lead" sections {@link #resolve} implements
- * step for step; S1's static-world solve, which the {@code w = 0} case
- * collapses to exactly, is {@code complete/s1-resolver-core.md}).
- * Target-plane aim and the lightweight vertical silhouette are specified in
- * {@code roadmap/ballistics/complete/s3b-target-plane-accuracy.md}; obstacle
- * catch bands are specified in
- * {@code roadmap/ballistics/complete/s3c-obstacle-catch-heights.md}; explicit
- * sources and ground direct-fire adopters are specified in
- * {@code roadmap/ballistics/complete/s4-direct-fire-unification.md}.
+ * <p>See {@code ballistics-nouns.md} for the enduring model: the time-domain
+ * contact solve, target-plane aim, vertical silhouettes, obstacle catch bands,
+ * and explicit fire-source boundary.
  *
  * <p><b>Pure and stateless.</b> Every constructor dependency is read-only
  * from this class's perspective (grid, doodad cover, the spatial index
@@ -129,7 +121,7 @@ public final class BallisticResolver {
      * victim's OWN extrapolated cell at contact time, floor(U(t)) — the
      * cover edge-clip lookup's cell, distinct from {@code x}/{@code y} (the
      * round's own FX endpoint, P(t)). See the "Contact-position split" note
-     * in {@code roadmap/ballistics/complete/s2-moving-targets.md}.
+     * in {@code ballistics-nouns.md}.
      */
     private static final class Event {
         final float t;
@@ -231,7 +223,7 @@ public final class BallisticResolver {
         // predicted position at estimated intercept time (dist / velocity),
         // not its fire-tick position — a lead without extrapolation and an
         // extrapolation without lead each systematically miss a lateral
-        // mover; they only balance as a pair (see overview.md §3). wTarget
+        // mover; they only balance as a pair (see ballistics-nouns.md). wTarget
         // = 0 for a non-mover (turret/hub target), which zeroes tLead's
         // contribution and reproduces S1's aim point exactly.
         float wTargetX = 0f;

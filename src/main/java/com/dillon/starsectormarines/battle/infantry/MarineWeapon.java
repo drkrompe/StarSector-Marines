@@ -140,12 +140,14 @@ public enum MarineWeapon {
      */
     public float accuracyFalloff() { return def().accuracyFalloff; }
     /**
-     * Lateral scatter radius in cells at {@link #range()}, scaling linearly
-     * with distance via {@link com.dillon.starsectormarines.battle.combat.RangeFalloff#spread}.
-     * Applied to both hit-endpoint jitter (the round still hits the locked
-     * target for damage purposes, but the tracer endpoint scatters visually)
-     * and to miss-scatter as an additive on top of the baseline near-miss
-     * ring. Mirrors {@link com.dillon.starsectormarines.battle.mech.MechWeapon#hitSpread}.
+     * Lateral target-plane spread in cells at {@link #range()}, scaling
+     * linearly with distance via
+     * {@link com.dillon.starsectormarines.battle.combat.RangeFalloff#spread}.
+     * The ballistic resolver commits this offset to the physical ground ray;
+     * the intended target is not automatically damaged, and the resulting
+     * ray may contact another body or miss its silhouette. The same physical
+     * endpoint drives the visible round. Mirrors
+     * {@link com.dillon.starsectormarines.battle.mech.MechWeapon#hitSpread}.
      */
     public float hitSpread() { return def().hitSpread; }
     /**
