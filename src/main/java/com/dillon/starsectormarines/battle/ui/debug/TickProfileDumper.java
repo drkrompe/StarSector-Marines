@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.ui.debug;
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.StarsectorMarinesModPlugin;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.fixture.BattleFixture;
+import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.profile.TickProfile;
 import com.fs.starfarer.api.Global;
@@ -28,14 +30,14 @@ import org.json.JSONObject;
 public final class TickProfileDumper {
 
     private static final Logger LOG = Logger.getLogger(TickProfileDumper.class);
-    /** Bumped when the dump shape changes — lets offline tools recognize older dumps. v5 separates contact-picture and swarm-pressure attribution. */
-    private static final int SCHEMA_VERSION = 5;
+    /** Bumped when the dump shape changes — v6 can embed a tick-zero battle fixture. */
+    private static final int SCHEMA_VERSION = 6;
 
     private TickProfileDumper() {}
 
     /** Manual dump — caller is the DUMP button. */
     public static String dump(BattleSimulation sim) {
-        return dump(sim, null);
+        return dump(sim, null, null);
     }
 
     /**
@@ -50,6 +52,12 @@ public final class TickProfileDumper {
      * and the filename gets a {@code _spike_} marker so it's easy to grep.
      */
     public static String dump(BattleSimulation sim, TickProfile.Spike spike) {
+        return dump(sim, null, spike);
+    }
+
+    /** Dump with optional replayable tick-zero construction metadata. */
+    public static String dump(BattleSimulation sim, BattleFixture fixture,
+                              TickProfile.Spike spike) {
         if (sim == null) return null;
         try {
             TickProfile profile = sim.getTickProfile();
@@ -60,6 +68,11 @@ public final class TickProfileDumper {
             root.put("unitCount", sim.liveUnitCount());
             root.put("squadCount", sim.getSquads().size());
             root.put("triggerSource", spike != null ? "auto-spike" : "manual");
+            if (fixture != null) {
+                // Construction inputs only: replay rebuilds tick zero through
+                // BattleSetup; this is deliberately not a live-state snapshot.
+                root.put("battleFixture", BattleFixtureJson.toJson(fixture));
+            }
 
             long totalAvgNs = profile.totalAvgNanos();
             root.put("totalAvgUs", totalAvgNs / 1_000.0);

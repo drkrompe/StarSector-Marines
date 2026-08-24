@@ -4,6 +4,9 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
+Updated: 2026-08-24 — folded the durable large-map residency boundary into the
+canonical rendering model.
+
 ## Vocabulary
 
 - The **battle render pipeline** is the presentation path from current battle state to a painted world frame. It is a per-frame view of the simulation, not simulation state or a second gameplay authority.
@@ -31,7 +34,7 @@ The standalone host normally renders every layer. A host can request a subset th
 
 The current world order is `GROUND → DECALS → VEHICLES → DOODADS → HIGHLIGHTS → FOG → UNITS → ROOFS → DRONES → OBJECTIVES → COMPOUND → CONVOY → SHUTTLES → SHOTS → IMPACT_FX → FLYBY`. The enum is the authority for this order; the sequence here makes the standing occlusion contract legible without replacing it.
 
-Ground is a dense, cell-backed surface. Current camera culling range-loops the visible cell rectangle for dense passes and AABB-rejects eligible sparse scenery. This preserves cell truth while avoiding off-camera collection. If terrain or decal work becomes the measured ceiling again, future dense render tiles may cache a view-resident projection of cell blocks; tiles are a rendering residency layer, never a new simulation coordinate system.
+Ground is a dense, cell-backed surface. Current camera culling range-loops the visible cell rectangle for dense passes and AABB-rejects eligible sparse scenery. This preserves cell truth while avoiding off-camera collection. If terrain or decal work becomes the measured ceiling again, future dense render tiles may cache a view-resident projection of cell blocks. A tile is a derived, view-admitted presentation block, never a new simulation grid or coordinate system. Ground and decals may keep separate backing while sharing tile addressing, invalidation, and eviction policy. Evicted ground rebuilds from cells and evicted decals replay retained sources; unavailable tile backing falls back locally to the present cell path without changing paint order.
 
 ## Standing laws
 
@@ -48,4 +51,4 @@ Ground is a dense, cell-backed surface. Current camera culling range-loops the v
 
 `surface-relief-nouns.md` owns the ground-relief composite that may redirect the GROUND layer while preserving the render pipeline's order. `air-nouns.md` owns airborne behavior; this model only guarantees the layered presentation space it consumes. `vanilla-combat-bridge-nouns.md` owns the vanilla host and selects the bridge's subset of ground layers. `moddable-tilesets-nouns.md` owns tile catalog and generation mapping, while rendering resolves their authored visual identity.
 
-The current renderer keeps a practical asset service behind `BattleSprites`. `unified-sprite-registry.md` is a possible render-only consolidation once its asset-path contract is ready. `large-map-scaling.md` records the enduring view-residency direction, and `dense-render-tiles.md` is its only future vehicle for static-ground baking and tiled decal residency; it supersedes the single-world FBO idea. Camera-Z or perspective is a separate projection decision, not an incidental optimization of the existing fitted 2D camera.
+The current renderer keeps a practical asset service behind `BattleSprites`. `unified-sprite-registry.md` is a possible render-only consolidation once its asset-path contract is ready. `dense-render-tiles.md` is the only future vehicle for static-ground baking and tiled decal residency; it supersedes the single-world FBO idea. Camera-Z or perspective is a separate projection decision, not an incidental optimization of the existing fitted 2D camera.

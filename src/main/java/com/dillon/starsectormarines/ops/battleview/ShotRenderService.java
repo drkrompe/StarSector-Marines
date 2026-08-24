@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
+import com.dillon.starsectormarines.battle.weapon.fx.TurretFxRuntime;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 
 import java.awt.Color;
@@ -125,12 +126,19 @@ public final class ShotRenderService implements RenderSystem {
                     cam.cellToScreenX(px), cam.cellToScreenY(py),
                     pxW, pxH, bearing, 1f, 1f, 1f, alphaMult);
 
-            if ((fx.engineTrail() || fx.smokeTrail()) && progress > 0.02f && progress < 0.98f) {
+            if (progress > 0.02f && progress < 0.98f
+                    && (s.turretKind != null || fx.engineTrail() || fx.smokeTrail())) {
                 float headingRad = (float) Math.toRadians(bearing);
                 float tailDx = -(float) Math.sin(headingRad) * 0.15f;
                 float tailDy = -(float) Math.cos(headingRad) * 0.15f;
-                if (fx.engineTrail()) impactFx.spawnEngineTrail(px + tailDx, py + tailDy, 0.18f);
-                else                  impactFx.spawnSmokeTrail(px + tailDx, py + tailDy, 0.20f);
+                if (s.turretKind != null) {
+                    TurretFxRuntime.spawnTrail(
+                            impactFx, s, px + tailDx, py + tailDy, bearing);
+                } else if (fx.engineTrail()) {
+                    impactFx.spawnEngineTrail(px + tailDx, py + tailDy, 0.18f);
+                } else {
+                    impactFx.spawnSmokeTrail(px + tailDx, py + tailDy, 0.20f);
+                }
             }
         }
     }

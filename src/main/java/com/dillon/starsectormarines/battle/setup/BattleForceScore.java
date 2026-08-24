@@ -77,17 +77,9 @@ public final class BattleForceScore {
         };
     }
 
-    /** Provisional emplacement values; indirect fire and AoE carry premiums. */
+    /** Data-authored emplacement value used by force-budget accounting. */
     static float turret(TurretKind kind) {
-        if (kind == null) return 0f;
-        return switch (kind) {
-            case VULCAN -> 8f;
-            case ARBALEST, HEAVY_MG -> 10f;
-            case DUAL_FLAK, GRENADE_LAUNCHER -> 12f;
-            case HEAVY_MORTAR -> 14f;
-            case HEPHAESTUS -> 16f;
-            case LOCUST -> 18f;
-        };
+        return kind != null ? kind.structure().forceScore : 0f;
     }
 
     /**
