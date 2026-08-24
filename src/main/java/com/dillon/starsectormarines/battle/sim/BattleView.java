@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.smoke.SmokeFieldService;
+import com.dillon.starsectormarines.battle.satchel.SatchelChargeService;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationTracker;
 
@@ -49,6 +50,9 @@ public interface BattleView {
 
     /** Simulation-owned, faction-neutral smoke fields and throws. */
     SmokeFieldService smokeFields();
+
+    /** Reusable contact-demolition reservations and armed target attachments. */
+    SatchelChargeService satchelCharges();
 
     /** Honest per-faction commander picture, or {@code null} for non-combat factions. */
     CommanderInfluenceSnapshot getCommanderInfluence(Faction faction);

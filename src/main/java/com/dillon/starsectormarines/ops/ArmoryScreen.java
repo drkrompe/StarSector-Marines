@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.marine.SpecialActivation;
+import com.dillon.starsectormarines.marine.SatchelChargeSpec;
 import com.dillon.starsectormarines.marine.SmokeGrenadeSpec;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
@@ -2029,6 +2030,8 @@ public final class ArmoryScreen implements Screen {
         widgets.add(new LabelWidget(Fonts.ORBITRON_20,
                 secondary.activation() == SpecialActivation.UTILITY_SMOKE
                         ? "Limited-ammunition tactical utility"
+                        : secondary.activation() == SpecialActivation.UTILITY_SATCHEL
+                                ? "Reusable cooldown-gated demolition utility"
                         : "Limited-ammunition support weapon",
                 x + 190f, top - 76f, MUTED));
         widgets.add(new SpriteThumbWidget(secondaryIcon(secondary), x, top - 260f, 170f, 150f));
@@ -2053,6 +2056,27 @@ public final class ArmoryScreen implements Screen {
             y -= 30f;
             addStatRow("AMMUNITION", Integer.toString(secondary.startingAmmo()),
                     secondary.startingAmmo() / 4f, labelX, barX, y, barW, VALUE);
+            return;
+        }
+        if (secondary.activation() == SpecialActivation.UTILITY_SATCHEL) {
+            SatchelChargeSpec satchel = secondary.satchelChargeSpec();
+            addStatRow("CONTACT RANGE", fmt(satchel.contactRange()),
+                    satchel.contactRange() / 4f, labelX, barX, y, barW, RANGE_BAR);
+            y -= 30f;
+            addStatRow("PLANT TIME", fmt(satchel.plantDuration()) + " sec",
+                    satchel.plantDuration() / 2f, labelX, barX, y, barW, ACCURACY_BAR);
+            y -= 30f;
+            addStatRow("FUSE", fmt(satchel.fuseSeconds()) + " sec",
+                    satchel.fuseSeconds() / 5f, labelX, barX, y, barW, DPS_BAR);
+            y -= 30f;
+            addStatRow("COOLDOWN", Math.round(satchel.cooldownSeconds()) + " sec",
+                    satchel.cooldownSeconds() / 30f, labelX, barX, y, barW, VALUE);
+            y -= 30f;
+            addStatRow("BLAST", fmt(satchel.blastRadius()),
+                    satchel.blastRadius() / 4f, labelX, barX, y, barW, DAMAGE_BAR);
+            y -= 30f;
+            addStatRow("DAMAGE", fmt(satchel.damage()),
+                    satchel.damage() / 1000f, labelX, barX, y, barW, DAMAGE_BAR);
             return;
         }
         addStatRow("DAMAGE", fmt(secondary.damage()), secondary.damage() / 42f,
@@ -2619,6 +2643,8 @@ public final class ArmoryScreen implements Screen {
                     + "without endangering friendlies nearby. It carries four shots and cannot breach walls.";
             case SMOKE_GRENADE -> "Wayfarer canisters flood a crossing with dense multispectral smoke. "
                     + "The cloud harms no one, blocks both sides equally, and buys only a few seconds to move.";
+            case SATCHEL_CHARGE -> "The Breachhand is a reusable mag-clamp demolition kit for targets already "
+                    + "within arm's reach. A successful plant starts its recharge cycle; a failed attempt costs nothing.";
         };
     }
 

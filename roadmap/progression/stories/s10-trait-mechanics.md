@@ -45,7 +45,7 @@ A trait the player cannot notice is no better than an inert one.
 | `SCOUT` | More recon info before the raid | Ties to fog-of-war initial reveal and the recon command power |
 | `COMBAT_ENGINEER` | Bonuses operating vehicles / mechs | Reads against the shipped mech roster and convoy tracks |
 | `VETERAN` | Flat combat bonus | The dull one. Consider replacing it with something shaped, or cutting it — an undifferentiated multiplier is exactly the kind of invisible progression this whole track exists to fix |
-| `LOGISTICS_CHIEF` | Larger effective squad cap | Cleanest of the six: modifies `Rank.fireteamCap()` at the formation layer |
+| `LOGISTICS_CHIEF` | Larger effective squad cap | Cleanest of the six: modifies `Rank.squadCommandCap()` at the formation layer |
 
 Guiding rule: prefer traits that change **what the player can do** over
 traits that change a number. `SCOUT` granting real pre-mission information
