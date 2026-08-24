@@ -175,7 +175,7 @@ public final class ArmoryScreen implements Screen {
                 () -> { tab = Tab.PERSONNEL; rebuild(); },
                 tab == Tab.PERSONNEL ? VALUE : HEADER);
         addButton(left + 140f, tabY, 174f, "Fire-team Loadouts",
-                () -> { tab = Tab.LOADOUTS; selectFirstSoldierIfNeeded(); rebuild(); },
+                () -> ctx.goTo(ScreenId.FLEET_ARMORY),
                 tab == Tab.LOADOUTS ? VALUE : HEADER);
         addButton(left + 324f, tabY, 174f, "Template Designer",
                 () -> { tab = Tab.DESIGNER; ensureDesignerDraft(); rebuild(); },

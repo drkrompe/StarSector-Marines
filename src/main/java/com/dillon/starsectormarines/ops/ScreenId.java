@@ -17,6 +17,8 @@ public enum ScreenId {
     UI_WORKBENCH,
     MISSION_SELECT,
     ARMORY,
+    /** Production retained formation/template/refit slice; safe without a planet. */
+    FLEET_ARMORY,
     BRIEFING,
     SQUAD_DEPLOYMENT,
     STATIONING,

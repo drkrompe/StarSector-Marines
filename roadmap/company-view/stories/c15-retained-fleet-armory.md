@@ -1,8 +1,8 @@
 # C15 — Retained Fleet Armory
 
-Status: PLANNED — waits on UI foundation U1–U4
+Status: IN PROGRESS — retained foundation accepted; production migration underway
 Written: 2026-08-23
-Updated: 2026-08-23 — retained parity now includes the shipped mech-squad lab and subsystem transaction rail.
+Updated: 2026-08-24 — beginning with the live squad/fire-team/template assignment workflow while legacy modes remain available for parity.
 
 Read `company-view-nouns.md`, `ui-nouns.md`, and
 `c14-fire-team-equipment-templates.md` first.
