@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.unit;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.turret.MapTurret;
+import com.dillon.starsectormarines.battle.turret.TurretKind;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,6 +37,17 @@ public class UnitRosterServiceTest {
 
     private static UnitRosterService roster() {
         return new UnitRosterService(new UnitSpatialIndex(256, 256), null);
+    }
+
+    @Test
+    public void turretGeometryComesFromItsStructureDefinition() {
+        UnitRosterService r = roster();
+        long turret = r.spawn(MapTurret.create(
+                "geometry", Faction.DEFENDER, TurretKind.HEPHAESTUS, 4, 5));
+
+        assertEquals(TurretKind.HEPHAESTUS.structure().radius, r.radius(turret), 0f);
+        assertEquals(TurretKind.HEPHAESTUS.structure().hitHalfHeight,
+                r.hitHalfHeight(turret), 0f);
     }
 
     @Test

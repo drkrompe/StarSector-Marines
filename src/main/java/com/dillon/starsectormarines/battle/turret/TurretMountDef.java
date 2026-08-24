@@ -18,7 +18,10 @@ public final class TurretMountDef {
     /** Rounds carried by a mobile installation; zero means an unlimited static feed. */
     public final int ammoCapacity;
     public final float turnRateDegPerSec;
+    /** Long-axis render extent, or zero when the carrier owns sheet-frame appearance. */
     public final float visualCells;
+    /** Distance from mount center to the muzzle along the current bearing, in cells. */
+    public final float muzzleOffsetCells;
     /** Optional whole-texture mount body. Null lets a carrier own sheet-frame art. */
     public final String spritePath;
     /** Optional recoil/barrel layer paired with {@link #spritePath}. */
@@ -26,7 +29,7 @@ public final class TurretMountDef {
 
     private TurretMountDef(String id, String weaponId, WeaponDef weapon,
                            int ammoCapacity, float turnRateDegPerSec,
-                           float visualCells,
+                           float visualCells, float muzzleOffsetCells,
                            String spritePath, String recoilSpritePath) {
         this.id = id;
         this.weaponId = weaponId;
@@ -34,6 +37,7 @@ public final class TurretMountDef {
         this.ammoCapacity = ammoCapacity;
         this.turnRateDegPerSec = turnRateDegPerSec;
         this.visualCells = visualCells;
+        this.muzzleOffsetCells = muzzleOffsetCells;
         this.spritePath = spritePath;
         this.recoilSpritePath = recoilSpritePath;
     }
@@ -50,18 +54,38 @@ public final class TurretMountDef {
                     + weaponId + "' (" + weapon.mount.key + ")");
         }
         JSONObject sim = json.getJSONObject("sim");
-        JSONObject render = json.getJSONObject("render");
+        JSONObject render = json.optJSONObject("render");
         int ammoCapacity = sim.getInt("ammoCapacity");
         float turnRate = (float) sim.getDouble("turnRateDegPerSec");
-        float visualCells = (float) render.getDouble("visualCells");
+        float visualCells = render != null
+                ? (float) render.optDouble("visualCells", 0.0) : 0f;
+        float muzzleOffsetCells = render != null
+                ? (float) render.optDouble("muzzleOffsetCells", 0.0) : 0f;
         if (ammoCapacity < 0) {
             throw new JSONException("Turret mount '" + id + "' ammoCapacity cannot be negative");
         }
         requirePositiveFinite(turnRate, id, "turnRateDegPerSec");
-        requirePositiveFinite(visualCells, id, "visualCells");
+        if (!Float.isFinite(visualCells) || visualCells < 0f) {
+            throw new JSONException("Turret definition '" + id
+                    + "' field 'visualCells' must be finite and non-negative");
+        }
+        if (!Float.isFinite(muzzleOffsetCells) || muzzleOffsetCells < 0f) {
+            throw new JSONException("Turret definition '" + id
+                    + "' field 'muzzleOffsetCells' must be finite and non-negative");
+        }
+        String sprite = render != null ? optionalText(render, "sprite") : null;
+        String recoilSprite = render != null ? optionalText(render, "recoilSprite") : null;
+        if ((sprite != null || recoilSprite != null) && visualCells == 0f) {
+            throw new JSONException("Turret mount '" + id
+                    + "' declares sprite appearance without positive visualCells");
+        }
+        if ((sprite != null || recoilSprite != null) && muzzleOffsetCells == 0f) {
+            throw new JSONException("Turret mount '" + id
+                    + "' declares sprite appearance without positive muzzleOffsetCells");
+        }
         return new TurretMountDef(
-                id, weaponId, weapon, ammoCapacity, turnRate, visualCells,
-                optionalText(render, "sprite"), optionalText(render, "recoilSprite"));
+                id, weaponId, weapon, ammoCapacity, turnRate, visualCells, muzzleOffsetCells,
+                sprite, recoilSprite);
     }
 
     static String requireText(JSONObject json, String key) throws JSONException {

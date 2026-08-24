@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.weapon;
 
 import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
+import com.dillon.starsectormarines.battle.weapon.fx.FxSlot;
+import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxDef;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -10,10 +12,9 @@ import java.awt.Color;
  * One weapon, parsed from a {@code *.weapon.json} entry. Immutable and
  * id-addressed; the authoring surface is the JSON, not this class.
  *
- * <p>The current field set is the shared baseline populated by marine
- * primaries (see {@code moddable-weapons-nouns.md}). Later catalog stories
- * extend that shape for secondaries, mech mounts, and turret mounts, then
- * validate which fields each {@link #mount} class may declare.
+ * <p>The field set is the shared baseline populated by handheld and turret
+ * weapons (see {@code moddable-weapons-nouns.md}). Carrier-specific durability,
+ * magazines and mount art remain outside this definition.
  *
  * <p>Grouped by who reads it: the {@code sim} block feeds
  * {@link com.dillon.starsectormarines.battle.infantry.InfantryCombatStats}
@@ -98,6 +99,8 @@ public final class WeaponDef {
     public final boolean smokeTrail;
     /** Whether firing emits the compatibility launcher backblast. W2 replaces this with authored layers. */
     public final boolean launchBackblast;
+    /** Optional authored particle composition. Null keeps legacy profile-backed presentation. */
+    public final WeaponFxDef fx;
 
     // ---- audio ----
     /** Vanilla fire sound id; mono, pre-registered by the core install. */
@@ -118,6 +121,7 @@ public final class WeaponDef {
                       Color tracerColor, ImpactProfile impactProfile,
                       String projectileSpritePath, float projectileVisualCells,
                       boolean smokeTrail, boolean launchBackblast,
+                      WeaponFxDef fx,
                       String fireSoundId, String impactSoundId) {
         this.id = id;
         this.mount = mount;
@@ -154,6 +158,7 @@ public final class WeaponDef {
         this.projectileVisualCells = projectileVisualCells;
         this.smokeTrail = smokeTrail;
         this.launchBackblast = launchBackblast;
+        this.fx = fx;
         this.fireSoundId = fireSoundId;
         this.impactSoundId = impactSoundId;
     }
@@ -217,6 +222,8 @@ public final class WeaponDef {
                 render != null ? (float) render.optDouble("projectileVisualCells", 0.0) : 0f,
                 render != null && render.optBoolean("smokeTrail", false),
                 render != null && render.optBoolean("launchBackblast", false),
+                json.has("fx") && !json.isNull("fx")
+                        ? WeaponFxDef.parse(id, json.getJSONObject("fx")) : null,
                 audio != null ? emptyToNull(audio.optString("fireSound", null)) : null,
                 audio != null ? emptyToNull(audio.optString("impactSound", null)) : null);
         validateMountFields(def);
@@ -257,6 +264,23 @@ public final class WeaponDef {
         if (!def.indirectFire && def.noLosAccuracyMult != 1f) {
             throw new JSONException("Weapon '" + def.id
                     + "' declares noLosAccuracyMult without indirectFire");
+        }
+        if (def.mount == MountClass.TURRET_MOUNT) {
+            if (def.fx == null) {
+                throw new JSONException("Turret weapon '" + def.id
+                        + "' must declare authored fx");
+            }
+            requireFxSlot(def, FxSlot.MUZZLE);
+            requireFxSlot(def, FxSlot.IMPACT);
+            if (def.aoeRadius >= 1f) requireFxSlot(def, FxSlot.AFTERMATH);
+            if (def.interceptableProjectile) requireFxSlot(def, FxSlot.TRAIL);
+        }
+    }
+
+    private static void requireFxSlot(WeaponDef def, FxSlot slot) throws JSONException {
+        if (def.fx.layers(slot).isEmpty()) {
+            throw new JSONException("Turret weapon '" + def.id
+                    + "' must declare fx slot '" + slot.key + "'");
         }
     }
 
