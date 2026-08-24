@@ -219,6 +219,23 @@ public class EntityWorldTest {
     }
 
     @Test
+    public void unusuallyLargeAdoptedIdUsesSparseLocationFallback() {
+        world = fresh();
+        long highId = EntityLocationIndex.MAX_DENSE_ID + 17L;
+        world.createEntity(highId, POSITION, HEALTH);
+        world.setInt(highId, POSITION, 0, 23);
+
+        assertTrue(world.isAlive(highId));
+        assertEquals(23, world.getInt(highId, POSITION, 0));
+        assertEquals(1, world.entityCount());
+
+        world.destroy(highId);
+
+        assertFalse(world.isAlive(highId));
+        assertEquals(0, world.entityCount());
+    }
+
+    @Test
     public void transmuteIsOneMoveToTheCombinedArchetype() {
         world = fresh();
         long e = world.createEntity(POSITION, HEALTH);
