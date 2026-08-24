@@ -86,8 +86,10 @@ incoming-damage modifiers.
 2. Progression supplies a deployed marine's chosen armor pattern. The pattern
    owns armor pool, rating, movement tradeoff, and silhouette/evasion tradeoff;
    it does not resolve damage.
-3. A weapon definition supplies damage and penetration. Mounts and carriers
-   decide whether and when it fires, but do not reinterpret penetration.
+3. A weapon definition supplies one or more damage-and-penetration payloads.
+   Ballistics decides whether a contact or area payload applies; mounts and
+   carriers decide whether and when the weapon fires, but do not reinterpret
+   penetration or stack mutually exclusive payloads.
 4. Ballistics and explosions decide contact and cover. The shared durability
    calculation predicts and applies the resulting armor and structure loss.
 5. The application path emits at most one armor-break transition, records
@@ -145,7 +147,7 @@ penetration UI pass.
 ## Standing laws
 
 - Structure, armor pool, and armor rating are distinct axes.
-- Weapon damage and penetration are distinct axes.
+- Every damage payload keeps damage and penetration as distinct axes.
 - Armor presence and current armor state replace target-type damage bonuses.
 - No consumer copies a private durability formula or infers armor break from a
   health percentage.

@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.marine.SpecialActivation;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+import com.dillon.starsectormarines.marine.SatchelChargeSpec;
 import com.dillon.starsectormarines.marine.SmokeGrenadeSpec;
 
 import java.awt.Color;
@@ -19,7 +20,8 @@ import java.awt.Color;
 public enum MarineSecondary {
     ROCKET_LAUNCHER(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID),
     ANTI_MATERIEL_RIFLE(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID),
-    SMOKE_GRENADE(SpecialEquipmentRegistry.SMOKE_GRENADE_ID);
+    SMOKE_GRENADE(SpecialEquipmentRegistry.SMOKE_GRENADE_ID),
+    SATCHEL_CHARGE(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID);
 
     public final String specialEquipmentId;
 
@@ -44,19 +46,29 @@ public enum MarineSecondary {
         return spec;
     }
 
+    public SatchelChargeSpec satchelChargeSpec() {
+        SatchelChargeSpec spec = specialDef().satchelChargeSpec();
+        if (spec == null) throw new IllegalStateException(displayName() + " is not satchel equipment");
+        return spec;
+    }
+
     public String displayName() { return specialDef().displayName(); }
     public SpecialActivation activation() { return specialDef().activation(); }
     public int startingAmmo() { return specialDef().startingAmmo(); }
+    public boolean usesAmmunition() {
+        return activation() != SpecialActivation.UTILITY_SATCHEL;
+    }
+    public boolean hasAvailableUse(int ammo) { return !usesAmmunition() || ammo > 0; }
     public String aimSpritePath() { return specialDef().aimSpritePath(); }
     public String armoryIconPath() { return specialDef().armoryIconPath(); }
 
     public String fireSoundId() { return def().fireSoundId; }
     public String impactSoundId() { return def().impactSoundId; }
     public String projectileSpritePath() {
-        return activation() == SpecialActivation.UTILITY_SMOKE ? null : def().projectileSpritePath;
+        return isUtility() ? null : def().projectileSpritePath;
     }
     public float projectileVisualCells() {
-        return activation() == SpecialActivation.UTILITY_SMOKE ? 0f : def().projectileVisualCells;
+        return isUtility() ? 0f : def().projectileVisualCells;
     }
     public Color tracerColor() { return def().tracerColor; }
     public ImpactProfile impactProfile() { return def().impactProfile; }
@@ -67,11 +79,21 @@ public enum MarineSecondary {
     public float penetration() { return def().penetration; }
     public float flightSec() { return def().flightSec; }
     public float aimDuration() {
-        return activation() == SpecialActivation.UTILITY_SMOKE
-                ? smokeGrenadeSpec().throwDuration() : def().aimDuration;
+        if (activation() == SpecialActivation.UTILITY_SMOKE) {
+            return smokeGrenadeSpec().throwDuration();
+        }
+        if (activation() == SpecialActivation.UTILITY_SATCHEL) {
+            return satchelChargeSpec().plantDuration();
+        }
+        return def().aimDuration;
     }
     public float aoeRadius() { return def().aoeRadius; }
     public int wallDamage() { return def().wallDamage; }
     public float wallDamageRadius() { return def().wallDamageRadius; }
     public float roundVelocity() { return def().roundVelocity; }
+
+    private boolean isUtility() {
+        return activation() == SpecialActivation.UTILITY_SMOKE
+                || activation() == SpecialActivation.UTILITY_SATCHEL;
+    }
 }

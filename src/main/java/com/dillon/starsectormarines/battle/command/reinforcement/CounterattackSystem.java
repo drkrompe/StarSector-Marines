@@ -14,7 +14,7 @@ import java.util.List;
 
 /**
  * Staged bulge counterattack — the defender Commander-tier set piece from
- * {@code roadmap/conquest/stories/biome-counterattack.md}. Where {@link
+ * {@code reinforcement-nouns.md}. Where {@link
  * FrontLineReinforcementTrigger} spreads squads thin to hold the contested
  * front, this masses a burst of reinforcement tickets at one point to push
  * back <em>into</em> a slice the marines have already conceded — the

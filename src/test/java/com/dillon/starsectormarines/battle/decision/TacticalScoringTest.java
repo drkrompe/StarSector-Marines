@@ -477,6 +477,20 @@ public class TacticalScoringTest {
     }
 
     @Test
+    public void hephaestusTurretPrefersMechOverNearerInfantry() {
+        BattleSimulation sim = openArena(30, 10);
+        long cannon = sim.spawn(MapTurret.create(
+                "hephaestus", Faction.MARINE, TurretKind.HEPHAESTUS, 5, 5));
+        unit(sim, Faction.DEFENDER, 10, 5);
+        long mech = unit(sim, Faction.DEFENDER, UnitType.HEAVY_MECH, 20, 5);
+
+        long picked = sim.getTacticalScoring().findBestTarget(cannon);
+
+        assertEquals(mech, picked,
+                "the cannon's contact penetration must participate in hardened-target affinity");
+    }
+
+    @Test
     public void smgMarinePrefersInfantryOverMech() {
         // Mirror case — a low-penetration SMG marine should pick the
         // infantry. No rocket, so suitability against the mech is poor.

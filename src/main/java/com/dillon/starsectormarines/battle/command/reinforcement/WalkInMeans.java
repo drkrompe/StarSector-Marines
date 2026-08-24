@@ -24,11 +24,12 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Always-feasible reinforcement floor. Spawns a fresh squad of infantry on
- * a side-appropriate, viable perimeter cell (walkable + outside buildings,
- * via {@link LandingZoneScorer}) — defender = "end" side of the
- * {@link TraversalAxis} (north for SOUTH_TO_NORTH, east for WEST_TO_EAST),
- * marine = "start" side. The squad's {@link Squad#assignedNode} prefers the
+ * Defender-side reinforcement floor. Spawns a fresh squad of infantry on a
+ * viable rear-edge perimeter cell (walkable + outside buildings, via
+ * {@link LandingZoneScorer}) at the "end" side of the {@link TraversalAxis}
+ * (north for SOUTH_TO_NORTH, east for WEST_TO_EAST). Marine requests are not
+ * currently supported; their entry policy belongs to future reinforcement
+ * work. The squad's {@link Squad#assignedNode} prefers the
  * request's objective node ({@link ObjectiveNodes#resolve} — a progressive-
  * reinforcement recapture target, assigned at deboard per the design's
  * "assign at deboard, not on arrival" contract); with no objective it falls
@@ -37,10 +38,10 @@ import java.util.Set;
  * neither resolves, the squad spawns as a free agent and falls through to
  * ambient engagement.
  *
- * <p>This is the {@code canFulfill = true} fallback under
- * {@link ConvoyMeans} (and, eventually, {@code ShuttleMeans}): a road-less
- * map or a rally with no LZ still gets reinforcement instead of a dropped
- * request.
+ * <p>This is the last production fallback after {@link ConvoyMeans} and
+ * {@link ShuttleMeans}. It still requires a defender-held BARRACKS and a
+ * viable perimeter cell; a request is dropped when every delivery chain is
+ * unavailable.
  */
 public final class WalkInMeans implements ReinforcementMeans {
 

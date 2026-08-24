@@ -174,7 +174,7 @@ public final class ShuttleMission {
      * Tactical node stamped as the deboarded squad's {@link Squad#assignedNode}
      * at squad mint — the recapture-target objective a progressive-reinforcement
      * drop should advance on and re-man (see
-     * {@code roadmap/conquest/stories/progressive-reinforcement.md}, the "assign
+     * {@code reinforcement-nouns.md}, the "assign
      * at deboard, not on arrival" contract). Distinct from {@link #garrisonNode},
      * which stamps a marine {@code HOLD_NODE} <em>objective</em> — this only sets
      * the squad's spawn-time anchor. {@code null} for drops with no objective

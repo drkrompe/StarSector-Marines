@@ -13,12 +13,13 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 /**
- * V1 reinforcement trigger: posts a {@link ReinforcementRequest.Reason#GARRISON_DEPLETED}
+ * Reinforcement trigger: posts a {@link ReinforcementRequest.Reason#GARRISON_DEPLETED}
  * for any defender-side tactical-node compound (COMMAND_POST, BARRACKS, or
  * ARMORY) whose aggregated squad strength drops below
  * {@link #DEPLETION_THRESHOLD}. The compound is recorded as posted on first
- * fire — once answered, the same compound won't refire (v1 is one-shot per
- * compound, no recovery story yet).
+ * fire — once posted, the same compound does not refire through this trigger
+ * instance; later recapture behavior belongs to the broader reinforcement
+ * target lifecycle.
  */
 public final class GarrisonDepletedTrigger implements ReinforcementTrigger {
 
@@ -51,7 +52,7 @@ public final class GarrisonDepletedTrigger implements ReinforcementTrigger {
             // Slice-3 log-clean optimisation: skip posting for compounds the
             // marines already hold. The canFulfill side is the load-bearing
             // gate (per the trigger-vs-means convention in
-            // {@code roadmap/conquest/central-keep.md}); this branch just
+            // {@code conquest-nouns.md}); this branch just
             // keeps the dispatcher log from logging "no means could fulfil"
             // for requests that were never serviceable.
             CompoundService.Record rec = compounds.getRecord(node);

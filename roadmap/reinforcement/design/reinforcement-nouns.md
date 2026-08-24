@@ -44,7 +44,7 @@ The present production ladder is defender-only: convoy, then shuttle, then walk-
 
 ## Boundaries and extension paths
 
-`central-keep.md` owns compound capture, ownership state, and the conquest win condition. Reinforcement reads compound availability as supply; it does not own capture progression. `convoy-nouns.md` owns vehicle routing, movement, and deboarding. `air-nouns.md` owns shuttle bodies and sorties. The commander/AI layer owns what a delivered squad does after its objective assignment, while reinforcement only supplies the initial tactical intent.
+`conquest-nouns.md` owns compound capture, ownership state, and the conquest win condition. Reinforcement reads compound availability as supply; it does not own capture progression. `convoy-nouns.md` owns vehicle routing, movement, and deboarding. `air-nouns.md` owns shuttle bodies and sorties. The commander/AI layer owns what a delivered squad does after its objective assignment, while reinforcement only supplies the initial tactical intent.
 
 The existing request shape is deliberately wider than the current delivery set. Marine-side reinforcement can reuse it only after the story establishes which marine-held compounds supply which response, what marine triggers are legitimate, and how the player reads and authorizes that capacity. Scripted mission timings and commander-initiated requests are likewise trigger extensions, not new delivery systems.
 

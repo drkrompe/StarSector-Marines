@@ -11,7 +11,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
  * "never deboard inside a building or on impassable ground" lives in exactly
  * one place.
  *
- * <p>Design: {@code roadmap/conquest/stories/progressive-reinforcement.md}
+ * <p>Design: {@code reinforcement-nouns.md}
  * (slice 3a). Candidate <em>generation</em> stays per-means (convoy walks
  * road-graph junctions, walk-in scans the map edge, shuttle / front-line
  * delivery ring-search out from a rally hint); candidate <em>validation,

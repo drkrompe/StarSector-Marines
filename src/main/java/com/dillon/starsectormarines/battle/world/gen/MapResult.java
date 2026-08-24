@@ -80,7 +80,7 @@ public final class MapResult {
      */
     public final RoadGraph roadGraph;
     /**
-     * Conquest biome-band overlay ({@code roadmap/conquest/stories/progressive-reinforcement.md}) —
+     * Conquest biome-band overlay ({@code reinforcement-nouns.md}) —
      * the slice a cell falls in (BEACH/PORT/CITY/FORTRESS_DISTRICT/OUTSKIRTS),
      * read by {@link com.dillon.starsectormarines.battle.command.reinforcement.RecaptureTargetService}
      * to bucket recapture targets. Null for generators with no biome layer

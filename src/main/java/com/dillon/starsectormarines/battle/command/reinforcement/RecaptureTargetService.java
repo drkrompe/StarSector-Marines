@@ -15,7 +15,7 @@ import java.util.Map;
 /**
  * Data owner for the "where does the defender want to reinforce" question for
  * conquest progressive reinforcement
- * ({@code roadmap/conquest/stories/progressive-reinforcement.md}).
+ * ({@code reinforcement-nouns.md}).
  *
  * <p>It holds the static set of {@link RecaptureTarget}s (every eligible
  * defender node, bucketed by biome slice at init — nodes don't move) plus the
