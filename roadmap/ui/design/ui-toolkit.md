@@ -2,7 +2,7 @@
 
 Status: SHIPPED — foundation active as production infrastructure
 Written: 2026-08-23
-Updated: 2026-08-24 — production canvas recipes can emit deterministic PNG evidence through a headless raster backend.
+Updated: 2026-08-24 — layered unit compositions now have a standalone visual authoring and deterministic sheet workflow.
 
 ## Decision
 
@@ -160,6 +160,13 @@ idle guarantee here is zero style resolution and zero layout work once settled.
   as the live canvas sink. `gradlew.bat renderArmoryPreviews` writes individual Fleet
   Armory loadouts and a contact sheet under `build/headless-armory-previews/`; this is
   deterministic visual evidence, while the final host-scale feel pass remains in-game.
+- `gradlew.bat layerAuthoring` opens a separate desktop workbench over
+  `unit-layer-layouts.appearance.json`. It selects and drags individual marine or mech
+  layers, adjusts scale, pivot, angle, visibility, order, and frame timing, plays the
+  frame sequence, previews the combined sheet, and writes the validated document
+  atomically. `gradlew.bat renderLayerAuthoringSheets` produces the same sheets without
+  opening the UI. The document is the handoff contract for generalized live composers;
+  a transform is not live-shipped until its runtime adapter consumes that contract.
 
 ## Rejected directions
 
