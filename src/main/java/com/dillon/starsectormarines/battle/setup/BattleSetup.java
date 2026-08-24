@@ -1083,8 +1083,13 @@ public final class BattleSetup {
             boolean enemyHasHeavyArmor, List<ShuttleAssignment> assignments,
             List<DefensePost> defensePosts, FlybyRoster marineFighterSupport,
             FlybyRoster enemyFighterSupport) {
-        float attackerScore = BattleForceScore.attackers(
-                assignments, marineFighterSupport);
+        // Conquest is an authored late-game set piece, not an encounter that
+        // softens itself to match the committed detachment. Its population,
+        // mech groups, fighter wings, and fortifications all survive intact
+        // however much or little force the campaign player can afford to bring.
+        float attackerScore = type == MissionType.CONQUEST
+                ? Float.POSITIVE_INFINITY
+                : BattleForceScore.attackers(assignments, marineFighterSupport);
         DefenderRoster roster = DefenderRoster.forMission(
                 type, tier, risk, enemyHasHeavyArmor, attackerScore);
         FlybyRoster affordableFighters = BattleForceScore.affordableFighterSupport(

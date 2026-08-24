@@ -4,13 +4,28 @@ Status: ACTIVE — Conquest owns reversible compound territory, deliberate captu
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — defined preferred tracks, soft neighboring support, command observability, and keep convergence.
+Updated: 2026-08-24 — defined preferred tracks, soft neighboring support, command observability, keep convergence, and fixed authored siege pressure.
 
 Conquest is a territorial assault: marines establish a beachhead, take the
 defender's supply hubs through the city, and finish at the keep. It is not a
 race to erase every defender from the map. Reinforcement makes intact
 territory costly to leave behind; compound control gives the battle a durable
 end condition.
+
+## Authored siege pressure
+
+Conquest is a bombastic late-game set piece, not an encounter that scales down
+to the detachment brought into it. Mission tier and risk author a fixed initial
+defender population; at Full Strength the nominal force exceeds the capacity
+of forty full twelve-marine squads. The same authored-battle rule preserves all
+eligible defender mechs, enemy fighter support, and map-authored static weapons
+regardless of the attacking manifest. A player who commits less force accepts
+the resulting disadvantage, while campaign economy remains free to let a
+wealthy player commit more.
+
+Defender intensity and mission lift demand are separate expressions of
+Conquest scale. Raising the population of the siege does not claim that the
+briefing, carrier, or meta layer must provide proportionally more drops.
 
 ## Territory and compounds
 

@@ -4,6 +4,8 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
+Updated: 2026-08-24 — separated mission lift expression from defender intensity and made Conquest an authored siege rather than an attacker-balanced encounter.
+
 Mission difficulty is described by two independent axes: **operation tier**
 states how large and consequential the work is, while **risk** states how far
 that work may deviate from its expected pressure. A mission is the combination
@@ -38,15 +40,18 @@ size, company-size, or campaign-progression label.
 ## Mission type and force composition
 
 **Mission type** provides the tactical shape of a mission: a type-specific
-defender weight and its tier floor. Tier answers how large the operation is;
-type answers how that scale is expressed. Defender composition then uses risk
-for qualitative pressure, such as elite and heavy-support candidates.
+defender weight, a separate lift weight, and its tier floor. Tier answers how
+large the operation is; type answers how defender population and transport
+demand express that scale. Defender composition then uses risk for qualitative
+pressure, such as elite and heavy-support candidates.
 
-The actual attacker force may cap optional high-impact defender support after
-the tier baseline is established. This protects small or unsupported attacks
-from inappropriate heavy opposition without changing the authored infantry
-count, map, or mission identity. It is a support-eligibility gate, not whole
-encounter scaling.
+For ordinary mission types, the actual attacker force may cap optional
+high-impact defender support after the tier baseline is established. This is a
+support-eligibility gate, not whole encounter scaling. Conquest is the explicit
+exception: it is a late-game authored siege whose infantry population, mechs,
+fighter wings, and static weapons are not reduced to match the force the player
+chooses or can afford to field. Its elevated defender weight also does not
+silently raise required lift; those are independent mission expressions.
 
 ## Offer, reward, and compatibility boundaries
 

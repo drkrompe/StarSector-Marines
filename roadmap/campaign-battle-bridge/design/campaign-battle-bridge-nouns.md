@@ -4,7 +4,7 @@ Status: ACTIVE — target-profile transport is campaign-free, while ground consu
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — replaced work sequencing with durable consumer and target-market authority boundaries.
+Updated: 2026-08-24 — replaced work sequencing with durable consumer, target-market, and authored-Conquest force boundaries.
 
 Read `stories.md` for open work.
 
@@ -75,11 +75,12 @@ read it.
 The current defense consumer is the conquest overwatch line. A more defended
 market creates a larger tower budget and promotes its tower weapon tier. Site
 supply and ordinary placement constraints still cap what can be proposed.
-Battle-start force balance then admits only the static weapons the combined
-attack and resolved defender roster can support; fortification geometry
-remains when a weapon is trimmed. The market signal therefore authors
-candidate defenses without bypassing encounter balance. It does not define the
-whole defender roster.
+Ordinary battle-start force balance admits only the static weapons the combined
+attack and resolved defender roster can support; fortification geometry remains
+when a weapon is trimmed. Conquest is deliberately different: its profile-aware
+candidate line is part of an authored late-game siege, so battle setup retains
+the line regardless of the attacking manifest. The market signal still does
+not define the whole defender roster.
 
 Its numerical balance is an in-game acceptance concern. Automated coverage may
 prove that the profile changes the line and that Neutral remains baseline, but
