@@ -1,4 +1,4 @@
-<template props="companySummary,selectedSquadName,fireTeamOverviews,templateRows,targetSummary,candidateSummary,billetMannequins,gearRows,transactionSummary,transactionClasses,applyDisabled,apply,feedbackText,feedbackClasses,backToSquads,back,legacy,reload,reloadStatus">
+<template props="companySummary,selectedSquadName,fireTeamOverviews,templateTiles,targetSummary,candidateSummary,billetMannequins,gearRows,transactionSummary,transactionClasses,applyDisabled,apply,feedbackText,feedbackClasses,backToSquads,back,legacy,reload,reloadStatus">
   <div id="fleet-armory-fireteam-root" class="fleet-armory-root">
     <div id="fireteam-header" class="panel surface-dark">
       <div id="fireteam-title" class="label title tone-accent">FLEET ARMORY</div>
@@ -17,7 +17,7 @@
 
     <div id="fireteam-body">
       <armory-fireteam-list fireTeamOverviews="{fireTeamOverviews}" />
-      <armory-template-library templateRows="{templateRows}" />
+      <armory-template-library templateTiles="{templateTiles}" />
       <armory-refit-transaction targetSummary="{targetSummary}" candidateSummary="{candidateSummary}" billetMannequins="{billetMannequins}" gearRows="{gearRows}" transactionSummary="{transactionSummary}" transactionClasses="{transactionClasses}" applyDisabled="{applyDisabled}" apply="{apply}" feedbackText="{feedbackText}" feedbackClasses="{feedbackClasses}" />
     </div>
 

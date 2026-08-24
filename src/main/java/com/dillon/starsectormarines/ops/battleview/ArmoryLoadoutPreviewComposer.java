@@ -6,11 +6,13 @@ import com.dillon.starsectormarines.battle.appearance.LayeredWeaponFamily;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
+import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef;
 import com.dillon.starsectormarines.marine.SpecialUsePose;
 
 import java.awt.Color;
+import java.util.List;
 
 /** Backend-neutral composition of the Fleet Armory's selected-billet preview. */
 public final class ArmoryLoadoutPreviewComposer {
@@ -72,6 +74,33 @@ public final class ArmoryLoadoutPreviewComposer {
         sink.line(actorLeft, height - 16f, width - 8f, height - 16f, ACCENT, 2f);
         drawSoldier(sink, assets, billet, actorLeft + actorWidth * 0.52f,
                 height * 0.48f, Math.min(height * 0.48f, actorWidth * 0.78f), height);
+    }
+
+    /** Compact at-a-glance composition of all four template billets. */
+    public static void composeFireTeam(Sink sink, Assets assets,
+                                       List<FireTeamBillet> billets,
+                                       float width, float height) {
+        if (sink == null || assets == null) {
+            throw new IllegalArgumentException("preview sink and assets are required");
+        }
+        if (billets == null || billets.isEmpty() || width <= 0f || height <= 0f) return;
+
+        sink.fillRect(0f, 0f, width, height, BACKGROUND);
+        float margin = 8f;
+        float baseline = height - 12f;
+        sink.line(margin, baseline, width - margin, baseline, ACCENT, 2f);
+        float cellWidth = width / MarineSquad.TEAM_SIZE;
+        int count = Math.min(MarineSquad.TEAM_SIZE, billets.size());
+        for (int index = 0; index < count; index++) {
+            float actorX = cellWidth * (index + 0.5f);
+            float shoulder = Math.min(height * 0.39f, cellWidth * 0.58f);
+            if (index > 0) {
+                float divider = cellWidth * index;
+                sink.line(divider, 9f, divider, baseline - 5f, EDGE, 1f);
+            }
+            drawSoldier(sink, assets, billets.get(index), actorX,
+                    height * 0.48f, shoulder, height);
+        }
     }
 
     private static void drawEquipmentDoll(Sink sink, Assets assets,

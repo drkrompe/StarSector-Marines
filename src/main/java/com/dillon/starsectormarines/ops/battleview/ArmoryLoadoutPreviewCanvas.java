@@ -1,13 +1,10 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.marine.FireTeamBillet;
-import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.CanvasProducer;
 
 import java.awt.Color;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.function.Supplier;
 
 /**
@@ -17,32 +14,17 @@ import java.util.function.Supplier;
 public final class ArmoryLoadoutPreviewCanvas implements CanvasProducer {
 
     private final Supplier<FireTeamBillet> selectedBillet;
-    private final ArmoryLoadoutPreviewComposer.Assets injectedAssets;
+    private final ArmoryLoadoutPreviewComposer.Assets assets;
     private final boolean mannequin;
-    private final BattleSprites sprites = new BattleSprites();
-    private final Map<String, LayeredSpriteCache> catalogIcons = new LinkedHashMap<>();
-    private final ArmoryLoadoutPreviewComposer.Assets previewAssets =
-            new ArmoryLoadoutPreviewComposer.Assets() {
-                @Override
-                public LayeredUnitAssets layered(MarineArmorPattern armor) {
-                    return assetsFor(armor);
-                }
-
-                @Override
-                public LayeredSpriteCache icon(String path) {
-                    return ArmoryLoadoutPreviewCanvas.this.icon(path);
-                }
-            };
-    private boolean loadAttempted;
 
     public ArmoryLoadoutPreviewCanvas(Supplier<FireTeamBillet> selectedBillet) {
-        this(selectedBillet, null, false);
+        this(selectedBillet, new ArmoryPreviewAssets(), false);
     }
 
     /** Uses the portrait mannequin composition for one billet in a four-unit template view. */
     public ArmoryLoadoutPreviewCanvas(
             Supplier<FireTeamBillet> selectedBillet, boolean mannequin) {
-        this(selectedBillet, null, mannequin);
+        this(selectedBillet, new ArmoryPreviewAssets(), mannequin);
     }
 
     /** Uses caller-supplied assets for a non-Starsector paint backend. */
@@ -58,17 +40,15 @@ public final class ArmoryLoadoutPreviewCanvas implements CanvasProducer {
             ArmoryLoadoutPreviewComposer.Assets injectedAssets,
             boolean mannequin) {
         if (selectedBillet == null) throw new IllegalArgumentException("selected billet is required");
+        if (injectedAssets == null) throw new IllegalArgumentException("preview assets are required");
         this.selectedBillet = selectedBillet;
-        this.injectedAssets = injectedAssets;
+        this.assets = injectedAssets;
         this.mannequin = mannequin;
     }
 
     @Override
     public void draw(CanvasContext context) {
-        if (injectedAssets == null) ensureLoaded();
         ArmoryLoadoutPreviewComposer.Sink sink = new CanvasSink(context);
-        ArmoryLoadoutPreviewComposer.Assets assets = injectedAssets != null
-                ? injectedAssets : previewAssets;
         if (mannequin) {
             ArmoryLoadoutPreviewComposer.composeMannequin(sink, assets,
                     selectedBillet.get(), context.metrics().surfaceWidth(),
@@ -78,22 +58,6 @@ public final class ArmoryLoadoutPreviewCanvas implements CanvasProducer {
                     selectedBillet.get(), context.metrics().surfaceWidth(),
                     context.metrics().surfaceHeight());
         }
-    }
-
-    private void ensureLoaded() {
-        if (loadAttempted) return;
-        loadAttempted = true;
-        sprites.ensureLayeredUnitSprites();
-    }
-
-    private LayeredUnitAssets assetsFor(MarineArmorPattern armor) {
-        return sprites.layeredUnitSprites().get(
-                ArmoryLoadoutPreviewComposer.armorFamily(armor));
-    }
-
-    private LayeredSpriteCache icon(String path) {
-        if (path == null) return null;
-        return catalogIcons.computeIfAbsent(path, sprites::loadLayeredSprite);
     }
 
     private record CanvasSink(CanvasContext context)
