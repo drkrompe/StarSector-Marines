@@ -219,6 +219,14 @@ of a loaded game texture. The live sink resolves those tokens to `SpriteAPI`; th
 headless sink resolves the same tokens to source PNGs in a controlled Java2D context.
 Both therefore exercise one layout, pose, occlusion, and actor-composition recipe.
 
+Layered character authoring is a separate desktop concern rather than another game
+screen. A unit-layer document describes frames as ordered sprite layers in normalized
+actor coordinates, including source path, offset, independent scale, angle, pivot,
+visibility, and duration. The authoring workbench edits that contract, plays its frame
+sequence, and renders combined PNG sheets in a controlled Java2D context. Live render
+adapters remain responsible for consuming the same contract; the tool never reaches
+into a running battle or treats an editor-only transform as shipped behavior.
+
 ## Authority boundaries
 
 - Starsector owns the campaign UI, custom-dialog placement, callback cadence, and
