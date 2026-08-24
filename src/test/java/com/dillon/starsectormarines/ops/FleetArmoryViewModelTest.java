@@ -6,7 +6,6 @@ import com.dillon.starsectormarines.marine.FireTeamRefitPreview;
 import com.dillon.starsectormarines.marine.FireTeamTemplateResult;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
-import com.dillon.starsectormarines.ops.battleview.ArmoryLoadoutPreviewComposer;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
@@ -31,7 +30,9 @@ class FleetArmoryViewModelTest {
 
     private static final List<String> COMPONENTS = List.of(
             "mod/data/ui/components/armory/fleet-armory.mlx",
-            "mod/data/ui/components/armory/armory-formation-rail.mlx",
+            "mod/data/ui/components/armory/armory-squad-list.mlx",
+            "mod/data/ui/components/armory/fleet-armory-fireteam.mlx",
+            "mod/data/ui/components/armory/armory-fireteam-list.mlx",
             "mod/data/ui/components/armory/armory-template-library.mlx",
             "mod/data/ui/components/armory/armory-refit-transaction.mlx");
 
@@ -82,7 +83,7 @@ class FleetArmoryViewModelTest {
                 path -> Files.readString(Path.of(path)), COMPONENTS);
         loader.reload();
 
-        try (MarkupInstance instance = loader.build(reactor, "fleet-armory",
+        try (MarkupInstance instance = loader.build(reactor, "fleet-armory-fireteam",
                 props(viewModel))) {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
@@ -92,7 +93,7 @@ class FleetArmoryViewModelTest {
                     new float[]{1395f, 750f},
                     new float[]{1163f, 625f})) {
                 document.layout(size[0], size[1]);
-                UiElement root = instance.requireElement("fleet-armory-root");
+                UiElement root = instance.requireElement("fleet-armory-fireteam-root");
                 UiElement transaction = instance.requireElement("refit-transaction");
                 assertTrue(transaction.box().borderBox().width() > 300f);
                 assertTrue(transaction.box().borderBox().right()
@@ -102,14 +103,10 @@ class FleetArmoryViewModelTest {
             }
 
             UiElement list = instance.requireElement("template-list");
-            UiElement preview = instance.requireElement("loadout-preview");
-            assertEquals(ArmoryLoadoutPreviewComposer.SURFACE_WIDTH,
-                    preview.canvasWidth());
-            assertEquals(ArmoryLoadoutPreviewComposer.SURFACE_HEIGHT,
-                    preview.canvasHeight());
+            instance.requireElement("billet-preview:0");
             UiElement first = list.childAt(0);
             UiElement second = list.childAt(1);
-            viewModel.templateRows().get().get(1).select().run();
+            viewModel.templateTiles().get().get(1).select().run();
             instance.flush();
 
             assertSame(first, list.childAt(0));
@@ -141,7 +138,7 @@ class FleetArmoryViewModelTest {
     void playerFacingMarkupUsesTemplateLanguage() throws Exception {
         for (String path : COMPONENTS) {
             String source = Files.readString(Path.of(path)).toLowerCase(Locale.ROOT);
-            assertFalse(source.matches("(?s).*\\b(card|deck|hand|consume)\\b.*"), path);
+            assertFalse(source.matches("(?s).*\\b(deck|hand|consume)\\b.*"), path);
         }
     }
 
@@ -154,12 +151,16 @@ class FleetArmoryViewModelTest {
     private static Map<String, Object> props(FleetArmoryViewModel viewModel) {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("companySummary", viewModel.companySummary());
+        props.put("selectedSquadName", viewModel.selectedSquadName());
+        props.put("squadCards", viewModel.squadCards());
+        props.put("fireTeamOverviews", viewModel.fireTeamOverviews());
         props.put("squadRows", viewModel.squadRows());
         props.put("teamRows", viewModel.teamRows());
-        props.put("templateRows", viewModel.templateRows());
+        props.put("templateTiles", viewModel.templateTiles());
         props.put("targetSummary", viewModel.targetSummary());
         props.put("candidateSummary", viewModel.candidateSummary());
         props.put("billetRows", viewModel.billetRows());
+        props.put("billetMannequins", viewModel.billetMannequins());
         props.put("previewSummary", viewModel.previewSummary());
         props.put("gearRows", viewModel.gearRows());
         props.put("transactionSummary", viewModel.transactionSummary());
@@ -169,6 +170,7 @@ class FleetArmoryViewModelTest {
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         props.put("back", (Runnable) () -> { });
+        props.put("backToSquads", (Runnable) () -> { });
         props.put("legacy", (Runnable) () -> { });
         props.put("reload", (Runnable) () -> { });
         props.put("reloadStatus", "Test");

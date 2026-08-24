@@ -1,0 +1,77 @@
+<template props="companySummary,selectedSquadName,fireTeamOverviews,templateTiles,targetSummary,candidateSummary,billetMannequins,gearRows,transactionSummary,transactionClasses,applyDisabled,apply,feedbackText,feedbackClasses,backToSquads,back,legacy,reload,reloadStatus">
+  <div id="fleet-armory-fireteam-root" class="fleet-armory-root">
+    <div id="fireteam-header" class="panel surface-dark">
+      <div id="fireteam-title" class="label title tone-accent">FLEET ARMORY</div>
+      <div id="fireteam-purpose" class="label tone-edge">Company  /  Squad  /  Fire team equipment</div>
+    </div>
+
+    <div id="fireteam-breadcrumb" class="panel">
+      <button id="fireteam-breadcrumb-companies" onclick="{back}">Companies</button>
+      <div id="fireteam-breadcrumb-separator-company" class="breadcrumb-separator label tone-muted">/</div>
+      <button id="back-to-squads" onclick="{backToSquads}">Fleet Marine Company</button>
+      <div id="fireteam-breadcrumb-separator-squad" class="breadcrumb-separator label tone-muted">/</div>
+      <div id="fireteam-squad-name" class="breadcrumb-current label tone-edge">{selectedSquadName}</div>
+      <div id="fireteam-breadcrumb-separator-teams" class="breadcrumb-separator label tone-muted">/</div>
+      <div id="fireteam-breadcrumb-current" class="breadcrumb-current label tone-accent">Fire Teams</div>
+    </div>
+
+    <div id="fireteam-body">
+      <armory-fireteam-list fireTeamOverviews="{fireTeamOverviews}" />
+      <armory-template-library templateTiles="{templateTiles}" />
+      <armory-refit-transaction targetSummary="{targetSummary}" candidateSummary="{candidateSummary}" billetMannequins="{billetMannequins}" gearRows="{gearRows}" transactionSummary="{transactionSummary}" transactionClasses="{transactionClasses}" applyDisabled="{applyDisabled}" apply="{apply}" feedbackText="{feedbackText}" feedbackClasses="{feedbackClasses}" />
+    </div>
+
+    <div id="fireteam-footer" class="panel surface-dark">
+      <button id="fireteam-back" onclick="{back}">Back to Companies</button>
+      <button id="fireteam-legacy" onclick="{legacy}">Personnel / Designer / Mech Lab</button>
+      <button id="fireteam-reload" onclick="{reload}">Reload UI</button>
+      <div id="fireteam-reload-status" class="label tone-good">{reloadStatus}</div>
+    </div>
+  </div>
+</template>
+
+<style>
+  .fleet-armory-root {
+    flex-direction: column;
+    padding: 10px;
+    gap: 8px;
+    border-width: 2px;
+    overflow: hidden;
+  }
+
+  .label { overflow: hidden; }
+  .title { font-family: title; }
+
+  #fireteam-header {
+    flex-direction: row;
+    height: 34px;
+    padding: 7px 8px;
+    gap: 10px;
+  }
+
+  #fireteam-title { width: 220px; }
+  #fireteam-purpose { flex-grow: 1; text-align: right; }
+
+  #fireteam-breadcrumb {
+    flex-direction: row;
+    height: 30px;
+    padding: 4px;
+    gap: 6px;
+  }
+
+  #fireteam-breadcrumb button { padding: 3px 7px; border-width: 1px; font-family: body; }
+  .breadcrumb-separator { width: 10px; text-align: center; }
+  .breadcrumb-current { padding: 3px 4px; }
+
+  #fireteam-body { flex-direction: row; height: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
+
+  #fireteam-footer {
+    flex-direction: row;
+    height: 28px;
+    padding: 4px;
+    gap: 6px;
+  }
+
+  #fireteam-footer button { padding: 3px 7px; border-width: 1px; font-family: body; }
+  #fireteam-reload-status { width: 0px; flex-grow: 1; }
+</style>
