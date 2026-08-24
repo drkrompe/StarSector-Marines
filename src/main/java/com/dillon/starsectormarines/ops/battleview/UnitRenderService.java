@@ -517,7 +517,23 @@ public final class UnitRenderService implements RenderSystem {
             }
         }
         AnimationClip clip = layouts.clip("marine-line", variantId, animationId);
-        return clip != null ? clip.sample(phase) : null;
+        if (clip == null) return null;
+        LayerPose sampled = clip.sample(phase);
+        boolean enteringSecondary = pose == LayeredAppearance.POSE_ROCKET_AIM
+                || pose == LayeredAppearance.POSE_AMR_AIM
+                || pose == LayeredAppearance.POSE_SMOKE_THROW
+                || pose == LayeredAppearance.POSE_SATCHEL_PLANT;
+        if (!enteringSecondary
+                || phase >= LayeredAppearance.ACTION_ENTRY_BLEND_PHASE) {
+            return sampled;
+        }
+        boolean fromMoving = (flags & LayeredAppearance.FLAG_ACTION_FROM_MOVING) != 0;
+        AnimationClip sourceClip = layouts.clip("marine-line", "rifle",
+                fromMoving ? "walking" : "idle");
+        if (sourceClip == null) return sampled;
+        LayerPose source = sourceClip.sample(fromMoving ? locomotionPhase : 0f);
+        return LayerPose.blendMatching(source, sampled,
+                phase / LayeredAppearance.ACTION_ENTRY_BLEND_PHASE);
     }
 
     private static LayerPose mechPose(int chassis, float locomotionPhase, int flags) {

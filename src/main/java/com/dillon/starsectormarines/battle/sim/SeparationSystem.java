@@ -133,6 +133,13 @@ public final class SeparationSystem {
     /** Below this separation distance, two units are treated as coincident and steered apart by the deterministic id-hash tiebreak instead of a (division-by-zero) normalized delta. */
     private static final float COINCIDENT_EPS = 1e-4f;
 
+    /**
+     * Ordinary battle ids use direct addressing for the per-pass collision
+     * slot lookup. The roster still owns the authoritative sparse fallback
+     * for an unusually large externally adopted id.
+     */
+    private static final int MAX_DIRECT_COLLISION_ID = 1 << 20;
+
     private static final byte PARTICIPATES = 1;
     private static final byte IMMOVABLE = 1 << 1;
     private static final byte MECH = 1 << 2;
@@ -172,6 +179,13 @@ public final class SeparationSystem {
     private float[] collisionMass = new float[0];
     private byte[] collisionFlags = new byte[0];
     private byte[] collisionFaction = new byte[0];
+    /**
+     * Entity id to collision-slot-plus-one for the current pass. Entries are
+     * grow-and-stay and need no full-array clear: {@link #collisionSlot}
+     * verifies the encoded slot still holds the requested id in the current
+     * dense roster before using it.
+     */
+    private int[] collisionSlotById = new int[64];
     /** Reused member buffer for one squad's active-path formation participants. */
     private long[] formationMembers = new long[0];
     /** Two-float reusable return buffer for path-heading calculation. */
@@ -203,6 +217,7 @@ public final class SeparationSystem {
         Arrays.fill(impulseX, 0, liveCount, 0f);
         Arrays.fill(impulseY, 0, liveCount, 0f);
         long[] dense = roster.denseArray();
+        cacheCollisionSlots(dense, liveCount);
         cacheCollisionState(dense, liveCount);
 
         accumulate(dense, liveCount);
@@ -225,7 +240,7 @@ public final class SeparationSystem {
             for (int k = 0, n = scratch.size; k < n; k++) {
                 long b = scratch.ids[k];
                 if (b == a) continue;
-                int j = roster.indexOf(b);
+                int j = collisionSlot(b, dense, liveCount);
                 if (j == UnitRosterService.INVALID_INDEX) continue;
                 byte bFlags = collisionFlags[j];
                 if (!hasFlag(bFlags, PARTICIPATES)) continue;
@@ -276,6 +291,40 @@ public final class SeparationSystem {
                 impulseY[i] += dirY * mag;
             }
         }
+    }
+
+    private void cacheCollisionSlots(long[] dense, int liveCount) {
+        int largestDirectId = 0;
+        for (int i = 0; i < liveCount; i++) {
+            long id = dense[i];
+            if (id > 0L && id <= MAX_DIRECT_COLLISION_ID) {
+                largestDirectId = Math.max(largestDirectId, (int) id);
+            }
+        }
+        int required = largestDirectId + 1;
+        if (required > collisionSlotById.length) {
+            int capacity = Math.min(MAX_DIRECT_COLLISION_ID + 1,
+                    Math.max(required, collisionSlotById.length << 1));
+            collisionSlotById = Arrays.copyOf(collisionSlotById, capacity);
+        }
+        for (int i = 0; i < liveCount; i++) {
+            long id = dense[i];
+            if (id > 0L && id < collisionSlotById.length) {
+                collisionSlotById[(int) id] = i + 1;
+            }
+        }
+    }
+
+    private int collisionSlot(long id, long[] dense, int liveCount) {
+        if (id > 0L && id < collisionSlotById.length) {
+            int slot = collisionSlotById[(int) id] - 1;
+            return slot >= 0 && slot < liveCount && dense[slot] == id
+                    ? slot : UnitRosterService.INVALID_INDEX;
+        }
+        if (id <= MAX_DIRECT_COLLISION_ID) {
+            return UnitRosterService.INVALID_INDEX;
+        }
+        return roster.indexOf(id);
     }
 
     private void cacheCollisionState(long[] dense, int liveCount) {
