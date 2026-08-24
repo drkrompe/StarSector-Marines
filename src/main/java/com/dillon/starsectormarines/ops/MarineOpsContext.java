@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ContractState;
@@ -83,6 +84,8 @@ public class MarineOpsContext {
     private long selectedStationingContractId = -1L;
     /** Current battle simulation — built by the accept path (MissionLaunch), read by BattleScreen. */
     private BattleSimulation battleSimulation;
+    /** Tick-zero construction facts retained for debug capture/replay; not mutable battle state. */
+    private BattleFixture battleFixture;
     /** Detachment committed to the current battle — resolved by {@link MissionLaunch}, kept for the battle UI / debug. */
     private Detachment detachment;
     /** Frozen outcome from the most recent applied mission — read by ResultsScreen. */
@@ -285,7 +288,22 @@ public class MarineOpsContext {
     }
 
     public void setBattleSimulation(BattleSimulation simulation) {
+        setBattle(simulation, null, detachment);
+    }
+
+    /** Atomically replaces the active battle and all of its launch metadata. */
+    public void setBattle(BattleSimulation simulation, BattleFixture fixture,
+                          Detachment battleDetachment) {
+        if (battleSimulation != null && battleSimulation != simulation) {
+            battleSimulation.close();
+        }
         this.battleSimulation = simulation;
+        this.battleFixture = simulation != null ? fixture : null;
+        this.detachment = simulation != null ? battleDetachment : null;
+    }
+
+    public BattleFixture getBattleFixture() {
+        return battleFixture;
     }
 
     public Detachment getDetachment() {
@@ -344,7 +362,9 @@ public class MarineOpsContext {
     /** Clears the finished mission while preserving its closed settlement gate. */
     public void clearResolvedMission() {
         selectedMission = null;
+        if (battleSimulation != null) battleSimulation.close();
         battleSimulation = null;
+        battleFixture = null;
         detachment = null;
         lastOutcome = null;
         lootManifest = LootManifest.EMPTY;

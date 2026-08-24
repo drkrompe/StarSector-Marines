@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.audio.BattleRadioChatter;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.ui.debug.VehicleStateDumper;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -642,6 +643,11 @@ public class BattleScreen implements Screen, BattleUiContext {
     @Override
     public BattleSimulation getSim() {
         return ctx != null ? ctx.getBattleSimulation() : null;
+    }
+
+    @Override
+    public BattleFixture getBattleFixture() {
+        return ctx != null ? ctx.getBattleFixture() : null;
     }
 
     @Override

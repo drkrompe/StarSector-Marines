@@ -85,7 +85,9 @@ dependencies {
 }
 
 test {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        excludeTags 'battle-profile'
+    }
     testLogging {
         // Audit-style tests print their report to stdout — stream it to the
         // gradle console so devs don't have to dig through the XML report.
@@ -100,6 +102,33 @@ test {
     // (EcsAccessBenchTest). Off by default so the normal suite stays fast for
     // concurrent sessions; run on demand with `-Decs.bench=true`.
     systemProperty 'ecs.bench', System.getProperty('ecs.bench', 'false')
+}
+
+tasks.register('profileBattleFixture', Test) {
+    group = 'verification'
+    description = 'Replay a battle fixture headlessly and record its ticks with JFR.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'battle-profile'
+    }
+    maxParallelForks = 1
+    outputs.upToDateWhen { false }
+    systemProperty 'starsectorDir', starsectorDir.absolutePath
+    systemProperty 'battle.profile.outputDir', layout.buildDirectory.dir('profiles').get().asFile.absolutePath
+    def selectedFixture = System.getProperty('battle.fixture.path', '')
+    if (!selectedFixture.isBlank()) {
+        systemProperty 'battle.fixture.path', selectedFixture
+    }
+    ['battle.profile.warmupTicks', 'battle.profile.minimumMillis'].each { propertyName ->
+        def propertyValue = System.getProperty(propertyName, '')
+        if (!propertyValue.isBlank()) {
+            systemProperty propertyName, propertyValue
+        }
+    }
+    testLogging {
+        showStandardStreams = true
+    }
 }
 
 // The default `jar` task only produces the thin jar (our classes), which we
