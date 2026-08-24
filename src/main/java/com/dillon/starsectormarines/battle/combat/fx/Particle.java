@@ -21,6 +21,8 @@ public final class Particle {
     public float x, y;
     /** Velocity in cells/sec. Smoke rises, sparks stay parked. */
     public float vx, vy;
+    /** Authored spawn delay; delayed particles neither age nor render until it reaches zero. */
+    public float delayRemaining;
     public float lifetimeRemaining;
     public float lifetimeMax;
     public float radiusCells;

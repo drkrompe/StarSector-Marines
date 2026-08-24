@@ -65,19 +65,6 @@ ledger, code, tests, and Git.
 - **District-theme convergence** — reconcile `DistrictTheme` and
   `MapDistrictTheme` as one semantic model when their next consumer requires it.
 
-## Cleanup candidates to promote
-
-- **Bridge debug quadrants** — retire the remaining false quadrant scaffolding
-  from `BridgeRenderer` with a bounded render smoke check.
-- **Neutral battle timestep** — move the shared fixed-tick constant out of
-  `BattleSimulation` so narrow battle contracts do not import the coordinator
-  solely for a literal.
-- **Squad leadership order invariant** — decide whether roster order or leader
-  identity is authoritative, then make undermanned leadership deterministic.
-
-These candidates should move to their owning feature boards before
-implementation; they are listed here only until their story contracts exist.
-
 ## Translation and community
 
 - **i18n coverage audit** — periodically sweep user-facing copy for hardcoded

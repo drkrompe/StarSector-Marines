@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.battle.turret.TurretKind;
 import org.junit.jupiter.api.Test;
 
 import java.awt.Color;
@@ -52,9 +53,10 @@ class WeaponRegistryParityTest {
         long weaponLikeSpecials = Arrays.stream(MarineSecondary.values())
                 .filter(weapon -> weapon.specialDef().weaponId() != null)
                 .count();
-        assertEquals(MarineWeapon.values().length + weaponLikeSpecials,
+        assertEquals(MarineWeapon.values().length + weaponLikeSpecials
+                        + TurretKind.values().length,
                 WeaponRegistry.installed().size(),
-                "the catalog holds exactly the shipped handheld weapons");
+                "the registry holds exactly the shipped handheld and turret weapons");
     }
 
     @Test

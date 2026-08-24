@@ -7,8 +7,8 @@ import org.json.JSONException;
  * that distinguishes a marine's rifle from a turret's autocannon, so all
  * four catalogs can share one {@link WeaponDef} schema.
  *
- * <p>Only {@link #MARINE_PRIMARY} is populated today; the rest are declared
- * so the schema does not change shape when W3 migrates them.
+ * <p>Handheld primary, weapon-like secondary and turret-mount definitions are
+ * populated today. Mech mounts retain their compatibility catalog until W3.
  */
 public enum MountClass {
 

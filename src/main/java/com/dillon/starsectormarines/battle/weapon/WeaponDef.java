@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.weapon;
 
 import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
+import com.dillon.starsectormarines.battle.weapon.fx.FxSlot;
+import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxDef;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -10,10 +12,9 @@ import java.awt.Color;
  * One weapon, parsed from a {@code *.weapon.json} entry. Immutable and
  * id-addressed; the authoring surface is the JSON, not this class.
  *
- * <p>The current field set is the shared baseline populated by marine
- * primaries (see {@code moddable-weapons-nouns.md}). Later catalog stories
- * extend that shape for secondaries, mech mounts, and turret mounts, then
- * validate which fields each {@link #mount} class may declare.
+ * <p>The field set is the shared baseline populated by handheld and turret
+ * weapons (see {@code moddable-weapons-nouns.md}). Carrier-specific durability,
+ * magazines and mount art remain outside this definition.
  *
  * <p>Grouped by who reads it: the {@code sim} block feeds
  * {@link com.dillon.starsectormarines.battle.infantry.InfantryCombatStats}
@@ -45,6 +46,10 @@ public final class WeaponDef {
     public final float cooldown;
     /** Efficiency input against actor armor; does not amplify exposed-structure damage. */
     public final float penetration;
+    /** Optional damage delivered only to the actor physically contacted by an explosive round. */
+    public final float contactDamage;
+    /** Armor penetration paired with {@link #contactDamage}; zero when no distinct contact payload exists. */
+    public final float contactPenetration;
     /** Rounds per fire decision. 1 = single shot. */
     public final int burstCount;
     /** Sim-seconds between burst rounds. Ignored when {@link #burstCount} is 1. */
@@ -69,6 +74,14 @@ public final class WeaponDef {
     public final float flightSec;
     /** Visual arc height for lobbed projectiles. */
     public final float arcHeight;
+    /** Whether the round exists as an interceptable in-flight projectile rather than only a resolved shot event. */
+    public final boolean interceptableProjectile;
+    /** Whether an interceptable projectile accelerates through the shared boost-then-cruise motion curve. */
+    public final boolean boostRamp;
+    /** Whether acquisition and firing may continue without direct line of sight. */
+    public final boolean indirectFire;
+    /** Accuracy multiplier for an indirect shot fired without line of sight. */
+    public final float noLosAccuracyMult;
 
     // ---- render ----
     /** Traveling-body tint, so the player can identify fire at a glance. */
@@ -82,6 +95,12 @@ public final class WeaponDef {
     public final String projectileSpritePath;
     /** Projectile visual size in cells (long axis). Ignored when {@link #projectileSpritePath} is null. */
     public final float projectileVisualCells;
+    /** Whether the traveling body emits the compatibility smoke-puff trail. W2 replaces this with authored layers. */
+    public final boolean smokeTrail;
+    /** Whether firing emits the compatibility launcher backblast. W2 replaces this with authored layers. */
+    public final boolean launchBackblast;
+    /** Optional authored particle composition. Null keeps legacy profile-backed presentation. */
+    public final WeaponFxDef fx;
 
     // ---- audio ----
     /** Vanilla fire sound id; mono, pre-registered by the core install. */
@@ -92,13 +111,17 @@ public final class WeaponDef {
     private WeaponDef(String id, MountClass mount, String displayName, String modelName,
                       String designation, boolean designationTiered,
                       float range, float damage, float accuracy, float cooldown,
-                      float penetration, int burstCount, float burstSpacing,
+                      float penetration, float contactDamage, float contactPenetration,
+                      int burstCount, float burstSpacing,
                       float accuracyFalloff, float hitSpread, float roundVelocity,
                       float minRange, float aoeRadius, int wallDamage,
                       float wallDamageRadius, float aimDuration, float flightSec,
-                      float arcHeight,
+                      float arcHeight, boolean interceptableProjectile,
+                      boolean boostRamp, boolean indirectFire, float noLosAccuracyMult,
                       Color tracerColor, ImpactProfile impactProfile,
                       String projectileSpritePath, float projectileVisualCells,
+                      boolean smokeTrail, boolean launchBackblast,
+                      WeaponFxDef fx,
                       String fireSoundId, String impactSoundId) {
         this.id = id;
         this.mount = mount;
@@ -111,6 +134,8 @@ public final class WeaponDef {
         this.accuracy = accuracy;
         this.cooldown = cooldown;
         this.penetration = penetration;
+        this.contactDamage = contactDamage;
+        this.contactPenetration = contactPenetration;
         this.burstCount = burstCount;
         this.burstSpacing = burstSpacing;
         this.accuracyFalloff = accuracyFalloff;
@@ -123,10 +148,17 @@ public final class WeaponDef {
         this.aimDuration = aimDuration;
         this.flightSec = flightSec;
         this.arcHeight = arcHeight;
+        this.interceptableProjectile = interceptableProjectile;
+        this.boostRamp = boostRamp;
+        this.indirectFire = indirectFire;
+        this.noLosAccuracyMult = noLosAccuracyMult;
         this.tracerColor = tracerColor;
         this.impactProfile = impactProfile;
         this.projectileSpritePath = projectileSpritePath;
         this.projectileVisualCells = projectileVisualCells;
+        this.smokeTrail = smokeTrail;
+        this.launchBackblast = launchBackblast;
+        this.fx = fx;
         this.fireSoundId = fireSoundId;
         this.impactSoundId = impactSoundId;
     }
@@ -151,6 +183,7 @@ public final class WeaponDef {
         MountClass mount = MountClass.fromKey(requireText(json, "mount"), id);
         JSONObject catalog = json.getJSONObject("catalog");
         JSONObject sim = json.getJSONObject("sim");
+        JSONObject contact = sim.optJSONObject("contact");
         JSONObject render = json.optJSONObject("render");
         JSONObject audio = json.optJSONObject("audio");
         WeaponDef def = new WeaponDef(
@@ -165,6 +198,8 @@ public final class WeaponDef {
                 (float) sim.getDouble("accuracy"),
                 (float) sim.getDouble("cooldown"),
                 (float) sim.getDouble("penetration"),
+                contact != null ? (float) contact.getDouble("damage") : 0f,
+                contact != null ? (float) contact.getDouble("penetration") : 0f,
                 sim.optInt("burstCount", 1),
                 (float) sim.optDouble("burstSpacing", 0.0),
                 (float) sim.optDouble("accuracyFalloff", 0.0),
@@ -177,10 +212,18 @@ public final class WeaponDef {
                 (float) sim.optDouble("aimDuration", 0.0),
                 (float) sim.optDouble("flightSec", 0.0),
                 (float) sim.optDouble("arcHeight", 0.0),
+                sim.optBoolean("interceptableProjectile", false),
+                sim.optBoolean("boostRamp", false),
+                sim.optBoolean("indirectFire", false),
+                (float) sim.optDouble("noLosAccuracyMult", 1.0),
                 render != null ? parseColor(render.optString("tracerColor", null), id) : Color.WHITE,
                 render != null ? parseImpact(render.optString("impact", null), id) : ImpactProfile.RIFLE,
                 render != null ? emptyToNull(render.optString("projectileSprite", null)) : null,
                 render != null ? (float) render.optDouble("projectileVisualCells", 0.0) : 0f,
+                render != null && render.optBoolean("smokeTrail", false),
+                render != null && render.optBoolean("launchBackblast", false),
+                json.has("fx") && !json.isNull("fx")
+                        ? WeaponFxDef.parse(id, json.getJSONObject("fx")) : null,
                 audio != null ? emptyToNull(audio.optString("fireSound", null)) : null,
                 audio != null ? emptyToNull(audio.optString("impactSound", null)) : null);
         validateMountFields(def);
@@ -202,6 +245,42 @@ public final class WeaponDef {
         if (def.wallDamageRadius > 0f && def.wallDamage <= 0) {
             throw new JSONException("Weapon '" + def.id
                     + "' declares wallDamageRadius without wallDamage");
+        }
+        if ((def.contactDamage == 0f) != (def.contactPenetration == 0f)) {
+            throw new JSONException("Weapon '" + def.id
+                    + "' must declare both contact damage and contact penetration");
+        }
+        if (def.contactDamage < 0f || def.contactPenetration < 0f) {
+            throw new JSONException("Weapon '" + def.id + "' contact payload cannot be negative");
+        }
+        if (def.interceptableProjectile && !(def.roundVelocity > 0f)) {
+            throw new JSONException("Weapon '" + def.id
+                    + "' declares an interceptable projectile without positive roundVelocity");
+        }
+        if (def.boostRamp && !def.interceptableProjectile) {
+            throw new JSONException("Weapon '" + def.id
+                    + "' declares boostRamp for a non-interceptable round");
+        }
+        if (!def.indirectFire && def.noLosAccuracyMult != 1f) {
+            throw new JSONException("Weapon '" + def.id
+                    + "' declares noLosAccuracyMult without indirectFire");
+        }
+        if (def.mount == MountClass.TURRET_MOUNT) {
+            if (def.fx == null) {
+                throw new JSONException("Turret weapon '" + def.id
+                        + "' must declare authored fx");
+            }
+            requireFxSlot(def, FxSlot.MUZZLE);
+            requireFxSlot(def, FxSlot.IMPACT);
+            if (def.aoeRadius >= 1f) requireFxSlot(def, FxSlot.AFTERMATH);
+            if (def.interceptableProjectile) requireFxSlot(def, FxSlot.TRAIL);
+        }
+    }
+
+    private static void requireFxSlot(WeaponDef def, FxSlot slot) throws JSONException {
+        if (def.fx.layers(slot).isEmpty()) {
+            throw new JSONException("Turret weapon '" + def.id
+                    + "' must declare fx slot '" + slot.key + "'");
         }
     }
 

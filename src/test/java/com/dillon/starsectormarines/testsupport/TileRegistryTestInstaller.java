@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.testsupport;
 
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import org.json.JSONObject;
@@ -53,6 +54,14 @@ public final class TileRegistryTestInstaller implements BeforeAllCallback {
                 weapons.ingest(new JSONObject(Files.readString(Paths.get("mod", path))));
             }
             WeaponRegistry.install(weapons);
+        }
+        if (TurretCatalogRegistry.installed() == null) {
+            TurretCatalogRegistry turrets = new TurretCatalogRegistry();
+            for (String path : TurretCatalogRegistry.BUILTIN_CATALOGS) {
+                turrets.ingest(new JSONObject(Files.readString(Paths.get("mod", path))),
+                        WeaponRegistry.installed());
+            }
+            TurretCatalogRegistry.install(turrets);
         }
         if (SpecialEquipmentRegistry.installed() == null) {
             SpecialEquipmentRegistry equipment = new SpecialEquipmentRegistry();
