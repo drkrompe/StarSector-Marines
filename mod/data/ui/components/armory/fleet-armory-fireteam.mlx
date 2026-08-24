@@ -22,7 +22,7 @@
 
     <div id="fireteam-footer" class="panel surface-dark">
       <button id="fireteam-back" onclick="{back}">Back to Companies</button>
-      <button id="fireteam-legacy" onclick="{legacy}">Personnel / Designer / Mech Lab</button>
+      <button id="fireteam-legacy" onclick="{legacy}">Armory Administration</button>
       <button id="fireteam-reload" onclick="{reload}">Reload UI</button>
       <div id="fireteam-reload-status" class="label tone-good">{reloadStatus}</div>
     </div>

@@ -23,7 +23,7 @@
 
     <div id="armory-footer" class="panel surface-dark">
       <button id="armory-back" onclick="{back}">Back to Companies</button>
-      <button id="legacy-armory" onclick="{legacy}">Personnel / Designer / Mech Lab</button>
+      <button id="legacy-armory" onclick="{legacy}">Armory Administration</button>
       <button id="reload-armory" onclick="{reload}">Reload UI</button>
       <div id="armory-reload-status" class="label tone-good">{reloadStatus}</div>
     </div>
