@@ -2,7 +2,7 @@
 
 Status: SHIPPED — retained UI foundation proven in-engine
 Written: 2026-08-23
-Updated: 2026-08-24 — live-accepted layout, responsive grid, typography, input, canvas, theme, transition, MLX, binding, and reload contracts.
+Updated: 2026-08-24 — retained layout now includes responsive grids, while bounded canvas drawing includes whole-texture sprites for composed domain previews.
 
 ## Purpose
 
@@ -204,7 +204,10 @@ A document-owned registry associates attached canvas identity with one Java
 producer. The producer draws deterministic projection state through a bounded
 `CanvasContext`, not raw OpenGL, after the element background and before following
 content. Its output is clipped to the canvas content box intersected with ancestor
-clips, and its `visibleBounds` is expressed in canvas-local units.
+clips, and its `visibleBounds` is expressed in canvas-local units. Whole-texture
+sprites are another bounded canvas primitive: canvas metrics place and scale them,
+the producer supplies the domain composition, and the retained painter continues
+to own clipping and borrowed OpenGL state.
 
 ## Authority boundaries
 

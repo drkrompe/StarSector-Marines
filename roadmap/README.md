@@ -191,7 +191,8 @@ universe over time, not retrofitted into intel slots.
   scroll, semantic focus and pointer capture, procedural canvas, replaceable themes,
   transitions, reactive bindings, keyed `.mlx` repetition, and transactional explicit
   reload. The Company HQ workbench remains the diagnostic proof; Fleet Armory C15 is
-  the first production conversion.
+  the first production conversion, including a live selected-billet equipment doll
+  and sample soldier composed from the battlefield actor recipes.
 - **Company view** *(active — C9 and C14 Slices 1–4 shipped)* — the player's force as one legible
   hierarchy, company → squad → fire team → marine, in the fleet and in the field.
   The mod already models captains, persistent six-marine squads, and

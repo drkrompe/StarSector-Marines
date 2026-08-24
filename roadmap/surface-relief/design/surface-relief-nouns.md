@@ -1,8 +1,10 @@
 # Surface Relief
 
-Status: ACTIVE — terrain relief and ground event lighting are implemented; live validation remains before the lighting pass ships.
+Status: ACTIVE — semantic terrain relief and presentation-only event lighting share one material-aware ground composite.
 
 Written: 2026-08-23
+
+Updated: 2026-08-24 — replaced acceptance chronology with durable presentation boundaries.
 
 ## Purpose
 
@@ -73,27 +75,25 @@ alter map data or simulation.
   world-anchored, shore motion is bounded, and a displaced water lookup may
   not borrow land color.
 - Ground lights are additive and bounded. No active lights, or zero lighting
-  strength, preserves the S2 ground appearance; lights do not cast shadows or
-  become a visibility system.
+  strength, preserves the ordinary unlit ground composite; lights do not cast
+  shadows or become a visibility system.
 - Shader, texture, or framebuffer failure must fail soft to the unmodified
   ground drain. A visual enhancement may disappear, but it may not suppress or
   double-draw ground.
 - Parallax belongs only to the ground plane. Future unit lighting must rotate
   sprite-space normals with the unit and use its own render path.
 
-## Current boundary and direction
+## Presentation boundaries
 
-The derived terrain assets and screen-space material-aware parallax are
-shipped. Water receives semantic low relief, bounded world-anchored waves,
-shore emphasis, and land-safe sampling. Dynamic bump lighting is implemented:
-event lights sample the same final parallax coordinate as color and normals,
-but its GLSL/effect behavior still needs in-game acceptance before it is
-shipped. `stories.md` is the open-work board.
+Derived micro assets, macro semantics, water identity, and parallax remain
+distinct material inputs. Ground lights sample the final parallax coordinate
+with color and normals, use a fixed nearest-visible additive budget, and never
+become simulation or visibility authority.
 
-The initial derivation intentionally excludes structure and mixed indoor art;
-those surfaces retain macro relief and flat normals. This is a deliberate
-quality boundary, not an asset-loading failure. Unit lighting is deferred
-until the ground-light pass is accepted.
+Structures and mixed indoor art remain macro-only surfaces with flat normals.
+This is a deliberate quality boundary, not an asset-loading failure. Any unit
+lighting uses a separate sprite-normal path and never displaces units with
+ground parallax.
 
 ## Boundaries
 
