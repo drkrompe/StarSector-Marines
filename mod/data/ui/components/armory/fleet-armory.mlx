@@ -1,7 +1,7 @@
 <template props="companySummary,squadRows,teamRows,templateRows,targetSummary,candidateSummary,billetRows,previewSummary,gearRows,transactionSummary,transactionClasses,applyDisabled,apply,feedbackText,feedbackClasses,back,legacy,reload,reloadStatus">
   <div id="fleet-armory-root" class="fleet-armory-root">
     <div id="armory-header" class="panel surface-dark">
-      <div id="armory-title" class="label heading tone-accent">FLEET ARMORY</div>
+      <div id="armory-title" class="label title tone-accent">FLEET ARMORY</div>
       <div id="armory-purpose" class="label tone-edge">Company  /  Squad  /  Fire Team  ·  Reusable template issue</div>
     </div>
 
@@ -23,41 +23,42 @@
 <style>
   .fleet-armory-root {
     flex-direction: column;
-    padding: 14px;
-    gap: 10px;
-    border-width: 3px;
+    padding: 10px;
+    gap: 8px;
+    border-width: 2px;
     overflow: hidden;
   }
 
   .label { overflow: hidden; }
   .heading { font-family: heading; }
+  .title { font-family: title; }
 
   #armory-header {
     flex-direction: row;
-    height: 42px;
-    padding: 12px;
-    gap: 14px;
+    height: 34px;
+    padding: 7px 8px;
+    gap: 10px;
   }
 
-  #armory-title { width: 270px; }
+  #armory-title { width: 220px; }
   #armory-purpose { flex-grow: 1; text-align: right; }
 
   #armory-body {
     flex-direction: row;
     flex-grow: 1;
-    gap: 10px;
+    gap: 8px;
     overflow: hidden;
   }
 
   #armory-footer {
     flex-direction: row;
-    height: 34px;
-    padding: 7px;
-    gap: 10px;
+    height: 28px;
+    padding: 4px;
+    gap: 6px;
   }
 
   #armory-footer button {
-    padding: 5px 10px;
+    padding: 3px 7px;
     border-width: 1px;
     overflow: hidden;
     font-family: body;
