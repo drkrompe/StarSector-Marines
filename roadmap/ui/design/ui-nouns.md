@@ -4,8 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — visual evidence now flows through one selectable snapshot
-catalog shared by command-line and authoring tools.
+Updated: 2026-08-24 — desktop authoring pages now share one discoverable host and lifecycle.
 
 ## Purpose
 
@@ -64,6 +63,11 @@ them.
 - A **snapshot suite** is one named, deterministic collection of visual evidence.
   The suite owns its fixtures and render recipes; the shared snapshot workflow
   owns discovery, selection, output layout, overwrite policy, and PNG writing.
+- An **authoring page** is a discoverable desktop-tool contribution with one
+  component, dirty-state contract, and close lifecycle. The generic workbench
+  owns page discovery, top-level navigation, project paths, status reporting,
+  and aggregate unsaved-change protection; a domain page owns its document,
+  validation, preview, and save transaction.
 
 ## Coordinate spaces
 
@@ -139,6 +143,10 @@ the retained model.
     images, but they register with one catalog and writer. Command-line generation
     and authoring tools select from that same catalog rather than inventing
     feature-specific build commands or output policy.
+13. **One desktop authoring host.** New data editors contribute pages through the
+    authoring-page seam instead of adding Gradle launch tasks or coupling the
+    generic workbench to a mod-domain catalog. Closing the host consults every
+    page's dirty state and closes every created page exactly once.
 
 ## Intrinsic text and typography
 
@@ -263,6 +271,13 @@ responsible for consuming the same contract. The editor keeps bounded whole-docu
 undo/redo history, while JSON and image overwrites require explicit confirmation;
 the tool never reaches into a running battle or treats an editor-only transform as
 shipped behavior.
+
+Turret authoring is another page in that same desktop workbench, not another
+application. It stages the linked weapon, mount, structure, FX, and emplacement
+layout catalogs as one undoable document while preserving their authority on
+disk. Its live turret preview is the same deterministic catalog projection used
+by snapshot evidence. The workbench host knows only the page lifecycle; the
+root-project contribution owns all turret and map-generation types.
 
 ## Authority boundaries
 
