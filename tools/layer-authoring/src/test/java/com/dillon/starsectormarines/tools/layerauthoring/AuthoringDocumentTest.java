@@ -35,8 +35,8 @@ class AuthoringDocumentTest {
         assertTrue(document.validate().isEmpty());
 
         UnitComposition marine = document.units().get(0);
-        assertEquals(List.of("rifle", "rocket"), marine.variants().stream()
-                .map(variant -> variant.id()).toList());
+        assertEquals(List.of("rifle", "rocket", "anti-materiel", "smoke", "satchel"),
+                marine.variants().stream().map(variant -> variant.id()).toList());
         assertEquals(List.of("idle", "aiming", "walking", "firing"),
                 marine.variants().get(0).animations().stream()
                         .map(AnimationDefinition::id).toList());
@@ -103,7 +103,8 @@ class AuthoringDocumentTest {
         assertEquals(before.lines().count(), after.lines().count());
         assertEquals(1L, differingLines(before, after));
         assertTrue(after.contains("\"offset\": [-0.321, -0.2333]"));
-        assertFalse(after.contains("\"visible\""));
+        assertFalse(after.contains("\"visible\": true"));
+        assertTrue(after.contains("\"visible\": false"));
         assertTrue(after.contains("Marine — army-green line kit"));
     }
 

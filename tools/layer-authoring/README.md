@@ -34,6 +34,10 @@ angle and Y scale, and the preview shows the continuous stretch between both pos
 Frame durations weight each segment of a normalized procedural phase; they do not
 force movement speed. The simulation advances locomotion phase from distance traveled
 and action phase from the active use, while this document owns the sampled pose.
+Secondary-use variants can author a `special` layer alongside the soldier. The
+equipment definition selects the live sprite, ordinary carry/occlusion, and its
+using/firing clip references; the active clip overrides the transform so AMR
+recoil, smoke throws, and satchel plants can be posed as one composition.
 
 The editor refuses duplicate unit/variant/animation/keyframe/layer ids, non-positive
 sizes or durations,

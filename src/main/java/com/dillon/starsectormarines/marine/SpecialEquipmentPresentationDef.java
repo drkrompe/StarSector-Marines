@@ -14,6 +14,7 @@ public record SpecialEquipmentPresentationDef(
         Thrown thrown,
         String fieldSpritePath,
         Deployed deployed,
+        LayerClips layerClips,
         Preview preview) implements Serializable {
 
     public record Deployed(String spritePath, float visualCells) implements Serializable {
@@ -24,6 +25,11 @@ public record SpecialEquipmentPresentationDef(
     }
 
     public record Preview(String state, float phase) implements Serializable {
+    }
+
+    /** Unit-layer variant and clips used while this item owns the actor pose. */
+    public record LayerClips(String variant, String using,
+                             String firing) implements Serializable {
     }
 
     static SpecialEquipmentPresentationDef parse(JSONObject json, String equipmentId)
@@ -68,9 +74,15 @@ public record SpecialEquipmentPresentationDef(
             throw new JSONException("Special equipment '" + equipmentId
                     + "' previews deployed state without a deployed recipe");
         }
+        JSONObject layerClipsJson = json.optJSONObject("layerClips");
+        LayerClips layerClips = layerClipsJson != null
+                ? new LayerClips(requireText(layerClipsJson, "variant", equipmentId),
+                        requireText(layerClipsJson, "using", equipmentId),
+                        optionalText(layerClipsJson, "firing"))
+                : null;
         return new SpecialEquipmentPresentationDef(
                 armoryIcon, aimSprite, usePose, carrier, thrown, fieldSprite,
-                deployed, preview);
+                deployed, layerClips, preview);
     }
 
     private static float positive(JSONObject json, String key, String equipmentId)

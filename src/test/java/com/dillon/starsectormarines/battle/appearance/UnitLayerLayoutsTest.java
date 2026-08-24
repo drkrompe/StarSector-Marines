@@ -5,6 +5,9 @@ import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.Animation
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerPose;
 import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument;
 import com.dillon.starsectormarines.tools.layerauthoring.CompositionRenderer;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef.LayerClips;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
@@ -71,6 +74,40 @@ class UnitLayerLayoutsTest {
 
         assertEquals(0.3365f, midpoint.layer("left-thigh").scaleY(), 0.000001f);
         assertEquals(118.25f, midpoint.layer("left-thigh").angleDegrees(), 0.00001f);
+    }
+
+    @Test
+    void secondaryUseClipsCoverEveryExistingActionPose() throws Exception {
+        UnitLayerLayouts layouts = load();
+
+        AnimationClip amrAim = layouts.clip("marine-line", "anti-materiel", "aiming");
+        AnimationClip amrFire = layouts.clip("marine-line", "anti-materiel", "firing");
+        AnimationClip smoke = layouts.clip("marine-line", "smoke", "throwing");
+        AnimationClip satchel = layouts.clip("marine-line", "satchel", "planting");
+
+        assertEquals(AnimationDriver.ACTION_PHASE, amrAim.driver());
+        assertEquals(400, amrAim.totalDurationMs());
+        assertEquals(330, amrFire.totalDurationMs());
+        assertEquals(800, smoke.totalDurationMs());
+        assertEquals(900, satchel.totalDurationMs());
+        assertNotNull(amrFire.sample(0.5f).layer("special"));
+        assertFalse(smoke.sample(0.5f).layer("primary").visible());
+        assertEquals(0.32f, satchel.sample(1f).layer("special").offsetY(), 0.000001f);
+    }
+
+    @Test
+    void everyEquipmentAuthoredClipReferenceResolves() throws Exception {
+        UnitLayerLayouts layouts = load();
+
+        for (SpecialEquipmentDef equipment : SpecialEquipmentRegistry.installed().all()) {
+            LayerClips references = equipment.presentation().layerClips();
+            assertNotNull(layouts.clip("marine-line", references.variant(),
+                    references.using()), equipment.id());
+            if (references.firing() != null) {
+                assertNotNull(layouts.clip("marine-line", references.variant(),
+                        references.firing()), equipment.id());
+            }
+        }
     }
 
     private static UnitLayerLayouts load() throws Exception {
