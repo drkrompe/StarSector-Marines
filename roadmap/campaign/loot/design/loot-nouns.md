@@ -4,6 +4,8 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
+Updated: 2026-08-24 — added the objective-conditioned installation-recovery extension boundary.
+
 Campaign loot turns a victorious operation's already-negotiated salvage right
 into one visible choice: which recovered items to claim, carry, or fence. It
 does not decide the contract's salvage percentage or rewrite campaign cargo
@@ -78,3 +80,10 @@ feature, vanilla cargo remains cargo authority, and presentation belongs to the
 Marine Ops screens. The only current implementation follow-up is
 `loot-in-game-acceptance.md`; code-complete slices are recorded in
 `shipped.md`.
+
+`intact-installation-recovery.md` owns the planned extension that lets frozen
+installation outcomes gate site-specific candidates. Intact capture may make
+valuable stock, advanced components, or schematics eligible; destruction may
+leave only scrap. This never changes negotiated entitlement, grants an
+employer-owned asset automatically, or lets loot infer battle state after the
+outcome is frozen.
