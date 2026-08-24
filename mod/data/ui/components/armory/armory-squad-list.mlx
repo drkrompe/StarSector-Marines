@@ -1,14 +1,16 @@
 <template props="squadCards">
   <div id="squad-card-list" class="squad-card-list panel">
-    <button each="squad in squadCards" key="{squad.id}" id="{squad.id}" class="{squad.classes}" onclick="{squad.open}">
+    <div each="squad in squadCards" key="{squad.id}" id="{squad.id}" class="{squad.classes}">
       <div id="{squad.nameId}" class="squad-name label tone-edge">{squad.name}</div>
       <div id="{squad.statusId}" class="{squad.statusClasses}">{squad.status}</div>
       <div id="{squad.strengthId}" class="squad-stat label">{squad.strength}</div>
       <div id="{squad.teamsId}" class="squad-stat label">{squad.teams}</div>
       <div id="{squad.commandId}" class="squad-command label surface-dark">{squad.command}</div>
       <div id="{squad.locationId}" class="squad-location label tone-muted">{squad.location}</div>
-      <div id="{squad.openId}" class="squad-open label tone-edge">{squad.openLabel}</div>
-    </button>
+      <div id="{squad.recoveryId}" class="squad-recovery label tone-accent">{squad.recovery}</div>
+      <button id="{squad.reinforceId}" class="squad-reinforce" disabled="{squad.reinforceDisabled}" onclick="{squad.reinforce}">{squad.reinforceLabel}</button>
+      <button id="{squad.openId}" class="squad-open" onclick="{squad.open}">{squad.openLabel}</button>
+    </div>
   </div>
 </template>
 
@@ -28,17 +30,25 @@
     width: 134px;
     height: 446px;
     padding: 10px;
-    gap: 7px;
+    gap: 5px;
     border-width: 1px;
     overflow: hidden;
     font-family: body;
     text-align: left;
   }
 
-  .squad-name { height: 40px; }
-  .squad-card-status { height: 30px; padding: 5px; border-width: 1px; text-align: center; }
-  .squad-stat { height: 36px; padding: 6px; border-width: 1px; }
-  .squad-command { height: 52px; padding: 7px 6px; border-width: 1px; }
-  .squad-location { height: 42px; flex-grow: 1; padding: 6px; }
-  .squad-open { height: 30px; padding: 5px 6px; border-width: 1px; text-align: center; }
+  .squad-name { height: 34px; }
+  .squad-card-status { height: 26px; padding: 3px; border-width: 1px; text-align: center; }
+  .squad-stat { height: 30px; padding: 4px; border-width: 1px; }
+  .squad-command { height: 42px; padding: 5px 4px; border-width: 1px; }
+  .squad-location { height: 24px; flex-grow: 1; padding: 4px; }
+  .squad-recovery { height: 24px; padding: 3px 1px; }
+  .squad-reinforce, .squad-open {
+    height: 28px;
+    padding: 4px 5px;
+    border-width: 1px;
+    overflow: hidden;
+    font-family: body;
+    text-align: center;
+  }
 </style>

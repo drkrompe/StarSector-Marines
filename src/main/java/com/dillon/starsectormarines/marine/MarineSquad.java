@@ -66,17 +66,16 @@ public final class MarineSquad implements Serializable {
     }
 
     /**
-     * Fire team holding this billet, or {@code -1} when the soldier is not a
-     * member. Derived from roster order rather than stored, so a squad that
-     * loses marines consolidates into fewer full teams instead of keeping
-     * hollow ones — the behaviour a partly-manned squad wants.
+     * Historical-roll fire-team position. Current campaign formations use
+     * {@link MarineRoster#teamIndexOf(MarineSquad, String)} so KIA/MIA records do not occupy a
+     * replacement billet.
      */
     public int teamIndexOf(String soldierId) {
         int billet = memberIds.indexOf(soldierId);
         return billet < 0 ? -1 : billet / TEAM_SIZE;
     }
 
-    /** Members of one fire team in billet order; empty when the team is unmanned. */
+    /** Historical-roll slice; current formations use {@link MarineRoster#teamMemberIds}. */
     public List<String> teamMembers(int teamIndex) {
         if (teamIndex < 0 || teamIndex >= TEAMS_PER_SQUAD) return Collections.emptyList();
         int from = Math.min(teamIndex * TEAM_SIZE, memberIds.size());

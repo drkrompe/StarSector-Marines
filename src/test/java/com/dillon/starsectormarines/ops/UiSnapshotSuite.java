@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ops.battleview.ArmoryFireTeamPreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.ArmoryMarinePreviewCanvas;
@@ -73,8 +74,15 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         Reactor reactor = new Reactor();
         MarineRoster roster = new MarineRoster();
         roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
-        roster.reserveSquad();
-        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(reactor, roster);
+        MarineSquad squad = roster.squads().get(0);
+        Map<String, MarineSoldierStatus> postBattle = new LinkedHashMap<>();
+        postBattle.put(squad.memberIds().get(0), MarineSoldierStatus.WIA);
+        postBattle.put(squad.memberIds().get(MarineSquad.CAPACITY - 1),
+                MarineSoldierStatus.KIA);
+        roster.applySoldierOutcome(postBattle, 0, 100f, 1.25f);
+        roster.recruitToSquad(roster.reserveSquad().id());
+        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(
+                reactor, roster, () -> { }, () -> 100d);
         if (fireteam && pickerOpen) viewModel.toggleLoadoutPickerAction().run();
         HeadlessArmoryPreviewRenderer armoryPreview =
                 new HeadlessArmoryPreviewRenderer(context.modRoot());
@@ -120,8 +128,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         Reactor reactor = new Reactor();
         MarineRoster roster = new MarineRoster();
         roster.ensureActiveSoldiers(MarineSquad.CAPACITY * 2);
+        Map<String, MarineSoldierStatus> postBattle = new LinkedHashMap<>();
+        postBattle.put(roster.soldiers().get(0).id(), MarineSoldierStatus.WIA);
+        roster.applySoldierOutcome(postBattle, 0, 100f, 1.25f);
         FleetArmoryOverviewViewModel viewModel = new FleetArmoryOverviewViewModel(
-                reactor, roster, () -> { });
+                reactor, roster, () -> { }, () -> 100d);
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), OVERVIEW_COMPONENTS);
         loader.reload();
@@ -161,6 +172,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("templateTiles", viewModel.templateTiles());
         props.put("targetSummary", viewModel.targetSummary());
         props.put("candidateSummary", viewModel.candidateSummary());
+        props.put("selectedSquadReadiness", viewModel.selectedSquadReadiness());
+        props.put("reinforceLabel", viewModel.reinforceLabel());
+        props.put("reinforceDisabled", viewModel.reinforceDisabled());
+        props.put("reinforceSquad", viewModel.reinforceSelectedSquadAction());
         props.put("pickerClasses", viewModel.pickerClasses());
         props.put("pickerToggleLabel", viewModel.pickerToggleLabel());
         props.put("togglePicker", viewModel.toggleLoadoutPickerAction());

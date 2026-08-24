@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.FireTeamRefitPreview;
 import com.dillon.starsectormarines.marine.FireTeamTemplateResult;
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
@@ -163,6 +164,44 @@ class FleetArmoryViewModelTest {
         }
     }
 
+    @Test
+    void woundedMarinesShowRemainingHoursAndKeepTheirBillets() {
+        MarineRoster roster = fullSquad();
+        MarineSquad squad = roster.squads().get(0);
+        Map<String, MarineSoldierStatus> outcome = new LinkedHashMap<>();
+        outcome.put(squad.memberIds().get(0), MarineSoldierStatus.WIA);
+        roster.applySoldierOutcome(outcome, 0, 100f, 1.25f);
+        roster.recruitToSquad(roster.reserveSquad().id());
+        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(
+                new Reactor(), roster, () -> { }, () -> 100d);
+
+        assertEquals("WIA  ·  RTD in 1d 6h", viewModel.marineCards().get().get(0).status());
+        assertEquals("1 WIA  ·  RTD 1d 6h",
+                viewModel.squadCards().get().get(0).recovery());
+        assertTrue(viewModel.fireTeamOverviews().get().get(0).recovery().contains("1 WIA"));
+        assertTrue(viewModel.reinforceDisabled().get(), "WIA personnel still hold billets");
+    }
+
+    @Test
+    void squadCardReinforcesEveryOpenBilletFromReadyReserveInOneClick() {
+        MarineRoster roster = fullSquad();
+        MarineSquad squad = roster.squads().get(0);
+        Map<String, MarineSoldierStatus> outcome = new LinkedHashMap<>();
+        outcome.put(squad.memberIds().get(0), MarineSoldierStatus.KIA);
+        roster.applySoldierOutcome(outcome, 0, 20f, 1f);
+        roster.recruitToSquad(roster.reserveSquad().id());
+        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(new Reactor(), roster);
+
+        FleetArmoryViewModel.SquadCard card = viewModel.squadCards().get().get(0);
+        assertEquals("Reinforce +1", card.reinforceLabel());
+        card.reinforce().run();
+
+        assertEquals(0, roster.vacancies(squad));
+        assertTrue(viewModel.feedbackText().get().contains("reinforced"));
+        assertEquals(MarineSquad.TEAM_SIZE,
+                roster.teamMemberIds(squad, 2).size());
+    }
+
     private static MarineRoster fullSquad() {
         MarineRoster roster = new MarineRoster();
         roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
@@ -180,6 +219,10 @@ class FleetArmoryViewModelTest {
         props.put("templateTiles", viewModel.templateTiles());
         props.put("targetSummary", viewModel.targetSummary());
         props.put("candidateSummary", viewModel.candidateSummary());
+        props.put("selectedSquadReadiness", viewModel.selectedSquadReadiness());
+        props.put("reinforceLabel", viewModel.reinforceLabel());
+        props.put("reinforceDisabled", viewModel.reinforceDisabled());
+        props.put("reinforceSquad", viewModel.reinforceSelectedSquadAction());
         props.put("pickerClasses", viewModel.pickerClasses());
         props.put("pickerToggleLabel", viewModel.pickerToggleLabel());
         props.put("togglePicker", viewModel.toggleLoadoutPickerAction());

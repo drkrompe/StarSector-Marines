@@ -86,7 +86,19 @@ fitness, or relevant experience changes using rank, then experience, then a
 stable identity tie-break. A wounded senior may resume the billet on return; a
 lost or unfit leader is replaced deterministically. Fire-team membership is
 likewise derived from current billet order, so transfers and casualties cannot
-leave a second stored partition behind.
+leave a second stored partition behind. The historical squad roll may retain KIA
+and MIA records, but those records do not occupy current billet positions; active
+and WIA marines preserve their stable order and later replacements fill the open
+positions derived around them. A WIA marine continues to hold a billet until
+recovery and therefore cannot be silently replaced into an overstrength squad.
+
+Personnel reinforcement is a squad-level roster transaction. One action fills
+true open billets from ready reserves first, then consumes generic cargo marines
+for any remaining vacancies. It does not invent personnel, move WIA marines out
+of recovery, or claim that replacement equipment conforms to the team's assigned
+template. The company, squad, and fire-team projections report WIA counts and the
+earliest remaining recovery clock; the named-marine view reports that individual's
+remaining hours and days.
 
 `homeCaptainId` is a squad's durable organizational default, not a history of
 temporary mission borrowing. Stationed squads remain under one officer because

@@ -1,4 +1,4 @@
-<template props="companySummary,selectedSquadName,fireTeamOverviews,templateTiles,targetSummary,candidateSummary,marineCards,pickerClasses,pickerToggleLabel,togglePicker,transactionSummary,transactionClasses,applyDisabled,applyClasses,applyLabel,apply,feedbackText,feedbackClasses,backToSquads,back,legacy,reload,reloadStatus">
+<template props="companySummary,selectedSquadName,fireTeamOverviews,templateTiles,targetSummary,candidateSummary,selectedSquadReadiness,reinforceLabel,reinforceDisabled,reinforceSquad,marineCards,pickerClasses,pickerToggleLabel,togglePicker,transactionSummary,transactionClasses,applyDisabled,applyClasses,applyLabel,apply,feedbackText,feedbackClasses,backToSquads,back,legacy,reload,reloadStatus">
   <div id="fleet-armory-fireteam-root" class="fleet-armory-root">
     <div id="fireteam-header" class="panel surface-dark">
       <div id="fireteam-title" class="label title tone-accent">FLEET ARMORY</div>
@@ -17,7 +17,7 @@
 
     <div id="fireteam-body">
       <armory-fireteam-list fireTeamOverviews="{fireTeamOverviews}" />
-      <armory-refit-transaction targetSummary="{targetSummary}" candidateSummary="{candidateSummary}" marineCards="{marineCards}" templateTiles="{templateTiles}" pickerClasses="{pickerClasses}" pickerToggleLabel="{pickerToggleLabel}" togglePicker="{togglePicker}" transactionSummary="{transactionSummary}" transactionClasses="{transactionClasses}" applyDisabled="{applyDisabled}" applyClasses="{applyClasses}" applyLabel="{applyLabel}" apply="{apply}" feedbackText="{feedbackText}" feedbackClasses="{feedbackClasses}" />
+      <armory-refit-transaction targetSummary="{targetSummary}" candidateSummary="{candidateSummary}" selectedSquadReadiness="{selectedSquadReadiness}" reinforceLabel="{reinforceLabel}" reinforceDisabled="{reinforceDisabled}" reinforceSquad="{reinforceSquad}" marineCards="{marineCards}" templateTiles="{templateTiles}" pickerClasses="{pickerClasses}" pickerToggleLabel="{pickerToggleLabel}" togglePicker="{togglePicker}" transactionSummary="{transactionSummary}" transactionClasses="{transactionClasses}" applyDisabled="{applyDisabled}" applyClasses="{applyClasses}" applyLabel="{applyLabel}" apply="{apply}" feedbackText="{feedbackText}" feedbackClasses="{feedbackClasses}" />
     </div>
 
     <div id="fireteam-footer" class="panel surface-dark">

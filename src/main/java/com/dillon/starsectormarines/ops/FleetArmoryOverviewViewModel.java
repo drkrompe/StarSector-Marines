@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.MarineSoldier;
+import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
@@ -9,6 +11,7 @@ import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.retained.reactive.Signal;
 
 import java.util.List;
+import java.util.function.DoubleSupplier;
 
 /** Read-only retained projection for the owned-company Armory landing view. */
 public final class FleetArmoryOverviewViewModel {
@@ -17,19 +20,28 @@ public final class FleetArmoryOverviewViewModel {
 
     private final MarineRoster roster;
     private final Runnable openPrimaryCompany;
+    private final DoubleSupplier currentDay;
     private final MutableSignal<Integer> revision;
     private final ComputedSignal<List<CompanyCard>> companyCards;
     private final ComputedSignal<String> fleetSummary;
 
     public FleetArmoryOverviewViewModel(
             Reactor reactor, MarineRoster roster, Runnable openPrimaryCompany) {
+        this(reactor, roster, openPrimaryCompany, () -> 0d);
+    }
+
+    public FleetArmoryOverviewViewModel(Reactor reactor, MarineRoster roster,
+                                        Runnable openPrimaryCompany,
+                                        DoubleSupplier currentDay) {
         if (reactor == null) throw new IllegalArgumentException("reactor is required");
         if (roster == null) throw new IllegalArgumentException("roster is required");
         if (openPrimaryCompany == null) {
             throw new IllegalArgumentException("openPrimaryCompany is required");
         }
+        if (currentDay == null) throw new IllegalArgumentException("currentDay is required");
         this.roster = roster;
         this.openPrimaryCompany = openPrimaryCompany;
+        this.currentDay = currentDay;
         revision = reactor.signal(0);
         companyCards = reactor.computed(() -> {
             revision.get();
@@ -62,7 +74,7 @@ public final class FleetArmoryOverviewViewModel {
         return new CompanyCard(
                 base, base + ":designation", base + ":name", base + ":status",
                 base + ":marine-squads", base + ":mech-squads", base + ":readiness",
-                base + ":stationing", base + ":open",
+                base + ":recovery", base + ":stationing", base + ":open",
                 "company-card " + readiness.cardClass,
                 "company-status heading " + readiness.toneClass,
                 "PRIMARY FORMATION", "Fleet Marine Company", readiness.label,
@@ -71,21 +83,36 @@ public final class FleetArmoryOverviewViewModel {
                 counts.mechSquads + (counts.mechSquads == 1
                         ? " mech squad" : " mech squads"),
                 counts.readyMarines + " / " + counts.authorizedMarines + " marines RTD",
-                stationed, "Open Armory", openPrimaryCompany);
+                recoverySummary(counts), stationed, "Open Armory", openPrimaryCompany);
     }
 
     private CompanyCounts counts() {
         int lineSquads = 0;
         int readyMarines = 0;
         int stationedSquads = 0;
+        int woundedMarines = 0;
+        float earliestRecovery = Float.POSITIVE_INFINITY;
         for (MarineSquad squad : roster.squads()) {
             if (squad.reserve()) continue;
             lineSquads++;
             readyMarines += roster.readyCount(squad);
+            for (MarineSoldier soldier : roster.squadMembers(squad)) {
+                if (soldier.status() != MarineSoldierStatus.WIA) continue;
+                woundedMarines++;
+                earliestRecovery = Math.min(earliestRecovery, soldier.unavailableUntilDay());
+            }
             if (squad.stationed()) stationedSquads++;
         }
         return new CompanyCounts(lineSquads, roster.mechBay().squads().size(),
-                readyMarines, lineSquads * MarineSquad.CAPACITY, stationedSquads);
+                readyMarines, lineSquads * MarineSquad.CAPACITY, stationedSquads,
+                woundedMarines, earliestRecovery);
+    }
+
+    private String recoverySummary(CompanyCounts counts) {
+        return counts.woundedMarines == 0 ? "No wounded personnel"
+                : counts.woundedMarines + " WIA  ·  RTD "
+                + FleetArmoryViewModel.formatRemainingCompact(
+                counts.earliestRecovery, currentDay.getAsDouble());
     }
 
     private static Readiness readiness(int ready, int authorized) {
@@ -101,7 +128,8 @@ public final class FleetArmoryOverviewViewModel {
     }
 
     private record CompanyCounts(int lineSquads, int mechSquads, int readyMarines,
-                                 int authorizedMarines, int stationedSquads) { }
+                                 int authorizedMarines, int stationedSquads,
+                                 int woundedMarines, float earliestRecovery) { }
 
     private record Readiness(String label, String cardClass, String toneClass) { }
 
@@ -109,9 +137,11 @@ public final class FleetArmoryOverviewViewModel {
     public record CompanyCard(
             String id, String designationId, String nameId, String statusId,
             String marineSquadsId, String mechSquadsId, String readinessId,
-            String stationingId, String openId, String classes, String statusClasses,
+            String recoveryId, String stationingId, String openId,
+            String classes, String statusClasses,
             String designation, String name, String status, String marineSquads,
-            String mechSquads, String readiness, String stationing, String openLabel,
+            String mechSquads, String readiness, String recovery, String stationing,
+            String openLabel,
             Runnable open) implements MarkupPropertySource {
 
         @Override
@@ -124,6 +154,7 @@ public final class FleetArmoryOverviewViewModel {
                 case "marineSquadsId" -> marineSquadsId;
                 case "mechSquadsId" -> mechSquadsId;
                 case "readinessId" -> readinessId;
+                case "recoveryId" -> recoveryId;
                 case "stationingId" -> stationingId;
                 case "openId" -> openId;
                 case "classes" -> classes;
@@ -134,6 +165,7 @@ public final class FleetArmoryOverviewViewModel {
                 case "marineSquads" -> marineSquads;
                 case "mechSquads" -> mechSquads;
                 case "readiness" -> readiness;
+                case "recovery" -> recovery;
                 case "stationing" -> stationing;
                 case "openLabel" -> openLabel;
                 case "open" -> open;
