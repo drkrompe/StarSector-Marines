@@ -3,7 +3,8 @@
 Status: ACTIVE — handheld weapons are data-owned; mech and emplacement migrations remain
 
 Written: 2026-08-23
-Updated: 2026-08-23 — established distinct contact and area payloads for explosive direct-fire weapons while mech and turret definitions remain transitional enum authorities.
+
+Updated: 2026-08-24 — replaced migration chronology with durable transition boundaries.
 
 ## Purpose
 
@@ -97,30 +98,23 @@ shared consumer exists.
   but those shared execution primitives do not make its cloud or placement
   channel a weapon definition.
 
-## Current boundary and direction
+## Transition boundaries
 
-W1 moved the five marine-primary definitions into the registry. The first W3
-slice moved the Annihilator rocket there too, and progression S2A added the
-anti-materiel heavy round through the same marine-secondary mount class.
-`MarineWeapon` and `MarineSecondary` remain id-backed compatibility handles;
-the latter points through a distinct special-equipment definition so a loadout
-item and the weapon it activates do not become one identity. Mech weapons and
-turrets remain enum-owned work, but now author penetration with the same live
-semantics until their catalog migrations ship. The Hephaestus is the current
-transitional proof that one direct-fire weapon can carry mutually exclusive
-contact and area payloads through those semantics. The open work is on
+Registry-owned handheld primary and weapon-like-secondary definitions are the
+authoritative data boundary. `MarineWeapon` and `MarineSecondary` remain
+id-backed compatibility handles rather than parallel stat authorities; a
+weapon-like special reaches its definition through the distinct
+progression-owned special-equipment identity.
+
+Mech weapons and turret stat carriers remain temporary transition boundaries
+until their definitions and mount rules enter the registry. They still obey
+the same penetration and mutually exclusive contact-versus-area payload laws;
+transitional storage does not create a second combat model.
+
+Catalog expansion and mount validation, layered effects, compatibility-enum
+retirement and persistence repair, the emplacement platform/mount split, and
+shared catalog discovery belong to the work lifecycle tracked only by
 `stories.md`.
-
-W2 turns effect recipes into ordered authored layers. W3 has migrated the
-current rocket and added marine mount validation; its remaining slice moves
-the mech weapon families and validates their mount rules. Progression's
-special-equipment identity may point at those weapon ids; shipped smoke and
-satchel utilities use non-weapon activations, while the frag story adds
-another weapon-like activation.
-W4 retires enum stat carriers and owns the save migration. W6 applies the
-platform/mount/weapon split to emplacements and structures. W5 is deferred
-direction: a real submod should establish shared weapon/tile discovery and
-override semantics before either catalog claims a modding merge API.
 
 ## Boundaries
 
