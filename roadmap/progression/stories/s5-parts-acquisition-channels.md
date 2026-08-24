@@ -5,7 +5,7 @@
 
 Status: PLANNED — no hard dependency; pairs with `s6-unlock-ladder-expansion.md`.
 Written: 2026-08-22
-Updated: 2026-08-24 — tied hardened-site income to frozen intact/destroyed installation recovery rather than generic victory context.
+Updated: 2026-08-24 — made recovered armor breakdown respect concrete suit condition, role, and provenance.
 
 ## Problem
 
@@ -54,13 +54,13 @@ screen.
 
 Optional and worth considering: conversion efficiency scaled by something
 diegetic in the player's fleet, in the spirit of how
-`command-powers.md` sources powers
+`command-powers-nouns.md` sources powers
 from committed ships. A fabrication-capable hull or hullmod improving the
 rate would make fleet composition matter here too.
 
 ## Slice 2 — Battlefield loot
 
-Extend the shipped `loot.md`
+Extend the shipped `loot-nouns.md`
 manifest with parts entries rather than building a parallel drop system.
 
 - Common parts scale with mission risk and with what was actually cleared —
@@ -85,6 +85,12 @@ Recovered enemy weapons and armor break down into common parts.
   answer to "why fight the rest of the base".
 - Yield keys off what the defenders were actually carrying, which makes the
   risk-scaled defender rosters legible as loot value.
+- Armor yield keys off the recovered concrete pattern and its post-battle
+  condition, not only the target faction or a generic armor tier. Ruined scrap
+  plate is common parts; an eligible intact heavy battlesuit or sophisticated
+  composite assembly may contribute to an advanced-component roll. Role alone
+  is not rarity, so a crude Path heavy rig does not automatically pay better
+  than a pristine Tri-Tachyon light suit.
 - Natural interaction with S3 telemetry: the marines who did the fighting
   produced the salvage.
 

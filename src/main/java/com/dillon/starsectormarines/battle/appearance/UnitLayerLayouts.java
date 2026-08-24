@@ -186,6 +186,27 @@ public final class UnitLayerLayouts {
             return layers.get(id);
         }
 
+        /**
+         * Blends layers shared by both poses while retaining the destination's
+         * equipment-specific layer set. This lets an action settle out of a
+         * sampled locomotion pose without inventing equipment layers in the
+         * locomotion clip.
+         */
+        public static LayerPose blendMatching(LayerPose from, LayerPose to,
+                                              float progress) {
+            float t = Math.max(0f, Math.min(1f, progress));
+            t = smoothstep(t);
+            Map<String, LayerTransform> sampled = new LinkedHashMap<>();
+            for (Map.Entry<String, LayerTransform> entry : to.layers.entrySet()) {
+                LayerTransform end = entry.getValue();
+                LayerTransform start = from.layers.get(entry.getKey());
+                sampled.put(entry.getKey(), start != null
+                                && start.spritePath.equals(end.spritePath)
+                        ? LayerTransform.interpolate(start, end, t) : end);
+            }
+            return new LayerPose(Collections.unmodifiableMap(sampled));
+        }
+
         static LayerPose interpolate(LayerPose from, LayerPose to, float progress) {
             Map<String, LayerTransform> sampled = new LinkedHashMap<>();
             for (Map.Entry<String, LayerTransform> entry : from.layers.entrySet()) {
