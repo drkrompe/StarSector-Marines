@@ -64,6 +64,7 @@ public final class CompositionRenderer {
         List<LayerDefinition> sorted = new ArrayList<>(frame.layers());
         sorted.sort(Comparator.comparingInt(LayerDefinition::z));
         List<RenderedLayer> rendered = new ArrayList<>();
+        RenderedLayer selected = null;
         for (LayerDefinition layer : sorted) {
             if (!layer.visible()) continue;
             BufferedImage image = image(layer.spritePath());
@@ -72,16 +73,14 @@ public final class CompositionRenderer {
             graphics.drawImage(image, transform, null);
             Shape outline = transform.createTransformedShape(
                     new java.awt.Rectangle(0, 0, image.getWidth(), image.getHeight()));
-            rendered.add(new RenderedLayer(layer, outline));
+            RenderedLayer renderedLayer = new RenderedLayer(layer, outline);
+            rendered.add(renderedLayer);
             if (layer.id().equals(selectedLayer)) {
-                graphics.setColor(SELECTED);
-                graphics.setStroke(new BasicStroke(1.5f));
-                graphics.draw(outline);
-                Point pivot = pivotPoint(layer, originX, originY, pixelsPerUnit);
-                graphics.drawLine(pivot.x - 6, pivot.y, pivot.x + 6, pivot.y);
-                graphics.drawLine(pivot.x, pivot.y - 6, pivot.x, pivot.y + 6);
-                drawRotationHandle(graphics, pivot, layer.angleDegrees());
+                selected = renderedLayer;
             }
+        }
+        if (selected != null) {
+            drawSelectionOverlay(graphics, selected, originX, originY, pixelsPerUnit);
         }
         return rendered;
     }
@@ -216,6 +215,19 @@ public final class CompositionRenderer {
         graphics.setColor(BACKGROUND);
         graphics.setStroke(new BasicStroke(1.5f));
         graphics.draw(new Ellipse2D.Double(handle.x - 5, handle.y - 5, 10, 10));
+    }
+
+    private static void drawSelectionOverlay(Graphics2D graphics, RenderedLayer selected,
+                                             double originX, double originY,
+                                             double pixelsPerUnit) {
+        graphics.setColor(SELECTED);
+        graphics.setStroke(new BasicStroke(1.5f));
+        graphics.draw(selected.outline());
+        LayerDefinition layer = selected.layer();
+        Point pivot = pivotPoint(layer, originX, originY, pixelsPerUnit);
+        graphics.drawLine(pivot.x - 6, pivot.y, pivot.x + 6, pivot.y);
+        graphics.drawLine(pivot.x, pivot.y - 6, pivot.x, pivot.y + 6);
+        drawRotationHandle(graphics, pivot, layer.angleDegrees());
     }
 
     private static void drawGuides(Graphics2D graphics, int width, int height,

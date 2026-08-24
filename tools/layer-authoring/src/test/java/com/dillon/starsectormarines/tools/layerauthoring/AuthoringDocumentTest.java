@@ -4,9 +4,13 @@ import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.Anima
 import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.FrameDefinition;
 import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.LayerDefinition;
 import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.UnitComposition;
+import com.dillon.starsectormarines.tools.layerauthoring.CompositionRenderer.RenderedLayer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.awt.BasicStroke;
+import java.awt.Graphics2D;
+import java.awt.Shape;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
 import java.nio.file.Files;
@@ -175,6 +179,48 @@ class AuthoringDocumentTest {
 
         assertEquals(0.3365, leftThigh.scaleY(), 0.000001);
         assertEquals(118.25, leftThigh.angleDegrees(), 0.000001);
+    }
+
+    @Test
+    void selectionOverlayRendersAboveHigherZLayers() throws Exception {
+        AuthoringDocument document = AuthoringDocument.load(Path.of("."));
+        UnitComposition marine = document.units().get(0);
+        FrameDefinition frame = firstFrame(document);
+        CompositionRenderer renderer = new CompositionRenderer(Path.of("."));
+        int size = 500;
+        BufferedImage plain = renderer.renderFrame(marine, frame, size, size,
+                null, true);
+        BufferedImage selected = renderer.renderFrame(marine, frame, size, size,
+                "primary", true);
+        BufferedImage geometry = new BufferedImage(size, size,
+                BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = geometry.createGraphics();
+        List<RenderedLayer> layers = renderer.renderFrame(graphics, marine, frame,
+                size, size, null, false);
+        graphics.dispose();
+
+        RenderedLayer primary = layers.stream()
+                .filter(layer -> layer.layer().id().equals("primary"))
+                .findFirst().orElseThrow();
+        Shape selectedEdge = new BasicStroke(3f).createStrokedShape(primary.outline());
+        List<RenderedLayer> higherLayers = layers.stream()
+                .filter(layer -> layer.layer().z() > primary.layer().z()).toList();
+        int overlappedEdgePixels = 0;
+        int visibleOverlayPixels = 0;
+        for (int y = 0; y < size; y++) {
+            for (int x = 0; x < size; x++) {
+                double sampleX = x + 0.5;
+                double sampleY = y + 0.5;
+                boolean covered = higherLayers.stream()
+                        .anyMatch(layer -> layer.outline().contains(sampleX, sampleY));
+                if (!covered || !selectedEdge.contains(sampleX, sampleY)) continue;
+                overlappedEdgePixels++;
+                if (plain.getRGB(x, y) != selected.getRGB(x, y)) visibleOverlayPixels++;
+            }
+        }
+
+        assertTrue(overlappedEdgePixels > 0);
+        assertTrue(visibleOverlayPixels > 0);
     }
 
     private static int[] pixels(BufferedImage image) {
