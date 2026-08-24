@@ -24,6 +24,7 @@ final class CompositionCanvas extends JPanel {
     private UnitComposition unit;
     private FrameDefinition frame;
     private LayerDefinition selected;
+    private boolean interactive = true;
     private List<RenderedLayer> rendered = new ArrayList<>();
     private Consumer<LayerDefinition> selectionListener = ignored -> { };
     private Runnable changeListener = () -> { };
@@ -54,6 +55,14 @@ final class CompositionCanvas extends JPanel {
         this.unit = unit;
         this.frame = frame;
         this.selected = layer;
+        interactive = true;
+        repaint();
+    }
+
+    void preview(UnitComposition unit, FrameDefinition frame) {
+        this.unit = unit;
+        this.frame = frame;
+        interactive = false;
         repaint();
     }
 
@@ -84,6 +93,7 @@ final class CompositionCanvas extends JPanel {
     }
 
     private void beginDrag(MouseEvent event) {
+        if (!interactive) return;
         requestFocusInWindow();
         LayerDefinition hit = hit(event.getPoint());
         if (hit != null) {
@@ -117,7 +127,7 @@ final class CompositionCanvas extends JPanel {
     }
 
     private void wheel(MouseWheelEvent event) {
-        if (selected == null) return;
+        if (!interactive || selected == null) return;
         changeStarted.run();
         double turns = event.getPreciseWheelRotation();
         if (event.isControlDown()) {

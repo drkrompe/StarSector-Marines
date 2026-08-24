@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.tools.layerauthoring;
 
+import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.AnimationDefinition;
+import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.AppearanceVariant;
 import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.FrameDefinition;
 import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.LayerDefinition;
 import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.UnitComposition;
@@ -91,6 +93,8 @@ public final class LayerAuthoringWorkbench {
         private AuthoringDocument document;
         private CompositionRenderer renderer;
         private final JComboBox<UnitComposition> unitBox = new JComboBox<>();
+        private final JComboBox<AppearanceVariant> variantBox = new JComboBox<>();
+        private final JComboBox<AnimationDefinition> animationBox = new JComboBox<>();
         private final JComboBox<FrameDefinition> frameBox = new JComboBox<>();
         private final JComboBox<LayerDefinition> layerBox = new JComboBox<>();
         private final JToggleButton play = new JToggleButton("▶ Play");
@@ -105,6 +109,7 @@ public final class LayerAuthoringWorkbench {
         private final JSpinner z = integer(0, -1000, 1000, 1);
         private final JSpinner duration = integer(400, 1, 10000, 10);
         private final JCheckBox visible = new JCheckBox("Visible");
+        private final JCheckBox loop = new JCheckBox("Loop animation");
         private final JTextField sprite = new JTextField();
         private CompositionCanvas canvas;
         private SheetPanel sheet;
@@ -113,6 +118,7 @@ public final class LayerAuthoringWorkbench {
         private boolean refreshing;
         private boolean dirty;
         private long frameElapsedMs;
+        private int playbackFrameIndex;
         private final Timer timer;
 
         WorkbenchFrame(Path projectRoot) throws Exception {
@@ -140,33 +146,50 @@ public final class LayerAuthoringWorkbench {
             canvas = new CompositionCanvas(renderer);
             sheet = new SheetPanel();
             JPanel top = new JPanel();
-            top.setLayout(new BoxLayout(top, BoxLayout.X_AXIS));
+            top.setLayout(new BoxLayout(top, BoxLayout.Y_AXIS));
             top.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
-            top.add(new JLabel("Unit  "));
-            top.add(unitBox);
-            top.add(Box.createHorizontalStrut(12));
-            top.add(new JLabel("Frame  "));
-            top.add(frameBox);
-            top.add(Box.createHorizontalStrut(12));
-            top.add(new JLabel("Layer  "));
-            top.add(layerBox);
-            top.add(Box.createHorizontalStrut(10));
-            top.add(play);
-            top.add(Box.createHorizontalStrut(6));
-            top.add(button("+ Frame", event -> duplicateFrame()));
-            top.add(Box.createHorizontalStrut(4));
-            top.add(button("− Frame", event -> deleteFrame()));
-            top.add(Box.createHorizontalGlue());
-            top.add(button("Reload", event -> reload()));
-            top.add(Box.createHorizontalStrut(6));
-            top.add(button("Export sheet", event -> exportSheet()));
-            top.add(Box.createHorizontalStrut(6));
+            JPanel selectors = new JPanel();
+            selectors.setLayout(new BoxLayout(selectors, BoxLayout.X_AXIS));
+            selectors.add(new JLabel("Unit  "));
+            selectors.add(unitBox);
+            selectors.add(Box.createHorizontalStrut(10));
+            selectors.add(new JLabel("Variant  "));
+            selectors.add(variantBox);
+            selectors.add(Box.createHorizontalStrut(10));
+            selectors.add(new JLabel("Animation  "));
+            selectors.add(animationBox);
+            selectors.add(Box.createHorizontalStrut(10));
+            selectors.add(new JLabel("Keyframe  "));
+            selectors.add(frameBox);
+            selectors.add(Box.createHorizontalStrut(10));
+            selectors.add(new JLabel("Layer  "));
+            selectors.add(layerBox);
+            top.add(selectors);
+
+            JPanel actions = new JPanel();
+            actions.setLayout(new BoxLayout(actions, BoxLayout.X_AXIS));
+            actions.add(play);
+            actions.add(Box.createHorizontalStrut(6));
+            actions.add(button("+ Animation", event -> duplicateAnimation()));
+            actions.add(Box.createHorizontalStrut(4));
+            actions.add(button("− Animation", event -> deleteAnimation()));
+            actions.add(Box.createHorizontalStrut(10));
+            actions.add(button("+ Keyframe", event -> duplicateFrame()));
+            actions.add(Box.createHorizontalStrut(4));
+            actions.add(button("− Keyframe", event -> deleteFrame()));
+            actions.add(Box.createHorizontalGlue());
+            actions.add(button("Reload", event -> reload()));
+            actions.add(Box.createHorizontalStrut(6));
+            actions.add(button("Export sheet", event -> exportSheet()));
+            actions.add(Box.createHorizontalStrut(6));
             JButton save = button("Save JSON…", event -> save());
             save.setFont(save.getFont().deriveFont(Font.BOLD));
-            top.add(save);
+            actions.add(save);
+            top.add(Box.createVerticalStrut(5));
+            top.add(actions);
 
             JTabbedPane tabs = new JTabbedPane();
-            tabs.addTab("Frame", canvas);
+            tabs.addTab("Animation", canvas);
             tabs.addTab("Combined sheet", new JScrollPane(sheet));
 
             JPanel inspector = inspector();
@@ -199,14 +222,17 @@ public final class LayerAuthoringWorkbench {
             panel.add(row("Pivot X", pivotX));
             panel.add(row("Pivot Y", pivotY));
             panel.add(row("Z order", z));
-            panel.add(row("Frame ms", duration));
+            panel.add(row("Transition ms", duration));
             panel.add(visible);
+            panel.add(loop);
             panel.add(Box.createVerticalStrut(8));
             panel.add(new JLabel("Sprite path"));
             sprite.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
             panel.add(sprite);
             panel.add(Box.createVerticalStrut(18));
-            JLabel help = new JLabel("<html><b>Canvas</b><br>Click to select<br>Drag to position<br>"
+            JLabel help = new JLabel("<html><b>Playback</b><br>Play samples only the selected "
+                    + "animation and blends matching layers between keyframes.<br><br>"
+                    + "<b>Canvas</b><br>Click to select<br>Drag to position<br>"
                     + "Wheel: scale<br>Shift-wheel: X only<br>Alt-wheel: Y only<br>"
                     + "Ctrl-wheel: rotate<br><br><b>History</b><br>Ctrl+Z: undo<br>"
                     + "Ctrl+Shift+Z: redo<br><br><b>Save</b><br>Ctrl+S opens a confirmation "
@@ -218,13 +244,15 @@ public final class LayerAuthoringWorkbench {
         }
 
         private void bind() {
-            unitBox.addActionListener(event -> populateFrames(null));
-            frameBox.addActionListener(event -> populateLayers(selectedLayerId()));
-            layerBox.addActionListener(event -> refreshSelection());
-            play.addActionListener(event -> {
-                play.setText(play.isSelected() ? "■ Stop" : "▶ Play");
-                frameElapsedMs = 0L;
+            unitBox.addActionListener(event -> populateVariants(null));
+            variantBox.addActionListener(event -> populateAnimations(null));
+            animationBox.addActionListener(event -> populateFrames(null));
+            frameBox.addActionListener(event -> {
+                if (!refreshing) stopPlayback();
+                populateLayers(selectedLayerId());
             });
+            layerBox.addActionListener(event -> refreshSelection());
+            play.addActionListener(event -> togglePlayback());
             canvas.onSelection(layer -> layerBox.setSelectedItem(layer));
             canvas.onChangeStarted(this::beginHistoryChange);
             canvas.onChangeFinished(this::finishHistoryChange);
@@ -236,6 +264,7 @@ public final class LayerAuthoringWorkbench {
             bindSpinner(scaleY); bindSpinner(angle); bindSpinner(pivotX);
             bindSpinner(pivotY); bindSpinner(z); bindSpinner(duration);
             visible.addActionListener(event -> updateFromFields());
+            loop.addActionListener(event -> updateFromFields());
             sprite.addActionListener(event -> updateFromFields());
             getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
                     KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK), "save");
@@ -260,10 +289,11 @@ public final class LayerAuthoringWorkbench {
         }
 
         private void populateUnits() {
-            populateSelection(null, null, null);
+            populateSelection(null, null, null, null, null);
         }
 
-        private void populateSelection(String unitId, String frameId, String layerId) {
+        private void populateSelection(String unitId, String variantId, String animationId,
+                                       String frameId, String layerId) {
             refreshing = true;
             unitBox.removeAllItems();
             UnitComposition selectedUnit = null;
@@ -274,11 +304,35 @@ public final class LayerAuthoringWorkbench {
             if (selectedUnit != null) unitBox.setSelectedItem(selectedUnit);
             else if (unitBox.getItemCount() > 0) unitBox.setSelectedIndex(0);
 
-            frameBox.removeAllItems();
-            FrameDefinition selectedFrame = null;
+            variantBox.removeAllItems();
+            AppearanceVariant selectedVariant = null;
             UnitComposition currentUnit = unit();
             if (currentUnit != null) {
-                for (FrameDefinition candidate : currentUnit.frames()) {
+                for (AppearanceVariant candidate : currentUnit.variants()) {
+                    variantBox.addItem(candidate);
+                    if (candidate.id().equals(variantId)) selectedVariant = candidate;
+                }
+            }
+            if (selectedVariant != null) variantBox.setSelectedItem(selectedVariant);
+            else if (variantBox.getItemCount() > 0) variantBox.setSelectedIndex(0);
+
+            animationBox.removeAllItems();
+            AnimationDefinition selectedAnimation = null;
+            AppearanceVariant currentVariant = variant();
+            if (currentVariant != null) {
+                for (AnimationDefinition candidate : currentVariant.animations()) {
+                    animationBox.addItem(candidate);
+                    if (candidate.id().equals(animationId)) selectedAnimation = candidate;
+                }
+            }
+            if (selectedAnimation != null) animationBox.setSelectedItem(selectedAnimation);
+            else if (animationBox.getItemCount() > 0) animationBox.setSelectedIndex(0);
+
+            frameBox.removeAllItems();
+            FrameDefinition selectedFrame = null;
+            AnimationDefinition currentAnimation = animation();
+            if (currentAnimation != null) {
+                for (FrameDefinition candidate : currentAnimation.frames()) {
                     frameBox.addItem(candidate);
                     if (candidate.id().equals(frameId)) selectedFrame = candidate;
                 }
@@ -302,12 +356,53 @@ public final class LayerAuthoringWorkbench {
             sheet.repaint();
         }
 
-        private void populateFrames(String preferredLayer) {
+        private void populateVariants(String preferredVariant) {
             if (refreshing) return;
+            stopPlayback();
             UnitComposition unit = unit();
             refreshing = true;
+            variantBox.removeAllItems();
+            AppearanceVariant preferred = null;
+            if (unit != null) {
+                for (AppearanceVariant variant : unit.variants()) {
+                    variantBox.addItem(variant);
+                    if (variant.id().equals(preferredVariant)) preferred = variant;
+                }
+            }
+            if (preferred != null) variantBox.setSelectedItem(preferred);
+            else if (variantBox.getItemCount() > 0) variantBox.setSelectedIndex(0);
+            refreshing = false;
+            populateAnimations(null);
+        }
+
+        private void populateAnimations(String preferredAnimation) {
+            if (refreshing) return;
+            stopPlayback();
+            AppearanceVariant variant = variant();
+            refreshing = true;
+            animationBox.removeAllItems();
+            AnimationDefinition preferred = null;
+            if (variant != null) {
+                for (AnimationDefinition animation : variant.animations()) {
+                    animationBox.addItem(animation);
+                    if (animation.id().equals(preferredAnimation)) preferred = animation;
+                }
+            }
+            if (preferred != null) animationBox.setSelectedItem(preferred);
+            else if (animationBox.getItemCount() > 0) animationBox.setSelectedIndex(0);
+            refreshing = false;
+            populateFrames(null);
+        }
+
+        private void populateFrames(String preferredLayer) {
+            if (refreshing) return;
+            stopPlayback();
+            AnimationDefinition animation = animation();
+            refreshing = true;
             frameBox.removeAllItems();
-            if (unit != null) for (FrameDefinition frame : unit.frames()) frameBox.addItem(frame);
+            if (animation != null) {
+                for (FrameDefinition frame : animation.frames()) frameBox.addItem(frame);
+            }
             refreshing = false;
             if (frameBox.getItemCount() > 0) frameBox.setSelectedIndex(0);
             populateLayers(preferredLayer);
@@ -350,6 +445,7 @@ public final class LayerAuthoringWorkbench {
                 visible.setSelected(layer.visible()); sprite.setText(layer.spritePath());
             }
             if (frame != null) duration.setValue(frame.durationMs());
+            if (animation() != null) loop.setSelected(animation().loop());
             refreshing = false;
         }
 
@@ -367,18 +463,59 @@ public final class LayerAuthoringWorkbench {
             layer.visible(visible.isSelected());
             layer.spritePath(sprite.getText().trim());
             frame.durationMs(((Number) duration.getValue()).intValue());
+            animation().loop(loop.isSelected());
             finishHistoryChange();
             canvas.repaint();
             sheet.repaint();
         }
 
         private void animate(ActionEvent event) {
-            if (!play.isSelected() || frame() == null || frameBox.getItemCount() < 2) return;
-            frameElapsedMs += 40L;
-            if (frameElapsedMs < frame().durationMs()) return;
+            AnimationDefinition animation = animation();
+            if (!play.isSelected() || animation == null || animation.frames().isEmpty()) return;
+            frameElapsedMs += timer.getDelay();
+            FrameDefinition current = animation.frames().get(playbackFrameIndex);
+            while (frameElapsedMs >= current.durationMs()) {
+                frameElapsedMs -= current.durationMs();
+                if (playbackFrameIndex + 1 < animation.frames().size()) {
+                    playbackFrameIndex++;
+                } else if (animation.loop()) {
+                    playbackFrameIndex = 0;
+                } else {
+                    play.setSelected(false);
+                    stopPlayback();
+                    status.setText("Completed " + animation.label());
+                    return;
+                }
+                current = animation.frames().get(playbackFrameIndex);
+            }
+            double progress = (double) frameElapsedMs / current.durationMs();
+            canvas.preview(unit(), renderer.sample(animation, playbackFrameIndex, progress));
+            status.setText("Previewing " + animation.label() + " · keyframe "
+                    + (playbackFrameIndex + 1) + "/" + animation.frames().size());
+        }
+
+        private void togglePlayback() {
+            if (!play.isSelected()) {
+                stopPlayback();
+                return;
+            }
+            AnimationDefinition animation = animation();
+            if (animation == null || animation.frames().isEmpty()) {
+                play.setSelected(false);
+                return;
+            }
+            play.setText("■ Stop");
+            playbackFrameIndex = 0;
             frameElapsedMs = 0L;
-            frameBox.setSelectedIndex((frameBox.getSelectedIndex() + 1)
-                    % frameBox.getItemCount());
+            canvas.preview(unit(), renderer.sample(animation, 0, 0.0));
+            status.setText("Previewing " + animation.label());
+        }
+
+        private void stopPlayback() {
+            play.setSelected(false);
+            play.setText("▶ Play");
+            frameElapsedMs = 0L;
+            if (canvas != null) canvas.selection(unit(), frame(), layer());
         }
 
         private void save() {
@@ -415,6 +552,7 @@ public final class LayerAuthoringWorkbench {
         private void reload() {
             if (!confirmDiscard()) return;
             try {
+                stopPlayback();
                 reloadDocument();
                 history.clear();
                 savedSnapshot = document.snapshot();
@@ -521,12 +659,15 @@ public final class LayerAuthoringWorkbench {
                 status.setText(undo ? "Nothing to undo" : "Nothing to redo");
                 return;
             }
+            stopPlayback();
             String unitId = unit() != null ? unit().id() : null;
+            String variantId = variant() != null ? variant().id() : null;
+            String animationId = animation() != null ? animation().id() : null;
             String frameId = frame() != null ? frame().id() : null;
             String layerId = selectedLayerId();
             try {
                 document = undo ? history.undo(document) : history.redo(document);
-                populateSelection(unitId, frameId, layerId);
+                populateSelection(unitId, variantId, animationId, frameId, layerId);
                 updateDirtyFromDocument();
                 status.setText(undo ? "Undid last change" : "Redid last change");
             } catch (Exception failure) {
@@ -539,47 +680,113 @@ public final class LayerAuthoringWorkbench {
                     "Edit history failed", JOptionPane.ERROR_MESSAGE);
         }
 
+        private void duplicateAnimation() {
+            stopPlayback();
+            AppearanceVariant variant = variant();
+            AnimationDefinition animation = animation();
+            if (variant == null || animation == null) return;
+            String id = JOptionPane.showInputDialog(this, "New animation id",
+                    animation.id() + "-copy");
+            if (id == null) return;
+            id = id.trim();
+            boolean duplicate = false;
+            for (AnimationDefinition item : variant.animations()) {
+                if (item.id().equals(id)) duplicate = true;
+            }
+            if (id.isEmpty() || duplicate) {
+                JOptionPane.showMessageDialog(this,
+                        "Animation id must be non-empty and unique within the variant",
+                        "Cannot duplicate animation", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            String label = JOptionPane.showInputDialog(this, "Animation label",
+                    animation.label());
+            if (label == null) return;
+            AnimationDefinition copy = animation.copy(id,
+                    label.trim().isEmpty() ? id : label.trim());
+            beginHistoryChange();
+            variant.animations().add(copy);
+            rebuildAnimations(copy);
+            finishHistoryChange();
+            sheet.repaint();
+        }
+
+        private void deleteAnimation() {
+            stopPlayback();
+            AppearanceVariant variant = variant();
+            AnimationDefinition animation = animation();
+            if (variant == null || animation == null) return;
+            if (variant.animations().size() <= 1) {
+                JOptionPane.showMessageDialog(this,
+                        "A variant must retain at least one animation",
+                        "Cannot delete animation", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (JOptionPane.showConfirmDialog(this,
+                    "Delete animation '" + animation.label() + "' and all its keyframes?",
+                    "Delete animation", JOptionPane.YES_NO_OPTION,
+                    JOptionPane.WARNING_MESSAGE) != JOptionPane.YES_OPTION) return;
+            beginHistoryChange();
+            variant.animations().remove(animation);
+            rebuildAnimations(variant.animations().get(0));
+            finishHistoryChange();
+            sheet.repaint();
+        }
+
+        private void rebuildAnimations(AnimationDefinition selection) {
+            refreshing = true;
+            animationBox.removeAllItems();
+            for (AnimationDefinition item : variant().animations()) animationBox.addItem(item);
+            animationBox.setSelectedItem(selection);
+            refreshing = false;
+            populateFrames(null);
+        }
+
         private void duplicateFrame() {
-            UnitComposition unit = unit();
+            stopPlayback();
+            AnimationDefinition animation = animation();
             FrameDefinition frame = frame();
-            if (unit == null || frame == null) return;
-            String id = JOptionPane.showInputDialog(this, "New frame id",
+            if (animation == null || frame == null) return;
+            String id = JOptionPane.showInputDialog(this, "New keyframe id",
                     frame.id() + "-copy");
             if (id == null) return;
             id = id.trim();
             boolean duplicate = false;
-            for (FrameDefinition item : unit.frames()) {
+            for (FrameDefinition item : animation.frames()) {
                 if (item.id().equals(id)) duplicate = true;
             }
             if (id.isEmpty() || duplicate) {
-                JOptionPane.showMessageDialog(this, "Frame id must be non-empty and unique",
-                        "Cannot duplicate frame", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Keyframe id must be non-empty and unique",
+                        "Cannot duplicate keyframe", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            String label = JOptionPane.showInputDialog(this, "Frame label", frame.label());
+            String label = JOptionPane.showInputDialog(this, "Keyframe label", frame.label());
             if (label == null) return;
             FrameDefinition copy = frame.copy(id, label.trim().isEmpty() ? id : label.trim());
             beginHistoryChange();
-            unit.frames().add(copy);
+            animation.frames().add(copy);
             rebuildFrames(copy, selectedLayerId());
             finishHistoryChange();
             sheet.repaint();
         }
 
         private void deleteFrame() {
-            UnitComposition unit = unit();
+            stopPlayback();
+            AnimationDefinition animation = animation();
             FrameDefinition frame = frame();
-            if (unit == null || frame == null) return;
-            if (unit.frames().size() <= 1) {
-                JOptionPane.showMessageDialog(this, "A unit must retain at least one frame",
-                        "Cannot delete frame", JOptionPane.ERROR_MESSAGE);
+            if (animation == null || frame == null) return;
+            if (animation.frames().size() <= 1) {
+                JOptionPane.showMessageDialog(this,
+                        "An animation must retain at least one keyframe",
+                        "Cannot delete keyframe", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            if (JOptionPane.showConfirmDialog(this, "Delete frame '" + frame.label() + "'?",
-                    "Delete frame", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) return;
+            if (JOptionPane.showConfirmDialog(this,
+                    "Delete keyframe '" + frame.label() + "'?",
+                    "Delete keyframe", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) return;
             beginHistoryChange();
-            unit.frames().remove(frame);
-            rebuildFrames(unit.frames().get(0), null);
+            animation.frames().remove(frame);
+            rebuildFrames(animation.frames().get(0), null);
             finishHistoryChange();
             sheet.repaint();
         }
@@ -587,7 +794,7 @@ public final class LayerAuthoringWorkbench {
         private void rebuildFrames(FrameDefinition selection, String preferredLayer) {
             refreshing = true;
             frameBox.removeAllItems();
-            for (FrameDefinition item : unit().frames()) frameBox.addItem(item);
+            for (FrameDefinition item : animation().frames()) frameBox.addItem(item);
             frameBox.setSelectedItem(selection);
             refreshing = false;
             populateLayers(preferredLayer);
@@ -607,6 +814,14 @@ public final class LayerAuthoringWorkbench {
 
         private UnitComposition unit() {
             return (UnitComposition) unitBox.getSelectedItem();
+        }
+
+        private AppearanceVariant variant() {
+            return (AppearanceVariant) variantBox.getSelectedItem();
+        }
+
+        private AnimationDefinition animation() {
+            return (AnimationDefinition) animationBox.getSelectedItem();
         }
 
         private FrameDefinition frame() {
