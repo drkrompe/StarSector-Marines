@@ -9,12 +9,14 @@ import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.drone.GoapDroneBehavior;
 import com.dillon.starsectormarines.battle.evacuation.SwarmPressureBehavior;
 import com.dillon.starsectormarines.battle.combat.DamageService;
+import com.dillon.starsectormarines.battle.nav.LosCache;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinWorkerThread;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
 /**
@@ -69,7 +71,7 @@ import java.util.stream.IntStream;
  * goes away on the {@code *SimContext} deprecation path; the dispatcher
  * itself doesn't reach into the sim.
  */
-public final class UnitUpdateSystem {
+public final class UnitUpdateSystem implements AutoCloseable {
 
     private final ForkJoinPool pool;
     private final DamageService damageService;
@@ -81,12 +83,7 @@ public final class UnitUpdateSystem {
                             TickInnerProfile tickInnerProfile) {
         this.pool = new ForkJoinPool(
                 Math.max(1, Runtime.getRuntime().availableProcessors() - 1),
-                p -> {
-                    ForkJoinWorkerThread t = ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(p);
-                    t.setDaemon(true);
-                    t.setName("BattleSim-Update-" + t.getPoolIndex());
-                    return t;
-                },
+                BattleUpdateWorker::new,
                 null, false);
         this.roster = roster;
         this.damageService = damageService;
@@ -121,6 +118,41 @@ public final class UnitUpdateSystem {
             damageService.exitParallel();
         }
         TickInnerProfile.mergeAllInto(tickInnerProfile);
+    }
+
+    /** Releases this battle's owned worker pool and worker-local registries. */
+    @Override
+    public void close() {
+        pool.shutdown();
+        try {
+            if (!pool.awaitTermination(5, TimeUnit.SECONDS)) {
+                pool.shutdownNow();
+                pool.awaitTermination(5, TimeUnit.SECONDS);
+            }
+        } catch (InterruptedException ex) {
+            pool.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    /** Worker teardown is the ownership boundary for registered thread-local scratch. */
+    private static final class BattleUpdateWorker extends ForkJoinWorkerThread {
+
+        private BattleUpdateWorker(ForkJoinPool pool) {
+            super(pool);
+            setDaemon(true);
+            setName("BattleSim-Update-" + getPoolIndex());
+        }
+
+        @Override
+        protected void onTermination(Throwable failure) {
+            try {
+                TickInnerProfile.releaseCurrentThread();
+                LosCache.releaseCurrentThread();
+            } finally {
+                super.onTermination(failure);
+            }
+        }
     }
 
     /**

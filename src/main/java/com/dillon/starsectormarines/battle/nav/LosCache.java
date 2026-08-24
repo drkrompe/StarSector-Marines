@@ -77,6 +77,20 @@ public final class LosCache {
     }
 
     /**
+     * Removes the current worker's cache from the global tick sweep. Called
+     * when a battle-owned update worker terminates.
+     */
+    public static void releaseCurrentThread() {
+        LosCache current = CURRENT.get();
+        if (current != null) ALL_INSTANCES.remove(current);
+        CURRENT.remove();
+    }
+
+    static int trackedWorkerCount() {
+        return ALL_INSTANCES.size();
+    }
+
+    /**
      * Drops every per-thread cache in one sweep. Called by the sim at the
      * top of each tick so cached entries can't outlive a wall breach that
      * happened in a previous tick's cleanup pass.

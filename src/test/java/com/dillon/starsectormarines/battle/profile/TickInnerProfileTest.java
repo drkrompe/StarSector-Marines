@@ -1,8 +1,11 @@
 package com.dillon.starsectormarines.battle.profile;
 
+import com.dillon.starsectormarines.battle.fixture.BattleFixtureTestSupport;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TickInnerProfileTest {
 
@@ -37,14 +40,34 @@ class TickInnerProfileTest {
     }
 
     @Test
-    void tickBoundaryClearsAutoCreatedWorkerScratch() {
+    void tickBoundaryClearsAndReleaseDeregistersWorkerScratch() {
+        TickInnerProfile.releaseCurrentThread();
+        int before = TickInnerProfile.trackedWorkerCount();
         TickInnerProfile worker = TickInnerProfile.current();
         worker.record(TickInnerProfile.Bucket.PATHFIND, 25L);
-        TickInnerProfile.setCurrent(null);
 
         TickInnerProfile.resetAllWorkers();
 
         assertEquals(0L, worker.nanosOf(TickInnerProfile.Bucket.PATHFIND));
         assertEquals(0, worker.countOf(TickInnerProfile.Bucket.PATHFIND));
+        assertEquals(before + 1, TickInnerProfile.trackedWorkerCount());
+
+        TickInnerProfile.releaseCurrentThread();
+
+        assertEquals(before, TickInnerProfile.trackedWorkerCount());
+    }
+
+    @Test
+    void closingFixtureSimulationDeregistersWorkerProfiles() throws Exception {
+        TickInnerProfile.releaseCurrentThread();
+        int before = TickInnerProfile.trackedWorkerCount();
+        BattleSimulation sim = BattleFixtureTestSupport.loadDefaultFixture().build();
+        sim.advance(BattleSimulation.TICK_DT);
+        assertTrue(TickInnerProfile.trackedWorkerCount() > before,
+                "real battle ticks should create worker-local profiles");
+
+        sim.close();
+
+        assertEquals(before, TickInnerProfile.trackedWorkerCount());
     }
 }

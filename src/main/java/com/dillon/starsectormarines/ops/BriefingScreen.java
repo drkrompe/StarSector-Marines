@@ -1224,7 +1224,7 @@ public class BriefingScreen implements Screen {
         // Resolve the committed detachment (transports + marine fighter cover +
         // command powers) and build the battle. The deselected transports are
         // already filtered out of effectivePlayerShuttles().
-        BattleSimulation sim = MissionLaunch.buildSimulation(
+        MissionLaunch.PreparedBattle prepared = MissionLaunch.prepareSimulation(
                 ctx, m,
                 m.source == MissionSource.STATIONING
                         ? java.util.Collections.emptyList() : effectivePlayerShuttles(),
@@ -1234,13 +1234,19 @@ public class BriefingScreen implements Screen {
                 m.source == MissionSource.STATIONING
                         ? java.util.Collections.emptyList() : committedPowerSourceMembers(),
                 debugMechRoster(m));
-        if (m.contractId >= 0L && campaignScript != null) {
-            int day = Global.getSector() != null
-                    ? CampaignClock.day() : 0;
-            RivalStrikeGarrisonService.armForContractLaunch(
-                    campaignScript.state(), m.contractId, day);
+        try {
+            if (m.contractId >= 0L && campaignScript != null) {
+                int day = Global.getSector() != null
+                        ? CampaignClock.day() : 0;
+                RivalStrikeGarrisonService.armForContractLaunch(
+                        campaignScript.state(), m.contractId, day);
+            }
+        } catch (RuntimeException | Error failure) {
+            prepared.close();
+            throw failure;
         }
-        ctx.setBattleSimulation(sim);
+        ctx.setBattle(prepared.simulation(), prepared.fixture(),
+                prepared.detachment());
         ctx.goTo(ScreenId.BATTLE);
     }
 

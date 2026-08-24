@@ -59,6 +59,7 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentDropSystem;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.LosCache;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
@@ -127,7 +128,7 @@ import java.util.Random;
  * 24×16 grid it's a few thousand cell expansions per second, well inside the
  * budget. Spatial indexing for target search can come later if we scale up.
  */
-public class BattleSimulation implements BattleControl {
+public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** Fixed simulation timestep — 30Hz. */
     public static final float TICK_DT = 1f / 30f;
@@ -1116,6 +1117,16 @@ public class BattleSimulation implements BattleControl {
             tickAccumulator -= TICK_DT;
             if (complete) break;
         }
+    }
+
+    /** Releases battle-owned worker resources after the simulation leaves service. */
+    @Override
+    public void close() {
+        unitUpdate.close();
+        // The host thread participates in profiling/LoS work outside the
+        // parallel dispatch, so release its slots at the same ownership edge.
+        TickInnerProfile.releaseCurrentThread();
+        LosCache.releaseCurrentThread();
     }
 
     private void tick() {
