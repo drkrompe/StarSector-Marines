@@ -332,6 +332,14 @@ public final class UiElement {
         return computedStyle == null ? gap : computedStyle.gap(basis);
     }
 
+    float resolvedRowGap(float basis) {
+        return computedStyle == null ? gap : computedStyle.rowGap(basis);
+    }
+
+    float resolvedColumnGap(float basis) {
+        return computedStyle == null ? gap : computedStyle.columnGap(basis);
+    }
+
     public UiElement preferredSize(float width, float height) {
         this.preferredWidth = width;
         this.preferredHeight = height;

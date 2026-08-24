@@ -3,10 +3,8 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineSquad;
-import com.dillon.starsectormarines.ops.battleview.ArmoryLoadoutPreviewCanvas;
 import com.dillon.starsectormarines.ui.retained.UiAlign;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
-import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
@@ -23,26 +21,24 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** First production retained Fleet Armory slice: formation, templates, and atomic issue. */
-public final class FleetArmoryScreen implements Screen {
+/** Owned-company landing view between Company HQ and one company's Armory. */
+public final class FleetArmoryOverviewScreen implements Screen {
 
-    private static final Logger LOG = Global.getLogger(FleetArmoryScreen.class);
-    private static final String ROOT_COMPONENT = "fleet-armory";
+    private static final Logger LOG = Global.getLogger(FleetArmoryOverviewScreen.class);
+    private static final String ROOT_COMPONENT = "fleet-armory-overview";
     private static final List<String> COMPONENT_PATHS = List.of(
-            "data/ui/components/armory/fleet-armory.mlx",
-            "data/ui/components/armory/armory-formation-rail.mlx",
-            "data/ui/components/armory/armory-template-library.mlx",
-            "data/ui/components/armory/armory-refit-transaction.mlx");
+            "data/ui/components/armory/fleet-armory-overview.mlx",
+            "data/ui/components/armory/armory-company-list.mlx");
 
     private final Reactor reactor = new Reactor();
     private final MutableSignal<String> reloadStatus = reactor.signal(
-            "Retained production slice  ·  C15 formation / template / transaction");
+            "Owned-company overview  ·  Select a formation to enter its armory");
     private final MarkupLoader markup = new MarkupLoader(
             path -> Global.getSettings().loadText(path), COMPONENT_PATHS);
 
     private MarineOpsContext context;
     private MarineRoster roster;
-    private FleetArmoryViewModel viewModel;
+    private FleetArmoryOverviewViewModel viewModel;
     private UiViewport viewport;
     private UiDocument document;
     private MarkupInstance markupInstance;
@@ -57,7 +53,7 @@ public final class FleetArmoryScreen implements Screen {
         MarineRosterScript script = MarineRosterScript.getInstance();
         MarineRoster liveRoster = script != null ? script.roster() : null;
         if (liveRoster == null) {
-            context.goTo(ScreenId.ARMORY);
+            context.returnFromArmory();
             return;
         }
         liveRoster.bootstrapInitialComplement(MarineSquad.CAPACITY);
@@ -65,7 +61,11 @@ public final class FleetArmoryScreen implements Screen {
         if (viewModel == null || roster != liveRoster) {
             closeDocument();
             roster = liveRoster;
-            viewModel = new FleetArmoryViewModel(reactor, roster);
+            viewModel = new FleetArmoryOverviewViewModel(reactor, roster,
+                    () -> context.openFleetArmoryWorkspaceFrom(
+                            ScreenId.FLEET_ARMORY_OVERVIEW));
+        } else {
+            viewModel.refresh();
         }
         if (document == null) installDocument(true);
         document.layout(viewport.width(), viewport.height());
@@ -80,16 +80,14 @@ public final class FleetArmoryScreen implements Screen {
         UiDocument built;
         try {
             requireWiredElements(candidate);
-            candidate.requireElement("armory-reload-status")
+            candidate.requireElement("company-overview-summary")
                     .align(UiAlign.STRETCH, UiAlign.CENTER);
-            candidate.requireElement("transaction-feedback")
+            candidate.requireElement("company-overview-reload-status")
                     .align(UiAlign.STRETCH, UiAlign.CENTER);
             built = new UiDocument(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard())
-                    .onCancel(() -> context.returnFromFleetArmoryWorkspace());
-            built.canvases().set(candidate.requireElement("loadout-preview"),
-                    new ArmoryLoadoutPreviewCanvas(viewModel::selectedBillet));
+                    .onCancel(() -> context.returnFromArmory());
             if (viewport != null) built.layout(viewport.width(), viewport.height());
         } catch (RuntimeException failure) {
             candidate.close();
@@ -108,22 +106,9 @@ public final class FleetArmoryScreen implements Screen {
 
     private Map<String, Object> props() {
         Map<String, Object> props = new LinkedHashMap<>();
-        props.put("companySummary", viewModel.companySummary());
-        props.put("squadRows", viewModel.squadRows());
-        props.put("teamRows", viewModel.teamRows());
-        props.put("templateRows", viewModel.templateRows());
-        props.put("targetSummary", viewModel.targetSummary());
-        props.put("candidateSummary", viewModel.candidateSummary());
-        props.put("billetRows", viewModel.billetRows());
-        props.put("previewSummary", viewModel.previewSummary());
-        props.put("gearRows", viewModel.gearRows());
-        props.put("transactionSummary", viewModel.transactionSummary());
-        props.put("transactionClasses", viewModel.transactionClasses());
-        props.put("applyDisabled", viewModel.applyDisabled());
-        props.put("apply", viewModel.applyAction());
-        props.put("feedbackText", viewModel.feedbackText());
-        props.put("feedbackClasses", viewModel.feedbackClasses());
-        props.put("back", (Runnable) () -> context.returnFromFleetArmoryWorkspace());
+        props.put("fleetSummary", viewModel.fleetSummary());
+        props.put("companyCards", viewModel.companyCards());
+        props.put("back", (Runnable) () -> context.returnFromArmory());
         props.put("legacy", (Runnable) () -> context.goTo(ScreenId.ARMORY));
         props.put("reload", (Runnable) () -> reloadRequested = true);
         props.put("reloadStatus", reloadStatus);
@@ -132,23 +117,23 @@ public final class FleetArmoryScreen implements Screen {
 
     private static void requireWiredElements(MarkupInstance component) {
         for (String id : List.of(
-                "fleet-armory-root", "armory-header", "armory-body", "armory-footer",
-                "formation-rail", "squad-list", "team-list", "template-library",
-                "template-list", "refit-transaction", "billet-list", "gear-list",
-                "loadout-preview", "preview-summary",
-                "transaction-result", "apply-template", "transaction-feedback",
-                "armory-back", "legacy-armory", "reload-armory", "armory-reload-status")) {
+                "fleet-armory-overview-root", "company-overview-header",
+                "company-overview-intro", "company-overview-summary",
+                "company-list", "company-overview-footer", "company-overview-back",
+                "company-overview-legacy", "company-overview-reload",
+                "company-overview-reload-status")) {
             component.requireElement(id);
         }
     }
 
     private void reloadDocument() {
         try {
+            viewModel.refresh();
             installDocument(true);
-            reloadStatus.set("MLX reloaded  ·  Selection and campaign state preserved");
-            LOG.info("Reloaded retained Fleet Armory components");
+            reloadStatus.set("MLX reloaded  ·  Campaign authority preserved");
+            LOG.info("Reloaded retained Fleet Armory company overview");
         } catch (RuntimeException failure) {
-            LOG.error("Fleet Armory MLX reload refused; keeping the previous document", failure);
+            LOG.error("Fleet Armory overview reload refused; keeping the previous document", failure);
             reloadStatus.set("Reload refused  ·  Previous document retained");
         }
     }
