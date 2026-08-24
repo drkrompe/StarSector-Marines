@@ -11,6 +11,8 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.compound.CompoundCaptureSystem;
+import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.AssignmentReason;
+import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.Phase;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -511,6 +513,15 @@ public class ConquestCommandTest {
         return new BattleSimulation(grid, new CellTopology(W, H));
     }
 
+    private static BattleSimulation compoundAt(int centerX) {
+        NavigationGrid grid = new NavigationGrid(W, H);
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) grid.setWalkableFloor(x, y);
+        }
+        carveRoom(grid, centerX, 5);
+        return new BattleSimulation(grid, new CellTopology(W, H));
+    }
+
     /** Two sealed compound buildings — strip 0 at (5,5), strip 2 at (24,5). */
     private static BattleSimulation twoCompoundSim() {
         NavigationGrid grid = new NavigationGrid(W, H);
@@ -672,5 +683,122 @@ public class ConquestCommandTest {
 
         assertTrue(isSecureCompound(squad), "a squad already in a contested compound commits to capturing it");
         assertEquals(node, squad.assignedObjective.targetNode());
+    }
+
+    @Test
+    public void emptyPreferredTrackSupportsAdjacentDefendedCompound() {
+        BattleSimulation sim = compoundAt(19);
+        registerCompound(sim, new TacticalNode(TacticalNode.Kind.ARMORY,
+                19, 5, 18, 4, 20, 6, Faction.DEFENDER, 80, 4));
+        Squad squad = addMarineSquad(sim, 21f, 8f); // track 2, just over x=20 seam
+        addDefender(sim, 19, 5);                    // defended room in track 1
+
+        ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+        cmd.tick(sim);
+
+        assertNotNull(squad.assignedObjective);
+        assertEquals(AssignmentKind.CLEAR_ZONE, squad.assignedObjective.kind());
+        ConquestFrontSnapshot.SquadDirective directive =
+                cmd.frontSnapshot().directiveFor(squad.id);
+        assertEquals(2, directive.preferredTrack());
+        assertEquals(1, directive.effectiveTrack());
+        assertEquals(AssignmentReason.ADJACENT_TRACK_SUPPORT,
+                directive.reason());
+        assertEquals(Phase.FRONT_ADJUST, cmd.frontSnapshot().phase());
+        assertEquals(1, cmd.frontSnapshot().track(1).effectiveSquads());
+    }
+
+    @Test
+    public void finalKeepConvergesEveryMobileAssaultSquad() {
+        BattleSimulation sim = compoundAt(15);
+        TacticalNode keep = registerCompound(sim, new TacticalNode(
+                TacticalNode.Kind.COMMAND_POST, 15, 5, 14, 4, 16, 6,
+                Faction.DEFENDER, 100, 4));
+        Squad left = addMarineSquad(sim, 2f, 1f);
+        Squad center = addMarineSquad(sim, 15f, 1f);
+        Squad right = addMarineSquad(sim, 28f, 1f);
+        addDefender(sim, 15, 5);
+
+        ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+        cmd.tick(sim);
+
+        assertEquals(Phase.KEEP_CONVERGENCE, cmd.frontSnapshot().phase());
+        assertEquals(1, cmd.frontSnapshot().remainingCompounds());
+        assertEquals(sim.getZoneGraph().zoneIdAt(keep.anchorX, keep.anchorY),
+                cmd.frontSnapshot().keepZoneId());
+        for (Squad squad : new Squad[]{left, center, right}) {
+            assertEquals(AssignmentKind.SECURE_COMPOUND,
+                    squad.assignedObjective.kind());
+            ConquestFrontSnapshot.SquadDirective directive =
+                    cmd.frontSnapshot().directiveFor(squad.id);
+            assertEquals(AssignmentReason.KEEP_APPROACH, directive.reason());
+        }
+        assertEquals(0, cmd.frontSnapshot().directiveFor(left.id).preferredTrack());
+        assertEquals(1, cmd.frontSnapshot().directiveFor(center.id).preferredTrack());
+        assertEquals(2, cmd.frontSnapshot().directiveFor(right.id).preferredTrack());
+    }
+
+    @Test
+    public void finalKeepConvergenceLeavesBornHoldingGarrisonOnStation() {
+        BattleSimulation sim = compoundAt(15);
+        registerCompound(sim, new TacticalNode(TacticalNode.Kind.COMMAND_POST,
+                15, 5, 14, 4, 16, 6, Faction.DEFENDER, 100, 4));
+        Squad assault = addMarineSquad(sim, 2f, 1f);
+        Squad garrison = addMarineSquad(sim, 28f, 1f);
+        TacticalNode post = new TacticalNode(TacticalNode.Kind.BEACHHEAD,
+                28, 1, 27, 0, 29, 2, Faction.MARINE, 60, 3);
+        garrison.assignedObjective = ObjectiveAssignment.holdNode(
+                garrison.id, post);
+        addDefender(sim, 15, 5);
+
+        ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+        cmd.tick(sim);
+
+        assertEquals(AssignmentKind.SECURE_COMPOUND,
+                assault.assignedObjective.kind());
+        assertEquals(AssignmentKind.HOLD_NODE, garrison.assignedObjective.kind());
+        assertEquals(AssignmentReason.GARRISON_HOLD,
+                cmd.frontSnapshot().directiveFor(garrison.id).reason());
+    }
+
+    @Test
+    public void recapturedEarlierCompoundReopensFrontAfterKeepConvergence() {
+        BattleSimulation sim = twoCompoundSim();
+        CompoundService.Record armory = sim.getCompoundService().register(
+                new TacticalNode(TacticalNode.Kind.ARMORY, 5, 5,
+                        4, 4, 6, 6, Faction.DEFENDER, 80, 4));
+        sim.getCompoundService().register(new TacticalNode(
+                TacticalNode.Kind.COMMAND_POST, 24, 5,
+                23, 4, 25, 6, Faction.DEFENDER, 100, 4));
+        armory.state = CompoundService.CompoundState.MARINE_HELD;
+        Squad squad = addMarineSquad(sim, 24f, 1f);
+        addDefender(sim, 24, 5);
+
+        ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+        cmd.tick(sim);
+        assertEquals(Phase.KEEP_CONVERGENCE, cmd.frontSnapshot().phase());
+
+        armory.state = CompoundService.CompoundState.DEFENDER_HELD;
+        cmd.tick(sim);
+
+        assertEquals(Phase.LANE_ADVANCE, cmd.frontSnapshot().phase());
+        assertEquals(2, cmd.frontSnapshot().remainingCompounds());
+    }
+
+    @Test
+    public void frontMetricsDoNotRevealUnseenLiveDefenders() {
+        BattleSimulation sim = openSim();
+        addMarineSquad(sim, 5f, 5f);
+        addDefender(sim, 25, 5);
+        sim.advance(BattleSimulation.TICK_DT);
+
+        ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+        cmd.tick(sim);
+
+        ConquestFrontSnapshot.TrackState hiddenTrack =
+                cmd.frontSnapshot().track(2);
+        assertEquals(0, hiddenTrack.knownHostileContacts());
+        assertEquals(0f, hiddenTrack.knownHostilePressure(), 0.0001f);
+        assertEquals(-1f, hiddenTrack.knownHostileFrontProgress(), 0.0001f);
     }
 }

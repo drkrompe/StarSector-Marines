@@ -44,6 +44,10 @@ Secondary-use variants can author a `special` layer alongside the soldier. The
 equipment definition selects the live sprite, ordinary carry/occlusion, and its
 using/firing clip references; the active clip overrides the transform so AMR
 recoil, smoke throws, and satchel plants can be posed as one composition.
+When an action begins during a stride, the live renderer blends matching soldier
+layers from that preserved walking sample through the first 18% of the action.
+Author the exit explicitly: the last action keyframe should settle the body and
+equipment back to the carried or idle placement so completion does not snap.
 
 The editor refuses duplicate unit/variant/animation/keyframe/layer ids, non-positive
 sizes or durations,

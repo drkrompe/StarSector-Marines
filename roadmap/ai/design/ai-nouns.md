@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns mission command, squad planning, belief-derived conta
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — replaced work sequencing with durable analysis/action boundaries and added the target-faction doctrine extension.
+Updated: 2026-08-24 — clarified mission-specific command pictures and the boundary between Conquest tracks and other mission geometries.
 
 AI turns mission context and what a side has learned into coordinated
 movement, posture, and fire intent. It is a decision system, not the authority
@@ -67,6 +67,13 @@ topology-aware tactical fields. The current snapshots and heatmaps are
 read-only diagnostics: they do not yet reassign squads, create reserves, or
 brief subordinates.
 
+A mission command may publish a mission-specific command picture that combines
+its authored assignments with honest influence-derived metrics. Conquest's
+front snapshot is the first such picture: its metrics explain track progress
+and pressure, while the command's explicit compound and neighboring-track laws
+remain the authority for reassignment. The presence of a generic influence
+field does not make Conquest tracks a universal commander abstraction.
+
 ## Doctrine and maneuver
 
 The contact picture selects a sticky local doctrine: **ADVANCE**, **HOLD**, or
@@ -119,6 +126,13 @@ Mission commands issue assignment context for the mission they serve. Zones,
 portals, tactical nodes, and compound footprints are tactical places supplied
 by map generation and battle setup; AI may reason over them but does not author
 their geometry. `mapgen-nouns.md` owns that spatial substrate.
+
+Command geometry follows mission meaning. Conquest uses a directional front;
+Assault searches a two-dimensional area; Sabotage organizes around named sites;
+Rescue protects a moving corridor and cohort; Silent Colony divides an
+expedition between independent objectives. A useful geometry may be reused as
+an implementation primitive, but one mission's ownership and convergence laws
+do not silently become another mission's doctrine.
 
 `conquest-nouns.md` owns territorial capture, compound state, garrison
 entitlement, and supply consequences. AI may assign a squad to approach, clear,

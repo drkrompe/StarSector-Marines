@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.audio.BattleRadioChatter;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
+import com.dillon.starsectormarines.battle.turret.TurretImpactAudio;
 import com.dillon.starsectormarines.battle.weapon.fx.TurretFxRuntime;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -137,9 +138,11 @@ public final class GroundSimPresentation {
             if (s.turretKind != null) {
                 ImpactProfile profile = s.turretKind.impactProfile();
                 TurretFxRuntime.spawnImpactAndAftermath(fx, s, isWall);
-                if (profile.explosive()) {
-                    playExplosion(s.toX, s.toY,
-                            profile == ImpactProfile.CANNON_HE ? 0.82f : 0.55f, rng);
+                TurretImpactAudio.Cue cue = TurretImpactAudio.resolve(
+                        s.turretKind, SFX_NEAR_EXPLOSION);
+                if (cue != null) {
+                    float pitch = 0.9f + rng.nextFloat() * 0.2f;
+                    playAtCell(cue.soundId(), pitch, cue.volume(), s.toX, s.toY);
                 }
             } else if (s.marineSecondary != null) {
                 fx.spawnImpact(s.marineSecondary.impactProfile(), s.toX, s.visualToY(), isWall);

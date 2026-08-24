@@ -77,8 +77,13 @@ public class ShotFxTest {
             assertFalse(fx.engineTrail(), "turrets carry no engine trail: " + k);
             assertTrue(fx.travels(), "turret body travels: " + k);
 
-            assertNull(fx.contrail(), "turret trails no longer use a kind-switched ribbon: " + k);
-            assertFalse(fx.smokeTrail(), "turret trails come from the authored FX slot: " + k);
+            if (k == TurretKind.LOCUST) {
+                assertSame(ContrailStyle.MISSILE_SMOKE, fx.contrail());
+            } else {
+                assertNull(fx.contrail(), "non-missile turret contrail: " + k);
+            }
+            assertEquals(k.smokeTrail(), fx.smokeTrail(),
+                    "compatibility smoke-puff flag for " + k);
         }
     }
 
@@ -86,10 +91,13 @@ public class ShotFxTest {
     public void locustBoostsAndCarriesAnAuthoredTrail() {
         ShotFx fx = ShotFx.of(turretShot(TurretKind.LOCUST));
         assertTrue(fx.boostRamp(), "Locust boosts");
-        assertNull(fx.contrail(), "Locust no longer needs a turret-id ribbon switch");
+        assertSame(ContrailStyle.MISSILE_SMOKE, fx.contrail(),
+                "Locust weapon data selects its widening missile ribbon");
         assertFalse(fx.smokeTrail(), "Locust trail is not the compatibility puff");
+        assertFalse(TurretKind.LOCUST.fx().layers(FxSlot.LAUNCH).isEmpty(),
+                "Locust authored data owns its directional launch backblast");
         assertFalse(TurretKind.LOCUST.fx().layers(FxSlot.TRAIL).isEmpty(),
-                "Locust authored data owns the trail composition");
+                "Locust authored data owns the engine-flame trail composition");
     }
 
     @Test

@@ -97,7 +97,9 @@ public final class WeaponDef {
     public final float projectileVisualCells;
     /** Whether the traveling body emits the compatibility smoke-puff trail. W2 replaces this with authored layers. */
     public final boolean smokeTrail;
-    /** Whether firing emits the compatibility launcher backblast. W2 replaces this with authored layers. */
+    /** Optional persistent projectile-ribbon profile, resolved by render consumers. */
+    public final ContrailProfile contrailProfile;
+    /** Whether the authored FX declares a launch composition at the mount center. */
     public final boolean launchBackblast;
     /** Optional authored particle composition. Null keeps legacy profile-backed presentation. */
     public final WeaponFxDef fx;
@@ -120,7 +122,7 @@ public final class WeaponDef {
                       boolean boostRamp, boolean indirectFire, float noLosAccuracyMult,
                       Color tracerColor, ImpactProfile impactProfile,
                       String projectileSpritePath, float projectileVisualCells,
-                      boolean smokeTrail, boolean launchBackblast,
+                      boolean smokeTrail, ContrailProfile contrailProfile,
                       WeaponFxDef fx,
                       String fireSoundId, String impactSoundId) {
         this.id = id;
@@ -157,7 +159,8 @@ public final class WeaponDef {
         this.projectileSpritePath = projectileSpritePath;
         this.projectileVisualCells = projectileVisualCells;
         this.smokeTrail = smokeTrail;
-        this.launchBackblast = launchBackblast;
+        this.contrailProfile = contrailProfile;
+        this.launchBackblast = fx != null && !fx.layers(FxSlot.LAUNCH).isEmpty();
         this.fx = fx;
         this.fireSoundId = fireSoundId;
         this.impactSoundId = impactSoundId;
@@ -186,6 +189,8 @@ public final class WeaponDef {
         JSONObject contact = sim.optJSONObject("contact");
         JSONObject render = json.optJSONObject("render");
         JSONObject audio = json.optJSONObject("audio");
+        WeaponFxDef fx = json.has("fx") && !json.isNull("fx")
+                ? WeaponFxDef.parse(id, json.getJSONObject("fx")) : null;
         WeaponDef def = new WeaponDef(
                 id,
                 mount,
@@ -221,9 +226,9 @@ public final class WeaponDef {
                 render != null ? emptyToNull(render.optString("projectileSprite", null)) : null,
                 render != null ? (float) render.optDouble("projectileVisualCells", 0.0) : 0f,
                 render != null && render.optBoolean("smokeTrail", false),
-                render != null && render.optBoolean("launchBackblast", false),
-                json.has("fx") && !json.isNull("fx")
-                        ? WeaponFxDef.parse(id, json.getJSONObject("fx")) : null,
+                ContrailProfile.fromKey(
+                        render != null ? render.optString("contrail", null) : null, id),
+                fx,
                 audio != null ? emptyToNull(audio.optString("fireSound", null)) : null,
                 audio != null ? emptyToNull(audio.optString("impactSound", null)) : null);
         validateMountFields(def);
