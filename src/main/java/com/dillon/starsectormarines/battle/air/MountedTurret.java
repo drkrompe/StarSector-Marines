@@ -62,7 +62,7 @@ public final class MountedTurret {
 
     public MountedTurret(TurretMount mount) {
         this.mount = mount;
-        this.ammo = mount.kind.startingAmmo;
+        this.ammo = mount.kind.startingAmmo();
     }
 
     /** Write the locked target id ({@code 0L} = none) into {@link #targetId}. */

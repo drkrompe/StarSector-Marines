@@ -1,0 +1,54 @@
+{
+  "mounts": [
+    {
+      "id": "mount.turret-vulcan", "weapon": "weapon.turret-vulcan",
+      "sim": { "ammoCapacity": 120, "turnRateDegPerSec": 120.0 },
+      "render": { "visualCells": 1.6, "muzzleOffsetCells": 0.58, "sprite": "graphics/weapons/vulcan_cannon_turret_base.png", "recoilSprite": "graphics/weapons/vulcan_cannon_turret_recoil.png" }
+    },
+    {
+      "id": "mount.turret-arbalest", "weapon": "weapon.turret-arbalest",
+      "sim": { "ammoCapacity": 60, "turnRateDegPerSec": 90.0 },
+      "render": { "visualCells": 1.8, "muzzleOffsetCells": 0.58, "sprite": "graphics/weapons/arbalest_turret_base.png", "recoilSprite": "graphics/weapons/arbalest_turret_recoil.png" }
+    },
+    {
+      "id": "mount.turret-heavy-mortar", "weapon": "weapon.turret-heavy-mortar",
+      "sim": { "ammoCapacity": 15, "turnRateDegPerSec": 60.0 },
+      "render": { "visualCells": 1.8, "muzzleOffsetCells": 0.58, "sprite": "graphics/weapons/heavy_mortar_turret.png", "recoilSprite": "graphics/weapons/heavy_mortar_turret_recoil.png" }
+    },
+    {
+      "id": "mount.turret-dual-flak", "weapon": "weapon.turret-dual-flak",
+      "sim": { "ammoCapacity": 80, "turnRateDegPerSec": 100.0 },
+      "render": { "visualCells": 2.0, "muzzleOffsetCells": 0.58, "sprite": "graphics/weapons/double_flak_cannon_turret_base.png", "recoilSprite": "graphics/weapons/double_flak_cannon_turret_recoil.png" }
+    },
+    {
+      "id": "mount.turret-hephaestus", "weapon": "weapon.turret-hephaestus",
+      "sim": { "ammoCapacity": 50, "turnRateDegPerSec": 75.0 },
+      "render": { "visualCells": 2.2, "muzzleOffsetCells": 0.58, "sprite": "graphics/weapons/hephaestus_turret_base.png", "recoilSprite": "graphics/weapons/hephaestus_turret_recoil.png" }
+    },
+    {
+      "id": "mount.turret-grenade-launcher", "weapon": "weapon.turret-grenade-launcher",
+      "sim": { "ammoCapacity": 60, "turnRateDegPerSec": 80.0 },
+      "render": { "visualCells": 1.7, "muzzleOffsetCells": 0.58, "sprite": "graphics/weapons/light_mortar_turret_base.png", "recoilSprite": "graphics/weapons/light_mortar_turret_recoil.png" }
+    },
+    {
+      "id": "mount.turret-locust", "weapon": "weapon.turret-locust",
+      "sim": { "ammoCapacity": 30, "turnRateDegPerSec": 50.0 },
+      "render": { "visualCells": 2.0, "muzzleOffsetCells": 0.58, "sprite": "graphics/weapons/locust_turret.png", "recoilSprite": "graphics/weapons/locust_turret.png" }
+    },
+    {
+      "id": "mount.turret-heavy-mg", "weapon": "weapon.turret-heavy-mg",
+      "sim": { "ammoCapacity": 200, "turnRateDegPerSec": 110.0 },
+      "render": { "visualCells": 1.6, "muzzleOffsetCells": 0.58, "sprite": "graphics/weapons/vulcan_cannon_turret_base.png", "recoilSprite": "graphics/weapons/vulcan_cannon_turret_recoil.png" }
+    }
+  ],
+  "structures": [
+    { "id": "structure.turret-vulcan", "mount": "mount.turret-vulcan", "catalog": { "displayName": "Vulcan Emplacement" }, "durability": { "structure": 60.0, "armorPool": 80.0, "armorRating": 8.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 8.0 },
+    { "id": "structure.turret-arbalest", "mount": "mount.turret-arbalest", "catalog": { "displayName": "Arbalest Emplacement" }, "durability": { "structure": 70.0, "armorPool": 110.0, "armorRating": 10.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 10.0 },
+    { "id": "structure.turret-heavy-mortar", "mount": "mount.turret-heavy-mortar", "catalog": { "displayName": "Heavy Mortar Emplacement" }, "durability": { "structure": 80.0, "armorPool": 130.0, "armorRating": 12.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 14.0 },
+    { "id": "structure.turret-dual-flak", "mount": "mount.turret-dual-flak", "catalog": { "displayName": "Dual Flak Emplacement" }, "durability": { "structure": 75.0, "armorPool": 120.0, "armorRating": 10.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 12.0 },
+    { "id": "structure.turret-hephaestus", "mount": "mount.turret-hephaestus", "catalog": { "displayName": "Hephaestus Emplacement" }, "durability": { "structure": 90.0, "armorPool": 145.0, "armorRating": 14.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 16.0 },
+    { "id": "structure.turret-grenade-launcher", "mount": "mount.turret-grenade-launcher", "catalog": { "displayName": "Grenade Launcher Emplacement" }, "durability": { "structure": 75.0, "armorPool": 120.0, "armorRating": 10.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 12.0 },
+    { "id": "structure.turret-locust", "mount": "mount.turret-locust", "catalog": { "displayName": "Locust Emplacement" }, "durability": { "structure": 85.0, "armorPool": 135.0, "armorRating": 12.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 18.0 },
+    { "id": "structure.turret-heavy-mg", "mount": "mount.turret-heavy-mg", "catalog": { "displayName": "Heavy MG Emplacement" }, "durability": { "structure": 70.0, "armorPool": 110.0, "armorRating": 10.0 }, "physics": { "radius": 0.45, "hitHalfHeight": 0.6, "footprintCells": [1, 1] }, "forceScore": 10.0 }
+  ]
+}
