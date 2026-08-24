@@ -22,6 +22,8 @@ final class MarineOpsThemes {
                     color: #e4eefa;
                     background-color: #080d15;
                 }
+                .heading { font-family: heading; }
+                .title { font-family: title; }
                 .panel { background-color: #15202e; border-color: #6282a8; }
                 .workbench-root, .fleet-armory-root, .fleet-armory-overview-root { border-color: #6ed7ff; }
                 .surface-dark { background-color: #0e1621; }
@@ -58,6 +60,8 @@ final class MarineOpsThemes {
                     color: #ffffff;
                     background-color: #000000;
                 }
+                .heading { font-family: heading; }
+                .title { font-family: title; }
                 .panel { background-color: #071019; border-color: #d2f3ff; }
                 .workbench-root, .fleet-armory-root, .fleet-armory-overview-root { border-color: #63e8ff; }
                 .surface-dark { background-color: #000000; }
@@ -106,8 +110,9 @@ final class MarineOpsThemes {
 
     private static UiTheme theme(String css) {
         return new UiTheme(StyleSheet.parse(SHEET_NAME, css),
-                Map.of("body", Fonts.INSIGNIA_LARGE,
-                        "heading", Fonts.ORBITRON_20_BOLD));
+                Map.of("body", Fonts.INSIGNIA_15_AA,
+                        "heading", Fonts.ORBITRON_12_BOLD,
+                        "title", Fonts.ORBITRON_16));
     }
 
     record CanvasPalette(Color button, Color selected, Color danger, Color valid,

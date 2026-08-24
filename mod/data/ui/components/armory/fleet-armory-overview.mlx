@@ -1,7 +1,7 @@
 <template props="fleetSummary,companyCards,back,legacy,reload,reloadStatus">
   <div id="fleet-armory-overview-root" class="fleet-armory-overview-root">
     <div id="company-overview-header" class="panel surface-dark">
-      <div id="company-overview-title" class="label heading tone-accent">FLEET ARMORY</div>
+      <div id="company-overview-title" class="label title tone-accent">FLEET ARMORY</div>
       <div id="company-overview-purpose" class="label tone-edge">Owned companies  /  Readiness  /  Equipment</div>
     </div>
 
@@ -25,45 +25,46 @@
 <style>
   .fleet-armory-overview-root {
     flex-direction: column;
-    padding: 14px;
-    gap: 10px;
-    border-width: 3px;
+    padding: 10px;
+    gap: 8px;
+    border-width: 2px;
     overflow: hidden;
   }
 
   .label { overflow: hidden; }
   .heading { font-family: heading; }
+  .title { font-family: title; }
 
   #company-overview-header {
     flex-direction: row;
-    height: 42px;
-    padding: 12px;
-    gap: 14px;
+    height: 34px;
+    padding: 7px 8px;
+    gap: 10px;
   }
 
-  #company-overview-title { width: 270px; }
+  #company-overview-title { width: 220px; }
   #company-overview-purpose { flex-grow: 1; text-align: right; }
 
   #company-overview-intro {
     flex-direction: column;
-    height: 96px;
-    padding: 10px;
-    gap: 5px;
+    height: 72px;
+    padding: 7px 8px;
+    gap: 3px;
   }
 
-  #company-overview-heading { height: 24px; }
-  #company-overview-copy { height: 22px; }
-  #company-overview-summary { height: 24px; padding: 5px 8px; }
+  #company-overview-heading { height: 18px; }
+  #company-overview-copy { height: 17px; }
+  #company-overview-summary { height: 19px; padding: 2px 6px; }
 
   #company-overview-footer {
     flex-direction: row;
-    height: 34px;
-    padding: 7px;
-    gap: 10px;
+    height: 28px;
+    padding: 4px;
+    gap: 6px;
   }
 
   #company-overview-footer button {
-    padding: 5px 10px;
+    padding: 3px 7px;
     border-width: 1px;
     overflow: hidden;
     font-family: body;
