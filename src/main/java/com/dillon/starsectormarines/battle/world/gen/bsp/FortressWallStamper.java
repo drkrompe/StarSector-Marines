@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.decision.TacticalNode.StandPosition;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -48,9 +49,10 @@ import java.util.Random;
  *   <li><b>Gates</b> — 1–3 {@link #GATE_WIDTH}-cell openings on the
  *       attacker-facing wall, jittered, never overlapping a tower or MG, with
  *       {@link #MIN_GATE_SEPARATION} between gates.</li>
- *   <li><b>Forward bunkers</b> — 2–4 free-standing 3×3 towers in the
- *       kill-zone buffer, paired with heavy turret mounts. Forces attackers
- *       to clear forward positions before assaulting the wall.</li>
+ *   <li><b>Forward bunkers</b> — 2–4 free-standing, attacker-facing fighting
+ *       positions in the kill-zone buffer. Each has two firing windows, two
+ *       authored infantry stand cells, a center heavy-turret mount, and an
+ *       open rear entrance.</li>
  * </ul>
  *
  * <h2>Connectivity</h2>
@@ -90,8 +92,12 @@ public final class FortressWallStamper implements GenStage {
     /** Min/max forward bunker count rolled at gen time. */
     private static final int BUNKER_COUNT_MIN = 2;
     private static final int BUNKER_COUNT_MAX = 4;
-    /** Forward bunker side length. Matches tower size so the silhouettes read consistently across the fortress complex. */
-    private static final int BUNKER_SIZE = 3;
+    /** Forward bunker frontage and depth. Five cells fit two windows around a center turret; three cells retain a compact open-backed footprint. */
+    private static final int BUNKER_FRONTAGE = 5;
+    private static final int BUNKER_DEPTH = 3;
+    private static final int BUNKER_HALF_FRONTAGE = BUNKER_FRONTAGE / 2;
+    private static final int BUNKER_HALF_DEPTH = BUNKER_DEPTH / 2;
+    private static final int BUNKER_GARRISON_SIZE = 2;
     /** Minimum cells between forward bunkers — keeps them spread along the kill zone instead of clumping. */
     private static final int BUNKER_MIN_SEPARATION = 25;
     /** Floor under wall cells. STRIPED reads as "military safety floor" when breached. */
@@ -318,11 +324,11 @@ public final class FortressWallStamper implements GenStage {
         List<int[]> bunkerCenters = new ArrayList<>();
         int killZoneTop = wBot - 3;   // leave 2-cell gap between bunker and wall
         int killZoneBot = fBot + 2;   // small buffer on the biome-edge side too
-        if (killZoneTop - killZoneBot >= BUNKER_SIZE) {
+        if (killZoneTop >= killZoneBot) {
             int bxAttempts = bunkerCount * 50;
             for (int a = 0; a < bxAttempts && bunkerCenters.size() < bunkerCount; a++) {
                 int bx = wLeft + 4 + rng.nextInt(Math.max(1, span - 8));
-                int by = killZoneBot + rng.nextInt(Math.max(1, killZoneTop - killZoneBot));
+                int by = killZoneBot + rng.nextInt(Math.max(1, killZoneTop - killZoneBot + 1));
                 boolean tooClose = false;
                 for (int[] b : bunkerCenters) {
                     int dx = b[0] - bx;
@@ -333,8 +339,13 @@ public final class FortressWallStamper implements GenStage {
                     }
                 }
                 if (tooClose) continue;
-                stampTower3x3(grid, topology, bx, by, wallMask, roadReservation);
-                emitForwardBunker(tactical, bx, by);
+                if (!hasValidBunkerSite(grid,
+                        roadReservation, bx, by, TraversalAxis.SOUTH_TO_NORTH)) continue;
+                List<StandPosition> standPositions = stampForwardBunker(
+                        grid, topology, bx, by, TraversalAxis.SOUTH_TO_NORTH,
+                        wallMask, roadReservation);
+                emitForwardBunker(tactical, bx, by,
+                        TraversalAxis.SOUTH_TO_NORTH, standPositions);
                 bunkerCenters.add(new int[]{bx, by});
             }
         }
@@ -435,10 +446,10 @@ public final class FortressWallStamper implements GenStage {
         List<int[]> bunkerCenters = new ArrayList<>();
         int killZoneLeft  = fLeft + 2;
         int killZoneRight = wLeft - 3;
-        if (killZoneRight - killZoneLeft >= BUNKER_SIZE) {
+        if (killZoneRight >= killZoneLeft) {
             int bxAttempts = bunkerCount * 50;
             for (int a = 0; a < bxAttempts && bunkerCenters.size() < bunkerCount; a++) {
-                int bx = killZoneLeft + rng.nextInt(Math.max(1, killZoneRight - killZoneLeft));
+                int bx = killZoneLeft + rng.nextInt(Math.max(1, killZoneRight - killZoneLeft + 1));
                 int by = wBot + 4 + rng.nextInt(Math.max(1, span - 8));
                 boolean tooClose = false;
                 for (int[] b : bunkerCenters) {
@@ -450,8 +461,13 @@ public final class FortressWallStamper implements GenStage {
                     }
                 }
                 if (tooClose) continue;
-                stampTower3x3(grid, topology, bx, by, wallMask, roadReservation);
-                emitForwardBunker(tactical, bx, by);
+                if (!hasValidBunkerSite(grid,
+                        roadReservation, bx, by, TraversalAxis.WEST_TO_EAST)) continue;
+                List<StandPosition> standPositions = stampForwardBunker(
+                        grid, topology, bx, by, TraversalAxis.WEST_TO_EAST,
+                        wallMask, roadReservation);
+                emitForwardBunker(tactical, bx, by,
+                        TraversalAxis.WEST_TO_EAST, standPositions);
                 bunkerCenters.add(new int[]{bx, by});
             }
         }
@@ -479,11 +495,17 @@ public final class FortressWallStamper implements GenStage {
                 Faction.DEFENDER, 50, 1));
     }
 
-    /** FORWARD_BUNKER node — anchor at the turret-mount center; same footprint as a heavy tower but freestanding in the kill zone. */
-    private static void emitForwardBunker(List<TacticalNode> tactical, int cx, int cy) {
+    /** FORWARD_BUNKER node — anchor at the turret mount, with authored cells immediately behind its firing windows. */
+    private static void emitForwardBunker(List<TacticalNode> tactical,
+                                          int cx, int cy, TraversalAxis axis,
+                                          List<StandPosition> standPositions) {
+        int halfX = axis == TraversalAxis.SOUTH_TO_NORTH
+                ? BUNKER_HALF_FRONTAGE : BUNKER_HALF_DEPTH;
+        int halfY = axis == TraversalAxis.SOUTH_TO_NORTH
+                ? BUNKER_HALF_DEPTH : BUNKER_HALF_FRONTAGE;
         tactical.add(new TacticalNode(TacticalNode.Kind.FORWARD_BUNKER,
-                cx, cy, cx - 1, cy - 1, cx + 1, cy + 1,
-                Faction.DEFENDER, 65, 2));
+                cx, cy, cx - halfX, cy - halfY, cx + halfX, cy + halfY,
+                Faction.DEFENDER, 65, BUNKER_GARRISON_SIZE, standPositions));
     }
 
     /**
@@ -598,6 +620,128 @@ public final class FortressWallStamper implements GenStage {
                 }
             }
         }
+    }
+
+    /**
+     * Stamps a compact open-backed bunker facing the attacker. Coordinates
+     * are expressed as frontage ({@code along=-2..2}) and depth
+     * ({@code -1=front, 1=rear}), then rotated for the traversal axis:
+     *
+     * <pre>
+     *   # W # W #    W = see-through wall window
+     *   # S T S #    S = authored infantry stand cell, T = turret mount
+     *   # . . . #    . = open rear access
+     * </pre>
+     */
+    private static List<StandPosition> stampForwardBunker(
+            NavigationGrid grid, CellTopology topology,
+            int cx, int cy, TraversalAxis axis, boolean[][] wallMask,
+            boolean[][] reservation) {
+        List<StandPosition> standPositions = new ArrayList<>(BUNKER_GARRISON_SIZE);
+        for (int depth = -BUNKER_HALF_DEPTH; depth <= BUNKER_HALF_DEPTH; depth++) {
+            for (int along = -BUNKER_HALF_FRONTAGE;
+                 along <= BUNKER_HALF_FRONTAGE; along++) {
+                int x = cx + (axis == TraversalAxis.SOUTH_TO_NORTH ? along : depth);
+                int y = cy + (axis == TraversalAxis.SOUTH_TO_NORTH ? depth : along);
+                boolean frontWindow = depth == -BUNKER_HALF_DEPTH
+                        && Math.abs(along) == 1;
+                boolean perimeterWall = depth == -BUNKER_HALF_DEPTH
+                        || Math.abs(along) == BUNKER_HALF_FRONTAGE;
+
+                if (frontWindow) {
+                    paintBunkerWall(grid, topology, x, y, wallMask, true);
+                } else if (perimeterWall) {
+                    paintBunkerWall(grid, topology, x, y, wallMask, false);
+                } else if (depth == 0 && along == 0) {
+                    stampBunkerTurret(grid, topology, x, y, wallMask);
+                } else {
+                    clearBunkerFloor(grid, topology, x, y);
+                    if (depth == 0 && Math.abs(along) == 1) {
+                        standPositions.add(new StandPosition(x, y));
+                    }
+                }
+            }
+        }
+        carveBunkerRearApproach(grid, topology, cx, cy, axis, reservation);
+        return standPositions;
+    }
+
+    /** Carves a three-cell apron behind the open back unless protected space already owns it. */
+    private static void carveBunkerRearApproach(NavigationGrid grid, CellTopology topology,
+                                                 int cx, int cy, TraversalAxis axis,
+                                                 boolean[][] reservation) {
+        int rearDepth = BUNKER_HALF_DEPTH + 1;
+        for (int along = -1; along <= 1; along++) {
+            int x = cx + (axis == TraversalAxis.SOUTH_TO_NORTH ? along : rearDepth);
+            int y = cy + (axis == TraversalAxis.SOUTH_TO_NORTH ? rearDepth : along);
+            if (reservation != null && reservation[x][y]) continue;
+            clearBunkerFloor(grid, topology, x, y);
+        }
+    }
+
+    private static void paintBunkerWall(NavigationGrid grid, CellTopology topology,
+                                         int x, int y, boolean[][] wallMask,
+                                         boolean window) {
+        paintWall(grid, topology, x, y, wallMask, null);
+        topology.setFixture(x, y, false);
+        topology.setVehicle(x, y, false);
+        topology.setWindow(x, y, window);
+        topology.setNatureOverlayIndex(x, y, -1);
+        grid.setSeeThrough(x, y, window);
+    }
+
+    private static void stampBunkerTurret(NavigationGrid grid, CellTopology topology,
+                                           int x, int y, boolean[][] wallMask) {
+        grid.setWalkable(x, y, false);
+        grid.setSeeThrough(x, y, false);
+        grid.setWallHp(x, y, WALL_HP_FORTIFIED);
+        topology.setGroundKind(x, y, TURRET_PAD);
+        topology.setFixture(x, y, false);
+        topology.setWindow(x, y, false);
+        topology.setVehicle(x, y, true);
+        topology.setNatureOverlayIndex(x, y, -1);
+        wallMask[x][y] = true;
+    }
+
+    private static void clearBunkerFloor(NavigationGrid grid, CellTopology topology,
+                                          int x, int y) {
+        grid.setWalkableFloor(x, y);
+        grid.setSeeThrough(x, y, false);
+        grid.setWallHp(x, y, 0);
+        grid.setDoorway(x, y, false);
+        topology.setGroundKind(x, y, WALL_GROUND);
+        topology.setWall(x, y, false);
+        topology.setFixture(x, y, false);
+        topology.setWindow(x, y, false);
+        topology.setVehicle(x, y, false);
+        topology.setNatureOverlayIndex(x, y, -1);
+        topology.setBuildingKindHint(x, y, null);
+        topology.setRoomPurpose(x, y, null);
+    }
+
+    /** Bunkers never punch through reserved space or seal their own rear access. */
+    private static boolean hasValidBunkerSite(NavigationGrid grid,
+                                              boolean[][] roadReservation,
+                                              int cx, int cy,
+                                              TraversalAxis axis) {
+        for (int depth = -BUNKER_HALF_DEPTH; depth <= BUNKER_HALF_DEPTH; depth++) {
+            for (int along = -BUNKER_HALF_FRONTAGE;
+                 along <= BUNKER_HALF_FRONTAGE; along++) {
+                int x = cx + (axis == TraversalAxis.SOUTH_TO_NORTH ? along : depth);
+                int y = cy + (axis == TraversalAxis.SOUTH_TO_NORTH ? depth : along);
+                if (!grid.inBounds(x, y)) return false;
+                if (roadReservation != null && roadReservation[x][y]) return false;
+            }
+        }
+        int rearDepth = BUNKER_HALF_DEPTH + 1;
+        for (int along = -1; along <= 1; along++) {
+            int x = cx + (axis == TraversalAxis.SOUTH_TO_NORTH ? along : rearDepth);
+            int y = cy + (axis == TraversalAxis.SOUTH_TO_NORTH ? rearDepth : along);
+            if (!grid.inBounds(x, y)) return false;
+            if (roadReservation != null && roadReservation[x][y]
+                    && !grid.isWalkable(x, y)) return false;
+        }
+        return true;
     }
 
     /**
