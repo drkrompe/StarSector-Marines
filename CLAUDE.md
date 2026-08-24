@@ -73,6 +73,9 @@ Do not run builds or leave generated task files there.
   at compile time.
 - `gradlew.bat build` → `mod/jars/StarsectorMarines.jar` (directly into the mod folder; no
   intermediate copy step).
+- `gradlew.bat renderArmoryPreviews` → deterministic equipment-doll and sample-soldier PNGs
+  in `build/headless-armory-previews/` without launching Starsector or creating an OpenGL
+  context. Pass `-ParmoryPreviewDir=<path>` to redirect the output.
 - `gradlew.bat deployMod` → generates the gitignored `mod/sounds/` outputs
   (requires `ffmpeg` on `PATH`) and syncs `mod/` into
   `<starsectorDir>/mods/StarsectorMarines/`.
