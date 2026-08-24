@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — separated durable direction from story sequencing and moved special-equipment activation, resources, AI policy, catalog copy, and presentation recipes into fail-loud data.
+Updated: 2026-08-24 — separated infantry weapon role from delivery mechanism and routed contact tools, stims, and faction demolition through special-equipment authority.
 
 ## Purpose
 
@@ -34,19 +34,34 @@ legibility.
 - **Career** — a marine's persisted lifetime service evidence: deployments,
   wins, fired and landed rounds, dealt and taken damage, kills, and wounds.
   It is cumulative, not a per-mission journal.
-- **Equipment family** — the weapon's tactical identity: firing pattern,
-  baseline behavior, and family presentation. A family is not a quality tier.
+- **Equipment family** — the weapon's tactical identity: engagement band,
+  firing pattern, baseline behavior, and family presentation. A family is not
+  a quality tier or merely a technology label.
+- **Delivery mechanism** — how a weapon produces and delivers its payload:
+  chemical slug, gauss/rail kinetic, flechette cloud, pulse/laser energy,
+  missile or grenade, or close-contact tool. The weapon catalog owns this
+  physical/presentation truth. Mechanism does not decide availability, grade,
+  faction allegiance, or tactical role by itself.
 - **Equipment grade** — the four-step manufacturing/condition quality axis:
   Surplus, Service, Milspec, Masterwork. Grade composes with family and profile;
   it does not create a separate unit type.
+- **Equipment provenance** — the manufacturing tradition or factional lineage
+  attached to a recipe and concrete item. Provenance governs availability,
+  presentation, and at most a bounded side-grade; it is not an allegiance lock,
+  a quality tier, or a set bonus.
 - **Special equipment** — one optional billet item carried alongside the
   marine's primary. Rocket launchers, anti-materiel rifles, and fragmentation
   grenades activate weapon definitions; smoke and satchel charges activate
   utility behavior. “Secondary” remains a transitional code/catalog name, not
   the enduring player-facing category.
-- **Armor pattern** — a player-owned infantry protection and appearance package.
-  Unlike grade, it changes survivability and movement tradeoffs as its own kit
-  choice.
+- **Assault-armor role** — the suit's battlefield weight and purpose: light
+  infiltration/recon, standard line combat, or heavy mechanized battlesuit.
+  Unpowered field kit remains outside those three powered roles. Role expresses
+  a protection/mobility silhouette, not a vertical quality tier.
+- **Armor pattern** — a concrete, player-owned infantry protection and
+  appearance package. A pattern realizes one assault-armor role and may carry
+  equipment provenance. Unlike weapon grade, it changes survivability and
+  movement tradeoffs as its own kit choice.
 - **Armory** — the persistent campaign inventory of permanent recipes, finite
   printed gear, and fabrication resources. Recipes grant permission; stock is
   what may be allocated.
@@ -68,10 +83,11 @@ cooldown, and spread. Aptitude affects accuracy and spread. Experience affects
 accuracy, cooldown, spread, trigger discipline, and first action against a
 new threat. Armor is a separate defensive/loadout decision.
 
-The standing law is **family supplies role; grade supplies quality; profile
-supplies person**. New content must preserve this separation. A high-grade
-weapon is still its family, and a skilled soldier does not become a bespoke
-carrier type.
+The standing law is **family supplies role; mechanism supplies delivery; grade
+supplies quality; provenance supplies source; profile supplies person**. New
+content must preserve this separation. A high-grade weapon is still its family,
+a gauss label does not earn a redundant family, and a skilled soldier does not
+become a bespoke carrier type.
 
 ### Aptitude and experience
 
@@ -111,13 +127,40 @@ removes that armor and exposed structure. Structure remains the platform's base
 pool; armor no longer adds health or applies a permanent damage-reduction
 multiplier after it breaks.
 
+The planned assault-armor role makes those trades legible without turning the
+current numeric `tier` into the suit's identity. Light armor favors mobility
+and concealment-capable patterns, line armor is the all-environment baseline,
+and heavy battlesuits trade speed for breach-level protection while remaining
+one-person infantry. Powered sealing, recoil assistance, tactical relays, and
+jump assistance are setting and presentation truths until a story names a
+mechanical consumer. Optical camouflage likewise requires an honest shared
+observation/perception contract; an armor description alone may not grant
+invisibility or erase an opponent's remembered contact.
+
+Equipment provenance composes beside role and pattern. It lets a Hegemony line
+suit and a Tri-Tachyon line suit share the same role while differing in source,
+visual language, maintainability, and a bounded authored skew. Player companies
+may mix recovered traditions. Provenance never rewrites the marine's weapon
+family, grade, aptitude, or experience, and faction identity never supplies a
+hidden universal combat bonus.
+
 Each billet has at most one special-equipment slot. The item is a stable
 loadout identity with a typed activation: weapon-like specials reference the
-weapon catalog that owns their round, while utility specials own their battle
-action without becoming zero-damage weapons. Progression owns recipe, stock,
+weapon catalog that owns their payload and any traveling round, while utility
+specials own their battle action without becoming zero-damage weapons.
+Progression owns recipe, stock,
 assignment, fabrication value, and reachability; battle AI owns when legal
 issued equipment is used. The same use policy is faction-neutral even when
 campaign availability differs by faction.
+
+Planned special-equipment extensions retain that slot and activation law.
+Close-contact boarding tools are weapon-like items whose catalog definitions
+own damage and penetration even though their executor has no traveling round.
+Combat stims are finite utility, not a weapon grade or permanent profile
+upgrade. Martyr rigs and carried improvised charges are explicit faction
+content with their own carrier cost and counterplay; faction flavor may not
+silently graft self-detonation, aim bonuses, or shock immunity onto ordinary
+infantry.
 
 The first four built-in identities are the rocket launcher, anti-materiel
 rifle, Wayfarer smoke grenades, and Breachhand mag-clamp satchel. The first two
@@ -260,8 +303,8 @@ The following are direction, not current behavior:
   learning from losses.
 - Expand primary families and special-equipment options, and extend the unlock
   ladder so every authored player asset has either starter status or a
-  reachable path. `stories.md` owns the concrete catalog additions and their
-  ordering.
+  reachable path. `stories.md` owns the concrete primary, contact-tool, stim,
+  grenade, and faction-demolition additions and their ordering.
 - Split common printable feedstock from operation-earned advanced components;
   advanced progression remains operation-gated rather than purchasable.
 - Make grade, aptitude, experience, career, and captain traits legible in
@@ -274,8 +317,17 @@ The following are direction, not current behavior:
 
 - Aptitude is permanent; experience is earned; captain rank is a separate
   leadership progression.
-- Family, grade, profile, and armor stay composable rather than being fused
-  into special unit variants.
+- Family, delivery mechanism, grade, profile, armor role, armor pattern, and
+  provenance stay composable rather than being fused into faction-specific
+  unit variants.
+- A new mechanism name earns a weapon entry only when its authored behavior or
+  presentation supports a distinct tactical identity. Slug, gauss, pulse, and
+  laser labels do not create parallel stat clones.
+- Assault-armor role is not quality: a rare high-end recon suit may remain
+  light, while a crude industrial battlesuit may remain heavy.
+- A heavy battlesuit remains a one-person infantry billet using infantry
+  weapons, cover, pathing, and casualty authority. Mech chassis, mounts,
+  lances, and support delivery remain Mechs authority.
 - A recipe is not stock, and an authored item is not necessarily obtainable.
 - A billet carries at most one special item; utilities do not become
   `WeaponDef` entries merely because they share that loadout slot with guns.

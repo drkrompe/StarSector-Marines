@@ -11,6 +11,7 @@ public final class TurretFxRuntime {
     /** Emits the launch composition at the mount-authored muzzle position. */
     public static void spawnMuzzle(ImpactFx backend, ShotEvent shot) {
         if (shot.turretKind == null) return;
+        backend.spawnAuthored(shot.turretKind.fx(), FxSlot.LAUNCH, launchContext(shot));
         backend.spawnAuthored(shot.turretKind.fx(), FxSlot.MUZZLE, muzzleContext(shot));
     }
 
@@ -43,6 +44,12 @@ public final class TurretFxRuntime {
             muzzleY += dy / length * offset;
         }
         return new FxCompositionContext(muzzleX, muzzleY,
+                bearingDeg(shot.fromX, shot.fromY, shot.toX, shot.toY),
+                false, eventSeedTime(shot));
+    }
+
+    static FxCompositionContext launchContext(ShotEvent shot) {
+        return new FxCompositionContext(shot.fromX, shot.fromY,
                 bearingDeg(shot.fromX, shot.fromY, shot.toX, shot.toY),
                 false, eventSeedTime(shot));
     }

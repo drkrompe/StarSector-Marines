@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class UnitRenderServiceLayerPoseTest {
@@ -27,6 +28,34 @@ class UnitRenderServiceLayerPoseTest {
                 LayeredAppearance.POSE_SMOKE_THROW, "special");
         assertSpecial(layouts, MarineSecondary.SATCHEL_CHARGE,
                 LayeredAppearance.POSE_SATCHEL_PLANT, "special");
+    }
+
+    @Test
+    void secondaryEntrySettlesOutOfThePreservedStridePose() throws Exception {
+        UnitLayerLayouts layouts = UnitLayerLayouts.parse(new JSONObject(Files.readString(
+                Path.of("mod/data/appearance/unit-layer-layouts.appearance.json"))));
+        float locomotionPhase = 0.25f;
+        LayerPose stride = layouts.clip("marine-line", "rifle", "walking")
+                .sample(locomotionPhase);
+
+        LayerPose entry = UnitRenderService.infantryPose(layouts, true,
+                MarineSecondary.ANTI_MATERIEL_RIFLE, LayeredAppearance.POSE_AMR_AIM,
+                locomotionPhase, 0f, LayeredAppearance.FLAG_ACTION_FROM_MOVING);
+        LayerPose settled = UnitRenderService.infantryPose(layouts, true,
+                MarineSecondary.ANTI_MATERIEL_RIFLE, LayeredAppearance.POSE_AMR_AIM,
+                locomotionPhase, LayeredAppearance.ACTION_ENTRY_BLEND_PHASE,
+                LayeredAppearance.FLAG_ACTION_FROM_MOVING);
+
+        assertEquals(stride.layer("body").angleDegrees(),
+                entry.layer("body").angleDegrees(), 0.000001f);
+        assertEquals(stride.layer("left-foot").offsetY(),
+                entry.layer("left-foot").offsetY(), 0.000001f);
+        assertNotNull(entry.layer("special"),
+                "the destination action keeps its equipment-specific layer");
+        assertEquals(layouts.clip("marine-line", "anti-materiel", "aiming")
+                        .sample(LayeredAppearance.ACTION_ENTRY_BLEND_PHASE)
+                        .layer("body").angleDegrees(),
+                settled.layer("body").angleDegrees(), 0.000001f);
     }
 
     private static void assertSpecial(UnitLayerLayouts layouts,

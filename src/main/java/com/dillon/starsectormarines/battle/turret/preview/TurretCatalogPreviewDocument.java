@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.turret.preview;
 
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
+import com.dillon.starsectormarines.battle.combat.Projectile;
+import com.dillon.starsectormarines.battle.weapon.ContrailProfile;
 import com.dillon.starsectormarines.battle.weapon.fx.FxBlend;
 import com.dillon.starsectormarines.battle.weapon.fx.FxCompositionContext;
 import com.dillon.starsectormarines.battle.weapon.fx.FxLayerKind;
@@ -8,6 +10,7 @@ import com.dillon.starsectormarines.battle.weapon.fx.FxParticleCommand;
 import com.dillon.starsectormarines.battle.weapon.fx.FxSlot;
 import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxComposer;
 import com.dillon.starsectormarines.ops.battleview.TurretLayerPose;
+import com.dillon.starsectormarines.render2d.ContrailStyle;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.retained.CanvasBlend;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
@@ -62,14 +65,6 @@ public final class TurretCatalogPreviewDocument {
     private static final Color LABEL = new Color(0xE0, 0xE8, 0xF2);
     private static final Color WHITE = Color.WHITE;
 
-    private static final List<State> STATES = List.of(
-            new State("REST", Phase.REST),
-            new State("RECOIL + MUZZLE", Phase.MUZZLE),
-            new State("PROJECTILE + TRAIL", Phase.PROJECTILE),
-            new State("IMPACT", Phase.IMPACT),
-            new State("EARLY AFTERMATH", Phase.EARLY_AFTERMATH),
-            new State("LATE SMOKE", Phase.LATE_SMOKE));
-
     private TurretCatalogPreviewDocument() {}
 
     /** Builds a fresh document and contribution ledger for one catalog mount. */
@@ -78,6 +73,7 @@ public final class TurretCatalogPreviewDocument {
         if (assets == null) throw new IllegalArgumentException("preview assets are required");
 
         Scene scene = Scene.compose(mount, assets);
+        List<State> states = statesFor(mount);
         EnumMap<FxSlot, Integer> contributions = new EnumMap<>(FxSlot.class);
         UiElement root = new UiElement("turret-preview")
                 .layout(UiLayout.ROW)
@@ -85,8 +81,8 @@ public final class TurretCatalogPreviewDocument {
                 .background(BACKGROUND);
         UiDocument document = new UiDocument(root);
 
-        for (int index = 0; index < STATES.size(); index++) {
-            State state = STATES.get(index);
+        for (int index = 0; index < states.size(); index++) {
+            State state = states.get(index);
             UiElement panel = new UiElement("turret-preview-panel-" + index)
                     .layout(UiLayout.COLUMN)
                     .preferredSize(PANEL_WIDTH, STRIP_HEIGHT)
@@ -107,7 +103,50 @@ public final class TurretCatalogPreviewDocument {
             document.canvases().set(canvas,
                     new StateCanvas(scene, state.phase(), contributions));
         }
-        return new Preview(document, contributions);
+        return new Preview(document, contributions,
+                states.stream().map(State::label).toList());
+    }
+
+    private static List<State> statesFor(TurretMountDef mount) {
+        String launch = mount.weapon.burstCount > 1
+                ? "SALVO LAUNCH ×" + mount.weapon.burstCount : "RECOIL + MUZZLE";
+        String flight;
+        if (mount.weapon.boostRamp && mount.weapon.arcHeight > 0f) {
+            flight = "BOOSTED ARC + TRAIL";
+        } else if (mount.weapon.arcHeight > 0f) {
+            flight = "ARC + TRAIL";
+        } else {
+            flight = "PROJECTILE + TRAIL";
+        }
+        String impact = mount.weapon.indirectFire || mount.weapon.hitSpread > 0f
+                ? "SCATTER IMPACT" : "IMPACT";
+        return List.of(
+                new State("REST", Phase.REST),
+                new State(launch, Phase.MUZZLE),
+                new State(flight, Phase.PROJECTILE),
+                new State(impact, Phase.IMPACT),
+                new State("EARLY AFTERMATH", Phase.EARLY_AFTERMATH),
+                new State("LATE SMOKE", Phase.LATE_SMOKE));
+    }
+
+    static List<String> stateLabelsFor(TurretMountDef mount) {
+        return statesFor(mount).stream().map(State::label).toList();
+    }
+
+    static int visibleRoundCount(TurretMountDef mount) {
+        return Math.min(3, Math.max(1, mount.weapon.burstCount));
+    }
+
+    static float previewBurstProgressSpacing(TurretMountDef mount) {
+        float flightSeconds = Math.max(0.1f, mount.weapon.flightSec);
+        return Math.max(0.05f, Math.min(0.18f,
+                mount.weapon.burstSpacing / flightSeconds * 2f));
+    }
+
+    static float previewBearingDegrees(TurretMountDef mount, float rawProgress) {
+        FlightPoint before = flightPoint(mount, rawProgress - 0.01f);
+        FlightPoint after = flightPoint(mount, rawProgress + 0.01f);
+        return bearingDegrees(before.x(), before.y(), after.x(), after.y());
     }
 
     /** Stable authored event time used by every slot in one mount's strip. */
@@ -156,10 +195,13 @@ public final class TurretCatalogPreviewDocument {
     public static final class Preview {
         private final UiDocument document;
         private final EnumMap<FxSlot, Integer> contributions;
+        private final List<String> stateLabels;
 
-        private Preview(UiDocument document, EnumMap<FxSlot, Integer> contributions) {
+        private Preview(UiDocument document, EnumMap<FxSlot, Integer> contributions,
+                        List<String> stateLabels) {
             this.document = document;
             this.contributions = contributions;
+            this.stateLabels = List.copyOf(stateLabels);
         }
 
         public UiDocument document() {
@@ -168,6 +210,10 @@ public final class TurretCatalogPreviewDocument {
 
         public Map<FxSlot, Integer> slotContributions() {
             return Map.copyOf(contributions);
+        }
+
+        public List<String> stateLabels() {
+            return stateLabels;
         }
     }
 
@@ -192,6 +238,7 @@ public final class TurretCatalogPreviewDocument {
             float seedTime = stableSeedTimeSeconds(mount.id);
             EnumMap<FxSlot, List<FxParticleCommand>> commands =
                     new EnumMap<>(FxSlot.class);
+            composeSlot(commands, mount, FxSlot.LAUNCH, TURRET_X, TURRET_Y, seedTime);
             composeSlot(commands, mount, FxSlot.MUZZLE, muzzleX, muzzleY, seedTime);
             composeSlot(commands, mount, FxSlot.TRACER, midpointX, midpointY, seedTime);
             composeSlot(commands, mount, FxSlot.TRAIL, midpointX, midpointY, seedTime);
@@ -209,17 +256,22 @@ public final class TurretCatalogPreviewDocument {
         @Override
         public void draw(CanvasContext context) {
             drawGrid(context);
+            if (phase == Phase.MUZZLE) {
+                addContribution(FxSlot.LAUNCH,
+                        drawVisible(context, commands(FxSlot.LAUNCH), 0.12f));
+            }
             drawTurret(context);
             switch (phase) {
                 case REST -> { }
-                case MUZZLE -> addContribution(FxSlot.MUZZLE,
-                        drawVisible(context, commands(FxSlot.MUZZLE), 0.04f));
+                case MUZZLE -> {
+                    drawProjectile(context, 0.08f);
+                    addContribution(FxSlot.MUZZLE,
+                            drawVisible(context, commands(FxSlot.MUZZLE), 0.04f));
+                }
                 case PROJECTILE -> {
-                    drawProjectile(context);
                     addContribution(FxSlot.TRACER,
                             drawVisible(context, commands(FxSlot.TRACER), 0.04f));
-                    addContribution(FxSlot.TRAIL,
-                            drawVisible(context, commands(FxSlot.TRAIL), 0.12f));
+                    drawProjectileSalvo(context);
                 }
                 case IMPACT -> addContribution(FxSlot.IMPACT,
                         drawVisible(context, commands(FxSlot.IMPACT), 0.06f));
@@ -265,36 +317,90 @@ public final class TurretCatalogPreviewDocument {
                     CanvasSpriteRegion.FULL, CanvasBlend.NORMAL);
         }
 
-        private void drawProjectile(CanvasContext context) {
+        private void drawProjectileSalvo(CanvasContext context) {
+            int visibleRounds = visibleRoundCount(scene.mount);
+            float spacing = previewBurstProgressSpacing(scene.mount);
+            for (int round = visibleRounds - 1; round >= 0; round--) {
+                drawProjectile(context, 0.58f - round * spacing);
+            }
+        }
+
+        private void drawProjectile(CanvasContext context, float rawProgress) {
             if (scene.projectile == null || scene.mount.weapon.projectileVisualCells <= 0f) return;
-            drawSprite(context, scene.projectile, worldToX(scene.midpointX),
-                    worldToY(scene.midpointY),
+            FlightPoint point = flightPoint(scene.mount, rawProgress);
+            if (scene.mount.weapon.contrailProfile == ContrailProfile.MISSILE_SMOKE) {
+                drawMissileContrail(context, rawProgress);
+            }
+            float trailX = point.x() - directionX()
+                    * scene.mount.weapon.projectileVisualCells * 0.35f;
+            float trailY = point.y() - directionY()
+                    * scene.mount.weapon.projectileVisualCells * 0.35f;
+            addContribution(FxSlot.TRAIL, drawVisibleAt(context,
+                    commands(FxSlot.TRAIL), 0.12f, trailX, trailY));
+            drawSprite(context, scene.projectile, worldToX(point.x()),
+                    worldToY(point.y()),
                     scene.mount.weapon.projectileVisualCells * CELL_PX,
-                    FACING_DEGREES, WHITE, CanvasSpriteRegion.FULL, CanvasBlend.NORMAL);
+                    previewBearingDegrees(scene.mount, rawProgress), WHITE,
+                    CanvasSpriteRegion.FULL, CanvasBlend.NORMAL);
+        }
+
+        private void drawMissileContrail(CanvasContext context, float rawProgress) {
+            ContrailStyle style = ContrailStyle.MISSILE_SMOKE;
+            FlightPoint previous = flightPoint(scene.mount, rawProgress);
+            for (int sample = 1; sample <= 8; sample++) {
+                float sampleProgress = Math.max(0f, rawProgress - sample * 0.025f);
+                FlightPoint next = flightPoint(scene.mount, sampleProgress);
+                float age = sample / 8f;
+                Color smoke = new Color(
+                        lerp(style.startR, style.endR, age),
+                        lerp(style.startG, style.endG, age),
+                        lerp(style.startB, style.endB, age),
+                        lerp(style.startA, style.endA, age));
+                float halfWidth = lerp(style.startWidthCells,
+                        style.endWidthCells, age);
+                context.line(worldToX(previous.x()), worldToY(previous.y()),
+                        worldToX(next.x()), worldToY(next.y()), smoke,
+                        halfWidth * 2f * CELL_PX);
+                previous = next;
+            }
         }
 
         private int drawVisible(CanvasContext context, List<FxParticleCommand> commands,
                                 float preferredAge) {
+            return drawVisibleAt(context, commands, preferredAge,
+                    scene.midpointX, scene.midpointY);
+        }
+
+        private int drawVisibleAt(CanvasContext context, List<FxParticleCommand> commands,
+                                  float preferredAge, float targetX, float targetY) {
             if (commands == null || commands.isEmpty()) return 0;
             if (hasLiveCommand(commands, preferredAge)) {
-                return drawCommands(context, commands, preferredAge);
+                return drawCommandsAt(context, commands, preferredAge, targetX, targetY);
             }
             FxParticleCommand first = commands.get(0);
             float visibleAge = first.delaySeconds()
                     + Math.min(0.03f, first.lifetimeSeconds() * 0.25f);
-            return drawCommands(context, commands, visibleAge);
+            return drawCommandsAt(context, commands, visibleAge, targetX, targetY);
         }
 
         private int drawCommands(CanvasContext context, List<FxParticleCommand> commands,
                                  float snapshotAge) {
+            return drawCommandsAt(context, commands, snapshotAge,
+                    scene.midpointX, scene.midpointY);
+        }
+
+        private int drawCommandsAt(CanvasContext context, List<FxParticleCommand> commands,
+                                   float snapshotAge, float targetX, float targetY) {
             if (commands == null || commands.isEmpty()) return 0;
             int drawn = 0;
+            float translateX = targetX - scene.midpointX;
+            float translateY = targetY - scene.midpointY;
             for (FxParticleCommand command : commands) {
                 float age = snapshotAge - command.delaySeconds();
                 if (age < 0f || age >= command.lifetimeSeconds()) continue;
                 float lifeFraction = 1f - age / command.lifetimeSeconds();
-                float x = command.x() + command.velocityX() * age;
-                float y = command.y() + command.velocityY() * age;
+                float x = command.x() + translateX + command.velocityX() * age;
+                float y = command.y() + translateY + command.velocityY() * age;
                 float radius = command.radiusCells()
                         + command.radiusGrowthPerSecond() * age;
                 ParticleSprite particle = particleSprite(command, age);
@@ -399,7 +505,33 @@ public final class TurretCatalogPreviewDocument {
         return (float) Math.cos(Math.toRadians(FACING_DEGREES));
     }
 
+    private static FlightPoint flightPoint(TurretMountDef mount, float rawProgress) {
+        float clamped = Math.max(0f, Math.min(1f, rawProgress));
+        float progress = mount.weapon.boostRamp
+                ? Projectile.applyBoostCurve(clamped) : clamped;
+        float muzzleX = TURRET_X + directionX() * mount.muzzleOffsetCells;
+        float muzzleY = TURRET_Y + directionY() * mount.muzzleOffsetCells;
+        float x = muzzleX + (IMPACT_X - muzzleX) * progress;
+        float y = muzzleY + (IMPACT_Y - muzzleY) * progress;
+        float previewArc = Math.min(1.25f, mount.weapon.arcHeight * 0.35f);
+        y += previewArc * 4f * progress * (1f - progress);
+        return new FlightPoint(x, y);
+    }
+
+    private static float bearingDegrees(float fromX, float fromY, float toX, float toY) {
+        float dx = toX - fromX;
+        float dy = toY - fromY;
+        if (dx == 0f && dy == 0f) return FACING_DEGREES;
+        return (float) Math.toDegrees(Math.atan2(dy, dx)) - 90f;
+    }
+
+    private static float lerp(float from, float to, float fraction) {
+        return from + (to - from) * fraction;
+    }
+
     private record ParticleSprite(Sprite sprite, CanvasSpriteRegion region) {}
+
+    private record FlightPoint(float x, float y) {}
 
     private record State(String label, Phase phase) {}
 

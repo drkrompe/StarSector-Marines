@@ -18,6 +18,8 @@ class WeaponFxDefTest {
     void parsesEverySlotAndScalarOrRangeShorthands() throws Exception {
         WeaponFxDef fx = WeaponFxDef.parse("fx.test", new JSONObject("""
                 {
+                  "launch": [{"kind":"smoke", "radius":0.35, "lifetime":0.8,
+                              "offsetForward":-0.2, "velocityForward":-1.5}],
                   "muzzle": [{"kind":"glow", "radius":0.3, "lifetime":0.06, "color":"FFF0C0"}],
                   "tracer": [{"kind":"glow", "radius":[0.1,0.2], "lifetime":0.04}],
                   "trail": [{"kind":"smoke", "radius":[0.2,0.4], "lifetime":[0.4,0.8],
@@ -39,6 +41,23 @@ class WeaponFxDefTest {
                 () -> fx.layers(FxSlot.IMPACT).add(fx.layers(FxSlot.IMPACT).get(0)));
         assertThrows(UnsupportedOperationException.class,
                 () -> fx.slots().put(FxSlot.MUZZLE, List.of()));
+    }
+
+    @Test
+    void localOffsetsAndVelocitiesRotateWithTheAuthoredBearing() throws Exception {
+        WeaponFxDef fx = WeaponFxDef.parse("fx.backblast", new JSONObject("""
+                {"launch":[{"kind":"smoke", "radius":0.3, "lifetime":1,
+                  "offsetForward":-1, "offsetLateral":0.25,
+                  "velocityForward":-2, "velocityLateral":0.5}]}
+                """));
+
+        FxParticleCommand command = WeaponFxComposer.compose(fx, FxSlot.LAUNCH,
+                new FxCompositionContext(10f, 20f, -90f, false, 3f)).get(0);
+
+        assertEquals(9f, command.x(), 0.0001f);
+        assertEquals(19.75f, command.y(), 0.0001f);
+        assertEquals(-2f, command.velocityX(), 0.0001f);
+        assertEquals(-0.5f, command.velocityY(), 0.0001f);
     }
 
     @Test

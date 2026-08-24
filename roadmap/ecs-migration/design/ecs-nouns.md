@@ -4,7 +4,7 @@ Status: ACTIVE — `EntityWorld` is the battle composition substrate; capability
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — separated secondary equipment identity/carry presentation from its authored action pose.
+Updated: 2026-08-24 — defined the locomotion-to-equipment blend seam and authored action recovery.
 
 The battle simulation has one composition substrate: an `EntityWorld`.  This
 document names the durable model, ownership, and safety laws of that substrate.
@@ -131,6 +131,13 @@ referenced equipment-specific unit-layer variant owns the combined action pose
 while that item is in use, including an optional `special` layer transform. Combat
 timing and AI policy do not move into the clip; they continue to supply the
 normalized action phase that the clip samples.
+
+An equipment action that begins mid-stride retains that last locomotion sample for
+a bounded entry interval. The renderer blends only matching body layers from the
+sampled stride into the destination action pose; equipment-specific destination
+layers remain action-owned. Returning to carry or idle is authored as the action
+clip's final recovery frame. This seam needs no renderer history and does not delay
+or reinterpret the gameplay action.
 
 The standalone layer workbench consumes the same document and duration-weighted
 sampling law. Its driver scrubber is therefore acceptance evidence for the live

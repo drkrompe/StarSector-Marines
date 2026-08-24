@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.turret;
 
 import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
+import com.dillon.starsectormarines.battle.weapon.ContrailProfile;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxDef;
 
@@ -48,6 +49,8 @@ public enum TurretKind {
     public String projectileSpritePath() { return weapon().projectileSpritePath; }
 
     public String fireSoundId() { return weapon().fireSoundId; }
+
+    public String impactSoundId() { return weapon().impactSoundId; }
 
     public String displayName() { return weapon().displayName; }
 
@@ -121,6 +124,8 @@ public enum TurretKind {
     public boolean hasBoostRamp() { return weapon().boostRamp; }
 
     public boolean hasLaunchBackblast() { return weapon().launchBackblast; }
+
+    public ContrailProfile contrailProfile() { return weapon().contrailProfile; }
 
     public WeaponFxDef fx() { return weapon().fx; }
 

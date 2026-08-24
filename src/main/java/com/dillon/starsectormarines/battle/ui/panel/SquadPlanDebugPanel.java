@@ -11,6 +11,9 @@ import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Doctrine;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.command.ConquestCommand;
+import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
+import com.dillon.starsectormarines.battle.command.MissionCommand;
 import com.dillon.starsectormarines.battle.combat.FireGate;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
@@ -297,8 +300,9 @@ public final class SquadPlanDebugPanel implements HudPanel {
         // Section 2: contact/doctrine, initiative, HOLD freshness, and fire readiness.
         lines += 7;
         dividers += 1;
-        // Section 3: goal + assignment, 1 divider gap.
+        // Section 3: goal + assignment; Conquest adds command/front reasoning.
         lines += 2;
+        if (conquestSnapshot(s, ctx.getSim()) != null) lines += 2;
         dividers += 1;
         // Section 4: "Plan: …" line + per-step (action line + slot lines).
         lines += 1;
@@ -517,6 +521,17 @@ public final class SquadPlanDebugPanel implements HudPanel {
             font.drawString(assignLabel, lineX + 96f, lineY, DETAIL_VALUE_FG, alphaMult);
         }
         lineY -= DETAIL_LINE_H;
+        ConquestFrontSnapshot conquest = conquestSnapshot(s, ctx.getSim());
+        if (conquest != null) {
+            ConquestFrontSnapshot.SquadDirective directive =
+                    conquest.directiveFor(s.id);
+            lineY = drawLineIfVisible(font, commandSummary(conquest, directive),
+                    lineX, lineY, DETAIL_VALUE_FG, alphaMult,
+                    vpBottomY, vpTopY);
+            lineY = drawLineIfVisible(font, trackSummary(conquest, directive),
+                    lineX, lineY, DETAIL_VALUE_FG, alphaMult,
+                    vpBottomY, vpTopY);
+        }
         lineY = dividerIfVisible(x0, bodyW, lineY, alphaMult, vpBottomY, vpTopY);
 
         // Section 4: plan steps with per-slot assignments.
@@ -680,6 +695,37 @@ public final class SquadPlanDebugPanel implements HudPanel {
         return String.format("Hold stop %s   Evidence %s/%dt",
                 active ? "ACTIVE" : "OFF", age,
                 TacticalScoring.HOLD_AFTER_LOS_TICKS);
+    }
+
+    private static ConquestFrontSnapshot conquestSnapshot(
+            Squad squad, BattleSimulation sim) {
+        MissionCommand command = sim.getCommander(squad.faction);
+        return command instanceof ConquestCommand conquest
+                ? conquest.frontSnapshot() : null;
+    }
+
+    static String commandSummary(ConquestFrontSnapshot snapshot,
+                                 ConquestFrontSnapshot.SquadDirective directive) {
+        String reason = directive != null ? directive.reason().name() : "—";
+        return String.format("Command %s   Reason %s", snapshot.phase(), reason);
+    }
+
+    static String trackSummary(ConquestFrontSnapshot snapshot,
+                               ConquestFrontSnapshot.SquadDirective directive) {
+        if (directive == null) return "Track —";
+        ConquestFrontSnapshot.TrackState track = snapshot.track(
+                directive.effectiveTrack());
+        if (track == null) return String.format("Track P%d→E%d",
+                directive.preferredTrack(), directive.effectiveTrack());
+        return String.format("Track P%d→E%d   Front F%s/H%s   Press %.1f/%.1f",
+                directive.preferredTrack(), directive.effectiveTrack(),
+                progressLabel(track.friendlyBodyProgress()),
+                progressLabel(track.knownHostileFrontProgress()),
+                track.friendlyPressure(), track.knownHostilePressure());
+    }
+
+    private static String progressLabel(float value) {
+        return value >= 0f ? String.format("%.2f", value) : "—";
     }
 
     static String fireSummary(Squad squad, BattleSimulation sim) {

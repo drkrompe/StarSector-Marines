@@ -8,6 +8,8 @@ in `progression-nouns.md`.
 
 Written: 2026-08-23
 
+Updated: 2026-08-24 — separated the first hand-thrown frag from launcher and micro-missile delivery variants.
+
 Read `progression-nouns.md`, `company-view-nouns.md`, and
 `moddable-weapons-nouns.md` before implementing this story.
 
@@ -23,6 +25,26 @@ flight time, scatter, and blast radius are playtest values. The special item
 owns finite carried count and activation; its conventional arcing projectile
 and detonation reference the weapon catalog rather than duplicating damage or
 FX values.
+
+## Munition and delivery boundaries
+
+The first item is a hand-thrown fragmentation grenade. Other Sector infantry
+systems fit the same catalog without becoming free alternate fire modes:
+
+- An under-barrel or shoulder grenade launcher may later reference the same
+  anti-personnel area payload, but it is a distinct special-equipment item with
+  its own range, arc, ammunition, carrier pose, report, and use policy.
+- Airburst concussion is a launcher payload candidate only if its timing and
+  cover interaction create behavior distinct from the ordinary impact-fused
+  frag. “Airburst” is not permission to damage hidden targets from live state.
+- An armor-defeating micro-missile pack belongs beside the shipped Annihilator
+  rocket's direct-explosive role. A concrete pack may become a faction-pattern
+  side-grade or a separately authored item, but suit integration does not grant
+  another billet slot or bypass finite ammunition.
+
+Payload identity and delivery identity therefore remain separate. Reusing one
+detonation does not let a thrown grenade inherit launcher range, and reusing a
+carrier mount does not turn an anti-armor missile into anti-personnel frag.
 
 ## Battle execution
 
@@ -75,6 +97,9 @@ FX values.
 
 - No cooking, manual player targeting, alternate fuse modes, persistent mines,
   or inventory pickup in the first slice.
+- No under-barrel launcher, micro-missile pack, shaped-charge mode, or airburst
+  fuse in the first slice. Each needs an authored item and readable tactical
+  distinction rather than a hidden mode switch.
 - No generic “grenadier” role. Equipment may influence per-action suitability
   without changing the marine's enduring role or fire-team membership.
 
