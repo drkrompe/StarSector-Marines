@@ -110,7 +110,6 @@ public final class LayerAuthoringWorkbench {
             reloadDocument();
             savedSnapshot = document.snapshot();
             timer = new Timer(40, this::animate);
-            timer.start();
             buildUi();
             bind();
             populateUnits();
@@ -123,6 +122,13 @@ public final class LayerAuthoringWorkbench {
             setMinimumSize(new Dimension(1050, 680));
             setSize(1320, 840);
             setLocationByPlatform(true);
+            timer.start();
+        }
+
+        @Override
+        public void dispose() {
+            timer.stop();
+            super.dispose();
         }
 
         private void buildUi() {
@@ -224,7 +230,8 @@ public final class LayerAuthoringWorkbench {
             panel.add(Box.createVerticalStrut(18));
             JLabel help = new JLabel("<html><b>Playback</b><br>Play samples only the selected "
                     + "animation and blends matching layers between keyframes.<br><br>"
-                    + "<b>Canvas</b><br>Click to select<br>Drag to position<br>"
+                    + "<b>Canvas</b><br>Click to select<br>Drag layer to position<br>"
+                    + "Drag gold handle to rotate<br>"
                     + "Wheel: scale<br>Shift-wheel: X only<br>Alt-wheel: Y only<br>"
                     + "Ctrl-wheel: rotate<br><br><b>History</b><br>Ctrl+Z: undo<br>"
                     + "Ctrl+Shift+Z: redo<br><br><b>Save</b><br>Ctrl+S opens a confirmation "
@@ -256,7 +263,7 @@ public final class LayerAuthoringWorkbench {
             bindSpinner(scaleY); bindSpinner(angle); bindSpinner(pivotX);
             bindSpinner(pivotY); bindSpinner(z); bindSpinner(duration);
             visible.addActionListener(event -> updateFromFields());
-            loop.addActionListener(event -> updateFromFields());
+            loop.addActionListener(event -> updateLoop());
             sprite.addActionListener(event -> updateFromFields());
             getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
                     KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK), "save");
@@ -455,9 +462,16 @@ public final class LayerAuthoringWorkbench {
             layer.visible(visible.isSelected());
             layer.spritePath(sprite.getText().trim());
             frame.durationMs(((Number) duration.getValue()).intValue());
-            animation().loop(loop.isSelected());
             finishHistoryChange();
             canvas.repaint();
+            sheet.repaint();
+        }
+
+        private void updateLoop() {
+            if (refreshing || animation() == null) return;
+            beginHistoryChange();
+            animation().loop(loop.isSelected());
+            finishHistoryChange();
             sheet.repaint();
         }
 
