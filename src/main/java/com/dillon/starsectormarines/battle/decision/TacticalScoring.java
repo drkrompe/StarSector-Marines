@@ -295,9 +295,6 @@ public final class TacticalScoring {
      * better, swap to a per-unit max queried off {@link UnitType}.
      */
     public static final float MAX_PLAUSIBLE_ATTACK_RANGE = 60f;
-    /** Per-worker scratch for target-density gathers; kept separate from nested tactical queries. */
-    private static final ThreadLocal<LongBucket> THREAT_DENSITY_CANDIDATES =
-            ThreadLocal.withInitial(LongBucket::new);
     /** Per-worker scratch for local force tallies published by the serial contact-picture pass. */
     private static final ThreadLocal<LongBucket> LOCAL_FORCE_CANDIDATES =
             ThreadLocal.withInitial(LongBucket::new);
@@ -764,17 +761,8 @@ public final class TacticalScoring {
     }
 
     private int threatDensityAt(long candidate, float candX, float candY, Faction selfFaction) {
-        LongBucket scratch = THREAT_DENSITY_CANDIDATES.get();
-        unitIndex.gather(candX, candY, THREAT_DENSITY_RADIUS, scratch);
-        int count = 0;
-        for (int i = 0, n = scratch.size; i < n; i++) {
-            long other = scratch.ids[i];
-            if (other == candidate) continue;
-            if (roster.identity().faction(other) == selfFaction) continue;
-            if (!roster.identity().type(other).combatant) continue;
-            count++;
-        }
-        return count;
+        return unitIndex.countOtherFactionCombatants(candX, candY,
+                THREAT_DENSITY_RADIUS, selfFaction, candidate);
     }
 
     /** Result of re-evaluating a cached infantry pursuit target. */
@@ -1047,8 +1035,8 @@ public final class TacticalScoring {
         float selfAir = vision.airLosRadius(self);
 
         LongBucket candidates = OPPORTUNITY_CANDIDATES.get();
-        unitIndex.gather(selfX, selfY,
-                range + RETARGET_QUERY_PADDING, candidates);
+        unitIndex.gatherOtherFactionCombatants(selfX, selfY,
+                range + RETARGET_QUERY_PADDING, selfFaction, candidates);
 
         long best = 0L;
         float bestDist = Float.MAX_VALUE;
@@ -1057,8 +1045,6 @@ public final class TacticalScoring {
             long other = candidates.ids[i];
             if (other == self) continue;
             if (!roster.isAliveById(other)) continue;
-            if (roster.identity().faction(other) == selfFaction) continue;
-            if (!roster.identity().type(other).combatant) continue;
             int ox = world.cellX(other);
             int oy = world.cellY(other);
             float d = cellDistance(selfX, selfY, world.x(other), world.y(other));

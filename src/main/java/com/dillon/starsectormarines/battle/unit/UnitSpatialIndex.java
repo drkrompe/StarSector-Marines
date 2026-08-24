@@ -103,6 +103,53 @@ public final class UnitSpatialIndex {
     }
 
     /**
+     * Combatant-only projection of one bucket. Faction is retained as a
+     * parallel primitive so hostile-combatant queries never stream past a
+     * dense civilian population or probe immutable IDENTITY fields by id.
+     */
+    private static final class CombatantSlice {
+        long[] ids = new long[8];
+        float[] posX = new float[8];
+        float[] posY = new float[8];
+        byte[] factionOrdinals = new byte[8];
+        int size;
+
+        void add(long id, float x, float y, byte factionOrdinal) {
+            if (size == ids.length) {
+                int capacity = size << 1;
+                ids = Arrays.copyOf(ids, capacity);
+                posX = Arrays.copyOf(posX, capacity);
+                posY = Arrays.copyOf(posY, capacity);
+                factionOrdinals = Arrays.copyOf(factionOrdinals, capacity);
+            }
+            ids[size] = id;
+            posX[size] = x;
+            posY[size] = y;
+            factionOrdinals[size] = factionOrdinal;
+            size++;
+        }
+
+        void removeStable(long id) {
+            int index = 0;
+            while (index < size && ids[index] != id) index++;
+            if (index == size) return;
+            int moved = size - index - 1;
+            if (moved > 0) {
+                System.arraycopy(ids, index + 1, ids, index, moved);
+                System.arraycopy(posX, index + 1, posX, index, moved);
+                System.arraycopy(posY, index + 1, posY, index, moved);
+                System.arraycopy(factionOrdinals, index + 1,
+                        factionOrdinals, index, moved);
+            }
+            size--;
+        }
+
+        void clear() {
+            size = 0;
+        }
+    }
+
+    /**
      * One spatial bucket: parallel arrays of unit ids and their rebuild-time
      * snapshot TRUE position, grown on demand and recycled across rebuilds so
      * steady-state allocation stays zero. The snapshot position is what lets
@@ -116,9 +163,11 @@ public final class UnitSpatialIndex {
         byte[] factionOrdinals = new byte[8];
         final FactionSlice[] byFaction =
                 new FactionSlice[Faction.values().length];
+        final CombatantSlice combatants = new CombatantSlice();
         int size;
 
-        void add(long id, float x, float y, byte factionOrdinal) {
+        void add(long id, float x, float y, byte factionOrdinal,
+                 boolean combatant) {
             if (size == ids.length) {
                 int cap = size << 1;
                 ids = Arrays.copyOf(ids, cap);
@@ -138,6 +187,7 @@ public final class UnitSpatialIndex {
                 byFaction[ordinal] = faction;
             }
             faction.add(id, x, y);
+            if (combatant) combatants.add(id, x, y, factionOrdinal);
         }
 
         /**
@@ -161,6 +211,7 @@ public final class UnitSpatialIndex {
             }
             size--;
             byFaction[factionOrdinal].removeStable(id);
+            combatants.removeStable(id);
             return true;
         }
 
@@ -170,6 +221,7 @@ public final class UnitSpatialIndex {
             for (FactionSlice faction : byFaction) {
                 if (faction != null) faction.clear();
             }
+            combatants.clear();
         }
     }
 
@@ -187,6 +239,7 @@ public final class UnitSpatialIndex {
     private float[] scratchX = new float[64];
     private float[] scratchY = new float[64];
     private byte[] scratchFactionOrdinals = new byte[64];
+    private byte[] scratchCombatants = new byte[64];
     /**
      * The registry the buckets were populated from, stashed by {@link #rebuild}
      * / {@link #add} for faction-count short-circuiting. The registry instance
@@ -243,6 +296,8 @@ public final class UnitSpatialIndex {
                     BattleComponents.POSITION_Y).array();
             Object[] factions = table.objects(components.IDENTITY,
                     BattleComponents.IDENTITY_FACTION).array();
+            Object[] types = table.objects(components.IDENTITY,
+                    BattleComponents.IDENTITY_TYPE).array();
             for (int row = 0, rows = table.rowCount(); row < rows; row++) {
                 long id = table.entityAt(row);
                 int denseIndex = roster.indexOf(id);
@@ -252,6 +307,8 @@ public final class UnitSpatialIndex {
                 scratchY[denseIndex] = posY[row];
                 scratchFactionOrdinals[denseIndex] =
                         (byte) ((Faction) factions[row]).ordinal();
+                scratchCombatants[denseIndex] =
+                        (byte) (((UnitType) types[row]).combatant ? 1 : 0);
             }
         }
 
@@ -265,7 +322,8 @@ public final class UnitSpatialIndex {
             float y = scratchY[i];
             Bucket bucket = bucketAt((int) Math.floor(x), (int) Math.floor(y));
             if (bucket != null) {
-                bucket.add(id, x, y, scratchFactionOrdinals[i]);
+                bucket.add(id, x, y, scratchFactionOrdinals[i],
+                        scratchCombatants[i] != 0);
             }
         }
     }
@@ -277,6 +335,7 @@ public final class UnitSpatialIndex {
         scratchX = Arrays.copyOf(scratchX, capacity);
         scratchY = Arrays.copyOf(scratchY, capacity);
         scratchFactionOrdinals = Arrays.copyOf(scratchFactionOrdinals, capacity);
+        scratchCombatants = Arrays.copyOf(scratchCombatants, capacity);
     }
 
     /**
@@ -302,7 +361,8 @@ public final class UnitSpatialIndex {
         Bucket bucket = bucketAt((int) Math.floor(x), (int) Math.floor(y));
         if (bucket != null) {
             bucket.add(id, x, y,
-                    (byte) roster.identity().faction(id).ordinal());
+                    (byte) roster.identity().faction(id).ordinal(),
+                    roster.identity().type(id).combatant);
         }
     }
 
@@ -402,6 +462,67 @@ public final class UnitSpatialIndex {
                 }
             }
         }
+    }
+
+    /**
+     * Appends every snapshot combatant outside {@code selfFaction} within the
+     * inclusive Euclidean radius. The combatant-only slice preserves the
+     * original roster-filtered order while skipping noncombatants before the
+     * caller's exact live-position and LoS checks.
+     */
+    public void gatherOtherFactionCombatants(float cx, float cy, float radius,
+                                               Faction selfFaction,
+                                               LongBucket out) {
+        queryOtherFactionCombatants(cx, cy, radius, selfFaction, 0L, out);
+    }
+
+    /**
+     * Counts snapshot combatants outside {@code selfFaction} within the
+     * inclusive Euclidean radius, excluding {@code excludedId}. No output
+     * buffer is materialized or grown.
+     */
+    public int countOtherFactionCombatants(float cx, float cy, float radius,
+                                            Faction selfFaction,
+                                            long excludedId) {
+        return queryOtherFactionCombatants(cx, cy, radius, selfFaction,
+                excludedId, null);
+    }
+
+    private int queryOtherFactionCombatants(float cx, float cy, float radius,
+                                             Faction selfFaction,
+                                             long excludedId, LongBucket out) {
+        if (out != null) out.clear();
+        if (radius <= 0f) return 0;
+        int loX = (int) Math.floor(cx - radius);
+        int hiX = (int) Math.floor(cx + radius);
+        int loY = (int) Math.floor(cy - radius);
+        int hiY = (int) Math.floor(cy + radius);
+        int x0 = Math.max(0, Math.floorDiv(loX, BUCKET));
+        int x1 = Math.min(bucketsX - 1, Math.floorDiv(hiX, BUCKET));
+        int y0 = Math.max(0, Math.floorDiv(loY, BUCKET));
+        int y1 = Math.min(bucketsY - 1, Math.floorDiv(hiY, BUCKET));
+        int selfFactionOrdinal = selfFaction.ordinal();
+        float radiusSquared = radius * radius;
+        int matches = 0;
+        for (int by = y0; by <= y1; by++) {
+            for (int bx = x0; bx <= x1; bx++) {
+                Bucket bucket = buckets[by * bucketsX + bx];
+                if (bucket == null) continue;
+                CombatantSlice combatants = bucket.combatants;
+                for (int i = 0, n = combatants.size; i < n; i++) {
+                    long id = combatants.ids[i];
+                    if (id == excludedId
+                            || (combatants.factionOrdinals[i] & 0xFF)
+                            == selfFactionOrdinal) continue;
+                    float dx = combatants.posX[i] - cx;
+                    float dy = combatants.posY[i] - cy;
+                    if (dx * dx + dy * dy > radiusSquared) continue;
+                    matches++;
+                    if (out != null) out.add(id);
+                }
+            }
+        }
+        return matches;
     }
 
     /**

@@ -84,6 +84,52 @@ public class UnitSpatialIndexTest {
     }
 
     @Test
+    public void otherFactionCombatantQueriesPreserveBoundaryOrderGrowthAndRemoval() {
+        UnitSpatialIndex index = new UnitSpatialIndex(64, 64);
+        UnitRosterService roster = new UnitRosterService(index, null);
+        roster.spawn(unit("friendly", 10, 10));
+        for (int i = 0; i < 80; i++) {
+            roster.spawn(new EntitySpec("civilian-" + i, Faction.DEFENDER,
+                    UnitType.CIVILIAN, 10, 10));
+        }
+        long[] expected = new long[21];
+        for (int i = 0; i < 20; i++) {
+            Faction faction = (i & 1) == 0
+                    ? Faction.DEFENDER : Faction.CIVILIAN;
+            expected[i] = roster.spawn(new EntitySpec("combatant-" + i,
+                    faction, UnitType.MILITIA, 10, 10));
+        }
+        expected[20] = roster.spawn(new EntitySpec("boundary",
+                Faction.DEFENDER, UnitType.MILITIA, 14, 10));
+        roster.spawn(new EntitySpec("outside", Faction.DEFENDER,
+                UnitType.MILITIA, 15, 10));
+        index.rebuild(roster);
+
+        LongBucket out = new LongBucket();
+        index.gatherOtherFactionCombatants(10.5f, 10.5f, 4f,
+                Faction.MARINE, out);
+
+        assertEquals(expected.length, out.size);
+        for (int i = 0; i < expected.length; i++) {
+            assertEquals(expected[i], out.ids[i], "filtered order at " + i);
+        }
+
+        roster.releaseFromRegistry(expected[7]);
+        index.gatherOtherFactionCombatants(10.5f, 10.5f, 4f,
+                Faction.MARINE, out);
+        assertEquals(expected.length - 1, out.size);
+        int actual = 0;
+        for (int i = 0; i < expected.length; i++) {
+            if (i == 7) continue;
+            assertEquals(expected[i], out.ids[actual++],
+                    "post-release order at " + i);
+        }
+        assertEquals(expected.length - 2,
+                index.countOtherFactionCombatants(10.5f, 10.5f, 4f,
+                        Faction.MARINE, expected[0]));
+    }
+
+    @Test
     public void nearestFactionCrossesEmptyBucketRingsAndBreaksTiesById() {
         UnitSpatialIndex index = new UnitSpatialIndex(96, 64);
         UnitRosterService roster = new UnitRosterService(index, null);

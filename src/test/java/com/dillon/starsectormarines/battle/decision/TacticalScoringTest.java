@@ -201,6 +201,21 @@ public class TacticalScoringTest {
     }
 
     @Test
+    public void threatDensityCountsEveryNonSelfCombatantAtInclusiveBoundary() {
+        BattleSimulation sim = openArena(30, 20);
+        long candidate = unit(sim, Faction.DEFENDER, 10, 10);
+        unit(sim, Faction.DEFENDER, 11, 10);
+        unit(sim, Faction.CIVILIAN, UnitType.SWARM_RUNNER, 10, 11);
+        unit(sim, Faction.DEFENDER, 14, 10);
+        unit(sim, Faction.DEFENDER, UnitType.CIVILIAN, 11, 11);
+        unit(sim, Faction.MARINE, 9, 10);
+        unit(sim, Faction.DEFENDER, 15, 10);
+
+        assertEquals(3, sim.getTacticalScoring().threatDensityAt(
+                candidate, Faction.MARINE));
+    }
+
+    @Test
     public void targetPickerPicksFarTargetWhenItsTheOnlyOne() {
         // Cohesion is a movement constraint (handled in the action layer),
         // not a target-selection constraint. Marines deploying at the map
@@ -1075,6 +1090,17 @@ public class TacticalScoringTest {
 
         assertEquals(0L, sim.getTacticalScoring().closestEnemyInAttackRange(marine),
                 "friendlies and non-combatants are not opportunistic targets");
+    }
+
+    @Test
+    public void closestEnemyInAttackRangeIncludesCivilianFactionCombatant() {
+        BattleSimulation sim = openArena(40, 10);
+        long marine = unit(sim, Faction.MARINE, 5, 5);
+        long hostile = unit(sim, Faction.CIVILIAN,
+                UnitType.SWARM_RUNNER, 10, 5);
+
+        assertEquals(hostile,
+                sim.getTacticalScoring().closestEnemyInAttackRange(marine));
     }
 
     @Test
