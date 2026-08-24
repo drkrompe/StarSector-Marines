@@ -78,8 +78,10 @@ Do not run builds or leave generated task files there.
   suites with `-Psnapshot=armory,layers,turrets,ui` (default `all`) and redirect the
   common output root with `-PsnapshotDir=<path>`.
 - `gradlew.bat layerAuthoring` → extensible standalone authoring workbench. The
-  Layers page provides drag, scale, rotation, variant-scoped interpolated
-  animation playback, combined-sheet export, and the shared snapshot catalog.
+  Layers page provides drag, scale, rotation, variant-scoped phase-driven
+  animation playback, combined-sheet export, the shared snapshot
+  catalog, and validated atomic writes to
+  `mod/data/appearance/unit-layer-layouts.appearance.json`.
   The Turrets page edits linked weapon, mount, structure, FX, and bounded
   multi-turret defense-post layout data with a live deterministic preview.
   Both pages validate before replacement; the Turrets page prepares every

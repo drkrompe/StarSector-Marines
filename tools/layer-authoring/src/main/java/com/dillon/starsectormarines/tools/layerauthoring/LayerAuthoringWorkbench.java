@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.tools.authoring.AuthoringPageCatalog;
 import com.dillon.starsectormarines.tools.authoring.AuthoringPageContext;
 import com.dillon.starsectormarines.tools.authoring.AuthoringPageProvider;
 import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.AnimationDefinition;
+import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.AnimationDriver;
 import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.AppearanceVariant;
 import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.FrameDefinition;
 import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.LayerDefinition;
@@ -25,6 +26,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSlider;
 import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
@@ -87,6 +89,9 @@ public final class LayerAuthoringWorkbench {
         private final JComboBox<FrameDefinition> frameBox = new JComboBox<>();
         private final JComboBox<LayerDefinition> layerBox = new JComboBox<>();
         private final JToggleButton play = new JToggleButton("▶ Play");
+        private final JComboBox<AnimationDriver> driver =
+                new JComboBox<>(AnimationDriver.values());
+        private final JSlider previewPhase = new JSlider(0, 1000, 0);
         private final JLabel status = new JLabel(" ");
         private final JSpinner offsetX = number(0.0, -5.0, 5.0, 0.005);
         private final JSpinner offsetY = number(0.0, -5.0, 5.0, 0.005);
@@ -296,6 +301,8 @@ public final class LayerAuthoringWorkbench {
             panel.add(row("Pivot Y", pivotY));
             panel.add(row("Z order", z));
             panel.add(row("Transition ms", duration));
+            panel.add(row("Driver", driver));
+            panel.add(row("Preview phase", previewPhase));
             panel.add(visible);
             panel.add(loop);
             panel.add(Box.createVerticalStrut(8));
@@ -304,7 +311,8 @@ public final class LayerAuthoringWorkbench {
             panel.add(sprite);
             panel.add(Box.createVerticalStrut(18));
             JLabel help = new JLabel("<html><b>Playback</b><br>Play samples only the selected "
-                    + "animation and blends matching layers between keyframes.<br><br>"
+                    + "animation and blends matching layers between keyframes.<br>"
+                    + "Driver phase scrubs the exact normalized pose used in-game.<br><br>"
                     + "<b>Canvas</b><br>Click to select<br>Drag layer to position<br>"
                     + "Drag gold handle to rotate<br>"
                     + "Wheel: scale<br>Shift-wheel: X only<br>Alt-wheel: Y only<br>"
@@ -339,6 +347,8 @@ public final class LayerAuthoringWorkbench {
             bindSpinner(pivotY); bindSpinner(z); bindSpinner(duration);
             visible.addActionListener(event -> updateFromFields());
             loop.addActionListener(event -> updateLoop());
+            driver.addActionListener(event -> updateDriver());
+            previewPhase.addChangeListener(event -> previewDriverPhase());
             sprite.addActionListener(event -> updateFromFields());
             getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
                     KeyStroke.getKeyStroke(KeyEvent.VK_S, KeyEvent.CTRL_DOWN_MASK), "save");
@@ -519,7 +529,11 @@ public final class LayerAuthoringWorkbench {
                 visible.setSelected(layer.visible()); sprite.setText(layer.spritePath());
             }
             if (frame != null) duration.setValue(frame.durationMs());
-            if (animation() != null) loop.setSelected(animation().loop());
+            if (animation() != null) {
+                loop.setSelected(animation().loop());
+                driver.setSelectedItem(animation().driver());
+                previewPhase.setEnabled(animation().driver() != AnimationDriver.TIME);
+            }
             refreshing = false;
         }
 
@@ -550,6 +564,23 @@ public final class LayerAuthoringWorkbench {
             sheet.repaint();
         }
 
+        private void updateDriver() {
+            if (refreshing || animation() == null) return;
+            beginHistoryChange();
+            animation().driver((AnimationDriver) driver.getSelectedItem());
+            finishHistoryChange();
+            previewPhase.setEnabled(animation().driver() != AnimationDriver.TIME);
+        }
+
+        private void previewDriverPhase() {
+            if (refreshing || animation() == null || !previewPhase.isEnabled()) return;
+            if (play.isSelected()) stopPlayback();
+            double phase = previewPhase.getValue() / 1000.0;
+            canvas.preview(unit(), renderer.samplePhase(animation(), phase));
+            status.setText(animation().driver() + " "
+                    + String.format("%.3f", phase) + " · " + animation().label());
+        }
+
         private void animate(ActionEvent event) {
             AnimationDefinition animation = animation();
             if (!play.isSelected() || animation == null || animation.frames().isEmpty()) return;
@@ -569,8 +600,17 @@ public final class LayerAuthoringWorkbench {
                 }
                 current = animation.frames().get(playbackFrameIndex);
             }
-            double progress = (double) frameElapsedMs / current.durationMs();
-            canvas.preview(unit(), renderer.sample(animation, playbackFrameIndex, progress));
+            int elapsedBeforeFrame = 0;
+            for (int index = 0; index < playbackFrameIndex; index++) {
+                elapsedBeforeFrame += animation.frames().get(index).durationMs();
+            }
+            int totalDuration = animation.frames().stream()
+                    .mapToInt(FrameDefinition::durationMs).sum();
+            double phase = (elapsedBeforeFrame + frameElapsedMs) / (double) totalDuration;
+            refreshing = true;
+            previewPhase.setValue((int) Math.round(phase * 1000.0));
+            refreshing = false;
+            canvas.preview(unit(), renderer.samplePhase(animation, phase));
             status.setText("Previewing " + animation.label() + " · keyframe "
                     + (playbackFrameIndex + 1) + "/" + animation.frames().size());
         }
@@ -588,7 +628,10 @@ public final class LayerAuthoringWorkbench {
             play.setText("■ Stop");
             playbackFrameIndex = 0;
             frameElapsedMs = 0L;
-            canvas.preview(unit(), renderer.sample(animation, 0, 0.0));
+            refreshing = true;
+            previewPhase.setValue(0);
+            refreshing = false;
+            canvas.preview(unit(), renderer.samplePhase(animation, 0.0));
             status.setText("Previewing " + animation.label());
         }
 

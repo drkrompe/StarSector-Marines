@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredWeaponFamily;
+import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerPose;
+import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerTransform;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
@@ -32,12 +34,24 @@ final class LayeredUnitComposer {
                      float actorX, float actorY, float shoulderPx,
                      float facingDeg, float headLookDeg, float locomotionPhase,
                      float weaponPhase, int pose, int flags, float alpha) {
+        emit(out, assets, head, primary, drawWeaponLayers, special, equipmentGrade,
+                actorX, actorY, shoulderPx, facingDeg, headLookDeg, locomotionPhase,
+                weaponPhase, pose, flags, alpha, null);
+    }
+
+    static void emit(DrawList out, LayeredUnitAssets assets, LayeredSpriteCache head,
+                     MarineWeapon primary, boolean drawWeaponLayers,
+                     MarineSecondary special, EquipmentGrade equipmentGrade,
+                     float actorX, float actorY, float shoulderPx,
+                     float facingDeg, float headLookDeg, float locomotionPhase,
+                     float weaponPhase, int pose, int flags, float alpha,
+                     LayerPose authoredPose) {
         emit((layer, centerX, centerY, width, height, angleDegrees, red, green, blue, opacity) ->
                         out.addSprite(RenderLayer.UNITS, layer.sprite, centerX, centerY,
                                 width, height, angleDegrees, red, green, blue, opacity),
                 assets, head, primary, drawWeaponLayers, special, equipmentGrade,
                 actorX, actorY, shoulderPx, facingDeg, headLookDeg, locomotionPhase,
-                weaponPhase, pose, flags, alpha);
+                weaponPhase, pose, flags, alpha, authoredPose);
     }
 
     static void emit(SpriteEmitter out, LayeredUnitAssets assets, LayeredSpriteCache head,
@@ -47,6 +61,18 @@ final class LayeredUnitComposer {
                      float actorX, float actorY, float shoulderPx,
                      float facingDeg, float headLookDeg, float locomotionPhase,
                      float weaponPhase, int pose, int flags, float alpha) {
+        emit(out, assets, head, primary, drawWeaponLayers, special, equipmentGrade,
+                actorX, actorY, shoulderPx, facingDeg, headLookDeg, locomotionPhase,
+                weaponPhase, pose, flags, alpha, null);
+    }
+
+    static void emit(SpriteEmitter out, LayeredUnitAssets assets, LayeredSpriteCache head,
+                     MarineWeapon primary, boolean drawWeaponLayers,
+                     MarineSecondary special, EquipmentGrade equipmentGrade,
+                     float actorX, float actorY, float shoulderPx,
+                     float facingDeg, float headLookDeg, float locomotionPhase,
+                     float weaponPhase, int pose, int flags, float alpha,
+                     LayerPose authoredPose) {
         float pxPerSw = shoulderPx;
         boolean moving = (flags & LayeredAppearance.FLAG_MOVING) != 0;
         boolean rocket = pose == LayeredAppearance.POSE_ROCKET_AIM
@@ -86,12 +112,24 @@ final class LayeredUnitComposer {
 
         // Feet always exist underneath the actor. At rest both offsets keep them
         // occluded; locomotion alternately exposes only a toe-shaped tip.
-        float leftReveal = moving ? LayeredAppearance.leftFootReveal(locomotionPhase) : 0f;
-        float rightReveal = moving ? LayeredAppearance.rightFootReveal(locomotionPhase) : 0f;
-        emitFoot(out, assets.foot, actorX, actorY, pxPerSw, facingDeg,
-                -0.12f, -0.2333f - 0.10f * leftReveal, false, alpha);
-        emitFoot(out, assets.foot, actorX, actorY, pxPerSw, facingDeg,
-                0.12f, -0.2333f - 0.10f * rightReveal, true, alpha);
+        LayerTransform leftFoot = layer(authoredPose, "left-foot");
+        LayerTransform rightFoot = layer(authoredPose, "right-foot");
+        if (leftFoot != null) {
+            emitAuthored(out, assets.foot, leftFoot, actorX, actorY, pxPerSw,
+                    facingDeg, 0f, alpha);
+        } else {
+            float leftReveal = moving ? LayeredAppearance.leftFootReveal(locomotionPhase) : 0f;
+            emitFoot(out, assets.foot, actorX, actorY, pxPerSw, facingDeg,
+                    -0.12f, -0.2333f - 0.10f * leftReveal, false, alpha);
+        }
+        if (rightFoot != null) {
+            emitAuthored(out, assets.foot, rightFoot, actorX, actorY, pxPerSw,
+                    facingDeg, 0f, alpha);
+        } else {
+            float rightReveal = moving ? LayeredAppearance.rightFootReveal(locomotionPhase) : 0f;
+            emitFoot(out, assets.foot, actorX, actorY, pxPerSw, facingDeg,
+                    0.12f, -0.2333f - 0.10f * rightReveal, true, alpha);
+        }
 
         float swipe = LayeredAppearance.meleeSwipe(pose, weaponPhase);
         boolean leftStrikes = LayeredAppearance.leftClawStrikes(locomotionPhase);
@@ -129,13 +167,29 @@ final class LayeredUnitComposer {
             emitEquipmentLayer(out, specialSprite, specialPlacement, alpha);
         }
 
+        LayerTransform primaryTransform = layer(authoredPose, "primary");
+        if (primaryTransform == null && rocket) {
+            primaryTransform = layer(authoredPose, "rocket-launcher");
+        }
         if (drawPrimaryLayers && !overShoulder) {
-            emitSprite(out, weapon, wt.cx, wt.cy, pxPerSw, wt.angleDeg, alpha);
+            if (primaryTransform != null) {
+                emitAuthored(out, weapon, primaryTransform, actorX, actorY, pxPerSw,
+                        facingDeg, 0f, alpha);
+            } else {
+                emitSprite(out, weapon, wt.cx, wt.cy, pxPerSw, wt.angleDeg, alpha);
+            }
         }
 
         // Body and helmet have independent rotations but share the actor pivot.
-        float[] bodyCenter = worldPoint(actorX, actorY, 0f, -0.12f, pxPerSw, facingDeg);
-        emitSprite(out, assets.body, bodyCenter[0], bodyCenter[1], pxPerSw, facingDeg, alpha);
+        LayerTransform bodyTransform = layer(authoredPose, "body");
+        if (bodyTransform != null) {
+            emitAuthored(out, assets.body, bodyTransform, actorX, actorY, pxPerSw,
+                    facingDeg, 0f, alpha);
+        } else {
+            float[] bodyCenter = worldPoint(actorX, actorY, 0f, -0.12f, pxPerSw, facingDeg);
+            emitSprite(out, assets.body, bodyCenter[0], bodyCenter[1], pxPerSw,
+                    facingDeg, alpha);
+        }
 
         if (assets.foreClaw != null && swipe > 0f) {
             emitClaw(out, assets.foreClaw, leftStrikes ? leftClaw : rightClaw,
@@ -153,9 +207,15 @@ final class LayeredUnitComposer {
             emitSprite(out, weapon, wt.cx, wt.cy, pxPerSw, wt.angleDeg, alpha);
         }
 
-        float[] headCenter = worldPoint(actorX, actorY, 0f, 0.08f, pxPerSw, facingDeg);
-        emitSprite(out, head, headCenter[0], headCenter[1], pxPerSw,
-                facingDeg + headLookDeg, alpha);
+        LayerTransform headTransform = layer(authoredPose, "head");
+        if (headTransform != null) {
+            emitAuthored(out, head, headTransform, actorX, actorY, pxPerSw,
+                    facingDeg, headLookDeg, alpha);
+        } else {
+            float[] headCenter = worldPoint(actorX, actorY, 0f, 0.08f, pxPerSw, facingDeg);
+            emitSprite(out, head, headCenter[0], headCenter[1], pxPerSw,
+                    facingDeg + headLookDeg, alpha);
+        }
 
         if ((flags & LayeredAppearance.FLAG_MUZZLE_FLASH) != 0) {
             if (specialPlacement != null && specialFiring) {
@@ -164,6 +224,29 @@ final class LayeredUnitComposer {
                 emitFlash(out, assets.muzzleFlash, wt, weapon, pxPerSw, alpha);
             }
         }
+    }
+
+    private static LayerTransform layer(LayerPose pose, String id) {
+        return pose != null ? pose.layer(id) : null;
+    }
+
+    private static void emitAuthored(SpriteEmitter out, LayeredSpriteCache sprite,
+                                     LayerTransform transform,
+                                     float actorX, float actorY, float swPx,
+                                     float facingDeg, float extraAngle, float alpha) {
+        if (sprite == null || transform == null || !transform.visible()) return;
+        float[] pivot = worldPoint(actorX, actorY, transform.offsetX(),
+                transform.offsetY(), swPx, facingDeg);
+        float localCenterX = (0.5f - transform.pivotX())
+                * sprite.pxWidth / SOURCE_SHOULDER_PX * transform.scaleX() * swPx;
+        float localCenterY = (transform.pivotY() - 0.5f)
+                * sprite.pxHeight / SOURCE_SHOULDER_PX * transform.scaleY() * swPx;
+        float angle = facingDeg + transform.angleDegrees() + extraAngle;
+        float[] centerOffset = rotate(localCenterX, localCenterY, angle);
+        out.add(sprite, pivot[0] + centerOffset[0], pivot[1] + centerOffset[1],
+                sprite.pxWidth / SOURCE_SHOULDER_PX * transform.scaleX() * swPx,
+                sprite.pxHeight / SOURCE_SHOULDER_PX * transform.scaleY() * swPx,
+                angle, 1f, 1f, 1f, alpha);
     }
 
     private static void emitFoot(SpriteEmitter out, LayeredSpriteCache foot,

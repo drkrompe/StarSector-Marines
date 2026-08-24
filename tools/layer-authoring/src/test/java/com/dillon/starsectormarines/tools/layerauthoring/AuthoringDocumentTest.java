@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.tools.layerauthoring;
 
 import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.AnimationDefinition;
+import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.AnimationDriver;
 import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.FrameDefinition;
 import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.LayerDefinition;
 import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.UnitComposition;
@@ -39,6 +40,8 @@ class AuthoringDocumentTest {
         assertEquals(List.of("idle", "aiming", "walking", "firing"),
                 marine.variants().get(0).animations().stream()
                         .map(AnimationDefinition::id).toList());
+        assertEquals(AnimationDriver.LOCOMOTION_PHASE,
+                marine.variants().get(0).animations().get(2).driver());
         CompositionRenderer renderer = new CompositionRenderer(Path.of("."));
         BufferedImage first = renderer.renderSheet(marine, 360, 360);
         BufferedImage second = renderer.renderSheet(marine, 360, 360);
