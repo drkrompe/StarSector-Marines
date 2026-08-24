@@ -1,9 +1,10 @@
 # C15 — Retained Fleet Armory
 
-Status: IN PROGRESS — formation, template issue, and live billet preview migrated; broader parity remains
+Status: IN PROGRESS — company/squad/fire-team drill-down and template issue migrated; broader parity remains
 Written: 2026-08-23
-Updated: 2026-08-24 — Headless production rendering now calibrates a compact
-body/heading/title hierarchy and denser Armory geometry before live scale acceptance.
+Updated: 2026-08-24 — The hierarchy reaches the fire-team workspace; its template
+library now previews all four battle-composed soldiers before selection expands the
+same billets into equipment mannequins.
 
 Read `company-view-nouns.md`, `ui-nouns.md`, and
 `c14-fire-team-equipment-templates.md` first.
@@ -21,11 +22,10 @@ also survive the retained migration.
 ## Outcome
 
 Fleet Armory becomes the first production retained surface. Its landing view is a
-responsive grid of literal portrait company cards; selecting one enters the
-formation/template/refit workspace for that company. The formation rail keeps the
-player's organizational context visible while a reusable template library,
-four-billet designer, and exact inventory transaction preview occupy one coherent
-workspace. Templates remain plans, never collectible cards.
+responsive grid of literal portrait company cards; selecting one enters a matching
+squad-card overview for that company, and selecting a squad enters its three-team
+template/refit workspace. A clickable breadcrumb keeps every completed level of this
+drill-down reachable. Templates remain plans, never collectible cards.
 
 ## Information architecture
 
@@ -36,14 +36,18 @@ workspace. Templates remain plans, never collectible cards.
   currently owns one authoritative roster, so the first shipped gallery has one real
   card through a list-shaped view-model contract; it does not manufacture additional
   companies or persistence.
-- **Formation rail:** company summary -> squad -> Alpha/Bravo/Charlie, with current
-  assignment and conformance state. The selected fire team is the working context.
-- **Template library:** reusable designs with fielded and ready-to-issue counts,
-  searchable/filterable as library size grows.
-- **Workspace:** four billets and current members, template authoring, or the selected
-  template's issue preview depending on the active task. Selecting a billet projects
-  its materialized equipment doll and a sample soldier through the battlefield actor
-  composition path without changing campaign state.
+- **Company squad overview:** a matching responsive gallery of literal squad cards.
+  Each card reports strength, equipped-team count, officer command, whereabouts, and
+  readiness before the player enters that squad's equipment workspace.
+- **Fire-team context:** Alpha, Bravo, and Charlie report strength and current
+  assignment together; the selected fire team is the transaction target.
+- **Template library:** compact visual selectors render all four equipped soldiers
+  beside fielded and ready-to-issue counts, searchable/filterable as library size
+  grows.
+- **Workspace:** the selected squad's Alpha, Bravo, and Charlie teams sit beside the
+  reusable library. Selecting a template projects all four billets simultaneously as
+  portrait mannequins with armour, primary, special-equipment sockets, and the
+  battlefield-composed marine without changing campaign state.
 - **Transaction rail:** free stock, returned issue, required issue, exact shortfall,
   and the one explicit apply action.
 - **Squad arrangements:** a fast squad-level composition view using the same templates
@@ -67,7 +71,10 @@ workspace. Templates remain plans, never collectible cards.
 
 ## Acceptance
 
-- The player reaches any fire team in two selections from the company rail.
+- The player reaches any squad in two selections from the company collection and any
+  one of its fire teams with one further target selection.
+- Breadcrumb actions return directly to the company collection or selected company's
+  squad overview without routing through footer utilities.
 - Selecting teams and templates preserves scroll/focus and does not rebuild unrelated
   panes.
 - Designing remains legal without stock; assigning remains stock-gated and atomic.
@@ -77,8 +84,11 @@ workspace. Templates remain plans, never collectible cards.
   behavior.
 - The company gallery auto-fills fixed portrait cards into columns, wraps into rows as
   the viewport narrows, and scrolls vertically without silent truncation.
-- The billet preview shows candidate armour, primary grade, and special equipment;
-  its sample soldier shares battlefield layer recipes rather than a UI-only pose table.
+- The template breakdown shows all four billets together, including candidate armour,
+  primary grade, and special equipment; every mannequin shares battlefield layer
+  recipes rather than a UI-only pose table.
+- Every library selector shows the same four billet recipes as a compact formation;
+  selecting it expands rather than substitutes that equipment truth.
 - The same billet recipe renders deterministic PNGs without a game or OpenGL context;
   live acceptance remains responsible only for host scaling and feel.
 - Layout remains usable for a large company and at UI scales 1.0, 1.25, and 1.5.

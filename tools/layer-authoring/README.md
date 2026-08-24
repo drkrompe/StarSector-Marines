@@ -14,7 +14,8 @@ Select a unit, equipment variant, animation, keyframe, and layer, then:
 
 - drag the selected layer to change its normalized actor-local offset;
 - use the wheel to scale both axes, Shift-wheel for X only, or Alt-wheel for Y only;
-- use Ctrl-wheel to rotate, or enter exact values in the inspector;
+- drag the gold pivot handle to rotate, use Ctrl-wheel, or enter an exact value
+  in the inspector;
 - adjust pivot, visibility, z-order, source sprite, and frame duration;
 - duplicate animations or keyframes, set transition timing and looping, and use Play
   to inspect the selected clip without crossing into another equipment variant;
@@ -34,6 +35,10 @@ sizes or durations,
 out-of-range pivots, missing sprites, and sprite paths outside `mod/`. Reload and
 window close both guard unsaved changes. Frame deletion, JSON replacement, and
 overwriting an exported PNG require an explicit confirmation.
+Ordinary transform saves replace only changed JSON scalar values, retaining the
+document's existing whitespace, compact arrays, number spelling, key order, and
+Unicode text. Closing the workbench also stops its preview timer so the Gradle
+launcher exits with the application.
 
 The Snapshots tab uses saved repository data. Save pending layer edits before
 creating layer snapshots; replacing existing PNGs requires confirmation in the

@@ -1,25 +1,15 @@
-<template props="targetSummary,candidateSummary,billetRows,previewSummary,gearRows,transactionSummary,transactionClasses,applyDisabled,apply,feedbackText,feedbackClasses">
+<template props="targetSummary,candidateSummary,billetMannequins,gearRows,transactionSummary,transactionClasses,applyDisabled,apply,feedbackText,feedbackClasses">
   <div id="refit-transaction" class="panel refit-transaction">
-    <div id="transaction-heading" class="label heading tone-edge">REFIT TRANSACTION</div>
-    <div id="target-summary" class="label surface-dark tone-accent">{targetSummary}</div>
-    <div id="candidate-summary" class="label surface-dark">{candidateSummary}</div>
+    <div id="transaction-heading" class="label heading tone-edge">TEMPLATE FIRE-TEAM BREAKDOWN</div>
+    <div id="candidate-summary" class="label surface-dark tone-accent">{candidateSummary}</div>
 
-    <div id="preview-workspace">
-      <div id="loadout-preview-panel" class="surface-dark">
-        <div id="preview-heading" class="label heading tone-muted">MATERIALIZED BILLET PREVIEW</div>
-        <div id="preview-summary" class="label tone-accent">{previewSummary}</div>
-        <canvas id="loadout-preview" width="640" height="230" />
-        <div id="preview-legend">
-          <div id="equipment-legend" class="label tone-muted">ARMOR  ·  PRIMARY  ·  SPECIAL</div>
-          <div id="soldier-legend" class="label tone-muted">SAMPLE SOLDIER</div>
-        </div>
-      </div>
-
-      <div id="billet-panel">
-        <div id="billet-heading" class="label heading tone-muted">FOUR-BILLET TEMPLATE</div>
-        <div id="billet-list" class="billet-list">
-          <button each="row in billetRows" key="{row.id}" id="{row.id}" class="{row.classes}" disabled="{row.disabled}" onclick="{row.select}">{row.label}</button>
-        </div>
+    <div id="mannequin-grid" class="mannequin-grid">
+      <div each="billet in billetMannequins" key="{billet.id}" id="{billet.id}" class="billet-mannequin surface-dark">
+        <div id="{billet.roleId}" class="mannequin-role label heading tone-edge">{billet.role}</div>
+        <canvas id="{billet.canvasId}" class="mannequin-canvas" width="280" height="360" />
+        <div id="{billet.primaryId}" class="mannequin-primary label">{billet.primary}</div>
+        <div id="{billet.armorId}" class="mannequin-armor label tone-muted">{billet.armor}</div>
+        <div id="{billet.specialId}" class="mannequin-special label tone-accent">{billet.special}</div>
       </div>
     </div>
 
@@ -37,130 +27,40 @@
 </template>
 
 <style>
-  .refit-transaction {
-    flex-direction: column;
-    flex-grow: 1;
-    padding: 8px;
-    gap: 5px;
-    overflow: hidden;
-  }
-
+  .refit-transaction { flex-direction: column; flex-grow: 1; padding: 8px; gap: 5px; overflow: hidden; }
   .label { overflow: hidden; }
   .heading { font-family: heading; }
   #transaction-heading { height: 20px; }
-  #target-summary, #candidate-summary { height: 20px; padding: 3px 6px; }
-  #billet-heading, #issue-heading, #preview-heading { height: 18px; }
+  #candidate-summary { height: 20px; padding: 3px 6px; }
 
-  #preview-workspace {
-    flex-direction: row;
-    height: 190px;
+  .mannequin-grid {
+    display: grid;
+    height: 360px;
     gap: 6px;
-    overflow: hidden;
+    padding: 1px;
+    overflow: scroll;
   }
 
-  #loadout-preview-panel {
+  .billet-mannequin {
     flex-direction: column;
-    width: 0px;
-    flex-grow: 6;
-    padding: 4px;
+    width: 230px;
+    height: 334px;
+    padding: 6px;
     gap: 3px;
     border-width: 1px;
     overflow: hidden;
   }
 
-  #preview-summary { height: 18px; }
+  .mannequin-role { height: 18px; }
+  .mannequin-canvas { width: 0px; height: 0px; flex-grow: 1; border-width: 1px; overflow: hidden; }
+  .mannequin-primary, .mannequin-armor, .mannequin-special { height: 17px; }
 
-  #loadout-preview {
-    width: 0px;
-    height: 0px;
-    flex-grow: 1;
-    border-width: 1px;
-    overflow: hidden;
-  }
-
-  #preview-legend {
-    flex-direction: row;
-    height: 15px;
-  }
-
-  #preview-legend .label {
-    width: 0px;
-    flex-grow: 1;
-  }
-
-  #soldier-legend { text-align: right; }
-
-  #billet-panel {
-    flex-direction: column;
-    width: 0px;
-    flex-grow: 4;
-    gap: 4px;
-    overflow: hidden;
-  }
-
-  .billet-list {
-    flex-direction: column;
-    flex-grow: 1;
-    gap: 4px;
-    padding: 1px;
-    overflow: scroll;
-  }
-
-  .billet-row {
-    height: 26px;
-    padding: 5px 7px;
-    border-width: 1px;
-    overflow: hidden;
-    background-color: #0e1621;
-    border-color: #405a78;
-    font-family: body;
-    text-align: left;
-  }
-
-  .detail-list {
-    flex-direction: column;
-    gap: 4px;
-    padding: 1px;
-    overflow: scroll;
-  }
-
-  #gear-list { flex-grow: 1; }
-
-  .detail-row {
-    height: 22px;
-    padding: 3px 6px;
-    border-width: 1px;
-    overflow: hidden;
-    background-color: #0e1621;
-    border-color: #405a78;
-  }
-
-  .transaction-result {
-    height: 22px;
-    padding: 4px 6px;
-    border-width: 1px;
-    overflow: hidden;
-  }
-
-  #apply-row {
-    flex-direction: row;
-    height: 34px;
-    gap: 6px;
-  }
-
-  .apply-button {
-    width: 220px;
-    padding: 4px 8px;
-    border-width: 1px;
-    overflow: hidden;
-    font-family: body;
-    text-align: center;
-  }
-
-  .feedback {
-    width: 0px;
-    flex-grow: 1;
-    padding: 4px 6px;
-    overflow: hidden;
-  }
+  .detail-list { flex-direction: column; gap: 4px; padding: 1px; overflow: scroll; }
+  #issue-heading { height: 18px; }
+  #gear-list { height: 100px; }
+  .detail-row { height: 22px; padding: 3px 6px; border-width: 1px; overflow: hidden; background-color: #0e1621; border-color: #405a78; }
+  .transaction-result { height: 22px; padding: 4px 6px; border-width: 1px; overflow: hidden; }
+  #apply-row { flex-direction: row; height: 34px; gap: 6px; }
+  .apply-button { width: 220px; padding: 4px 8px; border-width: 1px; overflow: hidden; font-family: body; text-align: center; }
+  .feedback { width: 0px; flex-grow: 1; padding: 4px 6px; overflow: hidden; }
 </style>
