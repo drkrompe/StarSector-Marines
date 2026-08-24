@@ -3,6 +3,8 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.unit.LongBucket;
+import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
 import java.util.Random;
 
@@ -32,6 +34,17 @@ public final class FleeBehavior implements UnitBehavior {
 
     /** Cell radius a civilian senses combatants from. Smaller than weapon range — civilians don't react until shots are practically next to them. */
     public static final float PERCEPTION_RADIUS = 14f;
+    /**
+     * The unit index is a tick-start position snapshot while threat selection
+     * retains the legacy live-position distance check. One extra cell keeps a
+     * normally-moving combatant that crossed the perception boundary during
+     * UPDATE_UNITS in the candidate set; the exact 14-cell check still decides
+     * whether it is perceived.
+     */
+    private static final float SPATIAL_QUERY_RADIUS = PERCEPTION_RADIUS + 1f;
+    /** Per-worker gather output; FLEE dispatch runs on the parallel unit pool. */
+    private static final ThreadLocal<LongBucket> THREAT_CANDIDATES =
+            ThreadLocal.withInitial(LongBucket::new);
     /** Once a civilian has a flee path, they only re-pick a destination after they've moved this many cells along it. Stops every tick from rebuilding paths. */
     private static final int   REPATH_CELL_THRESHOLD = 4;
     /** Minimum cell-distance the flee destination must be from the threat. Anything closer doesn't count as "away" and is rejected in favor of staying put. */
@@ -123,17 +136,29 @@ public final class FleeBehavior implements UnitBehavior {
      * sides spook civilians — they don't know which marines are friendly and
      * gunfire is gunfire regardless of who's behind the trigger.
      */
-    private static long findNearestThreat(long self, BattleSimulation sim) {
+    static long findNearestThreat(long self, BattleSimulation sim) {
+        float selfX = sim.world().x(self);
+        float selfY = sim.world().y(self);
+        LongBucket candidates = THREAT_CANDIDATES.get();
+        sim.getUnitIndex().gather(
+                selfX, selfY, SPATIAL_QUERY_RADIUS, candidates);
+
         long best = 0L;
         float bestDist = PERCEPTION_RADIUS;
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            long u = sim.liveUnitAt(i);
+        int bestDenseIndex = UnitRosterService.INVALID_INDEX;
+        for (int i = 0; i < candidates.size; i++) {
+            long u = candidates.ids[i];
             if (u == self) continue;
             if (!sim.identity().type(u).combatant) continue;
-            float d = TacticalScoring.cellDistance(sim.world().x(self), sim.world().y(self), sim.world().x(u), sim.world().y(u));
-            if (d <= bestDist) {
+            float d = TacticalScoring.cellDistance(
+                    selfX, selfY, sim.world().x(u), sim.world().y(u));
+            if (d > PERCEPTION_RADIUS) continue;
+            int denseIndex = sim.getRoster().indexOf(u);
+            if (d < bestDist
+                    || (d == bestDist && denseIndex > bestDenseIndex)) {
                 bestDist = d;
                 best = u;
+                bestDenseIndex = denseIndex;
             }
         }
         return best;
