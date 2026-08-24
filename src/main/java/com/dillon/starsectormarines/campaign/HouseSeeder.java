@@ -24,7 +24,7 @@ import java.util.Set;
  * <p>Multiple houses per market is load-bearing: the political layer is
  * house-vs-house on a shared industry ("House Drennar's stake transferred to
  * House Korvath"), which is unseedable with a single house per market. See
- * {@code roadmap/campaign/living-world/design/living-world-nouns.md} for the
+ * {@code living-world-nouns.md} for the
  * political-board ownership law.
  *
  * <p>Stakes are seeded from {@link MarketAPI#getIndustries()}: each industry
@@ -177,8 +177,10 @@ public final class HouseSeeder {
      * per flavor. The ordinal {@code k} offsets the pool index so houses on one
      * market get distinct names (k &lt; pool length, so 2–4 picks never collide).
      *
-     * <p>Placeholder pools — the real per-flavor namesets live in
-     * {@code roadmap/campaign/flavors/} once that authoring pass lands.
+     * <p>Placeholder pools remain runtime fallback content. A future authored
+     * nameset belongs in the owning runtime content data or a bounded story
+     * when a real consumer exists; {@code themes.md} owns only the shared
+     * flavor vocabulary, tone, and boundaries.
      */
     private static String deterministicName(String id, int k, HouseFlavor flavor) {
         String[] pool = NAME_POOLS[flavor.ordinal()];
@@ -228,8 +230,8 @@ public final class HouseSeeder {
     /**
      * Placeholder surname pools, indexed by {@link HouseFlavor#ordinal()}
      * (CORPORATE, FEUDAL, UNDERWORLD, SECTARIAN — never reorder the enum). Eight
-     * each so 2–4 houses on a market never collide. Real namesets move to
-     * {@code roadmap/campaign/flavors/} when that content pass lands.
+     * each so 2–4 houses on a market never collide. Runtime content data owns
+     * any replacement nameset when a real authored content pass lands.
      */
     private static final String[][] NAME_POOLS = {
             // CORPORATE

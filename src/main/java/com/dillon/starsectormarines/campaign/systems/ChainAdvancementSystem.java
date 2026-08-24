@@ -15,7 +15,7 @@ import java.util.EnumSet;
 /**
  * Tick phase 3: advance active autonomous chains.
  *
- * <p>Per <code>roadmap/campaign/living-world/design/living-world-nouns.md</code>,
+ * <p>Per <code>living-world-nouns.md</code>,
  * autonomous chains ({@code patron == -1})
  * advance on tick; player chains advance only on mission completion (the
  * mission resolver pokes them directly). This system handles the autonomous

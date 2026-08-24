@@ -7,7 +7,7 @@ import java.util.EnumSet;
  * all persistent data lives on {@link CampaignState}, all systems do is
  * compute one tick's worth of changes against it.
  *
- * <p>See <code>roadmap/campaign/design/architecture.md</code> for the system
+ * <p>See <code>architecture.md</code> for the system
  * and read/write declaration rationale. Short version:
  *
  * <ul>

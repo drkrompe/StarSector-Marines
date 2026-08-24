@@ -4,6 +4,8 @@ Status: DRAFT
 
 Written: 2026-08-23
 
+Updated: 2026-08-24 — clarified the boundary between shared flavor direction and authored content.
+
 ## Mercenary company in a fractured sector
 
 The player is a recognised mercenary company: useful to patrons, constrained
@@ -37,3 +39,8 @@ the vanilla-transition boundary belongs to `t3-endgame-nouns.md`.
   hidden exceptions to shared campaign law.
 - Company growth should create harder choices about reach, obligation, and
   trust rather than only more available work.
+
+`themes.md` defines the shared flavor vocabulary, tone, and boundaries;
+concrete names, motives, and prose are authored in the owning runtime content
+data or a bounded story when a real consumer exists, while `HouseFlavor` never
+owns a parallel mission/archetype ruleset.

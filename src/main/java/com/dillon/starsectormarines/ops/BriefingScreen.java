@@ -282,7 +282,7 @@ public class BriefingScreen implements Screen {
         y -= ROW_GAP;
 
         // Salvage negotiation — contract-bound missions only. −/+ trade salvage
-        // for cash per roadmap/campaign/contracts/design/contracts-nouns.md.
+        // for cash per contracts-nouns.md.
         int salvageBaseline = m.contractSalvageBaseline & 0xFF;
         if (salvageBaseline > 0) {
             widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("briefingSalvage"),
@@ -1254,7 +1254,7 @@ public class BriefingScreen implements Screen {
      * we build a new instance carrying the updated negotiated + cash multiplier
      * and swap it into the context.
      *
-     * <p>Curve per {@code roadmap/campaign/contracts/design/contracts-nouns.md}:
+     * <p>Curve per {@code contracts-nouns.md}:
      * {@code cashMultiplier = 100 + (baseline − negotiated) * 0.5}.
      */
     private void adjustSalvage(int delta) {
