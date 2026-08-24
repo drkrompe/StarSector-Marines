@@ -255,7 +255,7 @@ public class BattleSimulation implements BattleControl {
     private final ReinforcementSystem reinforcementSystem =
             new ReinforcementSystem(reinforcement, battleResources);
 
-    /** Per-compound capture state — defender supply structures (COMMAND_POST / BARRACKS / ARMORY) and their DEFENDER_HELD / CONTESTED / MARINE_HELD state. Populated from the {@link TacticalMap} in {@link #setTacticalMap}; ticked by {@link #compoundCapture}. Slice 1 of the central-keep design ({@code roadmap/conquest/central-keep.md}). */
+    /** Per-compound capture state — defender supply structures (COMMAND_POST / BARRACKS / ARMORY) and their DEFENDER_HELD / CONTESTED / MARINE_HELD state. Populated from the {@link TacticalMap} in {@link #setTacticalMap}; ticked by {@link #compoundCapture}. Slice 1 of the conquest design ({@code conquest-nouns.md}). */
     private final CompoundService compoundService = new CompoundService();
     /** Stateless tick consumer that drives the compound capture state machine. Reads zone occupancy, writes {@link #compoundService} records on its slow-tick cadence. */
     private final CompoundCaptureSystem compoundCapture = new CompoundCaptureSystem();
@@ -264,7 +264,7 @@ public class BattleSimulation implements BattleControl {
 
     /**
      * Per-tick recompute driver for the defender's recapture-target registry
-     * (progressive reinforcement, {@code roadmap/conquest/stories/progressive-reinforcement.md}).
+     * (progressive reinforcement, {@code reinforcement-nouns.md}).
      * Conquest-only; null on mission types with no biome layer. Set via
      * {@link #setRecaptureSystem}.
      */
@@ -272,7 +272,7 @@ public class BattleSimulation implements BattleControl {
 
     /**
      * Staged bulge counterattack state machine (progressive reinforcement's
-     * offensive inverse, {@code roadmap/conquest/stories/biome-counterattack.md}).
+     * offensive inverse, {@code reinforcement-nouns.md}).
      * Conquest-only; null on mission types with no biome layer. Set via
      * {@link #setCounterattackSystem}. Ticks after {@link #recaptureSystem}
      * (so it sees this tick's fresh contested state) and before {@link

@@ -10,7 +10,7 @@ import java.util.List;
  * Resolves a {@link ReinforcementRequest}'s objective coordinates to the
  * {@link TacticalNode} the deboarded squad should be assigned to — the
  * "assign at deboard, not on arrival" contract from
- * {@code roadmap/conquest/stories/progressive-reinforcement.md}. Means call
+ * {@code reinforcement-nouns.md}. Means call
  * this at dispatch time and stamp the result on the mission
  * ({@code ShuttleMission#assignNode} / {@code VehicleMission#assignNode}) so
  * the deboard path can assign the squad the moment it lands, rather than

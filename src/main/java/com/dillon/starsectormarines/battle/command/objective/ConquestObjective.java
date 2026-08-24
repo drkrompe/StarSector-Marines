@@ -25,8 +25,8 @@ import org.apache.log4j.Logger;
  * the last compound to MARINE_HELD <em>also</em> often coincides with
  * the last marine dying (final assault on the keep). Both objectives
  * would complete the same tick and {@link WinCheckSystem} returns a
- * mutual-victory draw. The doc spec (see
- * {@code roadmap/conquest/central-keep.md} "Win condition") wants the
+ * mutual-victory draw. The conquest noun model (see
+ * {@code conquest-nouns.md}) requires the
  * marine to <em>survive</em> the capture, so the alive check defers
  * completion by one tick — the defender's elimination objective
  * latches first and wins.

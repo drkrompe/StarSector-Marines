@@ -11,3 +11,5 @@ Written: 2026-08-23
 | `reinforcement-status-readout.md` | PLANNED | Surface player-side reinforcement tickets and inbound commitments from the simulation's authoritative resource and delivery state. |
 | `scripted-reinforcement-triggers.md` | PLANNED | Add bounded mission/scripted trigger inputs through the shared request contract, with authored timing and side semantics. |
 | `means-dispatch-transaction.md` | PLANNED | Make fulfillment report success so a post-check delivery failure can fall through or recover without silently consuming the request. |
+| `progressive-reinforcement.md` | PARKED | Manually accept and tune the shipped Conquest front-line response; no new implementation scope. |
+| `biome-counterattack.md` | PARKED | Manually accept and tune the shipped Conquest counterattack presentation and pacing; no new implementation scope. |

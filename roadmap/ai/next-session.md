@@ -34,7 +34,7 @@ multi-room keep) onto each compound the moment it's **uncontested**
 (judged over `GarrisonArea` AABB-gated rooms, so an exterior defender
 doesn't block it); contested compounds only commit an already-adjacent
 squad; everyone else stays on the strip search-and-destroy push. See
-`roadmap/conquest/complete/deliberate-compound-capture.md`.
+`conquest-nouns.md`.
 
 Story 19's cheap slice shipped (2026-08-19, `14d646a`): `EnterZone` no
 longer treats contact as a binary halt. A per-tick route threat score combines

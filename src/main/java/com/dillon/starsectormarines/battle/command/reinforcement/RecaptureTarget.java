@@ -11,7 +11,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalNode;
  * flags are written by the per-tick recompute in {@link RecaptureTargetSystem}
  * (and {@code dispatched} also by {@link RecaptureTargetService#markDispatched}).
  *
- * <p>Design: {@code roadmap/conquest/stories/progressive-reinforcement.md}.
+ * <p>Design: {@code reinforcement-nouns.md}.
  * The node's anchor is the squad-assignment coordinate (the objective in the
  * two-coordinate split — where the deboarded squad should stand), distinct
  * from the delivery hint the means picks.

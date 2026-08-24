@@ -39,7 +39,7 @@ import java.util.List;
  *       {@link GarrisonArea garrison zones} — the AABB-gated rooms — so a
  *       defender merely loitering in the open street nearby never blocks a
  *       capture order, and the unbounded outdoor flood never counts as "in"
- *       the compound. See {@code roadmap/conquest/stories/deliberate-compound-capture.md}.</li>
+ *       the compound. See {@code conquest-nouns.md}.</li>
  *   <li><b>Strip clear-zone push.</b> Every squad not pulled for capture
  *       falls through to the lateral-strip search-and-destroy: it is
  *       sticky-assigned to one of {@link #STRIP_COUNT} strips at first
@@ -77,7 +77,7 @@ import java.util.List;
  * MARINE_HELD — not "last defender drops"; reinforcement keeps
  * spawning fresh militia from intact compounds, so the win condition
  * is now about dismantling supply infrastructure
- * (see {@code roadmap/conquest/central-keep.md}).
+ * (see {@code conquest-nouns.md}).
  */
 public final class ConquestCommand implements MissionCommand {
 
@@ -471,8 +471,8 @@ public final class ConquestCommand implements MissionCommand {
      * Squad → strip index. Sticky on first observation, looked up thereafter.
      * Returns the strip the squad's centroid currently falls in for the first
      * call, which is then memoized; lateral drift after first observation
-     * doesn't move the squad to a new strip (per the doc 12 first-pass
-     * "no cross-strip migration in v1" decision).
+     * doesn't move the squad to a new strip. Cross-strip migration remains
+     * outside the current commander contract.
      */
     private int stripFor(Squad squad) {
         int cached = squadStripIdx.get(squad.id);

@@ -26,14 +26,16 @@ universe over time, not retrofitted into intel slots.
 
 **Multiple tracks progressing in parallel:**
 
-- **Battle tier** — the compound-capture gameplay loop (central keep +
-  compound-as-supply) is **complete for v1**: state machine, world/HUD
-  markers, reinforcement gating, ConquestObjective, BSP compound
-  generation, and multi-chamber keep all shipped. See
-  [`conquest/central-keep.md`](conquest/central-keep.md) for the full
-  shipped-with-details record. The battle tier's ongoing parallel tracks
-  are convoy kinematics (`convoy-nouns.md`), bounded ECS acceptance/presentation
-  follow-ons (`ecs-nouns.md`), fog-of-war
+- **Battle tier** — the Conquest compound-capture loop is shipped: the
+  canonical central keep, capture state machine, world/HUD markers,
+  reinforcement gating, ConquestObjective, biome-spread compound generation,
+  deliberate capture, multi-chamber keep, and marine garrison drops. The
+  remaining live validation covers front-line reinforcement and the
+  telegraphed defender counterattack. A defender-positive territory win,
+  marine-side supply dispatch, and an incoming-garrison marker remain
+  uncontracted extension paths. See `conquest-nouns.md`. The battle tier's
+  ongoing parallel tracks are convoy kinematics (`convoy-nouns.md`), bounded
+  ECS acceptance/presentation follow-ons (`ecs-nouns.md`), fog-of-war
   (`fog-of-war-nouns.md`), and AI (GOAP + commander).
   The **feature-vertical package reorg** of `battle/` is **complete** (all
   10 slices shipped; entity identity is now a bare `long`). On the render side, the **`BattleScreen` god-class
@@ -389,11 +391,11 @@ universe over time, not retrofitted into intel slots.
    visual/cargo/core shipping check, squad/debrief UI feel, and swarm wave cadence
    plus post-rebalance combat feel remain pending. The loot checkpoint is
    `loot-in-game-acceptance.md`.
-8. **Compound-capture v2 (territory tug-of-war)** — reverse transitions
-   (MARINE_HELD → CONTESTED → DEFENDER_HELD), AutoGarrisonTrigger,
-   marine-side compound supply, defender positive win condition. Blocked
-   on AI commander richness. See
-   [`conquest/central-keep.md`](conquest/central-keep.md) § V2.
+8. **Conquest reinforcement acceptance (territory tug-of-war)** — reverse
+   transitions and marine garrison drops are shipped. Parked live acceptance
+   now covers front-line response cadence/readability and the defender
+   counterattack's telegraph, budget, and loss-then-reclaim feel. See
+   `progressive-reinforcement.md` and `biome-counterattack.md`.
 9. ~~**Stationing events the player can actually see and lose**~~ — **shipped**
    (G31 `e25fa582`, G32 `89ad8bac`). A pending Garrison defense or Cadre incident
    now carries a persisted response deadline, lapses into a failed assignment
