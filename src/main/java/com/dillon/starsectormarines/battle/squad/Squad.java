@@ -12,13 +12,13 @@ import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.perception.NoiseKind;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectIterator;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * A transient tactical unit assembled from deploying marines, or a defender
@@ -135,7 +135,8 @@ public final class Squad {
             1f / BELIEF_LIFETIME_SECONDS;
 
     /** Serial-write contact store owned by {@code SquadAlertSystem}. */
-    private final Map<Long, BelievedContact> contactMemory = new LinkedHashMap<>();
+    private final Long2ObjectOpenHashMap<BelievedContact> contactMemory =
+            new Long2ObjectOpenHashMap<>();
     /** Immutable snapshot published before the parallel planner/read phase. */
     private volatile List<BelievedContact> believedContacts = List.of();
     /** Immutable belief-derived tactical summary published once per sim tick. */
@@ -620,9 +621,10 @@ public final class Squad {
      */
     void beginBeliefTick(float dt, int simTick) {
         directContactObservedLastTick = false;
-        Iterator<Map.Entry<Long, BelievedContact>> iterator = contactMemory.entrySet().iterator();
+        ObjectIterator<Long2ObjectMap.Entry<BelievedContact>> iterator =
+                contactMemory.long2ObjectEntrySet().fastIterator();
         while (iterator.hasNext()) {
-            Map.Entry<Long, BelievedContact> entry = iterator.next();
+            Long2ObjectMap.Entry<BelievedContact> entry = iterator.next();
             BelievedContact old = entry.getValue();
             if (old.source() == BeliefSource.DIRECT
                     && old.lastSeenTick() == simTick - 1) {
