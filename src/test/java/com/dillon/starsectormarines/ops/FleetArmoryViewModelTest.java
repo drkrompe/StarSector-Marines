@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.marine.FireTeamGearDelta;
 import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.FireTeamRefitPreview;
 import com.dillon.starsectormarines.marine.FireTeamTemplateResult;
@@ -47,17 +46,15 @@ class FleetArmoryViewModelTest {
                 viewModel.selectedTemplateId());
         assertEquals(authoritative.result(), viewModel.currentPreview().result());
         assertEquals(authoritative.gear(), viewModel.currentPreview().gear());
-        assertEquals(authoritative.gear().size(), viewModel.gearRows().get().size());
-        for (int index = 0; index < authoritative.gear().size(); index++) {
-            FireTeamGearDelta delta = authoritative.gear().get(index);
-            assertTrue(viewModel.gearRows().get().get(index).label().contains(delta.label()));
-        }
+        assertEquals(MarineSquad.TEAM_SIZE, viewModel.marineCards().get().size());
+        assertTrue(viewModel.marineCards().get().get(0).name().contains(" "));
+        assertTrue(viewModel.marineCards().get().get(0).weaponStats().contains("DPS"));
 
         assertEquals(FireTeamTemplateResult.APPLIED, viewModel.applySelection());
         MarineSquad squad = roster.squadById(viewModel.selectedSquadId());
         assertEquals(viewModel.selectedTemplateId(),
                 squad.teamTemplateCardId(viewModel.selectedTeamIndex()));
-        assertTrue(viewModel.feedbackText().get().contains("atomic transaction"));
+        assertTrue(viewModel.feedbackText().get().contains("equipped"));
     }
 
     @Test
@@ -103,7 +100,7 @@ class FleetArmoryViewModelTest {
             }
 
             UiElement list = instance.requireElement("template-list");
-            instance.requireElement("billet-preview:0");
+            instance.requireElement("marine-preview:0");
             UiElement first = list.childAt(0);
             UiElement second = list.childAt(1);
             viewModel.templateTiles().get().get(1).select().run();
@@ -160,12 +157,12 @@ class FleetArmoryViewModelTest {
         props.put("targetSummary", viewModel.targetSummary());
         props.put("candidateSummary", viewModel.candidateSummary());
         props.put("billetRows", viewModel.billetRows());
-        props.put("billetMannequins", viewModel.billetMannequins());
+        props.put("marineCards", viewModel.marineCards());
         props.put("previewSummary", viewModel.previewSummary());
-        props.put("gearRows", viewModel.gearRows());
         props.put("transactionSummary", viewModel.transactionSummary());
         props.put("transactionClasses", viewModel.transactionClasses());
         props.put("applyDisabled", viewModel.applyDisabled());
+        props.put("applyLabel", viewModel.applyLabel());
         props.put("apply", viewModel.applyAction());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
