@@ -136,7 +136,7 @@ public final class TickProfileDebugPanel implements HudPanel {
         TickProfile.Spike spike = sim.getTickProfile().consumeSpike();
         if (spike == null) return;
         if (autoDumpCount >= AUTO_DUMP_LIMIT || autoDumpCooldownRemaining > 0f) return;
-        String path = TickProfileDumper.dump(sim, spike);
+        String path = TickProfileDumper.dump(sim, ctx.getBattleFixture(), spike);
         if (path != null) {
             autoDumpCount++;
             autoDumpCooldownRemaining = AUTO_DUMP_COOLDOWN_SEC;
@@ -295,7 +295,8 @@ public final class TickProfileDebugPanel implements HudPanel {
     private void triggerDump() {
         BattleSimulation sim = ctx.getSim();
         if (sim == null) return;
-        String path = TickProfileDumper.dump(sim);
+        String path = TickProfileDumper.dump(
+                sim, ctx.getBattleFixture(), null);
         dumpStatusMessage = path != null
                 ? "(dumped to common/" + path + ")"
                 : "(dump failed — see log)";

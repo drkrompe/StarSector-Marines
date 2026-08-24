@@ -49,6 +49,8 @@
  *   <li>{@code sim/} — {@code BattleSimulation}: the tick order and nothing
  *       else, long-term.</li>
  *   <li>{@code setup/} — battle construction and defender rosters.</li>
+ *   <li>{@code fixture/} — versioned inputs that replay through production
+ *       battle construction.</li>
  *   <li>{@code profile/} — tick profiling and caches.</li>
  * </ul>
  *

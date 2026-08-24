@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "kind": "CIVILIAN_RESCUE",
+  "seed": 5005,
+  "enemyHasHeavyArmor": false,
+  "risk": "LOW",
+  "swarmCount": 20,
+  "stressTest": false,
+  "shuttles": [
+    {
+      "type": "VALKYRIE",
+      "cycles": 1
+    }
+  ],
+  "targetProfile": {
+    "marketSize": 0,
+    "stability": 0,
+    "defenseLevel": 0,
+    "spaceportTier": 0,
+    "factionId": "",
+    "functions": []
+  }
+}
