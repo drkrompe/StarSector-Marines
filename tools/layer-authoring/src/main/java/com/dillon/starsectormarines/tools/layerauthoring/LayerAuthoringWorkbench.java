@@ -57,12 +57,6 @@ public final class LayerAuthoringWorkbench {
 
     public static void main(String[] args) throws Exception {
         Path projectRoot = args.length > 0 ? Path.of(args[0]) : Path.of(".");
-        if (args.length > 1 && "--export-all".equals(args[1])) {
-            Path output = args.length > 2 ? Path.of(args[2])
-                    : projectRoot.resolve("build/layer-authoring");
-            exportAll(projectRoot, output);
-            return;
-        }
         if (GraphicsEnvironment.isHeadless()) {
             throw new IllegalStateException("Layer authoring UI requires a desktop display");
         }
@@ -75,17 +69,6 @@ public final class LayerAuthoringWorkbench {
                         "Layer authoring failed", JOptionPane.ERROR_MESSAGE);
             }
         });
-    }
-
-    static void exportAll(Path projectRoot, Path outputDirectory) throws Exception {
-        AuthoringDocument document = AuthoringDocument.load(projectRoot);
-        CompositionRenderer renderer = new CompositionRenderer(projectRoot);
-        Files.createDirectories(outputDirectory);
-        for (UnitComposition unit : document.units()) {
-            Path output = outputDirectory.resolve(unit.id() + "-sheet.png");
-            ImageIO.write(renderer.renderSheet(unit, 420, 420), "PNG", output.toFile());
-            System.out.println("Wrote " + output.toAbsolutePath());
-        }
     }
 
     private static final class WorkbenchFrame extends JFrame {
@@ -191,6 +174,8 @@ public final class LayerAuthoringWorkbench {
             JTabbedPane tabs = new JTabbedPane();
             tabs.addTab("Animation", canvas);
             tabs.addTab("Combined sheet", new JScrollPane(sheet));
+            tabs.addTab("Snapshots", new SnapshotPanel(projectRoot,
+                    starsectorCoreRoot(), () -> !dirty));
 
             JPanel inspector = inspector();
             JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
@@ -203,6 +188,13 @@ public final class LayerAuthoringWorkbench {
             add(top, BorderLayout.NORTH);
             add(split, BorderLayout.CENTER);
             add(status, BorderLayout.SOUTH);
+        }
+
+        private Path starsectorCoreRoot() {
+            String configured = System.getProperty("starsectorDir", "").trim();
+            return configured.isEmpty()
+                    ? projectRoot.resolve("starsector-core")
+                    : Path.of(configured).resolve("starsector-core");
         }
 
         private JPanel inspector() {

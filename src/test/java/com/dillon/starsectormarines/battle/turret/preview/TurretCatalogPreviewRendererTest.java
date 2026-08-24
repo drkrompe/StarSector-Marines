@@ -14,7 +14,6 @@ import java.io.ByteArrayOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -24,10 +23,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /** Regression and dev-output coverage for the data-authored turret preview. */
 class TurretCatalogPreviewRendererTest {
 
-    private static final Path OUTPUT = Path.of("build", "turret-previews", "catalog");
-
     @Test
-    void catalogRendersStableSixStateStripsAndWritesActualOutputs() throws Exception {
+    void catalogRendersStableSixStateStrips() throws Exception {
         String install = System.getProperty("starsectorDir");
         Assumptions.assumeTrue(install != null && !install.isBlank(),
                 "starsectorDir is not configured");
@@ -55,16 +52,7 @@ class TurretCatalogPreviewRendererTest {
             assertEveryAuthoredSlotContributed(mount, first.slotContributions());
         }
 
-        List<Path> outputs = renderer.writeCatalog(registry, OUTPUT);
-        assertEquals(registry.mountCount(), outputs.size());
-        for (Path output : outputs) {
-            assertTrue(Files.size(output) > 0, "empty preview " + output);
-            BufferedImage image = ImageIO.read(output.toFile());
-            assertEquals(TurretCatalogPreviewDocument.STRIP_WIDTH, image.getWidth());
-            assertEquals(TurretCatalogPreviewDocument.STRIP_HEIGHT, image.getHeight());
-        }
-        System.out.println("TurretCatalogPreviewRendererTest: wrote " + outputs.size()
-                + " deterministic strips to " + OUTPUT.toAbsolutePath());
+        assertEquals(8, registry.mountCount());
     }
 
     private static void assertEveryAuthoredSlotContributed(

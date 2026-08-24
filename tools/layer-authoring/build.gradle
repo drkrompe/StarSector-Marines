@@ -40,16 +40,3 @@ tasks.named('test') {
     useJUnitPlatform()
     workingDir rootProject.projectDir
 }
-
-tasks.register('renderSheets', JavaExec) {
-    group = 'verification'
-    description = 'Render all unit-layer-layout sheets to build/layer-authoring'
-    dependsOn tasks.named('classes')
-    classpath = sourceSets.main.runtimeClasspath
-    mainClass = application.mainClass
-    workingDir rootProject.projectDir
-    args rootProject.projectDir.absolutePath, '--export-all',
-            rootProject.layout.buildDirectory.dir('layer-authoring').get().asFile.absolutePath
-    outputs.dir rootProject.layout.buildDirectory.dir('layer-authoring')
-    outputs.upToDateWhen { false }
-}

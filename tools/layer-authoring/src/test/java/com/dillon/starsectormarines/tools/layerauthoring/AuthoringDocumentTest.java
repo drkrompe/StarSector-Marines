@@ -4,6 +4,9 @@ import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.Anima
 import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.FrameDefinition;
 import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.LayerDefinition;
 import com.dillon.starsectormarines.tools.layerauthoring.AuthoringDocument.UnitComposition;
+import com.dillon.starsectormarines.tools.snapshot.LayerSnapshotSuite;
+import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
+import com.dillon.starsectormarines.tools.snapshot.SnapshotRunner;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -67,11 +70,13 @@ class AuthoringDocumentTest {
     @Test
     void batchExporterWritesOneCombinedSheetPerUnit(@TempDir Path temporary)
             throws Exception {
-        LayerAuthoringWorkbench.exportAll(Path.of("."), temporary);
-        assertTrue(Files.size(temporary.resolve("marine-line-sheet.png")) > 10_000L);
-        assertTrue(Files.size(temporary.resolve("mech-bulwark-sheet.png")) > 10_000L);
-        assertTrue(Files.size(temporary.resolve("mech-hound-sheet.png")) > 10_000L);
-        assertTrue(Files.size(temporary.resolve("mech-sirocco-sheet.png")) > 10_000L);
+        new SnapshotRunner().create(new SnapshotContext(Path.of("."), Path.of(".")),
+                List.of(new LayerSnapshotSuite()), temporary, false);
+        Path layers = temporary.resolve("layers");
+        assertTrue(Files.size(layers.resolve("marine-line-sheet.png")) > 10_000L);
+        assertTrue(Files.size(layers.resolve("mech-bulwark-sheet.png")) > 10_000L);
+        assertTrue(Files.size(layers.resolve("mech-hound-sheet.png")) > 10_000L);
+        assertTrue(Files.size(layers.resolve("mech-sirocco-sheet.png")) > 10_000L);
     }
 
     @Test

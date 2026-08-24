@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.turret.preview;
 
-import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
 import com.dillon.starsectormarines.battle.weapon.fx.FxSlot;
 import com.dillon.starsectormarines.ui.retained.headless.HeadlessUiRenderer;
@@ -11,9 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 /** Shared retained-renderer adapter for deterministic turret catalog strips. */
@@ -41,24 +38,6 @@ public final class HeadlessTurretCatalogPreviewRenderer {
                 TurretCatalogPreviewDocument.STRIP_WIDTH,
                 TurretCatalogPreviewDocument.STRIP_HEIGHT);
         return new RenderedPreview(image, preview.slotContributions());
-    }
-
-    /** Writes one stable PNG strip per catalog mount, in registry order. */
-    public List<Path> writeCatalog(TurretCatalogRegistry registry, Path outputDirectory)
-            throws IOException {
-        if (registry == null || outputDirectory == null) {
-            throw new IllegalArgumentException("registry and output directory are required");
-        }
-        Files.createDirectories(outputDirectory);
-        List<Path> outputs = new ArrayList<>();
-        for (TurretMountDef mount : registry.mounts()) {
-            Path output = outputDirectory.resolve(fileStem(mount.id) + ".png");
-            if (!ImageIO.write(render(mount).image(), "PNG", output.toFile())) {
-                throw new IOException("No PNG writer available for " + output);
-            }
-            outputs.add(output);
-        }
-        return List.copyOf(outputs);
     }
 
     /** Mod assets override vanilla assets, matching Starsector's resolution order. */
@@ -94,10 +73,6 @@ public final class HeadlessTurretCatalogPreviewRenderer {
             throw new IOException("Preview asset escapes its root: " + relativePath);
         }
         return resolved;
-    }
-
-    private static String fileStem(String id) {
-        return id.replaceAll("[^A-Za-z0-9._-]", "_");
     }
 
     public record RenderedPreview(

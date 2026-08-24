@@ -16,7 +16,6 @@ import javax.imageio.ImageIO;
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
@@ -69,43 +68,6 @@ public final class HeadlessArmoryPreviewRenderer {
     /** Asset source shared by full retained-view previews using the live canvas producer. */
     public ArmoryLoadoutPreviewComposer.Assets assets() {
         return assets;
-    }
-
-    public static void main(String[] args) throws Exception {
-        Path projectRoot = args.length > 0 ? Path.of(args[0]) : Path.of(".");
-        Path outputDir = args.length > 1
-                ? Path.of(args[1])
-                : projectRoot.resolve("build/headless-armory-previews");
-        HeadlessArmoryPreviewRenderer renderer =
-                new HeadlessArmoryPreviewRenderer(projectRoot.resolve("mod"));
-        Files.createDirectories(outputDir);
-
-        List<PreviewCase> cases = previewCases();
-        BufferedImage contact = new BufferedImage(
-                ArmoryLoadoutPreviewComposer.SURFACE_WIDTH * 2,
-                (ArmoryLoadoutPreviewComposer.SURFACE_HEIGHT + 34) * 2,
-                BufferedImage.TYPE_INT_ARGB);
-        Graphics2D contactGraphics = contact.createGraphics();
-        configure(contactGraphics);
-        contactGraphics.setColor(new Color(0x06, 0x0B, 0x11));
-        contactGraphics.fillRect(0, 0, contact.getWidth(), contact.getHeight());
-        contactGraphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 15));
-
-        for (int index = 0; index < cases.size(); index++) {
-            PreviewCase preview = cases.get(index);
-            BufferedImage image = renderer.render(preview.billet());
-            ImageIO.write(image, "PNG", outputDir.resolve(preview.slug() + ".png").toFile());
-            int x = index % 2 * ArmoryLoadoutPreviewComposer.SURFACE_WIDTH;
-            int y = index / 2 * (ArmoryLoadoutPreviewComposer.SURFACE_HEIGHT + 34);
-            contactGraphics.setColor(new Color(0xD9, 0xE8, 0xF1));
-            contactGraphics.drawString(preview.label(), x + 12, y + 22);
-            contactGraphics.drawImage(image, x, y + 34, null);
-        }
-        contactGraphics.dispose();
-        Path contactPath = outputDir.resolve("armory-loadout-contact.png");
-        ImageIO.write(contact, "PNG", contactPath.toFile());
-        System.out.println("Wrote headless Armory previews to " + outputDir.toAbsolutePath());
-        System.out.println("Contact sheet: " + contactPath.toAbsolutePath());
     }
 
     static void installCatalogs(Path modRoot) throws Exception {
