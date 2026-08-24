@@ -59,6 +59,32 @@ class UiDocumentTest {
     }
 
     @Test
+    void gridAutoFillsFixedCardsAndWrapsWithTheViewport() {
+        UiElement first = new UiElement("first").preferredSize(90f, 120f);
+        UiElement second = new UiElement("second").preferredSize(90f, 120f);
+        UiElement third = new UiElement("third").preferredSize(90f, 120f);
+        UiElement root = new UiElement("root")
+                .style("display: grid; gap: 10px; overflow: scroll")
+                .child(first)
+                .child(second)
+                .child(third);
+        UiDocument document = new UiDocument(root);
+
+        document.layout(250f, 200f);
+
+        assertRect(first.box().borderBox(), 0f, 0f, 90f, 120f);
+        assertRect(second.box().borderBox(), 100f, 0f, 90f, 120f);
+        assertRect(third.box().borderBox(), 0f, 130f, 90f, 120f);
+        assertEquals(50f, root.box().maxScrollTop(), EPSILON);
+
+        document.layout(90f, 400f);
+
+        assertRect(first.box().borderBox(), 0f, 0f, 90f, 120f);
+        assertRect(second.box().borderBox(), 0f, 130f, 90f, 120f);
+        assertRect(third.box().borderBox(), 0f, 260f, 90f, 120f);
+    }
+
+    @Test
     void stackCentersBoundedOverlayWithoutMovingFillChild() {
         UiElement fill = new UiElement("fill");
         UiElement overlay = new UiElement("overlay")

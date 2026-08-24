@@ -381,13 +381,13 @@ public final class CompanyHqScreen implements Screen {
     }
 
     /**
-     * The one transition out of this host. {@code ArmoryScreen} has no market or planet
-     * reference anywhere in it, so it runs unchanged with a null {@code ctx.planet}, and
-     * the return screen is set explicitly so Back lands here rather than on mission
-     * select — which this host must never reach.
+     * The one transition out of this host. The retained company overview and Armory
+     * workspace have no market or planet dependency, and the return screen is set
+     * explicitly so Back lands here rather than on mission select — which this host
+     * must never reach.
      */
     private void onArmory() {
-        if (ctx != null) ctx.openArmoryFrom(ScreenId.COMPANY_HQ, 0);
+        if (ctx != null) ctx.openCompanyArmoryFrom(ScreenId.COMPANY_HQ);
     }
 
 

@@ -1,9 +1,10 @@
 # Fog of War
 
-Status: ACTIVE — shipped visibility spine; deferred time-of-day direction
+Status: ACTIVE — shared observation composes current player visibility across contributors, temporary sources, terrain, units, and roofs.
 
 Written: 2026-08-23
-Updated: 2026-08-23 — folded shipped tactical smoke into the shared observation boundary.
+
+Updated: 2026-08-24 — replaced lifecycle and experiment chronology with durable observation and authority boundaries.
 
 Read `stories.md` for open work.
 
@@ -15,7 +16,7 @@ outside that vision, and opens a building roof only when the same vision reaches
 its interior. It also gates enemy-spotted radio presentation. It is
 presentation authority, not a substitute for combat or AI perception.
 
-The shipped system supplies current visibility, not persistent intelligence.
+The system supplies current visibility, not persistent intelligence.
 When a hostile leaves sight it fades away; it does not yet leave a last-known
 position, and shots remain visible through fog.
 
@@ -75,7 +76,7 @@ simulation continues to own reveal and visibility transitions.
    units spawn; enemy AI perception remains separate.
 3. Fog controls presentation only. It must not secretly change firing,
    pathfinding, collision, damage, or tactical perception. Shot visibility is
-   deliberately outside the V1 gate.
+   deliberately outside the fog presentation gate.
 4. A roof's visibility follows the bitmap's interior-cell rule. A roof may not
    stay opaque when that same player vision reaches an interior cell; temporary
    overhead observation follows the same rule.
@@ -89,33 +90,34 @@ simulation continues to own reveal and visibility transitions.
    never inherit the released occupant's visual state.
 8. Current observation is not memory. Last-known ghosts, projectile gating,
    and ambient lighting are separate extensions and must state their own
-   authority rather than changing the V1 meaning of revealed.
+   authority rather than changing the current-observation meaning of revealed.
 
-## Current shipped behavior
+## Observation and lifecycle boundaries
 
-V1 uses line-of-sight shadowcasting with an incremental contributor cadence,
-a ref-counted reveal union, a soft-edged terrain-darkening overlay, and hidden /
-fading hostile render states. The building pass now reads that same union rather
-than sampling a different roof-specific sight test, so terrain, unit, and roof
-presentation agree.
+Line-of-sight shadowcasting runs on an incremental contributor cadence and
+builds a ref-counted reveal union. A soft-edged overlay darkens terrain, hostile
+units transition through hidden and fading states, and the building pass reads
+the same union rather than sampling a roof-specific sight test. Terrain, unit,
+and roof presentation therefore agree on what the player can observe.
 
-The current dense-slot lifecycle and stationary-footprint cache do not yet
-fully satisfy laws 6 and 7. `stories.md` tracks those two bounded authority
-cleanups; they are not missing V1 features.
+A contributor footprint may be reused only while every footprint input remains
+compatible, not merely while its cell is unchanged. Dense-slot visibility and
+fade state must likewise transfer or clear with roster compaction and release.
+`stories.md` owns the two bounded compatibility corrections where the existing
+cache and lifecycle do not yet satisfy those laws.
 
-Temporary vision currently comes from friendly visible shuttles, friendly
-flyby fighters, and active recon pings. It can therefore open a roof briefly
-when its footprint sees an interior; that is intentional.
+Friendly visible shuttles, friendly flyby fighters, and active recon pings can
+all provide temporary vision. Their footprints may therefore open a roof
+briefly when they see an interior; that is intentional.
 
-## Time of day and adjacent systems
+## Adjacent authority boundaries
 
-`time-of-day.md` remains a deferred story, but no time-of-day gameplay
-or lighting implementation is currently installed: the dormant lightmap
-experiment was removed on 2026-06-29. If revived, time of day owns the mission
-clock and its dawn event; fog consumes its sight multiplier through the
-`VisionService` inputs, and reinforcement owns the resulting arrival policy.
-It must satisfy the footprint-invalidation law rather than rely on unit motion
-to refresh a night range change.
+No time-of-day clock or ambient-lighting authority is installed. A future
+mission-owned clock would own its dawn event, fog would consume any sight
+multiplier through `VisionService`, mission policy would own whether dawn
+authorizes reinforcements, and reinforcement would own delivery. Changing the
+multiplier must satisfy the footprint-invalidation law rather than rely on unit
+motion to refresh a night range change.
 
 Fog is adjacent to the render pipeline because it chooses paint order and
 consumes visual state, and to map generation because buildings provide interior

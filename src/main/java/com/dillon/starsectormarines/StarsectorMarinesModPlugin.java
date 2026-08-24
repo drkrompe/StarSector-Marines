@@ -23,6 +23,7 @@ import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.Rank;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.fs.starfarer.api.BaseModPlugin;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.PersistentUIDataAPI.AbilitySlotAPI;
@@ -59,6 +60,10 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         // Turret mounts and static platforms resolve weapon ids eagerly, so this
         // catalog necessarily follows the weapon registry.
         TurretCatalogRegistry.loadBuiltins();
+        // Loadout identity, activation, AI policy, and equipment presentation.
+        // Weapon-like items validate their referenced WeaponDef, so this follows
+        // the weapon catalog and remains fail-loud for malformed built-in data.
+        SpecialEquipmentRegistry.loadBuiltins();
     }
 
     @Override

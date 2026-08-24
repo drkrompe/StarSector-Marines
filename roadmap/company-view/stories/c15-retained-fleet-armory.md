@@ -1,8 +1,8 @@
 # C15 — Retained Fleet Armory
 
-Status: IN PROGRESS — retained foundation accepted; production migration underway
+Status: IN PROGRESS — formation, template issue, and live billet preview migrated; broader parity remains
 Written: 2026-08-23
-Updated: 2026-08-24 — beginning with the live squad/fire-team/template assignment workflow while legacy modes remain available for parity.
+Updated: 2026-08-24 — Company HQ now enters through an owned-company card grid, and selected template billets drive a retained equipment doll with a battlefield-composed sample soldier.
 
 Read `company-view-nouns.md`, `ui-nouns.md`, and
 `c14-fire-team-equipment-templates.md` first.
@@ -19,19 +19,30 @@ also survive the retained migration.
 
 ## Outcome
 
-Fleet Armory becomes the first production retained surface. The formation rail keeps
-the player's organizational context visible while a reusable template library,
+Fleet Armory becomes the first production retained surface. Its landing view is a
+responsive grid of literal portrait company cards; selecting one enters the
+formation/template/refit workspace for that company. The formation rail keeps the
+player's organizational context visible while a reusable template library,
 four-billet designer, and exact inventory transaction preview occupy one coherent
 workspace. Templates remain plans, never collectible cards.
 
 ## Information architecture
 
+- **Owned-company overview:** a responsive `display: grid` gallery of selectable
+  portrait cards at an approximately 1:3 width-to-height ratio. Each card names the
+  company and reports marine squads, mech squads, RTD strength, stationing, and a
+  derived readiness state before the player enters its workspace. The campaign
+  currently owns one authoritative roster, so the first shipped gallery has one real
+  card through a list-shaped view-model contract; it does not manufacture additional
+  companies or persistence.
 - **Formation rail:** company summary -> squad -> Alpha/Bravo/Charlie, with current
   assignment and conformance state. The selected fire team is the working context.
 - **Template library:** reusable designs with fielded and ready-to-issue counts,
   searchable/filterable as library size grows.
 - **Workspace:** four billets and current members, template authoring, or the selected
-  template's issue preview depending on the active task.
+  template's issue preview depending on the active task. Selecting a billet projects
+  its materialized equipment doll and a sample soldier through the battlefield actor
+  composition path without changing campaign state.
 - **Transaction rail:** free stock, returned issue, required issue, exact shortfall,
   and the one explicit apply action.
 - **Squad arrangements:** a fast squad-level composition view using the same templates
@@ -60,7 +71,13 @@ workspace. Templates remain plans, never collectible cards.
   panes.
 - Designing remains legal without stock; assigning remains stock-gated and atomic.
 - Template and arrangement previews exactly match the operation that applies them.
-- No player-facing use of card/deck/hand/consume terminology or behavior exists.
+- Company overview cards are literal selectable presentation containers. Fire-team
+  templates and squad arrangements never use card/deck/hand/consume terminology or
+  behavior.
+- The company gallery auto-fills fixed portrait cards into columns, wraps into rows as
+  the viewport narrows, and scrolls vertically without silent truncation.
+- The billet preview shows candidate armour, primary grade, and special equipment;
+  its sample soldier shares battlefield layer recipes rather than a UI-only pose table.
 - Layout remains usable for a large company and at UI scales 1.0, 1.25, and 1.5.
 - Mouse, keyboard, and drag interactions reach the same domain commands.
 - Mech subsystem counts and enabled install actions come from `MechBay`; the

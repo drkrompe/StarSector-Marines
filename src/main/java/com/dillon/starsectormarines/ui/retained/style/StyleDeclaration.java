@@ -71,6 +71,7 @@ public final class StyleDeclaration {
 
     private static boolean accepts(StyleProperty property, Object value) {
         return switch (property) {
+            case DISPLAY -> value instanceof UiDisplay;
             case FLEX_DIRECTION -> value instanceof UiLayout;
             case WIDTH, HEIGHT, ROW_GAP, COLUMN_GAP,
                  PADDING_TOP, PADDING_RIGHT, PADDING_BOTTOM, PADDING_LEFT,

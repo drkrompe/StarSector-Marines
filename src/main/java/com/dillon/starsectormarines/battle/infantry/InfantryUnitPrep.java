@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.marine.SpecialActivation;
+import com.dillon.starsectormarines.marine.SpecialAiPolicy;
 
 
 /**
@@ -136,8 +137,8 @@ public final class InfantryUnitPrep {
 
         MarineSecondary sec = sim.world().secondaryWeapon(id);
         if (!sec.hasAvailableUse(sim.world().secondaryAmmo(id))) return false;
-        if (sec.activation() == SpecialActivation.UTILITY_SMOKE) return false;
-        if (sec.activation() == SpecialActivation.UTILITY_SATCHEL) {
+        if (sec.specialDef().aiPolicy() == SpecialAiPolicy.SQUAD_SMOKE_SCREEN) return false;
+        if (sec.specialDef().aiPolicy() == SpecialAiPolicy.CONTACT_DEMOLITION) {
             return tryOpportunitySatchel(unit, sec, sim);
         }
         float range = sec.range();
