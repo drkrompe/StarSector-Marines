@@ -1,8 +1,10 @@
 # Combat durability
 
 Status: ACTIVE — armor-and-structure resolution is live; decision, evidence, and tuning follow-ons remain.
+
 Written: 2026-08-23
-Updated: 2026-08-23 — shipped the optional armor capability, penetration transport, shared live resolver, and initial durability profiles.
+
+Updated: 2026-08-24 — distinguished live resolver truth from transitional decision, morale, telemetry, and presentation readers.
 
 ## Purpose
 
@@ -116,41 +118,38 @@ platforms. Biological aliens or other special actors may add armor only when
 their authored identity calls for a real protective layer; unit category alone
 does not imply it.
 
-## AI, morale, telemetry, and presentation
+## Decisions, morale, evidence, and presentation
 
-AI evaluates expected armor loss, time to armor break, and expected structure
-loss from current target state. Scarce anti-armor ammunition should not be
-selected merely because a target's type once counted as hardened, especially
-when its armor is already gone or another attack has already committed enough
-damage to break it.
+Durability-aware decisions evaluate expected armor loss, time to armor break,
+and expected structure loss from current target state. Scarce anti-armor
+ammunition should not be selected merely because a target's type once counted
+as hardened, especially when its armor is already gone or another attack has
+already committed enough damage to break it.
 
-The live D1 implementation has removed target-type damage multipliers, but
-some target-selection gates remain descriptive type-based compatibility logic.
-D2 owns replacing those gates and the current mech morale proxy with decisions
-driven by the live armor state and the real armor-break transition.
-
-Mech morale consumes the real armor-break transition instead of treating a
-structure percentage as fictional lost armor. Structure thresholds may still
-create escalating pressure after exposure.
-
-Telemetry records armor damage and structure damage separately while retaining
-an aggregate resolved-damage value for career and report compatibility. Kill
-credit comes from structure depletion. Battle and campaign surfaces present
-armor pool/rating separately from structure, and weapons present penetration
-rather than an anti-hardened multiplier. Presentation observes simulation; it
+Morale, evidence, and presentation that claim to represent durability consume
+the real armor-break fact or current armor and structure state. Structure
+thresholds may still create escalating pressure after exposure. Kill credit
+comes only from structure depletion, and presentation observes simulation; it
 never creates armor state.
 
-D1 currently preserves aggregate telemetry and limited armory readouts. D3
-owns separate armor/structure evidence, battle-pool presentation, and the full
-penetration UI pass.
+The resolver currently calculates and applies armor loss and structure loss
+separately. Some readers remain compatibility boundaries: target selection
+still contains hardened-type gates, mech morale still uses structure
+percentage as an armor-loss proxy, telemetry records only aggregate resolved
+pool loss, and armory/battle surfaces expose limited durability evidence.
+These transitional readers are not another durability authority and must not
+be copied into new consumers. `stories.md` owns their bounded conversion to
+current-state decisions, real armor-break morale, split evidence, and legible
+armor, structure, rating, and penetration presentation.
 
 ## Standing laws
 
 - Structure, armor pool, and armor rating are distinct axes.
 - Every damage payload keeps damage and penetration as distinct axes.
 - Armor presence and current armor state replace target-type damage bonuses.
-- No consumer copies a private durability formula or infers armor break from a
-  health percentage.
+- Consumers use the shared calculation, current pools, and real armor-break
+  fact. The tracked HP-threshold morale proxy is a compatibility exception;
+  no new consumer copies a private formula or infers armor break from health.
 - Resolved damage is clamped pool loss; resisted or overkill damage is not
   credited output.
 - Cover resolves before armor; walls retain their separate durability model.

@@ -1,8 +1,10 @@
 # Company view nouns
 
-Status: ACTIVE — 11 open stories
+Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface company read models continue to evolve.
+
 Written: 2026-08-23
-Updated: 2026-08-23 — clarified elastic battle fire-team tempo and contained-terrain authority.
+
+Updated: 2026-08-24 — replaced the board-shaped roadmap recap with durable extension boundaries.
 
 ## Purpose
 
@@ -355,13 +357,15 @@ production vehicle deployment seam exists.
 - Missing or unavailable information is explained, not rendered as zero.
 - Presentation conveys organization but never changes simulation authority.
 
-## Planned direction
+## Extension boundaries
 
-The remaining work is equipment authoring, presentation, and tactical
-refinement: add degraded-team conformance;
-derive one shared
-formation snapshot; show officer grouping, squad whereabouts, battle rollup, and
-after-action survival consistently; give late arrivals a safe rejoin state; make
-fire teams stable AI maneuver elements; resolve outcomes for every participating
-officer; make large-company assignment practical; and add the sector contract
-board.
+Future extensions may add a shared formation read model, safe late-arrival
+rejoin, participating-officer outcomes, practical large-company assignment,
+and a sector contract board. Each extension must preserve the canonical
+company organization and frozen deployment identities rather than persisting
+a second presentation-owned roster.
+
+Equipment authoring remains bounded by finite stock and atomic assignment;
+read surfaces remain projections of their owning campaign or frozen mission
+state. A contract board may present offers and obligation clocks, but it does
+not become their authority or introduce a second clock lifecycle.
