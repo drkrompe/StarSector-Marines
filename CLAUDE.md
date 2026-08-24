@@ -79,6 +79,9 @@ Do not run builds or leave generated task files there.
 - `gradlew.bat renderUiPreviews` → authored retained-view PNGs in
   `build/headless-ui-previews/`, using the same document layout, styles, bitmap fonts,
   clipping, and canvas producers as the live UI. Pass `-PuiPreviewDir=<path>` to redirect.
+- `gradlew.bat renderTurretPreviews` → deterministic six-state turret catalog strips in
+  `build/turret-previews/catalog/` through the shared retained headless renderer. Pass
+  `-PturretPreviewDir=<path>` to redirect.
 - `gradlew.bat layerAuthoring` → standalone marine/mech layer workbench with drag,
   scale, rotation, variant-scoped interpolated animation playback, combined-sheet
   export, and validated atomic writes

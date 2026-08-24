@@ -1,8 +1,10 @@
 package com.dillon.starsectormarines.ui.retained.headless;
 
 import com.dillon.starsectormarines.ui.BitmapFont;
+import com.dillon.starsectormarines.ui.retained.CanvasBlend;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.CanvasMetrics;
+import com.dillon.starsectormarines.ui.retained.CanvasSpriteRegion;
 import com.dillon.starsectormarines.ui.retained.Rect;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
@@ -13,12 +15,17 @@ import javax.imageio.ImageIO;
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Composite;
+import java.awt.CompositeContext;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.Raster;
+import java.awt.image.WritableRaster;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -69,7 +76,7 @@ public final class HeadlessUiRenderer {
                                     IdentityHashMap<BitmapFont, Boolean> installed) {
         BitmapFont font = document.styles().fontFor(element);
         if (font != null && installed.put(font, Boolean.TRUE) == null) {
-            font.installMetrics(resources.readString(font.sourcePath()));
+            resources.installFontMetrics(font);
         }
         for (UiElement child : element.children()) {
             installFontMetrics(document, child, installed);
@@ -213,12 +220,13 @@ public final class HeadlessUiRenderer {
         @Override
         protected void drawSprite(String sourcePath, SpriteAPI liveSprite,
                                   float centerX, float centerY, float width, float height,
-                                  float angleDegrees, Color tint) {
+                                  float angleDegrees, Color tint,
+                                  CanvasSpriteRegion region, CanvasBlend blend) {
             if (sourcePath == null || sourcePath.isBlank()) {
                 throw new IllegalArgumentException(
                         "Headless canvas sprites require their source path");
             }
-            BufferedImage image = resources.image(sourcePath);
+            BufferedImage image = sourceRegion(resources.tintedSprite(sourcePath, tint), region);
             CanvasMetrics metrics = metrics();
             AffineTransform transform = graphics.getTransform();
             var composite = graphics.getComposite();
@@ -226,11 +234,26 @@ public final class HeadlessUiRenderer {
             graphics.rotate(Math.toRadians(-angleDegrees));
             graphics.scale(width * metrics.scaleX() / image.getWidth(),
                     height * metrics.scaleY() / image.getHeight());
-            graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
-                    clampAlpha(tint.getAlpha() / 255f * alphaMult())));
+            float opacity = clampAlpha(tint.getAlpha() / 255f * alphaMult());
+            graphics.setComposite(blend == CanvasBlend.ADDITIVE
+                    ? new AdditiveComposite(opacity)
+                    : AlphaComposite.getInstance(AlphaComposite.SRC_OVER, opacity));
             graphics.drawImage(image, -image.getWidth() / 2, -image.getHeight() / 2, null);
             graphics.setComposite(composite);
             graphics.setTransform(transform);
+        }
+
+        private static BufferedImage sourceRegion(BufferedImage source,
+                                                  CanvasSpriteRegion region) {
+            if (region.equals(CanvasSpriteRegion.FULL)) return source;
+            int left = Math.round(region.x() * source.getWidth());
+            int top = Math.round(region.y() * source.getHeight());
+            int right = Math.round((region.x() + region.width()) * source.getWidth());
+            int bottom = Math.round((region.y() + region.height()) * source.getHeight());
+            if (right <= left || bottom <= top) {
+                throw new IllegalArgumentException("sprite region resolves to no source pixels");
+            }
+            return source.getSubimage(left, top, right - left, bottom - top);
         }
     }
 
@@ -238,6 +261,9 @@ public final class HeadlessUiRenderer {
         private final List<Path> roots;
         private final Map<String, BufferedImage> images = new LinkedHashMap<>();
         private final Map<TintKey, BufferedImage> tintedFonts = new LinkedHashMap<>();
+        private final Map<SpriteTintKey, BufferedImage> tintedSprites = new LinkedHashMap<>();
+        private final IdentityHashMap<BitmapFont, Boolean> installedFonts =
+                new IdentityHashMap<>();
 
         private ResourceStore(List<Path> roots) {
             if (roots == null || roots.isEmpty()) {
@@ -267,10 +293,24 @@ public final class HeadlessUiRenderer {
             });
         }
 
+        private void installFontMetrics(BitmapFont font) {
+            if (installedFonts.put(font, Boolean.TRUE) == null) {
+                font.installMetrics(readString(font.sourcePath()));
+            }
+        }
+
+        private BufferedImage tintedSprite(String resourcePath, Color tint) {
+            int rgb = tint.getRGB() & 0x00FFFFFF;
+            if (rgb == 0x00FFFFFF) return image(resourcePath);
+            return tintedSprites.computeIfAbsent(new SpriteTintKey(resourcePath, rgb), key ->
+                    modulate(image(key.path()), key.rgb()));
+        }
+
         private void drawText(Graphics2D graphics, BitmapFont font, String text,
                               float x, float y, float scaleX, float scaleY,
                               Color color, float alphaMult) {
             if (text == null || text.isEmpty()) return;
+            installFontMetrics(font);
             int alpha = Math.round(255f * clampAlpha(color.getAlpha() / 255f * alphaMult));
             TintKey key = new TintKey(font.pagePath(), color.getRGB() & 0x00FFFFFF, alpha);
             BufferedImage atlas = tintedFonts.computeIfAbsent(key,
@@ -315,9 +355,91 @@ public final class HeadlessUiRenderer {
             }
             return tinted;
         }
+
+        private static BufferedImage modulate(BufferedImage source, int tintRgb) {
+            BufferedImage tinted = new BufferedImage(
+                    source.getWidth(), source.getHeight(), BufferedImage.TYPE_INT_ARGB);
+            int tintRed = tintRgb >>> 16 & 0xff;
+            int tintGreen = tintRgb >>> 8 & 0xff;
+            int tintBlue = tintRgb & 0xff;
+            for (int y = 0; y < source.getHeight(); y++) {
+                for (int x = 0; x < source.getWidth(); x++) {
+                    int sourcePixel = source.getRGB(x, y);
+                    int alpha = sourcePixel >>> 24;
+                    int red = (sourcePixel >>> 16 & 0xff) * tintRed / 255;
+                    int green = (sourcePixel >>> 8 & 0xff) * tintGreen / 255;
+                    int blue = (sourcePixel & 0xff) * tintBlue / 255;
+                    tinted.setRGB(x, y, alpha << 24 | red << 16 | green << 8 | blue);
+                }
+            }
+            return tinted;
+        }
     }
 
     private record TintKey(String path, int rgb, int alpha) { }
+
+    private record SpriteTintKey(String path, int rgb) { }
+
+    /** Java2D equivalent of the live canvas's SRC_ALPHA, ONE sprite blend. */
+    private record AdditiveComposite(float opacity) implements Composite {
+
+        private AdditiveComposite {
+            if (!Float.isFinite(opacity) || opacity < 0f || opacity > 1f) {
+                throw new IllegalArgumentException("additive opacity must be between zero and one");
+            }
+        }
+
+        @Override
+        public CompositeContext createContext(ColorModel sourceColorModel,
+                                              ColorModel destinationColorModel,
+                                              RenderingHints hints) {
+            return new AdditiveContext(sourceColorModel, destinationColorModel, opacity);
+        }
+    }
+
+    private record AdditiveContext(ColorModel sourceColorModel,
+                                   ColorModel destinationColorModel,
+                                   float opacity) implements CompositeContext {
+
+        @Override
+        public void compose(Raster source, Raster destinationIn,
+                            WritableRaster destinationOut) {
+            int width = Math.min(source.getWidth(), destinationIn.getWidth());
+            int height = Math.min(source.getHeight(), destinationIn.getHeight());
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    int sourceArgb = sourceColorModel.getRGB(source.getDataElements(
+                            source.getMinX() + x, source.getMinY() + y, null));
+                    int destinationArgb = destinationColorModel.getRGB(
+                            destinationIn.getDataElements(destinationIn.getMinX() + x,
+                                    destinationIn.getMinY() + y, null));
+                    int sourceAlpha = Math.round((sourceArgb >>> 24) * opacity);
+                    int destinationAlpha = destinationArgb >>> 24;
+                    int outputAlpha = Math.min(255, destinationAlpha
+                            + sourceAlpha * sourceAlpha / 255);
+                    int outputRed = additiveChannel(destinationArgb >>> 16 & 0xff,
+                            sourceArgb >>> 16 & 0xff, sourceAlpha);
+                    int outputGreen = additiveChannel(destinationArgb >>> 8 & 0xff,
+                            sourceArgb >>> 8 & 0xff, sourceAlpha);
+                    int outputBlue = additiveChannel(destinationArgb & 0xff,
+                            sourceArgb & 0xff, sourceAlpha);
+                    int outputArgb = outputAlpha << 24 | outputRed << 16
+                            | outputGreen << 8 | outputBlue;
+                    destinationOut.setDataElements(destinationOut.getMinX() + x,
+                            destinationOut.getMinY() + y,
+                            destinationColorModel.getDataElements(outputArgb, null));
+                }
+            }
+        }
+
+        @Override
+        public void dispose() {
+        }
+
+        private static int additiveChannel(int destination, int source, int sourceAlpha) {
+            return Math.min(255, destination + source * sourceAlpha / 255);
+        }
+    }
 
     private static Color opaque(Color color) {
         return new Color(color.getRed(), color.getGreen(), color.getBlue());
