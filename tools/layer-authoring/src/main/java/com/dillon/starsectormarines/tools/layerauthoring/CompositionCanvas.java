@@ -27,6 +27,8 @@ final class CompositionCanvas extends JPanel {
     private List<RenderedLayer> rendered = new ArrayList<>();
     private Consumer<LayerDefinition> selectionListener = ignored -> { };
     private Runnable changeListener = () -> { };
+    private Runnable changeStarted = () -> { };
+    private Runnable changeFinished = () -> { };
     private Point dragStart;
     private double dragOffsetX;
     private double dragOffsetY;
@@ -38,7 +40,7 @@ final class CompositionCanvas extends JPanel {
         MouseAdapter mouse = new MouseAdapter() {
             @Override public void mousePressed(MouseEvent event) { beginDrag(event); }
             @Override public void mouseDragged(MouseEvent event) { drag(event); }
-            @Override public void mouseReleased(MouseEvent event) { dragStart = null; }
+            @Override public void mouseReleased(MouseEvent event) { finishDrag(); }
             @Override public void mouseWheelMoved(MouseWheelEvent event) { wheel(event); }
         };
         addMouseListener(mouse);
@@ -63,6 +65,14 @@ final class CompositionCanvas extends JPanel {
         changeListener = listener;
     }
 
+    void onChangeStarted(Runnable listener) {
+        changeStarted = listener;
+    }
+
+    void onChangeFinished(Runnable listener) {
+        changeFinished = listener;
+    }
+
     @Override
     protected void paintComponent(Graphics graphics) {
         super.paintComponent(graphics);
@@ -81,6 +91,7 @@ final class CompositionCanvas extends JPanel {
             selectionListener.accept(hit);
         }
         if (selected != null) {
+            changeStarted.run();
             dragStart = event.getPoint();
             dragOffsetX = selected.offsetX();
             dragOffsetY = selected.offsetY();
@@ -107,6 +118,7 @@ final class CompositionCanvas extends JPanel {
 
     private void wheel(MouseWheelEvent event) {
         if (selected == null) return;
+        changeStarted.run();
         double turns = event.getPreciseWheelRotation();
         if (event.isControlDown()) {
             selected.angleDegrees(round(selected.angleDegrees() - turns * 2.0, 3));
@@ -119,7 +131,13 @@ final class CompositionCanvas extends JPanel {
             selected.scale(round(x, 5), round(y, 5));
         }
         changed();
+        changeFinished.run();
         event.consume();
+    }
+
+    private void finishDrag() {
+        if (dragStart != null) changeFinished.run();
+        dragStart = null;
     }
 
     private void changed() {

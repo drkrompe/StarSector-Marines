@@ -5,7 +5,8 @@ Status: SHIPPED — retained UI foundation proven in-engine
 Written: 2026-08-23
 
 Updated: 2026-08-24 — folded the retained-toolkit direction into this sole
-canonical model, including responsive grids and backend-neutral canvas evidence.
+canonical model, including responsive grids, backend-neutral canvas evidence,
+and safe offline layer-authoring history.
 
 ## Purpose
 
@@ -224,7 +225,9 @@ screen. A unit-layer document describes frames as ordered sprite layers in norma
 actor coordinates, including source path, offset, independent scale, angle, pivot,
 visibility, and duration. The authoring workbench edits that contract, plays its frame
 sequence, and renders combined PNG sheets in a controlled Java2D context. Live render
-adapters remain responsible for consuming the same contract; the tool never reaches
+adapters remain responsible for consuming the same contract. The editor keeps bounded
+whole-document undo/redo history, while JSON and image overwrites require explicit
+confirmation; the tool never reaches
 into a running battle or treats an editor-only transform as shipped behavior.
 
 ## Authority boundaries

@@ -77,6 +77,47 @@ class AuthoringDocumentTest {
         assertFalse(source.layers().get(0).offsetY() == copy.layers().get(0).offsetY());
     }
 
+    @Test
+    void historyRestoresWholeDocumentChangesAndSupportsRedo() throws Exception {
+        AuthoringDocument document = AuthoringDocument.load(Path.of("."));
+        DocumentHistory history = new DocumentHistory();
+        LayerDefinition original = document.units().get(0).frames().get(0).layers().get(0);
+        double originalX = original.offsetX();
+
+        history.begin(document);
+        original.offset(0.4321, original.offsetY());
+        assertTrue(history.commit(document));
+        assertTrue(history.canUndo());
+
+        document = history.undo(document);
+        assertEquals(originalX,
+                document.units().get(0).frames().get(0).layers().get(0).offsetX(), 0.000001);
+        assertTrue(history.canRedo());
+
+        document = history.redo(document);
+        assertEquals(0.4321,
+                document.units().get(0).frames().get(0).layers().get(0).offsetX(), 0.000001);
+    }
+
+    @Test
+    void newEditAfterUndoClearsRedoHistory() throws Exception {
+        AuthoringDocument document = AuthoringDocument.load(Path.of("."));
+        DocumentHistory history = new DocumentHistory();
+        LayerDefinition layer = document.units().get(0).frames().get(0).layers().get(0);
+
+        history.begin(document);
+        layer.offset(0.2, layer.offsetY());
+        history.commit(document);
+        document = history.undo(document);
+
+        history.begin(document);
+        layer = document.units().get(0).frames().get(0).layers().get(0);
+        layer.offset(0.3, layer.offsetY());
+        history.commit(document);
+
+        assertFalse(history.canRedo());
+    }
+
     private static int[] pixels(BufferedImage image) {
         return ((DataBufferInt) image.getRaster().getDataBuffer()).getData();
     }

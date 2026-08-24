@@ -37,7 +37,13 @@ public final class AuthoringDocument {
     public static AuthoringDocument load(Path projectRoot) throws IOException, JSONException {
         Path normalizedRoot = projectRoot.toAbsolutePath().normalize();
         Path source = normalizedRoot.resolve(RELATIVE_PATH).normalize();
-        JSONObject root = new JSONObject(Files.readString(source, StandardCharsets.UTF_8));
+        return parse(normalizedRoot, Files.readString(source, StandardCharsets.UTF_8));
+    }
+
+    static AuthoringDocument parse(Path projectRoot, String sourceJson) throws JSONException {
+        Path normalizedRoot = projectRoot.toAbsolutePath().normalize();
+        Path source = normalizedRoot.resolve(RELATIVE_PATH).normalize();
+        JSONObject root = new JSONObject(sourceJson);
         if (root.getInt("schemaVersion") != 1) {
             throw new IllegalArgumentException("Unsupported unit-layer schema version");
         }
@@ -52,6 +58,10 @@ public final class AuthoringDocument {
             throw new IllegalArgumentException(String.join(System.lineSeparator(), errors));
         }
         return document;
+    }
+
+    String snapshot() throws JSONException {
+        return toJson().toString();
     }
 
     public Path projectRoot() {
@@ -113,17 +123,7 @@ public final class AuthoringDocument {
         List<String> errors = validate();
         if (!errors.isEmpty()) throw new IllegalStateException(String.join("\n", errors));
 
-        JSONObject root = new JSONObject();
-        root.put("schemaVersion", 1);
-        root.put("coordinateSystem", new JSONObject()
-                .put("origin", "actor-center")
-                .put("x", "right")
-                .put("y", "forward")
-                .put("angleDegrees", "counter-clockwise")
-                .put("pivot", "normalized-from-top-left"));
-        JSONArray unitArray = new JSONArray();
-        for (UnitComposition unit : units) unitArray.put(unit.toJson());
-        root.put("units", unitArray);
+        JSONObject root = toJson();
 
         Files.createDirectories(sourcePath.getParent());
         Path temporary = sourcePath.resolveSibling(sourcePath.getFileName()
@@ -136,6 +136,21 @@ public final class AuthoringDocument {
         } catch (AtomicMoveNotSupportedException unsupported) {
             Files.move(temporary, sourcePath, StandardCopyOption.REPLACE_EXISTING);
         }
+    }
+
+    private JSONObject toJson() throws JSONException {
+        JSONObject root = new JSONObject();
+        root.put("schemaVersion", 1);
+        root.put("coordinateSystem", new JSONObject()
+                .put("origin", "actor-center")
+                .put("x", "right")
+                .put("y", "forward")
+                .put("angleDegrees", "counter-clockwise")
+                .put("pivot", "normalized-from-top-left"));
+        JSONArray unitArray = new JSONArray();
+        for (UnitComposition unit : units) unitArray.put(unit.toJson());
+        root.put("units", unitArray);
+        return root;
     }
 
     private static boolean unitInterval(double value) {
