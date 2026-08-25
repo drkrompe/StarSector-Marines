@@ -619,6 +619,7 @@ public final class UnitRenderService implements RenderSystem {
      * combatant-and-not-drone check.
      */
     private void sweepHpBars(RenderContext ctx, DrawList out) {
+        if (!ctx.hostProfile.unitDecorationsVisible()) return;
         BattleCamera cam = ctx.camera;
         World world = ctx.sim.world();
         TurretStateService turretState = ctx.sim.turretState();

@@ -26,10 +26,20 @@ public final class RenderContext {
     final HighlightOverlay highlights;
     /** Shared selection state — read by renderSelectedVehicleDebug. */
     final Selection selection;
+    final BattleRenderHostProfile hostProfile;
 
     public RenderContext(BattleSimulation sim, BattleCamera camera, BattleLayout layout,
                   float alphaMult, float realDt, boolean debugZonesVisible,
                   HighlightOverlay highlights, Selection selection) {
+        this(sim, camera, layout, alphaMult, realDt, debugZonesVisible,
+                highlights, selection, BattleRenderHostProfile.STANDALONE_BATTLE);
+    }
+
+    public RenderContext(BattleSimulation sim, BattleCamera camera, BattleLayout layout,
+                  float alphaMult, float realDt, boolean debugZonesVisible,
+                  HighlightOverlay highlights, Selection selection,
+                  BattleRenderHostProfile hostProfile) {
+        if (hostProfile == null) throw new IllegalArgumentException("host profile is required");
         this.sim = sim;
         this.camera = camera;
         this.layout = layout;
@@ -38,5 +48,6 @@ public final class RenderContext {
         this.debugZonesVisible = debugZonesVisible;
         this.highlights = highlights;
         this.selection = selection;
+        this.hostProfile = hostProfile;
     }
 }
