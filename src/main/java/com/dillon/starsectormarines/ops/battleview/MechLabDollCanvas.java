@@ -20,28 +20,28 @@ import com.dillon.starsectormarines.ui.retained.CanvasSpriteRegion;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
 import java.awt.Color;
+import java.util.List;
 import java.util.function.DoubleSupplier;
+import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
-/** Canonically composed mech inside a top-down battle-tileset fabrication bay. */
+/** Canonically composed lance inside a top-down battle-tileset fabrication garage. */
 public final class MechLabDollCanvas implements CanvasProducer {
 
     private static final String ROOT = "graphics/battle/mech-modular-topdown/";
     private static final int URBAN_COLUMNS = 10;
     private static final int URBAN_ROWS = 10;
-    private static final int ROAD_COLUMNS = 18;
-    private static final int ROAD_ROWS = 3;
     private static final float GANTRY_FACING_DEGREES = 180f;
     private static final Color BACKGROUND = new Color(0x06, 0x0A, 0x10);
     private static final Color WELD = new Color(0xA5, 0xE8, 0xFF);
     private static final Color WHITE = Color.WHITE;
 
-    private final Supplier<MechVariant> variant;
+    private final Supplier<List<MechVariant>> variants;
+    private final IntSupplier selectedGantry;
     private final Supplier<SocketId> selectedSocket;
     private final Supplier<LayeredMechAssets> assets;
     private final Supplier<LayeredUnitAssets> technicianAssets;
     private final Supplier<SpriteAPI> tileSheet;
-    private final Supplier<SpriteAPI> roadSheet;
     private final MechLabBattleScene battleScene;
     private final DoubleSupplier elapsedSeconds;
 
@@ -72,17 +72,31 @@ public final class MechLabDollCanvas implements CanvasProducer {
                              Supplier<SpriteAPI> roadSheet,
                              MechLabBattleScene battleScene,
                              DoubleSupplier elapsedSeconds) {
-        if (variant == null || selectedSocket == null || assets == null || technicianAssets == null
+        this(singletonVariants(variant), () -> 0, selectedSocket, assets,
+                technicianAssets, tileSheet, roadSheet, battleScene, elapsedSeconds);
+    }
+
+    public MechLabDollCanvas(Supplier<List<MechVariant>> variants,
+                             IntSupplier selectedGantry,
+                             Supplier<SocketId> selectedSocket,
+                             Supplier<LayeredMechAssets> assets,
+                             Supplier<LayeredUnitAssets> technicianAssets,
+                             Supplier<SpriteAPI> tileSheet,
+                             Supplier<SpriteAPI> roadSheet,
+                             MechLabBattleScene battleScene,
+                             DoubleSupplier elapsedSeconds) {
+        if (variants == null || selectedGantry == null || selectedSocket == null
+                || assets == null || technicianAssets == null
                 || tileSheet == null || roadSheet == null || elapsedSeconds == null) {
             throw new IllegalArgumentException(
-                    "variant, socket, mech/technician/tile assets, and elapsed time are required");
+                    "variants, gantry, socket, mech/technician/tile assets, and elapsed time are required");
         }
-        this.variant = variant;
+        this.variants = variants;
+        this.selectedGantry = selectedGantry;
         this.selectedSocket = selectedSocket;
         this.assets = assets;
         this.technicianAssets = technicianAssets;
         this.tileSheet = tileSheet;
-        this.roadSheet = roadSheet;
         this.battleScene = battleScene;
         this.elapsedSeconds = elapsedSeconds;
     }
@@ -92,42 +106,37 @@ public final class MechLabDollCanvas implements CanvasProducer {
         float width = context.metrics().surfaceWidth();
         float height = context.metrics().surfaceHeight();
         float time = (float) elapsedSeconds.getAsDouble();
-        MechVariant selected = variant.get();
+        List<MechVariant> lance = variants.get();
+        int gantryIndex = selectedIndex(lance, selectedGantry.getAsInt());
+        MechVariant selected = gantryIndex >= 0 ? lance.get(gantryIndex) : null;
         LayeredMechAssets sprites = assets.get();
         if (selected == null || sprites == null) return;
 
         CanvasHostViewport[] liveViewport = new CanvasHostViewport[1];
         boolean liveScene = battleScene != null && context.hostPass((viewport, alphaMult) -> {
             liveViewport[0] = viewport;
-            battleScene.renderBackdrop(viewport, selected, alphaMult);
+            battleScene.renderBackdrop(viewport, lance, gantryIndex, alphaMult);
         });
         SceneProjection projection;
         BattleCamera sceneCamera;
         if (liveScene) {
             CanvasHostViewport viewport = liveViewport[0];
             sceneCamera = MechLabBattleScene.cameraForSurface(
-                    viewport.width(), viewport.height());
-            projection = SceneProjection.forLive(sceneCamera, viewport, selected);
+                    viewport.width(), viewport.height(), gantryIndex);
+            projection = SceneProjection.forLive(sceneCamera, viewport, selected, gantryIndex);
         } else {
-            sceneCamera = MechLabBattleScene.cameraForSurface(width, height);
-            projection = SceneProjection.forCanvas(sceneCamera, height, selected);
-            drawGarage(context, sceneCamera, height, tileSheet.get(), roadSheet.get());
+            sceneCamera = MechLabBattleScene.cameraForSurface(width, height, gantryIndex);
+            projection = SceneProjection.forCanvas(sceneCamera, height, selected, gantryIndex);
+            drawGarage(context, sceneCamera, height, tileSheet.get());
         }
 
         drawSocketOverlays(context, MechFittingLayout.forVariant(selected),
                 selectedSocket.get(), projection);
         if (liveScene) {
             context.hostPass((viewport, alphaMult) ->
-                    battleScene.renderActors(viewport, selected, alphaMult));
+                    battleScene.renderActors(viewport, lance, gantryIndex, alphaMult));
         } else {
-            LayeredMechComposer.emit(new CanvasSink(context, height), sprites,
-                    projection.actorX(), height - projection.actorY(), projection.hullX(),
-                    GANTRY_FACING_DEGREES, GANTRY_FACING_DEGREES,
-                    0f, 0f, 0f, 0f, 0,
-                    selected.chassisAppearance,
-                    selected.arms.appearanceSelector,
-                    appearance(selected.leftShoulder),
-                    appearance(selected.rightShoulder), 1f);
+            drawLance(context, sceneCamera, height, sprites, lance);
             drawTechnicians(context, sceneCamera, height, projection.cellX(),
                     technicianAssets.get());
         }
@@ -135,7 +144,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
     }
 
     private static void drawGarage(CanvasContext c, BattleCamera camera, float height,
-                                   SpriteAPI urbanSheet, SpriteAPI roadSheet) {
+                                   SpriteAPI urbanSheet) {
         c.fillRect(0f, 0f, c.metrics().surfaceWidth(), height, BACKGROUND);
         float cell = camera.cellPxSize();
         for (int y = 0; y < MechLabSceneLayout.HEIGHT; y++) {
@@ -148,23 +157,21 @@ public final class MechLabDollCanvas implements CanvasProducer {
                     drawUrbanTile(c, urbanSheet, column, row, centerX, centerY, cell);
                     continue;
                 }
-                switch (MechLabSceneLayout.groundKind(x, y)) {
-                    case STRIPED -> drawRoadTile(c, roadSheet, 7, 2,
-                            centerX, centerY, cell);
-                    case TILE -> drawRoadTile(c, roadSheet, 11, 0,
-                            centerX, centerY, cell);
-                    default -> {
-                        boolean northWall = MechLabSceneLayout.wall(x, y + 1);
-                        boolean southWall = MechLabSceneLayout.wall(x, y - 1);
-                        boolean eastWall = MechLabSceneLayout.wall(x + 1, y);
-                        boolean westWall = MechLabSceneLayout.wall(x - 1, y);
-                        int column = westWall ? 0 : eastWall ? 2 : 1;
-                        int row = northWall ? 0 : southWall ? 2 : 1;
-                        drawUrbanTile(c, urbanSheet, column, row,
-                                centerX, centerY, cell);
-                    }
-                }
+                boolean northWall = MechLabSceneLayout.wall(x, y + 1);
+                boolean southWall = MechLabSceneLayout.wall(x, y - 1);
+                boolean eastWall = MechLabSceneLayout.wall(x + 1, y);
+                boolean westWall = MechLabSceneLayout.wall(x - 1, y);
+                int column = westWall ? 0 : eastWall ? 2 : 1;
+                int row = northWall ? 0 : southWall ? 2 : 1;
+                drawUrbanTile(c, urbanSheet, column, row,
+                        centerX, centerY, cell);
             }
+        }
+        for (MechLabSceneLayout.FloorOverlayPlacement overlay
+                : MechLabSceneLayout.floorOverlays()) {
+            drawUrbanTile(c, urbanSheet, overlay.tileColumn(), overlay.tileRow(),
+                    camera.cellToScreenX(overlay.cellX() + 0.5f),
+                    height - camera.cellToScreenY(overlay.cellY() + 0.5f), cell);
         }
         for (MechLabSceneLayout.PropPlacement prop : MechLabSceneLayout.PROPS) {
             drawUrbanTile(c, urbanSheet, prop.tileColumn(), prop.tileRow(),
@@ -177,13 +184,6 @@ public final class MechLabDollCanvas implements CanvasProducer {
                                       int column, int row, float centerX, float centerY,
                                       float size) {
         drawTile(c, TileManifest.SHEET, liveSheet, URBAN_COLUMNS, URBAN_ROWS,
-                column, row, centerX, centerY, size);
-    }
-
-    private static void drawRoadTile(CanvasContext c, SpriteAPI liveSheet,
-                                     int column, int row, float centerX, float centerY,
-                                     float size) {
-        drawTile(c, TileManifest.ROAD_SHEET, liveSheet, ROAD_COLUMNS, ROAD_ROWS,
                 column, row, centerX, centerY, size);
     }
 
@@ -200,7 +200,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         if (crew == null) return;
         float shoulder = UnitRenderService.layeredInfantryShoulderWidth(
                 cell, UnitType.ENGINEER.renderScale);
-        float[] facings = {90f, 250f, 70f};
+        float[] facings = {90f, 250f, 70f, 290f};
         for (int index = 0; index < MechLabSceneLayout.TECHNICIANS.size(); index++) {
             MechLabSceneLayout.TechnicianPlacement technician =
                     MechLabSceneLayout.TECHNICIANS.get(index);
@@ -209,6 +209,38 @@ public final class MechLabDollCanvas implements CanvasProducer {
                     height - camera.cellToScreenY(technician.cellY() + 0.5f),
                     shoulder, facings[index], 0f, false);
         }
+    }
+
+    private static void drawLance(CanvasContext context, BattleCamera camera, float height,
+                                  LayeredMechAssets sprites, List<MechVariant> variants) {
+        int count = Math.min(variants.size(), MechLabSceneLayout.GANTRIES.size());
+        for (int index = 0; index < count; index++) {
+            MechVariant variant = variants.get(index);
+            MechLabSceneLayout.Gantry gantry = MechLabSceneLayout.GANTRIES.get(index);
+            float hull = UnitRenderService.layeredMechHullWidth(
+                    camera.cellPxSize(), variant.renderScale);
+            LayeredMechComposer.emit(new CanvasSink(context, height), sprites,
+                    camera.cellToScreenX(gantry.cellX() + 0.5f),
+                    camera.cellToScreenY(gantry.cellY() + 0.5f), hull,
+                    GANTRY_FACING_DEGREES, GANTRY_FACING_DEGREES,
+                    0f, 0f, 0f, 0f, 0,
+                    variant.chassisAppearance, variant.arms.appearanceSelector,
+                    appearance(variant.leftShoulder), appearance(variant.rightShoulder), 1f);
+        }
+    }
+
+    private static Supplier<List<MechVariant>> singletonVariants(
+            Supplier<MechVariant> variant) {
+        if (variant == null) throw new IllegalArgumentException("variant is required");
+        return () -> {
+            MechVariant selected = variant.get();
+            return selected != null ? List.of(selected) : List.of();
+        };
+    }
+
+    private static int selectedIndex(List<MechVariant> variants, int requested) {
+        if (variants == null || variants.isEmpty()) return -1;
+        return Math.max(0, Math.min(variants.size() - 1, requested));
     }
 
     private static void drawSocketOverlays(CanvasContext c, MechFittingLayout layout,
@@ -310,26 +342,26 @@ public final class MechLabDollCanvas implements CanvasProducer {
                                    float hullX, float hullY) {
 
         private static SceneProjection forCanvas(BattleCamera camera, float surfaceHeight,
-                                                 MechVariant variant) {
+                                                 MechVariant variant, int gantryIndex) {
             float cell = camera.cellPxSize();
             float hull = UnitRenderService.layeredMechHullWidth(cell, variant.renderScale);
             return new SceneProjection(
-                    camera.cellToScreenX(MechLabBattleScene.mechWorldX()),
-                    surfaceHeight - camera.cellToScreenY(MechLabBattleScene.mechWorldY()),
+                    camera.cellToScreenX(MechLabBattleScene.mechWorldX(gantryIndex)),
+                    surfaceHeight - camera.cellToScreenY(MechLabBattleScene.mechWorldY(gantryIndex)),
                     cell, cell, hull, hull);
         }
 
         private static SceneProjection forLive(BattleCamera camera,
                                                CanvasHostViewport viewport,
-                                               MechVariant variant) {
+                                               MechVariant variant, int gantryIndex) {
             float cell = camera.cellPxSize();
             float hull = UnitRenderService.layeredMechHullWidth(cell, variant.renderScale);
             float scaleX = viewport.scaleX();
             float scaleY = viewport.scaleY();
             return new SceneProjection(
-                    camera.cellToScreenX(MechLabBattleScene.mechWorldX()) / scaleX,
+                    camera.cellToScreenX(MechLabBattleScene.mechWorldX(gantryIndex)) / scaleX,
                     (viewport.height()
-                            - camera.cellToScreenY(MechLabBattleScene.mechWorldY())) / scaleY,
+                            - camera.cellToScreenY(MechLabBattleScene.mechWorldY(gantryIndex))) / scaleY,
                     cell / scaleX, cell / scaleY,
                     hull / scaleX, hull / scaleY);
         }

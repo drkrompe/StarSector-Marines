@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.render2d.ContrailStyle;
 
 import java.awt.Color;
@@ -104,7 +105,7 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
             ShotFx fx = SECONDARY.get(s.marineSecondary);
             return fx != null ? fx : NO_SOURCE;
         }
-        if (s.marineWeapon != null)    return PRIMARY.get(s.marineWeapon);
+        if (s.primaryWeaponDef != null) return derivePrimary(s.primaryWeaponDef);
         if (s.mechWeapon != null)      return MECH.get(s.mechWeapon);
         return NO_SOURCE;
     }
@@ -129,23 +130,31 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
     }
 
     private static ShotFx derivePrimary(MarineWeapon w) {
-        Body body = w.projectileSpritePath() != null
-                ? new Sprite(w.projectileSpritePath(), w.projectileVisualCells())
-                : bolt(w);
+        return derivePrimary(w.def());
+    }
+
+    private static ShotFx derivePrimary(WeaponDef weapon) {
+        Body body = weapon.projectileSpritePath != null
+                ? new Sprite(weapon.projectileSpritePath, weapon.projectileVisualCells)
+                : bolt(weapon);
         return new ShotFx(body, 0f, false, false, false, null);
     }
 
     private static Bolt bolt(MarineWeapon w) {
-        return switch (w) {
-            case PULSE_RIFLE -> new Bolt(PULSE_BOLT_SPRITE_PATH,
-                    w.tracerColor(), 1.0f, 0.25f);
-            case DMR -> new Bolt(RAIL_NEEDLE_SPRITE_PATH,
-                    w.tracerColor(), 1.8f, 0.16f);
-            case DRONE_PULSE -> new Bolt(DRONE_DART_SPRITE_PATH,
-                    w.tracerColor(), 0.65f, 0.16f);
-            case FIELD_RIFLE, SMG, SQUAD_AUTOMATIC -> throw new IllegalArgumentException(
-                    "sprite-backed primary cannot derive a bolt: " + w);
-        };
+        return bolt(w.def());
+    }
+
+    private static Bolt bolt(WeaponDef weapon) {
+        if (MarineWeapon.PULSE_RIFLE.id.equals(weapon.id)) {
+            return new Bolt(PULSE_BOLT_SPRITE_PATH, weapon.tracerColor, 1.0f, 0.25f);
+        }
+        if (MarineWeapon.DMR.id.equals(weapon.id)) {
+            return new Bolt(RAIL_NEEDLE_SPRITE_PATH, weapon.tracerColor, 1.8f, 0.16f);
+        }
+        if (MarineWeapon.DRONE_PULSE.id.equals(weapon.id)) {
+            return new Bolt(DRONE_DART_SPRITE_PATH, weapon.tracerColor, 0.65f, 0.16f);
+        }
+        return new Bolt(PULSE_BOLT_SPRITE_PATH, weapon.tracerColor, 1.0f, 0.22f);
     }
 
     /** Distinct traveling-bolt textures for cache loading; derived from effects, not carriers. */

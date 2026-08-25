@@ -911,8 +911,8 @@ public class BattleScreen implements Screen, BattleUiContext {
                     Global.getSoundPlayer().playSound(s.marineSecondary.impactSoundId(),
                             pitch, 0.70f, loc, zeroVel);
                 }
-            } else if (s.marineWeapon != null) {
-                profile = s.marineWeapon.impactProfile();
+            } else if (s.primaryWeaponDef != null) {
+                profile = s.primaryWeaponDef.impactProfile;
                 renderer.getImpactFx().spawnImpact(profile, s.toX, s.visualToY(), isWall);
             } else if (s.mechWeapon != null) {
                 // Mech rounds — HE entries (SRM, LRM) also play the explosion
@@ -961,8 +961,9 @@ public class BattleScreen implements Screen, BattleUiContext {
             } else if (s.marineSecondary != null) {
                 Global.getSoundPlayer().playSound(s.marineSecondary.fireSoundId(),
                         pitch, 1.0f, loc, zeroVel);
-            } else if (s.marineWeapon != null) {
-                Global.getSoundPlayer().playSound(s.marineWeapon.fireSoundId(), pitch, 0.85f, loc, zeroVel);
+            } else if (s.primaryWeaponDef != null) {
+                Global.getSoundPlayer().playSound(s.primaryWeaponDef.fireSoundId,
+                        pitch, 0.85f, loc, zeroVel);
             } else if (s.mechWeapon != null) {
                 // Mech chassis weapons — chaingun_fire / annihilator_fire /
                 // pilum_lrm_fire. All play at full volume; the chaingun burst

@@ -4,9 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — collectible loadouts now carry authored tier, rarity,
-provenance, and lore presentation; rarity is acquisition scarcity, not random-roll
-weight or a substitute for capability.
+Updated: 2026-08-25 — made collectible eligibility and cost additive provider data while retaining authored tier, rarity, provenance, and lore presentation.
 
 ## Purpose
 
@@ -166,6 +164,18 @@ blueprint provider or write player-faction hull, fighter, ship-weapon, or indust
 knowledge, so infantry equipment cannot leak into ship production or the ship
 editor. Reward and salvage systems create validated cargo payloads, while the S6
 acquisition ladder still owns where those payloads enter the world.
+
+Collectible eligibility and issue cost are catalog data rather than a closed
+Java list. Each enabled catalog provider may add primary family-and-grade cards,
+armor cards, and special-equipment cards after the referenced equipment has
+loaded. Card ids are derived from the stable equipment id, duplicate claims fail
+with provider provenance, and learning keeps the same Marine-Armory-only
+boundary. A provider adding a weapon or armor does not automatically make it
+player collectible; it must deliberately contribute the corresponding template.
+The catalog and cargo-learning path accepts contributed ids now, while the
+player doctrine editor and persisted billet materialization remain enum-backed;
+stable-id authoring is still required before a learned contributed card becomes
+selectable player issue.
 
 Armor patterns are authored player kit with distinct defensive and mobility
 tradeoffs. Some authored patterns are not presently reachable by the live
