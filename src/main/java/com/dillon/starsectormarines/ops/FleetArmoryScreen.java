@@ -171,19 +171,18 @@ public final class FleetArmoryScreen implements Screen {
     }
 
     private void putPageNavigation(Map<String, Object> props) {
-        props.put("returnAction", dismissDialog);
-        props.put("hqAction", (Runnable) () -> context.goTo(ScreenId.COMPANY_HQ));
-        props.put("armoryAction", (Runnable) () -> { });
-        props.put("hqClasses", "");
-        props.put("hqDisabled", false);
-        props.put("armoryClasses", "selected page-nav-current");
-        props.put("armoryDisabled", false);
+        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.ARMORY,
+                dismissDialog,
+                () -> context.goTo(ScreenId.COMPANY_HQ),
+                () -> { },
+                () -> context.goTo(ScreenId.MECH_LAB));
     }
 
     private void requireWiredElements(MarkupInstance component) {
         List<String> required = view == View.FIRETEAMS
                 ? List.of("fleet-armory-fireteam-root", "marine-ops-page-nav",
                 "page-nav-return", "page-nav-hq", "page-nav-armory",
+                "page-nav-mech-lab",
                 "fireteam-breadcrumb", "back-to-squads", "fireteam-body",
                 "fireteam-rail", "fireteam-list", "template-library", "template-list",
                 "refit-transaction", "squad-readiness-row", "selected-squad-readiness",
@@ -195,6 +194,7 @@ public final class FleetArmoryScreen implements Screen {
                 "marine-preview:2", "marine-preview:3")
                 : List.of("fleet-armory-root", "marine-ops-page-nav",
                 "page-nav-return", "page-nav-hq", "page-nav-armory",
+                "page-nav-mech-lab",
                 "squad-breadcrumb", "squad-overview-intro", "squad-card-list");
         for (String id : required) {
             component.requireElement(id);

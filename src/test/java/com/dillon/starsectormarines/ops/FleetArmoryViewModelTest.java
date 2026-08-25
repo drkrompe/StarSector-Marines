@@ -302,12 +302,7 @@ class FleetArmoryViewModelTest {
     }
 
     private static void putPageNavigation(Map<String, Object> props) {
-        props.put("returnAction", (Runnable) () -> { });
-        props.put("hqAction", (Runnable) () -> { });
-        props.put("armoryAction", (Runnable) () -> { });
-        props.put("hqClasses", "");
-        props.put("hqDisabled", false);
-        props.put("armoryClasses", "selected page-nav-current");
-        props.put("armoryDisabled", false);
+        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.ARMORY,
+                () -> { }, () -> { }, () -> { }, () -> { });
     }
 }

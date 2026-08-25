@@ -1,6 +1,6 @@
-<template props="fleetSummary,companyCards,returnAction,hqAction,armoryAction,hqClasses,hqDisabled,armoryClasses,armoryDisabled">
+<template props="fleetSummary,companyCards,returnAction,hqAction,armoryAction,mechLabAction,hqClasses,armoryClasses,mechLabClasses">
   <div id="fleet-armory-overview-root" class="fleet-armory-overview-root">
-    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" armoryAction="{armoryAction}" hqClasses="{hqClasses}" hqDisabled="{hqDisabled}" armoryClasses="{armoryClasses}" armoryDisabled="{armoryDisabled}" contextLabel="FLAGSHIP / ARMORY / COMPANY ROSTER" />
+    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" hqClasses="{hqClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" contextLabel="FLAGSHIP / ARMORY / COMPANY ROSTER" />
 
     <div id="company-overview-intro" class="panel">
       <div id="company-overview-heading" class="label heading tone-edge">SELECT A COMPANY</div>

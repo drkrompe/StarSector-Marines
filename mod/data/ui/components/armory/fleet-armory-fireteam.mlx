@@ -1,6 +1,6 @@
-<template props="companySummary,selectedSquadName,fireTeamOverviews,templateTiles,targetSummary,candidateSummary,selectedSquadReadiness,reinforceLabel,reinforceDisabled,reinforceSquad,marineCards,pickerClasses,pickerToggleLabel,togglePicker,transactionSummary,transactionClasses,applyDisabled,applyClasses,applyLabel,apply,feedbackText,feedbackClasses,backToSquads,back,returnAction,hqAction,armoryAction,hqClasses,hqDisabled,armoryClasses,armoryDisabled">
+<template props="companySummary,selectedSquadName,fireTeamOverviews,templateTiles,targetSummary,candidateSummary,selectedSquadReadiness,reinforceLabel,reinforceDisabled,reinforceSquad,marineCards,pickerClasses,pickerToggleLabel,togglePicker,transactionSummary,transactionClasses,applyDisabled,applyClasses,applyLabel,apply,feedbackText,feedbackClasses,backToSquads,back,returnAction,hqAction,armoryAction,mechLabAction,hqClasses,armoryClasses,mechLabClasses">
   <div id="fleet-armory-fireteam-root" class="fleet-armory-root">
-    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" armoryAction="{armoryAction}" hqClasses="{hqClasses}" hqDisabled="{hqDisabled}" armoryClasses="{armoryClasses}" armoryDisabled="{armoryDisabled}" contextLabel="FLAGSHIP / ARMORY / EQUIPMENT ISSUE" />
+    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" hqClasses="{hqClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" contextLabel="FLAGSHIP / ARMORY / EQUIPMENT ISSUE" />
 
     <div id="fireteam-breadcrumb" class="panel">
       <button id="fireteam-breadcrumb-companies" onclick="{back}">Companies</button>
