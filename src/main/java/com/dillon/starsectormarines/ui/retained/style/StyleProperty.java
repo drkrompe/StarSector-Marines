@@ -29,6 +29,7 @@ public enum StyleProperty {
     COLOR("color", true, false, true, true),
     FONT_FAMILY("font-family", true, true, true, false),
     TEXT_ALIGN("text-align", true, false, true, false),
+    WHITE_SPACE("white-space", true, true, true, false),
     OPACITY("opacity", false, false, true, true),
     TRANSITION("transition", false, false, false, false);
 

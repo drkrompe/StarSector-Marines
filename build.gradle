@@ -87,7 +87,7 @@ dependencies {
 
 test {
     useJUnitPlatform {
-        excludeTags 'battle-profile'
+        excludeTags 'battle-profile', 'commander-balance'
     }
     testLogging {
         // Audit-style tests print their report to stdout — stream it to the
@@ -103,6 +103,31 @@ test {
     // (EcsAccessBenchTest). Off by default so the normal suite stays fast for
     // concurrent sessions; run on demand with `-Decs.bench=true`.
     systemProperty 'ecs.bench', System.getProperty('ecs.bench', 'false')
+}
+
+tasks.register('conquestCommandBalance', Test) {
+    group = 'verification'
+    description = 'Run the canonical forced-serial Conquest command fixture matrix.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'commander-balance'
+    }
+    maxParallelForks = 1
+    outputs.upToDateWhen { false }
+    systemProperty 'starsectorDir', starsectorDir.absolutePath
+    systemProperty 'battle.unitUpdate.minimumParallelUnits', Integer.MAX_VALUE.toString()
+    systemProperty 'commander.balance.outputDir',
+            layout.buildDirectory.dir('reports/commander/conquest').get().asFile.absolutePath
+    ['commander.balance.fixture.path', 'commander.balance.maxTicks'].each { propertyName ->
+        def propertyValue = System.getProperty(propertyName, '')
+        if (!propertyValue.isBlank()) {
+            systemProperty propertyName, propertyValue
+        }
+    }
+    testLogging {
+        showStandardStreams = true
+    }
 }
 
 tasks.register('profileBattleFixture', Test) {

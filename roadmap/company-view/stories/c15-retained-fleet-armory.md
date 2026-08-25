@@ -2,11 +2,10 @@
 
 Status: IN PROGRESS — retained hierarchy, squad equipment issue, and focused Mech Lab ship; broader company administration remains
 Written: 2026-08-23
-Updated: 2026-08-25 — the twelve-billet designer now carries compact live renders,
-short billet flavor, stable comparative stat meters, and a leader-weighted starter
-issue that remains available from fleet stock. The Mech Lab separates asset browsing
-from a wide fitting gantry whose battle-tileset fabrication bay uses the canonical
-layered mech and infantry compositors over `MechBay`.
+Updated: 2026-08-25 — fire-team inspection now fits a horizontal team tab rail and
+four full named-marine dossiers at the reference viewport. Each dossier combines its
+live portrait with data-authored equipment prose, class and tier badges, and stable
+weapon, durability, and mobility meters without card scrolling.
 
 Read `company-view-nouns.md` and `ui-nouns.md` first.
 
@@ -42,15 +41,17 @@ breadcrumb keeps every completed level directly reachable.
   readiness before the player enters that squad's equipment workspace. The card body
   remains the inspect target; reinforcement is a compact secondary action rather than
   a replacement inspect button.
-- **Fire-team context:** Alpha, Bravo, and Charlie report strength and current squad
-  doctrine together. Selection chooses which four of twelve projected billets to
-  inspect; it never narrows or resets the squad transaction.
-- **Workspace:** the selected squad's Alpha, Bravo, and Charlie teams sit beside one
-  primary viewer of the selected team's four persistent marines. Each card presents
-  rank, name, readiness, aptitude, experience, career, candidate role, battle-composed
-  appearance, equipment names, and resolved combat figures. Weapon and armor figures
-  use compact capability meters normalized against their catalog ceilings while
-  retaining the exact number beside each meter.
+- **Fire-team context:** Alpha, Bravo, and Charlie occupy one horizontal tab rail and
+  report strength, readiness, recovery, and current squad doctrine together. Selection
+  chooses which four of twelve projected billets to inspect; it never narrows or resets
+  the squad transaction.
+- **Workspace:** the selected team's four persistent marines appear simultaneously in
+  the full-width primary viewer. Each dossier presents rank, name, readiness, aptitude,
+  experience, career, candidate role, an upper-right battle-composed portrait, readable
+  class/weapon-tier/armor-tier badges, data-authored weapon/armor/special descriptions,
+  and resolved combat figures. Weapon, durability, and mobility figures use compact
+  capability meters normalized against their catalog ceilings while retaining the exact
+  number beside each meter.
 - **Equipment editing:** an always-visible squad strip owns separate Weapon and Armor
   selectors. Weapon definitions include roles, primaries, grades, and optional
   special equipment; Armor definitions include protection only. Their pair projects
@@ -108,12 +109,14 @@ breadcrumb keeps every completed level directly reachable.
   deck/hand/consume semantics.
 - The company gallery auto-fills fixed portrait cards into columns, wraps into rows as
   the viewport narrows, and scrolls vertically without silent truncation.
-- The fire-team viewer shows all four named marines together with candidate armour,
-  primary grade, special equipment, and combat statistics resolved from the same
-  rules used by battle.
-- Damage, range, accuracy, sustained output, armor pool, armor rating, and movement
-  appear as comparative meters with exact values; their fill scale is stable across
-  the four marines rather than relative to only the currently selected team.
+- The fire-team viewer shows all four named marines together without card scrolling;
+  one horizontal team tab rail preserves each team's readiness and recovery context.
+- Each marine dossier keeps its battle-composed portrait in the upper-right, surfaces
+  class plus weapon and armor tier as badges, and reads weapon, armor, and specialty
+  prose from their owning data definitions rather than screen-authored copy.
+- Damage, range, accuracy, sustained output, health, armor, resistance, and actual
+  movement speed appear as comparative meters with exact values; their fill scale is
+  stable across the four marines rather than relative to only the selected team.
 - Designer billet cards expose the same stable comparison language, including evasion,
   without enlarging their upper-right live render or introducing card scrolling.
 - The starter pair differentiates each fire-team lead with its scarce pulse rifle and

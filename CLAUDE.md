@@ -73,6 +73,16 @@ Do not run builds or leave generated task files there.
   at compile time.
 - `gradlew.bat build` → `mod/jars/StarsectorMarines.jar` (directly into the mod folder; no
   intermediate copy step).
+- `gradlew.bat conquestCommandBalance` → runs the documented Conquest
+  construction-fixture matrix twice in a forced-serial, zero-input simulation
+  and writes canonical traces plus `summary.json` / `summary.md` under
+  `build/reports/commander/conquest/`. It is opt-in, performs two replays per
+  fixture, and is excluded from ordinary `test` / `build`; the default matrix
+  may take several minutes. Quote PowerShell system-property overrides; they
+  produce explicitly ad-hoc evidence, for example
+  `gradlew.bat '-Dcommander.balance.maxTicks=9000' conquestCommandBalance` or
+  select one fixture with
+  `'-Dcommander.balance.fixture.path=C:\path\to\fixture.json'`.
 - `gradlew.bat createSnapshots` → every deterministic visual-evidence suite under
   `build/snapshots/` without launching Starsector or creating an OpenGL context. Select
   suites with `-Psnapshot=armory,layers,turrets,ui` (default `all`) and redirect the

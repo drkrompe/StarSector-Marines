@@ -546,8 +546,10 @@ public final class TacticalScoring {
         } else {
             primary = 0f;
         }
-        float secondary = (world.hasSecondaryWeapon(self) && world.secondaryAmmo(self) > 0)
-                ? world.secondaryWeapon(self).penetration() : 0f;
+        MarineSecondary special = world.hasSecondaryWeapon(self)
+                ? world.secondaryWeapon(self) : null;
+        float secondary = special != null && special.isDirectFireWeapon()
+                && world.secondaryAmmo(self) > 0 ? special.penetration() : 0f;
         float relativeToServiceRifle = Math.min(
                 MAX_WEAPON_AFFINITY_RELATIVE, Math.max(primary, secondary) / 5f);
         return WEAPON_AFFINITY_WEIGHT * (1f - relativeToServiceRifle);
@@ -591,8 +593,10 @@ public final class TacticalScoring {
      */
     public boolean canSpecialTarget(long shooter, long target) {
         World world = roster.world();
-        return isHardened(roster.identity().type(target))
-                && world.hasSecondaryWeapon(shooter)
+        if (!isHardened(roster.identity().type(target))
+                || !world.hasSecondaryWeapon(shooter)) return false;
+        MarineSecondary special = world.secondaryWeapon(shooter);
+        return special.isDirectFireWeapon()
                 && world.secondaryAmmo(shooter) > 0;
     }
 
@@ -632,6 +636,7 @@ public final class TacticalScoring {
     public boolean shouldCommitSpecial(long shooter, long target) {
         World world = roster.world();
         if (!world.hasSecondaryWeapon(shooter) || world.secondaryAmmo(shooter) <= 0) return false;
+        if (!world.secondaryWeapon(shooter).isDirectFireWeapon()) return false;
         if (target == 0L || !roster.isAliveById(target)) return false;
         float remainingDurability = world.hp(target)
                 + (world.hasArmor(target) ? world.armor(target) : 0f);
@@ -673,6 +678,7 @@ public final class TacticalScoring {
                 if (world.secondaryActionTimer(u) <= 0f) continue;
                 if (world.secondaryAimTargetId(u) != target) continue;
                 MarineSecondary sw = world.secondaryWeapon(u);
+                if (!sw.isDirectFireWeapon()) continue;
                 total += projectedResolvedDamage(target, sw.damage(), sw.penetration());
             }
         }
@@ -1196,7 +1202,10 @@ public final class TacticalScoring {
         Faction selfFaction = roster.identity().faction(self);
         float maxWeaponReach = world.attackRange(self);
         if (world.hasSecondaryWeapon(self) && world.secondaryAmmo(self) > 0) {
-            maxWeaponReach = Math.max(maxWeaponReach, world.secondaryWeapon(self).range());
+            MarineSecondary special = world.secondaryWeapon(self);
+            if (special.isDirectFireWeapon()) {
+                maxWeaponReach = Math.max(maxWeaponReach, special.range());
+            }
         }
         float gatherRadius = maxDistFromAnchor + maxWeaponReach;
         LongBucket scratch = new LongBucket();

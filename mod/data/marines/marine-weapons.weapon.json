@@ -7,7 +7,9 @@
         "displayName": "Field Rifle",
         "modelName": "Rook",
         "designation": "FR-1",
-        "designationTiered": false
+        "designationTiered": false,
+        "role": "LINE",
+        "description": "The rugged Rook is the frontier's common chemical-propellant rifle. Its heavy single shot rewards steady aim, but the slow action punishes a collapsing line."
       },
       "sim": {
         "range": 22.0,
@@ -36,7 +38,9 @@
         "displayName": "Pulse Rifle",
         "modelName": "Lancer",
         "designation": "PLS",
-        "designationTiered": true
+        "designationTiered": true,
+        "role": "LINE",
+        "description": "The Lancer packages a dependable three-pulse burst into familiar fleet-service controls. It remains useful at almost every distance without matching a specialist weapon at its preferred fight."
       },
       "sim": {
         "range": 24.0,
@@ -65,7 +69,9 @@
         "displayName": "Shredder Carbine",
         "modelName": "Rattler",
         "designation": "SHD",
-        "designationTiered": true
+        "designationTiered": true,
+        "role": "ASSAULT",
+        "description": "The Rattler throws a dense flechette cloud through doorways and compartments. Its pattern is devastating up close and rapidly loses coherence across open ground."
       },
       "sim": {
         "range": 14.0,
@@ -95,7 +101,9 @@
         "displayName": "Squad Automatic",
         "modelName": "Stalwart",
         "designation": "SA",
-        "designationTiered": true
+        "designationTiered": true,
+        "role": "SUPPORT",
+        "description": "The Stalwart feeds a long string of chemical slugs through a reinforced receiver. It keeps hostile heads down while the fire team changes position."
       },
       "sim": {
         "range": 22.0,
@@ -125,7 +133,9 @@
         "displayName": "Railgun",
         "modelName": "Longbow",
         "designation": "RG",
-        "designationTiered": true
+        "designationTiered": true,
+        "role": "MARKSMAN",
+        "description": "The Longbow accelerates a narrow penetrator with exceptional consistency. A patient marksman can exploit sight lines ordinary rifles cannot contest."
       },
       "sim": {
         "range": 32.0,
@@ -154,7 +164,9 @@
         "displayName": "Drone Pulse Laser",
         "modelName": "Wisp",
         "designation": "DPLS",
-        "designationTiered": true
+        "designationTiered": true,
+        "role": "DRONE",
+        "description": "The Wisp is a compact pulse emitter for autonomous security platforms. It favors persistent pressure over the decisive burst of a marine-carried rifle."
       },
       "sim": {
         "range": 26.0,

@@ -252,6 +252,20 @@
 		"lootFenceFmt":           "Fence overflow: {0} units · Cr. {1} paid",
 		"lootConfirm":            "Confirm Salvage",
 		"lootNothingSelected":    "Nothing selected — confirming forfeits the recovery pool.",
-		"lootCargoUnavailable":   "Player cargo is unavailable; settlement cannot proceed."
+		"lootCargoUnavailable":   "Player cargo is unavailable; settlement cannot proceed.",
+		"equipmentTemplateInvalidName": "Invalid Marine Equipment Template",
+		"equipmentTemplateNameFmt": "{0} Equipment Template",
+		"equipmentTemplateDesignType": "Marine Operations",
+		"equipmentTemplateInvalid": "This template references equipment that is not available. It was not consumed.",
+		"equipmentTemplateKindPrimary": "primary weapon pattern",
+		"equipmentTemplateKindArmor": "armor pattern",
+		"equipmentTemplateKindSpecial": "special-equipment pattern",
+		"equipmentTemplateUnlockFmt": "Adds {0} to the Fleet Armory as a permanent {1}.",
+		"equipmentTemplateShipBoundary": "This is infantry equipment data and does not authorize starship construction.",
+		"equipmentTemplateLearnPrompt": "Right-click to learn",
+		"equipmentTemplateAlreadyKnown": "Template already known",
+		"equipmentTemplateArmoryUnavailable": "The Fleet Armory is unavailable. The template was not consumed.",
+		"equipmentTemplateLearnedFmt": "Acquired equipment template: {0}",
+		"equipmentTemplateAlreadyKnownFmt": "{0}: equipment template already known"
 	}
 }

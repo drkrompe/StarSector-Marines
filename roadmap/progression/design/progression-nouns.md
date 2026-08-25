@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — replaced live printed equipment stock with collectible templates and cargo-backed squad issue.
+Updated: 2026-08-25 — added native cargo-item learning for collectible equipment templates without entering ship-production knowledge.
 
 ## Purpose
 
@@ -146,6 +146,16 @@ input and compatibility state for retired fire-team APIs, not live Fleet Armory
 authority. Existing victory milestones grant template cards, including the
 Shattercap after two victories; recovery, purchase, patron rewards, and the full
 asset reachability ladder remain planned.
+
+A template card may exist in fleet cargo as one parameterized Starsector special
+item whose data is the stable equipment-template id. Right-click learning follows
+the familiar blueprint interaction and consumes one card only when it adds a new
+capability to `MarineArmory`; duplicates, invalid data, and an unavailable Armory
+remain unconsumed. This interaction deliberately does not implement a vanilla
+blueprint provider or write player-faction hull, fighter, ship-weapon, or industry
+knowledge, so infantry equipment cannot leak into ship production or the ship
+editor. Reward and salvage systems create validated cargo payloads, while the S6
+acquisition ladder still owns where those payloads enter the world.
 
 Armor patterns are authored player kit with distinct defensive and mobility
 tradeoffs. Some authored patterns are not presently reachable by the live
@@ -400,6 +410,8 @@ The following are direction, not current behavior:
 - A template card is permanent capability, a squad definition is reusable
   intent, fleet cargo pays changed incoming issue, and materialized kit belongs
   to the marine. None is a synonym for another.
+- A cargo template card is consumed only by successful Armory learning. It never
+  becomes player-faction ship-production knowledge.
 - A billet carries at most one special item; utilities do not become
   `WeaponDef` entries merely because they share that loadout slot with guns.
 - Special-equipment use policy is simulation-owned and faction-neutral;
