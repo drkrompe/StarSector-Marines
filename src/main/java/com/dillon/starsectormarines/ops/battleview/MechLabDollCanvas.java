@@ -23,6 +23,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private static final String ROOT = "graphics/battle/mech-modular-topdown/";
     private static final int TILESET_COLUMNS = 10;
     private static final int TILESET_ROWS = 10;
+    private static final float GANTRY_FACING_DEGREES = 180f;
     private static final Color BACKGROUND = new Color(0x06, 0x0A, 0x10);
     private static final Color STRUCTURE = new Color(0x25, 0x43, 0x56);
     private static final Color ACCENT = new Color(0x76, 0xB9, 0xD4);
@@ -76,7 +77,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
         float actorWorldY = height - actorCanvasY;
         LayeredMechComposer.emit(new CanvasSink(context, height), sprites,
                 actorX, actorWorldY, hull,
-                0f, 0f, 0f, 0f, 0f, 0f, 0,
+                GANTRY_FACING_DEGREES, GANTRY_FACING_DEGREES,
+                0f, 0f, 0f, 0f, 0,
                 selected.chassisAppearance,
                 selected.arms.appearanceSelector,
                 appearance(selected.leftShoulder),
