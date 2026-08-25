@@ -4,6 +4,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -33,8 +36,26 @@ public class CommsOfficerVoiceTest {
             assertNotNull(f.summary, "mood " + m + " summary missing");
             assertEquals(2, f.summary.overview.length);
             assertEquals(2, f.summary.client.length);
+            assertEquals(2, f.companyAssessment.length);
             assertEquals(m.name() + " o0", f.summary.overview[0]);
             assertEquals(m.name() + " c0", f.summary.client[0]);
+            assertEquals(m.name() + " a0", f.companyAssessment[0]);
+        }
+    }
+
+    @Test
+    public void authoredVoiceFileContainsEveryCompanyAssessmentPool() throws Exception {
+        Path path = Path.of("mod", "data", "marines",
+                "comms_officer_voice.json");
+        String authored = Files.readString(path, StandardCharsets.UTF_8)
+                .replaceAll("(?m)^\\s*#.*$", "");
+
+        Map<OfficerMood, CommsOfficerVoice.Frame> parsed =
+                CommsOfficerVoice.parse(new JSONObject(authored));
+
+        assertEquals(OfficerMood.values().length, parsed.size());
+        for (OfficerMood mood : OfficerMood.values()) {
+            assertTrue(parsed.get(mood).companyAssessment.length >= 3);
         }
     }
 
@@ -152,6 +173,8 @@ public class CommsOfficerVoiceTest {
             summary.put(CommsOfficerVoice.CLIENT_KEY,
                     new JSONArray().put(m.name() + " c0").put(m.name() + " c1"));
             entry.put(CommsOfficerVoice.SUMMARY_KEY, summary);
+            entry.put(CommsOfficerVoice.COMPANY_ASSESSMENT_KEY,
+                    new JSONArray().put(m.name() + " a0").put(m.name() + " a1"));
             moods.put(m.name(), entry);
         }
         root.put(CommsOfficerVoice.MOODS_KEY, moods);
