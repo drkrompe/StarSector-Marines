@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.ui.debug;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.command.ConquestCommand;
+import com.dillon.starsectormarines.battle.command.ConquestCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.CommanderService;
@@ -114,7 +115,8 @@ class SquadStateDumperTest {
         squad.leaderId = member;
         ConquestCommand command = new ConquestCommand(
                 TraversalAxis.SOUTH_TO_NORTH);
-        sim.setCommander(Faction.MARINE, command);
+        sim.setAutonomousCommander(Faction.MARINE, command,
+                ConquestCommandDisclosure.INSTANCE);
         sim.advance(CommanderService.COMMANDER_TICK_PERIOD
                 + BattleSimulation.TICK_DT);
 

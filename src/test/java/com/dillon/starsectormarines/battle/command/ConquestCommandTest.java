@@ -158,7 +158,7 @@ public class ConquestCommandTest {
         addMarineSquad(sim, 1f, 1f);
         addDefender(sim, 25, 5);
 
-        cmd.tick(sim);
+        tick(cmd, sim);
 
         // Every strip should be non-empty (the synthetic grid has a single
         // big zone but the strip-builder buckets by centroid lateral coord).
@@ -181,7 +181,7 @@ public class ConquestCommandTest {
         Squad squad = addMarineSquad(sim, 2f, 5f);
         addDefender(sim, 2, 9);
 
-        cmd.tick(sim);
+        tick(cmd, sim);
 
         assertEquals(0, cmd.stripIndexOf(squad.id), "x=2 in a 30-wide map should fall into strip 0");
     }
@@ -193,7 +193,7 @@ public class ConquestCommandTest {
         Squad squad = addMarineSquad(sim, 28f, 5f);
         addDefender(sim, 28, 9);
 
-        cmd.tick(sim);
+        tick(cmd, sim);
 
         assertEquals(ConquestCommand.STRIP_COUNT - 1, cmd.stripIndexOf(squad.id),
                 "x=28 in a 30-wide map should fall into the last strip");
@@ -206,14 +206,14 @@ public class ConquestCommandTest {
         Squad squad = addMarineSquad(sim, 2f, 5f);
         addDefender(sim, 25, 9);
 
-        cmd.tick(sim);
+        tick(cmd, sim);
         int firstStrip = cmd.stripIndexOf(squad.id);
 
         // Move the squad's centroid across the map — without sticky
         // assignment, it would re-classify into a different strip.
         squad.centroidX = 28f;
 
-        cmd.tick(sim);
+        tick(cmd, sim);
         int secondStrip = cmd.stripIndexOf(squad.id);
 
         assertEquals(firstStrip, secondStrip,
@@ -227,7 +227,7 @@ public class ConquestCommandTest {
         // Squad in strip 0; no defenders anywhere.
         Squad squad = addMarineSquad(sim, 2f, 5f);
 
-        cmd.tick(sim);
+        tick(cmd, sim);
 
         assertNull(squad.assignedObjective,
                 "strip with no defenders → null assignment, squad falls through to EliminateEnemies");
@@ -247,7 +247,7 @@ public class ConquestCommandTest {
         long defender = addDefender(sim, 3, 9);
         establishMarineContact(sim, squad, defender);
 
-        cmd.tick(sim);
+        tick(cmd, sim);
 
         ObjectiveAssignment a = squad.assignedObjective;
         assertNotNull(a,
@@ -275,7 +275,7 @@ public class ConquestCommandTest {
         long defender = addDefender(sim, 3, 8);       // front zone of strip 0
         establishMarineContact(sim, squad, defender);
 
-        cmd.tick(sim);
+        tick(cmd, sim);
 
         ObjectiveAssignment a = squad.assignedObjective;
         assertNotNull(a, "forward-zone defender → squad gets CLEAR_ZONE pointed at it");
@@ -299,7 +299,7 @@ public class ConquestCommandTest {
         long defender = addDefender(sim, 3, 1);       // back zone of strip 0
         establishMarineContact(sim, squad, defender);
 
-        cmd.tick(sim);
+        tick(cmd, sim);
 
         ObjectiveAssignment a = squad.assignedObjective;
         assertNotNull(a, "with no forward defender, backward defender is the fallback target");
@@ -314,7 +314,7 @@ public class ConquestCommandTest {
         Squad squad = addMarineSquad(sim, 2f, 5f);   // strip 0
         addDefender(sim, 25, 9);                     // strip 2
 
-        cmd.tick(sim);
+        tick(cmd, sim);
 
         // A defender in strip 2 is *not* this squad's problem — the partition
         // is the point. If the squad's strip is empty of defenders, no
@@ -333,9 +333,9 @@ public class ConquestCommandTest {
         long defender = addDefender(sim, 3, 8);       // front zone of strip 0
         establishMarineContact(sim, squad, defender);
 
-        cmd.tick(sim);
+        tick(cmd, sim);
         ObjectiveAssignment first = squad.assignedObjective;
-        cmd.tick(sim);
+        tick(cmd, sim);
         ObjectiveAssignment second = squad.assignedObjective;
 
         assertNotNull(first);
@@ -351,7 +351,7 @@ public class ConquestCommandTest {
         squad.aliveMembers = 0;   // wiped
         addDefender(sim, 3, 9);
 
-        cmd.tick(sim);
+        tick(cmd, sim);
 
         assertNull(squad.assignedObjective,
                 "wiped squad should not receive an assignment");
@@ -376,7 +376,7 @@ public class ConquestCommandTest {
         addDefender(sim, 1, 1);                       // enclosed room, strip 0
         establishDirectMarineContact(sim, reporter);
 
-        cmd.tick(sim);
+        tick(cmd, sim);
 
         ObjectiveAssignment a = squad.assignedObjective;
         assertNotNull(a, "a clearable room defender exists → squad gets an assignment");
@@ -400,7 +400,7 @@ public class ConquestCommandTest {
         Squad squad = addMarineSquad(sim, 6f, 8f);   // exterior, strip 0
         addDefender(sim, 8, 8);                       // exterior, strip 0
 
-        cmd.tick(sim);
+        tick(cmd, sim);
 
         assertNull(squad.assignedObjective,
                 "exterior-only defender → no CLEAR_ZONE; squad engages ambiently");
@@ -455,7 +455,7 @@ public class ConquestCommandTest {
 
         Squad squad = addMarineSquad(sim, 5f, 5f); // standing in the captured compound
         ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
-        cmd.tick(sim);
+        tick(cmd, sim);
 
         ObjectiveAssignment a = squad.assignedObjective;
         boolean pinned = a != null && a.kind() == AssignmentKind.HOLD_NODE;
@@ -476,7 +476,7 @@ public class ConquestCommandTest {
         garrison.assignedObjective = ObjectiveAssignment.holdNode(
                 garrison.id, node); // fixture for a born-holding external owner
         ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
-        cmd.tick(sim);
+        tick(cmd, sim);
 
         ObjectiveAssignment a = garrison.assignedObjective;
         assertNotNull(a, "born-holding garrison keeps an assignment");
@@ -502,8 +502,8 @@ public class ConquestCommandTest {
         addDefender(simSN, 25, 9);
         addDefender(simWE, 28, 5);
 
-        cmdSN.tick(simSN);
-        cmdWE.tick(simWE);
+        tick(cmdSN, simSN);
+        tick(cmdWE, simWE);
 
         // SOUTH_TO_NORTH lateral = x → x=25/30 falls in strip 2.
         // WEST_TO_EAST   lateral = y → y=5/10  falls in strip 1.
@@ -612,7 +612,7 @@ public class ConquestCommandTest {
         Squad far = addMarineSquad(sim, 24f, 5f);    // far away, strip 2
 
         ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
-        cmd.tick(sim);
+        tick(cmd, sim);
 
         assertTrue(isSecureCompound(near), "nearest squad should be assigned to capture the uncontested compound");
         int anchorZone = sim.getZoneGraph().zoneIdAt(node.anchorX, node.anchorY);
@@ -635,7 +635,7 @@ public class ConquestCommandTest {
         Squad sqB = addMarineSquad(sim, 24f, 5f);
 
         ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
-        cmd.tick(sim);
+        tick(cmd, sim);
 
         assertTrue(isSecureCompound(sqA) && isSecureCompound(sqB), "both squads should be on capture duty");
         int zoneA = sim.getZoneGraph().zoneIdAt(a.anchorX, a.anchorY);
@@ -662,7 +662,7 @@ public class ConquestCommandTest {
         Squad sqB = addMarineSquad(sim, 9f, 5f);
 
         ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
-        cmd.tick(sim);
+        tick(cmd, sim);
 
         assertTrue(isSecureCompound(sqA), "first squad captures the keep");
         assertTrue(isSecureCompound(sqB), "multi-room keep rates a 2nd capture squad");
@@ -681,7 +681,7 @@ public class ConquestCommandTest {
         addDefender(sim, 5, 1);                       // exterior (not in a garrison room)
 
         ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
-        cmd.tick(sim);
+        tick(cmd, sim);
 
         assertTrue(isSecureCompound(squad),
                 "an exterior defender does not contest the compound — capture still fires");
@@ -703,7 +703,7 @@ public class ConquestCommandTest {
         establishDirectMarineContact(sim, reporter);
 
         ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
-        cmd.tick(sim);
+        tick(cmd, sim);
 
         assertFalse(isSecureCompound(squad), "a contested compound must not pull a non-adjacent squad");
         ObjectiveAssignment a = squad.assignedObjective;
@@ -726,7 +726,7 @@ public class ConquestCommandTest {
         establishMarineContact(sim, squad, defender);
 
         ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
-        cmd.tick(sim);
+        tick(cmd, sim);
 
         assertTrue(isSecureCompound(squad), "a squad already in a contested compound commits to capturing it");
         assertEquals(node, squad.assignedObjective.targetNode());
@@ -744,7 +744,7 @@ public class ConquestCommandTest {
         establishDirectMarineContact(sim, reporter);
 
         ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
-        cmd.tick(sim);
+        tick(cmd, sim);
 
         assertNotNull(squad.assignedObjective);
         assertEquals(AssignmentKind.CLEAR_ZONE, squad.assignedObjective.kind());
@@ -770,7 +770,7 @@ public class ConquestCommandTest {
         addDefender(sim, 15, 5);
 
         ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
-        cmd.tick(sim);
+        tick(cmd, sim);
 
         assertEquals(Phase.KEEP_CONVERGENCE, cmd.frontSnapshot().phase());
         assertEquals(1, cmd.frontSnapshot().remainingCompounds());
@@ -802,7 +802,7 @@ public class ConquestCommandTest {
         addDefender(sim, 15, 5);
 
         ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
-        cmd.tick(sim);
+        tick(cmd, sim);
 
         assertEquals(AssignmentKind.SECURE_COMPOUND,
                 assault.assignedObjective.kind());
@@ -827,7 +827,7 @@ public class ConquestCommandTest {
         establishDirectMarineContact(sim, adjacent);
 
         ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
-        cmd.tick(sim);
+        tick(cmd, sim);
 
         assertEquals(CompoundService.CompoundState.DEFENDER_HELD, armory.state);
         assertEquals(Phase.FINAL_COMPOUND_CONVERGENCE,
@@ -859,7 +859,7 @@ public class ConquestCommandTest {
         Squad far = addMarineSquad(sim, 28f, 1f);
 
         ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
-        cmd.tick(sim);
+        tick(cmd, sim);
 
         int secure = (isSecureCompound(near) ? 1 : 0)
                 + (isSecureCompound(far) ? 1 : 0);
@@ -882,11 +882,11 @@ public class ConquestCommandTest {
         addDefender(sim, 24, 5);
 
         ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
-        cmd.tick(sim);
+        tick(cmd, sim);
         assertEquals(Phase.KEEP_CONVERGENCE, cmd.frontSnapshot().phase());
 
         armory.state = CompoundService.CompoundState.DEFENDER_HELD;
-        cmd.tick(sim);
+        tick(cmd, sim);
 
         assertEquals(Phase.LANE_ADVANCE, cmd.frontSnapshot().phase());
         assertEquals(2, cmd.frontSnapshot().remainingCompounds());
@@ -903,7 +903,7 @@ public class ConquestCommandTest {
                 squad.id, sim.getZoneGraph().zoneIdAt(19, 5), node);
 
         ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
-        cmd.tick(sim);
+        tick(cmd, sim);
 
         assertNull(squad.assignedObjective,
                 "an obsolete capture must not pin a squad outside a sealed compound");
@@ -919,7 +919,7 @@ public class ConquestCommandTest {
         Squad squad = addMarineSquad(sim, 5f, 5f);
 
         ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
-        cmd.tick(sim);
+        tick(cmd, sim);
 
         assertEquals(Phase.KEEP_CONVERGENCE, cmd.frontSnapshot().phase());
         assertNull(squad.assignedObjective);
@@ -935,7 +935,7 @@ public class ConquestCommandTest {
         sim.advance(BattleSimulation.TICK_DT);
 
         ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
-        cmd.tick(sim);
+        tick(cmd, sim);
 
         ConquestFrontSnapshot.TrackState hiddenTrack =
                 cmd.frontSnapshot().track(2);
@@ -955,10 +955,15 @@ public class ConquestCommandTest {
         addDefender(hiddenSim, 25, 5);
         hiddenSim.advance(BattleSimulation.TICK_DT);
 
-        new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH).tick(emptySim);
-        new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH).tick(hiddenSim);
+        tick(new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH), emptySim);
+        tick(new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH), hiddenSim);
 
         assertEquals(emptySquad.assignedObjective, hiddenSquad.assignedObjective,
                 "an unseen hostile must not change the Marine command directive");
+    }
+
+    private static void tick(ConquestCommand command, BattleSimulation sim) {
+        CommanderService.runSingle(command, ConquestCommandDisclosure.INSTANCE,
+                sim);
     }
 }

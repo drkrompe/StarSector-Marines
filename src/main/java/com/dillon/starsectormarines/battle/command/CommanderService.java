@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.WeakHashMap;
 
 /**
@@ -40,7 +41,7 @@ public final class CommanderService {
      */
     public static final float COMMANDER_TICK_PERIOD = 2.5f;
 
-    private final Map<Faction, MissionCommand> commanders = new EnumMap<>(Faction.class);
+    private final Map<Faction, Registration> commanders = new EnumMap<>(Faction.class);
     private final Map<Faction, CommanderSnapshot<?>> snapshots = new EnumMap<>(Faction.class);
     private final AssignmentArbiter assignments = new AssignmentArbiter();
     private static final Map<AutonomousMissionCommand<?, ?>, AssignmentArbiter>
@@ -64,14 +65,38 @@ public final class CommanderService {
             commanders.remove(faction);
             snapshots.remove(faction);
         } else {
-            MissionCommand previous = commanders.put(faction, commander);
-            if (previous != commander) snapshots.remove(faction);
+            install(faction, new Registration(commander, null));
+        }
+    }
+
+    /** Installs a frame-only strategy with its trusted battle disclosure. */
+    public <F extends CommandFrame, D> void setAutonomousCommander(
+            Faction faction, AutonomousMissionCommand<F, D> commander,
+            CommandFrameDisclosure<F> disclosure) {
+        if (commander == null) {
+            setCommander(faction, null);
+            return;
+        }
+        install(faction, new Registration(commander,
+                Objects.requireNonNull(disclosure, "disclosure")));
+    }
+
+    private void install(Faction faction, Registration registration) {
+        if (registration.strategy().faction() != faction) {
+            throw new IllegalArgumentException(
+                    "commander faction does not match registration");
+        }
+        Registration previous = commanders.put(faction, registration);
+        if (previous == null || previous.strategy() != registration.strategy()
+                || previous.disclosure() != registration.disclosure()) {
+            snapshots.remove(faction);
         }
     }
 
     /** The commander for {@code faction}, or {@code null} if none is wired. */
-    public MissionCommand getCommander(Faction faction) {
-        return commanders.get(faction);
+    public CommandStrategy getCommander(Faction faction) {
+        Registration registration = commanders.get(faction);
+        return registration != null ? registration.strategy() : null;
     }
 
     public boolean isEmpty() { return commanders.isEmpty(); }
@@ -111,8 +136,9 @@ public final class CommanderService {
 
     private void runPulse(BattleView sim) {
         Map<Faction, String> issuers = new EnumMap<>(Faction.class);
-        for (Map.Entry<Faction, MissionCommand> entry : commanders.entrySet()) {
-            if (entry.getValue() instanceof AutonomousMissionCommand<?, ?> autonomous) {
+        for (Map.Entry<Faction, Registration> entry : commanders.entrySet()) {
+            if (entry.getValue().strategy()
+                    instanceof AutonomousMissionCommand<?, ?> autonomous) {
                 issuers.put(entry.getKey(), autonomous.strategyId());
             }
         }
@@ -122,11 +148,13 @@ public final class CommanderService {
 
         List<FrozenCommand> frozen = new ArrayList<>();
         List<MissionCommand> legacy = new ArrayList<>();
-        for (MissionCommand command : commanders.values()) {
-            if (command instanceof AutonomousMissionCommand<?, ?> autonomous) {
-                frozen.add(freeze(autonomous, sim, topology, assignmentFrame));
+        for (Registration registration : commanders.values()) {
+            if (registration.strategy()
+                    instanceof AutonomousMissionCommand<?, ?> autonomous) {
+                frozen.add(freeze(autonomous, registration.disclosure(), sim,
+                        topology, assignmentFrame));
             } else {
-                legacy.add(command);
+                legacy.add((MissionCommand) registration.strategy());
             }
         }
 
@@ -141,10 +169,12 @@ public final class CommanderService {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     private static FrozenCommand freeze(AutonomousMissionCommand command,
+                                        CommandFrameDisclosure disclosure,
                                         BattleView sim,
                                         CommandTopology topology,
                                         CommandAssignmentSnapshot assignments) {
-        CommandFrame frame = command.freeze(sim, topology, assignments);
+        CommandFrame frame = disclosure.freeze(sim, command.faction(), topology,
+                assignments);
         return new FrozenCommand(command, frame);
     }
 
@@ -167,13 +197,15 @@ public final class CommanderService {
     }
 
     static <F extends CommandFrame, D> void runSingle(
-            AutonomousMissionCommand<F, D> command, BattleView sim) {
+            AutonomousMissionCommand<F, D> command,
+            CommandFrameDisclosure<F> disclosure, BattleView sim) {
         AssignmentArbiter arbiter = DIRECT_SERVICES.computeIfAbsent(command,
                 ignored -> new AssignmentArbiter());
         arbiter.synchronizeCompatibilityAssignments(sim,
                 Map.of(command.faction(), command.strategyId()));
         CommandTopology topology = CommandTopology.freeze(sim);
-        F frame = command.freeze(sim, topology, arbiter.snapshot());
+        F frame = disclosure.freeze(sim, command.faction(), topology,
+                arbiter.snapshot());
         CommandPlan<D> plan = command.plan(frame);
         if (plan.perspective() != command.faction()) {
             throw new IllegalStateException(
@@ -187,4 +219,7 @@ public final class CommanderService {
 
     private record FrozenCommand(AutonomousMissionCommand<?, ?> command,
                                  CommandFrame frame) { }
+
+    private record Registration(CommandStrategy strategy,
+                                CommandFrameDisclosure<?> disclosure) { }
 }

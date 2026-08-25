@@ -59,11 +59,13 @@ side's own force state, faction-local influence, legally disclosed objective
 state, public topology, current directives, and frozen doctrine. It does not
 offer unrestricted access to the opposing live world. Production mission
 strategies receive only this frame and narrow topology queries, never a
-`BattleView` or retained simulation reference. A perspective-specific mission
-disclosure adapter is the sole authority that may project objective facts into
-the frame. Both sides plan from their frames before either side's new orders
-are committed, so commander dispatch order cannot become knowledge or behavior
-leakage.
+`BattleView` or retained simulation reference. The frame-only
+`AutonomousMissionCommand` contract is separate from the legacy live-view
+`MissionCommand` contract. A perspective-specific, stateless mission disclosure
+adapter is registered beside the strategy and is the sole authority that may
+project objective facts into the frame. Both sides plan from their frames
+before either side's new orders are committed, so commander dispatch order
+cannot become knowledge or behavior leakage.
 
 A **command pool** is the set of squads a strategy may allocate. Born
 garrisons, payload guards, scripted actors, and reinforcement forces awaiting

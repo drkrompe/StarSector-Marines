@@ -27,7 +27,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
  * hooks such as a zone flip, squad wipe, or objective explosion may augment
  * that cadence later without changing the interface.
  */
-public interface MissionCommand {
+public interface MissionCommand extends CommandStrategy {
 
     /**
      * The faction this commander owns. Used by the sim to look up which
