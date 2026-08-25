@@ -19,7 +19,12 @@ public record ConquestFrontSnapshot(
         List<TrackState> tracks,
         List<SquadDirective> directives) {
 
-    public enum Phase { LANE_ADVANCE, FRONT_ADJUST, KEEP_CONVERGENCE }
+    public enum Phase {
+        LANE_ADVANCE,
+        FRONT_ADJUST,
+        KEEP_CONVERGENCE,
+        FINAL_COMPOUND_CONVERGENCE
+    }
 
     public enum AssignmentReason {
         GARRISON_HOLD,
@@ -29,6 +34,7 @@ public record ConquestFrontSnapshot(
         TRACK_ADVANCE,
         ADJACENT_TRACK_SUPPORT,
         KEEP_APPROACH,
+        FINAL_COMPOUND_SUPPORT,
         NO_ACTIONABLE_TRACK_TARGET,
         DEFENDER_GARRISON_HOLD,
         DEFENDER_LOCAL_CONTACT,

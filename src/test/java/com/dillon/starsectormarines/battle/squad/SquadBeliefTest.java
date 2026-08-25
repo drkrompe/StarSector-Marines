@@ -193,4 +193,28 @@ class SquadBeliefTest {
         assertEquals(-1, squad.lastSeenEnemyY);
         assertFalse(WorldStateBuilder.build(squad, sim).get(Predicate.HAS_TARGET));
     }
+
+    @Test
+    void deadRememberedContactCannotSatisfyTargetLosOrRange() {
+        BattleSimulation sim = openSim();
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        sim.spawn(new EntitySpec("observer", Faction.MARINE,
+                UnitType.MARINE, 5, 5).squad(squadId));
+        long enemy = sim.spawn(new EntitySpec("enemy", Faction.DEFENDER,
+                UnitType.MARINE, 9, 5));
+
+        sim.advance(BattleSimulation.TICK_DT);
+        assertTrue(WorldStateBuilder.build(squad, sim).get(Predicate.HAS_TARGET));
+        assertNotNull(squad.believedContact(enemy));
+
+        sim.getRoster().release(enemy);
+        WorldState afterDeath = WorldStateBuilder.build(squad, sim);
+
+        assertNotNull(squad.believedContact(enemy),
+                "belief memory may outlive the combatant identity");
+        assertFalse(afterDeath.get(Predicate.HAS_TARGET));
+        assertFalse(afterDeath.get(Predicate.HAS_LOS_TO_TARGET));
+        assertFalse(afterDeath.get(Predicate.IN_RANGE_OF_TARGET));
+    }
 }

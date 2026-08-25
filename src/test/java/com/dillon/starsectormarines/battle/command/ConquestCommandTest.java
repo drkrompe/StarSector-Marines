@@ -762,6 +762,62 @@ public class ConquestCommandTest {
     }
 
     @Test
+    public void heldKeepAndSoleContestedCompoundConvergeDistantTracks() {
+        BattleSimulation sim = twoCompoundSim();
+        CompoundService.Record armory = sim.getCompoundService().register(
+                new TacticalNode(TacticalNode.Kind.ARMORY, 5, 5,
+                        4, 4, 6, 6, Faction.DEFENDER, 80, 4));
+        CompoundService.Record keep = sim.getCompoundService().register(
+                new TacticalNode(TacticalNode.Kind.COMMAND_POST, 24, 5,
+                        23, 4, 25, 6, Faction.DEFENDER, 100, 4));
+        keep.state = CompoundService.CompoundState.MARINE_HELD;
+        Squad adjacent = addMarineSquad(sim, 5f, 5f);
+        Squad distant = addMarineSquad(sim, 28f, 1f);
+        addDefender(sim, 5, 5);
+
+        ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+        cmd.tick(sim);
+
+        assertEquals(CompoundService.CompoundState.DEFENDER_HELD, armory.state);
+        assertEquals(Phase.FINAL_COMPOUND_CONVERGENCE,
+                cmd.frontSnapshot().phase());
+        assertEquals(AssignmentKind.SECURE_COMPOUND,
+                adjacent.assignedObjective.kind(),
+                "capture quota remains owned by the adjacent assault squad");
+        assertEquals(AssignmentKind.CLEAR_ZONE, distant.assignedObjective.kind(),
+                "an idle nonadjacent track supports the final contested place");
+        ConquestFrontSnapshot.SquadDirective directive =
+                cmd.frontSnapshot().directiveFor(distant.id);
+        assertEquals(2, directive.preferredTrack());
+        assertEquals(0, directive.effectiveTrack());
+        assertEquals(AssignmentReason.FINAL_COMPOUND_SUPPORT,
+                directive.reason());
+    }
+
+    @Test
+    public void soleUncontestedCompoundKeepsNormalCaptureQuota() {
+        BattleSimulation sim = twoCompoundSim();
+        sim.getCompoundService().register(new TacticalNode(
+                TacticalNode.Kind.ARMORY, 5, 5,
+                4, 4, 6, 6, Faction.DEFENDER, 80, 4));
+        CompoundService.Record keep = sim.getCompoundService().register(
+                new TacticalNode(TacticalNode.Kind.COMMAND_POST, 24, 5,
+                        23, 4, 25, 6, Faction.DEFENDER, 100, 4));
+        keep.state = CompoundService.CompoundState.MARINE_HELD;
+        Squad near = addMarineSquad(sim, 5f, 5f);
+        Squad far = addMarineSquad(sim, 28f, 1f);
+
+        ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+        cmd.tick(sim);
+
+        int secure = (isSecureCompound(near) ? 1 : 0)
+                + (isSecureCompound(far) ? 1 : 0);
+        assertEquals(1, secure, "uncontested final capture keeps its one-squad quota");
+        assertNotEquals(Phase.FINAL_COMPOUND_CONVERGENCE,
+                cmd.frontSnapshot().phase());
+    }
+
+    @Test
     public void recapturedEarlierCompoundReopensFrontAfterKeepConvergence() {
         BattleSimulation sim = twoCompoundSim();
         CompoundService.Record armory = sim.getCompoundService().register(

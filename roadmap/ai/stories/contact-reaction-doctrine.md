@@ -4,7 +4,7 @@ Status: IN PROGRESS — live battle found and implementation closes the contact-
 
 Written: 2026-08-23
 
-Updated: 2026-08-24
+Updated: 2026-08-25 — automated coverage now protects dispersed contact locality, actionable belief validity, fixing movement, and flank handoff.
 
 Read `ai-nouns.md` before running this acceptance.
 
@@ -26,6 +26,10 @@ Read `ai-nouns.md` before running this acceptance.
 - [ ] Ambush one fireteam of a multi-team squad. Confirm the exposed team
   displaces while an unexposed sibling holds and covers, with ordinary
   bounding behavior still intact on a committed advance.
+- [ ] Spread a squad so one fireteam alone makes contact. Confirm that element's
+  live contact remains in the squad picture, fixing members acquire reachable
+  supporting fire positions, and the maneuver hands off instead of restarting
+  ReinforceContact when it arrives or cannot reach its flank waypoint.
 - [ ] Observe ordinary open-ground movement and narrow passages. Confirm team
   echelons/readable arrival footprints relax for doorways and constrained
   navigation rather than deadlocking the squad.

@@ -239,4 +239,43 @@ class TacticalScoringContactPictureTest {
         assertFalse(TacticalScoring.contactHoldIsFresh(squad,
                 squad.contactPicture, sim.getSimTickIndex()));
     }
+
+    @Test
+    void dispersedFireteamKeepsItsLocalContactInTheSquadPicture() {
+        NavigationGrid grid = new NavigationGrid(100, 80);
+        for (int y = 0; y < grid.getHeight(); y++) {
+            for (int x = 0; x < grid.getWidth(); x++) grid.setWalkableFloor(x, y);
+        }
+        BattleSimulation sim = new BattleSimulation(grid,
+                new CellTopology(grid.getWidth(), grid.getHeight()));
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        for (int i = 0; i < 7; i++) {
+            sim.spawn(new EntitySpec("rear" + i, Faction.MARINE,
+                    UnitType.MARINE, 5, 10 + i).squad(squadId)
+                    .fireTeam(i / Squad.FIRE_TEAM_SIZE));
+        }
+        long forward = sim.spawn(new EntitySpec("forward", Faction.MARINE,
+                UnitType.MARINE, 50, 50).squad(squadId).fireTeam(2));
+        long enemy = sim.spawn(new EntitySpec("contact", Faction.DEFENDER,
+                UnitType.MARINE, 60, 50));
+        sim.world().setAttackRange(forward, 12f);
+
+        sim.advance(BattleSimulation.TICK_DT);
+
+        assertTrue(TacticalScoring.cellDistance(squad.centroidX, squad.centroidY,
+                60.5f, 50.5f) > TacticalScoring.CONTACT_PICTURE_RADIUS,
+                "test prerequisite: the squad centroid is not local to contact");
+        assertEquals(1, squad.contactPicture.contactCount());
+        assertEquals(1, squad.contactPicture.directContactCount());
+        assertEquals(enemy, squad.contactPicture.primaryContactId());
+        assertEquals(1, squad.contactPicture.friendlyStrength(),
+                "only allies local to this contact count as immediate support");
+        assertEquals(ForceBalance.EVEN, squad.contactPicture.forceBalance());
+        assertEquals(Doctrine.HOLD, squad.contactPicture.doctrine());
+        assertEquals(8, squad.contactPicture.liveMembers());
+        assertEquals(3, squad.contactPicture.liveFireTeams());
+        assertEquals(1, squad.contactPicture.primaryEngageableMembers());
+        assertEquals(1, squad.contactPicture.primaryEngageableFireTeams());
+    }
 }

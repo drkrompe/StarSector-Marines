@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.decision.goap.world;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.BelievedContact;
+import com.dillon.starsectormarines.battle.squad.BeliefSource;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.infantry.InfantryCohesion;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -90,7 +91,10 @@ public final class WorldStateBuilder {
     // --- Stage 1 evaluators ---------------------------------------------
 
     private static boolean evalHasTarget(Squad squad, BattleView sim) {
-        return squad.hasBelievedContacts();
+        for (BelievedContact contact : squad.believedContacts()) {
+            if (isActionableContact(squad, contact, sim)) return true;
+        }
+        return false;
     }
 
     /**
@@ -99,7 +103,13 @@ public final class WorldStateBuilder {
      * the parallel planner does not rediscover enemies from global live state.
      */
     private static boolean evalHasLosToTarget(Squad squad, BattleView sim) {
-        return squad.hasDirectContactThisTick();
+        int tick = sim.getSimTickIndex();
+        for (BelievedContact contact : squad.believedContacts()) {
+            if (isActionableContact(squad, contact, sim)
+                    && contact.source() == BeliefSource.DIRECT
+                    && contact.observedOnTick(tick)) return true;
+        }
+        return false;
     }
 
     private static boolean evalInRangeOfTarget(Squad squad, BattleView sim) {
@@ -108,6 +118,7 @@ public final class WorldStateBuilder {
         for (int mi = 0, n = sim.squadMemberCount(squad.id); mi < n; mi++) {
             long member = sim.squadMemberAt(squad.id, mi);
             for (BelievedContact contact : contacts) {
+                if (!isActionableContact(squad, contact, sim)) continue;
                 float d = TacticalScoring.cellDistance(sim.world().x(member),
                         sim.world().y(member), contact.lastSeenCellX() + 0.5f,
                         contact.lastSeenCellY() + 0.5f);
@@ -115,6 +126,16 @@ public final class WorldStateBuilder {
             }
         }
         return false;
+    }
+
+    /** Belief identities must still resolve to a live hostile combatant. */
+    private static boolean isActionableContact(Squad squad,
+                                               BelievedContact contact,
+                                               BattleView sim) {
+        long unit = sim.resolveUnit(contact.unitId());
+        return unit != 0L
+                && sim.identity().faction(unit) != squad.faction
+                && sim.identity().type(unit).combatant;
     }
 
     /**

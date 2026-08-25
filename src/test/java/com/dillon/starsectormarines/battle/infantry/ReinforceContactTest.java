@@ -1,23 +1,28 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
+import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
+import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -64,6 +69,10 @@ public class ReinforceContactTest {
         return s;
     }
 
+    private static WorldState contactState() {
+        return WorldState.EMPTY.with(Predicate.HAS_TARGET, true);
+    }
+
     // ---- Relevance gates ----
 
     @Test
@@ -84,7 +93,7 @@ public class ReinforceContactTest {
         s.centroidX = 35;
         s.centroidY = 5;
         s.aliveMembers = 4;
-        assertTrue(ReinforceContact.INSTANCE.relevance(WorldState.EMPTY, s, sim) > 0f);
+        assertTrue(ReinforceContact.INSTANCE.relevance(contactState(), s, sim) > 0f);
     }
 
     @Test
@@ -116,7 +125,7 @@ public class ReinforceContactTest {
     public void relevanceZeroWhenMoraleBroken() {
         BattleSimulation sim = openSim();
         Squad s = suspiciousPatrol(sim);
-        WorldState ws = WorldState.EMPTY.with(Predicate.MORALE_BROKEN, true);
+        WorldState ws = contactState().with(Predicate.MORALE_BROKEN, true);
         assertEquals(0f, ReinforceContact.INSTANCE.relevance(ws, s, sim));
     }
 
@@ -124,17 +133,16 @@ public class ReinforceContactTest {
     public void relevanceZeroWhenAlreadyAtContact() {
         BattleSimulation sim = openSim();
         Squad s = suspiciousPatrol(sim);
-        s.centroidX = 20;
-        s.centroidY = 30;
-        assertEquals(0f, ReinforceContact.INSTANCE.relevance(WorldState.EMPTY, s, sim),
-                "Squad centroid on top of contact should yield to EliminateEnemies");
+        sim.world().setCellPos(s.leaderId, 20, 30);
+        assertEquals(0f, ReinforceContact.INSTANCE.relevance(contactState(), s, sim),
+                "a live fireteam member at contact should yield to EliminateEnemies");
     }
 
     @Test
     public void relevancePositiveWhenSuspiciousWithContact() {
         BattleSimulation sim = openSim();
         Squad s = suspiciousPatrol(sim);
-        assertTrue(ReinforceContact.INSTANCE.relevance(WorldState.EMPTY, s, sim) > 0f);
+        assertTrue(ReinforceContact.INSTANCE.relevance(contactState(), s, sim) > 0f);
     }
 
     @Test
@@ -142,8 +150,40 @@ public class ReinforceContactTest {
         BattleSimulation sim = openSim();
         Squad s = suspiciousPatrol(sim);
         s.alertLevel = SquadAlertLevel.ENGAGED;
-        assertTrue(ReinforceContact.INSTANCE.relevance(WorldState.EMPTY, s, sim) > 0f,
+        s.currentGoal = ReinforceContact.INSTANCE;
+        assertTrue(ReinforceContact.INSTANCE.relevance(contactState(), s, sim) > 0f,
                 "ENGAGED patrol mid-flank should keep reinforcing until arrival");
+    }
+
+    @Test
+    public void engagedSquadDoesNotReenterFlankAfterContactHandoff() {
+        BattleSimulation sim = openSim();
+        Squad s = suspiciousPatrol(sim);
+        s.alertLevel = SquadAlertLevel.ENGAGED;
+        s.currentGoal = EliminateEnemiesGoal.INSTANCE;
+
+        assertEquals(0f, ReinforceContact.INSTANCE.relevance(
+                contactState(), s, sim));
+    }
+
+    @Test
+    public void deadRememberedIdentityCannotRestartReinforcement() {
+        BattleSimulation sim = openSim();
+        Squad squad = addDefenderSquad(sim, 35f, 5f);
+        long enemy = sim.spawn(new EntitySpec("marine", Faction.MARINE,
+                UnitType.MARINE, 20, 5));
+        sim.advance(BattleSimulation.TICK_DT);
+        assertTrue(WorldStateBuilder.build(squad, sim).get(Predicate.HAS_TARGET));
+        assertTrue(TacticalScoring.cellDistance(squad.centroidX,
+                squad.centroidY, 20.5f, 5.5f)
+                > ReinforceContact.ALREADY_AT_CONTACT_RADIUS);
+
+        sim.getRoster().release(enemy);
+        squad.alertLevel = SquadAlertLevel.SUSPICIOUS;
+        WorldState stale = WorldStateBuilder.build(squad, sim);
+
+        assertFalse(stale.get(Predicate.HAS_TARGET));
+        assertEquals(0f, ReinforceContact.INSTANCE.relevance(stale, squad, sim));
     }
 
     // ---- RoutinePatrol handoff ----
@@ -201,6 +241,69 @@ public class ReinforceContactTest {
         assertEquals(4, roles.entrySet().stream()
                 .filter(e -> e.getKey().startsWith(FlankApproach.FLANK))
                 .findFirst().orElseThrow().getValue().size());
+    }
+
+    @Test
+    public void fixingTeamClosesToReachableSupportLineOnDirectContact() {
+        BattleSimulation sim = openSim();
+        int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        List<Long> members = new ArrayList<>();
+        for (int i = 0; i < 8; i++) {
+            int x = i < 4 ? 5 : 25;
+            long member = sim.spawn(new EntitySpec("d" + i, Faction.DEFENDER,
+                    UnitType.MARINE, x, 10 + i % 4).squad(squadId)
+                    .fireTeam(i / 4));
+            members.add(member);
+            if (i == 0) squad.leaderId = member;
+        }
+        long enemy = sim.spawn(new EntitySpec("marine", Faction.MARINE,
+                UnitType.MARINE, 30, 11));
+        sim.world().setMaxHp(enemy, 1_000f);
+        sim.world().setHp(enemy, 1_000f);
+        sim.advance(BattleSimulation.TICK_DT);
+
+        FlankApproach action = new FlankApproach(30, 25);
+        SquadPlan.Step step = new SquadPlan.Step(action);
+        step.assignments.putAll(action.assignRoles(squad, sim, members));
+        squad.currentPlan = new SquadPlan(List.of(step));
+        long fixer = step.assignments.entrySet().stream()
+                .filter(e -> e.getKey().startsWith(FlankApproach.FIX))
+                .findFirst().orElseThrow().getValue().get(0);
+
+        assertEquals(ActionStatus.RUNNING, action.execute(fixer, squad, sim));
+
+        int[] path = sim.world().path(fixer);
+        assertFalse(Paths.isEmpty(path));
+        int destX = Paths.destX(path);
+        int destY = Paths.destY(path);
+        assertTrue(sim.getGrid().hasLineOfSight(destX, destY,
+                sim.world().cellX(enemy), sim.world().cellY(enemy)));
+        assertTrue(TacticalScoring.cellDistance(destX + 0.5f, destY + 0.5f,
+                sim.world().x(enemy), sim.world().y(enemy))
+                <= sim.world().attackRange(fixer));
+    }
+
+    @Test
+    public void structurallyUnreachableFlankCompletesForOrdinaryHandoff() {
+        NavigationGrid grid = new NavigationGrid(20, 10);
+        for (int y = 0; y < grid.getHeight(); y++) {
+            for (int x = 0; x < grid.getWidth(); x++) {
+                if (x != 9 && x != 10) grid.setWalkableFloor(x, y);
+            }
+        }
+        BattleSimulation sim = new BattleSimulation(grid,
+                new CellTopology(grid.getWidth(), grid.getHeight()));
+        int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        long member = sim.spawn(new EntitySpec("flanker", Faction.DEFENDER,
+                UnitType.MARINE, 5, 5).squad(squadId));
+        FlankApproach action = new FlankApproach(15, 5);
+        SquadPlan.Step step = new SquadPlan.Step(action);
+        step.assignments.put("flank:0", List.of(member));
+        squad.currentPlan = new SquadPlan(List.of(step));
+
+        assertEquals(ActionStatus.SUCCESS, action.execute(member, squad, sim));
     }
 
     // ---- Flanking geometry ----

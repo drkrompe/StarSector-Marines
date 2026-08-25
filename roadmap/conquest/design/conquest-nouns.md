@@ -4,7 +4,7 @@ Status: ACTIVE — Conquest owns reversible compound territory, deliberate captu
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — defined shared tracks, belief-honest defender mobilization, command observability, keep convergence, and fixed authored siege pressure.
+Updated: 2026-08-25 — extended culminating convergence to a sole contested recapture after the keep is held.
 
 Conquest is a territorial assault: marines establish a beachhead, take the
 defender's supply hubs through the city, and finish at the keep. It is not a
@@ -122,8 +122,16 @@ When that keep is the only compound not held by marines, command enters
 **keep convergence**. Every mobile assault squad receives the same culminating
 secure-compound context regardless of track boundary, allowing local approach
 and room-clear behavior to converge the force. Born-holding garrisons remain on
-station. If an earlier compound is recaptured, the front immediately reopens
-and ordinary compound and track priorities resume.
+station.
+
+If the keep is held but one earlier compound is the sole contested territorial
+objective, command enters **final-compound convergence**. The normal capture
+quota still owns `SECURE_COMPOUND`; all other mobile squads receive bounded
+room-clear support across any track so an end-of-map recapture cannot strand
+the assault behind a track boundary. With more than one uncaptured compound,
+the front reopens and ordinary compound and track priorities resume. A sole
+uncontested compound likewise keeps normal capture allocation rather than
+pulling the whole force into a needless convergence.
 
 `mapgen-nouns.md` owns the generator recipe, compound footprint, fortress
 geometry, and validation of that canonical keep. Conquest depends on the

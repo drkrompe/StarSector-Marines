@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PatrolRescueFormationTest {
 
@@ -85,6 +86,27 @@ class PatrolRescueFormationTest {
         assertEquals(10, Paths.destX(sim.movement().path(mech)));
         assertEquals(10, Paths.destY(sim.movement().path(mech)),
                 "the engaged pickup mech returns to the authored LZ center");
+    }
+
+    @Test
+    void planlessMechDropsItsFormerObjectivePath() {
+        BattleSimulation sim = simulation();
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.HEAVY_MECH);
+        Squad squad = sim.getSquad(squadId);
+        long mech = sim.spawn(new EntitySpec("mech", Faction.MARINE,
+                UnitType.HEAVY_MECH, 2, 2).squad(squadId));
+        squad.leaderId = mech;
+        squad.aliveMembers = 1;
+        squad.centroidX = 2.5f;
+        squad.centroidY = 2.5f;
+        squad.currentPlan = null;
+        sim.setPath(mech, GridPathfinder.findPath(sim.getGrid(), 2, 2,
+                16, 14));
+
+        GoapMechBehavior.INSTANCE.update(mech, sim);
+
+        assertTrue(Paths.isEmpty(sim.movement().path(mech)),
+                "a planless mech must not continue toward a released assignment");
     }
 
     private static BattleSimulation simulation() {

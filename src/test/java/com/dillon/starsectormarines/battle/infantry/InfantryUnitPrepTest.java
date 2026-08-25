@@ -5,6 +5,9 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -15,6 +18,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -286,6 +290,59 @@ public class InfantryUnitPrepTest {
 
         assertEquals(marine, sim.combat().fireTargetId(defender),
                 "a replan gap must not cost a defender a legal shot");
+    }
+
+    @Test
+    public void nullPlanClearsFormerActionPath() {
+        BattleSimulation sim = openArena(30, 10);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        long member = sim.spawn(new EntitySpec("m", Faction.MARINE,
+                UnitType.MARINE, 5, 5).squad(squadId));
+        sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+                5, 5, 20, 5));
+
+        GoapInfantryBehavior.INSTANCE.update(member, sim);
+
+        assertTrue(Paths.isEmpty(sim.world().path(member)),
+                "no executing plan may expose a ghost movement order");
+    }
+
+    @Test
+    public void completedPlanRetainsPathForNextPostureHandoff() {
+        BattleSimulation sim = openArena(30, 10);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        long member = sim.spawn(new EntitySpec("m", Faction.MARINE,
+                UnitType.MARINE, 5, 5).squad(squadId));
+        sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+                5, 5, 20, 5));
+        squad.currentPlan = new SquadPlan(List.of());
+
+        GoapInfantryBehavior.INSTANCE.update(member, sim);
+
+        assertFalse(Paths.isEmpty(sim.world().path(member)),
+                "Approach-to-Engage handoff keeps sibling movement paths");
+    }
+
+    @Test
+    public void assignmentChangeInterruptsAnOtherwiseFreshPlan() {
+        BattleSimulation sim = openArena(30, 10);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        sim.spawn(new EntitySpec("m", Faction.MARINE,
+                UnitType.MARINE, 5, 5).squad(squadId));
+        squad.aliveMembers = 1;
+        squad.aliveMembersAtLastPlan = 1;
+        squad.assignedObjectiveAtLastPlan =
+                ObjectiveAssignment.clearZone(squadId, 1);
+        SquadPlan.Step oldStep = new SquadPlan.Step(OverwatchPosture.INSTANCE);
+        squad.currentPlan = new SquadPlan(List.of(oldStep));
+
+        GoapInfantryBehavior.replanIfNeeded(squad, sim);
+
+        assertNull(squad.assignedObjectiveAtLastPlan);
+        assertNull(squad.currentPlan,
+                "released mission work replans immediately to the ambient floor");
     }
 
     @Test

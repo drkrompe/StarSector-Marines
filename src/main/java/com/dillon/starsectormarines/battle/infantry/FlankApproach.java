@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.squad.BeliefSource;
+import com.dillon.starsectormarines.battle.squad.BelievedContact;
 import com.dillon.starsectormarines.battle.squad.FireTeamGroups;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
@@ -82,8 +84,7 @@ public final class FlankApproach implements Action {
                 ? squad.currentPlan.currentStep() : null;
         String role = step != null ? step.slotOf(member) : null;
         if (role != null && role.startsWith(FIX)) {
-            if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
-            return ActionStatus.RUNNING;
+            return executeFixingMember(member, squad, sim);
         }
 
         if (maneuverDistance(step, squad, sim) <= ARRIVAL_RADIUS) {
@@ -93,15 +94,81 @@ public final class FlankApproach implements Action {
         int[] path = sim.world().path(member);
         int pathIdx = sim.world().pathIdx(member);
         if (sim.movement().mayRepath(member) && pathIdx >= Paths.cellCount(path)) {
-            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
+            int[] next = GridPathfinder.findPath(sim.getGrid(),
                     sim.world().cellX(member), sim.world().cellY(member),
-                    waypointX, waypointY, sim.getOccupancyMap()));
+                    waypointX, waypointY, sim.getOccupancyMap());
+            if (Paths.isEmpty(next)) {
+                // Occupancy may transiently close an otherwise valid route.
+                // A structurally disconnected waypoint cannot recover, so
+                // complete the maneuver and hand control back to ordinary
+                // engagement instead of running forever.
+                int[] geometric = GridPathfinder.findPath(sim.getGrid(),
+                        sim.world().cellX(member), sim.world().cellY(member),
+                        waypointX, waypointY);
+                if (Paths.isEmpty(geometric)) return ActionStatus.SUCCESS;
+                return ActionStatus.RUNNING;
+            }
+            sim.setPath(member, next);
             path = sim.world().path(member);
             pathIdx = sim.world().pathIdx(member);
         }
         if (pathIdx < Paths.cellCount(path)) {
             sim.advanceMovement(member);
         }
+        return ActionStatus.RUNNING;
+    }
+
+    /**
+     * A fixing team establishes an actual support line once the squad has a
+     * fresh direct primary. Before direct contact it holds the reported axis;
+     * afterward it closes to a reachable firing or vantage cell while the
+     * sibling team continues the flank.
+     */
+    private ActionStatus executeFixingMember(long member, Squad squad,
+                                             BattleControl sim) {
+        long primary = squad.contactPicture.primaryContactId();
+        BelievedContact belief = squad.believedContact(primary);
+        if (primary == 0L || sim.resolveUnit(primary) == 0L || belief == null
+                || belief.source() != BeliefSource.DIRECT
+                || !belief.observedOnTick(sim.getSimTickIndex())) {
+            if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+            return ActionStatus.RUNNING;
+        }
+
+        int[] destination = sim.getTacticalScoring()
+                .findReachableFiringPosition(member, primary);
+        if (destination == null) {
+            if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+            return ActionStatus.RUNNING;
+        }
+        if (sim.movement().atCell(member, destination[0], destination[1])) {
+            if (!Paths.isEmpty(sim.world().path(member))) sim.clearPath(member);
+            return ActionStatus.RUNNING;
+        }
+
+        int[] path = sim.world().path(member);
+        int pathIdx = sim.world().pathIdx(member);
+        if (!Paths.isEmpty(path)
+                && (Paths.destX(path) != destination[0]
+                || Paths.destY(path) != destination[1])) {
+            sim.clearPath(member);
+            path = sim.world().path(member);
+            pathIdx = sim.world().pathIdx(member);
+        }
+        if (sim.movement().mayRepath(member) && pathIdx >= Paths.cellCount(path)) {
+            int[] next = GridPathfinder.findPath(sim.getGrid(),
+                    sim.world().cellX(member), sim.world().cellY(member),
+                    destination[0], destination[1], sim.getOccupancyMap());
+            if (Paths.isEmpty(next)) {
+                next = GridPathfinder.findPath(sim.getGrid(),
+                        sim.world().cellX(member), sim.world().cellY(member),
+                        destination[0], destination[1]);
+            }
+            sim.setPath(member, next);
+            path = sim.world().path(member);
+            pathIdx = sim.world().pathIdx(member);
+        }
+        if (pathIdx < Paths.cellCount(path)) sim.advanceMovement(member);
         return ActionStatus.RUNNING;
     }
 

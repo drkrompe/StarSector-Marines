@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.command.DefendAssignedTrackGoal;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
+import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 import com.dillon.starsectormarines.battle.decision.goap.scoring.RoleAssigner;
 import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder;
@@ -17,6 +18,7 @@ import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Per-unit GOAP dispatch for mech-class units. Sibling of
@@ -73,7 +75,11 @@ public final class GoapMechBehavior implements UnitBehavior {
         SquadPlan plan = squad.currentPlan;
         if (plan == null || plan.isComplete()) {
             // Replan catches up next tick; idle this frame rather than fall
-            // through to some arbitrary default. Keeps the planner authoritative.
+            // through to some arbitrary default. No executing plan owns an
+            // old path, so drop it rather than exposing a ghost order.
+            if (plan == null && !Paths.isEmpty(sim.world().path(unit))) {
+                sim.clearPath(unit);
+            }
             return;
         }
 
@@ -126,10 +132,13 @@ public final class GoapMechBehavior implements UnitBehavior {
         }
 
         boolean memberCountChanged = squad.aliveMembers != squad.aliveMembersAtLastPlan;
+        boolean assignmentChanged = !Objects.equals(squad.assignedObjective,
+                squad.assignedObjectiveAtLastPlan);
         boolean needsReplan = squad.currentPlan == null
                            || squad.currentPlan.isComplete()
                            || squad.timeSinceReplan >= Planner.REPLAN_PERIOD
-                           || memberCountChanged;
+                           || memberCountChanged
+                           || assignmentChanged;
 
         if (!needsReplan) {
             squad.timeSinceReplan += BattleSimulation.TICK_DT;
@@ -143,6 +152,7 @@ public final class GoapMechBehavior implements UnitBehavior {
             squad.currentGoal = null;
             squad.timeSinceReplan = 0f;
             squad.aliveMembersAtLastPlan = squad.aliveMembers;
+            squad.assignedObjectiveAtLastPlan = squad.assignedObjective;
             return;
         }
 
@@ -172,5 +182,6 @@ public final class GoapMechBehavior implements UnitBehavior {
         squad.currentGoal = goal;
         squad.timeSinceReplan = 0f;
         squad.aliveMembersAtLastPlan = squad.aliveMembers;
+        squad.assignedObjectiveAtLastPlan = squad.assignedObjective;
     }
 }

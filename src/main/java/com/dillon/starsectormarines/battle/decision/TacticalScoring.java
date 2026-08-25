@@ -1135,16 +1135,26 @@ public final class TacticalScoring {
      * even here" gate (e.g. zone-clear) has already passed.
      */
     public boolean hasReachableFiringSpot(long self, long target) {
+        return findReachableFiringPosition(self, target) != null;
+    }
+
+    /**
+     * Returns a firing or vantage cell that the unit can actually path to.
+     * The ordinary hot-path picker may return an LOS-bearing cell across a
+     * structural wall; coordinated maneuver needs the stronger guarantee so
+     * a fixing element does not replace passive waiting with an empty path.
+     */
+    public int[] findReachableFiringPosition(long self, long target) {
         int[] spot = findFiringPosition(self, target);
-        if (spot == null) return false;
+        if (spot == null) return null;
         // A stage-2 vantage is already reachability-checked, so this pathfind
         // only ever fails when findFiringPosition returned a stage-1 (LOS+range)
         // cell that's walled off from self — in which case the vantage probe is
         // the real verdict on whether an approach exists at all.
         World world = roster.world();
         int[] path = GridPathfinder.findPath(grid, world.cellX(self), world.cellY(self), spot[0], spot[1]);
-        if (path.length > 0) return true;
-        return pickReachableVantage(self, target) != null;
+        if (path.length > 0) return spot;
+        return pickReachableVantage(self, target);
     }
 
     /**
@@ -1262,11 +1272,20 @@ public final class TacticalScoring {
 
     /** Builds the local tactical picture without reading a hostile's hidden position. */
     public SquadContactPicture assessContactPicture(Squad squad, int currentTick) {
-        if (squad.aliveMembers <= 0 || squad.believedContacts().isEmpty()) {
+        if (squad.aliveMembers <= 0) {
             return new SquadContactPicture(currentTick, postureOf(squad), 0f, 0f,
                     0, 0, 0f, 0, ForceBalance.NONE, Sector.NONE,
                     Motion.UNKNOWN, 0L, -1, -1, 0f, Doctrine.ADVANCE,
                     0, 0, 0, 0, ContactInitiative.NONE);
+        }
+
+        if (squad.believedContacts().isEmpty()) {
+            FiringLineCoverage coverage = firingLineCoverage(squad, null);
+            return new SquadContactPicture(currentTick, postureOf(squad), 0f, 0f,
+                    0, 0, 0f, 0, ForceBalance.NONE, Sector.NONE,
+                    Motion.UNKNOWN, 0L, -1, -1, 0f, Doctrine.ADVANCE,
+                    0, coverage.liveMembers(), 0, coverage.liveFireTeams(),
+                    ContactInitiative.NONE);
         }
 
         Posture posture = postureOf(squad);
@@ -1285,7 +1304,7 @@ public final class TacticalScoring {
                     || !roster.identity().type(id).combatant) continue;
             float dx = contact.lastSeenCellX() + 0.5f - squad.centroidX;
             float dy = contact.lastSeenCellY() + 0.5f - squad.centroidY;
-            float distance = (float) Math.sqrt(dx * dx + dy * dy);
+            float distance = distanceToSquadFootprint(squad, contact);
             if (distance > CONTACT_PICTURE_RADIUS) continue;
 
             Sector sector = classifySector(axis[0], axis[1], dx, dy);
@@ -1304,16 +1323,18 @@ public final class TacticalScoring {
         }
 
         if (primary == null) {
+            FiringLineCoverage coverage = firingLineCoverage(squad, null);
             return new SquadContactPicture(currentTick, posture, axis[0], axis[1],
                     0, 0, 0f, 0, ForceBalance.NONE, Sector.NONE,
                     Motion.UNKNOWN, 0L, -1, -1, 0f, Doctrine.ADVANCE,
-                    0, 0, 0, 0, ContactInitiative.NONE);
+                    0, coverage.liveMembers(), 0, coverage.liveFireTeams(),
+                    ContactInitiative.NONE);
         }
 
         Sector dominant = dominantSector(sectorStrength);
         int friends = countCombatantsWithin(squad.faction,
-                Math.round(squad.centroidX - 0.5f),
-                Math.round(squad.centroidY - 0.5f), CONTACT_PICTURE_RADIUS);
+                primary.lastSeenCellX(), primary.lastSeenCellY(),
+                CONTACT_PICTURE_RADIUS);
         ForceBalance balance = forceBalance(hostileStrength, friends);
         Motion motion = contactMotion(primary, squad, currentTick);
         boolean holdContactFresh = contactHoldIsFresh(
@@ -1351,13 +1372,16 @@ public final class TacticalScoring {
             int team = roster.squad().fireTeamIndex(member);
             int teamBit = 1 << Math.min(30, Math.max(0, team));
             liveTeamsMask |= teamBit;
-            float distance = cellDistance(roster.world().x(member),
-                    roster.world().y(member), primary.lastSeenCellX() + 0.5f,
-                    primary.lastSeenCellY() + 0.5f);
-            boolean engageable = distance <= roster.world().attackRange(member)
-                    && grid.hasLineOfSight(roster.world().cellX(member),
-                    roster.world().cellY(member), primary.lastSeenCellX(),
-                    primary.lastSeenCellY());
+            boolean engageable = false;
+            if (primary != null) {
+                float distance = cellDistance(roster.world().x(member),
+                        roster.world().y(member), primary.lastSeenCellX() + 0.5f,
+                        primary.lastSeenCellY() + 0.5f);
+                engageable = distance <= roster.world().attackRange(member)
+                        && grid.hasLineOfSight(roster.world().cellX(member),
+                        roster.world().cellY(member), primary.lastSeenCellX(),
+                        primary.lastSeenCellY());
+            }
             if (engageable) {
                 engageableMembers++;
                 engageableTeamsMask |= teamBit;
@@ -1366,6 +1390,27 @@ public final class TacticalScoring {
         return new FiringLineCoverage(liveMembers, engageableMembers,
                 Integer.bitCount(liveTeamsMask),
                 Integer.bitCount(engageableTeamsMask));
+    }
+
+    /**
+     * A contact is local when it lies near any live squad member. Fireteams
+     * are allowed to spread far enough that the whole-squad centroid no longer
+     * represents the element actually observing and engaging the contact.
+     */
+    private float distanceToSquadFootprint(Squad squad,
+                                           BelievedContact contact) {
+        float contactX = contact.lastSeenCellX() + 0.5f;
+        float contactY = contact.lastSeenCellY() + 0.5f;
+        float nearest = Float.MAX_VALUE;
+        long[] members = roster.squadMemberArray(squad.id);
+        for (int i = 0, n = roster.squadMemberCount(squad.id); i < n; i++) {
+            long member = members[i];
+            if (!roster.isAliveById(member)) continue;
+            nearest = Math.min(nearest,
+                    cellDistance(roster.world().x(member), roster.world().y(member),
+                            contactX, contactY));
+        }
+        return nearest;
     }
 
     private record FiringLineCoverage(int liveMembers, int engageableMembers,

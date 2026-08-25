@@ -422,6 +422,8 @@ public final class Squad {
 
     /** Squad's currently-executing plan, or null when the planner has nothing to do (no relevant goal / no reachable plan). */
     public SquadPlan currentPlan = null;
+    /** Strategic assignment snapshot consumed by the last replan. */
+    public ObjectiveAssignment assignedObjectiveAtLastPlan;
     /** Goal the planner chose at the last replan. Null when the squad has no relevant goal. Diagnostic — consumed by the GOAP debug HUD; not load-bearing for execution. */
     public Goal currentGoal = null;
     /** Sim-seconds since the last replan. Drives the periodic-replan trigger; resets to zero on every replan. */
