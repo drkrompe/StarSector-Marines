@@ -18,6 +18,7 @@ public record ConquestFrontSnapshot(
         int keepZoneId,
         CompoundState keepState,
         List<TrackState> tracks,
+        List<SquadState> squads,
         List<SquadDirective> directives) {
 
     public enum Phase {
@@ -62,6 +63,16 @@ public record ConquestFrontSnapshot(
             float knownHostilePressure,
             int targetZoneId) { }
 
+    /** Frozen own-force physical facts published with this command pulse. */
+    public record SquadState(
+            int squadId,
+            int aliveMembers,
+            float centroidX,
+            float centroidY,
+            int currentZoneId,
+            String executionSuspension,
+            boolean localContact) { }
+
     public record SquadDirective(
             int squadId,
             int preferredTrack,
@@ -93,7 +104,32 @@ public record ConquestFrontSnapshot(
 
     public ConquestFrontSnapshot {
         tracks = List.copyOf(tracks);
+        squads = List.copyOf(squads);
         directives = List.copyOf(directives);
+    }
+
+    public ConquestFrontSnapshot(int tick, int influenceTick,
+                                 Faction perspective, TraversalAxis axis,
+                                 Phase phase, int remainingCompounds,
+                                 int keepZoneId, CompoundState keepState,
+                                 List<TrackState> tracks,
+                                 List<SquadDirective> directives) {
+        this(tick, influenceTick, perspective, axis, phase,
+                remainingCompounds, keepZoneId, keepState, tracks,
+                List.of(), directives);
+    }
+
+    /** Back-compatible marine-perspective constructor for fixtures and older callers. */
+    public ConquestFrontSnapshot(int tick, int influenceTick,
+                                 TraversalAxis axis, Phase phase,
+                                 int remainingCompounds, int keepZoneId,
+                                 CompoundState keepState,
+                                 List<TrackState> tracks,
+                                 List<SquadState> squads,
+                                 List<SquadDirective> directives) {
+        this(tick, influenceTick, Faction.MARINE, axis, phase,
+                remainingCompounds, keepZoneId, keepState, tracks,
+                squads, directives);
     }
 
     /** Back-compatible marine-perspective constructor for fixtures and older callers. */
@@ -104,12 +140,20 @@ public record ConquestFrontSnapshot(
                                  List<TrackState> tracks,
                                  List<SquadDirective> directives) {
         this(tick, influenceTick, Faction.MARINE, axis, phase,
-                remainingCompounds, keepZoneId, keepState, tracks, directives);
+                remainingCompounds, keepZoneId, keepState, tracks,
+                List.of(), directives);
     }
 
     public SquadDirective directiveFor(int squadId) {
         for (SquadDirective directive : directives) {
             if (directive.squadId() == squadId) return directive;
+        }
+        return null;
+    }
+
+    public SquadState squadFor(int squadId) {
+        for (SquadState squad : squads) {
+            if (squad.squadId() == squadId) return squad;
         }
         return null;
     }
@@ -161,13 +205,13 @@ public record ConquestFrontSnapshot(
         }
         return new ConquestFrontSnapshot(tick, influenceTick, perspective,
                 axis, phase, remainingCompounds, keepZoneId, keepState,
-                tracks, reconciled);
+                tracks, squads, reconciled);
     }
 
     public static ConquestFrontSnapshot empty(Faction perspective,
                                                TraversalAxis axis) {
         return new ConquestFrontSnapshot(-1, -1, perspective, axis, Phase.LANE_ADVANCE,
-                -1, -1, null, List.of(), List.of());
+                -1, -1, null, List.of(), List.of(), List.of());
     }
 
     public static ConquestFrontSnapshot empty(TraversalAxis axis) {
