@@ -18,7 +18,6 @@ import java.util.Set;
 public final class AssignmentArbiter {
 
     private static final String EXTERNAL_ISSUER = "external";
-
     private final Map<Integer, CommandDirective> active = new HashMap<>();
 
     /**
@@ -39,17 +38,23 @@ public final class AssignmentArbiter {
                 continue;
             }
             String missionIssuer = missionIssuers.get(squad.faction);
-            CommandAuthority authority = externalAuthority(squad.assignedObjective,
-                    missionIssuer != null);
-            String issuer = authority == CommandAuthority.MISSION_COMMAND
-                    ? missionIssuer : EXTERNAL_ISSUER;
-            active.put(squad.id, new CommandDirective(squad.id, squad.faction,
-                    issuer, authority,
-                    "compatibility assignment adopted",
-                    squad.assignedObjective, sim.getSimTickIndex(), -1,
-                    CommandDirective.Status.ACTIVE, ""));
+            adoptCompatibilityAssignment(squad, squad.assignedObjective,
+                    missionIssuer, sim.getSimTickIndex());
         }
         active.keySet().removeIf(id -> !liveSquads.contains(id));
+    }
+
+    private void adoptCompatibilityAssignment(Squad squad,
+                                              ObjectiveAssignment assignment,
+                                              String missionIssuer,
+                                              int tick) {
+        CommandAuthority authority = externalAuthority(assignment,
+                missionIssuer != null);
+        String issuer = authority == CommandAuthority.MISSION_COMMAND
+                ? missionIssuer : EXTERNAL_ISSUER;
+        active.put(squad.id, new CommandDirective(squad.id, squad.faction,
+                issuer, authority, "compatibility assignment adopted",
+                assignment, tick, -1, CommandDirective.Status.ACTIVE, ""));
     }
 
     private static CommandAuthority externalAuthority(ObjectiveAssignment assignment,
@@ -80,11 +85,70 @@ public final class AssignmentArbiter {
         if (assignment.squadId() != squad.id) {
             throw new IllegalArgumentException("assignment squad does not match target");
         }
+        CommandDirective incumbent = active.get(squad.id);
+        if (!mayReplace(incumbent, authority, issuer)) return;
+        if (incumbent != null && incumbent.issuer().equals(issuer)
+                && incumbent.authority() == authority
+                && Objects.equals(incumbent.assignment(), assignment)) return;
         CommandDirective directive = new CommandDirective(squad.id, squad.faction,
                 issuer, authority, reason, assignment, tick, -1,
                 CommandDirective.Status.ACTIVE, "");
         active.put(squad.id, directive);
         squad.assignedObjective = assignment;
+    }
+
+    /** Claims command-pool ownership without imposing a tactical assignment. */
+    public void claimExternal(Squad squad, CommandAuthority authority,
+                              String issuer, String reason, int tick) {
+        Objects.requireNonNull(squad, "squad");
+        CommandDirective incumbent = active.get(squad.id);
+        if (!mayReplace(incumbent, authority, issuer)) return;
+        if (incumbent != null && incumbent.issuer().equals(issuer)
+                && incumbent.authority() == authority) return;
+        active.put(squad.id, new CommandDirective(squad.id, squad.faction,
+                issuer, authority, reason, null, tick, -1,
+                CommandDirective.Status.ACTIVE, ""));
+        squad.assignedObjective = null;
+    }
+
+    private static boolean mayReplace(CommandDirective incumbent,
+                                      CommandAuthority authority,
+                                      String issuer) {
+        return incumbent == null || incumbent.issuer().equals(issuer)
+                || authority.priority() > incumbent.authority().priority();
+    }
+
+    /** Atomically transfers ownership when the named incumbent still owns the squad. */
+    public boolean handoff(Squad squad, String currentIssuer,
+                           CommandAuthority nextAuthority, String nextIssuer,
+                           ObjectiveAssignment nextAssignment,
+                           String reason, int tick) {
+        Objects.requireNonNull(squad, "squad");
+        CommandDirective incumbent = active.get(squad.id);
+        if (incumbent == null || !incumbent.issuer().equals(currentIssuer)) {
+            return false;
+        }
+        if (nextAssignment != null && nextAssignment.squadId() != squad.id) {
+            throw new IllegalArgumentException("assignment squad does not match target");
+        }
+        CommandDirective next = new CommandDirective(squad.id, squad.faction,
+                nextIssuer, nextAuthority, reason, nextAssignment, tick, -1,
+                CommandDirective.Status.ACTIVE,
+                "handed off from " + currentIssuer);
+        active.put(squad.id, next);
+        squad.assignedObjective = nextAssignment;
+        return true;
+    }
+
+    /** Releases only a directive owned by {@code issuer}. */
+    public boolean releaseExternal(Squad squad, String issuer,
+                                   String reason, int tick) {
+        Objects.requireNonNull(squad, "squad");
+        CommandDirective incumbent = active.get(squad.id);
+        if (incumbent == null || !incumbent.issuer().equals(issuer)) return false;
+        active.remove(squad.id);
+        squad.assignedObjective = null;
+        return true;
     }
 
     public <D> CommanderSnapshot<D> commit(CommandPlan<D> plan,

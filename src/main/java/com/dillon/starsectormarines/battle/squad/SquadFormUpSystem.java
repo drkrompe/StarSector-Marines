@@ -12,9 +12,12 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
  * however long the shuttle takes to fly back.
  *
  * <p>The gate is deliberately one line of leverage rather than a new behaviour:
- * while a squad is still assembling this clears its
- * {@link Squad#assignedObjective}, so the commander tier's advancing order does
- * not reach it and it falls through to its ambient goals. Ambient means it
+ * while a squad is still assembling {@link Squad#assignmentForExecution()}
+ * masks its authoritative {@link Squad#assignedObjective} without deleting or
+ * rewriting it. The commander can therefore update intent while the squad
+ * falls through to its ambient goals, and the newest directive becomes
+ * executable when assembly ends.
+ * Ambient means it
  * still defends itself — {@code EliminateEnemiesGoal} needs enemies it can
  * actually see — and marines never patrol ({@code RoutinePatrol} is
  * DEFENDER-only), so an unassigned marine squad with nothing in sight simply
@@ -57,12 +60,9 @@ public final class SquadFormUpSystem {
 
     public void tick(float dt) {
         for (Squad squad : roster.getSquads()) {
-            if (squad.campaignSquadId == null
-                    || squad.expectedSize <= 0
-                    || squad.originalSize >= squad.expectedSize) continue;
-            squad.formUpElapsed += dt;
-            if (squad.formUpElapsed >= FORM_UP_TIMEOUT) continue;
-            squad.assignedObjective = null;
+            if (formingUp(squad)) {
+                squad.formUpElapsed += dt;
+            }
         }
     }
 }

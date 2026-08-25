@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.air;
 
+import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
@@ -24,6 +25,8 @@ public enum MechSupportPayload implements AirDeliveryPayload {
         if (cell == null) return false;
         if (context.mission.squadId == Squad.NO_SQUAD) {
             context.mission.squadId = context.mintSquad(UnitType.HEAVY_MECH);
+            context.claimSquadCommand(context.mission.squadId,
+                    context.mission.commandClaim);
             if (context.mission.rescuePickupMechTransport) {
                 Squad guard = context.squad(context.mission.squadId);
                 if (guard != null) {
@@ -32,9 +35,11 @@ public enum MechSupportPayload implements AirDeliveryPayload {
                     guard.rescuePatrolCells = context.mission.rescuePatrolCells != null
                             ? context.mission.rescuePatrolCells.clone() : null;
                     guard.rescuePatrolIndex = -1;
-                    guard.assignedObjective = ObjectiveAssignment.escort(
-                            guard.id, context.mission.rescueGuardX,
-                            context.mission.rescueGuardY);
+                    context.assignSquadCommand(ObjectiveAssignment.escort(
+                                    guard.id, context.mission.rescueGuardX,
+                                    context.mission.rescueGuardY),
+                            CommandAuthority.PAYLOAD, "rescue-pickup-support",
+                            "born rescue pickup mech guard");
                 }
             }
         }

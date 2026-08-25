@@ -29,7 +29,7 @@ public final class DefendTrack implements Action {
 
     @Override
     public ActionStatus execute(long member, Squad squad, BattleControl sim) {
-        ObjectiveAssignment assignment = squad.assignedObjective;
+        ObjectiveAssignment assignment = squad.assignmentForExecution();
         if (assignment == null || assignment.kind() != AssignmentKind.DEFEND_TRACK
                 || assignment.targetCellX() != targetX || assignment.targetCellY() != targetY) {
             sim.clearPath(member);

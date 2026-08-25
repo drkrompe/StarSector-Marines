@@ -35,7 +35,7 @@ public final class AssaultAssignedObjectiveGoal implements Goal {
         if (squad.rescuePickupMech || state.get(Predicate.MORALE_BROKEN)) return 0f;
         if (!hasAssaultMember(squad, sim)) return 0f;
 
-        ObjectiveAssignment assignment = squad.assignedObjective;
+        ObjectiveAssignment assignment = squad.assignmentForExecution();
         if (assignment != null && assignment.targetZoneId() >= 0
                 && sim.getZoneGraph().zoneById(assignment.targetZoneId()) != null) {
             return 1.2f;

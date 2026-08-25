@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
+import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.setup.InfantryLoadoutRolls;
@@ -54,8 +55,10 @@ public final class RescueShelterGarrison {
         int squadId = sim.mintSquad(Faction.MARINE, UnitType.MILITIA);
         Squad squad = sim.getSquad(squadId);
         squad.rescueShelterGuard = true;
-        squad.assignedObjective = ObjectiveAssignment.escort(
-                squad.id, placement.shelterX, placement.shelterY);
+        sim.assignSquadCommand(ObjectiveAssignment.escort(
+                        squad.id, placement.shelterX, placement.shelterY),
+                CommandAuthority.GARRISON, "rescue-shelter-garrison",
+                "hold civilian shelter");
 
         long[] ids = new long[MEMBER_COUNT];
         for (int i = 0; i < ids.length; i++) {

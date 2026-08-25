@@ -304,10 +304,11 @@ teams of a twelve-marine squad. This keeps transport arithmetic aligned with the
 organization the player selected.
 
 A tagged squad may assemble over several passes. Until its frozen manifest is
-present, the form-up gate withholds the first advancing assignment while still
-allowing self-defense. A timeout prevents a lost lift or split landing from
-deadlocking the mission. Explicit rejoin behavior for a genuinely late arrival
-after that point remains open in `c8-lift-capacity-and-multi-pass-drops.md`.
+present, the form-up gate suspends execution of its advancing assignment while
+retaining the authoritative command directive and still allowing self-defense.
+A timeout prevents a lost lift or split landing from deadlocking the mission.
+Explicit rejoin behavior for a genuinely late arrival after that point remains
+open in `c8-lift-capacity-and-multi-pass-drops.md`.
 
 ## Task-force command
 

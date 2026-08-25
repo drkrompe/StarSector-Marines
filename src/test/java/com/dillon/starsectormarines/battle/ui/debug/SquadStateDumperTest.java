@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.ui.debug;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.command.ConquestCommand;
+import com.dillon.starsectormarines.battle.command.CommandAuthority;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.CommanderService;
 import com.dillon.starsectormarines.battle.combat.FireGate;
 import com.dillon.starsectormarines.battle.combat.FireStance;
@@ -144,6 +146,33 @@ class SquadStateDumperTest {
         assertEquals(commonDirective.getString("reason"), conquest
                 .getJSONObject("squadDirective").getString("reason"));
         assertEquals(3, conquest.getJSONArray("tracks").length());
+    }
+
+    @Test
+    void dumpShowsExternalOwnershipAndFormUpExecutionSeparately()
+            throws Exception {
+        BattleSimulation sim = openSim();
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        squad.campaignSquadId = "campaign-1";
+        squad.expectedSize = 12;
+        squad.originalSize = 4;
+        ObjectiveAssignment order = ObjectiveAssignment.escort(squadId, 8, 8);
+        sim.assignSquadCommand(order, CommandAuthority.PAYLOAD,
+                "test-payload", "hold while unloading");
+
+        JSONObject dump = SquadStateDumper.buildSquadJson(squad, sim);
+
+        assertTrue(dump.isNull("commander"));
+        assertEquals("ESCORT",
+                dump.getJSONObject("assignedObjective").getString("kind"));
+        JSONObject directive = dump.getJSONObject("commandDirective");
+        assertEquals("test-payload", directive.getString("issuer"));
+        assertEquals("PAYLOAD", directive.getString("authority"));
+        JSONObject execution = dump.getJSONObject("assignmentExecution");
+        assertEquals("SUSPENDED", execution.getString("status"));
+        assertEquals("FORMING_UP", execution.getString("suspensionReason"));
+        assertTrue(execution.isNull("assignment"));
     }
 
     private static BattleSimulation openSim() {

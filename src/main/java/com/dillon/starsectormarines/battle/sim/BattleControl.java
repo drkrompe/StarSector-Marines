@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
+import com.dillon.starsectormarines.battle.command.SquadDirectiveControl;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -22,7 +23,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
  * (queries only, can't compile a mutation), while serial {@code execute} takes
  * {@code BattleControl}. See {@code ecs-nouns.md}.
  */
-public interface BattleControl extends BattleView {
+public interface BattleControl extends BattleView, SquadDirectiveControl {
 
     /** Resolve an externally delivered blast through the shared AoE/structure pipeline. */
     void detonateNow(PendingDetonation detonation);

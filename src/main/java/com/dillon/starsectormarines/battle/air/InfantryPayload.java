@@ -1,7 +1,8 @@
 package com.dillon.starsectormarines.battle.air;
 
-import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
+import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.squad.CampaignSquadTag;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -37,21 +38,33 @@ public enum InfantryPayload implements AirDeliveryPayload {
             // the mission keeps the shuttle's rear-overwatch hover following this
             // squad; AirSystem's per-cycle reset is harmless because the next
             // deboard resolves the same squad out of the index again.
+            boolean firstDeboardForSortie = mission.squadId == Squad.NO_SQUAD;
             mission.squadId = context.squadForCampaign(type, tag);
+            if (firstDeboardForSortie) {
+                context.claimSquadCommand(mission.squadId, mission.commandClaim);
+            }
         } else if (mission.squadId == Squad.NO_SQUAD) {
             mission.squadId = context.mintSquad(type);
+            context.claimSquadCommand(mission.squadId, mission.commandClaim);
             if (mission.rescueMilitiaTransport) {
                 Squad guard = context.squad(mission.squadId);
                 if (guard != null) {
                     guard.rescuePickupGuard = true;
-                    guard.assignedObjective = ObjectiveAssignment.escort(
-                            guard.id, mission.rescueGuardX,
-                            mission.rescueGuardY);
+                    context.assignSquadCommand(ObjectiveAssignment.escort(
+                                    guard.id, mission.rescueGuardX,
+                                    mission.rescueGuardY),
+                            CommandAuthority.PAYLOAD, "rescue-pickup-support",
+                            "born rescue pickup guard");
                 }
             }
             if (mission.garrisonNode != null) {
                 Squad garrison = context.squad(mission.squadId);
-                if (garrison != null) garrison.assignHoldNode(mission.garrisonNode);
+                if (garrison != null) {
+                    context.assignSquadCommand(ObjectiveAssignment.holdNode(
+                                    garrison.id, mission.garrisonNode),
+                            CommandAuthority.GARRISON, "compound-garrison",
+                            "born compound garrison");
+                }
             }
             if (mission.assignNode != null) {
                 Squad squad = context.squad(mission.squadId);

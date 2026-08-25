@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
+import com.dillon.starsectormarines.battle.command.SquadDirectiveControl;
 import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -52,6 +53,7 @@ public class GroundSystem {
     private final TurretFireSink fireSink;
     private final Random rng;
     private final Consumer<EntitySpec> addUnitSink;
+    private final SquadDirectiveControl commandControl;
     /** Spawns each vehicle's world entity (identity + kinematics + mission + turret) at {@link #add} and reaps it at terminal GONE. */
     private final ConvoyService convoy;
     /** The stateless motion driver every vehicle's {@code mission.controller} shim forwards to — one instance shared across the whole convoy. */
@@ -64,7 +66,8 @@ public class GroundSystem {
 
     public GroundSystem(NavigationService navigation, UnitRosterService roster,
                         com.dillon.starsectormarines.battle.decision.TacticalScoring tacticalScoring,
-                        World world, TurretFireSink fireSink, Random rng, Consumer<EntitySpec> addUnitSink) {
+                        World world, TurretFireSink fireSink, Random rng,
+                        Consumer<EntitySpec> addUnitSink, SquadDirectiveControl commandControl) {
         this.navigation = navigation;
         this.roster = roster;
         this.tacticalScoring = tacticalScoring;
@@ -72,6 +75,7 @@ public class GroundSystem {
         this.fireSink = fireSink;
         this.rng = rng;
         this.addUnitSink = addUnitSink;
+        this.commandControl = commandControl;
         this.convoy = roster.convoy();
         this.controlSystem = new VehicleControlSystem(convoy, navigation);
     }
@@ -210,6 +214,9 @@ public class GroundSystem {
         if (loadout != null) loadout.seedInto(marine);
         if (m.squadId == Squad.NO_SQUAD) {
             m.squadId = roster.mintSquad(faction, deboardType);
+            if (m.commandClaim != null) {
+                m.commandClaim.apply(commandControl, m.squadId);
+            }
             if (m.assignNode != null) {
                 Squad minted = roster.getSquad(m.squadId);
                 if (minted != null) minted.assignedNode = m.assignNode;

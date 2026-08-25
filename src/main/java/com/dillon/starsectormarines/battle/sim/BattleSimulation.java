@@ -52,6 +52,9 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.ParkedAircraft;
 import com.dillon.starsectormarines.battle.command.MissionCommand;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
+import com.dillon.starsectormarines.battle.command.CommandDirective;
+import com.dillon.starsectormarines.battle.command.CommandAuthority;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.combat.BallisticResolver;
 import com.dillon.starsectormarines.battle.combat.DamageResolver;
 import com.dillon.starsectormarines.battle.combat.DamageService;
@@ -517,8 +520,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.firingSystem = new FiringSystem(grid, rosterService);
         this.heavy = new HeavyWeapons(rosterService, grid, ballisticResolver, shots, detonations, rng);
         this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, world, turretFire,
-                rng, this::spawn, effects, resupply);
-        this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, world, turretFire, rng, this::spawn);
+                rng, this::spawn, effects, resupply, this);
+        this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, world,
+                turretFire, rng, this::spawn, this);
         mapEditor.setRoofCollapseSink((x, y) -> {
             float jx = x + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
             float jy = y + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
@@ -1056,6 +1060,57 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         return commanders.snapshot(faction);
     }
 
+    /**
+     * Current authoritative command-ledger entry for {@code squadId}. Unlike
+     * a commander snapshot, this is also available for externally owned
+     * squads in missions without an autonomous commander.
+     */
+    public CommandDirective getSquadCommandDirective(int squadId) {
+        return commanders.activeDirective(squadId);
+    }
+
+    @Override
+    public void claimSquadCommand(int squadId, CommandAuthority authority,
+                                  String issuer, String reason) {
+        commanders.assignments().claimExternal(requireSquad(squadId), authority,
+                issuer, reason, simTickIndex);
+    }
+
+    @Override
+    public void assignSquadCommand(ObjectiveAssignment assignment,
+                                   CommandAuthority authority,
+                                   String issuer, String reason) {
+        commanders.assignments().assignExternal(
+                requireSquad(assignment.squadId()), assignment, authority,
+                issuer, reason, simTickIndex);
+    }
+
+    @Override
+    public boolean handoffSquadCommand(int squadId, String currentIssuer,
+                                       CommandAuthority nextAuthority,
+                                       String nextIssuer,
+                                       ObjectiveAssignment nextAssignment,
+                                       String reason) {
+        return commanders.assignments().handoff(requireSquad(squadId),
+                currentIssuer, nextAuthority, nextIssuer, nextAssignment,
+                reason, simTickIndex);
+    }
+
+    @Override
+    public boolean releaseSquadCommand(int squadId, String issuer,
+                                       String reason) {
+        return commanders.assignments().releaseExternal(requireSquad(squadId),
+                issuer, reason, simTickIndex);
+    }
+
+    private Squad requireSquad(int squadId) {
+        Squad squad = getSquad(squadId);
+        if (squad == null) {
+            throw new IllegalArgumentException("unknown squad " + squadId);
+        }
+        return squad;
+    }
+
     @Override
     public CommanderInfluenceSnapshot getCommanderInfluence(Faction faction) {
         // Influence is a read-only diagnostic today. Preserve its 15-tick
@@ -1227,9 +1282,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // assignment written this tick is visible to the GOAP relevance pass
         // below. Cadence + early-skip-when-empty live inside the registry.
         commanders.tick(TICK_DT, this);
-        // A campaign squad still arriving by lift holds at its LZ: this clears
-        // the advancing assignment the commanders just wrote, for every
-        // commander at once. Must run after them, not inside them.
+        // A campaign squad still arriving by lift holds at its LZ. The form-up
+        // execution accessor masks orders without deleting the command directive.
+        // Must run after command so same-tick intent is retained under the mask.
         squadFormUp.tick(TICK_DT);
         // Player command powers — commit any activations the UI queued this
         // frame (pay command points + start cooldown + resolve the effect),

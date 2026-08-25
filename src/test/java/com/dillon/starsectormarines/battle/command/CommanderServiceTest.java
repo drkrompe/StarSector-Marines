@@ -119,6 +119,71 @@ class CommanderServiceTest {
         assertFalse(result.ownsAssignment());
     }
 
+    @Test
+    void ownershipOnlyClaimExcludesSquadWithoutInventingAnAssignment() {
+        BattleSimulation sim = openSim();
+        Squad squad = addSquad(sim, Faction.MARINE, 2, 2);
+        AssignmentArbiter arbiter = new AssignmentArbiter();
+        arbiter.claimExternal(squad, CommandAuthority.REINFORCEMENT,
+                "reinforcement", "counterattack", 4);
+        CommandPlan<String> plan = new CommandPlan<>(Faction.MARINE,
+                "test-command", "ADVANCE", 5, -1, 1, 0, List.of(),
+                List.of(CommandProposal.assign(
+                        ObjectiveAssignment.support(squad.id),
+                        CommandAuthority.MISSION_COMMAND, "advance")), "detail");
+
+        CommandDirective result = arbiter.commit(plan, sim,
+                CommandTopology.freeze(sim)).directiveFor(squad.id);
+
+        CommandDirective owner = arbiter.activeDirective(squad.id);
+        assertNull(squad.assignedObjective);
+        assertEquals(CommandDirective.Status.REJECTED, result.status());
+        assertTrue(result.dispositionReason().contains("reinforcement"));
+        assertTrue(owner.ownsSquad());
+        assertFalse(owner.ownsAssignment());
+    }
+
+    @Test
+    void handoffRequiresTheIncumbentIssuerAndTransfersAtomically() {
+        BattleSimulation sim = openSim();
+        Squad squad = addSquad(sim, Faction.MARINE, 2, 2);
+        AssignmentArbiter arbiter = new AssignmentArbiter();
+        arbiter.claimExternal(squad, CommandAuthority.REINFORCEMENT,
+                "reinforcement", "arrival", 4);
+        ObjectiveAssignment next = ObjectiveAssignment.support(squad.id);
+
+        assertFalse(arbiter.handoff(squad, "wrong-owner",
+                CommandAuthority.MISSION_COMMAND, "test-command", next,
+                "join mission pool", 5));
+        assertNull(squad.assignedObjective);
+        assertTrue(arbiter.handoff(squad, "reinforcement",
+                CommandAuthority.MISSION_COMMAND, "test-command", next,
+                "join mission pool", 5));
+
+        assertEquals(next, squad.assignedObjective);
+        assertEquals("test-command", arbiter.activeDirective(squad.id).issuer());
+        assertEquals("handed off from reinforcement",
+                arbiter.activeDirective(squad.id).dispositionReason());
+    }
+
+    @Test
+    void weakerBirthClaimCannotDisplaceSpecializedOwnership() {
+        BattleSimulation sim = openSim();
+        Squad squad = addSquad(sim, Faction.MARINE, 2, 2);
+        AssignmentArbiter arbiter = new AssignmentArbiter();
+        ObjectiveAssignment hold = ObjectiveAssignment.holdNode(squad.id, null);
+        arbiter.assignExternal(squad, hold, CommandAuthority.GARRISON,
+                "compound-garrison", "born holding", 4);
+
+        arbiter.claimExternal(squad, CommandAuthority.REINFORCEMENT,
+                "reinforcement", "late claim", 5);
+
+        assertEquals(hold, squad.assignedObjective);
+        assertEquals("compound-garrison",
+                arbiter.activeDirective(squad.id).issuer());
+        assertEquals(4, arbiter.activeDirective(squad.id).issuedTick());
+    }
+
     private static final class RecordingCommand
             implements AutonomousMissionCommand<CommandFrame, String> {
         private final Faction faction;

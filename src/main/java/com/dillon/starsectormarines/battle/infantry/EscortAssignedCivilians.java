@@ -52,7 +52,7 @@ public final class EscortAssignedCivilians implements Action {
      */
     @Override
     public List<RoleAssigner.Slot<Long>> roles(Squad squad, BattleView sim) {
-        ObjectiveAssignment assignment = squad.assignedObjective;
+        ObjectiveAssignment assignment = squad.assignmentForExecution();
         if (assignment == null || assignment.kind() != AssignmentKind.ESCORT) {
             return List.of(new RoleAssigner.Slot<>(OVERFLOW_SLOT,
                     Math.max(1, squad.aliveMembers), candidate -> 0f));
@@ -83,7 +83,7 @@ public final class EscortAssignedCivilians implements Action {
 
     @Override
     public ActionStatus execute(long member, Squad squad, BattleControl sim) {
-        ObjectiveAssignment assignment = squad.assignedObjective;
+        ObjectiveAssignment assignment = squad.assignmentForExecution();
         if (assignment == null || assignment.kind() != AssignmentKind.ESCORT
                 || assignment.targetCellX() < 0
                 || assignment.targetCellY() < 0) {
@@ -124,7 +124,7 @@ public final class EscortAssignedCivilians implements Action {
 
     @Override
     public List<int[]> highlightCells(Squad squad, BattleView sim) {
-        ObjectiveAssignment assignment = squad.assignedObjective;
+        ObjectiveAssignment assignment = squad.assignmentForExecution();
         if (assignment == null || assignment.kind() != AssignmentKind.ESCORT) {
             return List.of();
         }

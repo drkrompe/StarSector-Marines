@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.command.reinforcement;
 
+import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -98,6 +99,7 @@ public final class ShuttleMeans implements ReinforcementMeans {
                 entry[2], entry[3],
                 /*pendingDelay*/ 0f);
         ShuttleMission mission = sim.world().mission(shuttleId);
+        mission.commandClaim = SquadCommandClaim.reinforcement(req.reason.name());
         mission.totalCycles = 1;
         // Objective assignment (progressive-reinforcement slice 4): resolve the
         // request's objective to a tactical node now, at dispatch time, so the

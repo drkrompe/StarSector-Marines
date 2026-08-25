@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.command.DefendAssignedTrackGoal;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -132,7 +133,8 @@ public final class GoapMechBehavior implements UnitBehavior {
         }
 
         boolean memberCountChanged = squad.aliveMembers != squad.aliveMembersAtLastPlan;
-        boolean assignmentChanged = !Objects.equals(squad.assignedObjective,
+        ObjectiveAssignment executableAssignment = squad.assignmentForExecution();
+        boolean assignmentChanged = !Objects.equals(executableAssignment,
                 squad.assignedObjectiveAtLastPlan);
         boolean needsReplan = squad.currentPlan == null
                            || squad.currentPlan.isComplete()
@@ -152,7 +154,7 @@ public final class GoapMechBehavior implements UnitBehavior {
             squad.currentGoal = null;
             squad.timeSinceReplan = 0f;
             squad.aliveMembersAtLastPlan = squad.aliveMembers;
-            squad.assignedObjectiveAtLastPlan = squad.assignedObjective;
+            squad.assignedObjectiveAtLastPlan = executableAssignment;
             return;
         }
 
@@ -182,6 +184,6 @@ public final class GoapMechBehavior implements UnitBehavior {
         squad.currentGoal = goal;
         squad.timeSinceReplan = 0f;
         squad.aliveMembersAtLastPlan = squad.aliveMembers;
-        squad.assignedObjectiveAtLastPlan = squad.assignedObjective;
+        squad.assignedObjectiveAtLastPlan = executableAssignment;
     }
 }

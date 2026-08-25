@@ -57,7 +57,7 @@ public final class ClearAssignedZoneGoal implements Goal {
 
     @Override
     public float relevance(WorldState state, Squad squad, BattleView sim) {
-        ObjectiveAssignment assignment = squad.assignedObjective;
+        ObjectiveAssignment assignment = squad.assignmentForExecution();
         if (assignment == null) return 0f;
         if (assignment.kind() != AssignmentKind.CLEAR_ZONE) return 0f;
         int targetZone = assignment.targetZoneId();
@@ -99,7 +99,7 @@ public final class ClearAssignedZoneGoal implements Goal {
 
     @Override
     public SquadPlan customPlan(Squad squad, BattleView sim) {
-        ObjectiveAssignment assignment = squad.assignedObjective;
+        ObjectiveAssignment assignment = squad.assignmentForExecution();
         if (assignment == null || assignment.kind() != AssignmentKind.CLEAR_ZONE) return null;
         int to = assignment.targetZoneId();
         // Plan stickiness: if the squad is already running a zone-push plan

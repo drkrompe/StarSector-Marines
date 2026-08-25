@@ -174,6 +174,21 @@ public final class Squad {
     public ObjectiveAssignment assignedObjective;
 
     /**
+     * The strategic assignment tactical behavior may execute this tick.
+     * Campaign squads still assembling at their landing zone retain their
+     * authoritative directive, but do not act on it until assembly completes
+     * or times out.
+     */
+    public ObjectiveAssignment assignmentForExecution() {
+        return SquadFormUpSystem.formingUp(this) ? null : assignedObjective;
+    }
+
+    /** Null when command execution is ready, otherwise a stable diagnostic reason. */
+    public String assignmentExecutionSuspension() {
+        return SquadFormUpSystem.formingUp(this) ? "FORMING_UP" : null;
+    }
+
+    /**
      * Local allied squad assigned permanently to a civilian-rescue pickup
      * perimeter. The rescue commander leaves these squads on station while it
      * advances the player's mobile escort force.
@@ -821,13 +836,4 @@ public final class Squad {
         return droneHubId != 0L;
     }
 
-    /**
-     * Assign this squad a {@code HOLD_NODE} objective for {@code node} — used by
-     * compound garrison drops so the deboarded squad is born holding (runs
-     * {@code GarrisonCompound} from its first tick). Keeps the command-layer
-     * {@link ObjectiveAssignment} construction off the air/deboard path.
-     */
-    public void assignHoldNode(TacticalNode node) {
-        this.assignedObjective = ObjectiveAssignment.holdNode(this.id, node);
-    }
 }

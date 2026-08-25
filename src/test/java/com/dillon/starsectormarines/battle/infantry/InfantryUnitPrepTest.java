@@ -346,6 +346,41 @@ public class InfantryUnitPrepTest {
     }
 
     @Test
+    public void formUpMasksAndThenReactivatesTheSameAuthoritativeOrder() {
+        BattleSimulation sim = openArena(30, 10);
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        sim.spawn(new EntitySpec("m", Faction.MARINE,
+                UnitType.MARINE, 5, 5).squad(squadId));
+        squad.aliveMembers = 1;
+        squad.aliveMembersAtLastPlan = 1;
+        ObjectiveAssignment order = ObjectiveAssignment.clearZone(squadId, 1);
+        squad.assignedObjective = order;
+        squad.assignedObjectiveAtLastPlan = order;
+        squad.campaignSquadId = "campaign-1";
+        squad.expectedSize = 12;
+        squad.originalSize = 4;
+        squad.currentPlan = new SquadPlan(List.of(
+                new SquadPlan.Step(OverwatchPosture.INSTANCE)));
+
+        GoapInfantryBehavior.replanIfNeeded(squad, sim);
+
+        assertSame(order, squad.assignedObjective,
+                "form-up must not erase the authoritative directive");
+        assertNull(squad.assignedObjectiveAtLastPlan,
+                "planner tracks the masked execution assignment");
+        assertNull(squad.currentPlan);
+
+        squad.originalSize = 12;
+        squad.currentPlan = new SquadPlan(List.of(
+                new SquadPlan.Step(OverwatchPosture.INSTANCE)));
+        GoapInfantryBehavior.replanIfNeeded(squad, sim);
+
+        assertSame(order, squad.assignedObjectiveAtLastPlan,
+                "landing completion makes the retained order executable again");
+    }
+
+    @Test
     public void flankApproachTakesOpportunityShotWithoutAbandoningMovement() {
         BattleSimulation sim = openArena(30, 10);
         int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.MARINE);

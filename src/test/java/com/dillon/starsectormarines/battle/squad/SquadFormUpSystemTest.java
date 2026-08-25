@@ -5,8 +5,10 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** A squad still arriving by lift holds at its LZ instead of advancing a team at a time. */
@@ -52,19 +54,19 @@ class SquadFormUpSystemTest {
     }
 
     @Test
-    void theGateIsExpressedAsClearingTheAdvancingAssignment() {
-        // The behaviour under test: an assembling squad keeps no commander
-        // order, which is what leaves it holding at the LZ on ambient goals.
+    void theGateMasksExecutionWithoutClearingTheDirective() {
         Squad assembling = campaignSquad(12, 4);
         Squad landed = campaignSquad(12, 12);
-        assembling.assignedObjective = ObjectiveAssignment.escort(assembling.id, 5, 5);
+        ObjectiveAssignment order = ObjectiveAssignment.escort(
+                assembling.id, 5, 5);
+        assembling.assignedObjective = order;
         landed.assignedObjective = ObjectiveAssignment.escort(landed.id, 5, 5);
 
-        if (SquadFormUpSystem.formingUp(assembling)) assembling.assignedObjective = null;
-        if (SquadFormUpSystem.formingUp(landed)) landed.assignedObjective = null;
-
-        assertNull(assembling.assignedObjective);
-        assertNotNull(landed.assignedObjective);
+        assertNull(assembling.assignmentForExecution());
+        assertSame(order, assembling.assignedObjective);
+        assertEquals("FORMING_UP", assembling.assignmentExecutionSuspension());
+        assertNotNull(landed.assignmentForExecution());
+        assertNull(landed.assignmentExecutionSuspension());
     }
 
     private static Squad campaignSquad(int expected, int landed) {

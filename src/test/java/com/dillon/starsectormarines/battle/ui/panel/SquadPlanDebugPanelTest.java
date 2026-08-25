@@ -144,6 +144,22 @@ class SquadPlanDebugPanelTest {
                 SquadPlanDebugPanel.trackSummary(snapshot, directive));
     }
 
+    @Test
+    void selectedSquadSeparatesAuthoritativeOrderFromFormUpExecution() {
+        Squad squad = new Squad(9, Faction.MARINE);
+        squad.campaignSquadId = "campaign-1";
+        squad.expectedSize = 12;
+        squad.originalSize = 4;
+        squad.assignedObjective = ObjectiveAssignment.escort(squad.id, 8, 8);
+
+        assertEquals("Execution SUSPENDED   Reason FORMING_UP",
+                SquadPlanDebugPanel.executionSummary(squad));
+
+        squad.originalSize = 12;
+        assertEquals("Execution READY",
+                SquadPlanDebugPanel.executionSummary(squad));
+    }
+
     private static BattleSimulation openSim() {
         NavigationGrid grid = new NavigationGrid(20, 12);
         for (int y = 0; y < grid.getHeight(); y++) {

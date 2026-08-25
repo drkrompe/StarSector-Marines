@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.command.CommandAuthority;
+import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import org.junit.jupiter.api.Test;
@@ -54,10 +56,20 @@ public class WalkInMeansTest {
         means.dispatch(sim, req);
 
         long defenders = 0;
+        int reinforcementSquadId = -1;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            if (sim.identity().faction(sim.liveUnitAt(i)) == Faction.DEFENDER) defenders++;
+            long unit = sim.liveUnitAt(i);
+            if (sim.identity().faction(unit) == Faction.DEFENDER) {
+                defenders++;
+                reinforcementSquadId = sim.squad().squadId(unit);
+            }
         }
         assertTrue(defenders > 0, "walk-in spawned at least one defender");
+        CommandDirective owner = sim.getSquadCommandDirective(reinforcementSquadId);
+        assertEquals(CommandAuthority.REINFORCEMENT, owner.authority());
+        assertEquals("reinforcement", owner.issuer());
+        assertTrue(owner.ownsSquad());
+        assertFalse(owner.ownsAssignment());
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long u = sim.liveUnitAt(i);
             if (sim.identity().faction(u) != Faction.DEFENDER) continue;
