@@ -4,12 +4,9 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — the equipment designer now pairs compact live billet
-renders with flavor and catalog-normalized combat meters; starter issue visibly
-concentrates scarce weapon and armor upgrades on each fire-team lead. The Mech Lab
-separates asset selection from a wide fitting gantry, with a battle-tileset
-fabrication bay around its canonical mech doll and typed, sized-slot extension
-boundary.
+Updated: 2026-08-25 — fire-team inspection now uses a compact team tab rail and
+four simultaneous named-marine dossiers with live portraits, data-authored equipment
+prose, role and tier badges, and stable weapon, durability, and mobility meters.
 
 ## Purpose
 
@@ -144,6 +141,17 @@ figures use the same catalog and individual-profile rules as battle, while exact
 values remain legible beside comparative capability meters. Live portraits cycle
 the authored idle clip with stable per-slot phase offsets; headless evidence fixes
 the phase for deterministic comparison.
+
+The three fire teams occupy one horizontal tab rail rather than a permanent side
+column. Each tab keeps strength, readiness, recovery, and current issue visible while
+returning the full viewer width to all four marine dossiers. A dossier's upper-right
+portrait sits beside identity and service history; compact class, weapon-tier, and
+armor-tier badges replace implementation terms with formation-readable language.
+Weapon, armor, and specialty descriptions come from their owning data catalogs, not
+from Fleet Armory markup. Health, armor, resistance, and actual movement speed share
+the durability-and-mobility meter block; damage, range, accuracy, and sustained output
+share the weapon block. Catalog-wide ceilings keep every comparison stable across
+team selection and equipment changes.
 
 The separate equipment designer uses the same visual language before a definition
 is saved: each billet card keeps a compact live render in its upper-right corner,

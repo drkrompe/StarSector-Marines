@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.ui.retained.Insets;
 import com.dillon.starsectormarines.ui.retained.Overflow;
 import com.dillon.starsectormarines.ui.retained.UiLayout;
 import com.dillon.starsectormarines.ui.retained.UiTextAlign;
+import com.dillon.starsectormarines.ui.retained.UiWhiteSpace;
 
 import java.awt.Color;
 import java.util.EnumMap;
@@ -35,6 +36,7 @@ public final class ComputedStyle {
         values.put(StyleProperty.COLOR, null);
         values.put(StyleProperty.FONT_FAMILY, null);
         values.put(StyleProperty.TEXT_ALIGN, UiTextAlign.START);
+        values.put(StyleProperty.WHITE_SPACE, UiWhiteSpace.NOWRAP);
         values.put(StyleProperty.OPACITY, 1f);
         values.put(StyleProperty.TRANSITION, List.of());
     }
@@ -123,6 +125,10 @@ public final class ComputedStyle {
 
     public UiTextAlign textAlign() {
         return (UiTextAlign) value(StyleProperty.TEXT_ALIGN);
+    }
+
+    public UiWhiteSpace whiteSpace() {
+        return (UiWhiteSpace) value(StyleProperty.WHITE_SPACE);
     }
 
     public float opacity() {

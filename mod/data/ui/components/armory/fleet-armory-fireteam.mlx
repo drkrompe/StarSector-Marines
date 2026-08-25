@@ -43,6 +43,6 @@
   .breadcrumb-separator { width: 10px; text-align: center; }
   .breadcrumb-current { padding: 3px 4px; }
 
-  #fireteam-body { flex-direction: row; height: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
+  #fireteam-body { flex-direction: column; height: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
 
 </style>
