@@ -51,6 +51,10 @@ import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.ParkedAircraft;
 import com.dillon.starsectormarines.battle.command.MissionCommand;
+import com.dillon.starsectormarines.battle.command.CommandStrategy;
+import com.dillon.starsectormarines.battle.command.CommandFrame;
+import com.dillon.starsectormarines.battle.command.CommandFrameDisclosure;
+import com.dillon.starsectormarines.battle.command.AutonomousMissionCommand;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
@@ -1050,8 +1054,15 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         commanders.setCommander(faction, commander);
     }
 
+    /** Installs a frame-only strategy with its trusted battle disclosure. */
+    public <F extends CommandFrame, D> void setAutonomousCommander(
+            Faction faction, AutonomousMissionCommand<F, D> commander,
+            CommandFrameDisclosure<F> disclosure) {
+        commanders.setAutonomousCommander(faction, commander, disclosure);
+    }
+
     /** The commander for {@code faction}, or {@code null} if none is wired. Read by debug UI and by integration tests that poke at commander state directly. */
-    public MissionCommand getCommander(Faction faction) {
+    public CommandStrategy getCommander(Faction faction) {
         return commanders.getCommander(faction);
     }
 

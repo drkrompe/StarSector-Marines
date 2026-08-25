@@ -8,8 +8,6 @@ import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.influence.CommanderContact;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
-import com.dillon.starsectormarines.battle.sim.BattleView;
-import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 
@@ -37,7 +35,6 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
     private final ConquestTrackLayout trackLayout;
     private final Set<Integer> initialMobileSquads = new TreeSet<>();
     private final Map<Integer, Integer> homeTracks = new HashMap<>();
-    private boolean initialPoolCaptured;
     private volatile ConquestFrontSnapshot frontSnapshot;
 
     private static final class Threat {
@@ -52,7 +49,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         boolean active() { return contacts > 0; }
     }
 
-    /** Mutable working copy; never exposes or mutates a live {@link Squad}. */
+    /** Mutable working copy; never exposes or mutates a live squad. */
     private static final class PlanningSquad {
         final int id;
         final int aliveMembers;
@@ -88,7 +85,14 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
     };
 
     public ConquestDefenderCommand(ConquestTrackLayout trackLayout) {
+        this(trackLayout, ConquestDefenderStartingForce.empty());
+    }
+
+    public ConquestDefenderCommand(ConquestTrackLayout trackLayout,
+                                   ConquestDefenderStartingForce startingForce) {
         this.trackLayout = trackLayout;
+        initialMobileSquads.addAll(startingForce.mobileSquadIds());
+        homeTracks.putAll(startingForce.homeTracks());
         this.frontSnapshot = ConquestFrontSnapshot.empty(
                 Faction.DEFENDER, trackLayout.axis());
     }
@@ -99,19 +103,6 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
     @Override
     public String strategyId() {
         return "conquest-defender";
-    }
-
-    /** Freezes the setup-time patrol pool before any reinforcement delivery can occur. */
-    public void captureStartingForce(BattleView sim) {
-        if (!initialPoolCaptured) captureInitialMobilePool(sim);
-    }
-
-    @Override
-    public ConquestCommandFrame freeze(BattleView sim,
-                                       CommandTopology topology,
-                                       CommandAssignmentSnapshot assignments) {
-        captureStartingForce(sim);
-        return ConquestCommandFrame.freeze(sim, faction(), topology, assignments);
     }
 
     @Override
@@ -209,27 +200,6 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
     @Override
     public void publish(CommanderSnapshot<ConquestFrontSnapshot> snapshot) {
         frontSnapshot = snapshot.detail();
-    }
-
-    private void captureInitialMobilePool(BattleView sim) {
-        List<Squad> squads = new ArrayList<>();
-        for (Squad squad : sim.getSquads()) {
-            if (squad.faction == Faction.DEFENDER) squads.add(squad);
-        }
-        squads.sort(Comparator.comparingInt(s -> s.id));
-        for (Squad squad : squads) {
-            if (!isPatrolSquad(squad, sim)) continue;
-            initialMobileSquads.add(squad.id);
-            long anchor = sim.squadMemberAt(squad.id, 0);
-            homeTracks.put(squad.id, trackFor(
-                    sim.world().cellX(anchor), sim.world().cellY(anchor)));
-        }
-        initialPoolCaptured = true;
-    }
-
-    private boolean isPatrolSquad(Squad squad, BattleView sim) {
-        int count = sim.squadMemberCount(squad.id);
-        return count > 0 && sim.role().role(sim.squadMemberAt(squad.id, 0)) == UnitRole.PATROL;
     }
 
     private Threat[] buildThreats(CommanderInfluenceSnapshot influence) {

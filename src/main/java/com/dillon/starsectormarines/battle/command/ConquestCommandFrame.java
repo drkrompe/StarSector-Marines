@@ -14,9 +14,9 @@ public final class ConquestCommandFrame extends CommandFrame {
         this.facts = facts;
     }
 
-    public static ConquestCommandFrame freeze(BattleView sim, Faction perspective,
-                                              CommandTopology topology,
-                                              CommandAssignmentSnapshot assignments) {
+    static ConquestCommandFrame disclose(BattleView sim, Faction perspective,
+                                         CommandTopology topology,
+                                         CommandAssignmentSnapshot assignments) {
         return new ConquestCommandFrame(CommandFrame.freeze(sim, perspective,
                 topology, assignments), ConquestCommandFacts.freeze(sim));
     }

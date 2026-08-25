@@ -33,7 +33,7 @@ public final class ConquestCommandFacts {
     }
 
     /** Sole live objective-state projection used by migrated Conquest strategies. */
-    public static ConquestCommandFacts freeze(BattleView sim) {
+    static ConquestCommandFacts freeze(BattleView sim) {
         List<Compound> facts = new ArrayList<>();
         for (CompoundService.Record record : sim.getCompoundService().getRecords()) {
             TacticalNode node = CommandFrameCopies.node(record.node);

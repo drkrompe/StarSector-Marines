@@ -10,7 +10,6 @@ import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.Assignm
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.Phase;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.SquadDirective;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.TrackState;
-import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
@@ -238,13 +237,6 @@ public final class ConquestCommand implements ConquestFrontCommand,
     @Override
     public String strategyId() {
         return "conquest-attacker";
-    }
-
-    @Override
-    public ConquestCommandFrame freeze(BattleView sim,
-                                       CommandTopology topology,
-                                       CommandAssignmentSnapshot assignments) {
-        return ConquestCommandFrame.freeze(sim, faction(), topology, assignments);
     }
 
     @Override
