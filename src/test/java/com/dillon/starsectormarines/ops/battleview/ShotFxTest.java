@@ -119,7 +119,7 @@ public class ShotFxTest {
                             ShotFx.RAIL_NEEDLE_SPRITE_PATH, 1.8f, 0.16f);
                     case DRONE_PULSE -> new BoltExpectation(
                             ShotFx.DRONE_DART_SPRITE_PATH, 0.65f, 0.16f);
-                    case FIELD_RIFLE, SMG -> throw new AssertionError(
+                    case FIELD_RIFLE, SMG, SQUAD_AUTOMATIC -> throw new AssertionError(
                             "sprite-backed primary reached bolt assertion: " + w);
                 };
                 assertEquals(expected.spritePath(), bolt.spritePath(), "bolt path for " + w);

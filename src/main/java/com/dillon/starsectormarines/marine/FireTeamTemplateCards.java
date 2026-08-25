@@ -56,7 +56,7 @@ public final class FireTeamTemplateCards {
                 card(FIRE_SUPPORT_ID, "Fire Support",
                         billet("Team Leader", MarineWeapon.PULSE_RIFLE, null,
                                 MarineArmorPattern.ARMY_GREEN),
-                        billet("Automatic Rifleman", MarineWeapon.SMG, null,
+                        billet("Automatic Rifleman", MarineWeapon.SQUAD_AUTOMATIC, null,
                                 MarineArmorPattern.ARMY_GREEN),
                         billet("Marksman", MarineWeapon.DMR, null,
                                 MarineArmorPattern.ARMY_GREEN),

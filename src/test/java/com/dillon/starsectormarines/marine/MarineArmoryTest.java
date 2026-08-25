@@ -50,8 +50,37 @@ class MarineArmoryTest {
     void weaponCatalogNamesCombineDesignationTierAndModel() {
         assertEquals("FR-1 Rook", MarineWeapon.FIELD_RIFLE.catalogName(EquipmentGrade.MASTERWORK));
         assertEquals("PLS-3 Lancer", MarineWeapon.PULSE_RIFLE.catalogName(EquipmentGrade.MILSPEC));
-        assertEquals("LMG-2 Rattler", MarineWeapon.SMG.catalogName(EquipmentGrade.SERVICE));
+        assertEquals("SHD-2 Rattler", MarineWeapon.SMG.catalogName(EquipmentGrade.SERVICE));
+        assertEquals("SA-2 Stalwart",
+                MarineWeapon.SQUAD_AUTOMATIC.catalogName(EquipmentGrade.SERVICE));
         assertEquals("RG-4 Longbow", MarineWeapon.DMR.catalogName(EquipmentGrade.MASTERWORK));
+    }
+
+    @Test
+    void squadAutomaticIsStarterReachableAndJoinsTheMilspecLadder() {
+        MarineArmory armory = new MarineArmory();
+        assertTrue(armory.isPrimaryUnlocked(
+                MarineWeapon.SQUAD_AUTOMATIC, EquipmentGrade.SERVICE));
+        assertEquals(2, armory.ownedPrimary(
+                MarineWeapon.SQUAD_AUTOMATIC, EquipmentGrade.SERVICE));
+        assertFalse(armory.isPrimaryUnlocked(
+                MarineWeapon.SQUAD_AUTOMATIC, EquipmentGrade.MILSPEC));
+
+        for (int i = 0; i < 4; i++) armory.recordVictory(0, false);
+        assertTrue(armory.isPrimaryUnlocked(
+                MarineWeapon.SQUAD_AUTOMATIC, EquipmentGrade.MILSPEC));
+    }
+
+    @Test
+    void saveLoadReinstallsCurrentBuiltInFireSupportDefinition() throws Exception {
+        MarineArmory loaded = roundTrip(new MarineArmory());
+        FireTeamTemplateCard fireSupport = loaded.templateCardById(
+                FireTeamTemplateCards.FIRE_SUPPORT_ID);
+
+        assertNotNull(fireSupport);
+        assertEquals(MarineWeapon.SQUAD_AUTOMATIC, fireSupport.billet(1).primary());
+        assertEquals(2, loaded.ownedPrimary(
+                MarineWeapon.SQUAD_AUTOMATIC, EquipmentGrade.SERVICE));
     }
 
     @Test
@@ -130,7 +159,8 @@ class MarineArmoryTest {
 
         List<String> teamIds = squad.teamMembers(0);
         assertEquals(MarineWeapon.PULSE_RIFLE, roster.soldierById(teamIds.get(0)).primary());
-        assertEquals(MarineWeapon.SMG, roster.soldierById(teamIds.get(1)).primary());
+        assertEquals(MarineWeapon.SQUAD_AUTOMATIC,
+                roster.soldierById(teamIds.get(1)).primary());
         assertEquals(MarineWeapon.DMR, roster.soldierById(teamIds.get(2)).primary());
         MarineSoldier antiArmor = roster.soldierById(teamIds.get(3));
         assertEquals(MarineWeapon.PULSE_RIFLE, antiArmor.primary());
@@ -385,7 +415,7 @@ class MarineArmoryTest {
                 squad.id(), rotated.id());
         assertTrue(preview.canApply());
         FireTeamGearDelta smgs = preview.gear().stream()
-                .filter(item -> "LMG-2 Rattler".equals(item.label()))
+                .filter(item -> "SHD-2 Rattler".equals(item.label()))
                 .findFirst().orElseThrow();
         assertEquals(1, smgs.free());
         assertEquals(2, smgs.returned());

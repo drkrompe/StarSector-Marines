@@ -91,18 +91,19 @@ public final class SquadOverviewPanel implements HudPanel {
 
         // Bucket marines by squad so the equipment summary is one pass over
         // the unit list rather than nSquads × nUnits.
-        Map<Integer, int[]> weaponCounts = new HashMap<>(); // 0: RIF, 1: SMG, 2: DMR, 3: RKT
+        Map<Integer, int[]> weaponCounts = new HashMap<>(); // RIF, SHD, SAW, DMR, special
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long u = sim.liveUnitAt(i);
             if (sim.identity().faction(u) != Faction.MARINE || !sim.squad().hasSquad(u)) continue;
-            int[] counts = weaponCounts.computeIfAbsent(sim.squad().squadId(u), k -> new int[4]);
+            int[] counts = weaponCounts.computeIfAbsent(sim.squad().squadId(u), k -> new int[5]);
             MarineWeapon weapon = sim.combat().primaryWeapon(u);
             if (weapon != null) {
                 switch (weapon) {
                     case FIELD_RIFLE:
                     case PULSE_RIFLE: counts[0]++; break;
                     case SMG:         counts[1]++; break;
-                    case DMR:         counts[2]++; break;
+                    case SQUAD_AUTOMATIC: counts[2]++; break;
+                    case DMR:         counts[3]++; break;
                 }
             } else {
                 counts[0]++;
@@ -110,7 +111,7 @@ public final class SquadOverviewPanel implements HudPanel {
             if (sim.world().hasSecondaryWeapon(u)) {
                 MarineSecondary special = sim.world().secondaryWeapon(u);
                 if (special.hasAvailableUse(sim.world().secondaryAmmo(u))
-                        && sim.world().secondaryCooldownTimer(u) <= 0f) counts[3]++;
+                        && sim.world().secondaryCooldownTimer(u) <= 0f) counts[4]++;
             }
         }
 
@@ -123,12 +124,13 @@ public final class SquadOverviewPanel implements HudPanel {
 
         StringBuilder sb = new StringBuilder();
         for (Squad s : playerSquads) {
-            int[] c = weaponCounts.getOrDefault(s.id, new int[4]);
+            int[] c = weaponCounts.getOrDefault(s.id, new int[5]);
             sb.setLength(0);
             appendCount(sb, "RIF", c[0]);
-            appendCount(sb, "SMG", c[1]);
-            appendCount(sb, "DMR", c[2]);
-            appendCount(sb, "RKT", c[3]);
+            appendCount(sb, "SHD", c[1]);
+            appendCount(sb, "SAW", c[2]);
+            appendCount(sb, "DMR", c[3]);
+            appendCount(sb, "RKT", c[4]);
             equipSummaries.add(sb.toString());
         }
     }

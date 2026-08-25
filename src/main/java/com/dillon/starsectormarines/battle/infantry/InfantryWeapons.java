@@ -190,51 +190,54 @@ public class InfantryWeapons {
                         ? tk.directRoundVelocity()
                         : BallisticResolver.DEFAULT_ROUND_VELOCITY;
 
-        BallisticResolver.Resolution res = resolver.resolve(shooter, target,
-                accuracy, effectiveSpread, roundVelocity, rng);
+        int projectileCount = weapon != null ? weapon.projectilesPerShot() : 1;
+        BallisticResolver.Resolution[] resolutions =
+                new BallisticResolver.Resolution[projectileCount];
+        boolean friendlyThreat = false;
+        for (int i = 0; i < projectileCount; i++) {
+            BallisticResolver.Resolution resolution = resolver.resolve(shooter, target,
+                    accuracy, effectiveSpread, roundVelocity, rng);
+            resolutions[i] = resolution;
+            friendlyThreat |= resolution.friendlyHit();
+        }
 
-        // Resolve first, then decide whether this soldier recognizes the bad
-        // sight picture in time to hold the trigger. Gating only a committed
-        // friendly-hit result is the DPS invariant: the counterfactual round
-        // was going to stop in the ally and deal zero damage to the enemy, so
-        // better discipline cannot make a veteran less offensively effective.
-        // The caller still consumes this firing opportunity (trigger cooldown
-        // and one burst slot), exactly as if the friendly-bound round had been
-        // emitted. Safe rounds never make a discipline roll.
-        if (res.friendlyHit() && shooterType.usesInfantryTraining()) {
+        // Resolve the whole trigger pull first, then decide whether this
+        // soldier recognizes a bad sight picture in time to hold it. A
+        // flechette cloud is one trigger decision: any committed friendly
+        // contact makes the entire release eligible for one discipline roll.
+        // The caller still consumes the firing opportunity and burst slot.
+        if (friendlyThreat && shooterType.usesInfantryTraining()) {
             ExperienceTier experience = roster.combat().soldierProfile(shooter)
                     .experienceTier();
             if (rng.nextFloat() < experience.friendlyFireHoldChance) return;
         }
 
-        roster.telemetry().recordRoundFired(shooter);
-
         float moraleImpact = shooterType != null ? shooterType.moraleImpact : 1.0f;
-        if (res.victimId() != 0L) {
-            // Friendly-fire damage is pre-multiplied at queue time (see
-            // PendingImpact's javadoc) — the sink applies it as-is.
-            float appliedDamage = res.friendlyHit()
-                    ? damage * BallisticResolver.FRIENDLY_FIRE_DAMAGE_MULT
-                    : damage;
-            shots.queueImpact(new ShotService.PendingImpact(res.victimId(), shooter,
-                    res.flightTime(), appliedDamage, penetration, moraleImpact, res.friendlyHit()));
-        }
-
-        // Muzzle origin tracks the SHOOTER'S RENDER POSITION so the flash
-        // glues to the sprite across a moving burst. Endpoint is wherever
-        // the resolver's round physically stopped.
         float fromX = world.renderX(shooter);
         float fromY = world.renderY(shooter);
-        float lifetime = Math.max(res.flightTime(), 0.05f);
-        // struckUnit: true whenever the round physically damaged someone
-        // (victimId != 0 only on StopKind.UNIT_HIT), independent of whether
-        // that victim was the locked target — near-miss morale must not
-        // double-drain a round that actually connected.
-        boolean struckUnit = res.victimId() != 0L;
-        shots.postShot(new ShotEvent(fromX, fromY, 0f,
-                res.endX(), res.endY(), res.endZ(),
-                res.hitIntended(), shooterFaction, lifetime,
-                tk, weapon, null, null, moraleImpact, struckUnit, res.kind(), shooter));
+        for (BallisticResolver.Resolution res : resolutions) {
+            roster.telemetry().recordRoundFired(shooter);
+            if (res.victimId() != 0L) {
+                // Friendly-fire damage is pre-multiplied at queue time (see
+                // PendingImpact's javadoc) — the sink applies it as-is.
+                float appliedDamage = res.friendlyHit()
+                        ? damage * BallisticResolver.FRIENDLY_FIRE_DAMAGE_MULT
+                        : damage;
+                shots.queueImpact(new ShotService.PendingImpact(res.victimId(), shooter,
+                        res.flightTime(), appliedDamage, penetration, moraleImpact,
+                        res.friendlyHit()));
+            }
+
+            // One visible traveling body per projectile. Simultaneous
+            // flechettes share the muzzle timestamp but keep independent
+            // physical endpoints and interception outcomes.
+            float lifetime = Math.max(res.flightTime(), 0.05f);
+            boolean struckUnit = res.victimId() != 0L;
+            shots.postShot(new ShotEvent(fromX, fromY, 0f,
+                    res.endX(), res.endY(), res.endZ(),
+                    res.hitIntended(), shooterFaction, lifetime,
+                    tk, weapon, null, null, moraleImpact, struckUnit, res.kind(), shooter));
+        }
     }
 
     /**

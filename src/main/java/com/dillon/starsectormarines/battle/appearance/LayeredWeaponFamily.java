@@ -16,6 +16,7 @@ public enum LayeredWeaponFamily {
             case FIELD_RIFLE -> RIFLE;
             case PULSE_RIFLE, DRONE_PULSE -> LASER_GUN;
             case SMG -> SMG;
+            case SQUAD_AUTOMATIC -> RIFLE;
             case DMR -> DMR;
         };
     }
