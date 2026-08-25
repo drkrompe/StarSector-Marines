@@ -41,6 +41,7 @@ public final class CommsOfficerVoice {
     static final String SUMMARY_KEY  = "summary";
     static final String OVERVIEW_KEY = "overview";
     static final String CLIENT_KEY   = "client";
+    static final String COMPANY_ASSESSMENT_KEY = "companyAssessment";
 
     /** Header lines for the mission-select surface — see file header for which is which. */
     public static final class Summary {
@@ -57,10 +58,17 @@ public final class CommsOfficerVoice {
         public final String[] prefix;
         public final String[] suffix;
         public final Summary summary;
-        public Frame(String[] prefix, String[] suffix, Summary summary) {
+        public final String[] companyAssessment;
+        public Frame(String[] prefix, String[] suffix, Summary summary,
+                     String[] companyAssessment) {
             this.prefix = prefix;
             this.suffix = suffix;
             this.summary = summary;
+            this.companyAssessment = companyAssessment;
+        }
+        public Frame(String[] prefix, String[] suffix, Summary summary) {
+            this(prefix, suffix, summary,
+                    new String[] { "Company assessment unavailable." });
         }
     }
 
@@ -105,7 +113,9 @@ public final class CommsOfficerVoice {
             String[] prefix  = parsePool(m, PREFIX_KEY, entry.optJSONArray(PREFIX_KEY));
             String[] suffix  = parsePool(m, SUFFIX_KEY, entry.optJSONArray(SUFFIX_KEY));
             Summary summary  = parseSummary(m, entry.optJSONObject(SUMMARY_KEY));
-            out.put(m, new Frame(prefix, suffix, summary));
+            String[] companyAssessment = parsePool(m, COMPANY_ASSESSMENT_KEY,
+                    entry.optJSONArray(COMPANY_ASSESSMENT_KEY));
+            out.put(m, new Frame(prefix, suffix, summary, companyAssessment));
         }
         return out;
     }
@@ -172,6 +182,7 @@ public final class CommsOfficerVoice {
                 new String[] { "[" + m.name() + " suffix missing]" },
                 new Summary(
                         new String[] { "[" + m.name() + " overview summary missing]" },
-                        new String[] { "[" + m.name() + " client summary missing]" }));
+                        new String[] { "[" + m.name() + " client summary missing]" }),
+                new String[] { "[" + m.name() + " company assessment missing]" });
     }
 }
