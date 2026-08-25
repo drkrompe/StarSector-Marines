@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.CampaignClock;
+import com.dillon.starsectormarines.marine.CampaignEquipmentIssueResources;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineSquad;
@@ -74,7 +75,7 @@ public final class FleetArmoryScreen implements Screen {
             closeDocument();
             roster = liveRoster;
             viewModel = new FleetArmoryViewModel(reactor, roster, this::showSelectedSquad,
-                    CampaignClock::dayFloat);
+                    CampaignClock::dayFloat, new CampaignEquipmentIssueResources());
         } else {
             viewModel.refresh();
         }

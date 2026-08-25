@@ -9,11 +9,13 @@ script — including the captain list — round-trips through save/load with no
 custom serialization. `MarineRosterScript.getInstance()` finds the registered
 instance by scanning `sector.getScripts()`.
 
-The same persisted graph owns `MarineArmory` and `MarineSoldier`. Recipes, the shared
-fabrication-material resource, printed inventory, soldier identity/aptitude/XP/status/enlisted
-rank, equipment allocations and the per-soldier `SoldierCareer` service record must remain
-plain serializable data. `readResolve` backfills new
-collections/objects for legacy saves.
+The same persisted graph owns `MarineArmory` and `MarineSoldier`. Permanent
+equipment-template ownership, custom squad definitions, soldier
+identity/aptitude/XP/status/enlisted rank, materialized equipment, and the
+per-soldier `SoldierCareer` service record must remain plain serializable data.
+Legacy recipe, printed-inventory, and fabrication fields are migration input
+only. `readResolve` backfills new collections/objects and maps legacy recipes to
+stable equipment-template ids without stripping capabilities from old saves.
 
 ## Derived organizational state
 
@@ -33,9 +35,11 @@ write them directly:
 Squad **equipment doctrine assignment is authored state**, not another derived
 rollup. `MarineSquad` holds one weapon doctrine id and one armor doctrine id;
 `MarineRoster.applySquadEquipment` changes both only after the complete
-twelve-billet inventory transaction succeeds. `MarineArmory` persists custom
-Weapon and Armor definition catalogs while built-ins remain immutable fixtures;
-authoring never checks or consumes inventory. Legacy per-team template ids remain
+twelve-billet template and cargo transaction succeeds. It prices changed incoming
+kit, never refunds removed kit, and spends nothing until the full issue can commit.
+`MarineArmory` persists custom Weapon and Armor definition catalogs while built-ins
+remain immutable fixtures; authoring consumes nothing but may reference only
+collected templates. Legacy per-team template ids remain
 save input only: `MarineRoster.readResolve` composes complete legacy intent into
 deterministic custom definitions without changing kits, and the first successful
 squad issue clears those ids. The current per-soldier kit remains the materialized
