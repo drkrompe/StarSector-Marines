@@ -2,8 +2,12 @@ package com.dillon.starsectormarines.battle.fixture;
 
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.fixture.ConquestBattleFixture.WingCommitment;
+import com.dillon.starsectormarines.battle.flyby.FighterProfile;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -21,28 +25,28 @@ public final class BattleFixtureJson {
     private BattleFixtureJson() {}
 
     public static JSONObject toJson(BattleFixture fixture) throws Exception {
-        if (!(fixture instanceof CivilianRescueBattleFixture rescue)) {
-            throw new IllegalArgumentException("Unsupported battle fixture: " + fixture);
-        }
         JSONObject root = new JSONObject();
         root.put("schemaVersion", SCHEMA_VERSION);
-        root.put("kind", rescue.kind());
-        root.put("seed", rescue.seed());
-        root.put("enemyHasHeavyArmor", rescue.enemyHasHeavyArmor());
-        root.put("risk", rescue.risk().name());
-        root.put("swarmCount", rescue.swarmCount());
-        root.put("stressTest", rescue.stressTest());
-
-        JSONArray shuttles = new JSONArray();
-        for (ShuttleAssignment shuttle : rescue.manifest()) {
-            JSONObject encoded = new JSONObject();
-            encoded.put("type", shuttle.type.name());
-            encoded.put("cycles", shuttle.cycles);
-            shuttles.put(encoded);
+        if (fixture instanceof CivilianRescueBattleFixture rescue) {
+            encodeCommon(root, rescue.kind(), rescue.seed(), rescue.manifest(),
+                    rescue.enemyHasHeavyArmor(), rescue.risk(),
+                    rescue.targetProfile());
+            root.put("swarmCount", rescue.swarmCount());
+            root.put("stressTest", rescue.stressTest());
+            return root;
         }
-        root.put("shuttles", shuttles);
-        root.put("targetProfile", targetProfileToJson(rescue.targetProfile()));
-        return root;
+        if (fixture instanceof ConquestBattleFixture conquest) {
+            encodeCommon(root, conquest.kind(), conquest.seed(),
+                    conquest.manifest(), conquest.enemyHasHeavyArmor(),
+                    conquest.risk(), conquest.targetProfile());
+            root.put("tier", conquest.tier().name());
+            root.put("marineFighterSupport",
+                    wingsToJson(conquest.marineFighterSupport()));
+            root.put("enemyFighterSupport",
+                    wingsToJson(conquest.enemyFighterSupport()));
+            return root;
+        }
+        throw new IllegalArgumentException("Unsupported battle fixture: " + fixture);
     }
 
     /**
@@ -63,11 +67,65 @@ public final class BattleFixtureJson {
     /** Retained decoder branch so future schema bumps can keep loading V1. */
     private static BattleFixture decodeV1(JSONObject root) throws Exception {
         String kind = root.getString("kind");
-        if (!CivilianRescueBattleFixture.KIND.equals(kind)) {
-            throw new IllegalArgumentException("Unsupported battle fixture kind: " + kind);
-        }
+        return switch (kind) {
+            case CivilianRescueBattleFixture.KIND -> decodeCivilianRescue(root);
+            case ConquestBattleFixture.KIND -> decodeConquest(root);
+            default -> throw new IllegalArgumentException(
+                    "Unsupported battle fixture kind: " + kind);
+        };
+    }
 
-        JSONArray encodedShuttles = root.getJSONArray("shuttles");
+    private static CivilianRescueBattleFixture decodeCivilianRescue(
+            JSONObject root) throws Exception {
+        return new CivilianRescueBattleFixture(
+                root.getLong("seed"),
+                shuttlesFromJson(root.getJSONArray("shuttles")),
+                root.getBoolean("enemyHasHeavyArmor"),
+                enumValue(RiskLevel.class, root.getString("risk"), "risk"),
+                root.getInt("swarmCount"),
+                targetProfileFromJson(root.getJSONObject("targetProfile")),
+                root.getBoolean("stressTest"));
+    }
+
+    private static ConquestBattleFixture decodeConquest(
+            JSONObject root) throws Exception {
+        return new ConquestBattleFixture(
+                root.getLong("seed"),
+                shuttlesFromJson(root.getJSONArray("shuttles")),
+                root.getBoolean("enemyHasHeavyArmor"),
+                enumValue(OperationTier.class, root.getString("tier"), "tier"),
+                enumValue(RiskLevel.class, root.getString("risk"), "risk"),
+                targetProfileFromJson(root.getJSONObject("targetProfile")),
+                wingsFromJson(root.getJSONArray("marineFighterSupport")),
+                wingsFromJson(root.getJSONArray("enemyFighterSupport")));
+    }
+
+    private static void encodeCommon(
+            JSONObject root, String kind, long seed,
+            List<ShuttleAssignment> manifest, boolean enemyHasHeavyArmor,
+            RiskLevel risk, TargetProfile targetProfile) throws Exception {
+        root.put("kind", kind);
+        root.put("seed", seed);
+        root.put("enemyHasHeavyArmor", enemyHasHeavyArmor);
+        root.put("risk", risk.name());
+        root.put("shuttles", shuttlesToJson(manifest));
+        root.put("targetProfile", targetProfileToJson(targetProfile));
+    }
+
+    private static JSONArray shuttlesToJson(
+            List<ShuttleAssignment> manifest) throws Exception {
+        JSONArray shuttles = new JSONArray();
+        for (ShuttleAssignment shuttle : manifest) {
+            JSONObject encoded = new JSONObject();
+            encoded.put("type", shuttle.type.name());
+            encoded.put("cycles", shuttle.cycles);
+            shuttles.put(encoded);
+        }
+        return shuttles;
+    }
+
+    private static List<ShuttleAssignment> shuttlesFromJson(
+            JSONArray encodedShuttles) throws Exception {
         List<ShuttleAssignment> shuttles = new ArrayList<>();
         for (int i = 0; i < encodedShuttles.length(); i++) {
             JSONObject encoded = encodedShuttles.getJSONObject(i);
@@ -76,15 +134,39 @@ public final class BattleFixtureJson {
                             encoded.getString("type"), "shuttle type"),
                     encoded.getInt("cycles")));
         }
+        return shuttles;
+    }
 
-        return new CivilianRescueBattleFixture(
-                root.getLong("seed"),
-                shuttles,
-                root.getBoolean("enemyHasHeavyArmor"),
-                enumValue(RiskLevel.class, root.getString("risk"), "risk"),
-                root.getInt("swarmCount"),
-                targetProfileFromJson(root.getJSONObject("targetProfile")),
-                root.getBoolean("stressTest"));
+    private static JSONArray wingsToJson(
+            List<WingCommitment> commitments) throws Exception {
+        JSONArray wings = new JSONArray();
+        for (WingCommitment commitment : commitments) {
+            JSONObject encoded = new JSONObject();
+            encoded.put("profile", commitment.profile().name());
+            encoded.put("side", commitment.side().name());
+            encoded.put("sortieCount", commitment.sortieCount());
+            encoded.put("firstArrivalSec", commitment.firstArrivalSec());
+            encoded.put("spawnIntervalSec", commitment.spawnIntervalSec());
+            wings.put(encoded);
+        }
+        return wings;
+    }
+
+    private static List<WingCommitment> wingsFromJson(
+            JSONArray encodedWings) throws Exception {
+        List<WingCommitment> wings = new ArrayList<>();
+        for (int i = 0; i < encodedWings.length(); i++) {
+            JSONObject encoded = encodedWings.getJSONObject(i);
+            wings.add(new WingCommitment(
+                    enumValue(FighterProfile.class,
+                            encoded.getString("profile"), "fighter profile"),
+                    enumValue(Faction.class,
+                            encoded.getString("side"), "fighter side"),
+                    encoded.getInt("sortieCount"),
+                    (float) encoded.getDouble("firstArrivalSec"),
+                    (float) encoded.getDouble("spawnIntervalSec")));
+        }
+        return wings;
     }
 
     private static JSONObject targetProfileToJson(

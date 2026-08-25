@@ -4,7 +4,7 @@ Status: ACTIVE — Conquest owns reversible compound territory, deliberate captu
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — defined the perspective-specific lane/front/action debug picture over published Conquest command state.
+Updated: 2026-08-25 — defined the perspective-specific lane/front/action debug picture and preserved attacker presence across committed shuttle cycles.
 
 Conquest is a territorial assault: marines establish a beachhead, take the
 defender's supply hubs through the city, and finish at the keep. It is not a
@@ -169,6 +169,11 @@ has a participant in play. A missing compound layer or missing command post is
 a malformed Conquest setup and fails the marine objective closed. Defender
 victory is elimination-based; a positive territory-hold victory is an
 extension.
+
+A committed future shuttle sortie counts as an attacker participant even while
+its transport is departing to rearm. Defender elimination cannot resolve in
+the empty-ground interval between authored cycles; only the final empty sortie
+and absence of live marines ends the attacker side.
 
 The model has three extension paths: a defender positive territory victory,
 marine-side supply from captured compounds, and a readable inbound-garrison

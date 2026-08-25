@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.evacuation.SwarmDefenseRoster;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.fixture.CivilianRescueBattleFixture;
+import com.dillon.starsectormarines.battle.fixture.ConquestBattleFixture;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -166,9 +167,13 @@ public final class MissionLaunch {
                         det.marineWings, m.enemyFighterSupport);
                 break;
             case CONQUEST:
-                sim = BattleSetup.createConquest(seed, det.shuttleManifest,
-                        enemyHasHeavyArmor, m.tier, m.risk, profile,
-                        det.marineWings, m.enemyFighterSupport);
+                ConquestBattleFixture conquestFixture =
+                        ConquestBattleFixture.fromFactoryInputs(seed,
+                                det.shuttleManifest, enemyHasHeavyArmor,
+                                m.tier, m.risk, profile, det.marineWings,
+                                m.enemyFighterSupport);
+                sim = conquestFixture.build();
+                fixture = conquestFixture;
                 break;
             case ASSAULT:
             case RAID:

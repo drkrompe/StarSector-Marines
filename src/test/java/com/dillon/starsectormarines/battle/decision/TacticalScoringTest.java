@@ -748,6 +748,24 @@ public class TacticalScoringTest {
     }
 
     @Test
+    public void utilitySpecialDoesNotParticipateInDirectFireScoring() {
+        BattleSimulation sim = openArena(40, 10);
+        long smokeCarrier = sim.spawn(new EntitySpec("smoke", Faction.MARINE,
+                UnitType.MARINE, 5, 5)
+                .secondary(MarineSecondary.SMOKE_GRENADE,
+                        MarineSecondary.SMOKE_GRENADE.startingAmmo()));
+        long turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 15, 5);
+        float primaryRange = sim.world().attackRange(smokeCarrier);
+
+        assertFalse(sim.getTacticalScoring().canSpecialTarget(smokeCarrier, turret));
+        assertEquals(primaryRange, sim.getTacticalScoring().effectiveAttackRange(
+                smokeCarrier, turret, primaryRange), 0.001f);
+        assertEquals(turret, sim.getTacticalScoring().findBestTarget(smokeCarrier));
+        assertEquals(turret, sim.getTacticalScoring().findEngageableEnemyWithin(
+                smokeCarrier, 5, 5, 3f));
+    }
+
+    @Test
     public void findFiringPositionReachesRocketRangeOnly() {
         // The user-reported failure mode: marine outside rifle range of a
         // turret was pathing INTO rifle range instead of stopping at rocket
