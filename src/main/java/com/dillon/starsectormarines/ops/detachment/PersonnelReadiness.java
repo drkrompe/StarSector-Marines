@@ -44,7 +44,7 @@ public record PersonnelReadiness(int requiredSeats,
         return selectedShortfall == 0;
     }
 
-    public boolean needsRecruitment() {
+    public boolean needsPersonnel() {
         return companyShortfall > 0;
     }
 
