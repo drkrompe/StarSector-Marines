@@ -144,25 +144,27 @@ values remain legible beside comparative capability meters. Live portraits cycle
 the authored idle clip with stable per-slot phase offsets; headless evidence fixes
 the phase for deterministic comparison.
 
-Issue is explicit, atomic, and net of returns. The target squad's current twelve
-kits return before the candidate pair is checked. A stationed squad, any vacancy or
-WIA billet, a locked recipe, or insufficient primary, armor, or special stock leaves
-both doctrine ids and every marine's existing kit untouched. Success writes both
-ids together and materializes all twelve exact issues onto `MarineSoldier`, which
-remains the battle-facing state consumed by deployment. Later inventory changes do
-not silently optimize or reshuffle that materialized result.
+Issue is explicit and atomic. The preview prices only changed incoming equipment;
+unchanged kit is free and removed kit grants no cargo refund. A stationed squad,
+any vacancy or WIA billet, a missing equipment template card, or insufficient
+supplies, heavy armaments, heavy machinery, or food leaves cargo, both doctrine ids,
+and every marine's existing kit untouched. Success spends the complete cargo cost,
+writes both ids together, and materializes all twelve exact issues onto
+`MarineSoldier`, which remains the battle-facing state consumed by deployment.
 
 Built-in definitions are authored deterministic distributions rather than live
 best-fit allocators. This makes faction-flavored profiles such as **Sindrian
 Civilian Security Equipment** or **Luddic Path Assault Equipment** explainable in
 preview and stable after issue. Player-authored definitions persist in `MarineArmory`
-beside that immutable built-in catalog. Authoring is free and may mix every billet;
-stock, recipes, readiness, and stationing constrain only the later squad issue.
+beside that immutable built-in catalog. Authoring consumes nothing and may mix every
+billet, but every referenced primary-and-grade, armor pattern, and special must have
+a collected equipment template card. Cargo, readiness, and stationing constrain the
+later squad issue.
 Edits remain a draft until **Save as New**, so a definition already assigned to a
 squad never silently refits its materialized equipment.
 **Fleet Assault Equipment** is the built-in player assault profile: its twelve
-exact billets contain one Shattercap frag carrier, so the doctrine cannot multiply
-scarce special stock by team. Player-authored definitions must likewise resolve to
+exact billets contain one Shattercap frag carrier, so its authored distribution stays
+legible. Player-authored definitions must likewise resolve to
 twelve exact billets before the same issue transaction can commit.
 
 Legacy four-billet templates, three-template arrangements, and their persisted ids
@@ -172,10 +174,9 @@ legacy three-template intent into deterministic player-owned Weapon and Armor
 definitions without rewriting any marine's current kit. The first later successful
 squad issue clears stale per-team assignment ids so only one equipment authority remains.
 
-The selectors may be presented as equipment cards in the literal base-game UI
-sense, but card/deck/hand/consumption semantics do not enter the domain. Definitions
-are reusable intent; every materialized copy remains bounded by finite physical
-stock.
+Equipment template cards are literal permanent collectibles owned by Progression.
+They are not a deck, hand, consumable, or squad definition. Definitions remain
+reusable intent; base-game fleet cargo pays only when changed kit is materialized.
 
 ## Mech Lab
 
@@ -402,8 +403,8 @@ production vehicle deployment seam exists.
   never reaches back into campaign state.
 - Fire-team membership is derived from billet order and never persisted twice.
 - Fire teams are equipment/AI/lift units, not player command targets.
-- Weapon and armor doctrines are reusable squad designs; every issue remains bounded
-  by finite physical stock.
+- Weapon and armor doctrines are reusable squad designs authored from collected
+  templates; every changed issue remains bounded by ordinary fleet cargo.
 - Mech subsystems are finite physical stock; installed copies remain counted,
   and the Mech Lab cannot create a second inventory authority.
 - A failed squad equipment issue changes neither materialized kit nor either doctrine id.
@@ -427,7 +428,7 @@ and a sector contract board. Each extension must preserve the canonical
 company organization and frozen deployment identities rather than persisting
 a second presentation-owned roster.
 
-Equipment authoring remains bounded by finite stock and atomic assignment;
+Equipment authoring remains bounded by collected templates and atomic cargo-backed assignment;
 read surfaces remain projections of their owning campaign or frozen mission
 state. A contract board may present offers and obligation clocks, but it does
 not become their authority or introduce a second clock lifecycle.

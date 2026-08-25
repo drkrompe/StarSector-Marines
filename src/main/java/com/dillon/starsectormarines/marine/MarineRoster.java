@@ -789,13 +789,21 @@ public class MarineRoster implements Serializable {
         return false;
     }
 
-    /**
-     * Previews one squad-wide pair of equipment definitions. Primaries, grades and
-     * specials come from the weapon doctrine; protection comes from the armour doctrine.
-     * The exact returned/required calculation is reused by {@link #applySquadEquipment}.
-     */
+    /** Headless/debug preview with no cargo constraint. Campaign callers provide resources. */
     public SquadEquipmentPreview previewSquadEquipment(
             String squadId, String weaponDoctrineId, String armorDoctrineId) {
+        return previewSquadEquipment(squadId, weaponDoctrineId, armorDoctrineId,
+                EquipmentIssueResources.UNLIMITED);
+    }
+
+    /**
+     * Previews one squad-wide issue as permanent template ownership plus the cargo cost
+     * of changed incoming equipment. Removed equipment is not refunded.
+     */
+    public SquadEquipmentPreview previewSquadEquipment(
+            String squadId, String weaponDoctrineId, String armorDoctrineId,
+            EquipmentIssueResources resources) {
+        if (resources == null) throw new IllegalArgumentException("resources are required");
         MarineSquad squad = squadById(squadId);
         if (squad == null || squad.reserve()) {
             return squadEquipmentFailure(SquadEquipmentResult.INVALID_SQUAD);
@@ -836,71 +844,55 @@ public class MarineRoster implements Serializable {
             members.add(soldier);
         }
 
-        Map<PrimaryIssue, Integer> requiredPrimaries = new HashMap<>();
-        Map<MarineArmorPattern, Integer> requiredArmor = new HashMap<>();
-        Map<MarineSecondary, Integer> requiredSpecials = new HashMap<>();
-        Map<PrimaryIssue, Integer> returnedPrimaries = new HashMap<>();
-        Map<MarineArmorPattern, Integer> returnedArmor = new HashMap<>();
-        Map<MarineSecondary, Integer> returnedSpecials = new HashMap<>();
-        boolean unlocked = true;
-
+        boolean ownsTemplates = true;
         for (SquadEquipmentBillet billet : billets) {
-            PrimaryIssue primary = new PrimaryIssue(billet.primary(), billet.grade());
-            requiredPrimaries.merge(primary, 1, Integer::sum);
-            requiredArmor.merge(billet.armor(), 1, Integer::sum);
             MarineSecondary special = billet.special();
-            if (special != null) requiredSpecials.merge(special, 1, Integer::sum);
-            unlocked &= armory.isPrimaryUnlocked(billet.primary(), billet.grade())
-                    && armory.isArmorUnlocked(billet.armor())
-                    && (special == null || armory.isSecondaryUnlocked(special));
+            ownsTemplates &= armory.ownsPrimaryTemplate(billet.primary(), billet.grade())
+                    && armory.ownsArmorTemplate(billet.armor())
+                    && (special == null || armory.ownsSpecialTemplate(special));
         }
-        for (MarineSoldier soldier : members) {
-            returnedPrimaries.merge(
-                    new PrimaryIssue(soldier.primary(), soldier.primaryGrade()),
-                    1, Integer::sum);
-            returnedArmor.merge(soldier.armor(), 1, Integer::sum);
-            if (soldier.secondary() != null) {
-                returnedSpecials.merge(soldier.secondary(), 1, Integer::sum);
+        EquipmentTemplateCost cost = EquipmentTemplateCost.ZERO;
+        for (int index = 0; index < members.size(); index++) {
+            MarineSoldier soldier = members.get(index);
+            SquadEquipmentBillet billet = billets.get(index);
+            if (soldier.primary() != billet.primary()
+                    || soldier.primaryGrade() != billet.grade()) {
+                cost = cost.plus(EquipmentTemplateCatalog
+                        .primary(billet.primary(), billet.grade()).issueCost());
+            }
+            if (soldier.armor() != billet.armor()) {
+                cost = cost.plus(EquipmentTemplateCatalog.armor(billet.armor()).issueCost());
+            }
+            if (soldier.secondary() != billet.special() && billet.special() != null) {
+                cost = cost.plus(EquipmentTemplateCatalog.special(billet.special()).issueCost());
             }
         }
-
-        List<FireTeamGearDelta> gear = new ArrayList<>();
-        for (MarineWeapon weapon : MarineWeapon.values()) {
-            for (EquipmentGrade grade : EquipmentGrade.values()) {
-                PrimaryIssue issue = new PrimaryIssue(weapon, grade);
-                int returned = returnedPrimaries.getOrDefault(issue, 0);
-                int required = requiredPrimaries.getOrDefault(issue, 0);
-                if (returned == 0 && required == 0) continue;
-                gear.add(new FireTeamGearDelta(FireTeamGearDelta.Kind.PRIMARY,
-                        weapon.catalogName(grade), freePrimary(issue), returned, required));
-            }
-        }
-        for (MarineArmorPattern pattern : MarineArmorPattern.values()) {
-            int returned = returnedArmor.getOrDefault(pattern, 0);
-            int required = requiredArmor.getOrDefault(pattern, 0);
-            if (returned == 0 && required == 0) continue;
-            gear.add(new FireTeamGearDelta(FireTeamGearDelta.Kind.ARMOR,
-                    pattern.displayName, freeArmor(pattern), returned, required));
-        }
-        for (MarineSecondary special : MarineSecondary.values()) {
-            int returned = returnedSpecials.getOrDefault(special, 0);
-            int required = requiredSpecials.getOrDefault(special, 0);
-            if (returned == 0 && required == 0) continue;
-            gear.add(new FireTeamGearDelta(FireTeamGearDelta.Kind.SPECIAL,
-                    special.displayName(), freeSecondary(special), returned, required));
-        }
-
-        SquadEquipmentResult result = unlocked
-                ? squadEquipmentInsufficiency(gear) : SquadEquipmentResult.LOCKED_RECIPE;
-        return new SquadEquipmentPreview(result, billets, gear);
+        EquipmentTemplateCost available = resources.available();
+        SquadEquipmentResult result = !ownsTemplates
+                ? SquadEquipmentResult.MISSING_TEMPLATE
+                : available.covers(cost)
+                ? SquadEquipmentResult.APPLIED : SquadEquipmentResult.INSUFFICIENT_CARGO;
+        return new SquadEquipmentPreview(result, billets, Collections.emptyList(),
+                cost, available);
     }
 
-    /** Applies both squad definition slots atomically and materializes all twelve kits. */
+    /** Headless/debug apply with no cargo constraint. Campaign callers provide resources. */
     public SquadEquipmentResult applySquadEquipment(
             String squadId, String weaponDoctrineId, String armorDoctrineId) {
+        return applySquadEquipment(squadId, weaponDoctrineId, armorDoctrineId,
+                EquipmentIssueResources.UNLIMITED);
+    }
+
+    /** Applies both definitions after the complete template and cargo transaction succeeds. */
+    public SquadEquipmentResult applySquadEquipment(
+            String squadId, String weaponDoctrineId, String armorDoctrineId,
+            EquipmentIssueResources resources) {
         SquadEquipmentPreview preview = previewSquadEquipment(
-                squadId, weaponDoctrineId, armorDoctrineId);
+                squadId, weaponDoctrineId, armorDoctrineId, resources);
         if (!preview.canApply()) return preview.result();
+        if (!preview.issueCost().isZero() && !resources.spend(preview.issueCost())) {
+            return SquadEquipmentResult.INSUFFICIENT_CARGO;
+        }
         MarineSquad squad = squadById(squadId);
         List<String> memberIds = manningMemberIds(squad);
         for (int index = 0; index < memberIds.size(); index++) {
@@ -916,26 +908,6 @@ public class MarineRoster implements Serializable {
 
     private static SquadEquipmentPreview squadEquipmentFailure(SquadEquipmentResult result) {
         return new SquadEquipmentPreview(result, Collections.emptyList(), Collections.emptyList());
-    }
-
-    private static SquadEquipmentResult squadEquipmentInsufficiency(
-            List<FireTeamGearDelta> gear) {
-        for (FireTeamGearDelta delta : gear) {
-            if (delta.kind() == FireTeamGearDelta.Kind.PRIMARY && !delta.sufficient()) {
-                return SquadEquipmentResult.INSUFFICIENT_PRIMARIES;
-            }
-        }
-        for (FireTeamGearDelta delta : gear) {
-            if (delta.kind() == FireTeamGearDelta.Kind.ARMOR && !delta.sufficient()) {
-                return SquadEquipmentResult.INSUFFICIENT_ARMOR;
-            }
-        }
-        for (FireTeamGearDelta delta : gear) {
-            if (delta.kind() == FireTeamGearDelta.Kind.SPECIAL && !delta.sufficient()) {
-                return SquadEquipmentResult.INSUFFICIENT_SPECIALS;
-            }
-        }
-        return SquadEquipmentResult.APPLIED;
     }
 
     /** Company-wide use and free-stock capacity for one reusable design. */
@@ -1491,17 +1463,17 @@ public class MarineRoster implements Serializable {
     private void autoIssueRecruit(MarineSoldier recruit, int number) {
         int billet = Math.floorMod(number - 1, MarineSquad.CAPACITY) + 1;
         if (billet % 6 == 2) {
-            allocatePrimary(recruit.id(), MarineWeapon.SMG, EquipmentGrade.SERVICE);
+            recruit.setPrimary(MarineWeapon.SMG, EquipmentGrade.SERVICE);
         } else if (billet % 6 == 4) {
-            allocatePrimary(recruit.id(), MarineWeapon.DMR, EquipmentGrade.SERVICE);
+            recruit.setPrimary(MarineWeapon.DMR, EquipmentGrade.SERVICE);
         }
         if (number <= MarineSquad.CAPACITY) {
-            allocateArmor(recruit.id(), MarineArmorPattern.CHARCOAL);
+            recruit.setArmor(MarineArmorPattern.CHARCOAL);
         } else if (number <= 2 * MarineSquad.CAPACITY) {
-            allocateArmor(recruit.id(), MarineArmorPattern.ARMY_GREEN);
+            recruit.setArmor(MarineArmorPattern.ARMY_GREEN);
         }
         if (billet == MarineSquad.CAPACITY) {
-            allocateSecondary(recruit.id(), MarineSecondary.ROCKET_LAUNCHER);
+            recruit.setSecondary(MarineSecondary.ROCKET_LAUNCHER);
         }
     }
 

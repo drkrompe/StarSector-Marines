@@ -75,13 +75,13 @@ religious or outlaw carriers receive no contact immunity.
 
 ## Campaign and presentation
 
-- Each family is a stable special-equipment item with finite Armory stock,
-  recipe provenance, a contact use pose, and readable carried art.
+- Each family is a stable special-equipment item with a collectible Armory template,
+  template provenance, a contact use pose, and readable carried art.
 - The Fleet Armory explains “anti-hard contact channel” versus “anti-personnel
   contact reaction” and compares each against the player's existing special
   slot; it does not present either as a primary weapon attachment.
-- Recovery and unlocks route through `s5-parts-acquisition-channels.md` and
-  `s6-unlock-ladder-expansion.md`. Industrial facilities and intact armories
+- Recovery and unlocks route through `s6-unlock-ladder-expansion.md` and the
+  shared loot manifest. Industrial facilities and intact armories
   are plausible cutter sources; faction provenance alone is not a guaranteed
   drop.
 
@@ -95,7 +95,7 @@ religious or outlaw carriers receive no contact immunity.
   out of squad cohesion to seek contact.
 - Player and defender carriers pass the same execution and AI scenarios, with
   deterministic target reservation and interruption.
-- Armory stock, templates, deployment freeze, HUD cooldown/ammunition,
+- Template ownership, cargo-backed issue, deployment freeze, HUD cooldown/ammunition,
   telemetry, save repair, effects, and unlock reachability recognize both
   items.
 - Thermal/arc and vibro/monofilament variants are observably distinct where

@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.FireTeamTemplateCard;
+import com.dillon.starsectormarines.marine.EquipmentIssueResources;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics;
@@ -44,6 +45,7 @@ public final class FleetArmoryViewModel {
     private final MarineRoster roster;
     private final Runnable openSelectedSquad;
     private final DoubleSupplier currentDay;
+    private final EquipmentIssueResources equipmentIssueResources;
     private final MutableSignal<String> selectedSquadId;
     private final MutableSignal<Integer> selectedTeamIndex;
     private final MutableSignal<String> selectedWeaponDoctrineId;
@@ -74,25 +76,37 @@ public final class FleetArmoryViewModel {
     private final ComputedSignal<String> armorDoctrineSummary;
 
     public FleetArmoryViewModel(Reactor reactor, MarineRoster roster) {
-        this(reactor, roster, () -> { }, () -> 0d);
+        this(reactor, roster, () -> { }, () -> 0d, EquipmentIssueResources.UNLIMITED);
     }
 
     public FleetArmoryViewModel(
             Reactor reactor, MarineRoster roster, Runnable openSelectedSquad) {
-        this(reactor, roster, openSelectedSquad, () -> 0d);
+        this(reactor, roster, openSelectedSquad, () -> 0d,
+                EquipmentIssueResources.UNLIMITED);
     }
 
     public FleetArmoryViewModel(Reactor reactor, MarineRoster roster,
                                 Runnable openSelectedSquad, DoubleSupplier currentDay) {
+        this(reactor, roster, openSelectedSquad, currentDay,
+                EquipmentIssueResources.UNLIMITED);
+    }
+
+    public FleetArmoryViewModel(
+            Reactor reactor, MarineRoster roster, Runnable openSelectedSquad,
+            DoubleSupplier currentDay, EquipmentIssueResources equipmentIssueResources) {
         if (reactor == null) throw new IllegalArgumentException("reactor is required");
         if (roster == null) throw new IllegalArgumentException("roster is required");
         if (openSelectedSquad == null) {
             throw new IllegalArgumentException("openSelectedSquad is required");
         }
         if (currentDay == null) throw new IllegalArgumentException("currentDay is required");
+        if (equipmentIssueResources == null) {
+            throw new IllegalArgumentException("equipmentIssueResources is required");
+        }
         this.roster = roster;
         this.openSelectedSquad = openSelectedSquad;
         this.currentDay = currentDay;
+        this.equipmentIssueResources = equipmentIssueResources;
 
         MarineSquad initialSquad = firstLineSquad(roster);
         selectedSquadId = reactor.signal(initialSquad != null ? initialSquad.id() : null);
@@ -200,14 +214,18 @@ public final class FleetArmoryViewModel {
     }
 
     public SquadEquipmentResult applySquadEquipmentSelection() {
+        SquadEquipmentPreview preview = squadEquipmentPreview.get();
         SquadEquipmentResult result = roster.applySquadEquipment(
                 selectedSquadId.peek(), selectedWeaponDoctrineId.peek(),
-                selectedArmorDoctrineId.peek());
+                selectedArmorDoctrineId.peek(), equipmentIssueResources);
         MarineSquad squad = roster.squadById(selectedSquadId.peek());
         feedback.set(result == SquadEquipmentResult.APPLIED
                 ? Feedback.success("Squad equipment issued to "
-                        + (squad != null ? squad.name() : "selected squad") + ".")
-                : Feedback.neutral(squadEquipmentMessage(result)));
+                        + (squad != null ? squad.name() : "selected squad")
+                        + (preview.issueCost().isZero() ? "  ·  no cargo required."
+                        : "  ·  " + preview.issueCost().display() + " consumed."))
+                : Feedback.neutral(squadEquipmentMessage(
+                        buildSquadEquipmentPreview())));
         domainRevision.update(value -> value + 1);
         return result;
     }
@@ -224,7 +242,9 @@ public final class FleetArmoryViewModel {
             wounded += woundedCount(squad);
         }
         return lineSquads + " squads  ·  " + ready + " RTD  ·  "
-                + wounded + " WIA  ·  Squad equipment doctrine";
+                + wounded + " WIA  ·  "
+                + roster.armory().equipmentTemplateCards().size()
+                + " equipment templates collected";
     }
 
     private List<SelectionRow> buildSquadRows() {
@@ -321,7 +341,8 @@ public final class FleetArmoryViewModel {
     private SquadEquipmentPreview buildSquadEquipmentPreview() {
         domainRevision.get();
         return roster.previewSquadEquipment(selectedSquadId.get(),
-                selectedWeaponDoctrineId.get(), selectedArmorDoctrineId.get());
+                selectedWeaponDoctrineId.get(), selectedArmorDoctrineId.get(),
+                equipmentIssueResources);
     }
 
     private List<DoctrineTile> buildWeaponDoctrineTiles() {
@@ -330,11 +351,14 @@ public final class FleetArmoryViewModel {
         List<DoctrineTile> tiles = new ArrayList<>();
         for (SquadWeaponDoctrine doctrine : roster.armory().weaponDoctrines()) {
             String id = "weapon-doctrine:" + doctrine.id();
-            String distribution = weaponDistribution(doctrine);
+            boolean available = roster.armory().canAuthorWeaponDoctrine(doctrine.issues());
+            String distribution = weaponDistribution(doctrine)
+                    + (available ? "" : "  ·  Missing template cards");
             tiles.add(new DoctrineTile(id, id + ":name", id + ":description",
                     id + ":distribution",
                     doctrine.id().equals(selected)
-                            ? "doctrine-tile selected" : "doctrine-tile",
+                            ? "doctrine-tile selected" + (available ? "" : " locked")
+                            : "doctrine-tile" + (available ? "" : " locked"),
                     doctrine.displayName(), doctrine.description(), distribution,
                     () -> selectWeaponDoctrine(doctrine.id())));
         }
@@ -347,11 +371,14 @@ public final class FleetArmoryViewModel {
         List<DoctrineTile> tiles = new ArrayList<>();
         for (SquadArmorDoctrine doctrine : roster.armory().armorDoctrines()) {
             String id = "armor-doctrine:" + doctrine.id();
+            boolean available = roster.armory().canAuthorArmorDoctrine(doctrine.issues());
             tiles.add(new DoctrineTile(id, id + ":name", id + ":description",
                     id + ":distribution",
                     doctrine.id().equals(selected)
-                            ? "doctrine-tile selected" : "doctrine-tile",
-                    doctrine.displayName(), doctrine.description(), armorDistribution(doctrine),
+                            ? "doctrine-tile selected" + (available ? "" : " locked")
+                            : "doctrine-tile" + (available ? "" : " locked"),
+                    doctrine.displayName(), doctrine.description(), armorDistribution(doctrine)
+                            + (available ? "" : "  ·  Missing template cards"),
                     () -> selectArmorDoctrine(doctrine.id())));
         }
         return List.copyOf(tiles);
@@ -439,11 +466,14 @@ public final class FleetArmoryViewModel {
     }
 
     private String buildApplyLabel() {
-        return "Issue Equipment to Entire Squad";
+        SquadEquipmentPreview preview = squadEquipmentPreview.get();
+        return preview.issueCost().isZero()
+                ? "Issue Equipment to Entire Squad"
+                : "Issue Squad  ·  " + preview.issueCost().display();
     }
 
     private String buildViewerStatus() {
-        return squadEquipmentMessage(squadEquipmentPreview.get().result());
+        return squadEquipmentMessage(squadEquipmentPreview.get());
     }
 
     private String buildViewerStatusClasses() {
@@ -871,18 +901,21 @@ public final class FleetArmoryViewModel {
                 + " kills  ·  wounded " + career.timesWounded() + " times";
     }
 
-    private static String squadEquipmentMessage(SquadEquipmentResult result) {
-        return switch (result) {
-            case APPLIED -> "Ready  ·  Both definitions can be issued to all twelve marines.";
+    private static String squadEquipmentMessage(SquadEquipmentPreview preview) {
+        return switch (preview.result()) {
+            case APPLIED -> preview.issueCost().isZero()
+                    ? "Ready  ·  The squad already matches this equipment issue."
+                    : "Ready  ·  Issue cost: " + preview.issueCost().display() + ".";
             case INVALID_SQUAD -> "Select a line squad.";
             case SQUAD_NOT_READY -> "Not ready  ·  This squad needs twelve RTD marines.";
             case STATIONED -> "Unavailable  ·  This squad is stationed away.";
             case UNKNOWN_WEAPON_DOCTRINE -> "Choose weapon equipment.";
             case UNKNOWN_ARMOR_DOCTRINE -> "Choose armor equipment.";
-            case LOCKED_RECIPE -> "Blocked  ·  One or more required recipes are locked.";
-            case INSUFFICIENT_PRIMARIES -> "Blocked  ·  Not enough primary weapons.";
-            case INSUFFICIENT_ARMOR -> "Blocked  ·  Not enough armor.";
-            case INSUFFICIENT_SPECIALS -> "Blocked  ·  Not enough special equipment.";
+            case MISSING_TEMPLATE ->
+                    "Blocked  ·  One or more required equipment template cards are missing.";
+            case INSUFFICIENT_CARGO -> "Blocked  ·  Requires "
+                    + preview.issueCost().display() + "; available: "
+                    + preview.availableCargo().display() + ".";
         };
     }
 
