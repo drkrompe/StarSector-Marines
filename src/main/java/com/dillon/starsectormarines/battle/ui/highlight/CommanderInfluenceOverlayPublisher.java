@@ -40,7 +40,7 @@ public final class CommanderInfluenceOverlayPublisher {
             overlay.clear(sourceId);
             return;
         }
-        CommanderInfluenceSnapshot snapshot = sim.getCommanderInfluence(faction);
+        CommanderInfluenceSnapshot snapshot = sim.peekCommanderInfluence(faction);
         if (snapshot == null) {
             overlay.clear(sourceId);
             return;
