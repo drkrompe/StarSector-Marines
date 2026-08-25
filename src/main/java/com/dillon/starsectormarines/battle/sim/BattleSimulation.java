@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.smoke.SmokeFieldService;
 import com.dillon.starsectormarines.battle.satchel.SatchelChargeService;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
+import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
 import com.dillon.starsectormarines.marine.SatchelChargeSpec;
 import com.dillon.starsectormarines.marine.SpecialActivation;
 import com.dillon.starsectormarines.marine.SmokeGrenadeSpec;
@@ -37,6 +38,7 @@ import com.dillon.starsectormarines.battle.air.AirProvider;
 import com.dillon.starsectormarines.battle.air.AirSystem;
 import com.dillon.starsectormarines.battle.command.BattleResources;
 import com.dillon.starsectormarines.battle.command.CommanderService;
+import com.dillon.starsectormarines.battle.command.trace.CommandTraceRecorder;
 import com.dillon.starsectormarines.battle.squad.SquadFormUpSystem;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceService;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
@@ -252,6 +254,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final com.dillon.starsectormarines.battle.logistics.ResupplySystem resupplySystem;
     /** Per-faction strategic commander tier. Owns the slow-tick cadence; the {@link #setCommander}/{@link #getCommander} delegates below forward here, and the COMMANDER phase calls {@link CommanderService#tick}. */
     private final CommanderService commanders = new CommanderService();
+    /** Opt-in battle-long perspective/referee diagnostic stream. */
+    private CommandTraceRecorder commandTrace;
+    private boolean commandTraceEnabled;
     /** Holds a campaign squad at its LZ until its remaining lifts land. */
     private final SquadFormUpSystem squadFormUp;
     /** Read-only per-faction belief aggregation and topology-aware tactical fields. */
@@ -1088,6 +1093,28 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         return commanders.snapshot(faction);
     }
 
+    public void setCommandTraceEnabled(boolean enabled, String fixtureKind) {
+        if (enabled && commandTrace == null) {
+            commandTrace = new CommandTraceRecorder(fixtureKind,
+                    commandTraceSchedulerMode(), simTickIndex);
+        }
+        commandTraceEnabled = enabled;
+    }
+
+    public boolean isCommandTraceEnabled() {
+        return commandTraceEnabled;
+    }
+
+    public String getCommandTraceJsonLines() {
+        return commandTrace != null ? commandTrace.canonicalJsonLines() : "";
+    }
+
+    private static String commandTraceSchedulerMode() {
+        int minimumParallel = UnitUpdateSystem.configuredMinimumParallelUnits();
+        return minimumParallel == Integer.MAX_VALUE
+                ? "SERIAL_DETERMINISTIC" : "PRODUCTION_SCHEDULER";
+    }
+
     /**
      * Current authoritative command-ledger entry for {@code squadId}. Unlike
      * a commander snapshot, this is also available for externally owned
@@ -1146,6 +1173,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // four topology propagations in battles where no debug overlay or
         // diagnostic consumer requested a snapshot.
         commanderInfluence.tick(simTickIndex);
+        return commanderInfluence.snapshot(faction);
+    }
+
+    /** Non-advancing diagnostic read of the most recently published field. */
+    public CommanderInfluenceSnapshot peekCommanderInfluence(Faction faction) {
         return commanderInfluence.snapshot(faction);
     }
 
@@ -1544,6 +1576,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         mechTurretSystem.tick(TICK_DT);
         facingSystem.tick();
         tickProfile.lap(TickProfile.Phase.APPEARANCE);
+        if (commandTraceEnabled) commandTrace.sample(this);
         // Tick barrier for the entity world: apply structural changes queued on
         // its command buffer during this tick's query walks. Today's structural
         // changes (corpse spawn is a walk-safe create; death transmute, air reap

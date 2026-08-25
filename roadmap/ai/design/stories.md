@@ -4,13 +4,13 @@ Status: ACTIVE — the autonomous mission-command foundation is in progress; pai
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — marked the first command-foundation implementation slice in progress while retaining its paired migration and acceptance work.
+Updated: 2026-08-25 — started the shared commander trace and Conquest command-picture diagnostic slice.
 
 | Story | State | Intent |
 |---|---|---|
 | `autonomous-mission-command-foundation.md` | IN PROGRESS | Finish assignment-writer ownership, disclosure hardening, stability/determinism coverage, and live acceptance on the landed paired Conquest frame/plan/commit reference. |
 | `contact-reaction-doctrine.md` | IN PROGRESS | Close and validate the live contact-initiative gap, then finish doctrine, formation-tempo, and acquisition acceptance. |
-| `commander-trace-and-balance-harness.md` | PLANNED | Measure deterministic zero-input outcome, progress, idle force, churn, response, reserve, casualty, and duration evidence, beginning with Conquest. |
+| `commander-trace-and-balance-harness.md` | IN PROGRESS | Build from the landed canonical live trace and Conquest command-picture debugging into deterministic fixtures, metrics, and zero-input batches. |
 | `opening-operation-objective-command.md` | DRAFT | Prove the foundation outside Conquest with belief-honest paired preserve/assault and secure/defend small-force scenarios. |
 | `assault-search-sector-picture.md` | DRAFT | Publish the belief-honest attacker search-sector picture and converging sweep. |
 | `assault-area-defense-command.md` | DRAFT | Pair Assault search with defender strongpoints, reported-contact response, and a bounded reserve without imposing a front. |

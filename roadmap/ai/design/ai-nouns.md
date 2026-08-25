@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns autonomous mission command, squad planning, belief-de
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — defined the two-sided command-duel baseline, frozen command inputs, perspective-local directive disclosure, spawn-time external claims, form-up execution suspension, and dead-identity invalidation at commander influence publication.
+Updated: 2026-08-25 — established the canonical perspective/referee trace split and snapshot-driven Conquest debug presentation.
 
 AI turns mission context and what a side has learned into coordinated
 movement, posture, and fire intent. It is a decision system, not the authority
@@ -104,6 +104,15 @@ branches. Selected-squad presentation, dumps, and headless traces consume the
 published snapshot rather than reverse-engineering command intent. A squad
 that remains unassigned or a proposal that validation rejects still receives
 an explicit reason.
+
+A **command trace** is an opt-in battle-long diagnostic record of those published
+snapshots. Its perspective stream contains only one side's post-commit command
+facts and is deduplicated at command-pulse cadence. Authoritative compound
+transitions, casualties, duration, and outcome belong to a separately labelled
+neutral referee stream. Referee evidence may evaluate the command duel but is
+never fed back into either commander. Canonical field and event ordering makes
+the same trace usable by a live dump, deterministic fixture comparison, and
+later aggregate analysis.
 
 The player is an **intervention authority**, not a replacement for a competent
 baseline commander. Existing force selection and command powers are the first
@@ -265,7 +274,10 @@ composition. `combat-durability-nouns.md`, `ballistics-nouns.md`, and
 authority. AI chooses intended behavior within those contracts and cannot
 override their physical outcomes. `battle-render-nouns.md` owns rendering;
 debug presentation observes AI facts without becoming a sensor or a second
-decision authority.
+decision authority. A mission-specific debug picture selects one perspective
+at a time and projects only its published geometry, beliefs, and authored
+targets; viewing the other side is an explicit debug perspective change, not a
+merged tactical truth.
 
 ## Strategic-extension boundaries
 

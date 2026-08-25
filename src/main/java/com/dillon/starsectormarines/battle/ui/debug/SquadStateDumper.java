@@ -18,6 +18,8 @@ import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
+import com.dillon.starsectormarines.battle.command.influence.CommanderContact;
+import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
@@ -170,6 +172,8 @@ public final class SquadStateDumper {
         o.put("commander", buildCommanderJson(
                 squad, commander, commandDirective, sim));
         o.put("conquestCommand", buildConquestCommandJson(squad, commander, sim));
+        o.put("currentCommanderInfluence", buildCommanderInfluenceJson(
+                squad.faction, sim));
         // Garrison-specific flags — load-bearing for "why won't this squad fire" diagnostics.
         o.put("holdsFireUntilKillZone", squad.holdsFireUntilKillZone);
         o.put("killZoneLosTicks", squad.killZoneLosTicks);
@@ -425,6 +429,8 @@ public final class SquadStateDumper {
             row.put("targetZoneId", directive.targetZoneId());
             row.put("targetCellX", directive.targetCellX());
             row.put("targetCellY", directive.targetCellY());
+            row.put("markerCellX", directive.markerCellX());
+            row.put("markerCellY", directive.markerCellY());
             out.put("squadDirective", row);
         }
 
@@ -448,6 +454,43 @@ public final class SquadStateDumper {
             tracks.put(row);
         }
         out.put("tracks", tracks);
+        return out;
+    }
+
+    /** Serializes only the selected side's published commander belief field. */
+    private static Object buildCommanderInfluenceJson(Faction perspective,
+                                                       BattleSimulation sim)
+            throws Exception {
+        CommanderInfluenceSnapshot snapshot = sim.peekCommanderInfluence(
+                perspective);
+        if (snapshot == null) return JSONObject.NULL;
+        JSONObject out = new JSONObject();
+        out.put("perspective", snapshot.faction().name());
+        out.put("updatedTick", snapshot.updatedTick());
+        out.put("ageTicks", snapshot.updatedTick() >= 0
+                ? Math.max(0, sim.simTickIndex - snapshot.updatedTick()) : -1);
+        out.put("blockSize", snapshot.blockSize());
+        out.put("blockWidth", snapshot.width());
+        out.put("blockHeight", snapshot.height());
+        out.put("worldWidth", snapshot.worldWidth());
+        out.put("worldHeight", snapshot.worldHeight());
+        out.put("maxFriendly", snapshot.maxFriendly());
+        out.put("maxHostile", snapshot.maxHostile());
+        JSONArray contacts = new JSONArray();
+        for (CommanderContact contact : snapshot.contacts()) {
+            JSONObject row = new JSONObject();
+            row.put("unitId", contact.unitId());
+            row.put("cellX", contact.cellX());
+            row.put("cellY", contact.cellY());
+            row.put("observedTick", contact.observedTick());
+            row.put("ageTicks", Math.max(0,
+                    sim.simTickIndex - contact.observedTick()));
+            row.put("confidence", contact.confidence());
+            row.put("source", contact.source().name());
+            row.put("reporterSquadId", contact.reporterSquadId());
+            contacts.put(row);
+        }
+        out.put("contacts", contacts);
         return out;
     }
 

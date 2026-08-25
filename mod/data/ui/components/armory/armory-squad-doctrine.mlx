@@ -1,8 +1,9 @@
-<template props="selectedSquadReadiness,reinforceLabel,reinforceDisabled,reinforceSquad,weaponDoctrineSummary,armorDoctrineSummary,weaponDoctrineTiles,armorDoctrineTiles,transactionSummary,transactionClasses,applyDisabled,applyLabel,apply">
+<template props="selectedSquadReadiness,reinforceLabel,reinforceDisabled,reinforceSquad,designEquipment,weaponDoctrineSummary,armorDoctrineSummary,weaponDoctrineTiles,armorDoctrineTiles,transactionSummary,transactionClasses,applyDisabled,applyLabel,apply">
   <div id="squad-doctrine-strip" class="panel squad-doctrine-strip">
     <div id="squad-doctrine-heading-row">
       <div id="squad-doctrine-heading" class="label heading tone-edge">SQUAD EQUIPMENT</div>
       <div id="selected-squad-readiness" class="label surface-dark tone-edge">{selectedSquadReadiness}</div>
+      <button id="design-equipment" onclick="{designEquipment}">Design Equipment</button>
       <button id="reinforce-selected-squad" disabled="{reinforceDisabled}" onclick="{reinforceSquad}">{reinforceLabel}</button>
     </div>
     <div id="doctrine-slot-row">
@@ -43,7 +44,7 @@
   #squad-doctrine-heading-row { flex-direction: row; height: 28px; gap: 6px; }
   #squad-doctrine-heading { width: 190px; padding: 4px 2px; }
   #selected-squad-readiness { width: 0px; flex-grow: 1; padding: 4px 7px; }
-  #reinforce-selected-squad { padding: 4px 8px; border-width: 1px; font-family: body; text-align: center; }
+  #reinforce-selected-squad, #design-equipment { padding: 4px 8px; border-width: 1px; font-family: body; text-align: center; }
   #doctrine-slot-row { flex-direction: row; height: 152px; gap: 7px; }
   .doctrine-slot { flex-direction: column; width: 0px; flex-grow: 1; padding: 5px; gap: 3px; border-width: 1px; overflow: hidden; }
   #weapon-doctrine-heading, #armor-doctrine-heading { height: 18px; }

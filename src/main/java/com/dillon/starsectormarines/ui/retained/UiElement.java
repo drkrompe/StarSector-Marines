@@ -38,6 +38,7 @@ public final class UiElement {
     private boolean disabled;
     private int canvasWidth = 300;
     private int canvasHeight = 150;
+    private int inputMaxLength = 64;
 
     private UiLayout layout = UiLayout.COLUMN;
     private Insets padding = Insets.ZERO;
@@ -61,6 +62,7 @@ public final class UiElement {
     private String text;
     private Color textColor;
     private Runnable onClick;
+    private Consumer<String> onInput;
     private Consumer<UiPointerEvent> onPointerMove;
     private Consumer<UiPointerEvent> onPointerDown;
     private Consumer<UiPointerEvent> onPointerUp;
@@ -224,7 +226,7 @@ public final class UiElement {
     }
 
     public boolean focusable() {
-        return !disabled && (tag == UiTag.BUTTON || tabIndex != null);
+        return !disabled && (tag == UiTag.BUTTON || tag == UiTag.INPUT || tabIndex != null);
     }
 
     boolean tabbable() {
@@ -516,6 +518,31 @@ public final class UiElement {
         this.text = text;
         touchLayout();
         return this;
+    }
+
+    public UiElement inputMaxLength(int value) {
+        if (value <= 0) throw new IllegalArgumentException("Input max length must be positive");
+        inputMaxLength = value;
+        if (text != null && text.length() > inputMaxLength) text(text.substring(0, inputMaxLength));
+        return this;
+    }
+
+    public int inputMaxLength() {
+        return inputMaxLength;
+    }
+
+    public UiElement onInput(Consumer<String> handler) {
+        onInput = handler;
+        return this;
+    }
+
+    boolean editInput(String value) {
+        if (tag != UiTag.INPUT || disabled) return false;
+        String next = value == null ? "" : value;
+        if (next.length() > inputMaxLength) next = next.substring(0, inputMaxLength);
+        text(next);
+        if (onInput != null) onInput.accept(next);
+        return true;
     }
 
     public BitmapFont font() {

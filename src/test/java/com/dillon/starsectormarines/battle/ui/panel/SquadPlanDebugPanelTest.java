@@ -117,7 +117,7 @@ class SquadPlanDebugPanelTest {
                 0.72f, 0.81f, 0.68f, 3, 5.4f, 4.2f, 17);
         SquadDirective directive = new SquadDirective(9, 2, 1,
                 AssignmentReason.ADJACENT_TRACK_SUPPORT,
-                AssignmentKind.CLEAR_ZONE, 17);
+                AssignmentKind.CLEAR_ZONE, 17, 14, 31);
         ConquestFrontSnapshot snapshot = new ConquestFrontSnapshot(44, 42,
                 TraversalAxis.SOUTH_TO_NORTH, Phase.FRONT_ADJUST, 2,
                 25, CompoundState.DEFENDER_HELD, List.of(track),
@@ -142,6 +142,10 @@ class SquadPlanDebugPanelTest {
                 SquadPlanDebugPanel.stabilitySummary(committed));
         assertEquals("Track P2→E1   Front F0.72/H0.68   Press 5.4/4.2",
                 SquadPlanDebugPanel.trackSummary(snapshot, directive));
+        assertEquals("Commander order CLEAR_ZONE   Target cell 14,31",
+                SquadPlanDebugPanel.conquestOrderSummary(directive));
+        assertEquals("Command reason ADJACENT_TRACK_SUPPORT",
+                SquadPlanDebugPanel.conquestReasonSummary(directive));
     }
 
     @Test

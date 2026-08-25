@@ -149,6 +149,19 @@ class SquadStateDumperTest {
         assertEquals(commonDirective.getString("reason"), conquest
                 .getJSONObject("squadDirective").getString("reason"));
         assertEquals(3, conquest.getJSONArray("tracks").length());
+
+        JSONObject influence = dump.getJSONObject("currentCommanderInfluence");
+        assertEquals("MARINE", influence.getString("perspective"));
+        assertEquals(sim.getGrid().getWidth(), influence.getInt("worldWidth"));
+        assertEquals(sim.getGrid().getHeight(), influence.getInt("worldHeight"));
+        JSONArray contacts = influence.getJSONArray("contacts");
+        for (int i = 0; i < contacts.length(); i++) {
+            JSONObject contact = contacts.getJSONObject(i);
+            assertFalse(contact.has("liveCellX"));
+            assertFalse(contact.has("liveCellY"));
+            assertTrue(contact.has("observedTick"));
+            assertTrue(contact.has("reporterSquadId"));
+        }
     }
 
     @Test
