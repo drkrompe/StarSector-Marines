@@ -4,7 +4,8 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — established Mech Lab as a retained shipboard room over the campaign MechBay authority.
+Updated: 2026-08-25 — established the Mech Lab's spatial hardpoint doll and typed,
+sized-slot refit boundary over the campaign MechBay authority.
 
 ## Purpose
 
@@ -44,9 +45,15 @@ increasing an encounter's total armored threat.
   against owned quantity; a refit transaction returns the target mech's
   current component before evaluating the replacement.
 - The **Mech Lab** is the shipboard room that selects the active mech squad,
-  presents each chassis and installed loadout, and performs inventory-checked
-  refits. It is an authoring surface over campaign authorities, not a second
-  inventory or a battle debug picker.
+  presents each chassis as a top-down hardpoint doll, and performs
+  inventory-checked refits. Selecting a location changes catalog context; it
+  does not itself change hardware. It is an authoring surface over campaign
+  authorities, not a second inventory or a battle debug picker.
+- A **socket** is one spatial equipment location on a heavy asset. Custom-refit
+  sockets will declare a compatibility type—ballistic, energy, missile, or
+  omni—and a sized capacity. A component will declare compatible types and a
+  slot cost. The drag gesture is presentation; the validated resulting
+  placement is domain intent.
 - A **weapon family** owns projectile behavior and presentation; a component
   turns it into a mountable rack/arm with capacity and appearance. The gun,
   mount, and chassis remain distinct authorities.
@@ -128,6 +135,12 @@ determines the payload, not the entitlement to call it.
   than encoding reload speed in a chassis, role, or weapon definition.
 - Owned subsystem quantity includes installed copies. A failed refit changes
   neither inventory accounting nor the target mech's installed loadout.
+- A future custom refit must validate socket type, sized capacity, component
+  inventory, and any chassis budgets in one atomic command. An omni socket
+  accepts several equipment types; it does not waive slot cost or budgets.
+- Spatial selection and drag previews have no mutation authority. Dropping a
+  component may propose a placement, but only a successful campaign command
+  changes the installed loadout.
 - Campaign-to-battle deployment freezes values. Live battle code does not read
   or mutate the campaign mech, squad, or fleet inventory.
 - Gun-launched HE is a ballistic shot whose timed detonation owns splash and
@@ -147,10 +160,18 @@ determines the payload, not the entitlement to call it.
 A new chassis requires a distinct information or combat doctrine and a real
 capability it gives up; hardware variety alone does not earn another variant.
 
-Chassis acquisition, salvage, weapon-component inventory, and custom-hardpoint
-refit belong to progression and economy authority. The Mech Lab remains an
-inventory-checked authoring surface over `MechBay`, and mounts remain visible
-but read-only until those acquisition and component authorities exist.
+Chassis acquisition, salvage, weapon-component inventory, engine cores, ammunition
+modules, and custom-hardpoint refit belong to progression and economy authority.
+The Mech Lab already exposes their spatial locations, socket vocabulary, and a
+context catalog, but mounts remain read-only until those acquisition, compatibility,
+capacity, budget, and component authorities exist. The missile mini-fab is currently
+the only swappable socket because it is the only one with finite inventory and an
+atomic install command.
+
+The doll presentation may later host tanks and other scarce heavy armor, but it must
+consume an asset-class-specific socket layout. Sharing selection, catalog, drag, and
+validation presentation does not make a vehicle use a mech chassis or mech mount
+schema.
 
 A future shared weapon catalog may data-drive projectile, weapon, and mount
 definitions, but it must preserve the chassis/mount/weapon authority split.

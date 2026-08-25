@@ -2,8 +2,8 @@
 
 Status: IN PROGRESS — retained hierarchy, squad equipment issue, and focused Mech Lab ship; broader company administration remains
 Written: 2026-08-23
-Updated: 2026-08-25 — squad-wide equipment doctrines retired Armory Administration;
-Mech Lab now ships as a separately routed retained room over `MechBay`.
+Updated: 2026-08-25 — Mech Lab now ships a spatial top-down hardpoint doll and
+location-scoped catalog over `MechBay`.
 
 Read `company-view-nouns.md` and `ui-nouns.md` first.
 
@@ -57,9 +57,12 @@ breadcrumb keeps every completed level directly reachable.
   but this viewer omits its free-stock/returns/required-issue ledger.
 - **Marine inspector:** aptitude, career, wounds, and materialized billet equipment;
   there is no routine per-marine equipment authoring.
-- **Mech Lab:** active support squad -> chassis -> installed loadout, with fixed
-  hardpoints beside the finite subsystem inventory and its explicit install action.
-  It invokes `MechBay` rather than adapting squad equipment doctrine.
+- **Mech Lab:** active support squad -> heavy asset -> spatial socket -> compatible
+  hardware. The actual top-down chassis projection sits between clickable engine,
+  weapon, ammunition, and mini-fab locations; the selected location scopes the
+  catalog. Fixed weapon locations advertise their future ballistic/energy/missile/
+  omni sized-slot grammar without offering a false commit. The finite mini-fab
+  inventory retains its explicit install action through `MechBay`.
 
 ## Scope
 
@@ -109,3 +112,9 @@ breadcrumb keeps every completed level directly reachable.
   template picker, or squad-arrangement editor.
 - Mech subsystem counts and enabled install actions come from `MechBay`; the retained
   room neither recomputes stock nor creates another loadout authority.
+- The hardpoint doll renders the selected variant's actual modular top-down chassis,
+  arms, and shoulder pods in both live and deterministic headless surfaces.
+- Location selection changes catalog context without mutating hardware. Unsupported
+  core, weapon, and ammunition locations remain visibly factory locked.
+- Future drag-and-drop placement validates socket type, sized capacity, chassis
+  budgets, and finite inventory atomically; the gesture itself never owns mutation.

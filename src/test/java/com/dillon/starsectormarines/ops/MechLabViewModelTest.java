@@ -33,14 +33,14 @@ class MechLabViewModelTest {
         MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay);
         CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
 
-        MechLabViewModel.InventoryRow accelerated = viewModel.inventoryRows().get()
+        MechLabViewModel.CatalogRow accelerated = viewModel.catalogRows().get()
                 .stream()
                 .filter(row -> row.id().endsWith(
                         MissileReplenisherComponent.ACCELERATED_FEED.id()))
                 .findFirst()
                 .orElseThrow();
-        assertFalse(accelerated.installDisabled());
-        accelerated.install().run();
+        assertFalse(accelerated.actionDisabled());
+        accelerated.action().run();
 
         assertEquals(MissileReplenisherComponent.ACCELERATED_FEED.id(),
                 mech.missileReplenisherId());
@@ -49,6 +49,24 @@ class MechLabViewModelTest {
         assertEquals(0, bay.availableReplenisher(
                 MissileReplenisherComponent.ACCELERATED_FEED.id()));
         assertTrue(viewModel.feedbackText().get().contains("installed"));
+    }
+
+    @Test
+    void selectingTypedWeaponSocketIsInspectionOnlyUntilWeaponAuthorityExists() {
+        MechBay bay = new MechBay();
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay);
+        CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
+        String originalReplenisher = mech.missileReplenisherId();
+
+        viewModel.leftSlotRows().get().stream()
+                .filter(row -> row.id().endsWith("arms"))
+                .findFirst().orElseThrow().select().run();
+
+        assertTrue(viewModel.selectedSlotRule().get().contains("BALLISTIC SOCKET"));
+        assertEquals(1, viewModel.catalogRows().get().size());
+        assertTrue(viewModel.catalogRows().get().get(0).actionDisabled());
+        assertEquals(originalReplenisher, mech.missileReplenisherId());
+        assertTrue(viewModel.feedbackText().get().contains("Inspection only"));
     }
 
     @Test
@@ -79,7 +97,7 @@ class MechLabViewModelTest {
         document.layout(width, height);
         UiElement root = instance.requireElement("mech-lab-root");
         UiElement body = instance.requireElement("mech-lab-body");
-        UiElement inventory = instance.requireElement("mech-inventory");
+        UiElement inventory = instance.requireElement("mech-component-catalog");
         assertTrue(body.box().borderBox().right()
                 <= root.box().contentBox().right() + EPSILON);
         assertTrue(body.box().borderBox().bottom()
@@ -96,11 +114,13 @@ class MechLabViewModelTest {
         props.put("selectedMechName", viewModel.selectedMechName());
         props.put("selectedMechIdentity", viewModel.selectedMechIdentity());
         props.put("selectedMechDoctrine", viewModel.selectedMechDoctrine());
-        props.put("specCards", viewModel.specCards());
-        props.put("mountRows", viewModel.mountRows());
-        props.put("installedSubsystem", viewModel.installedSubsystem());
-        props.put("installedCadence", viewModel.installedCadence());
-        props.put("inventoryRows", viewModel.inventoryRows());
+        props.put("performanceMeters", viewModel.performanceMeters());
+        props.put("leftSlotRows", viewModel.leftSlotRows());
+        props.put("rightSlotRows", viewModel.rightSlotRows());
+        props.put("selectedSlotTitle", viewModel.selectedSlotTitle());
+        props.put("selectedSlotCopy", viewModel.selectedSlotCopy());
+        props.put("selectedSlotRule", viewModel.selectedSlotRule());
+        props.put("catalogRows", viewModel.catalogRows());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MECH_LAB,

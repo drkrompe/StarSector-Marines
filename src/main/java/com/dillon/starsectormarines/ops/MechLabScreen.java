@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
+import com.dillon.starsectormarines.ops.battleview.BattleSprites;
+import com.dillon.starsectormarines.ops.battleview.MechLabDollCanvas;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
@@ -27,6 +29,7 @@ public final class MechLabScreen implements Screen {
     private final Reactor reactor = new Reactor();
     private final MarkupLoader markup = new MarkupLoader(
             path -> Global.getSettings().loadText(path), COMPONENT_PATHS);
+    private final BattleSprites previewSprites = new BattleSprites();
 
     private MarineOpsContext context;
     private Runnable dismissDialog;
@@ -68,6 +71,10 @@ public final class MechLabScreen implements Screen {
             built = new UiDocument(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard()).onCancel(this::close);
+            previewSprites.ensureLayeredMechSprites();
+            built.canvases().set(candidate.requireElement("mech-doll-canvas"),
+                    new MechLabDollCanvas(viewModel::selectedVariant,
+                            previewSprites::layeredMechSprites));
             if (viewport != null) {
                 built.layout(viewport.documentWidth(), viewport.documentHeight());
             }
@@ -92,11 +99,13 @@ public final class MechLabScreen implements Screen {
         props.put("selectedMechName", viewModel.selectedMechName());
         props.put("selectedMechIdentity", viewModel.selectedMechIdentity());
         props.put("selectedMechDoctrine", viewModel.selectedMechDoctrine());
-        props.put("specCards", viewModel.specCards());
-        props.put("mountRows", viewModel.mountRows());
-        props.put("installedSubsystem", viewModel.installedSubsystem());
-        props.put("installedCadence", viewModel.installedCadence());
-        props.put("inventoryRows", viewModel.inventoryRows());
+        props.put("performanceMeters", viewModel.performanceMeters());
+        props.put("leftSlotRows", viewModel.leftSlotRows());
+        props.put("rightSlotRows", viewModel.rightSlotRows());
+        props.put("selectedSlotTitle", viewModel.selectedSlotTitle());
+        props.put("selectedSlotCopy", viewModel.selectedSlotCopy());
+        props.put("selectedSlotRule", viewModel.selectedSlotRule());
+        props.put("catalogRows", viewModel.catalogRows());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MECH_LAB,
@@ -112,9 +121,10 @@ public final class MechLabScreen implements Screen {
                 "mech-lab-root", "marine-ops-page-nav", "page-nav-return",
                 "page-nav-hq", "page-nav-armory", "page-nav-mech-lab",
                 "mech-lab-intro", "mech-lab-body", "mech-lab-roster",
-                "mech-squad-list", "mech-list", "mech-dossier",
-                "mech-spec-grid", "hardpoint-dossier", "mech-mount-list",
-                "installed-subsystem", "mech-inventory", "mech-inventory-list",
+                "mech-squad-list", "mech-list", "mech-doll-workspace",
+                "mech-performance-grid", "mech-doll-bay", "mech-doll-canvas",
+                "mech-left-slots", "mech-right-slots", "mech-component-catalog",
+                "mech-catalog-list",
                 "mech-lab-feedback")) {
             component.requireElement(id);
         }
