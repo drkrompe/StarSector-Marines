@@ -34,6 +34,7 @@ public final class MechLabViewModel {
     private final ComputedSignal<String> labSummary;
     private final ComputedSignal<List<SquadRow>> squadRows;
     private final ComputedSignal<List<MechRow>> mechRows;
+    private final ComputedSignal<String> activeGantryLabel;
     private final ComputedSignal<String> selectedMechName;
     private final ComputedSignal<String> selectedMechIdentity;
     private final ComputedSignal<String> selectedMechDoctrine;
@@ -65,6 +66,9 @@ public final class MechLabViewModel {
         labSummary = reactor.computed(this::buildLabSummary);
         squadRows = reactor.computed(this::buildSquadRows);
         mechRows = reactor.computed(this::buildMechRows);
+        activeGantryLabel = reactor.computed(() -> String.format(Locale.ROOT,
+                "ACTIVE GANTRY %02d / %02d", selectedGantryIndex() + 1,
+                CampaignMechSquad.CAPACITY));
         selectedMechName = reactor.computed(() -> {
             CampaignMech mech = selectedMech();
             return mech != null ? mech.displayName() : "NO ASSET SELECTED";
@@ -97,6 +101,7 @@ public final class MechLabViewModel {
     public Signal<String> labSummary() { return labSummary; }
     public Signal<List<SquadRow>> squadRows() { return squadRows; }
     public Signal<List<MechRow>> mechRows() { return mechRows; }
+    public Signal<String> activeGantryLabel() { return activeGantryLabel; }
     public Signal<String> selectedMechName() { return selectedMechName; }
     public Signal<String> selectedMechIdentity() { return selectedMechIdentity; }
     public Signal<String> selectedMechDoctrine() { return selectedMechDoctrine; }
@@ -122,6 +127,26 @@ public final class MechLabViewModel {
     public MechVariant selectedVariant() {
         CampaignMech mech = selectedMech();
         return mech != null ? mech.variant() : null;
+    }
+
+    /** Current lance in authored gantry order for the embedded garage scene. */
+    public List<MechVariant> gantryVariants() {
+        revision.get();
+        CampaignMechSquad squad = selectedSquad();
+        if (squad == null) return List.of();
+        return squad.mechs().stream().map(CampaignMech::variant).toList();
+    }
+
+    /** Selected vehicle's stable camera target within the current lance. */
+    public int selectedGantryIndex() {
+        revision.get();
+        CampaignMechSquad squad = selectedSquad();
+        if (squad == null) return 0;
+        String selected = selectedMechId.get();
+        for (int index = 0; index < squad.mechs().size(); index++) {
+            if (squad.mechs().get(index).id().equals(selected)) return index;
+        }
+        return 0;
     }
 
     /** Reprojects mutable campaign authority whenever the room is re-entered. */

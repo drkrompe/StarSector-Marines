@@ -81,7 +81,8 @@ public final class MechLabScreen implements Screen {
             previewSprites.ensureRoadSheet();
             if (battleScene == null) battleScene = new MechLabBattleScene(previewSprites);
             built.canvases().set(candidate.requireElement("mech-doll-canvas"),
-                    new MechLabDollCanvas(viewModel::selectedVariant,
+                    new MechLabDollCanvas(viewModel::gantryVariants,
+                            viewModel::selectedGantryIndex,
                             viewModel::selectedSocket,
                             previewSprites::layeredMechSprites,
                             () -> previewSprites.layeredUnitSprites().get(
@@ -111,6 +112,7 @@ public final class MechLabScreen implements Screen {
         props.put("labSummary", viewModel.labSummary());
         props.put("squadRows", viewModel.squadRows());
         props.put("mechRows", viewModel.mechRows());
+        props.put("activeGantryLabel", viewModel.activeGantryLabel());
         props.put("selectedMechName", viewModel.selectedMechName());
         props.put("selectedMechIdentity", viewModel.selectedMechIdentity());
         props.put("selectedMechDoctrine", viewModel.selectedMechDoctrine());

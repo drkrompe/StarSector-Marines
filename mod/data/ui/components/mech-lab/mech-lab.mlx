@@ -1,4 +1,4 @@
-<template props="labSummary,squadRows,mechRows,selectedMechName,selectedMechIdentity,selectedMechDoctrine,performanceMeters,leftSlotRows,rightSlotRows,slotRows,selectedSlotTitle,selectedSlotCopy,selectedSlotRule,catalogRows,pickerClasses,workspaceClasses,openAssetPicker,closeAssetPicker,feedbackText,feedbackClasses,returnAction,hqAction,armoryAction,mechLabAction,hqClasses,armoryClasses,mechLabClasses">
+<template props="labSummary,squadRows,mechRows,activeGantryLabel,selectedMechName,selectedMechIdentity,selectedMechDoctrine,performanceMeters,leftSlotRows,rightSlotRows,slotRows,selectedSlotTitle,selectedSlotCopy,selectedSlotRule,catalogRows,pickerClasses,workspaceClasses,openAssetPicker,closeAssetPicker,feedbackText,feedbackClasses,returnAction,hqAction,armoryAction,mechLabAction,hqClasses,armoryClasses,mechLabClasses">
   <div id="mech-lab-root" class="mech-lab-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" hqClasses="{hqClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" contextLabel="FLAGSHIP / MECH BAY / FABRICATION GANTRY" />
 
@@ -85,7 +85,7 @@
 
           <div id="mech-garage-stage" class="garage-stage">
             <div id="mech-garage-heading" class="garage-heading">
-              <div id="mech-garage-title" class="label heading tone-edge">ACTIVE GANTRY 03</div>
+              <div id="mech-garage-title" class="label heading tone-edge">{activeGantryLabel}</div>
               <div id="mech-garage-status" class="label heading tone-muted garage-status">CREW ACTIVE  ·  FABRICATORS STANDBY</div>
             </div>
             <canvas id="mech-doll-canvas" class="mech-doll-canvas" width="900" height="520" />

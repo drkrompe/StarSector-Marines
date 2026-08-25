@@ -280,12 +280,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
             document.canvases().set(instance.requireElement("mech-doll-canvas"),
-                    new MechLabDollCanvas(viewModel::selectedVariant,
+                    new MechLabDollCanvas(viewModel::gantryVariants,
+                            viewModel::selectedGantryIndex,
                             viewModel::selectedSocket,
                             MechLabDollCanvas::headlessAssets,
                             () -> technicianPreview.assets().layered(
                                     MarineArmorPattern.ARMY_GREEN),
-                            () -> null));
+                            () -> null, () -> null, null, () -> 0d));
             return renderRelative(renderer, document, width, height, uiScale);
         }
     }
@@ -377,6 +378,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("labSummary", viewModel.labSummary());
         props.put("squadRows", viewModel.squadRows());
         props.put("mechRows", viewModel.mechRows());
+        props.put("activeGantryLabel", viewModel.activeGantryLabel());
         props.put("selectedMechName", viewModel.selectedMechName());
         props.put("selectedMechIdentity", viewModel.selectedMechIdentity());
         props.put("selectedMechDoctrine", viewModel.selectedMechDoctrine());
