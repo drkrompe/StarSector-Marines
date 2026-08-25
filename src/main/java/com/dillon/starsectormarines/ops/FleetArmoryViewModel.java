@@ -26,6 +26,9 @@ import com.dillon.starsectormarines.marine.SquadEquipmentBillet;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.marine.SquadEquipmentPreview;
 import com.dillon.starsectormarines.marine.SquadEquipmentResult;
+import com.dillon.starsectormarines.marine.SquadLoadoutPresentationDef;
+import com.dillon.starsectormarines.marine.SquadLoadoutPresentationRegistry;
+import com.dillon.starsectormarines.marine.SquadLoadoutRarity;
 import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
@@ -45,6 +48,11 @@ import java.util.function.DoubleSupplier;
  */
 public final class FleetArmoryViewModel {
 
+    public enum EquipmentPickerKind {
+        WEAPON,
+        ARMOR
+    }
+
     private final MarineRoster roster;
     private final Runnable openSelectedSquad;
     private final DoubleSupplier currentDay;
@@ -53,6 +61,7 @@ public final class FleetArmoryViewModel {
     private final MutableSignal<Integer> selectedTeamIndex;
     private final MutableSignal<String> selectedWeaponDoctrineId;
     private final MutableSignal<String> selectedArmorDoctrineId;
+    private final MutableSignal<EquipmentPickerKind> equipmentPickerKind;
     private final MutableSignal<Integer> domainRevision;
     private final MutableSignal<Feedback> feedback;
     private final ComputedSignal<String> companySummary;
@@ -77,6 +86,10 @@ public final class FleetArmoryViewModel {
     private final ComputedSignal<SquadEquipmentPreview> squadEquipmentPreview;
     private final ComputedSignal<String> weaponDoctrineSummary;
     private final ComputedSignal<String> armorDoctrineSummary;
+    private final ComputedSignal<String> weaponPickerTabClasses;
+    private final ComputedSignal<String> armorPickerTabClasses;
+    private final ComputedSignal<String> weaponPickerPanelClasses;
+    private final ComputedSignal<String> armorPickerPanelClasses;
 
     public FleetArmoryViewModel(Reactor reactor, MarineRoster roster) {
         this(reactor, roster, () -> { }, () -> 0d, EquipmentIssueResources.UNLIMITED);
@@ -122,6 +135,7 @@ public final class FleetArmoryViewModel {
                 && initialSquad.armorDoctrineId() != null
                 ? initialSquad.armorDoctrineId()
                 : SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR);
+        equipmentPickerKind = reactor.signal(EquipmentPickerKind.WEAPON);
         domainRevision = reactor.signal(0);
         feedback = reactor.signal(Feedback.neutral(
                 "Choose squad Weapon and Armor equipment, inspect each team, then issue when ready."));
@@ -151,6 +165,18 @@ public final class FleetArmoryViewModel {
         armorDoctrineTiles = reactor.computed(this::buildArmorDoctrineTiles);
         weaponDoctrineSummary = reactor.computed(this::buildWeaponDoctrineSummary);
         armorDoctrineSummary = reactor.computed(this::buildArmorDoctrineSummary);
+        weaponPickerTabClasses = reactor.computed(() -> equipmentPickerKind.get()
+                == EquipmentPickerKind.WEAPON
+                ? "equipment-picker-tab selected" : "equipment-picker-tab");
+        armorPickerTabClasses = reactor.computed(() -> equipmentPickerKind.get()
+                == EquipmentPickerKind.ARMOR
+                ? "equipment-picker-tab selected" : "equipment-picker-tab");
+        weaponPickerPanelClasses = reactor.computed(() -> equipmentPickerKind.get()
+                == EquipmentPickerKind.WEAPON
+                ? "doctrine-slot" : "doctrine-slot picker-hidden");
+        armorPickerPanelClasses = reactor.computed(() -> equipmentPickerKind.get()
+                == EquipmentPickerKind.ARMOR
+                ? "doctrine-slot" : "doctrine-slot picker-hidden");
     }
 
     public MarineRoster roster() { return roster; }
@@ -175,10 +201,15 @@ public final class FleetArmoryViewModel {
     public Signal<List<DoctrineTile>> armorDoctrineTiles() { return armorDoctrineTiles; }
     public Signal<String> weaponDoctrineSummary() { return weaponDoctrineSummary; }
     public Signal<String> armorDoctrineSummary() { return armorDoctrineSummary; }
+    public Signal<String> weaponPickerTabClasses() { return weaponPickerTabClasses; }
+    public Signal<String> armorPickerTabClasses() { return armorPickerTabClasses; }
+    public Signal<String> weaponPickerPanelClasses() { return weaponPickerPanelClasses; }
+    public Signal<String> armorPickerPanelClasses() { return armorPickerPanelClasses; }
     public String selectedSquadId() { return selectedSquadId.peek(); }
     public int selectedTeamIndex() { return selectedTeamIndex.peek(); }
     public String selectedWeaponDoctrineId() { return selectedWeaponDoctrineId.peek(); }
     public String selectedArmorDoctrineId() { return selectedArmorDoctrineId.peek(); }
+    public EquipmentPickerKind equipmentPickerKind() { return equipmentPickerKind.peek(); }
     public String selectedSquadName() {
         MarineSquad squad = roster.squadById(selectedSquadId.peek());
         return squad != null ? squad.name() : "Squad";
@@ -189,6 +220,14 @@ public final class FleetArmoryViewModel {
 
     public Runnable applyAction() {
         return () -> applySquadEquipmentSelection();
+    }
+
+    public Runnable showWeaponPickerAction() {
+        return () -> equipmentPickerKind.set(EquipmentPickerKind.WEAPON);
+    }
+
+    public Runnable showArmorPickerAction() {
+        return () -> equipmentPickerKind.set(EquipmentPickerKind.ARMOR);
     }
 
 
@@ -316,9 +355,9 @@ public final class FleetArmoryViewModel {
                     id + ":recovery", id + ":template",
                     team == selected ? "fire-team-overview selected" : "fire-team-overview",
                     "fire-team-status heading " + readinessTone(ready, MarineSquad.TEAM_SIZE),
-                    teamName(team), readinessLabel(ready, MarineSquad.TEAM_SIZE),
+                    teamName(team), fireTeamReadinessLabel(ready),
                     ready + " / " + MarineSquad.TEAM_SIZE + " RTD",
-                    recoverySummary(squad, team), assignedDoctrineName(squad),
+                    compactRecoverySummary(squad, team), assignedDoctrineName(squad),
                     () -> selectTeam(target)));
         }
         return List.copyOf(teams);
@@ -356,14 +395,11 @@ public final class FleetArmoryViewModel {
         for (SquadWeaponDoctrine doctrine : roster.armory().weaponDoctrines()) {
             String id = "weapon-doctrine:" + doctrine.id();
             boolean available = roster.armory().canAuthorWeaponDoctrine(doctrine.issues());
-            String distribution = weaponDistribution(doctrine)
-                    + (available ? "" : "  ·  Missing template cards");
-            tiles.add(new DoctrineTile(id, id + ":name", id + ":description",
-                    id + ":distribution",
-                    doctrine.id().equals(selected)
-                            ? "doctrine-tile selected" + (available ? "" : " locked")
-                            : "doctrine-tile" + (available ? "" : " locked"),
-                    doctrine.displayName(), doctrine.description(), distribution,
+            SquadLoadoutPresentationDef presentation = loadoutPresentation(
+                    doctrine.id(), SquadLoadoutPresentationDef.Kind.WEAPON,
+                    maximumWeaponTier(doctrine), doctrine.description());
+            tiles.add(doctrineTile(id, doctrine.id().equals(selected), available,
+                    doctrine.displayName(), presentation, weaponDistribution(doctrine),
                     () -> selectWeaponDoctrine(doctrine.id())));
         }
         return List.copyOf(tiles);
@@ -376,16 +412,65 @@ public final class FleetArmoryViewModel {
         for (SquadArmorDoctrine doctrine : roster.armory().armorDoctrines()) {
             String id = "armor-doctrine:" + doctrine.id();
             boolean available = roster.armory().canAuthorArmorDoctrine(doctrine.issues());
-            tiles.add(new DoctrineTile(id, id + ":name", id + ":description",
-                    id + ":distribution",
-                    doctrine.id().equals(selected)
-                            ? "doctrine-tile selected" + (available ? "" : " locked")
-                            : "doctrine-tile" + (available ? "" : " locked"),
-                    doctrine.displayName(), doctrine.description(), armorDistribution(doctrine)
-                            + (available ? "" : "  ·  Missing template cards"),
+            SquadLoadoutPresentationDef presentation = loadoutPresentation(
+                    doctrine.id(), SquadLoadoutPresentationDef.Kind.ARMOR,
+                    maximumArmorTier(doctrine), doctrine.description());
+            tiles.add(doctrineTile(id, doctrine.id().equals(selected), available,
+                    doctrine.displayName(), presentation, armorDistribution(doctrine),
                     () -> selectArmorDoctrine(doctrine.id())));
         }
         return List.copyOf(tiles);
+    }
+
+    private static DoctrineTile doctrineTile(
+            String id, boolean selected, boolean available, String name,
+            SquadLoadoutPresentationDef presentation, String distribution,
+            Runnable select) {
+        String rarityClass = presentation.rarity().cssClass();
+        String classes = "doctrine-tile " + rarityClass
+                + (selected ? " selected" : "") + (available ? "" : " locked");
+        return new DoctrineTile(id, id + ":header", id + ":name", id + ":rarity",
+                id + ":metadata-row", id + ":metadata", id + ":description",
+                id + ":distribution",
+                id + ":collection", classes,
+                "doctrine-rarity label " + rarityClass,
+                available ? "doctrine-collection label tone-good"
+                        : "doctrine-collection label tone-muted",
+                name, presentation.rarity().displayName(),
+                "TIER " + tierMark(presentation.tier()) + "  ·  "
+                        + presentation.provenance(),
+                presentation.lore(), distribution,
+                available ? "COLLECTED" : "MISSING CARDS", select);
+    }
+
+    private static SquadLoadoutPresentationDef loadoutPresentation(
+            String id, SquadLoadoutPresentationDef.Kind kind, int tier, String fallbackLore) {
+        SquadLoadoutPresentationDef authored = SquadLoadoutPresentationRegistry.get(id);
+        return authored != null ? authored : new SquadLoadoutPresentationDef(
+                id, kind, tier, SquadLoadoutRarity.COMMON,
+                "Company-authored", fallbackLore != null ? fallbackLore : "");
+    }
+
+    private static int maximumWeaponTier(SquadWeaponDoctrine doctrine) {
+        int tier = 1;
+        for (var issue : doctrine.issues()) tier = Math.max(tier, issue.grade().tier);
+        return tier;
+    }
+
+    private static int maximumArmorTier(SquadArmorDoctrine doctrine) {
+        int tier = 1;
+        for (MarineArmorPattern armor : doctrine.issues()) tier = Math.max(tier, armor.tier);
+        return tier;
+    }
+
+    private static String tierMark(int tier) {
+        return switch (tier) {
+            case 1 -> "I";
+            case 2 -> "II";
+            case 3 -> "III";
+            case 4 -> "IV";
+            default -> "V";
+        };
     }
 
     private String buildWeaponDoctrineSummary() {
@@ -659,6 +744,19 @@ public final class FleetArmoryViewModel {
                 + formatRemainingCompact(earliest, currentDay.getAsDouble());
     }
 
+    private String compactRecoverySummary(MarineSquad squad, int teamIndex) {
+        int wounded = 0;
+        float earliest = Float.POSITIVE_INFINITY;
+        for (String id : roster.teamMemberIds(squad, teamIndex)) {
+            MarineSoldier soldier = roster.soldierById(id);
+            if (soldier == null || soldier.status() != MarineSoldierStatus.WIA) continue;
+            wounded++;
+            earliest = Math.min(earliest, soldier.unavailableUntilDay());
+        }
+        return wounded == 0 ? "No WIA" : wounded + " WIA  ·  RTD "
+                + formatRemainingCompact(earliest, currentDay.getAsDouble());
+    }
+
     @SafeVarargs
     private final String recoverySummary(List<String>... groups) {
         int wounded = 0;
@@ -708,6 +806,12 @@ public final class FleetArmoryViewModel {
         if (ready * 4 >= capacity * 3) return "OPERATIONAL";
         if (ready > 0) return "RECONSTITUTING";
         return "STANDING DOWN";
+    }
+
+    private static String fireTeamReadinessLabel(int ready) {
+        if (ready >= MarineSquad.TEAM_SIZE) return "READY";
+        if (ready > 0) return "DEGRADED";
+        return "EMPTY";
     }
 
     private static String readinessClass(int ready, int capacity) {
@@ -954,20 +1058,34 @@ public final class FleetArmoryViewModel {
     }
 
     public record DoctrineTile(
-            String id, String nameId, String descriptionId, String distributionId,
-            String classes, String name, String description, String distribution,
+            String id, String headerId, String nameId, String rarityId,
+            String metadataRowId, String metadataId, String descriptionId,
+            String distributionId,
+            String collectionId, String classes, String rarityClasses,
+            String collectionClasses, String name, String rarity, String metadata,
+            String description, String distribution, String collection,
             Runnable select) implements MarkupPropertySource {
         @Override
         public Object markupProperty(String property) {
             return switch (property) {
                 case "id" -> id;
+                case "headerId" -> headerId;
                 case "nameId" -> nameId;
+                case "rarityId" -> rarityId;
+                case "metadataRowId" -> metadataRowId;
+                case "metadataId" -> metadataId;
                 case "descriptionId" -> descriptionId;
                 case "distributionId" -> distributionId;
+                case "collectionId" -> collectionId;
                 case "classes" -> classes;
+                case "rarityClasses" -> rarityClasses;
+                case "collectionClasses" -> collectionClasses;
                 case "name" -> name;
+                case "rarity" -> rarity;
+                case "metadata" -> metadata;
                 case "description" -> description;
                 case "distribution" -> distribution;
+                case "collection" -> collection;
                 case "select" -> select;
                 default -> throw new IllegalArgumentException("Unknown doctrine-tile property");
             };
