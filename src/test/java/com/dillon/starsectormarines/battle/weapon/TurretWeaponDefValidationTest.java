@@ -36,6 +36,13 @@ class TurretWeaponDefValidationTest {
         assertThrows(JSONException.class, () -> WeaponDef.parse(json));
     }
 
+    @Test
+    void projectileCountMustBePositive() throws Exception {
+        JSONObject json = weapon();
+        json.getJSONObject("sim").put("projectilesPerShot", 0);
+        assertThrows(JSONException.class, () -> WeaponDef.parse(json));
+    }
+
     private static JSONObject weapon() throws Exception {
         return new JSONObject("""
                 {

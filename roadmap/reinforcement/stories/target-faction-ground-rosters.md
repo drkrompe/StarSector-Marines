@@ -4,7 +4,7 @@ Status: IN PROGRESS — roster data and all standard defender creation paths are
 
 Written: 2026-08-24
 
-Updated: 2026-08-25 — installed the core JSON roster backbone, Independent fallback, semantic armor ids, and frozen-profile consumption by initial defenders and every reinforcement means.
+Updated: 2026-08-25 — added shipped shredder and squad-automatic families to faction doctrine while retaining the remaining equipment and live-acceptance work.
 
 Read `reinforcement-nouns.md`, `campaign-battle-bridge-nouns.md`,
 `progression-nouns.md`, and `powered-assault-armor-roles.md` before implementing
@@ -100,9 +100,14 @@ loudly; an unknown faction id itself does not fail the battle.
 - Focused tests cover known/fallback resolution, distinct shared-roller output,
   battle-frozen initial issue, faction heavy-support cycles, and factional
   walk-in/shuttle payloads.
+- The shipped shredder carbine and squad automatic now participate in those
+  same weighted rolls. Hegemony, League, Church, Diktat, and Independent
+  profiles issue automatic support; Path and pirate profiles retain their
+  stronger close-range shredder identity without acquiring automatics by
+  generic fallback.
 
 The current catalog can only select implemented equipment. The richer cutter,
-stim, IED/martyr, shredder, micro-missile, neural/drone, and powered-assault
+stim, IED/martyr, micro-missile, neural/drone, and powered-assault
 content below remains gated by its owning progression stories. Catalog merge
 discovery for submods and representative live Conquest acceptance also remain.
 
@@ -140,9 +145,9 @@ discovery for submods and representative live Conquest acceptance also remain.
   `s6-unlock-ladder-expansion.md`.
 - Armor-role mechanics and concrete pattern catalog —
   `powered-assault-armor-roles.md`.
-- Primary, grenade, contact-tool, stim, and demolition-item behavior —
-  `s2-primary-weapon-catalog-expansion.md`, `s2d-frag-grenades.md`,
-  `s2e-close-contact-boarding-tools.md`, `s2f-combat-stim-injectors.md`, and
-  `s2g-martyr-rigs-and-carried-ieds.md`.
+- Primary-family behavior belongs to `progression-nouns.md`. Remaining grenade,
+  contact-tool, stim, and demolition-item behavior belongs to
+  `s2d-frag-grenades.md`, `s2e-close-contact-boarding-tools.md`,
+  `s2f-combat-stim-injectors.md`, and `s2g-martyr-rigs-and-carried-ieds.md`.
 - New mech chassis or vehicle families. Existing heavy-support eligibility may
   choose only currently authored content until those owning features expand it.

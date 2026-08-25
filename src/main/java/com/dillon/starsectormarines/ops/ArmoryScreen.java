@@ -66,7 +66,8 @@ public final class ArmoryScreen implements Screen {
     private enum WeaponTab {
         RIFLE("Rifle", MarineWeapon.FIELD_RIFLE),
         PULSE("Pulse", MarineWeapon.PULSE_RIFLE),
-        MACHINE_GUN("LMG", MarineWeapon.SMG),
+        SHREDDER("Shredder", MarineWeapon.SMG),
+        AUTOMATIC("Automatic", MarineWeapon.SQUAD_AUTOMATIC),
         RAILGUN("Railgun", MarineWeapon.DMR);
 
         final String label;
@@ -2588,7 +2589,7 @@ public final class ArmoryScreen implements Screen {
 
     private static MarineWeapon[] playerWeapons() {
         return new MarineWeapon[] { MarineWeapon.FIELD_RIFLE, MarineWeapon.PULSE_RIFLE,
-                MarineWeapon.SMG, MarineWeapon.DMR };
+                MarineWeapon.SMG, MarineWeapon.SQUAD_AUTOMATIC, MarineWeapon.DMR };
     }
 
     private static String weaponIcon(MarineWeapon weapon) {
@@ -2598,6 +2599,8 @@ public final class ArmoryScreen implements Screen {
             case PULSE_RIFLE, DRONE_PULSE ->
                     "graphics/battle/marine-modular-topdown/variants/weapons/laser-gun.png";
             case SMG -> "graphics/battle/marine-modular-topdown/variants/weapons/smg.png";
+            case SQUAD_AUTOMATIC ->
+                    "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png";
             case DMR -> "graphics/battle/marine-modular-topdown/variants/weapons/dmr.png";
         };
     }
@@ -2612,8 +2615,10 @@ public final class ArmoryScreen implements Screen {
                     + "Its long action and indifferent barrel reward patient, close-range fire.";
             case PULSE_RIFLE -> "The PLS-series Lancer is fleet boarding doctrine in one rugged energy arm: a controlled "
                     + "three-pulse burst, forgiving handling, and enough reach for most compartments.";
-            case SMG -> "The LMG-series Rattler is a compact saturation weapon for door teams and maintenance corridors. "
-                    + "It owns the near room, but its grouping dissolves rapidly across open ground.";
+            case SMG -> "The SHD-series Rattler throws a dense flechette cloud through doorways and maintenance corridors. "
+                    + "It tears through exposed personnel nearby but loses coherence and penetration across open ground.";
+            case SQUAD_AUTOMATIC -> "The SA-series Stalwart is a belt-fed chemical-slug support arm. "
+                    + "Its long, widening burst anchors a covering team while more mobile rifles bound forward.";
             case DMR -> "The RG-series Longbow is a magnetic marksman's rifle tuned for deliberate shots through long lanes. "
                     + "Slow cycling is the price of exceptional reach and punishing impact.";
             case DRONE_PULSE -> "A lightweight autonomous pulse package not issued to line marines.";

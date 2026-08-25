@@ -733,7 +733,8 @@ public class MarineRoster implements Serializable {
     public boolean cyclePrimary(String soldierId) {
         MarineSoldier soldier = soldierById(soldierId);
         if (soldier == null) return false;
-        MarineWeapon[] weapons = {MarineWeapon.PULSE_RIFLE, MarineWeapon.SMG, MarineWeapon.DMR};
+        MarineWeapon[] weapons = {MarineWeapon.PULSE_RIFLE, MarineWeapon.SMG,
+                MarineWeapon.SQUAD_AUTOMATIC, MarineWeapon.DMR};
         EquipmentGrade[] grades = EquipmentGrade.values();
         int familyIndex = java.util.Arrays.asList(weapons).indexOf(soldier.primary());
         int start = familyIndex < 0 ? 0

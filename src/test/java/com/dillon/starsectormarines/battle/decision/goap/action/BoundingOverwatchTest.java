@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.decision.goap.action;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.infantry.GoapInfantryBehavior;
+import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
@@ -48,8 +49,10 @@ public class BoundingOverwatchTest {
         Squad squad = sim.getSquad(squadId);
         List<Long> members = new ArrayList<>();
         for (int i = 0; i < 4; i++) {
-            long member = sim.spawn(new EntitySpec("m" + i, Faction.MARINE,
-                    UnitType.MARINE, 10, 14 + i).squad(squadId));
+            EntitySpec spec = new EntitySpec("m" + i, Faction.MARINE,
+                    UnitType.MARINE, 10, 14 + i).squad(squadId);
+            if (i == 0) spec.primaryWeapon(MarineWeapon.SQUAD_AUTOMATIC);
+            long member = sim.spawn(spec);
             sim.world().setAttackRange(member, 30f);
             members.add(member);
         }
@@ -149,6 +152,8 @@ public class BoundingOverwatchTest {
         assertTrue(Paths.isEmpty(f.sim.world().path(suppressor)),
                 "overwatch clears objective movement and holds");
         assertEquals(f.firstThreat, f.sim.combat().fireTargetId(suppressor));
+        assertEquals(MarineWeapon.SQUAD_AUTOMATIC,
+                f.sim.combat().primaryWeapon(suppressor));
         assertEquals(FireStance.STANCED.ordinal(), fireStance(f.sim, suppressor));
 
         assertEquals(0L, f.sim.combat().fireTargetId(bounder0));

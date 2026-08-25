@@ -2,7 +2,7 @@
 
 Status: ACTIVE
 Written: 2026-08-23
-Updated: 2026-08-23 — folded the shipped reusable satchel utility slice.
+Updated: 2026-08-25 — folded the shipped primary-family expansion.
 
 | Story | Shipped | Commit(s) | Fold destination |
 | --- | --- | --- | --- |
@@ -12,3 +12,4 @@ Updated: 2026-08-23 — folded the shipped reusable satchel utility slice.
 | `s2a-anti-materiel-rifle.md` | 2026-08-23 | `97243ba2` | `progression-nouns.md` — stable special-equipment identity, precision heavy fire, AI use policy, and campaign availability |
 | `s2b-smoke-grenades.md` | 2026-08-23 | this commit | `progression-nouns.md` and `fog-of-war-nouns.md` — neutral transient opacity, AI maneuver reservations, campaign issue, and shared observation |
 | `s2c-satchel-charges.md` | 2026-08-23 | this commit | `progression-nouns.md` — reusable cooldown-gated contact demolition, attached fuses, opportunity AI, friendly hazard response, and campaign issue |
+| `s2-primary-weapon-catalog-expansion.md` | 2026-08-25 | this commit | `progression-nouns.md` — shredder-carbine and squad-automatic identities, simultaneous release versus temporal burst, campaign reachability, and faction availability; `moddable-weapons-nouns.md` — projectile-release authoring law |

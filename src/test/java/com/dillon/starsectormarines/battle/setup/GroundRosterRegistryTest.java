@@ -20,6 +20,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class GroundRosterRegistryTest {
 
@@ -65,6 +66,35 @@ public class GroundRosterRegistryTest {
         assertEquals(MechVariant.SIROCCO, triTachyon.heavySupportCycle(3).get(0));
         assertEquals(MechVariant.HOUND, triTachyon.heavySupportCycle(3).get(1));
         assertEquals(MechVariant.SIROCCO, triTachyon.heavySupportCycle(3).get(2));
+    }
+
+    @Test
+    public void deterministicFactionSamplesSeparateAutomaticAndShredderDoctrine() {
+        GroundRosterProfile.Issue hegemony = GroundRosterRegistry.resolve("hegemony")
+                .issue(GroundRosterProfile.ForceTier.BULK);
+        GroundRosterProfile.Issue path = GroundRosterRegistry.resolve("luddic_path")
+                .issue(GroundRosterProfile.ForceTier.BULK);
+        Random hegRandom = new Random(8_101L);
+        Random pathRandom = new Random(8_101L);
+        int hegemonyAutomatics = 0;
+        int hegemonyShredders = 0;
+        int pathAutomatics = 0;
+        int pathShredders = 0;
+        for (int i = 0; i < 2_000; i++) {
+            MarineWeapon hegWeapon = hegemony.pickPrimary(hegRandom);
+            MarineWeapon pathWeapon = path.pickPrimary(pathRandom);
+            if (hegWeapon == MarineWeapon.SQUAD_AUTOMATIC) hegemonyAutomatics++;
+            if (hegWeapon == MarineWeapon.SMG) hegemonyShredders++;
+            if (pathWeapon == MarineWeapon.SQUAD_AUTOMATIC) pathAutomatics++;
+            if (pathWeapon == MarineWeapon.SMG) pathShredders++;
+        }
+
+        assertTrue(hegemonyAutomatics > 300,
+                "Hegemony regulars should visibly issue squad automatics");
+        assertEquals(0, pathAutomatics,
+                "Path cells do not gain the disciplined automatic role by fallback");
+        assertTrue(pathShredders > hegemonyShredders * 4,
+                "Path cells should strongly weight close-range shredders");
     }
 
     @Test

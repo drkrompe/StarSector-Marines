@@ -107,14 +107,28 @@ class WeaponRegistryParityTest {
     }
 
     @Test
-    void machineGunMatchesItsShippedValues() {
-        assertSim(MarineWeapon.SMG, 16f, 5.4f, 0.50f, 0.50f, 3f,
-                3, 0.07f, 0.60f, 1.4f, 45f);
+    void shredderCarbineOwnsTheCloseContactFlechetteRole() {
+        assertSim(MarineWeapon.SMG, 14f, 3.0f, 0.68f, 0.75f, 1f,
+                1, 0f, 0.75f, 1.7f, 45f);
+        assertEquals(6, MarineWeapon.SMG.projectilesPerShot());
         assertPresentation(MarineWeapon.SMG, new Color(0xFF, 0xE8, 0xC0),
                 ImpactProfile.RIFLE, "graphics/missiles/shell_small_yellow.png", 0.15f,
                 "light_machinegun_fire");
-        assertEquals("Light Machine Gun", MarineWeapon.SMG.displayName());
+        assertEquals("Shredder Carbine", MarineWeapon.SMG.displayName());
         assertEquals("Rattler", MarineWeapon.SMG.modelName());
+    }
+
+    @Test
+    void squadAutomaticOwnsTheSustainedSlugRole() {
+        assertSim(MarineWeapon.SQUAD_AUTOMATIC, 22f, 5.8f, 0.34f, 1.60f, 5f,
+                8, 0.10f, 0.45f, 0.9f, 52f);
+        assertEquals(1, MarineWeapon.SQUAD_AUTOMATIC.projectilesPerShot());
+        assertPresentation(MarineWeapon.SQUAD_AUTOMATIC,
+                new Color(0xFF, 0xD6, 0xA0), ImpactProfile.RIFLE,
+                "graphics/missiles/shell_small_yellow.png", 0.16f,
+                "light_machinegun_fire");
+        assertEquals("Squad Automatic", MarineWeapon.SQUAD_AUTOMATIC.displayName());
+        assertEquals("Stalwart", MarineWeapon.SQUAD_AUTOMATIC.modelName());
     }
 
     @Test
@@ -149,7 +163,8 @@ class WeaponRegistryParityTest {
         assertEquals("FR-1", MarineWeapon.FIELD_RIFLE.designation(EquipmentGrade.MASTERWORK),
                 "recruit issue is untiered — its designation ignores grade");
         assertEquals("PLS-2", MarineWeapon.PULSE_RIFLE.designation(EquipmentGrade.SERVICE));
-        assertEquals("LMG-3", MarineWeapon.SMG.designation(EquipmentGrade.MILSPEC));
+        assertEquals("SHD-3", MarineWeapon.SMG.designation(EquipmentGrade.MILSPEC));
+        assertEquals("SA-2", MarineWeapon.SQUAD_AUTOMATIC.designation(EquipmentGrade.SERVICE));
         assertEquals("RG-4", MarineWeapon.DMR.designation(EquipmentGrade.MASTERWORK));
         assertEquals("DPLS-1", MarineWeapon.DRONE_PULSE.designation(EquipmentGrade.SURPLUS));
 

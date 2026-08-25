@@ -3,9 +3,9 @@
 > The ladder is four rungs long and ends at mission five. Four armor
 > patterns are fully authored and unreachable.
 
-Status: PLANNED — depends on `s5-parts-acquisition-channels.md`,
-`s2-primary-weapon-catalog-expansion.md`, and the S2A–S2G special-equipment
-stories; armor expansion also depends on `powered-assault-armor-roles.md`.
+Status: PLANNED — depends on `s5-parts-acquisition-channels.md` and the
+remaining S2D–S2G special-equipment stories; armor expansion also depends on
+`powered-assault-armor-roles.md`.
 Written: 2026-08-22
 Updated: 2026-08-24 — added weapon-mechanism, boarding-tool, stim, and faction-demolition provenance to the unlock contract.
 
@@ -14,8 +14,8 @@ Updated: 2026-08-24 — added weapon-mechanism, boarding-tool, stim, and faction
 `MarineArmory.recordVictory` is the whole progression ladder:
 
 - 2 victories: `PULSE_RIFLE` MILSPEC
-- 3: `SMG` MILSPEC
-- 4: `DMR` MILSPEC
+- 3: shredder-carbine (`SMG` compatibility handle) MILSPEC
+- 4: `DMR` and `SQUAD_AUTOMATIC` MILSPEC
 - 5 victories and at least one high-risk: `DMR` MASTERWORK
 
 Then flat, forever. Consequences:
@@ -193,8 +193,7 @@ Where a milestone gate is still the right tool, gate on more than a count:
 ## Out of scope
 
 - Where parts come from — `s5-parts-acquisition-channels.md`.
-- New weapons and special equipment to unlock —
-  `s2-primary-weapon-catalog-expansion.md`, `s2d-frag-grenades.md`,
+- New special equipment to unlock — `s2d-frag-grenades.md`,
   `s2e-close-contact-boarding-tools.md`, `s2f-combat-stim-injectors.md`, and
   `s2g-martyr-rigs-and-carried-ieds.md`. New armor roles and patterns belong to
   `powered-assault-armor-roles.md`. The shipped AMR, smoke grenades, and satchel
