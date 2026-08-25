@@ -1,10 +1,10 @@
 # AI nouns
 
-Status: ACTIVE — AI owns mission command, squad planning, belief-derived contact pictures, local doctrine, faction-local influence, and Conquest defender response; broader strategic analysis, mech-behavior retirement, and live acceptance are bounded extensions.
+Status: ACTIVE — AI owns autonomous mission command, squad planning, belief-derived contact pictures, local doctrine, faction-local influence, and command observability; broader mission strategies, player interventions, strategic analysis, and live acceptance are bounded extensions.
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — clarified actionable contacts, dispersed-squad contact locality, coordinated fixing movement, and plan-owned path lifecycle.
+Updated: 2026-08-25 — defined the two-sided command-duel baseline, frozen command inputs, directive ownership, and bounded player intervention.
 
 AI turns mission context and what a side has learned into coordinated
 movement, posture, and fire intent. It is a decision system, not the authority
@@ -43,6 +43,59 @@ more highly.
 Squad replanning remains serial unless a measured, explicit parallel contract
 is introduced. Its state, goals, actions, and read-only view boundary may
 support that extension, but parallel behavior is not implied by their shape.
+
+## Autonomous command duel
+
+The normal battle baseline is **autonomous resolution**: every side with
+strategic agency must be capable of pursuing its mission without the player
+continually rescuing idle squads. The resulting **command duel** has one
+perspective-specific mission strategy per side. The shared infrastructure is
+symmetrical; objectives and behavior need not be. An attacker may search,
+seize, plant, or escort while a defender guards, delays, intercepts, or
+countercommits under the same knowledge and authority laws.
+
+A **command frame** is the frozen input to one command pulse. It contains the
+side's own force state, faction-local influence, legally disclosed objective
+state, public topology, current directives, and frozen doctrine. It does not
+offer unrestricted access to the opposing live world. Production mission
+strategies receive only this frame and narrow topology queries, never a
+`BattleView` or retained simulation reference. A perspective-specific mission
+disclosure adapter is the sole authority that may project objective facts into
+the frame. Both sides plan from their frames before either side's new orders
+are committed, so commander dispatch order cannot become knowledge or behavior
+leakage.
+
+A **command pool** is the set of squads a strategy may allocate. Born
+garrisons, payload guards, scripted actors, and reinforcement forces awaiting
+handoff remain explicitly owned outside that pool. A **directive** combines a
+tactical `ObjectiveAssignment` with its issuing authority, reason, issue tick,
+target meaning, and stability or lease state. A shared arbiter validates and
+commits proposed directives after planning; mission strategies do not compete
+through untracked writes to the squad assignment field. Every other assignment
+writer—garrison, payload, reinforcement, scripted, form-up, and intervention
+systems—must likewise register its ownership with the arbiter or perform an
+explicit handoff. No direct-write escape hatch may bypass provenance.
+
+A **commander snapshot** is the immutable explanation published after commit.
+It names the perspective, strategy, phase, command pool, reserves, objective or
+group summaries, and each squad's directive and reason. Mission-specific
+pictures extend this envelope with tracks, sectors, sites, corridors, or
+branches. Selected-squad presentation, dumps, and headless traces consume the
+published snapshot rather than reverse-engineering command intent. A squad
+that remains unassigned or a proposal that validation rejects still receives
+an explicit reason.
+
+The player is an **intervention authority**, not a replacement for a competent
+baseline commander. Existing force selection and command powers are the first
+intervention families. A later direct command may bias priority or lease a
+legal rally, reserve commitment, focus, or fallback for a bounded duration. It
+cannot manufacture hostile knowledge, bypass objective law, seize an
+externally owned squad, or write an assignment with no provenance. Zero-input
+outcomes, objective progress, idle combat power, response time, order churn,
+casualties, and duration are therefore first-class balance evidence. Activation
+pacing, concurrent leases, and their cost authority are bounded as well, so
+reissuing a request cannot turn a temporary intervention into permanent manual
+control.
 
 ## Knowledge and contact
 
@@ -170,6 +223,14 @@ Rescue protects a moving corridor and cohort; Silent Colony divides an
 expedition between independent objectives. A useful geometry may be reused as
 an implementation primitive, but one mission's ownership and convergence laws
 do not silently become another mission's doctrine.
+
+Not every opposing force needs a conventional squad commander. A swarm,
+security network, or scripted hazard may use an inspectable mission director
+with its own legal information and force ownership. Shared command
+observability does not require fabricating beliefs, reserves, or human-style
+intent for an actor whose mission fiction does not support them. RAID and
+generic Extraction likewise require authoritative objective and outcome laws
+before AI can invent meaningful command geometry for them.
 
 `conquest-nouns.md` owns territorial capture, compound state, garrison
 entitlement, and supply consequences. AI may assign a squad to approach, clear,

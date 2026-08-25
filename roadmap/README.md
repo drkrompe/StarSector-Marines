@@ -38,11 +38,14 @@ mission model lives in `early-operation-nouns.md`.
 
 ### Battle tier
 
-Conquest is the primary territorial battle: marines capture reversible supply
-compounds, defender delivery degrades with lost territory, and the canonical
-keep closes the assault. Its remaining work is bounded acceptance and explicit
-extensions, not another capture model. See `conquest-nouns.md`,
-`reinforcement-nouns.md`, and `convoy-nouns.md`.
+Conquest is the primary territorial battle and the first production paired
+mission-command implementation: marines capture reversible supply compounds
+while defenders mobilize patrols, preserve strongpoints, and retain
+reinforcement ownership. It is the reference migration for a broader autonomous
+command-duel foundation in which both sides can progress the mission without
+player micromanagement; foundation migration and paired live acceptance remain.
+Each later mission keeps its own strategy geometry. See `conquest-nouns.md`,
+`ai-nouns.md`, `reinforcement-nouns.md`, and `convoy-nouns.md`.
 
 Fleet-sourced support is committed before launch and activated by the
 simulation through `command-powers-nouns.md`; distinct chassis, loadouts, and
@@ -76,13 +79,15 @@ PNG evidence without launching the game. See `ui-nouns.md` and
 
 ## Immediate recommendation
 
-Play a mission, then implement performance-derived experience in
-`s4-performance-derived-experience.md`.
+Implement `autonomous-mission-command-foundation.md`, migrate the paired
+Conquest commanders as its first proof, then build
+`commander-trace-and-balance-harness.md`.
 
-The live mission is valuable first because the lethality rewrite still needs a
-feel pass, and the same run now produces combat telemetry and persistent career
-records. The experience story can then turn that evidence into earned
-progression instead of inventing another disconnected reward counter.
+That sequence makes zero-input command behavior measurable before tuning more
+missions or adding direct player orders. Opening Operations is the smallest
+second proof; Assault, Sabotage, Rescue, and Silent Colony then adapt the same
+knowledge, ownership, cadence, and diagnostic contracts through their own
+mission geometry.
 
 ## How to use this directory
 

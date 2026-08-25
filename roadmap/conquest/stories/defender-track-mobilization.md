@@ -1,8 +1,13 @@
 # Defender track mobilization
 
-Status: IN PROGRESS
+Status: IN PROGRESS — implementation is complete; paired live command-duel acceptance remains.
 
 Written: 2026-08-24
+
+Updated: 2026-08-25 — aligned live acceptance with the autonomous mission-command foundation.
+
+Read `conquest-nouns.md`, `ai-nouns.md`, and
+`autonomous-mission-command-foundation.md` before accepting this story.
 
 ## Story
 
@@ -34,6 +39,9 @@ knowledge of the enemy.
 - Selected-squad diagnostics and the squad dump expose command perspective,
   phase, home/effective track, assignment reason, rally objective, and
   faction-honest track pressure without exposing hidden hostile positions.
+- In a complete zero-input Conquest run, defender mobilization remains bounded
+  while the marine command can progress the front; the two commands share
+  physical track geometry but never perspective state or assignment authority.
 
 ## Boundaries
 

@@ -1,12 +1,13 @@
 # Conquest front command and keep convergence
 
-Status: IN PROGRESS — implementation is complete; live keep-convergence acceptance remains.
+Status: IN PROGRESS — implementation is complete; paired autonomous-command live acceptance remains.
 
 Written: 2026-08-24
 
-Updated: 2026-08-25 — covered sole-contested-compound convergence and assignment/path handoff found in live play.
+Updated: 2026-08-25 — added paired attacker/defender command-duel acceptance without creating a duplicate Conquest model.
 
-Read `conquest-nouns.md` and `ai-nouns.md` before implementing this story.
+Read `conquest-nouns.md`, `ai-nouns.md`, and
+`autonomous-mission-command-foundation.md` before implementing this story.
 
 ## Intent
 
@@ -58,6 +59,14 @@ territorial objective, or on a sole contested recapture after the keep falls.
   capture quota remains deliberate while squads from nonadjacent tracks receive
   explicit final-compound room-clear work. An uncontested final compound keeps
   ordinary capture allocation.
+- [ ] Run attacker and defender command together from first contact through
+  compound progression and keep convergence. Confirm the assault progresses
+  without player orders, defender patrols mobilize from their own reports,
+  garrisons retain ownership, and neither snapshot leaks the other side's
+  hidden state.
+- [ ] During recapture and reinforcement, confirm free field squads remain
+  strategically useful while garrison, delivery, and counterattack systems keep
+  their authored force ownership.
 
 ## Constraints
 

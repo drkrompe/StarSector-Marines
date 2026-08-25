@@ -1,8 +1,10 @@
 # Target-faction command doctrine
 
-Status: PLANNED — follows the target-faction ground-roster seam; coordinate with commander field analysis rather than depending on diagnostic UI.
+Status: PLANNED — follows the autonomous foundation and at least one paired non-Conquest command baseline; doctrine must bias competent legal choices rather than create them.
 
 Written: 2026-08-24
+
+Updated: 2026-08-25 — moved faction weighting behind the shared command foundation and measurable mission baselines.
 
 Read `ai-nouns.md` and `campaign-battle-bridge-nouns.md` before implementing
 this story.
