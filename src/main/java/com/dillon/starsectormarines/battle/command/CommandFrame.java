@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.command;
 
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
+import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -51,7 +52,9 @@ public class CommandFrame {
                     ? sim.role().role(sim.squadMemberAt(squad.id, 0)) : null;
             rows.add(new CommandSquadState(squad.id, squad.faction,
                     squad.aliveMembers, squad.centroidX, squad.centroidY,
-                    anchorX, anchorY, role, squad.hasBelievedContacts(),
+                    anchorX, anchorY, ZoneQueries.squadCurrentZone(squad, sim),
+                    role, squad.hasBelievedContacts(),
+                    squad.assignmentExecutionSuspension(),
                     CommandFrameCopies.assignment(squad.assignedObjective),
                     ownAssignments.directiveFor(squad.id)));
         }

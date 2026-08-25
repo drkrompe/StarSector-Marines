@@ -12,8 +12,10 @@ public record CommandSquadState(
         float centroidY,
         int anchorCellX,
         int anchorCellY,
+        int currentZoneId,
         UnitRole role,
         boolean localContact,
+        String executionSuspension,
         ObjectiveAssignment assignment,
         CommandDirective directive) {
 }
