@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.TestUnits;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
@@ -22,9 +23,26 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CommanderServiceTest {
+
+    @Test
+    void autonomousStrategiesExposeNoLiveBattleViewContract() {
+        assertFalse(MissionCommand.class.isAssignableFrom(
+                AutonomousMissionCommand.class));
+        for (Class<?> type : List.of(AutonomousMissionCommand.class,
+                ConquestCommand.class, ConquestDefenderCommand.class)) {
+            for (var method : type.getDeclaredMethods()) {
+                assertFalse(method.getReturnType() == BattleView.class
+                                || List.of(method.getParameterTypes())
+                                .contains(BattleView.class),
+                        type.getSimpleName() + "." + method.getName()
+                                + " must not expose BattleView");
+            }
+        }
+    }
 
     @Test
     void freezesEveryPerspectiveBeforeEitherStrategyPlans() {
@@ -38,8 +56,10 @@ class CommanderServiceTest {
                 Faction.MARINE, frozen, events, marine.id, null);
         RecordingCommand defenderCommand = new RecordingCommand(
                 Faction.DEFENDER, frozen, events, defender.id, marine);
-        service.setCommander(Faction.MARINE, marineCommand);
-        service.setCommander(Faction.DEFENDER, defenderCommand);
+        service.setAutonomousCommander(Faction.MARINE, marineCommand,
+                recordingDisclosure(Faction.MARINE, frozen, events));
+        service.setAutonomousCommander(Faction.DEFENDER, defenderCommand,
+                recordingDisclosure(Faction.DEFENDER, frozen, events));
 
         service.tick(CommanderService.COMMANDER_TICK_PERIOD, sim);
 
@@ -53,6 +73,38 @@ class CommanderServiceTest {
         service.setCommander(Faction.MARINE, null);
         assertNull(service.snapshot(Faction.MARINE),
                 "removing a commander must not leave stale diagnostics");
+    }
+
+    @Test
+    void registrationOrderDoesNotChangePairedCommandPulse() {
+        PairedResult marineFirst = runPairedPulse(false);
+        PairedResult defenderFirst = runPairedPulse(true);
+
+        assertEquals(marineFirst, defenderFirst);
+    }
+
+    @Test
+    void pairedConquestCommandsPublishEmptySnapshotsForEmptyPools() {
+        BattleSimulation sim = openSim();
+        ConquestTrackLayout tracks = new ConquestTrackLayout(
+                TraversalAxis.SOUTH_TO_NORTH, 10, 10);
+        CommanderService service = new CommanderService();
+        service.setAutonomousCommander(Faction.MARINE,
+                new ConquestCommand(tracks), ConquestCommandDisclosure.INSTANCE);
+        service.setAutonomousCommander(Faction.DEFENDER,
+                new ConquestDefenderCommand(tracks),
+                ConquestCommandDisclosure.INSTANCE);
+
+        service.tick(CommanderService.COMMANDER_TICK_PERIOD, sim);
+
+        for (Faction faction : List.of(Faction.MARINE, Faction.DEFENDER)) {
+            CommanderSnapshot<?> snapshot = service.snapshot(faction);
+            assertNotNull(snapshot);
+            assertEquals(0, snapshot.commandPoolSize());
+            assertEquals(0, snapshot.reserveCount());
+            assertTrue(snapshot.directives().isEmpty());
+            assertEquals(faction, snapshot.perspective());
+        }
     }
 
     @Test
@@ -225,6 +277,78 @@ class CommanderServiceTest {
         assertNull(arbiter.activeDirective(squad.id));
     }
 
+    @Test
+    void malformedTargetsAreRejectedWithoutDisturbingTheIncumbent() {
+        BattleSimulation sim = openSim();
+        Squad squad = addSquad(sim, Faction.MARINE, 2, 2);
+        AssignmentArbiter arbiter = new AssignmentArbiter();
+        ObjectiveAssignment incumbent = ObjectiveAssignment.support(squad.id);
+        arbiter.assignExternal(squad, incumbent, CommandAuthority.MISSION_COMMAND,
+                "test-command", "valid incumbent", 1);
+        List<ObjectiveAssignment> malformed = List.of(
+                ObjectiveAssignment.clearZone(squad.id, -1),
+                ObjectiveAssignment.secureCompound(squad.id, -1, null),
+                ObjectiveAssignment.defendTrack(squad.id, -1, -1),
+                ObjectiveAssignment.sweepSector(squad.id, -1, -1),
+                ObjectiveAssignment.escort(squad.id, -1, -1),
+                ObjectiveAssignment.rushObjective(squad.id, -1, -1),
+                ObjectiveAssignment.holdNode(squad.id, null),
+                new ObjectiveAssignment(squad.id, null, -1, null,
+                        -1, -1, -1),
+                ObjectiveAssignment.defendTrack(squad.id, 99, 99));
+
+        for (ObjectiveAssignment assignment : malformed) {
+            CommandPlan<String> plan = new CommandPlan<>(Faction.MARINE,
+                    "test-command", "ADVANCE", 2, -1, 1, 0, List.of(),
+                    List.of(CommandProposal.assign(assignment,
+                            CommandAuthority.MISSION_COMMAND, "malformed")),
+                    "detail");
+            CommandDirective result = arbiter.commit(plan, sim,
+                    CommandTopology.freeze(sim)).directiveFor(squad.id);
+
+            assertEquals(CommandDirective.Status.REJECTED, result.status(),
+                    assignment.toString());
+            assertEquals(incumbent, squad.assignedObjective);
+            assertEquals(incumbent,
+                    arbiter.activeDirective(squad.id).assignment());
+        }
+    }
+
+    private static PairedResult runPairedPulse(boolean reverseRegistration) {
+        BattleSimulation sim = openSim();
+        Squad marine = addSquad(sim, Faction.MARINE, 2, 2);
+        Squad defender = addSquad(sim, Faction.DEFENDER, 7, 7);
+        Set<Faction> frozen = new HashSet<>();
+        List<String> events = new ArrayList<>();
+        RecordingCommand marineCommand = new RecordingCommand(
+                Faction.MARINE, frozen, events, marine.id, null);
+        RecordingCommand defenderCommand = new RecordingCommand(
+                Faction.DEFENDER, frozen, events, defender.id, marine);
+        CommanderService service = new CommanderService();
+        if (reverseRegistration) {
+            service.setAutonomousCommander(Faction.DEFENDER, defenderCommand,
+                    recordingDisclosure(Faction.DEFENDER, frozen, events));
+            service.setAutonomousCommander(Faction.MARINE, marineCommand,
+                    recordingDisclosure(Faction.MARINE, frozen, events));
+        } else {
+            service.setAutonomousCommander(Faction.MARINE, marineCommand,
+                    recordingDisclosure(Faction.MARINE, frozen, events));
+            service.setAutonomousCommander(Faction.DEFENDER, defenderCommand,
+                    recordingDisclosure(Faction.DEFENDER, frozen, events));
+        }
+
+        service.tick(CommanderService.COMMANDER_TICK_PERIOD, sim);
+        return new PairedResult(marine.assignedObjective,
+                defender.assignedObjective, service.snapshot(Faction.MARINE),
+                service.snapshot(Faction.DEFENDER), List.copyOf(events));
+    }
+
+    private record PairedResult(ObjectiveAssignment marineAssignment,
+                                ObjectiveAssignment defenderAssignment,
+                                CommanderSnapshot<?> marineSnapshot,
+                                CommanderSnapshot<?> defenderSnapshot,
+                                List<String> events) { }
+
     private static final class RecordingCommand
             implements AutonomousMissionCommand<CommandFrame, String> {
         private final Faction faction;
@@ -248,14 +372,6 @@ class CommanderServiceTest {
         @Override public String strategyId() { return "recording-" + faction; }
 
         @Override
-        public CommandFrame freeze(BattleView sim, CommandTopology topology,
-                                   CommandAssignmentSnapshot assignments) {
-            events.add("freeze-" + faction);
-            frozen.add(faction);
-            return CommandFrame.freeze(sim, faction, topology, assignments);
-        }
-
-        @Override
         public CommandPlan<String> plan(CommandFrame frame) {
             assertEquals(Set.of(Faction.MARINE, Faction.DEFENDER), frozen);
             if (mustRemainUnassigned != null) {
@@ -277,6 +393,16 @@ class CommanderServiceTest {
         public void publish(CommanderSnapshot<String> snapshot) {
             this.snapshot = snapshot;
         }
+    }
+
+    private static CommandFrameDisclosure<CommandFrame> recordingDisclosure(
+            Faction faction, Set<Faction> frozen, List<String> events) {
+        return (sim, perspective, topology, assignments) -> {
+            assertEquals(faction, perspective);
+            events.add("freeze-" + faction);
+            frozen.add(faction);
+            return CommandFrame.freeze(sim, faction, topology, assignments);
+        };
     }
 
     private static BattleSimulation openSim() {

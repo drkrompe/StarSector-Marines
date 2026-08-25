@@ -1,10 +1,10 @@
 # Autonomous mission-command foundation
 
-Status: IN PROGRESS — the shared frame/plan/commit envelope, paired Conquest migration, common diagnostics, and spawn-time garrison/payload/reinforcement ownership are implemented; legacy scripted writers, disclosure hardening, stability coverage, and live acceptance remain.
+Status: IN PROGRESS — the shared frame/plan/commit envelope, paired Conquest migration, common diagnostics, spawn-time ownership, and disclosure boundary are implemented; legacy scripted writers, stability coverage, and live acceptance remain.
 
 Written: 2026-08-25
 
-Updated: 2026-08-25 — hardened the Conquest reference migration around setup-pool capture, authored-garrison ownership, explicit reinforcement handoff, unreachable-compound invalidation, dead-squad/contact cleanup, perspective-local ledgers, and stable issue ticks. Other missions deliberately retain their current legacy/no-op assignment behavior.
+Updated: 2026-08-25 — removed the live-view contract from autonomous strategies, installed stateless battle-owned Conquest disclosures, moved defender starting-force capture into immutable setup data, and completed deterministic order/empty-pool/malformed-target acceptance. Other missions deliberately retain their current legacy/no-op assignment behavior.
 
 Read `ai-nouns.md`, `conquest-nouns.md`, and `battle-fixtures-nouns.md` before
 implementing this story.
@@ -73,10 +73,10 @@ interventions.
 
 ## Acceptance
 
-- [ ] Two installed side strategies plan from frozen perspective frames and
+- [x] Two installed side strategies plan from frozen perspective frames and
   commit only after both proposals exist; reversing dispatch order produces the
   same directives and snapshots.
-- [ ] A strategy cannot read a hidden hostile identity or live cell except
+- [x] A strategy cannot read a hidden hostile identity or live cell except
   through its faction-local influence/contact evidence or an explicitly
   authorized mission fact.
 - [ ] Assignment provenance prevents mission command from overwriting born
@@ -92,7 +92,7 @@ interventions.
   remains a later mission story.
 - [x] Selected-squad and dump output agree on perspective, strategy, phase,
   assignment, reason, authority, issue tick, and lease/supersession state.
-- [ ] Deterministic tests cover empty command pools, disconnected topology,
+- [x] Deterministic tests cover empty command pools, disconnected topology,
   invalid targets, simultaneous side changes, and assignment handoff.
 
 ## Constraints

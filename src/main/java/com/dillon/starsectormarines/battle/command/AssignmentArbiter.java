@@ -220,10 +220,14 @@ public final class AssignmentArbiter {
                     CommandDirective.Status.RELEASED, "assignment released");
         }
 
+        String invalid = validateShape(proposal.assignment(), topology);
+        if (invalid != null) return rejected(plan, proposal, invalid);
         ObjectiveAssignment applied = resolveAppliedAssignment(
                 proposal.assignment(), sim);
-        String invalid = validate(applied, topology);
-        if (invalid != null) return rejected(plan, proposal, invalid);
+        if (applied == null) {
+            return rejected(plan, proposal,
+                    "target zone is not a current compound");
+        }
         int issuedTick = incumbent != null
                 && incumbent.issuer().equals(plan.strategy())
                 && Objects.equals(incumbent.assignment(), applied)
@@ -239,8 +243,9 @@ public final class AssignmentArbiter {
 
     private static ObjectiveAssignment resolveAppliedAssignment(
             ObjectiveAssignment assignment, BattleView sim) {
-        if (assignment.kind() != AssignmentKind.SECURE_COMPOUND
-                || assignment.targetZoneId() < 0) return assignment;
+        if (assignment.kind() != AssignmentKind.SECURE_COMPOUND) {
+            return assignment;
+        }
         for (CompoundService.Record record : sim.getCompoundService().getRecords()) {
             int zoneId = sim.getZoneGraph().zoneIdAt(
                     record.node.anchorX, record.node.anchorY);
@@ -249,11 +254,35 @@ public final class AssignmentArbiter {
                         zoneId, record.node);
             }
         }
-        return assignment;
+        return null;
     }
 
-    private static String validate(ObjectiveAssignment assignment,
-                                   CommandTopology topology) {
+    private static String validateShape(ObjectiveAssignment assignment,
+                                        CommandTopology topology) {
+        if (assignment.kind() == null) return "assignment kind is required";
+        switch (assignment.kind()) {
+            case CLEAR_ZONE, SECURE_COMPOUND -> {
+                if (assignment.targetZoneId() < 0) {
+                    return "assignment kind requires a target zone";
+                }
+            }
+            case DEFEND_TRACK, SWEEP_SECTOR, ESCORT -> {
+                if (assignment.targetCellX() < 0 || assignment.targetCellY() < 0) {
+                    return "assignment kind requires a complete target cell";
+                }
+            }
+            case HOLD_NODE -> {
+                if (assignment.targetNode() == null) {
+                    return "assignment kind requires a target node";
+                }
+            }
+            case RUSH_OBJECTIVE -> {
+                if (assignment.objectiveId() < 0) {
+                    return "assignment kind requires a target objective";
+                }
+            }
+            case SUPPORT -> { }
+        }
         if (assignment.targetZoneId() >= 0
                 && topology.zone(assignment.targetZoneId()) == null) {
             return "target zone does not exist in the frozen topology";

@@ -22,7 +22,6 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Mode-level Conquest factory invariants shared by campaign and bridge hosts. */
@@ -60,8 +59,10 @@ public class ConquestBattleSetupTest {
                 assertEquals("conquest-setup-garrison",
                         sim.getSquadCommandDirective(squad.id).issuer());
             } else if (role == UnitRole.PATROL) {
-                assertNull(sim.getSquadCommandDirective(squad.id),
-                        "setup patrols remain available to Conquest mission command");
+                assertEquals(CommandAuthority.MISSION_COMMAND,
+                        sim.getSquadCommandDirective(squad.id).authority());
+                assertEquals("conquest-defender",
+                        sim.getSquadCommandDirective(squad.id).issuer());
             }
         }
         assertTrue(garrisons > 0);
