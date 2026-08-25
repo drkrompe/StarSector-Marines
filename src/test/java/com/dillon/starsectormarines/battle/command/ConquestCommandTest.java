@@ -779,6 +779,10 @@ public class ConquestCommandTest {
 
         assertEquals(Phase.KEEP_CONVERGENCE, cmd.frontSnapshot().phase());
         assertEquals(1, cmd.frontSnapshot().remainingCompounds());
+        assertEquals(left.aliveMembers,
+                cmd.frontSnapshot().squadFor(left.id).aliveMembers());
+        assertEquals(left.centroidX,
+                cmd.frontSnapshot().squadFor(left.id).centroidX());
         assertEquals(sim.getZoneGraph().zoneIdAt(keep.anchorX, keep.anchorY),
                 cmd.frontSnapshot().keepZoneId());
         for (Squad squad : new Squad[]{left, center, right}) {

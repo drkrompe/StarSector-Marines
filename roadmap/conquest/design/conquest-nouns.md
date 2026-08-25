@@ -4,7 +4,7 @@ Status: ACTIVE — Conquest owns reversible compound territory, deliberate captu
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — defined the perspective-specific lane/front/action debug picture and preserved attacker presence across committed shuttle cycles.
+Updated: 2026-08-25 — distinguished own-squad approach observations from neutral capture-zone presence in Conquest command evidence.
 
 Conquest is a territorial assault: marines establish a beachhead, take the
 defender's supply hubs through the city, and finish at the keep. It is not a
@@ -70,6 +70,17 @@ presentation and dumps consume that published command state; they do not infer
 a second plan or reveal hidden defenders. The assignment decision remains the
 commander's authority, while local squad doctrine decides how to prosecute the
 contact.
+
+The front snapshot also carries frozen own-squad physical observations from the
+same command frame: live strength, centroid, current zone, local contact, and
+execution suspension. These facts explain whether an executable order is
+closing on its published marker or has reached its target zone without exposing
+opposing live positions. Exact occupancy of a compound's anchor capture zone is
+objective/referee evidence instead. An adjacent assault commitment, entry into
+the broader authored footprint, and presence in the actual capture zone are not
+interchangeable claims. The current trace reports the first and third;
+footprint entry remains a separate future measure rather than something
+inferred from either one.
 
 Conquest debug presentation projects one front snapshot at a time. It may draw
 the side's three track extents, friendly body and lead fronts, known-hostile
