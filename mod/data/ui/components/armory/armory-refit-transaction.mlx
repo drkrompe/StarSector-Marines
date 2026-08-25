@@ -80,7 +80,7 @@
   }
 
   .marine-viewer-card.vacant { opacity: 0.55; }
-  .marine-viewer-card.viewer-only { height: 610px; }
+  .marine-viewer-card.viewer-only { height: 552px; }
   .marine-viewer-card.previewing { height: 378px; }
   .marine-name { height: 22px; font-family: body; }
   .marine-role { height: 18px; }
