@@ -263,6 +263,7 @@ class FleetArmoryViewModelTest {
         props.put("reinforceLabel", viewModel.reinforceLabel());
         props.put("reinforceDisabled", viewModel.reinforceDisabled());
         props.put("reinforceSquad", viewModel.reinforceSelectedSquadAction());
+        props.put("designEquipment", (Runnable) () -> { });
         props.put("weaponDoctrineTiles", viewModel.weaponDoctrineTiles());
         props.put("armorDoctrineTiles", viewModel.armorDoctrineTiles());
         props.put("weaponDoctrineSummary", viewModel.weaponDoctrineSummary());

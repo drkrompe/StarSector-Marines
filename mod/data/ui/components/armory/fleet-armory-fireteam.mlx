@@ -1,4 +1,4 @@
-<template props="companySummary,selectedSquadName,fireTeamOverviews,targetSummary,candidateSummary,selectedSquadReadiness,reinforceLabel,reinforceDisabled,reinforceSquad,marineCards,weaponDoctrineSummary,armorDoctrineSummary,weaponDoctrineTiles,armorDoctrineTiles,transactionSummary,transactionClasses,applyDisabled,applyLabel,apply,feedbackText,feedbackClasses,backToSquads,back,returnAction,hqAction,armoryAction,hqClasses,hqDisabled,armoryClasses,armoryDisabled">
+<template props="companySummary,selectedSquadName,fireTeamOverviews,targetSummary,candidateSummary,selectedSquadReadiness,reinforceLabel,reinforceDisabled,reinforceSquad,designEquipment,marineCards,weaponDoctrineSummary,armorDoctrineSummary,weaponDoctrineTiles,armorDoctrineTiles,transactionSummary,transactionClasses,applyDisabled,applyLabel,apply,feedbackText,feedbackClasses,backToSquads,back,returnAction,hqAction,armoryAction,hqClasses,hqDisabled,armoryClasses,armoryDisabled">
   <div id="fleet-armory-fireteam-root" class="fleet-armory-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" armoryAction="{armoryAction}" hqClasses="{hqClasses}" hqDisabled="{hqDisabled}" armoryClasses="{armoryClasses}" armoryDisabled="{armoryDisabled}" contextLabel="FLAGSHIP / ARMORY / EQUIPMENT ISSUE" />
 
@@ -12,7 +12,7 @@
       <div id="fireteam-breadcrumb-current" class="breadcrumb-current label tone-accent">Fire Teams</div>
     </div>
 
-    <armory-squad-doctrine selectedSquadReadiness="{selectedSquadReadiness}" reinforceLabel="{reinforceLabel}" reinforceDisabled="{reinforceDisabled}" reinforceSquad="{reinforceSquad}" weaponDoctrineSummary="{weaponDoctrineSummary}" armorDoctrineSummary="{armorDoctrineSummary}" weaponDoctrineTiles="{weaponDoctrineTiles}" armorDoctrineTiles="{armorDoctrineTiles}" transactionSummary="{transactionSummary}" transactionClasses="{transactionClasses}" applyDisabled="{applyDisabled}" applyLabel="{applyLabel}" apply="{apply}" />
+    <armory-squad-doctrine selectedSquadReadiness="{selectedSquadReadiness}" reinforceLabel="{reinforceLabel}" reinforceDisabled="{reinforceDisabled}" reinforceSquad="{reinforceSquad}" designEquipment="{designEquipment}" weaponDoctrineSummary="{weaponDoctrineSummary}" armorDoctrineSummary="{armorDoctrineSummary}" weaponDoctrineTiles="{weaponDoctrineTiles}" armorDoctrineTiles="{armorDoctrineTiles}" transactionSummary="{transactionSummary}" transactionClasses="{transactionClasses}" applyDisabled="{applyDisabled}" applyLabel="{applyLabel}" apply="{apply}" />
 
     <div id="fireteam-body">
       <armory-fireteam-list fireTeamOverviews="{fireTeamOverviews}" />
