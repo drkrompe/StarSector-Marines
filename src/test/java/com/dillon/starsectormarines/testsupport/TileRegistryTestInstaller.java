@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.turret.DefensePostLayoutRegistry;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.battle.setup.GroundRosterRegistry;
 import org.json.JSONObject;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -81,6 +82,14 @@ public final class TileRegistryTestInstaller implements BeforeAllCallback {
             }
             equipment.validateReferences();
             SpecialEquipmentRegistry.install(equipment);
+        }
+        if (MarineArmorCatalogRegistry.installed() == null) {
+            MarineArmorCatalogRegistry armor = new MarineArmorCatalogRegistry();
+            for (String path : MarineArmorCatalogRegistry.BUILTIN_CATALOGS) {
+                armor.ingest(new JSONObject(Files.readString(Paths.get("mod", path))));
+            }
+            armor.validateCompleteness();
+            MarineArmorCatalogRegistry.install(armor);
         }
         if (GroundRosterRegistry.installed() == null) {
             GroundRosterRegistry rosters = new GroundRosterRegistry();

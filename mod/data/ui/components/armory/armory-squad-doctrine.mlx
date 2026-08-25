@@ -53,7 +53,7 @@
   .doctrine-tile { flex-direction: column; width: 230px; height: 92px; padding: 5px; gap: 2px; border-width: 1px; font-family: body; text-align: left; overflow: hidden; }
   .doctrine-tile.selected { background-color: #345a7c; border-color: #53c6e8; }
   .doctrine-name { height: 18px; }
-  .doctrine-description { height: 34px; }
+  .doctrine-description { height: 34px; white-space: normal; }
   .doctrine-distribution { height: 30px; }
   #squad-equip-row { flex-direction: row; height: 30px; gap: 7px; }
   .transaction-result { width: 0px; flex-grow: 1; padding: 4px 7px; border-width: 1px; overflow: hidden; }
