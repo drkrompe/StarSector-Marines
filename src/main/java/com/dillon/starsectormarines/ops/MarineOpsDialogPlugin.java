@@ -25,10 +25,6 @@ public final class MarineOpsDialogPlugin implements InteractionDialogPlugin {
 
     private static final Logger LOG = Global.getLogger(MarineOpsDialogPlugin.class);
 
-    /** Fraction of the screen the takeover occupies — matches {@code MarineOpsCMD}. */
-    private static final float WIDTH_FRACTION = 0.92f;
-    private static final float HEIGHT_FRACTION = 0.88f;
-
     private final PlanetAPI planet;
     private final Consumer<MarineOpsContext> seed;
 
@@ -45,8 +41,8 @@ public final class MarineOpsDialogPlugin implements InteractionDialogPlugin {
         this.dialog = dialog;
         dialog.hideTextPanel();
         dialog.hideVisualPanel();
-        float w = Global.getSettings().getScreenWidth() * WIDTH_FRACTION;
-        float h = Global.getSettings().getScreenHeight() * HEIGHT_FRACTION;
+        float w = MarineOpsDialogSize.requestedWidth();
+        float h = MarineOpsDialogSize.requestedHeight();
         dialog.showCustomVisualDialog(w, h,
                 new MarineOpsDialogDelegate(planet, seed, this::requestDismiss));
         LOG.info("MarineOps: self-triggered dialog opened");

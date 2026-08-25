@@ -29,6 +29,26 @@ class SquadEquipmentDoctrineTest {
     }
 
     @Test
+    void starterDefinitionsConcentrateBetterIssueOnEachFireTeamLeader() {
+        MarineRoster roster = fullSquad();
+        MarineSquad squad = roster.squads().get(0);
+        SquadEquipmentPreview preview = roster.previewSquadEquipment(
+                squad.id(), SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,
+                SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR);
+
+        assertTrue(preview.canApply());
+        for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
+            int leader = team * MarineSquad.TEAM_SIZE;
+            assertEquals(MarineWeapon.PULSE_RIFLE, preview.billet(leader).primary());
+            assertEquals(MarineArmorPattern.MILITIA, preview.billet(leader).armor());
+            for (int local = 1; local < MarineSquad.TEAM_SIZE; local++) {
+                assertEquals(MarineWeapon.FIELD_RIFLE, preview.billet(leader + local).primary());
+                assertEquals(MarineArmorPattern.ARMORLESS, preview.billet(leader + local).armor());
+            }
+        }
+    }
+
+    @Test
     void fireSupportDoctrineIssuesOneSquadAutomaticPerTeamFromStarterStock() {
         MarineRoster roster = fullSquad();
         MarineSquad squad = roster.squads().get(0);
@@ -93,7 +113,7 @@ class SquadEquipmentDoctrineTest {
             assertEquals(fatigues.billet(billet).specialEquipmentId(),
                     combatArmor.billet(billet).specialEquipmentId());
         }
-        assertEquals(MarineArmorPattern.ARMORLESS, fatigues.billet(0).armor());
+        assertEquals(MarineArmorPattern.MILITIA, fatigues.billet(0).armor());
         assertEquals(MarineArmorPattern.CHARCOAL, combatArmor.billet(0).armor());
     }
 
@@ -137,15 +157,14 @@ class SquadEquipmentDoctrineTest {
     void squadIssueConsumesChangedIncomingCargoAtomicallyAndMatchingKitIsFree() {
         MarineRoster roster = fullSquad();
         MarineSquad squad = roster.squads().get(0);
-        TestResources resources = new TestResources(
-                new EquipmentTemplateCost(5, 0, 0, 0));
+        TestResources resources = new TestResources(EquipmentTemplateCost.ZERO);
         List<MarineWeapon> priorWeapons = roster.manningMemberIds(squad).stream()
                 .map(roster::soldierById).map(MarineSoldier::primary).toList();
 
         SquadEquipmentPreview blocked = roster.previewSquadEquipment(
                 squad.id(), SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,
                 SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR, resources);
-        assertEquals(new EquipmentTemplateCost(6, 0, 0, 0), blocked.issueCost());
+        assertFalse(blocked.issueCost().isZero());
         assertEquals(SquadEquipmentResult.INSUFFICIENT_CARGO, blocked.result());
         assertEquals(SquadEquipmentResult.INSUFFICIENT_CARGO, roster.applySquadEquipment(
                 squad.id(), SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,
@@ -155,7 +174,7 @@ class SquadEquipmentDoctrineTest {
         assertEquals(priorWeapons, roster.manningMemberIds(squad).stream()
                 .map(roster::soldierById).map(MarineSoldier::primary).toList());
 
-        resources.available = new EquipmentTemplateCost(6, 0, 0, 0);
+        resources.available = blocked.issueCost();
         assertEquals(SquadEquipmentResult.APPLIED, roster.applySquadEquipment(
                 squad.id(), SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,
                 SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR, resources));

@@ -408,6 +408,7 @@ public final class MarineArmory implements Serializable {
         unlockSecondary(MarineSecondary.SMOKE_GRENADE);
         unlockSecondary(MarineSecondary.SATCHEL_CHARGE);
         unlockArmor(MarineArmorPattern.ARMORLESS);
+        unlockArmor(MarineArmorPattern.MILITIA);
         unlockArmor(MarineArmorPattern.CHARCOAL);
         unlockArmor(MarineArmorPattern.ARMY_GREEN);
         printedGear.put(primaryKey(MarineWeapon.PULSE_RIFLE, EquipmentGrade.SERVICE), 12);
@@ -420,6 +421,7 @@ public final class MarineArmory implements Serializable {
         printedGear.put(secondaryKey(MarineSecondary.SMOKE_GRENADE), 2);
         printedGear.put(secondaryKey(MarineSecondary.SATCHEL_CHARGE), 2);
         printedGear.put(armorKey(MarineArmorPattern.ARMORLESS), 12);
+        printedGear.put(armorKey(MarineArmorPattern.MILITIA), 3);
         printedGear.put(armorKey(MarineArmorPattern.CHARCOAL), 6);
         printedGear.put(armorKey(MarineArmorPattern.ARMY_GREEN), 4);
     }
@@ -544,6 +546,8 @@ public final class MarineArmory implements Serializable {
         unlockPrimary(MarineWeapon.FIELD_RIFLE, EquipmentGrade.SERVICE);
         unlockPrimary(MarineWeapon.SQUAD_AUTOMATIC, EquipmentGrade.SERVICE);
         putAtLeast(primaryKey(MarineWeapon.SQUAD_AUTOMATIC, EquipmentGrade.SERVICE), 3);
+        unlockArmor(MarineArmorPattern.MILITIA);
+        putAtLeast(armorKey(MarineArmorPattern.MILITIA), MarineSquad.TEAMS_PER_SQUAD);
         unlockSecondary(MarineSecondary.ANTI_MATERIEL_RIFLE);
         putAtLeast(secondaryKey(MarineSecondary.ANTI_MATERIEL_RIFLE), 1);
         unlockSecondary(MarineSecondary.SMOKE_GRENADE);

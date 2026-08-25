@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.CampaignMech;
+import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MechBay;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
@@ -29,6 +30,9 @@ import java.util.Map;
 
 /** Authored retained-view evidence rendered without a Starsector process. */
 public final class UiSnapshotSuite implements SnapshotSuite {
+
+    private static final int FULL_SCREEN_WIDTH = 1920;
+    private static final int FULL_SCREEN_HEIGHT = 1080;
 
     private static final List<String> COMPANY_HQ_COMPONENTS = List.of(
             "data/ui/components/marine-ops-page-nav.mlx",
@@ -66,36 +70,45 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 context.modRoot(), context.starsectorCore());
         return List.of(
                 new SnapshotArtifact("company-hq-bridge-wide.png",
-                        renderCompanyHq(context, renderer, 1744, 938, 1f)),
+                        renderCompanyHq(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f)),
                 new SnapshotArtifact("company-hq-bridge-low-resolution.png",
                         renderCompanyHq(context, renderer, 1163, 625, 1f)),
                 new SnapshotArtifact("company-hq-bridge-ui-scale-150.png",
                         renderCompanyHq(context, renderer, 1744, 938, 1.5f)),
                 new SnapshotArtifact("fleet-armory-overview-wide.png",
                         renderFleetArmoryOverview(
-                                context, renderer, 1744, 938)),
+                                context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
                 new SnapshotArtifact("fleet-armory-overview-low-resolution.png",
                         renderFleetArmoryOverview(
                                 context, renderer, 1163, 625)),
                 new SnapshotArtifact("fleet-armory-squads-wide.png",
                         renderFleetArmoryWorkspace(
-                                context, renderer, 1744, 938, false, false)),
+                                context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                false, false)),
                 new SnapshotArtifact("fleet-armory-workspace-wide.png",
                         renderFleetArmoryWorkspace(
-                                context, renderer, 1744, 938, true, false)),
+                                context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                true, false)),
                 new SnapshotArtifact("fleet-armory-equipment-preview-wide.png",
                         renderFleetArmoryWorkspace(
-                                context, renderer, 1744, 938, true, true)),
+                                context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                true, true)),
                 new SnapshotArtifact("fleet-armory-equipment-designer-wide.png",
-                        renderEquipmentDesigner(context, renderer, 1744, 938)),
+                        renderEquipmentDesigner(
+                                context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
                 new SnapshotArtifact("fleet-armory-equipment-designer-low-resolution.png",
                         renderEquipmentDesigner(context, renderer, 1163, 625)),
                 new SnapshotArtifact("mech-lab-wide.png",
-                        renderMechLab(context, renderer, 1744, 938, 1f)),
+                        renderMechLab(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f)),
                 new SnapshotArtifact("mech-lab-low-resolution.png",
                         renderMechLab(context, renderer, 1163, 625, 1f)),
                 new SnapshotArtifact("mech-lab-ui-scale-150.png",
-                        renderMechLab(context, renderer, 1744, 938, 1.5f)));
+                        renderMechLab(context, renderer, 1744, 938, 1.5f)),
+                new SnapshotArtifact("mech-lab-asset-picker-wide.png",
+                        renderMechLab(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f, true)));
     }
 
     private static BufferedImage renderCompanyHq(
@@ -220,6 +233,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static BufferedImage renderMechLab(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, float uiScale) throws Exception {
+        return renderMechLab(context, renderer, width, height, uiScale, false);
+    }
+
+    private static BufferedImage renderMechLab(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, float uiScale, boolean pickerOpen) throws Exception {
         Reactor reactor = new Reactor();
         MechBay bay = new MechBay();
         bay.addMech(MechBay.STARTER_SQUAD_ID, new CampaignMech(
@@ -230,6 +249,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 MechRole.LR_SUPPORT, MissileReplenisherComponent.ACCELERATED_FEED.id()));
         bay.addReplenisher(MissileReplenisherComponent.ACCELERATED_FEED.id(), 1);
         MechLabViewModel viewModel = new MechLabViewModel(reactor, bay);
+        if (pickerOpen) viewModel.openAssetPickerAction().run();
+        HeadlessArmoryPreviewRenderer technicianPreview =
+                new HeadlessArmoryPreviewRenderer(context.modRoot());
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), MECH_LAB_COMPONENTS);
         loader.reload();
@@ -241,7 +263,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             document.theme(MarineOpsThemes.standard());
             document.canvases().set(instance.requireElement("mech-doll-canvas"),
                     new MechLabDollCanvas(viewModel::selectedVariant,
-                            MechLabDollCanvas::headlessAssets));
+                            MechLabDollCanvas::headlessAssets,
+                            () -> technicianPreview.assets().layered(
+                                    MarineArmorPattern.ARMY_GREEN),
+                            () -> null));
             return renderRelative(renderer, document, width, height, uiScale);
         }
     }
@@ -339,10 +364,15 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("performanceMeters", viewModel.performanceMeters());
         props.put("leftSlotRows", viewModel.leftSlotRows());
         props.put("rightSlotRows", viewModel.rightSlotRows());
+        props.put("slotRows", viewModel.slotRows());
         props.put("selectedSlotTitle", viewModel.selectedSlotTitle());
         props.put("selectedSlotCopy", viewModel.selectedSlotCopy());
         props.put("selectedSlotRule", viewModel.selectedSlotRule());
         props.put("catalogRows", viewModel.catalogRows());
+        props.put("pickerClasses", viewModel.pickerClasses());
+        props.put("workspaceClasses", viewModel.workspaceClasses());
+        props.put("openAssetPicker", viewModel.openAssetPickerAction());
+        props.put("closeAssetPicker", viewModel.closeAssetPickerAction());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MECH_LAB,

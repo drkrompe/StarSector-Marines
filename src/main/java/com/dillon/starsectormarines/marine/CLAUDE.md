@@ -45,6 +45,12 @@ deterministic custom definitions without changing kits, and the first successful
 squad issue clears those ids. The current per-soldier kit remains the materialized
 state consumed by deployment and battle.
 
+Built-in starter definitions are exact distributions, not best-fit suggestions.
+Their first billet in each four-person team receives the leader's scarce weapon and
+armor issue. `MarineArmory` must seed or repair every matching template card on new
+and migrated saves; the campaign resource authority separately decides whether the
+fleet has enough cargo to materialize that baseline pair.
+
 When adding new persistent gameplay state, prefer this pattern: a thin
 `EveryFrameScript` holding POJOs, registered once in `onGameLoad` (idempotent —
 check via `getInstance()` first). Don't reach for `MemoryAPI` unless the data
