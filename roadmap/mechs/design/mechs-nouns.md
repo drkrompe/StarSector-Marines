@@ -5,7 +5,8 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 Written: 2026-08-23
 
 Updated: 2026-08-25 — separated heavy-asset selection from the Mech Lab fitting
-gantry and made the canonical layered mech composition its visual authority.
+gantry, made the canonical layered mech composition its visual authority, and
+oriented its maintenance doll south toward the player.
 
 ## Purpose
 
@@ -146,7 +147,8 @@ determines the payload, not the entitlement to call it.
 - The fitting doll consumes the same ordered layer composition and hull-relative
   transforms as battle rendering. A preview may choose a static maintenance pose,
   but it may not approximate mount scale, pivots, absence, or above/below-chassis
-  order independently.
+  order independently. The gantry rotates that complete composition south toward
+  the player; it does not rotate individual equipment layers independently.
 - The gantry is a flat top-down room assembled from the battle renderer's indoor
   tileset cells and props. Its workers use the real layered infantry compositor;
   welding, walking, and station work continue while the player inspects equipment,
