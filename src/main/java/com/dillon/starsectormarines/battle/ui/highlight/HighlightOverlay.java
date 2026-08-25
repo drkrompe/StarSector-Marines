@@ -44,6 +44,11 @@ public final class HighlightOverlay {
     public static final String SRC_MARINE_HOSTILE_INFLUENCE = "marine-hostile-influence";
     public static final String SRC_DEFENDER_FRIENDLY_INFLUENCE = "defender-friendly-influence";
     public static final String SRC_DEFENDER_HOSTILE_INFLUENCE = "defender-hostile-influence";
+    public static final String SRC_CONQUEST_TRACKS = "conquest-tracks";
+    public static final String SRC_CONQUEST_FRONTS = "conquest-fronts";
+    public static final String SRC_CONQUEST_ACTIONS = "conquest-actions";
+    public static final String SRC_CONQUEST_SELECTED_TRACK = "conquest-selected-track";
+    public static final String SRC_CONQUEST_SELECTED_ACTION = "conquest-selected-action";
 
     /** Suggested palette so unrelated sources don't visually collide. */
     public static final Color COLOR_ACTION_CELLS   = new Color(0x40, 0xE0, 0xFF, 0xFF);  // cyan
@@ -80,6 +85,12 @@ public final class HighlightOverlay {
 
     public boolean hasSource(String sourceId) {
         return sources.containsKey(sourceId);
+    }
+
+    /** Immutable view of one source, primarily for pure publisher verification. */
+    public List<CellHighlight> source(String sourceId) {
+        List<CellHighlight> cells = sources.get(sourceId);
+        return cells != null ? List.copyOf(cells) : List.of();
     }
 
     /** True iff at least one source has highlights to draw. Renderer can skip the GL state setup when false. */

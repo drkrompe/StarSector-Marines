@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — separated physical resolution fit from explicit UI scale and established the shared top room-navigation shell.
+Updated: 2026-08-25 — added Mech Lab as a real shipboard room in the responsive top navigation shell.
 
 ## Purpose
 
@@ -57,10 +57,11 @@ them.
 - A **canvas element** is the procedural escape hatch for visuals that do not fit
   ordinary boxes: formation connectors, graphs, paper dolls, or transaction flows.
 - A **surface** is a document plus its view model, navigation behavior, and host
-  lifecycle. Fleet Armory, Company HQ, and the UI workbench are surfaces.
+  lifecycle. Fleet Armory, Company HQ, Mech Lab, and the UI workbench are surfaces.
 - A **shipboard room** is the fiction and navigation identity of a player-facing
-  company surface. The bridge Company HQ and Fleet Armory are current rooms; the
-  retained document remains the implementation surface underneath that spatial frame.
+  company surface. The bridge Company HQ, Fleet Armory, and Mech Lab are current
+  rooms; the retained document remains the implementation surface underneath that
+  spatial frame.
 - A **preview fixture** assembles a surface from controlled domain state for UX
   evidence. It is presentation input, never a replacement campaign authority.
 - A **snapshot suite** is one named, deterministic collection of visual evidence.
@@ -229,8 +230,9 @@ space or participate in hit-testing.
 
 Starsector `InputEventAPI` objects and LWJGL integer key codes end at one host
 adapter. The retained tree receives document-space coordinates, pointer buttons
-named by role, named keys, and a modifier set. Character input remains a separate
-future seam; a key press is not text.
+named by role, named keys, and a modifier set. Printable `eventChar` values cross a
+separate character-input method only while a retained `input` owns focus; key codes
+remain navigation/edit commands rather than text.
 
 Geometric targeting and action eligibility are distinct. The deepest painted box
 under the pointer is the event target even when it is a non-clickable label; pointer
@@ -242,6 +244,9 @@ document order, `tabIndex=-1` remains directly focusable but is skipped, and
 disabled controls are ineligible. Enter confirms the focused control, Space uses a
 press/release action, and unmodified Escape belongs to the document cancel seam.
 Focus acquired by keyboard is visibly distinguished from focus acquired by pointer.
+The MLX `input` subset binds `value`, `oninput`, and `maxlength`; it supports
+printable characters, Backspace, Tab, Enter-to-blur, and Escape-to-blur without file
+access, reflection, a native widget, or a second text-state authority.
 
 Pointer capture is explicit rather than an automatic consequence of pressing.
 While held, pointer movement, hover, and release retarget to the captured element;

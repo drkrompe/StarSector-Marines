@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — replaced implementation sequencing with durable chassis, inventory, catalog, and authored-Conquest force boundaries.
+Updated: 2026-08-25 — established Mech Lab as a retained shipboard room over the campaign MechBay authority.
 
 ## Purpose
 
@@ -37,16 +37,16 @@ increasing an encounter's total armored threat.
   and installed components. It is the campaign authority that produces a
   frozen battle loadout; the live battle mech never reaches back into it.
 - A **mech squad** is the player-facing group of up to four campaign mechs
-  configured together in the Fleet Armory. One selected active squad becomes
+  configured together in the Mech Lab. One selected active squad becomes
   the payload when a sourced Mech Support power is committed. It is distinct
   from the battle-lifetime lance that realizes that payload after landing.
 - **Subsystem inventory** is finite fleet stock. Installed components count
   against owned quantity; a refit transaction returns the target mech's
   current component before evaluating the replacement.
-- The **Mech Lab** is the Fleet Armory workspace that selects the active mech
-  squad, presents each chassis and installed loadout, and performs inventory-
-  checked refits. It is an authoring surface over campaign authorities, not a
-  second inventory or a battle debug picker.
+- The **Mech Lab** is the shipboard room that selects the active mech squad,
+  presents each chassis and installed loadout, and performs inventory-checked
+  refits. It is an authoring surface over campaign authorities, not a second
+  inventory or a battle debug picker.
 - A **weapon family** owns projectile behavior and presentation; a component
   turns it into a mountable rack/arm with capacity and appearance. The gun,
   mount, and chassis remain distinct authorities.

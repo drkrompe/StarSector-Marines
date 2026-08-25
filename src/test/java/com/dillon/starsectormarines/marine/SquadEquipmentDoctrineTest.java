@@ -12,6 +12,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -148,6 +149,54 @@ class SquadEquipmentDoctrineTest {
                 persisted.armorDoctrineId());
         assertEquals(MarineSecondary.SATCHEL_CHARGE,
                 loaded.soldierById(loaded.manningMemberIds(persisted).get(1)).secondary());
+    }
+
+    @Test
+    void playerAuthoredDefinitionsPersistAndUseTheAuthoritativeIssueTransaction() throws Exception {
+        MarineRoster roster = fullSquad();
+        MarineSquad squad = roster.squads().get(0);
+        SquadWeaponDoctrine customWeapons = roster.armory().createWeaponDoctrine(
+                "My Fleet Issue",
+                SquadEquipmentDoctrines.weaponById(
+                        SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS).issues());
+        SquadArmorDoctrine customArmor = roster.armory().createArmorDoctrine(
+                "My Field Protection",
+                SquadEquipmentDoctrines.armorById(
+                        SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR).issues());
+
+        assertTrue(roster.previewSquadEquipment(
+                squad.id(), customWeapons.id(), customArmor.id()).canApply());
+        assertEquals(SquadEquipmentResult.APPLIED, roster.applySquadEquipment(
+                squad.id(), customWeapons.id(), customArmor.id()));
+        assertFalse(roster.deleteWeaponDoctrine(customWeapons.id()),
+                "an assigned custom definition remains protected");
+
+        MarineRoster loaded = roundTrip(roster);
+        assertEquals("My Fleet Issue",
+                loaded.armory().weaponDoctrineById(customWeapons.id()).displayName());
+        assertEquals(customWeapons.id(), loaded.squadById(squad.id()).weaponDoctrineId());
+    }
+
+    @Test
+    void legacyThreeTemplateIntentMigratesWithoutReissuingCurrentKits() throws Exception {
+        MarineRoster roster = fullSquad();
+        MarineSquad squad = roster.squads().get(0);
+        squad.setTeamTemplateCardId(0, FireTeamTemplateCards.FIELD_ID);
+        squad.setTeamTemplateCardId(1, FireTeamTemplateCards.RECON_ID);
+        squad.setTeamTemplateCardId(2, FireTeamTemplateCards.FIRE_SUPPORT_ID);
+        List<MarineWeapon> before = roster.manningMemberIds(squad).stream()
+                .map(roster::soldierById).map(MarineSoldier::primary).toList();
+
+        MarineRoster loaded = roundTrip(roster);
+        MarineSquad migrated = loaded.squadById(squad.id());
+
+        assertNotNull(migrated.weaponDoctrineId());
+        assertNotNull(migrated.armorDoctrineId());
+        assertNotNull(loaded.armory().weaponDoctrineById(migrated.weaponDoctrineId()));
+        assertEquals(before, loaded.manningMemberIds(migrated).stream()
+                .map(loaded::soldierById).map(MarineSoldier::primary).toList());
+        assertEquals(FireTeamTemplateCards.FIELD_ID, migrated.teamTemplateCardId(0),
+                "migration preserves compatibility intent until the next successful issue");
     }
 
     private static MarineRoster fullSquad() {

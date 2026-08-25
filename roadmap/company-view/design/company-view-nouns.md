@@ -4,7 +4,10 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — added the Fleet Assault weapon doctrine and its single fragmentation-grenade carrier.
+Updated: 2026-08-25 — shipped the focused Mech Lab, persistent
+player-authored Weapon and Armor definitions with their twelve-billet retained
+designer and legacy intent migration, plus the Fleet Assault doctrine and its
+single fragmentation-grenade carrier.
 
 ## Purpose
 
@@ -12,9 +15,10 @@ Company view makes the player's force legible as an organization wherever a
 decision depends on it: between contracts, while assembling a deployment, in
 battle, and after action. Most of the domain is a read model over the campaign
 roster and contract state, not a second company simulation and not a
-player-order layer. The Fleet Armory is its deliberate authoring seam: it
-assigns reusable weapon and armor equipment definitions to whole squads while
-preserving each marine's exact materialized kit.
+player-order layer. The Fleet Armory and Mech Lab are its deliberate authoring
+seams: the former assigns reusable weapon and armor equipment definitions to
+whole squads while preserving exact materialized kits; the latter refits
+persistent support squads.
 
 This domain owns the shared language and presentation shape of the company. It
 does not own personnel persistence, equipment progression, contract resolution,
@@ -60,8 +64,8 @@ company view composes their stable outputs.
 - **Whereabouts** — a derived statement of a squad's current role: available,
   stationed, recovering or understrength, or part of a live mission snapshot.
   It is not independently persisted.
-- **Mech Lab** — the Fleet Armory workspace over the persistent support squad
-  and finite mech subsystem stock defined by `mechs-nouns.md`. It presents
+- **Mech Lab** — the shipboard room over the persistent support squad and finite
+  mech subsystem stock defined by `mechs-nouns.md`. It presents
   chassis and hardpoints but mutates only inventory authorities that actually
   exist.
 
@@ -74,9 +78,9 @@ action; selecting the rest of a squad card still enters that squad.
 
 Fleet Armory is the only Armory route. The former Armory Administration shell,
 its individual-kit browser, fire-team template designer, squad-arrangement editor,
-and embedded Mech Lab were retired rather than retained as a second authority.
-Personnel reinforcement now lives on formation cards. A future Mech Lab returns as
-its own retained surface over `MechBay`, not as a tab in a legacy catch-all screen.
+and embedded Mech Lab were retired rather than retained as duplicate UI. Personnel
+reinforcement now lives on formation cards. Mech Lab has returned as its own retained
+surface over `MechBay`, not as a tab in a catch-all screen.
 
 ## Organization and leadership
 
@@ -150,18 +154,22 @@ not silently optimize or reshuffle that materialized result.
 Built-in definitions are authored deterministic distributions rather than live
 best-fit allocators. This makes faction-flavored profiles such as **Sindrian
 Civilian Security Equipment** or **Luddic Path Assault Equipment** explainable in
-preview and stable after issue. **Fleet Assault Equipment** is the built-in
-player assault profile: its twelve exact billets contain one Shattercap frag
-carrier, so the doctrine cannot multiply scarce special stock by team. Future player-authored definitions may expand the
-catalog and editing workflow, but they must still resolve to twelve exact billets
-before the same transaction can commit.
+preview and stable after issue. Player-authored definitions persist in `MarineArmory`
+beside that immutable built-in catalog. Authoring is free and may mix every billet;
+stock, recipes, readiness, and stationing constrain only the later squad issue.
+Edits remain a draft until **Save as New**, so a definition already assigned to a
+squad never silently refits its materialized equipment.
+**Fleet Assault Equipment** is the built-in player assault profile: its twelve
+exact billets contain one Shattercap frag carrier, so the doctrine cannot multiply
+scarce special stock by team. Player-authored definitions must likewise resolve to
+twelve exact billets before the same issue transaction can commit.
 
 Legacy four-billet templates, three-template arrangements, and their persisted ids
 remain readable compatibility input for existing saves; they are no longer writable
-player intent and have no Fleet Armory UI. A legacy squad keeps its current
-per-marine equipment until the player explicitly issues a doctrine pair. The first
-successful squad issue clears stale per-team assignment ids so only one equipment
-authority remains.
+player intent and have no Fleet Armory UI. Load migration composes each complete
+legacy three-template intent into deterministic player-owned Weapon and Armor
+definitions without rewriting any marine's current kit. The first later successful
+squad issue clears stale per-team assignment ids so only one equipment authority remains.
 
 The selectors may be presented as equipment cards in the literal base-game UI
 sense, but card/deck/hand/consumption semantics do not enter the domain. Definitions
@@ -170,12 +178,11 @@ stock.
 
 ## Mech Lab
 
-The Mech Lab remains the intended squad-first surface over `MechBay`; it does not
-reuse personnel doctrine. Campaign mechs retain individual identity inside a
-selected support squad of up to four chassis. Its former Armory Administration tab
-was retired with that shell, so the next presentation slice must return as a focused
-retained surface showing the whole squad, selected mech, fixed chassis mounts,
-installed subsystem, and finite fleet subsystem inventory.
+The Mech Lab is the focused squad-first surface over `MechBay`; it does not reuse
+personnel doctrine. Campaign mechs retain individual identity inside a selected
+support squad of up to four chassis. The retained room shows the whole squad,
+selected mech, fixed chassis mounts, installed subsystem, and finite fleet subsystem
+inventory.
 
 Subsystem assignment is an atomic inventory transaction. Installed copies
 count against owned quantity and the target's current component returns before
@@ -284,16 +291,16 @@ outcomes and practical bulk assignment remain in `c13-the-task-force.md`.
 
 `CompanyViewAbility` opens the planet-free, read-only `CompanyHqScreen` from the
 campaign map. The ability is an entry affordance rather than a timed or toggled
-power. The null-planet host may transition directly only to the armory and
-back; it must not navigate through mission, briefing, battle, result, or loot
+power. The null-planet host may transition directly only to the armory, Mech Lab,
+and back; it must not navigate through mission, briefing, battle, result, or loot
 screens that require a market or live operation. An obligation response is the
 one handoff boundary: it queues the existing campaign event's deployment
 request, then closes the HQ rather than routing through those screens itself.
 
 Company surfaces are places aboard the player's flagship rather than abstract
 application modules. Company HQ is the bridge command station and the nerve center
-for the whole organization. A persistent top shell exposes `RETURN`, `HQ`, and
-`ARMORY`, marks the occupied room, and carries the precise location context at the
+for the whole organization. A persistent top shell exposes `RETURN`, `HQ`,
+`ARMORY`, and `MECH LAB`, marks the occupied room, and carries the precise location context at the
 right. `RETURN` closes the shipboard UI; room routes move directly between top-level
 surfaces. Armory company, squad, and fire-team breadcrumbs remain page-specific below
 that shell, while the bottom of every room is reserved for its own content. Future
@@ -345,9 +352,9 @@ that the formation, whereabouts, and contract-board stories will expand.
 
 ## Presentation boundaries
 
-Company reporting surfaces are read-only explanations. The Fleet Armory is the
-exception that authors personnel organization and equipment through roster,
-armory, and mech-bay services; its UI does not mutate those facts independently. Mission
+Company reporting surfaces are read-only explanations. The Fleet Armory and Mech
+Lab are the exceptions that author equipment through roster, armory, and mech-bay
+services; their UIs do not mutate those facts independently. Mission
 command owns battle assignments; `Selection` remains view state. Campaign
 surfaces consume the live roster, while battle and results surfaces consume the
 frozen deployment. A UI must not silently regroup marines, invent persistence,

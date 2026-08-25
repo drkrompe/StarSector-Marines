@@ -54,6 +54,7 @@ public final class CompanyHqScreen implements Screen {
     private void installDocument() {
         CompanyHqViewModel viewModel = CompanyHqViewModel.current(
                 this::onArmory,
+                this::onMechLab,
                 this::onClose,
                 this::responseAction);
         MarkupInstance candidate = markup.reloadAndBuild(
@@ -83,7 +84,8 @@ public final class CompanyHqScreen implements Screen {
     private static void requireWiredElements(MarkupInstance component) {
         for (String id : List.of(
                 "company-hq-root", "marine-ops-page-nav", "page-nav-return",
-                "page-nav-hq", "page-nav-armory", "company-hq-assessment",
+                "page-nav-hq", "page-nav-armory", "page-nav-mech-lab",
+                "company-hq-assessment",
                 "company-hq-main", "company-hq-sidebar", "company-hq-force",
                 "company-hq-finance", "company-hq-standing", "company-hq-board",
                 "company-hq-obligation-list", "company-hq-news-list")) {
@@ -101,6 +103,10 @@ public final class CompanyHqScreen implements Screen {
 
     private void onArmory() {
         if (context != null) context.openCompanyArmoryFrom(ScreenId.COMPANY_HQ);
+    }
+
+    private void onMechLab() {
+        if (context != null) context.goTo(ScreenId.MECH_LAB);
     }
 
     private void onClose() {
