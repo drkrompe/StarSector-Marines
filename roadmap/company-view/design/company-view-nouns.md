@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — established the shared top room-navigation shell, replaced fire-team templates with squad-wide weapon and armor equipment doctrines, and retired Armory Administration.
+Updated: 2026-08-25 — added the Fleet Assault weapon doctrine and its single fragmentation-grenade carrier.
 
 ## Purpose
 
@@ -150,7 +150,9 @@ not silently optimize or reshuffle that materialized result.
 Built-in definitions are authored deterministic distributions rather than live
 best-fit allocators. This makes faction-flavored profiles such as **Sindrian
 Civilian Security Equipment** or **Luddic Path Assault Equipment** explainable in
-preview and stable after issue. Future player-authored definitions may expand the
+preview and stable after issue. **Fleet Assault Equipment** is the built-in
+player assault profile: its twelve exact billets contain one Shattercap frag
+carrier, so the doctrine cannot multiply scarce special stock by team. Future player-authored definitions may expand the
 catalog and editing workflow, but they must still resolve to twelve exact billets
 before the same transaction can commit.
 

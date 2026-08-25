@@ -5,6 +5,7 @@ import org.json.JSONException;
 /** Closed gameplay-AI policy selected by a special-equipment definition. */
 public enum SpecialAiPolicy {
     HARDENED_DIRECT_FIRE("hardened-direct-fire"),
+    SOFT_CLUSTER_INDIRECT("soft-cluster-indirect"),
     SQUAD_SMOKE_SCREEN("squad-smoke-screen"),
     CONTACT_DEMOLITION("contact-demolition");
 

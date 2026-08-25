@@ -150,6 +150,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SmokeFieldService smokeFields;
     /** Contact-demolition reservations, target attachments, and fuse lifecycle. */
     private final SatchelChargeService satchelCharges;
+    /** Committed anti-personnel grenade footprints used for squad overkill prevention. */
+    private final com.dillon.starsectormarines.battle.grenade.FragGrenadeService fragGrenades;
     /** Alias of {@link NavigationService#getTopology()}. */
     private final CellTopology topology;
     /** Runtime map-modification coordinator: wall breach / roof crack / structure-to-rubble. Sequences the topology writes + navigation walkability/zone-graph writes + the roof-collapse decal sink. Owns behavior {@link NavigationService} no longer holds. */
@@ -427,6 +429,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.grid = navigation.getGrid();
         this.smokeFields = new SmokeFieldService(this.grid);
         this.satchelCharges = new SatchelChargeService();
+        this.fragGrenades = new com.dillon.starsectormarines.battle.grenade.FragGrenadeService();
         this.topology = navigation.getTopology();
         this.zoneGraph = navigation.getZoneGraph();
         this.occupancyMap = navigation.getOccupancyMap();
@@ -523,7 +526,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 rng, topology, shots, damageService,
                 det -> { synchronized (detonations) { detonations.queue(det); } },
                 hitResponse, world, ballisticResolver, rosterService.telemetry());
-        this.infantry = new InfantryWeapons(rosterService, ballisticResolver, shots, rng);
+        this.infantry = new InfantryWeapons(rosterService, ballisticResolver, shots, grid, rng);
         this.firingSystem = new FiringSystem(grid, rosterService);
         this.heavy = new HeavyWeapons(rosterService, grid, ballisticResolver, shots, detonations, rng);
         this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, world, turretFire,
@@ -545,6 +548,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public NavigationGrid getGrid() { return grid; }
     @Override public SmokeFieldService smokeFields() { return smokeFields; }
     @Override public SatchelChargeService satchelCharges() { return satchelCharges; }
+    @Override public com.dillon.starsectormarines.battle.grenade.FragGrenadeService fragGrenades() { return fragGrenades; }
     /** Categorization tags (street / rubble / wall / vehicle / etc.) for renderer + placement filters. Sibling to {@link #grid}; the pathfinder doesn't touch this. */
     public CellTopology getTopology()      { return topology; }
     /** Zone+portal graph layered on the {@link NavigationGrid}. Rebuilt on wall destruction so AI queries reflect the current map. */
@@ -1398,6 +1402,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // Armed contact charges follow their target and resolve through the
         // ordinary AoE/durability pipeline when their fixed fuse expires.
         satchelCharges.tick(TICK_DT, this);
+        com.dillon.starsectormarines.battle.infantry.FragGrenadeTactics.cleanupReservations(this);
         tickProfile.lap(TickProfile.Phase.SATCHELS);
         // Simulated-projectile path — advance each in-flight Projectile by dt,
         // detonate its onArrival payload when remainingTime hits zero, and
@@ -1704,6 +1709,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      */
     public void fireSecondary(long shooter, long target) {
         infantry.fireSecondary(shooter, target);
+    }
+
+    @Override
+    public void throwFragmentationGrenade(long carrier, float targetX, float targetY) {
+        infantry.throwFragmentationGrenade(carrier, targetX, targetY);
+        fragGrenades.release(carrier);
     }
 
     @Override

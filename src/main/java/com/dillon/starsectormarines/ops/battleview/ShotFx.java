@@ -161,7 +161,8 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
         Body body = w.projectileSpritePath() != null
                 ? new Sprite(w.projectileSpritePath(), w.projectileVisualCells())
                 : new Bolt(RAIL_NEEDLE_SPRITE_PATH, w.tracerColor(), 2.2f, 0.20f);
-        return new ShotFx(body, 0f, false, false, false,
+        return new ShotFx(body, w.def().arcHeight, w.def().boostRamp,
+                false, false,
                 w.activation() == SpecialActivation.DIRECT_EXPLOSIVE
                         ? ContrailStyle.MISSILE_SMOKE : null);
     }

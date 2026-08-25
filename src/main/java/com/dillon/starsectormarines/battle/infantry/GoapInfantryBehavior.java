@@ -101,6 +101,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         if (InfantryUnitPrep.tickAimAndShortCircuit(unit, sim)) return false;
         InfantryUnitPrep.tickCooldowns(unit, sim.world());
         if (SatchelTactics.evadeFriendlyCharge(unit, sim)) return false;
+        if (FragGrenadeTactics.evadeKnownGrenade(unit, sim)) return false;
         if (permitsOpportunityFire && InfantryUnitPrep.tryOpportunitySpecial(unit, sim)) return false;
         return true;
     }
