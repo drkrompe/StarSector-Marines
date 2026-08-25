@@ -130,7 +130,19 @@ public final class MarineLoadout {
             float armorMoveSpeedMult, float armorIncomingAccuracyMult) {
         return new MarineLoadout(role, objective, primary, equipmentGrade, soldierProfile,
                 special, campaignSoldierId, armorFamily, armorPool, armorRating,
-                armorMoveSpeedMult, armorIncomingAccuracyMult, true);
+                armorMoveSpeedMult, armorIncomingAccuracyMult, null, true);
+    }
+
+    public static MarineLoadout fromCatalog(
+            UnitRole role, Objective objective, WeaponDef primary,
+            EquipmentGrade equipmentGrade, SoldierProfile soldierProfile,
+            SpecialEquipmentDef special, String campaignSoldierId,
+            LayeredArmorFamily armorFamily, float armorPool, float armorRating,
+            float armorMoveSpeedMult, float armorIncomingAccuracyMult,
+            CampaignSquadTag campaignSquad) {
+        return new MarineLoadout(role, objective, primary, equipmentGrade, soldierProfile,
+                special, campaignSoldierId, armorFamily, armorPool, armorRating,
+                armorMoveSpeedMult, armorIncomingAccuracyMult, campaignSquad, true);
     }
 
     private MarineLoadout(UnitRole role, Objective objective, WeaponDef primary,
@@ -138,8 +150,8 @@ public final class MarineLoadout {
                           SpecialEquipmentDef special, String campaignSoldierId,
                           LayeredArmorFamily armorFamily, float armorPool, float armorRating,
                           float armorMoveSpeedMult, float armorIncomingAccuracyMult,
-                          boolean catalogAuthored) {
-        this.campaignSquad = null;
+                          CampaignSquadTag campaignSquad, boolean catalogAuthored) {
+        this.campaignSquad = campaignSquad;
         this.role = role;
         this.objective = objective;
         this.primaryDef = primary;
