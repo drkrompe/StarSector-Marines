@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -31,12 +32,13 @@ public final class CommandTraceRecorder {
     private List<CompoundService.Record> compounds = List.of();
     private int compoundCount = -1;
     private boolean terminalRecorded;
+    private boolean sealed;
     private int eventCount;
 
     public CommandTraceRecorder(String fixtureKind, String schedulerMode,
                                 int startTick) {
         StringBuilder header = begin("run", startTick);
-        numberField(header, "schemaVersion", 1);
+        numberField(header, "schemaVersion", 2);
         nullableField(header, "fixtureKind", fixtureKind);
         field(header, "schedulerMode", schedulerMode);
         appendLine(end(header));
@@ -44,9 +46,10 @@ public final class CommandTraceRecorder {
 
     /** Poll after a completed simulation tick; unchanged snapshots are ignored. */
     public void sample(BattleSimulation sim) {
+        if (sealed) return;
         for (Faction faction : Faction.values()) {
             CommanderSnapshot<?> snapshot = sim.getCommanderSnapshot(faction);
-            recordPerspective(snapshot);
+            recordPerspective(snapshot, sim.getSimTickIndex());
         }
         sampleCompounds(sim);
         if (sim.isComplete() && !terminalRecorded) {
@@ -56,16 +59,66 @@ public final class CommandTraceRecorder {
             nullableField(out, "winner",
                     sim.getWinner() != null ? sim.getWinner().name() : null);
             appendLine(end(out));
+            sealed = true;
         }
     }
 
     /** Records one newly published snapshot, deduplicated by side and tick. */
     void recordPerspective(CommanderSnapshot<?> snapshot) {
-        if (snapshot == null) return;
+        recordPerspective(snapshot, snapshot != null ? snapshot.tick() : -1);
+    }
+
+    private void recordPerspective(CommanderSnapshot<?> snapshot,
+                                   int observedTick) {
+        if (sealed || snapshot == null) return;
         Integer priorTick = lastPerspectiveTick.get(snapshot.perspective());
         if (priorTick != null && priorTick == snapshot.tick()) return;
         lastPerspectiveTick.put(snapshot.perspective(), snapshot.tick());
-        appendLine(encodePerspective(snapshot));
+        appendLine(encodePerspective(snapshot, observedTick));
+    }
+
+    /** Labels a gap created by disabling live capture without discarding it. */
+    public void recordCapturePaused(int tick) {
+        if (sealed) return;
+        StringBuilder out = begin("control", tick);
+        field(out, "event", "capture-paused");
+        appendLine(end(out));
+    }
+
+    /** Labels the start of a new contiguous observation window. */
+    public void recordCaptureResumed(int tick) {
+        if (sealed) return;
+        lastPerspectiveTick.clear();
+        lastCompoundState.clear();
+        StringBuilder out = begin("control", tick);
+        field(out, "event", "capture-resumed");
+        appendLine(end(out));
+    }
+
+    /** Records one neutral combat loss while trace capture is active. */
+    public void recordCasualty(int tick, long unitId, Faction faction,
+                               UnitType type, int cellX, int cellY) {
+        if (sealed) return;
+        StringBuilder out = begin("referee", tick);
+        field(out, "event", "casualty");
+        longField(out, "unitId", unitId);
+        field(out, "faction", faction.name());
+        field(out, "unitType", type.name());
+        booleanField(out, "combatant", type.combatant);
+        numberField(out, "cellX", cellX);
+        numberField(out, "cellY", cellY);
+        appendLine(end(out));
+    }
+
+    /** Records a bounded-run stop distinctly from a battle outcome. */
+    public void recordTimeout(int tick, int maxTicks) {
+        if (terminalRecorded || sealed) return;
+        terminalRecorded = true;
+        StringBuilder out = begin("referee", tick);
+        field(out, "event", "timeout");
+        numberField(out, "maxTicks", maxTicks);
+        appendLine(end(out));
+        sealed = true;
     }
 
     /** Canonical JSONL: fixed key order, fixed event order, and LF endings. */
@@ -75,6 +128,11 @@ public final class CommandTraceRecorder {
 
     public int eventCount() {
         return eventCount;
+    }
+
+    /** A terminal or timeout row permanently closes this trace. */
+    public boolean isSealed() {
+        return sealed;
     }
 
     private void sampleCompounds(BattleSimulation sim) {
@@ -110,8 +168,10 @@ public final class CommandTraceRecorder {
         eventCount++;
     }
 
-    private static String encodePerspective(CommanderSnapshot<?> snapshot) {
+    private static String encodePerspective(CommanderSnapshot<?> snapshot,
+                                            int observedTick) {
         StringBuilder out = begin("perspective", snapshot.tick());
+        numberField(out, "observedTick", observedTick);
         field(out, "perspective", snapshot.perspective().name());
         field(out, "strategy", snapshot.strategy());
         field(out, "phase", snapshot.phase());
@@ -277,6 +337,19 @@ public final class CommandTraceRecorder {
     private static void numberField(StringBuilder out, String name, int value) {
         out.append(',');
         rawNumberField(out, name, value);
+    }
+
+    private static void longField(StringBuilder out, String name, long value) {
+        out.append(',');
+        name(out, name);
+        out.append(value);
+    }
+
+    private static void booleanField(StringBuilder out, String name,
+                                     boolean value) {
+        out.append(',');
+        name(out, name);
+        out.append(value);
     }
 
     private static void floatField(StringBuilder out, String name, float value) {

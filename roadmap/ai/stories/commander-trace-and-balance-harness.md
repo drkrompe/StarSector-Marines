@@ -1,10 +1,10 @@
 # Commander trace and balance harness
 
-Status: IN PROGRESS — canonical live trace and Conquest command-picture debugging are the first slice; production fixtures, analysis, and batch execution remain.
+Status: IN PROGRESS — live diagnostics, the Conquest construction fixture, canonical trace analysis, and the first reviewed forced-serial baseline are landed; richer physical-progress metrics and intervention comparison remain.
 
 Written: 2026-08-25
 
-Updated: 2026-08-25 — added the shared live/headless trace seam and perspective-specific Conquest visualization to the evidence scope.
+Updated: 2026-08-25 — reviewed the first full canonical matrix, fixed false elimination between shuttle cycles, and recorded the zero-capture baseline.
 
 Read `ai-nouns.md` and `battle-fixtures-nouns.md` before implementing this
 story.
@@ -39,14 +39,14 @@ churned, or collapsed before tuning force budgets or doctrine.
 
 ## Acceptance
 
-- [ ] Repeating a fixture and seed produces byte-stable command events and the
+- [x] Repeating a fixture and seed produces byte-stable command events and the
   same aggregate result.
-- [ ] Each perspective command event identifies its side and uses only facts
+- [x] Each perspective command event identifies its side and uses only facts
   present in that side's published frame/snapshot at the time; neutral referee
   events are labelled and never fed back into command.
-- [ ] A fixture that leaves mobile squads idle, thrashes assignments, or fails
+- [x] A fixture that leaves mobile squads idle, thrashes assignments, or fails
   to progress an actionable objective is reported explicitly.
-- [ ] Conquest produces zero-input duration, outcome, casualty, territorial
+- [x] Conquest produces zero-input duration, outcome, casualty, territorial
   progress, reserve, and response metrics across a documented seed set.
 - [ ] The harness can compare a bounded player intervention with the same
   zero-input baseline once interventions exist, without making input mandatory.
@@ -57,6 +57,47 @@ churned, or collapsed before tuning force budgets or doctrine.
 - [x] A battle-long canonical JSONL stream separates published perspective
   events from labelled neutral compound and terminal events and can be dumped
   from the live debug panel.
+
+## Canonical Conquest matrix
+
+`conquestCommandBalance` runs each entry twice with unit updates forced serial,
+advancing only `BattleSimulation.TICK_DT`, and compares both the JSONL bytes and
+normalized summary bytes. The default 18,000-tick bound is ten simulated
+minutes; an unfinished battle records `TIMEOUT` and remains evidence rather
+than being scored as a defender win.
+
+| Fixture | Seed / axis | Commitment | Authored pressure |
+|---|---|---|---|
+| `undercommitted-south` | 1 / south-to-north | 112 seats over 28 sequential cycles in three Kites (10/9/9) | Reinforced / low risk / no heavy armor |
+| `expected-west` | 4096 / west-to-east | 336 seats over 28 sequential cycles in one Valkyrie | Reinforced / high risk / heavy armor |
+
+Generated traces and timestamp-free summaries live under
+`build/reports/commander/conquest/`. The matrix is intentionally opt-in; normal
+tests cover fixture codecs, production construction, trace schema, and analysis
+contracts without executing full battles. Each canonical invocation performs
+two replays of both full 240×160 fixtures—72,000 bounded simulation ticks before
+early terminal results—and may take several minutes. A max-tick or external-
+fixture override is labelled ad hoc in the report; `summary.json` is the full
+machine-readable evidence and `summary.md` is its human overview.
+
+## First canonical baseline
+
+The 2026-08-25 forced-serial run reached the bound on both fixtures, with both
+replays byte-identical. A mission-rule defect initially declared defender
+victory during the empty-ground rearm interval; future committed shuttle cycles
+now keep the attacker in play, so the published evidence records timeouts
+rather than fabricated losses.
+
+| Fixture | Result | Marine / defender losses | Territory |
+|---|---|---:|---|
+| `undercommitted-south` | TIMEOUT at 18,000 | 111 / 52 | 0 captures; STALLED |
+| `expected-west` | TIMEOUT at 18,000 | 252 / 30 | 0 captures; STALLED |
+
+This is not a balance verdict. It establishes that assignment churn and
+command-unassigned time are near zero while physical territorial progress is
+also zero, so the next evidence slice must measure squad travel, contact,
+assault entry, and capture-zone presence before doctrine or force budgets are
+tuned.
 
 ## Constraints
 

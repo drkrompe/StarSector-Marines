@@ -1,0 +1,120 @@
+package com.dillon.starsectormarines.battle.command.trace;
+
+import com.dillon.starsectormarines.battle.command.trace.CommandTraceAnalyzer.Analysis;
+import com.dillon.starsectormarines.battle.command.trace.CommandTraceAnalyzer.ConquestMetrics;
+import com.dillon.starsectormarines.battle.command.trace.CommandTraceAnalyzer.FactionMetrics;
+import com.dillon.starsectormarines.battle.command.trace.CommandTraceAnalyzer.RunMetrics;
+import com.dillon.starsectormarines.battle.command.trace.CommandTraceAnalyzer.Termination;
+import com.dillon.starsectormarines.battle.fixture.BattleFixtureTestSupport;
+import com.dillon.starsectormarines.battle.fixture.ConquestBattleFixture;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+class ConquestCommandBalanceReportTest {
+
+    @TempDir
+    Path tempDir;
+
+    @Test
+    void publishesACompleteStagedReportOverPriorEvidence() throws Exception {
+        Path output = tempDir.resolve("conquest");
+        Files.createDirectories(output);
+        Files.writeString(output.resolve("summary.md"), "prior evidence");
+        Files.writeString(output.resolve("old-marker"), "old");
+        Path staging = tempDir.resolve("staging");
+        Files.createDirectories(staging.resolve("traces"));
+        Files.writeString(staging.resolve("summary.md"), "new evidence");
+        Files.writeString(staging.resolve("summary.json"), "{}\n");
+        Files.writeString(staging.resolve("traces/run.jsonl"), "trace\n");
+
+        assertEquals("prior evidence",
+                Files.readString(output.resolve("summary.md")));
+        ConquestCommandBalanceTest.publishReports(staging, output);
+
+        assertEquals("new evidence",
+                Files.readString(output.resolve("summary.md")));
+        assertTrue(Files.exists(output.resolve("summary.json")));
+        assertTrue(Files.exists(output.resolve("traces/run.jsonl")));
+        assertFalse(Files.exists(output.resolve("old-marker")));
+        assertFalse(Files.exists(staging));
+        try (var siblings = Files.list(tempDir)) {
+            assertEquals(List.of("conquest"), siblings
+                    .map(path -> path.getFileName().toString())
+                    .sorted().toList());
+        }
+    }
+
+    @Test
+    void reportLabelsProvenanceAndMobilizationPrecisely() throws Exception {
+        ConquestBattleFixture fixture =
+                BattleFixtureTestSupport.loadConquestFixture();
+        FactionMetrics marine = factionMetrics(List.of());
+        FactionMetrics defender = factionMetrics(List.of(75, 150));
+        Analysis analysis = new Analysis(
+                new RunMetrics("CONQUEST", "SERIAL_DETERMINISTIC",
+                        0, 600, 600, Termination.TIMEOUT, null, false, 1,
+                        Map.of(Faction.MARINE, 2, Faction.DEFENDER, 3)),
+                Map.of(Faction.MARINE, marine, Faction.DEFENDER, defender),
+                new ConquestMetrics(4, 0, 1, 1, 1, 0, -1, 600, false));
+        String sha = "0123456789abcdef0123456789abcdef"
+                + "0123456789abcdef0123456789abcdef";
+        ConquestCommandBalanceTest.ReportRow row =
+                new ConquestCommandBalanceTest.ReportRow(
+                        "fixture", sha, fixture, analysis);
+
+        String json = ConquestCommandBalanceTest.summaryJson(
+                List.of(row), 600, false);
+        String markdown = ConquestCommandBalanceTest.summaryMarkdown(
+                List.of(row), 600, false);
+
+        assertTrue(json.contains("\"schedulerMode\":\"SERIAL_DETERMINISTIC\""));
+        assertTrue(json.contains("\"maxTicks\":600"));
+        assertTrue(json.contains("\"repeatCount\":2"));
+        assertTrue(json.contains("\"canonicalMatrix\":false"));
+        assertTrue(json.contains("\"fixtureSha256\":\"" + sha + "\""));
+        assertTrue(markdown.contains("Evidence mode: ad hoc override"));
+        assertTrue(markdown.contains("mobilization latencies: [75, 150]"));
+        assertTrue(markdown.contains("territorial progress: OBSERVED"));
+        assertFalse(markdown.contains("response latencies"));
+        assertEquals("fixture-0123456789ab",
+                ConquestCommandBalanceTest.reportId("fixture", true, sha));
+        assertEquals("fixture",
+                ConquestCommandBalanceTest.reportId("fixture", false, sha));
+    }
+
+    @Test
+    void failedPublishRestoresPriorEvidenceAndCleansRollbackDirectory()
+            throws Exception {
+        Path output = tempDir.resolve("conquest");
+        Files.createDirectories(output);
+        Files.writeString(output.resolve("summary.md"), "prior evidence");
+
+        assertThrows(Exception.class, () ->
+                ConquestCommandBalanceTest.publishReports(
+                        tempDir.resolve("missing-staging"), output));
+
+        assertEquals("prior evidence",
+                Files.readString(output.resolve("summary.md")));
+        try (var siblings = Files.list(tempDir)) {
+            assertEquals(List.of("conquest"), siblings
+                    .map(path -> path.getFileName().toString())
+                    .sorted().toList());
+        }
+    }
+
+    private static FactionMetrics factionMetrics(List<Integer> latencies) {
+        return new FactionMetrics(3, 1, 0, 0, 0, 2,
+                0, 0, 0, 0, 75L, latencies, 0, 6_000);
+    }
+}

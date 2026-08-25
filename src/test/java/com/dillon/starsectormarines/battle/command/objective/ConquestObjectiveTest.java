@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.battle.command.objective;
 
+import com.dillon.starsectormarines.battle.air.ShuttleMission;
+import com.dillon.starsectormarines.battle.air.ShuttleState;
+import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -168,6 +171,29 @@ public class ConquestObjectiveTest {
         obj.tick(sim);
         assertFalse(obj.isComplete(),
                 "no live marine → objective must not complete; defender wins via elimination");
+    }
+
+    @Test
+    public void eliminationWaitsForCommittedFutureShuttleCycles() {
+        BattleSimulation sim = openSim();
+        long shuttle = sim.spawnShuttle(ShuttleType.KITE, Faction.MARINE,
+                5.5f, 5.5f, -2f, 5.5f, 12f, 5.5f, 0f);
+        ShuttleMission mission = sim.world().mission(shuttle);
+        mission.marinesRemaining = 0;
+        mission.state = ShuttleState.DEPARTING;
+        mission.currentCycle = 0;
+        mission.totalCycles = 2;
+        EliminateFactionObjective objective = new EliminateFactionObjective(
+                Faction.DEFENDER, Faction.MARINE);
+
+        objective.tick(sim);
+        assertFalse(objective.isComplete(),
+                "an offstage committed sortie keeps the attacker in play");
+
+        mission.currentCycle = 1;
+        objective.tick(sim);
+        assertTrue(objective.isComplete(),
+                "the last empty departing sortie no longer prevents defeat");
     }
 
     @Test

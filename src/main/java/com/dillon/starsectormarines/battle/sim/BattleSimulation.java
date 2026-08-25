@@ -27,6 +27,7 @@ import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.vehicle.MapVehicle;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.DeathEvent;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -496,6 +497,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // are harmless tracker no-ops.
         deathDispatcher.subscribe(event ->
                 civilianEvacuation.markLost(event.unitId()));
+        deathDispatcher.subscribe(this::recordCommandTraceCasualty);
         this.facingSystem = new FacingSystem(entityWorld, battleComponents, rosterService);
         this.mechLocomotionSystem = new com.dillon.starsectormarines.battle.mech.MechLocomotionSystem(
                 entityWorld, battleComponents, rosterService);
@@ -1097,7 +1099,22 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (enabled && commandTrace == null) {
             commandTrace = new CommandTraceRecorder(fixtureKind,
                     commandTraceSchedulerMode(), simTickIndex);
+            commandTraceEnabled = true;
+            commandTrace.sample(this);
+            return;
         }
+        if (enabled && commandTrace.isSealed()) {
+            commandTraceEnabled = false;
+            return;
+        }
+        if (enabled == commandTraceEnabled) return;
+        if (enabled) {
+            commandTrace.recordCaptureResumed(simTickIndex);
+            commandTraceEnabled = true;
+            commandTrace.sample(this);
+            return;
+        }
+        commandTrace.recordCapturePaused(simTickIndex);
         commandTraceEnabled = enabled;
     }
 
@@ -1107,6 +1124,22 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     public String getCommandTraceJsonLines() {
         return commandTrace != null ? commandTrace.canonicalJsonLines() : "";
+    }
+
+    /** Labels an external headless-run bound without fabricating a winner. */
+    public void recordCommandTraceTimeout(int maxTicks) {
+        if (commandTraceEnabled && commandTrace != null && !complete) {
+            commandTrace.recordTimeout(simTickIndex, maxTicks);
+            commandTraceEnabled = false;
+        }
+    }
+
+    private void recordCommandTraceCasualty(DeathEvent event) {
+        if (!commandTraceEnabled || commandTrace == null) return;
+        long unitId = event.unitId();
+        commandTrace.recordCasualty(simTickIndex, unitId,
+                identity().faction(unitId), identity().type(unitId),
+                event.cellX(), event.cellY());
     }
 
     private static String commandTraceSchedulerMode() {
