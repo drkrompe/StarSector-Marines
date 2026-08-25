@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.marine.EquipmentLayerDef;
 import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import org.json.JSONObject;
@@ -86,6 +87,14 @@ public final class HeadlessArmoryPreviewRenderer {
             }
             equipment.validateReferences();
             SpecialEquipmentRegistry.install(equipment);
+        }
+        if (MarineArmorCatalogRegistry.installed() == null) {
+            MarineArmorCatalogRegistry armor = new MarineArmorCatalogRegistry();
+            for (String path : MarineArmorCatalogRegistry.BUILTIN_CATALOGS) {
+                armor.ingest(new JSONObject(Files.readString(modRoot.resolve(path))));
+            }
+            armor.validateCompleteness();
+            MarineArmorCatalogRegistry.install(armor);
         }
     }
 
