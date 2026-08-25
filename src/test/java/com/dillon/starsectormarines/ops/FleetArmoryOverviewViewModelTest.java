@@ -24,6 +24,7 @@ class FleetArmoryOverviewViewModelTest {
 
     private static final float EPSILON = 0.01f;
     private static final List<String> COMPONENTS = List.of(
+            "mod/data/ui/components/marine-ops-page-nav.mlx",
             "mod/data/ui/components/armory/fleet-armory-overview.mlx",
             "mod/data/ui/components/armory/armory-company-list.mlx");
 
@@ -96,10 +97,17 @@ class FleetArmoryOverviewViewModelTest {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("fleetSummary", viewModel.fleetSummary());
         props.put("companyCards", viewModel.companyCards());
-        props.put("back", (Runnable) () -> { });
-        props.put("legacy", (Runnable) () -> { });
-        props.put("reload", (Runnable) () -> { });
-        props.put("reloadStatus", "Test");
+        putPageNavigation(props);
         return props;
+    }
+
+    private static void putPageNavigation(Map<String, Object> props) {
+        props.put("returnAction", (Runnable) () -> { });
+        props.put("hqAction", (Runnable) () -> { });
+        props.put("armoryAction", (Runnable) () -> { });
+        props.put("hqClasses", "");
+        props.put("hqDisabled", false);
+        props.put("armoryClasses", "selected page-nav-current");
+        props.put("armoryDisabled", false);
     }
 }

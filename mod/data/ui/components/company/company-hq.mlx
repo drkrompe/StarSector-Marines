@@ -1,9 +1,6 @@
-<template props="title,purpose,location,assessmentHeader,ratingHeader,rating,ratingScore,assessment,statusHeader,statusCards,financeHeader,runway,runwayCaption,runwayClasses,financeRows,standingHeader,employers,employerEmpty,boardHeader,boardIntro,obligationsHeader,obligations,obligationEmpty,newsHeader,newsPosts,newsEmpty,footerActions">
+<template props="purpose,returnAction,hqAction,armoryAction,hqClasses,hqDisabled,armoryClasses,armoryDisabled,assessmentHeader,ratingHeader,rating,ratingScore,assessment,statusHeader,statusCards,financeHeader,runway,runwayCaption,runwayClasses,financeRows,standingHeader,employers,employerEmpty,boardHeader,boardIntro,obligationsHeader,obligations,obligationEmpty,newsHeader,newsPosts,newsEmpty">
   <div id="company-hq-root" class="company-hq-root">
-    <div id="company-hq-header" class="panel surface-dark">
-      <div id="company-hq-title" class="label title tone-accent">{title}</div>
-      <div id="company-hq-purpose" class="label tone-edge">{purpose}</div>
-    </div>
+    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" armoryAction="{armoryAction}" hqClasses="{hqClasses}" hqDisabled="{hqDisabled}" armoryClasses="{armoryClasses}" armoryDisabled="{armoryDisabled}" contextLabel="{purpose}" />
 
     <div id="company-hq-assessment" class="panel assessment-panel">
       <div id="company-hq-rating" class="rating-block edge-surface">
@@ -93,12 +90,6 @@
       </div>
     </div>
 
-    <div id="company-hq-footer" class="panel surface-dark">
-      <div id="company-hq-location" class="label heading tone-edge">{location}</div>
-      <div id="company-hq-routes" class="route-list">
-        <button each="action in footerActions" key="{action.id}" id="{action.id}" class="{action.classes}" onclick="{action.action}">{action.label}</button>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -113,17 +104,6 @@
 
   .label { overflow: hidden; }
   .heading { font-family: heading; }
-  .title { font-family: title; }
-
-  #company-hq-header {
-    flex-direction: row;
-    height: 34px;
-    padding: 7px 8px;
-    gap: 10px;
-  }
-
-  #company-hq-title { width: 260px; }
-  #company-hq-purpose { flex-grow: 1; text-align: right; }
 
   .assessment-panel {
     flex-direction: row;
@@ -192,9 +172,4 @@
   .rumor-surface { background-color: #172638; border-color: #6ed7ff; }
   .empty-copy { height: 22px; padding: 3px; }
 
-  #company-hq-footer { flex-direction: row; height: 34px; padding: 4px; gap: 6px; }
-  #company-hq-location { flex-grow: 1; padding: 5px 7px; }
-  .route-list { flex-direction: row; width: 586px; gap: 6px; }
-  #company-hq-footer button { width: 190px; padding: 4px 8px; border-width: 1px; overflow: hidden; font-family: heading; text-align: center; }
-  #company-hq-footer .primary-action { background-color: #183b50; border-color: #ffd464; color: #ffd464; }
 </style>

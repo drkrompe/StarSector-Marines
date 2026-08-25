@@ -763,6 +763,155 @@ public class MarineRoster implements Serializable {
         return false;
     }
 
+    /**
+     * Previews one squad-wide pair of equipment definitions. Primaries, grades and
+     * specials come from the weapon doctrine; protection comes from the armour doctrine.
+     * The exact returned/required calculation is reused by {@link #applySquadEquipment}.
+     */
+    public SquadEquipmentPreview previewSquadEquipment(
+            String squadId, String weaponDoctrineId, String armorDoctrineId) {
+        MarineSquad squad = squadById(squadId);
+        if (squad == null || squad.reserve()) {
+            return squadEquipmentFailure(SquadEquipmentResult.INVALID_SQUAD);
+        }
+        SquadWeaponDoctrine weapons = SquadEquipmentDoctrines.weaponById(weaponDoctrineId);
+        if (weapons == null) {
+            return squadEquipmentFailure(SquadEquipmentResult.UNKNOWN_WEAPON_DOCTRINE);
+        }
+        SquadArmorDoctrine armor = SquadEquipmentDoctrines.armorById(armorDoctrineId);
+        if (armor == null) {
+            return squadEquipmentFailure(SquadEquipmentResult.UNKNOWN_ARMOR_DOCTRINE);
+        }
+
+        List<SquadEquipmentBillet> billets = new ArrayList<>();
+        for (int index = 0; index < MarineSquad.CAPACITY; index++) {
+            SquadWeaponIssue weapon = weapons.issue(index);
+            billets.add(new SquadEquipmentBillet(
+                    weapon.role(), weapon.primary(), weapon.grade(),
+                    weapon.specialEquipmentId(), armor.issue(index)));
+        }
+        if (squad.stationed()) {
+            return new SquadEquipmentPreview(
+                    SquadEquipmentResult.STATIONED, billets, Collections.emptyList());
+        }
+
+        List<String> memberIds = manningMemberIds(squad);
+        if (memberIds.size() != MarineSquad.CAPACITY) {
+            return new SquadEquipmentPreview(
+                    SquadEquipmentResult.SQUAD_NOT_READY, billets, Collections.emptyList());
+        }
+        List<MarineSoldier> members = new ArrayList<>();
+        for (String memberId : memberIds) {
+            MarineSoldier soldier = soldierById(memberId);
+            if (soldier == null || soldier.status() != MarineSoldierStatus.ACTIVE) {
+                return new SquadEquipmentPreview(
+                        SquadEquipmentResult.SQUAD_NOT_READY, billets, Collections.emptyList());
+            }
+            members.add(soldier);
+        }
+
+        Map<PrimaryIssue, Integer> requiredPrimaries = new HashMap<>();
+        Map<MarineArmorPattern, Integer> requiredArmor = new HashMap<>();
+        Map<MarineSecondary, Integer> requiredSpecials = new HashMap<>();
+        Map<PrimaryIssue, Integer> returnedPrimaries = new HashMap<>();
+        Map<MarineArmorPattern, Integer> returnedArmor = new HashMap<>();
+        Map<MarineSecondary, Integer> returnedSpecials = new HashMap<>();
+        boolean unlocked = true;
+
+        for (SquadEquipmentBillet billet : billets) {
+            PrimaryIssue primary = new PrimaryIssue(billet.primary(), billet.grade());
+            requiredPrimaries.merge(primary, 1, Integer::sum);
+            requiredArmor.merge(billet.armor(), 1, Integer::sum);
+            MarineSecondary special = billet.special();
+            if (special != null) requiredSpecials.merge(special, 1, Integer::sum);
+            unlocked &= armory.isPrimaryUnlocked(billet.primary(), billet.grade())
+                    && armory.isArmorUnlocked(billet.armor())
+                    && (special == null || armory.isSecondaryUnlocked(special));
+        }
+        for (MarineSoldier soldier : members) {
+            returnedPrimaries.merge(
+                    new PrimaryIssue(soldier.primary(), soldier.primaryGrade()),
+                    1, Integer::sum);
+            returnedArmor.merge(soldier.armor(), 1, Integer::sum);
+            if (soldier.secondary() != null) {
+                returnedSpecials.merge(soldier.secondary(), 1, Integer::sum);
+            }
+        }
+
+        List<FireTeamGearDelta> gear = new ArrayList<>();
+        for (MarineWeapon weapon : MarineWeapon.values()) {
+            for (EquipmentGrade grade : EquipmentGrade.values()) {
+                PrimaryIssue issue = new PrimaryIssue(weapon, grade);
+                int returned = returnedPrimaries.getOrDefault(issue, 0);
+                int required = requiredPrimaries.getOrDefault(issue, 0);
+                if (returned == 0 && required == 0) continue;
+                gear.add(new FireTeamGearDelta(FireTeamGearDelta.Kind.PRIMARY,
+                        weapon.catalogName(grade), freePrimary(issue), returned, required));
+            }
+        }
+        for (MarineArmorPattern pattern : MarineArmorPattern.values()) {
+            int returned = returnedArmor.getOrDefault(pattern, 0);
+            int required = requiredArmor.getOrDefault(pattern, 0);
+            if (returned == 0 && required == 0) continue;
+            gear.add(new FireTeamGearDelta(FireTeamGearDelta.Kind.ARMOR,
+                    pattern.displayName, freeArmor(pattern), returned, required));
+        }
+        for (MarineSecondary special : MarineSecondary.values()) {
+            int returned = returnedSpecials.getOrDefault(special, 0);
+            int required = requiredSpecials.getOrDefault(special, 0);
+            if (returned == 0 && required == 0) continue;
+            gear.add(new FireTeamGearDelta(FireTeamGearDelta.Kind.SPECIAL,
+                    special.displayName(), freeSecondary(special), returned, required));
+        }
+
+        SquadEquipmentResult result = unlocked
+                ? squadEquipmentInsufficiency(gear) : SquadEquipmentResult.LOCKED_RECIPE;
+        return new SquadEquipmentPreview(result, billets, gear);
+    }
+
+    /** Applies both squad definition slots atomically and materializes all twelve kits. */
+    public SquadEquipmentResult applySquadEquipment(
+            String squadId, String weaponDoctrineId, String armorDoctrineId) {
+        SquadEquipmentPreview preview = previewSquadEquipment(
+                squadId, weaponDoctrineId, armorDoctrineId);
+        if (!preview.canApply()) return preview.result();
+        MarineSquad squad = squadById(squadId);
+        List<String> memberIds = manningMemberIds(squad);
+        for (int index = 0; index < memberIds.size(); index++) {
+            MarineSoldier soldier = soldierById(memberIds.get(index));
+            SquadEquipmentBillet billet = preview.billet(index);
+            soldier.setPrimary(billet.primary(), billet.grade());
+            soldier.setSecondary(billet.special());
+            soldier.setArmor(billet.armor());
+        }
+        squad.setEquipmentDoctrineIds(weaponDoctrineId, armorDoctrineId);
+        return SquadEquipmentResult.APPLIED;
+    }
+
+    private static SquadEquipmentPreview squadEquipmentFailure(SquadEquipmentResult result) {
+        return new SquadEquipmentPreview(result, Collections.emptyList(), Collections.emptyList());
+    }
+
+    private static SquadEquipmentResult squadEquipmentInsufficiency(
+            List<FireTeamGearDelta> gear) {
+        for (FireTeamGearDelta delta : gear) {
+            if (delta.kind() == FireTeamGearDelta.Kind.PRIMARY && !delta.sufficient()) {
+                return SquadEquipmentResult.INSUFFICIENT_PRIMARIES;
+            }
+        }
+        for (FireTeamGearDelta delta : gear) {
+            if (delta.kind() == FireTeamGearDelta.Kind.ARMOR && !delta.sufficient()) {
+                return SquadEquipmentResult.INSUFFICIENT_ARMOR;
+            }
+        }
+        for (FireTeamGearDelta delta : gear) {
+            if (delta.kind() == FireTeamGearDelta.Kind.SPECIAL && !delta.sufficient()) {
+                return SquadEquipmentResult.INSUFFICIENT_SPECIALS;
+            }
+        }
+        return SquadEquipmentResult.APPLIED;
+    }
+
     /** Company-wide use and free-stock capacity for one reusable design. */
     public FireTeamTemplateAvailability fireTeamTemplateAvailability(String cardId) {
         FireTeamTemplateCard card = armory.templateCardById(cardId);

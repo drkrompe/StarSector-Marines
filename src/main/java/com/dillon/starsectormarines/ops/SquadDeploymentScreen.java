@@ -97,7 +97,7 @@ public final class SquadDeploymentScreen implements Screen {
         addButton(left, position.getY() + PAD, 160f, "Back to Briefing",
                 () -> ctx.goTo(ScreenId.BRIEFING), HEADER);
         addButton(left + 172f, position.getY() + PAD, 184f, "Manage Personnel",
-                () -> ctx.openArmoryFrom(ScreenId.SQUAD_DEPLOYMENT, capacity), HEADER);
+                () -> ctx.openCompanyArmoryFrom(ScreenId.SQUAD_DEPLOYMENT), HEADER);
     }
 
     /** Names the officer who would take this squad out, when it is not the commander. */

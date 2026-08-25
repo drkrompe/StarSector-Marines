@@ -252,7 +252,7 @@ public final class MarineArmory implements Serializable {
         printedGear.put(primaryKey(MarineWeapon.PULSE_RIFLE, EquipmentGrade.SERVICE), 12);
         printedGear.put(primaryKey(MarineWeapon.PULSE_RIFLE, EquipmentGrade.SURPLUS), 1);
         printedGear.put(primaryKey(MarineWeapon.SMG, EquipmentGrade.SERVICE), 3);
-        printedGear.put(primaryKey(MarineWeapon.SQUAD_AUTOMATIC, EquipmentGrade.SERVICE), 2);
+        printedGear.put(primaryKey(MarineWeapon.SQUAD_AUTOMATIC, EquipmentGrade.SERVICE), 3);
         printedGear.put(primaryKey(MarineWeapon.DMR, EquipmentGrade.SERVICE), 3);
         printedGear.put(secondaryKey(MarineSecondary.ROCKET_LAUNCHER), 2);
         printedGear.put(secondaryKey(MarineSecondary.ANTI_MATERIEL_RIFLE), 1);
@@ -324,7 +324,7 @@ public final class MarineArmory implements Serializable {
         // Existing saves predate the recruit-grade field rifle recipe.
         unlockPrimary(MarineWeapon.FIELD_RIFLE, EquipmentGrade.SERVICE);
         unlockPrimary(MarineWeapon.SQUAD_AUTOMATIC, EquipmentGrade.SERVICE);
-        putAtLeast(primaryKey(MarineWeapon.SQUAD_AUTOMATIC, EquipmentGrade.SERVICE), 2);
+        putAtLeast(primaryKey(MarineWeapon.SQUAD_AUTOMATIC, EquipmentGrade.SERVICE), 3);
         unlockSecondary(MarineSecondary.ANTI_MATERIEL_RIFLE);
         putAtLeast(secondaryKey(MarineSecondary.ANTI_MATERIEL_RIFLE), 1);
         unlockSecondary(MarineSecondary.SMOKE_GRENADE);

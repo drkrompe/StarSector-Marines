@@ -61,7 +61,7 @@ class MarineArmoryTest {
         MarineArmory armory = new MarineArmory();
         assertTrue(armory.isPrimaryUnlocked(
                 MarineWeapon.SQUAD_AUTOMATIC, EquipmentGrade.SERVICE));
-        assertEquals(2, armory.ownedPrimary(
+        assertEquals(3, armory.ownedPrimary(
                 MarineWeapon.SQUAD_AUTOMATIC, EquipmentGrade.SERVICE));
         assertFalse(armory.isPrimaryUnlocked(
                 MarineWeapon.SQUAD_AUTOMATIC, EquipmentGrade.MILSPEC));
@@ -79,7 +79,7 @@ class MarineArmoryTest {
 
         assertNotNull(fireSupport);
         assertEquals(MarineWeapon.SQUAD_AUTOMATIC, fireSupport.billet(1).primary());
-        assertEquals(2, loaded.ownedPrimary(
+        assertEquals(3, loaded.ownedPrimary(
                 MarineWeapon.SQUAD_AUTOMATIC, EquipmentGrade.SERVICE));
     }
 
