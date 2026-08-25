@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -189,12 +190,20 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         Phase phase = activeThreats.isEmpty() ? Phase.LANE_ADVANCE : Phase.FRONT_ADJUST;
         ConquestFrontSnapshot detail = buildFrontSnapshot(frame, influence,
                 threats, directives, allSquads, phase);
-        List<CommandProposal> proposals = buildProposals(frame, allSquads, directives);
+        List<CommandProposal> proposals = buildProposals(
+                frame, allSquads, directives, threats);
         return new CommandPlan<>(faction(), strategyId(), phase.name(), frame.tick(),
                 influence != null ? influence.updatedTick() : -1,
                 candidates.size(), candidates.size() - selected.size(),
                 List.of("active threat tracks=" + activeThreats.size()),
                 proposals, detail);
+    }
+
+    @Override
+    public CommanderSnapshot<ConquestFrontSnapshot> reconcile(
+            CommanderSnapshot<ConquestFrontSnapshot> snapshot) {
+        return snapshot.withDetail(snapshot.detail().reconcileStableDirectives(
+                snapshot, frontSnapshot, strategyId()));
     }
 
     @Override
@@ -453,7 +462,8 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
     private List<CommandProposal> buildProposals(
             ConquestCommandFrame frame,
             Map<Integer, PlanningSquad> squads,
-            Map<Integer, SquadDirective> directives) {
+            Map<Integer, SquadDirective> directives,
+            Threat[] threats) {
         List<CommandProposal> proposals = new ArrayList<>();
         for (Map.Entry<Integer, SquadDirective> entry : directives.entrySet()) {
             int squadId = entry.getKey();
@@ -461,6 +471,9 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             CommandSquadState frozen = frame.squad(squadId);
             if (planned == null || frozen == null) continue;
             String reason = entry.getValue().reason().name();
+            CommandStabilityBreak stabilityBreak = stabilityBreak(
+                    frame, planned, frozen.directive(), entry.getValue().reason(),
+                    threats);
             if (hasHigherAuthority(planned)
                     || planned.assignedObjective != null
                     && planned.assignedObjective.kind() != AssignmentKind.DEFEND_TRACK) {
@@ -468,15 +481,50 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                         CommandAuthority.MISSION_COMMAND, reason));
             } else if (planned.assignedObjective != null) {
                 proposals.add(CommandProposal.assign(planned.assignedObjective,
-                        CommandAuthority.MISSION_COMMAND, reason));
+                        CommandAuthority.MISSION_COMMAND, reason, stabilityBreak));
             } else if (frozen.assignment() != null) {
                 proposals.add(CommandProposal.release(squadId,
-                        CommandAuthority.MISSION_COMMAND, reason));
+                        CommandAuthority.MISSION_COMMAND, reason, stabilityBreak));
             } else {
                 proposals.add(CommandProposal.retain(squadId,
                         CommandAuthority.MISSION_COMMAND, reason));
             }
         }
         return proposals;
+    }
+
+    private CommandStabilityBreak stabilityBreak(
+            ConquestCommandFrame frame, PlanningSquad squad,
+            CommandDirective incumbent, AssignmentReason reason,
+            Threat[] threats) {
+        if (incumbent == null || incumbent.assignment() == null
+                || !strategyId().equals(incumbent.issuer())
+                || Objects.equals(incumbent.assignment(), squad.assignedObjective)) {
+            return CommandStabilityBreak.NONE;
+        }
+        ObjectiveAssignment old = incumbent.assignment();
+        if (old.kind() != AssignmentKind.DEFEND_TRACK) {
+            return CommandStabilityBreak.NONE;
+        }
+        if (reason == AssignmentReason.DEFENDER_LOCAL_CONTACT) {
+            return CommandStabilityBreak.CONTEXT_INVALIDATED;
+        }
+        if (!frame.topology().inBounds(old.targetCellX(), old.targetCellY())
+                || !frame.topology().isWalkable(
+                old.targetCellX(), old.targetCellY())
+                || !frame.topology().reachable(squad.anchorCellX,
+                squad.anchorCellY, old.targetCellX(), old.targetCellY())) {
+            return CommandStabilityBreak.TARGET_UNREACHABLE;
+        }
+        SquadDirective prior = frontSnapshot != null
+                ? frontSnapshot.directiveFor(squad.id) : null;
+        int priorTrack = prior != null ? prior.effectiveTrack()
+                : trackLayout.trackForCell(
+                old.targetCellX(), old.targetCellY());
+        if (priorTrack < 0 || priorTrack >= threats.length
+                || !threats[priorTrack].active()) {
+            return CommandStabilityBreak.CONTEXT_INVALIDATED;
+        }
+        return CommandStabilityBreak.NONE;
     }
 }

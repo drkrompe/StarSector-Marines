@@ -138,7 +138,7 @@ class SquadPlanDebugPanelTest {
                 SquadPlanDebugPanel.directiveSummary(committed));
         assertEquals("Issuer conquest-attacker   Reason ADJACENT_TRACK_SUPPORT",
                 SquadPlanDebugPanel.provenanceSummary(committed));
-        assertEquals("Issued 44   Lease —   Disposition —",
+        assertEquals("Issued 44   Stable —   Lease —   Disposition —",
                 SquadPlanDebugPanel.stabilitySummary(committed));
         assertEquals("Track P2→E1   Front F0.72/H0.68   Press 5.4/4.2",
                 SquadPlanDebugPanel.trackSummary(snapshot, directive));

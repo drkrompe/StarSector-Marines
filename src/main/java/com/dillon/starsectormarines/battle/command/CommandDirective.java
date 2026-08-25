@@ -13,6 +13,7 @@ public record CommandDirective(
         String reason,
         ObjectiveAssignment assignment,
         int issuedTick,
+        int stableUntilTick,
         int leaseUntilTick,
         Status status,
         String dispositionReason) {
@@ -28,6 +29,16 @@ public record CommandDirective(
         dispositionReason = dispositionReason == null ? "" : dispositionReason;
     }
 
+    /** Compatibility constructor for non-mission fixtures without a stability floor. */
+    public CommandDirective(int squadId, Faction perspective, String issuer,
+                            CommandAuthority authority, String reason,
+                            ObjectiveAssignment assignment, int issuedTick,
+                            int leaseUntilTick, Status status,
+                            String dispositionReason) {
+        this(squadId, perspective, issuer, authority, reason, assignment,
+                issuedTick, -1, leaseUntilTick, status, dispositionReason);
+    }
+
     public boolean ownsAssignment() {
         return assignment != null && ownsSquad();
     }
@@ -35,5 +46,9 @@ public record CommandDirective(
     /** True when this directive owns the squad, even without a tactical assignment. */
     public boolean ownsSquad() {
         return status == Status.ACTIVE || status == Status.RETAINED;
+    }
+
+    public boolean isStableAt(int tick) {
+        return stableUntilTick >= tick;
     }
 }

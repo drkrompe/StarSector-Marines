@@ -912,6 +912,35 @@ public class ConquestCommandTest {
     }
 
     @Test
+    public void completedCompoundImmediatelyReleasesStableCaptureDirective() {
+        BattleSimulation sim = compoundAt(15);
+        registerCompound(sim, new TacticalNode(TacticalNode.Kind.ARMORY,
+                15, 5, 14, 4, 16, 6, Faction.DEFENDER, 80, 4));
+        Squad squad = addMarineSquad(sim, 2f, 1f);
+        ConquestCommand command = new ConquestCommand(
+                TraversalAxis.SOUTH_TO_NORTH);
+        CommanderService service = new CommanderService();
+        service.setAutonomousCommander(Faction.MARINE, command,
+                ConquestCommandDisclosure.INSTANCE);
+
+        service.tick(CommanderService.COMMANDER_TICK_PERIOD, sim);
+        CommandDirective first = service.assignments().activeDirective(squad.id);
+        assertEquals(AssignmentKind.SECURE_COMPOUND,
+                squad.assignedObjective.kind());
+        assertTrue(first.isStableAt(sim.getSimTickIndex()));
+
+        sim.getCompoundService().getRecords().iterator().next().state =
+                CompoundService.CompoundState.MARINE_HELD;
+        service.tick(CommanderService.COMMANDER_TICK_PERIOD, sim);
+
+        CommandDirective result = service.snapshot(Faction.MARINE)
+                .directiveFor(squad.id);
+        assertNull(squad.assignedObjective);
+        assertEquals(CommandDirective.Status.RELEASED, result.status());
+        assertTrue(result.dispositionReason().contains("objective completed"));
+    }
+
+    @Test
     public void unreachableSoleKeepDoesNotConvergeSquadsIntoASealedTarget() {
         BattleSimulation sim = sealedCompoundAt(19);
         registerCompound(sim, new TacticalNode(TacticalNode.Kind.COMMAND_POST,
