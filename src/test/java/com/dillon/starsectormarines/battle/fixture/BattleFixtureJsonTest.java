@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.fixture;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
+import com.dillon.starsectormarines.battle.fixture.ConquestBattleFixture.WingCommitment;
+import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -12,6 +14,7 @@ import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.ops.RiskLevel;
+import com.dillon.starsectormarines.ops.OperationTier;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
@@ -47,6 +50,33 @@ class BattleFixtureJsonTest {
     }
 
     @Test
+    void roundTripsEveryConquestFactoryInputInAuthoredOrder() throws Exception {
+        ConquestBattleFixture fixture = new ConquestBattleFixture(
+                4_096L,
+                List.of(
+                        new ShuttleAssignment(ShuttleType.KITE, 3),
+                        new ShuttleAssignment(ShuttleType.VALKYRIE, 2)),
+                true,
+                OperationTier.REINFORCED,
+                RiskLevel.HIGH,
+                new TargetProfile(7, 4, 6, 3, "hegemony",
+                        EnumSet.of(EconomicFunction.HEAVY_INDUSTRY,
+                                EconomicFunction.SPACEPORT)),
+                List.of(new WingCommitment(FighterProfile.BROADSWORD,
+                        Faction.MARINE, 2, 12f, 30f)),
+                List.of(
+                        new WingCommitment(FighterProfile.DAGGER,
+                                Faction.DEFENDER, 1, 20f, 45f),
+                        new WingCommitment(FighterProfile.TALON,
+                                Faction.DEFENDER, 3, 10f, 15f)));
+
+        BattleFixture decoded = BattleFixtureJson.fromJson(
+                BattleFixtureJson.toJson(fixture));
+
+        assertEquals(fixture, decoded);
+    }
+
+    @Test
     void rejectsUnknownSchemaKindAndEnum() throws Exception {
         JSONObject valid = BattleFixtureJson.toJson(canonicalFixture());
 
@@ -56,7 +86,7 @@ class BattleFixtureJsonTest {
                 () -> BattleFixtureJson.fromJson(badVersion));
 
         JSONObject badKind = new JSONObject(valid.toString());
-        badKind.put("kind", "CONQUEST");
+        badKind.put("kind", "UNKNOWN_MISSION");
         assertThrows(IllegalArgumentException.class,
                 () -> BattleFixtureJson.fromJson(badKind));
 
