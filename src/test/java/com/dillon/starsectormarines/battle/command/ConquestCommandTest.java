@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
+import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.command.compound.CompoundCaptureSystem;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.AssignmentReason;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.Phase;
@@ -124,7 +125,28 @@ public class ConquestCommandTest {
     }
 
     private static long addDefender(BattleSimulation sim, int cellX, int cellY) {
-        return sim.spawn(new EntitySpec("d-" + cellX + "-" + cellY, Faction.DEFENDER, UnitType.MARINE, cellX, cellY));
+        return sim.spawn(new EntitySpec("d-" + cellX + "-" + cellY,
+                Faction.DEFENDER, UnitType.MARINE, cellX, cellY).moveSpeed(0f));
+    }
+
+    /** Supplies faction-local evidence without granting command a live hostile scan. */
+    private static void establishMarineContact(BattleSimulation sim, Squad squad,
+                                               long hostile) {
+        int hx = sim.world().cellX(hostile);
+        int hy = sim.world().cellY(hostile);
+        sim.postShot(new ShotEvent(hostile, hx + 0.5f, hy + 0.5f,
+                squad.centroidX + 0.5f, squad.centroidY + 0.5f,
+                false, Faction.DEFENDER, 0.1f));
+        sim.advance(BattleSimulation.TICK_DT);
+        assertTrue(squad.hasBelievedContacts(),
+                "fixture must establish legal Marine knowledge before command plans");
+    }
+
+    private static void establishDirectMarineContact(BattleSimulation sim,
+                                                     Squad reporter) {
+        sim.advance(BattleSimulation.TICK_DT);
+        assertTrue(reporter.hasBelievedContacts(),
+                "fixture reporter must directly observe the defended place");
     }
 
     @Test
@@ -222,7 +244,8 @@ public class ConquestCommandTest {
         BattleSimulation sim = openSim();
         ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
         Squad squad = addMarineSquad(sim, 2f, 5f);
-        addDefender(sim, 3, 9);
+        long defender = addDefender(sim, 3, 9);
+        establishMarineContact(sim, squad, defender);
 
         cmd.tick(sim);
 
@@ -249,7 +272,8 @@ public class ConquestCommandTest {
         BattleSimulation sim = multiZonePerStripSim();
         ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
         Squad squad = addMarineSquad(sim, 2f, 1f);   // back zone of strip 0
-        addDefender(sim, 3, 8);                       // front zone of strip 0
+        long defender = addDefender(sim, 3, 8);       // front zone of strip 0
+        establishMarineContact(sim, squad, defender);
 
         cmd.tick(sim);
 
@@ -272,7 +296,8 @@ public class ConquestCommandTest {
         BattleSimulation sim = multiZonePerStripSim();
         ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
         Squad squad = addMarineSquad(sim, 2f, 8f);   // front zone of strip 0
-        addDefender(sim, 3, 1);                       // back zone of strip 0
+        long defender = addDefender(sim, 3, 1);       // back zone of strip 0
+        establishMarineContact(sim, squad, defender);
 
         cmd.tick(sim);
 
@@ -305,7 +330,8 @@ public class ConquestCommandTest {
         BattleSimulation sim = multiZonePerStripSim();
         ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
         Squad squad = addMarineSquad(sim, 2f, 1f);   // back zone of strip 0
-        addDefender(sim, 3, 8);                       // front zone of strip 0
+        long defender = addDefender(sim, 3, 8);       // front zone of strip 0
+        establishMarineContact(sim, squad, defender);
 
         cmd.tick(sim);
         ObjectiveAssignment first = squad.assignedObjective;
@@ -342,8 +368,13 @@ public class ConquestCommandTest {
         BattleSimulation sim = roomPlusExteriorSim();
         ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
         Squad squad = addMarineSquad(sim, 6f, 8f);   // exterior, strip 0
+        Squad reporter = addMarineSquad(sim, 1f, 2f);
+        reporter.assignedObjective = ObjectiveAssignment.holdNode(reporter.id,
+                new TacticalNode(TacticalNode.Kind.GUARDPOST, 1, 2,
+                        0, 0, 2, 3, Faction.MARINE, 50, 1));
         addDefender(sim, 7, 8);                       // exterior, strip 0
         addDefender(sim, 1, 1);                       // enclosed room, strip 0
+        establishDirectMarineContact(sim, reporter);
 
         cmd.tick(sim);
 
@@ -651,10 +682,13 @@ public class ConquestCommandTest {
         // pulled onto a capture; it runs the ordinary clear-zone push toward
         // the defended room instead.
         BattleSimulation sim = oneCompoundSim();
-        registerCompound(sim, new TacticalNode(
+        TacticalNode node = registerCompound(sim, new TacticalNode(
                 TacticalNode.Kind.ARMORY, 5, 5, 4, 4, 6, 6, Faction.DEFENDER, 80, 4));
         Squad squad = addMarineSquad(sim, 8f, 8f);   // exterior, strip 0
+        Squad reporter = addMarineSquad(sim, 4f, 4f);
+        reporter.assignedObjective = ObjectiveAssignment.holdNode(reporter.id, node);
         addDefender(sim, 5, 5);                       // inside the building room
+        establishDirectMarineContact(sim, reporter);
 
         ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
         cmd.tick(sim);
@@ -676,7 +710,8 @@ public class ConquestCommandTest {
         TacticalNode node = registerCompound(sim, new TacticalNode(
                 TacticalNode.Kind.ARMORY, 5, 5, 4, 4, 6, 6, Faction.DEFENDER, 80, 4));
         Squad squad = addMarineSquad(sim, 4f, 4f);   // inside the building room
-        addDefender(sim, 6, 6);                       // also inside → contested
+        long defender = addDefender(sim, 6, 6);       // also inside → contested
+        establishMarineContact(sim, squad, defender);
 
         ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
         cmd.tick(sim);
@@ -688,10 +723,13 @@ public class ConquestCommandTest {
     @Test
     public void emptyPreferredTrackSupportsAdjacentDefendedCompound() {
         BattleSimulation sim = compoundAt(19);
-        registerCompound(sim, new TacticalNode(TacticalNode.Kind.ARMORY,
+        TacticalNode node = registerCompound(sim, new TacticalNode(TacticalNode.Kind.ARMORY,
                 19, 5, 18, 4, 20, 6, Faction.DEFENDER, 80, 4));
         Squad squad = addMarineSquad(sim, 21f, 8f); // track 2, just over x=20 seam
+        Squad reporter = addMarineSquad(sim, 18f, 4f);
+        reporter.assignedObjective = ObjectiveAssignment.holdNode(reporter.id, node);
         addDefender(sim, 19, 5);                    // defended room in track 1
+        establishDirectMarineContact(sim, reporter);
 
         ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
         cmd.tick(sim);
@@ -774,6 +812,7 @@ public class ConquestCommandTest {
         Squad adjacent = addMarineSquad(sim, 5f, 5f);
         Squad distant = addMarineSquad(sim, 28f, 1f);
         addDefender(sim, 5, 5);
+        establishDirectMarineContact(sim, adjacent);
 
         ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
         cmd.tick(sim);
@@ -856,5 +895,23 @@ public class ConquestCommandTest {
         assertEquals(0, hiddenTrack.knownHostileContacts());
         assertEquals(0f, hiddenTrack.knownHostilePressure(), 0.0001f);
         assertEquals(-1f, hiddenTrack.knownHostileFrontProgress(), 0.0001f);
+    }
+
+    @Test
+    public void assignmentsDoNotRevealUnseenLiveDefenders() {
+        BattleSimulation emptySim = openSim();
+        Squad emptySquad = addMarineSquad(emptySim, 5f, 5f);
+        emptySim.advance(BattleSimulation.TICK_DT);
+
+        BattleSimulation hiddenSim = openSim();
+        Squad hiddenSquad = addMarineSquad(hiddenSim, 5f, 5f);
+        addDefender(hiddenSim, 25, 5);
+        hiddenSim.advance(BattleSimulation.TICK_DT);
+
+        new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH).tick(emptySim);
+        new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH).tick(hiddenSim);
+
+        assertEquals(emptySquad.assignedObjective, hiddenSquad.assignedObjective,
+                "an unseen hostile must not change the Marine command directive");
     }
 }

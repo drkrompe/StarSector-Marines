@@ -1,10 +1,6 @@
 package com.dillon.starsectormarines.battle.command;
 
-import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.decision.goap.world.GarrisonArea;
-import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.influence.CommanderContact;
@@ -13,11 +9,8 @@ import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.Assignm
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.Phase;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.SquadDirective;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.TrackState;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
-import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
-import com.dillon.starsectormarines.battle.nav.zone.Portal;
-import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 
@@ -45,7 +38,7 @@ import java.util.TreeMap;
  *       still holds defenders is only assigned to a squad already in/adjacent
  *       to it (commit incidental presence; never feed a lone squad into a
  *       defended building). "Contested" is judged over the compound's
- *       {@link GarrisonArea garrison zones} — the AABB-gated rooms — so a
+ *       {@code GarrisonArea} room set — the AABB-gated rooms — so a
  *       defender merely loitering in the open street nearby never blocks a
  *       capture order, and the unbounded outdoor flood never counts as "in"
  *       the compound. See {@code conquest-nouns.md}.</li>
@@ -53,7 +46,7 @@ import java.util.TreeMap;
  *       keeps a sticky preferred track, but may support one neighboring track
  *       when its own has no actionable target. Tracks coordinate the front;
  *       they are not ownership fences. Target selection still advances one
- *       defender-occupied zone at a time.</li>
+ *       known hostile-contact zone at a time.</li>
  *   <li><b>Keep convergence.</b> Once the canonical command post is the only
  *       uncaptured compound, every mobile assault squad converges on its
  *       {@link AssignmentKind#SECURE_COMPOUND} objective. Born-holding
@@ -67,15 +60,14 @@ import java.util.TreeMap;
  *
  * <p>Distinct partition strategy from {@link SabotageCommand}'s
  * objective-cluster shape. SabotageCommand has N sectors centered on named
- * targets (charge sites); ConquestCommand has N lateral strips with no
- * named targets and the forward edge of the defender presence as the
- * implicit goal. Both implement {@link MissionCommand} and both ultimately
- * write {@code Squad.assignedObjective}; the per-mission specialization is
- * just in how sectors are computed.
+ * targets (charge sites); ConquestCommand has N lateral strips and compound
+ * objectives, with the forward edge of known hostile presence as its lane
+ * target. Migrated Conquest planning emits proposals from a frozen command
+ * frame; the assignment arbiter alone applies accepted directives.
  *
  * <p><b>Command shape — fixed preferred tracks, soft support.</b> Tracks
- * are equal-width along the lateral axis, computed once at first tick from
- * the live {@link ZoneGraph}. A squad's preferred track is fixed at first
+ * are equal-width along the lateral axis, computed once at first plan from
+ * frozen public topology. A squad's preferred track is fixed at first
  * observation (by its centroid's lateral coordinate) and doesn't change
  * even if the squad drifts laterally during the battle. The effective track
  * can temporarily be either adjacent track when the preferred track is idle;
@@ -92,7 +84,8 @@ import java.util.TreeMap;
  * is now about dismantling supply infrastructure
  * (see {@code conquest-nouns.md}).
  */
-public final class ConquestCommand implements ConquestFrontCommand {
+public final class ConquestCommand implements ConquestFrontCommand,
+        AutonomousMissionCommand<ConquestCommandFrame, ConquestFrontSnapshot> {
 
     /**
      * Fixed strip count regardless of squad count. Three is reasonable for
@@ -114,7 +107,7 @@ public final class ConquestCommand implements ConquestFrontCommand {
 
     /**
      * Cells of slack added around a compound's footprint when resolving its
-     * garrison zones (see {@link GarrisonArea#garrisonZones}). Small on purpose
+     * garrison zones (see {@code GarrisonArea.garrisonZones}). Small on purpose
      * — just enough to absorb the perimeter wall ring without dragging the open
      * exterior across the size gate.
      */
@@ -124,11 +117,11 @@ public final class ConquestCommand implements ConquestFrontCommand {
     /** Shared production geometry; lazily synthesized only by the legacy axis constructor used in tests. */
     private ConquestTrackLayout trackLayout;
 
-    /** Lazy: built on first {@link #tick}. {@link ZoneGraph} isn't reliably populated at construction time (defender placement runs after sim creation), so we defer the partition until the first slow-tick where every spawn has settled. */
+    /** Lazy: built from the first frozen command frame after battle setup settles. */
     private boolean initialized = false;
     /**
      * Per-strip zone lists, sorted forward-to-back (so the first
-     * defender-occupied zone in the list is the forward-most one).
+     * known hostile-contact zone in the list is the forward-most one).
      * Indices are zone ids. Zones whose centroid falls outside any
      * partition bucket are excluded entirely.
      */
@@ -136,8 +129,8 @@ public final class ConquestCommand implements ConquestFrontCommand {
     /**
      * Per-zone forward-axis centroid (y for SOUTH_TO_NORTH, x for WEST_TO_EAST),
      * cached at strip-build time. Indexed directly by zone id — zone ids are
-     * dense (0..zoneCount-1) per the existing {@code ZoneGraph} contract, see
-     * {@code ZoneQueries.zonePathBfs}. {@code fastutil-core} doesn't ship an
+     * dense (0..zoneCount-1) per the existing zone-graph contract.
+     * {@code fastutil-core} doesn't ship an
      * int-keyed float-valued map; a {@code float[]} skips both autobox and
      * hash entirely.
      */
@@ -181,17 +174,43 @@ public final class ConquestCommand implements ConquestFrontCommand {
      * matching where {@code CompoundCaptureSystem} samples occupancy), its
      * garrison zones (the AABB-gated rooms used for the contested test), and
      * the size-scaled squad quota. Topology is static after spawn settle, so
-     * the garrison-zone set is frozen here; only the per-tick {@code record.state}
-     * and live defender occupancy vary. Compounds whose anchor sits on a wall
-     * cell (rare) are skipped.
+     * the garrison-zone set is frozen here; objective state and faction-local
+     * contact evidence refresh each command frame. Compounds whose anchor sits
+     * on a wall cell (rare) are skipped.
      */
     private final List<CompoundTarget> compoundTargets = new ArrayList<>();
 
     /** Once-per-command-tick explanation consumed by diagnostics and UI. */
     private volatile ConquestFrontSnapshot frontSnapshot;
 
-    private record CompoundTarget(CompoundService.Record record, int anchorZoneId,
+    private record CompoundTarget(CompoundService.CompoundState state,
+                                  TacticalNode node, int anchorZoneId,
                                   int[] garrisonZones, int desiredSquads) {}
+
+    /** Mutable working copy; never exposes or mutates a live {@code Squad}. */
+    private static final class PlanningSquad {
+        final int id;
+        final Faction faction;
+        final int aliveMembers;
+        final float centroidX;
+        final float centroidY;
+        final int anchorCellX;
+        final int anchorCellY;
+        final ObjectiveAssignment originalAssignment;
+        ObjectiveAssignment assignedObjective;
+
+        PlanningSquad(CommandSquadState state) {
+            id = state.squadId();
+            faction = state.faction();
+            aliveMembers = state.aliveMembers();
+            centroidX = state.centroidX();
+            centroidY = state.centroidY();
+            anchorCellX = state.anchorCellX();
+            anchorCellY = state.anchorCellY();
+            originalAssignment = state.assignment();
+            assignedObjective = state.assignment();
+        }
+    }
 
     public ConquestCommand(TraversalAxis axis) {
         this.axis = axis;
@@ -214,11 +233,24 @@ public final class ConquestCommand implements ConquestFrontCommand {
     }
 
     @Override
-    public void tick(BattleView sim) {
+    public String strategyId() {
+        return "conquest-attacker";
+    }
+
+    @Override
+    public ConquestCommandFrame freeze(BattleView sim,
+                                       CommandTopology topology,
+                                       CommandAssignmentSnapshot assignments) {
+        return ConquestCommandFrame.freeze(sim, faction(), topology, assignments);
+    }
+
+    @Override
+    public CommandPlan<ConquestFrontSnapshot> plan(ConquestCommandFrame frame) {
         if (!initialized) {
-            initializePartition(sim);
+            initializePartition(frame);
             initialized = true;
         }
+        refreshCompoundTargets(frame);
 
         // Candidate squads for assignment: alive marines, minus any born-holding
         // garrison squad. Compound garrisons are NOT assigned here — the dedicated
@@ -227,13 +259,16 @@ public final class ConquestCommand implements ConquestFrontCommand {
         // commander pinning whichever assault squad happened to be standing in the
         // compound at capture. Skipping HOLD_NODE here leaves the garrison on
         // station and lets the capturing assault squad keep advancing.
-        List<Squad> squads = new ArrayList<>();
+        List<PlanningSquad> squads = new ArrayList<>();
+        Map<Integer, PlanningSquad> allSquads = new TreeMap<>();
         Map<Integer, SquadDirective> directives = new TreeMap<>();
-        for (Squad squad : sim.getSquads()) {
-            if (squad.faction != Faction.MARINE) continue;
+        for (CommandSquadState state : frame.squads()) {
+            PlanningSquad squad = new PlanningSquad(state);
+            allSquads.put(squad.id, squad);
             if (squad.aliveMembers <= 0) continue;
-            if (squad.assignedObjective != null
-                    && squad.assignedObjective.kind() == AssignmentKind.HOLD_NODE) {
+            if (state.directive() != null
+                    && state.directive().authority().priority()
+                    > CommandAuthority.MISSION_COMMAND.priority()) {
                 int preferred = stripFor(squad);
                 directives.put(squad.id, directive(squad, preferred, preferred,
                         AssignmentReason.GARRISON_HOLD));
@@ -248,38 +283,38 @@ public final class ConquestCommand implements ConquestFrontCommand {
         CompoundTarget soleRemaining = remainingCompounds == 1
                 ? soleRemainingCompound() : null;
         boolean keepConvergence = keep != null
-                && keep.record.state != CompoundService.CompoundState.MARINE_HELD
+                && keep.state != CompoundService.CompoundState.MARINE_HELD
                 && remainingCompounds == 1;
         boolean finalCompoundConvergence = keep != null
-                && keep.record.state == CompoundService.CompoundState.MARINE_HELD
+                && keep.state == CompoundService.CompoundState.MARINE_HELD
                 && soleRemaining != null
                 && soleRemaining != keep
-                && isContested(soleRemaining, sim);
+                && isContested(soleRemaining, frame);
         Phase phase = keepConvergence ? Phase.KEEP_CONVERGENCE
                 : finalCompoundConvergence
                 ? Phase.FINAL_COMPOUND_CONVERGENCE : Phase.LANE_ADVANCE;
 
         if (keepConvergence) {
-            for (Squad squad : squads) {
+            for (PlanningSquad squad : squads) {
                 commitCapture(squad, keep, committed, directives,
                         AssignmentReason.KEEP_APPROACH);
             }
         } else {
             // Pass 1: deliberate compound capture. Pulls a capped detachment
             // off the front while preserving ordinary compound quotas.
-            assignCompoundCaptures(squads, committed, directives, sim);
+            assignCompoundCaptures(squads, committed, directives, frame);
         }
 
         if (!keepConvergence) {
             // Pass 2: preferred tracks remain sticky, but an idle track is a
             // coordination gap rather than an ownership fence. Borrow useful
             // work from one neighboring track without permanently re-homing.
-            for (Squad squad : squads) {
+            for (PlanningSquad squad : squads) {
                 if (committed.contains(squad.id)) continue;
                 int preferredTrack = stripFor(squad);
                 TargetChoice choice = finalCompoundConvergence
-                        ? finalCompoundSupportChoice(squad, soleRemaining, sim)
-                        : targetChoice(squad, preferredTrack, sim);
+                        ? finalCompoundSupportChoice(squad, soleRemaining, frame)
+                        : targetChoice(squad, preferredTrack, frame);
                 if (choice.targetZoneId < 0) {
                     squad.assignedObjective = null;
                     directives.put(squad.id, directive(squad, preferredTrack,
@@ -308,7 +343,19 @@ public final class ConquestCommand implements ConquestFrontCommand {
             }
         }
 
-        publishFrontSnapshot(sim, phase, remainingCompounds, keep, directives);
+        ConquestFrontSnapshot detail = buildFrontSnapshot(frame, phase,
+                remainingCompounds, keep, directives, allSquads);
+        List<CommandProposal> proposals = buildProposals(frame, allSquads, directives);
+        return new CommandPlan<>(faction(), strategyId(), phase.name(), frame.tick(),
+                frame.influence() != null ? frame.influence().updatedTick() : -1,
+                squads.size(), 0,
+                List.of("remaining compounds=" + remainingCompounds),
+                proposals, detail);
+    }
+
+    @Override
+    public void publish(CommanderSnapshot<ConquestFrontSnapshot> snapshot) {
+        frontSnapshot = snapshot.detail();
     }
 
     /**
@@ -332,10 +379,10 @@ public final class ConquestCommand implements ConquestFrontCommand {
      *       pull a fresh squad into a defended building.</li>
      * </ol>
      */
-    private void assignCompoundCaptures(List<Squad> squads,
+    private void assignCompoundCaptures(List<PlanningSquad> squads,
                                         IntOpenHashSet committed,
                                         Map<Integer, SquadDirective> directives,
-                                        BattleView sim) {
+                                        ConquestCommandFrame frame) {
         if (compoundTargets.isEmpty() || squads.isEmpty()) return;
 
         int n = compoundTargets.size();
@@ -343,16 +390,16 @@ public final class ConquestCommand implements ConquestFrontCommand {
         boolean[] contested = new boolean[n];
         for (int i = 0; i < n; i++) {
             CompoundTarget t = compoundTargets.get(i);
-            if (t.record.state == CompoundService.CompoundState.MARINE_HELD) {
+            if (t.state == CompoundService.CompoundState.MARINE_HELD) {
                 slots[i] = 0;            // already ours — no detachment
                 continue;
             }
             slots[i] = t.desiredSquads;
-            contested[i] = isContested(t, sim);
+            contested[i] = isContested(t, frame);
         }
 
         // Phase 1: preserve in-flight captures.
-        for (Squad squad : squads) {
+        for (PlanningSquad squad : squads) {
             ObjectiveAssignment a = squad.assignedObjective;
             if (a == null || a.kind() != AssignmentKind.SECURE_COMPOUND) continue;
             int idx = targetIndexForAnchorZone(a.targetZoneId());
@@ -367,7 +414,7 @@ public final class ConquestCommand implements ConquestFrontCommand {
         while (true) {
             int bestSquad = -1, bestTarget = -1;
             float bestDist = Float.MAX_VALUE;
-            for (Squad squad : squads) {
+            for (PlanningSquad squad : squads) {
                 if (committed.contains(squad.id)) continue;
                 for (int i = 0; i < n; i++) {
                     if (slots[i] <= 0 || contested[i]) continue;
@@ -391,10 +438,10 @@ public final class ConquestCommand implements ConquestFrontCommand {
         for (int i = 0; i < n; i++) {
             if (slots[i] <= 0 || !contested[i]) continue;
             CompoundTarget t = compoundTargets.get(i);
-            for (Squad squad : squads) {
+            for (PlanningSquad squad : squads) {
                 if (slots[i] <= 0) break;
                 if (committed.contains(squad.id)) continue;
-                if (!squadAdjacentToCompound(squad, t, sim)) continue;
+                if (!squadAdjacentToCompound(squad, t, frame)) continue;
                 commitCapture(squad, t, committed, directives,
                         AssignmentReason.COMPOUND_ASSAULT_ADJACENT);
                 slots[i]--;
@@ -402,7 +449,7 @@ public final class ConquestCommand implements ConquestFrontCommand {
         }
     }
 
-    private void commitCapture(Squad squad, CompoundTarget t,
+    private void commitCapture(PlanningSquad squad, CompoundTarget t,
                                IntOpenHashSet committed,
                                Map<Integer, SquadDirective> directives,
                                AssignmentReason reason) {
@@ -412,31 +459,32 @@ public final class ConquestCommand implements ConquestFrontCommand {
                 || cur.kind() != AssignmentKind.SECURE_COMPOUND
                 || cur.targetZoneId() != t.anchorZoneId) {
             squad.assignedObjective = ObjectiveAssignment.secureCompound(
-                    squad.id, t.anchorZoneId, t.record.node);
+                    squad.id, t.anchorZoneId, t.node);
         }
         putCompoundDirective(squad, t, directives, reason);
     }
 
     /** True iff any of the compound's garrison rooms holds a live defender. The AABB-gated garrison-zone set excludes the open exterior, so a defender loitering in the street outside doesn't read as contesting the compound. */
-    private boolean isContested(CompoundTarget t, BattleView sim) {
-        for (int zoneId : t.garrisonZones) {
-            if (!ZoneQueries.zoneClear(zoneId, Faction.DEFENDER, sim)) return true;
+    private boolean isContested(CompoundTarget t, ConquestCommandFrame frame) {
+        CommanderInfluenceSnapshot influence = frame.influence();
+        if (influence == null) return false;
+        for (CommanderContact contact : influence.contacts()) {
+            int zoneId = frame.topology().zoneIdAt(contact.cellX(), contact.cellY());
+            if (containsZone(t.garrisonZones, zoneId)) return true;
         }
         return false;
     }
 
     /** True iff the squad currently stands in, or in a zone bordering, one of the compound's garrison rooms — the "already there, commit the capture" gate for contested compounds. */
-    private boolean squadAdjacentToCompound(Squad squad, CompoundTarget t, BattleView sim) {
-        int cz = ZoneQueries.squadCurrentZone(squad, sim);
+    private boolean squadAdjacentToCompound(PlanningSquad squad, CompoundTarget t,
+                                            ConquestCommandFrame frame) {
+        int cz = frame.topology().zoneIdAt(squad.anchorCellX, squad.anchorCellY);
         if (cz < 0) return false;
         if (containsZone(t.garrisonZones, cz)) return true;
-        ZoneGraph graph = sim.getZoneGraph();
-        for (int portalId : ZoneQueries.portalsOf(cz, sim)) {
-            Portal p = graph.portalById(portalId);
-            if (p == null) continue;
-            if (containsZone(t.garrisonZones, p.otherZone(cz))) return true;
-        }
-        return false;
+        return squad.anchorCellX >= t.node.compoundLeft() - 1
+                && squad.anchorCellX <= t.node.compoundRight() + 1
+                && squad.anchorCellY >= t.node.compoundTop() - 1
+                && squad.anchorCellY <= t.node.compoundBottom() + 1;
     }
 
     private int targetIndexForAnchorZone(int anchorZoneId) {
@@ -446,9 +494,9 @@ public final class ConquestCommand implements ConquestFrontCommand {
         return -1;
     }
 
-    private static float distSq(Squad squad, CompoundTarget t) {
-        float dx = squad.centroidX - (t.record.node.anchorX + 0.5f);
-        float dy = squad.centroidY - (t.record.node.anchorY + 0.5f);
+    private static float distSq(PlanningSquad squad, CompoundTarget t) {
+        float dx = squad.centroidX - (t.node.anchorX + 0.5f);
+        float dy = squad.centroidY - (t.node.anchorY + 0.5f);
         return dx * dx + dy * dy;
     }
 
@@ -457,15 +505,15 @@ public final class ConquestCommand implements ConquestFrontCommand {
         return false;
     }
 
-    private static Squad squadById(List<Squad> squads, int id) {
-        for (Squad s : squads) if (s.id == id) return s;
+    private static PlanningSquad squadById(List<PlanningSquad> squads, int id) {
+        for (PlanningSquad s : squads) if (s.id == id) return s;
         return null;
     }
 
     private CompoundTarget canonicalKeep() {
         CompoundTarget keep = null;
         for (CompoundTarget target : compoundTargets) {
-            if (target.record.node.kind != TacticalNode.Kind.COMMAND_POST) continue;
+            if (target.node.kind != TacticalNode.Kind.COMMAND_POST) continue;
             if (keep != null) return null;
             keep = target;
         }
@@ -475,7 +523,7 @@ public final class ConquestCommand implements ConquestFrontCommand {
     private int remainingCompounds() {
         int remaining = 0;
         for (CompoundTarget target : compoundTargets) {
-            if (target.record.state != CompoundService.CompoundState.MARINE_HELD) {
+            if (target.state != CompoundService.CompoundState.MARINE_HELD) {
                 remaining++;
             }
         }
@@ -485,7 +533,7 @@ public final class ConquestCommand implements ConquestFrontCommand {
     private CompoundTarget soleRemainingCompound() {
         CompoundTarget remaining = null;
         for (CompoundTarget target : compoundTargets) {
-            if (target.record.state == CompoundService.CompoundState.MARINE_HELD) {
+            if (target.state == CompoundService.CompoundState.MARINE_HELD) {
                 continue;
             }
             if (remaining != null) return null;
@@ -494,7 +542,7 @@ public final class ConquestCommand implements ConquestFrontCommand {
         return remaining;
     }
 
-    private void putCompoundDirective(Squad squad, CompoundTarget target,
+    private void putCompoundDirective(PlanningSquad squad, CompoundTarget target,
                                       Map<Integer, SquadDirective> directives,
                                       AssignmentReason reason) {
         int preferred = stripFor(squad);
@@ -502,7 +550,7 @@ public final class ConquestCommand implements ConquestFrontCommand {
         directives.put(squad.id, directive(squad, preferred, effective, reason));
     }
 
-    private SquadDirective directive(Squad squad, int preferredTrack,
+    private SquadDirective directive(PlanningSquad squad, int preferredTrack,
                                      int effectiveTrack,
                                      AssignmentReason reason) {
         ObjectiveAssignment assignment = squad.assignedObjective;
@@ -518,33 +566,31 @@ public final class ConquestCommand implements ConquestFrontCommand {
      * sorted forward-to-back so {@link #nearestDefenderZoneInStrip} can short-
      * circuit on the first defender-occupied entry.
      */
-    private void initializePartition(BattleView sim) {
-        NavigationGrid grid = sim.getGrid();
+    private void initializePartition(ConquestCommandFrame frame) {
+        CommandTopology topology = frame.topology();
         if (trackLayout == null) {
             trackLayout = new ConquestTrackLayout(axis,
-                    grid.getWidth(), grid.getHeight());
+                    topology.width(), topology.height());
         }
-        ZoneGraph graph = sim.getZoneGraph();
-        int gridW = grid.getWidth();
-        int gridH = grid.getHeight();
+        int gridW = topology.width();
         this.lateralExtent = trackLayout.lateralExtent();
 
         stripZones = new ArrayList<>(STRIP_COUNT);
         for (int i = 0; i < STRIP_COUNT; i++) stripZones.add(new ArrayList<>());
-        zoneForwardCoord = new float[graph.getZones().size()];
-        zoneLateralCoord = new float[graph.getZones().size()];
-        zoneCentroidX = new float[graph.getZones().size()];
-        zoneCentroidY = new float[graph.getZones().size()];
+        zoneForwardCoord = new float[topology.zones().size()];
+        zoneLateralCoord = new float[topology.zones().size()];
+        zoneCentroidX = new float[topology.zones().size()];
+        zoneCentroidY = new float[topology.zones().size()];
         Arrays.fill(zoneForwardCoord, 0f);
 
         int largestCells = -1, secondCells = -1, largestZone = -1;
-        for (NavigationZone zone : graph.getZones()) {
-            int[] cells = zone.getCellIndices();
+        for (CommandTopology.Zone zone : topology.zones()) {
+            int[] cells = zone.cells();
             if (cells.length == 0) continue;
             if (cells.length > largestCells) {
                 secondCells = largestCells;
                 largestCells = cells.length;
-                largestZone = zone.getZoneId();
+                largestZone = zone.id();
             } else if (cells.length > secondCells) {
                 secondCells = cells.length;
             }
@@ -557,16 +603,16 @@ public final class ConquestCommand implements ConquestFrontCommand {
             float cy = sumY / cells.length;
             float lateral = (axis == TraversalAxis.SOUTH_TO_NORTH) ? cx : cy;
             float forward = (axis == TraversalAxis.SOUTH_TO_NORTH) ? cy : cx;
-            if (zone.getZoneId() >= 0 && zone.getZoneId() < zoneForwardCoord.length) {
-                zoneForwardCoord[zone.getZoneId()] = forward;
-                zoneLateralCoord[zone.getZoneId()] = lateral;
-                zoneCentroidX[zone.getZoneId()] = cx;
-                zoneCentroidY[zone.getZoneId()] = cy;
+            if (zone.id() >= 0 && zone.id() < zoneForwardCoord.length) {
+                zoneForwardCoord[zone.id()] = forward;
+                zoneLateralCoord[zone.id()] = lateral;
+                zoneCentroidX[zone.id()] = cx;
+                zoneCentroidY[zone.id()] = cy;
             }
 
             int stripIdx = stripIndexForLateral(lateral);
             if (stripIdx < 0 || stripIdx >= STRIP_COUNT) continue;
-            stripZones.get(stripIdx).add(zone.getZoneId());
+            stripZones.get(stripIdx).add(zone.id());
         }
 
         // Only flag an exterior when one zone dominates — the real outdoor
@@ -582,30 +628,19 @@ public final class ConquestCommand implements ConquestFrontCommand {
             strip.sort(forwardDescending);
         }
 
-        CompoundService compounds = sim.getCompoundService();
-        if (compounds != null) {
-            for (CompoundService.Record r : compounds.getRecords()) {
-                int anchorZone = graph.zoneIdAt(r.node.anchorX, r.node.anchorY);
-                if (anchorZone < 0) continue;  // wall-cell anchor (rare) — skip
-                int[] garrisonZones = resolveGarrisonZones(r, anchorZone, sim);
-                int desiredSquads = garrisonZones.length >= LARGE_COMPOUND_ROOMS ? 2 : 1;
-                compoundTargets.add(new CompoundTarget(r, anchorZone, garrisonZones, desiredSquads));
-            }
-        }
     }
 
-    /**
-     * The compound's garrison rooms via the AABB size+containment gate, as an
-     * int array. Falls back to the anchor zone alone when the footprint
-     * resolves to nothing (degenerate footprint or a synthetic test grid) so
-     * the contested test always has at least the capture zone to look at.
-     */
-    private static int[] resolveGarrisonZones(CompoundService.Record r, int anchorZone, BattleView sim) {
-        List<Integer> zones = GarrisonArea.garrisonZones(r.node, GARRISON_MARGIN, sim);
-        if (zones.isEmpty()) return new int[] { anchorZone };
-        int[] out = new int[zones.size()];
-        for (int i = 0; i < out.length; i++) out[i] = zones.get(i);
-        return out;
+    private void refreshCompoundTargets(ConquestCommandFrame frame) {
+        compoundTargets.clear();
+        for (ConquestCommandFacts.Compound fact : frame.facts().compounds()) {
+            int anchorZone = fact.anchorZoneId();
+            if (anchorZone < 0) continue;
+            int[] garrisonZones = fact.garrisonZoneIds();
+            if (garrisonZones.length == 0) garrisonZones = new int[]{anchorZone};
+            int desiredSquads = garrisonZones.length >= LARGE_COMPOUND_ROOMS ? 2 : 1;
+            compoundTargets.add(new CompoundTarget(fact.state(), fact.node(),
+                    anchorZone, garrisonZones, desiredSquads));
+        }
     }
 
     /**
@@ -625,7 +660,7 @@ public final class ConquestCommand implements ConquestFrontCommand {
      * doesn't move the squad to a new preferred track. Temporary support in
      * an adjacent effective track does not rewrite this sticky identity.
      */
-    private int stripFor(Squad squad) {
+    private int stripFor(PlanningSquad squad) {
         int cached = squadStripIdx.get(squad.id);
         if (cached >= 0) return cached;
         float lateral = (axis == TraversalAxis.SOUTH_TO_NORTH) ? squad.centroidX : squad.centroidY;
@@ -649,16 +684,14 @@ public final class ConquestCommand implements ConquestFrontCommand {
      * support the assault across any empty track by clearing an occupied,
      * reachable room in that compound's authored footprint.
      */
-    private TargetChoice finalCompoundSupportChoice(Squad squad,
+    private TargetChoice finalCompoundSupportChoice(PlanningSquad squad,
                                                      CompoundTarget target,
-                                                     BattleView sim) {
-        int currentZone = ZoneQueries.squadCurrentZone(squad, sim);
+                                                     ConquestCommandFrame frame) {
         int bestZone = -1;
         float bestDistance = Float.MAX_VALUE;
         for (int zoneId : target.garrisonZones) {
-            if (ZoneQueries.zoneClear(zoneId, Faction.DEFENDER, sim)) continue;
-            if (currentZone >= 0
-                    && ZoneQueries.zonePathBfs(currentZone, zoneId, sim).isEmpty()) {
+            if (!hasKnownHostileInZone(zoneId, frame)) continue;
+            if (!reachableZone(squad, zoneId, frame)) {
                 continue;
             }
             float dx = squad.centroidX - zoneCentroidX[zoneId];
@@ -674,9 +707,9 @@ public final class ConquestCommand implements ConquestFrontCommand {
                 bestZone);
     }
 
-    private TargetChoice targetChoice(Squad squad, int preferredTrack,
-                                      BattleView sim) {
-        int home = nearestDefenderZoneInStrip(squad, preferredTrack, sim);
+    private TargetChoice targetChoice(PlanningSquad squad, int preferredTrack,
+                                      ConquestCommandFrame frame) {
+        int home = nearestDefenderZoneInStrip(squad, preferredTrack, frame);
         if (home >= 0) return new TargetChoice(preferredTrack, home);
 
         int bestTrack = -1;
@@ -685,7 +718,7 @@ public final class ConquestCommand implements ConquestFrontCommand {
         for (int track = Math.max(0, preferredTrack - 1);
              track <= Math.min(STRIP_COUNT - 1, preferredTrack + 1); track++) {
             if (track == preferredTrack) continue;
-            int zone = nearestDefenderZoneInStrip(squad, track, sim);
+            int zone = nearestDefenderZoneInStrip(squad, track, frame);
             if (zone < 0) continue;
             float dx = squad.centroidX - zoneCentroidX[zone];
             float dy = squad.centroidY - zoneCentroidY[zone];
@@ -722,7 +755,8 @@ public final class ConquestCommand implements ConquestFrontCommand {
      * the squad falls through to {@code EliminateEnemiesGoal} for in-zone
      * engagement).
      */
-    private int nearestDefenderZoneInStrip(Squad squad, int stripIdx, BattleView sim) {
+    private int nearestDefenderZoneInStrip(PlanningSquad squad, int stripIdx,
+                                           ConquestCommandFrame frame) {
         if (stripIdx < 0 || stripIdx >= stripZones.size()) return -1;
         float squadForward = (axis == TraversalAxis.SOUTH_TO_NORTH) ? squad.centroidY : squad.centroidX;
 
@@ -732,7 +766,8 @@ public final class ConquestCommand implements ConquestFrontCommand {
         float bestBackwardDist = Float.MAX_VALUE;
         for (int zoneId : stripZones.get(stripIdx)) {
             if (zoneId == exteriorZoneId) continue;
-            if (ZoneQueries.zoneClear(zoneId, Faction.DEFENDER, sim)) continue;
+            if (!hasKnownHostileInZone(zoneId, frame)) continue;
+            if (!reachableZone(squad, zoneId, frame)) continue;
             float zoneForward = zoneForwardCoord[zoneId];
             float delta = zoneForward - squadForward;
             if (delta >= 0f) {
@@ -751,10 +786,31 @@ public final class ConquestCommand implements ConquestFrontCommand {
         return bestForwardZone >= 0 ? bestForwardZone : bestBackwardZone;
     }
 
-    private void publishFrontSnapshot(BattleView sim, Phase phase,
-                                      int remainingCompounds,
-                                      CompoundTarget keep,
-                                      Map<Integer, SquadDirective> directives) {
+    private boolean hasKnownHostileInZone(int zoneId, ConquestCommandFrame frame) {
+        CommanderInfluenceSnapshot influence = frame.influence();
+        if (influence == null) return false;
+        for (CommanderContact contact : influence.contacts()) {
+            if (frame.topology().zoneIdAt(contact.cellX(), contact.cellY()) == zoneId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean reachableZone(PlanningSquad squad, int zoneId,
+                                  ConquestCommandFrame frame) {
+        if (squad.anchorCellX < 0 || squad.anchorCellY < 0) return false;
+        if (zoneId < 0 || zoneId >= zoneCentroidX.length) return false;
+        int currentZone = frame.topology().zoneIdAt(
+                squad.anchorCellX, squad.anchorCellY);
+        return frame.topology().areZonesConnected(currentZone, zoneId);
+    }
+
+    private ConquestFrontSnapshot buildFrontSnapshot(
+            ConquestCommandFrame frame, Phase phase,
+            int remainingCompounds, CompoundTarget keep,
+            Map<Integer, SquadDirective> directives,
+            Map<Integer, PlanningSquad> allSquads) {
         int[] preferredSquads = new int[STRIP_COUNT];
         int[] effectiveSquads = new int[STRIP_COUNT];
         int[] effectiveMembers = new int[STRIP_COUNT];
@@ -766,9 +822,9 @@ public final class ConquestCommand implements ConquestFrontCommand {
         Arrays.fill(targetZones, -1);
 
         int forwardExtent = axis == TraversalAxis.SOUTH_TO_NORTH
-                ? sim.getGrid().getHeight() : sim.getGrid().getWidth();
-        for (Squad squad : sim.getSquads()) {
-            if (squad.faction != Faction.MARINE || squad.aliveMembers <= 0) continue;
+                ? frame.topology().height() : frame.topology().width();
+        for (PlanningSquad squad : allSquads.values()) {
+            if (squad.aliveMembers <= 0) continue;
             SquadDirective directive = directives.get(squad.id);
             if (directive != null
                     && directive.reason() == AssignmentReason.GARRISON_HOLD) {
@@ -795,7 +851,7 @@ public final class ConquestCommand implements ConquestFrontCommand {
             }
         }
 
-        CommanderInfluenceSnapshot influence = sim.getCommanderInfluence(Faction.MARINE);
+        CommanderInfluenceSnapshot influence = frame.influence();
         float[] knownHostileFront = new float[STRIP_COUNT];
         Arrays.fill(knownHostileFront, -1f);
         int[] knownContacts = new int[STRIP_COUNT];
@@ -849,11 +905,45 @@ public final class ConquestCommand implements ConquestFrontCommand {
                     friendlyPressure[track], hostilePressure[track],
                     targetZones[track]));
         }
-        frontSnapshot = new ConquestFrontSnapshot(sim.getSimTickIndex(),
+        return new ConquestFrontSnapshot(frame.tick(),
                 influenceTick, axis, phase, remainingCompounds,
                 keep != null ? keep.anchorZoneId : -1,
-                keep != null ? keep.record.state : null,
+                keep != null ? keep.state : null,
                 tracks, new ArrayList<>(directives.values()));
+    }
+
+    private List<CommandProposal> buildProposals(
+            ConquestCommandFrame frame,
+            Map<Integer, PlanningSquad> squads,
+            Map<Integer, SquadDirective> directives) {
+        List<CommandProposal> proposals = new ArrayList<>();
+        for (Map.Entry<Integer, SquadDirective> entry : directives.entrySet()) {
+            int squadId = entry.getKey();
+            PlanningSquad planned = squads.get(squadId);
+            CommandSquadState frozen = frame.squad(squadId);
+            if (planned == null || frozen == null) continue;
+            CommandDirective incumbent = frozen.directive();
+            if (incumbent != null
+                    && incumbent.authority().priority()
+                    > CommandAuthority.MISSION_COMMAND.priority()) {
+                proposals.add(CommandProposal.retain(squadId,
+                        CommandAuthority.MISSION_COMMAND,
+                        entry.getValue().reason().name()));
+            } else if (planned.assignedObjective != null) {
+                proposals.add(CommandProposal.assign(planned.assignedObjective,
+                        CommandAuthority.MISSION_COMMAND,
+                        entry.getValue().reason().name()));
+            } else if (frozen.assignment() != null) {
+                proposals.add(CommandProposal.release(squadId,
+                        CommandAuthority.MISSION_COMMAND,
+                        entry.getValue().reason().name()));
+            } else {
+                proposals.add(CommandProposal.retain(squadId,
+                        CommandAuthority.MISSION_COMMAND,
+                        entry.getValue().reason().name()));
+            }
+        }
+        return proposals;
     }
 
     private static float normalizedProgress(float forward, int extent) {

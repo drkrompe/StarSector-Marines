@@ -14,6 +14,8 @@ import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -74,6 +76,30 @@ class ConquestDefenderCommandTest {
     }
 
     @Test
+    void framePlanningDoesNotMutateLiveSquadBeforeArbitration() {
+        BattleSimulation sim = openSim();
+        addDefender(sim, "reporter", 5, 10, UnitRole.PATROL);
+        Squad responder = addDefender(sim, "responder", 5, 48, UnitRole.PATROL);
+        sim.spawn(new EntitySpec("contact", Faction.MARINE, UnitType.MARINE,
+                5, 14).moveSpeed(0f).health(10_000f));
+        sim.advance(BattleSimulation.TICK_DT);
+
+        ConquestDefenderCommand command = command();
+        CommandTopology topology = CommandTopology.freeze(sim);
+        ConquestCommandFrame frame = command.freeze(sim, topology,
+                new CommandAssignmentSnapshot(Map.of()));
+        CommandPlan<ConquestFrontSnapshot> plan = command.plan(frame);
+
+        assertNull(responder.assignedObjective,
+                "planning must leave the live squad unchanged until arbiter commit");
+        CommandProposal response = plan.proposals().stream()
+                .filter(proposal -> proposal.squadId() == responder.id)
+                .findFirst().orElseThrow();
+        assertEquals(CommandProposal.Action.ASSIGN, response.action());
+        assertEquals(AssignmentKind.DEFEND_TRACK, response.assignment().kind());
+    }
+
+    @Test
     void garrisonNeverLeavesItsNodeForTrackContact() {
         BattleSimulation sim = openSim();
         addDefender(sim, "reporter", 5, 10, UnitRole.PATROL);
@@ -109,6 +135,33 @@ class ConquestDefenderCommandTest {
         assertEquals(AssignmentKind.HOLD_NODE, mustHold.assignedObjective.kind());
         assertEquals(ConquestFrontSnapshot.AssignmentReason.DEFENDER_EXTERNAL_ASSIGNMENT_PRESERVED,
                 command.frontSnapshot().directiveFor(mustHold.id).reason());
+    }
+
+    @Test
+    void higherAuthorityTrackOrderIsRetainedInsteadOfRewritten() {
+        BattleSimulation sim = openSim();
+        addDefender(sim, "reporter", 5, 10, UnitRole.PATROL);
+        Squad protectedSquad = addDefender(sim, "protected", 5, 48, UnitRole.PATROL);
+        addDefender(sim, "response", 5, 56, UnitRole.PATROL);
+        sim.spawn(new EntitySpec("contact", Faction.MARINE, UnitType.MARINE,
+                5, 14).moveSpeed(0f).health(10_000f));
+        sim.advance(BattleSimulation.TICK_DT);
+
+        ObjectiveAssignment protectedOrder = ObjectiveAssignment.defendTrack(
+                protectedSquad.id, 5, 50);
+        CommanderService service = new CommanderService();
+        service.assignments().assignExternal(protectedSquad, protectedOrder,
+                CommandAuthority.PLAYER_INTERVENTION, "test-player",
+                "player-set defensive position", sim.getSimTickIndex());
+        ConquestDefenderCommand command = command();
+        service.setCommander(Faction.DEFENDER, command);
+        service.tick(CommanderService.COMMANDER_TICK_PERIOD, sim);
+
+        assertEquals(protectedOrder, protectedSquad.assignedObjective);
+        assertEquals(ConquestFrontSnapshot.AssignmentReason.DEFENDER_EXTERNAL_ASSIGNMENT_PRESERVED,
+                command.frontSnapshot().directiveFor(protectedSquad.id).reason());
+        assertEquals(CommandDirective.Status.RETAINED,
+                service.snapshot(Faction.DEFENDER).directiveFor(protectedSquad.id).status());
     }
 
     @Test
