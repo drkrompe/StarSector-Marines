@@ -27,10 +27,10 @@ import java.util.EnumSet;
  */
 public final class MechLabBattleScene implements AutoCloseable {
 
-    static final int GRID_WIDTH = 18;
-    static final int GRID_HEIGHT = 12;
-    static final int MECH_CELL_X = 8;
-    static final int MECH_CELL_Y = 5;
+    static final int GRID_WIDTH = MechLabSceneLayout.WIDTH;
+    static final int GRID_HEIGHT = MechLabSceneLayout.HEIGHT;
+    static final int MECH_CELL_X = MechLabSceneLayout.MECH_X;
+    static final int MECH_CELL_Y = MechLabSceneLayout.MECH_Y;
     private static final float CAMERA_ZOOM_NOTCHES = 1f;
     private static final EnumSet<RenderLayer> BACKDROP_LAYERS = EnumSet.of(
             RenderLayer.GROUND, RenderLayer.DOODADS);
@@ -108,25 +108,12 @@ public final class MechLabBattleScene implements AutoCloseable {
         CellTopology topology = new CellTopology(GRID_WIDTH, GRID_HEIGHT);
         for (int y = 0; y < GRID_HEIGHT; y++) {
             for (int x = 0; x < GRID_WIDTH; x++) {
-                topology.setGroundKind(x, y, CellTopology.GroundKind.INDOOR);
-                boolean perimeter = x == 0 || y == 0
-                        || x == GRID_WIDTH - 1 || y == GRID_HEIGHT - 1;
-                if (perimeter) {
+                topology.setGroundKind(x, y, MechLabSceneLayout.groundKind(x, y));
+                if (MechLabSceneLayout.wall(x, y)) {
                     topology.setWall(x, y, true);
                 } else {
                     grid.setWalkableFloor(x, y);
                 }
-            }
-        }
-        // A real renderer-owned maintenance pad: striped safety perimeter with
-        // polished service floor beneath the asset. Camera zoom may crop it,
-        // but its cell footprint never changes with the UI container.
-        for (int y = 3; y <= 8; y++) {
-            for (int x = 6; x <= 11; x++) {
-                boolean perimeter = x == 6 || x == 11 || y == 3 || y == 8;
-                topology.setGroundKind(x, y, perimeter
-                        ? CellTopology.GroundKind.STRIPED
-                        : CellTopology.GroundKind.TILE);
             }
         }
         for (int y = 0; y < GRID_HEIGHT; y++) {
@@ -138,9 +125,11 @@ public final class MechLabBattleScene implements AutoCloseable {
         long mech = sim.spawn(new EntitySpec("gantry mech", Faction.MARINE,
                 UnitType.HEAVY_MECH, MECH_CELL_X, MECH_CELL_Y).mechVariant(variant));
         sim.world().attachMechLoadout(mech, variant.createLoadout(variant.defaultRole));
-        spawnTechnician(sim, "fabricator one", 3, 3);
-        spawnTechnician(sim, "fabricator two", 14, 4);
-        spawnTechnician(sim, "fabricator three", 4, 8);
+        for (MechLabSceneLayout.TechnicianPlacement technician
+                : MechLabSceneLayout.TECHNICIANS) {
+            spawnTechnician(sim, technician.name(),
+                    technician.cellX(), technician.cellY());
+        }
         sim.getFogOfWar().tick(0, sim.getRoster());
         return sim;
     }
@@ -151,14 +140,10 @@ public final class MechLabBattleScene implements AutoCloseable {
     }
 
     private static void addWorkshopProps(BattleSimulation sim) {
-        sim.addDoodad(prop(2, 3, 5, 3));
-        sim.addDoodad(prop(2, 5, 6, 3));
-        sim.addDoodad(prop(2, 7, 7, 3));
-        sim.addDoodad(prop(15, 3, 9, 2));
-        sim.addDoodad(prop(15, 6, 9, 1));
-        sim.addDoodad(prop(15, 8, 3, 3));
-        sim.addDoodad(prop(6, 10, 8, 2));
-        sim.addDoodad(prop(11, 10, 8, 2));
+        for (MechLabSceneLayout.PropPlacement placement : MechLabSceneLayout.PROPS) {
+            sim.addDoodad(prop(placement.cellX(), placement.cellY(),
+                    placement.tileColumn(), placement.tileRow()));
+        }
     }
 
     private static Doodad prop(int x, int y, int column, int row) {

@@ -27,12 +27,12 @@ import java.util.function.Supplier;
 public final class MechLabDollCanvas implements CanvasProducer {
 
     private static final String ROOT = "graphics/battle/mech-modular-topdown/";
-    private static final int TILESET_COLUMNS = 10;
-    private static final int TILESET_ROWS = 10;
+    private static final int URBAN_COLUMNS = 10;
+    private static final int URBAN_ROWS = 10;
+    private static final int ROAD_COLUMNS = 18;
+    private static final int ROAD_ROWS = 3;
     private static final float GANTRY_FACING_DEGREES = 180f;
     private static final Color BACKGROUND = new Color(0x06, 0x0A, 0x10);
-    private static final Color STRUCTURE = new Color(0x25, 0x43, 0x56);
-    private static final Color ACCENT = new Color(0x76, 0xB9, 0xD4);
     private static final Color WELD = new Color(0xA5, 0xE8, 0xFF);
     private static final Color WHITE = Color.WHITE;
 
@@ -41,6 +41,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private final Supplier<LayeredMechAssets> assets;
     private final Supplier<LayeredUnitAssets> technicianAssets;
     private final Supplier<SpriteAPI> tileSheet;
+    private final Supplier<SpriteAPI> roadSheet;
     private final MechLabBattleScene battleScene;
     private final DoubleSupplier elapsedSeconds;
 
@@ -50,7 +51,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
                              Supplier<LayeredUnitAssets> technicianAssets,
                              Supplier<SpriteAPI> tileSheet) {
         this(variant, selectedSocket, assets, technicianAssets, tileSheet,
-                null, () -> 0d);
+                () -> null, null, () -> 0d);
     }
 
     public MechLabDollCanvas(Supplier<MechVariant> variant,
@@ -60,7 +61,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
                              Supplier<SpriteAPI> tileSheet,
                              DoubleSupplier elapsedSeconds) {
         this(variant, selectedSocket, assets, technicianAssets, tileSheet,
-                null, elapsedSeconds);
+                () -> null, null, elapsedSeconds);
     }
 
     public MechLabDollCanvas(Supplier<MechVariant> variant,
@@ -68,10 +69,11 @@ public final class MechLabDollCanvas implements CanvasProducer {
                              Supplier<LayeredMechAssets> assets,
                              Supplier<LayeredUnitAssets> technicianAssets,
                              Supplier<SpriteAPI> tileSheet,
+                             Supplier<SpriteAPI> roadSheet,
                              MechLabBattleScene battleScene,
                              DoubleSupplier elapsedSeconds) {
         if (variant == null || selectedSocket == null || assets == null || technicianAssets == null
-                || tileSheet == null || elapsedSeconds == null) {
+                || tileSheet == null || roadSheet == null || elapsedSeconds == null) {
             throw new IllegalArgumentException(
                     "variant, socket, mech/technician/tile assets, and elapsed time are required");
         }
@@ -80,6 +82,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         this.assets = assets;
         this.technicianAssets = technicianAssets;
         this.tileSheet = tileSheet;
+        this.roadSheet = roadSheet;
         this.battleScene = battleScene;
         this.elapsedSeconds = elapsedSeconds;
     }
@@ -108,7 +111,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         } else {
             sceneCamera = MechLabBattleScene.cameraForSurface(width, height);
             projection = SceneProjection.forCanvas(sceneCamera, height, selected);
-            drawGarage(context, width, height, projection.cellX(), tileSheet.get());
+            drawGarage(context, sceneCamera, height, tileSheet.get(), roadSheet.get());
         }
 
         drawSocketOverlays(context, MechFittingLayout.forVariant(selected),
@@ -125,102 +128,87 @@ public final class MechLabDollCanvas implements CanvasProducer {
                     selected.arms.appearanceSelector,
                     appearance(selected.leftShoulder),
                     appearance(selected.rightShoulder), 1f);
-            drawTechnicians(context, sceneCamera, height, projection.cellX(), time,
+            drawTechnicians(context, sceneCamera, height, projection.cellX(),
                     technicianAssets.get());
         }
         drawWeld(context, projection, time);
     }
 
-    private static void drawGarage(CanvasContext c, float width, float height, float cell,
-                                   SpriteAPI liveSheet) {
-        c.fillRect(0f, 0f, width, height, BACKGROUND);
-        int columns = Math.max(1, (int) Math.ceil(width / cell));
-        int rows = Math.max(1, (int) Math.ceil(height / cell));
-        float originX = (width - columns * cell) * 0.5f;
-        float originY = (height - rows * cell) * 0.5f;
-
-        // The bay is a literal battle-map room: floor centers, wall autotile edges,
-        // industrial hazard/grate cells, and prop cutouts all come from urban-tileset.
-        for (int row = 0; row < rows; row++) {
-            for (int column = 0; column < columns; column++) {
-                int tileColumn = 1;
-                int tileRow = 1;
-                if (row == 0) { tileColumn = 4; tileRow = 0; }
-                if (row == rows - 1) { tileColumn = 4; tileRow = 2; }
-                if (column == 0) { tileColumn = 3; tileRow = 1; }
-                if (column == columns - 1) { tileColumn = 5; tileRow = 1; }
-                if (row == 0 && column == 0) { tileColumn = 3; tileRow = 0; }
-                if (row == 0 && column == columns - 1) { tileColumn = 5; tileRow = 0; }
-                if (row == rows - 1 && column == 0) { tileColumn = 3; tileRow = 2; }
-                if (row == rows - 1 && column == columns - 1) { tileColumn = 5; tileRow = 2; }
-                drawTile(c, liveSheet, tileColumn, tileRow,
-                        originX + (column + 0.5f) * cell,
-                        originY + (row + 0.5f) * cell, cell);
+    private static void drawGarage(CanvasContext c, BattleCamera camera, float height,
+                                   SpriteAPI urbanSheet, SpriteAPI roadSheet) {
+        c.fillRect(0f, 0f, c.metrics().surfaceWidth(), height, BACKGROUND);
+        float cell = camera.cellPxSize();
+        for (int y = 0; y < MechLabSceneLayout.HEIGHT; y++) {
+            for (int x = 0; x < MechLabSceneLayout.WIDTH; x++) {
+                float centerX = camera.cellToScreenX(x + 0.5f);
+                float centerY = height - camera.cellToScreenY(y + 0.5f);
+                if (MechLabSceneLayout.wall(x, y)) {
+                    int column = x == 0 ? 3 : x == MechLabSceneLayout.WIDTH - 1 ? 5 : 4;
+                    int row = y == MechLabSceneLayout.HEIGHT - 1 ? 0 : y == 0 ? 2 : 1;
+                    drawUrbanTile(c, urbanSheet, column, row, centerX, centerY, cell);
+                    continue;
+                }
+                switch (MechLabSceneLayout.groundKind(x, y)) {
+                    case STRIPED -> drawRoadTile(c, roadSheet, 7, 2,
+                            centerX, centerY, cell);
+                    case TILE -> drawRoadTile(c, roadSheet, 11, 0,
+                            centerX, centerY, cell);
+                    default -> {
+                        boolean northWall = MechLabSceneLayout.wall(x, y + 1);
+                        boolean southWall = MechLabSceneLayout.wall(x, y - 1);
+                        boolean eastWall = MechLabSceneLayout.wall(x + 1, y);
+                        boolean westWall = MechLabSceneLayout.wall(x - 1, y);
+                        int column = westWall ? 0 : eastWall ? 2 : 1;
+                        int row = northWall ? 0 : southWall ? 2 : 1;
+                        drawUrbanTile(c, urbanSheet, column, row,
+                                centerX, centerY, cell);
+                    }
+                }
             }
         }
-
-        int padLeft = Math.max(2, columns / 2 - 3);
-        int padRight = Math.min(columns - 3, columns / 2 + 3);
-        int padTop = Math.max(2, rows / 2 - 3);
-        int padBottom = Math.min(rows - 3, rows / 2 + 3);
-        for (int row = padTop; row <= padBottom; row++) {
-            for (int column = padLeft; column <= padRight; column++) {
-                boolean perimeter = row == padTop || row == padBottom
-                        || column == padLeft || column == padRight;
-                int tileColumn = perimeter ? 1 : ((row + column) & 1) == 0 ? 0 : 2;
-                int tileRow = 3;
-                drawTile(c, liveSheet, tileColumn, tileRow,
-                        originX + (column + 0.5f) * cell,
-                        originY + (row + 0.5f) * cell, cell);
-            }
+        for (MechLabSceneLayout.PropPlacement prop : MechLabSceneLayout.PROPS) {
+            drawUrbanTile(c, urbanSheet, prop.tileColumn(), prop.tileRow(),
+                    camera.cellToScreenX(prop.cellX() + 0.5f),
+                    height - camera.cellToScreenY(prop.cellY() + 0.5f), cell);
         }
-
-        // Battle props become top-down fabrication stations around the active pad.
-        drawTile(c, liveSheet, 8, 2, width * 0.35f, cell * 0.70f, cell);
-        drawTile(c, liveSheet, 8, 2, width * 0.65f, cell * 0.70f, cell);
-        drawTile(c, liveSheet, 5, 3, cell * 1.35f, height * 0.36f, cell);
-        drawTile(c, liveSheet, 6, 3, cell * 1.35f, height * 0.50f, cell);
-        drawTile(c, liveSheet, 7, 3, cell * 1.35f, height * 0.64f, cell);
-        drawTile(c, liveSheet, 9, 2, width - cell * 1.35f, height * 0.38f, cell);
-        drawTile(c, liveSheet, 9, 1, width - cell * 1.35f, height * 0.57f, cell);
-        drawTile(c, liveSheet, 3, 3, width - cell * 1.35f, height * 0.72f, cell);
-
-        // Flat top-down service rails frame the mech without inventing depth.
-        float railInset = Math.max(cell * 2.2f, width * 0.23f);
-        c.line(railInset, cell * 1.4f, railInset, height - cell * 1.4f,
-                STRUCTURE, 5f);
-        c.line(width - railInset, cell * 1.4f, width - railInset,
-                height - cell * 1.4f, STRUCTURE, 5f);
-        c.line(railInset, cell * 1.4f, width - railInset, cell * 1.4f,
-                ACCENT, 2f);
-        c.strokeRect(1f, 1f, Math.max(0f, width - 2f),
-                Math.max(0f, height - 2f), STRUCTURE, 1f);
     }
 
-    private static void drawTile(CanvasContext c, SpriteAPI liveSheet,
-                                 int column, int row, float centerX, float centerY,
-                                 float size) {
-        c.sprite(TileManifest.SHEET, liveSheet, centerX, centerY, size, size,
-                0f, WHITE, CanvasSpriteRegion.frame(TILESET_COLUMNS, TILESET_ROWS,
-                        row * TILESET_COLUMNS + column), CanvasBlend.NORMAL);
+    private static void drawUrbanTile(CanvasContext c, SpriteAPI liveSheet,
+                                      int column, int row, float centerX, float centerY,
+                                      float size) {
+        drawTile(c, TileManifest.SHEET, liveSheet, URBAN_COLUMNS, URBAN_ROWS,
+                column, row, centerX, centerY, size);
+    }
+
+    private static void drawRoadTile(CanvasContext c, SpriteAPI liveSheet,
+                                     int column, int row, float centerX, float centerY,
+                                     float size) {
+        drawTile(c, TileManifest.ROAD_SHEET, liveSheet, ROAD_COLUMNS, ROAD_ROWS,
+                column, row, centerX, centerY, size);
+    }
+
+    private static void drawTile(CanvasContext c, String path, SpriteAPI liveSheet,
+                                 int columns, int rows, int column, int row,
+                                 float centerX, float centerY, float size) {
+        c.sprite(path, liveSheet, centerX, centerY, size, size,
+                0f, WHITE, CanvasSpriteRegion.frame(columns, rows,
+                        row * columns + column), CanvasBlend.NORMAL);
     }
 
     private static void drawTechnicians(CanvasContext c, BattleCamera camera, float height,
-                                        float cell, float time, LayeredUnitAssets crew) {
+                                        float cell, LayeredUnitAssets crew) {
         if (crew == null) return;
         float shoulder = UnitRenderService.layeredInfantryShoulderWidth(
                 cell, UnitType.ENGINEER.renderScale);
-        float walkPhase = (time * 0.15f) % 1f;
-        float walkWorldX = 3.5f + 1.5f * walkPhase;
-        drawTechnician(c, crew, camera.cellToScreenX(walkWorldX),
-                height - camera.cellToScreenY(3.5f), shoulder, 90f,
-                walkPhase, true);
-        drawTechnician(c, crew, camera.cellToScreenX(14.5f),
-                height - camera.cellToScreenY(4.5f), shoulder, 250f,
-                0f, false);
-        drawTechnician(c, crew, camera.cellToScreenX(4.5f),
-                height - camera.cellToScreenY(8.5f), shoulder, 70f,
-                0f, false);
+        float[] facings = {90f, 250f, 70f};
+        for (int index = 0; index < MechLabSceneLayout.TECHNICIANS.size(); index++) {
+            MechLabSceneLayout.TechnicianPlacement technician =
+                    MechLabSceneLayout.TECHNICIANS.get(index);
+            drawTechnician(c, crew,
+                    camera.cellToScreenX(technician.cellX() + 0.5f),
+                    height - camera.cellToScreenY(technician.cellY() + 0.5f),
+                    shoulder, facings[index], 0f, false);
+        }
     }
 
     private static void drawSocketOverlays(CanvasContext c, MechFittingLayout layout,

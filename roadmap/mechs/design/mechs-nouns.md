@@ -168,6 +168,10 @@ determines the payload, not the entitlement to call it.
   audio, fog, combat decorators, and surface-relief targets remain detached.
   Presentation-only welding or station motion may continue while the player
   inspects equipment, but it never decides refit duration, stock, or command success.
+- Live rendering and headless evidence consume one room layout: ground kind,
+  perimeter walls, props, workers, and the selected asset all occupy authored
+  battle-grid cells. A preview may approximate the GL drain, but it may not invent
+  percentage-positioned scenery, off-grid props, or a second gantry illustration.
 - Campaign-to-battle deployment freezes values. Live battle code does not read
   or mutate the campaign mech, squad, or fleet inventory.
 - Gun-launched HE is a ballistic shot whose timed detonation owns splash and

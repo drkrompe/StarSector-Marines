@@ -87,6 +87,7 @@ public final class MechLabScreen implements Screen {
                             () -> previewSprites.layeredUnitSprites().get(
                                     LayeredArmorFamily.ARMY_GREEN),
                             previewSprites::tileSheet,
+                            previewSprites::roadSheet,
                             battleScene,
                             () -> previewSeconds));
             if (viewport != null) {
