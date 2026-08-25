@@ -1,0 +1,106 @@
+<template props="squadName,designerHeading,designerSubheading,draftName,editName,definitions,teamTabs,billets,feedback,showWeapons,showArmor,newDraft,cloneSelected,saveAsNew,rename,renameDisabled,delete,deleteDisabled,backToFireTeams,back,returnAction,hqAction,armoryAction,hqClasses,hqDisabled,armoryClasses,armoryDisabled">
+  <div id="equipment-designer-root" class="equipment-designer-root">
+    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" armoryAction="{armoryAction}" hqClasses="{hqClasses}" hqDisabled="{hqDisabled}" armoryClasses="{armoryClasses}" armoryDisabled="{armoryDisabled}" contextLabel="FLAGSHIP / ARMORY / EQUIPMENT DESIGNER" />
+
+    <div id="designer-breadcrumb" class="panel">
+      <button id="designer-breadcrumb-companies" onclick="{back}">Companies</button>
+      <div id="designer-separator-company" class="breadcrumb-separator label tone-muted">/</div>
+      <div id="designer-company" class="breadcrumb-current label tone-edge">Fleet Marine Company</div>
+      <div id="designer-separator-squad" class="breadcrumb-separator label tone-muted">/</div>
+      <button id="back-to-fireteams" onclick="{backToFireTeams}">{squadName}</button>
+      <div id="designer-separator-current" class="breadcrumb-separator label tone-muted">/</div>
+      <div id="designer-current" class="breadcrumb-current label tone-accent">Equipment Designer</div>
+    </div>
+
+    <div id="designer-mode-row" class="panel">
+      <div id="designer-mode-copy">
+        <div id="designer-heading" class="label heading tone-edge">{designerHeading}</div>
+        <div id="designer-subheading" class="label tone-muted">{designerSubheading}</div>
+      </div>
+      <button id="show-weapon-definitions" onclick="{showWeapons}">Weapon Equipment</button>
+      <button id="show-armor-definitions" onclick="{showArmor}">Armor Equipment</button>
+    </div>
+
+    <div id="designer-definition-library" class="panel">
+      <div id="designer-library-heading" class="label heading tone-accent">DEFINITION LIBRARY</div>
+      <div id="designer-definition-list">
+        <button each="definition in definitions" key="{definition.id}" id="{definition.id}" class="{definition.classes}" onclick="{definition.select}">
+          <div id="{definition.nameId}" class="definition-name label tone-edge">{definition.name}</div>
+          <div id="{definition.descriptionId}" class="definition-description label tone-muted">{definition.description}</div>
+        </button>
+      </div>
+    </div>
+
+    <div id="designer-editor" class="panel">
+      <div id="designer-name-row">
+        <div id="designer-name-label" class="label heading tone-accent">DEFINITION NAME</div>
+        <input id="designer-name-input" class="designer-name-input" value="{draftName}" maxlength="48" oninput="{editName}" />
+        <button id="new-doctrine-draft" onclick="{newDraft}">New Draft</button>
+        <button id="clone-doctrine" onclick="{cloneSelected}">Clone Selected</button>
+        <button id="save-doctrine" class="primary-action" onclick="{saveAsNew}">Save as New</button>
+        <button id="rename-doctrine" disabled="{renameDisabled}" onclick="{rename}">Rename</button>
+        <button id="delete-doctrine" disabled="{deleteDisabled}" onclick="{delete}">Delete</button>
+      </div>
+
+      <div id="designer-team-tabs">
+        <button each="team in teamTabs" key="{team.id}" id="{team.id}" class="{team.classes}" onclick="{team.select}">{team.name}</button>
+      </div>
+
+      <div id="designer-billet-grid">
+        <div each="billet in billets" key="{billet.id}" id="{billet.id}" class="billet-editor-card">
+          <div id="{billet.topId}" class="billet-card-top">
+            <div id="{billet.titleId}" class="billet-title label heading tone-accent">{billet.title}</div>
+            <canvas id="{billet.canvasId}" class="designer-marine-preview" width="180" height="150" />
+          </div>
+          <button id="{billet.roleId}" onclick="{billet.cycleRole}">{billet.role}</button>
+          <button id="{billet.primaryId}" onclick="{billet.cyclePrimary}">{billet.primary}</button>
+          <button id="{billet.gradeId}" onclick="{billet.cycleGrade}">{billet.grade}</button>
+          <button id="{billet.specialId}" onclick="{billet.cycleSpecial}">{billet.special}</button>
+        </div>
+      </div>
+      <div id="designer-feedback" class="label surface-dark tone-good">{feedback}</div>
+    </div>
+  </div>
+</template>
+
+<style>
+  .equipment-designer-root { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; overflow: hidden; }
+  .label { overflow: hidden; }
+  .heading { font-family: heading; }
+  #designer-breadcrumb { flex-direction: row; height: 28px; padding: 3px 4px; gap: 5px; }
+  #designer-breadcrumb button { padding: 2px 7px; border-width: 1px; font-family: body; }
+  .breadcrumb-separator { width: 10px; text-align: center; }
+  .breadcrumb-current { padding: 3px 4px; }
+
+  #designer-mode-row { flex-direction: row; height: 56px; padding: 7px; gap: 7px; }
+  #designer-mode-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 2px; }
+  #designer-heading { height: 20px; }
+  #designer-subheading { height: 20px; }
+  #designer-mode-row button { padding: 5px 10px; border-width: 1px; font-family: body; text-align: center; }
+
+  #designer-definition-library { flex-direction: column; height: 148px; padding: 7px; gap: 4px; overflow: hidden; }
+  #designer-library-heading { height: 19px; }
+  #designer-definition-list { flex-direction: row; height: 0px; flex-grow: 1; gap: 6px; padding: 1px; overflow: scroll; }
+  .definition-tile { flex-direction: column; width: 220px; height: 104px; padding: 7px; gap: 4px; border-width: 1px; font-family: body; text-align: left; overflow: hidden; }
+  .definition-tile.selected { background-color: #345a7c; border-color: #53c6e8; }
+  .definition-name { height: 24px; }
+  .definition-description { height: 58px; }
+
+  #designer-editor { flex-direction: column; height: 0px; flex-grow: 1; padding: 8px; gap: 7px; overflow: hidden; }
+  #designer-name-row { flex-direction: row; height: 34px; gap: 6px; }
+  #designer-name-label { width: 145px; padding: 7px 2px; }
+  .designer-name-input { width: 0px; flex-grow: 1; padding: 5px 8px; border-width: 1px; background-color: #0d1622; color: #d5deea; font-family: body; }
+  .designer-name-input:focus { border-color: #53c6e8; background-color: #14263a; }
+  #designer-name-row button { padding: 5px 8px; border-width: 1px; font-family: body; text-align: center; }
+  .primary-action { color: #67d38b; }
+  #designer-team-tabs { flex-direction: row; height: 34px; gap: 6px; }
+  .team-tab { width: 130px; padding: 5px 8px; border-width: 1px; font-family: body; text-align: center; }
+  .team-tab.selected { background-color: #345a7c; border-color: #53c6e8; }
+  #designer-billet-grid { flex-direction: row; height: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
+  .billet-editor-card { flex-direction: column; width: 0px; flex-grow: 1; padding: 9px; gap: 7px; border-width: 1px; overflow: hidden; }
+  .billet-card-top { flex-direction: row; height: 78px; gap: 6px; overflow: hidden; }
+  .billet-title { width: 0px; flex-grow: 1; height: 23px; padding: 4px 2px; }
+  .designer-marine-preview { width: 104px; height: 74px; background-color: #0d1622; border-width: 1px; }
+  .billet-editor-card button { height: 39px; padding: 7px; border-width: 1px; font-family: body; text-align: left; overflow: hidden; }
+  #designer-feedback { height: 29px; padding: 5px 8px; border-width: 1px; }
+</style>

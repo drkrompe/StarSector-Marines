@@ -4,5 +4,6 @@ package com.dillon.starsectormarines.ui.retained;
 public enum UiTag {
     DIV,
     BUTTON,
+    INPUT,
     CANVAS
 }

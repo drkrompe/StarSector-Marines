@@ -68,12 +68,15 @@ public final class StarsectorUiInputAdapter {
         boolean down = event.isKeyDownEvent() || repeat;
         boolean up = event.isKeyUpEvent();
         if (!down && !up) return;
-        UiKey key = keyFor(event.getEventValue());
-        if (key == null) return;
         Set<KeyModifier> modifiers = modifiers(event);
-        boolean handled = down
+        UiKey key = keyFor(event.getEventValue());
+        boolean handled = key != null && (down
                 ? document.keyPressed(key, modifiers, repeat)
-                : document.keyReleased(key, modifiers);
+                : document.keyReleased(key, modifiers));
+        if (!handled && down && !modifiers.contains(KeyModifier.CONTROL)
+                && !modifiers.contains(KeyModifier.ALT)) {
+            handled = document.characterTyped(event.getEventChar());
+        }
         if (handled) event.consume();
     }
 

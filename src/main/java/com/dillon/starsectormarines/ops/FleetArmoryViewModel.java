@@ -328,7 +328,7 @@ public final class FleetArmoryViewModel {
         domainRevision.get();
         String selected = selectedWeaponDoctrineId.get();
         List<DoctrineTile> tiles = new ArrayList<>();
-        for (SquadWeaponDoctrine doctrine : SquadEquipmentDoctrines.weaponDoctrines()) {
+        for (SquadWeaponDoctrine doctrine : roster.armory().weaponDoctrines()) {
             String id = "weapon-doctrine:" + doctrine.id();
             String distribution = weaponDistribution(doctrine);
             tiles.add(new DoctrineTile(id, id + ":name", id + ":description",
@@ -345,7 +345,7 @@ public final class FleetArmoryViewModel {
         domainRevision.get();
         String selected = selectedArmorDoctrineId.get();
         List<DoctrineTile> tiles = new ArrayList<>();
-        for (SquadArmorDoctrine doctrine : SquadEquipmentDoctrines.armorDoctrines()) {
+        for (SquadArmorDoctrine doctrine : roster.armory().armorDoctrines()) {
             String id = "armor-doctrine:" + doctrine.id();
             tiles.add(new DoctrineTile(id, id + ":name", id + ":description",
                     id + ":distribution",
@@ -358,7 +358,7 @@ public final class FleetArmoryViewModel {
     }
 
     private String buildWeaponDoctrineSummary() {
-        SquadWeaponDoctrine doctrine = SquadEquipmentDoctrines.weaponById(
+        SquadWeaponDoctrine doctrine = roster.armory().weaponDoctrineById(
                 selectedWeaponDoctrineId.get());
         return doctrine != null
                 ? doctrine.displayName() + "  ·  " + weaponDistribution(doctrine)
@@ -366,7 +366,7 @@ public final class FleetArmoryViewModel {
     }
 
     private String buildArmorDoctrineSummary() {
-        SquadArmorDoctrine doctrine = SquadEquipmentDoctrines.armorById(
+        SquadArmorDoctrine doctrine = roster.armory().armorDoctrineById(
                 selectedArmorDoctrineId.get());
         return doctrine != null
                 ? doctrine.displayName() + "  ·  " + armorDistribution(doctrine)
@@ -429,9 +429,9 @@ public final class FleetArmoryViewModel {
 
     private String buildCandidateSummary() {
         domainRevision.get();
-        SquadWeaponDoctrine weapons = SquadEquipmentDoctrines.weaponById(
+        SquadWeaponDoctrine weapons = roster.armory().weaponDoctrineById(
                 selectedWeaponDoctrineId.get());
-        SquadArmorDoctrine armor = SquadEquipmentDoctrines.armorById(
+        SquadArmorDoctrine armor = roster.armory().armorDoctrineById(
                 selectedArmorDoctrineId.get());
         return "Proposed  ·  "
                 + (weapons != null ? weapons.displayName() : "Choose weapons")
@@ -470,14 +470,14 @@ public final class FleetArmoryViewModel {
     }
 
     private void selectWeaponDoctrine(String doctrineId) {
-        if (SquadEquipmentDoctrines.weaponById(doctrineId) == null) return;
+        if (roster.armory().weaponDoctrineById(doctrineId) == null) return;
         selectedWeaponDoctrineId.set(doctrineId);
         feedback.set(Feedback.neutral(
                 "Weapon equipment selected. Special equipment follows this definition."));
     }
 
     private void selectArmorDoctrine(String doctrineId) {
-        if (SquadEquipmentDoctrines.armorById(doctrineId) == null) return;
+        if (roster.armory().armorDoctrineById(doctrineId) == null) return;
         selectedArmorDoctrineId.set(doctrineId);
         feedback.set(Feedback.neutral("Armor equipment selected for all twelve billets."));
     }
@@ -539,10 +539,10 @@ public final class FleetArmoryViewModel {
         return card != null ? card.displayName() : "Unassigned";
     }
 
-    private static String assignedDoctrineName(MarineSquad squad) {
-        SquadWeaponDoctrine weapons = SquadEquipmentDoctrines.weaponById(
+    private String assignedDoctrineName(MarineSquad squad) {
+        SquadWeaponDoctrine weapons = roster.armory().weaponDoctrineById(
                 squad.weaponDoctrineId());
-        SquadArmorDoctrine armor = SquadEquipmentDoctrines.armorById(
+        SquadArmorDoctrine armor = roster.armory().armorDoctrineById(
                 squad.armorDoctrineId());
         if (weapons == null || armor == null) return "Individual equipment";
         return weapons.displayName() + "  /  " + armor.displayName();

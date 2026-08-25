@@ -189,8 +189,9 @@ public final class MarkupParser {
         List<MarkupAttribute> attributes = withoutLoopAttributes(declared);
         boolean selfClosed = expectTagEnd(tagName, openLine, true);
 
-        if ("canvas".equals(tagName) && !selfClosed) {
-            throw error(openLine, openColumn, "<canvas> takes no children in this retained subset; write <canvas ... />.");
+        if (("canvas".equals(tagName) || "input".equals(tagName)) && !selfClosed) {
+            throw error(openLine, openColumn, "<" + tagName
+                    + "> takes no children in this retained subset; write <" + tagName + " ... />.");
         }
         List<MarkupNode> children = selfClosed ? List.of() : parseChildren(tagName, openLine, openColumn);
         if (tagName.indexOf('-') >= 0 && !children.isEmpty()) {
@@ -202,9 +203,10 @@ public final class MarkupParser {
     }
 
     private void requireKnownTag(String name, int errorLine, int errorColumn) {
-        if ("div".equals(name) || "button".equals(name) || "canvas".equals(name) || name.indexOf('-') >= 0) return;
+        if ("div".equals(name) || "button".equals(name) || "input".equals(name)
+                || "canvas".equals(name) || name.indexOf('-') >= 0) return;
         throw error(errorLine, errorColumn, "Unknown element <" + name
-                + ">. Built-in elements are div, button, and canvas; component names contain a hyphen.");
+                + ">. Built-in elements are div, button, input, and canvas; component names contain a hyphen.");
     }
 
     private MarkupLoop readLoop(String tagName, List<MarkupAttribute> attributes) {
