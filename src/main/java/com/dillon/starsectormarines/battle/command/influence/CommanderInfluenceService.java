@@ -94,9 +94,15 @@ public final class CommanderInfluenceService {
 
     private List<CommanderContact> aggregateContacts(Faction faction) {
         Map<Long, CommanderContact> merged = new LinkedHashMap<>();
+        IdentityService identity = roster.identity();
         for (Squad squad : roster.getSquads()) {
             if (squad.faction != faction || squad.aliveMembers <= 0) continue;
             for (BelievedContact belief : squad.believedContacts()) {
+                if (!roster.isLive(belief.unitId())
+                        || identity.faction(belief.unitId()) == faction
+                        || !identity.type(belief.unitId()).combatant) {
+                    continue;
+                }
                 CommanderContact candidate = new CommanderContact(
                         belief.unitId(), belief.lastSeenCellX(), belief.lastSeenCellY(),
                         belief.lastSeenTick(), belief.confidence(), belief.source(), squad.id);
