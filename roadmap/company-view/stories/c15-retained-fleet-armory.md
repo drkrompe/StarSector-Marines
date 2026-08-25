@@ -2,9 +2,8 @@
 
 Status: IN PROGRESS — company/squad/fire-team drill-down and template issue migrated; broader parity remains
 Written: 2026-08-23
-Updated: 2026-08-24 — Squad cards again own inspection while reinforcement remains
-a secondary action; the old catch-all is now the explicitly transitional Armory
-Administration workspace.
+Updated: 2026-08-25 — Fire-team marine cards now present catalog-normalized
+capability meters with exact values beneath a compact single-row hierarchy header.
 
 Read `company-view-nouns.md`, `ui-nouns.md`, and
 `c14-fire-team-equipment-templates.md` first.
@@ -46,7 +45,9 @@ drill-down reachable. Templates remain plans, never collectible cards.
 - **Workspace:** the selected squad's Alpha, Bravo, and Charlie teams sit beside one
   primary viewer of the selected team's four persistent marines. Each card presents
   rank, name, readiness, aptitude, experience, career, candidate role, battle-composed
-  appearance, equipment names, and resolved combat figures.
+  appearance, equipment names, and resolved combat figures. Weapon and armor figures
+  use compact capability meters normalized against their catalog ceilings while
+  retaining the exact number beside each meter.
 - **Loadout editing:** the ordinary viewer shows current equipment without a library.
   **Change Loadout** opens a temporary horizontal strip of compact four-soldier
   selectors. Contextually unavailable templates are disabled; an available selection
@@ -97,6 +98,9 @@ drill-down reachable. Templates remain plans, never collectible cards.
 - The fire-team viewer shows all four named marines together with candidate armour,
   primary grade, special equipment, and combat statistics resolved from the same
   rules used by battle.
+- Damage, range, accuracy, sustained output, armor pool, armor rating, and movement
+  appear as comparative meters with exact values; their fill scale is stable across
+  the four marines rather than relative to only the currently selected team.
 - Live selected-marine portraits cycle the authored idle clip with staggered phases;
   compact template formations and headless snapshots remain fixed and deterministic.
 - Every library selector shows the same four billet recipes as a compact formation;
