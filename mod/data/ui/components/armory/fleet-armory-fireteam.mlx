@@ -1,29 +1,24 @@
-<template props="companySummary,selectedSquadName,fireTeamOverviews,templateTiles,targetSummary,candidateSummary,selectedSquadReadiness,reinforceLabel,reinforceDisabled,reinforceSquad,marineCards,pickerClasses,pickerToggleLabel,togglePicker,transactionSummary,transactionClasses,applyDisabled,applyClasses,applyLabel,apply,feedbackText,feedbackClasses,backToSquads,back,legacy,reload,reloadStatus">
+<template props="companySummary,selectedSquadName,fireTeamOverviews,targetSummary,candidateSummary,selectedSquadReadiness,reinforceLabel,reinforceDisabled,reinforceSquad,marineCards,weaponDoctrineSummary,armorDoctrineSummary,weaponDoctrineTiles,armorDoctrineTiles,transactionSummary,transactionClasses,applyDisabled,applyLabel,apply,feedbackText,feedbackClasses,backToSquads,back,returnAction,hqAction,armoryAction,hqClasses,hqDisabled,armoryClasses,armoryDisabled">
   <div id="fleet-armory-fireteam-root" class="fleet-armory-root">
-    <div id="fireteam-header" class="panel surface-dark">
-      <div id="fireteam-title" class="label title tone-accent">FLEET ARMORY</div>
-      <div id="fireteam-breadcrumb">
-        <button id="fireteam-breadcrumb-companies" onclick="{back}">Companies</button>
-        <div id="fireteam-breadcrumb-separator-company" class="breadcrumb-separator label tone-muted">/</div>
-        <button id="back-to-squads" onclick="{backToSquads}">Fleet Marine Company</button>
-        <div id="fireteam-breadcrumb-separator-squad" class="breadcrumb-separator label tone-muted">/</div>
-        <div id="fireteam-squad-name" class="breadcrumb-current label tone-edge">{selectedSquadName}</div>
-        <div id="fireteam-breadcrumb-separator-teams" class="breadcrumb-separator label tone-muted">/</div>
-        <div id="fireteam-breadcrumb-current" class="breadcrumb-current label tone-accent">Fire Teams</div>
-      </div>
+    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" armoryAction="{armoryAction}" hqClasses="{hqClasses}" hqDisabled="{hqDisabled}" armoryClasses="{armoryClasses}" armoryDisabled="{armoryDisabled}" contextLabel="FLAGSHIP / ARMORY / EQUIPMENT ISSUE" />
+
+    <div id="fireteam-breadcrumb" class="panel">
+      <button id="fireteam-breadcrumb-companies" onclick="{back}">Companies</button>
+      <div id="fireteam-breadcrumb-separator-company" class="breadcrumb-separator label tone-muted">/</div>
+      <button id="back-to-squads" onclick="{backToSquads}">Fleet Marine Company</button>
+      <div id="fireteam-breadcrumb-separator-squad" class="breadcrumb-separator label tone-muted">/</div>
+      <div id="fireteam-squad-name" class="breadcrumb-current label tone-edge">{selectedSquadName}</div>
+      <div id="fireteam-breadcrumb-separator-teams" class="breadcrumb-separator label tone-muted">/</div>
+      <div id="fireteam-breadcrumb-current" class="breadcrumb-current label tone-accent">Fire Teams</div>
     </div>
+
+    <armory-squad-doctrine selectedSquadReadiness="{selectedSquadReadiness}" reinforceLabel="{reinforceLabel}" reinforceDisabled="{reinforceDisabled}" reinforceSquad="{reinforceSquad}" weaponDoctrineSummary="{weaponDoctrineSummary}" armorDoctrineSummary="{armorDoctrineSummary}" weaponDoctrineTiles="{weaponDoctrineTiles}" armorDoctrineTiles="{armorDoctrineTiles}" transactionSummary="{transactionSummary}" transactionClasses="{transactionClasses}" applyDisabled="{applyDisabled}" applyLabel="{applyLabel}" apply="{apply}" />
 
     <div id="fireteam-body">
       <armory-fireteam-list fireTeamOverviews="{fireTeamOverviews}" />
-      <armory-refit-transaction targetSummary="{targetSummary}" candidateSummary="{candidateSummary}" selectedSquadReadiness="{selectedSquadReadiness}" reinforceLabel="{reinforceLabel}" reinforceDisabled="{reinforceDisabled}" reinforceSquad="{reinforceSquad}" marineCards="{marineCards}" templateTiles="{templateTiles}" pickerClasses="{pickerClasses}" pickerToggleLabel="{pickerToggleLabel}" togglePicker="{togglePicker}" transactionSummary="{transactionSummary}" transactionClasses="{transactionClasses}" applyDisabled="{applyDisabled}" applyClasses="{applyClasses}" applyLabel="{applyLabel}" apply="{apply}" feedbackText="{feedbackText}" feedbackClasses="{feedbackClasses}" />
+      <armory-refit-transaction targetSummary="{targetSummary}" candidateSummary="{candidateSummary}" marineCards="{marineCards}" feedbackText="{feedbackText}" feedbackClasses="{feedbackClasses}" />
     </div>
 
-    <div id="fireteam-footer" class="panel surface-dark">
-      <button id="fireteam-back" onclick="{back}">Back to Companies</button>
-      <button id="fireteam-legacy" onclick="{legacy}">Armory Administration</button>
-      <button id="fireteam-reload" onclick="{reload}">Reload UI</button>
-      <div id="fireteam-reload-status" class="label tone-good">{reloadStatus}</div>
-    </div>
   </div>
 </template>
 
@@ -37,22 +32,10 @@
   }
 
   .label { overflow: hidden; }
-  .title { font-family: title; }
-
-  #fireteam-header {
-    flex-direction: row;
-    height: 34px;
-    padding: 4px 7px;
-    gap: 12px;
-  }
-
-  #fireteam-title { width: 160px; padding: 3px 0px; }
-
   #fireteam-breadcrumb {
     flex-direction: row;
-    width: 0px;
-    height: 26px;
-    flex-grow: 1;
+    height: 28px;
+    padding: 3px 4px;
     gap: 5px;
   }
 
@@ -62,13 +45,4 @@
 
   #fireteam-body { flex-direction: row; height: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
 
-  #fireteam-footer {
-    flex-direction: row;
-    height: 28px;
-    padding: 4px;
-    gap: 6px;
-  }
-
-  #fireteam-footer button { padding: 3px 7px; border-width: 1px; font-family: body; }
-  #fireteam-reload-status { width: 0px; flex-grow: 1; }
 </style>

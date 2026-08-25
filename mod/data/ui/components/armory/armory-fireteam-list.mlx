@@ -1,7 +1,7 @@
 <template props="fireTeamOverviews">
   <div id="fireteam-rail" class="panel fireteam-rail">
     <div id="fireteam-list-heading" class="label heading tone-edge">FIRE TEAMS</div>
-    <div id="fireteam-list-copy" class="label tone-muted">Choose a team to refit.</div>
+    <div id="fireteam-list-copy" class="label tone-muted">Choose which four squad billets to inspect.</div>
     <div id="fireteam-list" class="fireteam-list">
       <button each="team in fireTeamOverviews" key="{team.id}" id="{team.id}" class="{team.classes}" onclick="{team.select}">
         <div id="{team.nameId}" class="fire-team-name label tone-edge">{team.name}</div>

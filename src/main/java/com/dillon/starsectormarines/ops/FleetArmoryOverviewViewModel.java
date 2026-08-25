@@ -77,7 +77,7 @@ public final class FleetArmoryOverviewViewModel {
                 base + ":recovery", base + ":stationing", base + ":open",
                 "company-card " + readiness.cardClass,
                 "company-status heading " + readiness.toneClass,
-                "PRIMARY FORMATION", "Fleet Marine Company", readiness.label,
+                "FORMATION", "Fleet Marine Company", readiness.label,
                 counts.lineSquads + (counts.lineSquads == 1
                         ? " marine squad" : " marine squads"),
                 counts.mechSquads + (counts.mechSquads == 1
