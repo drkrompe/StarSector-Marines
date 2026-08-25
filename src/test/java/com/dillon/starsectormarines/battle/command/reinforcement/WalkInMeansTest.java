@@ -8,6 +8,9 @@ import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
+import com.dillon.starsectormarines.battle.setup.GroundRosterRegistry;
+import com.dillon.starsectormarines.ops.RiskLevel;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -76,6 +79,28 @@ public class WalkInMeansTest {
             assertEquals(0, topo.getBuildingId(sim.world().cellX(u), sim.world().cellY(u)),
                     "no walk-in unit may spawn inside a building footprint");
             assertTrue(sim.getGrid().isWalkable(sim.world().cellX(u), sim.world().cellY(u)), "spawn cell is walkable");
+        }
+    }
+
+    @Test
+    public void factionalWalkInSeedsBulkEquipmentAndArmor() {
+        BattleSimulation sim = openSim();
+        sim.getCompoundService().register(barracks(2, 2));
+        GroundRosterProfile roster = GroundRosterRegistry.resolve("hegemony");
+        WalkInMeans means = new WalkInMeans(
+                TraversalAxis.SOUTH_TO_NORTH, roster, RiskLevel.MEDIUM);
+        ReinforcementRequest req = new ReinforcementRequest(Faction.DEFENDER,
+                ReinforcementRequest.Reason.GARRISON_DEPLETED,
+                ReinforcementRequest.Strength.SMALL, 5, 8);
+
+        means.dispatch(sim, req);
+
+        for (int i = 0; i < sim.liveUnitCount(); i++) {
+            long unit = sim.liveUnitAt(i);
+            assertEquals(roster.unitType(GroundRosterProfile.ForceTier.BULK),
+                    sim.identity().type(unit));
+            assertTrue(sim.combat().primaryWeapon(unit) != null);
+            assertTrue(sim.world().armorRating(unit) > 0f);
         }
     }
 }

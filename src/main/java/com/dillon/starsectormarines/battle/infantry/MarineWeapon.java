@@ -100,6 +100,13 @@ public enum MarineWeapon {
         this.id = id;
     }
 
+    public static MarineWeapon fromId(String id) {
+        for (MarineWeapon weapon : values()) {
+            if (weapon.id.equals(id)) return weapon;
+        }
+        throw new IllegalArgumentException("Unknown marine-primary weapon id '" + id + "'");
+    }
+
     /**
      * The backing definition. A plain map lookup on a handful of entries —
      * not cached, deliberately, so installing a registry is never subtly
