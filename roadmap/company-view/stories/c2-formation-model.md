@@ -23,7 +23,7 @@ exists in `MarineRoster` only as separate lists plus lookup helpers
 - `SquadDeploymentScreen` loops `roster.squads()`, filters reserves, calls
   `readyCount`, then hand-counts WIA/MIA/KIA per team inline.
 - `PersonnelReadiness` computes selected-vs-company ready and shortfall.
-- `ArmoryScreen` builds its own per-soldier ordering.
+- Fleet Armory builds its own per-soldier ordering.
 - `ResultsScreen` and the debrief path count survivors their own way.
 
 Adding a card UI on top of that means a fifth ad-hoc assembly, and any two
