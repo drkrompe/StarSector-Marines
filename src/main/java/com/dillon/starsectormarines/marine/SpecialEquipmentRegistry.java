@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.marine;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.weapon.MountClass;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.catalog.CatalogSource;
+import com.dillon.starsectormarines.catalog.MarineCatalogManifest.CatalogFile;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -31,6 +33,7 @@ public final class SpecialEquipmentRegistry {
     private static volatile SpecialEquipmentRegistry installed;
 
     private final Map<String, SpecialEquipmentDef> byId = new LinkedHashMap<>();
+    private final Map<String, CatalogSource> sourceById = new LinkedHashMap<>();
 
     public static SpecialEquipmentRegistry installed() {
         return installed;
@@ -55,15 +58,43 @@ public final class SpecialEquipmentRegistry {
         LOG.info("Special-equipment registry installed with " + registry.size() + " items");
     }
 
+    public static void loadContributions(List<CatalogFile> catalogs) {
+        SpecialEquipmentRegistry registry = new SpecialEquipmentRegistry();
+        for (CatalogFile catalog : catalogs) {
+            try {
+                registry.ingest(catalog.loadJson(), catalog.source());
+            } catch (Exception failure) {
+                throw new IllegalStateException("Failed to ingest special-equipment catalog "
+                        + catalog.source().describe(), failure);
+            }
+        }
+        registry.validateReferences();
+        install(registry);
+        LOG.info("Special-equipment registry installed with " + registry.size()
+                + " items from " + catalogs.size() + " contributed catalogs");
+    }
+
     public void ingest(JSONObject root) throws JSONException {
+        ingest(root, CatalogSource.unspecified("<in-memory special-equipment catalog>"));
+    }
+
+    public void ingest(JSONObject root, CatalogSource source) throws JSONException {
         JSONArray equipment = root.getJSONArray("equipment");
         for (int i = 0; i < equipment.length(); i++) {
             SpecialEquipmentDef def = SpecialEquipmentDef.parse(equipment.getJSONObject(i));
-            SpecialEquipmentDef previous = byId.put(def.id(), def);
+            SpecialEquipmentDef previous = byId.get(def.id());
             if (previous != null) {
-                throw new JSONException("Duplicate special-equipment id '" + def.id() + "'");
+                throw new JSONException("Duplicate special-equipment id '" + def.id()
+                        + "': first declared by " + sourceById.get(def.id()).describe()
+                        + ", then by " + source.describe());
             }
+            byId.put(def.id(), def);
+            sourceById.put(def.id(), source);
         }
+    }
+
+    public CatalogSource sourceOf(String id) {
+        return sourceById.get(id);
     }
 
     public void validateReferences() {

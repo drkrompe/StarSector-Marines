@@ -576,7 +576,8 @@ public final class UnitRosterService {
             // primaryWeapon is the OBJECT stat — null for a combatant with no
             // per-weapon profile (militia/aliens/turrets); a fresh row appends null,
             // so this seed is what makes a marine's deboard loadout canonical.
-            entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_PRIMARY_WEAPON, spec.primaryWeapon);
+            entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_PRIMARY_WEAPON,
+                    spec.primaryWeaponDef != null ? spec.primaryWeaponDef : spec.primaryWeapon);
             entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_EQUIPMENT_GRADE,
                     spec.equipmentGrade);
             entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_SOLDIER_PROFILE,

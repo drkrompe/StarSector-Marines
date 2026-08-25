@@ -8,7 +8,7 @@ import com.dillon.starsectormarines.battle.world.model.DoodadService;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.squad.BelievedContact;
@@ -537,10 +537,10 @@ public final class TacticalScoring {
         World world = roster.world();
         // self is the scoring combatant (non-combatant callers pass 0L above), so its
         // COMBAT primary-weapon read is safe by id; null = no per-weapon profile.
-        MarineWeapon primaryWeapon = roster.combat().primaryWeapon(self);
+        WeaponDef primaryWeapon = roster.combat().primaryWeaponDef(self);
         float primary;
         if (primaryWeapon != null) {
-            primary = primaryWeapon.penetration();
+            primary = primaryWeapon.penetration;
         } else if (roster.identity().type(self).isTurret()) {
             primary = roster.turretState().kind(self).targetAffinityPenetration();
         } else {
