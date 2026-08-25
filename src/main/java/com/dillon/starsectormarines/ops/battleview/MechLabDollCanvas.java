@@ -1,138 +1,302 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
+import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketType;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.world.model.TileManifest;
+import com.dillon.starsectormarines.ui.retained.CanvasBlend;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.CanvasProducer;
+import com.dillon.starsectormarines.ui.retained.CanvasSpriteRegion;
+import com.fs.starfarer.api.graphics.SpriteAPI;
 
 import java.awt.Color;
+import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
-/** Static true-overhead bay projection of the selected campaign mech. */
+/** Canonically composed mech inside a top-down battle-tileset fabrication bay. */
 public final class MechLabDollCanvas implements CanvasProducer {
 
     private static final String ROOT = "graphics/battle/mech-modular-topdown/";
-    private static final Color BACKGROUND = new Color(0x07, 0x0D, 0x14);
-    private static final Color GRID = new Color(0x19, 0x2A, 0x38);
-    private static final Color EDGE = new Color(0x38, 0x66, 0x80);
+    private static final int TILESET_COLUMNS = 10;
+    private static final int TILESET_ROWS = 10;
+    private static final float GANTRY_FACING_DEGREES = 180f;
+    private static final Color BACKGROUND = new Color(0x06, 0x0A, 0x10);
+    private static final Color STRUCTURE = new Color(0x25, 0x43, 0x56);
     private static final Color ACCENT = new Color(0x76, 0xB9, 0xD4);
+    private static final Color WELD = new Color(0xA5, 0xE8, 0xFF);
     private static final Color WHITE = Color.WHITE;
 
     private final Supplier<MechVariant> variant;
+    private final Supplier<SocketId> selectedSocket;
     private final Supplier<LayeredMechAssets> assets;
+    private final Supplier<LayeredUnitAssets> technicianAssets;
+    private final Supplier<SpriteAPI> tileSheet;
+    private final DoubleSupplier elapsedSeconds;
 
     public MechLabDollCanvas(Supplier<MechVariant> variant,
-                             Supplier<LayeredMechAssets> assets) {
-        if (variant == null || assets == null) {
-            throw new IllegalArgumentException("variant and assets are required");
+                             Supplier<SocketId> selectedSocket,
+                             Supplier<LayeredMechAssets> assets,
+                             Supplier<LayeredUnitAssets> technicianAssets,
+                             Supplier<SpriteAPI> tileSheet) {
+        this(variant, selectedSocket, assets, technicianAssets, tileSheet, () -> 0d);
+    }
+
+    public MechLabDollCanvas(Supplier<MechVariant> variant,
+                             Supplier<SocketId> selectedSocket,
+                             Supplier<LayeredMechAssets> assets,
+                             Supplier<LayeredUnitAssets> technicianAssets,
+                             Supplier<SpriteAPI> tileSheet,
+                             DoubleSupplier elapsedSeconds) {
+        if (variant == null || selectedSocket == null || assets == null || technicianAssets == null
+                || tileSheet == null || elapsedSeconds == null) {
+            throw new IllegalArgumentException(
+                    "variant, socket, mech/technician/tile assets, and elapsed time are required");
         }
         this.variant = variant;
+        this.selectedSocket = selectedSocket;
         this.assets = assets;
+        this.technicianAssets = technicianAssets;
+        this.tileSheet = tileSheet;
+        this.elapsedSeconds = elapsedSeconds;
     }
 
     @Override
     public void draw(CanvasContext context) {
         float width = context.metrics().surfaceWidth();
         float height = context.metrics().surfaceHeight();
-        context.fillRect(0f, 0f, width, height, BACKGROUND);
-        drawGrid(context, width, height);
+        float time = (float) elapsedSeconds.getAsDouble();
+        float cell = garageCell(height);
+        drawGarage(context, width, height, cell, tileSheet.get());
+
         MechVariant selected = variant.get();
         LayeredMechAssets sprites = assets.get();
         if (selected == null || sprites == null) return;
 
-        float hull = Math.min(width * 0.58f, height * 0.62f);
-        float centerX = width * 0.5f;
-        float centerY = height * 0.49f;
-        float scale = hull / 208f;
+        // Use the battle renderer's sizing authority. The room may zoom with its
+        // tiles, but a mech and a technician always keep their in-game ratio.
+        float hull = UnitRenderService.layeredMechHullWidth(cell, selected.renderScale);
+        float actorX = width * 0.5f;
+        float actorCanvasY = height * 0.50f;
+        float actorWorldY = height - actorCanvasY;
+        drawSocketOverlays(context, MechFittingLayout.forVariant(selected),
+                selectedSocket.get(), actorX, actorCanvasY, hull, cell);
+        LayeredMechComposer.emit(new CanvasSink(context, height), sprites,
+                actorX, actorWorldY, hull,
+                GANTRY_FACING_DEGREES, GANTRY_FACING_DEGREES,
+                0f, 0f, 0f, 0f, 0,
+                selected.chassisAppearance,
+                selected.arms.appearanceSelector,
+                appearance(selected.leftShoulder),
+                appearance(selected.rightShoulder), 1f);
 
-        // A static maintenance pose: feet and weapon assemblies remain legible
-        // around the chassis instead of reproducing battle animation state.
-        sprite(context, sprites.foot, centerX - hull * 0.21f,
-                centerY + hull * 0.35f, scale, 0f);
-        sprite(context, sprites.foot, centerX + hull * 0.21f,
-                centerY + hull * 0.35f, scale, 0f);
-        drawArms(context, sprites, selected.arms, centerX, centerY, hull, scale);
-        drawPod(context, sprites, selected.leftShoulder,
-                centerX - hull * 0.34f, centerY - hull * 0.12f, scale);
-        drawPod(context, sprites, selected.rightShoulder,
-                centerX + hull * 0.34f, centerY - hull * 0.12f, scale);
-        sprite(context, chassis(sprites, selected.chassisAppearance),
-                centerX, centerY, scale, 0f);
-
-        float bracket = Math.min(width, height) * 0.06f;
-        float left = centerX - hull * 0.61f;
-        float right = centerX + hull * 0.61f;
-        float top = centerY - hull * 0.58f;
-        float bottom = centerY + hull * 0.58f;
-        corner(context, left, top, bracket, 1f, 1f);
-        corner(context, right, top, bracket, -1f, 1f);
-        corner(context, left, bottom, bracket, 1f, -1f);
-        corner(context, right, bottom, bracket, -1f, -1f);
-        context.line(centerX - 18f, centerY, centerX + 18f, centerY, ACCENT, 1f);
-        context.line(centerX, centerY - 18f, centerX, centerY + 18f, ACCENT, 1f);
+        drawTechnicians(context, width, height, cell, time, technicianAssets.get());
+        drawWeld(context, width, height, time);
     }
 
-    private static void drawGrid(CanvasContext context, float width, float height) {
-        float step = 32f;
-        for (float x = step; x < width; x += step) {
-            context.line(x, 0f, x, height, GRID, 1f);
-        }
-        for (float y = step; y < height; y += step) {
-            context.line(0f, y, width, y, GRID, 1f);
-        }
-        context.strokeRect(1f, 1f, Math.max(0f, width - 2f),
-                Math.max(0f, height - 2f), EDGE, 1f);
+    private static float garageCell(float height) {
+        return Math.max(32f, Math.min(56f, height / 10f));
     }
 
-    private static void drawArms(CanvasContext context, LayeredMechAssets assets,
-                                 MechWeaponComponent arms, float x, float y,
-                                 float hull, float scale) {
-        LayeredSpriteCache sprite = switch (arms.appearanceSelector) {
-            case LayeredMechAppearance.ARMS_LINEAR_CANNON -> assets.linearCannon;
-            case LayeredMechAppearance.ARMS_HEAVY_CANNON -> assets.heavyCannon;
-            default -> assets.chaingunArm;
+    private static void drawGarage(CanvasContext c, float width, float height, float cell,
+                                   SpriteAPI liveSheet) {
+        c.fillRect(0f, 0f, width, height, BACKGROUND);
+        int columns = Math.max(1, (int) Math.ceil(width / cell));
+        int rows = Math.max(1, (int) Math.ceil(height / cell));
+        float originX = (width - columns * cell) * 0.5f;
+        float originY = (height - rows * cell) * 0.5f;
+
+        // The bay is a literal battle-map room: floor centers, wall autotile edges,
+        // industrial hazard/grate cells, and prop cutouts all come from urban-tileset.
+        for (int row = 0; row < rows; row++) {
+            for (int column = 0; column < columns; column++) {
+                int tileColumn = 1;
+                int tileRow = 1;
+                if (row == 0) { tileColumn = 4; tileRow = 0; }
+                if (row == rows - 1) { tileColumn = 4; tileRow = 2; }
+                if (column == 0) { tileColumn = 3; tileRow = 1; }
+                if (column == columns - 1) { tileColumn = 5; tileRow = 1; }
+                if (row == 0 && column == 0) { tileColumn = 3; tileRow = 0; }
+                if (row == 0 && column == columns - 1) { tileColumn = 5; tileRow = 0; }
+                if (row == rows - 1 && column == 0) { tileColumn = 3; tileRow = 2; }
+                if (row == rows - 1 && column == columns - 1) { tileColumn = 5; tileRow = 2; }
+                drawTile(c, liveSheet, tileColumn, tileRow,
+                        originX + (column + 0.5f) * cell,
+                        originY + (row + 0.5f) * cell, cell);
+            }
+        }
+
+        int padLeft = Math.max(2, columns / 2 - 3);
+        int padRight = Math.min(columns - 3, columns / 2 + 3);
+        int padTop = Math.max(2, rows / 2 - 3);
+        int padBottom = Math.min(rows - 3, rows / 2 + 3);
+        for (int row = padTop; row <= padBottom; row++) {
+            for (int column = padLeft; column <= padRight; column++) {
+                boolean perimeter = row == padTop || row == padBottom
+                        || column == padLeft || column == padRight;
+                int tileColumn = perimeter ? 1 : ((row + column) & 1) == 0 ? 0 : 2;
+                int tileRow = 3;
+                drawTile(c, liveSheet, tileColumn, tileRow,
+                        originX + (column + 0.5f) * cell,
+                        originY + (row + 0.5f) * cell, cell);
+            }
+        }
+
+        // Battle props become top-down fabrication stations around the active pad.
+        drawTile(c, liveSheet, 8, 2, width * 0.35f, cell * 0.70f, cell);
+        drawTile(c, liveSheet, 8, 2, width * 0.65f, cell * 0.70f, cell);
+        drawTile(c, liveSheet, 5, 3, cell * 1.35f, height * 0.36f, cell);
+        drawTile(c, liveSheet, 6, 3, cell * 1.35f, height * 0.50f, cell);
+        drawTile(c, liveSheet, 7, 3, cell * 1.35f, height * 0.64f, cell);
+        drawTile(c, liveSheet, 9, 2, width - cell * 1.35f, height * 0.38f, cell);
+        drawTile(c, liveSheet, 9, 1, width - cell * 1.35f, height * 0.57f, cell);
+        drawTile(c, liveSheet, 3, 3, width - cell * 1.35f, height * 0.72f, cell);
+
+        // Flat top-down service rails frame the mech without inventing depth.
+        float railInset = Math.max(cell * 2.2f, width * 0.23f);
+        c.line(railInset, cell * 1.4f, railInset, height - cell * 1.4f,
+                STRUCTURE, 5f);
+        c.line(width - railInset, cell * 1.4f, width - railInset,
+                height - cell * 1.4f, STRUCTURE, 5f);
+        c.line(railInset, cell * 1.4f, width - railInset, cell * 1.4f,
+                ACCENT, 2f);
+        c.strokeRect(1f, 1f, Math.max(0f, width - 2f),
+                Math.max(0f, height - 2f), STRUCTURE, 1f);
+    }
+
+    private static void drawTile(CanvasContext c, SpriteAPI liveSheet,
+                                 int column, int row, float centerX, float centerY,
+                                 float size) {
+        c.sprite(TileManifest.SHEET, liveSheet, centerX, centerY, size, size,
+                0f, WHITE, CanvasSpriteRegion.frame(TILESET_COLUMNS, TILESET_ROWS,
+                        row * TILESET_COLUMNS + column), CanvasBlend.NORMAL);
+    }
+
+    private static void drawTechnicians(CanvasContext c, float width, float height,
+                                        float cell, float time, LayeredUnitAssets crew) {
+        if (crew == null) return;
+        float shoulder = UnitRenderService.layeredInfantryShoulderWidth(
+                cell, UnitType.ENGINEER.renderScale);
+        float walkPhase = (time * 0.15f) % 1f;
+        float walkX = width * (0.18f + 0.22f * walkPhase);
+        drawTechnician(c, crew, walkX, height * 0.82f, shoulder, 90f,
+                walkPhase, true);
+        drawTechnician(c, crew, width * 0.78f, height * 0.66f, shoulder, 250f,
+                0f, false);
+        drawTechnician(c, crew, width * 0.23f, height * 0.58f, shoulder, 70f,
+                0f, false);
+    }
+
+    private static void drawSocketOverlays(CanvasContext c, MechFittingLayout layout,
+                                           SocketId selectedSocket, float actorX,
+                                           float actorCanvasY, float hull, float cell) {
+        float radians = (float) Math.toRadians(GANTRY_FACING_DEGREES);
+        float cos = (float) Math.cos(radians);
+        float sin = (float) Math.sin(radians);
+        for (SocketDef socket : layout.sockets()) {
+            float localX = socket.localRight() * hull;
+            float localY = socket.localForward() * hull;
+            float worldX = localX * cos - localY * sin;
+            float worldY = localX * sin + localY * cos;
+            float centerX = actorX + worldX;
+            float centerY = actorCanvasY - worldY;
+            float socketWidth = socket.footprintWidthCells() * cell;
+            float socketHeight = socket.footprintHeightCells() * cell;
+            boolean occupied = layout.occupied(socket.id());
+            boolean selected = socket.id() == selectedSocket;
+            Color base = socketColor(socket.type());
+            int fillAlpha = selected ? 78 : occupied ? 24 : 58;
+            int strokeAlpha = selected ? 230 : occupied ? 92 : 188;
+            c.fillRect(centerX - socketWidth * 0.5f, centerY - socketHeight * 0.5f,
+                    socketWidth, socketHeight, withAlpha(base, fillAlpha));
+            c.strokeRect(centerX - socketWidth * 0.5f, centerY - socketHeight * 0.5f,
+                    socketWidth, socketHeight, withAlpha(base, strokeAlpha),
+                    selected ? 2f : 1f);
+            drawCapacityPips(c, socket, centerX, centerY, socketWidth, socketHeight,
+                    base, selected || !occupied);
+        }
+    }
+
+    private static void drawCapacityPips(CanvasContext c, SocketDef socket,
+                                         float centerX, float centerY,
+                                         float socketWidth, float socketHeight,
+                                         Color base, boolean prominent) {
+        float gap = 3f;
+        float pip = Math.max(3f, Math.min(6f,
+                (socketWidth - gap * (socket.capacity() + 1)) / socket.capacity()));
+        float run = socket.capacity() * pip + (socket.capacity() - 1) * gap;
+        float x = centerX - run * 0.5f;
+        float y = centerY + socketHeight * 0.5f - pip - 3f;
+        for (int index = 0; index < socket.capacity(); index++) {
+            c.fillRect(x + index * (pip + gap), y, pip, pip,
+                    withAlpha(base, prominent ? 220 : 110));
+        }
+    }
+
+    private static Color socketColor(SocketType type) {
+        return switch (type) {
+            case CORE -> new Color(0xF0, 0xC9, 0x52);
+            case BALLISTIC -> new Color(0xE5, 0x83, 0x45);
+            case MISSILE -> new Color(0x6D, 0xD5, 0xF2);
+            case AMMO -> new Color(0x9E, 0xBD, 0x6A);
+            case UTILITY -> new Color(0xB1, 0x8B, 0xE8);
         };
-        if (arms.appearanceSelector == LayeredMechAppearance.ARMS_NOSE_CHAINGUN
-                || arms.appearanceSelector == LayeredMechAppearance.ARMS_HEAVY_CANNON) {
-            sprite(context, sprite, x, y - hull * 0.31f, scale, 0f);
-            return;
+    }
+
+    private static Color withAlpha(Color color, int alpha) {
+        return new Color(color.getRed(), color.getGreen(), color.getBlue(), alpha);
+    }
+
+    private static void drawTechnician(CanvasContext c, LayeredUnitAssets crew,
+                                       float actorX, float canvasY, float shoulderPx,
+                                       float facingDegrees, float locomotionPhase,
+                                       boolean moving) {
+        float surfaceHeight = c.metrics().surfaceHeight();
+        int flags = moving ? LayeredAppearance.FLAG_MOVING : 0;
+        LayeredUnitComposer.emit(
+                (layer, centerX, centerY, spriteWidth, spriteHeight, angle,
+                 red, green, blue, alpha) -> c.sprite(layer.sourcePath, layer.sprite,
+                        centerX, surfaceHeight - centerY, spriteWidth, spriteHeight,
+                        angle, new Color(red, green, blue, alpha)),
+                crew, crew.head, MarineWeapon.FIELD_RIFLE, false, null,
+                EquipmentGrade.SERVICE, actorX, surfaceHeight - canvasY, shoulderPx,
+                facingDegrees, 0f, locomotionPhase, 1f,
+                LayeredAppearance.POSE_IDLE, flags, 1f);
+    }
+
+    private static void drawWeld(CanvasContext c, float width, float height, float time) {
+        // Deterministic welding flicker; headless snapshots hold time at zero.
+        if (((int) (time * 7f)) % 3 != 1) {
+            float x = width * 0.69f;
+            float y = height * 0.55f;
+            c.line(x, y, x - 14f, y - 8f, WELD, 2f);
+            c.line(x, y, x + 17f, y - 3f, WELD, 2f);
+            c.line(x, y, x + 9f, y + 13f, WELD, 2f);
+            c.fillRect(x - 3f, y - 3f, 6f, 6f, WHITE);
         }
-        sprite(context, sprite, x - hull * 0.37f, y - hull * 0.28f, scale, 0f);
-        sprite(context, sprite, x + hull * 0.37f, y - hull * 0.28f, scale, 0f);
     }
 
-    private static void drawPod(CanvasContext context, LayeredMechAssets assets,
-                                MechWeaponComponent component, float x, float y,
-                                float scale) {
-        if (component == null) return;
-        LayeredSpriteCache sprite = component == MechWeaponComponent.SRM_5
-                || component == MechWeaponComponent.LRM_5
-                ? assets.srmPod : assets.lrmPod;
-        sprite(context, sprite, x, y, scale, 0f);
+    private static int appearance(MechWeaponComponent component) {
+        return component != null ? component.appearanceSelector : LayeredMechAppearance.POD_NONE;
     }
 
-    private static LayeredSpriteCache chassis(LayeredMechAssets assets, int selector) {
-        return switch (selector) {
-            case LayeredMechAppearance.CHASSIS_SOCKETED -> assets.socketedChassis;
-            case LayeredMechAppearance.CHASSIS_HOUND -> assets.houndChassis;
-            case LayeredMechAppearance.CHASSIS_SIROCCO -> assets.siroccoChassis;
-            default -> assets.chassis;
-        };
-    }
-
-    private static void sprite(CanvasContext context, LayeredSpriteCache sprite,
-                               float x, float y, float scale, float angle) {
-        if (sprite == null) return;
-        context.sprite(sprite.sourcePath, sprite.sprite, x, y,
-                sprite.pxWidth * scale, sprite.pxHeight * scale,
-                angle, WHITE);
-    }
-
-    private static void corner(CanvasContext context, float x, float y,
-                               float length, float xDirection, float yDirection) {
-        context.line(x, y, x + length * xDirection, y, ACCENT, 2f);
-        context.line(x, y, x, y + length * yDirection, ACCENT, 2f);
+    private record CanvasSink(CanvasContext context, float surfaceHeight)
+            implements LayeredMechComposer.Sink {
+        @Override
+        public void sprite(LayeredSpriteCache sprite, float centerX, float centerY,
+                           float width, float height, float angleDegrees, float alpha) {
+            context.sprite(sprite.sourcePath, sprite.sprite,
+                    centerX, surfaceHeight - centerY, width, height,
+                    angleDegrees, new Color(1f, 1f, 1f, alpha));
+        }
     }
 
     /** Asset identity for snapshot rendering without live Starsector sprites. */
@@ -142,12 +306,10 @@ public final class MechLabDollCanvas implements CanvasProducer {
                 token("chassis-socketed-variant.png", 208, 208),
                 token("chassis-hound.png", 208, 208),
                 token("chassis-sirocco.png", 208, 208),
-                token("foot.png", 44, 38),
-                token("thigh-bone.png", 40, 112),
+                token("foot.png", 44, 38), token("thigh-bone.png", 40, 112),
                 token("chaingun-arm.png", 62, 112),
                 token("linear-cannon-variant.png", 58, 138),
-                token("heavy-cannon.png", 64, 128),
-                token("srm-pod.png", 62, 88),
+                token("heavy-cannon.png", 64, 128), token("srm-pod.png", 62, 88),
                 token("lrm-pod.png", 76, 96),
                 LayeredSpriteCache.headless(
                         "graphics/battle/marine-modular-topdown/marine-muzzle-flash.png",

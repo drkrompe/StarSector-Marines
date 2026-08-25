@@ -557,6 +557,10 @@ public final class UiElement {
         return computedStyle == null ? UiTextAlign.START : computedStyle.textAlign();
     }
 
+    public UiWhiteSpace whiteSpace() {
+        return computedStyle == null ? UiWhiteSpace.NOWRAP : computedStyle.whiteSpace();
+    }
+
     public Color textColor() {
         if (computedStyle != null) return computedStyle.color();
         return textColor;

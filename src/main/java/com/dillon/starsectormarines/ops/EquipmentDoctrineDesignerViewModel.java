@@ -1,8 +1,10 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -19,6 +21,7 @@ import com.dillon.starsectormarines.ui.retained.reactive.Signal;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.Consumer;
 
 /** Player-facing authoring state for reusable twelve-billet equipment definitions. */
@@ -67,15 +70,16 @@ public final class EquipmentDoctrineDesignerViewModel {
         draftName = reactor.signal("");
         selectedTeam = reactor.signal(0);
         revision = reactor.signal(0);
-        feedback = reactor.signal("Author freely. Inventory is checked only when a definition is issued to a squad.");
+        feedback = reactor.signal(
+                "Definitions use collected template cards. Cargo is charged only when issued.");
         definitions = reactor.computed(this::buildDefinitions);
         teamTabs = reactor.computed(this::buildTeamTabs);
         billets = reactor.computed(this::buildBillets);
         heading = reactor.computed(() -> kind.get() == Kind.WEAPON
                 ? "WEAPON EQUIPMENT DEFINITION" : "ARMOR EQUIPMENT DEFINITION");
         subheading = reactor.computed(() -> kind.get() == Kind.WEAPON
-                ? "Primary weapons, grade, roles, and special equipment for all twelve billets."
-                : "Individual armor issue for all twelve billets; a squad need not wear one uniform pattern.");
+                ? "Collected primary, grade, and special template cards for all twelve billets."
+                : "Collected armor template cards for all twelve billets; patterns may be mixed.");
         renameDisabled = reactor.computed(() -> !customSource());
         deleteDisabled = reactor.computed(() -> !customSource() || assignedSource());
         loadWeapon(validWeaponId(weaponDoctrineId));
@@ -217,9 +221,12 @@ public final class EquipmentDoctrineDesignerViewModel {
                 SquadWeaponIssue issue = weaponIssues.get(billet);
                 result.add(new BilletCard(prefix, prefix + ":top",
                         "designer-marine-preview:" + local,
-                        prefix + ":title", prefix + ":role",
+                        prefix + ":title", prefix + ":flavor", prefix + ":stats",
+                        prefix + ":role",
                         prefix + ":primary", prefix + ":grade", prefix + ":special",
                         TEAM_NAMES.get(team) + "  /  " + (local + 1),
+                        weaponFlavor(issue), weaponStats(prefix, issue),
+                        "designer-stat-fill weapon-stat-fill",
                         "Role  ·  " + issue.role(),
                         "Primary  ·  " + issue.primary().catalogName(issue.grade()),
                         "Grade  ·  " + title(issue.grade().name()),
@@ -230,9 +237,12 @@ public final class EquipmentDoctrineDesignerViewModel {
                 MarineArmorPattern armor = armorIssues.get(billet);
                 result.add(new BilletCard(prefix, prefix + ":top",
                         "designer-marine-preview:" + local,
-                        prefix + ":title", prefix + ":role",
+                        prefix + ":title", prefix + ":flavor", prefix + ":stats",
+                        prefix + ":role",
                         prefix + ":primary", prefix + ":grade", prefix + ":special",
                         TEAM_NAMES.get(team) + "  /  " + (local + 1),
+                        armorFlavor(armor), armorStats(prefix, armor),
+                        "designer-stat-fill armor-stat-fill",
                         "Armor  ·  " + armor.displayName,
                         "Protection  ·  " + Math.round(armor.armorPool) + " / "
                                 + Math.round(armor.armorRating),
@@ -255,16 +265,40 @@ public final class EquipmentDoctrineDesignerViewModel {
 
     private void cycleWeapon(int index) {
         SquadWeaponIssue issue = weaponIssues.get(index);
-        MarineWeapon weapon = next(WEAPONS, issue.primary());
+        MarineWeapon weapon = issue.primary();
+        EquipmentGrade grade = issue.grade();
+        int start = WEAPONS.indexOf(issue.primary());
+        for (int offset = 1; offset <= WEAPONS.size(); offset++) {
+            MarineWeapon candidate = WEAPONS.get((Math.max(0, start) + offset) % WEAPONS.size());
+            if (roster.armory().ownsPrimaryTemplate(candidate, grade)) {
+                weapon = candidate;
+                break;
+            }
+            for (EquipmentGrade candidateGrade : EquipmentGrade.values()) {
+                if (roster.armory().ownsPrimaryTemplate(candidate, candidateGrade)) {
+                    weapon = candidate;
+                    grade = candidateGrade;
+                    break;
+                }
+            }
+            if (weapon == candidate) break;
+        }
         weaponIssues.set(index, new SquadWeaponIssue(
-                issue.role(), weapon, issue.grade(), issue.specialEquipmentId()));
-        changed("Primary changed to " + weapon.displayName() + ".");
+                issue.role(), weapon, grade, issue.specialEquipmentId()));
+        changed("Primary changed to " + weapon.catalogName(grade) + ".");
     }
 
     private void cycleGrade(int index) {
         SquadWeaponIssue issue = weaponIssues.get(index);
         EquipmentGrade[] values = EquipmentGrade.values();
-        EquipmentGrade grade = values[(issue.grade().ordinal() + 1) % values.length];
+        EquipmentGrade grade = issue.grade();
+        for (int offset = 1; offset <= values.length; offset++) {
+            EquipmentGrade candidate = values[(issue.grade().ordinal() + offset) % values.length];
+            if (roster.armory().ownsPrimaryTemplate(issue.primary(), candidate)) {
+                grade = candidate;
+                break;
+            }
+        }
         weaponIssues.set(index, new SquadWeaponIssue(
                 issue.role(), issue.primary(), grade, issue.specialEquipmentId()));
         changed("Equipment grade changed to " + title(grade.name()) + ".");
@@ -273,9 +307,14 @@ public final class EquipmentDoctrineDesignerViewModel {
     private void cycleSpecial(int index) {
         SquadWeaponIssue issue = weaponIssues.get(index);
         MarineSecondary current = issue.special();
-        MarineSecondary[] values = MarineSecondary.values();
-        MarineSecondary next = current == null ? values[0]
-                : current.ordinal() == values.length - 1 ? null : values[current.ordinal() + 1];
+        List<MarineSecondary> owned = new ArrayList<>();
+        for (MarineSecondary special : MarineSecondary.values()) {
+            if (roster.armory().ownsSpecialTemplate(special)) owned.add(special);
+        }
+        int currentIndex = current == null ? -1 : owned.indexOf(current);
+        MarineSecondary next = currentIndex < 0
+                ? owned.isEmpty() ? null : owned.get(0)
+                : currentIndex == owned.size() - 1 ? null : owned.get(currentIndex + 1);
         weaponIssues.set(index, new SquadWeaponIssue(
                 issue.role(), issue.primary(), issue.grade(), next));
         changed("Special equipment changed to " + specialName(next) + ".");
@@ -284,7 +323,14 @@ public final class EquipmentDoctrineDesignerViewModel {
     private void cycleArmor(int index) {
         MarineArmorPattern current = armorIssues.get(index);
         MarineArmorPattern[] values = MarineArmorPattern.values();
-        MarineArmorPattern next = values[(current.ordinal() + 1) % values.length];
+        MarineArmorPattern next = current;
+        for (int offset = 1; offset <= values.length; offset++) {
+            MarineArmorPattern candidate = values[(current.ordinal() + offset) % values.length];
+            if (roster.armory().ownsArmorTemplate(candidate)) {
+                next = candidate;
+                break;
+            }
+        }
         armorIssues.set(index, next);
         changed("Armor changed to " + next.displayName + ".");
     }
@@ -311,10 +357,18 @@ public final class EquipmentDoctrineDesignerViewModel {
             return;
         }
         if (kind.peek() == Kind.WEAPON) {
+            if (!roster.armory().canAuthorWeaponDoctrine(weaponIssues)) {
+                feedback.set("Collect every referenced weapon and special template card before saving.");
+                return;
+            }
             SquadWeaponDoctrine saved = roster.armory().createWeaponDoctrine(
                     draftName.peek(), List.copyOf(weaponIssues));
             sourceId.set(saved.id());
         } else {
+            if (!roster.armory().canAuthorArmorDoctrine(armorIssues)) {
+                feedback.set("Collect every referenced armor template card before saving.");
+                return;
+            }
             SquadArmorDoctrine saved = roster.armory().createArmorDoctrine(
                     draftName.peek(), List.copyOf(armorIssues));
             sourceId.set(saved.id());
@@ -395,6 +449,144 @@ public final class EquipmentDoctrineDesignerViewModel {
         int percent = Math.round(value * 100f);
         return (percent > 0 ? "+" : "") + percent + "%";
     }
+
+    private static String weaponFlavor(SquadWeaponIssue issue) {
+        if (issue.special() != null) {
+            return "Specialist billet · " + issue.special().displayName() + ".";
+        }
+        if (issue.role().contains("Leader")) {
+            return "Fire-team lead · priority command issue.";
+        }
+        return switch (issue.primary()) {
+            case SMG -> "Assault billet · fast handling in close terrain.";
+            case SQUAD_AUTOMATIC -> "Support billet · sustained covering fire.";
+            case DMR -> "Precision billet · reach over volume.";
+            default -> "Line billet · reliable general-purpose issue.";
+        };
+    }
+
+    private static String armorFlavor(MarineArmorPattern armor) {
+        if (armor == MarineArmorPattern.ARMORLESS) {
+            return "Unplated fatigues · mobility over protection.";
+        }
+        if (armor == MarineArmorPattern.MILITIA || armor == MarineArmorPattern.OUTLAW) {
+            return "Patchwork protection · light plate, low burden.";
+        }
+        if (armor.moveSpeedMult >= 1f) {
+            return "Mobile protection · speed under fire.";
+        }
+        return "Combat protection · plate traded for mobility.";
+    }
+
+    private static List<StatMeter> weaponStats(String cardId, SquadWeaponIssue issue) {
+        SoldierProfile profile = SoldierProfile.REGULAR;
+        float damage = InfantryCombatStats.damage(issue.primary(), issue.grade());
+        float range = InfantryCombatStats.range(issue.primary(), issue.grade());
+        float accuracy = InfantryCombatStats.accuracy(issue.primary(), issue.grade(), profile);
+        float dps = InfantryCombatStats.estimatedDps(issue.primary(), issue.grade(), profile);
+        return List.of(
+                statMeter(cardId + ":damage", "DMG", formatOneDecimal(damage),
+                        damage, maximumWeaponDamage()),
+                statMeter(cardId + ":range", "RNG", formatOneDecimal(range),
+                        range, maximumWeaponRange()),
+                statMeter(cardId + ":accuracy", "ACC",
+                        String.format(Locale.ROOT, "%.0f%%", accuracy * 100f), accuracy, 1f),
+                statMeter(cardId + ":dps", "DPS", formatOneDecimal(dps),
+                        dps, maximumWeaponDps(profile)));
+    }
+
+    private static List<StatMeter> armorStats(String cardId, MarineArmorPattern armor) {
+        float evasion = 1f - armor.incomingAccuracyMult;
+        return List.of(
+                statMeter(cardId + ":pool", "POOL",
+                        String.format(Locale.ROOT, "%.0f", armor.armorPool),
+                        armor.armorPool, maximumArmorPool()),
+                statMeter(cardId + ":rating", "RATING",
+                        String.format(Locale.ROOT, "%.0f", armor.armorRating),
+                        armor.armorRating, maximumArmorRating()),
+                statMeter(cardId + ":move", "MOVE",
+                        String.format(Locale.ROOT, "%.0f%%", armor.moveSpeedMult * 100f),
+                        armor.moveSpeedMult, maximumMoveSpeed()),
+                statMeter(cardId + ":evasion", "EVA",
+                        signedPercent(1f - armor.incomingAccuracyMult),
+                        evasion, maximumEvasion()));
+    }
+
+    private static StatMeter statMeter(
+            String id, String label, String value, float amount, float maximum) {
+        int percentage = maximum > 0f
+                ? Math.round(Math.max(0f, Math.min(1f, amount / maximum)) * 100f) : 0;
+        return new StatMeter(id, id + ":label", id + ":track", id + ":fill",
+                id + ":value", label, value, "width: " + percentage + "%;");
+    }
+
+    private static String formatOneDecimal(float value) {
+        return String.format(Locale.ROOT, "%.1f", value);
+    }
+
+    private static float maximumWeaponDamage() {
+        float maximum = 1f;
+        for (MarineWeapon weapon : MarineWeapon.values()) {
+            for (EquipmentGrade grade : EquipmentGrade.values()) {
+                maximum = Math.max(maximum, InfantryCombatStats.damage(weapon, grade));
+            }
+        }
+        return maximum;
+    }
+
+    private static float maximumWeaponRange() {
+        float maximum = 1f;
+        for (MarineWeapon weapon : MarineWeapon.values()) {
+            for (EquipmentGrade grade : EquipmentGrade.values()) {
+                maximum = Math.max(maximum, InfantryCombatStats.range(weapon, grade));
+            }
+        }
+        return maximum;
+    }
+
+    private static float maximumWeaponDps(SoldierProfile profile) {
+        float maximum = 1f;
+        for (MarineWeapon weapon : MarineWeapon.values()) {
+            for (EquipmentGrade grade : EquipmentGrade.values()) {
+                maximum = Math.max(maximum,
+                        InfantryCombatStats.estimatedDps(weapon, grade, profile));
+            }
+        }
+        return maximum;
+    }
+
+    private static float maximumArmorPool() {
+        float maximum = 1f;
+        for (MarineArmorPattern armor : MarineArmorPattern.values()) {
+            maximum = Math.max(maximum, armor.armorPool);
+        }
+        return maximum;
+    }
+
+    private static float maximumArmorRating() {
+        float maximum = 1f;
+        for (MarineArmorPattern armor : MarineArmorPattern.values()) {
+            maximum = Math.max(maximum, armor.armorRating);
+        }
+        return maximum;
+    }
+
+    private static float maximumMoveSpeed() {
+        float maximum = 1f;
+        for (MarineArmorPattern armor : MarineArmorPattern.values()) {
+            maximum = Math.max(maximum, armor.moveSpeedMult);
+        }
+        return maximum;
+    }
+
+    private static float maximumEvasion() {
+        float maximum = 0.01f;
+        for (MarineArmorPattern armor : MarineArmorPattern.values()) {
+            maximum = Math.max(maximum, 1f - armor.incomingAccuracyMult);
+        }
+        return maximum;
+    }
+
     private static String title(String value) {
         String lower = value.toLowerCase().replace('_', ' ');
         return Character.toUpperCase(lower.charAt(0)) + lower.substring(1);
@@ -430,21 +622,39 @@ public final class EquipmentDoctrineDesignerViewModel {
     }
 
     public record BilletCard(String id, String topId, String canvasId, String titleId,
+                             String flavorId, String statsId,
                              String roleId, String primaryId,
-                             String gradeId, String specialId, String title, String role,
+                             String gradeId, String specialId, String title,
+                             String flavor, List<StatMeter> stats, String statFillClasses, String role,
                              String primary, String grade, String special, Runnable cycleRole,
                              Runnable cyclePrimary, Runnable cycleGrade, Runnable cycleSpecial)
             implements MarkupPropertySource {
         @Override public Object markupProperty(String property) {
             return switch (property) {
                 case "id" -> id; case "topId" -> topId; case "canvasId" -> canvasId;
-                case "titleId" -> titleId; case "roleId" -> roleId;
+                case "titleId" -> titleId; case "flavorId" -> flavorId;
+                case "statsId" -> statsId; case "roleId" -> roleId;
                 case "primaryId" -> primaryId; case "gradeId" -> gradeId; case "specialId" -> specialId;
-                case "title" -> title; case "role" -> role; case "primary" -> primary;
+                case "title" -> title; case "flavor" -> flavor; case "stats" -> stats;
+                case "statFillClasses" -> statFillClasses;
+                case "role" -> role; case "primary" -> primary;
                 case "grade" -> grade; case "special" -> special; case "cycleRole" -> cycleRole;
                 case "cyclePrimary" -> cyclePrimary; case "cycleGrade" -> cycleGrade;
                 case "cycleSpecial" -> cycleSpecial;
                 default -> throw new IllegalArgumentException("Unknown billet card property");
+            };
+        }
+    }
+
+    public record StatMeter(
+            String id, String labelId, String trackId, String fillId, String valueId,
+            String label, String value, String fillStyle) implements MarkupPropertySource {
+        @Override public Object markupProperty(String property) {
+            return switch (property) {
+                case "id" -> id; case "labelId" -> labelId; case "trackId" -> trackId;
+                case "fillId" -> fillId; case "valueId" -> valueId; case "label" -> label;
+                case "value" -> value; case "fillStyle" -> fillStyle;
+                default -> throw new IllegalArgumentException("Unknown stat meter property");
             };
         }
     }

@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
@@ -20,21 +23,12 @@ import java.util.Locale;
 /** Spatial doll projection and command surface for the campaign-authoritative {@link MechBay}. */
 public final class MechLabViewModel {
 
-    public enum SlotId {
-        CORE("ENGINE CORE"), ARMS("ARM ASSEMBLY"), LEFT_SHOULDER("L. SHOULDER"),
-        RIGHT_SHOULDER("R. SHOULDER"), AMMO_RESERVE("AMMO RESERVE"),
-        MINI_FAB("MINI-FAB");
-
-        private final String label;
-        SlotId(String label) { this.label = label; }
-        String label() { return label; }
-    }
-
     private final MechBay bay;
     private final MutableSignal<Integer> revision;
     private final MutableSignal<String> selectedSquadId;
     private final MutableSignal<String> selectedMechId;
-    private final MutableSignal<SlotId> selectedSlot;
+    private final MutableSignal<SocketId> selectedSlot;
+    private final MutableSignal<Boolean> assetPickerOpen;
     private final MutableSignal<String> feedbackText;
     private final MutableSignal<String> feedbackClasses;
     private final ComputedSignal<String> labSummary;
@@ -46,10 +40,13 @@ public final class MechLabViewModel {
     private final ComputedSignal<List<PerformanceMeter>> performanceMeters;
     private final ComputedSignal<List<SlotRow>> leftSlotRows;
     private final ComputedSignal<List<SlotRow>> rightSlotRows;
+    private final ComputedSignal<List<SlotRow>> slotRows;
     private final ComputedSignal<String> selectedSlotTitle;
     private final ComputedSignal<String> selectedSlotCopy;
     private final ComputedSignal<String> selectedSlotRule;
     private final ComputedSignal<List<CatalogRow>> catalogRows;
+    private final ComputedSignal<String> pickerClasses;
+    private final ComputedSignal<String> workspaceClasses;
 
     public MechLabViewModel(Reactor reactor, MechBay bay) {
         if (reactor == null) throw new IllegalArgumentException("reactor is required");
@@ -60,7 +57,8 @@ public final class MechLabViewModel {
         revision = reactor.signal(0);
         selectedSquadId = reactor.signal(initialSquad != null ? initialSquad.id() : null);
         selectedMechId = reactor.signal(initialMech != null ? initialMech.id() : null);
-        selectedSlot = reactor.signal(SlotId.MINI_FAB);
+        selectedSlot = reactor.signal(SocketId.MINI_FAB);
+        assetPickerOpen = reactor.signal(false);
         feedbackText = reactor.signal(
                 "Select a location on the doll. Only stocked bay hardware can be committed.");
         feedbackClasses = reactor.signal("mech-lab-feedback tone-muted surface-dark");
@@ -82,13 +80,18 @@ public final class MechLabViewModel {
         });
         performanceMeters = reactor.computed(this::buildPerformanceMeters);
         leftSlotRows = reactor.computed(() -> buildSlots(List.of(
-                SlotId.CORE, SlotId.ARMS, SlotId.LEFT_SHOULDER)));
+                SocketId.CORE, SocketId.ARMS, SocketId.LEFT_SHOULDER)));
         rightSlotRows = reactor.computed(() -> buildSlots(List.of(
-                SlotId.RIGHT_SHOULDER, SlotId.AMMO_RESERVE, SlotId.MINI_FAB)));
+                SocketId.RIGHT_SHOULDER, SocketId.AMMO_RESERVE, SocketId.MINI_FAB)));
+        slotRows = reactor.computed(() -> buildSlots(List.of(SocketId.values())));
         selectedSlotTitle = reactor.computed(() -> selectedSlot.get().label());
         selectedSlotCopy = reactor.computed(this::buildSelectedSlotCopy);
         selectedSlotRule = reactor.computed(this::buildSelectedSlotRule);
         catalogRows = reactor.computed(this::buildCatalogRows);
+        pickerClasses = reactor.computed(() -> assetPickerOpen.get()
+                ? "asset-picker panel" : "asset-picker panel hidden");
+        workspaceClasses = reactor.computed(() -> assetPickerOpen.get()
+                ? "fitting-workspace hidden" : "fitting-workspace");
     }
 
     public Signal<String> labSummary() { return labSummary; }
@@ -100,12 +103,20 @@ public final class MechLabViewModel {
     public Signal<List<PerformanceMeter>> performanceMeters() { return performanceMeters; }
     public Signal<List<SlotRow>> leftSlotRows() { return leftSlotRows; }
     public Signal<List<SlotRow>> rightSlotRows() { return rightSlotRows; }
+    public Signal<List<SlotRow>> slotRows() { return slotRows; }
     public Signal<String> selectedSlotTitle() { return selectedSlotTitle; }
     public Signal<String> selectedSlotCopy() { return selectedSlotCopy; }
     public Signal<String> selectedSlotRule() { return selectedSlotRule; }
     public Signal<List<CatalogRow>> catalogRows() { return catalogRows; }
+    public Signal<String> pickerClasses() { return pickerClasses; }
+    public Signal<String> workspaceClasses() { return workspaceClasses; }
+    public Runnable openAssetPickerAction() { return this::openAssetPicker; }
+    public Runnable closeAssetPickerAction() { return this::closeAssetPicker; }
     public Signal<String> feedbackText() { return feedbackText; }
     public Signal<String> feedbackClasses() { return feedbackClasses; }
+
+    /** Current authored fitting socket; shared with the physical room overlay. */
+    public SocketId selectedSocket() { return selectedSlot.get(); }
 
     /** Current preview identity; the canvas deliberately reads no mutable battle state. */
     public MechVariant selectedVariant() {
@@ -163,6 +174,7 @@ public final class MechLabViewModel {
         for (CampaignMech mech : squad.mechs()) {
             String base = "mech:" + mech.id();
             rows.add(new MechRow(base, base + ":name", base + ":chassis", base + ":subsystem",
+                    base + ":action",
                     mech.id().equals(selected) ? "mech-row selected" : "mech-row",
                     mech.displayName(), mech.variant().displayName + "  ·  " + roleLabel(mech.role()),
                     mech.missileReplenisher().displayName(), () -> selectMech(mech.id())));
@@ -182,19 +194,23 @@ public final class MechLabViewModel {
                         v.moveSpeed, maximum(x -> x.moveSpeed)),
                 meter("range", "MAX RANGE", number(v.maxWeaponRange()) + " CELLS",
                         v.maxWeaponRange(), maximum(MechVariant::maxWeaponRange)),
-                meter("endurance", "MISSILE AMMO", missileTriggers(v) + " TRIGGERS",
+                meter("endurance", "MISSILES", missileTriggers(v) + " TRIGGERS",
                         missileTriggers(v), maximum(MechLabViewModel::missileTriggers)));
     }
 
-    private List<SlotRow> buildSlots(List<SlotId> slots) {
+    private List<SlotRow> buildSlots(List<SocketId> slots) {
         revision.get();
         CampaignMech mech = selectedMech();
+        if (mech == null) return List.of();
+        MechFittingLayout layout = MechFittingLayout.forVariant(mech.variant());
         List<SlotRow> rows = new ArrayList<>();
-        for (SlotId slot : slots) {
+        for (SocketId slot : slots) {
+            SocketDef definition = layout.socket(slot);
+            if (definition == null) continue;
             String base = "mech-slot:" + slot.name().toLowerCase(Locale.ROOT);
             rows.add(new SlotRow(base, base + ":name", base + ":component", base + ":type",
                     slot == selectedSlot.get() ? "doll-slot selected" : "doll-slot",
-                    slot.label(), slotComponent(mech, slot), slotType(slot),
+                    slot.label(), slotComponent(mech, slot), slotType(definition),
                     () -> selectSlot(slot)));
         }
         return List.copyOf(rows);
@@ -208,29 +224,36 @@ public final class MechLabViewModel {
             case CORE -> "Chassis-integrated powerplant; future cores can trade output, heat and mass.";
             case AMMO_RESERVE -> ammoSummary(mech.variant()) + ". Current bins are integral.";
             case ARMS, LEFT_SHOULDER, RIGHT_SHOULDER ->
-                    "Installed weapon assembly. Typed sockets will gate equipment and slot use.";
+                    slotComponent(mech, selectedSlot.get()).equals("Empty hardpoint")
+                            ? "Empty mount. Fit compatible missile hardware here."
+                            : "Installed weapon assembly. Socket type and capacity gate replacement equipment.";
         };
     }
 
     private String buildSelectedSlotRule() {
-        return switch (selectedSlot.get()) {
-            case MINI_FAB -> "UTILITY  ·  1 SLOT  ·  FINITE STOCK";
-            case CORE -> "CORE SOCKET  ·  FACTORY LOCKED IN CURRENT CAMPAIGN MODEL";
-            case AMMO_RESERVE -> "AMMO BAYS  ·  FACTORY LOCKED IN CURRENT CAMPAIGN MODEL";
-            case ARMS -> "BALLISTIC SOCKET  ·  SIZED-SLOT SCHEMA PENDING";
-            case LEFT_SHOULDER, RIGHT_SHOULDER -> "MISSILE SOCKET  ·  SIZED-SLOT SCHEMA PENDING";
-        };
+        SocketDef definition = selectedSocketDefinition();
+        if (definition == null) return "NO SOCKET DEFINITION";
+        String authority = definition.factoryLocked()
+                ? "LOCKED" : selectedSlot.get() == SocketId.MINI_FAB
+                ? "FINITE STOCK" : "OPEN";
+        return definition.type().label() + " SOCKET  ·  "
+                + definition.capacity() + (definition.capacity() == 1 ? " SLOT  ·  " : " SLOTS  ·  ")
+                + authority;
     }
 
     private List<CatalogRow> buildCatalogRows() {
         revision.get();
         CampaignMech mech = selectedMech();
-        if (selectedSlot.get() == SlotId.MINI_FAB) return replenisherCatalog(mech);
+        if (selectedSlot.get() == SocketId.MINI_FAB) return replenisherCatalog(mech);
         String base = "mech-catalog:installed:" + selectedSlot.get().name().toLowerCase(Locale.ROOT);
+        SocketDef definition = selectedSocketDefinition();
+        boolean occupied = mech != null
+                && MechFittingLayout.forVariant(mech.variant()).occupied(selectedSlot.get());
         return List.of(new CatalogRow(base, base + ":copy", base + ":name", base + ":stock",
                 base + ":detail", base + ":action", "catalog-row selected",
-                slotComponent(mech, selectedSlot.get()), "INSTALLED ASSEMBLY",
-                buildSelectedSlotRule(), "FACTORY LOCKED", true, () -> { }));
+                slotComponent(mech, selectedSlot.get()), occupied ? "INSTALLED ASSEMBLY" : "EMPTY SOCKET",
+                buildSelectedSlotRule(), definition != null && definition.factoryLocked()
+                        ? "FACTORY LOCKED" : "NO COMPATIBLE STOCK", true, () -> { }));
     }
 
     private List<CatalogRow> replenisherCatalog(CampaignMech mech) {
@@ -260,7 +283,7 @@ public final class MechLabViewModel {
         selectedSquadId.set(squadId);
         CampaignMech mech = firstMech(squad);
         selectedMechId.set(mech != null ? mech.id() : null);
-        selectedSlot.set(SlotId.MINI_FAB);
+        selectedSlot.set(SocketId.MINI_FAB);
         feedbackText.set(squad.displayName() + " is now the active Mech Support lance.");
         feedbackClasses.set("mech-lab-feedback tone-good surface-dark");
         revision.update(value -> value + 1);
@@ -270,15 +293,28 @@ public final class MechLabViewModel {
         CampaignMechSquad squad = selectedSquad();
         if (squad == null || squad.mechById(mechId) == null) return;
         selectedMechId.set(mechId);
-        selectedSlot.set(SlotId.MINI_FAB);
+        selectedSlot.set(SocketId.MINI_FAB);
+        assetPickerOpen.set(false);
         feedbackText.set("Inspecting " + squad.mechById(mechId).displayName()
                 + ". No campaign hardware changed.");
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
     }
 
-    private void selectSlot(SlotId slot) {
+    private void openAssetPicker() {
+        assetPickerOpen.set(true);
+        feedbackText.set("Choose a support lance and heavy asset for the fabrication gantry.");
+        feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
+    }
+
+    private void closeAssetPicker() {
+        assetPickerOpen.set(false);
+        feedbackText.set("Returned to the fitting gantry. No campaign hardware changed.");
+        feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
+    }
+
+    private void selectSlot(SocketId slot) {
         selectedSlot.set(slot);
-        feedbackText.set(slot.label() + " selected. " + (slot == SlotId.MINI_FAB
+        feedbackText.set(slot.label() + " selected. " + (slot == SocketId.MINI_FAB
                 ? "Compatible fleet stock is ready for refit."
                 : "Inspection only; this hardware has no campaign refit authority yet."));
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
@@ -311,7 +347,7 @@ public final class MechLabViewModel {
         return squad == null || squad.mechs().isEmpty() ? null : squad.mechs().get(0);
     }
 
-    private static String slotComponent(CampaignMech mech, SlotId slot) {
+    private static String slotComponent(CampaignMech mech, SocketId slot) {
         if (mech == null) return "NO ASSET";
         MechVariant variant = mech.variant();
         return switch (slot) {
@@ -326,14 +362,16 @@ public final class MechLabViewModel {
         };
     }
 
-    private static String slotType(SlotId slot) {
-        return switch (slot) {
-            case CORE -> "CORE / FIXED";
-            case ARMS -> "BALLISTIC / FIXED";
-            case LEFT_SHOULDER, RIGHT_SHOULDER -> "MISSILE / FIXED";
-            case AMMO_RESERVE -> "AMMO / INTEGRAL";
-            case MINI_FAB -> "UTILITY / SWAP";
-        };
+    private SocketDef selectedSocketDefinition() {
+        CampaignMech mech = selectedMech();
+        return mech != null
+                ? MechFittingLayout.forVariant(mech.variant()).socket(selectedSlot.get())
+                : null;
+    }
+
+    private static String slotType(SocketDef definition) {
+        return definition.type().label() + " / " + definition.capacity()
+                + (definition.capacity() == 1 ? " SLOT" : " SLOTS");
     }
 
     private static String componentName(MechWeaponComponent component) {
@@ -393,11 +431,13 @@ public final class MechLabViewModel {
     }
 
     public record MechRow(String id, String nameId, String chassisId, String subsystemId,
+                          String actionId,
                           String classes, String name, String chassis, String subsystem,
                           Runnable select) implements MarkupPropertySource {
         @Override public Object markupProperty(String p) { return switch (p) {
             case "id" -> id; case "nameId" -> nameId; case "chassisId" -> chassisId;
-            case "subsystemId" -> subsystemId; case "classes" -> classes; case "name" -> name;
+            case "subsystemId" -> subsystemId; case "actionId" -> actionId;
+            case "classes" -> classes; case "name" -> name;
             case "chassis" -> chassis; case "subsystem" -> subsystem; case "select" -> select;
             default -> throw unknown("mech", p); }; }
     }

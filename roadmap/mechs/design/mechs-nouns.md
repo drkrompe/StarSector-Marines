@@ -4,8 +4,9 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — established the Mech Lab's spatial hardpoint doll and typed,
-sized-slot refit boundary over the campaign MechBay authority.
+Updated: 2026-08-25 — gave each chassis an authored spatial fitting layout,
+rendered empty sockets as translucent gantry footprints, and made the room use
+the battle renderer's relative mech-to-worker scale.
 
 ## Purpose
 
@@ -45,14 +46,19 @@ increasing an encounter's total armored threat.
   against owned quantity; a refit transaction returns the target mech's
   current component before evaluating the replacement.
 - The **Mech Lab** is the shipboard room that selects the active mech squad,
-  presents each chassis as a top-down hardpoint doll, and performs
-  inventory-checked refits. Selecting a location changes catalog context; it
-  does not itself change hardware. It is an authoring surface over campaign
-  authorities, not a second inventory or a battle debug picker.
+  moves one selected asset onto a fabrication gantry, presents it as a top-down
+  hardpoint doll, and performs inventory-checked refits. Asset/lance browsing is
+  a separate internal bay screen so the fitting gantry can spend its width on
+  equipment, the physical workspace, and sockets. Selecting a location changes
+  catalog context; it does not itself change hardware. It is an authoring surface
+  over campaign authorities, not a second inventory or a battle debug picker.
 - A **socket** is one spatial equipment location on a heavy asset. Custom-refit
   sockets will declare a compatibility type—ballistic, energy, missile, or
   omni—and a sized capacity. A component will declare compatible types and a
-  slot cost. The drag gesture is presentation; the validated resulting
+  slot cost. Each asset-class layout owns the socket's asset-relative center and
+  room footprint as well as its compatibility and capacity. An empty translucent
+  footprint means an authored socket is unoccupied; an omitted socket is still
+  genuinely absent. The drag gesture is presentation; the validated resulting
   placement is domain intent.
 - A **weapon family** owns projectile behavior and presentation; a component
   turns it into a mountable rack/arm with capacity and appearance. The gun,
@@ -141,6 +147,23 @@ determines the payload, not the entitlement to call it.
 - Spatial selection and drag previews have no mutation authority. Dropping a
   component may propose a placement, but only a successful campaign command
   changes the installed loadout.
+- The fitting doll consumes the same ordered layer composition and hull-relative
+  transforms as battle rendering. A preview may choose a static maintenance pose,
+  but it may not approximate mount scale, pivots, absence, or above/below-chassis
+  order independently. The gantry rotates that complete composition south toward
+  the player; it does not rotate individual equipment layers independently.
+- The fitting room derives chassis and worker dimensions from the battle renderer's
+  shared cell-relative scale. Responsive layout may enlarge or shrink the room's
+  cells, but it may not canvas-fit the selected asset or distort its physical size
+  relative to technicians, tiles, or another chassis.
+- Socket overlays consume the selected asset's authored fitting layout. Their
+  translucent type color, sized footprint, and capacity pips appear in physical
+  room space beneath installed equipment; an authored empty socket stays visible
+  while an absent socket produces no footprint.
+- The gantry is a flat top-down room assembled from the battle renderer's indoor
+  tileset cells and props. Its workers use the real layered infantry compositor;
+  welding, walking, and station work continue while the player inspects equipment,
+  but they never decide refit duration, stock, or command success.
 - Campaign-to-battle deployment freezes values. Live battle code does not read
   or mutate the campaign mech, squad, or fleet inventory.
 - Gun-launched HE is a ballistic shot whose timed detonation owns splash and
@@ -172,6 +195,11 @@ The doll presentation may later host tanks and other scarce heavy armor, but it 
 consume an asset-class-specific socket layout. Sharing selection, catalog, drag, and
 validation presentation does not make a vehicle use a mech chassis or mech mount
 schema.
+
+The fitting gantry's reference composition is wide-screen: equipment catalog,
+physical bay, and socket rack remain simultaneously visible. Narrower viewports and
+larger user UI scales preserve the same commands through bounded scrolling and
+shorter labels; they are not required to preserve the wide view's information density.
 
 A future shared weapon catalog may data-drive projectile, weapon, and mount
 definitions, but it must preserve the chassis/mount/weapon authority split.

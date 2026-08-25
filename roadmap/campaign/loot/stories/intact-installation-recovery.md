@@ -67,11 +67,11 @@ budget. Intact capture creates eligibility, not automatic ownership.
 
 ## Progression integration
 
-- Common parts and advanced components use the currency and income laws from
-  `s5-parts-acquisition-channels.md`.
-- A schematic candidate uses the recipe identity and faction-provenance rules
-  from `s6-unlock-ladder-expansion.md`. Claim settlement unlocks that recipe at
-  most once; an already-known recipe receives an explicitly authored duplicate
+- Ordinary recovered stores remain base-game cargo owned by the loot manifest;
+  progression does not convert them into a second parts currency.
+- An equipment-template candidate uses the stable identity and faction-provenance
+  rules from `s6-unlock-ladder-expansion.md`. Claim settlement collects that card
+  at most once; an already-known card receives an explicitly authored duplicate
   value rather than disappearing or unlocking twice.
 - A Hegemony, Tri-Tachyon, League, Church, Path, Diktat, pirate, or Independent
   installation biases only candidates that its recovery catalog declares. A
