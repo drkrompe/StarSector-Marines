@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ui.retained.style;
 import com.dillon.starsectormarines.ui.retained.Overflow;
 import com.dillon.starsectormarines.ui.retained.UiLayout;
 import com.dillon.starsectormarines.ui.retained.UiTextAlign;
+import com.dillon.starsectormarines.ui.retained.UiWhiteSpace;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -39,6 +40,7 @@ final class StyleValues {
             case BORDER_COLOR, BACKGROUND_COLOR, COLOR -> parseColor(value);
             case FONT_FAMILY -> unquote(value);
             case TEXT_ALIGN -> parseTextAlign(value);
+            case WHITE_SPACE -> parseWhiteSpace(value);
             case OPACITY -> opacity(value);
             case TRANSITION -> parseTransitions(value);
         };
@@ -77,6 +79,15 @@ final class StyleValues {
             case "center" -> UiTextAlign.CENTER;
             case "right", "end" -> UiTextAlign.END;
             default -> throw new UiStyleException("text-align supports start, center, or end, not \""
+                    + value + "\".");
+        };
+    }
+
+    private static UiWhiteSpace parseWhiteSpace(String value) {
+        return switch (value.toLowerCase(Locale.ROOT)) {
+            case "nowrap" -> UiWhiteSpace.NOWRAP;
+            case "normal" -> UiWhiteSpace.NORMAL;
+            default -> throw new UiStyleException("white-space supports normal or nowrap, not \""
                     + value + "\".");
         };
     }

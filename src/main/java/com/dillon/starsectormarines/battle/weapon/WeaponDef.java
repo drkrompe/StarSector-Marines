@@ -37,6 +37,10 @@ public final class WeaponDef {
     public final String designation;
     /** Whether {@link #designation} takes a {@code -<tier>} suffix. Recruit issue is always "FR-1"; a pulse rifle is "PLS-1" through "PLS-4". */
     public final boolean designationTiered;
+    /** Compact player-facing battlefield role, such as LINE or SUPPORT. */
+    public final String catalogRole;
+    /** In-universe catalog copy authored in data for inspection surfaces. */
+    public final String catalogDescription;
 
     // ---- sim ----
     public final float range;
@@ -114,6 +118,7 @@ public final class WeaponDef {
 
     private WeaponDef(String id, MountClass mount, String displayName, String modelName,
                       String designation, boolean designationTiered,
+                      String catalogRole, String catalogDescription,
                       float range, float damage, float accuracy, float cooldown,
                       float penetration, float contactDamage, float contactPenetration,
                       int burstCount, float burstSpacing, int projectilesPerShot,
@@ -133,6 +138,8 @@ public final class WeaponDef {
         this.modelName = modelName;
         this.designation = designation;
         this.designationTiered = designationTiered;
+        this.catalogRole = catalogRole;
+        this.catalogDescription = catalogDescription;
         this.range = range;
         this.damage = damage;
         this.accuracy = accuracy;
@@ -201,6 +208,8 @@ public final class WeaponDef {
                 requireText(catalog, "modelName"),
                 requireText(catalog, "designation"),
                 catalog.optBoolean("designationTiered", true),
+                emptyToNull(catalog.optString("role", null)),
+                emptyToNull(catalog.optString("description", null)),
                 (float) sim.getDouble("range"),
                 (float) sim.getDouble("damage"),
                 (float) sim.getDouble("accuracy"),
@@ -240,6 +249,11 @@ public final class WeaponDef {
     }
 
     private static void validateMountFields(WeaponDef def) throws JSONException {
+        if (def.mount == MountClass.MARINE_PRIMARY
+                && (def.catalogRole == null || def.catalogDescription == null)) {
+            throw new JSONException("Marine primary '" + def.id
+                    + "' requires catalog.role and catalog.description");
+        }
         if (def.burstCount < 1 || def.projectilesPerShot < 1) {
             throw new JSONException("Weapon '" + def.id
                     + "' must emit at least one burst round and one projectile per shot");

@@ -56,10 +56,15 @@ class FleetArmoryViewModelTest {
                 viewModel.marineCards().get().get(0);
         assertEquals(List.of("DMG", "RNG", "ACC", "DPS"), firstMarine.weaponStats()
                 .stream().map(FleetArmoryViewModel.StatMeter::label).toList());
-        assertEquals(List.of("POOL", "RATING", "MOVE"), firstMarine.armorStats()
+        assertEquals(List.of("HEALTH", "ARMOR", "RESIST", "SPEED"), firstMarine.armorStats()
                 .stream().map(FleetArmoryViewModel.StatMeter::label).toList());
         assertTrue(firstMarine.weaponStats().stream().allMatch(stat ->
                 stat.fillStyle().matches("width: \\d{1,3}%;")));
+        assertEquals("SECURITY", firstMarine.unitClass());
+        assertEquals("W II", firstMarine.weaponBadge());
+        assertEquals("A II", firstMarine.armorBadge());
+        assertTrue(firstMarine.primaryDescription().length() > 80);
+        assertTrue(firstMarine.armorDescription().length() > 80);
 
         assertEquals(SquadEquipmentResult.APPLIED,
                 viewModel.applySquadEquipmentSelection());
