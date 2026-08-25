@@ -1,10 +1,13 @@
 # Sabotage site task groups
 
-Status: DRAFT — replace nearest-site drift with stable, inspectable objective-centered groups.
+Status: DRAFT — build the attacker half of a paired site command duel with `sabotage-site-defense-command.md`.
 
 Written: 2026-08-24
 
-Read `ai-nouns.md` before planning this story.
+Updated: 2026-08-25 — added shared command-foundation and paired defender dependencies.
+
+Read `ai-nouns.md` and `autonomous-mission-command-foundation.md` before
+planning this story.
 
 ## Intent
 
@@ -23,7 +26,7 @@ squad drifting to the same nearest fight.
 - Distinguish approach security, planter protection, and reinforcing work while
   preserving the planter's unit-level mission authority.
 - Expose group membership and assignment reason through the selected-squad panel
-  and dump.
+  and dump using the common commander snapshot.
 
 ## Constraints
 
@@ -33,6 +36,9 @@ squad drifting to the same nearest fight.
   invent charge progress.
 - Threat and pressure metrics consume marine beliefs only; objective state may
   come from the mission's authoritative charge-site objective.
+- Defender site guards, reserve, legal alarms, and redistribution belong to
+  `sabotage-site-defense-command.md`; neither side's story is a reason to share
+  perspective state.
 
 ## Exit
 

@@ -4,7 +4,7 @@ Status: ACTIVE — Conquest owns reversible compound territory, deliberate captu
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — extended culminating convergence to a sole contested recapture after the keep is held.
+Updated: 2026-08-25 — identified Conquest as the first paired autonomous command proof while preserving separate side perspectives and authorities.
 
 Conquest is a territorial assault: marines establish a beachhead, take the
 defender's supply hubs through the city, and finish at the keep. It is not a
@@ -85,6 +85,14 @@ reserve when possible, and an expired faction report releases only assignments
 owned by defender command. Squads delivered later remain under reinforcement
 and counterattack authority rather than being silently absorbed into the
 starting reserve.
+
+Conquest is the first production **command duel**: attacker and defender
+strategies can progress the territorial battle without requiring direct player
+orders. They share authored track geometry and objective truth only where the
+mission law permits it; they do not share influence, reports, assignments,
+reserves, or command snapshots. Player force selection and command powers may
+tip the battle, but baseline command remains responsible for coherent advance,
+delay, reserve use, and handoff to local squad doctrine.
 
 On a marine capture, a free marine garrison shuttle answers once and its squad
 is born to hold that compound. The original assault may therefore continue its

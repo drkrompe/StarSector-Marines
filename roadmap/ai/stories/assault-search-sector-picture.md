@@ -1,10 +1,13 @@
 # Assault search-sector picture
 
-Status: DRAFT — coordinate and explain a two-dimensional search without turning Assault into a directional front.
+Status: DRAFT — migrate the attacker to belief-honest search and pair it with `assault-area-defense-command.md`.
 
 Written: 2026-08-24
 
-Read `ai-nouns.md` before planning this story.
+Updated: 2026-08-25 — scoped this story to the attacker half of an autonomous Assault command duel.
+
+Read `ai-nouns.md`, `autonomous-mission-command-foundation.md`, and
+`commander-trace-and-balance-harness.md` before planning this story.
 
 ## Intent
 
@@ -22,7 +25,10 @@ remaining contact without duplicating the same route or reading hidden units.
   sector.
 - Distinguish a directly active sector from one being searched because of stale
   belief or incomplete coverage.
-- Expose the picture through selected-squad presentation and the state dump.
+- Migrate the marine strategy from unrestricted live defender occupancy to its
+  frozen command frame and faction-local evidence.
+- Expose the picture through selected-squad presentation, the state dump, and
+  the common commander trace.
 
 ## Constraints
 
@@ -32,6 +38,9 @@ remaining contact without duplicating the same route or reading hidden units.
   remain objective truth for victory, but may not appear in the command picture.
 - Search coverage belongs to command and persists across tactical replans; local
   contact doctrine still decides how a squad reacts once contact is made.
+- Defender strongpoints, reserve, reports, and counter-concentration belong to
+  `assault-area-defense-command.md`; paired no-input acceptance requires both
+  stories.
 
 ## Exit
 

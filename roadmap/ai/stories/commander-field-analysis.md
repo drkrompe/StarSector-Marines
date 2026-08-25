@@ -1,8 +1,10 @@
 # Commander field analysis
 
-Status: DRAFT — define and expose the read-only diagnostic before a commander acts on it.
+Status: DRAFT — optional read-only strategic enrichment after the common commander snapshot exists.
 
 Written: 2026-08-23
+
+Updated: 2026-08-25 — removed the obsolete assumption that no strategic commander consumes influence yet.
 
 Read `ai-nouns.md` before planning this story.
 
@@ -11,7 +13,9 @@ Read `ai-nouns.md` before planning this story.
 Turn each faction's immutable commander influence snapshot into an inspectable
 frontline, bulge, and breakthrough diagnostic. The result helps validate that
 the side's own imperfect knowledge produces a coherent strategic picture; it
-does not yet change any squad assignment.
+does not change any squad assignment. Conquest already consumes faction-local
+influence under its own mission authority; this diagnostic is optional
+enrichment rather than a prerequisite for command.
 
 ## Scope
 

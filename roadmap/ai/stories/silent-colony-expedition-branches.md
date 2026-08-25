@@ -4,7 +4,10 @@ Status: DRAFT — stabilize and explain the archive and survivor branches of the
 
 Written: 2026-08-24
 
-Read `ai-nouns.md` and `campaign-event-nouns.md` before planning this story.
+Updated: 2026-08-25 — retained attacker branches while distinguishing autonomous security opposition from a conventional commander.
+
+Read `ai-nouns.md`, `campaign-event-nouns.md`, and
+`autonomous-mission-command-foundation.md` before planning this story.
 
 ## Intent
 
@@ -34,6 +37,9 @@ original force.
   survivor/archive reports. Battle command may not infer loot or moral outcome.
 - Local squad doctrine retains authority over contact reaction within each
   branch's mission assignment.
+- Stabilize and publish the marine branches before deciding whether opposition
+  remains scripted, gains a bounded security-network director, or mixes both.
+  Shared diagnostics do not require fabricating a mirrored squad commander.
 
 ## Exit
 

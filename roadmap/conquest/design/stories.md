@@ -1,12 +1,15 @@
 # Conquest stories
 
-Status: ACTIVE — front command, keep convergence, and defender mobilization are in implementation.
+Status: ACTIVE — paired Conquest command is implemented; live command-duel and reinforcement acceptance remain.
 
 Written: 2026-08-23
 
-The territorial model, compound loop, deliberate capture allocation, and
-Conquest victory law are shipped. The remaining live validation concerns
-reinforcement behavior exercised on Conquest maps and remains owned by the
+Updated: 2026-08-25 — made Conquest the first paired proof for the autonomous mission-command foundation.
+
+The territorial model, compound loop, deliberate capture allocation, paired
+track behaviors, and Conquest victory law are implemented. Remaining foundation
+migration and live validation cover the full attacker/defender command duel
+plus reinforcement behavior; reinforcement mechanics remain owned by the
 Reinforcement feature:
 
 | Story | State | Intent |
