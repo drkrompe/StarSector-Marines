@@ -4,9 +4,9 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — fire-team inspection now uses a compact team tab rail and
-four simultaneous named-marine dossiers with live portraits, data-authored equipment
-prose, role and tier badges, and stable weapon, durability, and mobility meters.
+Updated: 2026-08-25 — fire-team inspection now gives its bottom edge to a tabbed
+Weapon/Armor loadout collection with authored tier, rarity, provenance, and lore;
+the compact team tab rail preserves four simultaneous named-marine dossiers above it.
 
 ## Purpose
 
@@ -153,6 +153,16 @@ the durability-and-mobility meter block; damage, range, accuracy, and sustained 
 share the weapon block. Catalog-wide ceilings keep every comparison stable across
 team selection and equipment changes.
 
+The reusable loadout collection sits below the marine viewer, not above it and not in
+a permanent second column. Weapon and Armor are mutually exclusive tabs over the same
+full-width inventory region, so only the collection relevant to the current decision
+consumes space. Each loadout card leads with an authored power tier, campaign rarity,
+provenance, collection state, and a substantial setting paragraph; its deterministic
+twelve-billet distribution remains visible as the mechanical summary. Tier describes
+expected capability while rarity describes acquisition scarcity and presentation.
+Rarity is never a random-roll weight, and selecting a card never rolls equipment from
+a pool. A collected definition always projects the same authored ordered issue.
+
 The separate equipment designer uses the same visual language before a definition
 is saved: each billet card keeps a compact live render in its upper-right corner,
 reserves a short line for role or equipment flavor, and shows fixed-scale capability
@@ -201,6 +211,9 @@ squad issue clears stale per-team assignment ids so only one equipment authority
 Equipment template cards are literal permanent collectibles owned by Progression.
 They are not a deck, hand, consumable, or squad definition. Definitions remain
 reusable intent; base-game fleet cargo pays only when changed kit is materialized.
+The collection view may give rare cards stronger borders, color, and provenance copy
+to make acquisition feel rewarding, but those effects never change the definition's
+contents or combat rules.
 
 ## Mech Lab
 

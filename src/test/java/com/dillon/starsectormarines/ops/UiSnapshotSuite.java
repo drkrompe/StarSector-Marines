@@ -94,6 +94,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderFleetArmoryWorkspace(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
                                 true, true)),
+                new SnapshotArtifact("fleet-armory-armor-collection-wide.png",
+                        renderFleetArmoryWorkspace(
+                                context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                true, false, true)),
                 new SnapshotArtifact("fleet-armory-equipment-designer-wide.png",
                         renderEquipmentDesigner(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
@@ -134,6 +138,14 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static BufferedImage renderFleetArmoryWorkspace(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, boolean fireteam, boolean pickerOpen) throws Exception {
+        return renderFleetArmoryWorkspace(
+                context, renderer, width, height, fireteam, pickerOpen, false);
+    }
+
+    private static BufferedImage renderFleetArmoryWorkspace(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, boolean fireteam, boolean pickerOpen,
+            boolean armorPicker) throws Exception {
         Reactor reactor = new Reactor();
         MarineRoster roster = new MarineRoster();
         roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
@@ -147,6 +159,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         FleetArmoryViewModel viewModel = new FleetArmoryViewModel(
                 reactor, roster, () -> { }, () -> 100d);
         if (fireteam && pickerOpen) viewModel.weaponDoctrineTiles().get().get(1).select().run();
+        if (fireteam && armorPicker) viewModel.showArmorPickerAction().run();
         HeadlessArmoryPreviewRenderer armoryPreview =
                 new HeadlessArmoryPreviewRenderer(context.modRoot());
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
@@ -317,15 +330,16 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("teamRows", viewModel.teamRows());
         props.put("targetSummary", viewModel.targetSummary());
         props.put("candidateSummary", viewModel.candidateSummary());
-        props.put("selectedSquadReadiness", viewModel.selectedSquadReadiness());
-        props.put("reinforceLabel", viewModel.reinforceLabel());
-        props.put("reinforceDisabled", viewModel.reinforceDisabled());
-        props.put("reinforceSquad", viewModel.reinforceSelectedSquadAction());
-        props.put("designEquipment", (Runnable) () -> { });
         props.put("weaponDoctrineTiles", viewModel.weaponDoctrineTiles());
         props.put("armorDoctrineTiles", viewModel.armorDoctrineTiles());
         props.put("weaponDoctrineSummary", viewModel.weaponDoctrineSummary());
         props.put("armorDoctrineSummary", viewModel.armorDoctrineSummary());
+        props.put("weaponPickerTabClasses", viewModel.weaponPickerTabClasses());
+        props.put("armorPickerTabClasses", viewModel.armorPickerTabClasses());
+        props.put("weaponPickerPanelClasses", viewModel.weaponPickerPanelClasses());
+        props.put("armorPickerPanelClasses", viewModel.armorPickerPanelClasses());
+        props.put("showWeaponPicker", viewModel.showWeaponPickerAction());
+        props.put("showArmorPicker", viewModel.showArmorPickerAction());
         props.put("marineCards", viewModel.marineCards());
         props.put("transactionSummary", viewModel.transactionSummary());
         props.put("transactionClasses", viewModel.transactionClasses());

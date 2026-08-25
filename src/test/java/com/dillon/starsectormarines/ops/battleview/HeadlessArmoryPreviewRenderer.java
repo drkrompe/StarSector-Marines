@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+import com.dillon.starsectormarines.marine.SquadLoadoutPresentationRegistry;
 import org.json.JSONObject;
 
 import javax.imageio.ImageIO;
@@ -95,6 +96,15 @@ public final class HeadlessArmoryPreviewRenderer {
             }
             armor.validateCompleteness();
             MarineArmorCatalogRegistry.install(armor);
+        }
+        if (SquadLoadoutPresentationRegistry.installed() == null) {
+            SquadLoadoutPresentationRegistry loadouts =
+                    new SquadLoadoutPresentationRegistry();
+            for (String path : SquadLoadoutPresentationRegistry.BUILTIN_CATALOGS) {
+                loadouts.ingest(new JSONObject(Files.readString(modRoot.resolve(path))));
+            }
+            loadouts.validateBuiltins();
+            SquadLoadoutPresentationRegistry.install(loadouts);
         }
     }
 
