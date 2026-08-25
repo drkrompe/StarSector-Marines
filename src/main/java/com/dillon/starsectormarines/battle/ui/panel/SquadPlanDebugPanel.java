@@ -311,7 +311,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
         if (commander != null) lines += 1;
         if (directive != null) lines += 3;
         if (activeDirective != null && !activeDirective.equals(directive)) lines += 1;
-        if (commander != null && conquestSnapshot(commander) != null) lines += 1;
+        if (commander != null && conquestSnapshot(commander) != null) lines += 3;
         dividers += 1;
         // Section 4: "Plan: …" line + per-step (action line + slot lines).
         lines += 1;
@@ -568,8 +568,16 @@ public final class SquadPlanDebugPanel implements HudPanel {
         if (commander != null) {
             ConquestFrontSnapshot conquest = conquestSnapshot(commander);
             if (conquest != null) {
+                ConquestFrontSnapshot.SquadDirective conquestDirective =
+                        conquest.directiveFor(s.id);
+                lineY = drawLineIfVisible(font, conquestOrderSummary(
+                                conquestDirective), lineX, lineY,
+                        DETAIL_VALUE_FG, alphaMult, vpBottomY, vpTopY);
+                lineY = drawLineIfVisible(font, conquestReasonSummary(
+                                conquestDirective), lineX, lineY,
+                        DETAIL_VALUE_FG, alphaMult, vpBottomY, vpTopY);
                 lineY = drawLineIfVisible(font, trackSummary(conquest,
-                                conquest.directiveFor(s.id)), lineX, lineY,
+                                conquestDirective), lineX, lineY,
                         DETAIL_VALUE_FG, alphaMult, vpBottomY, vpTopY);
             }
         }
@@ -815,6 +823,36 @@ public final class SquadPlanDebugPanel implements HudPanel {
                 progressLabel(track.friendlyBodyProgress()),
                 progressLabel(track.knownHostileFrontProgress()),
                 track.friendlyPressure(), track.knownHostilePressure());
+    }
+
+    static String conquestOrderSummary(
+            ConquestFrontSnapshot.SquadDirective directive) {
+        if (directive == null) return "Commander order —";
+        String action = directive.assignmentKind() != null
+                ? directive.assignmentKind().name() : "UNASSIGNED";
+        String target = directive.targetCellX() >= 0
+                && directive.targetCellY() >= 0
+                ? "cell " + directive.targetCellX() + "," + directive.targetCellY()
+                : directive.targetZoneId() >= 0
+                        ? "zone " + directive.targetZoneId()
+                            + markerSuffix(directive)
+                        : directive.markerCellX() >= 0
+                                ? "marker " + directive.markerCellX() + ","
+                                    + directive.markerCellY() : "—";
+        return String.format("Commander order %s   Target %s", action, target);
+    }
+
+    static String conquestReasonSummary(
+            ConquestFrontSnapshot.SquadDirective directive) {
+        return directive == null ? "Command reason —"
+                : "Command reason " + directive.reason();
+    }
+
+    private static String markerSuffix(
+            ConquestFrontSnapshot.SquadDirective directive) {
+        return directive.markerCellX() >= 0
+                ? " (marker " + directive.markerCellX() + ","
+                    + directive.markerCellY() + ")" : "";
     }
 
     private static String progressLabel(float value) {

@@ -48,6 +48,9 @@ public interface BattleControl extends BattleView, SquadDirectiveControl {
 
     void fireSecondary(long shooter, long target);
 
+    /** Consume and lob a fragmentation grenade toward a world-space landing point. */
+    void throwFragmentationGrenade(long carrier, float targetX, float targetY);
+
     /** Consume a smoke grenade and lob it toward a world-space cell center. */
     void throwSmoke(long carrier, float targetX, float targetY);
 

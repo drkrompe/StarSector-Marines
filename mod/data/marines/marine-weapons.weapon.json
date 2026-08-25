@@ -210,6 +210,41 @@
       }
     },
     {
+      "id": "weapon.frag-grenade",
+      "mount": "marine-secondary",
+      "catalog": {
+        "displayName": "Shattercap Fragmentation Grenade",
+        "modelName": "Shattercap",
+        "designation": "FRG-1",
+        "designationTiered": false
+      },
+      "sim": {
+        "range": 8.5,
+        "damage": 32.0,
+        "accuracy": 0.72,
+        "cooldown": 2.0,
+        "penetration": 2.0,
+        "hitSpread": 0.9,
+        "roundVelocity": 11.333333,
+        "flightSec": 0.75,
+        "aimDuration": 0.75,
+        "aoeRadius": 1.45,
+        "arcHeight": 1.8,
+        "interceptableProjectile": true,
+        "indirectFire": true,
+        "noLosAccuracyMult": 0.8
+      },
+      "render": {
+        "tracerColor": "D8A66A",
+        "impact": "he",
+        "projectileSprite": "graphics/ui/armory/special-frag-grenade.png",
+        "projectileVisualCells": 0.34
+      },
+      "audio": {
+        "impactSound": "marines_explosion"
+      }
+    },
+    {
       "id": "weapon.anti-materiel-rifle",
       "mount": "marine-secondary",
       "catalog": {

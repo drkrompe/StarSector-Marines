@@ -72,6 +72,21 @@ class MarineArmoryTest {
     }
 
     @Test
+    void fragRecipeUnlocksAfterTwoVictoriesAndCanBePrinted() {
+        MarineArmory armory = new MarineArmory();
+        assertFalse(armory.isSecondaryUnlocked(MarineSecondary.FRAG_GRENADE));
+        assertEquals(0, armory.ownedSecondary(MarineSecondary.FRAG_GRENADE));
+
+        armory.recordVictory(3, false);
+        assertFalse(armory.isSecondaryUnlocked(MarineSecondary.FRAG_GRENADE));
+        armory.recordVictory(3, false);
+        assertTrue(armory.isSecondaryUnlocked(MarineSecondary.FRAG_GRENADE));
+        assertTrue(armory.printSecondary(MarineSecondary.FRAG_GRENADE));
+        assertEquals(1, armory.ownedSecondary(MarineSecondary.FRAG_GRENADE));
+        assertEquals(1, armory.fabricationMaterials());
+    }
+
+    @Test
     void saveLoadReinstallsCurrentBuiltInFireSupportDefinition() throws Exception {
         MarineArmory loaded = roundTrip(new MarineArmory());
         FireTeamTemplateCard fireSupport = loaded.templateCardById(

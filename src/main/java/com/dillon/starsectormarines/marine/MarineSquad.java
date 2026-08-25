@@ -116,6 +116,11 @@ public final class MarineSquad implements Serializable {
         armorDoctrineId = armorId;
         teamTemplateCardIds = new String[TEAMS_PER_SQUAD];
     }
+    /** Load migration records equivalent squad intent without changing or erasing legacy issue. */
+    void migrateEquipmentDoctrineIds(String weaponId, String armorId) {
+        if (weaponDoctrineId == null) weaponDoctrineId = weaponId;
+        if (armorDoctrineId == null) armorDoctrineId = armorId;
+    }
     void setStationingContractId(long value) {
         stationingContractId = value > 0L ? value : -1L;
     }

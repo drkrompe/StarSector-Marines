@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — separated simultaneous multi-projectile releases from temporal bursts and shipped the shredder-carbine and squad-automatic primary roles.
+Updated: 2026-08-25 — shipped the fragmentation-grenade special, honest cluster use, campaign acquisition, and faction availability.
 
 ## Purpose
 
@@ -133,7 +133,8 @@ The armory has two layers: durable recipe unlocks and finite printed stock.
 Allocation must respect stock, except basic field-rifle service issue. The
 current armory has one fabrication-material currency and currently receives
 that material through victory recording. Its existing victory milestones
-unlock only a short primary-weapon ladder; the broader parts channels,
+unlock a short primary-weapon ladder plus the Shattercap fragmentation-grenade
+recipe after two victories; the broader parts channels,
 two-currency split, recipe recovery, and full asset reachability are planned.
 
 Armor patterns are authored player kit with distinct defensive and mobility
@@ -190,9 +191,10 @@ names, but roster data uses semantic armor ids (`field-fatigues`, `scout`,
 `combat`, `line`, `heavy`, `outlaw`, `militia`) so the next visual/content pass
 can change colors without changing doctrine identity.
 
-The first four built-in identities are the rocket launcher, anti-materiel
-rifle, Wayfarer smoke grenades, and Breachhand mag-clamp satchel. The first two
-are direct-fire activations, while smoke and satchels are utility activations,
+The five built-in identities are the rocket launcher, anti-materiel
+rifle, Wayfarer smoke grenades, Breachhand mag-clamp satchel, and Shattercap
+fragmentation grenades. The first two are direct-fire activations, Shattercap
+is an arcing weapon activation, and smoke and satchels are utility activations,
 but only the item definition owns loadout identity, catalog copy, resource
 mode, initial ammunition, Armory art, activation type, AI policy, use-pose
 profile, and local presentation recipe; the
@@ -263,6 +265,34 @@ Player issue includes two physical kits and a Breach template. Physical Armory
 stock limits equipped billets; it does not count battle placements. Ground
 placement, infantry targeting, traps, disarming, and wall breaching are not
 part of this equipment identity.
+
+The Shattercap is a three-grenade short-arc anti-personnel special. Its
+registry-owned weapon definition owns throw range, release scatter, flight,
+arc, compact lethal area payload, negligible penetration, zero wall damage,
+projectile art, and detonation audio. The special-equipment item owns the
+finite three-use battle resource, loadout identity, activation policy,
+carrier/throw presentation, stock, and fabrication recipe. A released grenade
+remains a real in-flight projectile and detonates if its carrier dies; ordinary
+cover, armor, friendly fire, telemetry, and anonymous detonation noise remain
+shared combat authority.
+
+Opportunity AI requires at least two recent direct-contact soft combatants in
+one useful footprint. Audio-only contacts, isolated targets, hardened targets,
+and stale tracks do not justify a throw. Safety expands the blast by authored
+scatter and checks both friendly positions and committed movement paths.
+Friendly overlapping landing reservations and in-flight frag footprints block
+redundant throws, while genuinely separate clusters may be engaged. A carrier
+does not interrupt mission-priority work, survival withdrawal, or its moving
+half of a bound to begin a throw. Friendly squads know their own grenade;
+opponents evade only when a squad member can honestly see the incoming body.
+The battle HUD shows FRG stock and an amber friendly/red observed-hostile
+landing ring, so unseen enemy throws provide no warning.
+
+The player recipe unlocks after two victories and then uses ordinary finite
+Armory printing. The built-in Fleet Assault weapon doctrine issues exactly one
+frag carrier across its twelve billets. All built-in defender roster profiles
+author their own low/medium/high bulk and elite weights: the execution policy
+is faction-neutral, while availability remains faction-shaped and risk-scaled.
 
 ### Telemetry and career
 

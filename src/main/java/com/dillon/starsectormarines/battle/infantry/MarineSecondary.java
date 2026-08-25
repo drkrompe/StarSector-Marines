@@ -22,7 +22,8 @@ public enum MarineSecondary {
     ROCKET_LAUNCHER(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID),
     ANTI_MATERIEL_RIFLE(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID),
     SMOKE_GRENADE(SpecialEquipmentRegistry.SMOKE_GRENADE_ID),
-    SATCHEL_CHARGE(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID);
+    SATCHEL_CHARGE(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID),
+    FRAG_GRENADE(SpecialEquipmentRegistry.FRAG_GRENADE_ID);
 
     public final String specialEquipmentId;
 
@@ -79,6 +80,8 @@ public enum MarineSecondary {
     public float cooldown() { return def().cooldown; }
     public float penetration() { return def().penetration; }
     public float flightSec() { return def().flightSec; }
+    public float arcHeight() { return def().arcHeight; }
+    public float hitSpread() { return def().hitSpread; }
     public float aimDuration() {
         if (activation() == SpecialActivation.UTILITY_SMOKE) {
             return smokeGrenadeSpec().throwDuration();

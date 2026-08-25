@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.smoke.SmokeFieldService;
 import com.dillon.starsectormarines.battle.satchel.SatchelChargeService;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
+import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
 import com.dillon.starsectormarines.marine.SatchelChargeSpec;
 import com.dillon.starsectormarines.marine.SpecialActivation;
 import com.dillon.starsectormarines.marine.SmokeGrenadeSpec;
@@ -37,6 +38,7 @@ import com.dillon.starsectormarines.battle.air.AirProvider;
 import com.dillon.starsectormarines.battle.air.AirSystem;
 import com.dillon.starsectormarines.battle.command.BattleResources;
 import com.dillon.starsectormarines.battle.command.CommanderService;
+import com.dillon.starsectormarines.battle.command.trace.CommandTraceRecorder;
 import com.dillon.starsectormarines.battle.squad.SquadFormUpSystem;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceService;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
@@ -150,6 +152,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SmokeFieldService smokeFields;
     /** Contact-demolition reservations, target attachments, and fuse lifecycle. */
     private final SatchelChargeService satchelCharges;
+    /** Committed anti-personnel grenade footprints used for squad overkill prevention. */
+    private final com.dillon.starsectormarines.battle.grenade.FragGrenadeService fragGrenades;
     /** Alias of {@link NavigationService#getTopology()}. */
     private final CellTopology topology;
     /** Runtime map-modification coordinator: wall breach / roof crack / structure-to-rubble. Sequences the topology writes + navigation walkability/zone-graph writes + the roof-collapse decal sink. Owns behavior {@link NavigationService} no longer holds. */
@@ -250,6 +254,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final com.dillon.starsectormarines.battle.logistics.ResupplySystem resupplySystem;
     /** Per-faction strategic commander tier. Owns the slow-tick cadence; the {@link #setCommander}/{@link #getCommander} delegates below forward here, and the COMMANDER phase calls {@link CommanderService#tick}. */
     private final CommanderService commanders = new CommanderService();
+    /** Opt-in battle-long perspective/referee diagnostic stream. */
+    private CommandTraceRecorder commandTrace;
+    private boolean commandTraceEnabled;
     /** Holds a campaign squad at its LZ until its remaining lifts land. */
     private final SquadFormUpSystem squadFormUp;
     /** Read-only per-faction belief aggregation and topology-aware tactical fields. */
@@ -427,6 +434,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.grid = navigation.getGrid();
         this.smokeFields = new SmokeFieldService(this.grid);
         this.satchelCharges = new SatchelChargeService();
+        this.fragGrenades = new com.dillon.starsectormarines.battle.grenade.FragGrenadeService();
         this.topology = navigation.getTopology();
         this.zoneGraph = navigation.getZoneGraph();
         this.occupancyMap = navigation.getOccupancyMap();
@@ -523,7 +531,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 rng, topology, shots, damageService,
                 det -> { synchronized (detonations) { detonations.queue(det); } },
                 hitResponse, world, ballisticResolver, rosterService.telemetry());
-        this.infantry = new InfantryWeapons(rosterService, ballisticResolver, shots, rng);
+        this.infantry = new InfantryWeapons(rosterService, ballisticResolver, shots, grid, rng);
         this.firingSystem = new FiringSystem(grid, rosterService);
         this.heavy = new HeavyWeapons(rosterService, grid, ballisticResolver, shots, detonations, rng);
         this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, world, turretFire,
@@ -545,6 +553,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public NavigationGrid getGrid() { return grid; }
     @Override public SmokeFieldService smokeFields() { return smokeFields; }
     @Override public SatchelChargeService satchelCharges() { return satchelCharges; }
+    @Override public com.dillon.starsectormarines.battle.grenade.FragGrenadeService fragGrenades() { return fragGrenades; }
     /** Categorization tags (street / rubble / wall / vehicle / etc.) for renderer + placement filters. Sibling to {@link #grid}; the pathfinder doesn't touch this. */
     public CellTopology getTopology()      { return topology; }
     /** Zone+portal graph layered on the {@link NavigationGrid}. Rebuilt on wall destruction so AI queries reflect the current map. */
@@ -1084,6 +1093,28 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         return commanders.snapshot(faction);
     }
 
+    public void setCommandTraceEnabled(boolean enabled, String fixtureKind) {
+        if (enabled && commandTrace == null) {
+            commandTrace = new CommandTraceRecorder(fixtureKind,
+                    commandTraceSchedulerMode(), simTickIndex);
+        }
+        commandTraceEnabled = enabled;
+    }
+
+    public boolean isCommandTraceEnabled() {
+        return commandTraceEnabled;
+    }
+
+    public String getCommandTraceJsonLines() {
+        return commandTrace != null ? commandTrace.canonicalJsonLines() : "";
+    }
+
+    private static String commandTraceSchedulerMode() {
+        int minimumParallel = UnitUpdateSystem.configuredMinimumParallelUnits();
+        return minimumParallel == Integer.MAX_VALUE
+                ? "SERIAL_DETERMINISTIC" : "PRODUCTION_SCHEDULER";
+    }
+
     /**
      * Current authoritative command-ledger entry for {@code squadId}. Unlike
      * a commander snapshot, this is also available for externally owned
@@ -1142,6 +1173,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // four topology propagations in battles where no debug overlay or
         // diagnostic consumer requested a snapshot.
         commanderInfluence.tick(simTickIndex);
+        return commanderInfluence.snapshot(faction);
+    }
+
+    /** Non-advancing diagnostic read of the most recently published field. */
+    public CommanderInfluenceSnapshot peekCommanderInfluence(Faction faction) {
         return commanderInfluence.snapshot(faction);
     }
 
@@ -1398,6 +1434,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // Armed contact charges follow their target and resolve through the
         // ordinary AoE/durability pipeline when their fixed fuse expires.
         satchelCharges.tick(TICK_DT, this);
+        com.dillon.starsectormarines.battle.infantry.FragGrenadeTactics.cleanupReservations(this);
         tickProfile.lap(TickProfile.Phase.SATCHELS);
         // Simulated-projectile path — advance each in-flight Projectile by dt,
         // detonate its onArrival payload when remainingTime hits zero, and
@@ -1539,6 +1576,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         mechTurretSystem.tick(TICK_DT);
         facingSystem.tick();
         tickProfile.lap(TickProfile.Phase.APPEARANCE);
+        if (commandTraceEnabled) commandTrace.sample(this);
         // Tick barrier for the entity world: apply structural changes queued on
         // its command buffer during this tick's query walks. Today's structural
         // changes (corpse spawn is a walk-safe create; death transmute, air reap
@@ -1704,6 +1742,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      */
     public void fireSecondary(long shooter, long target) {
         infantry.fireSecondary(shooter, target);
+    }
+
+    @Override
+    public void throwFragmentationGrenade(long carrier, float targetX, float targetY) {
+        infantry.throwFragmentationGrenade(carrier, targetX, targetY);
+        fragGrenades.release(carrier);
     }
 
     @Override

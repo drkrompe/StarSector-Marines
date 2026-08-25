@@ -23,6 +23,7 @@ public final class SpecialEquipmentRegistry {
     public static final String ANTI_MATERIEL_RIFLE_ID = "special.anti-materiel-rifle";
     public static final String SMOKE_GRENADE_ID = "special.smoke-grenade";
     public static final String SATCHEL_CHARGE_ID = "special.satchel-charge";
+    public static final String FRAG_GRENADE_ID = "special.frag-grenade";
 
     public static final List<String> BUILTIN_CATALOGS = List.of(
             "data/marines/marine-special-equipment.equipment.json");
@@ -108,6 +109,7 @@ public final class SpecialEquipmentRegistry {
         if (ANTI_MATERIEL_RIFLE_ID.equals(id)) return MarineSecondary.ANTI_MATERIEL_RIFLE;
         if (SMOKE_GRENADE_ID.equals(id)) return MarineSecondary.SMOKE_GRENADE;
         if (SATCHEL_CHARGE_ID.equals(id)) return MarineSecondary.SATCHEL_CHARGE;
+        if (FRAG_GRENADE_ID.equals(id)) return MarineSecondary.FRAG_GRENADE;
         return null;
     }
 }

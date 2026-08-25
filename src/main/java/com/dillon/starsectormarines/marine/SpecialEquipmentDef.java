@@ -60,6 +60,21 @@ public record SpecialEquipmentDef(
                 }
                 requirePolicy(aiPolicy, SpecialAiPolicy.HARDENED_DIRECT_FIRE, id);
             }
+            case ARC_EXPLOSIVE -> {
+                if (weaponId == null) {
+                    throw new JSONException("Weapon-like special equipment '" + id
+                            + "' must declare activation.weaponId");
+                }
+                requirePolicy(aiPolicy, SpecialAiPolicy.SOFT_CLUSTER_INDIRECT, id);
+                if (resourceMode != SpecialResourceMode.AMMUNITION) {
+                    throw new JSONException("Arc explosive equipment '" + id
+                            + "' must use the ammunition resource mode");
+                }
+                if (presentation.thrown() == null || presentation.carrierLayer() == null) {
+                    throw new JSONException("Arc explosive equipment '" + id
+                            + "' requires carrier and thrown presentation recipes");
+                }
+            }
             case UTILITY_SMOKE -> {
                 requireNoWeapon(weaponId, id);
                 requirePolicy(aiPolicy, SpecialAiPolicy.SQUAD_SMOKE_SCREEN, id);

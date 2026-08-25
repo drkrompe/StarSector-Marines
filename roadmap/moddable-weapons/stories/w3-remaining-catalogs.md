@@ -34,7 +34,7 @@ at a weapon id and changing nothing else.
 This story migrates the one shipped weapon-like secondary; it does not declare
 that every future item in the same player-facing slot is a weapon. The
 shipped anti-materiel rifle described in `progression-nouns.md` references this schema.
-The frag grenade in `s2d-frag-grenades.md` may do the same for an arcing
+The shipped fragmentation-grenade special now does the same for an arcing
 explosive definition. Smoke and satchel activations remain owned by their
 progression stories.
 

@@ -4,7 +4,7 @@ Status: ACTIVE — Conquest owns reversible compound territory, deliberate captu
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — identified Conquest as the first paired autonomous command proof while preserving separate side perspectives and authorities.
+Updated: 2026-08-25 — defined the perspective-specific lane/front/action debug picture over published Conquest command state.
 
 Conquest is a territorial assault: marines establish a beachhead, take the
 defender's supply hubs through the city, and finish at the keep. It is not a
@@ -70,6 +70,15 @@ presentation and dumps consume that published command state; they do not infer
 a second plan or reveal hidden defenders. The assignment decision remains the
 commander's authority, while local squad doctrine decides how to prosecute the
 contact.
+
+Conquest debug presentation projects one front snapshot at a time. It may draw
+the side's three track extents, friendly body and lead fronts, known-hostile
+front, and commander-authored exact targets or labelled representative zone
+markers. Those marks are explanations
+of the selected perspective, not objective world truth. The selected squad's
+panel names its strategic order, target, reason, and track pressure beside the
+squad's actual tactical goal and current plan, making disagreement between
+command intent and local execution visible without inventing another planner.
 
 The same three physical tracks organize defender response, but not through the
 marine commander's state. The defender commander reads only defender influence.

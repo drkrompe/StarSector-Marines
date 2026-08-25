@@ -145,9 +145,9 @@ discovery for submods and representative live Conquest acceptance also remain.
   `s6-unlock-ladder-expansion.md`.
 - Armor-role mechanics and concrete pattern catalog —
   `powered-assault-armor-roles.md`.
-- Primary-family behavior belongs to `progression-nouns.md`. Remaining grenade,
-  contact-tool, stim, and demolition-item behavior belongs to
-  `s2d-frag-grenades.md`, `s2e-close-contact-boarding-tools.md`,
+- Primary-family and shipped fragmentation-grenade behavior belongs to
+  `progression-nouns.md`. Remaining contact-tool, stim, and demolition-item
+  behavior belongs to `s2e-close-contact-boarding-tools.md`,
   `s2f-combat-stim-injectors.md`, and `s2g-martyr-rigs-and-carried-ieds.md`.
 - New mech chassis or vehicle families. Existing heavy-support eligibility may
   choose only currently authored content until those owning features expand it.

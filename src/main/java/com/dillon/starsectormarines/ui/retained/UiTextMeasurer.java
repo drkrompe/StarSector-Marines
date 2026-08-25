@@ -30,7 +30,7 @@ final class UiTextMeasurer {
             case END -> content.x() + slack;
         };
         float y = content.y();
-        if (element.tag() == UiTag.BUTTON) {
+        if (element.tag() == UiTag.BUTTON || element.tag() == UiTag.INPUT) {
             y += (content.height() - measurement.lineHeight()) * 0.5f;
         }
         return new Rect(x, y, measurement.width(), measurement.lineHeight());

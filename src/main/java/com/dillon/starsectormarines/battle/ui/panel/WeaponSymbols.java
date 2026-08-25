@@ -48,6 +48,7 @@ public final class WeaponSymbols {
         if (s == MarineSecondary.ANTI_MATERIEL_RIFLE) return "AMR";
         if (s == MarineSecondary.SMOKE_GRENADE) return "SMK";
         if (s == MarineSecondary.SATCHEL_CHARGE) return "SAT";
+        if (s == MarineSecondary.FRAG_GRENADE) return "FRG";
         return s.name().substring(0, 3);
     }
 
