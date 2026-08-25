@@ -7,10 +7,10 @@ import java.util.Map;
 /**
  * Asset-authored fitting silhouette used by the Mech Lab.
  *
- * <p>Socket centers are expressed in chassis-width local coordinates: right is
- * positive X and forward is positive Y. Footprints are expressed in battle-map
- * cells so the fitting overlay keeps the same physical relationship to the room
- * at every viewport and UI scale.</p>
+ * <p>Socket centers and drop-target footprints are expressed in chassis-width
+ * local coordinates: right is positive X and forward is positive Y. The Mech
+ * Lab may enforce a minimum pointer target in UI pixels, but authored proportions
+ * remain relative to the doll rather than to its room or camera.</p>
  */
 public final class MechFittingLayout {
 
@@ -45,13 +45,13 @@ public final class MechFittingLayout {
 
     public record SocketDef(SocketId id, SocketType type, int capacity,
                             float localRight, float localForward,
-                            float footprintWidthCells, float footprintHeightCells,
+                            float footprintWidthHull, float footprintHeightHull,
                             boolean factoryLocked) {
         public SocketDef {
             if (id == null || type == null) {
                 throw new IllegalArgumentException("socket id and type are required");
             }
-            if (capacity < 1 || footprintWidthCells <= 0f || footprintHeightCells <= 0f) {
+            if (capacity < 1 || footprintWidthHull <= 0f || footprintHeightHull <= 0f) {
                 throw new IllegalArgumentException("socket capacity and footprint must be positive");
             }
         }
@@ -100,46 +100,46 @@ public final class MechFittingLayout {
     private static Map<MechVariant, MechFittingLayout> buildLayouts() {
         EnumMap<MechVariant, MechFittingLayout> layouts = new EnumMap<>(MechVariant.class);
         layouts.put(MechVariant.BULWARK, new MechFittingLayout(MechVariant.BULWARK, List.of(
-                socket(SocketId.CORE, SocketType.CORE, 4, 0f, 0.03f, 0.80f, 0.80f, true),
-                socket(SocketId.ARMS, SocketType.BALLISTIC, 4, 0f, 0.72f, 1.75f, 0.74f, true),
+                socket(SocketId.CORE, SocketType.CORE, 4, 0f, 0.03f, 0.38f, 0.36f, true),
+                socket(SocketId.ARMS, SocketType.BALLISTIC, 4, 0f, 0.72f, 0.78f, 0.30f, true),
                 socket(SocketId.LEFT_SHOULDER, SocketType.MISSILE, 3,
-                        -0.72f, 0.08f, 0.72f, 1.15f, true),
+                        -0.72f, 0.08f, 0.30f, 0.46f, true),
                 socket(SocketId.RIGHT_SHOULDER, SocketType.MISSILE, 3,
-                        0.72f, 0.08f, 0.72f, 1.15f, true),
+                        0.72f, 0.08f, 0.30f, 0.46f, true),
                 socket(SocketId.AMMO_RESERVE, SocketType.AMMO, 3,
-                        0f, -0.58f, 1.28f, 0.48f, true),
+                        0f, -0.58f, 0.58f, 0.26f, true),
                 socket(SocketId.MINI_FAB, SocketType.UTILITY, 1,
-                        0f, -0.92f, 0.72f, 0.48f, false))));
+                        0f, -0.92f, 0.34f, 0.24f, false))));
         layouts.put(MechVariant.HOUND, new MechFittingLayout(MechVariant.HOUND, List.of(
-                socket(SocketId.CORE, SocketType.CORE, 3, 0f, 0.02f, 0.68f, 0.68f, true),
-                socket(SocketId.ARMS, SocketType.BALLISTIC, 2, 0f, 0.66f, 1.20f, 0.62f, true),
+                socket(SocketId.CORE, SocketType.CORE, 3, 0f, 0.02f, 0.38f, 0.36f, true),
+                socket(SocketId.ARMS, SocketType.BALLISTIC, 2, 0f, 0.66f, 0.66f, 0.30f, true),
                 socket(SocketId.LEFT_SHOULDER, SocketType.MISSILE, 1,
-                        -0.62f, 0.04f, 0.62f, 0.86f, true),
+                        -0.62f, 0.04f, 0.30f, 0.42f, true),
                 socket(SocketId.RIGHT_SHOULDER, SocketType.MISSILE, 1,
-                        0.62f, 0.04f, 0.62f, 0.86f, false),
+                        0.62f, 0.04f, 0.30f, 0.42f, false),
                 socket(SocketId.AMMO_RESERVE, SocketType.AMMO, 1,
-                        0f, -0.54f, 0.92f, 0.40f, true),
+                        0f, -0.54f, 0.52f, 0.24f, true),
                 socket(SocketId.MINI_FAB, SocketType.UTILITY, 1,
-                        0f, -0.84f, 0.64f, 0.42f, false))));
+                        0f, -0.84f, 0.34f, 0.24f, false))));
         layouts.put(MechVariant.SIROCCO, new MechFittingLayout(MechVariant.SIROCCO, List.of(
-                socket(SocketId.CORE, SocketType.CORE, 3, 0f, 0.02f, 0.70f, 0.70f, true),
-                socket(SocketId.ARMS, SocketType.BALLISTIC, 3, 0f, 0.72f, 1.35f, 0.68f, true),
+                socket(SocketId.CORE, SocketType.CORE, 3, 0f, 0.02f, 0.38f, 0.36f, true),
+                socket(SocketId.ARMS, SocketType.BALLISTIC, 3, 0f, 0.72f, 0.70f, 0.30f, true),
                 socket(SocketId.LEFT_SHOULDER, SocketType.MISSILE, 2,
-                        -0.64f, 0.04f, 0.66f, 0.96f, true),
+                        -0.64f, 0.04f, 0.30f, 0.44f, true),
                 socket(SocketId.RIGHT_SHOULDER, SocketType.MISSILE, 2,
-                        0.64f, 0.04f, 0.66f, 0.96f, true),
+                        0.64f, 0.04f, 0.30f, 0.44f, true),
                 socket(SocketId.AMMO_RESERVE, SocketType.AMMO, 2,
-                        0f, -0.55f, 1.02f, 0.42f, true),
+                        0f, -0.55f, 0.54f, 0.24f, true),
                 socket(SocketId.MINI_FAB, SocketType.UTILITY, 1,
-                        0f, -0.86f, 0.66f, 0.44f, false))));
+                        0f, -0.86f, 0.34f, 0.24f, false))));
         return Map.copyOf(layouts);
     }
 
     private static SocketDef socket(SocketId id, SocketType type, int capacity,
                                     float localRight, float localForward,
-                                    float widthCells, float heightCells,
+                                    float widthHull, float heightHull,
                                     boolean factoryLocked) {
         return new SocketDef(id, type, capacity, localRight, localForward,
-                widthCells, heightCells, factoryLocked);
+                widthHull, heightHull, factoryLocked);
     }
 }
