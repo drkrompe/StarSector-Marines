@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — separated physical resolution fit from the player's explicit Starsector UI-scale preference.
+Updated: 2026-08-25 — separated physical resolution fit from explicit UI scale and established the shared top room-navigation shell.
 
 ## Purpose
 
@@ -164,7 +164,10 @@ the retained model.
     page's dirty state and closes every created page exactly once.
 14. **Shipboard navigation is spatial.** Company surfaces identify the flagship room
     the captain occupies and phrase transitions as movement between real destinations.
-    Future room names do not appear as dead controls before their surfaces exist.
+    A persistent top shell owns `RETURN` and routes among real rooms, marks the current
+    room, and keeps the right edge for location context. Drill-down breadcrumbs remain
+    page-specific beneath it; the bottom edge belongs to page content rather than global
+    navigation. Future room names do not appear as dead controls before their surfaces exist.
 
 ## Intrinsic text and typography
 

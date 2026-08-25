@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — established the bridge-centered Company HQ dashboard, MRB rating bands, learned-news board, and shipboard-room navigation frame.
+Updated: 2026-08-25 — established the bridge-centered HQ dashboard and its shared top room-navigation shell.
 
 ## Purpose
 
@@ -345,11 +345,15 @@ request, then closes the HQ rather than routing through those screens itself.
 
 Company surfaces are places aboard the player's flagship rather than abstract
 application modules. Company HQ is the bridge command station and the nerve center
-for the whole organization. Moving from it to Fleet Armory is movement to another
-shipboard room; future Barracks, Briefing Room, medical, logistics, or fabrication
-surfaces should join the same spatial navigation vocabulary only when their real
-destination exists. A screen says where the captain is and uses movement language for
-room transitions. It does not advertise dead rooms as disabled feature promises.
+for the whole organization. A persistent top shell exposes `RETURN`, `HQ`, and
+`ARMORY`, marks the occupied room, and carries the precise location context at the
+right. `RETURN` closes the shipboard UI; room routes move directly between top-level
+surfaces. Armory company, squad, and fire-team breadcrumbs remain page-specific below
+that shell, while the bottom of every room is reserved for its own content. Future
+Barracks, Briefing Room, medical, logistics, or fabrication surfaces should join the
+same spatial navigation vocabulary only when their real destination exists. A screen
+says where the captain is and uses movement language for room transitions. It does not
+advertise dead rooms as disabled feature promises.
 
 The retained bridge dashboard has four concerns:
 

@@ -26,11 +26,14 @@ import java.util.Map;
 public final class UiSnapshotSuite implements SnapshotSuite {
 
     private static final List<String> COMPANY_HQ_COMPONENTS = List.of(
+            "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/company/company-hq.mlx");
     private static final List<String> OVERVIEW_COMPONENTS = List.of(
+            "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/armory/fleet-armory-overview.mlx",
             "data/ui/components/armory/armory-company-list.mlx");
     private static final List<String> WORKSPACE_COMPONENTS = List.of(
+            "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/armory/fleet-armory.mlx",
             "data/ui/components/armory/armory-squad-list.mlx",
             "data/ui/components/armory/fleet-armory-fireteam.mlx",
@@ -118,9 +121,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         try (MarkupInstance instance = loader.build(
                 reactor, fireteam ? "fleet-armory-fireteam" : "fleet-armory",
                 props(viewModel))) {
-            instance.requireElement(fireteam
-                            ? "fireteam-reload-status" : "armory-reload-status")
-                    .align(UiAlign.STRETCH, UiAlign.CENTER);
             if (fireteam) {
                 instance.requireElement("transaction-feedback")
                         .align(UiAlign.STRETCH, UiAlign.CENTER);
@@ -166,8 +166,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 reactor, "fleet-armory-overview", props(viewModel))) {
             instance.requireElement("company-overview-summary")
                     .align(UiAlign.STRETCH, UiAlign.CENTER);
-            instance.requireElement("company-overview-reload-status")
-                    .align(UiAlign.STRETCH, UiAlign.CENTER);
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
@@ -188,10 +186,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("fleetSummary", viewModel.fleetSummary());
         props.put("companyCards", viewModel.companyCards());
-        props.put("back", (Runnable) () -> { });
-        props.put("legacy", (Runnable) () -> { });
-        props.put("reload", (Runnable) () -> { });
-        props.put("reloadStatus", "Headless UX preview  ·  No engine process");
+        putArmoryPageNavigation(props);
         return props;
     }
 
@@ -226,9 +221,17 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("feedbackClasses", viewModel.feedbackClasses());
         props.put("back", (Runnable) () -> { });
         props.put("backToSquads", (Runnable) () -> { });
-        props.put("legacy", (Runnable) () -> { });
-        props.put("reload", (Runnable) () -> { });
-        props.put("reloadStatus", "Headless UX preview  ·  No engine process");
+        putArmoryPageNavigation(props);
         return props;
+    }
+
+    private static void putArmoryPageNavigation(Map<String, Object> props) {
+        props.put("returnAction", (Runnable) () -> { });
+        props.put("hqAction", (Runnable) () -> { });
+        props.put("armoryAction", (Runnable) () -> { });
+        props.put("hqClasses", "");
+        props.put("hqDisabled", false);
+        props.put("armoryClasses", "selected page-nav-current");
+        props.put("armoryDisabled", false);
     }
 }

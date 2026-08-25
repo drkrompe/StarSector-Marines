@@ -1,0 +1,43 @@
+<template props="returnAction,hqAction,armoryAction,hqClasses,hqDisabled,armoryClasses,armoryDisabled,contextLabel">
+  <div id="marine-ops-page-nav" class="panel surface-dark">
+    <div id="marine-ops-page-routes">
+      <button id="page-nav-return" onclick="{returnAction}">RETURN</button>
+      <button id="page-nav-hq" class="{hqClasses}" disabled="{hqDisabled}" onclick="{hqAction}">HQ</button>
+      <button id="page-nav-armory" class="{armoryClasses}" disabled="{armoryDisabled}" onclick="{armoryAction}">ARMORY</button>
+    </div>
+    <div id="marine-ops-page-context" class="label heading tone-edge">{contextLabel}</div>
+  </div>
+</template>
+
+<style>
+  #marine-ops-page-nav {
+    flex-direction: row;
+    height: 34px;
+    padding: 4px;
+    gap: 8px;
+  }
+
+  #marine-ops-page-routes { flex-direction: row; width: 344px; gap: 6px; }
+  #marine-ops-page-routes button {
+    width: 108px;
+    padding: 3px 8px;
+    border-width: 1px;
+    overflow: hidden;
+    font-family: heading;
+    text-align: center;
+  }
+
+  #marine-ops-page-routes .page-nav-current {
+    background-color: #183b50;
+    border-color: #ffd464;
+    color: #ffd464;
+    opacity: 1;
+  }
+
+  #marine-ops-page-context {
+    width: 0px;
+    flex-grow: 1;
+    padding: 5px 7px;
+    text-align: right;
+  }
+</style>
