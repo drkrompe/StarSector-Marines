@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.DevConfig;
 import com.dillon.starsectormarines.campaign.AbandonedColonyArchiveOutcome;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.CampaignState;
@@ -48,7 +47,6 @@ final class CompanyHqViewModel {
     static CompanyHqViewModel current(
             Runnable openArmory,
             Runnable close,
-            Runnable openWorkbench,
             Function<CompanyClocks.Entry, Runnable> respond) {
         int day = CampaignClock.day();
         CompanyStanding standing = CompanyStanding.current(EMPLOYER_LIMIT);
@@ -57,8 +55,7 @@ final class CompanyHqViewModel {
         CampaignState state = script != null ? script.state() : null;
         List<CompanyNews.Entry> news = CompanyNews.latest(
                 state, day, NEWS_LIMIT, PlayerEventTarget::displayName);
-        return build(standing, clocks, news, day, openArmory, close,
-                openWorkbench, respond);
+        return build(standing, clocks, news, day, openArmory, close, respond);
     }
 
     private static CompanyHqViewModel build(
@@ -68,7 +65,6 @@ final class CompanyHqViewModel {
             int day,
             Runnable openArmory,
             Runnable close,
-            Runnable openWorkbench,
             Function<CompanyClocks.Entry, Runnable> respond) {
         Map<String, Object> props = baseLabels();
         NumberFormat credits = NumberFormat.getIntegerInstance();
@@ -112,25 +108,27 @@ final class CompanyHqViewModel {
         props.put("newsEmpty", news.isEmpty()
                 ? Strings.get("companyHqNewsEmpty") : "");
 
-        List<FooterAction> footer = new ArrayList<>();
-        footer.add(new FooterAction("hq-open-armory", "primary-action",
-                Strings.get("companyHqArmory"), openArmory));
-        if (DevConfig.DEBUG_UI_WORKBENCH && openWorkbench != null) {
-            footer.add(new FooterAction("hq-open-workbench", "",
-                    Strings.get("companyHqWorkbench"), openWorkbench));
-        }
-        footer.add(new FooterAction("hq-close", "",
-                Strings.get("actionBack"), close));
-        props.put("footerActions", List.copyOf(footer));
+        props.put("returnAction", close);
+        props.put("hqAction", (Runnable) () -> { });
+        props.put("armoryAction", openArmory);
+        props.put("hqClasses", "selected page-nav-current");
+        props.put("hqDisabled", false);
+        props.put("armoryClasses", "");
+        props.put("armoryDisabled", false);
         return new CompanyHqViewModel(props);
     }
 
     /** Rich deterministic fixture used by the retained UI evidence suite. */
     static CompanyHqViewModel preview() {
         Map<String, Object> props = new LinkedHashMap<>();
-        props.put("title", "COMPANY HQ");
         props.put("purpose", "FLAGSHIP  /  BRIDGE  /  COMMAND NETWORK");
-        props.put("location", "YOU ARE HERE  //  BRIDGE COMMAND STATION");
+        props.put("returnAction", (Runnable) () -> { });
+        props.put("hqAction", (Runnable) () -> { });
+        props.put("armoryAction", (Runnable) () -> { });
+        props.put("hqClasses", "selected page-nav-current");
+        props.put("hqDisabled", false);
+        props.put("armoryClasses", "");
+        props.put("armoryDisabled", false);
         props.put("assessmentHeader", "BRIDGE ADJUTANT  //  DAILY ASSESSMENT");
         props.put("ratingHeader", "MERCENARY RATING");
         props.put("rating", "RECOGNIZED");
@@ -170,17 +168,12 @@ final class CompanyHqViewModel {
                 new NewsPost("preview-news-2", "news-card rumor-surface", "RUMOR  /  4 DAYS AGO", "Reports of Compact action against House Umbra", "Kazeron  /  outcome remains unconfirmed"),
                 new NewsPost("preview-news-3", "news-card", "CONFIRMED  /  11 DAYS AGO", "Silent colony operation concluded", "17 of 22 survivors recovered  /  archive secured")));
         props.put("newsEmpty", "");
-        props.put("footerActions", List.of(
-                new FooterAction("preview-armory", "primary-action", "GO TO FLEET ARMORY", () -> { }),
-                new FooterAction("preview-close", "", "RETURN TO CAMPAIGN", () -> { })));
         return new CompanyHqViewModel(props);
     }
 
     private static Map<String, Object> baseLabels() {
         Map<String, Object> props = new LinkedHashMap<>();
-        props.put("title", Strings.get("companyHqHeader"));
         props.put("purpose", Strings.get("companyHqPurpose"));
-        props.put("location", Strings.get("companyHqLocation"));
         props.put("assessmentHeader", Strings.get("companyHqAssessmentHeader"));
         props.put("ratingHeader", Strings.get("companyHqRatingHeader"));
         props.put("statusHeader", Strings.get("companyHqRosterHeader"));
@@ -477,14 +470,4 @@ final class CompanyHqViewModel {
         }
     }
 
-    record FooterAction(String id, String classes, String label,
-                        Runnable action) implements MarkupPropertySource {
-        @Override public Object markupProperty(String property) {
-            return switch (property) {
-                case "id" -> id; case "classes" -> classes; case "label" -> label;
-                case "action" -> action;
-                default -> throw new IllegalArgumentException("Unknown footer-action property: " + property);
-            };
-        }
-    }
 }

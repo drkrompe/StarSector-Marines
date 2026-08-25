@@ -20,6 +20,7 @@ public final class CompanyHqScreen implements Screen {
 
     private static final String ROOT_COMPONENT = "company-hq";
     private static final List<String> COMPONENT_PATHS = List.of(
+            "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/company/company-hq.mlx");
 
     private final Reactor reactor = new Reactor();
@@ -54,7 +55,6 @@ public final class CompanyHqScreen implements Screen {
         CompanyHqViewModel viewModel = CompanyHqViewModel.current(
                 this::onArmory,
                 this::onClose,
-                () -> context.goTo(ScreenId.UI_WORKBENCH),
                 this::responseAction);
         MarkupInstance candidate = markup.reloadAndBuild(
                 reactor, ROOT_COMPONENT, viewModel.props());
@@ -82,11 +82,11 @@ public final class CompanyHqScreen implements Screen {
 
     private static void requireWiredElements(MarkupInstance component) {
         for (String id : List.of(
-                "company-hq-root", "company-hq-header", "company-hq-assessment",
+                "company-hq-root", "marine-ops-page-nav", "page-nav-return",
+                "page-nav-hq", "page-nav-armory", "company-hq-assessment",
                 "company-hq-main", "company-hq-sidebar", "company-hq-force",
                 "company-hq-finance", "company-hq-standing", "company-hq-board",
-                "company-hq-obligation-list", "company-hq-news-list",
-                "company-hq-footer")) {
+                "company-hq-obligation-list", "company-hq-news-list")) {
             component.requireElement(id);
         }
     }

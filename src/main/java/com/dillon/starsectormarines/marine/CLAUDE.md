@@ -30,11 +30,12 @@ write them directly:
   or changes the fitness of a soldier must call it or the squad will keep
   pointing at a leader who is gone.
 
-Fire-team **template assignment is authored state**, not another derived
-rollup. `MarineSquad` holds one template id for each of its three team
-slots; `MarineRoster.applyFireTeamTemplate` changes that id only after the
-complete four-billet inventory transaction succeeds. The current per-soldier
-kit remains the materialized state consumed by deployment and battle.
+Squad **equipment doctrine assignment is authored state**, not another derived
+rollup. `MarineSquad` holds one weapon doctrine id and one armor doctrine id;
+`MarineRoster.applySquadEquipment` changes both only after the complete
+twelve-billet inventory transaction succeeds. Legacy per-team template ids remain
+save input only and are cleared by the first successful squad issue. The current
+per-soldier kit remains the materialized state consumed by deployment and battle.
 
 When adding new persistent gameplay state, prefer this pattern: a thin
 `EveryFrameScript` holding POJOs, registered once in `onGameLoad` (idempotent —
