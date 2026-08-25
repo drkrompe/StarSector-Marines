@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — made collectible eligibility and cargo issue cost additive provider data alongside faction equipment catalogs.
+Updated: 2026-08-25 — made collectible eligibility and cost additive provider data while retaining authored tier, rarity, provenance, and lore presentation.
 
 ## Purpose
 
@@ -140,6 +140,14 @@ base-game supplies, heavy armaments, and heavy machinery as one atomic squad
 transaction; unchanged kit costs nothing, removed kit grants no refund, and food
 remains available to later sustainment costs without being forced into routine
 refits. Marines remain personnel cargo handled by personnel logistics.
+
+Squad loadout collection presentation is authored data. Its tier communicates the
+definition's expected power band, while rarity communicates how scarce or prestigious
+that definition is in campaign acquisition and drives only its collectible visual
+treatment. Provenance and a setting paragraph make the acquisition a lore-bearing
+reward. None of those fields is a loot-table weight, and a definition's contents are
+never rolled from a pool: every selection resolves the same ordered twelve-billet
+Weapon or Armor issue, including any leader-specific and special-equipment placements.
 
 Legacy recipes, printed counts, and fabrication materials remain save-migration
 input and compatibility state for retired fire-team APIs, not live Fleet Armory

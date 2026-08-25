@@ -26,6 +26,7 @@ import com.dillon.starsectormarines.ops.event.PlayerEventPresenter;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
+import com.dillon.starsectormarines.marine.SquadLoadoutPresentationRegistry;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.Rank;
@@ -81,6 +82,9 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         // validate their referenced equipment only after all three equipment
         // registries are installed.
         EquipmentTemplateCatalog.loadContributions(marineCatalogs.equipmentTemplates());
+        // Collectible-facing tier, rarity, provenance, and lore remain authored data;
+        // their rarity is presentation scarcity rather than random selection weight.
+        SquadLoadoutPresentationRegistry.loadBuiltins();
         // Campaign-faction doctrine references primary weapons, special issue,
         // armor, and mech identities, so it validates after those catalogs.
         GroundRosterRegistry.loadContributions(marineCatalogs.groundRosters());

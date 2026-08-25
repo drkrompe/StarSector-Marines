@@ -2,10 +2,10 @@
 
 Status: IN PROGRESS — retained hierarchy, squad equipment issue, and focused Mech Lab ship; broader company administration remains
 Written: 2026-08-23
-Updated: 2026-08-25 — fire-team inspection now fits a horizontal team tab rail and
-four full named-marine dossiers at the reference viewport. Each dossier combines its
-live portrait with data-authored equipment prose, class and tier badges, and stable
-weapon, durability, and mobility meters without card scrolling.
+Updated: 2026-08-25 — fire-team inspection now fits a compact single-row team tab rail,
+four full named-marine dossiers, and a bottom tabbed loadout collection at the reference
+viewport. Collection cards expose authored tier, rarity, provenance, lore, and exact
+distribution without introducing randomized contents or card scrolling.
 
 Read `company-view-nouns.md` and `ui-nouns.md` first.
 
@@ -52,11 +52,15 @@ breadcrumb keeps every completed level directly reachable.
   and resolved combat figures. Weapon, durability, and mobility figures use compact
   capability meters normalized against their catalog ceilings while retaining the exact
   number beside each meter.
-- **Equipment editing:** an always-visible squad strip owns separate Weapon and Armor
-  selectors. Weapon definitions include roles, primaries, grades, and optional
-  special equipment; Armor definitions include protection only. Their pair projects
-  exact equipment and combat-stat deltas onto the same named marines. One squad-wide
-  readiness result and one squad-wide issue action commit all twelve billets atomically.
+- **Equipment editing:** a full-width collection below the marine viewer swaps between
+  mutually exclusive Weapon and Armor tabs. Weapon definitions include roles,
+  primaries, grades, and optional special equipment; Armor definitions include
+  protection only. Each collected loadout card exposes an authored tier, acquisition
+  rarity, provenance, setting paragraph, and exact distribution. Their selected pair
+  projects exact equipment and combat-stat deltas onto the same named marines. One
+  squad-wide readiness result and one squad-wide issue action commit all twelve billets
+  atomically. The former Squad Equipment heading row, designer shortcut, and squad
+  reinforcement shortcut do not occupy this workspace.
 - **Equipment designer:** a distinct breadcrumb depth edits one reusable definition
   at a time. A horizontal library, Weapon/Armor mode, three team tabs, and four live
   billet previews expose all twelve ordered positions without returning to the old
@@ -98,6 +102,14 @@ breadcrumb keeps every completed level directly reachable.
 - Weapon doctrine selection changes primary, grade, role, and special issue without
   changing armor; Armor doctrine selection changes protection without changing the
   Weapon half.
+- The loadout collection sits below the four marine dossiers and shows only the active
+  Weapon or Armor inventory at once. Switching tabs preserves both selected definitions
+  and changes no campaign state.
+- Every built-in collection card reads tier, rarity, provenance, and lore from authored
+  data. Tier communicates expected capability; rarity communicates campaign acquisition
+  scarcity and presentation, never random selection weight.
+- Selecting or issuing a loadout never rolls from a pool. Its twelve ordered billets
+  and special-equipment placements are deterministic authored contents.
 - Player definitions round-trip with `MarineArmory`; built-ins cannot be renamed or
   deleted, assigned custom definitions cannot be deleted, and Save as New never
   silently changes an already issued squad.
@@ -110,7 +122,8 @@ breadcrumb keeps every completed level directly reachable.
 - The company gallery auto-fills fixed portrait cards into columns, wraps into rows as
   the viewport narrows, and scrolls vertically without silent truncation.
 - The fire-team viewer shows all four named marines together without card scrolling;
-  one horizontal team tab rail preserves each team's readiness and recovery context.
+  one compact single-row team tab rail preserves each team's readiness and recovery
+  context while reserving vertical space for the collection.
 - Each marine dossier keeps its battle-composed portrait in the upper-right, surfaces
   class plus weapon and armor tier as badges, and reads weapon, armor, and specialty
   prose from their owning data definitions rather than screen-authored copy.
