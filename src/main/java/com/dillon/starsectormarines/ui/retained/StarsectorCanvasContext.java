@@ -97,6 +97,29 @@ final class StarsectorCanvasContext extends CanvasContext {
         }
     }
 
+    @Override
+    protected boolean drawHostPass(CanvasHostPass pass) {
+        CanvasMetrics metrics = metrics();
+        Rect content = metrics.contentBox();
+        CanvasHostViewport hostViewport = new CanvasHostViewport(
+                viewport.screenXFor(content.x()),
+                viewport.screenBottomFor(content),
+                content.width() * viewport.documentScale(),
+                content.height() * viewport.documentScale(),
+                metrics.surfaceWidth(), metrics.surfaceHeight());
+        try {
+            pass.draw(hostViewport, alphaMult());
+        } finally {
+            // The pass owns its local state, but the retained painter still
+            // reasserts the fixed-function canvas contract for following ops.
+            glUseProgram(0);
+            glColorMask(true, true, true, true);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        }
+        return true;
+    }
+
     private Rect documentRect(float x, float y, float width, float height) {
         CanvasMetrics metrics = metrics();
         return new Rect(metrics.toDocumentX(x), metrics.toDocumentY(y),
