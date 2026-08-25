@@ -4,9 +4,10 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — added a bounded live-host canvas pass so an existing renderer
-can inhabit retained layout without inheriting document input or creating a second
-world projection.
+Updated: 2026-08-25 — Marine Ops takeovers request the complete reported screen,
+retained text supports explicitly authored multi-line wrapping, and a bounded
+live-host canvas pass lets an existing renderer inhabit retained layout without
+inheriting document input or creating a second world projection.
 
 ## Purpose
 
@@ -183,11 +184,15 @@ the retained model.
 
 ## Intrinsic text and typography
 
-Single-line text is measured through one document-owned seam used by both layout and paint. In a
-row, an auto-sized text element contributes its glyph advance plus padding and border before free
-space is distributed; in a column, its line height contributes on the main axis. A declared size
-still wins. Changing retained text marks geometry dirty so the next document update buys one layout
-pass rather than leaving a stale box.
+Text is measured through one document-owned seam used by both layout and paint. The
+default `white-space: nowrap` preserves control and value labels as a single line.
+Explicit `white-space: normal` wraps prose at the available content width; the same
+measured line sequence determines intrinsic height and paint positions, so headless
+and live targets cannot disagree about line breaks. In a row, an auto-sized nowrap
+element contributes its glyph advance plus padding and border before free space is
+distributed; in a column, its measured block height contributes on the main axis. A
+declared size still wins. Changing retained text marks geometry dirty so the next
+document update buys one layout pass rather than leaving a stale box.
 
 Typography roles remain ordinary semantic classes and inherited CSS properties. The theme supplies
 a regular body face for controls, values, and prose and a display face for headings. Casing belongs

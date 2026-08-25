@@ -195,12 +195,14 @@ public final class UiLayoutEngine {
         if (element.tag() == UiTag.CANVAS) {
             return horizontal ? element.canvasWidth() : element.canvasHeight();
         }
-        UiTextMeasurer.Measurement measured = text.measure(element);
-        if (measured.font() == null) return Float.NaN;
         Insets padding = element.resolvedPadding(widthBasis);
+        float textWidth = Math.max(0f, widthBasis - padding.horizontal()
+                - element.borderWidth() * 2f);
+        UiTextMeasurer.Measurement measured = text.measure(element, textWidth);
+        if (measured.font() == null) return Float.NaN;
         float frame = (horizontal ? padding.horizontal() : padding.vertical())
                 + element.borderWidth() * 2f;
-        return (horizontal ? measured.width() : measured.lineHeight()) + frame;
+        return (horizontal ? measured.width() : measured.height()) + frame;
     }
 
     private static float resolveStackExtent(float preferred, float available, UiAlign align) {

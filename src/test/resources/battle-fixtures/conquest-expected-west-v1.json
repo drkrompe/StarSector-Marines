@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "kind": "CONQUEST",
+  "seed": 4096,
+  "enemyHasHeavyArmor": true,
+  "tier": "REINFORCED",
+  "risk": "HIGH",
+  "shuttles": [
+    { "type": "VALKYRIE", "cycles": 28 }
+  ],
+  "targetProfile": {
+    "marketSize": 7,
+    "stability": 5,
+    "defenseLevel": 6,
+    "spaceportTier": 2,
+    "factionId": "hegemony",
+    "functions": [ "HEAVY_INDUSTRY", "MILITARY", "SPACEPORT" ]
+  },
+  "marineFighterSupport": [],
+  "enemyFighterSupport": []
+}

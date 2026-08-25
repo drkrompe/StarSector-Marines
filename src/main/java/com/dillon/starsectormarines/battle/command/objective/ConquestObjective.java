@@ -2,9 +2,6 @@ package com.dillon.starsectormarines.battle.command.objective;
 
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.air.ShuttleMission;
-import com.dillon.starsectormarines.battle.air.ShuttleState;
-import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.fs.starfarer.api.Global;
@@ -31,11 +28,12 @@ import org.apache.log4j.Logger;
  * completion by one tick — the defender's elimination objective
  * latches first and wins.
  *
- * <p>Inbound / deboarding shuttles count as marines-in-play, matching
- * {@link EliminateFactionObjective}'s opening-tick semantics so a fresh
- * Conquest where every defender compound somehow starts marine-held
- * (degenerate; would never happen in production) still resolves
- * cleanly.
+ * <p>Current inbound payloads and committed future shuttle sorties count as
+ * marines-in-play, matching {@link EliminateFactionObjective}'s semantics so
+ * neither opening deployment nor the rearm gap between authored cycles is
+ * mistaken for absence. A fresh Conquest where every defender compound
+ * somehow starts marine-held (degenerate; never expected in production) still
+ * resolves cleanly.
  */
 public final class ConquestObjective implements Objective {
 
@@ -89,27 +87,9 @@ public final class ConquestObjective implements Objective {
         // Marine-survival precondition — see class doc. Mirrors the
         // alive-marine scan in EliminateFactionObjective so the two
         // objectives use the same "is the marine side in play" semantic.
-        if (!anyMarineInPlay(sim)) return;
+        if (!ObjectiveFactionPresence.anyInPlay(sim, Faction.MARINE)) return;
 
         complete = true;
-    }
-
-    private static boolean anyMarineInPlay(BattleView sim) {
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            long u = sim.liveUnitAt(i);
-            if (sim.identity().faction(u) == Faction.MARINE) return true;
-        }
-        World world = sim.world();
-        for (long id : sim.getAirEntityIds()) {
-            if (world.airFaction(id) != Faction.MARINE) continue;
-            ShuttleMission m = world.mission(id);
-            if (m != null && m.marinesRemaining > 0
-                    && m.state != ShuttleState.DEPARTING
-                    && m.state != ShuttleState.GONE) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override

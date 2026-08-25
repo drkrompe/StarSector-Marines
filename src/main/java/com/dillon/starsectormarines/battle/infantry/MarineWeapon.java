@@ -124,6 +124,8 @@ public enum MarineWeapon {
     }
 
     public String displayName() { return def().displayName; }
+    public String catalogRole() { return def().catalogRole; }
+    public String catalogDescription() { return def().catalogDescription; }
     /** Vanilla fire sound id ({@code fireSoundTwo} from the source {@code .wpn}); mono, pre-registered by the core install. */
     public String fireSoundId() { return def().fireSoundId; }
     /** Traveling-body tint. Distinct per weapon so the player can identify fire at a glance. */

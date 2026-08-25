@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.ui.BitmapFont;
 import com.dillon.starsectormarines.ui.retained.Overflow;
 import com.dillon.starsectormarines.ui.retained.UiLayout;
 import com.dillon.starsectormarines.ui.retained.UiTextAlign;
+import com.dillon.starsectormarines.ui.retained.UiWhiteSpace;
 
 import java.awt.Color;
 import java.util.Collections;
@@ -81,6 +82,7 @@ public final class StyleDeclaration {
             case BORDER_COLOR, BACKGROUND_COLOR, COLOR -> value == null || value instanceof Color;
             case FONT_FAMILY -> value == null || value instanceof String || value instanceof BitmapFont;
             case TEXT_ALIGN -> value instanceof UiTextAlign;
+            case WHITE_SPACE -> value instanceof UiWhiteSpace;
             case TRANSITION -> value instanceof List<?>;
             case GAP, PADDING -> false;
         };

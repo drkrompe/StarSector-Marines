@@ -95,9 +95,8 @@ public final class EngagePosture implements Action {
             // target (turrets, drone hubs, heavy mechs) — anything the rocket's
             // Dedicated penetration is worth burning a tube on.
             long mid = member;
-            if (sim.world().hasSecondaryWeapon(mid) && sim.world().secondaryAmmo(mid) > 0
+            if (sim.getTacticalScoring().canSpecialTarget(mid, target)
                     && sim.world().secondaryCooldownTimer(mid) <= 0f
-                    && TacticalScoring.isHardened(sim.identity().type(target))
                     && dist <= sim.world().secondaryWeapon(mid).range()
                     && sim.getTacticalScoring().shouldCommitSpecial(member, target)) {
                 sim.world().setSecondaryActionTimer(mid, sim.world().secondaryWeapon(mid).aimDuration());

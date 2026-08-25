@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.ui.retained.style.UiTheme;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -126,6 +127,22 @@ class UiIntrinsicTextTest {
         assertEquals(22f, empty.box().borderBox().width(), EPSILON);
     }
 
+    @Test
+    void normalWhiteSpaceWrapsIntoTheAuthoredContentWidth() {
+        UiElement prose = new UiElement("prose").text("AAAA BBBB")
+                .style("width: 50px; white-space: normal");
+        UiDocument document = document(new UiElement("root")
+                .layout(UiLayout.ROW)
+                .child(prose));
+
+        document.layout(100f, 100f);
+        UiTextMeasurer.Measurement measured = new UiTextMeasurer(document.styles())
+                .measure(prose, prose.box().contentBox().width());
+
+        assertEquals(List.of("AAAA", "BBBB"), measured.lines());
+        assertEquals(40f, measured.height(), EPSILON);
+    }
+
     private static UiElement button(String id, String text) {
         return new UiElement(id).tag(UiTag.BUTTON).text(text);
     }
@@ -164,6 +181,13 @@ class UiIntrinsicTextTest {
         @Override
         public int getLineHeight() {
             return lineHeight;
+        }
+
+        @Override
+        public List<String> wrapLines(String value, float maxWidth) {
+            if (value == null || value.isEmpty()) return List.of();
+            if (measureWidth(value) <= maxWidth) return List.of(value);
+            return List.of(value.split(" "));
         }
     }
 }

@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns autonomous mission command, squad planning, belief-de
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — established the canonical perspective/referee trace split and snapshot-driven Conquest debug presentation.
+Updated: 2026-08-25 — added forced-serial Conquest fixture evidence and canonical command metrics over the perspective/referee trace split.
 
 AI turns mission context and what a side has learned into coordinated
 movement, posture, and fire intent. It is a decision system, not the authority
@@ -113,6 +113,23 @@ neutral referee stream. Referee evidence may evaluate the command duel but is
 never fed back into either commander. Canonical field and event ordering makes
 the same trace usable by a live dump, deterministic fixture comparison, and
 later aggregate analysis.
+
+Trace capture records when a published snapshot was observed as well as the
+snapshot's own command tick. Pausing and resuming capture creates explicit
+observation windows; analysis never integrates reserve, assignment, or pressure
+state across an invisible gap. A bounded headless run ends with a labelled
+timeout rather than an invented outcome. Only a forced-serial run is canonical
+for byte-stability evidence while unit behaviors share seeded random streams.
+
+The first Conquest evidence metrics are descriptive rather than balance gates.
+They report accepted assignment retargets and reissues, command-unassigned and
+explicitly unreachable squad intervals, reserve squad-time, published defender
+contact-to-reserve-mobilization latency, published track concentration,
+compound captures and losses, combatant casualties, duration, and terminal or
+timeout outcome. They name only what the trace proves: command-unassigned is
+not synonymous with physical inactivity. A bounded run with compounds but no
+observed ownership gain is labelled territorial progress stalled; a long
+capture gap remains evidence to inspect rather than an automatic tuning order.
 
 The player is an **intervention authority**, not a replacement for a competent
 baseline commander. Existing force selection and command powers are the first

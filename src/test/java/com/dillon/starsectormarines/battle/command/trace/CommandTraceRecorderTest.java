@@ -4,7 +4,11 @@ import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -30,11 +34,12 @@ class CommandTraceRecorderTest {
 
         List<String> lines = recorder.canonicalJsonLines().lines().toList();
         assertEquals(2, lines.size());
-        assertEquals("{\"stream\":\"run\",\"tick\":0,\"schemaVersion\":1,"
+        assertEquals("{\"stream\":\"run\",\"tick\":0,\"schemaVersion\":2,"
                 + "\"fixtureKind\":\"CONQUEST\","
                 + "\"schedulerMode\":\"SERIAL_DETERMINISTIC\"}", lines.get(0));
         String line = lines.get(1);
         assertEquals("{\"stream\":\"perspective\",\"tick\":75,"
+                        + "\"observedTick\":75,"
                         + "\"perspective\":\"MARINE\",\"strategy\":\"conquest\","
                         + "\"phase\":\"LANE_ADVANCE\",\"influenceTick\":60,"
                         + "\"commandPoolSize\":2,\"reserveCount\":0,"
@@ -59,6 +64,51 @@ class CommandTraceRecorderTest {
                 .contains("\"perspective\":\"DEFENDER\""));
         assertTrue(lines.get(2)
                 .contains("\"perspective\":\"MARINE\""));
+    }
+
+    @Test
+    void controlCasualtyAndTimeoutRowsStayNeutralAndCanonical() {
+        CommandTraceRecorder recorder = new CommandTraceRecorder(
+                "CONQUEST", "SERIAL_DETERMINISTIC", 0);
+
+        recorder.recordCapturePaused(10);
+        recorder.recordCaptureResumed(20);
+        recorder.recordCasualty(21, 9_001L, Faction.MARINE,
+                UnitType.MARINE, 7, 8);
+        recorder.recordTimeout(30, 30);
+        recorder.recordTimeout(31, 30);
+        recorder.recordCapturePaused(32);
+        recorder.recordPerspective(snapshot(Faction.MARINE, 75));
+
+        List<String> lines = recorder.canonicalJsonLines().lines().toList();
+        assertEquals(5, lines.size());
+        assertEquals("{\"stream\":\"control\",\"tick\":10,"
+                + "\"event\":\"capture-paused\"}", lines.get(1));
+        assertEquals("{\"stream\":\"control\",\"tick\":20,"
+                + "\"event\":\"capture-resumed\"}", lines.get(2));
+        assertEquals("{\"stream\":\"referee\",\"tick\":21,"
+                + "\"event\":\"casualty\",\"unitId\":9001,"
+                + "\"faction\":\"MARINE\",\"unitType\":\"MARINE\","
+                + "\"combatant\":true,\"cellX\":7,\"cellY\":8}",
+                lines.get(3));
+        assertEquals("{\"stream\":\"referee\",\"tick\":30,"
+                + "\"event\":\"timeout\",\"maxTicks\":30}", lines.get(4));
+        assertTrue(recorder.isSealed());
+    }
+
+    @Test
+    void timedOutSimulationCannotReenableItsSealedTrace() {
+        try (BattleSimulation sim = new BattleSimulation(
+                new NavigationGrid(4, 4), new CellTopology(4, 4))) {
+            sim.setCommandTraceEnabled(true, "CONQUEST");
+            sim.recordCommandTraceTimeout(1);
+            String sealed = sim.getCommandTraceJsonLines();
+
+            sim.setCommandTraceEnabled(true, "CONQUEST");
+
+            assertEquals(sealed, sim.getCommandTraceJsonLines());
+            assertTrue(!sim.isCommandTraceEnabled());
+        }
     }
 
     private static CommanderSnapshot<Void> snapshot(Faction side, int tick) {

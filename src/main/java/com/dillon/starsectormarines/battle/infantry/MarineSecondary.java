@@ -64,6 +64,15 @@ public enum MarineSecondary {
     public String aimSpritePath() { return specialDef().aimSpritePath(); }
     public String armoryIconPath() { return specialDef().armoryIconPath(); }
 
+    /** True when this special resolves through a weapon definition. */
+    public boolean isWeapon() { return specialDef().weaponId() != null; }
+
+    /** True for aimed straight-line specials handled by {@code fireSecondary}. */
+    public boolean isDirectFireWeapon() {
+        return activation() == SpecialActivation.DIRECT_EXPLOSIVE
+                || activation() == SpecialActivation.DIRECT_PRECISION;
+    }
+
     public String fireSoundId() { return def().fireSoundId; }
     public String impactSoundId() { return def().impactSoundId; }
     public String projectileSpritePath() {
@@ -96,8 +105,5 @@ public enum MarineSecondary {
     public float wallDamageRadius() { return def().wallDamageRadius; }
     public float roundVelocity() { return def().roundVelocity; }
 
-    private boolean isUtility() {
-        return activation() == SpecialActivation.UTILITY_SMOKE
-                || activation() == SpecialActivation.UTILITY_SATCHEL;
-    }
+    private boolean isUtility() { return !isWeapon(); }
 }

@@ -1,8 +1,10 @@
 # Battle fixtures
 
-Status: ACTIVE — tick-zero construction capture and headless replay are shipped; full post-briefing launch fidelity remains proposed.
+Status: ACTIVE — civilian-rescue and Conquest tick-zero construction capture, headless replay, and opt-in forced-serial Conquest command evidence are shipped; full post-briefing launch fidelity remains proposed.
 
 Written: 2026-08-24
+
+Updated: 2026-08-25 — added the Conquest construction fixture and canonical forced-serial command-evidence boundary.
 
 ## Vocabulary
 
@@ -34,9 +36,9 @@ fixture owns only immutable copies of those inputs. `BattleSetup` remains the
 authority for map selection, deterministic retries, payload installation,
 spawns, loadouts, objectives, and commanders.
 
-For the first supported scenario, the flow is:
+For supported scenarios, the flow is:
 
-`MissionLaunch` facts → versioned civilian-rescue fixture → production
+`MissionLaunch` facts → versioned construction fixture → production
 `BattleSetup` factory → fresh `BattleSimulation` → ordinary fixed ticks.
 
 The active battle context retains its construction fixture as cold diagnostic
@@ -64,6 +66,23 @@ simulation or fixture codec depend on Starsector file APIs.
 Civilian-rescue V1 captures the seven inputs of its production scenario
 factory. It therefore reproduces the generated map, rescue payload, default
 forces, aircraft, objectives, and deterministic setup rolls.
+
+Conquest V1 captures the requested seed, ordered shuttle manifest, heavy-armor
+availability, operation tier, risk, target-world profile, and both ordered
+fighter commitments accepted by its production factory. It therefore rebuilds
+the canonical 240×160 map, compounds and keep, authored defenders, both
+commanders, reinforcement layer, shuttles, and the factory's fighter-support
+inputs without owning a parallel scenario builder. The later launch overlay
+that installs persistent marine identities, equipment, powers, resources, and
+the combined live flyby roster remains outside this construction layer.
+
+The canonical Conquest command-evidence run is forced serial before simulation
+construction because parallel unit updates may consume shared seeded random
+draws in scheduler-dependent order. Each fixture is run twice; byte equality of
+the canonical trace and normalized metrics is an evidence invariant, while a
+production-scheduler run is informational. Battle-long evidence is opt-in and
+bounded. Reaching the bound publishes a neutral timeout instead of fabricating
+a winner.
 
 The campaign launch path applies persistent marine identities, equipment,
 fighter cover, command powers, and their resources after that factory returns.
