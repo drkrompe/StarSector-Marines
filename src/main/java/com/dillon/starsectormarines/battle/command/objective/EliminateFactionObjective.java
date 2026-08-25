@@ -2,20 +2,16 @@ package com.dillon.starsectormarines.battle.command.objective;
 
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.air.ShuttleMission;
-import com.dillon.starsectormarines.battle.air.ShuttleState;
-import com.dillon.starsectormarines.battle.sim.World;
 
 /**
  * "Kill every alive unit on the target faction." The default objective both
  * sides carry in the current ASSAULT mission — and the only objective until
  * mission-specific ones (charge sites, extraction, raid crates) land.
  *
- * <p>For the marine-owned variant, inbound and deboarding shuttles count as
- * marines-in-play — otherwise the very first tick would flip this complete
- * before any marine has touched the ground. Defender shuttles aren't a thing
- * yet but the same logic would extend cleanly if reinforcement waves arrive
- * by air later.
+ * <p>The target faction remains in play through live ground units, a current
+ * inbound shuttle payload, or a committed future shuttle sortie. Otherwise
+ * an objective targeting marines could complete before the first landing or
+ * during the empty-ground rearm interval between authored cycles.
  */
 public final class EliminateFactionObjective implements Objective {
 
@@ -34,20 +30,7 @@ public final class EliminateFactionObjective implements Objective {
     @Override
     public void tick(BattleView sim) {
         if (complete) return;
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            long u = sim.liveUnitAt(i);
-            if (sim.identity().faction(u) == target) return;
-        }
-        World world = sim.world();
-        for (long id : sim.getAirEntityIds()) {
-            if (world.airFaction(id) != target) continue;
-            ShuttleMission m = world.mission(id);
-            if (m != null && m.marinesRemaining > 0
-                    && m.state != ShuttleState.DEPARTING
-                    && m.state != ShuttleState.GONE) {
-                return;
-            }
-        }
+        if (ObjectiveFactionPresence.anyInPlay(sim, target)) return;
         complete = true;
     }
 

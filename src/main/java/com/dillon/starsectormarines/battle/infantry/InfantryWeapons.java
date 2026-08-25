@@ -273,6 +273,7 @@ public class InfantryWeapons {
         long shooterId = shooter;
         if (!world.hasSecondaryWeapon(shooterId)) return;
         MarineSecondary sec = world.secondaryWeapon(shooterId);
+        if (!sec.isDirectFireWeapon()) return;
         int ammo = world.secondaryAmmo(shooterId);
         if (ammo <= 0) return;
         world.setSecondaryAmmo(shooterId, ammo - 1);
@@ -290,7 +291,7 @@ public class InfantryWeapons {
         BallisticResolver.Resolution res = resolver.resolve(shooter, target,
                 secondaryAccuracy, 0f, sec.roundVelocity(), rng);
         roster.telemetry().recordRoundFired(shooter);
-        if (sec.activation() == com.dillon.starsectormarines.marine.SpecialActivation.DIRECT_PRECISION) {
+        if (sec.activation() == SpecialActivation.DIRECT_PRECISION) {
             if (res.victimId() != 0L) {
                 float damage = res.friendlyHit()
                         ? sec.damage() * BallisticResolver.FRIENDLY_FIRE_DAMAGE_MULT
