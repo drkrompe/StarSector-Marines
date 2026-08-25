@@ -17,6 +17,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
@@ -137,6 +138,14 @@ public final class Squad {
     /** Serial-write contact store owned by {@code SquadAlertSystem}. */
     private final Long2ObjectOpenHashMap<BelievedContact> contactMemory =
             new Long2ObjectOpenHashMap<>();
+    /**
+     * Tick stamp by dense roster slot for the serial direct-awareness pass.
+     * This is only a same-pass de-duplication index: persistent contact facts,
+     * source, confidence, motion history, and expiry remain exclusively in
+     * {@link #contactMemory}. Slots may move between ticks; comparing the tick
+     * stamp makes stale values harmless without an O(roster) clear per squad.
+     */
+    private int[] directObservationTickByRosterSlot = new int[0];
     /** Immutable snapshot published before the parallel planner/read phase. */
     private volatile List<BelievedContact> believedContacts = List.of();
     /** Immutable belief-derived tactical summary published once per sim tick. */
@@ -680,10 +689,30 @@ public final class Squad {
         if (started) _directContactStartedThisTick = true;
     }
 
-    /** True when another member already established this contact this tick. */
-    boolean observedDirectlyOnTick(long unitId, int simTick) {
-        BelievedContact contact = contactMemory.get(unitId);
-        return contact != null && contact.observedOnTick(simTick);
+    /** Records direct contact and de-duplicates later squadmates in this serial pass. */
+    void observeDirectContact(long unitId, int cellX, int cellY, int simTick,
+                              int rosterSlot) {
+        observeDirectContact(unitId, cellX, cellY, simTick);
+        ensureDirectObservationSlot(rosterSlot);
+        directObservationTickByRosterSlot[rosterSlot] = simTick;
+    }
+
+    /** True when another member already established this roster-slot contact this tick. */
+    boolean observedDirectlyOnTick(int rosterSlot, int simTick) {
+        return rosterSlot >= 0
+                && rosterSlot < directObservationTickByRosterSlot.length
+                && directObservationTickByRosterSlot[rosterSlot] == simTick;
+    }
+
+    private void ensureDirectObservationSlot(int rosterSlot) {
+        if (rosterSlot < directObservationTickByRosterSlot.length) return;
+        int oldLength = directObservationTickByRosterSlot.length;
+        int newLength = Math.max(16, oldLength);
+        while (newLength <= rosterSlot) newLength *= 2;
+        directObservationTickByRosterSlot = Arrays.copyOf(
+                directObservationTickByRosterSlot, newLength);
+        Arrays.fill(directObservationTickByRosterSlot, oldLength, newLength,
+                Integer.MIN_VALUE);
     }
 
     /** Records a localized, source-linked audio contact below direct confidence. */

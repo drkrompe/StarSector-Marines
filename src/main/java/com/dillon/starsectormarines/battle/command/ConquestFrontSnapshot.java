@@ -28,6 +28,7 @@ public record ConquestFrontSnapshot(
 
     public enum AssignmentReason {
         GARRISON_HOLD,
+        EXTERNAL_OWNERSHIP_PRESERVED,
         COMPOUND_CAPTURE_PRESERVED,
         COMPOUND_CAPTURE_UNCONTESTED,
         COMPOUND_ASSAULT_ADJACENT,
@@ -35,6 +36,7 @@ public record ConquestFrontSnapshot(
         ADJACENT_TRACK_SUPPORT,
         KEEP_APPROACH,
         FINAL_COMPOUND_SUPPORT,
+        NO_REACHABLE_COMPOUND_TARGET,
         NO_ACTIONABLE_TRACK_TARGET,
         DEFENDER_GARRISON_HOLD,
         DEFENDER_LOCAL_CONTACT,

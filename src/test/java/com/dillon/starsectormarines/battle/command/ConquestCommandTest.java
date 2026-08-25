@@ -554,6 +554,17 @@ public class ConquestCommandTest {
         return new BattleSimulation(grid, new CellTopology(W, H));
     }
 
+    private static BattleSimulation sealedCompoundAt(int centerX) {
+        NavigationGrid grid = new NavigationGrid(W, H);
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) grid.setWalkableFloor(x, y);
+        }
+        carveRoom(grid, centerX, 5);
+        grid.setWalkable(centerX, 3, false);
+        grid.setDoorway(centerX, 3, false);
+        return new BattleSimulation(grid, new CellTopology(W, H));
+    }
+
     /** Two sealed compound buildings — strip 0 at (5,5), strip 2 at (24,5). */
     private static BattleSimulation twoCompoundSim() {
         NavigationGrid grid = new NavigationGrid(W, H);
@@ -879,6 +890,41 @@ public class ConquestCommandTest {
 
         assertEquals(Phase.LANE_ADVANCE, cmd.frontSnapshot().phase());
         assertEquals(2, cmd.frontSnapshot().remainingCompounds());
+    }
+
+    @Test
+    public void unreachableOrdinaryCompoundReleasesAStickyCaptureOrder() {
+        BattleSimulation sim = sealedCompoundAt(19);
+        TacticalNode node = registerCompound(sim, new TacticalNode(
+                TacticalNode.Kind.ARMORY, 19, 5, 18, 4, 20, 6,
+                Faction.DEFENDER, 80, 4));
+        Squad squad = addMarineSquad(sim, 5f, 5f);
+        squad.assignedObjective = ObjectiveAssignment.secureCompound(
+                squad.id, sim.getZoneGraph().zoneIdAt(19, 5), node);
+
+        ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+        cmd.tick(sim);
+
+        assertNull(squad.assignedObjective,
+                "an obsolete capture must not pin a squad outside a sealed compound");
+        assertEquals(AssignmentReason.NO_ACTIONABLE_TRACK_TARGET,
+                cmd.frontSnapshot().directiveFor(squad.id).reason());
+    }
+
+    @Test
+    public void unreachableSoleKeepDoesNotConvergeSquadsIntoASealedTarget() {
+        BattleSimulation sim = sealedCompoundAt(19);
+        registerCompound(sim, new TacticalNode(TacticalNode.Kind.COMMAND_POST,
+                19, 5, 18, 4, 20, 6, Faction.DEFENDER, 100, 4));
+        Squad squad = addMarineSquad(sim, 5f, 5f);
+
+        ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
+        cmd.tick(sim);
+
+        assertEquals(Phase.KEEP_CONVERGENCE, cmd.frontSnapshot().phase());
+        assertNull(squad.assignedObjective);
+        assertEquals(AssignmentReason.NO_REACHABLE_COMPOUND_TARGET,
+                cmd.frontSnapshot().directiveFor(squad.id).reason());
     }
 
     @Test

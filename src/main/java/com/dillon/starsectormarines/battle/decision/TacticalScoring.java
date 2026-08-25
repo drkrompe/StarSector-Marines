@@ -1028,8 +1028,8 @@ public final class TacticalScoring {
         Faction selfFaction = roster.identity().faction(self);
         float selfX = world.x(self);
         float selfY = world.y(self);
-        int sx = world.cellX(self);
-        int sy = world.cellY(self);
+        int sx = (int) Math.floor(selfX);
+        int sy = (int) Math.floor(selfY);
         float range = world.attackRange(self);
         VisionService vision = roster.vision();
         float selfAir = vision.airLosRadius(self);
@@ -1045,9 +1045,11 @@ public final class TacticalScoring {
             long other = candidates.ids[i];
             if (other == self) continue;
             if (!roster.isAliveById(other)) continue;
-            int ox = world.cellX(other);
-            int oy = world.cellY(other);
-            float d = cellDistance(selfX, selfY, world.x(other), world.y(other));
+            float otherX = world.x(other);
+            float otherY = world.y(other);
+            int ox = (int) Math.floor(otherX);
+            int oy = (int) Math.floor(otherY);
+            float d = cellDistance(selfX, selfY, otherX, otherY);
             if (d > range) continue;
             if (!canSeePair(grid, sx, sy, ox, oy, selfAir, vision.airLosRadius(other))) continue;
             if (other == preferred) preferredDist = d;

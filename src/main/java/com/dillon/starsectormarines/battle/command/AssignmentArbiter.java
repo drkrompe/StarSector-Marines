@@ -30,6 +30,11 @@ public final class AssignmentArbiter {
         Set<Integer> liveSquads = new HashSet<>();
         for (Squad squad : sim.getSquads()) {
             liveSquads.add(squad.id);
+            if (squad.aliveMembers <= 0 && sim.squadMemberCount(squad.id) <= 0) {
+                active.remove(squad.id);
+                squad.assignedObjective = null;
+                continue;
+            }
             CommandDirective current = active.get(squad.id);
             if (current != null && Objects.equals(current.assignment(),
                     squad.assignedObjective)) continue;

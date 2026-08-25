@@ -191,7 +191,8 @@ class ConquestDefenderCommandTest {
     void patrolDeliveredAfterSetupIsNotAbsorbedIntoStartingReserve() {
         BattleSimulation sim = openSim();
         addDefender(sim, "reporter", 5, 10, UnitRole.PATROL);
-        addDefender(sim, "starting-response", 5, 48, UnitRole.PATROL);
+        Squad startingResponse = addDefender(sim, "starting-response", 5, 48,
+                UnitRole.PATROL);
         ConquestDefenderCommand command = command();
         command.captureStartingForce(sim);
         Squad deliveredLater = addDefender(sim, "later", 5, 30, UnitRole.PATROL);
@@ -201,8 +202,83 @@ class ConquestDefenderCommandTest {
 
         command.tick(sim);
 
+        assertEquals(AssignmentKind.DEFEND_TRACK,
+                startingResponse.assignedObjective.kind(),
+                "the pre-tick setup pool must include its starting patrols");
         assertNull(deliveredLater.assignedObjective);
-        assertNull(command.frontSnapshot().directiveFor(deliveredLater.id));
+        assertEquals(ConquestFrontSnapshot.AssignmentReason
+                        .DEFENDER_EXTERNAL_ASSIGNMENT_PRESERVED,
+                command.frontSnapshot().directiveFor(deliveredLater.id).reason());
+    }
+
+    @Test
+    void preTickStartingPoolUsesRosterPositionForItsHomeTrack() {
+        BattleSimulation sim = openSim();
+        addDefender(sim, "reporter", 25, 10, UnitRole.PATROL);
+        Squad responder = addDefender(sim, "responder", 25, 48, UnitRole.PATROL);
+        ConquestDefenderCommand command = command();
+        command.captureStartingForce(sim);
+        sim.spawn(new EntitySpec("contact", Faction.MARINE, UnitType.MARINE,
+                25, 14).moveSpeed(0f).health(10_000f));
+        sim.advance(BattleSimulation.TICK_DT);
+
+        command.tick(sim);
+
+        assertEquals(AssignmentKind.DEFEND_TRACK, responder.assignedObjective.kind());
+        assertEquals(2, command.frontSnapshot().directiveFor(responder.id)
+                .preferredTrack());
+    }
+
+    @Test
+    void explicitHandoffAddsALaterPatrolToTheConquestCommandPool() {
+        BattleSimulation sim = openSim();
+        addDefender(sim, "reporter", 5, 10, UnitRole.PATROL);
+        ConquestDefenderCommand command = command();
+        command.captureStartingForce(sim);
+        Squad deliveredLater = addDefender(sim, "later", 5, 45, UnitRole.PATROL);
+        CommanderService service = new CommanderService();
+        service.assignments().claimExternal(deliveredLater,
+                CommandAuthority.REINFORCEMENT, "reinforcement", "arrival", 0);
+        service.setCommander(Faction.DEFENDER, command);
+        sim.spawn(new EntitySpec("contact", Faction.MARINE, UnitType.MARINE,
+                5, 14).moveSpeed(0f).health(10_000f));
+        sim.advance(BattleSimulation.TICK_DT);
+
+        service.tick(CommanderService.COMMANDER_TICK_PERIOD, sim);
+        assertNull(deliveredLater.assignedObjective,
+                "delivery ownership excludes the patrol before handoff");
+        assertTrue(service.assignments().handoff(deliveredLater, "reinforcement",
+                CommandAuthority.MISSION_COMMAND, command.strategyId(), null,
+                "join Conquest defense", sim.getSimTickIndex()));
+
+        service.tick(CommanderService.COMMANDER_TICK_PERIOD, sim);
+
+        assertEquals(AssignmentKind.DEFEND_TRACK,
+                deliveredLater.assignedObjective.kind());
+        assertEquals(command.strategyId(),
+                service.assignments().activeDirective(deliveredLater.id).issuer());
+    }
+
+    @Test
+    void unchangedTrackResponseKeepsItsIssuedTickAcrossCommandPulses() {
+        BattleSimulation sim = openSim();
+        addDefender(sim, "reporter", 5, 10, UnitRole.PATROL);
+        Squad responder = addDefender(sim, "responder", 5, 48, UnitRole.PATROL);
+        sim.spawn(new EntitySpec("contact", Faction.MARINE, UnitType.MARINE,
+                5, 14).moveSpeed(0f).health(10_000f));
+        sim.advance(BattleSimulation.TICK_DT);
+        CommanderService service = new CommanderService();
+        service.setCommander(Faction.DEFENDER, command());
+
+        service.tick(CommanderService.COMMANDER_TICK_PERIOD, sim);
+        ObjectiveAssignment first = responder.assignedObjective;
+        int issuedTick = service.assignments().activeDirective(responder.id)
+                .issuedTick();
+        service.tick(CommanderService.COMMANDER_TICK_PERIOD, sim);
+
+        assertEquals(first, responder.assignedObjective);
+        assertEquals(issuedTick,
+                service.assignments().activeDirective(responder.id).issuedTick());
     }
 
     @Test

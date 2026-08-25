@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.TestUnits;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -93,6 +95,29 @@ class CommanderServiceTest {
         assertNotSame(node, directiveNode);
         assertEquals(1, assignmentNode.compoundLeft());
         assertEquals(3, directiveNode.compoundRight());
+    }
+
+    @Test
+    void frameLedgerContainsOnlyItsOwnPerspective() {
+        BattleSimulation sim = openSim();
+        Squad marine = addSquad(sim, Faction.MARINE, 2, 2);
+        Squad defender = addSquad(sim, Faction.DEFENDER, 7, 7);
+        AssignmentArbiter arbiter = new AssignmentArbiter();
+        arbiter.assignExternal(marine, ObjectiveAssignment.support(marine.id),
+                CommandAuthority.PLAYER_INTERVENTION, "marine-owner",
+                "marine order", 1);
+        arbiter.assignExternal(defender, ObjectiveAssignment.support(defender.id),
+                CommandAuthority.REINFORCEMENT, "defender-owner",
+                "defender order", 1);
+
+        CommandFrame frame = CommandFrame.freeze(sim, Faction.MARINE,
+                CommandTopology.freeze(sim), arbiter.snapshot());
+
+        assertEquals(Set.of(marine.id), frame.assignments().directives().keySet());
+        assertEquals("marine-owner",
+                frame.assignments().directiveFor(marine.id).issuer());
+        assertNull(frame.assignments().directiveFor(defender.id),
+                "an opposing command directive is not legal frame input");
     }
 
     @Test
@@ -182,6 +207,22 @@ class CommanderServiceTest {
         assertEquals("compound-garrison",
                 arbiter.activeDirective(squad.id).issuer());
         assertEquals(4, arbiter.activeDirective(squad.id).issuedTick());
+    }
+
+    @Test
+    void wipedSquadLosesItsAssignmentAndLedgerOwnership() {
+        BattleSimulation sim = openSim();
+        Squad squad = addSquad(sim, Faction.MARINE, 2, 2);
+        AssignmentArbiter arbiter = new AssignmentArbiter();
+        arbiter.assignExternal(squad, ObjectiveAssignment.support(squad.id),
+                CommandAuthority.REINFORCEMENT, "reinforcement", "arrival", 1);
+
+        TestUnits.kill(sim, squad.leaderId);
+        squad.aliveMembers = 0;
+        arbiter.synchronizeCompatibilityAssignments(sim, Map.of());
+
+        assertNull(squad.assignedObjective);
+        assertNull(arbiter.activeDirective(squad.id));
     }
 
     private static final class RecordingCommand
