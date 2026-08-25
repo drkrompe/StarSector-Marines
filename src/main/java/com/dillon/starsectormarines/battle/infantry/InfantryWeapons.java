@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.marine.SpecialActivation;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import java.util.Random;
 
@@ -87,7 +88,7 @@ public class InfantryWeapons {
             long id = u;
             // Alive + in burstScratch ⟹ combatant (gather gated on type.combatant),
             // so the COMBAT primary-weapon read is safe by id.
-            MarineWeapon weapon = roster.combat().primaryWeapon(id);
+            WeaponDef weapon = roster.combat().primaryWeaponDef(id);
             if (world.burstRemaining(id) <= 0) continue; // cleared earlier this pass
             float timer = world.burstTimer(id) - BattleSimulation.TICK_DT;
             world.setBurstTimer(id, timer);
@@ -118,7 +119,7 @@ public class InfantryWeapons {
             // invalidate these post-fire writes — no slot re-resolve needed.
             int remaining = world.burstRemaining(id) - 1;
             world.setBurstRemaining(id, remaining);
-            world.setBurstTimer(id, weapon.burstSpacing());
+            world.setBurstTimer(id, weapon.burstSpacing);
             if (remaining == 0) world.setBurstTargetId(id, 0L);
         }
         burstScratch.clear();
@@ -159,7 +160,7 @@ public class InfantryWeapons {
         UnitType shooterType = roster.identity().type(shooter);
         // A shooter firing its primary is a combatant — the COMBAT primary-weapon
         // read is safe by id (null = militia/alien/turret, fall back to baked stats).
-        MarineWeapon weapon = roster.combat().primaryWeapon(shooter);
+        WeaponDef weapon = roster.combat().primaryWeaponDef(shooter);
         float accuracy = world.accuracy(shooter);
         float damage   = world.attackDamage(shooter);
         float penetration = 0f;
@@ -173,9 +174,9 @@ public class InfantryWeapons {
         if (weapon != null) {
             float effectiveRange = world.attackRange(shooter);
             accuracy = RangeFalloff.accuracy(world.accuracy(shooter),
-                    weapon.accuracyFalloff(), dist, effectiveRange);
+                    weapon.accuracyFalloff, dist, effectiveRange);
             damage   = world.attackDamage(shooter);
-            penetration = weapon.penetration();
+            penetration = weapon.penetration;
             effectiveSpread = RangeFalloff.spread(
                     InfantryCombatStats.spread(weapon,
                             roster.combat().equipmentGrade(shooter),
@@ -188,13 +189,13 @@ public class InfantryWeapons {
         // Round velocity: weapon-owned where available; null-weapon militia /
         // alien callers use the shared default, while static turrets resolve
         // through their kind's direct-fire timing.
-        float roundVelocity = weapon != null && weapon.roundVelocity() > 0f
-                ? weapon.roundVelocity()
+        float roundVelocity = weapon != null && weapon.roundVelocity > 0f
+                ? weapon.roundVelocity
                 : tk != null
                         ? tk.directRoundVelocity()
                         : BallisticResolver.DEFAULT_ROUND_VELOCITY;
 
-        int projectileCount = weapon != null ? weapon.projectilesPerShot() : 1;
+        int projectileCount = weapon != null ? weapon.projectilesPerShot : 1;
         BallisticResolver.Resolution[] resolutions =
                 new BallisticResolver.Resolution[projectileCount];
         boolean friendlyThreat = false;
@@ -237,10 +238,18 @@ public class InfantryWeapons {
             // physical endpoints and interception outcomes.
             float lifetime = Math.max(res.flightTime(), 0.05f);
             boolean struckUnit = res.victimId() != 0L;
-            shots.postShot(new ShotEvent(fromX, fromY, 0f,
-                    res.endX(), res.endY(), res.endZ(),
-                    res.hitIntended(), shooterFaction, lifetime,
-                    tk, weapon, null, null, moraleImpact, struckUnit, res.kind(), shooter));
+            if (tk != null) {
+                shots.postShot(new ShotEvent(fromX, fromY, 0f,
+                        res.endX(), res.endY(), res.endZ(),
+                        res.hitIntended(), shooterFaction, lifetime,
+                        tk, null, null, null, moraleImpact, struckUnit,
+                        res.kind(), shooter));
+            } else {
+                shots.postShot(ShotEvent.primary(fromX, fromY, 0f,
+                        res.endX(), res.endY(), res.endZ(),
+                        res.hitIntended(), shooterFaction, lifetime, weapon,
+                        moraleImpact, struckUnit, res.kind(), shooter));
+            }
         }
     }
 

@@ -7,6 +7,9 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.squad.CampaignSquadTag;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 
 /**
  * Per-slot loadout for a shuttle's marine roster. One {@code MarineLoadout}
@@ -29,12 +32,16 @@ public final class MarineLoadout {
     public final Objective objective;
     /** Primary handheld weapon. Null = use the {@link UnitType} default stats with no per-weapon FX. */
     public final MarineWeapon primary;
+    /** Authoritative primary definition for contributed faction issue; null on legacy callers. */
+    public final WeaponDef primaryDef;
     /** Manufacturing/condition tier of {@link #primary}. */
     public final EquipmentGrade equipmentGrade;
     /** Individual aptitude and earned field experience. */
     public final SoldierProfile soldierProfile;
     /** Optional secondary weapon. Null = no secondary slot. */
     public final MarineSecondary secondary;
+    /** Authoritative special definition for data-authored faction issue; null means no special. */
+    public final SpecialEquipmentDef specialDef;
     /** Starting ammo for the secondary. Ignored when {@link #secondary} is null. */
     public final int secondaryAmmo;
     /** Stable campaign identity, null for generated defender/employer soldiers. */
@@ -100,10 +107,59 @@ public final class MarineLoadout {
         this.role = role;
         this.objective = objective;
         this.primary = primary;
+        this.primaryDef = null;
         this.equipmentGrade = equipmentGrade != null ? equipmentGrade : EquipmentGrade.SERVICE;
         this.soldierProfile = soldierProfile != null ? soldierProfile : SoldierProfile.REGULAR;
         this.secondary = secondary;
+        this.specialDef = null;
         this.secondaryAmmo = secondaryAmmo;
+        this.campaignSoldierId = campaignSoldierId;
+        this.armorFamily = armorFamily;
+        this.armorPool = armorPool;
+        this.armorRating = armorRating;
+        this.armorMoveSpeedMult = armorMoveSpeedMult;
+        this.armorIncomingAccuracyMult = armorIncomingAccuracyMult;
+    }
+
+    /** Builds generated faction issue directly from contributed catalog definitions. */
+    public static MarineLoadout fromCatalog(
+            UnitRole role, Objective objective, WeaponDef primary,
+            EquipmentGrade equipmentGrade, SoldierProfile soldierProfile,
+            SpecialEquipmentDef special, String campaignSoldierId,
+            LayeredArmorFamily armorFamily, float armorPool, float armorRating,
+            float armorMoveSpeedMult, float armorIncomingAccuracyMult) {
+        return new MarineLoadout(role, objective, primary, equipmentGrade, soldierProfile,
+                special, campaignSoldierId, armorFamily, armorPool, armorRating,
+                armorMoveSpeedMult, armorIncomingAccuracyMult, true);
+    }
+
+    private MarineLoadout(UnitRole role, Objective objective, WeaponDef primary,
+                          EquipmentGrade equipmentGrade, SoldierProfile soldierProfile,
+                          SpecialEquipmentDef special, String campaignSoldierId,
+                          LayeredArmorFamily armorFamily, float armorPool, float armorRating,
+                          float armorMoveSpeedMult, float armorIncomingAccuracyMult,
+                          boolean catalogAuthored) {
+        this.campaignSquad = null;
+        this.role = role;
+        this.objective = objective;
+        this.primaryDef = primary;
+        MarineWeapon primaryHandle;
+        try {
+            primaryHandle = primary != null ? MarineWeapon.fromId(primary.id) : null;
+        } catch (IllegalArgumentException ignored) {
+            primaryHandle = null;
+        }
+        this.primary = primaryHandle;
+        this.equipmentGrade = equipmentGrade != null ? equipmentGrade : EquipmentGrade.SERVICE;
+        this.soldierProfile = soldierProfile != null ? soldierProfile : SoldierProfile.REGULAR;
+        this.specialDef = special;
+        this.secondary = special != null
+                ? SpecialEquipmentRegistry.compatibilityHandle(special.id()) : null;
+        if (special != null && this.secondary == null) {
+            throw new IllegalArgumentException("Special equipment '" + special.id()
+                    + "' has no battle compatibility handle yet");
+        }
+        this.secondaryAmmo = special != null ? special.startingAmmo() : 0;
         this.campaignSoldierId = campaignSoldierId;
         this.armorFamily = armorFamily;
         this.armorPool = armorPool;
@@ -124,7 +180,9 @@ public final class MarineLoadout {
     public void seedInto(EntitySpec marine) {
         marine.role(role);
         marine.assignedObjective(objective);
-        if (primary != null) {
+        if (primaryDef != null) {
+            marine.primaryWeapon(primaryDef, equipmentGrade, soldierProfile);
+        } else if (primary != null) {
             marine.primaryWeapon(primary, equipmentGrade, soldierProfile);
         } else {
             marine.soldierProfile(soldierProfile);

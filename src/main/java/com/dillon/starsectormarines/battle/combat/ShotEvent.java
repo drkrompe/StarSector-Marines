@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
@@ -45,6 +46,8 @@ public class ShotEvent {
     public final TurretKind turretKind;
     /** Non-null when a marine fired their primary — drives tracer color + per-weapon fire sound. Mutually exclusive with {@link #turretKind} and {@link #marineSecondary}. */
     public final MarineWeapon marineWeapon;
+    /** Authoritative primary definition, including contributed weapons without an enum handle. */
+    public final WeaponDef primaryWeaponDef;
     /** Non-null when a marine fired their secondary (rocket, etc.) — drives projectile sprite + impact recipe. Mutually exclusive with {@link #turretKind} and {@link #marineWeapon}. */
     public final MarineSecondary marineSecondary;
     /** Non-null when a mech fired one of its chassis weapons (chaingun, SRM pod, LRM). Drives projectile sprite + fire/impact sound + impact profile. Mutually exclusive with all the other source tags. */
@@ -164,6 +167,36 @@ public class ShotEvent {
                      MarineSecondary marineSecondary, MechWeapon mechWeapon,
                      float moraleImpact, boolean struckUnit,
                      BallisticResolver.StopKind stopKind, long shooterId) {
+        this(fromX, fromY, fromZ, toX, toY, toZ, hit, shooterFaction, lifetime,
+                turretKind, marineWeapon,
+                marineWeapon != null ? marineWeapon.def() : null,
+                marineSecondary, mechWeapon, moraleImpact, struckUnit, stopKind, shooterId);
+    }
+
+    /** Creates a primary shot from an arbitrary catalog definition. */
+    public static ShotEvent primary(float fromX, float fromY, float fromZ,
+                                    float toX, float toY, float toZ,
+                                    boolean hit, Faction shooterFaction, float lifetime,
+                                    WeaponDef weapon, float moraleImpact, boolean struckUnit,
+                                    BallisticResolver.StopKind stopKind, long shooterId) {
+        MarineWeapon compatibility;
+        try {
+            compatibility = weapon != null ? MarineWeapon.fromId(weapon.id) : null;
+        } catch (IllegalArgumentException ignored) {
+            compatibility = null;
+        }
+        return new ShotEvent(fromX, fromY, fromZ, toX, toY, toZ, hit,
+                shooterFaction, lifetime, null, compatibility, weapon, null, null,
+                moraleImpact, struckUnit, stopKind, shooterId);
+    }
+
+    private ShotEvent(float fromX, float fromY, float fromZ,
+                      float toX, float toY, float toZ,
+                      boolean hit, Faction shooterFaction, float lifetime,
+                      TurretKind turretKind, MarineWeapon marineWeapon,
+                      WeaponDef primaryWeaponDef, MarineSecondary marineSecondary,
+                      MechWeapon mechWeapon, float moraleImpact, boolean struckUnit,
+                      BallisticResolver.StopKind stopKind, long shooterId) {
         this.fromX = fromX;
         this.fromY = fromY;
         this.fromZ = fromZ;
@@ -177,6 +210,7 @@ public class ShotEvent {
         this.lifetimeMax = lifetime;
         this.turretKind = turretKind;
         this.marineWeapon = marineWeapon;
+        this.primaryWeaponDef = primaryWeaponDef;
         this.marineSecondary = marineSecondary;
         this.mechWeapon = mechWeapon;
         this.moraleImpact = moraleImpact;
@@ -204,7 +238,7 @@ public class ShotEvent {
         if (marineSecondary != null) return 2.5f;
         if (mechWeapon != null) return Math.min(4f, 2f + mechWeapon.aoeRadius);
         if (turretKind != null) return Math.min(4f, 1.5f + turretKind.aoeRadius());
-        if (marineWeapon != null && marineWeapon.impactProfile() == ImpactProfile.KINETIC) {
+        if (primaryWeaponDef != null && primaryWeaponDef.impactProfile == ImpactProfile.KINETIC) {
             return 1.4f;
         }
         return 1f;
@@ -229,7 +263,7 @@ public class ShotEvent {
     public ImpactProfile impactProfile() {
         if (turretKind != null) return turretKind.impactProfile();
         if (marineSecondary != null) return marineSecondary.impactProfile();
-        if (marineWeapon != null) return marineWeapon.impactProfile();
+        if (primaryWeaponDef != null) return primaryWeaponDef.impactProfile;
         if (mechWeapon != null) return mechWeapon.impactProfile;
         return ImpactProfile.RIFLE;
     }

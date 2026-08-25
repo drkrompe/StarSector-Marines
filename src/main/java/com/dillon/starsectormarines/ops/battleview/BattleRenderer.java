@@ -791,7 +791,9 @@ public class BattleRenderer {
         for (RenderSystem system : worldSystems) {
             if (layers.contains(system.layer())) system.collect(rc, drawList);
         }
-        boolean parallax = DevConfig.SURFACE_RELIEF_PARALLAX && layers.contains(RenderLayer.GROUND);
+        boolean parallax = rc.hostProfile.surfaceReliefEnabled()
+                && DevConfig.SURFACE_RELIEF_PARALLAX
+                && layers.contains(RenderLayer.GROUND);
         for (RenderLayer layer : RenderLayer.values()) {
             if (!layers.contains(layer)) continue;
             if (layer == RenderLayer.GROUND && parallax) {

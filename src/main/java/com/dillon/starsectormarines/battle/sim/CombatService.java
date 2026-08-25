@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
 /**
@@ -61,8 +62,36 @@ public final class CombatService {
     public float attackCooldown(long id) { return entityWorld.getFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_COOLDOWN); }
 
     /** The primary handheld weapon flyweight, or {@code null} for a combatant with no per-weapon profile (militia/aliens/turrets fire off the baked attack stats). Seeded at allocate; assigned at deboard via {@link #setPrimaryWeapon}. */
-    public MarineWeapon primaryWeapon(long id) { return (MarineWeapon) entityWorld.getObject(id, components.COMBAT, BattleComponents.COMBAT_PRIMARY_WEAPON); }
-    public void setPrimaryWeapon(long id, MarineWeapon w) { entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_PRIMARY_WEAPON, w); }
+    public MarineWeapon primaryWeapon(long id) {
+        Object value = entityWorld.getObject(id, components.COMBAT,
+                BattleComponents.COMBAT_PRIMARY_WEAPON);
+        if (value instanceof MarineWeapon weapon) return weapon;
+        if (value instanceof WeaponDef def) {
+            try {
+                return MarineWeapon.fromId(def.id);
+            } catch (IllegalArgumentException ignored) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    /** Authoritative definition for built-in and contributed primary weapons. */
+    public WeaponDef primaryWeaponDef(long id) {
+        Object value = entityWorld.getObject(id, components.COMBAT,
+                BattleComponents.COMBAT_PRIMARY_WEAPON);
+        if (value instanceof WeaponDef def) return def;
+        return value instanceof MarineWeapon weapon ? weapon.def() : null;
+    }
+
+    public void setPrimaryWeapon(long id, MarineWeapon weapon) {
+        setPrimaryWeaponDef(id, weapon != null ? weapon.def() : null);
+    }
+
+    public void setPrimaryWeaponDef(long id, WeaponDef weapon) {
+        entityWorld.setObject(id, components.COMBAT,
+                BattleComponents.COMBAT_PRIMARY_WEAPON, weapon);
+    }
 
     public EquipmentGrade equipmentGrade(long id) {
         EquipmentGrade grade = (EquipmentGrade) entityWorld.getObject(id, components.COMBAT,
@@ -97,6 +126,16 @@ public final class CombatService {
         refreshTieredPrimaryStats(id);
     }
 
+    public void equipPrimaryWeapon(long id, WeaponDef weapon, EquipmentGrade grade,
+                                   SoldierProfile profile) {
+        setPrimaryWeaponDef(id, weapon);
+        entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_EQUIPMENT_GRADE,
+                grade != null ? grade : EquipmentGrade.SERVICE);
+        entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_SOLDIER_PROFILE,
+                profile != null ? profile : SoldierProfile.REGULAR);
+        refreshTieredPrimaryStats(id);
+    }
+
     /** Adds earned XP and immediately refreshes the shooter's derived handling stats. */
     public SoldierProfile addExperience(long id, int gainedXp) {
         SoldierProfile updated = soldierProfile(id).withExperience(gainedXp);
@@ -106,7 +145,7 @@ public final class CombatService {
     }
 
     private void refreshTieredPrimaryStats(long id) {
-        MarineWeapon weapon = primaryWeapon(id);
+        WeaponDef weapon = primaryWeaponDef(id);
         if (weapon == null) return;
         EquipmentGrade grade = equipmentGrade(id);
         SoldierProfile profile = soldierProfile(id);
@@ -227,10 +266,10 @@ public final class CombatService {
      * (identity-collapse Phase A).
      */
     public void beginBurst(long shooterId, long targetId) {
-        MarineWeapon weapon = primaryWeapon(shooterId);
-        if (weapon == null || weapon.burstCount() <= 1) return;
-        setBurstRemaining(shooterId, weapon.burstCount() - 1);
-        setBurstTimer(shooterId, weapon.burstSpacing());
+        WeaponDef weapon = primaryWeaponDef(shooterId);
+        if (weapon == null || weapon.burstCount <= 1) return;
+        setBurstRemaining(shooterId, weapon.burstCount - 1);
+        setBurstTimer(shooterId, weapon.burstSpacing);
         setBurstTargetId(shooterId, targetId);
     }
 }

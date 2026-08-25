@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.battle.turret.DefensePostLayoutRegistry;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
+import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
+import com.dillon.starsectormarines.marine.SquadLoadoutPresentationRegistry;
 import com.dillon.starsectormarines.battle.setup.GroundRosterRegistry;
 import org.json.JSONObject;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -90,6 +92,21 @@ public final class TileRegistryTestInstaller implements BeforeAllCallback {
             }
             armor.validateCompleteness();
             MarineArmorCatalogRegistry.install(armor);
+        }
+        if (EquipmentTemplateCatalog.installed() == null) {
+            EquipmentTemplateCatalog templates = new EquipmentTemplateCatalog();
+            templates.ingest(new JSONObject(Files.readString(Paths.get("mod", "data",
+                    "marines", "equipment-templates.template.json"))));
+            EquipmentTemplateCatalog.install(templates);
+        }
+        if (SquadLoadoutPresentationRegistry.installed() == null) {
+            SquadLoadoutPresentationRegistry loadouts =
+                    new SquadLoadoutPresentationRegistry();
+            for (String path : SquadLoadoutPresentationRegistry.BUILTIN_CATALOGS) {
+                loadouts.ingest(new JSONObject(Files.readString(Paths.get("mod", path))));
+            }
+            loadouts.validateBuiltins();
+            SquadLoadoutPresentationRegistry.install(loadouts);
         }
         if (GroundRosterRegistry.installed() == null) {
             GroundRosterRegistry rosters = new GroundRosterRegistry();

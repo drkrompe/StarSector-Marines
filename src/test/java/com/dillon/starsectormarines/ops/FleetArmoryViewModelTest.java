@@ -34,7 +34,6 @@ class FleetArmoryViewModelTest {
             "mod/data/ui/components/armory/fleet-armory.mlx",
             "mod/data/ui/components/armory/armory-squad-list.mlx",
             "mod/data/ui/components/armory/fleet-armory-fireteam.mlx",
-            "mod/data/ui/components/armory/armory-fireteam-list.mlx",
             "mod/data/ui/components/armory/armory-squad-doctrine.mlx",
             "mod/data/ui/components/armory/armory-refit-transaction.mlx");
 
@@ -65,6 +64,20 @@ class FleetArmoryViewModelTest {
         assertEquals("A II", firstMarine.armorBadge());
         assertTrue(firstMarine.primaryDescription().length() > 80);
         assertTrue(firstMarine.armorDescription().length() > 80);
+        FleetArmoryViewModel.DoctrineTile firstLoadout =
+                viewModel.weaponDoctrineTiles().get().get(0);
+        assertEquals("Common", firstLoadout.rarity());
+        assertTrue(firstLoadout.metadata().contains("TIER I"));
+        assertTrue(firstLoadout.description().length() > 120);
+        assertTrue(viewModel.weaponDoctrineTiles().get().size()
+                < roster.armory().weaponDoctrines().size());
+        assertTrue(viewModel.armorDoctrineTiles().get().size()
+                < roster.armory().armorDoctrines().size());
+        viewModel.showLoadoutFilterAction(FleetArmoryViewModel.LoadoutFilter.RARE).run();
+        assertEquals(FleetArmoryViewModel.LoadoutFilter.RARE, viewModel.loadoutFilter());
+        assertTrue(viewModel.weaponDoctrineTiles().get().stream()
+                .allMatch(loadout -> "Rare".equals(loadout.rarity())));
+        assertTrue(viewModel.loadoutBrowserSummary().get().contains(" of "));
 
         assertEquals(SquadEquipmentResult.APPLIED,
                 viewModel.applySquadEquipmentSelection());
@@ -117,6 +130,8 @@ class FleetArmoryViewModelTest {
             }
 
             UiElement list = instance.requireElement("weapon-doctrine-list");
+            assertTrue(instance.requireElement("show-weapon-picker").hasClass("selected"));
+            assertTrue(instance.requireElement("armor-doctrine-slot").hasClass("picker-hidden"));
             UiElement marineCard = instance.requireElement("marine-card:0");
             UiElement marineCanvas = instance.requireElement("marine-preview:0");
             UiElement first = list.childAt(0);
@@ -144,6 +159,15 @@ class FleetArmoryViewModelTest {
             assertEquals(viewModel.currentSquadEquipmentPreview().canApply(),
                     !instance.requireElement("apply-squad-equipment").disabled());
             assertTrue(viewModel.marineCards().get().get(0).weaponDelta().contains("DMG"));
+            viewModel.showArmorPickerAction().run();
+            instance.flush();
+            assertEquals(FleetArmoryViewModel.EquipmentPickerKind.ARMOR,
+                    viewModel.equipmentPickerKind());
+            assertTrue(instance.requireElement("show-armor-picker").hasClass("selected"));
+            assertTrue(instance.requireElement("weapon-doctrine-slot")
+                    .hasClass("picker-hidden"));
+            assertFalse(instance.requireElement("armor-doctrine-slot")
+                    .hasClass("picker-hidden"));
             for (int slot = 0; slot < MarineSquad.TEAM_SIZE; slot++) {
                 assertEquals(viewModel.marineCards().get().get(slot).name(),
                         instance.requireElement("marine-card:" + slot + ":name").text());
@@ -158,6 +182,7 @@ class FleetArmoryViewModelTest {
             assertFalse(source.matches("(?s).*\\b(deck|hand|consume)\\b.*"), path);
             assertFalse(source.contains("armory-template-library"), path);
             assertFalse(source.contains("change loadout"), path);
+            assertFalse(source.contains("missing cards"), path);
         }
     }
 
@@ -173,9 +198,9 @@ class FleetArmoryViewModelTest {
                 new Reactor(), roster, () -> { }, () -> 100d);
 
         assertEquals("WIA  ·  RTD in 1d 6h", viewModel.marineCards().get().get(0).status());
+        assertTrue(viewModel.marineCards().get().get(0).classes().contains("status-wia"));
         assertEquals("1 WIA  ·  RTD 1d 6h",
                 viewModel.squadCards().get().get(0).recovery());
-        assertTrue(viewModel.fireTeamOverviews().get().get(0).recovery().contains("1 WIA"));
         assertTrue(viewModel.reinforceDisabled().get(), "WIA personnel still hold billets");
     }
 
@@ -264,15 +289,18 @@ class FleetArmoryViewModelTest {
         props.put("teamRows", viewModel.teamRows());
         props.put("targetSummary", viewModel.targetSummary());
         props.put("candidateSummary", viewModel.candidateSummary());
-        props.put("selectedSquadReadiness", viewModel.selectedSquadReadiness());
-        props.put("reinforceLabel", viewModel.reinforceLabel());
-        props.put("reinforceDisabled", viewModel.reinforceDisabled());
-        props.put("reinforceSquad", viewModel.reinforceSelectedSquadAction());
-        props.put("designEquipment", (Runnable) () -> { });
         props.put("weaponDoctrineTiles", viewModel.weaponDoctrineTiles());
         props.put("armorDoctrineTiles", viewModel.armorDoctrineTiles());
         props.put("weaponDoctrineSummary", viewModel.weaponDoctrineSummary());
         props.put("armorDoctrineSummary", viewModel.armorDoctrineSummary());
+        props.put("weaponPickerTabClasses", viewModel.weaponPickerTabClasses());
+        props.put("armorPickerTabClasses", viewModel.armorPickerTabClasses());
+        props.put("weaponPickerPanelClasses", viewModel.weaponPickerPanelClasses());
+        props.put("armorPickerPanelClasses", viewModel.armorPickerPanelClasses());
+        props.put("showWeaponPicker", viewModel.showWeaponPickerAction());
+        props.put("showArmorPicker", viewModel.showArmorPickerAction());
+        props.put("loadoutFilters", viewModel.loadoutFilters());
+        props.put("loadoutBrowserSummary", viewModel.loadoutBrowserSummary());
         props.put("marineCards", viewModel.marineCards());
         props.put("transactionSummary", viewModel.transactionSummary());
         props.put("transactionClasses", viewModel.transactionClasses());
