@@ -4,8 +4,9 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — Marine Ops takeovers now request the complete reported screen
-while preserving the granted panel and authored document inset as separate boundaries.
+Updated: 2026-08-25 — added a bounded live-host canvas pass so an existing renderer
+can inhabit retained layout without inheriting document input or creating a second
+world projection.
 
 ## Purpose
 
@@ -293,6 +294,15 @@ source region for atlas and flipbook art and declare normal or additive
 blending. Those are producer-owned visual intents rather than backend
 shortcuts: the live and headless targets apply the same region, RGB tint,
 opacity, rotation, and blend contract.
+
+An existing renderer that already owns a complete GL lifecycle may use the canvas's
+bounded live-host pass. The pass receives the absolute content-box viewport plus
+the canvas surface dimensions, remains inside the painter's active clip, and must
+restore its local GL state. It does not receive input or document ownership. A
+headless target declines the pass, so the producer must emit deterministic canvas
+evidence from the same scene dimensions and camera contract. When the host and
+surface aspect ratios differ, overlay geometry converts through that viewport;
+independent canvas stretching may not distort a battle renderer's square cells.
 
 Layered character authoring is a separate desktop concern rather than another game
 screen. A unit-layer document separates a unit's equipment variants from its named

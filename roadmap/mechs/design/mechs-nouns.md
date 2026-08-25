@@ -4,9 +4,9 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — gave each chassis an authored spatial fitting layout,
-rendered empty sockets as translucent gantry footprints, and made the room use
-the battle renderer's relative mech-to-worker scale.
+Updated: 2026-08-25 — made the fabrication gantry a bounded, non-interactive
+battle-renderer scene so tiles, props, mech dolls, and worker dolls share the
+same camera and cell-relative scale.
 
 ## Purpose
 
@@ -152,18 +152,22 @@ determines the payload, not the entitlement to call it.
   but it may not approximate mount scale, pivots, absence, or above/below-chassis
   order independently. The gantry rotates that complete composition south toward
   the player; it does not rotate individual equipment layers independently.
-- The fitting room derives chassis and worker dimensions from the battle renderer's
-  shared cell-relative scale. Responsive layout may enlarge or shrink the room's
-  cells, but it may not canvas-fit the selected asset or distort its physical size
-  relative to technicians, tiles, or another chassis.
+- The fitting room is a small battle scene rendered through the shared battle
+  camera and ordered render systems. Responsive layout may change the camera's
+  fitted cell size or choose a closer framing, but it may not canvas-fit the
+  selected asset or distort its physical size relative to technicians, tiles,
+  props, or another chassis.
 - Socket overlays consume the selected asset's authored fitting layout. Their
   translucent type color, sized footprint, and capacity pips appear in physical
   room space beneath installed equipment; an authored empty socket stays visible
   while an absent socket produces no footprint.
-- The gantry is a flat top-down room assembled from the battle renderer's indoor
-  tileset cells and props. Its workers use the real layered infantry compositor;
-  welding, walking, and station work continue while the player inspects equipment,
-  but they never decide refit duration, stock, or command success.
+- The gantry is a flat top-down, non-advancing room simulation assembled from the
+  battle renderer's indoor tileset cells and props. Its mech and workers are real
+  battle entities consumed by the ordinary unit render system. The retained host
+  supplies only a bounded viewport and camera: battle HUD, input, selection,
+  audio, fog, combat decorators, and surface-relief targets remain detached.
+  Presentation-only welding or station motion may continue while the player
+  inspects equipment, but it never decides refit duration, stock, or command success.
 - Campaign-to-battle deployment freezes values. Live battle code does not read
   or mutate the campaign mech, squad, or fleet inventory.
 - Gun-launched HE is a ballistic shot whose timed detonation owns splash and
