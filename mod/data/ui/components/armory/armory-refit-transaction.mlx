@@ -87,7 +87,7 @@
   .marine-viewer-card {
     flex-direction: column;
     width: 430px;
-    height: 510px;
+    height: 490px;
     padding: 8px;
     gap: 3px;
     border-width: 1px;

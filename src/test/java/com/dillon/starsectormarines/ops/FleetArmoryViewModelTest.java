@@ -65,6 +65,11 @@ class FleetArmoryViewModelTest {
         assertEquals("A II", firstMarine.armorBadge());
         assertTrue(firstMarine.primaryDescription().length() > 80);
         assertTrue(firstMarine.armorDescription().length() > 80);
+        FleetArmoryViewModel.DoctrineTile firstLoadout =
+                viewModel.weaponDoctrineTiles().get().get(0);
+        assertEquals("Common", firstLoadout.rarity());
+        assertTrue(firstLoadout.metadata().contains("TIER I"));
+        assertTrue(firstLoadout.description().length() > 120);
 
         assertEquals(SquadEquipmentResult.APPLIED,
                 viewModel.applySquadEquipmentSelection());
@@ -117,6 +122,8 @@ class FleetArmoryViewModelTest {
             }
 
             UiElement list = instance.requireElement("weapon-doctrine-list");
+            assertTrue(instance.requireElement("show-weapon-picker").hasClass("selected"));
+            assertTrue(instance.requireElement("armor-doctrine-slot").hasClass("picker-hidden"));
             UiElement marineCard = instance.requireElement("marine-card:0");
             UiElement marineCanvas = instance.requireElement("marine-preview:0");
             UiElement first = list.childAt(0);
@@ -144,6 +151,15 @@ class FleetArmoryViewModelTest {
             assertEquals(viewModel.currentSquadEquipmentPreview().canApply(),
                     !instance.requireElement("apply-squad-equipment").disabled());
             assertTrue(viewModel.marineCards().get().get(0).weaponDelta().contains("DMG"));
+            viewModel.showArmorPickerAction().run();
+            instance.flush();
+            assertEquals(FleetArmoryViewModel.EquipmentPickerKind.ARMOR,
+                    viewModel.equipmentPickerKind());
+            assertTrue(instance.requireElement("show-armor-picker").hasClass("selected"));
+            assertTrue(instance.requireElement("weapon-doctrine-slot")
+                    .hasClass("picker-hidden"));
+            assertFalse(instance.requireElement("armor-doctrine-slot")
+                    .hasClass("picker-hidden"));
             for (int slot = 0; slot < MarineSquad.TEAM_SIZE; slot++) {
                 assertEquals(viewModel.marineCards().get().get(slot).name(),
                         instance.requireElement("marine-card:" + slot + ":name").text());
@@ -264,15 +280,16 @@ class FleetArmoryViewModelTest {
         props.put("teamRows", viewModel.teamRows());
         props.put("targetSummary", viewModel.targetSummary());
         props.put("candidateSummary", viewModel.candidateSummary());
-        props.put("selectedSquadReadiness", viewModel.selectedSquadReadiness());
-        props.put("reinforceLabel", viewModel.reinforceLabel());
-        props.put("reinforceDisabled", viewModel.reinforceDisabled());
-        props.put("reinforceSquad", viewModel.reinforceSelectedSquadAction());
-        props.put("designEquipment", (Runnable) () -> { });
         props.put("weaponDoctrineTiles", viewModel.weaponDoctrineTiles());
         props.put("armorDoctrineTiles", viewModel.armorDoctrineTiles());
         props.put("weaponDoctrineSummary", viewModel.weaponDoctrineSummary());
         props.put("armorDoctrineSummary", viewModel.armorDoctrineSummary());
+        props.put("weaponPickerTabClasses", viewModel.weaponPickerTabClasses());
+        props.put("armorPickerTabClasses", viewModel.armorPickerTabClasses());
+        props.put("weaponPickerPanelClasses", viewModel.weaponPickerPanelClasses());
+        props.put("armorPickerPanelClasses", viewModel.armorPickerPanelClasses());
+        props.put("showWeaponPicker", viewModel.showWeaponPickerAction());
+        props.put("showArmorPicker", viewModel.showArmorPickerAction());
         props.put("marineCards", viewModel.marineCards());
         props.put("transactionSummary", viewModel.transactionSummary());
         props.put("transactionClasses", viewModel.transactionClasses());
