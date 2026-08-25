@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.ops.battleview.ArmoryMarinePreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
+import com.dillon.starsectormarines.ops.battleview.MechLabDollCanvas;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
@@ -202,6 +203,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
+            document.canvases().set(instance.requireElement("mech-doll-canvas"),
+                    new MechLabDollCanvas(viewModel::selectedVariant,
+                            MechLabDollCanvas::headlessAssets));
             return renderRelative(renderer, document, width, height, uiScale);
         }
     }
@@ -268,11 +272,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("selectedMechName", viewModel.selectedMechName());
         props.put("selectedMechIdentity", viewModel.selectedMechIdentity());
         props.put("selectedMechDoctrine", viewModel.selectedMechDoctrine());
-        props.put("specCards", viewModel.specCards());
-        props.put("mountRows", viewModel.mountRows());
-        props.put("installedSubsystem", viewModel.installedSubsystem());
-        props.put("installedCadence", viewModel.installedCadence());
-        props.put("inventoryRows", viewModel.inventoryRows());
+        props.put("performanceMeters", viewModel.performanceMeters());
+        props.put("leftSlotRows", viewModel.leftSlotRows());
+        props.put("rightSlotRows", viewModel.rightSlotRows());
+        props.put("selectedSlotTitle", viewModel.selectedSlotTitle());
+        props.put("selectedSlotCopy", viewModel.selectedSlotCopy());
+        props.put("selectedSlotRule", viewModel.selectedSlotRule());
+        props.put("catalogRows", viewModel.catalogRows());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MECH_LAB,
