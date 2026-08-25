@@ -99,9 +99,17 @@ public final class DefenderRoster {
     public static DefenderRoster forMission(MissionType type, OperationTier tier,
                                             RiskLevel risk, boolean hasHeavyArmor,
                                             float attackerScore) {
+        return forMission(type, tier, risk, hasHeavyArmor, attackerScore, null);
+    }
+
+    /** Faction-aware heavy-support selection; force size and budget remain mission-owned. */
+    public static DefenderRoster forMission(MissionType type, OperationTier tier,
+                                            RiskLevel risk, boolean hasHeavyArmor,
+                                            float attackerScore,
+                                            GroundRosterProfile groundRoster) {
         int total = totalFor(type, tier, risk);
         List<MechVariant> mechVariants = affordableMechVariants(total, risk,
-                mechVariantsFor(type, risk, hasHeavyArmor), attackerScore);
+                mechVariantsFor(type, risk, hasHeavyArmor, groundRoster), attackerScore);
         int mechs = mechVariants.size();
         // Mechs come out of the total. Elites take their slice of what's left;
         // the rest fills with militia.
@@ -164,12 +172,23 @@ public final class DefenderRoster {
      */
     private static List<MechVariant> mechVariantsFor(MissionType type, RiskLevel risk,
                                                      boolean hasHeavyArmor) {
+        return mechVariantsFor(type, risk, hasHeavyArmor, null);
+    }
+
+    private static List<MechVariant> mechVariantsFor(MissionType type, RiskLevel risk,
+                                                     boolean hasHeavyArmor,
+                                                     GroundRosterProfile groundRoster) {
         if (!hasHeavyArmor || risk == null || risk == RiskLevel.LOW) return List.of();
+        if (groundRoster != null) {
+            int count = risk == RiskLevel.MEDIUM ? 1
+                    : type == MissionType.SABOTAGE ? 1
+                    : type == MissionType.CONQUEST ? 6 : 3;
+            return groundRoster.heavySupportCycle(count);
+        }
         if (risk == RiskLevel.MEDIUM) return List.of(MechVariant.BULWARK);
         if (type == MissionType.SABOTAGE) return List.of(MechVariant.HOUND);
         if (type == MissionType.CONQUEST) {
-            return List.of(
-                    MechVariant.BULWARK, MechVariant.HOUND, MechVariant.SIROCCO,
+            return List.of(MechVariant.BULWARK, MechVariant.HOUND, MechVariant.SIROCCO,
                     MechVariant.BULWARK, MechVariant.HOUND, MechVariant.SIROCCO);
         }
         return List.of(MechVariant.BULWARK, MechVariant.HOUND, MechVariant.SIROCCO);
