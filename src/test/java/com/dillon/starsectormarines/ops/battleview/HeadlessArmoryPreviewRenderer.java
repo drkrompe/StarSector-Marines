@@ -7,11 +7,13 @@ import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.marine.EquipmentLayerDef;
+import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
 import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+import com.dillon.starsectormarines.marine.SquadLoadoutPresentationRegistry;
 import org.json.JSONObject;
 
 import javax.imageio.ImageIO;
@@ -72,7 +74,7 @@ public final class HeadlessArmoryPreviewRenderer {
         return assets;
     }
 
-    static void installCatalogs(Path modRoot) throws Exception {
+    public static void installCatalogs(Path modRoot) throws Exception {
         if (WeaponRegistry.installed() == null) {
             WeaponRegistry weapons = new WeaponRegistry();
             for (String path : WeaponRegistry.BUILTIN_CATALOGS) {
@@ -95,6 +97,21 @@ public final class HeadlessArmoryPreviewRenderer {
             }
             armor.validateCompleteness();
             MarineArmorCatalogRegistry.install(armor);
+        }
+        if (EquipmentTemplateCatalog.installed() == null) {
+            EquipmentTemplateCatalog templates = new EquipmentTemplateCatalog();
+            templates.ingest(new JSONObject(Files.readString(modRoot.resolve(
+                    "data/marines/equipment-templates.template.json"))));
+            EquipmentTemplateCatalog.install(templates);
+        }
+        if (SquadLoadoutPresentationRegistry.installed() == null) {
+            SquadLoadoutPresentationRegistry loadouts =
+                    new SquadLoadoutPresentationRegistry();
+            for (String path : SquadLoadoutPresentationRegistry.BUILTIN_CATALOGS) {
+                loadouts.ingest(new JSONObject(Files.readString(modRoot.resolve(path))));
+            }
+            loadouts.validateBuiltins();
+            SquadLoadoutPresentationRegistry.install(loadouts);
         }
     }
 

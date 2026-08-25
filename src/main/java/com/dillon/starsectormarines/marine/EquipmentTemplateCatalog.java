@@ -3,26 +3,70 @@ package com.dillon.starsectormarines.marine;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.weapon.MountClass;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.catalog.CatalogSource;
+import com.dillon.starsectormarines.catalog.MarineCatalogManifest.CatalogFile;
+import com.fs.starfarer.api.Global;
+import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashSet;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
+import java.util.Map;
 
-/** Stable collectible-template identities and their base-game cargo issue costs. */
+/** Additive, data-authored collectible templates and their base-game cargo issue costs. */
 public final class EquipmentTemplateCatalog {
 
+    private static final Logger LOG = Global.getLogger(EquipmentTemplateCatalog.class);
     private static final List<MarineWeapon> PLAYER_PRIMARIES = List.of(
             MarineWeapon.FIELD_RIFLE,
             MarineWeapon.PULSE_RIFLE,
             MarineWeapon.SMG,
             MarineWeapon.SQUAD_AUTOMATIC,
             MarineWeapon.DMR);
-    private static final Set<String> IDS = buildIds();
 
-    private EquipmentTemplateCatalog() {
+    private static volatile EquipmentTemplateCatalog installed;
+
+    private final Map<String, EquipmentTemplateCard> byId = new LinkedHashMap<>();
+    private final Map<String, CatalogSource> sourceById = new LinkedHashMap<>();
+
+    public static EquipmentTemplateCatalog installed() {
+        return installed;
+    }
+
+    public static void install(EquipmentTemplateCatalog catalog) {
+        installed = catalog;
+    }
+
+    public static void loadContributions(List<CatalogFile> catalogs) {
+        EquipmentTemplateCatalog registry = new EquipmentTemplateCatalog();
+        for (CatalogFile catalog : catalogs) {
+            try {
+                registry.ingest(catalog.loadJson(), catalog.source());
+            } catch (Exception failure) {
+                throw new IllegalStateException("Failed to ingest equipment-template catalog "
+                        + catalog.source().describe(), failure);
+            }
+        }
+        install(registry);
+        LOG.info("Equipment-template catalog installed with " + registry.size()
+                + " cards from " + catalogs.size() + " contributed catalogs");
+    }
+
+    public void ingest(JSONObject root) throws JSONException {
+        ingest(root, CatalogSource.unspecified("<in-memory equipment-template catalog>"));
+    }
+
+    public void ingest(JSONObject root, CatalogSource source) throws JSONException {
+        parsePrimaries(root.optJSONArray("primaries"), source);
+        parseArmor(root.optJSONArray("armor"), source);
+        parseSpecials(root.optJSONArray("specialEquipment"), source);
     }
 
     public static List<MarineWeapon> playerPrimaries() {
@@ -30,120 +74,152 @@ public final class EquipmentTemplateCatalog {
     }
 
     public static String primaryId(MarineWeapon weapon, EquipmentGrade grade) {
-        return "equipment-template:" + weapon.id + ":"
+        if (weapon == null) throw new IllegalArgumentException("Primary template weapon is required");
+        return primaryId(weapon.id, grade);
+    }
+
+    public static String primaryId(String weaponId, EquipmentGrade grade) {
+        if (grade == null) throw new IllegalArgumentException("Primary template grade is required");
+        return "equipment-template:" + weaponId + ":"
                 + grade.name().toLowerCase(Locale.ROOT);
     }
 
     public static String armorId(MarineArmorPattern armor) {
-        return "equipment-template:" + armor.id;
+        if (armor == null) throw new IllegalArgumentException("Armor template is required");
+        return armorId(armor.id);
+    }
+
+    public static String armorId(String armorId) {
+        return "equipment-template:" + armorId;
     }
 
     public static String specialId(MarineSecondary special) {
-        return "equipment-template:" + special.specialEquipmentId;
+        if (special == null) throw new IllegalArgumentException("Special template is required");
+        return specialId(special.specialEquipmentId);
+    }
+
+    public static String specialId(String specialId) {
+        return "equipment-template:" + specialId;
     }
 
     public static EquipmentTemplateCard primary(MarineWeapon weapon, EquipmentGrade grade) {
-        requirePlayerPrimary(weapon);
-        if (grade == null) throw new IllegalArgumentException("Primary template grade is required");
-        return new EquipmentTemplateCard(primaryId(weapon, grade), weapon.catalogName(grade),
-                EquipmentTemplateCard.Kind.PRIMARY, primaryCost(weapon, grade));
+        return require(primaryId(weapon, grade));
     }
 
     public static EquipmentTemplateCard armor(MarineArmorPattern armor) {
-        if (armor == null) throw new IllegalArgumentException("Armor template is required");
-        return new EquipmentTemplateCard(armorId(armor), armor.displayName,
-                EquipmentTemplateCard.Kind.ARMOR, armorCost(armor));
+        return require(armorId(armor));
     }
 
     public static EquipmentTemplateCard special(MarineSecondary special) {
-        if (special == null) throw new IllegalArgumentException("Special template is required");
-        return new EquipmentTemplateCard(specialId(special), special.displayName(),
-                EquipmentTemplateCard.Kind.SPECIAL, specialCost(special));
+        return require(specialId(special));
     }
 
     public static EquipmentTemplateCard require(String id) {
-        for (MarineWeapon weapon : PLAYER_PRIMARIES) {
-            for (EquipmentGrade grade : EquipmentGrade.values()) {
-                if (primaryId(weapon, grade).equals(id)) return primary(weapon, grade);
-            }
+        EquipmentTemplateCatalog catalog = requireInstalled();
+        EquipmentTemplateCard card = catalog.byId.get(id);
+        if (card == null) {
+            throw new IllegalArgumentException("Unknown equipment template id '" + id
+                    + "'. Known ids: " + catalog.byId.keySet());
         }
-        for (MarineArmorPattern armor : MarineArmorPattern.values()) {
-            if (armorId(armor).equals(id)) return armor(armor);
-        }
-        for (MarineSecondary special : MarineSecondary.values()) {
-            if (specialId(special).equals(id)) return special(special);
-        }
-        throw new IllegalArgumentException("Unknown equipment template id '" + id + "'");
+        return card;
     }
 
     public static boolean contains(String id) {
-        return id != null && IDS.contains(id);
+        return id != null && requireInstalled().byId.containsKey(id);
     }
 
     public static List<EquipmentTemplateCard> all() {
-        List<EquipmentTemplateCard> cards = new ArrayList<>();
-        for (MarineWeapon weapon : PLAYER_PRIMARIES) {
-            for (EquipmentGrade grade : EquipmentGrade.values()) cards.add(primary(weapon, grade));
-        }
-        for (MarineArmorPattern armor : MarineArmorPattern.values()) cards.add(armor(armor));
-        for (MarineSecondary special : MarineSecondary.values()) cards.add(special(special));
-        return Collections.unmodifiableList(cards);
+        return List.copyOf(requireInstalled().byId.values());
     }
 
-    private static EquipmentTemplateCost primaryCost(
-            MarineWeapon weapon, EquipmentGrade grade) {
-        if (weapon == MarineWeapon.FIELD_RIFLE && grade == EquipmentGrade.SERVICE) {
-            return EquipmentTemplateCost.ZERO;
-        }
-        int supplies = switch (grade) {
-            case SURPLUS -> 1;
-            case SERVICE -> 2;
-            case MILSPEC -> 3;
-            case MASTERWORK -> 5;
-        };
-        if (weapon == MarineWeapon.DMR || weapon == MarineWeapon.SQUAD_AUTOMATIC) supplies++;
-        int armaments = switch (grade) {
-            case SURPLUS, SERVICE -> 0;
-            case MILSPEC -> 1;
-            case MASTERWORK -> 2;
-        };
-        return new EquipmentTemplateCost(supplies, armaments, 0, 0);
+    public CatalogSource sourceOf(String id) {
+        return sourceById.get(id);
     }
 
-    private static EquipmentTemplateCost armorCost(MarineArmorPattern armor) {
-        return switch (armor.tier) {
-            case 1 -> EquipmentTemplateCost.ZERO;
-            case 2 -> new EquipmentTemplateCost(1, 0, 0, 0);
-            case 3 -> new EquipmentTemplateCost(2, 0, 1, 0);
-            default -> new EquipmentTemplateCost(3, 1, 2, 0);
-        };
+    public Collection<EquipmentTemplateCard> entries() {
+        return byId.values();
     }
 
-    private static EquipmentTemplateCost specialCost(MarineSecondary special) {
-        return switch (special) {
-            case SMOKE_GRENADE -> new EquipmentTemplateCost(2, 0, 0, 0);
-            case SATCHEL_CHARGE -> new EquipmentTemplateCost(2, 1, 1, 0);
-            case FRAG_GRENADE -> new EquipmentTemplateCost(2, 1, 0, 0);
-            case ROCKET_LAUNCHER, ANTI_MATERIEL_RIFLE ->
-                    new EquipmentTemplateCost(3, 2, 1, 0);
-        };
+    public int size() {
+        return byId.size();
     }
 
-    private static Set<String> buildIds() {
-        Set<String> ids = new LinkedHashSet<>();
-        for (MarineWeapon weapon : PLAYER_PRIMARIES) {
+    private void parsePrimaries(JSONArray array, CatalogSource source) throws JSONException {
+        if (array == null) return;
+        for (int index = 0; index < array.length(); index++) {
+            JSONObject entry = array.getJSONObject(index);
+            String weaponId = requireText(entry, "equipmentId");
+            WeaponDef weapon = WeaponRegistry.require(weaponId);
+            if (weapon.mount != MountClass.MARINE_PRIMARY) {
+                throw new JSONException("Primary equipment template references non-primary weapon '"
+                        + weaponId + "'");
+            }
+            JSONObject grades = entry.getJSONObject("grades");
             for (EquipmentGrade grade : EquipmentGrade.values()) {
-                ids.add(primaryId(weapon, grade));
+                String gradeKey = grade.name().toLowerCase(Locale.ROOT);
+                if (!grades.has(gradeKey)) continue;
+                register(new EquipmentTemplateCard(primaryId(weaponId, grade),
+                        weapon.catalogName(grade.tier), EquipmentTemplateCard.Kind.PRIMARY,
+                        parseCost(grades.getJSONObject(gradeKey))), source);
             }
         }
-        for (MarineArmorPattern armor : MarineArmorPattern.values()) ids.add(armorId(armor));
-        for (MarineSecondary special : MarineSecondary.values()) ids.add(specialId(special));
-        return Collections.unmodifiableSet(ids);
     }
 
-    private static void requirePlayerPrimary(MarineWeapon weapon) {
-        if (!PLAYER_PRIMARIES.contains(weapon)) {
-            throw new IllegalArgumentException("Weapon is not a player equipment template: " + weapon);
+    private void parseArmor(JSONArray array, CatalogSource source) throws JSONException {
+        if (array == null) return;
+        for (int index = 0; index < array.length(); index++) {
+            JSONObject entry = array.getJSONObject(index);
+            String armorId = requireText(entry, "equipmentId");
+            MarineArmorCatalogDef armor = MarineArmorCatalogRegistry.require(armorId);
+            register(new EquipmentTemplateCard(armorId(armorId), armor.displayName(),
+                    EquipmentTemplateCard.Kind.ARMOR, parseCost(entry.getJSONObject("issueCost"))),
+                    source);
         }
+    }
+
+    private void parseSpecials(JSONArray array, CatalogSource source) throws JSONException {
+        if (array == null) return;
+        for (int index = 0; index < array.length(); index++) {
+            JSONObject entry = array.getJSONObject(index);
+            String specialId = requireText(entry, "equipmentId");
+            SpecialEquipmentDef special = SpecialEquipmentRegistry.require(specialId);
+            register(new EquipmentTemplateCard(specialId(specialId), special.displayName(),
+                    EquipmentTemplateCard.Kind.SPECIAL,
+                    parseCost(entry.getJSONObject("issueCost"))), source);
+        }
+    }
+
+    private void register(EquipmentTemplateCard card, CatalogSource source) throws JSONException {
+        if (byId.containsKey(card.id())) {
+            throw new JSONException("Duplicate equipment template id '" + card.id()
+                    + "': first declared by " + sourceById.get(card.id()).describe()
+                    + ", then by " + source.describe());
+        }
+        byId.put(card.id(), card);
+        sourceById.put(card.id(), source);
+    }
+
+    private static EquipmentTemplateCost parseCost(JSONObject json) {
+        return new EquipmentTemplateCost(
+                json.optInt("supplies", 0),
+                json.optInt("heavyArmaments", 0),
+                json.optInt("heavyMachinery", 0),
+                json.optInt("food", 0));
+    }
+
+    private static String requireText(JSONObject json, String key) throws JSONException {
+        String value = json.optString(key, null);
+        if (value == null || value.isBlank()) {
+            throw new JSONException("Equipment template entry is missing '" + key + "'");
+        }
+        return value.trim();
+    }
+
+    private static EquipmentTemplateCatalog requireInstalled() {
+        EquipmentTemplateCatalog catalog = installed;
+        if (catalog == null) {
+            throw new IllegalStateException("Equipment-template catalog is not installed");
+        }
+        return catalog;
     }
 }

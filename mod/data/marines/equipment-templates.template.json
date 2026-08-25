@@ -1,0 +1,65 @@
+{
+  "primaries": [
+    {
+      "equipmentId": "weapon.field-rifle",
+      "grades": {
+        "surplus": { "supplies": 1 },
+        "service": {},
+        "milspec": { "supplies": 3, "heavyArmaments": 1 },
+        "masterwork": { "supplies": 5, "heavyArmaments": 2 }
+      }
+    },
+    {
+      "equipmentId": "weapon.pulse-rifle",
+      "grades": {
+        "surplus": { "supplies": 1 },
+        "service": { "supplies": 2 },
+        "milspec": { "supplies": 3, "heavyArmaments": 1 },
+        "masterwork": { "supplies": 5, "heavyArmaments": 2 }
+      }
+    },
+    {
+      "equipmentId": "weapon.smg",
+      "grades": {
+        "surplus": { "supplies": 1 },
+        "service": { "supplies": 2 },
+        "milspec": { "supplies": 3, "heavyArmaments": 1 },
+        "masterwork": { "supplies": 5, "heavyArmaments": 2 }
+      }
+    },
+    {
+      "equipmentId": "weapon.squad-automatic",
+      "grades": {
+        "surplus": { "supplies": 2 },
+        "service": { "supplies": 3 },
+        "milspec": { "supplies": 4, "heavyArmaments": 1 },
+        "masterwork": { "supplies": 6, "heavyArmaments": 2 }
+      }
+    },
+    {
+      "equipmentId": "weapon.dmr",
+      "grades": {
+        "surplus": { "supplies": 2 },
+        "service": { "supplies": 3 },
+        "milspec": { "supplies": 4, "heavyArmaments": 1 },
+        "masterwork": { "supplies": 6, "heavyArmaments": 2 }
+      }
+    }
+  ],
+  "armor": [
+    { "equipmentId": "armor.field-fatigues", "issueCost": {} },
+    { "equipmentId": "armor.combat", "issueCost": { "supplies": 2, "heavyMachinery": 1 } },
+    { "equipmentId": "armor.scout", "issueCost": { "supplies": 1 } },
+    { "equipmentId": "armor.heavy", "issueCost": { "supplies": 3, "heavyArmaments": 1, "heavyMachinery": 2 } },
+    { "equipmentId": "armor.outlaw", "issueCost": { "supplies": 1 } },
+    { "equipmentId": "armor.line", "issueCost": { "supplies": 2, "heavyMachinery": 1 } },
+    { "equipmentId": "armor.militia", "issueCost": { "supplies": 1 } }
+  ],
+  "specialEquipment": [
+    { "equipmentId": "special.rocket-launcher", "issueCost": { "supplies": 3, "heavyArmaments": 2, "heavyMachinery": 1 } },
+    { "equipmentId": "special.anti-materiel-rifle", "issueCost": { "supplies": 3, "heavyArmaments": 2, "heavyMachinery": 1 } },
+    { "equipmentId": "special.smoke-grenade", "issueCost": { "supplies": 2 } },
+    { "equipmentId": "special.satchel-charge", "issueCost": { "supplies": 2, "heavyArmaments": 1, "heavyMachinery": 1 } },
+    { "equipmentId": "special.frag-grenade", "issueCost": { "supplies": 2, "heavyArmaments": 1 } }
+  ]
+}

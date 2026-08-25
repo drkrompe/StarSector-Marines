@@ -47,7 +47,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             "data/ui/components/armory/armory-squad-list.mlx",
             "data/ui/components/armory/fleet-armory-fireteam.mlx",
             "data/ui/components/armory/fleet-armory-doctrine-designer.mlx",
-            "data/ui/components/armory/armory-fireteam-list.mlx",
             "data/ui/components/armory/armory-squad-doctrine.mlx",
             "data/ui/components/armory/armory-refit-transaction.mlx");
     private static final List<String> MECH_LAB_COMPONENTS = List.of(
@@ -66,6 +65,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
+        HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
         HeadlessUiRenderer renderer = new HeadlessUiRenderer(
                 context.modRoot(), context.starsectorCore());
         return List.of(
@@ -94,6 +94,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderFleetArmoryWorkspace(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
                                 true, true)),
+                new SnapshotArtifact("fleet-armory-armor-collection-wide.png",
+                        renderFleetArmoryWorkspace(
+                                context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                true, false, true)),
                 new SnapshotArtifact("fleet-armory-equipment-designer-wide.png",
                         renderEquipmentDesigner(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
@@ -134,6 +138,14 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static BufferedImage renderFleetArmoryWorkspace(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, boolean fireteam, boolean pickerOpen) throws Exception {
+        return renderFleetArmoryWorkspace(
+                context, renderer, width, height, fireteam, pickerOpen, false);
+    }
+
+    private static BufferedImage renderFleetArmoryWorkspace(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, boolean fireteam, boolean pickerOpen,
+            boolean armorPicker) throws Exception {
         Reactor reactor = new Reactor();
         MarineRoster roster = new MarineRoster();
         roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
@@ -147,6 +159,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         FleetArmoryViewModel viewModel = new FleetArmoryViewModel(
                 reactor, roster, () -> { }, () -> 100d);
         if (fireteam && pickerOpen) viewModel.weaponDoctrineTiles().get().get(1).select().run();
+        if (fireteam && armorPicker) viewModel.showArmorPickerAction().run();
         HeadlessArmoryPreviewRenderer armoryPreview =
                 new HeadlessArmoryPreviewRenderer(context.modRoot());
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
@@ -280,12 +293,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
             document.canvases().set(instance.requireElement("mech-doll-canvas"),
-                    new MechLabDollCanvas(viewModel::selectedVariant,
+                    new MechLabDollCanvas(viewModel::gantryVariants,
+                            viewModel::selectedGantryIndex,
                             viewModel::selectedSocket,
                             MechLabDollCanvas::headlessAssets,
                             () -> technicianPreview.assets().layered(
                                     MarineArmorPattern.ARMY_GREEN),
-                            () -> null));
+                            () -> null, () -> null, null, () -> 0d));
             return renderRelative(renderer, document, width, height, uiScale);
         }
     }
@@ -317,15 +331,18 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("teamRows", viewModel.teamRows());
         props.put("targetSummary", viewModel.targetSummary());
         props.put("candidateSummary", viewModel.candidateSummary());
-        props.put("selectedSquadReadiness", viewModel.selectedSquadReadiness());
-        props.put("reinforceLabel", viewModel.reinforceLabel());
-        props.put("reinforceDisabled", viewModel.reinforceDisabled());
-        props.put("reinforceSquad", viewModel.reinforceSelectedSquadAction());
-        props.put("designEquipment", (Runnable) () -> { });
         props.put("weaponDoctrineTiles", viewModel.weaponDoctrineTiles());
         props.put("armorDoctrineTiles", viewModel.armorDoctrineTiles());
         props.put("weaponDoctrineSummary", viewModel.weaponDoctrineSummary());
         props.put("armorDoctrineSummary", viewModel.armorDoctrineSummary());
+        props.put("weaponPickerTabClasses", viewModel.weaponPickerTabClasses());
+        props.put("armorPickerTabClasses", viewModel.armorPickerTabClasses());
+        props.put("weaponPickerPanelClasses", viewModel.weaponPickerPanelClasses());
+        props.put("armorPickerPanelClasses", viewModel.armorPickerPanelClasses());
+        props.put("showWeaponPicker", viewModel.showWeaponPickerAction());
+        props.put("showArmorPicker", viewModel.showArmorPickerAction());
+        props.put("loadoutFilters", viewModel.loadoutFilters());
+        props.put("loadoutBrowserSummary", viewModel.loadoutBrowserSummary());
         props.put("marineCards", viewModel.marineCards());
         props.put("transactionSummary", viewModel.transactionSummary());
         props.put("transactionClasses", viewModel.transactionClasses());
@@ -377,6 +394,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("labSummary", viewModel.labSummary());
         props.put("squadRows", viewModel.squadRows());
         props.put("mechRows", viewModel.mechRows());
+        props.put("activeGantryLabel", viewModel.activeGantryLabel());
         props.put("selectedMechName", viewModel.selectedMechName());
         props.put("selectedMechIdentity", viewModel.selectedMechIdentity());
         props.put("selectedMechDoctrine", viewModel.selectedMechDoctrine());

@@ -1,0 +1,76 @@
+{
+  "loadouts": [
+    {
+      "id": "weapons:field-security",
+      "kind": "WEAPON",
+      "tier": 1,
+      "rarity": "COMMON",
+      "provenance": "Independent frontier",
+      "lore": "A practical security issue copied from isolated stations that cannot expect prompt naval help. Reliable Rooks fill the racks while each fire-team lead receives the one pulse rifle worth entrusting to a trained hand."
+    },
+    {
+      "id": "weapons:luddic-path-assault",
+      "kind": "WEAPON",
+      "tier": 3,
+      "rarity": "RARE",
+      "provenance": "Luddic Path",
+      "lore": "Recovered Pather assault tables favor violent entry over a sustained firing line. Breaching carbines, improvised demolition tools, and scarce anti-armor weapons turn ordinary compartments into close, decisive killing grounds."
+    },
+    {
+      "id": "weapons:line-infantry",
+      "kind": "WEAPON",
+      "tier": 3,
+      "rarity": "UNCOMMON",
+      "provenance": "Domain fleet lineage",
+      "lore": "Fleet line doctrine assumes disciplined volleys, organic marksmen, and enough smoke to keep a stalled advance moving. It is expensive to sustain on the frontier but reassuringly familiar to academy-trained officers."
+    },
+    {
+      "id": "weapons:assault",
+      "kind": "WEAPON",
+      "tier": 4,
+      "rarity": "RARE",
+      "provenance": "Fleet boarding arm",
+      "lore": "A modern boarding package for breaking defended rooms before the enemy can reorganize. Shredder teams open the breach while a single Shattercap carrier holds the answer to massed soft targets."
+    },
+    {
+      "id": "weapons:fire-support",
+      "kind": "WEAPON",
+      "tier": 4,
+      "rarity": "EXOTIC",
+      "provenance": "Expeditionary arsenal",
+      "lore": "This scarce support establishment gives every fire team a marksman, an automatic weapon, and access to ship-killing hardware cut down for ground use. Few independent companies can replace its losses quickly."
+    },
+    {
+      "id": "armor:field-fatigues",
+      "kind": "ARMOR",
+      "tier": 1,
+      "rarity": "COMMON",
+      "provenance": "Independent frontier",
+      "lore": "Vac-rated workwear and scavenged militia plate form the baseline protection of cash-poor companies. The leaders wear the armor because someone must still be standing when the section loses direction."
+    },
+    {
+      "id": "armor:sindrian-security",
+      "kind": "ARMOR",
+      "tier": 2,
+      "rarity": "UNCOMMON",
+      "provenance": "Sindrian security",
+      "lore": "A mixed protection schedule descended from refinery guards and planetary auxiliaries. It spends proper scout plate where mobility matters and accepts conspicuous gaps everywhere else."
+    },
+    {
+      "id": "armor:fleet-combat",
+      "kind": "ARMOR",
+      "tier": 3,
+      "rarity": "RARE",
+      "provenance": "Domain fleet lineage",
+      "lore": "Fleet combat protection concentrates dependable laminate around the marines expected to take and hold the contact line. Rear billets trade some protection for the mobility needed to exploit a breach."
+    },
+    {
+      "id": "armor:recon",
+      "kind": "ARMOR",
+      "tier": 3,
+      "rarity": "RARE",
+      "provenance": "Naval reconnaissance",
+      "lore": "Low-profile scout plate was designed for teams that must see the enemy, survive the first exchange, and disappear before heavier forces arrive. Militia backing keeps the schedule attainable outside a naval depot."
+    }
+  ]
+}

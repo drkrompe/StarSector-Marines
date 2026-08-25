@@ -4,7 +4,7 @@ Status: ACTIVE — handheld, special-item and turret weapon data is owned; mech 
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — shipped the registry-owned marine fragmentation-grenade trajectory and payload.
+Updated: 2026-08-25 — added additive enabled-mod catalog contributions with provenance and definition-owned faction primary/armor issue.
 
 ## Purpose
 
@@ -46,9 +46,13 @@ without turning a JSON typo into a silent zero-damage battle.
   installed weapon, capacity or rack behavior, and mount appearance. The
   weapon owns projectile behavior. This three-way distinction is especially
   important for emplacements, whose current enum conflates all three.
-- The **weapon registry** owns parsed built-in definitions and resolves ids.
+- The **weapon registry** owns parsed definitions from enabled catalog providers and resolves ids.
   It is an asset store, not a combat system. `WeaponRegistry` is the present
   boundary.
+- A **catalog provider** is an enabled mod whose fixed marine-catalog manifest
+  explicitly lists the resources it contributes. Provider identity and resource
+  path are definition provenance used for diagnostics; they are not faction
+  availability or equipment provenance inside the fiction.
 - **Progression and loadout** own which weapons a marine may receive, grade,
   stock, unlocks, templates, and save repair. They consume weapon identity;
   a weapon definition must not decide whether the player owns it.
@@ -76,7 +80,9 @@ without turning a JSON typo into a silent zero-damage battle.
 
 ## Authority flow
 
-At application load, bundled weapon catalogs are parsed into the registry
+At application load, the fixed marine-catalog manifest is discovered in each
+enabled mod in game load order. Its explicit paths are loaded from that exact
+provider, then weapon catalogs are parsed into the registry
 before catalog-walking presentation consumers initialize. A loadout or legacy
 handle supplies an id; firing, UI, audio, and rendering resolve the same
 definition and use only the portion they own. The currently shipped
@@ -110,9 +116,10 @@ duplicate id, malformed required value, unknown mount class, or invalid
 impact-profile name stops loading instead of producing a harmless-looking but
 unwinnable weapon. Turret cross-catalog references and sprite assets are also
 validated before presentation consumers see them. Optional presentation
-values have defined neutral defaults. Built-in catalog discovery is currently explicit; cross-mod
-discovery, ordering, overrides, and diagnostics remain deferred until a real
-shared consumer exists.
+values have defined neutral defaults. Cross-mod contributions are additive:
+enabled-mod order controls deterministic ingestion and iteration, never override
+priority. A duplicate id stops load and reports both provider mod ids and paths.
+The public manifest and authoring examples live in `submod-catalog-contract.md`.
 
 ## Standing laws
 
@@ -163,7 +170,9 @@ shared consumer exists.
   Preview, save validation, and runtime consumption resolve the same definitions,
   and undo/redo spans the linked document so cross-catalog edits cannot drift.
 - Shared mod discovery and merge rules are one cross-catalog concern with
-  moddable tilesets, not two independently invented override schemes.
+  moddable tilesets. Weapons, special equipment, armor, faction rosters, and
+  collectible templates use the shipped manifest/provenance contract; tilesets
+  must adopt it rather than invent an override scheme.
 - A utility activation may reuse projectiles, detonations, and authored FX,
   but those shared execution primitives do not make its cloud or placement
   channel a weapon definition.
@@ -197,9 +206,18 @@ stable-id compatibility handle whose accessors resolve shipped catalog
 definitions; it owns no duplicate authored values. Both families still obey
 the same penetration and mutually exclusive contact-versus-area payload laws.
 
+Generated faction primary and armor issue now consumes contributed definitions
+directly, including primary ballistics and presentation without a
+`MarineWeapon` constant. Contributed special definitions and cards load, but
+generated battle issue still crosses the `MarineSecondary` compatibility handle;
+player doctrine materialization also still crosses enum-backed billet identity.
+Those remaining edges are tracked by `w5-submod-merge.md` and the broader W4
+persistence migration.
+
 Catalog expansion and mount validation, layered effects, compatibility-enum
-completion, compatibility-enum retirement and persistence repair, and shared
-catalog discovery belong to the work lifecycle tracked only by `stories.md`.
+completion, compatibility-enum retirement and persistence repair, and remaining
+catalog-provider adoption belong to the work lifecycle tracked only by
+`stories.md`.
 
 ## Boundaries
 

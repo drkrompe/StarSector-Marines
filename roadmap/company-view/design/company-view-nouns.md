@@ -4,9 +4,9 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — fire-team inspection now uses a compact team tab rail and
-four simultaneous named-marine dossiers with live portraits, data-authored equipment
-prose, role and tier badges, and stable weapon, durability, and mobility meters.
+Updated: 2026-08-25 — fire-team inspection now pairs a two-by-two marine dossier
+viewer with a known-only, filtered loadout browser; Alpha, Bravo, and Charlie share
+the viewer context line and marine status is reinforced by dossier border color.
 
 ## Purpose
 
@@ -142,9 +142,11 @@ values remain legible beside comparative capability meters. Live portraits cycle
 the authored idle clip with stable per-slot phase offsets; headless evidence fixes
 the phase for deterministic comparison.
 
-The three fire teams occupy one horizontal tab rail rather than a permanent side
-column. Each tab keeps strength, readiness, recovery, and current issue visible while
-returning the full viewer width to all four marine dossiers. A dossier's upper-right
+The three fire teams occupy compact Alpha, Bravo, and Charlie tabs directly on the
+FIRE TEAM context line rather than consuming another status row or side column.
+Readiness and recovery stay with the affected marine: ready, wounded, missing, killed,
+and vacant dossiers use distinct border treatments while explicit status and RTD time
+remain readable inside. A dossier's upper-right
 portrait sits beside identity and service history; compact class, weapon-tier, and
 armor-tier badges replace implementation terms with formation-readable language.
 Weapon, armor, and specialty descriptions come from their owning data catalogs, not
@@ -152,6 +154,16 @@ from Fleet Armory markup. Health, armor, resistance, and actual movement speed s
 the durability-and-mobility meter block; damage, range, accuracy, and sustained output
 share the weapon block. Catalog-wide ceilings keep every comparison stable across
 team selection and equipment changes.
+
+The selected team's four dossiers form a two-by-two viewer beside a vertical loadout
+browser. Weapon and Armor are mutually exclusive tabs over that browser, and rarity
+filters bound a growing list without reducing the dossier detail. The browser contains
+only definitions the company actually knows; unknown definitions have no placeholder,
+silhouette, name, tier, rarity, provenance, or lore to spoil future discovery. Each
+known entry leads with an authored power tier, campaign rarity, provenance, substantial
+setting paragraph, and deterministic twelve-billet distribution. Tier describes
+expected capability while rarity describes acquisition scarcity and presentation.
+Rarity is never a random-roll weight, and selection never rolls equipment from a pool.
 
 The separate equipment designer uses the same visual language before a definition
 is saved: each billet card keeps a compact live render in its upper-right corner,
@@ -201,6 +213,9 @@ squad issue clears stale per-team assignment ids so only one equipment authority
 Equipment template cards are literal permanent collectibles owned by Progression.
 They are not a deck, hand, consumable, or squad definition. Definitions remain
 reusable intent; base-game fleet cargo pays only when changed kit is materialized.
+The browser may give rare known entries stronger borders, color, and provenance copy
+to make acquisition feel rewarding, but those effects never change definition contents
+or combat rules.
 
 ## Mech Lab
 

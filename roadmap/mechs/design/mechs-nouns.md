@@ -4,9 +4,8 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — gave each chassis an authored spatial fitting layout,
-rendered empty sockets as translucent gantry footprints, and made the room use
-the battle renderer's relative mech-to-worker scale.
+Updated: 2026-08-25 — made fitting sockets doll-relative UI drop targets with
+segmented capacity cells while preserving their authored chassis locations.
 
 ## Purpose
 
@@ -46,8 +45,8 @@ increasing an encounter's total armored threat.
   against owned quantity; a refit transaction returns the target mech's
   current component before evaluating the replacement.
 - The **Mech Lab** is the shipboard room that selects the active mech squad,
-  moves one selected asset onto a fabrication gantry, presents it as a top-down
-  hardpoint doll, and performs inventory-checked refits. Asset/lance browsing is
+  parks its assets across four fabrication gantries, frames one selected asset as
+  a top-down hardpoint doll, and performs inventory-checked refits. Asset/lance browsing is
   a separate internal bay screen so the fitting gantry can spend its width on
   equipment, the physical workspace, and sockets. Selecting a location changes
   catalog context; it does not itself change hardware. It is an authoring surface
@@ -56,7 +55,9 @@ increasing an encounter's total armored threat.
   sockets will declare a compatibility type—ballistic, energy, missile, or
   omni—and a sized capacity. A component will declare compatible types and a
   slot cost. Each asset-class layout owns the socket's asset-relative center and
-  room footprint as well as its compatibility and capacity. An empty translucent
+  doll-relative interaction footprint as well as its compatibility and capacity.
+  Presentation may enforce a minimum pointer hit area for usability without
+  changing that capacity or making the asset physically larger. An empty translucent
   footprint means an authored socket is unoccupied; an omitted socket is still
   genuinely absent. The drag gesture is presentation; the validated resulting
   placement is domain intent.
@@ -152,18 +153,34 @@ determines the payload, not the entitlement to call it.
   but it may not approximate mount scale, pivots, absence, or above/below-chassis
   order independently. The gantry rotates that complete composition south toward
   the player; it does not rotate individual equipment layers independently.
-- The fitting room derives chassis and worker dimensions from the battle renderer's
-  shared cell-relative scale. Responsive layout may enlarge or shrink the room's
-  cells, but it may not canvas-fit the selected asset or distort its physical size
-  relative to technicians, tiles, or another chassis.
+- The fitting room is one lance-scale garage battle scene rendered through the
+  shared battle camera and ordered render systems. Its four striped-and-grated
+  gantry pads are real grid-aligned atlas cells and its south edge is the vehicle
+  entrance. Responsive layout may change the camera's fitted cell size or choose
+  a closer framing, but it may not canvas-fit the
+  selected asset or distort its physical size relative to technicians, tiles,
+  props, or another chassis.
 - Socket overlays consume the selected asset's authored fitting layout. Their
-  translucent type color, sized footprint, and capacity pips appear in physical
-  room space beneath installed equipment; an authored empty socket stays visible
+  translucent type color, hull-relative drop footprint, and segmented capacity
+  cells appear in physical room space above the physical doll so installed art
+  cannot hide an interactive target. The low-alpha fill preserves the equipment
+  beneath it. The whole footprint is the pointer target; capacity cells are the ordered placement units
+  a future multi-slot drag preview occupies. An authored empty socket stays visible
   while an absent socket produces no footprint.
-- The gantry is a flat top-down room assembled from the battle renderer's indoor
-  tileset cells and props. Its workers use the real layered infantry compositor;
-  welding, walking, and station work continue while the player inspects equipment,
-  but they never decide refit duration, stock, or command success.
+- The garage is a flat top-down, non-advancing room simulation assembled from the
+  battle renderer's indoor tileset cells and props. Its mech and workers are real
+  battle entities consumed by the ordinary unit render system. The retained host
+  supplies only a bounded viewport and camera: battle HUD, input, selection,
+  audio, fog, combat decorators, and surface-relief targets remain detached.
+  Presentation-only welding or station motion may continue while the player
+  inspects equipment, but it never decides refit duration, stock, or command success.
+- Live rendering and headless evidence consume one room layout: ground kind,
+  perimeter walls, gantry overlays, props, workers, and every lance asset occupy authored
+  battle-grid cells. A preview may approximate the GL drain, but it may not invent
+  percentage-positioned scenery, off-grid props, or a second gantry illustration.
+- Vehicle selection changes the battle camera's gantry target without changing
+  cell scale. A later eased camera move interpolates between those authored targets;
+  it does not move or respawn the garage contents to fake a transition.
 - Campaign-to-battle deployment freezes values. Live battle code does not read
   or mutate the campaign mech, squad, or fleet inventory.
 - Gun-launched HE is a ballistic shot whose timed detonation owns splash and

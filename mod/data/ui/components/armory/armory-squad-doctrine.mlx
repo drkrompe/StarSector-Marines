@@ -1,35 +1,52 @@
-<template props="selectedSquadReadiness,reinforceLabel,reinforceDisabled,reinforceSquad,designEquipment,weaponDoctrineSummary,armorDoctrineSummary,weaponDoctrineTiles,armorDoctrineTiles,transactionSummary,transactionClasses,applyDisabled,applyLabel,apply">
+<template props="weaponDoctrineSummary,armorDoctrineSummary,weaponDoctrineTiles,armorDoctrineTiles,weaponPickerTabClasses,armorPickerTabClasses,weaponPickerPanelClasses,armorPickerPanelClasses,showWeaponPicker,showArmorPicker,loadoutFilters,loadoutBrowserSummary,transactionSummary,transactionClasses,applyDisabled,applyLabel,apply">
   <div id="squad-doctrine-strip" class="panel squad-doctrine-strip">
-    <div id="squad-doctrine-heading-row">
-      <div id="squad-doctrine-heading" class="label heading tone-edge">SQUAD EQUIPMENT</div>
-      <div id="selected-squad-readiness" class="label surface-dark tone-edge">{selectedSquadReadiness}</div>
-      <button id="design-equipment" onclick="{designEquipment}">Design Equipment</button>
-      <button id="reinforce-selected-squad" disabled="{reinforceDisabled}" onclick="{reinforceSquad}">{reinforceLabel}</button>
+    <div id="equipment-picker-tabs">
+      <div id="equipment-picker-heading" class="label heading tone-edge">LOADOUTS</div>
+      <button id="show-weapon-picker" class="{weaponPickerTabClasses}" onclick="{showWeaponPicker}">Weapon Loadouts</button>
+      <button id="show-armor-picker" class="{armorPickerTabClasses}" onclick="{showArmorPicker}">Armor Loadouts</button>
     </div>
-    <div id="doctrine-slot-row">
-      <div id="weapon-doctrine-slot" class="doctrine-slot">
-        <div id="weapon-doctrine-heading" class="label heading tone-accent">WEAPON EQUIPMENT</div>
-        <div id="weapon-doctrine-summary" class="label surface-dark tone-edge">{weaponDoctrineSummary}</div>
-        <div id="weapon-doctrine-list" class="doctrine-list">
-          <button each="tile in weaponDoctrineTiles" key="{tile.id}" id="{tile.id}" class="{tile.classes}" onclick="{tile.select}">
-            <div id="{tile.nameId}" class="doctrine-name label tone-edge">{tile.name}</div>
-            <div id="{tile.descriptionId}" class="doctrine-description label tone-muted">{tile.description}</div>
-            <div id="{tile.distributionId}" class="doctrine-distribution label tone-accent">{tile.distribution}</div>
-          </button>
-        </div>
-      </div>
-      <div id="armor-doctrine-slot" class="doctrine-slot">
-        <div id="armor-doctrine-heading" class="label heading tone-accent">ARMOR EQUIPMENT</div>
-        <div id="armor-doctrine-summary" class="label surface-dark tone-edge">{armorDoctrineSummary}</div>
-        <div id="armor-doctrine-list" class="doctrine-list">
-          <button each="tile in armorDoctrineTiles" key="{tile.id}" id="{tile.id}" class="{tile.classes}" onclick="{tile.select}">
-            <div id="{tile.nameId}" class="doctrine-name label tone-edge">{tile.name}</div>
-            <div id="{tile.descriptionId}" class="doctrine-description label tone-muted">{tile.description}</div>
-            <div id="{tile.distributionId}" class="doctrine-distribution label tone-accent">{tile.distribution}</div>
-          </button>
-        </div>
+
+    <div id="loadout-browser-tools">
+      <div id="loadout-browser-summary" class="label tone-edge">{loadoutBrowserSummary}</div>
+      <div id="loadout-filter-list">
+        <button each="filter in loadoutFilters" key="{filter.id}" id="{filter.id}" class="{filter.classes}" onclick="{filter.select}">{filter.label}</button>
       </div>
     </div>
+
+    <div id="weapon-doctrine-slot" class="{weaponPickerPanelClasses}">
+      <div id="weapon-doctrine-summary" class="label surface-dark tone-edge">{weaponDoctrineSummary}</div>
+      <div id="weapon-doctrine-list" class="doctrine-list">
+        <button each="tile in weaponDoctrineTiles" key="{tile.id}" id="{tile.id}" class="{tile.classes}" onclick="{tile.select}">
+          <div id="{tile.headerId}" class="doctrine-header">
+            <div id="{tile.nameId}" class="doctrine-name label tone-edge">{tile.name}</div>
+            <div id="{tile.rarityId}" class="{tile.rarityClasses}">{tile.rarity}</div>
+          </div>
+          <div id="{tile.metadataRowId}" class="doctrine-metadata-row">
+            <div id="{tile.metadataId}" class="doctrine-metadata label tone-accent">{tile.metadata}</div>
+          </div>
+          <div id="{tile.descriptionId}" class="doctrine-lore label tone-muted">{tile.description}</div>
+          <div id="{tile.distributionId}" class="doctrine-distribution label">{tile.distribution}</div>
+        </button>
+      </div>
+    </div>
+
+    <div id="armor-doctrine-slot" class="{armorPickerPanelClasses}">
+      <div id="armor-doctrine-summary" class="label surface-dark tone-edge">{armorDoctrineSummary}</div>
+      <div id="armor-doctrine-list" class="doctrine-list">
+        <button each="tile in armorDoctrineTiles" key="{tile.id}" id="{tile.id}" class="{tile.classes}" onclick="{tile.select}">
+          <div id="{tile.headerId}" class="doctrine-header">
+            <div id="{tile.nameId}" class="doctrine-name label tone-edge">{tile.name}</div>
+            <div id="{tile.rarityId}" class="{tile.rarityClasses}">{tile.rarity}</div>
+          </div>
+          <div id="{tile.metadataRowId}" class="doctrine-metadata-row">
+            <div id="{tile.metadataId}" class="doctrine-metadata label tone-accent">{tile.metadata}</div>
+          </div>
+          <div id="{tile.descriptionId}" class="doctrine-lore label tone-muted">{tile.description}</div>
+          <div id="{tile.distributionId}" class="doctrine-distribution label">{tile.distribution}</div>
+        </button>
+      </div>
+    </div>
+
     <div id="squad-equip-row">
       <div id="transaction-result" class="{transactionClasses}">{transactionSummary}</div>
       <button id="apply-squad-equipment" class="apply-button" disabled="{applyDisabled}" onclick="{apply}">{applyLabel}</button>
@@ -38,23 +55,39 @@
 </template>
 
 <style>
-  .squad-doctrine-strip { flex-direction: column; height: 226px; padding: 7px; gap: 5px; overflow: hidden; }
+  .squad-doctrine-strip { flex-direction: column; width: 520px; height: 100%; padding: 7px; gap: 5px; overflow: hidden; }
   .label { overflow: hidden; }
   .heading { font-family: heading; }
-  #squad-doctrine-heading-row { flex-direction: row; height: 28px; gap: 6px; }
-  #squad-doctrine-heading { width: 190px; padding: 4px 2px; }
-  #selected-squad-readiness { width: 0px; flex-grow: 1; padding: 4px 7px; }
-  #reinforce-selected-squad, #design-equipment { padding: 4px 8px; border-width: 1px; font-family: body; text-align: center; }
-  #doctrine-slot-row { flex-direction: row; height: 152px; gap: 7px; }
-  .doctrine-slot { flex-direction: column; width: 0px; flex-grow: 1; padding: 5px; gap: 3px; border-width: 1px; overflow: hidden; }
-  #weapon-doctrine-heading, #armor-doctrine-heading { height: 18px; }
+  #equipment-picker-tabs { flex-direction: row; height: 30px; gap: 6px; }
+  #equipment-picker-heading { width: 94px; padding: 5px 2px; }
+  .equipment-picker-tab { width: 190px; padding: 4px 8px; border-width: 1px; font-family: body; text-align: center; }
+  .equipment-picker-tab.selected { background-color: #345a7c; border-color: #53c6e8; color: #d5deea; }
+
+  #loadout-browser-tools { flex-direction: row; height: 30px; gap: 5px; }
+  #loadout-browser-summary { width: 76px; padding: 5px 2px; }
+  #loadout-filter-list { flex-direction: row; width: 0px; flex-grow: 1; gap: 3px; }
+  .loadout-filter { width: 0px; height: 28px; flex-grow: 1; padding: 4px 3px; border-width: 1px; font-family: body; text-align: center; }
+  .loadout-filter.selected { background-color: #345a7c; border-color: #53c6e8; color: #d5deea; }
+
+  .doctrine-slot { flex-direction: column; height: 0px; flex-grow: 1; padding: 4px; gap: 3px; border-width: 1px; overflow: hidden; }
+  .picker-hidden { width: 0px; height: 0px; flex-grow: 0; padding: 0px; gap: 0px; border-width: 0px; opacity: 0; overflow: hidden; }
   #weapon-doctrine-summary, #armor-doctrine-summary { height: 20px; padding: 2px 5px; }
-  .doctrine-list { flex-direction: row; height: 0px; flex-grow: 1; gap: 5px; padding: 1px; overflow: scroll; }
-  .doctrine-tile { flex-direction: column; width: 230px; height: 92px; padding: 5px; gap: 2px; border-width: 1px; font-family: body; text-align: left; overflow: hidden; }
-  .doctrine-tile.selected { background-color: #345a7c; border-color: #53c6e8; }
-  .doctrine-name { height: 18px; }
-  .doctrine-description { height: 34px; white-space: normal; }
-  .doctrine-distribution { height: 30px; }
+  .doctrine-list { display: grid; height: 0px; flex-grow: 1; gap: 6px; padding: 1px; overflow: scroll; }
+  .doctrine-tile { flex-direction: column; width: 476px; height: 150px; padding: 6px; gap: 2px; border-width: 1px; font-family: body; text-align: left; overflow: hidden; background-color: #0e1621; }
+  .doctrine-tile.rarity-common { border-color: #607188; }
+  .doctrine-tile.rarity-uncommon { border-color: #53c6e8; background-color: #10202c; }
+  .doctrine-tile.rarity-rare { border-color: #dfb84d; background-color: #211d13; }
+  .doctrine-tile.rarity-exotic { border-color: #c77dff; background-color: #21162c; }
+  .doctrine-tile.selected { background-color: #345a7c; border-color: #f2cf68; }
+  .doctrine-header, .doctrine-metadata-row { flex-direction: row; height: 18px; gap: 5px; }
+  .doctrine-name, .doctrine-metadata { width: 0px; flex-grow: 1; }
+  .doctrine-rarity { width: 74px; padding: 1px 4px; border-width: 1px; text-align: center; }
+  .doctrine-rarity.rarity-common { color: #b4c0ce; border-color: #607188; }
+  .doctrine-rarity.rarity-uncommon { color: #70d9f4; border-color: #53c6e8; }
+  .doctrine-rarity.rarity-rare { color: #f2cf68; border-color: #dfb84d; }
+  .doctrine-rarity.rarity-exotic { color: #dda8ff; border-color: #c77dff; }
+  .doctrine-lore { height: 82px; white-space: normal; }
+  .doctrine-distribution { height: 18px; color: #d8bd67; }
   #squad-equip-row { flex-direction: row; height: 30px; gap: 7px; }
   .transaction-result { width: 0px; flex-grow: 1; padding: 4px 7px; border-width: 1px; overflow: hidden; }
   .apply-button { padding: 4px 9px; border-width: 1px; font-family: body; text-align: center; }

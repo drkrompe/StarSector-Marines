@@ -5,7 +5,11 @@ import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
 import java.util.ArrayList;
@@ -72,15 +76,15 @@ public final class GroundRosterProfile {
     /** Bulk or elite issue package, with risk selecting eligibility/quality curves. */
     public static final class Issue {
         private final UnitType unitType;
-        private final WeightedTable<MarineWeapon> primaries;
+        private final WeightedTable<WeaponDef> primaries;
         private final Map<RiskLevel, WeightedTable<EquipmentGrade>> grades;
-        private final Map<RiskLevel, WeightedTable<MarineArmorPattern>> armor;
-        private final Map<RiskLevel, WeightedTable<MarineSecondary>> specials;
+        private final Map<RiskLevel, WeightedTable<MarineArmorCatalogDef>> armor;
+        private final Map<RiskLevel, WeightedTable<SpecialEquipmentDef>> specials;
 
-        Issue(UnitType unitType, WeightedTable<MarineWeapon> primaries,
+        Issue(UnitType unitType, WeightedTable<WeaponDef> primaries,
               Map<RiskLevel, WeightedTable<EquipmentGrade>> grades,
-              Map<RiskLevel, WeightedTable<MarineArmorPattern>> armor,
-              Map<RiskLevel, WeightedTable<MarineSecondary>> specials) {
+              Map<RiskLevel, WeightedTable<MarineArmorCatalogDef>> armor,
+              Map<RiskLevel, WeightedTable<SpecialEquipmentDef>> specials) {
             this.unitType = unitType;
             this.primaries = primaries;
             this.grades = completeRiskMap(grades, "equipment grades");
@@ -89,15 +93,25 @@ public final class GroundRosterProfile {
         }
 
         public UnitType unitType() { return unitType; }
-        public MarineWeapon pickPrimary(Random rng) { return primaries.pick(rng); }
+        public WeaponDef pickPrimaryDef(Random rng) { return primaries.pick(rng); }
+        public MarineWeapon pickPrimary(Random rng) {
+            return MarineWeapon.fromId(pickPrimaryDef(rng).id);
+        }
         public EquipmentGrade pickGrade(RiskLevel risk, Random rng) {
             return grades.get(resolvedRisk(risk)).pick(rng);
         }
-        public MarineArmorPattern pickArmor(RiskLevel risk, Random rng) {
+        public MarineArmorCatalogDef pickArmorDef(RiskLevel risk, Random rng) {
             return armor.get(resolvedRisk(risk)).pick(rng);
         }
-        public MarineSecondary pickSpecial(RiskLevel risk, Random rng) {
+        public MarineArmorPattern pickArmor(RiskLevel risk, Random rng) {
+            return MarineArmorPattern.fromId(pickArmorDef(risk, rng).id());
+        }
+        public SpecialEquipmentDef pickSpecialDef(RiskLevel risk, Random rng) {
             return specials.get(resolvedRisk(risk)).pick(rng);
+        }
+        public MarineSecondary pickSpecial(RiskLevel risk, Random rng) {
+            SpecialEquipmentDef special = pickSpecialDef(risk, rng);
+            return special != null ? SpecialEquipmentRegistry.compatibilityHandle(special.id()) : null;
         }
 
         private static <T> Map<RiskLevel, WeightedTable<T>> completeRiskMap(

@@ -34,6 +34,16 @@ public abstract class CanvasContext {
         return alphaMult;
     }
 
+    /**
+     * Runs a bounded renderer-owned pass when this canvas is painting to the
+     * live host. Returns false for headless or non-native targets so the caller
+     * can emit ordinary canvas primitives as deterministic evidence.
+     */
+    public final boolean hostPass(CanvasHostPass pass) {
+        if (pass == null) throw new IllegalArgumentException("host pass is required");
+        return drawHostPass(pass);
+    }
+
     public final void fillRect(float x, float y, float width, float height, Color color) {
         requireRect(x, y, width, height);
         drawFillRect(x, y, width, height, requireColor(color));
@@ -114,6 +124,11 @@ public abstract class CanvasContext {
                                        float centerX, float centerY, float width, float height,
                                        float angleDegrees, Color tint,
                                        CanvasSpriteRegion region, CanvasBlend blend);
+
+    /** Default backend behavior: native renderer passes are unavailable. */
+    protected boolean drawHostPass(CanvasHostPass pass) {
+        return false;
+    }
 
     /** Document scaling of a line's normal under anisotropic canvas stretching. */
     protected static float strokeScale(CanvasMetrics metrics, float deltaX, float deltaY) {

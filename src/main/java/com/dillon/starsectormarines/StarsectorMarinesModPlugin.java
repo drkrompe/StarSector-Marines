@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.HouseSeeder;
 import com.dillon.starsectormarines.campaign.personnel.CaptainDiscoverySalvageListener;
+import com.dillon.starsectormarines.catalog.MarineCatalogManifest;
 import com.dillon.starsectormarines.combathybrid.probe.CombatHybridCampaignPlugin;
 import com.dillon.starsectormarines.combathybrid.probe.CombatHybridInputListener;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
@@ -24,6 +25,8 @@ import com.dillon.starsectormarines.ops.CompanyViewAbility;
 import com.dillon.starsectormarines.ops.event.PlayerEventPresenter;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
+import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
+import com.dillon.starsectormarines.marine.SquadLoadoutPresentationRegistry;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.Rank;
@@ -48,6 +51,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
     @Override
     public void onApplicationLoad() throws Exception {
         LOG.info("Starsector Marines: jar loaded");
+        MarineCatalogManifest marineCatalogs = MarineCatalogManifest.discoverEnabled();
         // Tile catalog → id-addressed registry (moddable-tilesets Phase 1). Loaded
         // once, before any save; self-defensive so a bad sheet never blocks startup.
         TileRegistry.loadBuiltins();
@@ -60,7 +64,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         // startup rather than produce a silently unwinnable battle. Must precede any
         // consumer that walks the catalog at load time — BattleSprites preloads every
         // primary's projectile sprite through it.
-        WeaponRegistry.loadBuiltins();
+        WeaponRegistry.loadContributions(marineCatalogs.weapons());
         // Turret mounts and static platforms resolve weapon ids eagerly, so this
         // catalog necessarily follows the weapon registry.
         TurretCatalogRegistry.loadBuiltins();
@@ -70,13 +74,20 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         // Loadout identity, activation, AI policy, and equipment presentation.
         // Weapon-like items validate their referenced WeaponDef, so this follows
         // the weapon catalog and remains fail-loud for malformed built-in data.
-        SpecialEquipmentRegistry.loadBuiltins();
+        SpecialEquipmentRegistry.loadContributions(marineCatalogs.specialEquipment());
         // Player-facing armor class and descriptive copy are data-authored separately
         // from the save-compatible armor enum and its battle-facing values.
-        MarineArmorCatalogRegistry.loadBuiltins();
+        MarineArmorCatalogRegistry.loadContributions(marineCatalogs.armor());
+        // Collectible card identity and issue cost are also additive data. Cards
+        // validate their referenced equipment only after all three equipment
+        // registries are installed.
+        EquipmentTemplateCatalog.loadContributions(marineCatalogs.equipmentTemplates());
+        // Collectible-facing tier, rarity, provenance, and lore remain authored data;
+        // their rarity is presentation scarcity rather than random selection weight.
+        SquadLoadoutPresentationRegistry.loadBuiltins();
         // Campaign-faction doctrine references primary weapons, special issue,
         // armor, and mech identities, so it validates after those catalogs.
-        GroundRosterRegistry.loadBuiltins();
+        GroundRosterRegistry.loadContributions(marineCatalogs.groundRosters());
         // Modular unit clips turn simulation-authored locomotion/action phases
         // into layer transforms. The standalone editor reads the same document.
         UnitLayerLayouts.loadBuiltins();

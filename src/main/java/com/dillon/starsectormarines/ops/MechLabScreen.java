@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
+import com.dillon.starsectormarines.ops.battleview.MechLabBattleScene;
 import com.dillon.starsectormarines.ops.battleview.MechLabDollCanvas;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
@@ -40,6 +41,7 @@ public final class MechLabScreen implements Screen {
     private UiDocument document;
     private MarkupInstance markupInstance;
     private StarsectorUiInputAdapter input;
+    private MechLabBattleScene battleScene;
     private double previewSeconds;
 
     @Override
@@ -76,13 +78,18 @@ public final class MechLabScreen implements Screen {
             previewSprites.ensureLayeredMechSprites();
             previewSprites.ensureLayeredUnitSprites();
             previewSprites.ensureTileSheet();
+            previewSprites.ensureRoadSheet();
+            if (battleScene == null) battleScene = new MechLabBattleScene(previewSprites);
             built.canvases().set(candidate.requireElement("mech-doll-canvas"),
-                    new MechLabDollCanvas(viewModel::selectedVariant,
+                    new MechLabDollCanvas(viewModel::gantryVariants,
+                            viewModel::selectedGantryIndex,
                             viewModel::selectedSocket,
                             previewSprites::layeredMechSprites,
                             () -> previewSprites.layeredUnitSprites().get(
                                     LayeredArmorFamily.ARMY_GREEN),
                             previewSprites::tileSheet,
+                            previewSprites::roadSheet,
+                            battleScene,
                             () -> previewSeconds));
             if (viewport != null) {
                 built.layout(viewport.documentWidth(), viewport.documentHeight());
@@ -105,6 +112,7 @@ public final class MechLabScreen implements Screen {
         props.put("labSummary", viewModel.labSummary());
         props.put("squadRows", viewModel.squadRows());
         props.put("mechRows", viewModel.mechRows());
+        props.put("activeGantryLabel", viewModel.activeGantryLabel());
         props.put("selectedMechName", viewModel.selectedMechName());
         props.put("selectedMechIdentity", viewModel.selectedMechIdentity());
         props.put("selectedMechDoctrine", viewModel.selectedMechDoctrine());
@@ -168,6 +176,7 @@ public final class MechLabScreen implements Screen {
     @Override
     public void detach() {
         if (document != null) document.deactivateInput();
+        if (battleScene != null) battleScene.close();
         input = null;
     }
 
@@ -177,5 +186,7 @@ public final class MechLabScreen implements Screen {
         document = null;
         markupInstance = null;
         input = null;
+        if (battleScene != null) battleScene.close();
+        battleScene = null;
     }
 }
