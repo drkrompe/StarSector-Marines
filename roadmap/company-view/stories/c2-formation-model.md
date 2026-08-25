@@ -86,7 +86,7 @@ MarineSnapshot
 ### Fold in, don't fork
 
 `PersonnelReadiness` stays the *selection*-scoped answer (required seats vs
-selected vs company, shortfall, `needsRecruitment`). Give it a constructor
+selected vs company, shortfall, `needsPersonnel`). Give it a constructor
 path that takes a `CompanySnapshot` so the two never disagree, or have it
 delegate its company-side counts to the snapshot. Do not duplicate the
 seat-requirement logic into the snapshot — deployment capacity is a

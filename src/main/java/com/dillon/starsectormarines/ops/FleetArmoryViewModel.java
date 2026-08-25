@@ -9,7 +9,7 @@ import com.dillon.starsectormarines.marine.FireTeamTemplateCard;
 import com.dillon.starsectormarines.marine.FireTeamTemplateResult;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics;
-import com.dillon.starsectormarines.marine.MarinePersonnelLogistics.ReinforcementResult;
+import com.dillon.starsectormarines.marine.MarinePersonnelLogistics.PersonnelDrawResult;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
@@ -546,14 +546,16 @@ public final class FleetArmoryViewModel {
     private void reinforceSquad(String squadId) {
         MarineSquad squad = roster.squadById(squadId);
         if (squad == null) return;
-        ReinforcementResult result = MarinePersonnelLogistics.reinforceSquad(roster, squadId);
+        PersonnelDrawResult result = MarinePersonnelLogistics.reinforceSquad(roster, squadId);
         if (result.total() <= 0) {
             feedback.set(Feedback.neutral(reinforcementUnavailableReason(squad)));
         } else {
-            String source = result.transferred() > 0 && result.enlisted() > 0
-                    ? result.transferred() + " reserve, " + result.enlisted() + " enlisted"
-                    : result.transferred() > 0 ? result.transferred() + " from reserve"
-                    : result.enlisted() + " enlisted";
+            String source = result.reservesAssigned() > 0 && result.cargoMarinesConsumed() > 0
+                    ? result.reservesAssigned() + " reserve, "
+                            + result.cargoMarinesConsumed() + " cargo consumed"
+                    : result.reservesAssigned() > 0
+                            ? result.reservesAssigned() + " from reserve"
+                            : result.cargoMarinesConsumed() + " cargo consumed";
             feedback.set(Feedback.success(squad.name() + " reinforced  ·  " + source
                     + ". Review replacement equipment before deployment."));
         }
@@ -571,7 +573,8 @@ public final class FleetArmoryViewModel {
     private int reinforcementCapacity(MarineSquad squad) {
         domainRevision.get();
         if (squad == null || squad.stationed()) return 0;
-        int personnel = roster.readyReserveCount() + MarinePersonnelLogistics.availableRecruits();
+        int personnel = roster.readyReserveCount()
+                + MarinePersonnelLogistics.availableCargoMarines();
         return Math.min(roster.vacancies(squad), personnel);
     }
 

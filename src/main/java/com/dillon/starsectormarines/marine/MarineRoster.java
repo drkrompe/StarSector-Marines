@@ -516,8 +516,8 @@ public class MarineRoster implements Serializable {
         return recruit;
     }
 
-    /** Enlists into the first vacant line billet, creating a squad when needed. */
-    MarineSoldier enlistLineRecruit() {
+    /** Materializes one cargo-backed replacement in the first available line billet. */
+    MarineSoldier createLineReplacement() {
         MarineSquad target = null;
         for (MarineSquad squad : squads) {
             if (!squad.reserve() && !squad.stationed() && vacancies(squad) > 0) {
@@ -598,6 +598,20 @@ public class MarineRoster implements Serializable {
     public boolean fillVacancyFromReserve(String targetSquadId) {
         MarineSoldier reserve = firstReadyReserve();
         return reserve != null && transferSoldier(reserve.id(), targetSquadId);
+    }
+
+    /** Assigns one ready reserve to the next line billet, creating a line squad if needed. */
+    boolean assignReadyReserveToLine() {
+        if (firstReadyReserve() == null) return false;
+        MarineSquad target = null;
+        for (MarineSquad squad : squads) {
+            if (!squad.reserve() && !squad.stationed() && vacancies(squad) > 0) {
+                target = squad;
+                break;
+            }
+        }
+        if (target == null) target = createSquad();
+        return fillVacancyFromReserve(target.id());
     }
 
     /** Fills as many true open billets as possible from ready reserve personnel. */

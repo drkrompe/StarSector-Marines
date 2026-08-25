@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — separated the retained formation viewer from the transitional Armory Administration workspace.
+Updated: 2026-08-25 — made personnel reinforcement a direct draw from named reserves and fleet cargo rather than a recruit conversion workflow.
 
 ## Purpose
 
@@ -109,13 +109,17 @@ and WIA marines preserve their stable order and later replacements fill the open
 positions derived around them. A WIA marine continues to hold a billet until
 recovery and therefore cannot be silently replaced into an overstrength squad.
 
-Personnel reinforcement is a squad-level roster transaction. One action fills
-true open billets from ready reserves first, then consumes generic cargo marines
-for any remaining vacancies. It does not invent personnel, move WIA marines out
-of recovery, or claim that replacement equipment conforms to the team's assigned
-template. The company, squad, and fire-team projections report WIA counts and the
-earliest remaining recovery clock; the named-marine view reports that individual's
-remaining hours and days.
+Personnel reinforcement is a roster transaction rather than a recruitment shop.
+One action fills true open billets from ready named reserves first, then directly
+removes marine personnel from the player's fleet cargo for any remaining vacancies.
+Creating the corresponding named billet holders is an internal materialization of
+that consumed personnel, not a separate currency conversion or player-facing enlistment
+step. Mission shortfalls use the same draw in place instead of routing through another
+Armory screen. The transaction does not invent personnel, move WIA marines out of
+recovery, or claim that replacement equipment conforms to the team's assigned template.
+The company, squad, and fire-team projections report WIA counts and the earliest
+remaining recovery clock; the named-marine view reports that individual's remaining
+hours and days.
 
 `homeCaptainId` is a squad's durable organizational default, not a history of
 temporary mission borrowing. Stationed squads remain under one officer because
