@@ -65,6 +65,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
+        HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
         HeadlessUiRenderer renderer = new HeadlessUiRenderer(
                 context.modRoot(), context.starsectorCore());
         return List.of(
