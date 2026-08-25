@@ -2,8 +2,9 @@
 
 Status: IN PROGRESS — retained hierarchy, squad equipment issue, and focused Mech Lab ship; broader company administration remains
 Written: 2026-08-23
-Updated: 2026-08-25 — squad-wide equipment doctrines retired Armory Administration;
-Mech Lab now ships as a separately routed retained room over `MechBay`.
+Updated: 2026-08-25 — the separately routed Mech Lab now ships alongside persistent
+player-authored Weapon and Armor definitions, their retained twelve-billet designer,
+and non-destructive legacy intent migration.
 
 Read `company-view-nouns.md` and `ui-nouns.md` first.
 
@@ -53,6 +54,11 @@ breadcrumb keeps every completed level directly reachable.
   special equipment; Armor definitions include protection only. Their pair projects
   exact equipment and combat-stat deltas onto the same named marines. One squad-wide
   readiness result and one squad-wide issue action commit all twelve billets atomically.
+- **Equipment designer:** a distinct breadcrumb depth edits one reusable definition
+  at a time. A horizontal library, Weapon/Armor mode, three team tabs, and four live
+  billet previews expose all twelve ordered positions without returning to the old
+  administration shell. Naming is a retained text input; role, primary, grade,
+  special, and armor controls change draft intent without consulting inventory.
 - **Inventory boundary:** the roster's exact atomic preview still gates assignment,
   but this viewer omits its free-stock/returns/required-issue ledger.
 - **Marine inspector:** aptitude, career, wounds, and materialized billet equipment;
@@ -67,8 +73,8 @@ breadcrumb keeps every completed level directly reachable.
   scroll, focus, keyboard actions, and deterministic headless evidence.
 - Keep `MarineRoster` and `MarineArmory` authoritative for exact finite-stock
   preview. The view model never invents a second allocation answer.
-- Complete save migration from legacy per-team template intent into player-authored
-  squad definitions without rewriting an existing marine's materialized kit.
+- Preserve the completed save migration from legacy per-team template intent into
+  player-authored squad definitions without rewriting an existing marine's materialized kit.
 - Preserve Mech Lab as a focused retained surface over `MechBay`; do not restore the
   removed catch-all administration shell.
 
@@ -84,6 +90,11 @@ breadcrumb keeps every completed level directly reachable.
 - Weapon doctrine selection changes primary, grade, role, and special issue without
   changing armor; Armor doctrine selection changes protection without changing the
   Weapon half.
+- Player definitions round-trip with `MarineArmory`; built-ins cannot be renamed or
+  deleted, assigned custom definitions cannot be deleted, and Save as New never
+  silently changes an already issued squad.
+- Definition authoring succeeds without recipes or stock. Only the authoritative
+  squad preview/apply transaction may reject physical issue.
 - The exact twelve-billet preview is the same operation used by apply. A failed
   readiness, stationing, recipe, or stock check changes no kit and neither doctrine id.
 - Company and equipment cards are literal presentation containers, without

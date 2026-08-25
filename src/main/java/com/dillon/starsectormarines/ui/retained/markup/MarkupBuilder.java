@@ -12,6 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 /** Builds ordinary retained elements from a parsed template. */
 final class MarkupBuilder {
@@ -38,6 +39,7 @@ final class MarkupBuilder {
         UiTag tag = switch (source.tagName()) {
             case "div" -> UiTag.DIV;
             case "button" -> UiTag.BUTTON;
+            case "input" -> UiTag.INPUT;
             case "canvas" -> UiTag.CANVAS;
             default -> throw error(frame, source, "Unknown built-in element <" + source.tagName() + ">.");
         };
@@ -71,7 +73,7 @@ final class MarkupBuilder {
                 }
                 result.child(element((MarkupElement) child, frame));
             }
-        } else {
+        } else if (tag != UiTag.INPUT) {
             bindText(result, source.children(), frame);
         }
         return result;
@@ -95,6 +97,23 @@ final class MarkupBuilder {
                 case "onclick" -> {
                     requireTag(tag, UiTag.BUTTON, attribute, frame);
                     target.onClick(handler(attribute, frame));
+                }
+                case "value" -> {
+                    requireTag(tag, UiTag.INPUT, attribute, frame);
+                    if (attribute.isExpression()) {
+                        reactor.bind(() -> target.text(
+                                attribute.expression().asAttribute(frame.scope(), frame.fileName())));
+                    } else {
+                        target.text(attribute.value());
+                    }
+                }
+                case "maxlength" -> {
+                    requireTag(tag, UiTag.INPUT, attribute, frame);
+                    target.inputMaxLength(parseNonNegative(valueOnce(attribute, frame), attribute, frame));
+                }
+                case "oninput" -> {
+                    requireTag(tag, UiTag.INPUT, attribute, frame);
+                    target.onInput(inputHandler(attribute, frame));
                 }
                 case "width", "height" -> {
                     requireTag(tag, UiTag.CANVAS, attribute, frame);
@@ -162,6 +181,17 @@ final class MarkupBuilder {
         if (value instanceof Runnable) return (Runnable) value;
         throw error(frame, attribute, attribute.expression() + " resolved to "
                 + (value == null ? "null" : value.getClass().getName()) + ", not Runnable.");
+    }
+
+    @SuppressWarnings("unchecked")
+    private Consumer<String> inputHandler(MarkupAttribute attribute, Frame frame) {
+        if (!attribute.isExpression()) {
+            throw error(frame, attribute, "oninput takes a {handler} prop; inline script is not supported.");
+        }
+        Object value = attribute.expression().evaluate(frame.scope(), frame.fileName());
+        if (value instanceof Consumer<?>) return (Consumer<String>) value;
+        throw error(frame, attribute, attribute.expression() + " resolved to "
+                + (value == null ? "null" : value.getClass().getName()) + ", not Consumer<String>.");
     }
 
     private void bindText(UiElement target, List<MarkupNode> nodes, Frame frame) {

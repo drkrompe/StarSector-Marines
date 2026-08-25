@@ -69,6 +69,34 @@ class MarkupRuntimeTest {
     }
 
     @Test
+    void retainedInputEditsAReactiveStringWithoutHostReflection() {
+        Reactor values = new Reactor();
+        MutableSignal<String> name = values.signal("Line Issue");
+        MarkupLoader loader = loader("input-view.mlx", """
+                <template props="name, editName">
+                  <input id="name" value="{name}" maxlength="16" oninput="{editName}" />
+                </template>
+                """);
+
+        try (MarkupInstance instance = loader.build(values, "input-view",
+                Map.of("name", name, "editName",
+                        (java.util.function.Consumer<String>) name::set))) {
+            UiElement input = instance.requireElement("name");
+            assertEquals(UiTag.INPUT, input.tag());
+            UiDocument document = new UiDocument(input);
+            document.layout(200f, 30f);
+            document.requestFocus(input, true);
+
+            assertTrue(document.characterTyped('!'));
+            assertEquals("Line Issue!", name.peek());
+            assertTrue(document.keyPressed(
+                    com.dillon.starsectormarines.ui.retained.UiKey.BACKSPACE,
+                    java.util.Set.of(), false));
+            assertEquals("Line Issue", name.peek());
+        }
+    }
+
+    @Test
     void keyedRowsKeepTheirElementIdentityAcrossReorderAndDataReplacement() {
         Reactor values = new Reactor();
         MutableSignal<List<Row>> rows = values.signal(List.of(new Row("a", "Alpha"), new Row("b", "Bravo")));

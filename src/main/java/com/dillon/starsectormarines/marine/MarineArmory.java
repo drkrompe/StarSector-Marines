@@ -29,6 +29,10 @@ public final class MarineArmory implements Serializable {
     private List<FireTeamTemplateCard> templateCards = new ArrayList<>();
     /** Saved three-template compositions; applying one is still an inventory transaction. */
     private List<SquadArrangement> squadArrangements = new ArrayList<>();
+    /** Player-authored squad weapon definitions. Authoring never consumes stock. */
+    private List<SquadWeaponDoctrine> customWeaponDoctrines = new ArrayList<>();
+    /** Player-authored squad armour definitions. Authoring never consumes stock. */
+    private List<SquadArmorDoctrine> customArmorDoctrines = new ArrayList<>();
 
     public MarineArmory() {
         seedStarterIssue();
@@ -46,6 +50,104 @@ public final class MarineArmory implements Serializable {
     }
     public List<SquadArrangement> squadArrangements() {
         return Collections.unmodifiableList(squadArrangements);
+    }
+    public List<SquadWeaponDoctrine> weaponDoctrines() {
+        List<SquadWeaponDoctrine> result = new ArrayList<>(
+                SquadEquipmentDoctrines.weaponDoctrines());
+        result.addAll(customWeaponDoctrines);
+        return Collections.unmodifiableList(result);
+    }
+    public List<SquadArmorDoctrine> armorDoctrines() {
+        List<SquadArmorDoctrine> result = new ArrayList<>(
+                SquadEquipmentDoctrines.armorDoctrines());
+        result.addAll(customArmorDoctrines);
+        return Collections.unmodifiableList(result);
+    }
+    public SquadWeaponDoctrine weaponDoctrineById(String id) {
+        SquadWeaponDoctrine builtIn = SquadEquipmentDoctrines.weaponById(id);
+        if (builtIn != null) return builtIn;
+        if (id == null) return null;
+        for (SquadWeaponDoctrine doctrine : customWeaponDoctrines) {
+            if (doctrine != null && id.equals(doctrine.id())) return doctrine;
+        }
+        return null;
+    }
+    public SquadArmorDoctrine armorDoctrineById(String id) {
+        SquadArmorDoctrine builtIn = SquadEquipmentDoctrines.armorById(id);
+        if (builtIn != null) return builtIn;
+        if (id == null) return null;
+        for (SquadArmorDoctrine doctrine : customArmorDoctrines) {
+            if (doctrine != null && id.equals(doctrine.id())) return doctrine;
+        }
+        return null;
+    }
+
+    public SquadWeaponDoctrine createWeaponDoctrine(
+            String displayName, List<SquadWeaponIssue> issues) {
+        return createWeaponDoctrine("custom:weapons:" + UUID.randomUUID(),
+                displayName, issues);
+    }
+
+    public SquadArmorDoctrine createArmorDoctrine(
+            String displayName, List<MarineArmorPattern> issues) {
+        return createArmorDoctrine("custom:armor:" + UUID.randomUUID(),
+                displayName, issues);
+    }
+
+    public SquadWeaponDoctrine cloneWeaponDoctrine(String sourceId) {
+        SquadWeaponDoctrine source = weaponDoctrineById(sourceId);
+        return source != null
+                ? createWeaponDoctrine(source.displayName() + " Copy", source.issues()) : null;
+    }
+
+    public SquadArmorDoctrine cloneArmorDoctrine(String sourceId) {
+        SquadArmorDoctrine source = armorDoctrineById(sourceId);
+        return source != null
+                ? createArmorDoctrine(source.displayName() + " Copy", source.issues()) : null;
+    }
+
+    public boolean renameWeaponDoctrine(String id, String displayName) {
+        int index = customWeaponDoctrineIndex(id);
+        if (index < 0 || displayName == null || displayName.isBlank()) return false;
+        SquadWeaponDoctrine existing = customWeaponDoctrines.get(index);
+        customWeaponDoctrines.set(index, new SquadWeaponDoctrine(
+                existing.id(), displayName, existing.description(), existing.issues()));
+        return true;
+    }
+
+    public boolean renameArmorDoctrine(String id, String displayName) {
+        int index = customArmorDoctrineIndex(id);
+        if (index < 0 || displayName == null || displayName.isBlank()) return false;
+        SquadArmorDoctrine existing = customArmorDoctrines.get(index);
+        customArmorDoctrines.set(index, new SquadArmorDoctrine(
+                existing.id(), displayName, existing.description(), existing.issues()));
+        return true;
+    }
+
+    boolean deleteWeaponDoctrine(String id) {
+        int index = customWeaponDoctrineIndex(id);
+        if (index < 0) return false;
+        customWeaponDoctrines.remove(index);
+        return true;
+    }
+
+    boolean deleteArmorDoctrine(String id) {
+        int index = customArmorDoctrineIndex(id);
+        if (index < 0) return false;
+        customArmorDoctrines.remove(index);
+        return true;
+    }
+
+    SquadWeaponDoctrine ensureWeaponDoctrine(
+            String id, String displayName, List<SquadWeaponIssue> issues) {
+        SquadWeaponDoctrine existing = weaponDoctrineById(id);
+        return existing != null ? existing : createWeaponDoctrine(id, displayName, issues);
+    }
+
+    SquadArmorDoctrine ensureArmorDoctrine(
+            String id, String displayName, List<MarineArmorPattern> issues) {
+        SquadArmorDoctrine existing = armorDoctrineById(id);
+        return existing != null ? existing : createArmorDoctrine(id, displayName, issues);
     }
     public FireTeamTemplateCard templateCardById(String id) {
         if (id == null) return null;
@@ -281,6 +383,46 @@ public final class MarineArmory implements Serializable {
         templateCards = ordered;
     }
 
+    private SquadWeaponDoctrine createWeaponDoctrine(
+            String id, String displayName, List<SquadWeaponIssue> issues) {
+        if (weaponDoctrineById(id) != null) {
+            throw new IllegalArgumentException("Weapon doctrine id already exists: " + id);
+        }
+        SquadWeaponDoctrine doctrine = new SquadWeaponDoctrine(
+                id, displayName, "Player-authored squad weapon definition.", issues);
+        customWeaponDoctrines.add(doctrine);
+        return doctrine;
+    }
+
+    private SquadArmorDoctrine createArmorDoctrine(
+            String id, String displayName, List<MarineArmorPattern> issues) {
+        if (armorDoctrineById(id) != null) {
+            throw new IllegalArgumentException("Armor doctrine id already exists: " + id);
+        }
+        SquadArmorDoctrine doctrine = new SquadArmorDoctrine(
+                id, displayName, "Player-authored squad armour definition.", issues);
+        customArmorDoctrines.add(doctrine);
+        return doctrine;
+    }
+
+    private int customWeaponDoctrineIndex(String id) {
+        if (id == null) return -1;
+        for (int index = 0; index < customWeaponDoctrines.size(); index++) {
+            SquadWeaponDoctrine doctrine = customWeaponDoctrines.get(index);
+            if (doctrine != null && id.equals(doctrine.id())) return index;
+        }
+        return -1;
+    }
+
+    private int customArmorDoctrineIndex(String id) {
+        if (id == null) return -1;
+        for (int index = 0; index < customArmorDoctrines.size(); index++) {
+            SquadArmorDoctrine doctrine = customArmorDoctrines.get(index);
+            if (doctrine != null && id.equals(doctrine.id())) return index;
+        }
+        return -1;
+    }
+
     private void putAtLeast(String key, int count) {
         if (printedGear.getOrDefault(key, 0) < count) printedGear.put(key, count);
     }
@@ -318,6 +460,12 @@ public final class MarineArmory implements Serializable {
         if (unlockedRecipes == null) unlockedRecipes = new HashSet<>();
         if (templateCards == null) templateCards = new ArrayList<>();
         if (squadArrangements == null) squadArrangements = new ArrayList<>();
+        if (customWeaponDoctrines == null) customWeaponDoctrines = new ArrayList<>();
+        if (customArmorDoctrines == null) customArmorDoctrines = new ArrayList<>();
+        customWeaponDoctrines.removeIf(doctrine -> doctrine == null
+                || SquadEquipmentDoctrines.weaponById(doctrine.id()) != null);
+        customArmorDoctrines.removeIf(doctrine -> doctrine == null
+                || SquadEquipmentDoctrines.armorById(doctrine.id()) != null);
         migrateLegacySecondaryKeys();
         if (unlockedRecipes.isEmpty()) seedStarterIssue();
         seedStarterCards();

@@ -230,8 +230,9 @@ space or participate in hit-testing.
 
 Starsector `InputEventAPI` objects and LWJGL integer key codes end at one host
 adapter. The retained tree receives document-space coordinates, pointer buttons
-named by role, named keys, and a modifier set. Character input remains a separate
-future seam; a key press is not text.
+named by role, named keys, and a modifier set. Printable `eventChar` values cross a
+separate character-input method only while a retained `input` owns focus; key codes
+remain navigation/edit commands rather than text.
 
 Geometric targeting and action eligibility are distinct. The deepest painted box
 under the pointer is the event target even when it is a non-clickable label; pointer
@@ -243,6 +244,9 @@ document order, `tabIndex=-1` remains directly focusable but is skipped, and
 disabled controls are ineligible. Enter confirms the focused control, Space uses a
 press/release action, and unmodified Escape belongs to the document cancel seam.
 Focus acquired by keyboard is visibly distinguished from focus acquired by pointer.
+The MLX `input` subset binds `value`, `oninput`, and `maxlength`; it supports
+printable characters, Backspace, Tab, Enter-to-blur, and Escape-to-blur without file
+access, reflection, a native widget, or a second text-state authority.
 
 Pointer capture is explicit rather than an automatic consequence of pressing.
 While held, pointer movement, hover, and release retarget to the captured element;
