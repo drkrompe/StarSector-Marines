@@ -2,17 +2,15 @@
   <div id="fleet-armory-fireteam-root" class="fleet-armory-root">
     <div id="fireteam-header" class="panel surface-dark">
       <div id="fireteam-title" class="label title tone-accent">FLEET ARMORY</div>
-      <div id="fireteam-purpose" class="label tone-edge">Company  /  Squad  /  Fire team equipment</div>
-    </div>
-
-    <div id="fireteam-breadcrumb" class="panel">
-      <button id="fireteam-breadcrumb-companies" onclick="{back}">Companies</button>
-      <div id="fireteam-breadcrumb-separator-company" class="breadcrumb-separator label tone-muted">/</div>
-      <button id="back-to-squads" onclick="{backToSquads}">Fleet Marine Company</button>
-      <div id="fireteam-breadcrumb-separator-squad" class="breadcrumb-separator label tone-muted">/</div>
-      <div id="fireteam-squad-name" class="breadcrumb-current label tone-edge">{selectedSquadName}</div>
-      <div id="fireteam-breadcrumb-separator-teams" class="breadcrumb-separator label tone-muted">/</div>
-      <div id="fireteam-breadcrumb-current" class="breadcrumb-current label tone-accent">Fire Teams</div>
+      <div id="fireteam-breadcrumb">
+        <button id="fireteam-breadcrumb-companies" onclick="{back}">Companies</button>
+        <div id="fireteam-breadcrumb-separator-company" class="breadcrumb-separator label tone-muted">/</div>
+        <button id="back-to-squads" onclick="{backToSquads}">Fleet Marine Company</button>
+        <div id="fireteam-breadcrumb-separator-squad" class="breadcrumb-separator label tone-muted">/</div>
+        <div id="fireteam-squad-name" class="breadcrumb-current label tone-edge">{selectedSquadName}</div>
+        <div id="fireteam-breadcrumb-separator-teams" class="breadcrumb-separator label tone-muted">/</div>
+        <div id="fireteam-breadcrumb-current" class="breadcrumb-current label tone-accent">Fire Teams</div>
+      </div>
     </div>
 
     <div id="fireteam-body">
@@ -44,21 +42,21 @@
   #fireteam-header {
     flex-direction: row;
     height: 34px;
-    padding: 7px 8px;
-    gap: 10px;
+    padding: 4px 7px;
+    gap: 12px;
   }
 
-  #fireteam-title { width: 220px; }
-  #fireteam-purpose { flex-grow: 1; text-align: right; }
+  #fireteam-title { width: 160px; padding: 3px 0px; }
 
   #fireteam-breadcrumb {
     flex-direction: row;
-    height: 30px;
-    padding: 4px;
-    gap: 6px;
+    width: 0px;
+    height: 26px;
+    flex-grow: 1;
+    gap: 5px;
   }
 
-  #fireteam-breadcrumb button { padding: 3px 7px; border-width: 1px; font-family: body; }
+  #fireteam-breadcrumb button { padding: 2px 7px; border-width: 1px; font-family: body; }
   .breadcrumb-separator { width: 10px; text-align: center; }
   .breadcrumb-current { padding: 3px 4px; }
 
