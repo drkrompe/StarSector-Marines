@@ -108,7 +108,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderMechLab(context, renderer, 1744, 938, 1.5f)),
                 new SnapshotArtifact("mech-lab-asset-picker-wide.png",
                         renderMechLab(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f, true)));
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f, true)),
+                new SnapshotArtifact("mech-lab-hound-empty-socket-wide.png",
+                        renderMechLab(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f, false, true)));
     }
 
     private static BufferedImage renderCompanyHq(
@@ -233,12 +236,19 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static BufferedImage renderMechLab(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, float uiScale) throws Exception {
-        return renderMechLab(context, renderer, width, height, uiScale, false);
+        return renderMechLab(context, renderer, width, height, uiScale, false, false);
     }
 
     private static BufferedImage renderMechLab(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, float uiScale, boolean pickerOpen) throws Exception {
+        return renderMechLab(context, renderer, width, height, uiScale, pickerOpen, false);
+    }
+
+    private static BufferedImage renderMechLab(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, float uiScale, boolean pickerOpen,
+            boolean selectHound) throws Exception {
         Reactor reactor = new Reactor();
         MechBay bay = new MechBay();
         bay.addMech(MechBay.STARTER_SQUAD_ID, new CampaignMech(
@@ -249,6 +259,14 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 MechRole.LR_SUPPORT, MissileReplenisherComponent.ACCELERATED_FEED.id()));
         bay.addReplenisher(MissileReplenisherComponent.ACCELERATED_FEED.id(), 1);
         MechLabViewModel viewModel = new MechLabViewModel(reactor, bay);
+        if (selectHound) {
+            viewModel.mechRows().get().stream()
+                    .filter(row -> row.name().startsWith("Hound"))
+                    .findFirst().orElseThrow().select().run();
+            viewModel.slotRows().get().stream()
+                    .filter(row -> row.name().equals("R. SHOULDER"))
+                    .findFirst().orElseThrow().select().run();
+        }
         if (pickerOpen) viewModel.openAssetPickerAction().run();
         HeadlessArmoryPreviewRenderer technicianPreview =
                 new HeadlessArmoryPreviewRenderer(context.modRoot());
@@ -263,6 +281,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             document.theme(MarineOpsThemes.standard());
             document.canvases().set(instance.requireElement("mech-doll-canvas"),
                     new MechLabDollCanvas(viewModel::selectedVariant,
+                            viewModel::selectedSocket,
                             MechLabDollCanvas::headlessAssets,
                             () -> technicianPreview.assets().layered(
                                     MarineArmorPattern.ARMY_GREEN),

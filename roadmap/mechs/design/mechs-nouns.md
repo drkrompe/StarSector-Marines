@@ -4,9 +4,9 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — separated heavy-asset selection from the Mech Lab fitting
-gantry, made the canonical layered mech composition its visual authority, and
-oriented its maintenance doll south toward the player.
+Updated: 2026-08-25 — gave each chassis an authored spatial fitting layout,
+rendered empty sockets as translucent gantry footprints, and made the room use
+the battle renderer's relative mech-to-worker scale.
 
 ## Purpose
 
@@ -55,7 +55,10 @@ increasing an encounter's total armored threat.
 - A **socket** is one spatial equipment location on a heavy asset. Custom-refit
   sockets will declare a compatibility type—ballistic, energy, missile, or
   omni—and a sized capacity. A component will declare compatible types and a
-  slot cost. The drag gesture is presentation; the validated resulting
+  slot cost. Each asset-class layout owns the socket's asset-relative center and
+  room footprint as well as its compatibility and capacity. An empty translucent
+  footprint means an authored socket is unoccupied; an omitted socket is still
+  genuinely absent. The drag gesture is presentation; the validated resulting
   placement is domain intent.
 - A **weapon family** owns projectile behavior and presentation; a component
   turns it into a mountable rack/arm with capacity and appearance. The gun,
@@ -149,6 +152,14 @@ determines the payload, not the entitlement to call it.
   but it may not approximate mount scale, pivots, absence, or above/below-chassis
   order independently. The gantry rotates that complete composition south toward
   the player; it does not rotate individual equipment layers independently.
+- The fitting room derives chassis and worker dimensions from the battle renderer's
+  shared cell-relative scale. Responsive layout may enlarge or shrink the room's
+  cells, but it may not canvas-fit the selected asset or distort its physical size
+  relative to technicians, tiles, or another chassis.
+- Socket overlays consume the selected asset's authored fitting layout. Their
+  translucent type color, sized footprint, and capacity pips appear in physical
+  room space beneath installed equipment; an authored empty socket stays visible
+  while an absent socket produces no footprint.
 - The gantry is a flat top-down room assembled from the battle renderer's indoor
   tileset cells and props. Its workers use the real layered infantry compositor;
   welding, walking, and station work continue while the player inspects equipment,
