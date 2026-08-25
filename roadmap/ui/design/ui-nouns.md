@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — made shipboard room identity and spatial transition language a standing company-surface navigation law.
+Updated: 2026-08-25 — separated physical resolution fit from the player's explicit Starsector UI-scale preference.
 
 ## Purpose
 
@@ -84,6 +84,15 @@ One host adapter owns each conversion. Layout never reads the framebuffer, and
 elements never add the dialog origin themselves. UI scale is observed at the host
 boundary rather than guessed from the physical monitor.
 
+Physical resolution fit and user UI scale are different inputs. A physically
+smaller host may uniformly shrink the entire reference presentation so ordinary
+resolution changes do not create a different composition. That fit never enlarges
+content above its authored size. Starsector's explicit `getScreenScaleMult()` still
+changes the virtual host space presented to layout, so a player asking for larger UI
+may intentionally trigger responsive tracks, bounded scrolling, or a denser
+composition. Paint, clips, canvas output, and input all share the same document-to-
+host transform.
+
 A headless image is a document-pixel raster, so it requires no fourth layout
 space. Its target consumes document coordinates directly; requested viewport
 dimensions and controlled fixture state make the result reproducible.
@@ -123,8 +132,11 @@ the retained model.
    seams.
 4. **The host boundary is explicit.** Nothing assumes control outside the granted
    custom-panel rectangle or assumes that a requested screen fraction was granted.
-5. **Layout is resolution-aware.** Screens compose from intrinsic sizes, flexible
-   tracks, and bounded regions rather than one monitor's absolute coordinates.
+5. **Resolution fit is not UI preference.** Physically smaller panels uniformly
+   fit the reference presentation before layout gives up its composition; larger
+   panels do not silently inflate it. The player's Starsector UI-scale setting
+   remains a separate density input that responsive tracks and bounded regions may
+   answer deliberately.
 6. **Paint order and hit order agree.** Later content paints above earlier content
    and is tested first. Invisible or clipped content cannot receive a click.
 7. **OpenGL state is borrowed.** A painter or canvas producer restores programs,
@@ -307,10 +319,12 @@ is driven by a surface's interaction needs rather than a flag-day rewrite.
 
 Headless geometry and input tests prove document behavior without Starsector or an
 OpenGL context. Selectable snapshot suites capture deterministic visual evidence
-through the shared runner from either the command line or authoring workbench. The
-in-game workbench proves host coordinates, viewport grants, UI scaling, input
-routing, and GL-state seams. Live screenshot review proves final presentation and
-feel. Passing one evidence layer does not substitute for the others.
+through the shared runner from either the command line or authoring workbench.
+Resolution pairs must preserve composition under uniform fit; separate user-scale
+snapshots prove intentional responsive behavior. The in-game workbench proves host
+coordinates, viewport grants, UI scaling, input routing, and GL-state seams. Live
+screenshot review proves final presentation and feel. Passing one evidence layer
+does not substitute for the others.
 
 ## Extension points
 

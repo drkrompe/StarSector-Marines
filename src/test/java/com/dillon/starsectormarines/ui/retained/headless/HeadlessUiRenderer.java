@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.ui.retained.Rect;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.UiPaintTarget;
+import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
 import javax.imageio.ImageIO;
@@ -56,18 +57,42 @@ public final class HeadlessUiRenderer {
     }
 
     public BufferedImage render(UiDocument document, int width, int height, float alphaMult) {
+        return render(document, width, height, width, height, 1f, alphaMult);
+    }
+
+    /**
+     * Renders the live resolution/UI-scale policy into a physical-pixel image.
+     * Resolution fit may shrink the whole document, while {@code uiScale}
+     * independently changes the logical workspace available to layout.
+     */
+    public BufferedImage renderRelative(UiDocument document, int width, int height,
+                                        float uiScale,
+                                        float referenceWidth, float referenceHeight) {
+        UiViewport viewport = UiViewport.relative(
+                0f, 0f, width / uiScale, height / uiScale,
+                uiScale, referenceWidth, referenceHeight);
+        float deviceScale = viewport.documentScale() * uiScale;
+        return render(document, width, height,
+                viewport.documentWidth(), viewport.documentHeight(),
+                deviceScale, 1f);
+    }
+
+    private BufferedImage render(UiDocument document, int width, int height,
+                                 float documentWidth, float documentHeight,
+                                 float deviceScale, float alphaMult) {
         if (document == null) throw new IllegalArgumentException("document is required");
         if (width <= 0 || height <= 0) {
             throw new IllegalArgumentException("viewport dimensions must be positive");
         }
         document.styles().resolve(document.root());
         installFontMetrics(document, document.root(), new IdentityHashMap<>());
-        document.layout(width, height);
+        document.layout(documentWidth, documentHeight);
 
         BufferedImage output = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics = output.createGraphics();
         configure(graphics);
-        document.render(new RasterTarget(graphics, resources), alphaMult);
+        graphics.scale(deviceScale, deviceScale);
+        document.render(new RasterTarget(graphics, resources, deviceScale), alphaMult);
         graphics.dispose();
         return output;
     }
@@ -97,11 +122,14 @@ public final class HeadlessUiRenderer {
     private static final class RasterTarget implements UiPaintTarget {
         private final Graphics2D graphics;
         private final ResourceStore resources;
+        private final float devicePixelRatio;
         private Shape initialClip;
 
-        private RasterTarget(Graphics2D graphics, ResourceStore resources) {
+        private RasterTarget(Graphics2D graphics, ResourceStore resources,
+                             float devicePixelRatio) {
             this.graphics = graphics;
             this.resources = resources;
+            this.devicePixelRatio = devicePixelRatio;
         }
 
         @Override
@@ -116,7 +144,7 @@ public final class HeadlessUiRenderer {
 
         @Override
         public float devicePixelRatio() {
-            return 1f;
+            return devicePixelRatio;
         }
 
         @Override
