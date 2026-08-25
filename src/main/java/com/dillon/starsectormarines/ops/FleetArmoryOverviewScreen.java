@@ -50,8 +50,7 @@ public final class FleetArmoryOverviewScreen implements Screen {
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
         context = ctx;
-        viewport = new UiViewport(position.getX(), position.getY(),
-                position.getWidth(), position.getHeight());
+        viewport = MarineOpsUiViewport.from(position);
         MarineRosterScript script = MarineRosterScript.getInstance();
         MarineRoster liveRoster = script != null ? script.roster() : null;
         if (liveRoster == null) {
@@ -71,7 +70,7 @@ public final class FleetArmoryOverviewScreen implements Screen {
         }
         projectedCampaignHour = campaignHour();
         if (document == null) installDocument(true);
-        document.layout(viewport.width(), viewport.height());
+        document.layout(viewport.documentWidth(), viewport.documentHeight());
         input = new StarsectorUiInputAdapter(document, viewport);
     }
 
@@ -91,7 +90,9 @@ public final class FleetArmoryOverviewScreen implements Screen {
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard())
                     .onCancel(() -> context.returnFromArmory());
-            if (viewport != null) built.layout(viewport.width(), viewport.height());
+            if (viewport != null) {
+                built.layout(viewport.documentWidth(), viewport.documentHeight());
+            }
         } catch (RuntimeException failure) {
             candidate.close();
             throw failure;

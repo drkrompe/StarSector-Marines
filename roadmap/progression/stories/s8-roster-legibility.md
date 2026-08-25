@@ -5,7 +5,7 @@
 
 Status: READY — the career evidence defined by `progression-nouns.md` is shipped.
 Written: 2026-08-22
-Updated: 2026-08-23 — redirected shipped dependencies and normalized references.
+Updated: 2026-08-25 — accounted for the retained host's shipped resolution-fit and explicit Starsector UI-scale seam.
 
 ## Problem
 
@@ -30,10 +30,12 @@ glance, drill into one, and understand what a captain's traits mean.
 
 ## Slice 0 — Honor the UI scale setting
 
-**Prerequisite, and arguably a latent bug independent of this story.**
+**The retained-host prerequisite is shipped; roster typography verification remains.**
 
-`getScreenScaleMult()` is never called anywhere in the mod. Every font-size
-judgement the project has made was made at one unknown scale setting.
+Retained Marine Ops screens now query `getScreenScaleMult()` at their shared host
+boundary. Physical resolution fit may shrink a reference presentation, while the
+player's explicit UI scale remains a separate density input for responsive layout.
+Legacy and non-retained surfaces do not automatically inherit that policy.
 
 - Query the scale mult and express the readable floor in **physical**
   pixels.
@@ -44,8 +46,8 @@ judgement the project has made was made at one unknown scale setting.
   `GroundParallaxPipeline`, and `BridgeRenderer` are deriving the same
   quantity by hand; consider consolidating rather than adding a fourth.
 
-This slice is small, benefits every screen in the mod, and should land
-before any density work is tuned by eye.
+The roster work must still select and verify its readable type steps at each supported
+UI scale before density is tuned by eye.
 
 ## Slice 1 — Comparable roster rows
 
@@ -98,14 +100,12 @@ Victor 10 and says nothing about Insignia 17 or Arial 14, which were never
 tried. **Re-run the test against those rather than re-testing Victor 10's
 conclusion.**
 
-**2. The floor is expressed in the wrong unit.** `SettingsAPI.getScreenScaleMult()`
-exists and we **never call it**. Our UI ortho spans
-`getScreenWidth()`/`getScreenHeight()`, which the API documents as
-*virtual* pixels — already divided by the scale mult. So Orbitron 20 is 20
-virtual px, rendering as 30 physical px at a 1.5x UI scale and 20 at 1.0x.
-Whatever scale the original playtest ran at silently set the "20", and
-players on other settings get a materially different experience. See
-Slice 0.
+**2. The floor must be judged in physical units.** `SettingsAPI` documents
+`getScreenWidth()`/`getScreenHeight()` as virtual pixels already divided by
+`getScreenScaleMult()`. The retained host now keeps that multiplier explicit:
+Orbitron 20 remains 20 virtual px, rendering as 30 physical px at a 1.5x UI scale
+and 20 at 1.0x. Whatever scale the original playtest ran at silently set the old
+"20", so the roster still needs the multi-scale verification in Slice 0.
 
 **3. Tabular figures matter more than size here.** For stat columns, digit
 advance uniformity is what makes numbers line up:
@@ -135,12 +135,10 @@ body step** without a playtest backing it.
 
 Deferred, in preference order, if the scale proves insufficient:
 
-- **Scale support in `BitmapFont`.** There is none today: `drawString` has
-  no scale parameter and `emitLineQuads` uses glyph metrics 1:1. Adding a
-  multiplier is mechanically easy (scale `w/h/xoffset/yoffset/xadvance`
-  and `lineHeight`) but downscaling a bitmap atlas without mipmaps looks
-  bad and breaks the pixel-grid alignment that keeps text crisp. Useful for
-  honoring the scale mult; not a substitute for the right atlas.
+- **Bitmap-atlas quality under fractional fit.** `BitmapFont.drawStringScaled`
+  and the retained painter now carry the host transform, but downscaling a bitmap
+  atlas without mipmaps can still soften text and break the pixel-grid alignment
+  that keeps it crisp. Scaling support is not a substitute for the right atlas.
 - **Ship our own `.fnt`.** The mod ships **zero** fonts today — we are
   entirely on vanilla's set. BMFont/Hiero produce `.fnt` + `.png` and
   `mod/graphics/` already ships. Best ceiling (a condensed Orbitron-adjacent

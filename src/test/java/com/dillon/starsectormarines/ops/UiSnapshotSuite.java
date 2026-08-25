@@ -54,13 +54,15 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 context.modRoot(), context.starsectorCore());
         return List.of(
                 new SnapshotArtifact("company-hq-bridge-wide.png",
-                        renderCompanyHq(context, renderer, 1744, 938)),
-                new SnapshotArtifact("company-hq-bridge-compact.png",
-                        renderCompanyHq(context, renderer, 1163, 625)),
+                        renderCompanyHq(context, renderer, 1744, 938, 1f)),
+                new SnapshotArtifact("company-hq-bridge-low-resolution.png",
+                        renderCompanyHq(context, renderer, 1163, 625, 1f)),
+                new SnapshotArtifact("company-hq-bridge-ui-scale-150.png",
+                        renderCompanyHq(context, renderer, 1744, 938, 1.5f)),
                 new SnapshotArtifact("fleet-armory-overview-wide.png",
                         renderFleetArmoryOverview(
                                 context, renderer, 1744, 938)),
-                new SnapshotArtifact("fleet-armory-overview-compact.png",
+                new SnapshotArtifact("fleet-armory-overview-low-resolution.png",
                         renderFleetArmoryOverview(
                                 context, renderer, 1163, 625)),
                 new SnapshotArtifact("fleet-armory-squads-wide.png",
@@ -76,7 +78,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
 
     private static BufferedImage renderCompanyHq(
             SnapshotContext context, HeadlessUiRenderer renderer,
-            int width, int height) throws Exception {
+            int width, int height, float uiScale) throws Exception {
         Reactor reactor = new Reactor();
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), COMPANY_HQ_COMPONENTS);
@@ -87,7 +89,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
-            return renderer.render(document, width, height);
+            return renderRelative(renderer, document, width, height, uiScale);
         }
     }
 
@@ -141,7 +143,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                     armoryPreview.assets()));
                 }
             }
-            return renderer.render(document, width, height);
+            return renderRelative(renderer, document, width, height, 1f);
         }
     }
 
@@ -169,8 +171,17 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
-            return renderer.render(document, width, height);
+            return renderRelative(renderer, document, width, height, 1f);
         }
+    }
+
+    private static BufferedImage renderRelative(HeadlessUiRenderer renderer,
+                                                UiDocument document,
+                                                int width, int height,
+                                                float uiScale) {
+        return renderer.renderRelative(document, width, height, uiScale,
+                MarineOpsUiViewport.REFERENCE_WIDTH,
+                MarineOpsUiViewport.REFERENCE_HEIGHT);
     }
 
     private static Map<String, Object> props(FleetArmoryOverviewViewModel viewModel) {
