@@ -1,15 +1,11 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
-import com.dillon.starsectormarines.marine.MarineSquad;
-import com.dillon.starsectormarines.ui.retained.UiAlign;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
-import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader.PreparedReload;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.starsector.StarsectorUiInputAdapter;
 import com.fs.starfarer.api.Global;
@@ -20,14 +16,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Owned-company landing view between Company HQ and one company's Armory. */
-public final class FleetArmoryOverviewScreen implements Screen {
+/** Planet-free shipboard room for active support-lance selection and mech refits. */
+public final class MechLabScreen implements Screen {
 
-    private static final String ROOT_COMPONENT = "fleet-armory-overview";
+    private static final String ROOT_COMPONENT = "mech-lab";
     private static final List<String> COMPONENT_PATHS = List.of(
             "data/ui/components/marine-ops-page-nav.mlx",
-            "data/ui/components/armory/fleet-armory-overview.mlx",
-            "data/ui/components/armory/armory-company-list.mlx");
+            "data/ui/components/mech-lab/mech-lab.mlx");
 
     private final Reactor reactor = new Reactor();
     private final MarkupLoader markup = new MarkupLoader(
@@ -36,12 +31,11 @@ public final class FleetArmoryOverviewScreen implements Screen {
     private MarineOpsContext context;
     private Runnable dismissDialog;
     private MarineRoster roster;
-    private FleetArmoryOverviewViewModel viewModel;
+    private MechLabViewModel viewModel;
     private UiViewport viewport;
     private UiDocument document;
     private MarkupInstance markupInstance;
     private StarsectorUiInputAdapter input;
-    private int projectedCampaignHour = Integer.MIN_VALUE;
 
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
@@ -51,40 +45,29 @@ public final class FleetArmoryOverviewScreen implements Screen {
         MarineRosterScript script = MarineRosterScript.getInstance();
         MarineRoster liveRoster = script != null ? script.roster() : null;
         if (liveRoster == null) {
-            context.returnFromArmory();
+            context.goTo(ScreenId.COMPANY_HQ);
             return;
         }
-        liveRoster.bootstrapInitialComplement(MarineSquad.CAPACITY);
-        liveRoster.reserveSquad();
         if (viewModel == null || roster != liveRoster) {
             closeDocument();
             roster = liveRoster;
-            viewModel = new FleetArmoryOverviewViewModel(reactor, roster,
-                    () -> context.openFleetArmoryWorkspaceFrom(
-                            ScreenId.FLEET_ARMORY_OVERVIEW), CampaignClock::dayFloat);
+            viewModel = new MechLabViewModel(reactor, roster.mechBay());
         } else {
             viewModel.refresh();
         }
-        projectedCampaignHour = campaignHour();
-        if (document == null) installDocument(true);
+        if (document == null) installDocument();
         document.layout(viewport.documentWidth(), viewport.documentHeight());
         input = new StarsectorUiInputAdapter(document, viewport);
     }
 
-    private void installDocument(boolean reloadSource) {
-        PreparedReload prepared = reloadSource
-                ? markup.prepareReload(reactor, ROOT_COMPONENT, props()) : null;
-        MarkupInstance candidate = prepared == null
-                ? markup.build(reactor, ROOT_COMPONENT, props()) : prepared.instance();
+    private void installDocument() {
+        MarkupInstance candidate = markup.reloadAndBuild(reactor, ROOT_COMPONENT, props());
         UiDocument built;
         try {
             requireWiredElements(candidate);
-            candidate.requireElement("company-overview-summary")
-                    .align(UiAlign.STRETCH, UiAlign.CENTER);
             built = new UiDocument(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
-            built.theme(MarineOpsThemes.standard())
-                    .onCancel(() -> context.returnFromArmory());
+            built.theme(MarineOpsThemes.standard()).onCancel(this::close);
             if (viewport != null) {
                 built.layout(viewport.documentWidth(), viewport.documentHeight());
             }
@@ -95,54 +78,56 @@ public final class FleetArmoryOverviewScreen implements Screen {
 
         UiDocument previousDocument = document;
         MarkupInstance previousInstance = markupInstance;
-        if (prepared != null) prepared.commit();
         document = built;
         markupInstance = candidate;
         if (previousDocument != null) previousDocument.deactivateInput();
         if (previousInstance != null) previousInstance.close();
-        if (viewport != null) input = new StarsectorUiInputAdapter(document, viewport);
     }
 
     private Map<String, Object> props() {
         Map<String, Object> props = new LinkedHashMap<>();
-        props.put("fleetSummary", viewModel.fleetSummary());
-        props.put("companyCards", viewModel.companyCards());
-        putPageNavigation(props);
-        return props;
-    }
-
-    private void putPageNavigation(Map<String, Object> props) {
-        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.ARMORY,
-                dismissDialog,
+        props.put("labSummary", viewModel.labSummary());
+        props.put("squadRows", viewModel.squadRows());
+        props.put("mechRows", viewModel.mechRows());
+        props.put("selectedMechName", viewModel.selectedMechName());
+        props.put("selectedMechIdentity", viewModel.selectedMechIdentity());
+        props.put("selectedMechDoctrine", viewModel.selectedMechDoctrine());
+        props.put("specCards", viewModel.specCards());
+        props.put("mountRows", viewModel.mountRows());
+        props.put("installedSubsystem", viewModel.installedSubsystem());
+        props.put("installedCadence", viewModel.installedCadence());
+        props.put("inventoryRows", viewModel.inventoryRows());
+        props.put("feedbackText", viewModel.feedbackText());
+        props.put("feedbackClasses", viewModel.feedbackClasses());
+        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MECH_LAB,
+                this::close,
                 () -> context.goTo(ScreenId.COMPANY_HQ),
-                () -> { },
-                () -> context.goTo(ScreenId.MECH_LAB));
+                () -> context.openCompanyArmoryFrom(ScreenId.MECH_LAB),
+                () -> { });
+        return props;
     }
 
     private static void requireWiredElements(MarkupInstance component) {
         for (String id : List.of(
-                "fleet-armory-overview-root", "marine-ops-page-nav",
-                "page-nav-return", "page-nav-hq", "page-nav-armory",
-                "page-nav-mech-lab",
-                "company-overview-intro", "company-overview-summary",
-                "company-list")) {
+                "mech-lab-root", "marine-ops-page-nav", "page-nav-return",
+                "page-nav-hq", "page-nav-armory", "page-nav-mech-lab",
+                "mech-lab-intro", "mech-lab-body", "mech-lab-roster",
+                "mech-squad-list", "mech-list", "mech-dossier",
+                "mech-spec-grid", "hardpoint-dossier", "mech-mount-list",
+                "installed-subsystem", "mech-inventory", "mech-inventory-list",
+                "mech-lab-feedback")) {
             component.requireElement(id);
         }
     }
 
-    @Override
-    public void advance(float dt) {
-        int currentHour = campaignHour();
-        if (currentHour != projectedCampaignHour) {
-            projectedCampaignHour = currentHour;
-            viewModel.refresh();
-        }
-        if (markupInstance != null) markupInstance.flush();
-        if (document != null) document.advance(dt);
+    private void close() {
+        if (dismissDialog != null) dismissDialog.run();
     }
 
-    private static int campaignHour() {
-        return (int) Math.floor(CampaignClock.dayFloat() * 24f);
+    @Override
+    public void advance(float dt) {
+        if (markupInstance != null) markupInstance.flush();
+        if (document != null) document.advance(dt);
     }
 
     @Override
