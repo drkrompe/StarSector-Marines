@@ -16,11 +16,12 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
 
 import java.util.EnumSet;
+import java.util.List;
 
 /**
- * Non-interactive battle-renderer host for the fabrication gantry.
+ * Non-interactive battle-renderer host for the lance-scale fabrication garage.
  *
- * <p>The room is a real, small {@link BattleSimulation}. It deliberately owns
+ * <p>The garage is a real, bounded {@link BattleSimulation}. It deliberately owns
  * no battle HUD, input adapter, audio loop, selection publisher, or simulation
  * advance. The shared renderer is invoked in two layer subsets so fitting
  * overlays can paint between physical room content and the real unit dolls.</p>
@@ -29,9 +30,7 @@ public final class MechLabBattleScene implements AutoCloseable {
 
     static final int GRID_WIDTH = MechLabSceneLayout.WIDTH;
     static final int GRID_HEIGHT = MechLabSceneLayout.HEIGHT;
-    static final int MECH_CELL_X = MechLabSceneLayout.MECH_X;
-    static final int MECH_CELL_Y = MechLabSceneLayout.MECH_Y;
-    private static final float CAMERA_ZOOM_NOTCHES = 1f;
+    private static final float CAMERA_ZOOM_NOTCHES = 5f;
     private static final EnumSet<RenderLayer> BACKDROP_LAYERS = EnumSet.of(
             RenderLayer.GROUND, RenderLayer.DOODADS);
     private static final EnumSet<RenderLayer> ACTOR_LAYERS = EnumSet.of(RenderLayer.UNITS);
@@ -42,7 +41,7 @@ public final class MechLabBattleScene implements AutoCloseable {
     private final BattleCamera camera = new BattleCamera(GRID_WIDTH, GRID_HEIGHT);
 
     private BattleSimulation simulation;
-    private MechVariant renderedVariant;
+    private List<MechVariant> renderedVariants = List.of();
     private boolean cameraZoomApplied;
 
     public MechLabBattleScene(BattleSprites sprites) {
@@ -51,31 +50,37 @@ public final class MechLabBattleScene implements AutoCloseable {
         renderer.buildTileBatches();
     }
 
-    public void renderBackdrop(CanvasHostViewport viewport, MechVariant variant,
-                               float alphaMult) {
-        render(viewport, variant, alphaMult, BACKDROP_LAYERS);
+    public void renderBackdrop(CanvasHostViewport viewport, List<MechVariant> variants,
+                               int selectedGantry, float alphaMult) {
+        render(viewport, variants, selectedGantry, alphaMult, BACKDROP_LAYERS);
     }
 
-    public void renderActors(CanvasHostViewport viewport, MechVariant variant,
-                             float alphaMult) {
-        render(viewport, variant, alphaMult, ACTOR_LAYERS);
+    public void renderActors(CanvasHostViewport viewport, List<MechVariant> variants,
+                             int selectedGantry, float alphaMult) {
+        render(viewport, variants, selectedGantry, alphaMult, ACTOR_LAYERS);
     }
 
-    static BattleCamera cameraForSurface(float width, float height) {
+    static BattleCamera cameraForSurface(float width, float height, int selectedGantry) {
         BattleCamera result = new BattleCamera(GRID_WIDTH, GRID_HEIGHT);
         configureCamera(result, 0f, 0f, width, height);
         result.zoomAt(CAMERA_ZOOM_NOTCHES, width * 0.5f, height * 0.5f);
+        centerOnGantry(result, selectedGantry);
         return result;
     }
 
-    static float mechWorldX() { return MECH_CELL_X + 0.5f; }
+    static float mechWorldX(int gantryIndex) {
+        return gantry(gantryIndex).cellX() + 0.5f;
+    }
 
-    static float mechWorldY() { return MECH_CELL_Y + 0.5f; }
+    static float mechWorldY(int gantryIndex) {
+        return gantry(gantryIndex).cellY() + 0.5f;
+    }
 
-    private void render(CanvasHostViewport viewport, MechVariant variant,
-                        float alphaMult, EnumSet<RenderLayer> layers) {
-        if (variant == null || viewport.width() <= 0f || viewport.height() <= 0f) return;
-        ensureSimulation(variant);
+    private void render(CanvasHostViewport viewport, List<MechVariant> variants,
+                        int selectedGantry, float alphaMult, EnumSet<RenderLayer> layers) {
+        if (variants == null || variants.isEmpty()
+                || viewport.width() <= 0f || viewport.height() <= 0f) return;
+        ensureSimulation(variants);
         configureCamera(camera, viewport.screenX(), viewport.screenY(),
                 viewport.width(), viewport.height());
         if (!cameraZoomApplied) {
@@ -84,6 +89,7 @@ public final class MechLabBattleScene implements AutoCloseable {
                     viewport.screenY() + viewport.height() * 0.5f);
             cameraZoomApplied = true;
         }
+        centerOnGantry(camera, selectedGantry);
         RenderContext context = new RenderContext(simulation, camera, null,
                 alphaMult, 0f, false, highlights, selection,
                 BattleRenderHostProfile.EMBEDDED_SCENE);
@@ -96,14 +102,25 @@ public final class MechLabBattleScene implements AutoCloseable {
         camera.setViewport(x, y, width, height, fittedCell);
     }
 
-    private void ensureSimulation(MechVariant variant) {
-        if (simulation != null && renderedVariant == variant) return;
-        if (simulation != null) simulation.close();
-        renderedVariant = variant;
-        simulation = buildSimulation(variant);
+    private static void centerOnGantry(BattleCamera camera, int selectedGantry) {
+        MechLabSceneLayout.Gantry gantry = gantry(selectedGantry);
+        camera.centerOn(gantry.cellX() + 0.5f, gantry.cellY() + 0.5f);
     }
 
-    static BattleSimulation buildSimulation(MechVariant variant) {
+    private static MechLabSceneLayout.Gantry gantry(int index) {
+        int safe = Math.max(0, Math.min(MechLabSceneLayout.GANTRIES.size() - 1, index));
+        return MechLabSceneLayout.GANTRIES.get(safe);
+    }
+
+    private void ensureSimulation(List<MechVariant> variants) {
+        List<MechVariant> copy = List.copyOf(variants);
+        if (simulation != null && renderedVariants.equals(copy)) return;
+        if (simulation != null) simulation.close();
+        renderedVariants = copy;
+        simulation = buildSimulation(copy);
+    }
+
+    static BattleSimulation buildSimulation(List<MechVariant> variants) {
         NavigationGrid grid = new NavigationGrid(GRID_WIDTH, GRID_HEIGHT);
         CellTopology topology = new CellTopology(GRID_WIDTH, GRID_HEIGHT);
         for (int y = 0; y < GRID_HEIGHT; y++) {
@@ -122,9 +139,16 @@ public final class MechLabBattleScene implements AutoCloseable {
 
         BattleSimulation sim = new BattleSimulation(grid, topology, 0x4D4543484C41424CL);
         addWorkshopProps(sim);
-        long mech = sim.spawn(new EntitySpec("gantry mech", Faction.MARINE,
-                UnitType.HEAVY_MECH, MECH_CELL_X, MECH_CELL_Y).mechVariant(variant));
-        sim.world().attachMechLoadout(mech, variant.createLoadout(variant.defaultRole));
+        int count = Math.min(variants.size(), MechLabSceneLayout.GANTRIES.size());
+        for (int index = 0; index < count; index++) {
+            MechVariant variant = variants.get(index);
+            MechLabSceneLayout.Gantry gantry = MechLabSceneLayout.GANTRIES.get(index);
+            long mech = sim.spawn(new EntitySpec("gantry mech " + (index + 1), Faction.MARINE,
+                    UnitType.HEAVY_MECH, gantry.cellX(), gantry.cellY())
+                    .mechVariant(variant));
+            sim.world().attachMechLoadout(mech,
+                    variant.createLoadout(variant.defaultRole));
+        }
         for (MechLabSceneLayout.TechnicianPlacement technician
                 : MechLabSceneLayout.TECHNICIANS) {
             spawnTechnician(sim, technician.name(),
@@ -140,6 +164,11 @@ public final class MechLabBattleScene implements AutoCloseable {
     }
 
     private static void addWorkshopProps(BattleSimulation sim) {
+        for (MechLabSceneLayout.FloorOverlayPlacement placement
+                : MechLabSceneLayout.floorOverlays()) {
+            sim.addDoodad(prop(placement.cellX(), placement.cellY(),
+                    placement.tileColumn(), placement.tileRow()));
+        }
         for (MechLabSceneLayout.PropPlacement placement : MechLabSceneLayout.PROPS) {
             sim.addDoodad(prop(placement.cellX(), placement.cellY(),
                     placement.tileColumn(), placement.tileRow()));
@@ -157,5 +186,6 @@ public final class MechLabBattleScene implements AutoCloseable {
             simulation.close();
             simulation = null;
         }
+        renderedVariants = List.of();
     }
 }
