@@ -155,15 +155,16 @@ public final class FleetArmoryScreen implements Screen {
         props.put("teamRows", viewModel.teamRows());
         props.put("targetSummary", viewModel.targetSummary());
         props.put("candidateSummary", viewModel.candidateSummary());
-        props.put("selectedSquadReadiness", viewModel.selectedSquadReadiness());
-        props.put("reinforceLabel", viewModel.reinforceLabel());
-        props.put("reinforceDisabled", viewModel.reinforceDisabled());
-        props.put("reinforceSquad", viewModel.reinforceSelectedSquadAction());
-        props.put("designEquipment", (Runnable) this::showDesigner);
         props.put("weaponDoctrineTiles", viewModel.weaponDoctrineTiles());
         props.put("armorDoctrineTiles", viewModel.armorDoctrineTiles());
         props.put("weaponDoctrineSummary", viewModel.weaponDoctrineSummary());
         props.put("armorDoctrineSummary", viewModel.armorDoctrineSummary());
+        props.put("weaponPickerTabClasses", viewModel.weaponPickerTabClasses());
+        props.put("armorPickerTabClasses", viewModel.armorPickerTabClasses());
+        props.put("weaponPickerPanelClasses", viewModel.weaponPickerPanelClasses());
+        props.put("armorPickerPanelClasses", viewModel.armorPickerPanelClasses());
+        props.put("showWeaponPicker", viewModel.showWeaponPickerAction());
+        props.put("showArmorPicker", viewModel.showArmorPickerAction());
         props.put("marineCards", viewModel.marineCards());
         props.put("transactionSummary", viewModel.transactionSummary());
         props.put("transactionClasses", viewModel.transactionClasses());
@@ -213,9 +214,10 @@ public final class FleetArmoryScreen implements Screen {
                 "page-nav-return", "page-nav-hq", "page-nav-armory",
                 "page-nav-mech-lab",
                 "fireteam-breadcrumb", "back-to-squads", "fireteam-body",
-                "squad-doctrine-strip", "design-equipment", "weapon-doctrine-list", "armor-doctrine-list",
-                "fireteam-rail", "fireteam-list", "refit-transaction", "selected-squad-readiness",
-                "reinforce-selected-squad", "viewer-context", "target-summary",
+                "squad-doctrine-strip", "equipment-picker-tabs", "show-weapon-picker",
+                "show-armor-picker", "weapon-doctrine-list", "armor-doctrine-list",
+                "fireteam-rail", "fireteam-list", "refit-transaction",
+                "viewer-context", "target-summary",
                 "candidate-summary", "marine-card-grid", "squad-equip-row",
                 "transaction-result", "apply-squad-equipment", "transaction-feedback",
                 "marine-preview:0", "marine-preview:1",
