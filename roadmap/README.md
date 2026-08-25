@@ -71,11 +71,13 @@ See `mapgen-nouns.md`, `moddable-tilesets-nouns.md`, and
 `moddable-weapons-nouns.md`.
 
 The retained UI foundation is proven in-engine and is being adopted one
-production surface at a time. Fleet Armory is the active conversion; the UI
-toolkit remains presentation infrastructure rather than company or inventory
-authority. Its complete selected-billet preview can also render as deterministic
-PNG evidence without launching the game. See `ui-nouns.md` and
-`company-view-nouns.md`.
+production surface at a time. Company HQ now reads as the flagship bridge's
+command station, with force, finance, standing, obligations, and learned sector
+reports; Fleet Armory is the next shipboard room and the active authoring
+conversion. The UI toolkit remains presentation infrastructure rather than company
+or inventory authority. Both HQ viewport evidence and the Armory's complete
+selected-billet preview render as deterministic PNGs without launching the game.
+See `ui-nouns.md` and `company-view-nouns.md`.
 
 ## Immediate recommendation
 
