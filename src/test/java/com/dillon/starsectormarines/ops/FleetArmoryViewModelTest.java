@@ -34,7 +34,6 @@ class FleetArmoryViewModelTest {
             "mod/data/ui/components/armory/fleet-armory.mlx",
             "mod/data/ui/components/armory/armory-squad-list.mlx",
             "mod/data/ui/components/armory/fleet-armory-fireteam.mlx",
-            "mod/data/ui/components/armory/armory-fireteam-list.mlx",
             "mod/data/ui/components/armory/armory-squad-doctrine.mlx",
             "mod/data/ui/components/armory/armory-refit-transaction.mlx");
 
@@ -70,6 +69,15 @@ class FleetArmoryViewModelTest {
         assertEquals("Common", firstLoadout.rarity());
         assertTrue(firstLoadout.metadata().contains("TIER I"));
         assertTrue(firstLoadout.description().length() > 120);
+        assertTrue(viewModel.weaponDoctrineTiles().get().size()
+                < roster.armory().weaponDoctrines().size());
+        assertTrue(viewModel.armorDoctrineTiles().get().size()
+                < roster.armory().armorDoctrines().size());
+        viewModel.showLoadoutFilterAction(FleetArmoryViewModel.LoadoutFilter.RARE).run();
+        assertEquals(FleetArmoryViewModel.LoadoutFilter.RARE, viewModel.loadoutFilter());
+        assertTrue(viewModel.weaponDoctrineTiles().get().stream()
+                .allMatch(loadout -> "Rare".equals(loadout.rarity())));
+        assertTrue(viewModel.loadoutBrowserSummary().get().contains(" of "));
 
         assertEquals(SquadEquipmentResult.APPLIED,
                 viewModel.applySquadEquipmentSelection());
@@ -174,6 +182,7 @@ class FleetArmoryViewModelTest {
             assertFalse(source.matches("(?s).*\\b(deck|hand|consume)\\b.*"), path);
             assertFalse(source.contains("armory-template-library"), path);
             assertFalse(source.contains("change loadout"), path);
+            assertFalse(source.contains("missing cards"), path);
         }
     }
 
@@ -189,9 +198,9 @@ class FleetArmoryViewModelTest {
                 new Reactor(), roster, () -> { }, () -> 100d);
 
         assertEquals("WIA  ·  RTD in 1d 6h", viewModel.marineCards().get().get(0).status());
+        assertTrue(viewModel.marineCards().get().get(0).classes().contains("status-wia"));
         assertEquals("1 WIA  ·  RTD 1d 6h",
                 viewModel.squadCards().get().get(0).recovery());
-        assertTrue(viewModel.fireTeamOverviews().get().get(0).recovery().contains("1 WIA"));
         assertTrue(viewModel.reinforceDisabled().get(), "WIA personnel still hold billets");
     }
 
@@ -290,6 +299,8 @@ class FleetArmoryViewModelTest {
         props.put("armorPickerPanelClasses", viewModel.armorPickerPanelClasses());
         props.put("showWeaponPicker", viewModel.showWeaponPickerAction());
         props.put("showArmorPicker", viewModel.showArmorPickerAction());
+        props.put("loadoutFilters", viewModel.loadoutFilters());
+        props.put("loadoutBrowserSummary", viewModel.loadoutBrowserSummary());
         props.put("marineCards", viewModel.marineCards());
         props.put("transactionSummary", viewModel.transactionSummary());
         props.put("transactionClasses", viewModel.transactionClasses());

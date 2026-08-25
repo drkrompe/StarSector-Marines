@@ -36,7 +36,6 @@ public final class FleetArmoryScreen implements Screen {
             "data/ui/components/armory/armory-squad-list.mlx",
             "data/ui/components/armory/fleet-armory-fireteam.mlx",
             "data/ui/components/armory/fleet-armory-doctrine-designer.mlx",
-            "data/ui/components/armory/armory-fireteam-list.mlx",
             "data/ui/components/armory/armory-squad-doctrine.mlx",
             "data/ui/components/armory/armory-refit-transaction.mlx");
 
@@ -165,6 +164,8 @@ public final class FleetArmoryScreen implements Screen {
         props.put("armorPickerPanelClasses", viewModel.armorPickerPanelClasses());
         props.put("showWeaponPicker", viewModel.showWeaponPickerAction());
         props.put("showArmorPicker", viewModel.showArmorPickerAction());
+        props.put("loadoutFilters", viewModel.loadoutFilters());
+        props.put("loadoutBrowserSummary", viewModel.loadoutBrowserSummary());
         props.put("marineCards", viewModel.marineCards());
         props.put("transactionSummary", viewModel.transactionSummary());
         props.put("transactionClasses", viewModel.transactionClasses());
@@ -216,8 +217,8 @@ public final class FleetArmoryScreen implements Screen {
                 "fireteam-breadcrumb", "back-to-squads", "fireteam-body",
                 "squad-doctrine-strip", "equipment-picker-tabs", "show-weapon-picker",
                 "show-armor-picker", "weapon-doctrine-list", "armor-doctrine-list",
-                "fireteam-rail", "fireteam-list", "refit-transaction",
-                "viewer-context", "target-summary",
+                "loadout-browser-tools", "loadout-filter-list", "refit-transaction",
+                "viewer-context", "fireteam-tabs", "target-summary",
                 "candidate-summary", "marine-card-grid", "squad-equip-row",
                 "transaction-result", "apply-squad-equipment", "transaction-feedback",
                 "marine-preview:0", "marine-preview:1",

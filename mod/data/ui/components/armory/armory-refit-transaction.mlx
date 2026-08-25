@@ -1,7 +1,10 @@
-<template props="targetSummary,candidateSummary,marineCards,feedbackText,feedbackClasses">
+<template props="fireTeamOverviews,targetSummary,candidateSummary,marineCards,feedbackText,feedbackClasses">
   <div id="refit-transaction" class="panel fireteam-viewer">
     <div id="viewer-context">
       <div id="viewer-heading" class="label heading tone-edge">FIRE TEAM</div>
+      <div id="fireteam-tabs">
+        <button each="team in fireTeamOverviews" key="{team.id}" id="{team.id}" class="{team.classes}" onclick="{team.select}">{team.name}</button>
+      </div>
       <div id="target-summary" class="label surface-dark tone-edge">{targetSummary}</div>
       <div id="candidate-summary" class="label surface-dark tone-accent">{candidateSummary}</div>
     </div>
@@ -26,39 +29,43 @@
           <canvas id="{marine.canvasId}" class="marine-canvas" width="320" height="240" />
         </div>
 
-        <div id="{marine.primaryId}" class="marine-equipment-title label surface-dark tone-edge">{marine.primary}</div>
-        <div id="{marine.weaponDetailId}" class="marine-equipment-detail">
-          <div id="{marine.primaryDescriptionId}" class="marine-equipment-description label tone-muted">{marine.primaryDescription}</div>
-          <div id="{marine.weaponStatsId}" class="marine-stat-group weapon-stat-group">
-            <div each="stat in marine.weaponStats" key="{stat.id}" id="{stat.id}" class="marine-stat-row">
-              <div id="{stat.labelId}" class="marine-stat-label label tone-muted">{stat.label}</div>
-              <div id="{stat.trackId}" class="marine-stat-track">
-                <div id="{stat.fillId}" class="marine-stat-fill weapon-stat-fill" style="{stat.fillStyle}" />
+        <div id="{marine.equipmentId}" class="marine-equipment-columns">
+          <div id="{marine.weaponColumnId}" class="marine-equipment-column">
+            <div id="{marine.primaryId}" class="marine-equipment-title label surface-dark tone-edge">{marine.primary}</div>
+            <div id="{marine.weaponDetailId}" class="marine-equipment-detail">
+              <div id="{marine.primaryDescriptionId}" class="marine-equipment-description label tone-muted">{marine.primaryDescription}</div>
+              <div id="{marine.weaponStatsId}" class="marine-stat-group weapon-stat-group">
+                <div each="stat in marine.weaponStats" key="{stat.id}" id="{stat.id}" class="marine-stat-row">
+                  <div id="{stat.labelId}" class="marine-stat-label label tone-muted">{stat.label}</div>
+                  <div id="{stat.trackId}" class="marine-stat-track">
+                    <div id="{stat.fillId}" class="marine-stat-fill weapon-stat-fill" style="{stat.fillStyle}" />
+                  </div>
+                  <div id="{stat.valueId}" class="marine-stat-value label tone-edge">{stat.value}</div>
+                </div>
               </div>
-              <div id="{stat.valueId}" class="marine-stat-value label tone-edge">{stat.value}</div>
             </div>
+            <div id="{marine.weaponDeltaId}" class="{marine.deltaClasses}">{marine.weaponDelta}</div>
+            <div id="{marine.specialId}" class="marine-equipment-title label surface-dark tone-accent">{marine.special}</div>
+            <div id="{marine.specialDescriptionId}" class="marine-special-description label tone-muted">{marine.specialDescription}</div>
+          </div>
+          <div id="{marine.armorColumnId}" class="marine-equipment-column">
+            <div id="{marine.armorId}" class="marine-equipment-title label surface-dark">{marine.armor}</div>
+            <div id="{marine.armorDetailId}" class="marine-equipment-detail">
+              <div id="{marine.armorDescriptionId}" class="marine-equipment-description label tone-muted">{marine.armorDescription}</div>
+              <div id="{marine.armorStatsId}" class="marine-stat-group armor-stat-group">
+                <div each="stat in marine.armorStats" key="{stat.id}" id="{stat.id}" class="marine-stat-row">
+                  <div id="{stat.labelId}" class="marine-stat-label label tone-muted">{stat.label}</div>
+                  <div id="{stat.trackId}" class="marine-stat-track">
+                    <div id="{stat.fillId}" class="marine-stat-fill armor-stat-fill" style="{stat.fillStyle}" />
+                  </div>
+                  <div id="{stat.valueId}" class="marine-stat-value label tone-edge">{stat.value}</div>
+                </div>
+              </div>
+            </div>
+            <div id="{marine.armorDeltaId}" class="{marine.deltaClasses}">{marine.armorDelta}</div>
+            <div id="{marine.careerId}" class="marine-career label surface-dark tone-muted">{marine.career}</div>
           </div>
         </div>
-        <div id="{marine.weaponDeltaId}" class="{marine.deltaClasses}">{marine.weaponDelta}</div>
-
-        <div id="{marine.specialId}" class="marine-equipment-title label surface-dark tone-accent">{marine.special}</div>
-        <div id="{marine.specialDescriptionId}" class="marine-equipment-description label tone-muted">{marine.specialDescription}</div>
-
-        <div id="{marine.armorId}" class="marine-equipment-title label surface-dark">{marine.armor}</div>
-        <div id="{marine.armorDetailId}" class="marine-equipment-detail">
-          <div id="{marine.armorDescriptionId}" class="marine-equipment-description label tone-muted">{marine.armorDescription}</div>
-          <div id="{marine.armorStatsId}" class="marine-stat-group armor-stat-group">
-            <div each="stat in marine.armorStats" key="{stat.id}" id="{stat.id}" class="marine-stat-row">
-              <div id="{stat.labelId}" class="marine-stat-label label tone-muted">{stat.label}</div>
-              <div id="{stat.trackId}" class="marine-stat-track">
-                <div id="{stat.fillId}" class="marine-stat-fill armor-stat-fill" style="{stat.fillStyle}" />
-              </div>
-              <div id="{stat.valueId}" class="marine-stat-value label tone-edge">{stat.value}</div>
-            </div>
-          </div>
-        </div>
-        <div id="{marine.armorDeltaId}" class="{marine.deltaClasses}">{marine.armorDelta}</div>
-        <div id="{marine.careerId}" class="marine-career label surface-dark tone-muted">{marine.career}</div>
       </div>
     </div>
 
@@ -67,13 +74,17 @@
 </template>
 
 <style>
-  .fireteam-viewer { flex-direction: column; flex-grow: 1; padding: 8px; gap: 6px; overflow: hidden; }
+  .fireteam-viewer { flex-direction: column; width: 0px; height: 100%; flex-grow: 1; padding: 8px; gap: 6px; overflow: hidden; }
   .label { overflow: hidden; }
   .heading { font-family: heading; }
-  #viewer-heading { width: 104px; padding: 4px 1px; }
+  #viewer-heading { width: 90px; padding: 5px 1px; }
 
-  #viewer-context { flex-direction: row; height: 26px; gap: 6px; }
-  #target-summary, #candidate-summary { width: 0px; flex-grow: 1; padding: 4px 7px; }
+  #viewer-context { flex-direction: row; height: 30px; gap: 6px; }
+  #fireteam-tabs { flex-direction: row; width: 296px; height: 28px; gap: 4px; }
+  .fire-team-tab { width: 80px; height: 28px; padding: 4px 7px; border-width: 1px; font-family: body; text-align: center; }
+  .fire-team-tab.selected { background-color: #345a7c; border-color: #53c6e8; color: #d5deea; }
+  #target-summary { width: 240px; padding: 5px 7px; }
+  #candidate-summary { width: 0px; flex-grow: 1; padding: 5px 7px; }
 
   .marine-card-grid {
     display: grid;
@@ -86,8 +97,8 @@
 
   .marine-viewer-card {
     flex-direction: column;
-    width: 430px;
-    height: 490px;
+    width: 620px;
+    height: 400px;
     padding: 8px;
     gap: 3px;
     border-width: 1px;
@@ -96,7 +107,10 @@
     border-color: #405a78;
   }
 
-  .marine-viewer-card.vacant { opacity: 0.55; }
+  .marine-viewer-card.status-ready { border-color: #4ccf7a; }
+  .marine-viewer-card.status-wia { border-color: #dfb84d; }
+  .marine-viewer-card.status-missing, .marine-viewer-card.status-killed { border-color: #e06b64; }
+  .marine-viewer-card.status-vacant { border-color: #607188; opacity: 0.55; }
   .marine-header { flex-direction: row; height: 24px; gap: 5px; }
   .marine-name { width: 0px; height: 24px; flex-grow: 1; padding: 3px 1px; font-family: body; }
   .marine-badges { flex-direction: row; width: 158px; height: 24px; gap: 3px; }
@@ -104,19 +118,22 @@
   .class-badge { width: 52px; background-color: #172b3b; border-color: #53c6e8; }
   .weapon-badge { width: 32px; background-color: #102633; border-color: #53c6e8; }
   .armor-badge { width: 32px; background-color: #2b2718; border-color: #dfb84d; }
-  .marine-hero { flex-direction: row; height: 104px; gap: 7px; overflow: hidden; }
-  .marine-identity { flex-direction: column; width: 0px; height: 104px; flex-grow: 1; gap: 2px; }
+  .marine-hero { flex-direction: row; height: 100px; gap: 7px; overflow: hidden; }
+  .marine-identity { flex-direction: column; width: 0px; height: 100px; flex-grow: 1; gap: 2px; }
   .marine-role { height: 18px; }
   .marine-status { height: 18px; }
   .marine-service { height: 18px; }
-  .marine-personnel { height: 44px; white-space: normal; }
-  .marine-canvas { width: 104px; height: 104px; border-width: 1px; overflow: hidden; }
+  .marine-personnel { height: 40px; white-space: normal; }
+  .marine-canvas { width: 100px; height: 100px; border-width: 1px; overflow: hidden; }
 
+  .marine-equipment-columns { flex-direction: row; height: 0px; flex-grow: 1; gap: 7px; overflow: hidden; }
+  .marine-equipment-column { flex-direction: column; width: 0px; height: 100%; flex-grow: 1; gap: 3px; overflow: hidden; }
   .marine-equipment-title { height: 22px; padding: 3px 5px; border-width: 1px; }
-  .marine-equipment-detail { flex-direction: row; height: 62px; gap: 7px; overflow: hidden; }
-  .marine-equipment-description { width: 0px; height: 56px; flex-grow: 1; white-space: normal; }
+  .marine-equipment-detail { flex-direction: row; height: 90px; gap: 5px; overflow: hidden; }
+  .marine-equipment-description { width: 0px; height: 86px; flex-grow: 1; white-space: normal; }
+  .marine-special-description { height: 88px; white-space: normal; }
   .marine-stat-group { flex-direction: column; gap: 2px; }
-  .weapon-stat-group, .armor-stat-group { width: 146px; height: 58px; }
+  .weapon-stat-group, .armor-stat-group { width: 132px; height: 58px; }
   .marine-stat-row { flex-direction: row; height: 13px; gap: 4px; }
   .marine-stat-label { width: 44px; }
   .marine-stat-track {
