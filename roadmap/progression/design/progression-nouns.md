@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — made target-faction availability a data-authored composition of existing weapon, grade, armor, and special-equipment identities.
+Updated: 2026-08-25 — separated simultaneous multi-projectile releases from temporal bursts and shipped the shredder-carbine and squad-automatic primary roles.
 
 ## Purpose
 
@@ -88,6 +88,24 @@ supplies quality; provenance supplies source; profile supplies person**. New
 content must preserve this separation. A high-grade weapon is still its family,
 a gauss label does not earn a redundant family, and a skilled soldier does not
 become a bespoke carrier type.
+
+The shipped primary catalog now covers five player-facing decisions. The Rook
+is the rugged chemical-slug baseline, the Lancer is the flexible pulse burst,
+and the Longbow is the deliberate gauss/rail marksman weapon. The Rattler is a
+close-range flechette shredder: one trigger releases several independently
+resolved projectiles with low penetration, steep falloff, and wide spread. Its
+legacy `SMG` enum name and `weapon.smg` id remain only for save compatibility.
+The Stalwart is the squad automatic slugthrower: one trigger begins a long
+temporal burst that participates in the existing covering-fire and bounding
+model without creating a suppression status or permanent gunner class.
+
+Simultaneous projectile count and temporal burst count are separate authored
+axes. Friendly-fire discipline treats one multi-projectile release as one
+trigger decision, while every projectile retains its own physical trajectory,
+impact, telemetry, and presentation. Both families use the same faction-neutral
+engagement and maneuver rules for player and defender carriers. The automatic
+is starter-reachable and appears in the built-in Fire Support template; target
+faction profiles decide whether and how heavily defenders issue either family.
 
 ### Aptitude and experience
 

@@ -789,13 +789,18 @@ public final class SquadPlanDebugPanel implements HudPanel {
     }
 
     static String stabilitySummary(CommandDirective directive) {
-        if (directive == null) return "Issued —   Lease —   Disposition —";
+        if (directive == null) {
+            return "Issued —   Stable —   Lease —   Disposition —";
+        }
+        String stable = directive.stableUntilTick() >= 0
+                ? Integer.toString(directive.stableUntilTick()) : "—";
         String lease = directive.leaseUntilTick() >= 0
                 ? Integer.toString(directive.leaseUntilTick()) : "—";
         String disposition = directive.dispositionReason().isEmpty()
                 ? "—" : directive.dispositionReason();
-        return String.format("Issued %d   Lease %s   Disposition %s",
-                directive.issuedTick(), lease, disposition);
+        return String.format(
+                "Issued %d   Stable %s   Lease %s   Disposition %s",
+                directive.issuedTick(), stable, lease, disposition);
     }
 
     static String trackSummary(ConquestFrontSnapshot snapshot,

@@ -26,7 +26,8 @@ public final class WeaponSymbols {
         switch (w) {
             case FIELD_RIFLE: return "FLD";
             case PULSE_RIFLE: return "RIF";
-            case SMG:         return "SMG";
+            case SMG:         return "SHD";
+            case SQUAD_AUTOMATIC: return "SAW";
             case DMR:         return "DMR";
             default:          return w.name().substring(0, 3);
         }

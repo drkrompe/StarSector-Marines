@@ -67,6 +67,14 @@ public class InfantryCombatStatsTest {
                 MarineWeapon.PULSE_RIFLE, EquipmentGrade.SERVICE), 1e-6f);
         assertEquals(27f, InfantryCombatStats.estimatedDps(
                 MarineWeapon.PULSE_RIFLE, EquipmentGrade.SERVICE, SoldierProfile.REGULAR), 1e-6f);
+        assertEquals(18f, InfantryCombatStats.volleyDamage(
+                MarineWeapon.SMG, EquipmentGrade.SERVICE), 1e-6f);
+        assertEquals(24f, InfantryCombatStats.estimatedDps(
+                MarineWeapon.SMG, EquipmentGrade.SERVICE, SoldierProfile.REGULAR), 1e-6f);
+        assertEquals(46.4f, InfantryCombatStats.volleyDamage(
+                MarineWeapon.SQUAD_AUTOMATIC, EquipmentGrade.SERVICE), 1e-6f);
+        assertEquals(29f, InfantryCombatStats.estimatedDps(
+                MarineWeapon.SQUAD_AUTOMATIC, EquipmentGrade.SERVICE, SoldierProfile.REGULAR), 1e-6f);
 
         float near = InfantryCombatStats.accuracyAtRangeFraction(
                 MarineWeapon.SMG, EquipmentGrade.SERVICE, SoldierProfile.REGULAR, 0.2f);
@@ -76,7 +84,7 @@ public class InfantryCombatStatsTest {
                 MarineWeapon.SMG, EquipmentGrade.SERVICE, SoldierProfile.REGULAR, 1f);
         assertTrue(near > middle);
         assertTrue(middle > maximum);
-        assertEquals(0.2f, maximum, 1e-6f);
+        assertEquals(0.17f, maximum, 1e-6f);
     }
 
     @Test

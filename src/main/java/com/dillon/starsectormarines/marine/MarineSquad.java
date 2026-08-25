@@ -37,6 +37,10 @@ public final class MarineSquad implements Serializable {
     private String leaderSoldierId;
     /** Reusable armory template assigned to each team; null until first refit. */
     private String[] teamTemplateCardIds = new String[TEAMS_PER_SQUAD];
+    /** Squad-wide weapon intent; null means legacy or individually issued equipment. */
+    private String weaponDoctrineId;
+    /** Squad-wide armour intent; null means legacy or individually issued equipment. */
+    private String armorDoctrineId;
 
     public MarineSquad(String name) {
         this(UUID.randomUUID().toString(), name);
@@ -64,6 +68,8 @@ public final class MarineSquad implements Serializable {
         return teamIndex >= 0 && teamIndex < TEAMS_PER_SQUAD
                 ? teamTemplateCardIds[teamIndex] : null;
     }
+    public String weaponDoctrineId() { return weaponDoctrineId; }
+    public String armorDoctrineId() { return armorDoctrineId; }
 
     /**
      * Historical-roll fire-team position. Current campaign formations use
@@ -104,6 +110,11 @@ public final class MarineSquad implements Serializable {
         if (teamIndex >= 0 && teamIndex < TEAMS_PER_SQUAD) {
             teamTemplateCardIds[teamIndex] = value;
         }
+    }
+    void setEquipmentDoctrineIds(String weaponId, String armorId) {
+        weaponDoctrineId = weaponId;
+        armorDoctrineId = armorId;
+        teamTemplateCardIds = new String[TEAMS_PER_SQUAD];
     }
     void setStationingContractId(long value) {
         stationingContractId = value > 0L ? value : -1L;

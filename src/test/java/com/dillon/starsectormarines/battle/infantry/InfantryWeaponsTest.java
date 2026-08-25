@@ -83,7 +83,23 @@ class InfantryWeaponsTest {
         assertFalse(impacts.get(0).friendly);
     }
 
+    @Test
+    void shredderReleasesOneSimultaneousSixProjectileCloud() {
+        Fixture f = fixture(ExperienceTier.REGULAR, false, MarineWeapon.SMG);
+
+        f.weapons.fireShot(f.shooter, f.target, FireStance.STANCED,
+                new ConstantRandom(0.5f));
+
+        assertEquals(6, f.shots.getActiveShots().size());
+        assertEquals(6, f.sim.telemetry().roundsFired(f.shooter));
+    }
+
     private static Fixture fixture(ExperienceTier experience, boolean friendlyInLane) {
+        return fixture(experience, friendlyInLane, MarineWeapon.PULSE_RIFLE);
+    }
+
+    private static Fixture fixture(ExperienceTier experience, boolean friendlyInLane,
+                                   MarineWeapon weapon) {
         NavigationGrid grid = new NavigationGrid(WIDTH, HEIGHT);
         for (int y = 0; y < HEIGHT; y++) {
             for (int x = 0; x < WIDTH; x++) grid.setWalkableFloor(x, y);
@@ -93,7 +109,7 @@ class InfantryWeaponsTest {
                 SoldierAptitude.STEADY, experience.minimumXp);
         long shooter = sim.spawn(new EntitySpec("shooter", Faction.MARINE,
                 UnitType.MARINE, 2, ROW)
-                .primaryWeapon(MarineWeapon.PULSE_RIFLE, EquipmentGrade.SERVICE, profile));
+                .primaryWeapon(weapon, EquipmentGrade.SERVICE, profile));
         long friendly = sim.spawn(new EntitySpec("friendly", Faction.MARINE,
                 UnitType.MARINE, 11, friendlyInLane ? ROW : ROW + 3));
         long target = sim.spawn(new EntitySpec("target", Faction.DEFENDER,
@@ -127,6 +143,19 @@ class InfantryWeaponsTest {
         public float nextFloat() {
             if (values.isEmpty()) throw new IllegalStateException("QueueRandom exhausted");
             return values.remove();
+        }
+    }
+
+    private static final class ConstantRandom extends Random {
+        private final float value;
+
+        ConstantRandom(float value) {
+            this.value = value;
+        }
+
+        @Override
+        public float nextFloat() {
+            return value;
         }
     }
 }

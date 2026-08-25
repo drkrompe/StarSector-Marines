@@ -75,8 +75,8 @@ bounded pattern tradeoffs. Neural uplinks, combat stims, consecration, or drone
 integration do not become automatic faction-wide buffs. A mechanic exists only
 when a typed capability and its owning battle system implement it. Finite stim
 utility belongs to `s2f-combat-stim-injectors.md`; neural/HUD integration is
-provenance and presentation until `s2-primary-weapon-catalog-expansion.md` or a
-later dedicated interface story names a non-duplicative mechanic.
+provenance and presentation until a dedicated interface story names a
+non-duplicative mechanic.
 
 ## Data and authority
 

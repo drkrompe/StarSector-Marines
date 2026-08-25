@@ -9,5 +9,10 @@ public interface AutonomousMissionCommand<F extends CommandFrame, D>
 
     CommandPlan<D> plan(F frame);
 
+    /** Allows typed diagnostics to reconcile against authoritative arbiter results. */
+    default CommanderSnapshot<D> reconcile(CommanderSnapshot<D> snapshot) {
+        return snapshot;
+    }
+
     void publish(CommanderSnapshot<D> snapshot);
 }

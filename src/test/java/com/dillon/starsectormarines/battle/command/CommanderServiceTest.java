@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CommanderServiceTest {
@@ -181,7 +182,7 @@ class CommanderServiceTest {
         arbiter.assignExternal(squad, hold, CommandAuthority.GARRISON,
                 "compound-garrison", "born holding", 4);
         CommandPlan<String> plan = new CommandPlan<>(Faction.MARINE,
-                "test-command", "ADVANCE", 5, -1, 1, 0, List.of(),
+                "test-command", "ADVANCE", 0, -1, 1, 0, List.of(),
                 List.of(CommandProposal.assign(
                         ObjectiveAssignment.support(squad.id),
                         CommandAuthority.MISSION_COMMAND, "advance")), "detail");
@@ -204,7 +205,7 @@ class CommanderServiceTest {
         arbiter.claimExternal(squad, CommandAuthority.REINFORCEMENT,
                 "reinforcement", "counterattack", 4);
         CommandPlan<String> plan = new CommandPlan<>(Faction.MARINE,
-                "test-command", "ADVANCE", 5, -1, 1, 0, List.of(),
+                "test-command", "ADVANCE", 0, -1, 1, 0, List.of(),
                 List.of(CommandProposal.assign(
                         ObjectiveAssignment.support(squad.id),
                         CommandAuthority.MISSION_COMMAND, "advance")), "detail");
@@ -299,7 +300,7 @@ class CommanderServiceTest {
 
         for (ObjectiveAssignment assignment : malformed) {
             CommandPlan<String> plan = new CommandPlan<>(Faction.MARINE,
-                    "test-command", "ADVANCE", 2, -1, 1, 0, List.of(),
+                    "test-command", "ADVANCE", 0, -1, 1, 0, List.of(),
                     List.of(CommandProposal.assign(assignment,
                             CommandAuthority.MISSION_COMMAND, "malformed")),
                     "detail");
@@ -311,6 +312,171 @@ class CommanderServiceTest {
             assertEquals(incumbent, squad.assignedObjective);
             assertEquals(incumbent,
                     arbiter.activeDirective(squad.id).assignment());
+        }
+    }
+
+    @Test
+    void missionDirectiveHoldsThroughNextPulseWithoutRenewing() {
+        BattleSimulation sim = openSim();
+        Squad squad = addSquad(sim, Faction.MARINE, 2, 2);
+        addSquad(sim, Faction.DEFENDER, 8, 8);
+        AssignmentArbiter arbiter = new AssignmentArbiter();
+        ObjectiveAssignment first = ObjectiveAssignment.support(squad.id);
+        ObjectiveAssignment next = ObjectiveAssignment.defendTrack(
+                squad.id, 3, 3);
+
+        CommandDirective issued = commit(arbiter, sim,
+                CommandProposal.assign(first, CommandAuthority.MISSION_COMMAND,
+                        "first order"));
+        int stableUntil = issued.stableUntilTick();
+        assertEquals(sim.getSimTickIndex()
+                        + AssignmentArbiter.MIN_STABILITY_TICKS,
+                stableUntil);
+
+        CommandDirective changed = commit(arbiter, sim,
+                CommandProposal.assign(next, CommandAuthority.MISSION_COMMAND,
+                        "ordinary retarget"));
+        assertEquals(CommandDirective.Status.RETAINED, changed.status());
+        assertEquals(first, squad.assignedObjective);
+        assertEquals(stableUntil, changed.stableUntilTick());
+        assertTrue(changed.dispositionReason().contains("stable through tick"));
+
+        CommandDirective unchanged = commit(arbiter, sim,
+                CommandProposal.assign(first, CommandAuthority.MISSION_COMMAND,
+                        "same target"));
+        assertEquals(issued.issuedTick(), unchanged.issuedTick());
+        assertEquals(stableUntil, unchanged.stableUntilTick(),
+                "same-order refresh must not renew the floor");
+
+        CommandDirective released = commit(arbiter, sim,
+                CommandProposal.release(squad.id,
+                        CommandAuthority.MISSION_COMMAND, "ordinary release"));
+        assertEquals(CommandDirective.Status.RETAINED, released.status());
+        assertEquals(first, squad.assignedObjective);
+
+        advanceTicks(sim, AssignmentArbiter.MIN_STABILITY_TICKS + 1);
+        CommandDirective superseded = commit(arbiter, sim,
+                CommandProposal.assign(next, CommandAuthority.MISSION_COMMAND,
+                        "retarget after floor"));
+        assertEquals(CommandDirective.Status.ACTIVE, superseded.status());
+        assertEquals(next, squad.assignedObjective);
+        assertEquals(sim.getSimTickIndex(), superseded.issuedTick());
+        assertTrue(superseded.dispositionReason()
+                .contains("after stability interval"));
+    }
+
+    @Test
+    void typedInvalidationsMaySupersedeStableMissionDirective() {
+        for (CommandStabilityBreak stabilityBreak : List.of(
+                CommandStabilityBreak.OBJECTIVE_COMPLETED,
+                CommandStabilityBreak.TARGET_UNREACHABLE,
+                CommandStabilityBreak.CONTEXT_INVALIDATED)) {
+            BattleSimulation sim = openSim();
+            Squad squad = addSquad(sim, Faction.MARINE, 2, 2);
+            AssignmentArbiter arbiter = new AssignmentArbiter();
+            commit(arbiter, sim, CommandProposal.assign(
+                    ObjectiveAssignment.support(squad.id),
+                    CommandAuthority.MISSION_COMMAND, "first order"));
+            ObjectiveAssignment next = ObjectiveAssignment.defendTrack(
+                    squad.id, 3, 3);
+
+            CommandDirective result = commit(arbiter, sim,
+                    CommandProposal.assign(next,
+                            CommandAuthority.MISSION_COMMAND,
+                            "legal break", stabilityBreak));
+
+            assertEquals(CommandDirective.Status.ACTIVE, result.status());
+            assertEquals(next, squad.assignedObjective);
+            assertTrue(result.dispositionReason().contains(
+                    stabilityBreak.description()));
+        }
+    }
+
+    @Test
+    void interventionOverridesStabilityAndItsLeaseBlocksMissionUntilExpiry() {
+        BattleSimulation sim = openSim();
+        Squad squad = addSquad(sim, Faction.MARINE, 2, 2);
+        addSquad(sim, Faction.DEFENDER, 8, 8);
+        AssignmentArbiter arbiter = new AssignmentArbiter();
+        commit(arbiter, sim, CommandProposal.assign(
+                ObjectiveAssignment.support(squad.id),
+                CommandAuthority.MISSION_COMMAND, "mission order"));
+        ObjectiveAssignment intervention = ObjectiveAssignment.defendTrack(
+                squad.id, 4, 4);
+        arbiter.assignExternal(squad, intervention,
+                CommandAuthority.PLAYER_INTERVENTION, "player-intervention",
+                "hold here", sim.getSimTickIndex(), 10);
+
+        CommandDirective owner = arbiter.activeDirective(squad.id);
+        assertEquals(intervention, squad.assignedObjective);
+        assertTrue(owner.dispositionReason().contains("higher authority"));
+        CommandDirective blocked = commit(arbiter, sim,
+                CommandProposal.assign(ObjectiveAssignment.support(squad.id),
+                        CommandAuthority.MISSION_COMMAND, "mission retry"));
+        assertEquals(CommandDirective.Status.REJECTED, blocked.status());
+        assertEquals(intervention, squad.assignedObjective);
+
+        advanceTicks(sim, 11);
+        ObjectiveAssignment restored = ObjectiveAssignment.support(squad.id);
+        CommandDirective afterExpiry = commit(arbiter, sim,
+                CommandProposal.assign(restored,
+                        CommandAuthority.MISSION_COMMAND, "lease expired"));
+        assertEquals(CommandDirective.Status.ACTIVE, afterExpiry.status());
+        assertEquals(restored, squad.assignedObjective);
+        assertTrue(afterExpiry.dispositionReason().contains("expired lease"));
+    }
+
+    @Test
+    void duplicateProposalsFailBeforeMutatingAnyAssignment() {
+        BattleSimulation sim = openSim();
+        Squad squad = addSquad(sim, Faction.MARINE, 2, 2);
+        AssignmentArbiter arbiter = new AssignmentArbiter();
+        CommandProposal first = CommandProposal.assign(
+                ObjectiveAssignment.support(squad.id),
+                CommandAuthority.MISSION_COMMAND, "first");
+        CommandProposal duplicate = CommandProposal.assign(
+                ObjectiveAssignment.defendTrack(squad.id, 3, 3),
+                CommandAuthority.MISSION_COMMAND, "duplicate");
+        CommandPlan<String> plan = plan(sim, List.of(first, duplicate));
+
+        assertThrows(IllegalStateException.class,
+                () -> arbiter.commit(plan, sim, CommandTopology.freeze(sim)));
+        assertNull(squad.assignedObjective);
+        assertNull(arbiter.activeDirective(squad.id));
+    }
+
+    @Test
+    void compatibilityDirectWriteCannotDisplaceRegisteredOwnership() {
+        BattleSimulation sim = openSim();
+        Squad squad = addSquad(sim, Faction.MARINE, 2, 2);
+        AssignmentArbiter arbiter = new AssignmentArbiter();
+        ObjectiveAssignment owned = ObjectiveAssignment.support(squad.id);
+        arbiter.assignExternal(squad, owned, CommandAuthority.GARRISON,
+                "garrison", "protected", 0);
+
+        squad.assignedObjective = ObjectiveAssignment.defendTrack(squad.id, 4, 4);
+        arbiter.synchronizeCompatibilityAssignments(sim, Map.of());
+
+        assertEquals(owned, squad.assignedObjective);
+        assertEquals("garrison", arbiter.activeDirective(squad.id).issuer());
+    }
+
+    private static CommandDirective commit(AssignmentArbiter arbiter,
+                                            BattleSimulation sim,
+                                            CommandProposal proposal) {
+        return arbiter.commit(plan(sim, List.of(proposal)), sim,
+                CommandTopology.freeze(sim)).directiveFor(proposal.squadId());
+    }
+
+    private static CommandPlan<String> plan(BattleSimulation sim,
+                                            List<CommandProposal> proposals) {
+        return new CommandPlan<>(Faction.MARINE, "test-command", "ADVANCE",
+                sim.getSimTickIndex(), -1, 1, 0, List.of(), proposals, "detail");
+    }
+
+    private static void advanceTicks(BattleSimulation sim, int ticks) {
+        for (int i = 0; i < ticks; i++) {
+            sim.advance(BattleSimulation.TICK_DT * 1.01f);
         }
     }
 

@@ -75,7 +75,8 @@ class TtkReportTest {
 
         List<Measurement> byWeapon = new ArrayList<>();
         for (MarineWeapon weapon : new MarineWeapon[]{
-                MarineWeapon.FIELD_RIFLE, MarineWeapon.PULSE_RIFLE, MarineWeapon.SMG, MarineWeapon.DMR}) {
+                MarineWeapon.FIELD_RIFLE, MarineWeapon.PULSE_RIFLE, MarineWeapon.SMG,
+                MarineWeapon.SQUAD_AUTOMATIC, MarineWeapon.DMR}) {
             for (Defender defender : new Defender[]{
                     MILITIA, UNARMORED, MID_ARMOR, HEAVY_ARMOR, ALIEN, SWARM_RUNNER}) {
                 byWeapon.add(TtkHarness.measure(new Scenario(weapon, EquipmentGrade.SERVICE,

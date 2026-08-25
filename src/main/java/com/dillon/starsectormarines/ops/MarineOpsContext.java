@@ -99,8 +99,7 @@ public class MarineOpsContext {
     /** Screen and ready-seat target associated with the current armory visit. */
     private ScreenId armoryReturnScreen = ScreenId.MISSION_SELECT;
     /** Back target for the retained company workspace inside an armory visit. */
-    private ScreenId fleetArmoryWorkspaceBackScreen = ScreenId.ARMORY;
-    private int armoryPersonnelTarget;
+    private ScreenId fleetArmoryWorkspaceBackScreen = ScreenId.FLEET_ARMORY_OVERVIEW;
 
     /** Mission lists cached per client so positions stay stable across re-layouts. */
     private final Map<String, List<Mission>> missionsByClient = new HashMap<>();
@@ -230,18 +229,10 @@ public class MarineOpsContext {
         this.currentScreen = screen;
     }
 
-    public void openArmoryFrom(ScreenId returnScreen, int personnelTarget) {
-        armoryReturnScreen = returnScreen != null ? returnScreen : ScreenId.MISSION_SELECT;
-        fleetArmoryWorkspaceBackScreen = ScreenId.ARMORY;
-        armoryPersonnelTarget = Math.max(0, personnelTarget);
-        goTo(ScreenId.ARMORY);
-    }
-
     /** Opens the owned-company landing view used by the campaign Company HQ. */
     public void openCompanyArmoryFrom(ScreenId returnScreen) {
         armoryReturnScreen = returnScreen != null ? returnScreen : ScreenId.COMPANY_HQ;
         fleetArmoryWorkspaceBackScreen = ScreenId.FLEET_ARMORY_OVERVIEW;
-        armoryPersonnelTarget = 0;
         goTo(ScreenId.FLEET_ARMORY_OVERVIEW);
     }
 
@@ -258,10 +249,6 @@ public class MarineOpsContext {
 
     public void returnFromArmory() {
         goTo(armoryReturnScreen);
-    }
-
-    public int getArmoryPersonnelTarget() {
-        return armoryPersonnelTarget;
     }
 
     public String getSelectedCaptainId() {

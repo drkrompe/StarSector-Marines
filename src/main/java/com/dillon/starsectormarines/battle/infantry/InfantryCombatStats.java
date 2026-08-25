@@ -37,7 +37,7 @@ public final class InfantryCombatStats {
 
     /** Total raw damage released by one trigger pull, before hit rolls. */
     public static float volleyDamage(MarineWeapon family, EquipmentGrade grade) {
-        return damage(family, grade) * family.burstCount();
+        return damage(family, grade) * family.burstCount() * family.projectilesPerShot();
     }
 
     /** Sustained raw output based on the interval between trigger pulls. */

@@ -216,6 +216,7 @@ public final class MarineArmory implements Serializable {
         if (victories >= 2) unlockPrimary(MarineWeapon.PULSE_RIFLE, EquipmentGrade.MILSPEC);
         if (victories >= 3) unlockPrimary(MarineWeapon.SMG, EquipmentGrade.MILSPEC);
         if (victories >= 4) unlockPrimary(MarineWeapon.DMR, EquipmentGrade.MILSPEC);
+        if (victories >= 4) unlockPrimary(MarineWeapon.SQUAD_AUTOMATIC, EquipmentGrade.MILSPEC);
         // The first aspirational chase item: proven operations plus one dangerous field test.
         if (victories >= 5 && highRiskVictories >= 1) {
             unlockPrimary(MarineWeapon.DMR, EquipmentGrade.MASTERWORK);
@@ -239,6 +240,7 @@ public final class MarineArmory implements Serializable {
         unlockPrimary(MarineWeapon.PULSE_RIFLE, EquipmentGrade.SERVICE);
         unlockPrimary(MarineWeapon.PULSE_RIFLE, EquipmentGrade.SURPLUS);
         unlockPrimary(MarineWeapon.SMG, EquipmentGrade.SERVICE);
+        unlockPrimary(MarineWeapon.SQUAD_AUTOMATIC, EquipmentGrade.SERVICE);
         unlockPrimary(MarineWeapon.DMR, EquipmentGrade.SERVICE);
         unlockSecondary(MarineSecondary.ROCKET_LAUNCHER);
         unlockSecondary(MarineSecondary.ANTI_MATERIEL_RIFLE);
@@ -250,6 +252,7 @@ public final class MarineArmory implements Serializable {
         printedGear.put(primaryKey(MarineWeapon.PULSE_RIFLE, EquipmentGrade.SERVICE), 12);
         printedGear.put(primaryKey(MarineWeapon.PULSE_RIFLE, EquipmentGrade.SURPLUS), 1);
         printedGear.put(primaryKey(MarineWeapon.SMG, EquipmentGrade.SERVICE), 3);
+        printedGear.put(primaryKey(MarineWeapon.SQUAD_AUTOMATIC, EquipmentGrade.SERVICE), 3);
         printedGear.put(primaryKey(MarineWeapon.DMR, EquipmentGrade.SERVICE), 3);
         printedGear.put(secondaryKey(MarineSecondary.ROCKET_LAUNCHER), 2);
         printedGear.put(secondaryKey(MarineSecondary.ANTI_MATERIEL_RIFLE), 1);
@@ -263,8 +266,11 @@ public final class MarineArmory implements Serializable {
     private void seedStarterCards() {
         List<FireTeamTemplateCard> ordered = new ArrayList<>();
         for (FireTeamTemplateCard starter : FireTeamTemplateCards.starterCards()) {
-            FireTeamTemplateCard existing = templateCardById(starter.id());
-            ordered.add(existing != null ? existing : starter);
+            // Built-ins are versioned library fixtures rather than player
+            // documents. Reinstall the current definition on load so an
+            // existing save receives catalog migrations such as the Fire
+            // Support team's squad automatic; custom clones remain untouched.
+            ordered.add(starter);
         }
         for (FireTeamTemplateCard card : templateCards) {
             if (card != null && !FireTeamTemplateCards.isStarterId(card.id())
@@ -317,6 +323,8 @@ public final class MarineArmory implements Serializable {
         seedStarterCards();
         // Existing saves predate the recruit-grade field rifle recipe.
         unlockPrimary(MarineWeapon.FIELD_RIFLE, EquipmentGrade.SERVICE);
+        unlockPrimary(MarineWeapon.SQUAD_AUTOMATIC, EquipmentGrade.SERVICE);
+        putAtLeast(primaryKey(MarineWeapon.SQUAD_AUTOMATIC, EquipmentGrade.SERVICE), 3);
         unlockSecondary(MarineSecondary.ANTI_MATERIEL_RIFLE);
         putAtLeast(secondaryKey(MarineSecondary.ANTI_MATERIEL_RIFLE), 1);
         unlockSecondary(MarineSecondary.SMOKE_GRENADE);
