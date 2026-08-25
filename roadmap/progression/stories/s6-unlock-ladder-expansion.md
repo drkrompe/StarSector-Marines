@@ -7,7 +7,7 @@ Status: PLANNED — depends on the remaining S2E–S2G special-equipment stories
 armor expansion also depends on
 `powered-assault-armor-roles.md`.
 Written: 2026-08-22
-Updated: 2026-08-25 — aligned the ladder with shipped collectible equipment templates and cargo-backed issue.
+Updated: 2026-08-25 — recognized the shipped learnable cargo-card seam; world sources and factional availability remain this story's work.
 
 ## Problem
 
@@ -82,6 +82,13 @@ Sources for a template card: high-risk operation loot, patron contract reward,
 story/special mission, market purchase, MRB licensing tier, and a modest set of
 early-campaign milestone grants so a green company is not gated behind luck
 in its first hours.
+
+The parameterized cargo item and its right-click learning transition are now
+shipped. A source can create its validated payload from any stable
+equipment-template id; successful learning moves the capability into
+`MarineArmory` without entering vanilla ship-production knowledge. The item is
+tagged out of automatic drops and the generic Codex until this story authors
+its factional recovery, reward, and market population rules.
 
 Installation recovery is specific: `intact-installation-recovery.md` may admit
 a faction-provenance template only when the matching site was secured in an

@@ -1,0 +1,2 @@
+name,id,tags,tech/manufacturer,rarity,base price,stack size,cargo space,baseRaidDanger,icon,sound id,sound id drop,plugin,plugin params,desc,order
+Marine Equipment Template,starsector_marines_equipment_template,"no_drop, hide_in_codex",Marine Operations,,5000,1000,1,,graphics/icons/cargo/blueprint_weapons.png,ui_chip_pickup,ui_weapon_bp_drop,com.dillon.starsectormarines.marine.EquipmentTemplateCardItemPlugin,,A field-ready technical package for infantry weapons and equipment. Learn it to make the pattern permanently available in the Fleet Armory.,325

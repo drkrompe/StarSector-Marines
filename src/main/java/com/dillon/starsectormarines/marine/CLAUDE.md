@@ -51,6 +51,14 @@ armor issue. `MarineArmory` must seed or repair every matching template card on 
 and migrated saves; the campaign resource authority separately decides whether the
 fleet has enough cargo to materialize that baseline pair.
 
+Equipment-template acquisition enters the campaign through a parameterized
+special cargo item. Its data is the stable equipment-template id; learning it
+writes only to `MarineArmory`. Do not implement `BlueprintProviderItem` or call
+player-faction known-hull, known-fighter, known-weapon, or known-industry APIs
+for infantry templates, because those are ship-production authorities. Invalid
+cards, duplicates, and an unavailable roster are non-destructive and must not
+consume cargo.
+
 When adding new persistent gameplay state, prefer this pattern: a thin
 `EveryFrameScript` holding POJOs, registered once in `onGameLoad` (idempotent —
 check via `getInstance()` first). Don't reach for `MemoryAPI` unless the data
