@@ -1,10 +1,10 @@
 # Autonomous mission-command foundation
 
-Status: IN PROGRESS — the shared frame/plan/commit envelope, paired Conquest migration, and common diagnostics are implemented; writer ownership, disclosure hardening, stability coverage, and live acceptance remain.
+Status: IN PROGRESS — the shared frame/plan/commit envelope, paired Conquest migration, common diagnostics, and spawn-time garrison/payload/reinforcement ownership are implemented; legacy scripted writers, disclosure hardening, stability coverage, and live acceptance remain.
 
 Written: 2026-08-25
 
-Updated: 2026-08-25 — recorded the paired Conquest reference migration and common selected-squad/dump visibility while keeping broader ownership, determinism, and playtest acceptance open.
+Updated: 2026-08-25 — added battle-owned external claims, incumbent-checked handoff, payload/garrison/reinforcement birth ownership, and inspectable form-up execution suspension while keeping legacy writer, determinism, and playtest acceptance open.
 
 Read `ai-nouns.md`, `conquest-nouns.md`, and `battle-fixtures-nouns.md` before
 implementing this story.
@@ -35,8 +35,9 @@ owns them.
   scripted, and other externally owned squads do not enter a mission strategy's
   pool until their owning system hands them off.
 - Route every assignment writer through the ownership registry/arbiter or an
-  explicit handoff, including garrison, payload, reinforcement, scripted,
-  form-up, and future intervention systems.
+  explicit handoff, including garrison, payload, reinforcement, scripted, and
+  future intervention systems. Form-up suspends execution of an owned
+  directive; it does not become an assignment writer.
 - Wrap each proposed `ObjectiveAssignment` in a directive that records issuer,
   authority, reason, issue tick, target semantics, lease/stability state, and
   supersession reason.

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.command.reinforcement;
 
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
+import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -57,6 +58,11 @@ public class ShuttleMeansTest {
         long[] airIds = sim.getAirEntityIds();
         assertEquals(1, airIds.length, "one shuttle dispatched");
         ShuttleMission mission = sim.world().mission(airIds[0]);
+        assertEquals(CommandAuthority.REINFORCEMENT,
+                mission.commandClaim.authority());
+        assertEquals("reinforcement", mission.commandClaim.issuer());
+        assertEquals(ReinforcementRequest.Reason.GARRISON_DEPLETED.name(),
+                mission.commandClaim.reason());
         int lzX = (int) mission.lzX;
         int lzY = (int) mission.lzY;
         assertEquals(0, topo.getBuildingId(lzX, lzY), "LZ must be outside any building footprint");

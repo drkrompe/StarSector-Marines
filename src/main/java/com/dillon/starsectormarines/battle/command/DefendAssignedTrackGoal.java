@@ -21,7 +21,7 @@ public final class DefendAssignedTrackGoal implements Goal {
 
     @Override
     public float relevance(WorldState state, Squad squad, BattleView sim) {
-        ObjectiveAssignment assignment = squad.assignedObjective;
+        ObjectiveAssignment assignment = squad.assignmentForExecution();
         if (assignment == null || assignment.kind() != AssignmentKind.DEFEND_TRACK) return 0f;
         if (assignment.targetCellX() < 0 || assignment.targetCellY() < 0) return 0f;
         if (state.get(Predicate.MORALE_BROKEN) || state.get(Predicate.HAS_TARGET)) return 0f;
@@ -32,7 +32,7 @@ public final class DefendAssignedTrackGoal implements Goal {
 
     @Override
     public SquadPlan customPlan(Squad squad, BattleView sim) {
-        ObjectiveAssignment assignment = squad.assignedObjective;
+        ObjectiveAssignment assignment = squad.assignmentForExecution();
         if (assignment == null || assignment.kind() != AssignmentKind.DEFEND_TRACK) return null;
         int x = assignment.targetCellX();
         int y = assignment.targetCellY();

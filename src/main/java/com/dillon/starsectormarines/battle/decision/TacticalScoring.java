@@ -1541,7 +1541,7 @@ public final class TacticalScoring {
     }
 
     private Posture postureOf(Squad squad) {
-        ObjectiveAssignment assignment = squad.assignedObjective;
+        ObjectiveAssignment assignment = squad.assignmentForExecution();
         if (assignment != null) {
             return assignment.kind() == AssignmentKind.HOLD_NODE
                     ? Posture.DEFENDING : Posture.ADVANCING;
@@ -1554,7 +1554,7 @@ public final class TacticalScoring {
     private float[] tacticalAxis(Squad squad) {
         float targetX = Float.NaN;
         float targetY = Float.NaN;
-        ObjectiveAssignment assignment = squad.assignedObjective;
+        ObjectiveAssignment assignment = squad.assignmentForExecution();
         if (assignment != null) {
             if (assignment.targetCellX() >= 0 && assignment.targetCellY() >= 0) {
                 targetX = assignment.targetCellX() + 0.5f;
@@ -1618,7 +1618,7 @@ public final class TacticalScoring {
     }
 
     private static boolean mustHold(Squad squad) {
-        ObjectiveAssignment assignment = squad.assignedObjective;
+        ObjectiveAssignment assignment = squad.assignmentForExecution();
         if (assignment != null && assignment.targetNode() != null) {
             return assignment.targetNode().mustHold;
         }

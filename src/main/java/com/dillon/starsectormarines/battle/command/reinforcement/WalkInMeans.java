@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.command.reinforcement;
 
+import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -113,8 +114,11 @@ public final class WalkInMeans implements ReinforcementMeans {
             unit.role(UnitRole.PATROL);
             if (squad == null) {
                 int sid = sim.mintSquad(req.side, infantryType);
+                SquadCommandClaim.reinforcement(req.reason.name()).apply(sim, sid);
                 squad = sim.getSquad(sid);
-                if (squad != null) squad.assignedNode = anchor;
+                if (squad != null) {
+                    squad.assignedNode = anchor;
+                }
             }
             if (squad != null) unit.squad(squad.id);
             sim.spawn(unit);

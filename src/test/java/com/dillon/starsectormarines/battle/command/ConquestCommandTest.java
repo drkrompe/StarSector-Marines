@@ -473,7 +473,8 @@ public class ConquestCommandTest {
         captureCompound(sim, node);
 
         Squad garrison = addMarineSquad(sim, 5f, 5f);
-        garrison.assignHoldNode(node); // born holding
+        garrison.assignedObjective = ObjectiveAssignment.holdNode(
+                garrison.id, node); // fixture for a born-holding external owner
         ConquestCommand cmd = new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH);
         cmd.tick(sim);
 

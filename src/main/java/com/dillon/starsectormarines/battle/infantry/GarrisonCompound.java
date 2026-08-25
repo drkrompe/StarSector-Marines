@@ -99,7 +99,7 @@ public final class GarrisonCompound implements Goal {
      * {@link #defenderAreaPatrol}).
      */
     private static TacticalNode garrisonNode(Squad squad, BattleView sim) {
-        ObjectiveAssignment a = squad.assignedObjective;
+        ObjectiveAssignment a = squad.assignmentForExecution();
         if (a != null && a.kind() == AssignmentKind.HOLD_NODE) {
             TacticalNode node = a.targetNode();
             if (node != null && !GarrisonArea.garrisonZones(node, GARRISON_MARGIN, sim).isEmpty()) {

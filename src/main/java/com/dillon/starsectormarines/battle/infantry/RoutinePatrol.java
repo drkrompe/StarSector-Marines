@@ -53,7 +53,7 @@ public final class RoutinePatrol implements Goal {
         // normally invisible because legacy defenders have no commander, but
         // opening relief operations order their raider squads to advance on
         // the allied line before contact.
-        if (squad.assignedObjective != null) return 0f;
+        if (squad.assignmentForExecution() != null) return 0f;
         if (squad.holdsFireUntilKillZone) return 0f;
         if (squad.alertLevel == SquadAlertLevel.ENGAGED) return 0f;
         if (squad.alertLevel == SquadAlertLevel.SUSPICIOUS

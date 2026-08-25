@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.command.reinforcement;
 
+import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -225,6 +226,7 @@ public final class ConvoyMeans implements ReinforcementMeans {
         VehicleMission mission = new VehicleMission(
                 inX, inY, outX, outY,
                 PENDING_SEC, VehicleType.HEAVY_APC.capacity);
+        mission.commandClaim = SquadCommandClaim.reinforcement(req.reason.name());
         // Stash the routing inputs so the recovery ladder can re-route mid-drive.
         mission.routeCostField = cost;
         mission.routeClearance = clr;

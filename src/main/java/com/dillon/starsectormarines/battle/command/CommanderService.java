@@ -81,6 +81,14 @@ public final class CommanderService {
         return snapshots.get(faction);
     }
 
+    /**
+     * Current authoritative command-ledger entry for one squad, independent
+     * of whether its mission publishes a {@link CommanderSnapshot}.
+     */
+    public CommandDirective activeDirective(int squadId) {
+        return assignments.activeDirective(squadId);
+    }
+
     public AssignmentArbiter assignments() {
         return assignments;
     }

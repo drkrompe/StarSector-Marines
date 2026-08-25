@@ -15,7 +15,7 @@ public final class TacticalNodeQueries {
      * Other assignment kinds do not replace {@link Squad#assignedNode}.
      */
     public static TacticalNode assignedNode(Squad squad) {
-        ObjectiveAssignment assignment = squad.assignedObjective;
+        ObjectiveAssignment assignment = squad.assignmentForExecution();
         if (assignment != null && assignment.kind() == AssignmentKind.HOLD_NODE
                 && assignment.targetNode() != null) {
             return assignment.targetNode();

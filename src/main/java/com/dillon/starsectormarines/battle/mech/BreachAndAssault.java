@@ -196,7 +196,7 @@ public final class BreachAndAssault implements Action {
 
     private static int[] destination(long member, Squad squad, long target,
                                      BattleView sim) {
-        ObjectiveAssignment assignment = squad.assignedObjective;
+        ObjectiveAssignment assignment = squad.assignmentForExecution();
         if (assignment != null && assignment.targetZoneId() >= 0) {
             int assignedZone = assignment.targetZoneId();
             NavigationZone zone = sim.getZoneGraph().zoneById(assignedZone);

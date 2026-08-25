@@ -1,5 +1,9 @@
 package com.dillon.starsectormarines.battle.air;
 
+import com.dillon.starsectormarines.battle.command.CommandAuthority;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
+import com.dillon.starsectormarines.battle.command.SquadDirectiveControl;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.logistics.ResupplyCache;
@@ -31,10 +35,12 @@ public final class AirDeliveryContext {
     private final UnitRosterService roster;
     private final Function<EntitySpec, Long> spawnSink;
     private final ResupplyService resupply;
+    private final SquadDirectiveControl commandControl;
 
     AirDeliveryContext(ShuttleMission mission, ShuttleType carrier, Faction faction,
                        NavigationService navigation, UnitRosterService roster,
-                       Function<EntitySpec, Long> spawnSink, ResupplyService resupply) {
+                       Function<EntitySpec, Long> spawnSink, ResupplyService resupply,
+                       SquadDirectiveControl commandControl) {
         this.mission = mission;
         this.carrier = carrier;
         this.faction = faction;
@@ -42,6 +48,7 @@ public final class AirDeliveryContext {
         this.roster = roster;
         this.spawnSink = spawnSink;
         this.resupply = resupply;
+        this.commandControl = commandControl;
     }
 
     public int[] findOpenDeboardCell() {
@@ -77,6 +84,17 @@ public final class AirDeliveryContext {
 
     public Squad squad(int squadId) {
         return roster.getSquad(squadId);
+    }
+
+    /** Applies optional spawn-time ownership before the squad's first unit appears. */
+    public void claimSquadCommand(int squadId, SquadCommandClaim claim) {
+        if (claim != null) claim.apply(commandControl, squadId);
+    }
+
+    public void assignSquadCommand(ObjectiveAssignment assignment,
+                                   CommandAuthority authority,
+                                   String issuer, String reason) {
+        commandControl.assignSquadCommand(assignment, authority, issuer, reason);
     }
 
     /** Mint-or-join the battle squad for a tagged campaign marine at this mission's LZ. */

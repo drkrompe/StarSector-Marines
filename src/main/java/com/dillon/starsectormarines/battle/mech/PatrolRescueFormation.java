@@ -42,7 +42,7 @@ public final class PatrolRescueFormation implements Action {
     @Override
     public List<int[]> highlightCells(Squad squad, BattleView sim) {
         List<int[]> result = new ArrayList<>();
-        ObjectiveAssignment assignment = squad.assignedObjective;
+        ObjectiveAssignment assignment = squad.assignmentForExecution();
         if (assignment != null && assignment.targetCellX() >= 0
                 && assignment.targetCellY() >= 0) {
             result.add(new int[]{assignment.targetCellX(),
@@ -60,7 +60,7 @@ public final class PatrolRescueFormation implements Action {
         int[] cells = squad.rescuePatrolCells;
         if (cells == null || cells.length < 2) return null;
         if (squad.rescuePatrolIndex < 0) {
-            ObjectiveAssignment assignment = squad.assignedObjective;
+            ObjectiveAssignment assignment = squad.assignmentForExecution();
             squad.rescuePatrolIndex = 0;
             if (assignment != null && assignment.targetCellX() >= 0
                     && assignment.targetCellY() >= 0) {

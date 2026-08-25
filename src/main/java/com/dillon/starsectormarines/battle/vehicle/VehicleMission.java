@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -33,6 +34,9 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 public final class VehicleMission {
 
     public VehicleState state = VehicleState.PENDING;
+
+    /** Ownership claimed when this mission first mints its transported squad. */
+    public SquadCommandClaim commandClaim;
 
     /** Inbound path's cell-center coords. {@link #lzX}/{@link #lzY} repeat the last entry as a convenience. Mutable — may be replaced by a re-plan. */
     public float[] inboundX;

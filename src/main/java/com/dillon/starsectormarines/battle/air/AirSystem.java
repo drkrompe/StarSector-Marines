@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.air.engine.EngineSlotResolver;
 import com.dillon.starsectormarines.battle.air.engine.ThrusterFx;
 import com.dillon.starsectormarines.battle.air.engine.ThrusterFxSystem;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.command.SquadDirectiveControl;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -77,6 +78,7 @@ public class AirSystem {
     private final Function<EntitySpec, Long> addUnitSink;
     private final EffectsService effects;   // crash FX on shoot-down (smoke plume + burning wreck)
     private final ResupplyService resupply;
+    private final SquadDirectiveControl commandControl;
 
     /**
      * The air entity ids this system drives — the stable per-tick iteration
@@ -110,7 +112,7 @@ public class AirSystem {
     public AirSystem(NavigationService navigation, UnitRosterService roster,
                      TacticalScoring tacticalScoring, World world, TurretFireSink fireSink,
                      Random rng, Function<EntitySpec, Long> addUnitSink, EffectsService effects,
-                     ResupplyService resupply) {
+                     ResupplyService resupply, SquadDirectiveControl commandControl) {
         this.navigation = navigation;
         this.roster = roster;
         this.tacticalScoring = tacticalScoring;
@@ -120,6 +122,7 @@ public class AirSystem {
         this.addUnitSink = addUnitSink;
         this.effects = effects;
         this.resupply = resupply;
+        this.commandControl = commandControl;
         this.entityWorld = roster.entityWorld();
         this.components = roster.components();
         this.shuttleArchetype = new ComponentType[]{
@@ -378,7 +381,7 @@ public class AirSystem {
                         AirDeliveryPayload payload = mission.payload != null
                                 ? mission.payload : InfantryPayload.INSTANCE;
                         if (payload.tryDeploy(new AirDeliveryContext(mission, type, world.airFaction(id),
-                                navigation, roster, addUnitSink, resupply))) {
+                                navigation, roster, addUnitSink, resupply, commandControl))) {
                             mission.marinesRemaining--;
                             mission.deboardedThisSortie++;
                         }

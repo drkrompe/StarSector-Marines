@@ -34,7 +34,7 @@ public final class SweepSector implements Action {
 
     @Override
     public ActionStatus execute(long member, Squad squad, BattleControl sim) {
-        ObjectiveAssignment assignment = squad.assignedObjective;
+        ObjectiveAssignment assignment = squad.assignmentForExecution();
         if (assignment == null || assignment.kind() != AssignmentKind.SWEEP_SECTOR
                 || assignment.targetCellX() != targetX || assignment.targetCellY() != targetY) {
             clearSquadPaths(squad, sim);

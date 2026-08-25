@@ -152,8 +152,23 @@ public final class SquadStateDumper {
         o.put("assignedNodeMustHold", squad.assignedNode != null && squad.assignedNode.mustHold);
         o.put("assignedObjective", squad.assignedObjective != null
                 ? buildAssignmentJson(squad.assignedObjective) : JSONObject.NULL);
+        ObjectiveAssignment executable = squad.assignmentForExecution();
+        JSONObject execution = new JSONObject();
+        execution.put("status", executable != null ? "READY" :
+                squad.assignmentExecutionSuspension() != null
+                        ? "SUSPENDED" : "UNASSIGNED");
+        execution.put("suspensionReason",
+                squad.assignmentExecutionSuspension() != null
+                        ? squad.assignmentExecutionSuspension() : JSONObject.NULL);
+        execution.put("assignment", executable != null
+                ? buildAssignmentJson(executable) : JSONObject.NULL);
+        o.put("assignmentExecution", execution);
         CommanderSnapshot<?> commander = sim.getCommanderSnapshot(squad.faction);
-        o.put("commander", buildCommanderJson(squad, commander, sim));
+        CommandDirective commandDirective = sim.getSquadCommandDirective(squad.id);
+        o.put("commandDirective", buildCommandDirectiveJson(
+                squad, commandDirective));
+        o.put("commander", buildCommanderJson(
+                squad, commander, commandDirective, sim));
         o.put("conquestCommand", buildConquestCommandJson(squad, commander, sim));
         // Garrison-specific flags — load-bearing for "why won't this squad fire" diagnostics.
         o.put("holdsFireUntilKillZone", squad.holdsFireUntilKillZone);
@@ -312,6 +327,7 @@ public final class SquadStateDumper {
 
     private static Object buildCommanderJson(Squad squad,
                                               CommanderSnapshot<?> snapshot,
+                                              CommandDirective ledgerDirective,
                                               BattleSimulation sim)
             throws Exception {
         if (snapshot == null) return JSONObject.NULL;
@@ -334,31 +350,41 @@ public final class SquadStateDumper {
         out.put("objectives", objectives);
 
         CommandDirective directive = snapshot.directiveFor(squad.id);
+        if (directive == null) directive = ledgerDirective;
         if (directive == null) {
             out.put("squadDirective", JSONObject.NULL);
         } else {
-            JSONObject row = new JSONObject();
-            row.put("issuer", directive.issuer());
-            row.put("authority", directive.authority().name());
-            row.put("status", directive.status().name());
-            row.put("reason", directive.reason());
-            row.put("dispositionReason", directive.dispositionReason());
-            row.put("issuedTick", directive.issuedTick());
-            row.put("leaseUntilTick", directive.leaseUntilTick());
-            ObjectiveAssignment effective = directive.status()
-                    == CommandDirective.Status.REJECTED
-                    ? squad.assignedObjective : directive.assignment();
-            row.put("assignment", effective != null
-                    ? buildAssignmentJson(effective)
-                    : JSONObject.NULL);
-            row.put("proposedAssignment", directive.status()
-                    == CommandDirective.Status.REJECTED
-                    && directive.assignment() != null
-                    ? buildAssignmentJson(directive.assignment())
-                    : JSONObject.NULL);
-            out.put("squadDirective", row);
+            out.put("squadDirective", buildCommandDirectiveJson(
+                    squad, directive));
         }
         return out;
+    }
+
+    /** Ledger provenance remains available even without a commander snapshot. */
+    private static Object buildCommandDirectiveJson(Squad squad,
+                                                     CommandDirective directive)
+            throws Exception {
+        if (directive == null) return JSONObject.NULL;
+        JSONObject row = new JSONObject();
+        row.put("issuer", directive.issuer());
+        row.put("authority", directive.authority().name());
+        row.put("status", directive.status().name());
+        row.put("reason", directive.reason());
+        row.put("dispositionReason", directive.dispositionReason());
+        row.put("issuedTick", directive.issuedTick());
+        row.put("leaseUntilTick", directive.leaseUntilTick());
+        ObjectiveAssignment effective = directive.status()
+                == CommandDirective.Status.REJECTED
+                ? squad.assignedObjective : directive.assignment();
+        row.put("assignment", effective != null
+                ? buildAssignmentJson(effective)
+                : JSONObject.NULL);
+        row.put("proposedAssignment", directive.status()
+                == CommandDirective.Status.REJECTED
+                && directive.assignment() != null
+                ? buildAssignmentJson(directive.assignment())
+                : JSONObject.NULL);
+        return row;
     }
 
     private static Object buildConquestCommandJson(Squad squad,

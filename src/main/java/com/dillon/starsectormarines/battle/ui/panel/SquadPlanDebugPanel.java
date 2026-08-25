@@ -301,13 +301,17 @@ public final class SquadPlanDebugPanel implements HudPanel {
         lines += 7;
         dividers += 1;
         // Section 3: goal + assignment; autonomous command adds the committed
-        // common envelope and Conquest adds its typed track reasoning.
-        lines += 2;
+        // common envelope, the ownership ledger adds directive provenance,
+        // and Conquest adds its typed track reasoning.
+        lines += 3;
         CommanderSnapshot<?> commander = commanderSnapshot(s, ctx.getSim());
-        if (commander != null) {
-            lines += 4;
-            if (conquestSnapshot(commander) != null) lines += 1;
-        }
+        CommandDirective directive = commandDirective(s, ctx.getSim(), commander);
+        CommandDirective activeDirective = ctx.getSim()
+                .getSquadCommandDirective(s.id);
+        if (commander != null) lines += 1;
+        if (directive != null) lines += 3;
+        if (activeDirective != null && !activeDirective.equals(directive)) lines += 1;
+        if (commander != null && conquestSnapshot(commander) != null) lines += 1;
         dividers += 1;
         // Section 4: "Plan: …" line + per-step (action line + slot lines).
         lines += 1;
@@ -507,8 +511,9 @@ public final class SquadPlanDebugPanel implements HudPanel {
         }
         lineY -= DETAIL_LINE_H;
         CommanderSnapshot<?> commander = commanderSnapshot(s, ctx.getSim());
-        CommandDirective directive = commander != null
-                ? commander.directiveFor(s.id) : null;
+        CommandDirective directive = commandDirective(s, ctx.getSim(), commander);
+        CommandDirective activeDirective = ctx.getSim()
+                .getSquadCommandDirective(s.id);
         ObjectiveAssignment displayedAssignment = directive != null
                 && directive.status() != CommandDirective.Status.REJECTED
                 ? directive.assignment() : s.assignedObjective;
@@ -536,10 +541,15 @@ public final class SquadPlanDebugPanel implements HudPanel {
             font.drawString(assignLabel, lineX + 96f, lineY, DETAIL_VALUE_FG, alphaMult);
         }
         lineY -= DETAIL_LINE_H;
+        lineY = drawLineIfVisible(font, executionSummary(s),
+                lineX, lineY, DETAIL_VALUE_FG, alphaMult,
+                vpBottomY, vpTopY);
         if (commander != null) {
             lineY = drawLineIfVisible(font, commandSummary(commander),
                     lineX, lineY, DETAIL_VALUE_FG, alphaMult,
                     vpBottomY, vpTopY);
+        }
+        if (directive != null) {
             lineY = drawLineIfVisible(font, directiveSummary(directive),
                     lineX, lineY, DETAIL_VALUE_FG, alphaMult,
                     vpBottomY, vpTopY);
@@ -549,6 +559,13 @@ public final class SquadPlanDebugPanel implements HudPanel {
             lineY = drawLineIfVisible(font, stabilitySummary(directive),
                     lineX, lineY, DETAIL_VALUE_FG, alphaMult,
                     vpBottomY, vpTopY);
+        }
+        if (activeDirective != null && !activeDirective.equals(directive)) {
+            lineY = drawLineIfVisible(font, ownershipSummary(activeDirective),
+                    lineX, lineY, DETAIL_VALUE_FG, alphaMult,
+                    vpBottomY, vpTopY);
+        }
+        if (commander != null) {
             ConquestFrontSnapshot conquest = conquestSnapshot(commander);
             if (conquest != null) {
                 lineY = drawLineIfVisible(font, trackSummary(conquest,
@@ -726,6 +743,14 @@ public final class SquadPlanDebugPanel implements HudPanel {
         return sim.getCommanderSnapshot(squad.faction);
     }
 
+    private static CommandDirective commandDirective(
+            Squad squad, BattleSimulation sim, CommanderSnapshot<?> snapshot) {
+        CommandDirective active = sim.getSquadCommandDirective(squad.id);
+        if (snapshot == null) return active;
+        CommandDirective proposed = snapshot.directiveFor(squad.id);
+        return proposed != null ? proposed : active;
+    }
+
     private static ConquestFrontSnapshot conquestSnapshot(
             CommanderSnapshot<?> snapshot) {
         return snapshot.detail() instanceof ConquestFrontSnapshot conquest
@@ -742,6 +767,18 @@ public final class SquadPlanDebugPanel implements HudPanel {
                 ? "Directive —   Authority —"
                 : String.format("Directive %s   Authority %s",
                 directive.status(), directive.authority());
+    }
+
+    static String executionSummary(Squad squad) {
+        String reason = squad.assignmentExecutionSuspension();
+        if (reason != null) return "Execution SUSPENDED   Reason " + reason;
+        return squad.assignmentForExecution() != null
+                ? "Execution READY" : "Execution UNASSIGNED";
+    }
+
+    static String ownershipSummary(CommandDirective directive) {
+        return String.format("Active owner %s   Authority %s",
+                directive.issuer(), directive.authority());
     }
 
     static String provenanceSummary(CommandDirective directive) {

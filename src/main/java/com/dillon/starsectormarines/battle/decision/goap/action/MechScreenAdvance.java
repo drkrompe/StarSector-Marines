@@ -103,7 +103,8 @@ final class MechScreenAdvance {
             float dx = sim.world().x(candidate) - squad.centroidX;
             float dy = sim.world().y(candidate) - squad.centroidY;
             float distance = (float) Math.sqrt(dx * dx + dy * dy);
-            boolean assignmentMatch = sameTargetZone(mechSquad.assignedObjective, targetZoneId);
+            boolean assignmentMatch = sameTargetZone(
+                    mechSquad.assignmentForExecution(), targetZoneId);
             if (assignmentMatch) {
                 if (distance > MATCHED_MAX_DISTANCE
                         || !onObjectiveAxis(squad, candidate, destX, destY,

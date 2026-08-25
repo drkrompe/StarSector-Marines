@@ -25,7 +25,7 @@ public final class EscortAssignedCiviliansGoal implements Goal {
     @Override
     public float relevance(WorldState state, Squad squad, BattleView sim) {
         if (state.get(Predicate.MORALE_BROKEN)) return 0f;
-        ObjectiveAssignment assignment = squad.assignedObjective;
+        ObjectiveAssignment assignment = squad.assignmentForExecution();
         return assignment != null && assignment.kind() == AssignmentKind.ESCORT
                 && assignment.targetCellX() >= 0
                 && assignment.targetCellY() >= 0 ? 0.9f : 0f;

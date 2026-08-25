@@ -29,7 +29,11 @@ public record CommandDirective(
     }
 
     public boolean ownsAssignment() {
-        return assignment != null
-                && (status == Status.ACTIVE || status == Status.RETAINED);
+        return assignment != null && ownsSquad();
+    }
+
+    /** True when this directive owns the squad, even without a tactical assignment. */
+    public boolean ownsSquad() {
+        return status == Status.ACTIVE || status == Status.RETAINED;
     }
 }

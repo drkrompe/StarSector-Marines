@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns autonomous mission command, squad planning, belief-de
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — defined the two-sided command-duel baseline, frozen command inputs, directive ownership, and bounded player intervention.
+Updated: 2026-08-25 — defined the two-sided command-duel baseline, frozen command inputs, directive ownership, spawn-time external claims, and form-up execution suspension.
 
 AI turns mission context and what a side has learned into coordinated
 movement, posture, and fire intent. It is a decision system, not the authority
@@ -27,7 +27,7 @@ move, hold, acquire a target, or author a legal fire intent, but it does not
 silently replace the squad's plan. Combat systems remain responsible for
 whether an authored shot lands and what it damages.
 
-An assignment change is a tactical-plan interrupt: the squad replans against
+An executable-assignment change is a tactical-plan interrupt: the squad replans against
 the new mission context immediately instead of finishing work authored for the
 former assignment. Movement paths belong to the plan that authored them. A
 planless unit drops that path, while a path may survive the instant a completed
@@ -67,14 +67,24 @@ leakage.
 
 A **command pool** is the set of squads a strategy may allocate. Born
 garrisons, payload guards, scripted actors, and reinforcement forces awaiting
-handoff remain explicitly owned outside that pool. A **directive** combines a
-tactical `ObjectiveAssignment` with its issuing authority, reason, issue tick,
-target meaning, and stability or lease state. A shared arbiter validates and
+handoff remain explicitly owned outside that pool. Ownership may exist without
+a tactical assignment: reinforcement delivery claims its squad when the squad
+is minted, even while the squad has no place to act. A **directive** combines
+that ownership with an optional `ObjectiveAssignment`, issuing authority,
+reason, issue tick, target meaning, and stability or lease state. A shared arbiter validates and
 commits proposed directives after planning; mission strategies do not compete
 through untracked writes to the squad assignment field. Every other assignment
-writer—garrison, payload, reinforcement, scripted, form-up, and intervention
+writer—garrison, payload, reinforcement, scripted, and intervention
 systems—must likewise register its ownership with the arbiter or perform an
-explicit handoff. No direct-write escape hatch may bypass provenance.
+explicit incumbent-checked handoff. A weaker or equal external claim cannot
+displace another issuer. No direct-write escape hatch may bypass provenance.
+
+Form-up is an execution suspension, not an assignment writer or ownership
+transfer. The authoritative directive remains inspectable and may be updated
+while a tagged campaign squad assembles; tactical goals consume a derived
+executable assignment that is null until the manifest arrives or the timeout
+expires. Selected-squad and dump diagnostics show both the authoritative order
+and the READY/SUSPENDED execution state.
 
 A **commander snapshot** is the immutable explanation published after commit.
 It names the perspective, strategy, phase, command pool, reserves, objective or

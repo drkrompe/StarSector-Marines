@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.decision.goap.action.EnterZone;
 import com.dillon.starsectormarines.battle.command.DefendAssignedTrackGoal;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.nav.Paths;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -227,7 +228,8 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         }
 
         boolean memberCountChanged = squad.aliveMembers != squad.aliveMembersAtLastPlan;
-        boolean assignmentChanged = !Objects.equals(squad.assignedObjective,
+        ObjectiveAssignment executableAssignment = squad.assignmentForExecution();
+        boolean assignmentChanged = !Objects.equals(executableAssignment,
                 squad.assignedObjectiveAtLastPlan);
         // Incoming fire is a tactical interrupt, not something infantry should
         // ignore until the normal two-second cadence. SquadAlertSystem computes
@@ -264,7 +266,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             squad.currentGoal = null;
             squad.timeSinceReplan = 0f;
             squad.aliveMembersAtLastPlan = squad.aliveMembers;
-            squad.assignedObjectiveAtLastPlan = squad.assignedObjective;
+            squad.assignedObjectiveAtLastPlan = executableAssignment;
             squad.clearMechScreen();
             return;
         }
@@ -312,7 +314,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         squad.currentGoal = goal;
         squad.timeSinceReplan = 0f;
         squad.aliveMembersAtLastPlan = squad.aliveMembers;
-        squad.assignedObjectiveAtLastPlan = squad.assignedObjective;
+        squad.assignedObjectiveAtLastPlan = executableAssignment;
     }
 
     private static boolean protectedShelterGuard(

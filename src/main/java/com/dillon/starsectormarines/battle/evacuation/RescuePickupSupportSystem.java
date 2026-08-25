@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.MechSupportPayload;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.setup.InfantryLoadoutRolls;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -230,9 +231,10 @@ public final class RescuePickupSupportSystem {
 
     private int formationPointOf(Squad squad) {
         if (squad == null || !squad.rescuePickupGuard
-                || squad.assignedObjective == null) return -1;
-        return formationPointOf(squad.assignedObjective.targetCellX(),
-                squad.assignedObjective.targetCellY());
+                || squad.assignmentForExecution() == null) return -1;
+        ObjectiveAssignment assignment = squad.assignmentForExecution();
+        return formationPointOf(assignment.targetCellX(),
+                assignment.targetCellY());
     }
 
     private int formationPointOf(int x, int y) {
