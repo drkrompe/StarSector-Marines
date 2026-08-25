@@ -16,7 +16,38 @@ final class LayeredMechComposer {
 
     private LayeredMechComposer() {}
 
+    /** Backend-neutral ordered sprite sink used by battle and retained previews. */
+    interface Sink {
+        void sprite(LayeredSpriteCache sprite, float centerX, float centerY,
+                    float width, float height, float angleDegrees, float alpha);
+    }
+
     static void emit(DrawList out, LayeredMechAssets assets,
+                     float actorX, float actorY, float hullWidth,
+                     float hipFacingDeg, float torsoFacingDeg, float locomotionPhase,
+                     float chaingunPhase, float srmPhase, float lrmPhase,
+                     int flags, int chassis, int arms,
+                     int leftShoulder, int rightShoulder,
+                     float alpha) {
+        emit(drawListSink(out), assets, actorX, actorY, hullWidth, hipFacingDeg, torsoFacingDeg,
+                locomotionPhase, chaingunPhase, srmPhase, lrmPhase, flags, chassis,
+                arms, leftShoulder, rightShoulder, alpha, null);
+    }
+
+    static void emit(DrawList out, LayeredMechAssets assets,
+                     float actorX, float actorY, float hullWidth,
+                     float hipFacingDeg, float torsoFacingDeg, float locomotionPhase,
+                     float chaingunPhase, float srmPhase, float lrmPhase,
+                     int flags, int chassis, int arms,
+                     int leftShoulder, int rightShoulder,
+                     float alpha, LayerPose authoredPose) {
+        emit(drawListSink(out), assets, actorX, actorY, hullWidth,
+                hipFacingDeg, torsoFacingDeg, locomotionPhase,
+                chaingunPhase, srmPhase, lrmPhase, flags, chassis, arms,
+                leftShoulder, rightShoulder, alpha, authoredPose);
+    }
+
+    static void emit(Sink out, LayeredMechAssets assets,
                      float actorX, float actorY, float hullWidth,
                      float hipFacingDeg, float torsoFacingDeg, float locomotionPhase,
                      float chaingunPhase, float srmPhase, float lrmPhase,
@@ -28,7 +59,7 @@ final class LayeredMechComposer {
                 arms, leftShoulder, rightShoulder, alpha, null);
     }
 
-    static void emit(DrawList out, LayeredMechAssets assets,
+    static void emit(Sink out, LayeredMechAssets assets,
                      float actorX, float actorY, float hullWidth,
                      float hipFacingDeg, float torsoFacingDeg, float locomotionPhase,
                      float chaingunPhase, float srmPhase, float lrmPhase,
@@ -143,7 +174,7 @@ final class LayeredMechComposer {
         return pose != null ? pose.layer(id) : null;
     }
 
-    private static void emitAuthored(DrawList out, LayeredSpriteCache sprite,
+    private static void emitAuthored(Sink out, LayeredSpriteCache sprite,
                                      LayerTransform transform,
                                      float actorX, float actorY, float hullWidth,
                                      float facingDeg, float alpha) {
@@ -156,14 +187,14 @@ final class LayeredMechComposer {
         float localCenterY = (transform.pivotY() - 0.5f)
                 * sprite.pxHeight / SOURCE_REFERENCE_PX * transform.scaleY() * hullWidth;
         float[] center = rotate(localCenterX, localCenterY, angle);
-        out.addSprite(RenderLayer.UNITS, sprite.sprite,
+        out.sprite(sprite,
                 actorX + pivot[0] + center[0], actorY + pivot[1] + center[1],
                 sprite.pxWidth / SOURCE_REFERENCE_PX * transform.scaleX() * hullWidth,
                 sprite.pxHeight / SOURCE_REFERENCE_PX * transform.scaleY() * hullWidth,
-                angle, 1f, 1f, 1f, alpha);
+                angle, alpha);
     }
 
-    private static void emitArms(DrawList out, LayeredMechAssets assets,
+    private static void emitArms(Sink out, LayeredMechAssets assets,
                                  int chassis, int arms,
                                  float actorX, float actorY, float hullWidth,
                                  float facingDeg, float kick, float alpha) {
@@ -187,7 +218,7 @@ final class LayeredMechComposer {
         }
     }
 
-    private static void emitShoulderPods(DrawList out, LayeredMechAssets assets,
+    private static void emitShoulderPods(Sink out, LayeredMechAssets assets,
                                          int chassis, int leftShoulder, int rightShoulder,
                                          float actorX, float actorY, float hullWidth,
                                          float facingDeg, float srmKick, float lrmKick,
@@ -200,7 +231,7 @@ final class LayeredMechComposer {
                 srmKick, lrmKick, alpha);
     }
 
-    private static void emitArmsFlash(DrawList out, LayeredMechAssets assets, int arms,
+    private static void emitArmsFlash(Sink out, LayeredMechAssets assets, int arms,
                                       float actorX, float actorY, float hullWidth,
                                       float facingDeg, float kick, float alpha) {
         if (arms == LayeredMechAppearance.ARMS_NOSE_CHAINGUN) {
@@ -218,7 +249,7 @@ final class LayeredMechComposer {
         }
     }
 
-    private static void emitShoulderFlashes(DrawList out, LayeredMechAssets assets,
+    private static void emitShoulderFlashes(Sink out, LayeredMechAssets assets,
                                             int chassis, int leftShoulder, int rightShoulder,
                                             boolean srm,
                                             float actorX, float actorY, float hullWidth,
@@ -247,7 +278,7 @@ final class LayeredMechComposer {
         return assets.chassis;
     }
 
-    private static void emitPodFlash(DrawList out, LayeredMechAssets assets,
+    private static void emitPodFlash(Sink out, LayeredMechAssets assets,
                                      int installedPod, boolean srm,
                                      float actorX, float actorY, float hullWidth,
                                      float facingDeg, float localX, float alpha) {
@@ -258,7 +289,7 @@ final class LayeredMechComposer {
         }
     }
 
-    private static void emitPod(DrawList out, LayeredMechAssets assets, int pod,
+    private static void emitPod(Sink out, LayeredMechAssets assets, int pod,
                                 float actorX, float actorY, float hullWidth,
                                 float facingDeg, float localX,
                                 float srmKick, float lrmKick, float alpha) {
@@ -291,20 +322,20 @@ final class LayeredMechComposer {
                 || pod == LayeredMechAppearance.POD_LARGE_LRM;
     }
 
-    private static void emitCentered(DrawList out, LayeredSpriteCache sprite,
+    private static void emitCentered(Sink out, LayeredSpriteCache sprite,
                                float actorX, float actorY, float hullWidth,
                                float facingDeg, float localX, float localY,
                                float relativeAngle, float alpha) {
         float[] offset = rotate(localX * hullWidth, localY * hullWidth, facingDeg);
         float scale = hullWidth / 208f;
-        out.addSprite(RenderLayer.UNITS, sprite.sprite,
+        out.sprite(sprite,
                 actorX + offset[0], actorY + offset[1],
                 sprite.pxWidth * scale, sprite.pxHeight * scale,
-                facingDeg + relativeAngle, 1f, 1f, 1f, alpha);
+                facingDeg + relativeAngle, alpha);
     }
 
     /** Rotates and length-scales a north-authored sprite from the waist to an endpoint. */
-    private static void emitConnection(DrawList out, LayeredSpriteCache sprite,
+    private static void emitConnection(Sink out, LayeredSpriteCache sprite,
                                        float actorX, float actorY, float hullWidth,
                                        float facingDeg, float localX, float localY,
                                        float alpha) {
@@ -318,14 +349,14 @@ final class LayeredMechComposer {
         float[] midpoint = rotate(endX * hullWidth * 0.5f,
                 endY * hullWidth * 0.5f, facingDeg);
         float scale = hullWidth / 208f;
-        out.addSprite(RenderLayer.UNITS, sprite.sprite,
+        out.sprite(sprite,
                 actorX + midpoint[0], actorY + midpoint[1],
                 sprite.pxWidth * scale, length,
-                facingDeg + localAngle, 1f, 1f, 1f, alpha);
+                facingDeg + localAngle, alpha);
     }
 
     /** Places the sprite's south/rear edge at a pivot hidden under the hull. */
-    private static void emitFromRearPivot(DrawList out, LayeredSpriteCache sprite,
+    private static void emitFromRearPivot(Sink out, LayeredSpriteCache sprite,
                                           float actorX, float actorY, float hullWidth,
                                           float facingDeg, float localX, float localY,
                                           float widthScale, float relativeAngle, float alpha) {
@@ -333,10 +364,17 @@ final class LayeredMechComposer {
         float centerForward = sprite.pxHeight * scale * 0.5f;
         float[] pivot = rotate(localX * hullWidth, localY * hullWidth, facingDeg);
         float[] fromPivot = rotate(0f, centerForward, facingDeg + relativeAngle);
-        out.addSprite(RenderLayer.UNITS, sprite.sprite,
+        out.sprite(sprite,
                 actorX + pivot[0] + fromPivot[0], actorY + pivot[1] + fromPivot[1],
                 sprite.pxWidth * scale * widthScale, sprite.pxHeight * scale,
-                facingDeg + relativeAngle, 1f, 1f, 1f, alpha);
+                facingDeg + relativeAngle, alpha);
+    }
+
+    private static Sink drawListSink(DrawList out) {
+        return (sprite, centerX, centerY, width, height, angleDegrees, alpha) ->
+                out.addSprite(RenderLayer.UNITS, sprite.sprite,
+                        centerX, centerY, width, height, angleDegrees,
+                        1f, 1f, 1f, alpha);
     }
 
     private static float[] rotate(float x, float y, float degrees) {
