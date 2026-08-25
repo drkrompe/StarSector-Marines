@@ -17,5 +17,5 @@ Read `company-view-nouns.md` before changing a company-view story.
 | `c11-the-contract-board.md` | Planned | Uses the shipped campaign-map home; owns offers, not obligation clocks. |
 | `c12-the-debug-company.md` | Deferred | Slices 1–2 are folded; combined arms waits for player-side vehicle deployment. |
 | `c13-the-task-force.md` | Partial | Slice 1 is folded; per-officer outcomes and scalable assignment remain. |
-| `c15-retained-fleet-armory.md` | In progress | Owned-company grid, formation drill-down, recovery clocks, reinforcement, persistent Weapon/Armor authoring, migration, and atomic twelve-billet issue are retained; focused Mech Lab remains. |
+| `c15-retained-fleet-armory.md` | In progress | Owned-company grid, formation drill-down, recovery clocks, reinforcement, persistent Weapon/Armor authoring and migration, atomic twelve-billet issue, and the spatial Mech Lab are retained. |
 | `squad-id-terminology-cleanup.md` | Proposed | Terra finding: squad IDs cross APIs and persisted payloads under legacy fire-team names; requires an explicit save-compatibility plan. |
