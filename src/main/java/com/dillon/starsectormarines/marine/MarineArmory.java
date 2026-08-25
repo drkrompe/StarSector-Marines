@@ -214,6 +214,7 @@ public final class MarineArmory implements Serializable {
         if (highRisk) highRiskVictories++;
         addFabricationMaterials(materialReward);
         if (victories >= 2) unlockPrimary(MarineWeapon.PULSE_RIFLE, EquipmentGrade.MILSPEC);
+        if (victories >= 2) unlockSecondary(MarineSecondary.FRAG_GRENADE);
         if (victories >= 3) unlockPrimary(MarineWeapon.SMG, EquipmentGrade.MILSPEC);
         if (victories >= 4) unlockPrimary(MarineWeapon.DMR, EquipmentGrade.MILSPEC);
         if (victories >= 4) unlockPrimary(MarineWeapon.SQUAD_AUTOMATIC, EquipmentGrade.MILSPEC);
@@ -331,6 +332,7 @@ public final class MarineArmory implements Serializable {
         putAtLeast(secondaryKey(MarineSecondary.SMOKE_GRENADE), 2);
         unlockSecondary(MarineSecondary.SATCHEL_CHARGE);
         putAtLeast(secondaryKey(MarineSecondary.SATCHEL_CHARGE), 2);
+        if (victories >= 2) unlockSecondary(MarineSecondary.FRAG_GRENADE);
         fabricationMaterials = Math.max(0, fabricationMaterials);
         victories = Math.max(0, victories);
         highRiskVictories = Math.max(0, highRiskVictories);

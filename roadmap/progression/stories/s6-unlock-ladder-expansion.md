@@ -4,7 +4,7 @@
 > patterns are fully authored and unreachable.
 
 Status: PLANNED — depends on `s5-parts-acquisition-channels.md` and the
-remaining S2D–S2G special-equipment stories; armor expansion also depends on
+remaining S2E–S2G special-equipment stories; armor expansion also depends on
 `powered-assault-armor-roles.md`.
 Written: 2026-08-22
 Updated: 2026-08-24 — added weapon-mechanism, boarding-tool, stim, and faction-demolition provenance to the unlock contract.
@@ -193,12 +193,14 @@ Where a milestone gate is still the right tool, gate on more than a count:
 ## Out of scope
 
 - Where parts come from — `s5-parts-acquisition-channels.md`.
-- New special equipment to unlock — `s2d-frag-grenades.md`,
+- New special equipment to unlock —
   `s2e-close-contact-boarding-tools.md`, `s2f-combat-stim-injectors.md`, and
   `s2g-martyr-rigs-and-carried-ieds.md`. New armor roles and patterns belong to
   `powered-assault-armor-roles.md`. The shipped AMR, smoke grenades, and satchel
-  kits are already starter issue and must remain covered by the stranded-asset
-  check.
+  kits are already starter issue, while the shipped frag recipe has a temporary
+  two-victory acquisition rung. All must remain covered by the stranded-asset
+  check, and Slice 2 may replace the frag milestone with an equally reachable
+  schematic path rather than strand or duplicate it.
 - Visual differentiation of unlocked tiers —
   `s7-grade-visual-identity.md`.
 - Any change to printing costs beyond repricing against S5's stated income

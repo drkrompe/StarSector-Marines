@@ -50,6 +50,9 @@ public final class InfantryUnitPrep {
         if (sec.activation() == SpecialActivation.UTILITY_SATCHEL) {
             return tickSatchelPlant(unit, sec, sim);
         }
+        if (sec.activation() == SpecialActivation.ARC_EXPLOSIVE) {
+            return tickFragThrow(unit, sec, sim);
+        }
         w.setSecondaryActionTimer(id, w.secondaryActionTimer(id) - BattleSimulation.TICK_DT);
         float fireAt = sec.aimDuration() * 0.5f;
         if (!w.secondaryFired(id) && w.secondaryActionTimer(id) <= fireAt) {
@@ -141,6 +144,9 @@ public final class InfantryUnitPrep {
         if (sec.specialDef().aiPolicy() == SpecialAiPolicy.CONTACT_DEMOLITION) {
             return tryOpportunitySatchel(unit, sec, sim);
         }
+        if (sec.specialDef().aiPolicy() == SpecialAiPolicy.SOFT_CLUSTER_INDIRECT) {
+            return FragGrenadeTactics.tryCommitThrow(unit, sec, sim);
+        }
         float range = sec.range();
         // Hardened-target scan: any MapTurret, drone hub, or HEAVY_MECH in
         // special range with LoS that the squad-coordination gate doesn't
@@ -216,6 +222,30 @@ public final class InfantryUnitPrep {
         if (world.secondaryActionTimer(unit) <= 0f) {
             world.setSecondaryActionTimer(unit, 0f);
             world.setSecondaryAimTargetId(unit, 0L);
+        }
+        return true;
+    }
+
+    private static boolean tickFragThrow(long unit, MarineSecondary special,
+                                         BattleControl sim) {
+        World world = sim.world();
+        world.setSecondaryActionTimer(unit,
+                world.secondaryActionTimer(unit) - BattleSimulation.TICK_DT);
+        float releaseAt = special.aimDuration() * 0.5f;
+        if (!world.secondaryFired(unit)
+                && world.secondaryActionTimer(unit) <= releaseAt) {
+            com.dillon.starsectormarines.battle.grenade.FragGrenadeService.Reservation reservation =
+                    sim.fragGrenades().reservationFor(unit);
+            if (reservation != null) {
+                sim.throwFragmentationGrenade(unit,
+                        reservation.targetX(), reservation.targetY());
+            }
+            world.setSecondaryFired(unit, true);
+        }
+        if (world.secondaryActionTimer(unit) <= 0f) {
+            world.setSecondaryActionTimer(unit, 0f);
+            world.setSecondaryAimTargetId(unit, 0L);
+            sim.fragGrenades().release(unit);
         }
         return true;
     }

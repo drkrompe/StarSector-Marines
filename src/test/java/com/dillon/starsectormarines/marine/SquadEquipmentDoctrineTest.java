@@ -12,9 +12,20 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SquadEquipmentDoctrineTest {
+
+    @Test
+    void fleetAssaultDoctrineCarriesExactlyOneFragKit() {
+        SquadWeaponDoctrine doctrine = SquadEquipmentDoctrines.weaponById(
+                SquadEquipmentDoctrines.ASSAULT_WEAPONS);
+        assertNotNull(doctrine);
+        assertEquals(1, doctrine.issues().stream()
+                .filter(issue -> issue.special() == MarineSecondary.FRAG_GRENADE)
+                .count());
+    }
 
     @Test
     void fireSupportDoctrineIssuesOneSquadAutomaticPerTeamFromStarterStock() {

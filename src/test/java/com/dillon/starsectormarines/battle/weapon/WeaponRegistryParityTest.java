@@ -86,6 +86,20 @@ class WeaponRegistryParityTest {
     }
 
     @Test
+    void fragmentationGrenadeOwnsItsArcAndCompactAntiPersonnelBlast() {
+        MarineSecondary frag = MarineSecondary.FRAG_GRENADE;
+        assertEquals("weapon.frag-grenade", frag.def().id);
+        assertEquals(8.5f, frag.range(), EPS);
+        assertEquals(32f, frag.damage(), EPS);
+        assertEquals(2f, frag.penetration(), EPS);
+        assertEquals(1.45f, frag.aoeRadius(), EPS);
+        assertEquals(1.8f, frag.arcHeight(), EPS);
+        assertEquals(0, frag.wallDamage());
+        assertTrue(frag.def().indirectFire);
+        assertTrue(frag.def().interceptableProjectile);
+    }
+
+    @Test
     void fieldRifleMatchesItsShippedValues() {
         assertSim(MarineWeapon.FIELD_RIFLE, 22f, 14.0f, 0.28f, 1.15f, 7f,
                 1, 0f, 0.42f, 0.75f, 48f);

@@ -163,6 +163,59 @@
       }
     },
     {
+      "id": "special.frag-grenade",
+      "catalog": {
+        "displayName": "Shattercap Fragmentation Grenades",
+        "subtitle": "Limited-ammunition anti-personnel ordnance",
+        "description": "A short-arc fragmentation grenade for breaking exposed infantry clusters and soft targets behind low cover. Its compact lethal footprint is dangerous to friend and foe and has negligible effect on walls or hardened emplacements."
+      },
+      "activation": {
+        "type": "arc-explosive",
+        "weaponId": "weapon.frag-grenade"
+      },
+      "resource": {
+        "mode": "ammunition",
+        "startingAmmo": 3
+      },
+      "ai": {
+        "policy": "soft-cluster-indirect"
+      },
+      "presentation": {
+        "armoryIcon": "graphics/ui/armory/special-frag-grenade.png",
+        "aimSprite": null,
+        "usePose": "throw",
+        "carrierLayer": {
+          "sprite": "graphics/ui/armory/special-frag-grenade.png",
+          "widthShoulders": 0.2,
+          "heightShoulders": 0.2,
+          "pivot": [0.5, 0.5],
+          "carried": {
+            "offsetShoulders": [-0.16, 0.02],
+            "angleDegrees": -30.0,
+            "occlusion": "over-body"
+          },
+          "using": {
+            "offsetShoulders": [0.0, 0.32],
+            "angleDegrees": 0.0,
+            "occlusion": "over-body"
+          }
+        },
+        "thrown": {
+          "sprite": "graphics/ui/armory/special-frag-grenade.png",
+          "widthCells": 0.34,
+          "heightCells": 0.34
+        },
+        "layerClips": {
+          "variant": "smoke",
+          "using": "throwing"
+        },
+        "preview": {
+          "state": "using",
+          "phase": 0.6
+        }
+      }
+    },
+    {
       "id": "special.satchel-charge",
       "catalog": {
         "displayName": "Mag-Clamp Satchel Kit",

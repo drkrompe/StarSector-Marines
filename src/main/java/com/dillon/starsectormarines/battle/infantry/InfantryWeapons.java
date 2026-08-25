@@ -13,6 +13,8 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.marine.SpecialActivation;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import java.util.Random;
 
@@ -38,6 +40,7 @@ public class InfantryWeapons {
     private final UnitRosterService roster;
     private final BallisticResolver resolver;
     private final ShotService shots;
+    private final NavigationGrid grid;
 
     /**
      * Reused per-tick gather of the units with an active burst before the
@@ -55,10 +58,11 @@ public class InfantryWeapons {
     private final Random rng;
 
     public InfantryWeapons(UnitRosterService roster, BallisticResolver resolver,
-                           ShotService shots, Random rng) {
+                           ShotService shots, NavigationGrid grid, Random rng) {
         this.roster = roster;
         this.resolver = resolver;
         this.shots = shots;
+        this.grid = grid;
         this.rng = rng;
     }
 
@@ -328,5 +332,59 @@ public class InfantryWeapons {
                 res.hitIntended(), shooterFaction, Math.max(res.flightTime(), 0.05f),
                 null, null, sec, null, 1f,
                 res.victimId() != 0L, res.kind(), shooter));
+    }
+
+    /** Releases a short-arc, ground-targeted fragmentation grenade. */
+    public void throwFragmentationGrenade(long carrier, float targetX, float targetY) {
+        World world = roster.world();
+        if (!world.hasSecondaryWeapon(carrier)) return;
+        MarineSecondary grenade = world.secondaryWeapon(carrier);
+        if (grenade.activation() != SpecialActivation.ARC_EXPLOSIVE) return;
+        int ammo = world.secondaryAmmo(carrier);
+        if (ammo <= 0) return;
+
+        float fromX = world.renderX(carrier);
+        float fromY = world.renderY(carrier);
+        float dx = targetX - fromX;
+        float dy = targetY - fromY;
+        float distance = (float) Math.sqrt(dx * dx + dy * dy);
+        if (distance > grenade.range() && distance > 0f) {
+            targetX = fromX + dx / distance * grenade.range();
+            targetY = fromY + dy / distance * grenade.range();
+        }
+
+        float handlingAccuracy = Math.min(1f, grenade.accuracy()
+                * InfantryCombatStats.shooterAccuracyMult(
+                roster.combat().soldierProfile(carrier)));
+        if (rng.nextFloat() > handlingAccuracy) {
+            float angle = rng.nextFloat() * (float) (Math.PI * 2.0);
+            float radius = (float) Math.sqrt(rng.nextFloat()) * grenade.hitSpread();
+            targetX += (float) Math.cos(angle) * radius;
+            targetY += (float) Math.sin(angle) * radius;
+        }
+        targetX = Math.max(0.5f, Math.min(grid.getWidth() - 0.5f, targetX));
+        targetY = Math.max(0.5f, Math.min(grid.getHeight() - 0.5f, targetY));
+        float landingDx = targetX - fromX;
+        float landingDy = targetY - fromY;
+        float landingDistance = (float) Math.sqrt(landingDx * landingDx + landingDy * landingDy);
+        float flightTime = Math.max(0.15f, landingDistance / grenade.roundVelocity());
+        Faction faction = roster.identity().faction(carrier);
+
+        world.setSecondaryAmmo(carrier, ammo - 1);
+        roster.telemetry().recordSecondaryUsed(carrier);
+        roster.telemetry().recordRoundFired(carrier);
+        PendingDetonation payload = new PendingDetonation(carrier,
+                targetX, targetY, flightTime, grenade.aoeRadius(),
+                grenade.damage(), grenade.penetration(), grenade.wallDamage(),
+                faction, /*aerialDelivery*/ false, grenade.wallDamageRadius(),
+                /*spawnDustOnWallBreak*/ false, /*friendlyFireImmune*/ false);
+        shots.queueProjectile(new Projectile(fromX, fromY, targetX, targetY,
+                /*hasBoostRamp*/ false, grenade.arcHeight(), faction,
+                /*aerialDelivery*/ false, flightTime, payload, grenade.def().id));
+        shots.postShot(new ShotEvent(fromX, fromY, 0f,
+                targetX, targetY, 0f, false, faction, flightTime,
+                null, null, grenade, null,
+                roster.identity().type(carrier).moraleImpact,
+                false, null, carrier));
     }
 }

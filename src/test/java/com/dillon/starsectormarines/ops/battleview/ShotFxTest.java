@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.weapon.fx.FxSlot;
+import com.dillon.starsectormarines.marine.SpecialActivation;
 import com.dillon.starsectormarines.ops.battleview.ShotFx.Bolt;
 import com.dillon.starsectormarines.ops.battleview.ShotFx.Sprite;
 import com.dillon.starsectormarines.ops.battleview.ShotFx.Tracer;
@@ -181,14 +182,17 @@ public class ShotFxTest {
                 Sprite body = assertSprite(fx, "secondary " + w);
                 assertEquals(w.projectileSpritePath(), body.spritePath(), "sprite path for " + w);
                 assertEquals(w.projectileVisualCells(), body.visualCells(), 0f, "visualCells for " + w);
-                assertSame(ContrailStyle.MISSILE_SMOKE, fx.contrail());
             } else {
                 assertInstanceOf(Bolt.class, fx.body(), "precision secondary " + w);
+            }
+            if (w.activation() == SpecialActivation.DIRECT_EXPLOSIVE) {
+                assertSame(ContrailStyle.MISSILE_SMOKE, fx.contrail());
+            } else {
                 assertNull(fx.contrail());
             }
             assertTrue(fx.travels(), "secondary body travels: " + w);
-            assertEquals(0f, fx.arcHeight(), 0f);
-            assertFalse(fx.boostRamp());
+            assertEquals(w.arcHeight(), fx.arcHeight(), 0f, "arcHeight for " + w);
+            assertEquals(w.def().boostRamp, fx.boostRamp(), "boostRamp for " + w);
             assertFalse(fx.engineTrail());
             assertFalse(fx.smokeTrail(), "ribbon replaces discrete smoke puffs");
         }

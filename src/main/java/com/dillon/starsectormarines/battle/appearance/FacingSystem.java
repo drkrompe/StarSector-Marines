@@ -245,7 +245,8 @@ public final class FacingSystem {
                         ? (MarineSecondary) secondarySpec[r] : null;
                 boolean utilityAction = secondary != null
                         && (secondary.activation() == SpecialActivation.UTILITY_SMOKE
-                        || secondary.activation() == SpecialActivation.UTILITY_SATCHEL);
+                        || secondary.activation() == SpecialActivation.UTILITY_SATCHEL
+                        || secondary.activation() == SpecialActivation.ARC_EXPLOSIVE);
                 sheetSel[r] = inAim && !utilityAction
                         ? LiveAppearance.SHEET_SECONDARY_AIM
                         : LiveAppearance.SHEET_BASE;

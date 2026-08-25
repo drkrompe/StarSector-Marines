@@ -192,6 +192,8 @@ public class ShotEvent {
     }
 
     public boolean isIndirectFire() {
+        if (marineSecondary != null && (marineSecondary.def().indirectFire
+                || marineSecondary.arcHeight() > 0f)) return true;
         if (mechWeapon != null && mechWeapon.arcHeight > 0f) return true;
         return turretKind != null
                 && (turretKind.indirectFire() || turretKind.arcHeight() > 0f);
