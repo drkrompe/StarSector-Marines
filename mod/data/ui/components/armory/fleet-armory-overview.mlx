@@ -4,7 +4,7 @@
 
     <div id="company-overview-intro" class="panel">
       <div id="company-overview-heading" class="label heading tone-edge">SELECT A COMPANY</div>
-      <div id="company-overview-copy" class="label tone-muted">Choose a company to inspect its squads, fire teams, templates, and finite equipment.</div>
+      <div id="company-overview-copy" class="label tone-muted">Choose a company to inspect its squads, marines, readiness, and finite equipment.</div>
       <div id="company-overview-summary" class="label surface-dark">{fleetSummary}</div>
     </div>
 

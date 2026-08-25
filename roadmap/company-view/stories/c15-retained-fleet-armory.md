@@ -1,29 +1,29 @@
 # C15 — Retained Fleet Armory
 
-Status: IN PROGRESS — company/squad/fire-team drill-down and template issue migrated; broader parity remains
+Status: IN PROGRESS — retained hierarchy, squad equipment issue, and focused Mech Lab ship; broader company administration remains
 Written: 2026-08-23
-Updated: 2026-08-25 — Mech Lab now ships as a separately routed retained room with
-active-lance selection, read-only chassis hardpoints, and authoritative subsystem refits.
+Updated: 2026-08-25 — squad-wide equipment doctrines retired Armory Administration;
+Mech Lab now ships as a separately routed retained room over `MechBay`.
 
-Read `company-view-nouns.md`, `ui-nouns.md`, and
-`c14-fire-team-equipment-templates.md` first.
+Read `company-view-nouns.md` and `ui-nouns.md` first.
 
 ## Problem
 
-Fleet Armory's underlying template and arrangement operations now work, but the
-screen remains organized around legacy tabs, individual paper-doll mutation, and a
-flat absolute-positioned widget list. The presentation does not make company ->
-squad -> fire team -> billet the primary path, and routine changes rebuild the whole
-screen. The Mech Lab now uses its own retained room while preserving the same
-campaign-authoritative mech-squad and finite-stock workflow.
+Fleet Armory must make company -> squad -> fire team -> marine legible at large
+company scale without asking the player to author or assign gear twelve people at a
+time. The former administration shell duplicated the retained hierarchy and kept a
+second fire-team template workflow alive. Squad equipment now needs one scalable,
+inventory-honest authoring seam. Mech Lab needs an equally focused route without
+recreating that catch-all shell.
 
 ## Outcome
 
 Fleet Armory becomes the first production retained surface. Its landing view is a
 responsive grid of literal portrait company cards; selecting one enters a matching
 squad-card overview for that company, and selecting a squad enters its three-team
-template/refit workspace. A clickable breadcrumb keeps every completed level of this
-drill-down reachable. Templates remain plans, never collectible cards.
+inspection workspace. One Weapon doctrine card and one Armor doctrine card compose
+the whole squad's exact issue; special equipment follows Weapon. A clickable
+breadcrumb keeps every completed level directly reachable.
 
 ## Information architecture
 
@@ -35,48 +35,42 @@ drill-down reachable. Templates remain plans, never collectible cards.
   card through a list-shaped view-model contract; it does not manufacture additional
   companies or persistence.
 - **Company squad overview:** a matching responsive gallery of literal squad cards.
-  Each card reports strength, equipped-team count, officer command, whereabouts, and
+  Each card reports strength, squad-equipment issue state, officer command, whereabouts, and
   readiness before the player enters that squad's equipment workspace. The card body
   remains the inspect target; reinforcement is a compact secondary action rather than
   a replacement inspect button.
-- **Fire-team context:** Alpha, Bravo, and Charlie report strength and current
-  assignment together; the selected fire team is the transaction target.
+- **Fire-team context:** Alpha, Bravo, and Charlie report strength and current squad
+  doctrine together. Selection chooses which four of twelve projected billets to
+  inspect; it never narrows or resets the squad transaction.
 - **Workspace:** the selected squad's Alpha, Bravo, and Charlie teams sit beside one
   primary viewer of the selected team's four persistent marines. Each card presents
   rank, name, readiness, aptitude, experience, career, candidate role, battle-composed
   appearance, equipment names, and resolved combat figures. Weapon and armor figures
   use compact capability meters normalized against their catalog ceilings while
   retaining the exact number beside each meter.
-- **Loadout editing:** the ordinary viewer shows current equipment without a library.
-  **Change Loadout** opens a temporary horizontal strip of compact four-soldier
-  selectors. Contextually unavailable templates are disabled; an available selection
-  projects candidate equipment and combat-stat deltas onto the same named marines.
-  One readiness result and explicit equip action commit it.
+- **Equipment editing:** an always-visible squad strip owns separate Weapon and Armor
+  selectors. Weapon definitions include roles, primaries, grades, and optional
+  special equipment; Armor definitions include protection only. Their pair projects
+  exact equipment and combat-stat deltas onto the same named marines. One squad-wide
+  readiness result and one squad-wide issue action commit all twelve billets atomically.
 - **Inventory boundary:** the roster's exact atomic preview still gates assignment,
   but this viewer omits its free-stock/returns/required-issue ledger.
-- **Squad arrangements:** a fast squad-level composition view using the same templates
-  and transaction model, not a separate deck or persistence system.
 - **Marine inspector:** aptitude, career, wounds, and materialized billet equipment;
-  no routine per-marine equipment authoring after C14 retires it.
-- **Mech Lab room:** active support squad -> chassis -> installed loadout, with fixed
-  hardpoints presented beside the finite subsystem inventory and its explicit
-  install action. It invokes `MechBay` rather than adapting fire-team templates.
-- **Armory Administration:** a named transitional destination for Personnel,
-  Template Designer, Squad Arrangements, and the remaining individual-kit
-  compatibility inspector. Formation browsing and routine refits do not return to
-  this older tab shell; each authoring job migrates independently before the shell is
-  removed.
+  there is no routine per-marine equipment authoring.
+- **Mech Lab:** active support squad -> chassis -> installed loadout, with fixed
+  hardpoints beside the finite subsystem inventory and its explicit install action.
+  It invokes `MechBay` rather than adapting squad equipment doctrine.
 
 ## Scope
 
-- Rebuild the surface with `.mlx` components, theme roles, view-model bindings,
-  retained keyed lists, bounded scroll, focus, and keyboard actions.
-- Preserve every C14 inventory and assignment authority; the UI invokes existing
-  preview/apply operations rather than recomputing their answers.
-- Preserve the mech lab's `MechBay` ownership, installed/free accounting, atomic
-  refit command, and read-only chassis/hardpoint boundary.
-- Integrate C14 conformance and replacement presentation when Slice 5 has landed.
-- Remove legacy Armory UI code only after feature parity and live acceptance.
+- Continue the surface through `.mlx` components, theme roles, keyed lists, bounded
+  scroll, focus, keyboard actions, and deterministic headless evidence.
+- Keep `MarineRoster` and `MarineArmory` authoritative for exact finite-stock
+  preview. The view model never invents a second allocation answer.
+- Complete save migration from legacy per-team template intent into player-authored
+  squad definitions without rewriting an existing marine's materialized kit.
+- Preserve Mech Lab as a focused retained surface over `MechBay`; do not restore the
+  removed catch-all administration shell.
 
 ## Acceptance
 
@@ -84,14 +78,16 @@ drill-down reachable. Templates remain plans, never collectible cards.
   one of its fire teams with one further target selection.
 - Breadcrumb actions return directly to the company collection or selected company's
   squad overview without routing through footer utilities.
-- Selecting teams and templates preserves scroll/focus and does not rebuild unrelated
-  panes. The four marine/canvas slots remain retained across Alpha/Bravo/Charlie
-  changes so renderer registration follows the slot while its marine data changes.
-- Designing remains legal without stock; assigning remains stock-gated and atomic.
-- Template and arrangement previews exactly match the operation that applies them.
-- Company overview cards are literal selectable presentation containers. Fire-team
-  templates and squad arrangements never use card/deck/hand/consume terminology or
-  behavior.
+- Selecting Alpha, Bravo, or Charlie preserves both candidate doctrines, scroll,
+  focus, and the four marine/canvas element identities while only changing the
+  visible four-billet slice.
+- Weapon doctrine selection changes primary, grade, role, and special issue without
+  changing armor; Armor doctrine selection changes protection without changing the
+  Weapon half.
+- The exact twelve-billet preview is the same operation used by apply. A failed
+  readiness, stationing, recipe, or stock check changes no kit and neither doctrine id.
+- Company and equipment cards are literal presentation containers, without
+  deck/hand/consume semantics.
 - The company gallery auto-fills fixed portrait cards into columns, wraps into rows as
   the viewport narrows, and scrolls vertically without silent truncation.
 - The fire-team viewer shows all four named marines together with candidate armour,
@@ -101,22 +97,15 @@ drill-down reachable. Templates remain plans, never collectible cards.
   appear as comparative meters with exact values; their fill scale is stable across
   the four marines rather than relative to only the currently selected team.
 - Live selected-marine portraits cycle the authored idle clip with staggered phases;
-  compact template formations and headless snapshots remain fixed and deterministic.
-- Every library selector shows the same four billet recipes as a compact formation;
-  selecting it projects that equipment onto the named marines rather than replacing
-  them with anonymous template mannequins.
-- The ordinary viewer exposes current issue and one **Change Loadout** action. Its
-  temporary comparison state exposes a concise ready/blocked answer, per-marine
-  equipment/stat deltas, and explicit equip action—not the transaction's
-  free/return/required material rows.
-- The same billet recipe renders deterministic PNGs without a game or OpenGL context;
+  headless snapshots remain fixed and deterministic.
+- The same twelve-billet recipe renders deterministic PNGs without a game or OpenGL context;
   live acceptance remains responsible only for host scaling and feel.
 - Layout remains usable for a large company and at UI scales 1.0, 1.25, and 1.5.
 - Body copy and values use the regular mixed-case face; compact display faces are
   reserved for section headings and the screen title, with geometry sized from their
   measured line heights rather than the legacy 20-pixel minimum.
-- Mouse, keyboard, and drag interactions reach the same domain commands.
-- Mech subsystem counts and enabled install actions come from `MechBay`; the
-  retained surface neither recomputes stock nor creates another loadout authority.
-- Legacy per-marine equipment mutation is removed only when every catalog item is
-  expressible through templates.
+- Mouse and keyboard interactions reach the same domain commands.
+- Fleet Armory exposes no Armory Administration route, legacy individual-kit editor,
+  template picker, or squad-arrangement editor.
+- Mech subsystem counts and enabled install actions come from `MechBay`; the retained
+  room neither recomputes stock nor creates another loadout authority.

@@ -5,10 +5,7 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.marine.FireTeamBillet;
-import com.dillon.starsectormarines.marine.FireTeamRefitPreview;
-import com.dillon.starsectormarines.marine.FireTeamTemplateAvailability;
 import com.dillon.starsectormarines.marine.FireTeamTemplateCard;
-import com.dillon.starsectormarines.marine.FireTeamTemplateResult;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics;
@@ -20,6 +17,12 @@ import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SoldierCareer;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
+import com.dillon.starsectormarines.marine.SquadEquipmentBillet;
+import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
+import com.dillon.starsectormarines.marine.SquadEquipmentPreview;
+import com.dillon.starsectormarines.marine.SquadEquipmentResult;
+import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
@@ -32,9 +35,9 @@ import java.util.Locale;
 import java.util.function.DoubleSupplier;
 
 /**
- * Retained presentation adapter for one authoritative fire-team refit workflow.
+ * Retained presentation adapter for one authoritative squad equipment workflow.
  * It owns selection and copy only; every inventory answer and mutation comes from
- * {@link MarineRoster}'s preview/apply transaction.
+ * {@link MarineRoster}'s squad-wide preview/apply transaction.
  */
 public final class FleetArmoryViewModel {
 
@@ -43,9 +46,8 @@ public final class FleetArmoryViewModel {
     private final DoubleSupplier currentDay;
     private final MutableSignal<String> selectedSquadId;
     private final MutableSignal<Integer> selectedTeamIndex;
-    private final MutableSignal<String> selectedTemplateId;
-    private final MutableSignal<Integer> selectedBilletIndex;
-    private final MutableSignal<Boolean> loadoutPickerOpen;
+    private final MutableSignal<String> selectedWeaponDoctrineId;
+    private final MutableSignal<String> selectedArmorDoctrineId;
     private final MutableSignal<Integer> domainRevision;
     private final MutableSignal<Feedback> feedback;
     private final ComputedSignal<String> companySummary;
@@ -53,17 +55,10 @@ public final class FleetArmoryViewModel {
     private final ComputedSignal<List<FireTeamOverview>> fireTeamOverviews;
     private final ComputedSignal<List<SelectionRow>> squadRows;
     private final ComputedSignal<List<SelectionRow>> teamRows;
-    private final ComputedSignal<List<TemplateTile>> templateTiles;
-    private final ComputedSignal<List<SelectionRow>> billetRows;
     private final ComputedSignal<List<MarineViewerCard>> marineCards;
-    private final ComputedSignal<String> previewSummary;
-    private final ComputedSignal<FireTeamRefitPreview> preview;
     private final ComputedSignal<String> targetSummary;
     private final ComputedSignal<String> candidateSummary;
     private final ComputedSignal<String> applyLabel;
-    private final ComputedSignal<String> pickerClasses;
-    private final ComputedSignal<String> pickerToggleLabel;
-    private final ComputedSignal<String> applyClasses;
     private final ComputedSignal<String> transactionSummary;
     private final ComputedSignal<String> transactionClasses;
     private final ComputedSignal<Boolean> applyDisabled;
@@ -72,6 +67,11 @@ public final class FleetArmoryViewModel {
     private final ComputedSignal<String> selectedSquadReadiness;
     private final ComputedSignal<String> reinforceLabel;
     private final ComputedSignal<Boolean> reinforceDisabled;
+    private final ComputedSignal<List<DoctrineTile>> weaponDoctrineTiles;
+    private final ComputedSignal<List<DoctrineTile>> armorDoctrineTiles;
+    private final ComputedSignal<SquadEquipmentPreview> squadEquipmentPreview;
+    private final ComputedSignal<String> weaponDoctrineSummary;
+    private final ComputedSignal<String> armorDoctrineSummary;
 
     public FleetArmoryViewModel(Reactor reactor, MarineRoster roster) {
         this(reactor, roster, () -> { }, () -> 0d);
@@ -95,41 +95,33 @@ public final class FleetArmoryViewModel {
         this.currentDay = currentDay;
 
         MarineSquad initialSquad = firstLineSquad(roster);
-        FireTeamTemplateCard initialTemplate = roster.armory().templateCards().isEmpty()
-                ? null : roster.armory().templateCards().get(0);
         selectedSquadId = reactor.signal(initialSquad != null ? initialSquad.id() : null);
         selectedTeamIndex = reactor.signal(0);
-        selectedTemplateId = reactor.signal(initialTemplate != null ? initialTemplate.id() : null);
-        selectedBilletIndex = reactor.signal(0);
-        loadoutPickerOpen = reactor.signal(false);
+        selectedWeaponDoctrineId = reactor.signal(initialSquad != null
+                && initialSquad.weaponDoctrineId() != null
+                ? initialSquad.weaponDoctrineId()
+                : SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS);
+        selectedArmorDoctrineId = reactor.signal(initialSquad != null
+                && initialSquad.armorDoctrineId() != null
+                ? initialSquad.armorDoctrineId()
+                : SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR);
         domainRevision = reactor.signal(0);
         feedback = reactor.signal(Feedback.neutral(
-                "Choose a fire team, preview a loadout, then equip it when ready."));
+                "Choose squad Weapon and Armor equipment, inspect each team, then issue when ready."));
 
         companySummary = reactor.computed(this::buildCompanySummary);
         squadCards = reactor.computed(this::buildSquadCards);
         fireTeamOverviews = reactor.computed(this::buildFireTeamOverviews);
         squadRows = reactor.computed(this::buildSquadRows);
         teamRows = reactor.computed(this::buildTeamRows);
-        templateTiles = reactor.computed(this::buildTemplateTiles);
-        billetRows = reactor.computed(this::buildBilletRows);
         marineCards = reactor.computed(this::buildMarineCards);
-        previewSummary = reactor.computed(this::buildPreviewSummary);
-        preview = reactor.computed(this::buildPreview);
         targetSummary = reactor.computed(this::buildTargetSummary);
         candidateSummary = reactor.computed(this::buildCandidateSummary);
         applyLabel = reactor.computed(this::buildApplyLabel);
-        pickerClasses = reactor.computed(() -> loadoutPickerOpen.get()
-                ? "panel template-library picker-open"
-                : "panel template-library picker-closed");
-        pickerToggleLabel = reactor.computed(() -> loadoutPickerOpen.get()
-                ? "Cancel Preview" : "Change Loadout");
-        applyClasses = reactor.computed(() -> loadoutPickerOpen.get()
-                ? "apply-button picker-confirm-open" : "apply-button picker-confirm-closed");
+        squadEquipmentPreview = reactor.computed(this::buildSquadEquipmentPreview);
         transactionSummary = reactor.computed(this::buildViewerStatus);
         transactionClasses = reactor.computed(this::buildViewerStatusClasses);
-        applyDisabled = reactor.computed(() -> !loadoutPickerOpen.get()
-                || !preview.get().canApply());
+        applyDisabled = reactor.computed(() -> !squadEquipmentPreview.get().canApply());
         feedbackText = reactor.computed(() -> feedback.get().text());
         feedbackClasses = reactor.computed(() -> feedback.get().succeeded()
                 ? "feedback tone-good" : "feedback tone-muted");
@@ -138,6 +130,10 @@ public final class FleetArmoryViewModel {
                 roster.squadById(selectedSquadId.get())));
         reinforceDisabled = reactor.computed(() -> reinforcementCapacity(
                 roster.squadById(selectedSquadId.get())) <= 0);
+        weaponDoctrineTiles = reactor.computed(this::buildWeaponDoctrineTiles);
+        armorDoctrineTiles = reactor.computed(this::buildArmorDoctrineTiles);
+        weaponDoctrineSummary = reactor.computed(this::buildWeaponDoctrineSummary);
+        armorDoctrineSummary = reactor.computed(this::buildArmorDoctrineSummary);
     }
 
     public MarineRoster roster() { return roster; }
@@ -146,16 +142,10 @@ public final class FleetArmoryViewModel {
     public Signal<List<FireTeamOverview>> fireTeamOverviews() { return fireTeamOverviews; }
     public Signal<List<SelectionRow>> squadRows() { return squadRows; }
     public Signal<List<SelectionRow>> teamRows() { return teamRows; }
-    public Signal<List<TemplateTile>> templateTiles() { return templateTiles; }
-    public Signal<List<SelectionRow>> billetRows() { return billetRows; }
     public Signal<List<MarineViewerCard>> marineCards() { return marineCards; }
-    public Signal<String> previewSummary() { return previewSummary; }
     public Signal<String> targetSummary() { return targetSummary; }
     public Signal<String> candidateSummary() { return candidateSummary; }
     public Signal<String> applyLabel() { return applyLabel; }
-    public Signal<String> pickerClasses() { return pickerClasses; }
-    public Signal<String> pickerToggleLabel() { return pickerToggleLabel; }
-    public Signal<String> applyClasses() { return applyClasses; }
     public Signal<String> transactionSummary() { return transactionSummary; }
     public Signal<String> transactionClasses() { return transactionClasses; }
     public Signal<Boolean> applyDisabled() { return applyDisabled; }
@@ -164,39 +154,26 @@ public final class FleetArmoryViewModel {
     public Signal<String> selectedSquadReadiness() { return selectedSquadReadiness; }
     public Signal<String> reinforceLabel() { return reinforceLabel; }
     public Signal<Boolean> reinforceDisabled() { return reinforceDisabled; }
+    public Signal<List<DoctrineTile>> weaponDoctrineTiles() { return weaponDoctrineTiles; }
+    public Signal<List<DoctrineTile>> armorDoctrineTiles() { return armorDoctrineTiles; }
+    public Signal<String> weaponDoctrineSummary() { return weaponDoctrineSummary; }
+    public Signal<String> armorDoctrineSummary() { return armorDoctrineSummary; }
     public String selectedSquadId() { return selectedSquadId.peek(); }
     public int selectedTeamIndex() { return selectedTeamIndex.peek(); }
-    public String selectedTemplateId() { return selectedTemplateId.peek(); }
-    public int selectedBilletIndex() { return selectedBilletIndex.peek(); }
-    public boolean loadoutPickerOpen() { return loadoutPickerOpen.peek(); }
+    public String selectedWeaponDoctrineId() { return selectedWeaponDoctrineId.peek(); }
+    public String selectedArmorDoctrineId() { return selectedArmorDoctrineId.peek(); }
     public String selectedSquadName() {
         MarineSquad squad = roster.squadById(selectedSquadId.peek());
         return squad != null ? squad.name() : "Squad";
     }
-    public FireTeamRefitPreview currentPreview() { return preview.get(); }
-
-    public FireTeamBillet selectedBillet() {
-        return billetAt(selectedBilletIndex.peek());
-    }
-
-    public FireTeamBillet billetAt(int index) {
-        FireTeamTemplateCard card = roster.armory().templateCardById(selectedTemplateId.peek());
-        return card != null && index >= 0 && index < card.billets().size()
-                ? card.billet(index) : null;
-    }
-
-    public List<FireTeamBillet> billetsForTemplate(String templateId) {
-        FireTeamTemplateCard card = roster.armory().templateCardById(templateId);
-        return card != null ? List.copyOf(card.billets()) : List.of();
+    public SquadEquipmentPreview currentSquadEquipmentPreview() {
+        return squadEquipmentPreview.get();
     }
 
     public Runnable applyAction() {
-        return () -> applySelection();
+        return () -> applySquadEquipmentSelection();
     }
 
-    public Runnable toggleLoadoutPickerAction() {
-        return this::toggleLoadoutPicker;
-    }
 
     public Runnable reinforceSelectedSquadAction() {
         return () -> reinforceSquad(selectedSquadId.peek());
@@ -208,9 +185,13 @@ public final class FleetArmoryViewModel {
     }
 
     public FireTeamBillet viewerBilletAt(int index) {
-        if (loadoutPickerOpen.peek()) return billetAt(index);
         MarineSquad squad = roster.squadById(selectedSquadId.peek());
         if (squad == null) return null;
+        SquadEquipmentPreview candidate = squadEquipmentPreview.get();
+        int squadBillet = selectedTeamIndex.peek() * MarineSquad.TEAM_SIZE + index;
+        if (squadBillet >= 0 && squadBillet < candidate.billets().size()) {
+            return asFireTeamBillet(candidate.billet(squadBillet));
+        }
         List<String> members = roster.teamMemberIds(squad, selectedTeamIndex.peek());
         if (index < 0 || index >= members.size()) return null;
         MarineSoldier soldier = roster.soldierById(members.get(index));
@@ -218,18 +199,15 @@ public final class FleetArmoryViewModel {
                 : null;
     }
 
-    public FireTeamTemplateResult applySelection() {
-        FireTeamTemplateResult result = roster.applyFireTeamTemplate(
-                selectedSquadId.peek(), selectedTeamIndex.peek(), selectedTemplateId.peek());
-        FireTeamTemplateCard card = roster.armory().templateCardById(selectedTemplateId.peek());
+    public SquadEquipmentResult applySquadEquipmentSelection() {
+        SquadEquipmentResult result = roster.applySquadEquipment(
+                selectedSquadId.peek(), selectedWeaponDoctrineId.peek(),
+                selectedArmorDoctrineId.peek());
         MarineSquad squad = roster.squadById(selectedSquadId.peek());
-        String label = card != null ? card.displayName() : "Template";
-        String target = squad != null
-                ? squad.name() + " / " + teamName(selectedTeamIndex.peek()) : "selected team";
-        feedback.set(result == FireTeamTemplateResult.APPLIED
-                ? Feedback.success(label + " equipped to " + target + ".")
-                : Feedback.neutral(templateMessage(result)));
-        if (result == FireTeamTemplateResult.APPLIED) loadoutPickerOpen.set(false);
+        feedback.set(result == SquadEquipmentResult.APPLIED
+                ? Feedback.success("Squad equipment issued to "
+                        + (squad != null ? squad.name() : "selected squad") + ".")
+                : Feedback.neutral(squadEquipmentMessage(result)));
         domainRevision.update(value -> value + 1);
         return result;
     }
@@ -246,8 +224,7 @@ public final class FleetArmoryViewModel {
             wounded += woundedCount(squad);
         }
         return lineSquads + " squads  ·  " + ready + " RTD  ·  "
-                + wounded + " WIA  ·  " + roster.armory().templateCards().size()
-                + " templates";
+                + wounded + " WIA  ·  Squad equipment doctrine";
     }
 
     private List<SelectionRow> buildSquadRows() {
@@ -272,10 +249,8 @@ public final class FleetArmoryViewModel {
         for (MarineSquad squad : roster.squads()) {
             if (squad.reserve()) continue;
             int ready = roster.readyCount(squad);
-            int assigned = 0;
-            for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
-                if (squad.teamTemplateCardId(team) != null) assigned++;
-            }
+            int assigned = squad.weaponDoctrineId() != null && squad.armorDoctrineId() != null
+                    ? MarineSquad.TEAMS_PER_SQUAD : 0;
             String readiness = readinessLabel(ready, MarineSquad.CAPACITY);
             String readinessClass = readinessClass(ready, MarineSquad.CAPACITY);
             MarineCaptain captain = roster.captainForSquad(squad.id());
@@ -291,7 +266,8 @@ public final class FleetArmoryViewModel {
                     "squad-card " + readinessClass,
                     "squad-card-status heading " + readinessTone(ready, MarineSquad.CAPACITY),
                     squad.name(), readiness, ready + " / " + MarineSquad.CAPACITY + " RTD",
-                    assigned + " / " + MarineSquad.TEAMS_PER_SQUAD + " equipped",
+                    assigned == MarineSquad.TEAMS_PER_SQUAD
+                            ? "Squad doctrine issued" : "Individual equipment",
                     command, location, compactRecoverySummary(squad),
                     reinforcementLabel(squad), reinforcementCapacity(squad) <= 0,
                     () -> {
@@ -318,7 +294,7 @@ public final class FleetArmoryViewModel {
                     "fire-team-status heading " + readinessTone(ready, MarineSquad.TEAM_SIZE),
                     teamName(team), readinessLabel(ready, MarineSquad.TEAM_SIZE),
                     ready + " / " + MarineSquad.TEAM_SIZE + " RTD",
-                    recoverySummary(squad, team), assignedTemplateName(squad, team),
+                    recoverySummary(squad, team), assignedDoctrineName(squad),
                     () -> selectTeam(target)));
         }
         return List.copyOf(teams);
@@ -332,7 +308,7 @@ public final class FleetArmoryViewModel {
         List<SelectionRow> rows = new ArrayList<>();
         for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
             int target = team;
-            String assigned = assignedTemplateName(squad, team);
+            String assigned = assignedDoctrineName(squad);
             String label = teamName(team) + "  ·  " + readyTeamMembers(squad, team)
                     + " / " + MarineSquad.TEAM_SIZE + " RTD  ·  " + assigned;
             rows.add(new SelectionRow("team:" + squad.id() + ":" + team, label,
@@ -342,64 +318,75 @@ public final class FleetArmoryViewModel {
         return List.copyOf(rows);
     }
 
-    private List<TemplateTile> buildTemplateTiles() {
+    private SquadEquipmentPreview buildSquadEquipmentPreview() {
         domainRevision.get();
-        String selected = selectedTemplateId.get();
-        String squadId = selectedSquadId.get();
-        int team = selectedTeamIndex.get();
-        List<TemplateTile> tiles = new ArrayList<>();
-        for (FireTeamTemplateCard card : roster.armory().templateCards()) {
-            FireTeamTemplateAvailability availability =
-                    roster.fireTeamTemplateAvailability(card.id());
-            FireTeamRefitPreview option = roster.previewFireTeamTemplate(
-                    squadId, team, card.id());
-            boolean available = option.canApply();
-            String id = "template-tile:" + card.id();
-            tiles.add(new TemplateTile(id, id + ":name", id + ":availability",
-                    "template-preview:" + card.id(), card.id(),
-                    templateTileClasses(card.id().equals(selected), available),
-                    card.displayName(), available
-                    ? "Available  ·  Fielded " + availability.fielded()
-                    : "Unavailable for " + teamName(team),
-                    !available, () -> selectTemplate(card.id())));
+        return roster.previewSquadEquipment(selectedSquadId.get(),
+                selectedWeaponDoctrineId.get(), selectedArmorDoctrineId.get());
+    }
+
+    private List<DoctrineTile> buildWeaponDoctrineTiles() {
+        domainRevision.get();
+        String selected = selectedWeaponDoctrineId.get();
+        List<DoctrineTile> tiles = new ArrayList<>();
+        for (SquadWeaponDoctrine doctrine : SquadEquipmentDoctrines.weaponDoctrines()) {
+            String id = "weapon-doctrine:" + doctrine.id();
+            String distribution = weaponDistribution(doctrine);
+            tiles.add(new DoctrineTile(id, id + ":name", id + ":description",
+                    id + ":distribution",
+                    doctrine.id().equals(selected)
+                            ? "doctrine-tile selected" : "doctrine-tile",
+                    doctrine.displayName(), doctrine.description(), distribution,
+                    () -> selectWeaponDoctrine(doctrine.id())));
         }
         return List.copyOf(tiles);
     }
 
-    private List<SelectionRow> buildBilletRows() {
+    private List<DoctrineTile> buildArmorDoctrineTiles() {
         domainRevision.get();
-        FireTeamTemplateCard card = roster.armory().templateCardById(selectedTemplateId.get());
-        if (card == null) return List.of();
-        int selected = selectedBilletIndex.get();
-        List<SelectionRow> rows = new ArrayList<>();
-        for (int index = 0; index < card.billets().size(); index++) {
-            int target = index;
-            FireTeamBillet billet = card.billet(index);
-            String special = specialName(billet.specialEquipmentId());
-            String label = (index + 1) + "  ·  " + billet.name() + "  ·  "
-                    + billet.primary().displayName() + " / " + billet.grade().displayName
-                    + "  ·  " + billet.armor().displayName
-                    + (special == null ? "" : "  ·  " + special);
-            rows.add(new SelectionRow("billet:" + index, label,
-                    index == selected ? "billet-row selected" : "billet-row",
-                    false, () -> selectedBilletIndex.set(target)));
+        String selected = selectedArmorDoctrineId.get();
+        List<DoctrineTile> tiles = new ArrayList<>();
+        for (SquadArmorDoctrine doctrine : SquadEquipmentDoctrines.armorDoctrines()) {
+            String id = "armor-doctrine:" + doctrine.id();
+            tiles.add(new DoctrineTile(id, id + ":name", id + ":description",
+                    id + ":distribution",
+                    doctrine.id().equals(selected)
+                            ? "doctrine-tile selected" : "doctrine-tile",
+                    doctrine.displayName(), doctrine.description(), armorDistribution(doctrine),
+                    () -> selectArmorDoctrine(doctrine.id())));
         }
-        return List.copyOf(rows);
+        return List.copyOf(tiles);
+    }
+
+    private String buildWeaponDoctrineSummary() {
+        SquadWeaponDoctrine doctrine = SquadEquipmentDoctrines.weaponById(
+                selectedWeaponDoctrineId.get());
+        return doctrine != null
+                ? doctrine.displayName() + "  ·  " + weaponDistribution(doctrine)
+                : "Choose weapon equipment";
+    }
+
+    private String buildArmorDoctrineSummary() {
+        SquadArmorDoctrine doctrine = SquadEquipmentDoctrines.armorById(
+                selectedArmorDoctrineId.get());
+        return doctrine != null
+                ? doctrine.displayName() + "  ·  " + armorDistribution(doctrine)
+                : "Choose armor equipment";
     }
 
     private List<MarineViewerCard> buildMarineCards() {
         domainRevision.get();
         MarineSquad squad = roster.squadById(selectedSquadId.get());
         int teamIndex = selectedTeamIndex.get();
-        selectedTemplateId.get();
-        boolean previewing = loadoutPickerOpen.get();
+        SquadEquipmentPreview candidate = squadEquipmentPreview.get();
+        boolean previewing = candidate.billets().size() == MarineSquad.CAPACITY;
         if (squad == null) return List.of();
         List<String> memberIds = roster.teamMemberIds(squad, teamIndex);
         List<MarineViewerCard> marines = new ArrayList<>();
         for (int index = 0; index < MarineSquad.TEAM_SIZE; index++) {
             MarineSoldier soldier = index < memberIds.size()
                     ? roster.soldierById(memberIds.get(index)) : null;
-            FireTeamBillet billet = previewing ? billetAt(index)
+            int squadBillet = teamIndex * MarineSquad.TEAM_SIZE + index;
+            FireTeamBillet billet = previewing ? asFireTeamBillet(candidate.billet(squadBillet))
                     : soldier != null ? currentBillet(squad, teamIndex, index, soldier) : null;
             String id = "marine-card:" + index;
             String special = billet != null ? specialName(billet.specialEquipmentId()) : null;
@@ -431,107 +418,38 @@ public final class FleetArmoryViewModel {
         return List.copyOf(marines);
     }
 
-    private String buildPreviewSummary() {
-        domainRevision.get();
-        selectedTemplateId.get();
-        selectedBilletIndex.get();
-        FireTeamBillet billet = selectedBillet();
-        if (billet == null) return "Select a billet to inspect its materialized field kit.";
-        String special = specialName(billet.specialEquipmentId());
-        return billet.name() + "  ·  " + billet.primary().catalogName(billet.grade())
-                + "  ·  " + billet.armor().displayName
-                + (special == null ? "" : "  ·  " + special);
-    }
-
-    private FireTeamRefitPreview buildPreview() {
-        domainRevision.get();
-        return roster.previewFireTeamTemplate(selectedSquadId.get(),
-                selectedTeamIndex.get(), selectedTemplateId.get());
-    }
-
     private String buildTargetSummary() {
         domainRevision.get();
         MarineSquad squad = roster.squadById(selectedSquadId.get());
         int team = selectedTeamIndex.get();
         return squad == null ? "Select a line squad"
-                : squad.name() + " / " + teamName(team) + "  ·  "
-                + roster.teamMemberIds(squad, team).size() + " marines  ·  Current: "
-                + assignedTemplateName(squad, team);
+                : squad.name() + "  ·  12-billet squad issue  ·  Inspecting "
+                + teamName(team);
     }
 
     private String buildCandidateSummary() {
         domainRevision.get();
-        if (!loadoutPickerOpen.get()) return "Showing currently equipped loadout";
-        FireTeamTemplateCard card = roster.armory().templateCardById(selectedTemplateId.get());
-        return card == null ? "Choose a loadout template"
-                : "Previewing " + card.displayName() + " template on this fire team";
+        SquadWeaponDoctrine weapons = SquadEquipmentDoctrines.weaponById(
+                selectedWeaponDoctrineId.get());
+        SquadArmorDoctrine armor = SquadEquipmentDoctrines.armorById(
+                selectedArmorDoctrineId.get());
+        return "Proposed  ·  "
+                + (weapons != null ? weapons.displayName() : "Choose weapons")
+                + "  /  " + (armor != null ? armor.displayName() : "Choose armor");
     }
 
     private String buildApplyLabel() {
-        FireTeamTemplateCard card = roster.armory().templateCardById(selectedTemplateId.get());
-        String template = card != null ? card.displayName() : "Template";
-        return "Equip " + teamName(selectedTeamIndex.get()) + " with " + template;
+        return "Issue Equipment to Entire Squad";
     }
 
     private String buildViewerStatus() {
-        if (!loadoutPickerOpen.get()) {
-            MarineSquad squad = roster.squadById(selectedSquadId.get());
-            return squad == null ? "Select a fire team"
-                    : "Current loadout  ·  "
-                    + assignedTemplateName(squad, selectedTeamIndex.get());
-        }
-        return templateMessage(preview.get().result());
+        return squadEquipmentMessage(squadEquipmentPreview.get().result());
     }
 
     private String buildViewerStatusClasses() {
-        if (!loadoutPickerOpen.get()) {
-            return "transaction-result surface-dark tone-muted";
-        }
-        return preview.get().canApply()
+        return squadEquipmentPreview.get().canApply()
                 ? "transaction-result good-surface tone-good"
                 : "transaction-result danger-surface tone-danger";
-    }
-
-    private void toggleLoadoutPicker() {
-        if (loadoutPickerOpen.peek()) {
-            loadoutPickerOpen.set(false);
-            feedback.set(Feedback.neutral("Showing the fire team's current equipment."));
-            return;
-        }
-        chooseInitialAvailableTemplate();
-        loadoutPickerOpen.set(true);
-        feedback.set(Feedback.neutral(
-                "Choose an available loadout to preview its equipment and stat changes."));
-    }
-
-    private void chooseInitialAvailableTemplate() {
-        MarineSquad squad = roster.squadById(selectedSquadId.peek());
-        String assigned = squad != null
-                ? squad.teamTemplateCardId(selectedTeamIndex.peek()) : null;
-        if (assigned != null && roster.previewFireTeamTemplate(
-                selectedSquadId.peek(), selectedTeamIndex.peek(), assigned).canApply()) {
-            selectedTemplateId.set(assigned);
-            return;
-        }
-        if (roster.previewFireTeamTemplate(selectedSquadId.peek(),
-                selectedTeamIndex.peek(), selectedTemplateId.peek()).canApply()) return;
-        for (FireTeamTemplateCard card : roster.armory().templateCards()) {
-            if (roster.previewFireTeamTemplate(selectedSquadId.peek(),
-                    selectedTeamIndex.peek(), card.id()).canApply()) {
-                selectedTemplateId.set(card.id());
-                return;
-            }
-        }
-    }
-
-    private void selectTemplate(String templateId) {
-        if (!roster.previewFireTeamTemplate(selectedSquadId.peek(),
-                selectedTeamIndex.peek(), templateId).canApply()) return;
-        selectedTemplateId.set(templateId);
-        FireTeamTemplateCard card = roster.armory().templateCardById(templateId);
-        feedback.set(Feedback.neutral("Previewing "
-                + (card != null ? card.displayName() : "selected")
-                + " loadout on the named marines above."));
     }
 
     private void selectSquad(String squadId) {
@@ -539,13 +457,29 @@ public final class FleetArmoryViewModel {
         if (squad == null || squad.reserve()) return;
         selectedSquadId.set(squadId);
         selectedTeamIndex.set(0);
-        loadoutPickerOpen.set(false);
+        selectedWeaponDoctrineId.set(squad.weaponDoctrineId() != null
+                ? squad.weaponDoctrineId() : SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS);
+        selectedArmorDoctrineId.set(squad.armorDoctrineId() != null
+                ? squad.armorDoctrineId() : SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR);
     }
 
     private void selectTeam(int teamIndex) {
         selectedTeamIndex.set(teamIndex);
-        loadoutPickerOpen.set(false);
-        feedback.set(Feedback.neutral("Showing the selected fire team's current equipment."));
+        feedback.set(Feedback.neutral(
+                "Inspecting this fire team within the same squad equipment preview."));
+    }
+
+    private void selectWeaponDoctrine(String doctrineId) {
+        if (SquadEquipmentDoctrines.weaponById(doctrineId) == null) return;
+        selectedWeaponDoctrineId.set(doctrineId);
+        feedback.set(Feedback.neutral(
+                "Weapon equipment selected. Special equipment follows this definition."));
+    }
+
+    private void selectArmorDoctrine(String doctrineId) {
+        if (SquadEquipmentDoctrines.armorById(doctrineId) == null) return;
+        selectedArmorDoctrineId.set(doctrineId);
+        feedback.set(Feedback.neutral("Armor equipment selected for all twelve billets."));
     }
 
     private void reinforceSquad(String squadId) {
@@ -571,8 +505,10 @@ public final class FleetArmoryViewModel {
         domainRevision.get();
         MarineSquad squad = roster.squadById(selectedSquadId.get());
         if (squad == null) return "Select a line squad";
-        return roster.readyCount(squad) + " RTD  ·  " + roster.vacancies(squad)
-                + " open billets  ·  " + recoverySummary(squad);
+        int vacancies = roster.vacancies(squad);
+        return roster.readyCount(squad) + " RTD  ·  " + vacancies
+                + (vacancies == 1 ? " open billet  ·  " : " open billets  ·  ")
+                + recoverySummary(squad);
     }
 
     private int reinforcementCapacity(MarineSquad squad) {
@@ -601,6 +537,38 @@ public final class FleetArmoryViewModel {
         FireTeamTemplateCard card = roster.armory().templateCardById(
                 squad.teamTemplateCardId(teamIndex));
         return card != null ? card.displayName() : "Unassigned";
+    }
+
+    private static String assignedDoctrineName(MarineSquad squad) {
+        SquadWeaponDoctrine weapons = SquadEquipmentDoctrines.weaponById(
+                squad.weaponDoctrineId());
+        SquadArmorDoctrine armor = SquadEquipmentDoctrines.armorById(
+                squad.armorDoctrineId());
+        if (weapons == null || armor == null) return "Individual equipment";
+        return weapons.displayName() + "  /  " + armor.displayName();
+    }
+
+    private static String weaponDistribution(SquadWeaponDoctrine doctrine) {
+        List<String> parts = new ArrayList<>();
+        for (MarineWeapon weapon : MarineWeapon.values()) {
+            int count = 0;
+            for (var issue : doctrine.issues()) if (issue.primary() == weapon) count++;
+            if (count > 0) parts.add(count + " " + weapon.displayName());
+        }
+        int specials = 0;
+        for (var issue : doctrine.issues()) if (issue.specialEquipmentId() != null) specials++;
+        if (specials > 0) parts.add(specials + " special");
+        return String.join("  ·  ", parts);
+    }
+
+    private static String armorDistribution(SquadArmorDoctrine doctrine) {
+        List<String> parts = new ArrayList<>();
+        for (MarineArmorPattern pattern : MarineArmorPattern.values()) {
+            int count = 0;
+            for (MarineArmorPattern issue : doctrine.issues()) if (issue == pattern) count++;
+            if (count > 0) parts.add(count + " " + pattern.displayName);
+        }
+        return String.join("  ·  ", parts);
     }
 
     private int readyTeamMembers(MarineSquad squad, int teamIndex) {
@@ -721,9 +689,10 @@ public final class FleetArmoryViewModel {
                 soldier.secondary(), soldier.armor());
     }
 
-    private static String templateTileClasses(boolean selected, boolean available) {
-        String classes = available ? "template-tile available" : "template-tile unavailable";
-        return selected ? classes + " selected" : classes;
+    private static FireTeamBillet asFireTeamBillet(SquadEquipmentBillet billet) {
+        return billet != null ? new FireTeamBillet(
+                billet.role(), billet.primary(), billet.grade(),
+                billet.special(), billet.armor()) : null;
     }
 
     private static String marineCardClasses(MarineSoldier soldier, boolean previewing) {
@@ -902,19 +871,40 @@ public final class FleetArmoryViewModel {
                 + " kills  ·  wounded " + career.timesWounded() + " times";
     }
 
-    private static String templateMessage(FireTeamTemplateResult result) {
+    private static String squadEquipmentMessage(SquadEquipmentResult result) {
         return switch (result) {
-            case APPLIED -> "Ready to equip this fire team.";
-            case INVALID_FIRE_TEAM -> "Select a line fire team.";
-            case TEAM_NOT_READY -> "Not ready  ·  This team needs four RTD marines.";
+            case APPLIED -> "Ready  ·  Both definitions can be issued to all twelve marines.";
+            case INVALID_SQUAD -> "Select a line squad.";
+            case SQUAD_NOT_READY -> "Not ready  ·  This squad needs twelve RTD marines.";
             case STATIONED -> "Unavailable  ·  This squad is stationed away.";
-            case UNKNOWN_TEMPLATE -> "Select an available reusable template.";
-            case UNKNOWN_ARRANGEMENT -> "Squad arrangement unavailable.";
+            case UNKNOWN_WEAPON_DOCTRINE -> "Choose weapon equipment.";
+            case UNKNOWN_ARMOR_DOCTRINE -> "Choose armor equipment.";
             case LOCKED_RECIPE -> "Blocked  ·  One or more required recipes are locked.";
             case INSUFFICIENT_PRIMARIES -> "Blocked  ·  Not enough primary weapons.";
             case INSUFFICIENT_ARMOR -> "Blocked  ·  Not enough armor.";
-            case INSUFFICIENT_SECONDARIES -> "Blocked  ·  Not enough special equipment.";
+            case INSUFFICIENT_SPECIALS -> "Blocked  ·  Not enough special equipment.";
         };
+    }
+
+    public record DoctrineTile(
+            String id, String nameId, String descriptionId, String distributionId,
+            String classes, String name, String description, String distribution,
+            Runnable select) implements MarkupPropertySource {
+        @Override
+        public Object markupProperty(String property) {
+            return switch (property) {
+                case "id" -> id;
+                case "nameId" -> nameId;
+                case "descriptionId" -> descriptionId;
+                case "distributionId" -> distributionId;
+                case "classes" -> classes;
+                case "name" -> name;
+                case "description" -> description;
+                case "distribution" -> distribution;
+                case "select" -> select;
+                default -> throw new IllegalArgumentException("Unknown doctrine-tile property");
+            };
+        }
     }
 
     public record SelectionRow(String id, String label, String classes,
@@ -995,28 +985,6 @@ public final class FleetArmoryViewModel {
                 case "template" -> template;
                 case "select" -> select;
                 default -> throw new IllegalArgumentException("Unknown fire-team property");
-            };
-        }
-    }
-
-    public record TemplateTile(
-            String id, String nameId, String availabilityId, String canvasId,
-            String templateId, String classes, String name, String availability,
-            boolean disabled, Runnable select) implements MarkupPropertySource {
-        @Override
-        public Object markupProperty(String property) {
-            return switch (property) {
-                case "id" -> id;
-                case "nameId" -> nameId;
-                case "availabilityId" -> availabilityId;
-                case "canvasId" -> canvasId;
-                case "templateId" -> templateId;
-                case "classes" -> classes;
-                case "name" -> name;
-                case "availability" -> availability;
-                case "disabled" -> disabled;
-                case "select" -> select;
-                default -> throw new IllegalArgumentException("Unknown template-tile property");
             };
         }
     }

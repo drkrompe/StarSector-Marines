@@ -54,6 +54,8 @@ public final class WeaponDef {
     public final int burstCount;
     /** Sim-seconds between burst rounds. Ignored when {@link #burstCount} is 1. */
     public final float burstSpacing;
+    /** Simultaneous projectiles released by each burst round. */
+    public final int projectilesPerShot;
     /** Fraction of base {@link #accuracy} lost at {@link #range} cells. */
     public final float accuracyFalloff;
     /** Lateral scatter radius in cells at {@link #range}. */
@@ -114,7 +116,7 @@ public final class WeaponDef {
                       String designation, boolean designationTiered,
                       float range, float damage, float accuracy, float cooldown,
                       float penetration, float contactDamage, float contactPenetration,
-                      int burstCount, float burstSpacing,
+                      int burstCount, float burstSpacing, int projectilesPerShot,
                       float accuracyFalloff, float hitSpread, float roundVelocity,
                       float minRange, float aoeRadius, int wallDamage,
                       float wallDamageRadius, float aimDuration, float flightSec,
@@ -140,6 +142,7 @@ public final class WeaponDef {
         this.contactPenetration = contactPenetration;
         this.burstCount = burstCount;
         this.burstSpacing = burstSpacing;
+        this.projectilesPerShot = projectilesPerShot;
         this.accuracyFalloff = accuracyFalloff;
         this.hitSpread = hitSpread;
         this.roundVelocity = roundVelocity;
@@ -207,6 +210,7 @@ public final class WeaponDef {
                 contact != null ? (float) contact.getDouble("penetration") : 0f,
                 sim.optInt("burstCount", 1),
                 (float) sim.optDouble("burstSpacing", 0.0),
+                sim.optInt("projectilesPerShot", 1),
                 (float) sim.optDouble("accuracyFalloff", 0.0),
                 (float) sim.optDouble("hitSpread", 0.0),
                 (float) sim.optDouble("roundVelocity", 0.0),
@@ -236,6 +240,14 @@ public final class WeaponDef {
     }
 
     private static void validateMountFields(WeaponDef def) throws JSONException {
+        if (def.burstCount < 1 || def.projectilesPerShot < 1) {
+            throw new JSONException("Weapon '" + def.id
+                    + "' must emit at least one burst round and one projectile per shot");
+        }
+        if (def.burstCount == 1 && def.burstSpacing != 0f) {
+            throw new JSONException("Weapon '" + def.id
+                    + "' declares burstSpacing without a multi-round burst");
+        }
         if (def.mount == MountClass.MARINE_PRIMARY
                 && (def.aoeRadius != 0f || def.wallDamage != 0
                 || def.wallDamageRadius != 0f || def.aimDuration != 0f

@@ -48,10 +48,10 @@ public enum MarineWeapon {
     /**
      * Standard upgraded marine primary — vanilla pulse laser flavor, 3-round
      * burst (Halo BR-style tap-tap-tap). Sits between the single-shot DMR and
-     * the full-auto SMG to form a clean DMR / BR / AR triad.
+     * the sustained squad automatic.
      *
      * <p>Mild range falloff and a small spread keep the BR the "always
-     * useful" baseline — not as punishing at range as the SMG, not as crisp
+     * useful" baseline — not as punishing at range as the shredder, not as crisp
      * as the DMR. Each burst rolls accuracy independently per round, so
      * {@code P(any hit)} at long range is well above the single-shot
      * baseline. The three traveling bolts briefly overlap, which reads as a
@@ -59,15 +59,21 @@ public enum MarineWeapon {
      */
     PULSE_RIFLE("weapon.pulse-rifle"),
     /**
-     * Close-range area-suppression — fast 3-round bursts of small bullet
-     * sprites. Vanilla light MG. Lighter per-shot damage trades raw burst
-     * output for the saturation pattern and a snappier cadence.
+     * Close-range flechette cloud. The enum name and {@code weapon.smg} id are
+     * retained for save compatibility, while catalog presentation and firing
+     * behavior now express the shredder-carbine family.
      *
      * <p>Heavy range falloff plus a wide spread saturate the area near max
      * range — the design read is "devastating at door-breach distance, just
      * noise at the far end of the cone."
      */
     SMG("weapon.smg"),
+    /**
+     * Sustained chemical-slug support primary. Its long temporal burst makes
+     * an automatic rifleman valuable while a fire team covers, without adding
+     * a suppression status or a permanent marine role.
+     */
+    SQUAD_AUTOMATIC("weapon.squad-automatic"),
     /**
      * Long-range marksman rifle — heavier hit, slower cycle, mild AT bonus.
      * Vanilla railgun. Single long, fast traveling bolt.
@@ -133,6 +139,8 @@ public enum MarineWeapon {
     public int burstCount() { return def().burstCount; }
     /** Sim-seconds between burst rounds. Ignored when {@link #burstCount()} == 1. */
     public float burstSpacing() { return def().burstSpacing; }
+    /** Simultaneous projectiles released by each burst round. */
+    public int projectilesPerShot() { return def().projectilesPerShot; }
     /** Optional projectile sprite. When non-null, shots render as that rotated traveling sprite instead of the shared tinted bolt. */
     public String projectileSpritePath() { return def().projectileSpritePath; }
     /** Projectile sprite visual size in cells (long axis). Ignored when {@link #projectileSpritePath()} is null. */

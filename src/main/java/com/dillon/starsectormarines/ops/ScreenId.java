@@ -16,7 +16,6 @@ public enum ScreenId {
     /** Dev-only retained document and host-capability proof; safe without a planet. */
     UI_WORKBENCH,
     MISSION_SELECT,
-    ARMORY,
     /** Retained owned-company landing view; safe without a planet. */
     FLEET_ARMORY_OVERVIEW,
     /** Production retained formation/template/refit slice; safe without a planet. */

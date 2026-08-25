@@ -4,7 +4,7 @@ Status: ACTIVE — handheld, special-item and turret weapon data is owned; mech 
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — distinguished delivery mechanism and defined behavior-aware artillery preview, directional launch FX, and weapon-owned contrails/audio.
+Updated: 2026-08-25 — separated simultaneous projectiles per shot from temporal burst cadence for flechette and automatic primary families.
 
 ## Purpose
 
@@ -32,6 +32,10 @@ without turning a JSON typo into a silent zero-damage battle.
   pulse/laser energy, rocket or arcing grenade, or a close-contact implement.
   It constrains applicable trajectory, payload, and presentation fields. It is
   not the weapon's tactical role, grade, provenance, or faction availability.
+- A **projectile release** is the set of independently resolved traveling
+  bodies emitted at one burst instant. `projectilesPerShot` authors a
+  simultaneous cloud; `burstCount` and `burstSpacing` author temporal cadence.
+  Neither is inferred from display name, mechanism, carrier, or faction.
 - A **mount class** is the compatibility family for a definition: handheld
   primary or secondary, mech mount, or turret mount. It distinguishes what
   may use a definition; it is not a statement about which individual unit
@@ -119,6 +123,11 @@ shared consumer exists.
   become separate definitions only when their engagement behavior, payload, or
   readable shot treatment creates a real choice; a renamed tracer is not a new
   family.
+- Simultaneous release count and temporal burst count remain orthogonal. Every
+  projectile receives its own trajectory, contact, telemetry, and visual body,
+  while trigger discipline may withhold the release as one firing decision.
+  Counts must be positive, and spacing without a multi-round burst is invalid
+  authored data.
 - Penetration replaces anti-hardened and anti-turret damage multipliers. A
   weapon never owns a list of platform types against which its damage changes.
 - Contact privilege comes from physical interception. An explosive direct-fire

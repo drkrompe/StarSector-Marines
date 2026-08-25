@@ -16,7 +16,7 @@ Read `company-view-nouns.md` before changing this story.
 `SquadDeploymentScreen` is a flat list: `[X] Name  n/12 RTD`
 plus a WIA/MIA/KIA string, two columns, no captain, no individuals, no
 sense of an organization. It is also the *only* place the player sees their
-squads as squads — `ArmoryScreen` organizes by marine and by
+squads as squads — Fleet Armory organizes by marine and by
 inventory, and `StationingScreen` by contract.
 
 The result is that a company of seven squads reads as ungrouped rows split
@@ -67,18 +67,12 @@ that progression `s8-roster-legibility.md`
 defines. **Leave S8's row design to S8** — C3 reserves the space and owns
 the expand/collapse, not the contents of the leaf.
 
-### Reuse the widget vocabulary
+### Reuse the retained component vocabulary
 
-The mod already has this pattern working in the comms console:
-`DossierCardWidget` (clickable record card) → `ExpandedCardWidget` (frame
-whose sub-controls are added flat into the shared tree at known positions
-inside the card rect) → `ScrollRegionWidget` (scroll capture behind the
-content) → `SelectableRowWidget` / `CaptainRowWidget` (row with hover +
-selected tints and a left accent) → `StatBarWidget`, `SpriteThumbWidget`.
-
-Build the squad card on that vocabulary rather than a new container
-model. Keep the flat widget tree — it is a deliberate constraint of
-`WidgetRoot`, and `ExpandedCardWidget` documents why.
+Build the squad gallery from the retained card, scroll-region, selection,
+stat-meter, and sprite-preview primitives used by the Fleet Armory. Keep card
+identity keyed across selection and reload so expanding or inspecting a squad
+does not rebuild unrelated content.
 
 ### Density tiers — the view must survive a big company
 
@@ -144,7 +138,7 @@ pre-battle flow.
 ## Out of scope
 
 - The contents of the marine leaf row (S8).
-- Moving marines between teams — `ArmoryScreen` owns transfers; the card
+- Moving marines between teams — a future retained personnel surface owns transfers; the card
   links to it.
 - Renaming squads from the card (roster supports it; not this story).
 - Orders of any kind.

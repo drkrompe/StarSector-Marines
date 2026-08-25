@@ -62,21 +62,22 @@
       "id": "weapon.smg",
       "mount": "marine-primary",
       "catalog": {
-        "displayName": "Light Machine Gun",
+        "displayName": "Shredder Carbine",
         "modelName": "Rattler",
-        "designation": "LMG",
+        "designation": "SHD",
         "designationTiered": true
       },
       "sim": {
-        "range": 16.0,
-        "damage": 5.4,
-        "accuracy": 0.50,
-        "cooldown": 0.50,
-        "penetration": 3.0,
-        "burstCount": 3,
-        "burstSpacing": 0.07,
-        "accuracyFalloff": 0.60,
-        "hitSpread": 1.4,
+        "range": 14.0,
+        "damage": 3.0,
+        "accuracy": 0.68,
+        "cooldown": 0.75,
+        "penetration": 1.0,
+        "burstCount": 1,
+        "burstSpacing": 0.0,
+        "projectilesPerShot": 6,
+        "accuracyFalloff": 0.75,
+        "hitSpread": 1.7,
         "roundVelocity": 45.0
       },
       "render": {
@@ -84,6 +85,36 @@
         "impact": "rifle",
         "projectileSprite": "graphics/missiles/shell_small_yellow.png",
         "projectileVisualCells": 0.15
+      },
+      "audio": { "fireSound": "light_machinegun_fire" }
+    },
+    {
+      "id": "weapon.squad-automatic",
+      "mount": "marine-primary",
+      "catalog": {
+        "displayName": "Squad Automatic",
+        "modelName": "Stalwart",
+        "designation": "SA",
+        "designationTiered": true
+      },
+      "sim": {
+        "range": 22.0,
+        "damage": 5.8,
+        "accuracy": 0.34,
+        "cooldown": 1.60,
+        "penetration": 5.0,
+        "burstCount": 8,
+        "burstSpacing": 0.10,
+        "projectilesPerShot": 1,
+        "accuracyFalloff": 0.45,
+        "hitSpread": 0.9,
+        "roundVelocity": 52.0
+      },
+      "render": {
+        "tracerColor": "FFD6A0",
+        "impact": "rifle",
+        "projectileSprite": "graphics/missiles/shell_small_yellow.png",
+        "projectileVisualCells": 0.16
       },
       "audio": { "fireSound": "light_machinegun_fire" }
     },

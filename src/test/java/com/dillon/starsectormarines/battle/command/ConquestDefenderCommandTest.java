@@ -188,6 +188,40 @@ class ConquestDefenderCommandTest {
     }
 
     @Test
+    void localContactImmediatelyReleasesStableDefenderRally() {
+        BattleSimulation sim = openSim();
+        addDefender(sim, "reporter", 5, 10, UnitRole.PATROL);
+        Squad responder = addDefender(sim, "responder", 5, 48,
+                UnitRole.PATROL);
+        sim.spawn(new EntitySpec("distant-contact", Faction.MARINE,
+                UnitType.MARINE, 5, 14).moveSpeed(0f).health(10_000f));
+        sim.advance(BattleSimulation.TICK_DT);
+        ConquestDefenderCommand command = command(sim);
+        CommanderService service = new CommanderService();
+        service.setAutonomousCommander(Faction.DEFENDER, command,
+                ConquestCommandDisclosure.INSTANCE);
+
+        service.tick(CommanderService.COMMANDER_TICK_PERIOD, sim);
+        CommandDirective first = service.assignments()
+                .activeDirective(responder.id);
+        assertEquals(AssignmentKind.DEFEND_TRACK,
+                responder.assignedObjective.kind());
+        assertTrue(first.isStableAt(sim.getSimTickIndex()));
+
+        sim.spawn(new EntitySpec("local-contact", Faction.MARINE,
+                UnitType.MARINE, 5, 47).moveSpeed(0f).health(10_000f));
+        sim.advance(BattleSimulation.TICK_DT);
+        assertTrue(responder.hasBelievedContacts());
+        service.tick(CommanderService.COMMANDER_TICK_PERIOD, sim);
+
+        CommandDirective result = service.snapshot(Faction.DEFENDER)
+                .directiveFor(responder.id);
+        assertNull(responder.assignedObjective);
+        assertEquals(CommandDirective.Status.RELEASED, result.status());
+        assertTrue(result.dispositionReason().contains("context invalidated"));
+    }
+
+    @Test
     void patrolDeliveredAfterSetupIsNotAbsorbedIntoStartingReserve() {
         BattleSimulation sim = openSim();
         addDefender(sim, "reporter", 5, 10, UnitRole.PATROL);

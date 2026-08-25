@@ -28,4 +28,10 @@ public record CommanderSnapshot<D>(
         }
         return null;
     }
+
+    public CommanderSnapshot<D> withDetail(D reconciledDetail) {
+        return new CommanderSnapshot<>(perspective, strategy, phase, tick,
+                influenceTick, commandPoolSize, reserveCount,
+                objectiveSummaries, directives, reconciledDetail);
+    }
 }

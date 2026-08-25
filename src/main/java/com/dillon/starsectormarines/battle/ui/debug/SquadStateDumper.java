@@ -372,6 +372,7 @@ public final class SquadStateDumper {
         row.put("reason", directive.reason());
         row.put("dispositionReason", directive.dispositionReason());
         row.put("issuedTick", directive.issuedTick());
+        row.put("stableUntilTick", directive.stableUntilTick());
         row.put("leaseUntilTick", directive.leaseUntilTick());
         ObjectiveAssignment effective = directive.status()
                 == CommandDirective.Status.REJECTED

@@ -8,10 +8,11 @@
       "bulk": {
         "unitType": "MILITIA",
         "primaries": [
-          {"id": "weapon.field-rifle", "weight": 45},
-          {"id": "weapon.pulse-rifle", "weight": 25},
-          {"id": "weapon.smg", "weight": 20},
-          {"id": "weapon.dmr", "weight": 10}
+          {"id": "weapon.field-rifle", "weight": 40},
+          {"id": "weapon.pulse-rifle", "weight": 20},
+          {"id": "weapon.smg", "weight": 15},
+          {"id": "weapon.dmr", "weight": 10},
+          {"id": "weapon.squad-automatic", "weight": 15}
         ],
         "gradesByRisk": {
           "low": [{"id": "surplus", "weight": 70}, {"id": "service", "weight": 30}],
@@ -32,9 +33,10 @@
       "elite": {
         "unitType": "MARINE_RED",
         "primaries": [
-          {"id": "weapon.pulse-rifle", "weight": 50},
-          {"id": "weapon.dmr", "weight": 30},
-          {"id": "weapon.smg", "weight": 20}
+          {"id": "weapon.pulse-rifle", "weight": 40},
+          {"id": "weapon.dmr", "weight": 25},
+          {"id": "weapon.smg", "weight": 15},
+          {"id": "weapon.squad-automatic", "weight": 20}
         ],
         "gradesByRisk": {
           "low": [{"id": "surplus", "weight": 20}, {"id": "service", "weight": 70}, {"id": "milspec", "weight": 10}],
@@ -59,7 +61,7 @@
       "heavySupport": ["bulwark", "hound", "sirocco"],
       "bulk": {
         "unitType": "MILITIA",
-        "primaries": [{"id": "weapon.field-rifle", "weight": 55}, {"id": "weapon.pulse-rifle", "weight": 20}, {"id": "weapon.dmr", "weight": 20}, {"id": "weapon.smg", "weight": 5}],
+        "primaries": [{"id": "weapon.field-rifle", "weight": 45}, {"id": "weapon.pulse-rifle", "weight": 15}, {"id": "weapon.dmr", "weight": 15}, {"id": "weapon.smg", "weight": 5}, {"id": "weapon.squad-automatic", "weight": 20}],
         "gradesByRisk": {
           "low": [{"id": "surplus", "weight": 55}, {"id": "service", "weight": 45}],
           "medium": [{"id": "surplus", "weight": 25}, {"id": "service", "weight": 65}, {"id": "milspec", "weight": 10}],
@@ -78,7 +80,7 @@
       },
       "elite": {
         "unitType": "MARINE_RED",
-        "primaries": [{"id": "weapon.pulse-rifle", "weight": 45}, {"id": "weapon.dmr", "weight": 40}, {"id": "weapon.field-rifle", "weight": 10}, {"id": "weapon.smg", "weight": 5}],
+        "primaries": [{"id": "weapon.pulse-rifle", "weight": 40}, {"id": "weapon.dmr", "weight": 30}, {"id": "weapon.field-rifle", "weight": 10}, {"id": "weapon.smg", "weight": 5}, {"id": "weapon.squad-automatic", "weight": 15}],
         "gradesByRisk": {
           "low": [{"id": "service", "weight": 75}, {"id": "milspec", "weight": 25}],
           "medium": [{"id": "service", "weight": 45}, {"id": "milspec", "weight": 50}, {"id": "masterwork", "weight": 5}],
@@ -145,7 +147,7 @@
       "heavySupport": ["hound", "bulwark", "sirocco"],
       "bulk": {
         "unitType": "MILITIA",
-        "primaries": [{"id": "weapon.field-rifle", "weight": 35}, {"id": "weapon.pulse-rifle", "weight": 35}, {"id": "weapon.smg", "weight": 15}, {"id": "weapon.dmr", "weight": 15}],
+        "primaries": [{"id": "weapon.field-rifle", "weight": 30}, {"id": "weapon.pulse-rifle", "weight": 30}, {"id": "weapon.smg", "weight": 10}, {"id": "weapon.dmr", "weight": 15}, {"id": "weapon.squad-automatic", "weight": 15}],
         "gradesByRisk": {
           "low": [{"id": "surplus", "weight": 55}, {"id": "service", "weight": 45}],
           "medium": [{"id": "surplus", "weight": 30}, {"id": "service", "weight": 60}, {"id": "milspec", "weight": 10}],
@@ -164,7 +166,7 @@
       },
       "elite": {
         "unitType": "MARINE_RED",
-        "primaries": [{"id": "weapon.pulse-rifle", "weight": 45}, {"id": "weapon.dmr", "weight": 30}, {"id": "weapon.field-rifle", "weight": 15}, {"id": "weapon.smg", "weight": 10}],
+        "primaries": [{"id": "weapon.pulse-rifle", "weight": 40}, {"id": "weapon.dmr", "weight": 25}, {"id": "weapon.field-rifle", "weight": 15}, {"id": "weapon.smg", "weight": 5}, {"id": "weapon.squad-automatic", "weight": 15}],
         "gradesByRisk": {
           "low": [{"id": "surplus", "weight": 10}, {"id": "service", "weight": 75}, {"id": "milspec", "weight": 15}],
           "medium": [{"id": "service", "weight": 55}, {"id": "milspec", "weight": 40}, {"id": "masterwork", "weight": 5}],
@@ -188,7 +190,7 @@
       "heavySupport": ["bulwark", "hound"],
       "bulk": {
         "unitType": "MILITIA",
-        "primaries": [{"id": "weapon.field-rifle", "weight": 65}, {"id": "weapon.dmr", "weight": 15}, {"id": "weapon.smg", "weight": 15}, {"id": "weapon.pulse-rifle", "weight": 5}],
+        "primaries": [{"id": "weapon.field-rifle", "weight": 55}, {"id": "weapon.dmr", "weight": 15}, {"id": "weapon.smg", "weight": 10}, {"id": "weapon.pulse-rifle", "weight": 5}, {"id": "weapon.squad-automatic", "weight": 15}],
         "gradesByRisk": {
           "low": [{"id": "surplus", "weight": 80}, {"id": "service", "weight": 20}],
           "medium": [{"id": "surplus", "weight": 60}, {"id": "service", "weight": 38}, {"id": "milspec", "weight": 2}],
@@ -207,7 +209,7 @@
       },
       "elite": {
         "unitType": "MARINE_RED",
-        "primaries": [{"id": "weapon.field-rifle", "weight": 35}, {"id": "weapon.dmr", "weight": 30}, {"id": "weapon.pulse-rifle", "weight": 25}, {"id": "weapon.smg", "weight": 10}],
+        "primaries": [{"id": "weapon.field-rifle", "weight": 30}, {"id": "weapon.dmr", "weight": 25}, {"id": "weapon.pulse-rifle", "weight": 25}, {"id": "weapon.smg", "weight": 5}, {"id": "weapon.squad-automatic", "weight": 15}],
         "gradesByRisk": {
           "low": [{"id": "surplus", "weight": 25}, {"id": "service", "weight": 65}, {"id": "milspec", "weight": 10}],
           "medium": [{"id": "surplus", "weight": 10}, {"id": "service", "weight": 60}, {"id": "milspec", "weight": 27}, {"id": "masterwork", "weight": 3}],
@@ -274,7 +276,7 @@
       "heavySupport": ["bulwark", "sirocco", "hound"],
       "bulk": {
         "unitType": "MILITIA",
-        "primaries": [{"id": "weapon.field-rifle", "weight": 40}, {"id": "weapon.pulse-rifle", "weight": 30}, {"id": "weapon.dmr", "weight": 20}, {"id": "weapon.smg", "weight": 10}],
+        "primaries": [{"id": "weapon.field-rifle", "weight": 35}, {"id": "weapon.pulse-rifle", "weight": 25}, {"id": "weapon.dmr", "weight": 15}, {"id": "weapon.smg", "weight": 10}, {"id": "weapon.squad-automatic", "weight": 15}],
         "gradesByRisk": {
           "low": [{"id": "surplus", "weight": 60}, {"id": "service", "weight": 40}],
           "medium": [{"id": "surplus", "weight": 30}, {"id": "service", "weight": 60}, {"id": "milspec", "weight": 10}],
@@ -293,7 +295,7 @@
       },
       "elite": {
         "unitType": "MARINE_RED",
-        "primaries": [{"id": "weapon.pulse-rifle", "weight": 45}, {"id": "weapon.dmr", "weight": 35}, {"id": "weapon.field-rifle", "weight": 15}, {"id": "weapon.smg", "weight": 5}],
+        "primaries": [{"id": "weapon.pulse-rifle", "weight": 40}, {"id": "weapon.dmr", "weight": 30}, {"id": "weapon.field-rifle", "weight": 15}, {"id": "weapon.smg", "weight": 5}, {"id": "weapon.squad-automatic", "weight": 10}],
         "gradesByRisk": {
           "low": [{"id": "service", "weight": 75}, {"id": "milspec", "weight": 25}],
           "medium": [{"id": "service", "weight": 45}, {"id": "milspec", "weight": 50}, {"id": "masterwork", "weight": 5}],

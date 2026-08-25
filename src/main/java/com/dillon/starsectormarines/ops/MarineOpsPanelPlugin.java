@@ -33,8 +33,7 @@ import java.util.function.Consumer;
  * {@link CompanyViewAbility} — starts on {@code COMPANY_HQ} and must never route
  * to {@code MISSION_SELECT}, {@code BRIEFING},
  * {@code SQUAD_DEPLOYMENT}, {@code BATTLE}, {@code RESULTS}, or {@code LOOT}.
- * {@code ARMORY}, {@code FLEET_ARMORY_OVERVIEW}, {@code FLEET_ARMORY},
- * {@code MECH_LAB}, and the
+ * {@code FLEET_ARMORY_OVERVIEW}, {@code FLEET_ARMORY}, {@code MECH_LAB}, and the
  * dev-only {@code UI_WORKBENCH} are safe: none reads a planet. A planet-scoped
  * host reaches everything as before.
  */
@@ -53,7 +52,7 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
      */
     private static final Set<ScreenId> INTEL_MUSIC_SCREENS =
             EnumSet.of(ScreenId.COMPANY_HQ, ScreenId.UI_WORKBENCH,
-                    ScreenId.MISSION_SELECT, ScreenId.ARMORY,
+                    ScreenId.MISSION_SELECT,
                     ScreenId.FLEET_ARMORY_OVERVIEW, ScreenId.FLEET_ARMORY,
                     ScreenId.MECH_LAB,
                     ScreenId.BRIEFING, ScreenId.SQUAD_DEPLOYMENT, ScreenId.STATIONING);
@@ -82,7 +81,6 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
         screens.put(ScreenId.COMPANY_HQ,     new CompanyHqScreen());
         screens.put(ScreenId.UI_WORKBENCH,   new UiWorkbenchScreen());
         screens.put(ScreenId.MISSION_SELECT, new MissionSelectScreen());
-        screens.put(ScreenId.ARMORY,        new ArmoryScreen());
         screens.put(ScreenId.FLEET_ARMORY_OVERVIEW, new FleetArmoryOverviewScreen());
         screens.put(ScreenId.FLEET_ARMORY,  new FleetArmoryScreen());
         screens.put(ScreenId.MECH_LAB,      new MechLabScreen());

@@ -143,7 +143,7 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
                     w.tracerColor(), 1.8f, 0.16f);
             case DRONE_PULSE -> new Bolt(DRONE_DART_SPRITE_PATH,
                     w.tracerColor(), 0.65f, 0.16f);
-            case FIELD_RIFLE, SMG -> throw new IllegalArgumentException(
+            case FIELD_RIFLE, SMG, SQUAD_AUTOMATIC -> throw new IllegalArgumentException(
                     "sprite-backed primary cannot derive a bolt: " + w);
         };
     }

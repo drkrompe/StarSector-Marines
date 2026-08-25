@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — promoted Mech Lab to a retained shipboard room beside HQ and Armory.
+Updated: 2026-08-25 — added Mech Lab to the top room-navigation shell after squad-wide equipment doctrines retired Armory Administration.
 
 ## Purpose
 
@@ -13,8 +13,9 @@ decision depends on it: between contracts, while assembling a deployment, in
 battle, and after action. Most of the domain is a read model over the campaign
 roster and contract state, not a second company simulation and not a
 player-order layer. The Fleet Armory and Mech Lab are its deliberate authoring
-seams: the former assigns reusable equipment designs to existing fire teams;
-the latter refits persistent support squads.
+seams: the former assigns reusable weapon and armor equipment definitions to
+whole squads while preserving exact materialized kits; the latter refits
+persistent support squads.
 
 This domain owns the shared language and presentation shape of the company. It
 does not own personnel persistence, equipment progression, contract resolution,
@@ -34,21 +35,19 @@ company view composes their stable outputs.
   the Fleet Armory's player-facing equipment tier, the lift-capacity unit, and
   battle AI maneuver element. It is not another deployment selection or
   player command target.
-- **Fire-team template** — a reusable four-billet equipment design owned by the
-  armory. The template is not physical inventory and is never consumed by
-  assignment; each fielded copy still needs a complete physical kit.
-- **Special-equipment slot** — the one optional billet position beside a
-  marine's primary and armour. A template may issue a weapon-like special or a
-  utility special; the slot does not make the template a battle order.
-- **Billet** — one equipment position on a fire-team template. Templates describe
-  positions rather than named marines; the current team materializes them.
-- **Template assignment** — the template id bound to one squad's Alpha, Bravo, or
-  Charlie team after an atomic inventory transaction succeeds.
-- **Squad arrangement** — a planned quick-refit composition of three template
-  assignments. It is not a separate kind of equipment or organization, and
-  applying one leaves the three team assignments as the only fielded intent.
-- **Conformance** — whether a team's current personnel and materialized issue
-  match its assigned template. Wounds, vacancies, later individual mutations, and
+- **Weapon doctrine** — one reusable squad-wide definition of twelve ordered
+  primary, grade, role, and optional special-equipment issues. Special equipment
+  belongs to this definition even when the item is a utility rather than a weapon.
+- **Armor doctrine** — one reusable squad-wide definition of twelve ordered armor
+  issues. It is independent of the weapon doctrine, so either half may change
+  without redefining the other.
+- **Squad equipment issue** — the explicit atomic transaction that resolves one
+  weapon doctrine and one armor doctrine into the selected squad's exact twelve
+  materialized kits.
+- **Billet** — one stable position in the squad's twelve-place equipment
+  establishment. Alpha, Bravo, and Charlie inspect consecutive groups of four.
+- **Conformance** — whether a squad's current personnel and materialized issue
+  match its assigned doctrine pair. Wounds, vacancies, later individual mutations, and
   future equipment loss can degrade conformance without erasing intent.
 - **Marine** — the persistent individual. Their equipment and quality belong
   to the personnel and progression domains; company view presents them in
@@ -66,10 +65,6 @@ company view composes their stable outputs.
   mech subsystem stock defined by `mechs-nouns.md`. It presents
   chassis and hardpoints but mutates only inventory authorities that actually
   exist.
-- **Armory Administration** — the transitional host for personnel management,
-  template design, squad arrangements, and the remaining
-  compatibility inspector. It is not the formation-browsing home and disappears
-  only after those authoring jobs have retained replacements.
 
 ## Surface boundary
 
@@ -78,18 +73,18 @@ Its selectable company and squad cards own inspection, readiness, recovery, and
 reinforcement in formation context. A reinforcement control is a secondary card
 action; selecting the rest of a squad card still enters that squad.
 
-Armory Administration contains only work that has not yet migrated: personnel
-and reserve organization, reusable-template design, squad-arrangement authoring,
-and the temporary individual-kit compatibility path. Player-facing
-navigation names this destination explicitly instead of presenting a second Fleet
-Armory or an undifferentiated legacy-menu escape hatch.
+Fleet Armory is the only Armory route. The former Armory Administration shell,
+its individual-kit browser, fire-team template designer, squad-arrangement editor,
+and embedded Mech Lab were retired rather than retained as duplicate UI. Personnel
+reinforcement now lives on formation cards. Mech Lab has returned as its own retained
+surface over `MechBay`, not as a tab in a catch-all screen.
 
 ## Organization and leadership
 
 The full organizational hierarchy is **company → officer command → squad → fire
 team → marine**. Hosts stop at the depth their decision needs: the Fleet Armory
-opens the fire-team equipment tier, while deployment and battle command remain
-squad-granular.
+opens squad equipment and fire-team inspection, while deployment and battle command
+remain squad-granular.
 
 Officer command and enlisted leadership are separate ladders. Lieutenant,
 Captain, Major, Lieutenant Colonel, and Colonel caps are respectively 3, 6, 10,
@@ -116,7 +111,7 @@ Creating the corresponding named billet holders is an internal materialization o
 that consumed personnel, not a separate currency conversion or player-facing enlistment
 step. Mission shortfalls use the same draw in place instead of routing through another
 Armory screen. The transaction does not invent personnel, move WIA marines out of
-recovery, or claim that replacement equipment conforms to the team's assigned template.
+recovery, or claim that replacement equipment conforms to the squad's assigned doctrines.
 The company, squad, and fire-team projections report WIA counts and the earliest
 remaining recovery clock; the named-marine view reports that individual's remaining
 hours and days.
@@ -125,110 +120,60 @@ hours and days.
 temporary mission borrowing. Stationed squads remain under one officer because
 a garrison is a posting, not a task force.
 
-## Armory equipment templates
+## Squad equipment doctrines
 
-The Fleet Armory authors routine equipment at fire-team scale. `MarineArmory`
-owns a reusable template library; `MarineSquad` persists one assigned template id for
-each of its three team slots. A template has exactly four billets, and each billet
-may specify primary family, grade, armour, and optional special equipment. The
-current `MarineSecondary` field is the compatibility materialization of that
-last concept until the id migration retires it. Special gear
-therefore belongs to a scarce team design rather than a parallel per-marine
-override system.
+Routine Armory authorship sits at squad scale. `MarineSquad` persists one weapon
+doctrine id and one armor doctrine id. Each reusable definition describes twelve
+ordered billets, so a single choice may still mix equipment by team, role, or
+individual position. Weapon doctrine owns primary family, grade, role label, and
+optional `specialEquipmentId`; armor doctrine owns only protection. A smoke grenade
+or satchel therefore follows the Weapon slot without being reclassified as a
+ballistic `WeaponDef`.
 
-Assignment is atomic and inventory-aware. The target team's current equipment
-is counted as returned before the candidate template is checked. Locked recipes or
-insufficient primaries, armour, or special items leave every marine and the prior
-template id untouched. A complete four-marine RTD team is currently required before a
-new template can be assigned; later conformance work owns degraded and replacement
-teams.
+The two selected definitions compose into one exact twelve-billet preview. Alpha,
+Bravo, and Charlie remain four-billet inspection slices: selecting a team changes
+which four named marine cards are visible but does not reset or narrow the squad
+transaction. Each card combines the persistent marine's rank, status, aptitude,
+experience and career with the projected role and equipment. Weapon and armor
+figures use the same catalog and individual-profile rules as battle, while exact
+values remain legible beside comparative capability meters. Live portraits cycle
+the authored idle clip with stable per-slot phase offsets; headless evidence fixes
+the phase for deterministic comparison.
 
-The template is intent, while `MarineSoldier` equipment remains the materialized
-state consumed by deployment and battle. This preserves the campaign-to-battle
-contract while the designer grows. The built-in library contains Field, Line,
-Recon, Fire Support, Anti-Materiel, Screen, and Breach templates; the LOADOUTS
-surface exposes Alpha/Bravo/Charlie plus each assigned template.
+Issue is explicit, atomic, and net of returns. The target squad's current twelve
+kits return before the candidate pair is checked. A stationed squad, any vacancy or
+WIA billet, a locked recipe, or insufficient primary, armor, or special stock leaves
+both doctrine ids and every marine's existing kit untouched. Success writes both
+ids together and materializes all twelve exact issues onto `MarineSoldier`, which
+remains the battle-facing state consumed by deployment. Later inventory changes do
+not silently optimize or reshuffle that materialized result.
 
-The selected fire team is presented first as four named marine cards. Each card
-combines the persistent marine's rank, status, aptitude, experience and career with
-the candidate billet's role and equipment. Weapon figures are resolved through the
-same family, grade and individual-profile combat rules used in battle; armour and
-special issue remain equally explicit. Vacant billets remain visibly vacant rather
-than acquiring a fixture identity. Live selected-marine portraits cycle the authored
-idle clip with a small per-slot phase offset; template selectors and deterministic
-headless evidence hold a controlled phase so scanning and comparison remain stable.
+Built-in definitions are authored deterministic distributions rather than live
+best-fit allocators. This makes faction-flavored profiles such as **Sindrian
+Civilian Security Equipment** or **Luddic Path Assault Equipment** explainable in
+preview and stable after issue. Future player-authored definitions may expand the
+catalog and editing workflow, but they must still resolve to twelve exact billets
+before the same transaction can commit.
 
-Template choice is an on-demand editing control inside that viewer, not a permanent
-peer column or a persistent part of its ordinary reading state. **Change Loadout**
-opens a temporary horizontal comparison tray; changing fire teams or cancelling
-closes it and restores the current-equipment viewer. The tray presents each reusable
-template as a compact four-soldier formation projection with its fielded count and
-contextual availability for the selected team. Unavailable choices remain visible
-but cannot become the candidate. This
-is a visual selector over the reusable plan, not a collectible card or a second
-equipment representation. Selecting a candidate projects its four billets onto the
-four named marines and adds resolved weapon and armour deltas without changing
-campaign state. One explicit equip action commits the same authoritative preview.
-The soldiers use the same
-layered actor composition and special-equipment presentation recipe as battlefield
-infantry. This projection is retained view state only: it does not materialize gear,
-reserve stock, or replace the exact refit transaction preview. The complete preview
-recipe is backend-neutral, so a controlled raster context can produce deterministic
-PNG evidence without booting the game while the live Armory resolves the same recipe
-to retained-canvas sprites.
+Legacy four-billet templates, three-template arrangements, and their persisted ids
+remain readable compatibility input for existing saves; they are no longer writable
+player intent and have no Fleet Armory UI. A legacy squad keeps its current
+per-marine equipment until the player explicitly issues a doctrine pair. The first
+successful squad issue clears stale per-team assignment ids so only one equipment
+authority remains.
 
-Templates are reusable but equipment is finite. Design itself must not be gated by
-stock; the designer may save an unfieldable template, while assignment is allowed
-only when the armory can supply it. Built-in templates are immutable library
-fixtures and may be cloned. Player-authored templates have stable persisted ids;
-their names are metadata and may change in place, while changing billet issue
-is saved as a new template revision. Assigned teams therefore retain both their old
-template id and materialized issue until an explicit refit succeeds. A custom template
-cannot be deleted while any team or saved arrangement still references it.
-Conformance and retirement of routine per-marine mutation remain in
-`c14-fire-team-equipment-templates.md`.
-
-Template availability has two deliberately different readings. **Fielded** counts
-the teams whose persisted assignment names that template, even when a team is
-currently degraded. **Ready to issue** counts additional complete copies that
-uncommitted fleet stock can supply without assuming any target team's returns.
-Selecting a specific team and template produces the contextual refit preview: free
-stock before the transaction, the target issue returned, and the candidate
-issue required. That preview is the same calculation used by assignment, not a
-UI estimate. The ordinary fire-team viewer shows current equipment; its temporary
-comparison state summarizes that answer as ready or blocked and offers one explicit
-equip action. Its marine cards do not expose the
-free/return/required material ledger used by authoring and diagnostic surfaces.
-
-Two assigned teams may exchange templates in one atomic transaction. Both teams'
-current equipment is returned before either candidate issue is checked, so a
-scarce kit can move directly between teams without a temporary extra copy. A
-failure leaves both teams, both assignment ids, and all materialized equipment
-unchanged.
-
-A squad arrangement saves exactly one template id for Alpha, Bravo and Charlie.
-It is a reusable refit plan, not a persisted fourth binding on the squad. The
-player may author or capture one without owning its equipment, then target any
-line squad from the arrangement management view. Preview and issue evaluate all
-twelve billets as one transaction: all three current team issues return before
-the candidate composition is checked. Success writes the three ordinary
-template assignments and materialized kits; any invalid team, locked recipe or
-stock shortfall leaves the whole squad unchanged. Deleting the arrangement
-later cannot rewrite a squad that used it.
-
-“Card” is not part of this model. Compact tiles or rows may make templates quick
-to scan and assign, but the Fleet Armory has no collectible-card, deck, hand or
-consumption semantics.
+The selectors may be presented as equipment cards in the literal base-game UI
+sense, but card/deck/hand/consumption semantics do not enter the domain. Definitions
+are reusable intent; every materialized copy remains bounded by finite physical
+stock.
 
 ## Mech Lab
 
-The Mech Lab mirrors the Armory's squad-first interaction without reusing its
-personnel template model. Campaign mechs retain individual identity inside a
-selected support squad of up to four chassis. The lab shows the whole squad,
-then the selected mech's doctrine, fixed chassis mounts, installed subsystem,
-and fleet subsystem inventory. The current first slice authors missile-
-replenisher installation; chassis and weapon mounts remain visible but read-
-only until acquisition and weapon-component inventories exist.
+The Mech Lab is the focused squad-first surface over `MechBay`; it does not reuse
+personnel doctrine. Campaign mechs retain individual identity inside a selected
+support squad of up to four chassis. The retained room shows the whole squad,
+selected mech, fixed chassis mounts, installed subsystem, and finite fleet subsystem
+inventory.
 
 Subsystem assignment is an atomic inventory transaction. Installed copies
 count against owned quantity and the target's current component returns before
@@ -387,11 +332,11 @@ derived inputs are explained rather than silently collapsed.
 The HQ introduces no persisted state and no second company hierarchy. Opening its
 Armory transition first shows the owned-company collection as a responsive grid of
 literal selectable portrait cards. Selecting one enters a company-specific squad
-gallery; selecting a squad then exposes its three fire teams and a named-marine
-viewer with integrated template selection and one exact equip action. A breadcrumb
-keeps the completed company and squad levels directly reachable while drilling down.
-A company or squad card is only a presentation container over canonical roster
-authority; neither is a collectible/template noun or parallel organization. Until a
+gallery; selecting a squad then exposes its three fire teams, named-marine viewer,
+two squad doctrine slots, and one exact issue action. A breadcrumb keeps the
+completed company and squad levels directly reachable while drilling down. A
+company or squad card is only a presentation container over canonical roster
+authority; neither creates parallel organization. Until a
 multi-company campaign authority exists, the first grid contains exactly the one real
 campaign roster rather than fixture companies. The HQ roster area remains the host
 that the formation, whereabouts, and contract-board stories will expand.
@@ -433,16 +378,15 @@ production vehicle deployment seam exists.
   never reaches back into campaign state.
 - Fire-team membership is derived from billet order and never persisted twice.
 - Fire teams are equipment/AI/lift units, not player command targets.
-- Fire-team templates are reusable designs; every assignment remains bounded by
-  finite physical stock.
+- Weapon and armor doctrines are reusable squad designs; every issue remains bounded
+  by finite physical stock.
 - Mech subsystems are finite physical stock; installed copies remain counted,
   and the Mech Lab cannot create a second inventory authority.
-- A failed template or arrangement assignment changes neither issued equipment
-  nor assignment.
+- A failed squad equipment issue changes neither materialized kit nor either doctrine id.
 - Per-soldier kit remains the battle-facing materialization until the deployment
   seam explicitly adopts another representation.
-- A template may issue special equipment, but AI use follows faction-neutral
-  battle policy rather than a hidden instruction encoded by the card.
+- A weapon doctrine may issue special equipment, but AI use follows faction-neutral
+  battle policy rather than a hidden instruction encoded by its presentation card.
 - Officer capacity is checked per command; task forces do not flatten back into
   one officer's cap.
 - Reserve personnel do not count as formations or field-ready strength.

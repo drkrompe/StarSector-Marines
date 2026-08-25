@@ -81,6 +81,14 @@ systems—must likewise register its ownership with the arbiter or perform an
 explicit incumbent-checked handoff. A weaker or equal external claim cannot
 displace another issuer. No direct-write escape hatch may bypass provenance.
 
+Directive **stability** and authority **leases** are distinct clocks. Stability
+is an inclusive minimum hold on a mission assignment, long enough for a squad
+to execute a useful plan before ordinary command scoring may retarget it; an
+objective completing, its target becoming unreachable, its command context
+expiring, squad loss, explicit handoff, or higher authority may end that hold
+early. A lease instead bounds temporary external authority such as a future
+player intervention. Repeating the same assignment renews neither clock.
+
 Form-up is an execution suspension, not an assignment writer or ownership
 transfer. The authoritative directive remains inspectable and may be updated
 while a tagged campaign squad assembles; tactical goals consume a derived

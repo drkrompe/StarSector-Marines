@@ -779,6 +779,31 @@ public class TacticalScoringTest {
     }
 
     @Test
+    public void shredderCarrierClosesInsideItsUsefulBand() {
+        BattleSimulation shredderSim = openArena(52, 10);
+        long shredder = shredderSim.spawn(new EntitySpec("shredder", Faction.MARINE,
+                UnitType.MARINE, 2, 5).primaryWeapon(MarineWeapon.SMG));
+        long shredderTarget = unit(shredderSim, Faction.DEFENDER, 40, 5);
+        int[] shredderSpot = shredderSim.getTacticalScoring()
+                .findFiringPosition(shredder, shredderTarget);
+
+        BattleSimulation pulseSim = openArena(52, 10);
+        long pulse = pulseSim.spawn(new EntitySpec("pulse", Faction.MARINE,
+                UnitType.MARINE, 2, 5).primaryWeapon(MarineWeapon.PULSE_RIFLE));
+        long pulseTarget = unit(pulseSim, Faction.DEFENDER, 40, 5);
+        int[] pulseSpot = pulseSim.getTacticalScoring()
+                .findFiringPosition(pulse, pulseTarget);
+
+        assertNotNull(shredderSpot);
+        assertNotNull(pulseSpot);
+        assertTrue(shredderSpot[0] > pulseSpot[0],
+                "the shorter-range shredder must advance farther before taking a firing lane");
+        assertTrue(TacticalScoring.cellDistance(shredderSpot[0], shredderSpot[1], 40, 5)
+                        <= MarineWeapon.SMG.range(),
+                "the selected lane must be inside the authored shredder band");
+    }
+
+    @Test
     public void shouldCommitRocketAllowsFirstShot() {
         BattleSimulation sim = openArena(20, 20);
         long rocketeer = rocketeer(sim, Faction.MARINE, 5, 5);
