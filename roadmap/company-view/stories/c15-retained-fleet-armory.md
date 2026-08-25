@@ -2,9 +2,9 @@
 
 Status: IN PROGRESS — retained hierarchy, squad equipment issue, and focused Mech Lab ship; broader company administration remains
 Written: 2026-08-23
-Updated: 2026-08-25 — the separately routed Mech Lab now ships alongside persistent
-player-authored Weapon and Armor definitions, their retained twelve-billet designer,
-and non-destructive legacy intent migration.
+Updated: 2026-08-25 — the twelve-billet designer now carries compact live renders,
+short billet flavor, stable comparative stat meters, and a leader-weighted starter
+issue that remains available from fleet stock.
 
 Read `company-view-nouns.md` and `ui-nouns.md` first.
 
@@ -59,6 +59,8 @@ breadcrumb keeps every completed level directly reachable.
   billet previews expose all twelve ordered positions without returning to the old
   administration shell. Naming is a retained text input; role, primary, grade,
   special, and armor controls change draft intent without consulting inventory.
+  Every billet card keeps its render compact, adds one line of role/equipment flavor,
+  and shows catalog-normalized combat meters that move immediately with the draft.
 - **Inventory boundary:** the roster's exact atomic preview still gates assignment,
   but this viewer omits its free-stock/returns/required-issue ledger.
 - **Marine inspector:** aptitude, career, wounds, and materialized billet equipment;
@@ -107,6 +109,11 @@ breadcrumb keeps every completed level directly reachable.
 - Damage, range, accuracy, sustained output, armor pool, armor rating, and movement
   appear as comparative meters with exact values; their fill scale is stable across
   the four marines rather than relative to only the currently selected team.
+- Designer billet cards expose the same stable comparison language, including evasion,
+  without enlarging their upper-right live render or introducing card scrolling.
+- The starter pair differentiates each fire-team lead with its scarce pulse rifle and
+  militia armor while leaving the other nine billets in field rifles and fatigues;
+  new and migrated armories can issue that exact pair immediately.
 - Live selected-marine portraits cycle the authored idle clip with staggered phases;
   headless snapshots remain fixed and deterministic.
 - The same twelve-billet recipe renders deterministic PNGs without a game or OpenGL context;
