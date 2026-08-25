@@ -4,7 +4,8 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — added Mech Lab as a real shipboard room in the responsive top navigation shell.
+Updated: 2026-08-25 — Marine Ops takeovers now request the complete reported screen
+while preserving the granted panel and authored document inset as separate boundaries.
 
 ## Purpose
 
@@ -22,6 +23,9 @@ them.
 
 - A **host viewport** is the final rectangle Starsector grants to a custom panel.
   Its origin is expressed in Starsector's bottom-left, Y-up UI coordinates.
+- A **takeover request** asks Starsector for the complete reported screen so the
+  application can use space that would otherwise remain as inert black margin. It is
+  a request, not layout authority: the resulting host viewport may still be smaller.
 - A **document** is one retained element tree laid out against a host viewport.
   Its own coordinate space starts at the top-left and grows downward so authored
   layout follows the same convention as HTML and CSS.
@@ -84,6 +88,12 @@ There are three distinct spaces:
 One host adapter owns each conversion. Layout never reads the framebuffer, and
 elements never add the dialog origin themselves. UI scale is observed at the host
 boundary rather than guessed from the physical monitor.
+
+Every full Marine Ops takeover entry requests 100% of the screen dimensions reported
+by Starsector. Small notification and choice dialogs remain deliberately bounded.
+The granted custom-panel rectangle still owns live geometry, and each retained root
+authors its own narrow safe-area padding inside that rectangle rather than spending a
+second percentage-based margin at the host seam.
 
 Physical resolution fit and user UI scale are different inputs. A physically
 smaller host may uniformly shrink the entire reference presentation so ordinary
