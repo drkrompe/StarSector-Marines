@@ -57,6 +57,8 @@ public final class Projectile {
     public float remainingTime;
     /** AoE damage payload fired when the projectile arrives. Null for a resolved direct-fire overshoot that visibly flies out without a physical impact. Owned by the projectile — when point defense cancels via {@link #intercepted}, this payload is dropped automatically (no parallel queue to clean up). */
     public final PendingDetonation onArrival;
+    /** Stable weapon id for tactics that must distinguish one in-flight ordnance family. */
+    public final String sourceWeaponId;
     /** When set, the projectile is removed on the next tick without detonating. Reserved for the point-defense intercept path — not yet wired. */
     public boolean intercepted;
 
@@ -102,6 +104,15 @@ public final class Projectile {
                       boolean hasBoostRamp, float arcHeight,
                       Faction shooterFaction, boolean aerialDelivery,
                       float totalFlightTime, PendingDetonation onArrival) {
+        this(fromX, fromY, toX, toY, hasBoostRamp, arcHeight, shooterFaction,
+                aerialDelivery, totalFlightTime, onArrival, null);
+    }
+
+    public Projectile(float fromX, float fromY, float toX, float toY,
+                      boolean hasBoostRamp, float arcHeight,
+                      Faction shooterFaction, boolean aerialDelivery,
+                      float totalFlightTime, PendingDetonation onArrival,
+                      String sourceWeaponId) {
         this.fromX = fromX;
         this.fromY = fromY;
         this.toX = toX;
@@ -113,6 +124,7 @@ public final class Projectile {
         this.totalFlightTime = totalFlightTime;
         this.remainingTime = totalFlightTime;
         this.onArrival = onArrival;
+        this.sourceWeaponId = sourceWeaponId;
         this.intercepted = false;
     }
 

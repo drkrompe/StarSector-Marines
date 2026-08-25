@@ -754,6 +754,11 @@ public class ConquestCommandTest {
         assertEquals(1, directive.effectiveTrack());
         assertEquals(AssignmentReason.ADJACENT_TRACK_SUPPORT,
                 directive.reason());
+        assertEquals(-1, directive.targetCellX(),
+                "zone-scoped order must not masquerade as an exact-cell order");
+        assertTrue(sim.getGrid().isWalkable(directive.markerCellX(),
+                directive.markerCellY()),
+                "published zone marker should identify a real walkable cell");
         assertEquals(Phase.FRONT_ADJUST, cmd.frontSnapshot().phase());
         assertEquals(1, cmd.frontSnapshot().track(1).effectiveSquads());
     }
@@ -782,6 +787,9 @@ public class ConquestCommandTest {
             ConquestFrontSnapshot.SquadDirective directive =
                     cmd.frontSnapshot().directiveFor(squad.id);
             assertEquals(AssignmentReason.KEEP_APPROACH, directive.reason());
+            assertEquals(-1, directive.targetCellX());
+            assertEquals(keep.anchorX, directive.markerCellX());
+            assertEquals(keep.anchorY, directive.markerCellY());
         }
         assertEquals(0, cmd.frontSnapshot().directiveFor(left.id).preferredTrack());
         assertEquals(1, cmd.frontSnapshot().directiveFor(center.id).preferredTrack());

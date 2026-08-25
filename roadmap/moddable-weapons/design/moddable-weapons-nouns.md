@@ -4,7 +4,7 @@ Status: ACTIVE — handheld, special-item and turret weapon data is owned; mech 
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — separated simultaneous projectiles per shot from temporal burst cadence for flechette and automatic primary families.
+Updated: 2026-08-25 — shipped the registry-owned marine fragmentation-grenade trajectory and payload.
 
 ## Purpose
 
@@ -171,6 +171,13 @@ shared consumer exists.
   damage, penetration, audio, and effects. Its typed executor replaces the
   traveling trajectory; the special-equipment item still owns stock, resource
   mode, use policy, and carrier presentation.
+- A weapon-like arcing grenade uses the same simulated-projectile and detonation
+  authorities as other slow explosive ordnance. The definition owns range,
+  scatter, velocity, arc height, area payload, structural damage, projectile
+  presentation, and audio; the special item owns finite uses and activation.
+  Its weapon id travels with the projectile so hazard and overkill consumers
+  can distinguish frag footprints without inferring behavior from sprite,
+  blast size, or carrier faction.
 
 ## Transition boundaries
 

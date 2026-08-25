@@ -22,7 +22,7 @@ class SpecialEquipmentRegistryTest {
 
     @Test
     void allBuiltInsResolveThroughTheDataRegistry() {
-        assertEquals(4, SpecialEquipmentRegistry.installed().size());
+        assertEquals(5, SpecialEquipmentRegistry.installed().size());
         for (MarineSecondaryHandle handle : MarineSecondaryHandle.values()) {
             SpecialEquipmentDef def = SpecialEquipmentRegistry.require(handle.id);
             assertEquals(handle.id, def.id());
@@ -57,6 +57,19 @@ class SpecialEquipmentRegistryTest {
         assertNotNull(smoke.presentation().carrierLayer());
         assertEquals(0.2f, smoke.presentation().carrierLayer().widthShoulders(), EPS);
         assertFalse(smoke.presentation().carrierLayer().visibleWhileCarried());
+    }
+
+    @Test
+    void fragmentationGrenadeIsAThreeUseArcExplosive() {
+        SpecialEquipmentDef frag = SpecialEquipmentRegistry.require(
+                SpecialEquipmentRegistry.FRAG_GRENADE_ID);
+        assertSame(SpecialActivation.ARC_EXPLOSIVE, frag.activation());
+        assertSame(SpecialAiPolicy.SOFT_CLUSTER_INDIRECT, frag.aiPolicy());
+        assertSame(SpecialResourceMode.AMMUNITION, frag.resourceMode());
+        assertSame(SpecialUsePose.THROW, frag.presentation().usePose());
+        assertEquals(3, frag.startingAmmo());
+        assertNotNull(frag.presentation().carrierLayer());
+        assertNotNull(frag.presentation().thrown());
     }
 
     @Test
@@ -123,7 +136,8 @@ class SpecialEquipmentRegistryTest {
         ROCKET(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID),
         AMR(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID),
         SMOKE(SpecialEquipmentRegistry.SMOKE_GRENADE_ID),
-        SATCHEL(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID);
+        SATCHEL(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID),
+        FRAG(SpecialEquipmentRegistry.FRAG_GRENADE_ID);
 
         final String id;
 

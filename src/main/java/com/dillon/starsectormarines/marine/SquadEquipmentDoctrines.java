@@ -14,6 +14,7 @@ public final class SquadEquipmentDoctrines {
     public static final String FIELD_SECURITY_WEAPONS = "weapons:field-security";
     public static final String LUDDIC_PATH_ASSAULT_WEAPONS = "weapons:luddic-path-assault";
     public static final String LINE_INFANTRY_WEAPONS = "weapons:line-infantry";
+    public static final String ASSAULT_WEAPONS = "weapons:assault";
     public static final String FIRE_SUPPORT_WEAPONS = "weapons:fire-support";
 
     public static final String FIELD_FATIGUES_ARMOR = "armor:field-fatigues";
@@ -72,6 +73,23 @@ public final class SquadEquipmentDoctrines {
                             weapon("Team Leader", MarineWeapon.PULSE_RIFLE),
                             weapon("Rifleman", MarineWeapon.PULSE_RIFLE),
                             weapon("Grenadier", MarineWeapon.PULSE_RIFLE, MarineSecondary.SMOKE_GRENADE),
+                            weapon("Marksman", MarineWeapon.DMR))),
+            weaponDoctrine(ASSAULT_WEAPONS, "Fleet Assault Equipment",
+                    "Close-range assault issue with one fragmentation-grenade carrier for breaking soft clusters.",
+                    team(
+                            weapon("Assault Leader", MarineWeapon.PULSE_RIFLE),
+                            weapon("Breacher", MarineWeapon.SMG),
+                            weapon("Rifleman", MarineWeapon.PULSE_RIFLE),
+                            weapon("Rifleman", MarineWeapon.PULSE_RIFLE)),
+                    team(
+                            weapon("Assault Leader", MarineWeapon.PULSE_RIFLE),
+                            weapon("Grenadier", MarineWeapon.SMG, MarineSecondary.FRAG_GRENADE),
+                            weapon("Rifleman", MarineWeapon.PULSE_RIFLE),
+                            weapon("Rifleman", MarineWeapon.PULSE_RIFLE)),
+                    team(
+                            weapon("Assault Leader", MarineWeapon.PULSE_RIFLE),
+                            weapon("Breacher", MarineWeapon.SMG),
+                            weapon("Rifleman", MarineWeapon.PULSE_RIFLE),
                             weapon("Marksman", MarineWeapon.DMR))),
             weaponDoctrine(FIRE_SUPPORT_WEAPONS, "Fleet Fire Support Equipment",
                     "Marksmen and automatic weapons backed by scarce heavy issue.",

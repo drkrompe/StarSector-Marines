@@ -4,8 +4,11 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — defined the Mech Lab as a spatial heavy-asset doll with a
-location-scoped hardware catalog and typed, sized-slot extension boundary.
+Updated: 2026-08-25 — shipped the focused Mech Lab, persistent
+player-authored Weapon and Armor definitions with their twelve-billet retained
+designer and legacy intent migration, plus the Fleet Assault doctrine and its
+single fragmentation-grenade carrier; the Mech Lab now uses a spatial heavy-asset
+doll, location-scoped catalog, and typed, sized-slot extension boundary.
 
 ## Purpose
 
@@ -152,16 +155,22 @@ not silently optimize or reshuffle that materialized result.
 Built-in definitions are authored deterministic distributions rather than live
 best-fit allocators. This makes faction-flavored profiles such as **Sindrian
 Civilian Security Equipment** or **Luddic Path Assault Equipment** explainable in
-preview and stable after issue. Future player-authored definitions may expand the
-catalog and editing workflow, but they must still resolve to twelve exact billets
-before the same transaction can commit.
+preview and stable after issue. Player-authored definitions persist in `MarineArmory`
+beside that immutable built-in catalog. Authoring is free and may mix every billet;
+stock, recipes, readiness, and stationing constrain only the later squad issue.
+Edits remain a draft until **Save as New**, so a definition already assigned to a
+squad never silently refits its materialized equipment.
+**Fleet Assault Equipment** is the built-in player assault profile: its twelve
+exact billets contain one Shattercap frag carrier, so the doctrine cannot multiply
+scarce special stock by team. Player-authored definitions must likewise resolve to
+twelve exact billets before the same issue transaction can commit.
 
 Legacy four-billet templates, three-template arrangements, and their persisted ids
 remain readable compatibility input for existing saves; they are no longer writable
-player intent and have no Fleet Armory UI. A legacy squad keeps its current
-per-marine equipment until the player explicitly issues a doctrine pair. The first
-successful squad issue clears stale per-team assignment ids so only one equipment
-authority remains.
+player intent and have no Fleet Armory UI. Load migration composes each complete
+legacy three-template intent into deterministic player-owned Weapon and Armor
+definitions without rewriting any marine's current kit. The first later successful
+squad issue clears stale per-team assignment ids so only one equipment authority remains.
 
 The selectors may be presented as equipment cards in the literal base-game UI
 sense, but card/deck/hand/consumption semantics do not enter the domain. Definitions

@@ -1,8 +1,8 @@
 # Progression open work
 
-Status: ACTIVE — 14 open stories
+Status: ACTIVE — 13 open stories
 Written: 2026-08-23
-Updated: 2026-08-25 — shipped the shredder-carbine migration and squad-automatic primary family.
+Updated: 2026-08-25 — shipped the first fragmentation-grenade special and Fleet Assault doctrine.
 
 Read `progression-nouns.md` before changing a progression story.
 
@@ -11,7 +11,6 @@ Read `progression-nouns.md` before changing a progression story.
 | `s1-lethality-feel-pass.md` | Ready | Play acceptance for the shipped lethality and grade pass; do this before further numerical tuning. |
 | `s4-performance-derived-experience.md` | Ready | Requires shipped telemetry and follows the lethality/grade pass. Recommended after the S1 play acceptance. |
 | `xp-authority-cleanup.md` | Proposed | Terra synthesis finding; gated by S4 settling the frozen-outcome XP authority. |
-| `s2d-frag-grenades.md` | Planned | Adds the first thrown anti-personnel frag while preserving distinct launcher, airburst, and micro-missile delivery boundaries. |
 | `s2e-close-contact-boarding-tools.md` | Planned | Adds typed thermal/arc breachers and vibro/monofilament contact weapons without a universal melee system. |
 | `s2f-combat-stim-injectors.md` | Planned | Adds finite, temporary handling utility while keeping neural/HUD interfaces out of hidden stat and knowledge bonuses. |
 | `s2g-martyr-rigs-and-carried-ieds.md` | Planned | Adds rare Pather martyr rigs and visible carried improvised charges as explicit faction equipment with ordinary collateral and casualty authority. |

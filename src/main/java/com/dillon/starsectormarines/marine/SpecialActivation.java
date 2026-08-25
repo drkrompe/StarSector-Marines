@@ -6,6 +6,7 @@ import org.json.JSONException;
 public enum SpecialActivation {
     DIRECT_EXPLOSIVE("direct-explosive"),
     DIRECT_PRECISION("direct-precision"),
+    ARC_EXPLOSIVE("arc-explosive"),
     UTILITY_SMOKE("utility-smoke"),
     UTILITY_SATCHEL("utility-satchel");
 
