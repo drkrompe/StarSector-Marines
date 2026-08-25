@@ -35,6 +35,7 @@ public final class MechLabViewModel {
     private final MutableSignal<String> selectedSquadId;
     private final MutableSignal<String> selectedMechId;
     private final MutableSignal<SlotId> selectedSlot;
+    private final MutableSignal<Boolean> assetPickerOpen;
     private final MutableSignal<String> feedbackText;
     private final MutableSignal<String> feedbackClasses;
     private final ComputedSignal<String> labSummary;
@@ -46,10 +47,13 @@ public final class MechLabViewModel {
     private final ComputedSignal<List<PerformanceMeter>> performanceMeters;
     private final ComputedSignal<List<SlotRow>> leftSlotRows;
     private final ComputedSignal<List<SlotRow>> rightSlotRows;
+    private final ComputedSignal<List<SlotRow>> slotRows;
     private final ComputedSignal<String> selectedSlotTitle;
     private final ComputedSignal<String> selectedSlotCopy;
     private final ComputedSignal<String> selectedSlotRule;
     private final ComputedSignal<List<CatalogRow>> catalogRows;
+    private final ComputedSignal<String> pickerClasses;
+    private final ComputedSignal<String> workspaceClasses;
 
     public MechLabViewModel(Reactor reactor, MechBay bay) {
         if (reactor == null) throw new IllegalArgumentException("reactor is required");
@@ -61,6 +65,7 @@ public final class MechLabViewModel {
         selectedSquadId = reactor.signal(initialSquad != null ? initialSquad.id() : null);
         selectedMechId = reactor.signal(initialMech != null ? initialMech.id() : null);
         selectedSlot = reactor.signal(SlotId.MINI_FAB);
+        assetPickerOpen = reactor.signal(false);
         feedbackText = reactor.signal(
                 "Select a location on the doll. Only stocked bay hardware can be committed.");
         feedbackClasses = reactor.signal("mech-lab-feedback tone-muted surface-dark");
@@ -85,10 +90,15 @@ public final class MechLabViewModel {
                 SlotId.CORE, SlotId.ARMS, SlotId.LEFT_SHOULDER)));
         rightSlotRows = reactor.computed(() -> buildSlots(List.of(
                 SlotId.RIGHT_SHOULDER, SlotId.AMMO_RESERVE, SlotId.MINI_FAB)));
+        slotRows = reactor.computed(() -> buildSlots(List.of(SlotId.values())));
         selectedSlotTitle = reactor.computed(() -> selectedSlot.get().label());
         selectedSlotCopy = reactor.computed(this::buildSelectedSlotCopy);
         selectedSlotRule = reactor.computed(this::buildSelectedSlotRule);
         catalogRows = reactor.computed(this::buildCatalogRows);
+        pickerClasses = reactor.computed(() -> assetPickerOpen.get()
+                ? "asset-picker panel" : "asset-picker panel hidden");
+        workspaceClasses = reactor.computed(() -> assetPickerOpen.get()
+                ? "fitting-workspace hidden" : "fitting-workspace");
     }
 
     public Signal<String> labSummary() { return labSummary; }
@@ -100,10 +110,15 @@ public final class MechLabViewModel {
     public Signal<List<PerformanceMeter>> performanceMeters() { return performanceMeters; }
     public Signal<List<SlotRow>> leftSlotRows() { return leftSlotRows; }
     public Signal<List<SlotRow>> rightSlotRows() { return rightSlotRows; }
+    public Signal<List<SlotRow>> slotRows() { return slotRows; }
     public Signal<String> selectedSlotTitle() { return selectedSlotTitle; }
     public Signal<String> selectedSlotCopy() { return selectedSlotCopy; }
     public Signal<String> selectedSlotRule() { return selectedSlotRule; }
     public Signal<List<CatalogRow>> catalogRows() { return catalogRows; }
+    public Signal<String> pickerClasses() { return pickerClasses; }
+    public Signal<String> workspaceClasses() { return workspaceClasses; }
+    public Runnable openAssetPickerAction() { return this::openAssetPicker; }
+    public Runnable closeAssetPickerAction() { return this::closeAssetPicker; }
     public Signal<String> feedbackText() { return feedbackText; }
     public Signal<String> feedbackClasses() { return feedbackClasses; }
 
@@ -163,6 +178,7 @@ public final class MechLabViewModel {
         for (CampaignMech mech : squad.mechs()) {
             String base = "mech:" + mech.id();
             rows.add(new MechRow(base, base + ":name", base + ":chassis", base + ":subsystem",
+                    base + ":action",
                     mech.id().equals(selected) ? "mech-row selected" : "mech-row",
                     mech.displayName(), mech.variant().displayName + "  ·  " + roleLabel(mech.role()),
                     mech.missileReplenisher().displayName(), () -> selectMech(mech.id())));
@@ -182,7 +198,7 @@ public final class MechLabViewModel {
                         v.moveSpeed, maximum(x -> x.moveSpeed)),
                 meter("range", "MAX RANGE", number(v.maxWeaponRange()) + " CELLS",
                         v.maxWeaponRange(), maximum(MechVariant::maxWeaponRange)),
-                meter("endurance", "MISSILE AMMO", missileTriggers(v) + " TRIGGERS",
+                meter("endurance", "MISSILES", missileTriggers(v) + " TRIGGERS",
                         missileTriggers(v), maximum(MechLabViewModel::missileTriggers)));
     }
 
@@ -271,8 +287,21 @@ public final class MechLabViewModel {
         if (squad == null || squad.mechById(mechId) == null) return;
         selectedMechId.set(mechId);
         selectedSlot.set(SlotId.MINI_FAB);
+        assetPickerOpen.set(false);
         feedbackText.set("Inspecting " + squad.mechById(mechId).displayName()
                 + ". No campaign hardware changed.");
+        feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
+    }
+
+    private void openAssetPicker() {
+        assetPickerOpen.set(true);
+        feedbackText.set("Choose a support lance and heavy asset for the fabrication gantry.");
+        feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
+    }
+
+    private void closeAssetPicker() {
+        assetPickerOpen.set(false);
+        feedbackText.set("Returned to the fitting gantry. No campaign hardware changed.");
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
     }
 
@@ -393,11 +422,13 @@ public final class MechLabViewModel {
     }
 
     public record MechRow(String id, String nameId, String chassisId, String subsystemId,
+                          String actionId,
                           String classes, String name, String chassis, String subsystem,
                           Runnable select) implements MarkupPropertySource {
         @Override public Object markupProperty(String p) { return switch (p) {
             case "id" -> id; case "nameId" -> nameId; case "chassisId" -> chassisId;
-            case "subsystemId" -> subsystemId; case "classes" -> classes; case "name" -> name;
+            case "subsystemId" -> subsystemId; case "actionId" -> actionId;
+            case "classes" -> classes; case "name" -> name;
             case "chassis" -> chassis; case "subsystem" -> subsystem; case "select" -> select;
             default -> throw unknown("mech", p); }; }
     }

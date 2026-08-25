@@ -4,11 +4,12 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — shipped the focused Mech Lab, persistent
-player-authored Weapon and Armor definitions with their twelve-billet retained
-designer and legacy intent migration, plus the Fleet Assault doctrine and its
-single fragmentation-grenade carrier; the Mech Lab now uses a spatial heavy-asset
-doll, location-scoped catalog, and typed, sized-slot extension boundary.
+Updated: 2026-08-25 — the equipment designer now pairs compact live billet
+renders with flavor and catalog-normalized combat meters; starter issue visibly
+concentrates scarce weapon and armor upgrades on each fire-team lead. The Mech Lab
+separates asset selection from a wide fitting gantry, with a battle-tileset
+fabrication bay around its canonical mech doll and typed, sized-slot extension
+boundary.
 
 ## Purpose
 
@@ -144,6 +145,13 @@ values remain legible beside comparative capability meters. Live portraits cycle
 the authored idle clip with stable per-slot phase offsets; headless evidence fixes
 the phase for deterministic comparison.
 
+The separate equipment designer uses the same visual language before a definition
+is saved: each billet card keeps a compact live render in its upper-right corner,
+reserves a short line for role or equipment flavor, and shows fixed-scale capability
+meters beside exact values. Those scales use catalog ceilings rather than the other
+three visible billets, so cycling an item produces a meaningful at-a-glance change
+and team selection cannot rewrite the comparison baseline.
+
 Issue is explicit and atomic. The preview prices only changed incoming equipment;
 unchanged kit is free and removed kit grants no cargo refund. A stationed squad,
 any vacancy or WIA billet, a missing equipment template card, or insufficient
@@ -151,6 +159,7 @@ supplies, heavy armaments, heavy machinery, or food leaves cargo, both doctrine 
 and every marine's existing kit untouched. Success spends the complete cargo cost,
 writes both ids together, and materializes all twelve exact issues onto
 `MarineSoldier`, which remains the battle-facing state consumed by deployment.
+Later inventory changes do not silently optimize or reshuffle that result.
 
 Built-in definitions are authored deterministic distributions rather than live
 best-fit allocators. This makes faction-flavored profiles such as **Sindrian
@@ -162,6 +171,13 @@ a collected equipment template card. Cargo, readiness, and stationing constrain 
 later squad issue.
 Edits remain a draft until **Save as New**, so a definition already assigned to a
 squad never silently refits its materialized equipment.
+The early **Frontier Security Equipment** and **Frontier Patchwork Protection**
+pair deliberately spend scarce pulse rifles and militia plate on the first billet
+of Alpha, Bravo, and Charlie while their line marines retain field rifles and
+unplated fatigues. Starting and migrated armories collect every template referenced
+by that exact issue; the live cargo preview remains honest about the cost to
+materialize it.
+
 **Fleet Assault Equipment** is the built-in player assault profile: its twelve
 exact billets contain one Shattercap frag carrier, so its authored distribution stays
 legible. Player-authored definitions must likewise resolve to
@@ -183,10 +199,22 @@ reusable intent; base-game fleet cargo pays only when changed kit is materialize
 The Mech Lab is the focused squad-first surface over `MechBay`; it does not reuse
 personnel doctrine. Campaign mechs retain individual identity inside a selected
 support squad of up to four chassis. The retained room shows the whole squad and a
-top-down projection of the selected heavy asset, surrounded by spatial locations.
-Selecting a location scopes the right-hand catalog. The catalog may inspect fixed
+separate asset-selection screen; choosing a chassis moves it onto the fitting gantry.
+That workspace gives its three primary regions to the equipment catalog, a wide
+top-down fabrication bay, and the socket rack. Selecting a location scopes the
+equipment catalog. The catalog may inspect fixed
 chassis, weapon, and ammunition assemblies, but exposes a commit action only when a
 real campaign inventory and install command exist.
+
+The fabrication bay is a diegetic, flat top-down ship room rather than a neutral
+diagram or pseudo-3D illustration. Its floor, walls, hazard pad, consoles, shelves,
+and crates reuse the battle renderer's indoor tileset cells. The selected mech uses
+the battle compositor's actual layer order and hull-relative mount transforms, while
+workers use real layered infantry dolls and continue flavor motion around it. Those
+actors are presentation-only and do not create a
+second schedule, labor, inventory, or refit authority. Wide-screen layout is the
+reference composition; narrow and user-scaled layouts retain access through bounded
+scrolling rather than compressing the room until every label is simultaneously visible.
 
 The intended weapon-refit interaction is dragging a component into a typed, sized
 socket. Ballistic, energy, missile, and omni are compatibility rules; component slot
