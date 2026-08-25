@@ -191,14 +191,19 @@ public final class ArmoryScreen implements Screen {
         if (personnelTarget > 0) {
             PersonnelReadiness readiness = PersonnelReadiness.assess(
                     roster, Collections.emptySet(), personnelTarget);
-            int enlistable = Math.min(readiness.companyShortfall(),
-                    MarinePersonnelLogistics.availableRecruits());
+            int reserveAvailable = roster.readyReserveCount();
+            int available = reserveAvailable + MarinePersonnelLogistics.availableCargoMarines();
+            int fillable = Math.min(readiness.companyShortfall(), available);
+            int cargoCost = Math.max(0, fillable
+                    - Math.min(readiness.companyShortfall(), reserveAvailable));
             String label = readiness.ready() ? "Return Ready"
-                    : enlistable > 0 ? "Enlist " + enlistable + " & Return"
-                    : "Need " + readiness.companyShortfall() + " · No Cargo";
+                    : fillable > 0 ? cargoCost > 0
+                            ? "Fill +" + fillable + " · " + cargoCost + " cargo & Return"
+                            : "Assign " + fillable + " reserves & Return"
+                    : "Need " + readiness.companyShortfall() + " · No Marines";
             Runnable action = readiness.ready() ? ctx::returnFromArmory
-                    : enlistable > 0 ? () -> {
-                        MarinePersonnelLogistics.enlistLine(
+                    : fillable > 0 ? () -> {
+                        MarinePersonnelLogistics.fillLineShortfall(
                                 roster, readiness.companyShortfall());
                         ctx.returnFromArmory();
                     } : null;
@@ -2153,23 +2158,23 @@ public final class ArmoryScreen implements Screen {
         float actionX = x + 222f;
         int vacancies = roster.vacancies(squad);
         MarineSoldier readyReserve = roster.firstReadyReserve();
-        boolean cargoAvailable = MarinePersonnelLogistics.availableRecruits() > 0;
-        boolean canRecruit = !squad.stationed() && (squad.reserve() || vacancies > 0)
+        boolean cargoAvailable = MarinePersonnelLogistics.availableCargoMarines() > 0;
+        boolean canAddPersonnel = !squad.stationed() && (squad.reserve() || vacancies > 0)
                 && (cargoAvailable || (!squad.reserve() && readyReserve != null));
-        String recruitLabel = squad.stationed() ? "Stationed Away"
-                : squad.reserve() ? "Enlist (1)"
+        String personnelLabel = squad.stationed() ? "Stationed Away"
+                : squad.reserve() ? "Add Reserve · 1 cargo"
                 : vacancies <= 0 ? "Fully Manned"
-                : readyReserve != null ? "Assign Reserve" : "Enlist (1)";
+                : readyReserve != null ? "Assign Reserve" : "Reinforce · 1 cargo";
         addButton(actionX, top - 14f, 138f,
-                recruitLabel,
-                canRecruit ? () -> {
+                personnelLabel,
+                canAddPersonnel ? () -> {
                     if (!squad.reserve() && roster.firstReadyReserve() != null) {
                         roster.fillVacancyFromReserve(squad.id());
                     } else {
-                        MarinePersonnelLogistics.enlist(roster, squad.id());
+                        MarinePersonnelLogistics.drawCargoMarineIntoSquad(roster, squad.id());
                     }
                     rebuild();
-                } : null, canRecruit ? GOOD : MUTED);
+                } : null, canAddPersonnel ? GOOD : MUTED);
         addButton(actionX + 148f, top - 14f, 130f, "New Squad", () -> {
             MarineSquad created = roster.createSquad();
             selectedSquadId = created.id();
@@ -2289,10 +2294,10 @@ public final class ArmoryScreen implements Screen {
         boolean stationed = current != null && current.stationed();
         addButton(x + w - moveW, y + 4f, moveW,
                 stationed ? "Stationed Away"
-                        : reserve ? "Demobilize +1"
+                        : reserve ? "Cargo +1"
                         : target != null ? "Move → " + shortSquadName(target) : "No Vacancy",
                 stationed ? null : reserve ? () -> {
-                    MarinePersonnelLogistics.release(roster, soldier.id());
+                    MarinePersonnelLogistics.returnReserveToCargo(roster, soldier.id());
                     rebuild();
                 } : target != null ? () -> {
                     roster.transferSoldier(soldier.id(), target.id());

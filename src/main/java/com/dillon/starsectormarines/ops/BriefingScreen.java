@@ -23,6 +23,7 @@ import com.dillon.starsectormarines.ops.detachment.PersonnelReadiness;
 import com.dillon.starsectormarines.ops.detachment.TaskForce;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineCaptain;
+import com.dillon.starsectormarines.marine.MarinePersonnelLogistics;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
@@ -667,6 +668,17 @@ public class BriefingScreen implements Screen {
         boolean personnelOk = debugPersonnel || m == null || readiness.ready();
         boolean commandOk = m == null || captainCommandReady(m);
         boolean canAccept = transportOk && personnelOk && commandOk;
+        MarineRoster personnelRoster = liveRoster();
+        int personnelShortfall = readiness != null ? readiness.companyShortfall() : 0;
+        int reserveAvailable = personnelRoster != null
+                ? personnelRoster.readyReserveCount() : 0;
+        int cargoAvailable = MarinePersonnelLogistics.availableCargoMarines();
+        int reinforcementAvailable = Math.min(personnelShortfall,
+                reserveAvailable + cargoAvailable);
+        int cargoCost = Math.max(0, reinforcementAvailable
+                - Math.min(personnelShortfall, reserveAvailable));
+        boolean canReinforce = transportOk && commandOk && readiness != null
+                && readiness.needsPersonnel() && reinforcementAvailable > 0;
 
         ButtonWidget squads = new ButtonWidget(squadsX, btnY, btnW, BTN_H,
                 debugPersonnel ? () -> {
@@ -684,9 +696,13 @@ public class BriefingScreen implements Screen {
 
         Runnable deployAction = canAccept ? this::onAccept
                 : !transportOk || readiness == null ? null
-                : readiness.needsRecruitment()
-                        ? () -> ctx.openArmoryFrom(
-                                ScreenId.BRIEFING, readiness.requiredSeats())
+                : !commandOk ? null
+                : readiness.needsPersonnel()
+                        ? canReinforce ? () -> {
+                            MarinePersonnelLogistics.fillLineShortfall(
+                                    personnelRoster, personnelShortfall);
+                            rebuild();
+                        } : null
                         : this::openSquadDeployment;
         ButtonWidget deploy = new ButtonWidget(deployX, btnY, btnW, BTN_H, deployAction);
         widgets.add(deploy);
@@ -694,11 +710,14 @@ public class BriefingScreen implements Screen {
                 canAccept ? Strings.get("briefingAccept")
                         : !transportOk ? Strings.get("briefingAcceptBlocked")
                         : !commandOk ? "Select Commander"
-                        : readiness.needsRecruitment()
-                                ? "Recruit " + readiness.companyShortfall()
+                        : readiness.needsPersonnel()
+                                ? reinforcementAvailable > 0
+                                        ? "Reinforce +" + reinforcementAvailable
+                                                + " · " + cargoCost + " cargo"
+                                        : "Need " + personnelShortfall + " · No marines"
                                 : "Assign " + readiness.selectedShortfall(),
                 deployX + INNER_PAD, btnY + BTN_H - 6f,
-                canAccept ? ACCEPT_COLOR : BLOCKED_COLOR));
+                canAccept ? ACCEPT_COLOR : canReinforce ? VALUE_COLOR : BLOCKED_COLOR));
 
         ButtonWidget back = new ButtonWidget(backX, btnY, btnW, BTN_H, this::onBack);
         widgets.add(back);
@@ -707,13 +726,17 @@ public class BriefingScreen implements Screen {
     }
 
     private PersonnelReadiness personnelReadiness(Mission m) {
-        MarineRosterScript script = MarineRosterScript.getInstance();
-        MarineRoster roster = script != null ? script.roster() : null;
+        MarineRoster roster = liveRoster();
         return m != null && m.source != MissionSource.STATIONING
                 ? PersonnelReadiness.assessSelection(roster,
                         ctx.getSelectedMarineSquadIds(), requiredPersonnelSeats(m))
                 : PersonnelReadiness.assess(roster,
                         ctx.getSelectedMarineSquadIds(), requiredPersonnelSeats(m));
+    }
+
+    private static MarineRoster liveRoster() {
+        MarineRosterScript script = MarineRosterScript.getInstance();
+        return script != null ? script.roster() : null;
     }
 
     private int requiredPersonnelSeats(Mission m) {

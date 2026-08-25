@@ -74,7 +74,7 @@ class NamedStationingBindingTest {
                 available.id()));
         assertFalse(roster.transferSoldier(outsider.id(), stationed.id()));
         assertNull(roster.recruitToSquad(stationed.id()));
-        MarineSoldier homeRecruit = roster.enlistLineRecruit();
+        MarineSoldier homeRecruit = roster.createLineReplacement();
         assertEquals(available, roster.squadForSoldier(homeRecruit.id()));
         assertNull(roster.nextTransferTarget(roster.squadMembers(stationed).get(0).id()));
         assertFalse(roster.assignCaptainToSquad(replacement.id(), stationed.id()));

@@ -15,48 +15,56 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class MarinePersonnelLogisticsTest {
 
     @Test
-    void enlistmentConsumesOneCargoMarineAndDemobilizationReturnsIt() {
+    void drawingPersonnelConsumesOneCargoMarineAndReturningReserveRestoresIt() {
         float[] quantity = {2f};
         CargoAPI cargo = cargo(quantity);
         MarineRoster roster = new MarineRoster();
         MarineSquad reserve = roster.reserveSquad();
 
-        MarineSoldier enlisted = MarinePersonnelLogistics.enlist(roster, reserve.id(), cargo);
+        MarineSoldier replacement = MarinePersonnelLogistics.drawCargoMarineIntoSquad(
+                roster, reserve.id(), cargo);
 
-        assertNotNull(enlisted);
+        assertNotNull(replacement);
         assertEquals(1f, quantity[0]);
         assertEquals(1, roster.soldiers().size());
-        assertTrue(MarinePersonnelLogistics.release(roster, enlisted.id(), cargo));
+        assertTrue(MarinePersonnelLogistics.returnReserveToCargo(
+                roster, replacement.id(), cargo));
         assertEquals(2f, quantity[0]);
         assertEquals(0, roster.soldiers().size());
     }
 
     @Test
-    void failedEnlistmentAndInvalidReleaseDoNotMutateCargo() {
+    void failedPersonnelDrawAndInvalidReturnDoNotMutateCargo() {
         float[] quantity = {0f};
         CargoAPI cargo = cargo(quantity);
         MarineRoster roster = new MarineRoster();
         MarineSquad reserve = roster.reserveSquad();
 
-        assertEquals(null, MarinePersonnelLogistics.enlist(roster, reserve.id(), cargo));
-        assertFalse(MarinePersonnelLogistics.release(roster, "missing", cargo));
+        assertEquals(null, MarinePersonnelLogistics.drawCargoMarineIntoSquad(
+                roster, reserve.id(), cargo));
+        assertFalse(MarinePersonnelLogistics.returnReserveToCargo(
+                roster, "missing", cargo));
         assertEquals(0f, quantity[0]);
     }
 
     @Test
-    void bulkEnlistmentFillsLineSquadsAndStopsAtAvailableCargo() {
+    void lineShortfallDrawsDirectlyFromCargoAndStopsAtAvailableQuantity() {
         float[] quantity = {MarineSquad.CAPACITY + 2f};
         CargoAPI cargo = cargo(quantity);
         MarineRoster roster = new MarineRoster();
         MarineSquad reserve = roster.reserveSquad();
 
         int firstDraft = MarineSquad.CAPACITY + 1;
-        assertEquals(firstDraft, MarinePersonnelLogistics.enlistLine(roster, firstDraft, cargo));
+        MarinePersonnelLogistics.PersonnelDrawResult first =
+                MarinePersonnelLogistics.fillLineShortfall(roster, firstDraft, cargo);
+        assertEquals(firstDraft, first.cargoMarinesConsumed());
         assertEquals(1f, quantity[0]);
         assertEquals(firstDraft, roster.lineReadySoldiers().size());
         assertTrue(roster.squadMembers(reserve).isEmpty());
 
-        assertEquals(1, MarinePersonnelLogistics.enlistLine(roster, 5, cargo));
+        MarinePersonnelLogistics.PersonnelDrawResult second =
+                MarinePersonnelLogistics.fillLineShortfall(roster, 5, cargo);
+        assertEquals(1, second.cargoMarinesConsumed());
         assertEquals(0f, quantity[0]);
         assertEquals(MarineSquad.CAPACITY + 2, roster.lineReadySoldiers().size());
         assertEquals(2, roster.squads().stream().filter(squad -> !squad.reserve()).count());
@@ -74,16 +82,34 @@ class MarinePersonnelLogisticsTest {
         MarineSoldier reserve = roster.recruitToSquad(roster.reserveSquad().id());
         float[] quantity = {1f};
 
-        MarinePersonnelLogistics.ReinforcementResult result =
+        MarinePersonnelLogistics.PersonnelDrawResult result =
                 MarinePersonnelLogistics.reinforceSquad(roster, line.id(), cargo(quantity));
 
-        assertEquals(1, result.transferred());
-        assertEquals(1, result.enlisted());
+        assertEquals(1, result.reservesAssigned());
+        assertEquals(1, result.cargoMarinesConsumed());
         assertEquals(0, roster.vacancies(line));
         assertEquals(0f, quantity[0]);
         assertTrue(roster.teamMemberIds(line, 2).contains(reserve.id()),
                 "replacement personnel occupy current fire-team billets");
         assertFalse(roster.manningMemberIds(line).contains(line.memberIds().get(0)));
+    }
+
+    @Test
+    void lineShortfallUsesNamedReservesBeforeConsumingCargo() {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
+        MarineSquad reserve = roster.reserveSquad();
+        MarineSoldier namedReserve = roster.recruitToSquad(reserve.id());
+        float[] quantity = {2f};
+
+        MarinePersonnelLogistics.PersonnelDrawResult result =
+                MarinePersonnelLogistics.fillLineShortfall(roster, 3, cargo(quantity));
+
+        assertEquals(1, result.reservesAssigned());
+        assertEquals(2, result.cargoMarinesConsumed());
+        assertEquals(0f, quantity[0]);
+        assertTrue(roster.lineReadySoldiers().contains(namedReserve));
+        assertTrue(roster.squadMembers(reserve).isEmpty());
     }
 
     private static CargoAPI cargo(float[] quantity) {

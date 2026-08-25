@@ -27,7 +27,7 @@ class PersonnelReadinessTest {
         assertEquals(2, selected.selectedShortfall());
         assertEquals(0, selected.companyShortfall());
         assertFalse(selected.ready());
-        assertFalse(selected.needsRecruitment());
+        assertFalse(selected.needsPersonnel());
     }
 
     @Test
@@ -41,7 +41,7 @@ class PersonnelReadinessTest {
         assertEquals(10, readiness.selectedReady());
         assertEquals(2, readiness.selectedShortfall());
         assertEquals(2, readiness.companyShortfall());
-        assertTrue(readiness.needsRecruitment());
+        assertTrue(readiness.needsPersonnel());
     }
 
     @Test
@@ -55,6 +55,6 @@ class PersonnelReadinessTest {
         assertEquals(0, readiness.selectedReady());
         assertEquals(6, readiness.selectedShortfall());
         assertFalse(readiness.ready());
-        assertFalse(readiness.needsRecruitment());
+        assertFalse(readiness.needsPersonnel());
     }
 }
