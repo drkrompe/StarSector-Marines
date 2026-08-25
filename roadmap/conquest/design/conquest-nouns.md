@@ -84,7 +84,12 @@ outranks a soft track response, at least one otherwise-free patrol remains in
 reserve when possible, and an expired faction report releases only assignments
 owned by defender command. Squads delivered later remain under reinforcement
 and counterattack authority rather than being silently absorbed into the
-starting reserve.
+starting reserve. The setup pool is captured from the live squad roster before
+the first alert aggregation, so roster membership and `PATROL` role—not a
+not-yet-populated cached alive count—define the starting force. Authored setup
+garrisons claim garrison ownership at setup. A later squad becomes eligible
+only through an explicit handoff to `conquest-defender`; the handoff never
+happens implicitly at delivery.
 
 Conquest is the first production **command duel**: attacker and defender
 strategies can progress the territorial battle without requiring direct player
@@ -130,7 +135,10 @@ When that keep is the only compound not held by marines, command enters
 **keep convergence**. Every mobile assault squad receives the same culminating
 secure-compound context regardless of track boundary, allowing local approach
 and room-clear behavior to converge the force. Born-holding garrisons remain on
-station.
+station. Reachability remains a legality boundary: a squad cannot preserve or
+receive a compound order whose anchor zone is disconnected from its current
+zone. An unreachable sticky capture is released, and an unreachable sole keep
+is reported explicitly instead of pinning the squad indefinitely.
 
 If the keep is held but one earlier compound is the sole contested territorial
 objective, command enters **final-compound convergence**. The normal capture

@@ -37,6 +37,8 @@ public class CommandFrame {
     public static CommandFrame freeze(BattleView sim, Faction perspective,
                                       CommandTopology topology,
                                       CommandAssignmentSnapshot assignments) {
+        CommandAssignmentSnapshot ownAssignments =
+                assignments.forPerspective(perspective);
         List<CommandSquadState> rows = new ArrayList<>();
         for (Squad squad : sim.getSquads()) {
             if (squad.faction != perspective) continue;
@@ -51,11 +53,12 @@ public class CommandFrame {
                     squad.aliveMembers, squad.centroidX, squad.centroidY,
                     anchorX, anchorY, role, squad.hasBelievedContacts(),
                     CommandFrameCopies.assignment(squad.assignedObjective),
-                    assignments.directiveFor(squad.id)));
+                    ownAssignments.directiveFor(squad.id)));
         }
         rows.sort(Comparator.comparingInt(CommandSquadState::squadId));
         return new CommandFrame(sim.getSimTickIndex(), perspective, rows,
-                sim.getCommanderInfluence(perspective), topology, assignments);
+                sim.getCommanderInfluence(perspective), topology,
+                ownAssignments);
     }
 
     public int tick() { return tick; }

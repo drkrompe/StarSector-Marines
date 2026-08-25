@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.FireTeamRefitPreview;
@@ -8,6 +10,7 @@ import com.dillon.starsectormarines.marine.FireTeamTemplateAvailability;
 import com.dillon.starsectormarines.marine.FireTeamTemplateCard;
 import com.dillon.starsectormarines.marine.FireTeamTemplateResult;
 import com.dillon.starsectormarines.marine.MarineCaptain;
+import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics.PersonnelDrawResult;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -401,7 +404,9 @@ public final class FleetArmoryViewModel {
             String id = "marine-card:" + index;
             String special = billet != null ? specialName(billet.specialEquipmentId()) : null;
             marines.add(new MarineViewerCard(
-                    id, "marine-preview:" + index, id + ":name", id + ":role",
+                    id, "marine-preview:" + index, id + ":canvas-row",
+                    id + ":canvas-lead", id + ":canvas-trail",
+                    id + ":name", id + ":role",
                     id + ":status", id + ":service", id + ":primary",
                     id + ":weapon-stats", id + ":armor", id + ":armor-stats",
                     id + ":special", id + ":weapon-delta", id + ":armor-delta",
@@ -412,10 +417,10 @@ public final class FleetArmoryViewModel {
                     marineStatus(soldier), serviceSummary(soldier),
                     billet != null ? billet.primary().catalogName(billet.grade()) + "  ·  "
                             + billet.grade().displayName : "No primary",
-                    weaponStats(billet, soldier),
+                    weaponStats(id, billet, soldier),
                     billet != null ? billet.armor().displayName + "  ·  Tier "
                             + billet.armor().tierMark() : "No armor",
-                    armorStats(billet), special != null ? "Special  ·  " + special
+                    armorStats(id, billet), special != null ? "Special  ·  " + special
                             : "Special  ·  No issue",
                     weaponDelta(billet, soldier, previewing),
                     armorDelta(billet, soldier, previewing),
@@ -755,16 +760,26 @@ public final class FleetArmoryViewModel {
                 + soldier.experienceXp() + " XP";
     }
 
-    private static String weaponStats(FireTeamBillet billet, MarineSoldier soldier) {
-        if (billet == null || soldier == null) return "No combat profile";
+    private static List<StatMeter> weaponStats(
+            String cardId, FireTeamBillet billet, MarineSoldier soldier) {
+        if (billet == null || soldier == null) return List.of();
         SoldierProfile profile = soldier.profile();
-        return String.format(Locale.ROOT,
-                "DMG %.1f  ·  RNG %.1f  ·  ACC %.0f%%  ·  DPS %.1f",
-                InfantryCombatStats.damage(billet.primary(), billet.grade()),
-                InfantryCombatStats.range(billet.primary(), billet.grade()),
-                InfantryCombatStats.accuracy(billet.primary(), billet.grade(), profile) * 100f,
-                InfantryCombatStats.estimatedDps(
-                        billet.primary(), billet.grade(), profile));
+        float damage = InfantryCombatStats.damage(billet.primary(), billet.grade());
+        float range = InfantryCombatStats.range(billet.primary(), billet.grade());
+        float accuracy = InfantryCombatStats.accuracy(
+                billet.primary(), billet.grade(), profile);
+        float dps = InfantryCombatStats.estimatedDps(
+                billet.primary(), billet.grade(), profile);
+        return List.of(
+                statMeter(cardId + ":damage", "DMG", formatOneDecimal(damage),
+                        damage, maximumWeaponDamage()),
+                statMeter(cardId + ":range", "RNG", formatOneDecimal(range),
+                        range, maximumWeaponRange()),
+                statMeter(cardId + ":accuracy", "ACC",
+                        String.format(Locale.ROOT, "%.0f%%", accuracy * 100f),
+                        accuracy, 1f),
+                statMeter(cardId + ":dps", "DPS", formatOneDecimal(dps),
+                        dps, maximumWeaponDps(profile)));
     }
 
     private static String weaponDelta(
@@ -787,12 +802,86 @@ public final class FleetArmoryViewModel {
                 damage, range, accuracy, dps);
     }
 
-    private static String armorStats(FireTeamBillet billet) {
-        if (billet == null) return "No protection profile";
-        return String.format(Locale.ROOT,
-                "POOL %.0f  ·  RATING %.0f  ·  MOVE %.0f%%",
-                billet.armor().armorPool, billet.armor().armorRating,
-                billet.armor().moveSpeedMult * 100f);
+    private static List<StatMeter> armorStats(String cardId, FireTeamBillet billet) {
+        if (billet == null) return List.of();
+        MarineArmorPattern armor = billet.armor();
+        return List.of(
+                statMeter(cardId + ":pool", "POOL",
+                        String.format(Locale.ROOT, "%.0f", armor.armorPool),
+                        armor.armorPool, maximumArmorPool()),
+                statMeter(cardId + ":rating", "RATING",
+                        String.format(Locale.ROOT, "%.0f", armor.armorRating),
+                        armor.armorRating, maximumArmorRating()),
+                statMeter(cardId + ":move", "MOVE",
+                        String.format(Locale.ROOT, "%.0f%%", armor.moveSpeedMult * 100f),
+                        armor.moveSpeedMult, maximumMoveSpeed()));
+    }
+
+    private static StatMeter statMeter(
+            String id, String label, String value, float amount, float maximum) {
+        int percentage = maximum > 0f
+                ? Math.round(Math.max(0f, Math.min(1f, amount / maximum)) * 100f) : 0;
+        return new StatMeter(id, id + ":label", id + ":track", id + ":fill",
+                id + ":value", label, value, "width: " + percentage + "%;");
+    }
+
+    private static String formatOneDecimal(float value) {
+        return String.format(Locale.ROOT, "%.1f", value);
+    }
+
+    private static float maximumWeaponDamage() {
+        float maximum = 1f;
+        for (MarineWeapon weapon : MarineWeapon.values()) {
+            for (EquipmentGrade grade : EquipmentGrade.values()) {
+                maximum = Math.max(maximum, InfantryCombatStats.damage(weapon, grade));
+            }
+        }
+        return maximum;
+    }
+
+    private static float maximumWeaponRange() {
+        float maximum = 1f;
+        for (MarineWeapon weapon : MarineWeapon.values()) {
+            for (EquipmentGrade grade : EquipmentGrade.values()) {
+                maximum = Math.max(maximum, InfantryCombatStats.range(weapon, grade));
+            }
+        }
+        return maximum;
+    }
+
+    private static float maximumWeaponDps(SoldierProfile profile) {
+        float maximum = 1f;
+        for (MarineWeapon weapon : MarineWeapon.values()) {
+            for (EquipmentGrade grade : EquipmentGrade.values()) {
+                maximum = Math.max(maximum,
+                        InfantryCombatStats.estimatedDps(weapon, grade, profile));
+            }
+        }
+        return maximum;
+    }
+
+    private static float maximumArmorPool() {
+        float maximum = 1f;
+        for (MarineArmorPattern armor : MarineArmorPattern.values()) {
+            maximum = Math.max(maximum, armor.armorPool);
+        }
+        return maximum;
+    }
+
+    private static float maximumArmorRating() {
+        float maximum = 1f;
+        for (MarineArmorPattern armor : MarineArmorPattern.values()) {
+            maximum = Math.max(maximum, armor.armorRating);
+        }
+        return maximum;
+    }
+
+    private static float maximumMoveSpeed() {
+        float maximum = 1f;
+        for (MarineArmorPattern armor : MarineArmorPattern.values()) {
+            maximum = Math.max(maximum, armor.moveSpeedMult);
+        }
+        return maximum;
     }
 
     private static String armorDelta(
@@ -933,13 +1022,15 @@ public final class FleetArmoryViewModel {
     }
 
     public record MarineViewerCard(
-            String id, String canvasId, String nameId, String roleId,
+            String id, String canvasId, String canvasRowId,
+            String canvasLeadId, String canvasTrailId, String nameId, String roleId,
             String statusId, String serviceId, String primaryId,
             String weaponStatsId, String armorId, String armorStatsId,
             String specialId, String weaponDeltaId, String armorDeltaId,
             String careerId, String classes, String statusClasses,
             String name, String role, String status, String service,
-            String primary, String weaponStats, String armor, String armorStats,
+            String primary, List<StatMeter> weaponStats, String armor,
+            List<StatMeter> armorStats,
             String special, String weaponDelta, String armorDelta,
             String deltaClasses, String career) implements MarkupPropertySource {
         @Override
@@ -947,6 +1038,9 @@ public final class FleetArmoryViewModel {
             return switch (property) {
                 case "id" -> id;
                 case "canvasId" -> canvasId;
+                case "canvasRowId" -> canvasRowId;
+                case "canvasLeadId" -> canvasLeadId;
+                case "canvasTrailId" -> canvasTrailId;
                 case "nameId" -> nameId;
                 case "roleId" -> roleId;
                 case "statusId" -> statusId;
@@ -975,6 +1069,26 @@ public final class FleetArmoryViewModel {
                 case "deltaClasses" -> deltaClasses;
                 case "career" -> career;
                 default -> throw new IllegalArgumentException("Unknown marine-card property");
+            };
+        }
+    }
+
+    public record StatMeter(
+            String id, String labelId, String trackId, String fillId, String valueId,
+            String label, String value, String fillStyle)
+            implements MarkupPropertySource {
+        @Override
+        public Object markupProperty(String property) {
+            return switch (property) {
+                case "id" -> id;
+                case "labelId" -> labelId;
+                case "trackId" -> trackId;
+                case "fillId" -> fillId;
+                case "valueId" -> valueId;
+                case "label" -> label;
+                case "value" -> value;
+                case "fillStyle" -> fillStyle;
+                default -> throw new IllegalArgumentException("Unknown stat-meter property");
             };
         }
     }
