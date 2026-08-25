@@ -4,8 +4,8 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — made fitting sockets doll-relative UI drop targets with
-segmented capacity cells while preserving their authored chassis locations.
+Updated: 2026-08-25 — separated each fitting socket's physical mount anchor
+from its large, doll-relative equipment dock in the surrounding gantry workspace.
 
 ## Purpose
 
@@ -54,8 +54,10 @@ increasing an encounter's total armored threat.
 - A **socket** is one spatial equipment location on a heavy asset. Custom-refit
   sockets will declare a compatibility type—ballistic, energy, missile, or
   omni—and a sized capacity. A component will declare compatible types and a
-  slot cost. Each asset-class layout owns the socket's asset-relative center and
-  doll-relative interaction footprint as well as its compatibility and capacity.
+  slot cost. Each asset-class layout owns the socket's physical mount anchor,
+  its equipment-dock center around the doll, and its doll-relative interaction
+  footprint as well as compatibility and capacity. A leader preserves the
+  relationship between a remote dock and the mount it configures.
   Presentation may enforce a minimum pointer hit area for usability without
   changing that capacity or making the asset physically larger. An empty translucent
   footprint means an authored socket is unoccupied; an omitted socket is still
@@ -162,9 +164,10 @@ determines the payload, not the entitlement to call it.
   props, or another chassis.
 - Socket overlays consume the selected asset's authored fitting layout. Their
   translucent type color, hull-relative drop footprint, and segmented capacity
-  cells appear in physical room space above the physical doll so installed art
-  cannot hide an interactive target. The low-alpha fill preserves the equipment
-  beneath it. The whole footprint is the pointer target; capacity cells are the ordered placement units
+  cells occupy the gantry around the physical doll, with a light leader returning
+  to the authored mount anchor. The doll remains readable instead of becoming a
+  pile of UI rectangles, and the rendered room becomes useful fitting space.
+  The whole footprint is the pointer target; capacity cells are the ordered placement units
   a future multi-slot drag preview occupies. An authored empty socket stays visible
   while an absent socket produces no footprint.
 - The garage is a flat top-down, non-advancing room simulation assembled from the

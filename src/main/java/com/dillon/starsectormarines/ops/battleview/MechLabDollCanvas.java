@@ -33,8 +33,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private static final int URBAN_COLUMNS = 10;
     private static final int URBAN_ROWS = 10;
     private static final float GANTRY_FACING_DEGREES = 180f;
-    private static final float MIN_DROP_TARGET_WIDTH = 40f;
-    private static final float MIN_DROP_TARGET_HEIGHT = 32f;
+    private static final float MIN_DROP_TARGET_WIDTH = 64f;
+    private static final float MIN_DROP_TARGET_HEIGHT = 38f;
     private static final float CAPACITY_INSET = 4f;
     private static final float CAPACITY_GAP = 2f;
     private static final Color BACKGROUND = new Color(0x06, 0x0A, 0x10);
@@ -262,6 +262,11 @@ public final class MechLabDollCanvas implements CanvasProducer {
             Color base = socketColor(socket.type());
             int fillAlpha = selected ? 92 : occupied ? 38 : 72;
             int strokeAlpha = selected ? 240 : occupied ? 128 : 210;
+            c.line(target.anchorX(), target.anchorY(), target.centerX(), target.centerY(),
+                    withAlpha(base, selected ? 210 : occupied ? 90 : 165),
+                    selected ? 2f : 1f);
+            c.fillRect(target.anchorX() - 3f, target.anchorY() - 3f, 6f, 6f,
+                    withAlpha(base, selected ? 245 : 180));
             c.fillRect(target.left(), target.top(), target.width(), target.height(),
                     withAlpha(base, fillAlpha));
             c.strokeRect(target.left(), target.top(), target.width(), target.height(),
@@ -283,16 +288,21 @@ public final class MechLabDollCanvas implements CanvasProducer {
                                                       float actorX, float actorY,
                                                       float hullWidth, float hullHeight,
                                                       float cos, float sin) {
-        float localX = socket.localRight() * hullWidth;
-        float localY = socket.localForward() * hullHeight;
-        float worldX = localX * cos - localY * sin;
-        float worldY = localX * sin + localY * cos;
+        float anchorLocalX = socket.localRight() * hullWidth;
+        float anchorLocalY = socket.localForward() * hullHeight;
+        float anchorWorldX = anchorLocalX * cos - anchorLocalY * sin;
+        float anchorWorldY = anchorLocalX * sin + anchorLocalY * cos;
+        float dockLocalX = socket.dockRight() * hullWidth;
+        float dockLocalY = socket.dockForward() * hullHeight;
+        float dockWorldX = dockLocalX * cos - dockLocalY * sin;
+        float dockWorldY = dockLocalX * sin + dockLocalY * cos;
         float width = Math.max(MIN_DROP_TARGET_WIDTH,
                 socket.footprintWidthHull() * hullWidth);
         float height = Math.max(MIN_DROP_TARGET_HEIGHT,
                 socket.footprintHeightHull() * hullHeight);
         return new SocketDropTarget(socket.id(), socket.capacity(),
-                actorX + worldX, actorY - worldY, width, height);
+                actorX + anchorWorldX, actorY - anchorWorldY,
+                actorX + dockWorldX, actorY - dockWorldY, width, height);
     }
 
     static List<CapacityCell> capacityCells(SocketDropTarget target) {
@@ -319,7 +329,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
         }
     }
 
-    record SocketDropTarget(SocketId id, int capacity, float centerX, float centerY,
+    record SocketDropTarget(SocketId id, int capacity,
+                            float anchorX, float anchorY,
+                            float centerX, float centerY,
                             float width, float height) {
         float left() { return centerX - width * 0.5f; }
         float top() { return centerY - height * 0.5f; }
