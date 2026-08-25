@@ -25,6 +25,8 @@ import java.util.Map;
 /** Authored retained-view evidence rendered without a Starsector process. */
 public final class UiSnapshotSuite implements SnapshotSuite {
 
+    private static final List<String> COMPANY_HQ_COMPONENTS = List.of(
+            "data/ui/components/company/company-hq.mlx");
     private static final List<String> OVERVIEW_COMPONENTS = List.of(
             "data/ui/components/armory/fleet-armory-overview.mlx",
             "data/ui/components/armory/armory-company-list.mlx");
@@ -51,6 +53,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         HeadlessUiRenderer renderer = new HeadlessUiRenderer(
                 context.modRoot(), context.starsectorCore());
         return List.of(
+                new SnapshotArtifact("company-hq-bridge-wide.png",
+                        renderCompanyHq(context, renderer, 1744, 938)),
+                new SnapshotArtifact("company-hq-bridge-compact.png",
+                        renderCompanyHq(context, renderer, 1163, 625)),
                 new SnapshotArtifact("fleet-armory-overview-wide.png",
                         renderFleetArmoryOverview(
                                 context, renderer, 1744, 938)),
@@ -66,6 +72,23 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("fleet-armory-loadout-preview-wide.png",
                         renderFleetArmoryWorkspace(
                                 context, renderer, 1744, 938, true, true)));
+    }
+
+    private static BufferedImage renderCompanyHq(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height) throws Exception {
+        Reactor reactor = new Reactor();
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                context.modRoot().resolve(path)), COMPANY_HQ_COMPONENTS);
+        loader.reload();
+
+        try (MarkupInstance instance = loader.build(
+                reactor, "company-hq", CompanyHqViewModel.preview().props())) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            return renderer.render(document, width, height);
+        }
     }
 
     private static BufferedImage renderFleetArmoryWorkspace(

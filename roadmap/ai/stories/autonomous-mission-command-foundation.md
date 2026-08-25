@@ -4,7 +4,7 @@ Status: IN PROGRESS — the shared frame/plan/commit envelope, paired Conquest m
 
 Written: 2026-08-25
 
-Updated: 2026-08-25 — added battle-owned external claims, incumbent-checked handoff, payload/garrison/reinforcement birth ownership, and inspectable form-up execution suspension while keeping legacy writer, determinism, and playtest acceptance open.
+Updated: 2026-08-25 — hardened the Conquest reference migration around setup-pool capture, authored-garrison ownership, explicit reinforcement handoff, unreachable-compound invalidation, dead-squad/contact cleanup, perspective-local ledgers, and stable issue ticks. Other missions deliberately retain their current legacy/no-op assignment behavior.
 
 Read `ai-nouns.md`, `conquest-nouns.md`, and `battle-fixtures-nouns.md` before
 implementing this story.
@@ -19,6 +19,16 @@ branches, objective phases, and convergence with the mission strategy that
 owns them.
 
 ## Scope
+
+### Current migration boundary
+
+Conquest is the only production mission being advanced through this story now.
+Other missions keep whatever assignment behavior they have today: an existing
+legacy commander where one is already installed, or the generic no-op/ambient
+behavior where none is installed. They are not acceptance blockers for the
+Conquest reference implementation, and this slice must not silently absorb
+their squads into a generic autonomous strategy. Mission-specific migrations
+remain separate future stories.
 
 - Introduce a perspective-specific command frame containing immutable own-force
   state, faction-local influence, legally disclosed mission state, public
