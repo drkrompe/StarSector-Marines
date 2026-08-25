@@ -59,11 +59,11 @@ public final class UiWorkbenchScreen implements Screen {
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
         context = ctx;
-        viewport = new UiViewport(position.getX(), position.getY(), position.getWidth(), position.getHeight());
+        viewport = MarineOpsUiViewport.from(position);
         if (document == null) installDocument(true);
         updateViewportReadout();
         updateSelectionReadouts();
-        document.layout(viewport.width(), viewport.height());
+        document.layout(viewport.documentWidth(), viewport.documentHeight());
         input = new StarsectorUiInputAdapter(document, viewport);
     }
 
@@ -81,7 +81,9 @@ public final class UiWorkbenchScreen implements Screen {
             built.theme(highContrast ? MarineOpsThemes.highContrast() : MarineOpsThemes.standard())
                     .onCancel(() -> context.goTo(ScreenId.COMPANY_HQ));
             built.canvases().set(wiring.transactionCanvas(), this::paintTransactionCanvas);
-            if (viewport != null) built.layout(viewport.width(), viewport.height());
+            if (viewport != null) {
+                built.layout(viewport.documentWidth(), viewport.documentHeight());
+            }
         } catch (RuntimeException failure) {
             candidate.close();
             throw failure;
@@ -288,7 +290,10 @@ public final class UiWorkbenchScreen implements Screen {
     private void updateViewportReadout() {
         if (viewportReadout == null || viewport == null) return;
         viewportReadout.text(String.format(Locale.ROOT,
-                "Granted %.1f x %.1f  ·  Document origin top-left", viewport.width(), viewport.height()));
+                "Granted %.1f x %.1f  ·  Document %.1f x %.1f @ %.2fx",
+                viewport.width(), viewport.height(),
+                viewport.documentWidth(), viewport.documentHeight(),
+                viewport.documentScale()));
     }
 
     private record Wiring(UiElement viewportReadout,

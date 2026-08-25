@@ -36,7 +36,8 @@ final class StarsectorCanvasContext extends CanvasContext {
         CanvasMetrics metrics = metrics();
         StarsectorUiPaintTarget.lineGl(metrics.toDocumentX(x1), metrics.toDocumentY(y1),
                 metrics.toDocumentX(x2), metrics.toDocumentY(y2), viewport,
-                color, strokeWidth * strokeScale(metrics, x2 - x1, y2 - y1),
+                color, strokeWidth * strokeScale(metrics, x2 - x1, y2 - y1)
+                        * metrics.devicePixelRatio(),
                 alphaMult());
     }
 
@@ -44,8 +45,9 @@ final class StarsectorCanvasContext extends CanvasContext {
     protected void drawText(BitmapFont font, String text, float x, float y, Color color) {
         CanvasMetrics metrics = metrics();
         font.drawStringScaled(text, viewport.screenXFor(metrics.toDocumentX(x)),
-                viewport.screenTopFor(metrics.toDocumentY(y)), metrics.scaleX(),
-                metrics.scaleY(), color, alphaMult());
+                viewport.screenTopFor(metrics.toDocumentY(y)),
+                metrics.scaleX() * viewport.documentScale(),
+                metrics.scaleY() * viewport.documentScale(), color, alphaMult());
     }
 
     @Override
@@ -63,7 +65,8 @@ final class StarsectorCanvasContext extends CanvasContext {
             sprite.setTexY(region.y() * textureHeight);
             sprite.setTexWidth(region.width() * textureWidth);
             sprite.setTexHeight(region.height() * textureHeight);
-            sprite.setSize(width * metrics.scaleX(), height * metrics.scaleY());
+            sprite.setSize(width * metrics.scaleX() * viewport.documentScale(),
+                    height * metrics.scaleY() * viewport.documentScale());
             sprite.setAngle(angleDegrees);
             sprite.setAlphaMult(alphaMult() * tint.getAlpha() / 255f);
             sprite.setColor(tint.getRed() == 255 && tint.getGreen() == 255

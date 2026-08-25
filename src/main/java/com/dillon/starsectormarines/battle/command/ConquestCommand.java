@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.command;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.influence.CommanderContact;
@@ -9,7 +10,6 @@ import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.Assignm
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.Phase;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.SquadDirective;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.TrackState;
-import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
@@ -196,6 +196,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
         final float centroidY;
         final int anchorCellX;
         final int anchorCellY;
+        final UnitRole role;
         final ObjectiveAssignment originalAssignment;
         ObjectiveAssignment assignedObjective;
 
@@ -207,6 +208,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
             centroidY = state.centroidY();
             anchorCellX = state.anchorCellX();
             anchorCellY = state.anchorCellY();
+            role = state.role();
             originalAssignment = state.assignment();
             assignedObjective = state.assignment();
         }
@@ -238,13 +240,6 @@ public final class ConquestCommand implements ConquestFrontCommand,
     }
 
     @Override
-    public ConquestCommandFrame freeze(BattleView sim,
-                                       CommandTopology topology,
-                                       CommandAssignmentSnapshot assignments) {
-        return ConquestCommandFrame.freeze(sim, faction(), topology, assignments);
-    }
-
-    @Override
     public CommandPlan<ConquestFrontSnapshot> plan(ConquestCommandFrame frame) {
         if (!initialized) {
             initializePartition(frame);
@@ -271,7 +266,12 @@ public final class ConquestCommand implements ConquestFrontCommand,
                     > CommandAuthority.MISSION_COMMAND.priority()) {
                 int preferred = stripFor(squad);
                 directives.put(squad.id, directive(squad, preferred, preferred,
-                        AssignmentReason.GARRISON_HOLD));
+                        squad.role == UnitRole.GARRISON
+                                || (squad.originalAssignment != null
+                                && squad.originalAssignment.kind()
+                                == AssignmentKind.HOLD_NODE)
+                                ? AssignmentReason.GARRISON_HOLD
+                                : AssignmentReason.EXTERNAL_OWNERSHIP_PRESERVED));
                 continue;
             }
             squads.add(squad);
@@ -296,8 +296,15 @@ public final class ConquestCommand implements ConquestFrontCommand,
 
         if (keepConvergence) {
             for (PlanningSquad squad : squads) {
-                commitCapture(squad, keep, committed, directives,
-                        AssignmentReason.KEEP_APPROACH);
+                if (reachableZone(squad, keep.anchorZoneId, frame)) {
+                    commitCapture(squad, keep, committed, directives,
+                            AssignmentReason.KEEP_APPROACH);
+                } else {
+                    squad.assignedObjective = null;
+                    int preferred = stripFor(squad);
+                    directives.put(squad.id, directive(squad, preferred, preferred,
+                            AssignmentReason.NO_REACHABLE_COMPOUND_TARGET));
+                }
             }
         } else {
             // Pass 1: deliberate compound capture. Pulls a capped detachment
@@ -404,6 +411,9 @@ public final class ConquestCommand implements ConquestFrontCommand,
             if (a == null || a.kind() != AssignmentKind.SECURE_COMPOUND) continue;
             int idx = targetIndexForAnchorZone(a.targetZoneId());
             if (idx < 0 || slots[idx] <= 0) continue;
+            if (!reachableZone(squad, compoundTargets.get(idx).anchorZoneId, frame)) {
+                continue;
+            }
             slots[idx]--;
             committed.add(squad.id);
             putCompoundDirective(squad, compoundTargets.get(idx), directives,
@@ -418,6 +428,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 if (committed.contains(squad.id)) continue;
                 for (int i = 0; i < n; i++) {
                     if (slots[i] <= 0 || contested[i]) continue;
+                    if (!reachableZone(squad, compoundTargets.get(i).anchorZoneId,
+                            frame)) continue;
                     float d = distSq(squad, compoundTargets.get(i));
                     if (d < bestDist || (d == bestDist
                             && (bestSquad < 0 || squad.id < bestSquad))) {
@@ -442,6 +454,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 if (slots[i] <= 0) break;
                 if (committed.contains(squad.id)) continue;
                 if (!squadAdjacentToCompound(squad, t, frame)) continue;
+                if (!reachableZone(squad, t.anchorZoneId, frame)) continue;
                 commitCapture(squad, t, committed, directives,
                         AssignmentReason.COMPOUND_ASSAULT_ADJACENT);
                 slots[i]--;
@@ -641,6 +654,10 @@ public final class ConquestCommand implements ConquestFrontCommand,
             compoundTargets.add(new CompoundTarget(fact.state(), fact.node(),
                     anchorZone, garrisonZones, desiredSquads));
         }
+        compoundTargets.sort(Comparator
+                .comparingInt((CompoundTarget target) -> target.anchorZoneId)
+                .thenComparingInt(target -> target.node.anchorX)
+                .thenComparingInt(target -> target.node.anchorY));
     }
 
     /**

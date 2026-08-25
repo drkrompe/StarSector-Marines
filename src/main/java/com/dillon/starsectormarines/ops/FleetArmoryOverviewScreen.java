@@ -10,13 +10,11 @@ import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader.PreparedReload;
-import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.starsector.StarsectorUiInputAdapter;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
-import org.apache.log4j.Logger;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,33 +23,31 @@ import java.util.Map;
 /** Owned-company landing view between Company HQ and one company's Armory. */
 public final class FleetArmoryOverviewScreen implements Screen {
 
-    private static final Logger LOG = Global.getLogger(FleetArmoryOverviewScreen.class);
     private static final String ROOT_COMPONENT = "fleet-armory-overview";
     private static final List<String> COMPONENT_PATHS = List.of(
+            "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/armory/fleet-armory-overview.mlx",
             "data/ui/components/armory/armory-company-list.mlx");
 
     private final Reactor reactor = new Reactor();
-    private final MutableSignal<String> reloadStatus = reactor.signal(
-            "Owned-company overview  ·  Select a formation to enter its armory");
     private final MarkupLoader markup = new MarkupLoader(
             path -> Global.getSettings().loadText(path), COMPONENT_PATHS);
 
     private MarineOpsContext context;
+    private Runnable dismissDialog;
     private MarineRoster roster;
     private FleetArmoryOverviewViewModel viewModel;
     private UiViewport viewport;
     private UiDocument document;
     private MarkupInstance markupInstance;
     private StarsectorUiInputAdapter input;
-    private boolean reloadRequested;
     private int projectedCampaignHour = Integer.MIN_VALUE;
 
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
         context = ctx;
-        viewport = new UiViewport(position.getX(), position.getY(),
-                position.getWidth(), position.getHeight());
+        this.dismissDialog = dismissDialog;
+        viewport = MarineOpsUiViewport.from(position);
         MarineRosterScript script = MarineRosterScript.getInstance();
         MarineRoster liveRoster = script != null ? script.roster() : null;
         if (liveRoster == null) {
@@ -71,7 +67,7 @@ public final class FleetArmoryOverviewScreen implements Screen {
         }
         projectedCampaignHour = campaignHour();
         if (document == null) installDocument(true);
-        document.layout(viewport.width(), viewport.height());
+        document.layout(viewport.documentWidth(), viewport.documentHeight());
         input = new StarsectorUiInputAdapter(document, viewport);
     }
 
@@ -85,13 +81,13 @@ public final class FleetArmoryOverviewScreen implements Screen {
             requireWiredElements(candidate);
             candidate.requireElement("company-overview-summary")
                     .align(UiAlign.STRETCH, UiAlign.CENTER);
-            candidate.requireElement("company-overview-reload-status")
-                    .align(UiAlign.STRETCH, UiAlign.CENTER);
             built = new UiDocument(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard())
                     .onCancel(() -> context.returnFromArmory());
-            if (viewport != null) built.layout(viewport.width(), viewport.height());
+            if (viewport != null) {
+                built.layout(viewport.documentWidth(), viewport.documentHeight());
+            }
         } catch (RuntimeException failure) {
             candidate.close();
             throw failure;
@@ -111,32 +107,27 @@ public final class FleetArmoryOverviewScreen implements Screen {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("fleetSummary", viewModel.fleetSummary());
         props.put("companyCards", viewModel.companyCards());
-        props.put("back", (Runnable) () -> context.returnFromArmory());
-        props.put("reload", (Runnable) () -> reloadRequested = true);
-        props.put("reloadStatus", reloadStatus);
+        putPageNavigation(props);
         return props;
+    }
+
+    private void putPageNavigation(Map<String, Object> props) {
+        props.put("returnAction", dismissDialog);
+        props.put("hqAction", (Runnable) () -> context.goTo(ScreenId.COMPANY_HQ));
+        props.put("armoryAction", (Runnable) () -> { });
+        props.put("hqClasses", "");
+        props.put("hqDisabled", false);
+        props.put("armoryClasses", "selected page-nav-current");
+        props.put("armoryDisabled", false);
     }
 
     private static void requireWiredElements(MarkupInstance component) {
         for (String id : List.of(
-                "fleet-armory-overview-root", "company-overview-header",
+                "fleet-armory-overview-root", "marine-ops-page-nav",
+                "page-nav-return", "page-nav-hq", "page-nav-armory",
                 "company-overview-intro", "company-overview-summary",
-                "company-list", "company-overview-footer", "company-overview-back",
-                "company-overview-reload",
-                "company-overview-reload-status")) {
+                "company-list")) {
             component.requireElement(id);
-        }
-    }
-
-    private void reloadDocument() {
-        try {
-            viewModel.refresh();
-            installDocument(true);
-            reloadStatus.set("MLX reloaded  ·  Campaign authority preserved");
-            LOG.info("Reloaded retained Fleet Armory company overview");
-        } catch (RuntimeException failure) {
-            LOG.error("Fleet Armory overview reload refused; keeping the previous document", failure);
-            reloadStatus.set("Reload refused  ·  Previous document retained");
         }
     }
 
@@ -146,10 +137,6 @@ public final class FleetArmoryOverviewScreen implements Screen {
         if (currentHour != projectedCampaignHour) {
             projectedCampaignHour = currentHour;
             viewModel.refresh();
-        }
-        if (reloadRequested) {
-            reloadRequested = false;
-            reloadDocument();
         }
         if (markupInstance != null) markupInstance.flush();
         if (document != null) document.advance(dt);

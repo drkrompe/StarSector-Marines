@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns autonomous mission command, squad planning, belief-de
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — defined the two-sided command-duel baseline, frozen command inputs, directive ownership, spawn-time external claims, and form-up execution suspension.
+Updated: 2026-08-25 — defined the two-sided command-duel baseline, frozen command inputs, perspective-local directive disclosure, spawn-time external claims, form-up execution suspension, and dead-identity invalidation at commander influence publication.
 
 AI turns mission context and what a side has learned into coordinated
 movement, posture, and fire intent. It is a decision system, not the authority
@@ -59,11 +59,13 @@ side's own force state, faction-local influence, legally disclosed objective
 state, public topology, current directives, and frozen doctrine. It does not
 offer unrestricted access to the opposing live world. Production mission
 strategies receive only this frame and narrow topology queries, never a
-`BattleView` or retained simulation reference. A perspective-specific mission
-disclosure adapter is the sole authority that may project objective facts into
-the frame. Both sides plan from their frames before either side's new orders
-are committed, so commander dispatch order cannot become knowledge or behavior
-leakage.
+`BattleView` or retained simulation reference. The frame-only
+`AutonomousMissionCommand` contract is separate from the legacy live-view
+`MissionCommand` contract. A perspective-specific, stateless mission disclosure
+adapter is registered beside the strategy and is the sole authority that may
+project objective facts into the frame. Both sides plan from their frames
+before either side's new orders are committed, so commander dispatch order
+cannot become knowledge or behavior leakage.
 
 A **command pool** is the set of squads a strategy may allocate. Born
 garrisons, payload guards, scripted actors, and reinforcement forces awaiting

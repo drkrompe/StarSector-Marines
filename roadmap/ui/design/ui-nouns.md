@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — desktop authoring pages now share one discoverable host and lifecycle.
+Updated: 2026-08-25 — separated physical resolution fit from explicit UI scale and established the shared top room-navigation shell.
 
 ## Purpose
 
@@ -58,6 +58,9 @@ them.
   ordinary boxes: formation connectors, graphs, paper dolls, or transaction flows.
 - A **surface** is a document plus its view model, navigation behavior, and host
   lifecycle. Fleet Armory, Company HQ, and the UI workbench are surfaces.
+- A **shipboard room** is the fiction and navigation identity of a player-facing
+  company surface. The bridge Company HQ and Fleet Armory are current rooms; the
+  retained document remains the implementation surface underneath that spatial frame.
 - A **preview fixture** assembles a surface from controlled domain state for UX
   evidence. It is presentation input, never a replacement campaign authority.
 - A **snapshot suite** is one named, deterministic collection of visual evidence.
@@ -80,6 +83,15 @@ There are three distinct spaces:
 One host adapter owns each conversion. Layout never reads the framebuffer, and
 elements never add the dialog origin themselves. UI scale is observed at the host
 boundary rather than guessed from the physical monitor.
+
+Physical resolution fit and user UI scale are different inputs. A physically
+smaller host may uniformly shrink the entire reference presentation so ordinary
+resolution changes do not create a different composition. That fit never enlarges
+content above its authored size. Starsector's explicit `getScreenScaleMult()` still
+changes the virtual host space presented to layout, so a player asking for larger UI
+may intentionally trigger responsive tracks, bounded scrolling, or a denser
+composition. Paint, clips, canvas output, and input all share the same document-to-
+host transform.
 
 A headless image is a document-pixel raster, so it requires no fourth layout
 space. Its target consumes document coordinates directly; requested viewport
@@ -120,8 +132,11 @@ the retained model.
    seams.
 4. **The host boundary is explicit.** Nothing assumes control outside the granted
    custom-panel rectangle or assumes that a requested screen fraction was granted.
-5. **Layout is resolution-aware.** Screens compose from intrinsic sizes, flexible
-   tracks, and bounded regions rather than one monitor's absolute coordinates.
+5. **Resolution fit is not UI preference.** Physically smaller panels uniformly
+   fit the reference presentation before layout gives up its composition; larger
+   panels do not silently inflate it. The player's Starsector UI-scale setting
+   remains a separate density input that responsive tracks and bounded regions may
+   answer deliberately.
 6. **Paint order and hit order agree.** Later content paints above earlier content
    and is tested first. Invisible or clipped content cannot receive a click.
 7. **OpenGL state is borrowed.** A painter or canvas producer restores programs,
@@ -147,6 +162,12 @@ the retained model.
     authoring-page seam instead of adding Gradle launch tasks or coupling the
     generic workbench to a mod-domain catalog. Closing the host consults every
     page's dirty state and closes every created page exactly once.
+14. **Shipboard navigation is spatial.** Company surfaces identify the flagship room
+    the captain occupies and phrase transitions as movement between real destinations.
+    A persistent top shell owns `RETURN` and routes among real rooms, marks the current
+    room, and keeps the right edge for location context. Drill-down breadcrumbs remain
+    page-specific beneath it; the bottom edge belongs to page content rather than global
+    navigation. Future room names do not appear as dead controls before their surfaces exist.
 
 ## Intrinsic text and typography
 
@@ -301,10 +322,12 @@ is driven by a surface's interaction needs rather than a flag-day rewrite.
 
 Headless geometry and input tests prove document behavior without Starsector or an
 OpenGL context. Selectable snapshot suites capture deterministic visual evidence
-through the shared runner from either the command line or authoring workbench. The
-in-game workbench proves host coordinates, viewport grants, UI scaling, input
-routing, and GL-state seams. Live screenshot review proves final presentation and
-feel. Passing one evidence layer does not substitute for the others.
+through the shared runner from either the command line or authoring workbench.
+Resolution pairs must preserve composition under uniform fit; separate user-scale
+snapshots prove intentional responsive behavior. The in-game workbench proves host
+coordinates, viewport grants, UI scaling, input routing, and GL-state seams. Live
+screenshot review proves final presentation and feel. Passing one evidence layer
+does not substitute for the others.
 
 ## Extension points
 

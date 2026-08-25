@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.TestUnits;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
@@ -118,6 +119,34 @@ class CommanderInfluenceServiceTest {
 
         sim.advance(BattleSimulation.TICK_DT);
         assertEquals(45, sim.getCommanderInfluence(Faction.MARINE).updatedTick());
+    }
+
+    @Test
+    void staleBeliefAboutADeadHostileIsNotPublishedAsActionableContact() {
+        BattleSimulation sim = openSim(40, 12);
+        for (int y = 0; y < 12; y++) sim.getGrid().setWalkable(20, y, false);
+        int squad = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        spawnStill(sim, "observer", Faction.MARINE, UnitType.MARINE, 5, 5, squad);
+        long enemy = spawnStill(sim, "enemy", Faction.DEFENDER,
+                UnitType.MARINE_RED, 10, 5, Squad.NO_SQUAD, 10_000f);
+        spawnStill(sim, "distant-survivor", Faction.DEFENDER,
+                UnitType.MARINE_RED, 35, 5, Squad.NO_SQUAD, 10_000f);
+        sim.advance(BattleSimulation.TICK_DT);
+        assertEquals(1, sim.getCommanderInfluence(Faction.MARINE).contacts().size());
+
+        TestUnits.kill(sim, enemy);
+        for (int i = 0; i < CommanderInfluenceService.UPDATE_INTERVAL_TICKS; i++) {
+            sim.advance(BattleSimulation.TICK_DT);
+        }
+
+        assertTrue(sim.getSquad(squad).hasBelievedContacts(),
+                "the identity belief intentionally outlives the target");
+        CommanderInfluenceSnapshot refreshed =
+                sim.getCommanderInfluence(Faction.MARINE);
+        assertEquals(16, refreshed.updatedTick());
+        assertEquals(java.util.List.of(), refreshed.contacts().stream()
+                        .map(CommanderContact::unitId).toList(),
+                "dead identities cannot remain actionable commander facts");
     }
 
     private static BattleSimulation compartmentSim() {

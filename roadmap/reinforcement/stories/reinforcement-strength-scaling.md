@@ -35,5 +35,7 @@ advantage. Unsupported scale has an explicit fallback rather than being ignored.
 
 - General convoy following or planner optimization beyond what measured
   multi-vehicle delivery requires.
-- Unit-tier selection; `FactionUnitRoster` remains authoritative.
+- Unit-tier selection; the battle-frozen `GroundRosterProfile` remains
+  authoritative for campaign-target defenders, with `FactionUnitRoster` only
+  the side-level legacy/player fallback.
 - Mission-specific balance tuning before the shared contract exists.

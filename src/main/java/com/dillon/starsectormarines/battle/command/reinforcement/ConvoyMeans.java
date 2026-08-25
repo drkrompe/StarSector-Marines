@@ -14,6 +14,9 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
+import com.dillon.starsectormarines.battle.setup.InfantryLoadoutRolls;
+import com.dillon.starsectormarines.ops.RiskLevel;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 
@@ -54,6 +57,8 @@ public final class ConvoyMeans implements ReinforcementMeans {
 
     private final RoadGraph graph;
     private final TraversalAxis axis;
+    private final GroundRosterProfile groundRoster;
+    private final RiskLevel risk;
     /**
      * Per-battle terrain cost field, baked lazily on first dispatch. Ground kinds
      * are effectively static (rubble appears only on wall breach); a slightly
@@ -64,8 +69,15 @@ public final class ConvoyMeans implements ReinforcementMeans {
     private final Map<Integer, VehicleClearance> clearanceByRadius = new HashMap<>();
 
     public ConvoyMeans(RoadGraph graph, TraversalAxis axis) {
+        this(graph, axis, null, RiskLevel.LOW);
+    }
+
+    public ConvoyMeans(RoadGraph graph, TraversalAxis axis,
+                       GroundRosterProfile groundRoster, RiskLevel risk) {
         this.graph = graph;
         this.axis = axis;
+        this.groundRoster = groundRoster;
+        this.risk = risk != null ? risk : RiskLevel.LOW;
     }
 
     @Override
@@ -235,6 +247,12 @@ public final class ConvoyMeans implements ReinforcementMeans {
         // deboarded squad is assigned the moment it deboards rather than only
         // once it physically walks to the position — see ObjectiveNodes.
         mission.assignNode = ObjectiveNodes.resolve(sim.getTacticalMap(), req);
+        if (groundRoster != null) {
+            mission.deboardUnitType = groundRoster.unitType(GroundRosterProfile.ForceTier.BULK);
+            mission.marineLoadout = InfantryLoadoutRolls.defenderSquad(
+                    VehicleType.HEAVY_APC.capacity, groundRoster,
+                    GroundRosterProfile.ForceTier.BULK, risk, sim.random());
+        }
         sim.addConvoyVehicle(VehicleType.HEAVY_APC, Faction.DEFENDER, mission);
         LOG.info("ConvoyMeans: dispatched HEAVY_APC entry=(" + entry.cellX + "," + entry.cellY
                 + ") exit=(" + exitNode.cellX + "," + exitNode.cellY
