@@ -1,9 +1,6 @@
-<template props="fleetSummary,companyCards,back,legacy,reload,reloadStatus">
+<template props="fleetSummary,companyCards,returnAction,hqAction,armoryAction,hqClasses,hqDisabled,armoryClasses,armoryDisabled">
   <div id="fleet-armory-overview-root" class="fleet-armory-overview-root">
-    <div id="company-overview-header" class="panel surface-dark">
-      <div id="company-overview-title" class="label title tone-accent">FLEET ARMORY</div>
-      <div id="company-overview-purpose" class="label tone-edge">Owned companies  /  Readiness  /  Equipment</div>
-    </div>
+    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" armoryAction="{armoryAction}" hqClasses="{hqClasses}" hqDisabled="{hqDisabled}" armoryClasses="{armoryClasses}" armoryDisabled="{armoryDisabled}" contextLabel="FLAGSHIP / ARMORY / COMPANY ROSTER" />
 
     <div id="company-overview-intro" class="panel">
       <div id="company-overview-heading" class="label heading tone-edge">SELECT A COMPANY</div>
@@ -13,12 +10,6 @@
 
     <armory-company-list companyCards="{companyCards}" />
 
-    <div id="company-overview-footer" class="panel surface-dark">
-      <button id="company-overview-back" onclick="{back}">Return to Company HQ</button>
-      <button id="company-overview-legacy" onclick="{legacy}">Armory Administration</button>
-      <button id="company-overview-reload" onclick="{reload}">Reload UI</button>
-      <div id="company-overview-reload-status" class="label tone-good">{reloadStatus}</div>
-    </div>
   </div>
 </template>
 
@@ -33,17 +24,6 @@
 
   .label { overflow: hidden; }
   .heading { font-family: heading; }
-  .title { font-family: title; }
-
-  #company-overview-header {
-    flex-direction: row;
-    height: 34px;
-    padding: 7px 8px;
-    gap: 10px;
-  }
-
-  #company-overview-title { width: 220px; }
-  #company-overview-purpose { flex-grow: 1; text-align: right; }
 
   #company-overview-intro {
     flex-direction: column;
@@ -56,23 +36,4 @@
   #company-overview-copy { height: 17px; }
   #company-overview-summary { height: 19px; padding: 2px 6px; }
 
-  #company-overview-footer {
-    flex-direction: row;
-    height: 28px;
-    padding: 4px;
-    gap: 6px;
-  }
-
-  #company-overview-footer button {
-    padding: 3px 7px;
-    border-width: 1px;
-    overflow: hidden;
-    font-family: body;
-    text-align: center;
-  }
-
-  #company-overview-reload-status {
-    width: 0px;
-    flex-grow: 1;
-  }
 </style>
