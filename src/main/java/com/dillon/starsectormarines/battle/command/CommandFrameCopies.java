@@ -19,7 +19,7 @@ final class CommandFrameCopies {
         return new CommandDirective(source.squadId(), source.perspective(),
                 source.issuer(), source.authority(), source.reason(),
                 assignment(source.assignment()), source.issuedTick(),
-                source.leaseUntilTick(), source.status(),
+                source.stableUntilTick(), source.leaseUntilTick(), source.status(),
                 source.dispositionReason());
     }
 

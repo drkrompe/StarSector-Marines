@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +46,7 @@ public final class CommanderService {
     private final Map<Faction, CommanderSnapshot<?>> snapshots = new EnumMap<>(Faction.class);
     private final AssignmentArbiter assignments = new AssignmentArbiter();
     private static final Map<AutonomousMissionCommand<?, ?>, AssignmentArbiter>
-            DIRECT_SERVICES = java.util.Collections.synchronizedMap(new WeakHashMap<>());
+            DIRECT_SERVICES = Collections.synchronizedMap(new WeakHashMap<>());
 
     /**
      * Sim-seconds accumulated since the last commander slow-tick. When this
@@ -185,6 +186,12 @@ public final class CommanderService {
         if (plan.perspective() != frozen.command.faction()) {
             throw new IllegalStateException("command plan perspective does not match registration");
         }
+        if (!plan.strategy().equals(frozen.command.strategyId())) {
+            throw new IllegalStateException("command plan strategy does not match registration");
+        }
+        if (plan.tick() != frozen.frame.tick()) {
+            throw new IllegalStateException("command plan tick does not match frozen frame");
+        }
         return new PreparedCommand(frozen.command, plan);
     }
 
@@ -192,6 +199,7 @@ public final class CommanderService {
     private void commit(PreparedCommand prepared, BattleView sim,
                         CommandTopology topology) {
         CommanderSnapshot snapshot = assignments.commit(prepared.plan, sim, topology);
+        snapshot = prepared.command.reconcile(snapshot);
         snapshots.put(snapshot.perspective(), snapshot);
         prepared.command.publish(snapshot);
     }
@@ -211,7 +219,17 @@ public final class CommanderService {
             throw new IllegalStateException(
                     "command plan perspective does not match registration");
         }
-        command.publish(arbiter.commit(plan, sim, topology));
+        if (!plan.strategy().equals(command.strategyId())) {
+            throw new IllegalStateException(
+                    "command plan strategy does not match registration");
+        }
+        if (plan.tick() != frame.tick()) {
+            throw new IllegalStateException(
+                    "command plan tick does not match frozen frame");
+        }
+        CommanderSnapshot<D> snapshot = arbiter.commit(plan, sim, topology);
+        snapshot = command.reconcile(snapshot);
+        command.publish(snapshot);
     }
 
     private record PreparedCommand(AutonomousMissionCommand<?, ?> command,
