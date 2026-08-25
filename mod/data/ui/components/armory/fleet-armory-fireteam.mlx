@@ -1,4 +1,4 @@
-<template props="companySummary,selectedSquadName,fireTeamOverviews,targetSummary,candidateSummary,marineCards,weaponDoctrineSummary,armorDoctrineSummary,weaponDoctrineTiles,armorDoctrineTiles,weaponPickerTabClasses,armorPickerTabClasses,weaponPickerPanelClasses,armorPickerPanelClasses,showWeaponPicker,showArmorPicker,transactionSummary,transactionClasses,applyDisabled,applyLabel,apply,feedbackText,feedbackClasses,backToSquads,back,returnAction,hqAction,armoryAction,mechLabAction,hqClasses,armoryClasses,mechLabClasses">
+<template props="companySummary,selectedSquadName,fireTeamOverviews,targetSummary,candidateSummary,marineCards,weaponDoctrineSummary,armorDoctrineSummary,weaponDoctrineTiles,armorDoctrineTiles,weaponPickerTabClasses,armorPickerTabClasses,weaponPickerPanelClasses,armorPickerPanelClasses,showWeaponPicker,showArmorPicker,loadoutFilters,loadoutBrowserSummary,transactionSummary,transactionClasses,applyDisabled,applyLabel,apply,feedbackText,feedbackClasses,backToSquads,back,returnAction,hqAction,armoryAction,mechLabAction,hqClasses,armoryClasses,mechLabClasses">
   <div id="fleet-armory-fireteam-root" class="fleet-armory-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" hqClasses="{hqClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" contextLabel="FLAGSHIP / ARMORY / EQUIPMENT ISSUE" />
 
@@ -13,11 +13,9 @@
     </div>
 
     <div id="fireteam-body">
-      <armory-fireteam-list fireTeamOverviews="{fireTeamOverviews}" />
-      <armory-refit-transaction targetSummary="{targetSummary}" candidateSummary="{candidateSummary}" marineCards="{marineCards}" feedbackText="{feedbackText}" feedbackClasses="{feedbackClasses}" />
+      <armory-refit-transaction fireTeamOverviews="{fireTeamOverviews}" targetSummary="{targetSummary}" candidateSummary="{candidateSummary}" marineCards="{marineCards}" feedbackText="{feedbackText}" feedbackClasses="{feedbackClasses}" />
+      <armory-squad-doctrine weaponDoctrineSummary="{weaponDoctrineSummary}" armorDoctrineSummary="{armorDoctrineSummary}" weaponDoctrineTiles="{weaponDoctrineTiles}" armorDoctrineTiles="{armorDoctrineTiles}" weaponPickerTabClasses="{weaponPickerTabClasses}" armorPickerTabClasses="{armorPickerTabClasses}" weaponPickerPanelClasses="{weaponPickerPanelClasses}" armorPickerPanelClasses="{armorPickerPanelClasses}" showWeaponPicker="{showWeaponPicker}" showArmorPicker="{showArmorPicker}" loadoutFilters="{loadoutFilters}" loadoutBrowserSummary="{loadoutBrowserSummary}" transactionSummary="{transactionSummary}" transactionClasses="{transactionClasses}" applyDisabled="{applyDisabled}" applyLabel="{applyLabel}" apply="{apply}" />
     </div>
-
-    <armory-squad-doctrine weaponDoctrineSummary="{weaponDoctrineSummary}" armorDoctrineSummary="{armorDoctrineSummary}" weaponDoctrineTiles="{weaponDoctrineTiles}" armorDoctrineTiles="{armorDoctrineTiles}" weaponPickerTabClasses="{weaponPickerTabClasses}" armorPickerTabClasses="{armorPickerTabClasses}" weaponPickerPanelClasses="{weaponPickerPanelClasses}" armorPickerPanelClasses="{armorPickerPanelClasses}" showWeaponPicker="{showWeaponPicker}" showArmorPicker="{showArmorPicker}" transactionSummary="{transactionSummary}" transactionClasses="{transactionClasses}" applyDisabled="{applyDisabled}" applyLabel="{applyLabel}" apply="{apply}" />
 
   </div>
 </template>
@@ -43,6 +41,6 @@
   .breadcrumb-separator { width: 10px; text-align: center; }
   .breadcrumb-current { padding: 3px 4px; }
 
-  #fireteam-body { flex-direction: column; height: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
+  #fireteam-body { flex-direction: row; height: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
 
 </style>

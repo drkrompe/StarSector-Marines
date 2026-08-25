@@ -47,7 +47,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             "data/ui/components/armory/armory-squad-list.mlx",
             "data/ui/components/armory/fleet-armory-fireteam.mlx",
             "data/ui/components/armory/fleet-armory-doctrine-designer.mlx",
-            "data/ui/components/armory/armory-fireteam-list.mlx",
             "data/ui/components/armory/armory-squad-doctrine.mlx",
             "data/ui/components/armory/armory-refit-transaction.mlx");
     private static final List<String> MECH_LAB_COMPONENTS = List.of(
@@ -340,6 +339,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("armorPickerPanelClasses", viewModel.armorPickerPanelClasses());
         props.put("showWeaponPicker", viewModel.showWeaponPickerAction());
         props.put("showArmorPicker", viewModel.showArmorPickerAction());
+        props.put("loadoutFilters", viewModel.loadoutFilters());
+        props.put("loadoutBrowserSummary", viewModel.loadoutBrowserSummary());
         props.put("marineCards", viewModel.marineCards());
         props.put("transactionSummary", viewModel.transactionSummary());
         props.put("transactionClasses", viewModel.transactionClasses());

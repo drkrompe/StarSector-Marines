@@ -2,10 +2,10 @@
 
 Status: IN PROGRESS — retained hierarchy, squad equipment issue, and focused Mech Lab ship; broader company administration remains
 Written: 2026-08-23
-Updated: 2026-08-25 — fire-team inspection now fits a compact single-row team tab rail,
-four full named-marine dossiers, and a bottom tabbed loadout collection at the reference
-viewport. Collection cards expose authored tier, rarity, provenance, lore, and exact
-distribution without introducing randomized contents or card scrolling.
+Updated: 2026-08-25 — fire-team inspection now pairs a two-by-two marine dossier grid
+with a known-only vertical loadout browser. Inline team tabs, status-colored dossier
+borders, Weapon/Armor modes, and rarity filters leave discovery intact while scaling
+the browser toward a much larger campaign collection.
 
 Read `company-view-nouns.md` and `ui-nouns.md` first.
 
@@ -23,7 +23,7 @@ recreating that catch-all shell.
 Fleet Armory becomes the first production retained surface. Its landing view is a
 responsive grid of literal portrait company cards; selecting one enters a matching
 squad-card overview for that company, and selecting a squad enters its three-team
-inspection workspace. One Weapon doctrine card and one Armor doctrine card compose
+inspection workspace. One Weapon definition and one Armor definition compose
 the whole squad's exact issue; special equipment follows Weapon. A clickable
 breadcrumb keeps every completed level directly reachable.
 
@@ -41,21 +41,23 @@ breadcrumb keeps every completed level directly reachable.
   readiness before the player enters that squad's equipment workspace. The card body
   remains the inspect target; reinforcement is a compact secondary action rather than
   a replacement inspect button.
-- **Fire-team context:** Alpha, Bravo, and Charlie occupy one horizontal tab rail and
-  report strength, readiness, recovery, and current squad doctrine together. Selection
-  chooses which four of twelve projected billets to inspect; it never narrows or resets
-  the squad transaction.
+- **Fire-team context:** Alpha, Bravo, and Charlie are compact tabs on the FIRE TEAM
+  context line. Selection chooses which four of twelve projected billets to inspect;
+  it never narrows or resets the squad transaction. Marine status and exact recovery
+  timing remain on the affected dossier instead of consuming another navigation row.
 - **Workspace:** the selected team's four persistent marines appear simultaneously in
-  the full-width primary viewer. Each dossier presents rank, name, readiness, aptitude,
+  a two-by-two primary viewer. Each dossier presents rank, name, readiness, aptitude,
   experience, career, candidate role, an upper-right battle-composed portrait, readable
   class/weapon-tier/armor-tier badges, data-authored weapon/armor/special descriptions,
   and resolved combat figures. Weapon, durability, and mobility figures use compact
   capability meters normalized against their catalog ceilings while retaining the exact
   number beside each meter.
-- **Equipment editing:** a full-width collection below the marine viewer swaps between
-  mutually exclusive Weapon and Armor tabs. Weapon definitions include roles,
+- **Equipment editing:** a vertical browser beside the marine viewer swaps between
+  mutually exclusive Weapon and Armor tabs and filters known definitions by rarity.
+  Unknown definitions are absent rather than named, counted, or shown as locked.
+  Weapon definitions include roles,
   primaries, grades, and optional special equipment; Armor definitions include
-  protection only. Each collected loadout card exposes an authored tier, acquisition
+  protection only. Each known loadout exposes an authored tier, acquisition
   rarity, provenance, setting paragraph, and exact distribution. Their selected pair
   projects exact equipment and combat-stat deltas onto the same named marines. One
   squad-wide readiness result and one squad-wide issue action commit all twelve billets
@@ -102,10 +104,12 @@ breadcrumb keeps every completed level directly reachable.
 - Weapon doctrine selection changes primary, grade, role, and special issue without
   changing armor; Armor doctrine selection changes protection without changing the
   Weapon half.
-- The loadout collection sits below the four marine dossiers and shows only the active
-  Weapon or Armor inventory at once. Switching tabs preserves both selected definitions
-  and changes no campaign state.
-- Every built-in collection card reads tier, rarity, provenance, and lore from authored
+- The loadout browser sits beside the two-by-two marine viewer and shows only the active
+  Weapon or Armor inventory at once. Switching tabs or rarity filters preserves both
+  selected definitions and changes no campaign state.
+- Unknown loadouts are completely absent from the browser. Discovery is not spoiled by
+  locked names, empty silhouettes, metadata, counts, or lore.
+- Every known built-in entry reads tier, rarity, provenance, and lore from authored
   data. Tier communicates expected capability; rarity communicates campaign acquisition
   scarcity and presentation, never random selection weight.
 - Selecting or issuing a loadout never rolls from a pool. Its twelve ordered billets
@@ -117,20 +121,21 @@ breadcrumb keeps every completed level directly reachable.
   squad preview/apply transaction may reject physical issue.
 - The exact twelve-billet preview is the same operation used by apply. A failed
   readiness, stationing, recipe, or stock check changes no kit and neither doctrine id.
-- Company and equipment cards are literal presentation containers, without
+- Company cards and equipment entries are presentation containers, without
   deck/hand/consume semantics.
 - The company gallery auto-fills fixed portrait cards into columns, wraps into rows as
   the viewport narrows, and scrolls vertically without silent truncation.
-- The fire-team viewer shows all four named marines together without card scrolling;
-  one compact single-row team tab rail preserves each team's readiness and recovery
-  context while reserving vertical space for the collection.
+- The fire-team viewer shows all four named marines together in a two-by-two grid without
+  internal dossier scrolling; Alpha, Bravo, and Charlie share the FIRE TEAM context line.
+- Ready, wounded, missing, killed, and vacant marines receive distinct dossier border
+  treatments while explicit status and RTD timing remain available as text.
 - Each marine dossier keeps its battle-composed portrait in the upper-right, surfaces
   class plus weapon and armor tier as badges, and reads weapon, armor, and specialty
   prose from their owning data definitions rather than screen-authored copy.
 - Damage, range, accuracy, sustained output, health, armor, resistance, and actual
   movement speed appear as comparative meters with exact values; their fill scale is
   stable across the four marines rather than relative to only the selected team.
-- Designer billet cards expose the same stable comparison language, including evasion,
+- Designer billet dossiers expose the same stable comparison language, including evasion,
   without enlarging their upper-right live render or introducing card scrolling.
 - The starter pair differentiates each fire-team lead with its scarce pulse rifle and
   militia armor while leaving the other nine billets in field rifles and fatigues;
