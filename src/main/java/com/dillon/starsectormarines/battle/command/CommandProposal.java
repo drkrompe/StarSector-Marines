@@ -9,7 +9,8 @@ public record CommandProposal(
         ObjectiveAssignment assignment,
         CommandAuthority authority,
         String reason,
-        int leaseUntilTick) {
+        int leaseUntilTick,
+        CommandStabilityBreak stabilityBreak) {
 
     public enum Action { ASSIGN, RETAIN, RELEASE }
 
@@ -17,8 +18,12 @@ public record CommandProposal(
         Objects.requireNonNull(action, "action");
         Objects.requireNonNull(authority, "authority");
         Objects.requireNonNull(reason, "reason");
+        Objects.requireNonNull(stabilityBreak, "stabilityBreak");
         if (action == Action.ASSIGN && assignment == null) {
             throw new IllegalArgumentException("ASSIGN requires an assignment");
+        }
+        if (action != Action.ASSIGN && assignment != null) {
+            throw new IllegalArgumentException(action + " cannot carry an assignment");
         }
         if (assignment != null && assignment.squadId() != squadId) {
             throw new IllegalArgumentException("assignment squad does not match proposal");
@@ -29,18 +34,33 @@ public record CommandProposal(
                                          CommandAuthority authority,
                                          String reason) {
         return new CommandProposal(assignment.squadId(), Action.ASSIGN,
-                assignment, authority, reason, -1);
+                assignment, authority, reason, -1, CommandStabilityBreak.NONE);
+    }
+
+    public static CommandProposal assign(ObjectiveAssignment assignment,
+                                         CommandAuthority authority,
+                                         String reason,
+                                         CommandStabilityBreak stabilityBreak) {
+        return new CommandProposal(assignment.squadId(), Action.ASSIGN,
+                assignment, authority, reason, -1, stabilityBreak);
     }
 
     public static CommandProposal retain(int squadId, CommandAuthority authority,
                                          String reason) {
         return new CommandProposal(squadId, Action.RETAIN, null,
-                authority, reason, -1);
+                authority, reason, -1, CommandStabilityBreak.NONE);
     }
 
     public static CommandProposal release(int squadId, CommandAuthority authority,
                                           String reason) {
         return new CommandProposal(squadId, Action.RELEASE, null,
-                authority, reason, -1);
+                authority, reason, -1, CommandStabilityBreak.NONE);
+    }
+
+    public static CommandProposal release(int squadId, CommandAuthority authority,
+                                          String reason,
+                                          CommandStabilityBreak stabilityBreak) {
+        return new CommandProposal(squadId, Action.RELEASE, null,
+                authority, reason, -1, stabilityBreak);
     }
 }

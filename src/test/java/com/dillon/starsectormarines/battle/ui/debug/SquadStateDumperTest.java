@@ -138,6 +138,7 @@ class SquadStateDumperTest {
         assertEquals(commander.getInt("tick"),
                 commonDirective.getInt("issuedTick"));
         assertEquals(-1, commonDirective.getInt("leaseUntilTick"));
+        assertEquals(-1, commonDirective.getInt("stableUntilTick"));
         assertTrue(commonDirective.isNull("assignment"));
         assertTrue(commonDirective.isNull("proposedAssignment"));
 
