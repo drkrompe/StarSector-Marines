@@ -38,4 +38,15 @@ class FramebufferScissorTest {
 
         assertEquals(new FramebufferScissor(19, 81, 25, 25), scissor);
     }
+
+    @Test
+    void documentScaleIsAppliedBeforeFramebufferConversion() {
+        UiViewport viewport = new UiViewport(10f, 20f, 100f, 80f, 0.5f);
+        Rect clip = new Rect(5f, 10f, 20f, 30f);
+
+        FramebufferScissor scissor = FramebufferScissor.from(
+                viewport, clip, 400, 200, 200f, 100f);
+
+        assertEquals(new FramebufferScissor(25, 160, 20, 30), scissor);
+    }
 }

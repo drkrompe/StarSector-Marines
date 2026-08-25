@@ -4,7 +4,7 @@ Status: ACTIVE — side-owned requests separate trigger, supply, means, delivery
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — tied target-faction rosters to concrete armor, primary-family, and special-item selection without granting faction combat rules.
+Updated: 2026-08-25 — installed the target-faction ground-roster catalog and froze one profile across initial defenders and every reinforcement means.
 
 ## Vocabulary
 
@@ -16,7 +16,8 @@ Updated: 2026-08-24 — tied target-faction rosters to concrete armor, primary-f
 - A **reinforcement ticket** is one unit of the `REINFORCEMENT` resource required for an ordinary dispatch. ARMORYs produce tickets while their side holds them. Tickets measure continuing field capacity, not a mission-scripted wave count.
 - A **recapture target** is a once-manned defender tactical position that has become open while its biome slice remains contested. It is a Conquest-specific answer to *where should the next defender response go*, not a general replacement for all reinforcement triggers.
 - A **counterattack** is a bounded defender reserve commitment. It earmarks tickets before the wave, telegraphs its intent, and then attempts a short burst of prepaid requests against a conceded biome slice. The earmark is a wager: delivery failure does not silently restore it after launch.
-- A **faction unit roster** maps a side's bulk infantry, elite infantry, and optional mech tier to concrete unit types. It owns thematic unit selection; a means owns delivery.
+- A **side unit roster** is the small battle-side fallback used by player, story, and legacy payloads when no campaign target exists. It is not campaign-faction doctrine.
+- A **ground roster profile** is the immutable, data-authored defender doctrine resolved from `TargetProfile.factionId()` once during battle setup. It chooses bulk/elite compatibility shells, weighted primary families, risk-banded equipment grades, concrete armor patterns, special issue, and optional heavy-support identities. Unknown faction ids resolve to Independent.
 
 ## Ownership and flow
 
@@ -24,7 +25,7 @@ Battle setup registers the applicable triggers and a priority-ordered means ladd
 
 Before ordinary dispatch, the system spends one reinforcement ticket from the requesting side. A request that cannot yet pay remains pending for a later cadence. A request with no feasible means refunds its ordinary ticket and is dropped as a map/supply diagnostic. Prepaid counterattack requests are different: their reserve was paid at muster, so dispatch neither spends again nor refunds an undeliverable launched request.
 
-The selected means creates normal battle actors rather than a reinforcement-specific simulation path. A convoy follows the vehicle/delivery model owned by `convoy-nouns.md`; a shuttle follows the air transport model owned by `air-nouns.md`; a walk-in creates an ordinary infantry squad. Once delivered, the squad enters the normal roster, commander, and tactical-assignment flow.
+The selected means creates normal battle actors rather than a reinforcement-specific simulation path. A convoy follows the vehicle/delivery model owned by `convoy-nouns.md`; a shuttle follows the air transport model owned by `air-nouns.md`; a walk-in creates an ordinary infantry squad. Each defender means receives the same battle-frozen ground roster as initial allocation: convoys and walk-ins draw bulk issue, while shuttle drops draw elite issue. Once delivered, the squad enters the normal roster, commander, and tactical-assignment flow.
 
 For Conquest, recapture-target recomputation runs before reinforcement dispatch. The frontline trigger chooses the defender-rear-most contested biome slice with an open target, rotates through that slice's targets, gives the request a rear-shifted delivery hint, and assigns the target as its objective. Marking a target dispatched prevents duplicate waves while an answer is in flight; an assignment or delivery failure eventually re-opens it rather than permanently suppressing the position.
 
@@ -42,7 +43,7 @@ The installed means ladder is defender-only: convoy, then shuttle, then walk-in.
 6. Ordinary dispatch is paid before commitment and refunds only when no means can deliver. A prepaid counterattack is an intentional exception: its reserve is committed at muster and remains at risk after launch.
 7. A target may not stay suppressed merely because a delivery pipeline failed. Dispatch state is provisional until an assigned live squad closes the loop, with a bounded recovery path for lost deliveries.
 8. Faction identity is data on every request, but symmetric behavior is not implied by the type. The installed ladder is defender-side; marine-side triggers, supply interpretation, and means eligibility require explicit authority.
-9. The faction roster chooses unit tier and visual/stat identity. It does not decide force quantity, delivery feasibility, or the player's campaign roster.
+9. The frozen ground roster chooses defender unit tier and equipment/protection identity. It does not decide force quantity, support eligibility, delivery feasibility, AI, objectives, or the player's campaign roster.
 
 ## Boundaries and extension paths
 
@@ -52,17 +53,20 @@ The existing request shape is deliberately wider than the current delivery set. 
 
 Request strength currently expresses desired scale, not a complete force, cost, and pacing contract. The installed ladder therefore uses one small, single-response baseline. Multi-squad, multi-vehicle, and multi-shuttle scale must be introduced as one coordinated contract rather than letting each means drift independently. A player-side ticket/inbound readout must project the same resource and in-flight reality that the simulation uses rather than invent a UI budget.
 
-The current faction roster is keyed by battle side and therefore gives every
-defender the same thematic unit identity. `target-faction-ground-rosters.md`
-owns the extension that resolves one target-faction ground roster at launch and
-reuses it for initial defenders, garrisons, convoys, shuttles, and walk-ins.
-That roster may choose equipment and unit identity; it still may not choose
-force quantity, delivery, mission command, or player-owned personnel. Armor
-selection names concrete patterns from the shared assault-armor role and
-provenance catalog. Encounter risk may change which candidates are eligible,
-but reinforcement may not reinterpret light, line, and heavy as a hidden
-quality ladder or manufacture faction-wide armor rules. Primary and special
-issue likewise names concrete family/item ids; the roster never turns faction
-labels such as corporate, elite, fanatic, or outlaw into damage, targeting,
-morale, self-detonation, or equipment-use behavior when the corresponding item
-is absent.
+`GroundRosterRegistry` loads the built-in JSON catalog after weapon and special
+equipment catalogs, validates every referenced primary, special, armor,
+infantry shell, and mech identity, and fails startup on malformed built-in
+content. `BattleSetup` resolves exactly one profile from the target faction id,
+stores it on the simulation, and passes it to initial allocation, heavy-support
+selection, convoys, shuttles, and walk-ins. Armor ids describe semantic roles
+such as scout, combat, line, and heavy; current palette-named enum handles and
+art are compatibility presentation, not faction truth.
+
+Encounter risk selects a profile's grade, armor, and special-issue eligibility
+tables, while mission/tier authority retains force count, elite ratio, heavy
+armor admission, support budget, tickets, and means ordering. The roster never
+turns faction labels such as corporate, elite, fanatic, or outlaw into damage,
+targeting, morale, self-detonation, or equipment-use behavior when the
+corresponding item is absent. `target-faction-ground-rosters.md` retains the
+remaining content expansion, merged-submod override, deterministic fixture,
+and live faction-read acceptance work.

@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.ops.RiskLevel;
+import com.dillon.starsectormarines.marine.MarineArmorPattern;
 
 import java.util.Random;
 
@@ -60,6 +61,36 @@ public final class InfantryLoadoutRolls {
                     special, special != null ? special.startingAmmo() : 0);
         }
         return roster;
+    }
+
+    /**
+     * Builds one defender from the battle-frozen faction profile. Risk still
+     * owns eligibility/quality and the existing personnel curve; faction data
+     * chooses the equipment identities within those authored bands.
+     */
+    public static MarineLoadout defenderLoadout(GroundRosterProfile roster,
+                                                GroundRosterProfile.ForceTier tier,
+                                                RiskLevel risk, Random rng) {
+        GroundRosterProfile.Issue issue = roster.issue(tier);
+        MarineSecondary special = issue.pickSpecial(risk, rng);
+        MarineArmorPattern armor = issue.pickArmor(risk, rng);
+        return new MarineLoadout(UnitRole.COMBATANT, null,
+                issue.pickPrimary(rng), issue.pickGrade(risk, rng),
+                defenderProfile(issue.unitType(), risk != null ? risk : RiskLevel.LOW, rng),
+                special, special != null ? special.startingAmmo() : 0,
+                null, armor.layeredFamily(), armor.armorPool, armor.armorRating,
+                armor.moveSpeedMult, armor.incomingAccuracyMult);
+    }
+
+    /** One delivery manifest built from the same frozen profile as initial defenders. */
+    public static MarineLoadout[] defenderSquad(int capacity, GroundRosterProfile roster,
+                                                GroundRosterProfile.ForceTier tier,
+                                                RiskLevel risk, Random rng) {
+        MarineLoadout[] result = new MarineLoadout[Math.max(0, capacity)];
+        for (int i = 0; i < result.length; i++) {
+            result[i] = defenderLoadout(roster, tier, risk, rng);
+        }
+        return result;
     }
 
     /** Weighted player primary roll: pulse workhorse, evenly split specialist slots. */

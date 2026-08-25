@@ -39,14 +39,13 @@ public final class CompanyHqScreen implements Screen {
         boolean reactivating = input == null;
         context = ctx;
         this.dismissDialog = dismissDialog;
-        viewport = new UiViewport(position.getX(), position.getY(),
-                position.getWidth(), position.getHeight());
+        viewport = MarineOpsUiViewport.from(position);
         int currentHour = campaignHour();
         if (document == null || reactivating || currentHour != projectedCampaignHour) {
             projectedCampaignHour = currentHour;
             installDocument();
         } else {
-            document.layout(viewport.width(), viewport.height());
+            document.layout(viewport.documentWidth(), viewport.documentHeight());
         }
         input = new StarsectorUiInputAdapter(document, viewport);
     }
@@ -65,7 +64,9 @@ public final class CompanyHqScreen implements Screen {
             built = new UiDocument(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard()).onCancel(this::onClose);
-            if (viewport != null) built.layout(viewport.width(), viewport.height());
+            if (viewport != null) {
+                built.layout(viewport.documentWidth(), viewport.documentHeight());
+            }
         } catch (RuntimeException failure) {
             candidate.close();
             throw failure;

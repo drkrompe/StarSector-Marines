@@ -8,6 +8,9 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
+import com.dillon.starsectormarines.battle.setup.GroundRosterRegistry;
+import com.dillon.starsectormarines.ops.RiskLevel;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -67,5 +70,28 @@ public class ShuttleMeansTest {
         int lzY = (int) mission.lzY;
         assertEquals(0, topo.getBuildingId(lzX, lzY), "LZ must be outside any building footprint");
         assertTrue(sim.getGrid().isWalkable(lzX, lzY), "LZ must be walkable");
+    }
+
+    @Test
+    public void factionalShuttleCarriesEliteProfileLoadouts() {
+        BattleSimulation sim = openSim();
+        sim.getCompoundService().register(commandPost(2, 2));
+        GroundRosterProfile roster = GroundRosterRegistry.resolve("tritachyon");
+        ShuttleMeans means = new ShuttleMeans(
+                TraversalAxis.SOUTH_TO_NORTH, roster, RiskLevel.HIGH);
+        ReinforcementRequest req = new ReinforcementRequest(Faction.DEFENDER,
+                ReinforcementRequest.Reason.GARRISON_DEPLETED,
+                ReinforcementRequest.Strength.SMALL, 5, 5);
+
+        means.dispatch(sim, req);
+
+        ShuttleMission mission = sim.world().mission(sim.getAirEntityIds()[0]);
+        assertEquals(roster.unitType(GroundRosterProfile.ForceTier.ELITE),
+                mission.deboardUnitType);
+        assertEquals(4, mission.marineLoadout.length);
+        for (int i = 0; i < mission.marineLoadout.length; i++) {
+            assertTrue(mission.marineLoadout[i].primary != null);
+            assertTrue(mission.marineLoadout[i].armorFamily != null);
+        }
     }
 }
