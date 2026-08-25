@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
-import com.dillon.starsectormarines.marine.MarineArmorPattern;
+import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -13,10 +13,9 @@ public final class ArmoryPreviewAssets implements ArmoryLoadoutPreviewComposer.A
     private boolean loadAttempted;
 
     @Override
-    public LayeredUnitAssets layered(MarineArmorPattern armor) {
+    public LayeredUnitAssets layered(LayeredArmorFamily armor) {
         ensureLoaded();
-        return sprites.layeredUnitSprites().get(
-                ArmoryLoadoutPreviewComposer.armorFamily(armor));
+        return sprites.layeredUnitSprites().get(armor);
     }
 
     @Override

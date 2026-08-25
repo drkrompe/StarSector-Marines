@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — made collectible eligibility and cost additive provider data while retaining authored tier, rarity, provenance, and lore presentation.
+Updated: 2026-08-25 — made learned contributed primary and armor cards selectable, persistable, issuable, and deployable through stable catalog ids.
 
 ## Purpose
 
@@ -172,10 +172,13 @@ loaded. Card ids are derived from the stable equipment id, duplicate claims fail
 with provider provenance, and learning keeps the same Marine-Armory-only
 boundary. A provider adding a weapon or armor does not automatically make it
 player collectible; it must deliberately contribute the corresponding template.
-The catalog and cargo-learning path accepts contributed ids now, while the
-player doctrine editor and persisted billet materialization remain enum-backed;
-stable-id authoring is still required before a learned contributed card becomes
-selectable player issue.
+The doctrine editor derives primary family/grade and armor choices from the
+owned cards in that additive catalog. Persisted doctrines, resolved billets,
+and materialized marines retain the contributed equipment ids directly, so a
+learned provider card can be selected, saved, issued for its authored cargo
+cost, and deployed without a Java enum constant. If that provider later
+disappears, save repair warns and returns unresolved primaries to the starter
+field rifle and unresolved armor to field fatigues.
 
 Armor patterns are authored player kit with distinct defensive and mobility
 tradeoffs. Some authored patterns are not presently reachable by the live
