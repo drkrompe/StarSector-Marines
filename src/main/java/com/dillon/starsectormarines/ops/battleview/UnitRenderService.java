@@ -72,6 +72,17 @@ public final class UnitRenderService implements RenderSystem {
     /** Composition-wide scale relative to the original layered mech sizing. */
     static final float LAYERED_MECH_SCALE = 1.40f;
 
+    /** Shared physical sizing authority for battle and shipboard room projections. */
+    static float layeredMechHullWidth(float cellPx, float renderScale) {
+        return cellPx * BattleRenderer.UNIT_FRAC * renderScale * 0.82f
+                * LAYERED_MECH_SCALE;
+    }
+
+    /** Shared physical sizing authority for layered infantry room projections. */
+    static float layeredInfantryShoulderWidth(float cellPx, float renderScale) {
+        return cellPx * BattleRenderer.UNIT_FRAC * renderScale * LAYERED_INFANTRY_SCALE;
+    }
+
     private final BattleSprites sprites;
 
     public UnitRenderService(BattleSprites sprites) {
@@ -407,8 +418,8 @@ public final class UnitRenderService implements RenderSystem {
                     float cy = cam.cellToScreenY(ry[r]);
                     // Chassis width is the single sizing unit. Total appendage
                     // overhang remains close to the legacy 1.6-cell silhouette.
-                    float hullWidth = unitSize * roster.renderScale(entityId) * 0.82f
-                            * LAYERED_MECH_SCALE;
+                    float hullWidth = layeredMechHullWidth(
+                            cam.cellPxSize(), roster.renderScale(entityId));
                     LayerPose authoredPose = mechPose(mechChassis[r], mechLocomotion[r],
                             mechFlags[r]);
                     LayeredMechComposer.emit(out, mechAssets, cx, cy, hullWidth,
@@ -438,7 +449,8 @@ public final class UnitRenderService implements RenderSystem {
                             secondary,
                             equipmentGrade != null ? (EquipmentGrade) equipmentGrade[r]
                                     : EquipmentGrade.SERVICE,
-                            cx, cy, unitSize * type.renderScale * LAYERED_INFANTRY_SCALE,
+                            cx, cy, layeredInfantryShoulderWidth(
+                                    cam.cellPxSize(), type.renderScale),
                             layeredFacing[r], layeredHeadLook[r], layeredLocomotion[r],
                             layeredWeaponPhase[r], layeredPose[r], layeredFlags[r], unitAlpha,
                             authoredPose);

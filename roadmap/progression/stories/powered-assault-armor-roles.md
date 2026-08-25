@@ -86,7 +86,7 @@ non-duplicative mechanic.
   color, tier, or faction at runtime.
 - Keep pattern stats explicit. Role supplies validation bands and comparison
   language, not a second stack of hidden multipliers.
-- Campaign Armory owns recipes, printed stock, assignment, provenance copy,
+- Campaign Armory owns template cards, cargo-backed assignment, provenance copy,
   and maintenance/fabrication price. Deployment freezes the selected pattern's
   plain combat values and capabilities.
 - Battle durability consumes pool and rating. Infantry movement consumes the

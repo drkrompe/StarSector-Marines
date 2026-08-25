@@ -9,6 +9,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -66,24 +67,24 @@ class MarineArmoryTest {
         assertFalse(armory.isPrimaryUnlocked(
                 MarineWeapon.SQUAD_AUTOMATIC, EquipmentGrade.MILSPEC));
 
-        for (int i = 0; i < 4; i++) armory.recordVictory(0, false);
+        for (int i = 0; i < 4; i++) armory.recordVictory(false);
         assertTrue(armory.isPrimaryUnlocked(
                 MarineWeapon.SQUAD_AUTOMATIC, EquipmentGrade.MILSPEC));
     }
 
     @Test
-    void fragRecipeUnlocksAfterTwoVictoriesAndCanBePrinted() {
+    void fragTemplateCardUnlocksAfterTwoVictoriesWithoutCreatingPrintCurrency() {
         MarineArmory armory = new MarineArmory();
         assertFalse(armory.isSecondaryUnlocked(MarineSecondary.FRAG_GRENADE));
         assertEquals(0, armory.ownedSecondary(MarineSecondary.FRAG_GRENADE));
 
-        armory.recordVictory(3, false);
+        armory.recordVictory(false);
         assertFalse(armory.isSecondaryUnlocked(MarineSecondary.FRAG_GRENADE));
-        armory.recordVictory(3, false);
+        armory.recordVictory(false);
         assertTrue(armory.isSecondaryUnlocked(MarineSecondary.FRAG_GRENADE));
-        assertTrue(armory.printSecondary(MarineSecondary.FRAG_GRENADE));
-        assertEquals(1, armory.ownedSecondary(MarineSecondary.FRAG_GRENADE));
-        assertEquals(1, armory.fabricationMaterials());
+        assertTrue(armory.ownsEquipmentTemplate(
+                EquipmentTemplateCatalog.specialId(MarineSecondary.FRAG_GRENADE)));
+        assertEquals(0, armory.fabricationMaterials());
     }
 
     @Test
@@ -99,18 +100,34 @@ class MarineArmoryTest {
     }
 
     @Test
-    void highRiskProgressionUnlocksAndPrintsMasterworkDmr() {
+    void legacyRecipeOwnershipMigratesToEquipmentTemplateCards() throws Exception {
+        MarineArmory armory = new MarineArmory();
+        armory.unlockPrimary(MarineWeapon.DMR, EquipmentGrade.MASTERWORK);
+        Field ownedTemplates = MarineArmory.class.getDeclaredField(
+                "ownedEquipmentTemplateIds");
+        ownedTemplates.setAccessible(true);
+        ownedTemplates.set(armory, null);
+
+        MarineArmory loaded = roundTrip(armory);
+
+        assertTrue(loaded.ownsPrimaryTemplate(
+                MarineWeapon.DMR, EquipmentGrade.MASTERWORK));
+        assertTrue(loaded.ownsSpecialTemplate(MarineSecondary.SMOKE_GRENADE));
+    }
+
+    @Test
+    void highRiskProgressionUnlocksMasterworkDmrTemplateCard() {
         MarineArmory armory = new MarineArmory();
         assertFalse(armory.isPrimaryUnlocked(MarineWeapon.DMR, EquipmentGrade.MASTERWORK));
 
-        for (int i = 0; i < 4; i++) armory.recordVictory(2, false);
+        for (int i = 0; i < 4; i++) armory.recordVictory(false);
         assertFalse(armory.isPrimaryUnlocked(MarineWeapon.DMR, EquipmentGrade.MASTERWORK));
 
-        armory.recordVictory(7, true);
+        armory.recordVictory(true);
         assertTrue(armory.isPrimaryUnlocked(MarineWeapon.DMR, EquipmentGrade.MASTERWORK));
-        assertTrue(armory.printPrimary(MarineWeapon.DMR, EquipmentGrade.MASTERWORK));
-        assertEquals(1, armory.ownedPrimary(MarineWeapon.DMR, EquipmentGrade.MASTERWORK));
-        assertEquals(7, armory.fabricationMaterials());
+        assertTrue(armory.ownsEquipmentTemplate(EquipmentTemplateCatalog.primaryId(
+                MarineWeapon.DMR, EquipmentGrade.MASTERWORK)));
+        assertEquals(0, armory.fabricationMaterials());
     }
 
     @Test

@@ -70,15 +70,16 @@ public final class EquipmentDoctrineDesignerViewModel {
         draftName = reactor.signal("");
         selectedTeam = reactor.signal(0);
         revision = reactor.signal(0);
-        feedback = reactor.signal("Author freely. Inventory is checked only when a definition is issued to a squad.");
+        feedback = reactor.signal(
+                "Definitions use collected template cards. Cargo is charged only when issued.");
         definitions = reactor.computed(this::buildDefinitions);
         teamTabs = reactor.computed(this::buildTeamTabs);
         billets = reactor.computed(this::buildBillets);
         heading = reactor.computed(() -> kind.get() == Kind.WEAPON
                 ? "WEAPON EQUIPMENT DEFINITION" : "ARMOR EQUIPMENT DEFINITION");
         subheading = reactor.computed(() -> kind.get() == Kind.WEAPON
-                ? "Primary weapons, grade, roles, and special equipment for all twelve billets."
-                : "Individual armor issue for all twelve billets; a squad need not wear one uniform pattern.");
+                ? "Collected primary, grade, and special template cards for all twelve billets."
+                : "Collected armor template cards for all twelve billets; patterns may be mixed.");
         renameDisabled = reactor.computed(() -> !customSource());
         deleteDisabled = reactor.computed(() -> !customSource() || assignedSource());
         loadWeapon(validWeaponId(weaponDoctrineId));
@@ -264,16 +265,40 @@ public final class EquipmentDoctrineDesignerViewModel {
 
     private void cycleWeapon(int index) {
         SquadWeaponIssue issue = weaponIssues.get(index);
-        MarineWeapon weapon = next(WEAPONS, issue.primary());
+        MarineWeapon weapon = issue.primary();
+        EquipmentGrade grade = issue.grade();
+        int start = WEAPONS.indexOf(issue.primary());
+        for (int offset = 1; offset <= WEAPONS.size(); offset++) {
+            MarineWeapon candidate = WEAPONS.get((Math.max(0, start) + offset) % WEAPONS.size());
+            if (roster.armory().ownsPrimaryTemplate(candidate, grade)) {
+                weapon = candidate;
+                break;
+            }
+            for (EquipmentGrade candidateGrade : EquipmentGrade.values()) {
+                if (roster.armory().ownsPrimaryTemplate(candidate, candidateGrade)) {
+                    weapon = candidate;
+                    grade = candidateGrade;
+                    break;
+                }
+            }
+            if (weapon == candidate) break;
+        }
         weaponIssues.set(index, new SquadWeaponIssue(
-                issue.role(), weapon, issue.grade(), issue.specialEquipmentId()));
-        changed("Primary changed to " + weapon.displayName() + ".");
+                issue.role(), weapon, grade, issue.specialEquipmentId()));
+        changed("Primary changed to " + weapon.catalogName(grade) + ".");
     }
 
     private void cycleGrade(int index) {
         SquadWeaponIssue issue = weaponIssues.get(index);
         EquipmentGrade[] values = EquipmentGrade.values();
-        EquipmentGrade grade = values[(issue.grade().ordinal() + 1) % values.length];
+        EquipmentGrade grade = issue.grade();
+        for (int offset = 1; offset <= values.length; offset++) {
+            EquipmentGrade candidate = values[(issue.grade().ordinal() + offset) % values.length];
+            if (roster.armory().ownsPrimaryTemplate(issue.primary(), candidate)) {
+                grade = candidate;
+                break;
+            }
+        }
         weaponIssues.set(index, new SquadWeaponIssue(
                 issue.role(), issue.primary(), grade, issue.specialEquipmentId()));
         changed("Equipment grade changed to " + title(grade.name()) + ".");
@@ -282,9 +307,14 @@ public final class EquipmentDoctrineDesignerViewModel {
     private void cycleSpecial(int index) {
         SquadWeaponIssue issue = weaponIssues.get(index);
         MarineSecondary current = issue.special();
-        MarineSecondary[] values = MarineSecondary.values();
-        MarineSecondary next = current == null ? values[0]
-                : current.ordinal() == values.length - 1 ? null : values[current.ordinal() + 1];
+        List<MarineSecondary> owned = new ArrayList<>();
+        for (MarineSecondary special : MarineSecondary.values()) {
+            if (roster.armory().ownsSpecialTemplate(special)) owned.add(special);
+        }
+        int currentIndex = current == null ? -1 : owned.indexOf(current);
+        MarineSecondary next = currentIndex < 0
+                ? owned.isEmpty() ? null : owned.get(0)
+                : currentIndex == owned.size() - 1 ? null : owned.get(currentIndex + 1);
         weaponIssues.set(index, new SquadWeaponIssue(
                 issue.role(), issue.primary(), issue.grade(), next));
         changed("Special equipment changed to " + specialName(next) + ".");
@@ -293,7 +323,14 @@ public final class EquipmentDoctrineDesignerViewModel {
     private void cycleArmor(int index) {
         MarineArmorPattern current = armorIssues.get(index);
         MarineArmorPattern[] values = MarineArmorPattern.values();
-        MarineArmorPattern next = values[(current.ordinal() + 1) % values.length];
+        MarineArmorPattern next = current;
+        for (int offset = 1; offset <= values.length; offset++) {
+            MarineArmorPattern candidate = values[(current.ordinal() + offset) % values.length];
+            if (roster.armory().ownsArmorTemplate(candidate)) {
+                next = candidate;
+                break;
+            }
+        }
         armorIssues.set(index, next);
         changed("Armor changed to " + next.displayName + ".");
     }
@@ -320,10 +357,18 @@ public final class EquipmentDoctrineDesignerViewModel {
             return;
         }
         if (kind.peek() == Kind.WEAPON) {
+            if (!roster.armory().canAuthorWeaponDoctrine(weaponIssues)) {
+                feedback.set("Collect every referenced weapon and special template card before saving.");
+                return;
+            }
             SquadWeaponDoctrine saved = roster.armory().createWeaponDoctrine(
                     draftName.peek(), List.copyOf(weaponIssues));
             sourceId.set(saved.id());
         } else {
+            if (!roster.armory().canAuthorArmorDoctrine(armorIssues)) {
+                feedback.set("Collect every referenced armor template card before saving.");
+                return;
+            }
             SquadArmorDoctrine saved = roster.armory().createArmorDoctrine(
                     draftName.peek(), List.copyOf(armorIssues));
             sourceId.set(saved.id());

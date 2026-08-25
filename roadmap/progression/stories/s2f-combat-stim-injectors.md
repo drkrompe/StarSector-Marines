@@ -104,7 +104,7 @@ story ships none of them by implication.
   battle-start waste, and identical player/defender policy.
 - Green-plus-stim and Elite-without-stim comparisons prove the item does not
   collapse persistent experience into consumable equipment.
-- Armory stock, templates, deployment freeze, HUD state, save repair,
+- Template ownership, cargo-backed issue, deployment freeze, HUD state, save repair,
   telemetry-relevant actions, recovery, and unlock reachability recognize the
   injector.
 - Neural/HUD language creates no stat or AI behavior without a separately

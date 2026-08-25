@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — shipped the fragmentation-grenade special, honest cluster use, campaign acquisition, and faction availability.
+Updated: 2026-08-25 — replaced live printed equipment stock with collectible templates and cargo-backed squad issue.
 
 ## Purpose
 
@@ -62,9 +62,12 @@ legibility.
   appearance package. A pattern realizes one assault-armor role and may carry
   equipment provenance. Unlike weapon grade, it changes survivability and
   movement tradeoffs as its own kit choice.
-- **Armory** — the persistent campaign inventory of permanent recipes, finite
-  printed gear, and fabrication resources. Recipes grant permission; stock is
-  what may be allocated.
+- **Equipment template card** — permanent collected capability for one primary
+  family-and-grade, armor pattern, or special item. It gates authoring and issue,
+  is never consumed, and is distinct from a reusable squad definition.
+- **Armory** — the persistent campaign authority for collected equipment
+  templates and reusable squad definitions. Materialized marine kit persists on
+  the marine; changed incoming issue is paid from ordinary fleet cargo.
 - **Telemetry** — battle-local, lifecycle-stable evidence of a combatant's
   activity. It serves the debug balance artifact for all recorded combatants
   and career evidence only for campaign marines.
@@ -129,13 +132,20 @@ action without becoming another permanent damage multiplier.
 
 ### Kit and armory
 
-The armory has two layers: durable recipe unlocks and finite printed stock.
-Allocation must respect stock, except basic field-rifle service issue. The
-current armory has one fabrication-material currency and currently receives
-that material through victory recording. Its existing victory milestones
-unlock a short primary-weapon ladder plus the Shattercap fragmentation-grenade
-recipe after two victories; the broader parts channels,
-two-currency split, recipe recovery, and full asset reachability are planned.
+The armory has three deliberately separate layers. Equipment template cards are
+permanent collected capability. Weapon and Armor definitions are reusable
+twelve-billet intent authored only from collected templates. The exact kit on a
+marine is the materialized result. Issuing changed incoming kit consumes
+base-game supplies, heavy armaments, and heavy machinery as one atomic squad
+transaction; unchanged kit costs nothing, removed kit grants no refund, and food
+remains available to later sustainment costs without being forced into routine
+refits. Marines remain personnel cargo handled by personnel logistics.
+
+Legacy recipes, printed counts, and fabrication materials remain save-migration
+input and compatibility state for retired fire-team APIs, not live Fleet Armory
+authority. Existing victory milestones grant template cards, including the
+Shattercap after two victories; recovery, purchase, patron rewards, and the full
+asset reachability ladder remain planned.
 
 Armor patterns are authored player kit with distinct defensive and mobility
 tradeoffs. Some authored patterns are not presently reachable by the live
@@ -167,8 +177,8 @@ Each billet has at most one special-equipment slot. The item is a stable
 loadout identity with a typed activation: weapon-like specials reference the
 weapon catalog that owns their payload and any traveling round, while utility
 specials own their battle action without becoming zero-damage weapons.
-Progression owns recipe, stock,
-assignment, fabrication value, and reachability; battle AI owns when legal
+Progression owns template ownership, assignment, cargo issue value, and
+reachability; battle AI owns when legal
 issued equipment is used. The same use policy is faction-neutral even when
 campaign availability differs by faction.
 
@@ -199,8 +209,8 @@ but only the item definition owns loadout identity, catalog copy, resource
 mode, initial ammunition, Armory art, activation type, AI policy, use-pose
 profile, and local presentation recipe; the
 referenced weapon definition owns range, damage, accuracy, impact, projectile,
-and audio behavior. Persisted marines, billets, stock, and recipes use the
-stable `special.*` id. `MarineSecondary` remains a transitional battle handle
+and audio behavior. Persisted marines and billets use the stable `special.*`
+id, while collected cards derive their stable identity from it. `MarineSecondary` remains a transitional battle handle
 and legacy-save input, not a second stat catalogue.
 
 Those item definitions load from the built-in special-equipment JSON catalog
@@ -261,8 +271,8 @@ fixed fuse expires. The shared detonation authority resolves a compact,
 friendly-fire-capable anti-materiel blast; light hardened targets die while a
 heavy platform may survive damaged. The planting faction knows the temporary
 hazard and routes friendlies out, while opponents gain no omniscient avoidance.
-Player issue includes two physical kits and a Breach template. Physical Armory
-stock limits equipped billets; it does not count battle placements. Ground
+Player starter collection includes the Breach template. Cargo-backed issue
+materializes a carried kit; battle placements do not consume campaign cargo. Ground
 placement, infantry targeting, traps, disarming, and wall breaching are not
 part of this equipment identity.
 
@@ -271,7 +281,7 @@ registry-owned weapon definition owns throw range, release scatter, flight,
 arc, compact lethal area payload, negligible penetration, zero wall damage,
 projectile art, and detonation audio. The special-equipment item owns the
 finite three-use battle resource, loadout identity, activation policy,
-carrier/throw presentation, stock, and fabrication recipe. A released grenade
+carrier/throw presentation and template identity. A released grenade
 remains a real in-flight projectile and detonates if its carrier dies; ordinary
 cover, armor, friendly fire, telemetry, and anonymous detonation noise remain
 shared combat authority.
@@ -288,8 +298,8 @@ opponents evade only when a squad member can honestly see the incoming body.
 The battle HUD shows FRG stock and an amber friendly/red observed-hostile
 landing ring, so unseen enemy throws provide no warning.
 
-The player recipe unlocks after two victories and then uses ordinary finite
-Armory printing. The built-in Fleet Assault weapon doctrine issues exactly one
+The player template card unlocks after two victories. The built-in Fleet Assault
+weapon doctrine issues exactly one
 frag carrier across its twelve billets. All built-in defender roster profiles
 author their own low/medium/high bulk and elite weights: the execution policy
 is faction-neutral, while availability remains faction-shaped and risk-scaled.
@@ -323,8 +333,9 @@ casualty disposition, or deployment membership.
 
 1. The personnel domain creates and persists a marine; progression retains
    only that marine's quality-bearing fields and assigned kit.
-2. The armory unlocks and prints gear; the roster allocates finite stock to
-   marines.
+2. The armory collects templates and authors reusable definitions; one atomic
+   roster command consumes ordinary fleet cargo for changed incoming kit and
+   materializes it on marines.
 3. Deployment carries the marine's profile and kit into battle. The battle
    resolves shots and damage independently of campaign persistence.
 4. Battle telemetry records combatant evidence and follows the death path.
@@ -338,9 +349,9 @@ system owns whether and how an attack resolves. Campaign loot owns salvage
 manifest and settlement. Progression owns neither, but consumes their stable
 outputs for troop-quality advancement and explanation.
 
-`company-view-nouns.md` owns fire-team template presentation and atomic
-assignment transactions. Progression supplies the equipment identities,
-recipes, finite stock, and quality meaning those transactions consume.
+`company-view-nouns.md` owns squad-definition presentation and atomic assignment
+transactions. Progression supplies equipment-template ownership, cargo issue
+costs, and the quality meaning those transactions materialize.
 
 ## Presentation law
 
@@ -363,8 +374,8 @@ The following are direction, not current behavior:
   ladder so every authored player asset has either starter status or a
   reachable path. `stories.md` owns the concrete primary, contact-tool, stim,
   grenade, and faction-demolition additions and their ordering.
-- Split common printable feedstock from operation-earned advanced components;
-  advanced progression remains operation-gated rather than purchasable.
+- Add world-reactive template-card acquisition through operations, patrons,
+  salvage, and markets while keeping advanced progression operation-gated.
 - Make grade, aptitude, experience, career, and captain traits legible in
   campaign and battle surfaces without changing simulation authority.
 - Give only traits with an observable, domain-appropriate consequence a
@@ -386,7 +397,9 @@ The following are direction, not current behavior:
 - A heavy battlesuit remains a one-person infantry billet using infantry
   weapons, cover, pathing, and casualty authority. Mech chassis, mounts,
   lances, and support delivery remain Mechs authority.
-- A recipe is not stock, and an authored item is not necessarily obtainable.
+- A template card is permanent capability, a squad definition is reusable
+  intent, fleet cargo pays changed incoming issue, and materialized kit belongs
+  to the marine. None is a synonym for another.
 - A billet carries at most one special item; utilities do not become
   `WeaponDef` entries merely because they share that loadout slot with guns.
 - Special-equipment use policy is simulation-owned and faction-neutral;
