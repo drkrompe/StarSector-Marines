@@ -18,7 +18,11 @@ class MechLabBattleSceneTest {
         assertEquals(MechLabBattleScene.GRID_WIDTH, camera.worldCellsW());
         assertEquals(MechLabBattleScene.GRID_HEIGHT, camera.worldCellsH());
         assertEquals(1.2f, camera.zoom(), 1e-6f);
-        assertEquals(52f, camera.cellPxSize(), 1e-5f);
+        assertEquals(69.333336f, camera.cellPxSize(), 1e-5f);
+        assertEquals(450f,
+                camera.cellToScreenX(MechLabBattleScene.mechWorldX()), 1e-5f);
+        assertEquals(260f,
+                camera.cellToScreenY(MechLabBattleScene.mechWorldY()), 1e-5f);
         assertEquals(camera.cellPxSize(),
                 camera.cellToScreenX(2f) - camera.cellToScreenX(1f), 1e-5f);
         assertEquals(camera.cellPxSize(),
