@@ -43,6 +43,7 @@ import com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.command.AssaultCommand;
+import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ConquestCommand;
 import com.dillon.starsectormarines.battle.command.ConquestDefenderCommand;
 import com.dillon.starsectormarines.battle.command.ConquestTrackLayout;
@@ -1059,6 +1060,7 @@ public final class BattleSetup {
 
         allocateDefenders(sim, map, defenders.roster(), rng);
         linkGuardpostSquads(sim, defenders.defensePosts());
+        claimConquestSetupGarrisons(sim);
         spawnAmbientCivilians(sim, map, rng);
         // Both Conquest commanders share one physical three-track layout but
         // retain separate, faction-honest influence pictures and policies.
@@ -1071,6 +1073,19 @@ public final class BattleSetup {
         sim.setGarrisonSystem(new CompoundGarrisonSystem(axis));
         installReinforcementLayer(sim, map, axis);
         return new MapBuild(sim, build.structures());
+    }
+
+    private static void claimConquestSetupGarrisons(BattleSimulation sim) {
+        for (Squad squad : sim.getSquads()) {
+            if (squad.faction != Faction.DEFENDER
+                    || sim.squadMemberCount(squad.id) <= 0
+                    || sim.role().role(sim.squadMemberAt(squad.id, 0))
+                    != UnitRole.GARRISON) {
+                continue;
+            }
+            sim.claimSquadCommand(squad.id, CommandAuthority.GARRISON,
+                    "conquest-setup-garrison", "authored Conquest garrison");
+        }
     }
 
     private static DefenderForcePlan defenderForcePlan(
