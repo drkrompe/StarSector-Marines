@@ -6,7 +6,9 @@ Written: 2026-08-23
 
 Updated: 2026-08-25 — the equipment designer now pairs compact live billet
 renders with flavor and catalog-normalized combat meters; starter issue visibly
-concentrates scarce weapon and armor upgrades on each fire-team lead.
+concentrates scarce weapon and armor upgrades on each fire-team lead; the Mech Lab
+uses a spatial heavy-asset doll, location-scoped catalog, and typed, sized-slot
+extension boundary.
 
 ## Purpose
 
@@ -193,9 +195,23 @@ stock.
 
 The Mech Lab is the focused squad-first surface over `MechBay`; it does not reuse
 personnel doctrine. Campaign mechs retain individual identity inside a selected
-support squad of up to four chassis. The retained room shows the whole squad,
-selected mech, fixed chassis mounts, installed subsystem, and finite fleet subsystem
-inventory.
+support squad of up to four chassis. The retained room shows the whole squad and a
+top-down projection of the selected heavy asset, surrounded by spatial locations.
+Selecting a location scopes the right-hand catalog. The catalog may inspect fixed
+chassis, weapon, and ammunition assemblies, but exposes a commit action only when a
+real campaign inventory and install command exist.
+
+The intended weapon-refit interaction is dragging a component into a typed, sized
+socket. Ballistic, energy, missile, and omni are compatibility rules; component slot
+cost and chassis budgets remain independent constraints. Dragging is only a proposed
+placement. One atomic domain command must validate compatibility, capacity, budgets,
+and finite stock before mutating anything. The current slice labels the fixed weapon
+sockets but does not invent those missing authorities; only the missile mini-fab is
+swappable.
+
+The same selection-and-catalog grammar may serve tanks and future scarce heavy armor.
+Each asset class still supplies its own projection and socket layout, so a shared
+room does not collapse vehicles into mech chassis semantics.
 
 Subsystem assignment is an atomic inventory transaction. Installed copies
 count against owned quantity and the target's current component returns before

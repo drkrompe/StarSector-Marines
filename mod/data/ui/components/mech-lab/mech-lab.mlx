@@ -1,10 +1,10 @@
-<template props="labSummary,squadRows,mechRows,selectedMechName,selectedMechIdentity,selectedMechDoctrine,specCards,mountRows,installedSubsystem,installedCadence,inventoryRows,feedbackText,feedbackClasses,returnAction,hqAction,armoryAction,mechLabAction,hqClasses,armoryClasses,mechLabClasses">
+<template props="labSummary,squadRows,mechRows,selectedMechName,selectedMechIdentity,selectedMechDoctrine,performanceMeters,leftSlotRows,rightSlotRows,selectedSlotTitle,selectedSlotCopy,selectedSlotRule,catalogRows,feedbackText,feedbackClasses,returnAction,hqAction,armoryAction,mechLabAction,hqClasses,armoryClasses,mechLabClasses">
   <div id="mech-lab-root" class="mech-lab-root">
-    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" hqClasses="{hqClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" contextLabel="FLAGSHIP / MECH BAY / REFIT GANTRY" />
+    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" hqClasses="{hqClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" contextLabel="FLAGSHIP / MECH BAY / HEAVY-ASSET GANTRY" />
 
     <div id="mech-lab-intro" class="panel lab-intro">
-      <div id="mech-lab-heading" class="label heading tone-edge">MECH LAB</div>
-      <div id="mech-lab-copy" class="label tone-muted">Assign the active support lance, inspect fixed chassis hardpoints, and issue finite bay subsystems.</div>
+      <div id="mech-lab-heading" class="label heading tone-edge">MECH LAB  //  HEAVY ASSET CONFIGURATION</div>
+      <div id="mech-lab-copy" class="label tone-muted">Select a spatial socket, inspect compatible hardware, and commit supported bay refits.</div>
       <div id="mech-lab-summary" class="label surface-dark">{labSummary}</div>
     </div>
 
@@ -14,74 +14,84 @@
         <div id="mech-squad-list" class="squad-list">
           <button each="squad in squadRows" key="{squad.id}" id="{squad.id}" class="{squad.classes}" onclick="{squad.select}">
             <div id="{squad.nameId}" class="label heading squad-name">{squad.name}</div>
-            <div id="{squad.statusId}" class="label tone-accent squad-status">{squad.status}</div>
-            <div id="{squad.strengthId}" class="label tone-muted squad-strength">{squad.strength}</div>
+            <div id="{squad.statusId}" class="label tone-accent row-small">{squad.status}</div>
+            <div id="{squad.strengthId}" class="label tone-muted row-small">{squad.strength}</div>
           </button>
         </div>
-
-        <div id="mech-chassis-heading" class="section-title label heading tone-edge chassis-title">ASSIGNED CHASSIS</div>
+        <div id="mech-chassis-heading" class="section-title label heading tone-edge chassis-title">ASSIGNED ASSETS</div>
         <div id="mech-list" class="mech-list">
           <button each="mech in mechRows" key="{mech.id}" id="{mech.id}" class="{mech.classes}" onclick="{mech.select}">
             <div id="{mech.nameId}" class="label heading mech-name">{mech.name}</div>
-            <div id="{mech.chassisId}" class="label tone-muted mech-chassis">{mech.chassis}</div>
-            <div id="{mech.subsystemId}" class="label tone-edge mech-subsystem">{mech.subsystem}</div>
+            <div id="{mech.chassisId}" class="label tone-muted row-small">{mech.chassis}</div>
+            <div id="{mech.subsystemId}" class="label tone-edge row-small">{mech.subsystem}</div>
           </button>
         </div>
       </div>
 
-      <div id="mech-dossier" class="panel mech-dossier">
-        <div id="mech-dossier-heading" class="dossier-heading edge-surface">
-          <div id="selected-mech-name" class="label dossier-name tone-accent">{selectedMechName}</div>
-          <div id="selected-mech-identity" class="label tone-muted">{selectedMechIdentity}</div>
+      <div id="mech-doll-workspace" class="panel doll-workspace">
+        <div id="mech-doll-heading" class="doll-heading edge-surface">
+          <div id="mech-doll-heading-copy" class="doll-heading-copy">
+            <div id="selected-mech-name" class="label doll-name tone-accent">{selectedMechName}</div>
+            <div id="selected-mech-identity" class="label tone-muted">{selectedMechIdentity}</div>
+          </div>
           <div id="selected-mech-doctrine" class="label heading tone-edge doctrine">{selectedMechDoctrine}</div>
         </div>
 
-        <div id="mech-spec-grid" class="spec-grid">
-          <div each="spec in specCards" key="{spec.id}" id="{spec.id}" class="spec-card surface-dark">
-            <div id="{spec.labelId}" class="label heading tone-edge spec-label">{spec.label}</div>
-            <div id="{spec.valueId}" class="label spec-value tone-accent">{spec.value}</div>
-            <div id="{spec.captionId}" class="label tone-muted spec-caption">{spec.caption}</div>
-          </div>
-        </div>
-
-        <div id="hardpoint-dossier" class="hardpoint-dossier">
-          <div id="hardpoint-heading" class="section-title label heading tone-edge">FIXED HARDPOINTS  //  READ ONLY</div>
-          <div id="mech-mount-list" class="mount-list">
-            <div each="mount in mountRows" key="{mount.id}" id="{mount.id}" class="{mount.classes}">
-              <div id="{mount.slotId}" class="label heading tone-muted mount-slot">{mount.slot}</div>
-              <div id="{mount.dataId}" class="mount-data">
-                <div id="{mount.componentId}" class="label heading mount-component">{mount.component}</div>
-                <div id="{mount.detailId}" class="label tone-muted mount-detail">{mount.detail}</div>
-              </div>
-              <div id="{mount.fixedId}" class="label tone-edge fixed-label">FIXED</div>
+        <div id="mech-performance-grid" class="performance-grid">
+          <div each="meter in performanceMeters" key="{meter.id}" id="{meter.id}" class="performance-meter surface-dark">
+            <div id="{meter.labelId}" class="label heading tone-muted meter-label">{meter.label}</div>
+            <div id="{meter.valueId}" class="label heading tone-edge meter-value">{meter.value}</div>
+            <div id="{meter.trackId}" class="meter-track">
+              <div id="{meter.fillId}" class="meter-fill" style="{meter.fillStyle}" />
             </div>
           </div>
         </div>
 
-        <div id="installed-subsystem" class="installed-subsystem edge-surface">
-          <div id="installed-subsystem-kicker" class="label heading tone-edge installed-kicker">INSTALLED MISSILE LOGISTICS</div>
-          <div id="installed-subsystem-name" class="label installed-name tone-accent">{installedSubsystem}</div>
-          <div id="installed-subsystem-cadence" class="label tone-muted">{installedCadence}</div>
+        <div id="mech-doll-bay" class="doll-bay">
+          <div id="mech-left-slots" class="slot-rack">
+            <button each="slot in leftSlotRows" key="{slot.id}" id="{slot.id}" class="{slot.classes}" onclick="{slot.select}">
+              <div id="{slot.nameId}" class="label heading tone-edge slot-name">{slot.name}</div>
+              <div id="{slot.componentId}" class="label slot-component">{slot.component}</div>
+              <div id="{slot.typeId}" class="label heading tone-muted slot-type">{slot.type}</div>
+            </button>
+          </div>
+
+          <div id="mech-doll-frame" class="doll-frame">
+            <div id="mech-doll-kicker" class="label heading tone-muted doll-kicker">TOP-DOWN PROJECTION</div>
+            <canvas id="mech-doll-canvas" class="mech-doll-canvas" width="520" height="420" />
+            <div id="mech-doll-legend" class="label heading tone-edge doll-legend">SELECT SOCKET</div>
+          </div>
+
+          <div id="mech-right-slots" class="slot-rack">
+            <button each="slot in rightSlotRows" key="{slot.id}" id="{slot.id}" class="{slot.classes}" onclick="{slot.select}">
+              <div id="{slot.nameId}" class="label heading tone-edge slot-name">{slot.name}</div>
+              <div id="{slot.componentId}" class="label slot-component">{slot.component}</div>
+              <div id="{slot.typeId}" class="label heading tone-muted slot-type">{slot.type}</div>
+            </button>
+          </div>
         </div>
       </div>
 
-      <div id="mech-inventory" class="panel inventory-panel">
-        <div id="mech-inventory-heading" class="section-title label heading tone-edge">BAY SUBSYSTEM INVENTORY</div>
-        <div id="mech-inventory-copy" class="inventory-copy">
-          <div id="mech-inventory-copy-stock" class="label tone-muted">Installed copies stay committed.</div>
-          <div id="mech-inventory-copy-refit" class="label tone-muted">Refits return the current unit before drawing another.</div>
-        </div>
-        <div id="mech-inventory-list" class="inventory-list">
-          <div each="component in inventoryRows" key="{component.id}" id="{component.id}" class="{component.classes}">
-            <div id="{component.copyId}" class="component-copy">
-              <div id="{component.nameId}" class="label heading component-name">{component.name}</div>
-              <div id="{component.stockId}" class="label tone-edge component-stock">{component.stock}</div>
-              <div id="{component.cadenceId}" class="label tone-muted component-cadence">{component.cadence}</div>
+      <div id="mech-component-catalog" class="panel catalog-panel">
+        <div id="mech-catalog-kicker" class="section-title label heading tone-edge">SELECTED LOCATION</div>
+        <div id="mech-catalog-heading" class="label catalog-heading tone-accent">{selectedSlotTitle}</div>
+        <div id="mech-catalog-copy" class="label tone-muted catalog-copy">{selectedSlotCopy}</div>
+        <div id="mech-catalog-rule" class="label heading surface-dark catalog-rule">{selectedSlotRule}</div>
+        <div id="mech-catalog-title" class="section-title label heading tone-edge">COMPATIBLE BAY HARDWARE</div>
+        <div id="mech-catalog-list" class="catalog-list">
+          <div each="item in catalogRows" key="{item.id}" id="{item.id}" class="{item.classes}">
+            <div id="{item.copyId}" class="catalog-item-copy">
+              <div id="{item.nameId}" class="label heading catalog-name">{item.name}</div>
+              <div id="{item.stockId}" class="label tone-edge catalog-stock">{item.stock}</div>
+              <div id="{item.detailId}" class="label tone-muted catalog-detail">{item.detail}</div>
             </div>
-            <button id="{component.installId}" class="install-button" disabled="{component.installDisabled}" onclick="{component.install}">{component.installLabel}</button>
+            <button id="{item.actionId}" class="catalog-action" disabled="{item.actionDisabled}" onclick="{item.action}">{item.actionLabel}</button>
           </div>
         </div>
-        <div id="mech-inventory-rule" class="label surface-dark inventory-rule">CHASSIS AND HARDPOINTS REMAIN FIXED.</div>
+        <div id="mech-drag-drop-note" class="surface-dark drag-drop-note">
+          <div id="mech-drag-drop-title" class="label heading tone-edge">PLANNED: DRAG + SIZED SLOTS</div>
+          <div id="mech-drag-drop-types" class="label heading tone-muted">BALLISTIC  ·  ENERGY  ·  MISSILE  ·  OMNI</div>
+        </div>
       </div>
     </div>
 
@@ -90,84 +100,57 @@
 </template>
 
 <style>
-  .mech-lab-root {
-    flex-direction: column;
-    padding: 10px;
-    gap: 8px;
-    border-width: 2px;
-    overflow: hidden;
-  }
-
+  .mech-lab-root { flex-direction: column; padding: 10px; gap: 8px; border-width: 2px; overflow: hidden; }
   .label { overflow: hidden; }
   .heading { font-family: heading; }
-
-  .lab-intro {
-    flex-direction: column;
-    height: 72px;
-    padding: 7px 8px;
-    gap: 3px;
-  }
+  .lab-intro { flex-direction: column; height: 68px; padding: 6px 8px; gap: 2px; }
   #mech-lab-heading { height: 18px; }
-  #mech-lab-copy { height: 17px; }
+  #mech-lab-copy { height: 16px; }
   #mech-lab-summary { height: 19px; padding: 2px 6px; }
 
   .lab-body { flex-direction: row; width: 100%; height: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
-  .roster-rail { flex-direction: column; width: 238px; padding: 7px; gap: 5px; overflow: hidden; }
+  .roster-rail { flex-direction: column; width: 205px; padding: 7px; gap: 5px; overflow: hidden; }
   .section-title { height: 19px; padding: 1px 3px; }
-  .squad-list { flex-direction: column; height: 116px; gap: 4px; overflow: scroll; }
+  .squad-list { flex-direction: column; height: 101px; gap: 4px; overflow: scroll; }
   .mech-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 4px; overflow: scroll; }
-
-  .mech-squad-row, .mech-row {
-    flex-direction: column;
-    width: 100%;
-    height: 62px;
-    padding: 6px;
-    gap: 2px;
-    border-width: 1px;
-    text-align: left;
-  }
-  .mech-row { height: 70px; }
-  .mech-squad-row.selected, .mech-row.selected, .mech-component-row.selected {
-    background-color: #183b50;
-    border-color: #ffd464;
-  }
+  .mech-squad-row, .mech-row { flex-direction: column; width: 100%; height: 58px; padding: 5px; gap: 1px; border-width: 1px; text-align: left; }
+  .mech-row { height: 66px; }
+  .mech-squad-row.selected, .mech-row.selected, .doll-slot.selected, .catalog-row.selected { background-color: #183b50; border-color: #ffd464; }
   .squad-name, .mech-name { height: 18px; }
-  .squad-status, .squad-strength, .mech-chassis, .mech-subsystem { height: 16px; }
+  .row-small { height: 15px; }
 
-  .mech-dossier { flex-direction: column; width: 0px; flex-grow: 1; padding: 8px; gap: 8px; overflow: hidden; }
-  .dossier-heading { flex-direction: column; height: 82px; padding: 8px; gap: 3px; }
-  .dossier-name { height: 27px; font-family: title; }
-  .doctrine { height: 18px; }
+  .doll-workspace { flex-direction: column; width: 0px; flex-grow: 1; padding: 7px; gap: 6px; overflow: hidden; }
+  .doll-heading { flex-direction: row; height: 58px; padding: 6px 8px; gap: 8px; }
+  .doll-heading-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 2px; }
+  .doll-name { height: 25px; font-family: title; }
+  .doctrine { width: 190px; padding-top: 9px; text-align: right; }
+  .performance-grid { flex-direction: row; height: 62px; gap: 5px; }
+  .performance-meter { flex-direction: column; width: 0px; flex-grow: 1; padding: 5px; gap: 2px; border-width: 1px; }
+  .meter-label, .meter-value { height: 15px; }
+  .meter-track { width: 100%; height: 8px; background-color: #0c1620; border-width: 1px; }
+  .meter-fill { height: 100%; background-color: #76b9d4; }
 
-  .spec-grid { flex-direction: row; height: 86px; gap: 6px; }
-  .spec-card { flex-direction: column; width: 0px; flex-grow: 1; padding: 6px; gap: 2px; border-width: 1px; }
-  .spec-label, .spec-caption { height: 16px; }
-  .spec-value { height: 28px; font-family: title; }
+  .doll-bay { flex-direction: row; width: 100%; height: 0px; flex-grow: 1; gap: 6px; overflow: hidden; }
+  .slot-rack { flex-direction: column; width: 142px; gap: 6px; overflow: hidden; }
+  .doll-slot { flex-direction: column; width: 100%; height: 0px; flex-grow: 1; padding: 6px; gap: 2px; border-width: 1px; text-align: left; }
+  .slot-name { height: 17px; }
+  .slot-component { height: 0px; flex-grow: 1; }
+  .slot-type { height: 15px; }
+  .doll-frame { flex-direction: column; width: 0px; flex-grow: 1; padding: 5px; gap: 3px; border-width: 1px; overflow: hidden; }
+  .doll-kicker, .doll-legend { height: 17px; text-align: center; }
+  .mech-doll-canvas { width: 100%; height: 0px; flex-grow: 1; }
 
-  .hardpoint-dossier { flex-direction: column; height: 0px; flex-grow: 1; gap: 5px; overflow: hidden; }
-  .mount-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 5px; overflow: scroll; }
-  .mount-row { flex-direction: row; height: 62px; padding: 7px; gap: 8px; border-width: 1px; }
-  .mount-slot { width: 118px; padding-top: 4px; }
-  .mount-data { flex-direction: column; width: 0px; flex-grow: 1; gap: 2px; }
-  .mount-component { height: 19px; }
-  .mount-detail { height: 18px; }
-  .fixed-label { width: 54px; padding-top: 4px; text-align: right; }
-  .empty-mount { opacity: 0.72; }
-
-  .installed-subsystem { flex-direction: column; height: 78px; padding: 8px; gap: 3px; }
-  .installed-kicker, #installed-subsystem-cadence { height: 17px; }
-  .installed-name { height: 22px; font-family: title; }
-
-  .inventory-panel { flex-direction: column; width: 365px; padding: 8px; gap: 6px; overflow: hidden; }
-  .inventory-copy { flex-direction: column; height: 42px; gap: 3px; overflow: hidden; }
-  #mech-inventory-copy-stock, #mech-inventory-copy-refit { height: 17px; }
-  .inventory-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 6px; overflow: scroll; }
-  .mech-component-row { flex-direction: row; height: 104px; padding: 8px; gap: 8px; border-width: 1px; }
-  .component-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 3px; }
-  .component-name { height: 20px; }
-  .component-stock, .component-cadence { height: 18px; }
-  .install-button { width: 92px; height: 28px; text-align: center; }
-  .inventory-rule { height: 42px; padding: 6px; font-family: heading; }
-
+  .catalog-panel { flex-direction: column; width: 315px; padding: 8px; gap: 6px; overflow: hidden; }
+  .catalog-heading { height: 27px; font-family: title; }
+  .catalog-copy { height: 42px; }
+  .catalog-rule { height: 42px; padding: 6px; }
+  .catalog-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 6px; overflow: scroll; }
+  .catalog-row { flex-direction: column; width: 100%; height: 116px; padding: 7px; gap: 4px; border-width: 1px; }
+  .catalog-item-copy { flex-direction: column; width: 100%; height: 66px; gap: 2px; }
+  .catalog-name { height: 19px; }
+  .catalog-stock, .catalog-detail { height: 17px; }
+  .catalog-action { width: 100%; height: 27px; text-align: center; }
+  .drag-drop-note { flex-direction: column; height: 49px; padding: 6px; gap: 2px; }
+  #mech-drag-drop-title, #mech-drag-drop-types { height: 17px; }
   .mech-lab-feedback { height: 29px; padding: 6px 9px; border-width: 1px; overflow: hidden; }
 </style>
