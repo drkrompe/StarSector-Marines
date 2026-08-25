@@ -1,6 +1,6 @@
-<template props="squadName,designerHeading,designerSubheading,draftName,editName,definitions,teamTabs,billets,feedback,showWeapons,showArmor,newDraft,cloneSelected,saveAsNew,rename,renameDisabled,delete,deleteDisabled,backToFireTeams,back,returnAction,hqAction,armoryAction,hqClasses,hqDisabled,armoryClasses,armoryDisabled">
+<template props="squadName,designerHeading,designerSubheading,draftName,editName,definitions,teamTabs,billets,feedback,showWeapons,showArmor,newDraft,cloneSelected,saveAsNew,rename,renameDisabled,delete,deleteDisabled,backToFireTeams,back,returnAction,hqAction,armoryAction,mechLabAction,hqClasses,armoryClasses,mechLabClasses">
   <div id="equipment-designer-root" class="equipment-designer-root">
-    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" armoryAction="{armoryAction}" hqClasses="{hqClasses}" hqDisabled="{hqDisabled}" armoryClasses="{armoryClasses}" armoryDisabled="{armoryDisabled}" contextLabel="FLAGSHIP / ARMORY / EQUIPMENT DESIGNER" />
+    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" hqClasses="{hqClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" contextLabel="FLAGSHIP / ARMORY / EQUIPMENT DESIGNER" />
 
     <div id="designer-breadcrumb" class="panel">
       <button id="designer-breadcrumb-companies" onclick="{back}">Companies</button>
