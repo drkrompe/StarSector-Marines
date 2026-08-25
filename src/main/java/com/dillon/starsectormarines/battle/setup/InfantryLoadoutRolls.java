@@ -10,7 +10,8 @@ import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.ops.RiskLevel;
-import com.dillon.starsectormarines.marine.MarineArmorPattern;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 
 import java.util.Random;
 
@@ -72,14 +73,13 @@ public final class InfantryLoadoutRolls {
                                                 GroundRosterProfile.ForceTier tier,
                                                 RiskLevel risk, Random rng) {
         GroundRosterProfile.Issue issue = roster.issue(tier);
-        MarineSecondary special = issue.pickSpecial(risk, rng);
-        MarineArmorPattern armor = issue.pickArmor(risk, rng);
-        return new MarineLoadout(UnitRole.COMBATANT, null,
-                issue.pickPrimary(rng), issue.pickGrade(risk, rng),
+        SpecialEquipmentDef special = issue.pickSpecialDef(risk, rng);
+        MarineArmorCatalogDef armor = issue.pickArmorDef(risk, rng);
+        return MarineLoadout.fromCatalog(UnitRole.COMBATANT, null,
+                issue.pickPrimaryDef(rng), issue.pickGrade(risk, rng),
                 defenderProfile(issue.unitType(), risk != null ? risk : RiskLevel.LOW, rng),
-                special, special != null ? special.startingAmmo() : 0,
-                null, armor.layeredFamily(), armor.armorPool, armor.armorRating,
-                armor.moveSpeedMult, armor.incomingAccuracyMult);
+                special, null, armor.appearanceFamily(), armor.armorPool(), armor.armorRating(),
+                armor.moveSpeedMult(), armor.incomingAccuracyMult());
     }
 
     /** One delivery manifest built from the same frozen profile as initial defenders. */

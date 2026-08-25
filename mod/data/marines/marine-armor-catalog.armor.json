@@ -3,51 +3,79 @@
     {
       "id": "armor.field-fatigues",
       "catalog": {
+        "displayName": "Armorless fatigues",
         "unitClass": "LINE",
-        "description": "Vac-rated fatigues and a web harness are the fleet infantry working uniform. They preserve unrestricted movement but leave the wearer dangerously exposed in a firefight."
-      }
+        "description": "Vac-rated fatigues and a web harness are the fleet infantry working uniform. They preserve unrestricted movement but leave the wearer dangerously exposed in a firefight.",
+        "tier": 1,
+        "iconPath": "graphics/ui/armory/armor-tier-1-field-kit.png"
+      },
+      "battle": { "appearanceFamily": "ARMORLESS", "armorPool": 0.0, "armorRating": 0.0, "moveSpeedMult": 1.08, "incomingAccuracyMult": 0.92 }
     },
     {
       "id": "armor.combat",
       "catalog": {
+        "displayName": "Charcoal combat armor",
         "unitClass": "LINE",
-        "description": "Charcoal laminate protects the torso and major joints without becoming a walking bulkhead. It accepts a modest mobility penalty for dependable line protection."
-      }
+        "description": "Charcoal laminate protects the torso and major joints without becoming a walking bulkhead. It accepts a modest mobility penalty for dependable line protection.",
+        "tier": 3,
+        "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
+      },
+      "battle": { "appearanceFamily": "CHARCOAL", "armorPool": 9.0, "armorRating": 8.0, "moveSpeedMult": 0.96, "incomingAccuracyMult": 0.96 }
     },
     {
       "id": "armor.scout",
       "catalog": {
+        "displayName": "Navy scout armor",
         "unitClass": "SCOUT",
-        "description": "Navy reconnaissance plate uses overlapping segments and a low-profile sensor hood. It keeps a scout fast and elusive while stopping fragments and glancing fire."
-      }
+        "description": "Navy reconnaissance plate uses overlapping segments and a low-profile sensor hood. It keeps a scout fast and elusive while stopping fragments and glancing fire.",
+        "tier": 2,
+        "iconPath": "graphics/ui/armory/armor-tier-2-scout.png"
+      },
+      "battle": { "appearanceFamily": "BLUE_SCOUT", "armorPool": 4.0, "armorRating": 4.0, "moveSpeedMult": 1.06, "incomingAccuracyMult": 0.88 }
     },
     {
       "id": "armor.heavy",
       "catalog": {
+        "displayName": "Crimson elite armor",
         "unitClass": "ASSAULT",
-        "description": "Crimson assault plate layers dense ceramic and powered bracing over every vital zone. It survives severe punishment, but its mass is obvious in every movement."
-      }
+        "description": "Crimson assault plate layers dense ceramic and powered bracing over every vital zone. It survives severe punishment, but its mass is obvious in every movement.",
+        "tier": 4,
+        "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
+      },
+      "battle": { "appearanceFamily": "RED_ELITE", "armorPool": 20.0, "armorRating": 12.0, "moveSpeedMult": 0.86, "incomingAccuracyMult": 0.98 }
     },
     {
       "id": "armor.outlaw",
       "catalog": {
+        "displayName": "Outlaw plate",
         "unitClass": "RAIDER",
-        "description": "Outlaw plate combines cut-down security armor, ship plating, and hand-fitted seals. No two suits agree, but the better examples are quick and stubborn."
-      }
+        "description": "Outlaw plate combines cut-down security armor, ship plating, and hand-fitted seals. No two suits agree, but the better examples are quick and stubborn.",
+        "tier": 2,
+        "iconPath": "graphics/ui/armory/armor-tier-2-scout.png"
+      },
+      "battle": { "appearanceFamily": "OUTLAW", "armorPool": 7.0, "armorRating": 4.0, "moveSpeedMult": 1.02, "incomingAccuracyMult": 0.94 }
     },
     {
       "id": "armor.line",
       "catalog": {
+        "displayName": "Army-green armor",
         "unitClass": "LINE",
-        "description": "Army-green line armor favors interchangeable plates and field-serviceable joints. It is heavier than scout gear and built for days away from a proper armory."
-      }
+        "description": "Army-green line armor favors interchangeable plates and field-serviceable joints. It is heavier than scout gear and built for days away from a proper armory.",
+        "tier": 3,
+        "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
+      },
+      "battle": { "appearanceFamily": "ARMY_GREEN", "armorPool": 10.0, "armorRating": 8.0, "moveSpeedMult": 0.94, "incomingAccuracyMult": 0.97 }
     },
     {
       "id": "armor.militia",
       "catalog": {
+        "displayName": "Militia kit",
         "unitClass": "SECURITY",
-        "description": "A militia kit combines a torso plate, helmet, and local impact layers. It protects a section leader from fragments but cannot replace full combat armor."
-      }
+        "description": "A militia kit combines a torso plate, helmet, and local impact layers. It protects a section leader from fragments but cannot replace full combat armor.",
+        "tier": 2,
+        "iconPath": "graphics/ui/armory/armor-tier-2-scout.png"
+      },
+      "battle": { "appearanceFamily": "MILITIA", "armorPool": 5.0, "armorRating": 4.0, "moveSpeedMult": 1.0, "incomingAccuracyMult": 0.96 }
     }
   ]
 }

@@ -89,6 +89,19 @@ class BattleCameraTest {
         assertTrue(camera.visibleCells().isEmpty());
     }
 
+    @Test
+    void centerOnProvidesAStableProgrammaticCameraTarget() {
+        BattleCamera camera = fittedCamera();
+        camera.zoomAt(4f, 560f, 320f);
+
+        camera.centerOn(72.5f, 20.5f);
+
+        assertEquals(72.5f, camera.panCellX(), 1e-5f);
+        assertEquals(20.5f, camera.panCellY(), 1e-5f);
+        assertEquals(560f, camera.cellToScreenX(72.5f), 1e-5f);
+        assertEquals(320f, camera.cellToScreenY(20.5f), 1e-5f);
+    }
+
     private static BattleCamera fittedCamera() {
         BattleCamera camera = new BattleCamera(112, 64);
         camera.setViewport(0f, 0f, 1120f, 640f, 10f);

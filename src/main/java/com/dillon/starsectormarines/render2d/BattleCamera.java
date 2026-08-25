@@ -150,6 +150,13 @@ public final class BattleCamera {
         clampPan();
     }
 
+    /** Centers the viewport on one world-cell position, subject to world-edge clamping. */
+    public void centerOn(float cellX, float cellY) {
+        panCellX = cellX;
+        panCellY = cellY;
+        clampPan();
+    }
+
     /**
      * Applies one wheel-notch worth of zoom centered on ({@code anchorScreenX},
      * {@code anchorScreenY}). {@code notches} is the signed wheel delta — sign

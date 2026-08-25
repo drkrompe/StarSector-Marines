@@ -4,42 +4,63 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
 import java.util.List;
 
-/** One grid-authored fabrication room consumed by live and snapshot hosts. */
+/** One grid-authored four-gantry garage consumed by live and snapshot hosts. */
 final class MechLabSceneLayout {
 
-    static final int WIDTH = 15;
-    static final int HEIGHT = 9;
-    static final int MECH_X = 7;
-    static final int MECH_Y = 4;
+    static final int WIDTH = 39;
+    static final int HEIGHT = 11;
+    static final int GANTRY_Y = 5;
+    static final List<Gantry> GANTRIES = List.of(
+            new Gantry(7, GANTRY_Y),
+            new Gantry(15, GANTRY_Y),
+            new Gantry(23, GANTRY_Y),
+            new Gantry(31, GANTRY_Y));
 
     static final List<PropPlacement> PROPS = List.of(
-            new PropPlacement(2, 2, 5, 3),
-            new PropPlacement(2, 4, 6, 3),
-            new PropPlacement(2, 6, 7, 3),
-            new PropPlacement(12, 2, 9, 2),
-            new PropPlacement(12, 4, 9, 1),
-            new PropPlacement(12, 6, 3, 3),
-            new PropPlacement(5, 7, 8, 2),
-            new PropPlacement(9, 7, 8, 2));
+            new PropPlacement(5, 8, 5, 3),
+            new PropPlacement(9, 8, 8, 2),
+            new PropPlacement(13, 8, 6, 3),
+            new PropPlacement(17, 8, 9, 2),
+            new PropPlacement(21, 8, 7, 3),
+            new PropPlacement(25, 8, 8, 2),
+            new PropPlacement(29, 8, 3, 3),
+            new PropPlacement(33, 8, 9, 1));
 
     static final List<TechnicianPlacement> TECHNICIANS = List.of(
-            new TechnicianPlacement("fabricator one", 3, 2),
-            new TechnicianPlacement("fabricator two", 11, 3),
-            new TechnicianPlacement("fabricator three", 3, 6));
+            new TechnicianPlacement("fabricator one", 10, 6),
+            new TechnicianPlacement("fabricator two", 13, 3),
+            new TechnicianPlacement("fabricator three", 26, 6),
+            new TechnicianPlacement("fabricator four", 29, 3));
 
     private MechLabSceneLayout() { }
 
     static boolean wall(int x, int y) {
-        return x == 0 || y == 0 || x == WIDTH - 1 || y == HEIGHT - 1;
+        // The south edge deliberately remains open as the vehicle entrance.
+        return x == 0 || x == WIDTH - 1 || y == HEIGHT - 1;
     }
 
     static CellTopology.GroundKind groundKind(int x, int y) {
-        boolean maintenancePad = x >= 5 && x <= 9 && y >= 2 && y <= 6;
-        if (!maintenancePad) return CellTopology.GroundKind.INDOOR;
-        boolean perimeter = x == 5 || x == 9 || y == 2 || y == 6;
-        return perimeter ? CellTopology.GroundKind.STRIPED
-                : CellTopology.GroundKind.TILE;
+        return CellTopology.GroundKind.INDOOR;
     }
+
+    static List<FloorOverlayPlacement> floorOverlays() {
+        java.util.ArrayList<FloorOverlayPlacement> result = new java.util.ArrayList<>();
+        for (Gantry gantry : GANTRIES) {
+            for (int y = 2; y <= 7; y++) {
+                for (int x = gantry.cellX() - 2; x <= gantry.cellX() + 2; x++) {
+                    boolean perimeter = x == gantry.cellX() - 2
+                            || x == gantry.cellX() + 2 || y == 2 || y == 7;
+                    int column = perimeter ? 1 : ((x + y) & 1) == 0 ? 0 : 2;
+                    result.add(new FloorOverlayPlacement(x, y, column, 3));
+                }
+            }
+        }
+        return List.copyOf(result);
+    }
+
+    record Gantry(int cellX, int cellY) { }
+
+    record FloorOverlayPlacement(int cellX, int cellY, int tileColumn, int tileRow) { }
 
     record PropPlacement(int cellX, int cellY, int tileColumn, int tileRow) { }
 
