@@ -23,6 +23,7 @@ import com.dillon.starsectormarines.intel.LastTestamentIntel;
 import com.dillon.starsectormarines.ops.CompanyViewAbility;
 import com.dillon.starsectormarines.ops.event.PlayerEventPresenter;
 import com.dillon.starsectormarines.marine.MarineCaptain;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.Rank;
@@ -70,6 +71,9 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         // Weapon-like items validate their referenced WeaponDef, so this follows
         // the weapon catalog and remains fail-loud for malformed built-in data.
         SpecialEquipmentRegistry.loadBuiltins();
+        // Player-facing armor class and descriptive copy are data-authored separately
+        // from the save-compatible armor enum and its battle-facing values.
+        MarineArmorCatalogRegistry.loadBuiltins();
         // Campaign-faction doctrine references primary weapons, special issue,
         // armor, and mech identities, so it validates after those catalogs.
         GroundRosterRegistry.loadBuiltins();

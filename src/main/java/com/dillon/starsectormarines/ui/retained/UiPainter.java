@@ -39,11 +39,14 @@ final class UiPainter {
         Rect childClip = UiLayoutEngine.clipForChildren(
                 element.overflow(), element.box(), inheritedClip);
         target.clip(childClip);
-        UiTextMeasurer.Measurement measured = text.measure(element);
+        UiTextMeasurer.Measurement measured = text.measure(
+                element, element.box().contentBox().width());
         if (measured.font() != null && element.text() != null && element.textColor() != null
                 && childClip.width() > 0f && childClip.height() > 0f) {
-            target.text(measured.font(), element.text(), text.lineBox(element, measured),
-                    element.textColor(), elementAlpha);
+            for (UiTextMeasurer.TextLine line : text.lineBoxes(element, measured)) {
+                target.text(measured.font(), line.value(), line.box(),
+                        element.textColor(), elementAlpha);
+            }
         }
         paintCanvas(element, elementAlpha, childClip, canvases, target);
         for (UiElement child : element.children()) {

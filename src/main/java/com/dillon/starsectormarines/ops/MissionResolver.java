@@ -436,12 +436,7 @@ public final class MissionResolver {
                 resolvePersonnelOutcomes(outcome), survivorXp, currentDayInt(), wiaDays,
                 outcome.soldierTelemetry, outcome.victory);
         if (outcome.victory) {
-            int materials = switch (outcome.risk) {
-                case LOW -> 2;
-                case MEDIUM -> 4;
-                case HIGH -> 7;
-            };
-            roster.armory().recordVictory(materials, outcome.risk == RiskLevel.HIGH);
+            roster.armory().recordVictory(outcome.risk == RiskLevel.HIGH);
         }
         return roster;
     }

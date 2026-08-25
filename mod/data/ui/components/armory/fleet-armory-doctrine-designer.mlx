@@ -52,6 +52,16 @@
             <div id="{billet.titleId}" class="billet-title label heading tone-accent">{billet.title}</div>
             <canvas id="{billet.canvasId}" class="designer-marine-preview" width="180" height="150" />
           </div>
+          <div id="{billet.flavorId}" class="billet-flavor label tone-muted">{billet.flavor}</div>
+          <div id="{billet.statsId}" class="designer-stat-group">
+            <div each="stat in billet.stats" key="{stat.id}" id="{stat.id}" class="designer-stat-row">
+              <div id="{stat.labelId}" class="designer-stat-label label tone-muted">{stat.label}</div>
+              <div id="{stat.trackId}" class="designer-stat-track">
+                <div id="{stat.fillId}" class="{billet.statFillClasses}" style="{stat.fillStyle}" />
+              </div>
+              <div id="{stat.valueId}" class="designer-stat-value label tone-edge">{stat.value}</div>
+            </div>
+          </div>
           <button id="{billet.roleId}" onclick="{billet.cycleRole}">{billet.role}</button>
           <button id="{billet.primaryId}" onclick="{billet.cyclePrimary}">{billet.primary}</button>
           <button id="{billet.gradeId}" onclick="{billet.cycleGrade}">{billet.grade}</button>
@@ -98,9 +108,27 @@
   .team-tab.selected { background-color: #345a7c; border-color: #53c6e8; }
   #designer-billet-grid { flex-direction: row; height: 0px; flex-grow: 1; gap: 8px; overflow: hidden; }
   .billet-editor-card { flex-direction: column; width: 0px; flex-grow: 1; padding: 9px; gap: 7px; border-width: 1px; overflow: hidden; }
-  .billet-card-top { flex-direction: row; height: 78px; gap: 6px; overflow: hidden; }
+  .billet-card-top { flex-direction: row; height: 74px; gap: 6px; overflow: hidden; }
   .billet-title { width: 0px; flex-grow: 1; height: 23px; padding: 4px 2px; }
-  .designer-marine-preview { width: 104px; height: 74px; background-color: #0d1622; border-width: 1px; }
-  .billet-editor-card button { height: 39px; padding: 7px; border-width: 1px; font-family: body; text-align: left; overflow: hidden; }
+  .designer-marine-preview { width: 98px; height: 70px; background-color: #0d1622; border-width: 1px; }
+  .billet-flavor { height: 34px; }
+  .designer-stat-group { flex-direction: column; height: 58px; gap: 2px; }
+  .designer-stat-row { flex-direction: row; height: 13px; gap: 4px; }
+  .designer-stat-label { width: 47px; }
+  .designer-stat-track {
+    flex-direction: row;
+    width: 0px;
+    height: 9px;
+    flex-grow: 1;
+    border-width: 1px;
+    overflow: hidden;
+    background-color: #101a25;
+    border-color: #405a78;
+  }
+  .designer-stat-fill { height: 100%; }
+  .weapon-stat-fill { background-color: #53c6e8; }
+  .armor-stat-fill { background-color: #dfb84d; }
+  .designer-stat-value { width: 42px; text-align: right; }
+  .billet-editor-card button { height: 32px; padding: 5px 7px; border-width: 1px; font-family: body; text-align: left; overflow: hidden; }
   #designer-feedback { height: 29px; padding: 5px 8px; border-width: 1px; }
 </style>

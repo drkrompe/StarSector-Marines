@@ -2,10 +2,10 @@
 
 Status: IN PROGRESS — retained hierarchy, squad equipment issue, and focused Mech Lab ship; broader company administration remains
 Written: 2026-08-23
-Updated: 2026-08-25 — the separately routed Mech Lab now ships alongside persistent
-player-authored Weapon and Armor definitions, their retained twelve-billet designer,
-non-destructive legacy intent migration, a spatial top-down hardpoint doll, and a
-location-scoped hardware catalog over `MechBay`.
+Updated: 2026-08-25 — fire-team inspection now fits a horizontal team tab rail and
+four full named-marine dossiers at the reference viewport. Each dossier combines its
+live portrait with data-authored equipment prose, class and tier badges, and stable
+weapon, durability, and mobility meters without card scrolling.
 
 Read `company-view-nouns.md` and `ui-nouns.md` first.
 
@@ -41,15 +41,17 @@ breadcrumb keeps every completed level directly reachable.
   readiness before the player enters that squad's equipment workspace. The card body
   remains the inspect target; reinforcement is a compact secondary action rather than
   a replacement inspect button.
-- **Fire-team context:** Alpha, Bravo, and Charlie report strength and current squad
-  doctrine together. Selection chooses which four of twelve projected billets to
-  inspect; it never narrows or resets the squad transaction.
-- **Workspace:** the selected squad's Alpha, Bravo, and Charlie teams sit beside one
-  primary viewer of the selected team's four persistent marines. Each card presents
-  rank, name, readiness, aptitude, experience, career, candidate role, battle-composed
-  appearance, equipment names, and resolved combat figures. Weapon and armor figures
-  use compact capability meters normalized against their catalog ceilings while
-  retaining the exact number beside each meter.
+- **Fire-team context:** Alpha, Bravo, and Charlie occupy one horizontal tab rail and
+  report strength, readiness, recovery, and current squad doctrine together. Selection
+  chooses which four of twelve projected billets to inspect; it never narrows or resets
+  the squad transaction.
+- **Workspace:** the selected team's four persistent marines appear simultaneously in
+  the full-width primary viewer. Each dossier presents rank, name, readiness, aptitude,
+  experience, career, candidate role, an upper-right battle-composed portrait, readable
+  class/weapon-tier/armor-tier badges, data-authored weapon/armor/special descriptions,
+  and resolved combat figures. Weapon, durability, and mobility figures use compact
+  capability meters normalized against their catalog ceilings while retaining the exact
+  number beside each meter.
 - **Equipment editing:** an always-visible squad strip owns separate Weapon and Armor
   selectors. Weapon definitions include roles, primaries, grades, and optional
   special equipment; Armor definitions include protection only. Their pair projects
@@ -60,16 +62,18 @@ breadcrumb keeps every completed level directly reachable.
   billet previews expose all twelve ordered positions without returning to the old
   administration shell. Naming is a retained text input; role, primary, grade,
   special, and armor controls change draft intent without consulting inventory.
+  Every billet card keeps its render compact, adds one line of role/equipment flavor,
+  and shows catalog-normalized combat meters that move immediately with the draft.
 - **Inventory boundary:** the roster's exact atomic preview still gates assignment,
   but this viewer omits its free-stock/returns/required-issue ledger.
 - **Marine inspector:** aptitude, career, wounds, and materialized billet equipment;
   there is no routine per-marine equipment authoring.
 - **Mech Lab:** active support squad -> heavy asset -> spatial socket -> compatible
-  hardware. The actual top-down chassis projection sits between clickable engine,
-  weapon, ammunition, and mini-fab locations; the selected location scopes the
-  catalog. Fixed weapon locations advertise their future ballistic/energy/missile/
-  omni sized-slot grammar without offering a false commit. The finite mini-fab
-  inventory retains its explicit install action through `MechBay`.
+  hardware. Lance and asset browsing occupies a separate internal screen. The fitting
+  workspace gives its width to equipment, the animated fabrication bay, and one
+  spatial socket rack. Fixed weapon locations advertise their future ballistic/
+  energy/missile/omni sized-slot grammar without offering a false commit. The finite
+  mini-fab inventory retains its explicit install action through `MechBay`.
 
 ## Scope
 
@@ -105,12 +109,19 @@ breadcrumb keeps every completed level directly reachable.
   deck/hand/consume semantics.
 - The company gallery auto-fills fixed portrait cards into columns, wraps into rows as
   the viewport narrows, and scrolls vertically without silent truncation.
-- The fire-team viewer shows all four named marines together with candidate armour,
-  primary grade, special equipment, and combat statistics resolved from the same
-  rules used by battle.
-- Damage, range, accuracy, sustained output, armor pool, armor rating, and movement
-  appear as comparative meters with exact values; their fill scale is stable across
-  the four marines rather than relative to only the currently selected team.
+- The fire-team viewer shows all four named marines together without card scrolling;
+  one horizontal team tab rail preserves each team's readiness and recovery context.
+- Each marine dossier keeps its battle-composed portrait in the upper-right, surfaces
+  class plus weapon and armor tier as badges, and reads weapon, armor, and specialty
+  prose from their owning data definitions rather than screen-authored copy.
+- Damage, range, accuracy, sustained output, health, armor, resistance, and actual
+  movement speed appear as comparative meters with exact values; their fill scale is
+  stable across the four marines rather than relative to only the selected team.
+- Designer billet cards expose the same stable comparison language, including evasion,
+  without enlarging their upper-right live render or introducing card scrolling.
+- The starter pair differentiates each fire-team lead with its scarce pulse rifle and
+  militia armor while leaving the other nine billets in field rifles and fatigues;
+  new and migrated armories can issue that exact pair immediately.
 - Live selected-marine portraits cycle the authored idle clip with staggered phases;
   headless snapshots remain fixed and deterministic.
 - The same twelve-billet recipe renders deterministic PNGs without a game or OpenGL context;
@@ -125,7 +136,12 @@ breadcrumb keeps every completed level directly reachable.
 - Mech subsystem counts and enabled install actions come from `MechBay`; the retained
   room neither recomputes stock nor creates another loadout authority.
 - The hardpoint doll renders the selected variant's actual modular top-down chassis,
-  arms, and shoulder pods in both live and deterministic headless surfaces.
+  arms, and shoulder pods through the battle compositor's ordered transforms in both
+  live and deterministic headless surfaces.
+- The reference wide view leaves the physical bay large enough for battle-tileset
+  floor, walls, props, and independently animated maintenance crew rendered through
+  the layered infantry compositor. Narrower and 150% UI-scale views preserve commands
+  with bounded scrolling.
 - Location selection changes catalog context without mutating hardware. Unsupported
   core, weapon, and ammunition locations remain visibly factory locked.
 - Future drag-and-drop placement validates socket type, sized capacity, chassis

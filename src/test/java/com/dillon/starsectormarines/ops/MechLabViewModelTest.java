@@ -70,6 +70,21 @@ class MechLabViewModelTest {
     }
 
     @Test
+    void assetPickerIsASeparateInternalScreenAndSelectionReturnsToGantry() {
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), new MechBay());
+
+        assertTrue(viewModel.pickerClasses().get().contains("hidden"));
+        assertFalse(viewModel.workspaceClasses().get().contains("hidden"));
+        viewModel.openAssetPickerAction().run();
+        assertFalse(viewModel.pickerClasses().get().contains("hidden"));
+        assertTrue(viewModel.workspaceClasses().get().contains("hidden"));
+
+        viewModel.mechRows().get().get(0).select().run();
+        assertTrue(viewModel.pickerClasses().get().contains("hidden"));
+        assertFalse(viewModel.workspaceClasses().get().contains("hidden"));
+    }
+
+    @Test
     void shippedRoomBuildsWithinWideAndLowResolutionBounds() throws Exception {
         Reactor reactor = new Reactor();
         MechLabViewModel viewModel = new MechLabViewModel(reactor, new MechBay());
@@ -117,10 +132,15 @@ class MechLabViewModelTest {
         props.put("performanceMeters", viewModel.performanceMeters());
         props.put("leftSlotRows", viewModel.leftSlotRows());
         props.put("rightSlotRows", viewModel.rightSlotRows());
+        props.put("slotRows", viewModel.slotRows());
         props.put("selectedSlotTitle", viewModel.selectedSlotTitle());
         props.put("selectedSlotCopy", viewModel.selectedSlotCopy());
         props.put("selectedSlotRule", viewModel.selectedSlotRule());
         props.put("catalogRows", viewModel.catalogRows());
+        props.put("pickerClasses", viewModel.pickerClasses());
+        props.put("workspaceClasses", viewModel.workspaceClasses());
+        props.put("openAssetPicker", viewModel.openAssetPickerAction());
+        props.put("closeAssetPicker", viewModel.closeAssetPickerAction());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MECH_LAB,

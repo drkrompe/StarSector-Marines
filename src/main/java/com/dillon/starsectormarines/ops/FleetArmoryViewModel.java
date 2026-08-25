@@ -4,10 +4,14 @@ import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.FireTeamTemplateCard;
+import com.dillon.starsectormarines.marine.EquipmentIssueResources;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics.PersonnelDrawResult;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -44,6 +48,7 @@ public final class FleetArmoryViewModel {
     private final MarineRoster roster;
     private final Runnable openSelectedSquad;
     private final DoubleSupplier currentDay;
+    private final EquipmentIssueResources equipmentIssueResources;
     private final MutableSignal<String> selectedSquadId;
     private final MutableSignal<Integer> selectedTeamIndex;
     private final MutableSignal<String> selectedWeaponDoctrineId;
@@ -74,25 +79,37 @@ public final class FleetArmoryViewModel {
     private final ComputedSignal<String> armorDoctrineSummary;
 
     public FleetArmoryViewModel(Reactor reactor, MarineRoster roster) {
-        this(reactor, roster, () -> { }, () -> 0d);
+        this(reactor, roster, () -> { }, () -> 0d, EquipmentIssueResources.UNLIMITED);
     }
 
     public FleetArmoryViewModel(
             Reactor reactor, MarineRoster roster, Runnable openSelectedSquad) {
-        this(reactor, roster, openSelectedSquad, () -> 0d);
+        this(reactor, roster, openSelectedSquad, () -> 0d,
+                EquipmentIssueResources.UNLIMITED);
     }
 
     public FleetArmoryViewModel(Reactor reactor, MarineRoster roster,
                                 Runnable openSelectedSquad, DoubleSupplier currentDay) {
+        this(reactor, roster, openSelectedSquad, currentDay,
+                EquipmentIssueResources.UNLIMITED);
+    }
+
+    public FleetArmoryViewModel(
+            Reactor reactor, MarineRoster roster, Runnable openSelectedSquad,
+            DoubleSupplier currentDay, EquipmentIssueResources equipmentIssueResources) {
         if (reactor == null) throw new IllegalArgumentException("reactor is required");
         if (roster == null) throw new IllegalArgumentException("roster is required");
         if (openSelectedSquad == null) {
             throw new IllegalArgumentException("openSelectedSquad is required");
         }
         if (currentDay == null) throw new IllegalArgumentException("currentDay is required");
+        if (equipmentIssueResources == null) {
+            throw new IllegalArgumentException("equipmentIssueResources is required");
+        }
         this.roster = roster;
         this.openSelectedSquad = openSelectedSquad;
         this.currentDay = currentDay;
+        this.equipmentIssueResources = equipmentIssueResources;
 
         MarineSquad initialSquad = firstLineSquad(roster);
         selectedSquadId = reactor.signal(initialSquad != null ? initialSquad.id() : null);
@@ -200,14 +217,18 @@ public final class FleetArmoryViewModel {
     }
 
     public SquadEquipmentResult applySquadEquipmentSelection() {
+        SquadEquipmentPreview preview = squadEquipmentPreview.get();
         SquadEquipmentResult result = roster.applySquadEquipment(
                 selectedSquadId.peek(), selectedWeaponDoctrineId.peek(),
-                selectedArmorDoctrineId.peek());
+                selectedArmorDoctrineId.peek(), equipmentIssueResources);
         MarineSquad squad = roster.squadById(selectedSquadId.peek());
         feedback.set(result == SquadEquipmentResult.APPLIED
                 ? Feedback.success("Squad equipment issued to "
-                        + (squad != null ? squad.name() : "selected squad") + ".")
-                : Feedback.neutral(squadEquipmentMessage(result)));
+                        + (squad != null ? squad.name() : "selected squad")
+                        + (preview.issueCost().isZero() ? "  ·  no cargo required."
+                        : "  ·  " + preview.issueCost().display() + " consumed."))
+                : Feedback.neutral(squadEquipmentMessage(
+                        buildSquadEquipmentPreview())));
         domainRevision.update(value -> value + 1);
         return result;
     }
@@ -224,7 +245,9 @@ public final class FleetArmoryViewModel {
             wounded += woundedCount(squad);
         }
         return lineSquads + " squads  ·  " + ready + " RTD  ·  "
-                + wounded + " WIA  ·  Squad equipment doctrine";
+                + wounded + " WIA  ·  "
+                + roster.armory().equipmentTemplateCards().size()
+                + " equipment templates collected";
     }
 
     private List<SelectionRow> buildSquadRows() {
@@ -288,8 +311,9 @@ public final class FleetArmoryViewModel {
             int target = team;
             int ready = readyTeamMembers(squad, team);
             String id = "fire-team:" + squad.id() + ":" + team;
-            teams.add(new FireTeamOverview(id, id + ":name", id + ":status",
-                    id + ":strength", id + ":recovery", id + ":template",
+            teams.add(new FireTeamOverview(id, id + ":heading-row", id + ":detail-row",
+                    id + ":name", id + ":status", id + ":strength",
+                    id + ":recovery", id + ":template",
                     team == selected ? "fire-team-overview selected" : "fire-team-overview",
                     "fire-team-status heading " + readinessTone(ready, MarineSquad.TEAM_SIZE),
                     teamName(team), readinessLabel(ready, MarineSquad.TEAM_SIZE),
@@ -321,7 +345,8 @@ public final class FleetArmoryViewModel {
     private SquadEquipmentPreview buildSquadEquipmentPreview() {
         domainRevision.get();
         return roster.previewSquadEquipment(selectedSquadId.get(),
-                selectedWeaponDoctrineId.get(), selectedArmorDoctrineId.get());
+                selectedWeaponDoctrineId.get(), selectedArmorDoctrineId.get(),
+                equipmentIssueResources);
     }
 
     private List<DoctrineTile> buildWeaponDoctrineTiles() {
@@ -330,11 +355,14 @@ public final class FleetArmoryViewModel {
         List<DoctrineTile> tiles = new ArrayList<>();
         for (SquadWeaponDoctrine doctrine : roster.armory().weaponDoctrines()) {
             String id = "weapon-doctrine:" + doctrine.id();
-            String distribution = weaponDistribution(doctrine);
+            boolean available = roster.armory().canAuthorWeaponDoctrine(doctrine.issues());
+            String distribution = weaponDistribution(doctrine)
+                    + (available ? "" : "  ·  Missing template cards");
             tiles.add(new DoctrineTile(id, id + ":name", id + ":description",
                     id + ":distribution",
                     doctrine.id().equals(selected)
-                            ? "doctrine-tile selected" : "doctrine-tile",
+                            ? "doctrine-tile selected" + (available ? "" : " locked")
+                            : "doctrine-tile" + (available ? "" : " locked"),
                     doctrine.displayName(), doctrine.description(), distribution,
                     () -> selectWeaponDoctrine(doctrine.id())));
         }
@@ -347,11 +375,14 @@ public final class FleetArmoryViewModel {
         List<DoctrineTile> tiles = new ArrayList<>();
         for (SquadArmorDoctrine doctrine : roster.armory().armorDoctrines()) {
             String id = "armor-doctrine:" + doctrine.id();
+            boolean available = roster.armory().canAuthorArmorDoctrine(doctrine.issues());
             tiles.add(new DoctrineTile(id, id + ":name", id + ":description",
                     id + ":distribution",
                     doctrine.id().equals(selected)
-                            ? "doctrine-tile selected" : "doctrine-tile",
-                    doctrine.displayName(), doctrine.description(), armorDistribution(doctrine),
+                            ? "doctrine-tile selected" + (available ? "" : " locked")
+                            : "doctrine-tile" + (available ? "" : " locked"),
+                    doctrine.displayName(), doctrine.description(), armorDistribution(doctrine)
+                            + (available ? "" : "  ·  Missing template cards"),
                     () -> selectArmorDoctrine(doctrine.id())));
         }
         return List.copyOf(tiles);
@@ -389,26 +420,41 @@ public final class FleetArmoryViewModel {
             FireTeamBillet billet = previewing ? asFireTeamBillet(candidate.billet(squadBillet))
                     : soldier != null ? currentBillet(squad, teamIndex, index, soldier) : null;
             String id = "marine-card:" + index;
-            String special = billet != null ? specialName(billet.specialEquipmentId()) : null;
+            SpecialEquipmentDef special = billet != null
+                    ? SpecialEquipmentRegistry.get(billet.specialEquipmentId()) : null;
+            MarineArmorCatalogDef armorCatalog = billet != null
+                    ? MarineArmorCatalogRegistry.require(billet.armor().id) : null;
             marines.add(new MarineViewerCard(
-                    id, "marine-preview:" + index, id + ":canvas-row",
-                    id + ":canvas-lead", id + ":canvas-trail",
-                    id + ":name", id + ":role",
-                    id + ":status", id + ":service", id + ":primary",
-                    id + ":weapon-stats", id + ":armor", id + ":armor-stats",
-                    id + ":special", id + ":weapon-delta", id + ":armor-delta",
+                    id, "marine-preview:" + index, id + ":header",
+                    id + ":hero", id + ":identity",
+                    id + ":badges", id + ":class-badge", id + ":weapon-badge",
+                    id + ":armor-badge", id + ":name", id + ":role",
+                    id + ":status", id + ":service", id + ":personnel",
+                    id + ":primary", id + ":primary-description",
+                    id + ":weapon-detail", id + ":weapon-stats",
+                    id + ":armor", id + ":armor-description", id + ":armor-detail",
+                    id + ":armor-stats",
+                    id + ":special",
+                    id + ":special-description", id + ":weapon-delta", id + ":armor-delta",
                     id + ":career",
                     marineCardClasses(soldier, previewing),
                     "marine-status heading " + marineStatusTone(soldier),
                     marineName(soldier), billet != null ? billet.name() : "Unfilled billet",
                     marineStatus(soldier), serviceSummary(soldier),
+                    personnelSummary(soldier),
+                    armorCatalog != null ? armorCatalog.unitClass() : "VACANT",
+                    billet != null ? "W " + billet.grade().tierMark() : "W —",
+                    billet != null ? "A " + billet.armor().tierMark() : "A —",
                     billet != null ? billet.primary().catalogName(billet.grade()) + "  ·  "
                             + billet.grade().displayName : "No primary",
+                    billet != null ? billet.primary().catalogDescription() : "",
                     weaponStats(id, billet, soldier),
                     billet != null ? billet.armor().displayName + "  ·  Tier "
                             + billet.armor().tierMark() : "No armor",
-                    armorStats(id, billet), special != null ? "Special  ·  " + special
-                            : "Special  ·  No issue",
+                    armorStats(id, billet), armorCatalog != null ? armorCatalog.description() : "",
+                    special != null ? special.displayName() : "No specialty equipment",
+                    special != null ? special.catalogDescription()
+                            : "This billet carries no specialty equipment beyond its primary weapon.",
                     weaponDelta(billet, soldier, previewing),
                     armorDelta(billet, soldier, previewing),
                     previewing ? "marine-delta label tone-accent"
@@ -439,11 +485,14 @@ public final class FleetArmoryViewModel {
     }
 
     private String buildApplyLabel() {
-        return "Issue Equipment to Entire Squad";
+        SquadEquipmentPreview preview = squadEquipmentPreview.get();
+        return preview.issueCost().isZero()
+                ? "Issue Equipment to Entire Squad"
+                : "Issue Squad  ·  " + preview.issueCost().display();
     }
 
     private String buildViewerStatus() {
-        return squadEquipmentMessage(squadEquipmentPreview.get().result());
+        return squadEquipmentMessage(squadEquipmentPreview.get());
     }
 
     private String buildViewerStatusClasses() {
@@ -645,11 +694,6 @@ public final class FleetArmoryViewModel {
         return null;
     }
 
-    private static String specialName(String id) {
-        SpecialEquipmentDef def = SpecialEquipmentRegistry.get(id);
-        return def != null ? def.displayName() : null;
-    }
-
     private static String teamName(int teamIndex) {
         return switch (teamIndex) {
             case 0 -> "Alpha";
@@ -729,6 +773,20 @@ public final class FleetArmoryViewModel {
                 + soldier.experienceXp() + " XP";
     }
 
+    private static String personnelSummary(MarineSoldier soldier) {
+        if (soldier == null) return "No personnel record is attached to this vacant billet.";
+        String experience = soldier.profile().experienceTier().displayName
+                .toLowerCase(Locale.ROOT);
+        String aptitude = soldier.aptitude().displayName.toLowerCase(Locale.ROOT);
+        SoldierCareer career = soldier.career();
+        String record = career.missionsDeployed() == 0
+                ? "No combat deployments are recorded yet."
+                : career.missionsDeployed() + " deployments, " + career.kills()
+                + " confirmed kills, and " + career.timesWounded() + " wounds are on file.";
+        return "A " + experience + " marine assessed with " + aptitude
+                + " aptitude. " + record;
+    }
+
     private static List<StatMeter> weaponStats(
             String cardId, FireTeamBillet billet, MarineSoldier soldier) {
         if (billet == null || soldier == null) return List.of();
@@ -775,15 +833,20 @@ public final class FleetArmoryViewModel {
         if (billet == null) return List.of();
         MarineArmorPattern armor = billet.armor();
         return List.of(
-                statMeter(cardId + ":pool", "POOL",
+                statMeter(cardId + ":health", "HEALTH",
+                        String.format(Locale.ROOT, "%.0f", UnitType.MARINE.maxHp),
+                        UnitType.MARINE.maxHp, UnitType.MARINE.maxHp),
+                statMeter(cardId + ":armor-value", "ARMOR",
                         String.format(Locale.ROOT, "%.0f", armor.armorPool),
                         armor.armorPool, maximumArmorPool()),
-                statMeter(cardId + ":rating", "RATING",
+                statMeter(cardId + ":resist", "RESIST",
                         String.format(Locale.ROOT, "%.0f", armor.armorRating),
                         armor.armorRating, maximumArmorRating()),
-                statMeter(cardId + ":move", "MOVE",
-                        String.format(Locale.ROOT, "%.0f%%", armor.moveSpeedMult * 100f),
-                        armor.moveSpeedMult, maximumMoveSpeed()));
+                statMeter(cardId + ":speed", "SPEED",
+                        String.format(Locale.ROOT, "%.1f",
+                                UnitType.MARINE.moveSpeed * armor.moveSpeedMult),
+                        UnitType.MARINE.moveSpeed * armor.moveSpeedMult,
+                        UnitType.MARINE.moveSpeed * maximumMoveSpeed()));
     }
 
     private static StatMeter statMeter(
@@ -857,10 +920,11 @@ public final class FleetArmoryViewModel {
             FireTeamBillet billet, MarineSoldier soldier, boolean previewing) {
         if (!previewing || billet == null || soldier == null) return "";
         return String.format(Locale.ROOT,
-                "POOL %+.0f  ·  RATING %+.0f  ·  MOVE %+.0f%%",
+                "ARMOR %+.0f  ·  RESIST %+.0f  ·  SPEED %+.1f",
                 billet.armor().armorPool - soldier.armor().armorPool,
                 billet.armor().armorRating - soldier.armor().armorRating,
-                (billet.armor().moveSpeedMult - soldier.armor().moveSpeedMult) * 100f);
+                UnitType.MARINE.moveSpeed
+                        * (billet.armor().moveSpeedMult - soldier.armor().moveSpeedMult));
     }
 
     private static String careerSummary(MarineSoldier soldier) {
@@ -871,18 +935,21 @@ public final class FleetArmoryViewModel {
                 + " kills  ·  wounded " + career.timesWounded() + " times";
     }
 
-    private static String squadEquipmentMessage(SquadEquipmentResult result) {
-        return switch (result) {
-            case APPLIED -> "Ready  ·  Both definitions can be issued to all twelve marines.";
+    private static String squadEquipmentMessage(SquadEquipmentPreview preview) {
+        return switch (preview.result()) {
+            case APPLIED -> preview.issueCost().isZero()
+                    ? "Ready  ·  The squad already matches this equipment issue."
+                    : "Ready  ·  Issue cost: " + preview.issueCost().display() + ".";
             case INVALID_SQUAD -> "Select a line squad.";
             case SQUAD_NOT_READY -> "Not ready  ·  This squad needs twelve RTD marines.";
             case STATIONED -> "Unavailable  ·  This squad is stationed away.";
             case UNKNOWN_WEAPON_DOCTRINE -> "Choose weapon equipment.";
             case UNKNOWN_ARMOR_DOCTRINE -> "Choose armor equipment.";
-            case LOCKED_RECIPE -> "Blocked  ·  One or more required recipes are locked.";
-            case INSUFFICIENT_PRIMARIES -> "Blocked  ·  Not enough primary weapons.";
-            case INSUFFICIENT_ARMOR -> "Blocked  ·  Not enough armor.";
-            case INSUFFICIENT_SPECIALS -> "Blocked  ·  Not enough special equipment.";
+            case MISSING_TEMPLATE ->
+                    "Blocked  ·  One or more required equipment template cards are missing.";
+            case INSUFFICIENT_CARGO -> "Blocked  ·  Requires "
+                    + preview.issueCost().display() + "; available: "
+                    + preview.availableCargo().display() + ".";
         };
     }
 
@@ -963,7 +1030,8 @@ public final class FleetArmoryViewModel {
     }
 
     public record FireTeamOverview(
-            String id, String nameId, String statusId, String strengthId,
+            String id, String headingRowId, String detailRowId,
+            String nameId, String statusId, String strengthId,
             String recoveryId, String templateId, String classes, String statusClasses,
             String name, String status, String strength, String recovery, String template,
             Runnable select) implements MarkupPropertySource {
@@ -971,6 +1039,8 @@ public final class FleetArmoryViewModel {
         public Object markupProperty(String property) {
             return switch (property) {
                 case "id" -> id;
+                case "headingRowId" -> headingRowId;
+                case "detailRowId" -> detailRowId;
                 case "nameId" -> nameId;
                 case "statusId" -> statusId;
                 case "strengthId" -> strengthId;
@@ -990,34 +1060,48 @@ public final class FleetArmoryViewModel {
     }
 
     public record MarineViewerCard(
-            String id, String canvasId, String canvasRowId,
-            String canvasLeadId, String canvasTrailId, String nameId, String roleId,
-            String statusId, String serviceId, String primaryId,
-            String weaponStatsId, String armorId, String armorStatsId,
-            String specialId, String weaponDeltaId, String armorDeltaId,
+            String id, String canvasId, String headerId, String heroId, String identityId,
+            String badgesId, String classBadgeId, String weaponBadgeId,
+            String armorBadgeId, String nameId, String roleId,
+            String statusId, String serviceId, String personnelId, String primaryId,
+            String primaryDescriptionId, String weaponDetailId, String weaponStatsId,
+            String armorId, String armorDescriptionId, String armorDetailId,
+            String armorStatsId, String specialId, String specialDescriptionId,
+            String weaponDeltaId, String armorDeltaId,
             String careerId, String classes, String statusClasses,
-            String name, String role, String status, String service,
-            String primary, List<StatMeter> weaponStats, String armor,
-            List<StatMeter> armorStats,
-            String special, String weaponDelta, String armorDelta,
+            String name, String role, String status, String service, String personnel,
+            String unitClass, String weaponBadge, String armorBadge,
+            String primary, String primaryDescription, List<StatMeter> weaponStats,
+            String armor, List<StatMeter> armorStats, String armorDescription,
+            String special, String specialDescription, String weaponDelta, String armorDelta,
             String deltaClasses, String career) implements MarkupPropertySource {
         @Override
         public Object markupProperty(String property) {
             return switch (property) {
                 case "id" -> id;
                 case "canvasId" -> canvasId;
-                case "canvasRowId" -> canvasRowId;
-                case "canvasLeadId" -> canvasLeadId;
-                case "canvasTrailId" -> canvasTrailId;
+                case "headerId" -> headerId;
+                case "heroId" -> heroId;
+                case "identityId" -> identityId;
+                case "badgesId" -> badgesId;
+                case "classBadgeId" -> classBadgeId;
+                case "weaponBadgeId" -> weaponBadgeId;
+                case "armorBadgeId" -> armorBadgeId;
                 case "nameId" -> nameId;
                 case "roleId" -> roleId;
                 case "statusId" -> statusId;
                 case "serviceId" -> serviceId;
+                case "personnelId" -> personnelId;
                 case "primaryId" -> primaryId;
+                case "primaryDescriptionId" -> primaryDescriptionId;
+                case "weaponDetailId" -> weaponDetailId;
                 case "weaponStatsId" -> weaponStatsId;
                 case "armorId" -> armorId;
+                case "armorDescriptionId" -> armorDescriptionId;
+                case "armorDetailId" -> armorDetailId;
                 case "armorStatsId" -> armorStatsId;
                 case "specialId" -> specialId;
+                case "specialDescriptionId" -> specialDescriptionId;
                 case "weaponDeltaId" -> weaponDeltaId;
                 case "armorDeltaId" -> armorDeltaId;
                 case "careerId" -> careerId;
@@ -1027,11 +1111,18 @@ public final class FleetArmoryViewModel {
                 case "role" -> role;
                 case "status" -> status;
                 case "service" -> service;
+                case "personnel" -> personnel;
+                case "unitClass" -> unitClass;
+                case "weaponBadge" -> weaponBadge;
+                case "armorBadge" -> armorBadge;
                 case "primary" -> primary;
+                case "primaryDescription" -> primaryDescription;
                 case "weaponStats" -> weaponStats;
                 case "armor" -> armor;
                 case "armorStats" -> armorStats;
+                case "armorDescription" -> armorDescription;
                 case "special" -> special;
+                case "specialDescription" -> specialDescription;
                 case "weaponDelta" -> weaponDelta;
                 case "armorDelta" -> armorDelta;
                 case "deltaClasses" -> deltaClasses;
