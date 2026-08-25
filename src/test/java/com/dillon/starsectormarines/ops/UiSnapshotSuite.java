@@ -1,8 +1,13 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.CampaignMech;
+import com.dillon.starsectormarines.marine.MechBay;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.ops.battleview.ArmoryMarinePreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
@@ -39,6 +44,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             "data/ui/components/armory/armory-fireteam-list.mlx",
             "data/ui/components/armory/armory-squad-doctrine.mlx",
             "data/ui/components/armory/armory-refit-transaction.mlx");
+    private static final List<String> MECH_LAB_COMPONENTS = List.of(
+            "data/ui/components/marine-ops-page-nav.mlx",
+            "data/ui/components/mech-lab/mech-lab.mlx");
 
     @Override
     public String id() {
@@ -75,7 +83,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                 context, renderer, 1744, 938, true, false)),
                 new SnapshotArtifact("fleet-armory-equipment-preview-wide.png",
                         renderFleetArmoryWorkspace(
-                                context, renderer, 1744, 938, true, true)));
+                                context, renderer, 1744, 938, true, true)),
+                new SnapshotArtifact("mech-lab-wide.png",
+                        renderMechLab(context, renderer, 1744, 938, 1f)),
+                new SnapshotArtifact("mech-lab-low-resolution.png",
+                        renderMechLab(context, renderer, 1163, 625, 1f)),
+                new SnapshotArtifact("mech-lab-ui-scale-150.png",
+                        renderMechLab(context, renderer, 1744, 938, 1.5f)));
     }
 
     private static BufferedImage renderCompanyHq(
@@ -166,6 +180,32 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         }
     }
 
+    private static BufferedImage renderMechLab(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, float uiScale) throws Exception {
+        Reactor reactor = new Reactor();
+        MechBay bay = new MechBay();
+        bay.addMech(MechBay.STARTER_SQUAD_ID, new CampaignMech(
+                "support_mech_02", "Hound 02", MechVariant.HOUND,
+                MechRole.ASSAULT, MissileReplenisherComponent.STANDARD.id()));
+        bay.addMech(MechBay.STARTER_SQUAD_ID, new CampaignMech(
+                "support_mech_03", "Sirocco 03", MechVariant.SIROCCO,
+                MechRole.LR_SUPPORT, MissileReplenisherComponent.ACCELERATED_FEED.id()));
+        bay.addReplenisher(MissileReplenisherComponent.ACCELERATED_FEED.id(), 1);
+        MechLabViewModel viewModel = new MechLabViewModel(reactor, bay);
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                context.modRoot().resolve(path)), MECH_LAB_COMPONENTS);
+        loader.reload();
+
+        try (MarkupInstance instance = loader.build(
+                reactor, "mech-lab", props(viewModel))) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            return renderRelative(renderer, document, width, height, uiScale);
+        }
+    }
+
     private static BufferedImage renderRelative(HeadlessUiRenderer renderer,
                                                 UiDocument document,
                                                 int width, int height,
@@ -216,12 +256,27 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     }
 
     private static void putArmoryPageNavigation(Map<String, Object> props) {
-        props.put("returnAction", (Runnable) () -> { });
-        props.put("hqAction", (Runnable) () -> { });
-        props.put("armoryAction", (Runnable) () -> { });
-        props.put("hqClasses", "");
-        props.put("hqDisabled", false);
-        props.put("armoryClasses", "selected page-nav-current");
-        props.put("armoryDisabled", false);
+        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.ARMORY,
+                () -> { }, () -> { }, () -> { }, () -> { });
+    }
+
+    private static Map<String, Object> props(MechLabViewModel viewModel) {
+        Map<String, Object> props = new LinkedHashMap<>();
+        props.put("labSummary", viewModel.labSummary());
+        props.put("squadRows", viewModel.squadRows());
+        props.put("mechRows", viewModel.mechRows());
+        props.put("selectedMechName", viewModel.selectedMechName());
+        props.put("selectedMechIdentity", viewModel.selectedMechIdentity());
+        props.put("selectedMechDoctrine", viewModel.selectedMechDoctrine());
+        props.put("specCards", viewModel.specCards());
+        props.put("mountRows", viewModel.mountRows());
+        props.put("installedSubsystem", viewModel.installedSubsystem());
+        props.put("installedCadence", viewModel.installedCadence());
+        props.put("inventoryRows", viewModel.inventoryRows());
+        props.put("feedbackText", viewModel.feedbackText());
+        props.put("feedbackClasses", viewModel.feedbackClasses());
+        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MECH_LAB,
+                () -> { }, () -> { }, () -> { }, () -> { });
+        return props;
     }
 }

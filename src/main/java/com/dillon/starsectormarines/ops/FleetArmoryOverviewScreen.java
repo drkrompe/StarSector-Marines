@@ -112,19 +112,18 @@ public final class FleetArmoryOverviewScreen implements Screen {
     }
 
     private void putPageNavigation(Map<String, Object> props) {
-        props.put("returnAction", dismissDialog);
-        props.put("hqAction", (Runnable) () -> context.goTo(ScreenId.COMPANY_HQ));
-        props.put("armoryAction", (Runnable) () -> { });
-        props.put("hqClasses", "");
-        props.put("hqDisabled", false);
-        props.put("armoryClasses", "selected page-nav-current");
-        props.put("armoryDisabled", false);
+        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.ARMORY,
+                dismissDialog,
+                () -> context.goTo(ScreenId.COMPANY_HQ),
+                () -> { },
+                () -> context.goTo(ScreenId.MECH_LAB));
     }
 
     private static void requireWiredElements(MarkupInstance component) {
         for (String id : List.of(
                 "fleet-armory-overview-root", "marine-ops-page-nav",
                 "page-nav-return", "page-nav-hq", "page-nav-armory",
+                "page-nav-mech-lab",
                 "company-overview-intro", "company-overview-summary",
                 "company-list")) {
             component.requireElement(id);
