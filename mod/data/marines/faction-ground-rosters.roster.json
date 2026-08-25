@@ -1,0 +1,358 @@
+{
+  "fallbackProfile": "roster.independent",
+  "profiles": [
+    {
+      "id": "roster.independent",
+      "factionIds": ["independent"],
+      "heavySupport": ["bulwark", "hound", "sirocco"],
+      "bulk": {
+        "unitType": "MILITIA",
+        "primaries": [
+          {"id": "weapon.field-rifle", "weight": 45},
+          {"id": "weapon.pulse-rifle", "weight": 25},
+          {"id": "weapon.smg", "weight": 20},
+          {"id": "weapon.dmr", "weight": 10}
+        ],
+        "gradesByRisk": {
+          "low": [{"id": "surplus", "weight": 70}, {"id": "service", "weight": 30}],
+          "medium": [{"id": "surplus", "weight": 45}, {"id": "service", "weight": 50}, {"id": "milspec", "weight": 5}],
+          "high": [{"id": "surplus", "weight": 25}, {"id": "service", "weight": 55}, {"id": "milspec", "weight": 18}, {"id": "masterwork", "weight": 2}]
+        },
+        "armorByRisk": {
+          "low": [{"id": "armor.field-fatigues", "weight": 25}, {"id": "armor.militia", "weight": 60}, {"id": "armor.combat", "weight": 15}],
+          "medium": [{"id": "armor.field-fatigues", "weight": 10}, {"id": "armor.militia", "weight": 60}, {"id": "armor.combat", "weight": 30}],
+          "high": [{"id": "armor.militia", "weight": 45}, {"id": "armor.combat", "weight": 45}, {"id": "armor.line", "weight": 10}]
+        },
+        "specialsByRisk": {
+          "low": [{"id": "none", "weight": 96}, {"id": "special.smoke-grenade", "weight": 4}],
+          "medium": [{"id": "none", "weight": 88}, {"id": "special.smoke-grenade", "weight": 8}, {"id": "special.rocket-launcher", "weight": 4}],
+          "high": [{"id": "none", "weight": 78}, {"id": "special.smoke-grenade", "weight": 12}, {"id": "special.rocket-launcher", "weight": 7}, {"id": "special.anti-materiel-rifle", "weight": 3}]
+        }
+      },
+      "elite": {
+        "unitType": "MARINE_RED",
+        "primaries": [
+          {"id": "weapon.pulse-rifle", "weight": 50},
+          {"id": "weapon.dmr", "weight": 30},
+          {"id": "weapon.smg", "weight": 20}
+        ],
+        "gradesByRisk": {
+          "low": [{"id": "surplus", "weight": 20}, {"id": "service", "weight": 70}, {"id": "milspec", "weight": 10}],
+          "medium": [{"id": "surplus", "weight": 5}, {"id": "service", "weight": 60}, {"id": "milspec", "weight": 32}, {"id": "masterwork", "weight": 3}],
+          "high": [{"id": "service", "weight": 35}, {"id": "milspec", "weight": 55}, {"id": "masterwork", "weight": 10}]
+        },
+        "armorByRisk": {
+          "low": [{"id": "armor.militia", "weight": 35}, {"id": "armor.combat", "weight": 55}, {"id": "armor.line", "weight": 10}],
+          "medium": [{"id": "armor.militia", "weight": 15}, {"id": "armor.combat", "weight": 60}, {"id": "armor.line", "weight": 25}],
+          "high": [{"id": "armor.combat", "weight": 55}, {"id": "armor.line", "weight": 30}, {"id": "armor.heavy", "weight": 15}]
+        },
+        "specialsByRisk": {
+          "low": [{"id": "none", "weight": 88}, {"id": "special.smoke-grenade", "weight": 8}, {"id": "special.rocket-launcher", "weight": 4}],
+          "medium": [{"id": "none", "weight": 72}, {"id": "special.smoke-grenade", "weight": 14}, {"id": "special.rocket-launcher", "weight": 9}, {"id": "special.anti-materiel-rifle", "weight": 5}],
+          "high": [{"id": "none", "weight": 55}, {"id": "special.smoke-grenade", "weight": 18}, {"id": "special.rocket-launcher", "weight": 15}, {"id": "special.anti-materiel-rifle", "weight": 12}]
+        }
+      }
+    },
+    {
+      "id": "roster.hegemony",
+      "factionIds": ["hegemony"],
+      "heavySupport": ["bulwark", "hound", "sirocco"],
+      "bulk": {
+        "unitType": "MILITIA",
+        "primaries": [{"id": "weapon.field-rifle", "weight": 55}, {"id": "weapon.pulse-rifle", "weight": 20}, {"id": "weapon.dmr", "weight": 20}, {"id": "weapon.smg", "weight": 5}],
+        "gradesByRisk": {
+          "low": [{"id": "surplus", "weight": 55}, {"id": "service", "weight": 45}],
+          "medium": [{"id": "surplus", "weight": 25}, {"id": "service", "weight": 65}, {"id": "milspec", "weight": 10}],
+          "high": [{"id": "surplus", "weight": 10}, {"id": "service", "weight": 55}, {"id": "milspec", "weight": 32}, {"id": "masterwork", "weight": 3}]
+        },
+        "armorByRisk": {
+          "low": [{"id": "armor.militia", "weight": 45}, {"id": "armor.line", "weight": 45}, {"id": "armor.combat", "weight": 10}],
+          "medium": [{"id": "armor.militia", "weight": 20}, {"id": "armor.line", "weight": 60}, {"id": "armor.combat", "weight": 20}],
+          "high": [{"id": "armor.line", "weight": 65}, {"id": "armor.combat", "weight": 25}, {"id": "armor.heavy", "weight": 10}]
+        },
+        "specialsByRisk": {
+          "low": [{"id": "none", "weight": 95}, {"id": "special.rocket-launcher", "weight": 5}],
+          "medium": [{"id": "none", "weight": 82}, {"id": "special.rocket-launcher", "weight": 12}, {"id": "special.smoke-grenade", "weight": 6}],
+          "high": [{"id": "none", "weight": 68}, {"id": "special.rocket-launcher", "weight": 20}, {"id": "special.anti-materiel-rifle", "weight": 8}, {"id": "special.smoke-grenade", "weight": 4}]
+        }
+      },
+      "elite": {
+        "unitType": "MARINE_RED",
+        "primaries": [{"id": "weapon.pulse-rifle", "weight": 45}, {"id": "weapon.dmr", "weight": 40}, {"id": "weapon.field-rifle", "weight": 10}, {"id": "weapon.smg", "weight": 5}],
+        "gradesByRisk": {
+          "low": [{"id": "service", "weight": 75}, {"id": "milspec", "weight": 25}],
+          "medium": [{"id": "service", "weight": 45}, {"id": "milspec", "weight": 50}, {"id": "masterwork", "weight": 5}],
+          "high": [{"id": "service", "weight": 20}, {"id": "milspec", "weight": 65}, {"id": "masterwork", "weight": 15}]
+        },
+        "armorByRisk": {
+          "low": [{"id": "armor.line", "weight": 55}, {"id": "armor.combat", "weight": 35}, {"id": "armor.heavy", "weight": 10}],
+          "medium": [{"id": "armor.line", "weight": 45}, {"id": "armor.combat", "weight": 30}, {"id": "armor.heavy", "weight": 25}],
+          "high": [{"id": "armor.line", "weight": 30}, {"id": "armor.combat", "weight": 25}, {"id": "armor.heavy", "weight": 45}]
+        },
+        "specialsByRisk": {
+          "low": [{"id": "none", "weight": 85}, {"id": "special.rocket-launcher", "weight": 10}, {"id": "special.smoke-grenade", "weight": 5}],
+          "medium": [{"id": "none", "weight": 62}, {"id": "special.rocket-launcher", "weight": 20}, {"id": "special.anti-materiel-rifle", "weight": 12}, {"id": "special.smoke-grenade", "weight": 6}],
+          "high": [{"id": "none", "weight": 42}, {"id": "special.rocket-launcher", "weight": 28}, {"id": "special.anti-materiel-rifle", "weight": 22}, {"id": "special.smoke-grenade", "weight": 8}]
+        }
+      }
+    },
+    {
+      "id": "roster.tritachyon",
+      "factionIds": ["tritachyon"],
+      "heavySupport": ["sirocco", "hound"],
+      "bulk": {
+        "unitType": "MILITIA",
+        "primaries": [{"id": "weapon.pulse-rifle", "weight": 50}, {"id": "weapon.dmr", "weight": 25}, {"id": "weapon.smg", "weight": 20}, {"id": "weapon.field-rifle", "weight": 5}],
+        "gradesByRisk": {
+          "low": [{"id": "surplus", "weight": 25}, {"id": "service", "weight": 65}, {"id": "milspec", "weight": 10}],
+          "medium": [{"id": "surplus", "weight": 10}, {"id": "service", "weight": 60}, {"id": "milspec", "weight": 28}, {"id": "masterwork", "weight": 2}],
+          "high": [{"id": "service", "weight": 45}, {"id": "milspec", "weight": 48}, {"id": "masterwork", "weight": 7}]
+        },
+        "armorByRisk": {
+          "low": [{"id": "armor.scout", "weight": 55}, {"id": "armor.combat", "weight": 35}, {"id": "armor.militia", "weight": 10}],
+          "medium": [{"id": "armor.scout", "weight": 50}, {"id": "armor.combat", "weight": 45}, {"id": "armor.heavy", "weight": 5}],
+          "high": [{"id": "armor.scout", "weight": 40}, {"id": "armor.combat", "weight": 45}, {"id": "armor.heavy", "weight": 15}]
+        },
+        "specialsByRisk": {
+          "low": [{"id": "none", "weight": 92}, {"id": "special.smoke-grenade", "weight": 8}],
+          "medium": [{"id": "none", "weight": 76}, {"id": "special.smoke-grenade", "weight": 15}, {"id": "special.anti-materiel-rifle", "weight": 9}],
+          "high": [{"id": "none", "weight": 60}, {"id": "special.smoke-grenade", "weight": 20}, {"id": "special.anti-materiel-rifle", "weight": 16}, {"id": "special.rocket-launcher", "weight": 4}]
+        }
+      },
+      "elite": {
+        "unitType": "MARINE_RED",
+        "primaries": [{"id": "weapon.pulse-rifle", "weight": 55}, {"id": "weapon.dmr", "weight": 35}, {"id": "weapon.smg", "weight": 10}],
+        "gradesByRisk": {
+          "low": [{"id": "service", "weight": 55}, {"id": "milspec", "weight": 40}, {"id": "masterwork", "weight": 5}],
+          "medium": [{"id": "service", "weight": 30}, {"id": "milspec", "weight": 60}, {"id": "masterwork", "weight": 10}],
+          "high": [{"id": "service", "weight": 10}, {"id": "milspec", "weight": 65}, {"id": "masterwork", "weight": 25}]
+        },
+        "armorByRisk": {
+          "low": [{"id": "armor.scout", "weight": 45}, {"id": "armor.combat", "weight": 45}, {"id": "armor.heavy", "weight": 10}],
+          "medium": [{"id": "armor.scout", "weight": 30}, {"id": "armor.combat", "weight": 45}, {"id": "armor.heavy", "weight": 25}],
+          "high": [{"id": "armor.scout", "weight": 20}, {"id": "armor.combat", "weight": 35}, {"id": "armor.heavy", "weight": 45}]
+        },
+        "specialsByRisk": {
+          "low": [{"id": "none", "weight": 82}, {"id": "special.smoke-grenade", "weight": 10}, {"id": "special.anti-materiel-rifle", "weight": 8}],
+          "medium": [{"id": "none", "weight": 58}, {"id": "special.smoke-grenade", "weight": 20}, {"id": "special.anti-materiel-rifle", "weight": 18}, {"id": "special.rocket-launcher", "weight": 4}],
+          "high": [{"id": "none", "weight": 38}, {"id": "special.smoke-grenade", "weight": 25}, {"id": "special.anti-materiel-rifle", "weight": 28}, {"id": "special.rocket-launcher", "weight": 9}]
+        }
+      }
+    },
+    {
+      "id": "roster.persean-league",
+      "factionIds": ["persean"],
+      "heavySupport": ["hound", "bulwark", "sirocco"],
+      "bulk": {
+        "unitType": "MILITIA",
+        "primaries": [{"id": "weapon.field-rifle", "weight": 35}, {"id": "weapon.pulse-rifle", "weight": 35}, {"id": "weapon.smg", "weight": 15}, {"id": "weapon.dmr", "weight": 15}],
+        "gradesByRisk": {
+          "low": [{"id": "surplus", "weight": 55}, {"id": "service", "weight": 45}],
+          "medium": [{"id": "surplus", "weight": 30}, {"id": "service", "weight": 60}, {"id": "milspec", "weight": 10}],
+          "high": [{"id": "surplus", "weight": 15}, {"id": "service", "weight": 55}, {"id": "milspec", "weight": 27}, {"id": "masterwork", "weight": 3}]
+        },
+        "armorByRisk": {
+          "low": [{"id": "armor.militia", "weight": 50}, {"id": "armor.scout", "weight": 30}, {"id": "armor.combat", "weight": 20}],
+          "medium": [{"id": "armor.militia", "weight": 30}, {"id": "armor.scout", "weight": 35}, {"id": "armor.combat", "weight": 35}],
+          "high": [{"id": "armor.militia", "weight": 15}, {"id": "armor.scout", "weight": 35}, {"id": "armor.combat", "weight": 40}, {"id": "armor.line", "weight": 10}]
+        },
+        "specialsByRisk": {
+          "low": [{"id": "none", "weight": 94}, {"id": "special.smoke-grenade", "weight": 6}],
+          "medium": [{"id": "none", "weight": 82}, {"id": "special.smoke-grenade", "weight": 11}, {"id": "special.rocket-launcher", "weight": 7}],
+          "high": [{"id": "none", "weight": 68}, {"id": "special.smoke-grenade", "weight": 16}, {"id": "special.rocket-launcher", "weight": 10}, {"id": "special.anti-materiel-rifle", "weight": 6}]
+        }
+      },
+      "elite": {
+        "unitType": "MARINE_RED",
+        "primaries": [{"id": "weapon.pulse-rifle", "weight": 45}, {"id": "weapon.dmr", "weight": 30}, {"id": "weapon.field-rifle", "weight": 15}, {"id": "weapon.smg", "weight": 10}],
+        "gradesByRisk": {
+          "low": [{"id": "surplus", "weight": 10}, {"id": "service", "weight": 75}, {"id": "milspec", "weight": 15}],
+          "medium": [{"id": "service", "weight": 55}, {"id": "milspec", "weight": 40}, {"id": "masterwork", "weight": 5}],
+          "high": [{"id": "service", "weight": 30}, {"id": "milspec", "weight": 58}, {"id": "masterwork", "weight": 12}]
+        },
+        "armorByRisk": {
+          "low": [{"id": "armor.scout", "weight": 35}, {"id": "armor.combat", "weight": 50}, {"id": "armor.line", "weight": 15}],
+          "medium": [{"id": "armor.scout", "weight": 25}, {"id": "armor.combat", "weight": 50}, {"id": "armor.line", "weight": 15}, {"id": "armor.heavy", "weight": 10}],
+          "high": [{"id": "armor.scout", "weight": 15}, {"id": "armor.combat", "weight": 40}, {"id": "armor.line", "weight": 20}, {"id": "armor.heavy", "weight": 25}]
+        },
+        "specialsByRisk": {
+          "low": [{"id": "none", "weight": 86}, {"id": "special.smoke-grenade", "weight": 9}, {"id": "special.rocket-launcher", "weight": 5}],
+          "medium": [{"id": "none", "weight": 65}, {"id": "special.smoke-grenade", "weight": 16}, {"id": "special.rocket-launcher", "weight": 12}, {"id": "special.anti-materiel-rifle", "weight": 7}],
+          "high": [{"id": "none", "weight": 46}, {"id": "special.smoke-grenade", "weight": 21}, {"id": "special.rocket-launcher", "weight": 18}, {"id": "special.anti-materiel-rifle", "weight": 15}]
+        }
+      }
+    },
+    {
+      "id": "roster.luddic-church",
+      "factionIds": ["luddic_church", "knights_of_ludd"],
+      "heavySupport": ["bulwark", "hound"],
+      "bulk": {
+        "unitType": "MILITIA",
+        "primaries": [{"id": "weapon.field-rifle", "weight": 65}, {"id": "weapon.dmr", "weight": 15}, {"id": "weapon.smg", "weight": 15}, {"id": "weapon.pulse-rifle", "weight": 5}],
+        "gradesByRisk": {
+          "low": [{"id": "surplus", "weight": 80}, {"id": "service", "weight": 20}],
+          "medium": [{"id": "surplus", "weight": 60}, {"id": "service", "weight": 38}, {"id": "milspec", "weight": 2}],
+          "high": [{"id": "surplus", "weight": 40}, {"id": "service", "weight": 50}, {"id": "milspec", "weight": 9}, {"id": "masterwork", "weight": 1}]
+        },
+        "armorByRisk": {
+          "low": [{"id": "armor.field-fatigues", "weight": 25}, {"id": "armor.militia", "weight": 60}, {"id": "armor.line", "weight": 15}],
+          "medium": [{"id": "armor.field-fatigues", "weight": 10}, {"id": "armor.militia", "weight": 65}, {"id": "armor.line", "weight": 25}],
+          "high": [{"id": "armor.militia", "weight": 55}, {"id": "armor.line", "weight": 35}, {"id": "armor.combat", "weight": 10}]
+        },
+        "specialsByRisk": {
+          "low": [{"id": "none", "weight": 96}, {"id": "special.satchel-charge", "weight": 4}],
+          "medium": [{"id": "none", "weight": 84}, {"id": "special.satchel-charge", "weight": 10}, {"id": "special.rocket-launcher", "weight": 6}],
+          "high": [{"id": "none", "weight": 70}, {"id": "special.satchel-charge", "weight": 16}, {"id": "special.rocket-launcher", "weight": 11}, {"id": "special.smoke-grenade", "weight": 3}]
+        }
+      },
+      "elite": {
+        "unitType": "MARINE_RED",
+        "primaries": [{"id": "weapon.field-rifle", "weight": 35}, {"id": "weapon.dmr", "weight": 30}, {"id": "weapon.pulse-rifle", "weight": 25}, {"id": "weapon.smg", "weight": 10}],
+        "gradesByRisk": {
+          "low": [{"id": "surplus", "weight": 25}, {"id": "service", "weight": 65}, {"id": "milspec", "weight": 10}],
+          "medium": [{"id": "surplus", "weight": 10}, {"id": "service", "weight": 60}, {"id": "milspec", "weight": 27}, {"id": "masterwork", "weight": 3}],
+          "high": [{"id": "service", "weight": 45}, {"id": "milspec", "weight": 45}, {"id": "masterwork", "weight": 10}]
+        },
+        "armorByRisk": {
+          "low": [{"id": "armor.militia", "weight": 35}, {"id": "armor.line", "weight": 50}, {"id": "armor.combat", "weight": 15}],
+          "medium": [{"id": "armor.militia", "weight": 20}, {"id": "armor.line", "weight": 55}, {"id": "armor.combat", "weight": 20}, {"id": "armor.heavy", "weight": 5}],
+          "high": [{"id": "armor.line", "weight": 45}, {"id": "armor.combat", "weight": 30}, {"id": "armor.heavy", "weight": 25}]
+        },
+        "specialsByRisk": {
+          "low": [{"id": "none", "weight": 86}, {"id": "special.satchel-charge", "weight": 8}, {"id": "special.rocket-launcher", "weight": 6}],
+          "medium": [{"id": "none", "weight": 64}, {"id": "special.satchel-charge", "weight": 16}, {"id": "special.rocket-launcher", "weight": 14}, {"id": "special.smoke-grenade", "weight": 6}],
+          "high": [{"id": "none", "weight": 44}, {"id": "special.satchel-charge", "weight": 24}, {"id": "special.rocket-launcher", "weight": 20}, {"id": "special.anti-materiel-rifle", "weight": 8}, {"id": "special.smoke-grenade", "weight": 4}]
+        }
+      }
+    },
+    {
+      "id": "roster.luddic-path",
+      "factionIds": ["luddic_path"],
+      "heavySupport": ["hound"],
+      "bulk": {
+        "unitType": "MILITIA",
+        "primaries": [{"id": "weapon.field-rifle", "weight": 45}, {"id": "weapon.smg", "weight": 35}, {"id": "weapon.dmr", "weight": 15}, {"id": "weapon.pulse-rifle", "weight": 5}],
+        "gradesByRisk": {
+          "low": [{"id": "surplus", "weight": 88}, {"id": "service", "weight": 12}],
+          "medium": [{"id": "surplus", "weight": 70}, {"id": "service", "weight": 28}, {"id": "milspec", "weight": 2}],
+          "high": [{"id": "surplus", "weight": 50}, {"id": "service", "weight": 42}, {"id": "milspec", "weight": 7}, {"id": "masterwork", "weight": 1}]
+        },
+        "armorByRisk": {
+          "low": [{"id": "armor.field-fatigues", "weight": 45}, {"id": "armor.outlaw", "weight": 40}, {"id": "armor.militia", "weight": 15}],
+          "medium": [{"id": "armor.field-fatigues", "weight": 25}, {"id": "armor.outlaw", "weight": 55}, {"id": "armor.militia", "weight": 20}],
+          "high": [{"id": "armor.field-fatigues", "weight": 10}, {"id": "armor.outlaw", "weight": 60}, {"id": "armor.militia", "weight": 25}, {"id": "armor.combat", "weight": 5}]
+        },
+        "specialsByRisk": {
+          "low": [{"id": "none", "weight": 90}, {"id": "special.satchel-charge", "weight": 10}],
+          "medium": [{"id": "none", "weight": 70}, {"id": "special.satchel-charge", "weight": 23}, {"id": "special.smoke-grenade", "weight": 7}],
+          "high": [{"id": "none", "weight": 48}, {"id": "special.satchel-charge", "weight": 36}, {"id": "special.smoke-grenade", "weight": 10}, {"id": "special.rocket-launcher", "weight": 6}]
+        }
+      },
+      "elite": {
+        "unitType": "MARINE_RED",
+        "primaries": [{"id": "weapon.smg", "weight": 40}, {"id": "weapon.field-rifle", "weight": 30}, {"id": "weapon.dmr", "weight": 20}, {"id": "weapon.pulse-rifle", "weight": 10}],
+        "gradesByRisk": {
+          "low": [{"id": "surplus", "weight": 55}, {"id": "service", "weight": 40}, {"id": "milspec", "weight": 5}],
+          "medium": [{"id": "surplus", "weight": 35}, {"id": "service", "weight": 55}, {"id": "milspec", "weight": 9}, {"id": "masterwork", "weight": 1}],
+          "high": [{"id": "surplus", "weight": 20}, {"id": "service", "weight": 55}, {"id": "milspec", "weight": 22}, {"id": "masterwork", "weight": 3}]
+        },
+        "armorByRisk": {
+          "low": [{"id": "armor.outlaw", "weight": 65}, {"id": "armor.militia", "weight": 25}, {"id": "armor.combat", "weight": 10}],
+          "medium": [{"id": "armor.outlaw", "weight": 60}, {"id": "armor.militia", "weight": 20}, {"id": "armor.combat", "weight": 20}],
+          "high": [{"id": "armor.outlaw", "weight": 50}, {"id": "armor.combat", "weight": 30}, {"id": "armor.heavy", "weight": 20}]
+        },
+        "specialsByRisk": {
+          "low": [{"id": "none", "weight": 78}, {"id": "special.satchel-charge", "weight": 18}, {"id": "special.smoke-grenade", "weight": 4}],
+          "medium": [{"id": "none", "weight": 52}, {"id": "special.satchel-charge", "weight": 30}, {"id": "special.smoke-grenade", "weight": 10}, {"id": "special.rocket-launcher", "weight": 8}],
+          "high": [{"id": "none", "weight": 30}, {"id": "special.satchel-charge", "weight": 42}, {"id": "special.smoke-grenade", "weight": 14}, {"id": "special.rocket-launcher", "weight": 10}, {"id": "special.anti-materiel-rifle", "weight": 4}]
+        }
+      }
+    },
+    {
+      "id": "roster.sindrian-diktat",
+      "factionIds": ["diktat"],
+      "heavySupport": ["bulwark", "sirocco", "hound"],
+      "bulk": {
+        "unitType": "MILITIA",
+        "primaries": [{"id": "weapon.field-rifle", "weight": 40}, {"id": "weapon.pulse-rifle", "weight": 30}, {"id": "weapon.dmr", "weight": 20}, {"id": "weapon.smg", "weight": 10}],
+        "gradesByRisk": {
+          "low": [{"id": "surplus", "weight": 60}, {"id": "service", "weight": 40}],
+          "medium": [{"id": "surplus", "weight": 30}, {"id": "service", "weight": 60}, {"id": "milspec", "weight": 10}],
+          "high": [{"id": "surplus", "weight": 15}, {"id": "service", "weight": 55}, {"id": "milspec", "weight": 27}, {"id": "masterwork", "weight": 3}]
+        },
+        "armorByRisk": {
+          "low": [{"id": "armor.militia", "weight": 40}, {"id": "armor.line", "weight": 45}, {"id": "armor.combat", "weight": 15}],
+          "medium": [{"id": "armor.militia", "weight": 20}, {"id": "armor.line", "weight": 50}, {"id": "armor.combat", "weight": 25}, {"id": "armor.heavy", "weight": 5}],
+          "high": [{"id": "armor.line", "weight": 45}, {"id": "armor.combat", "weight": 30}, {"id": "armor.heavy", "weight": 25}]
+        },
+        "specialsByRisk": {
+          "low": [{"id": "none", "weight": 94}, {"id": "special.rocket-launcher", "weight": 6}],
+          "medium": [{"id": "none", "weight": 80}, {"id": "special.rocket-launcher", "weight": 13}, {"id": "special.smoke-grenade", "weight": 7}],
+          "high": [{"id": "none", "weight": 64}, {"id": "special.rocket-launcher", "weight": 20}, {"id": "special.anti-materiel-rifle", "weight": 10}, {"id": "special.smoke-grenade", "weight": 6}]
+        }
+      },
+      "elite": {
+        "unitType": "MARINE_RED",
+        "primaries": [{"id": "weapon.pulse-rifle", "weight": 45}, {"id": "weapon.dmr", "weight": 35}, {"id": "weapon.field-rifle", "weight": 15}, {"id": "weapon.smg", "weight": 5}],
+        "gradesByRisk": {
+          "low": [{"id": "service", "weight": 75}, {"id": "milspec", "weight": 25}],
+          "medium": [{"id": "service", "weight": 45}, {"id": "milspec", "weight": 50}, {"id": "masterwork", "weight": 5}],
+          "high": [{"id": "service", "weight": 20}, {"id": "milspec", "weight": 65}, {"id": "masterwork", "weight": 15}]
+        },
+        "armorByRisk": {
+          "low": [{"id": "armor.line", "weight": 45}, {"id": "armor.combat", "weight": 35}, {"id": "armor.heavy", "weight": 20}],
+          "medium": [{"id": "armor.line", "weight": 30}, {"id": "armor.combat", "weight": 30}, {"id": "armor.heavy", "weight": 40}],
+          "high": [{"id": "armor.line", "weight": 20}, {"id": "armor.combat", "weight": 20}, {"id": "armor.heavy", "weight": 60}]
+        },
+        "specialsByRisk": {
+          "low": [{"id": "none", "weight": 84}, {"id": "special.rocket-launcher", "weight": 11}, {"id": "special.smoke-grenade", "weight": 5}],
+          "medium": [{"id": "none", "weight": 60}, {"id": "special.rocket-launcher", "weight": 22}, {"id": "special.anti-materiel-rifle", "weight": 12}, {"id": "special.smoke-grenade", "weight": 6}],
+          "high": [{"id": "none", "weight": 40}, {"id": "special.rocket-launcher", "weight": 30}, {"id": "special.anti-materiel-rifle", "weight": 22}, {"id": "special.smoke-grenade", "weight": 8}]
+        }
+      }
+    },
+    {
+      "id": "roster.pirates",
+      "factionIds": ["pirates"],
+      "heavySupport": ["hound", "sirocco"],
+      "bulk": {
+        "unitType": "MILITIA",
+        "primaries": [{"id": "weapon.smg", "weight": 40}, {"id": "weapon.field-rifle", "weight": 35}, {"id": "weapon.pulse-rifle", "weight": 15}, {"id": "weapon.dmr", "weight": 10}],
+        "gradesByRisk": {
+          "low": [{"id": "surplus", "weight": 85}, {"id": "service", "weight": 15}],
+          "medium": [{"id": "surplus", "weight": 65}, {"id": "service", "weight": 32}, {"id": "milspec", "weight": 3}],
+          "high": [{"id": "surplus", "weight": 45}, {"id": "service", "weight": 45}, {"id": "milspec", "weight": 9}, {"id": "masterwork", "weight": 1}]
+        },
+        "armorByRisk": {
+          "low": [{"id": "armor.field-fatigues", "weight": 40}, {"id": "armor.outlaw", "weight": 45}, {"id": "armor.militia", "weight": 15}],
+          "medium": [{"id": "armor.field-fatigues", "weight": 20}, {"id": "armor.outlaw", "weight": 60}, {"id": "armor.militia", "weight": 20}],
+          "high": [{"id": "armor.field-fatigues", "weight": 10}, {"id": "armor.outlaw", "weight": 60}, {"id": "armor.militia", "weight": 20}, {"id": "armor.combat", "weight": 10}]
+        },
+        "specialsByRisk": {
+          "low": [{"id": "none", "weight": 94}, {"id": "special.satchel-charge", "weight": 6}],
+          "medium": [{"id": "none", "weight": 78}, {"id": "special.satchel-charge", "weight": 12}, {"id": "special.rocket-launcher", "weight": 7}, {"id": "special.smoke-grenade", "weight": 3}],
+          "high": [{"id": "none", "weight": 62}, {"id": "special.satchel-charge", "weight": 18}, {"id": "special.rocket-launcher", "weight": 13}, {"id": "special.smoke-grenade", "weight": 7}]
+        }
+      },
+      "elite": {
+        "unitType": "MARINE_RED",
+        "primaries": [{"id": "weapon.smg", "weight": 35}, {"id": "weapon.pulse-rifle", "weight": 30}, {"id": "weapon.dmr", "weight": 20}, {"id": "weapon.field-rifle", "weight": 15}],
+        "gradesByRisk": {
+          "low": [{"id": "surplus", "weight": 50}, {"id": "service", "weight": 45}, {"id": "milspec", "weight": 5}],
+          "medium": [{"id": "surplus", "weight": 25}, {"id": "service", "weight": 60}, {"id": "milspec", "weight": 14}, {"id": "masterwork", "weight": 1}],
+          "high": [{"id": "surplus", "weight": 10}, {"id": "service", "weight": 55}, {"id": "milspec", "weight": 31}, {"id": "masterwork", "weight": 4}]
+        },
+        "armorByRisk": {
+          "low": [{"id": "armor.outlaw", "weight": 65}, {"id": "armor.militia", "weight": 25}, {"id": "armor.combat", "weight": 10}],
+          "medium": [{"id": "armor.outlaw", "weight": 55}, {"id": "armor.militia", "weight": 15}, {"id": "armor.combat", "weight": 25}, {"id": "armor.heavy", "weight": 5}],
+          "high": [{"id": "armor.outlaw", "weight": 45}, {"id": "armor.combat", "weight": 30}, {"id": "armor.heavy", "weight": 25}]
+        },
+        "specialsByRisk": {
+          "low": [{"id": "none", "weight": 84}, {"id": "special.satchel-charge", "weight": 8}, {"id": "special.rocket-launcher", "weight": 8}],
+          "medium": [{"id": "none", "weight": 60}, {"id": "special.satchel-charge", "weight": 15}, {"id": "special.rocket-launcher", "weight": 15}, {"id": "special.smoke-grenade", "weight": 6}, {"id": "special.anti-materiel-rifle", "weight": 4}],
+          "high": [{"id": "none", "weight": 40}, {"id": "special.satchel-charge", "weight": 20}, {"id": "special.rocket-launcher", "weight": 20}, {"id": "special.smoke-grenade", "weight": 10}, {"id": "special.anti-materiel-rifle", "weight": 10}]
+        }
+      }
+    }
+  ]
+}

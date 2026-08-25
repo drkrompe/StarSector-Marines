@@ -20,15 +20,11 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleKind;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
-import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
-import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 
@@ -314,6 +310,8 @@ public final class BattleSetup {
                                                   TargetProfile profile,
                                                   FlybyRoster marineFighterSupport,
                                                   FlybyRoster enemyFighterSupport) {
+        GroundRosterProfile groundRoster = GroundRosterRegistry.resolve(
+                profile != null ? profile.factionId() : "");
         MapScale scale = MapScale.forTier(tier);
         MapResult map = MAP_GEN.generate(scale.width, scale.height, seed, null, profile);
         Random rng = new Random(seed);
@@ -331,12 +329,13 @@ public final class BattleSetup {
         DefenderForcePlan defenders = defenderForcePlan(
                 MissionType.SABOTAGE, tier, risk, enemyHasHeavyArmor,
                 assignments, defensePosts, marineFighterSupport,
-                enemyFighterSupport);
+                enemyFighterSupport, groundRoster);
         List<LandingPad> lzCells = LandingPadSelector.select(
                 map, assignments.size(), LZ_MIN_SEPARATION);
         List<ParkedAircraft> parkedAircraft = stampParkedAircraft(map, lzCells, rng);
         BattleSimulation sim = buildMap(
                 map, vehiclePlacements, defenders.defensePosts(), parkedAircraft, seed).sim();
+        sim.setGroundRoster(groundRoster);
         sim.setFlybyRoster(defenders.enemyFighterSupport());
 
         // Pick charge sites: prefer high-value POIs (lab/comms/depot) in the
@@ -388,7 +387,7 @@ public final class BattleSetup {
             equipDefaultTurrets(sim, shuttleId);
         }
 
-        allocateDefenders(sim, map, defenders.roster(), rng);
+        allocateDefenders(sim, map, defenders.roster(), groundRoster, rng);
         spawnAmbientCivilians(sim, map, rng);
         spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
         // Marine commander: routes non-planter squads toward the closest
@@ -396,7 +395,7 @@ public final class BattleSetup {
         // planter has died) spread across the multi-site map instead of
         // dogpiling the nearest fight.
         sim.setCommander(Faction.MARINE, new SabotageCommand());
-        installReinforcementLayer(sim, map, null);
+        installReinforcementLayer(sim, map, null, groundRoster, risk);
         return sim;
     }
 
@@ -564,6 +563,8 @@ public final class BattleSetup {
                                                      MissionType type, TargetProfile profile,
                                                      FlybyRoster marineFighterSupport,
                                                      FlybyRoster enemyFighterSupport) {
+        GroundRosterProfile groundRoster = GroundRosterRegistry.resolve(
+                profile != null ? profile.factionId() : "");
         MapScale scale = MapScale.forTier(tier);
         MapResult map = MAP_GEN.generate(scale.width, scale.height, seed, null, profile);
         Random rng = new Random(seed);
@@ -575,12 +576,13 @@ public final class BattleSetup {
                 map.pointsOfInterest, map.doodads, defensePosts, rng);
         DefenderForcePlan defenders = defenderForcePlan(
                 type, tier, risk, enemyHasHeavyArmor, assignments, defensePosts,
-                marineFighterSupport, enemyFighterSupport);
+                marineFighterSupport, enemyFighterSupport, groundRoster);
         List<LandingPad> lzCells = LandingPadSelector.select(
                 map, assignments.size(), LZ_MIN_SEPARATION);
         List<ParkedAircraft> parkedAircraft = stampParkedAircraft(map, lzCells, rng);
         BattleSimulation sim = buildMap(
                 map, vehiclePlacements, defenders.defensePosts(), parkedAircraft, seed).sim();
+        sim.setGroundRoster(groundRoster);
         sim.setFlybyRoster(defenders.enemyFighterSupport());
 
         // Default ASSAULT objectives — eliminate the other side. Mission-specific
@@ -621,10 +623,10 @@ public final class BattleSetup {
         // pegged to the highest-priority posts; leftovers form patrol squads).
         // Legacy maps with no tactical layer fall back to the single-cluster
         // spawn around the defender anchor.
-        allocateDefenders(sim, map, defenders.roster(), rng);
+        allocateDefenders(sim, map, defenders.roster(), groundRoster, rng);
         spawnAmbientCivilians(sim, map, rng);
         spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
-        installReinforcementLayer(sim, map, null);
+        installReinforcementLayer(sim, map, null, groundRoster, risk);
         if (type == MissionType.ASSAULT) {
             sim.setCommander(Faction.MARINE, new AssaultCommand());
         }
@@ -989,6 +991,8 @@ public final class BattleSetup {
                                                TargetProfile profile,
                                                FlybyRoster marineFighterSupport,
                                                FlybyRoster enemyFighterSupport) {
+        GroundRosterProfile groundRoster = GroundRosterRegistry.resolve(
+                profile != null ? profile.factionId() : "");
         int gridW = CONQUEST_GRID_W;
         int gridH = CONQUEST_GRID_H;
         Random rng = new Random(seed);
@@ -1005,7 +1009,7 @@ public final class BattleSetup {
         DefenderForcePlan defenders = defenderForcePlan(
                 MissionType.CONQUEST, tier, risk, enemyHasHeavyArmor,
                 assignments, map.defensePosts, marineFighterSupport,
-                enemyFighterSupport);
+                enemyFighterSupport, groundRoster);
         // Conquest defense posts come pre-stamped by the biome-aware
         // DefensePostStamper inside BspCityGenerator (BEACH→PORT→kill-zone
         // tiers + rear ARTILLERY battery), so buildMap consumes map.defensePosts
@@ -1015,6 +1019,7 @@ public final class BattleSetup {
         // {@code DefensePostStamper.stampNonConquest}.
         MapBuild build = buildMap(map, vehiclePlacements, defenders.defensePosts(), seed);
         BattleSimulation sim = build.sim();
+        sim.setGroundRoster(groundRoster);
         sim.setFlybyRoster(defenders.enemyFighterSupport());
 
         // Conquest win condition: marines dismantle defender supply
@@ -1058,7 +1063,7 @@ public final class BattleSetup {
             equipDefaultTurrets(sim, shuttleId);
         }
 
-        allocateDefenders(sim, map, defenders.roster(), rng);
+        allocateDefenders(sim, map, defenders.roster(), groundRoster, rng);
         linkGuardpostSquads(sim, defenders.defensePosts());
         claimConquestSetupGarrisons(sim);
         spawnAmbientCivilians(sim, map, rng);
@@ -1071,7 +1076,7 @@ public final class BattleSetup {
         defenderCommand.captureStartingForce(sim);
         sim.setCommander(Faction.DEFENDER, defenderCommand);
         sim.setGarrisonSystem(new CompoundGarrisonSystem(axis));
-        installReinforcementLayer(sim, map, axis);
+        installReinforcementLayer(sim, map, axis, groundRoster, risk);
         return new MapBuild(sim, build.structures());
     }
 
@@ -1091,16 +1096,8 @@ public final class BattleSetup {
     private static DefenderForcePlan defenderForcePlan(
             MissionType type, OperationTier tier, RiskLevel risk,
             boolean enemyHasHeavyArmor, List<ShuttleAssignment> assignments,
-            List<DefensePost> defensePosts) {
-        return defenderForcePlan(type, tier, risk, enemyHasHeavyArmor,
-                assignments, defensePosts, FlybyRoster.EMPTY, FlybyRoster.EMPTY);
-    }
-
-    private static DefenderForcePlan defenderForcePlan(
-            MissionType type, OperationTier tier, RiskLevel risk,
-            boolean enemyHasHeavyArmor, List<ShuttleAssignment> assignments,
             List<DefensePost> defensePosts, FlybyRoster marineFighterSupport,
-            FlybyRoster enemyFighterSupport) {
+            FlybyRoster enemyFighterSupport, GroundRosterProfile groundRoster) {
         // Conquest is an authored late-game set piece, not an encounter that
         // softens itself to match the committed detachment. Its population,
         // mech groups, fighter wings, and fortifications all survive intact
@@ -1109,7 +1106,7 @@ public final class BattleSetup {
                 ? Float.POSITIVE_INFINITY
                 : BattleForceScore.attackers(assignments, marineFighterSupport);
         DefenderRoster roster = DefenderRoster.forMission(
-                type, tier, risk, enemyHasHeavyArmor, attackerScore);
+                type, tier, risk, enemyHasHeavyArmor, attackerScore, groundRoster);
         FlybyRoster affordableFighters = BattleForceScore.affordableFighterSupport(
                 enemyFighterSupport, roster, attackerScore);
         List<DefensePost> affordablePosts = BattleForceScore.affordableDefensePosts(
@@ -1196,7 +1193,10 @@ public final class BattleSetup {
      *             where there's no defender/attacker rear edge — walk-in
      *             falls back to a stable default edge.
      */
-    private static void installReinforcementLayer(BattleSimulation sim, MapResult map, TraversalAxis axis) {
+    private static void installReinforcementLayer(BattleSimulation sim, MapResult map,
+                                                  TraversalAxis axis,
+                                                  GroundRosterProfile groundRoster,
+                                                  RiskLevel risk) {
         ReinforcementService rs = sim.getReinforcementService();
         if (map.biomeMap != null && map.tacticalMap != null && map.tacticalMap.size() > 0) {
             RecaptureTargetService recaptureTargets = new RecaptureTargetService(map.tacticalMap, map.biomeMap);
@@ -1208,9 +1208,9 @@ public final class BattleSetup {
             rs.addTrigger(new GarrisonDepletedTrigger());
         }
         rs.addTrigger(new ObjectiveLostTrigger());
-        rs.addMeans(new ConvoyMeans(map.roadGraph, axis));
-        rs.addMeans(new ShuttleMeans(axis));
-        rs.addMeans(new WalkInMeans(axis));
+        rs.addMeans(new ConvoyMeans(map.roadGraph, axis, groundRoster, risk));
+        rs.addMeans(new ShuttleMeans(axis, groundRoster, risk));
+        rs.addMeans(new WalkInMeans(axis, groundRoster, risk));
     }
 
     /**
@@ -1667,14 +1667,16 @@ public final class BattleSetup {
      * tactical layer of their own.
      */
     private static void allocateDefenders(BattleSimulation sim, MapResult map,
-                                          DefenderRoster roster, Random rng) {
+                                          DefenderRoster roster,
+                                          GroundRosterProfile groundRoster,
+                                          Random rng) {
         TacticalMap tactical = map.tacticalMap;
         List<TacticalNode> defenderNodes = (tactical != null)
                 ? new ArrayList<>(tactical.forFaction(Faction.DEFENDER))
                 : Collections.emptyList();
         if (defenderNodes.isEmpty()) {
             List<int[]> cells = pickDefensiveCluster(map.grid, map.defenderSpawnX, map.defenderSpawnY, roster.totalCount);
-            spawnLegacyDefenderCluster(sim, cells, roster, rng);
+            spawnLegacyDefenderCluster(sim, cells, roster, groundRoster, rng);
             return;
         }
         // Highest priority first — these get garrisons; the rest become patrol anchors.
@@ -1687,14 +1689,15 @@ public final class BattleSetup {
         // mech-screened advance) is the integration point instead. Mechs
         // drain first into the highest-priority slots; once exhausted,
         // infantry fills the rest.
-        FactionUnitRoster defRoster = FactionUnitRoster.forFaction(Faction.DEFENDER);
-        UnitType mechType = defRoster.mech();
-        UnitType eliteType = defRoster.elite();
-        UnitType infantryType = defRoster.infantry();
+        UnitType mechType = UnitType.HEAVY_MECH;
         Deque<MechVariant> mechQueue = new ArrayDeque<>(roster.mechVariants);
-        Deque<UnitType> infQueue = new ArrayDeque<>();
-        for (int i = 0; i < roster.eliteCount; i++) infQueue.add(eliteType);
-        for (int i = 0; i < roster.militiaCount; i++) infQueue.add(infantryType);
+        Deque<GroundRosterProfile.ForceTier> infQueue = new ArrayDeque<>();
+        for (int i = 0; i < roster.eliteCount; i++) {
+            infQueue.add(GroundRosterProfile.ForceTier.ELITE);
+        }
+        for (int i = 0; i < roster.militiaCount; i++) {
+            infQueue.add(GroundRosterProfile.ForceTier.BULK);
+        }
 
         int defenderIdx = 0;
         List<TacticalNode> patrolAnchors = new ArrayList<>();
@@ -1715,9 +1718,10 @@ public final class BattleSetup {
             for (int[] cell : cells) {
                 if ((spawningMechs ? mechQueue : infQueue).isEmpty()) break;
                 MechVariant mechVariant = spawningMechs ? mechQueue.poll() : null;
-                UnitType type = mechVariant != null ? mechType : infQueue.poll();
+                GroundRosterProfile.ForceTier forceTier = mechVariant == null ? infQueue.poll() : null;
+                UnitType type = mechVariant != null ? mechType : groundRoster.unitType(forceTier);
                 EntitySpec unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1],
-                        roster.risk, rng, mechVariant);
+                        roster.risk, groundRoster, forceTier, rng, mechVariant);
                 unit.role(UnitRole.GARRISON);
                 unit.home(cell[0], cell[1]);
                 if (squad == null) {
@@ -1772,9 +1776,10 @@ public final class BattleSetup {
             for (int[] cell : cells) {
                 if ((spawningMechs ? mechQueue : infQueue).isEmpty()) break;
                 MechVariant mechVariant = spawningMechs ? mechQueue.poll() : null;
-                UnitType type = mechVariant != null ? mechType : infQueue.poll();
+                GroundRosterProfile.ForceTier forceTier = mechVariant == null ? infQueue.poll() : null;
+                UnitType type = mechVariant != null ? mechType : groundRoster.unitType(forceTier);
                 EntitySpec unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1],
-                        roster.risk, rng, mechVariant);
+                        roster.risk, groundRoster, forceTier, rng, mechVariant);
                 unit.role(UnitRole.PATROL);
                 if (squad == null) {
                     int sid = sim.mintSquad(Faction.DEFENDER, type);
@@ -1805,16 +1810,21 @@ public final class BattleSetup {
      * defenders cluster into the first squad rather than scattering.
      */
     private static void spawnLegacyDefenderCluster(BattleSimulation sim, List<int[]> cells,
-                                                   DefenderRoster roster, Random rng) {
+                                                   DefenderRoster roster,
+                                                   GroundRosterProfile groundRoster,
+                                                   Random rng) {
         // Same mech-vs-infantry split as allocateDefenders — each squad
         // drains from a single source queue so mechs and infantry never
         // share membership.
-        FactionUnitRoster defRoster = FactionUnitRoster.forFaction(Faction.DEFENDER);
-        UnitType mechType = defRoster.mech();
+        UnitType mechType = UnitType.HEAVY_MECH;
         Deque<MechVariant> mechQueue = new ArrayDeque<>(roster.mechVariants);
-        Deque<UnitType> infQueue = new ArrayDeque<>();
-        for (int i = 0; i < roster.eliteCount; i++)   infQueue.add(defRoster.elite());
-        for (int i = 0; i < roster.militiaCount; i++) infQueue.add(defRoster.infantry());
+        Deque<GroundRosterProfile.ForceTier> infQueue = new ArrayDeque<>();
+        for (int i = 0; i < roster.eliteCount; i++) {
+            infQueue.add(GroundRosterProfile.ForceTier.ELITE);
+        }
+        for (int i = 0; i < roster.militiaCount; i++) {
+            infQueue.add(GroundRosterProfile.ForceTier.BULK);
+        }
 
         int defenderIdx = 0;
         int cellIdx = 0;
@@ -1828,9 +1838,10 @@ public final class BattleSetup {
             for (int s = 0; s < squadSize; s++) {
                 int[] cell = cells.get(cellIdx++);
                 MechVariant mechVariant = spawningMechs ? mechQueue.poll() : null;
-                UnitType type = mechVariant != null ? mechType : infQueue.poll();
+                GroundRosterProfile.ForceTier forceTier = mechVariant == null ? infQueue.poll() : null;
+                UnitType type = mechVariant != null ? mechType : groundRoster.unitType(forceTier);
                 EntitySpec unit = makeDefender("d" + defenderIdx++, type, cell[0], cell[1],
-                        roster.risk, rng, mechVariant);
+                        roster.risk, groundRoster, forceTier, rng, mechVariant);
                 unit.role(UnitRole.PATROL);
                 if (squad == null) {
                     int sid = sim.mintSquad(Faction.DEFENDER, type);
@@ -1852,14 +1863,15 @@ public final class BattleSetup {
      * see {@link #attachMechLoadout} — because the loadout store is keyed by the
      * entity id, which isn't assigned until {@code addUnit}. */
     private static EntitySpec makeDefender(String id, UnitType type, int x, int y,
-                                           RiskLevel risk, Random rng, MechVariant mechVariant) {
+                                           RiskLevel risk, GroundRosterProfile groundRoster,
+                                           GroundRosterProfile.ForceTier forceTier,
+                                           Random rng, MechVariant mechVariant) {
         EntitySpec unit = new EntitySpec(id, Faction.DEFENDER, type, x, y);
         if (mechVariant != null) return mechVariant.applyTo(unit);
         if (!type.drawnAsLayers()) return unit;
-        MarineWeapon family = InfantryLoadoutRolls.defenderPrimary(type, rng);
-        EquipmentGrade grade = InfantryLoadoutRolls.defenderEquipmentGrade(type, risk, rng);
-        SoldierProfile profile = InfantryLoadoutRolls.defenderProfile(type, risk, rng);
-        return unit.primaryWeapon(family, grade, profile);
+        InfantryLoadoutRolls.defenderLoadout(
+                groundRoster, forceTier, risk, rng).seedInto(unit);
+        return unit;
     }
 
     /**

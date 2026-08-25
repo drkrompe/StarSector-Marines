@@ -131,6 +131,8 @@ target-market read; `target-profile-defense-authority-cleanup.md` owns removal
 of the current duplicate market-derived seam.
 
 Per-function weights and new economic district types remain economic-district
-content rather than bridge policy. Faction-specific cosmetics or rosters,
-morale from stability, and campaign outcomes require a consumer that names its
-authority and preserves these boundary laws.
+content rather than bridge policy. `BattleSetup` now consumes the profile's
+plain faction id once to resolve a battle-frozen ground roster; the roster
+registry owns that interpretation and never reaches back into the campaign API.
+Faction-specific cosmetics, morale from stability, and campaign outcomes still
+require consumers that name their authority and preserve these boundary laws.

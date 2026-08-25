@@ -10,6 +10,9 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
+import com.dillon.starsectormarines.battle.setup.InfantryLoadoutRolls;
+import com.dillon.starsectormarines.ops.RiskLevel;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 
@@ -56,9 +59,17 @@ public final class ShuttleMeans implements ReinforcementMeans {
     private static final ShuttleType DEFAULT_TYPE = ShuttleType.AEROSHUTTLE;
 
     private final TraversalAxis axis;
+    private final GroundRosterProfile groundRoster;
+    private final RiskLevel risk;
 
     public ShuttleMeans(TraversalAxis axis) {
+        this(axis, null, RiskLevel.LOW);
+    }
+
+    public ShuttleMeans(TraversalAxis axis, GroundRosterProfile groundRoster, RiskLevel risk) {
         this.axis = axis;
+        this.groundRoster = groundRoster;
+        this.risk = risk != null ? risk : RiskLevel.LOW;
     }
 
     @Override
@@ -110,10 +121,14 @@ public final class ShuttleMeans implements ReinforcementMeans {
         // narrative of "expensive air-drop = stiffening delivery"). Default
         // player shuttles leave deboardUnitType null and get the bulk
         // infantry slot — see reinforcement-nouns.md.
-        mission.deboardUnitType = FactionUnitRoster.forFaction(req.side).elite();
-        // No marineLoadout / no turret kit — AirSystem deboards plain COMBATANT
-        // units and the null assignedRole skips HOVER_STATION (shuttle drops,
-        // unloads, and leaves immediately).
+        mission.deboardUnitType = groundRoster != null
+                ? groundRoster.unitType(GroundRosterProfile.ForceTier.ELITE)
+                : FactionUnitRoster.forFaction(req.side).elite();
+        if (groundRoster != null) {
+            mission.marineLoadout = InfantryLoadoutRolls.defenderSquad(
+                    DEFAULT_TYPE.capacity, groundRoster,
+                    GroundRosterProfile.ForceTier.ELITE, risk, sim.random());
+        }
         LOG.info("ShuttleMeans: dispatched " + DEFAULT_TYPE + " side=" + req.side
                 + " lz=(" + lz[0] + "," + lz[1] + ") entry=(" + entry[0] + "," + entry[1] + ")");
     }
