@@ -70,13 +70,24 @@ public record ConquestFrontSnapshot(
             AssignmentKind assignmentKind,
             int targetZoneId,
             int targetCellX,
-            int targetCellY) {
+            int targetCellY,
+            int markerCellX,
+            int markerCellY) {
 
         public SquadDirective(int squadId, int preferredTrack,
                               int effectiveTrack, AssignmentReason reason,
                               AssignmentKind assignmentKind, int targetZoneId) {
             this(squadId, preferredTrack, effectiveTrack, reason,
-                    assignmentKind, targetZoneId, -1, -1);
+                    assignmentKind, targetZoneId, -1, -1, -1, -1);
+        }
+
+        public SquadDirective(int squadId, int preferredTrack,
+                              int effectiveTrack, AssignmentReason reason,
+                              AssignmentKind assignmentKind, int targetZoneId,
+                              int targetCellX, int targetCellY) {
+            this(squadId, preferredTrack, effectiveTrack, reason,
+                    assignmentKind, targetZoneId, targetCellX, targetCellY,
+                    targetCellX, targetCellY);
         }
     }
 
@@ -132,12 +143,21 @@ public record ConquestFrontSnapshot(
             ObjectiveAssignment assignment = result.assignment();
             AssignmentReason effectiveReason = AssignmentReason.valueOf(
                     result.reason());
+            int targetCellX = assignment != null
+                    ? assignment.targetCellX() : -1;
+            int targetCellY = assignment != null
+                    ? assignment.targetCellY() : -1;
+            int markerCellX = targetCellX;
+            int markerCellY = targetCellY;
+            if (markerCellX < 0 && previous != null) {
+                markerCellX = previous.markerCellX();
+                markerCellY = previous.markerCellY();
+            }
             reconciled.add(new SquadDirective(planned.squadId(), preferred,
                     effective, effectiveReason,
                     assignment != null ? assignment.kind() : null,
                     assignment != null ? assignment.targetZoneId() : -1,
-                    assignment != null ? assignment.targetCellX() : -1,
-                    assignment != null ? assignment.targetCellY() : -1));
+                    targetCellX, targetCellY, markerCellX, markerCellY));
         }
         return new ConquestFrontSnapshot(tick, influenceTick, perspective,
                 axis, phase, remainingCompounds, keepZoneId, keepState,

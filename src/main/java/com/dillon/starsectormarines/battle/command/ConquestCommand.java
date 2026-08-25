@@ -140,6 +140,9 @@ public final class ConquestCommand implements ConquestFrontCommand,
     private float[] zoneLateralCoord;
     private float[] zoneCentroidX;
     private float[] zoneCentroidY;
+    /** Walkable representative cells for debug/action explanation markers. */
+    private int[] zoneMarkerX;
+    private int[] zoneMarkerY;
     /** Sticky squad → strip-index assignment. First observation by centroid lateral coord wins; survives squad death-and-respawn since squad ids are monotonic. Sentinel-default {@code -1} stands in for "no assignment yet." */
     private final Int2IntOpenHashMap squadStripIdx = new Int2IntOpenHashMap();
     {
@@ -576,9 +579,29 @@ public final class ConquestCommand implements ConquestFrontCommand,
                                      int effectiveTrack,
                                      AssignmentReason reason) {
         ObjectiveAssignment assignment = squad.assignedObjective;
+        int targetCellX = -1;
+        int targetCellY = -1;
+        int markerCellX = -1;
+        int markerCellY = -1;
+        if (assignment != null) {
+            targetCellX = assignment.targetCellX();
+            targetCellY = assignment.targetCellY();
+            markerCellX = targetCellX;
+            markerCellY = targetCellY;
+            if (markerCellX < 0 && assignment.targetNode() != null) {
+                markerCellX = assignment.targetNode().anchorX;
+                markerCellY = assignment.targetNode().anchorY;
+            } else if (markerCellX < 0 && assignment.targetZoneId() >= 0
+                    && zoneMarkerX != null
+                    && assignment.targetZoneId() < zoneMarkerX.length) {
+                markerCellX = zoneMarkerX[assignment.targetZoneId()];
+                markerCellY = zoneMarkerY[assignment.targetZoneId()];
+            }
+        }
         return new SquadDirective(squad.id, preferredTrack, effectiveTrack,
                 reason, assignment != null ? assignment.kind() : null,
-                assignment != null ? assignment.targetZoneId() : -1);
+                assignment != null ? assignment.targetZoneId() : -1,
+                targetCellX, targetCellY, markerCellX, markerCellY);
     }
 
     /**
@@ -603,6 +626,10 @@ public final class ConquestCommand implements ConquestFrontCommand,
         zoneLateralCoord = new float[topology.zones().size()];
         zoneCentroidX = new float[topology.zones().size()];
         zoneCentroidY = new float[topology.zones().size()];
+        zoneMarkerX = new int[topology.zones().size()];
+        zoneMarkerY = new int[topology.zones().size()];
+        Arrays.fill(zoneMarkerX, -1);
+        Arrays.fill(zoneMarkerY, -1);
         Arrays.fill(zoneForwardCoord, 0f);
 
         int largestCells = -1, secondCells = -1, largestZone = -1;
@@ -630,6 +657,9 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 zoneLateralCoord[zone.id()] = lateral;
                 zoneCentroidX[zone.id()] = cx;
                 zoneCentroidY[zone.id()] = cy;
+                int marker = nearestCell(cells, gridW, cx, cy);
+                zoneMarkerX[zone.id()] = marker % gridW;
+                zoneMarkerY[zone.id()] = marker / gridW;
             }
 
             int stripIdx = stripIndexForLateral(lateral);
@@ -650,6 +680,23 @@ public final class ConquestCommand implements ConquestFrontCommand,
             strip.sort(forwardDescending);
         }
 
+    }
+
+    private static int nearestCell(int[] cells, int gridWidth,
+                                   float centerX, float centerY) {
+        int best = cells[0];
+        float bestDistance = Float.MAX_VALUE;
+        for (int cell : cells) {
+            float dx = cell % gridWidth - centerX;
+            float dy = cell / gridWidth - centerY;
+            float distance = dx * dx + dy * dy;
+            if (distance < bestDistance
+                    || (distance == bestDistance && cell < best)) {
+                best = cell;
+                bestDistance = distance;
+            }
+        }
+        return best;
     }
 
     private void refreshCompoundTargets(ConquestCommandFrame frame) {

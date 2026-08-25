@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.ui.debug.VehicleStateDumper;
+import com.dillon.starsectormarines.battle.ui.debug.CommanderTraceDumper;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.vision.BuildingVisibilityPass;
@@ -33,6 +34,7 @@ import com.dillon.starsectormarines.battle.ui.panel.SquadPlanDebugPanel;
 import com.dillon.starsectormarines.battle.ui.panel.TickProfileDebugPanel;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.highlight.CommanderInfluenceOverlayPublisher;
+import com.dillon.starsectormarines.battle.ui.highlight.ConquestCommanderOverlayPublisher;
 import com.dillon.starsectormarines.battle.ui.highlight.SelectionHighlightPublisher;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.ui.picking.WorldPicker;
@@ -225,6 +227,8 @@ public class BattleScreen implements Screen, BattleUiContext {
     private boolean debugMarineHostileInfluence;
     private boolean debugDefenderFriendlyInfluence;
     private boolean debugDefenderHostileInfluence;
+    /** The one faction-local Conquest command picture currently projected into the world. */
+    private Faction debugConquestPerspective;
     /**
      * True while this screen owns the audio side effects (custom music + ticking-clock loop
      * + suspended default playback). Guarded so attach() re-runs from dialog resizes don't
@@ -482,6 +486,14 @@ public class BattleScreen implements Screen, BattleUiContext {
         CommanderInfluenceOverlayPublisher.publish(sim, highlights,
                 debugMarineFriendlyInfluence, debugMarineHostileInfluence,
                 debugDefenderFriendlyInfluence, debugDefenderHostileInfluence);
+        if (debugConquestPerspective != null) {
+            ConquestCommanderOverlayPublisher.publish(highlights,
+                    sim.getCommanderSnapshot(debugConquestPerspective),
+                    sim.getGrid().getWidth(), sim.getGrid().getHeight(),
+                    selection.getSelectedSquadId());
+        } else {
+            ConquestCommanderOverlayPublisher.clear(highlights);
+        }
         // Roof alpha lerp runs on real dt (not sim-scaled) so the fog-of-war
         // fade keeps animating even when the sim is paused — matches how the
         // HUD ticks on real dt for the same reason.
@@ -562,6 +574,12 @@ public class BattleScreen implements Screen, BattleUiContext {
         debugPanel.addToggle("Defender hostile field",
                 () -> debugDefenderHostileInfluence,
                 () -> debugDefenderHostileInfluence = !debugDefenderHostileInfluence);
+        debugPanel.addToggle("Marine Conquest picture",
+                () -> debugConquestPerspective == Faction.MARINE,
+                () -> toggleConquestPicture(Faction.MARINE));
+        debugPanel.addToggle("Defender Conquest picture",
+                () -> debugConquestPerspective == Faction.DEFENDER,
+                () -> toggleConquestPicture(Faction.DEFENDER));
         debugPanel.addDial("Structure relief",
                 () -> renderer.getGroundParallax().parallaxStrength(),
                 value -> renderer.getGroundParallax().setParallaxStrength((float) value),
@@ -589,6 +607,11 @@ public class BattleScreen implements Screen, BattleUiContext {
                 GroundParallaxPipeline.MAX_LIGHTING_STRENGTH,
                 2.0);
         debugPanel.addAction("Force reinforcement", this::forceDefenderReinforcement);
+        debugPanel.addToggle("Capture commander trace",
+                () -> getSim() != null && getSim().isCommandTraceEnabled(),
+                this::toggleCommanderTrace);
+        debugPanel.addAction("Dump commander trace",
+                () -> CommanderTraceDumper.dump(getSim()));
         debugPanel.addAction("Spawn mech family", () -> MechFamilyDebugSpawner.spawn(getSim()));
         TurretAuthorPanel turretAuthor = new TurretAuthorPanel(this);
         debugPanel.addToggle("Turret author",
@@ -605,6 +628,19 @@ public class BattleScreen implements Screen, BattleUiContext {
         // plates and the counterattack signpost paint above ordinary HUD
         // chrome; the panel is read-only and never consumes input.
         hud.addPanel(new BattleCommsPanel(this));
+    }
+
+    private void toggleConquestPicture(Faction perspective) {
+        debugConquestPerspective = debugConquestPerspective == perspective
+                ? null : perspective;
+    }
+
+    private void toggleCommanderTrace() {
+        BattleSimulation sim = getSim();
+        if (sim == null) return;
+        BattleFixture fixture = getBattleFixture();
+        sim.setCommandTraceEnabled(!sim.isCommandTraceEnabled(),
+                fixture != null ? fixture.kind() : null);
     }
 
     /**
