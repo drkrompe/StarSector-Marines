@@ -1,0 +1,175 @@
+<template props="purpose,returnAction,hqAction,armoryAction,hqClasses,hqDisabled,armoryClasses,armoryDisabled,assessmentHeader,ratingHeader,rating,ratingScore,assessment,statusHeader,statusCards,financeHeader,runway,runwayCaption,runwayClasses,financeRows,standingHeader,employers,employerEmpty,boardHeader,boardIntro,obligationsHeader,obligations,obligationEmpty,newsHeader,newsPosts,newsEmpty">
+  <div id="company-hq-root" class="company-hq-root">
+    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" armoryAction="{armoryAction}" hqClasses="{hqClasses}" hqDisabled="{hqDisabled}" armoryClasses="{armoryClasses}" armoryDisabled="{armoryDisabled}" contextLabel="{purpose}" />
+
+    <div id="company-hq-assessment" class="panel assessment-panel">
+      <div id="company-hq-rating" class="rating-block edge-surface">
+        <div id="company-hq-rating-header" class="label heading tone-edge">{ratingHeader}</div>
+        <div id="company-hq-rating-value" class="label rating-value tone-accent">{rating}</div>
+        <div id="company-hq-rating-score" class="label tone-muted">{ratingScore}</div>
+      </div>
+      <div id="company-hq-adjutant" class="adjutant-block">
+        <div id="company-hq-assessment-header" class="label heading tone-edge">{assessmentHeader}</div>
+        <div id="company-hq-assessment-copy" class="label assessment-copy">{assessment}</div>
+      </div>
+    </div>
+
+    <div id="company-hq-main" class="company-hq-main">
+      <div id="company-hq-sidebar" class="company-hq-sidebar">
+        <div id="company-hq-force" class="panel sidebar-section force-section">
+          <div id="company-hq-force-header" class="label heading tone-edge section-header">{statusHeader}</div>
+          <div id="company-hq-stat-grid" class="stat-grid">
+            <div each="card in statusCards" key="{card.id}" id="{card.id}" class="{card.classes}">
+              <div id="{card.valueId}" class="label stat-value tone-accent">{card.value}</div>
+              <div id="{card.labelId}" class="label heading tone-edge">{card.label}</div>
+              <div id="{card.detailId}" class="label tone-muted stat-detail">{card.detail}</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="company-hq-finance" class="panel sidebar-section finance-section">
+          <div id="company-hq-finance-header" class="label heading tone-edge section-header">{financeHeader}</div>
+          <div id="company-hq-runway" class="runway-block surface-dark">
+            <div id="company-hq-runway-value" class="{runwayClasses}">{runway}</div>
+            <div id="company-hq-runway-caption" class="label tone-muted">{runwayCaption}</div>
+          </div>
+          <div id="company-hq-finance-rows" class="info-list">
+            <div each="row in financeRows" key="{row.id}" id="{row.id}" class="info-row">
+              <div id="{row.labelId}" class="label tone-muted info-label">{row.label}</div>
+              <div id="{row.valueId}" class="{row.valueClasses}">{row.value}</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="company-hq-standing" class="panel sidebar-section standing-section">
+          <div id="company-hq-standing-header" class="label heading tone-edge section-header">{standingHeader}</div>
+          <div id="company-hq-employers" class="employer-list">
+            <div each="employer in employers" key="{employer.id}" id="{employer.id}" class="employer-row">
+              <div id="{employer.nameId}" class="label employer-name">{employer.name}</div>
+              <div id="{employer.scoreId}" class="{employer.scoreClasses}">{employer.score}</div>
+              <div id="{employer.recordId}" class="label tone-muted employer-record">{employer.record}</div>
+            </div>
+          </div>
+          <div id="company-hq-employer-empty" class="label tone-muted empty-copy">{employerEmpty}</div>
+        </div>
+      </div>
+
+      <div id="company-hq-board" class="panel company-hq-board">
+        <div id="company-hq-board-heading" class="board-heading surface-dark">
+          <div id="company-hq-board-title" class="label heading tone-edge">{boardHeader}</div>
+          <div id="company-hq-board-intro" class="label tone-muted">{boardIntro}</div>
+        </div>
+        <div id="company-hq-board-columns" class="board-columns">
+          <div id="company-hq-obligations" class="board-column obligations-column">
+            <div id="company-hq-obligations-header" class="label heading tone-accent column-header">{obligationsHeader}</div>
+            <div id="company-hq-obligation-list" class="post-list">
+              <div each="post in obligations" key="{post.id}" id="{post.id}" class="{post.classes}">
+                <div id="{post.bodyId}" class="post-body">
+                  <div id="{post.kickerId}" class="label heading tone-danger post-kicker">{post.kicker}</div>
+                  <div id="{post.headlineId}" class="label post-headline">{post.headline}</div>
+                  <div id="{post.detailId}" class="label tone-muted post-detail">{post.detail}</div>
+                </div>
+                <button id="{post.actionId}" class="post-action" disabled="{post.disabled}" onclick="{post.action}">{post.actionLabel}</button>
+              </div>
+            </div>
+            <div id="company-hq-obligation-empty" class="label tone-muted empty-copy">{obligationEmpty}</div>
+          </div>
+
+          <div id="company-hq-news" class="board-column news-column">
+            <div id="company-hq-news-header" class="label heading tone-accent column-header">{newsHeader}</div>
+            <div id="company-hq-news-list" class="post-list">
+              <div each="post in newsPosts" key="{post.id}" id="{post.id}" class="{post.classes}">
+                <div id="{post.kickerId}" class="label heading tone-edge post-kicker">{post.kicker}</div>
+                <div id="{post.headlineId}" class="label post-headline">{post.headline}</div>
+                <div id="{post.detailId}" class="label tone-muted post-detail">{post.detail}</div>
+              </div>
+            </div>
+            <div id="company-hq-news-empty" class="label tone-muted empty-copy">{newsEmpty}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</template>
+
+<style>
+  .company-hq-root {
+    flex-direction: column;
+    padding: 10px;
+    gap: 8px;
+    border-width: 2px;
+    overflow: hidden;
+  }
+
+  .label { overflow: hidden; }
+  .heading { font-family: heading; }
+
+  .assessment-panel {
+    flex-direction: row;
+    height: 92px;
+    padding: 8px;
+    gap: 8px;
+    border-width: 1px;
+  }
+
+  .rating-block {
+    flex-direction: column;
+    width: 228px;
+    padding: 7px 9px;
+    gap: 3px;
+    border-width: 1px;
+  }
+
+  .rating-value { height: 25px; font-family: title; }
+  .adjutant-block { flex-direction: column; flex-grow: 1; padding: 7px 9px; gap: 8px; }
+  .assessment-copy { font-family: body; }
+
+  .company-hq-main { flex-direction: row; flex-grow: 1; gap: 8px; overflow: hidden; }
+  .company-hq-sidebar { flex-direction: column; width: 34%; gap: 8px; overflow: scroll; }
+  .sidebar-section { flex-direction: column; padding: 8px; gap: 6px; border-width: 1px; }
+  .section-header { height: 18px; }
+
+  .force-section { height: 190px; }
+  .stat-grid { display: grid; flex-grow: 1; gap: 6px; overflow: hidden; }
+  .stat-card { flex-direction: column; width: 128px; height: 72px; padding: 7px; gap: 2px; border-width: 1px; background-color: #101a26; }
+  .stat-value { height: 22px; font-family: title; }
+  .stat-detail { height: 16px; }
+
+  .finance-section { height: 238px; }
+  .runway-block { flex-direction: column; height: 58px; padding: 6px 8px; gap: 2px; border-width: 1px; }
+  .runway-value { height: 24px; font-family: title; overflow: hidden; }
+  .info-list { flex-direction: column; flex-grow: 1; overflow: hidden; }
+  .info-row { flex-direction: row; height: 26px; padding: 4px 3px; border-width: 1px; border-color: #263b51; }
+  .info-label { flex-grow: 1; }
+  .info-value { width: 154px; text-align: right; }
+
+  .standing-section { height: 208px; }
+  .employer-list { flex-direction: column; flex-grow: 1; overflow: scroll; }
+  .employer-row { flex-direction: row; height: 38px; padding: 5px 4px; gap: 6px; border-width: 1px; border-color: #263b51; }
+  .employer-name { width: 0px; flex-grow: 1; }
+  .employer-score { width: 42px; text-align: right; }
+  .employer-record { width: 160px; text-align: right; }
+
+  .company-hq-board { flex-direction: column; flex-grow: 1; padding: 8px; gap: 8px; border-width: 1px; overflow: hidden; }
+  .board-heading { flex-direction: column; height: 58px; padding: 8px; gap: 5px; border-width: 1px; }
+  .board-columns { flex-direction: row; flex-grow: 1; gap: 8px; overflow: hidden; }
+  .board-column { flex-direction: column; gap: 6px; overflow: hidden; }
+  .obligations-column { width: 44%; }
+  .news-column { flex-grow: 1; }
+  .column-header { height: 20px; padding: 2px 3px; }
+  .post-list { flex-direction: column; flex-grow: 1; gap: 6px; overflow: scroll; }
+
+  .post-card { flex-direction: row; height: 88px; padding: 7px; gap: 7px; border-width: 1px; background-color: #101a26; }
+  .post-body { flex-direction: column; flex-grow: 1; gap: 4px; overflow: hidden; }
+  .post-kicker { height: 16px; }
+  .post-headline { height: 19px; }
+  .post-detail { height: 18px; }
+  .post-action { width: 84px; padding: 5px; border-width: 1px; font-family: heading; text-align: center; }
+
+  .news-card { flex-direction: column; height: 78px; padding: 8px; gap: 4px; border-width: 1px; background-color: #101a26; }
+  .warning-surface { background-color: #332b1c; border-color: #ffd464; }
+  .rumor-surface { background-color: #172638; border-color: #6ed7ff; }
+  .empty-copy { height: 22px; padding: 3px; }
+
+</style>

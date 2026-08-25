@@ -1,10 +1,10 @@
 # Target-faction ground rosters
 
-Status: PLANNED — requires the target profile to be the sole target-market read at launch.
+Status: IN PROGRESS — roster data and all standard defender creation paths are wired; merged-submod content, future equipment families, deterministic Conquest fixtures, and live faction-read acceptance remain.
 
 Written: 2026-08-24
 
-Updated: 2026-08-24 — added concrete primary mechanisms, boarding tools, stims, and faction demolition issue to each core roster.
+Updated: 2026-08-25 — installed the core JSON roster backbone, Independent fallback, semantic armor ids, and frozen-profile consumption by initial defenders and every reinforcement means.
 
 Read `reinforcement-nouns.md`, `campaign-battle-bridge-nouns.md`,
 `progression-nouns.md`, and `powered-assault-armor-roles.md` before implementing
@@ -13,8 +13,9 @@ special-item behavior.
 
 ## Problem
 
-`FactionUnitRoster` is keyed by the battle-side `Faction`. Every defender
-therefore receives the same militia bulk unit, red elite, and heavy-mech slot
+Before the implemented backbone, `FactionUnitRoster` was keyed only by the
+battle-side `Faction`. Every defender therefore received the same militia bulk
+unit, red elite, and heavy-mech slot
 regardless of whether the target belongs to the Hegemony, Tri-Tachyon, the
 League, a Luddic faction, the Diktat, pirates, or Independents. Initial
 defenders and reinforcement payloads share that generic answer, so faction
@@ -82,6 +83,28 @@ loudly; an unknown faction id itself does not fail the battle.
   capability. Faction prose must not create invisible blanket modifiers.
 
 ## Acceptance
+
+### Implemented backbone (2026-08-25)
+
+- `GroundRosterRegistry` loads and validates eight built-in profiles covering
+  the core faction ids plus Knights of Ludd, with unknown ids falling back to
+  Independent.
+- One immutable profile resolves from `TargetProfile.factionId()` in each
+  standard battle factory and is frozen on `BattleSimulation`.
+- Initial bulk/elites, heavy-support candidates, convoy passengers, shuttle
+  elites, and walk-ins consume the same profile and seeded battle RNG.
+- Profiles author primary, grade-by-risk, armor-by-risk, special-by-risk, and
+  heavy-support weights without owning force scale, delivery, objectives, or
+  AI. Armor data uses semantic ids rather than treating the current palette as
+  settled faction content.
+- Focused tests cover known/fallback resolution, distinct shared-roller output,
+  battle-frozen initial issue, faction heavy-support cycles, and factional
+  walk-in/shuttle payloads.
+
+The current catalog can only select implemented equipment. The richer cutter,
+stim, IED/martyr, shredder, micro-missile, neural/drone, and powered-assault
+content below remains gated by its owning progression stories. Catalog merge
+discovery for submods and representative live Conquest acceptance also remain.
 
 - Initial defenders, compound garrisons, convoy passengers, shuttle elites, and
   walk-ins all use the same frozen target-faction profile in one representative

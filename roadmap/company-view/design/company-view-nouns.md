@@ -4,7 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — replaced fire-team templates with squad-wide weapon and armor equipment doctrines and retired Armory Administration.
+Updated: 2026-08-25 — established the shared top room-navigation shell, replaced fire-team templates with squad-wide weapon and armor equipment doctrines, and retired Armory Administration.
 
 ## Purpose
 
@@ -288,19 +288,40 @@ screens that require a market or live operation. An obligation response is the
 one handoff boundary: it queues the existing campaign event's deployment
 request, then closes the HQ rather than routing through those screens itself.
 
-The home has three concerns:
+Company surfaces are places aboard the player's flagship rather than abstract
+application modules. Company HQ is the bridge command station and the nerve center
+for the whole organization. A persistent top shell exposes `RETURN`, `HQ`, and
+`ARMORY`, marks the occupied room, and carries the precise location context at the
+right. `RETURN` closes the shipboard UI; room routes move directly between top-level
+surfaces. Armory company, squad, and fire-team breadcrumbs remain page-specific below
+that shell, while the bottom of every room is reserved for its own content. Future
+Barracks, Briefing Room, medical, logistics, or fabrication surfaces should join the
+same spatial navigation vocabulary only when their real destination exists. A screen
+says where the captain is and uses movement language for room transitions. It does not
+advertise dead rooms as disabled feature promises.
 
-- **Standing** explains finances, reputation, employers, and runway from live
-  campaign authorities. Only live stationing retainers count as income. Missing
-  monthly data is unknown, never zero.
-- **Clocks** explain obligations that can hurt the company: pending response
-  deadlines and live stationing term endings. Overdue clocks are due now, never
-  rendered as negative time. One contract may own both clocks.
-- **Roster** summarizes organization and readiness. Strength includes living
+The retained bridge dashboard has four concerns:
+
+- **Force status** explains organization and readiness. Strength includes living
   active and wounded marines; availability is the line-ready subset. The entire
   gap—including wounded, stationed, and reserve personnel—is unavailable. The
   reserve pool is excluded from line and stationed squad counts, and recovery
   shows the earliest known return only when recovery exists.
+- **Finance and standing** explain cash, reputation, employers, and runway from live
+  campaign authorities. Only live stationing retainers count as income. Missing
+  monthly data is unknown, never zero.
+- **Mercenary rating and assessment** make the company's industry position and
+  immediate posture readable without conflating them. `CompanyRating` is a
+  presentation band over authoritative MRB credibility, never a second reputation
+  track. The bridge adjutant's authored daily assessment uses the existing officer
+  mood and live readiness facts; it may change as the company's situation changes
+  without rewriting that rating.
+- **Situation board** leads with obligations that can hurt the company: pending response
+  deadlines and live stationing term endings. Overdue clocks are due now, never
+  rendered as negative time. One contract may own both clocks. Below them it shows
+  recent validated Chronicle facts newest-first. It reads only learned Chronicle rows,
+  preserves rumor versus confirmed confidence, and cannot expose undiscovered world
+  state.
 
 The clock owns obligations; the future contract board owns offers. Ignoring an
 obligation can cause failure or end a retainer, while ignoring an offer merely

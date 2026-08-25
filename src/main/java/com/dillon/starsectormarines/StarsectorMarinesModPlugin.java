@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.turret.DefensePostLayoutRegistry;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+import com.dillon.starsectormarines.battle.setup.GroundRosterRegistry;
 import com.dillon.starsectormarines.intel.BridgeIntel;
 import com.dillon.starsectormarines.intel.CampaignDebugIntel;
 import com.dillon.starsectormarines.intel.CivilianRescueIntel;
@@ -69,6 +70,9 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         // Weapon-like items validate their referenced WeaponDef, so this follows
         // the weapon catalog and remains fail-loud for malformed built-in data.
         SpecialEquipmentRegistry.loadBuiltins();
+        // Campaign-faction doctrine references primary weapons, special issue,
+        // armor, and mech identities, so it validates after those catalogs.
+        GroundRosterRegistry.loadBuiltins();
         // Modular unit clips turn simulation-authored locomotion/action phases
         // into layer transforms. The standalone editor reads the same document.
         UnitLayerLayouts.loadBuiltins();

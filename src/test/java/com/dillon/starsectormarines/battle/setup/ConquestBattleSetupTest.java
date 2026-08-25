@@ -5,15 +5,16 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.command.objective.ConquestObjective;
 import com.dillon.starsectormarines.battle.command.ConquestCommand;
 import com.dillon.starsectormarines.battle.command.ConquestDefenderCommand;
+import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.flyby.FighterWing;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
-import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import org.junit.jupiter.api.Test;
@@ -46,6 +47,25 @@ public class ConquestBattleSetupTest {
         assertEquals(1, sim.getCompoundService().getRecords().stream()
                 .filter(record -> record.node.kind == TacticalNode.Kind.COMMAND_POST)
                 .count());
+        int garrisons = 0;
+        for (var squad : sim.getSquads()) {
+            if (squad.faction != Faction.DEFENDER
+                    || sim.squadMemberCount(squad.id) <= 0) continue;
+            UnitRole role = sim.role().role(sim.squadMemberAt(squad.id, 0));
+            if (role == UnitRole.GARRISON) {
+                garrisons++;
+                assertEquals(CommandAuthority.GARRISON,
+                        sim.getSquadCommandDirective(squad.id).authority());
+                assertEquals("conquest-setup-garrison",
+                        sim.getSquadCommandDirective(squad.id).issuer());
+            } else if (role == UnitRole.PATROL) {
+                assertEquals(CommandAuthority.MISSION_COMMAND,
+                        sim.getSquadCommandDirective(squad.id).authority());
+                assertEquals("conquest-defender",
+                        sim.getSquadCommandDirective(squad.id).issuer());
+            }
+        }
+        assertTrue(garrisons > 0);
     }
 
     @Test

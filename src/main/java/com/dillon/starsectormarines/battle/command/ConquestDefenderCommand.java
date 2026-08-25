@@ -8,8 +8,6 @@ import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.influence.CommanderContact;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
-import com.dillon.starsectormarines.battle.sim.BattleView;
-import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 
@@ -37,7 +35,6 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
     private final ConquestTrackLayout trackLayout;
     private final Set<Integer> initialMobileSquads = new TreeSet<>();
     private final Map<Integer, Integer> homeTracks = new HashMap<>();
-    private boolean initialPoolCaptured;
     private volatile ConquestFrontSnapshot frontSnapshot;
 
     private static final class Threat {
@@ -52,7 +49,7 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         boolean active() { return contacts > 0; }
     }
 
-    /** Mutable working copy; never exposes or mutates a live {@link Squad}. */
+    /** Mutable working copy; never exposes or mutates a live squad. */
     private static final class PlanningSquad {
         final int id;
         final int aliveMembers;
@@ -88,7 +85,14 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
     };
 
     public ConquestDefenderCommand(ConquestTrackLayout trackLayout) {
+        this(trackLayout, ConquestDefenderStartingForce.empty());
+    }
+
+    public ConquestDefenderCommand(ConquestTrackLayout trackLayout,
+                                   ConquestDefenderStartingForce startingForce) {
         this.trackLayout = trackLayout;
+        initialMobileSquads.addAll(startingForce.mobileSquadIds());
+        homeTracks.putAll(startingForce.homeTracks());
         this.frontSnapshot = ConquestFrontSnapshot.empty(
                 Faction.DEFENDER, trackLayout.axis());
     }
@@ -99,19 +103,6 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
     @Override
     public String strategyId() {
         return "conquest-defender";
-    }
-
-    /** Freezes the setup-time patrol pool before any reinforcement delivery can occur. */
-    public void captureStartingForce(BattleView sim) {
-        if (!initialPoolCaptured) captureInitialMobilePool(sim);
-    }
-
-    @Override
-    public ConquestCommandFrame freeze(BattleView sim,
-                                       CommandTopology topology,
-                                       CommandAssignmentSnapshot assignments) {
-        captureStartingForce(sim);
-        return ConquestCommandFrame.freeze(sim, faction(), topology, assignments);
     }
 
     @Override
@@ -130,15 +121,15 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         for (CommandSquadState state : frame.squads()) {
             PlanningSquad squad = new PlanningSquad(state);
             allSquads.put(squad.id, squad);
+            if (squad.aliveMembers <= 0) continue;
             int home = homeTrack(squad);
-            if (!initialMobileSquads.contains(squad.id)) {
-                if (squad.role == UnitRole.GARRISON) {
-                    directives.put(squad.id, directive(squad, home, home,
-                            AssignmentReason.DEFENDER_GARRISON_HOLD));
-                }
+            if (!isCommandPoolSquad(squad)) {
+                AssignmentReason reason = squad.role == UnitRole.GARRISON
+                        ? AssignmentReason.DEFENDER_GARRISON_HOLD
+                        : AssignmentReason.DEFENDER_EXTERNAL_ASSIGNMENT_PRESERVED;
+                directives.put(squad.id, directive(squad, home, home, reason));
                 continue;
             }
-            if (squad.aliveMembers <= 0) continue;
             if (squad.localContact) {
                 clearMissionRally(squad);
                 directives.put(squad.id, directive(squad, home, home,
@@ -209,25 +200,6 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
     @Override
     public void publish(CommanderSnapshot<ConquestFrontSnapshot> snapshot) {
         frontSnapshot = snapshot.detail();
-    }
-
-    private void captureInitialMobilePool(BattleView sim) {
-        List<Squad> squads = new ArrayList<>();
-        for (Squad squad : sim.getSquads()) {
-            if (squad.faction == Faction.DEFENDER) squads.add(squad);
-        }
-        squads.sort(Comparator.comparingInt(s -> s.id));
-        for (Squad squad : squads) {
-            if (squad.aliveMembers <= 0 || !isPatrolSquad(squad, sim)) continue;
-            initialMobileSquads.add(squad.id);
-            homeTracks.put(squad.id, trackFor(squad.centroidX, squad.centroidY));
-        }
-        initialPoolCaptured = true;
-    }
-
-    private boolean isPatrolSquad(Squad squad, BattleView sim) {
-        int count = sim.squadMemberCount(squad.id);
-        return count > 0 && sim.role().role(sim.squadMemberAt(squad.id, 0)) == UnitRole.PATROL;
     }
 
     private Threat[] buildThreats(CommanderInfluenceSnapshot influence) {
@@ -373,6 +345,13 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         return squad.originalDirective != null
                 && squad.originalDirective.authority().priority()
                 > CommandAuthority.MISSION_COMMAND.priority();
+    }
+
+    private boolean isCommandPoolSquad(PlanningSquad squad) {
+        if (initialMobileSquads.contains(squad.id)) return true;
+        return squad.originalDirective != null
+                && squad.originalDirective.authority() == CommandAuthority.MISSION_COMMAND
+                && strategyId().equals(squad.originalDirective.issuer());
     }
 
     private void clearMissionRally(PlanningSquad squad) {

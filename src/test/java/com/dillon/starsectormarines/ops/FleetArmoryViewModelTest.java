@@ -30,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class FleetArmoryViewModelTest {
 
     private static final List<String> COMPONENTS = List.of(
+            "mod/data/ui/components/marine-ops-page-nav.mlx",
             "mod/data/ui/components/armory/fleet-armory.mlx",
             "mod/data/ui/components/armory/armory-squad-list.mlx",
             "mod/data/ui/components/armory/fleet-armory-fireteam.mlx",
@@ -276,8 +277,17 @@ class FleetArmoryViewModelTest {
         props.put("feedbackClasses", viewModel.feedbackClasses());
         props.put("back", (Runnable) () -> { });
         props.put("backToSquads", (Runnable) () -> { });
-        props.put("reload", (Runnable) () -> { });
-        props.put("reloadStatus", "Test");
+        putPageNavigation(props);
         return props;
+    }
+
+    private static void putPageNavigation(Map<String, Object> props) {
+        props.put("returnAction", (Runnable) () -> { });
+        props.put("hqAction", (Runnable) () -> { });
+        props.put("armoryAction", (Runnable) () -> { });
+        props.put("hqClasses", "");
+        props.put("hqDisabled", false);
+        props.put("armoryClasses", "selected page-nav-current");
+        props.put("armoryDisabled", false);
     }
 }

@@ -51,6 +51,10 @@ import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.ParkedAircraft;
 import com.dillon.starsectormarines.battle.command.MissionCommand;
+import com.dillon.starsectormarines.battle.command.CommandStrategy;
+import com.dillon.starsectormarines.battle.command.CommandFrame;
+import com.dillon.starsectormarines.battle.command.CommandFrameDisclosure;
+import com.dillon.starsectormarines.battle.command.AutonomousMissionCommand;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
@@ -61,6 +65,7 @@ import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropService;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropSystem;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
+import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.LosCache;
@@ -382,6 +387,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** Fighter wings committed to this battle. Lives on the sim so the overlay can read it without coupling to the briefing screen. */
     private FlybyRoster flybyRoster = FlybyRoster.EMPTY;
+    /** Campaign-faction doctrine resolved once at setup and reused by every defender source. */
+    private GroundRosterProfile groundRoster;
 
     /** Who owns the air layer. {@link AirProvider#INTERNAL} by default — standalone battles <em>and</em> the current combat-bridge host both run the sim's own shuttles + flyby (the S3d drop-ship invasion depends on it: dropships are the sim's own air craft, spawned via {@link #spawnShuttle}). {@link AirProvider#EXTERNAL} is the alternative where a host owns the air — the sim's air tick is skipped and internal air-install is rejected — kept for a future direct-injection bridge, but not used today. See {@link AirProvider}. */
     private AirProvider airProvider = AirProvider.INTERNAL;
@@ -744,6 +751,16 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.flybyRoster = roster != null ? roster : FlybyRoster.EMPTY;
     }
 
+    public GroundRosterProfile getGroundRoster() { return groundRoster; }
+    public void setGroundRoster(GroundRosterProfile groundRoster) {
+        if (groundRoster == null) throw new IllegalArgumentException("groundRoster");
+        if (this.groundRoster != null && this.groundRoster != groundRoster) {
+            throw new IllegalStateException("battle ground roster is already frozen as "
+                    + this.groundRoster.id());
+        }
+        this.groundRoster = groundRoster;
+    }
+
     /** Who owns the air layer for this battle. See {@link AirProvider}. */
     public AirProvider getAirProvider() { return airProvider; }
     /**
@@ -1050,8 +1067,15 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         commanders.setCommander(faction, commander);
     }
 
+    /** Installs a frame-only strategy with its trusted battle disclosure. */
+    public <F extends CommandFrame, D> void setAutonomousCommander(
+            Faction faction, AutonomousMissionCommand<F, D> commander,
+            CommandFrameDisclosure<F> disclosure) {
+        commanders.setAutonomousCommander(faction, commander, disclosure);
+    }
+
     /** The commander for {@code faction}, or {@code null} if none is wired. Read by debug UI and by integration tests that poke at commander state directly. */
-    public MissionCommand getCommander(Faction faction) {
+    public CommandStrategy getCommander(Faction faction) {
         return commanders.getCommander(faction);
     }
 

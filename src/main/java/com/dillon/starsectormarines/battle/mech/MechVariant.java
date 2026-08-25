@@ -75,6 +75,13 @@ public enum MechVariant {
         this.defaultRole = defaultRole;
     }
 
+    public static MechVariant fromId(String id) {
+        for (MechVariant variant : values()) {
+            if (variant.id.equals(id)) return variant;
+        }
+        throw new IllegalArgumentException("Unknown mech variant id '" + id + "'");
+    }
+
     /** Applies the chassis's spawn-time stats and persistent profile identity. */
     public EntitySpec applyTo(EntitySpec spec) {
         spec.mechVariant = this;

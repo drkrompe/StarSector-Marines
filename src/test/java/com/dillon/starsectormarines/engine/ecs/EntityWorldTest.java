@@ -53,6 +53,22 @@ public class EntityWorldTest {
     }
 
     @Test
+    public void pairedFloatReadReturnsBothFieldsFromOneEntityRow() {
+        world = fresh();
+        ComponentType velocity = world.register(5, "Velocity",
+                FieldKind.FLOAT, FieldKind.FLOAT);
+        long e = world.createEntity(POSITION, velocity);
+        world.setFloat(e, velocity, 0, 3.25f);
+        world.setFloat(e, velocity, 1, -7.5f);
+        float[] pair = new float[2];
+
+        world.readFloatPair(e, velocity, 0, 1, pair);
+
+        assertEquals(3.25f, pair[0]);
+        assertEquals(-7.5f, pair[1]);
+    }
+
+    @Test
     public void addComponentPreservesSharedDataAndDefaultsNew() {
         world = fresh();
         long e = world.createEntity(POSITION, HEALTH);

@@ -24,10 +24,15 @@ import java.util.Map;
 /** Authored retained-view evidence rendered without a Starsector process. */
 public final class UiSnapshotSuite implements SnapshotSuite {
 
+    private static final List<String> COMPANY_HQ_COMPONENTS = List.of(
+            "data/ui/components/marine-ops-page-nav.mlx",
+            "data/ui/components/company/company-hq.mlx");
     private static final List<String> OVERVIEW_COMPONENTS = List.of(
+            "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/armory/fleet-armory-overview.mlx",
             "data/ui/components/armory/armory-company-list.mlx");
     private static final List<String> WORKSPACE_COMPONENTS = List.of(
+            "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/armory/fleet-armory.mlx",
             "data/ui/components/armory/armory-squad-list.mlx",
             "data/ui/components/armory/fleet-armory-fireteam.mlx",
@@ -50,10 +55,16 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         HeadlessUiRenderer renderer = new HeadlessUiRenderer(
                 context.modRoot(), context.starsectorCore());
         return List.of(
+                new SnapshotArtifact("company-hq-bridge-wide.png",
+                        renderCompanyHq(context, renderer, 1744, 938, 1f)),
+                new SnapshotArtifact("company-hq-bridge-low-resolution.png",
+                        renderCompanyHq(context, renderer, 1163, 625, 1f)),
+                new SnapshotArtifact("company-hq-bridge-ui-scale-150.png",
+                        renderCompanyHq(context, renderer, 1744, 938, 1.5f)),
                 new SnapshotArtifact("fleet-armory-overview-wide.png",
                         renderFleetArmoryOverview(
                                 context, renderer, 1744, 938)),
-                new SnapshotArtifact("fleet-armory-overview-compact.png",
+                new SnapshotArtifact("fleet-armory-overview-low-resolution.png",
                         renderFleetArmoryOverview(
                                 context, renderer, 1163, 625)),
                 new SnapshotArtifact("fleet-armory-squads-wide.png",
@@ -65,6 +76,23 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("fleet-armory-equipment-preview-wide.png",
                         renderFleetArmoryWorkspace(
                                 context, renderer, 1744, 938, true, true)));
+    }
+
+    private static BufferedImage renderCompanyHq(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, float uiScale) throws Exception {
+        Reactor reactor = new Reactor();
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                context.modRoot().resolve(path)), COMPANY_HQ_COMPONENTS);
+        loader.reload();
+
+        try (MarkupInstance instance = loader.build(
+                reactor, "company-hq", CompanyHqViewModel.preview().props())) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            return renderRelative(renderer, document, width, height, uiScale);
+        }
     }
 
     private static BufferedImage renderFleetArmoryWorkspace(
@@ -92,9 +120,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         try (MarkupInstance instance = loader.build(
                 reactor, fireteam ? "fleet-armory-fireteam" : "fleet-armory",
                 props(viewModel))) {
-            instance.requireElement(fireteam
-                            ? "fireteam-reload-status" : "armory-reload-status")
-                    .align(UiAlign.STRETCH, UiAlign.CENTER);
             if (fireteam) {
                 instance.requireElement("transaction-feedback")
                         .align(UiAlign.STRETCH, UiAlign.CENTER);
@@ -111,7 +136,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                     armoryPreview.assets()));
                 }
             }
-            return renderer.render(document, width, height);
+            return renderRelative(renderer, document, width, height, 1f);
         }
     }
 
@@ -134,22 +159,27 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 reactor, "fleet-armory-overview", props(viewModel))) {
             instance.requireElement("company-overview-summary")
                     .align(UiAlign.STRETCH, UiAlign.CENTER);
-            instance.requireElement("company-overview-reload-status")
-                    .align(UiAlign.STRETCH, UiAlign.CENTER);
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
-            return renderer.render(document, width, height);
+            return renderRelative(renderer, document, width, height, 1f);
         }
+    }
+
+    private static BufferedImage renderRelative(HeadlessUiRenderer renderer,
+                                                UiDocument document,
+                                                int width, int height,
+                                                float uiScale) {
+        return renderer.renderRelative(document, width, height, uiScale,
+                MarineOpsUiViewport.REFERENCE_WIDTH,
+                MarineOpsUiViewport.REFERENCE_HEIGHT);
     }
 
     private static Map<String, Object> props(FleetArmoryOverviewViewModel viewModel) {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("fleetSummary", viewModel.fleetSummary());
         props.put("companyCards", viewModel.companyCards());
-        props.put("back", (Runnable) () -> { });
-        props.put("reload", (Runnable) () -> { });
-        props.put("reloadStatus", "Headless UX preview  ·  No engine process");
+        putArmoryPageNavigation(props);
         return props;
     }
 
@@ -181,8 +211,17 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("feedbackClasses", viewModel.feedbackClasses());
         props.put("back", (Runnable) () -> { });
         props.put("backToSquads", (Runnable) () -> { });
-        props.put("reload", (Runnable) () -> { });
-        props.put("reloadStatus", "Headless UX preview  ·  No engine process");
+        putArmoryPageNavigation(props);
         return props;
+    }
+
+    private static void putArmoryPageNavigation(Map<String, Object> props) {
+        props.put("returnAction", (Runnable) () -> { });
+        props.put("hqAction", (Runnable) () -> { });
+        props.put("armoryAction", (Runnable) () -> { });
+        props.put("hqClasses", "");
+        props.put("hqDisabled", false);
+        props.put("armoryClasses", "selected page-nav-current");
+        props.put("armoryDisabled", false);
     }
 }
