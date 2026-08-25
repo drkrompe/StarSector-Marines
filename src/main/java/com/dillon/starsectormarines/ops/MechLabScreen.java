@@ -78,6 +78,7 @@ public final class MechLabScreen implements Screen {
             previewSprites.ensureTileSheet();
             built.canvases().set(candidate.requireElement("mech-doll-canvas"),
                     new MechLabDollCanvas(viewModel::selectedVariant,
+                            viewModel::selectedSocket,
                             previewSprites::layeredMechSprites,
                             () -> previewSprites.layeredUnitSprites().get(
                                     LayeredArmorFamily.ARMY_GREEN),

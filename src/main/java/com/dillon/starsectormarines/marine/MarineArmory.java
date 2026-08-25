@@ -14,17 +14,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-/**
- * Persisted fleet fabrication inventory. Recipes are permanent unlocks; printed
- * items are finite and consume one shared resource: masterwork parts & materials.
- */
+/** Persisted equipment-template ownership and reusable squad definitions. */
 public final class MarineArmory implements Serializable {
 
+    /** Legacy save data retained only to migrate the former print-stock economy. */
     private int fabricationMaterials;
     private int victories;
     private int highRiskVictories;
     private Map<String, Integer> printedGear = new HashMap<>();
     private Set<String> unlockedRecipes = new HashSet<>();
+    /** Permanent collectible equipment templates used by all live issue paths. */
+    private Set<String> ownedEquipmentTemplateIds = new HashSet<>();
     /** Reusable fire-team designs; the legacy field name is retained for save compatibility. */
     private List<FireTeamTemplateCard> templateCards = new ArrayList<>();
     /** Saved three-template compositions; applying one is still an inventory transaction. */
@@ -42,8 +42,56 @@ public final class MarineArmory implements Serializable {
     public int fabricationMaterials() { return fabricationMaterials; }
     public int victories() { return victories; }
     public int highRiskVictories() { return highRiskVictories; }
+    /** Legacy recipe ids retained for save compatibility and old fire-team APIs. */
     public Set<String> unlockedRecipes() {
         return Collections.unmodifiableSet(unlockedRecipes);
+    }
+    public Set<String> ownedEquipmentTemplateIds() {
+        return Collections.unmodifiableSet(ownedEquipmentTemplateIds);
+    }
+    public List<EquipmentTemplateCard> equipmentTemplateCards() {
+        List<EquipmentTemplateCard> cards = new ArrayList<>();
+        for (EquipmentTemplateCard card : EquipmentTemplateCatalog.all()) {
+            if (ownsEquipmentTemplate(card.id())) cards.add(card);
+        }
+        return Collections.unmodifiableList(cards);
+    }
+    public boolean ownsEquipmentTemplate(String id) {
+        return id != null && ownedEquipmentTemplateIds.contains(id);
+    }
+    public boolean acquireEquipmentTemplate(String id) {
+        if (!EquipmentTemplateCatalog.contains(id)) {
+            throw new IllegalArgumentException("Unknown equipment template id '" + id + "'");
+        }
+        return ownedEquipmentTemplateIds.add(id);
+    }
+    public boolean ownsPrimaryTemplate(MarineWeapon weapon, EquipmentGrade grade) {
+        return weapon != null && grade != null
+                && ownsEquipmentTemplate(EquipmentTemplateCatalog.primaryId(weapon, grade));
+    }
+    public boolean ownsArmorTemplate(MarineArmorPattern armor) {
+        return armor != null && ownsEquipmentTemplate(EquipmentTemplateCatalog.armorId(armor));
+    }
+    public boolean ownsSpecialTemplate(MarineSecondary special) {
+        return special != null
+                && ownsEquipmentTemplate(EquipmentTemplateCatalog.specialId(special));
+    }
+    public boolean canAuthorWeaponDoctrine(List<SquadWeaponIssue> issues) {
+        if (issues == null || issues.size() != MarineSquad.CAPACITY) return false;
+        for (SquadWeaponIssue issue : issues) {
+            if (issue == null || !ownsPrimaryTemplate(issue.primary(), issue.grade())
+                    || (issue.special() != null && !ownsSpecialTemplate(issue.special()))) {
+                return false;
+            }
+        }
+        return true;
+    }
+    public boolean canAuthorArmorDoctrine(List<MarineArmorPattern> issues) {
+        if (issues == null || issues.size() != MarineSquad.CAPACITY) return false;
+        for (MarineArmorPattern armor : issues) {
+            if (!ownsArmorTemplate(armor)) return false;
+        }
+        return true;
     }
     public List<FireTeamTemplateCard> templateCards() {
         return Collections.unmodifiableList(templateCards);
@@ -85,13 +133,13 @@ public final class MarineArmory implements Serializable {
     public SquadWeaponDoctrine createWeaponDoctrine(
             String displayName, List<SquadWeaponIssue> issues) {
         return createWeaponDoctrine("custom:weapons:" + UUID.randomUUID(),
-                displayName, issues);
+                displayName, issues, true);
     }
 
     public SquadArmorDoctrine createArmorDoctrine(
             String displayName, List<MarineArmorPattern> issues) {
         return createArmorDoctrine("custom:armor:" + UUID.randomUUID(),
-                displayName, issues);
+                displayName, issues, true);
     }
 
     public SquadWeaponDoctrine cloneWeaponDoctrine(String sourceId) {
@@ -141,13 +189,15 @@ public final class MarineArmory implements Serializable {
     SquadWeaponDoctrine ensureWeaponDoctrine(
             String id, String displayName, List<SquadWeaponIssue> issues) {
         SquadWeaponDoctrine existing = weaponDoctrineById(id);
-        return existing != null ? existing : createWeaponDoctrine(id, displayName, issues);
+        return existing != null ? existing
+                : createWeaponDoctrine(id, displayName, issues, false);
     }
 
     SquadArmorDoctrine ensureArmorDoctrine(
             String id, String displayName, List<MarineArmorPattern> issues) {
         SquadArmorDoctrine existing = armorDoctrineById(id);
-        return existing != null ? existing : createArmorDoctrine(id, displayName, issues);
+        return existing != null ? existing
+                : createArmorDoctrine(id, displayName, issues, false);
     }
     public FireTeamTemplateCard templateCardById(String id) {
         if (id == null) return null;
@@ -245,28 +295,37 @@ public final class MarineArmory implements Serializable {
     }
 
     public boolean isPrimaryUnlocked(MarineWeapon weapon, EquipmentGrade grade) {
-        if (weapon == MarineWeapon.FIELD_RIFLE) return grade == EquipmentGrade.SERVICE;
-        return unlockedRecipes.contains(primaryKey(weapon, grade));
+        return ownsPrimaryTemplate(weapon, grade);
     }
 
     public boolean isSecondaryUnlocked(MarineSecondary secondary) {
-        return unlockedRecipes.contains(secondaryKey(secondary));
+        return ownsSpecialTemplate(secondary);
     }
 
     public boolean isArmorUnlocked(MarineArmorPattern armor) {
-        return unlockedRecipes.contains(armorKey(armor));
+        return ownsArmorTemplate(armor);
     }
 
     public void unlockPrimary(MarineWeapon weapon, EquipmentGrade grade) {
-        if (weapon != null && grade != null) unlockedRecipes.add(primaryKey(weapon, grade));
+        if (weapon != null && grade != null) {
+            unlockedRecipes.add(primaryKey(weapon, grade));
+            String id = EquipmentTemplateCatalog.primaryId(weapon, grade);
+            if (EquipmentTemplateCatalog.contains(id)) acquireEquipmentTemplate(id);
+        }
     }
 
     public void unlockSecondary(MarineSecondary secondary) {
-        if (secondary != null) unlockedRecipes.add(secondaryKey(secondary));
+        if (secondary != null) {
+            unlockedRecipes.add(secondaryKey(secondary));
+            acquireEquipmentTemplate(EquipmentTemplateCatalog.specialId(secondary));
+        }
     }
 
     public void unlockArmor(MarineArmorPattern armor) {
-        if (armor != null) unlockedRecipes.add(armorKey(armor));
+        if (armor != null) {
+            unlockedRecipes.add(armorKey(armor));
+            acquireEquipmentTemplate(EquipmentTemplateCatalog.armorId(armor));
+        }
     }
 
     public int ownedPrimary(MarineWeapon weapon, EquipmentGrade grade) {
@@ -310,11 +369,10 @@ public final class MarineArmory implements Serializable {
                 && fabricationMaterials >= armorFabricationCost(armor);
     }
 
-    /** Award fabrication feedstock and open recipes at stable operation milestones. */
-    public void recordVictory(int materialReward, boolean highRisk) {
+    /** Awards permanent template cards at stable operation milestones. */
+    public void recordVictory(boolean highRisk) {
         victories++;
         if (highRisk) highRiskVictories++;
-        addFabricationMaterials(materialReward);
         if (victories >= 2) unlockPrimary(MarineWeapon.PULSE_RIFLE, EquipmentGrade.MILSPEC);
         if (victories >= 2) unlockSecondary(MarineSecondary.FRAG_GRENADE);
         if (victories >= 3) unlockPrimary(MarineWeapon.SMG, EquipmentGrade.MILSPEC);
@@ -387,9 +445,14 @@ public final class MarineArmory implements Serializable {
     }
 
     private SquadWeaponDoctrine createWeaponDoctrine(
-            String id, String displayName, List<SquadWeaponIssue> issues) {
+            String id, String displayName, List<SquadWeaponIssue> issues,
+            boolean requireOwnedTemplates) {
         if (weaponDoctrineById(id) != null) {
             throw new IllegalArgumentException("Weapon doctrine id already exists: " + id);
+        }
+        if (requireOwnedTemplates && !canAuthorWeaponDoctrine(issues)) {
+            throw new IllegalArgumentException(
+                    "Weapon definition requires an unowned equipment template");
         }
         SquadWeaponDoctrine doctrine = new SquadWeaponDoctrine(
                 id, displayName, "Player-authored squad weapon definition.", issues);
@@ -398,9 +461,14 @@ public final class MarineArmory implements Serializable {
     }
 
     private SquadArmorDoctrine createArmorDoctrine(
-            String id, String displayName, List<MarineArmorPattern> issues) {
+            String id, String displayName, List<MarineArmorPattern> issues,
+            boolean requireOwnedTemplates) {
         if (armorDoctrineById(id) != null) {
             throw new IllegalArgumentException("Armor doctrine id already exists: " + id);
+        }
+        if (requireOwnedTemplates && !canAuthorArmorDoctrine(issues)) {
+            throw new IllegalArgumentException(
+                    "Armor definition requires an unowned equipment template");
         }
         SquadArmorDoctrine doctrine = new SquadArmorDoctrine(
                 id, displayName, "Player-authored squad armour definition.", issues);
@@ -461,6 +529,7 @@ public final class MarineArmory implements Serializable {
     private Object readResolve() {
         if (printedGear == null) printedGear = new HashMap<>();
         if (unlockedRecipes == null) unlockedRecipes = new HashSet<>();
+        if (ownedEquipmentTemplateIds == null) ownedEquipmentTemplateIds = new HashSet<>();
         if (templateCards == null) templateCards = new ArrayList<>();
         if (squadArrangements == null) squadArrangements = new ArrayList<>();
         if (customWeaponDoctrines == null) customWeaponDoctrines = new ArrayList<>();
@@ -470,7 +539,8 @@ public final class MarineArmory implements Serializable {
         customArmorDoctrines.removeIf(doctrine -> doctrine == null
                 || SquadEquipmentDoctrines.armorById(doctrine.id()) != null);
         migrateLegacySecondaryKeys();
-        if (unlockedRecipes.isEmpty()) seedStarterIssue();
+        migrateLegacyTemplateOwnership();
+        if (ownedEquipmentTemplateIds.isEmpty()) seedStarterIssue();
         seedStarterCards();
         // Existing saves predate the recruit-grade field rifle recipe.
         unlockPrimary(MarineWeapon.FIELD_RIFLE, EquipmentGrade.SERVICE);
@@ -498,6 +568,36 @@ public final class MarineArmory implements Serializable {
             Integer owned = printedGear.remove(legacy);
             if (owned != null) printedGear.merge(stable, owned, Math::max);
             if (unlockedRecipes.remove(legacy)) unlockedRecipes.add(stable);
+        }
+    }
+
+    private void migrateLegacyTemplateOwnership() {
+        for (String id : new HashSet<>(unlockedRecipes)) {
+            if (EquipmentTemplateCatalog.contains(id)) {
+                ownedEquipmentTemplateIds.add(id);
+                continue;
+            }
+            if (id.startsWith("primary:")) {
+                String[] parts = id.split(":");
+                if (parts.length == 3) {
+                    try {
+                        unlockPrimary(MarineWeapon.valueOf(parts[1]),
+                                EquipmentGrade.valueOf(parts[2]));
+                    } catch (IllegalArgumentException ignored) {
+                        // Unknown retired legacy entries stay harmless in the legacy set.
+                    }
+                }
+            } else if (id.startsWith("armor:")) {
+                try {
+                    unlockArmor(MarineArmorPattern.valueOf(id.substring("armor:".length())));
+                } catch (IllegalArgumentException ignored) {
+                    // Unknown retired legacy entries stay harmless in the legacy set.
+                }
+            } else if (id.startsWith("special:")) {
+                for (MarineSecondary special : MarineSecondary.values()) {
+                    if (secondaryKey(special).equals(id)) unlockSecondary(special);
+                }
+            }
         }
     }
 }

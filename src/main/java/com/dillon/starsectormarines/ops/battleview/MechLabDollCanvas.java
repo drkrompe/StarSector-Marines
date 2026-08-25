@@ -4,8 +4,13 @@ import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketType;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.ui.retained.CanvasBlend;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
@@ -23,6 +28,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private static final String ROOT = "graphics/battle/mech-modular-topdown/";
     private static final int TILESET_COLUMNS = 10;
     private static final int TILESET_ROWS = 10;
+    private static final float GANTRY_FACING_DEGREES = 180f;
     private static final Color BACKGROUND = new Color(0x06, 0x0A, 0x10);
     private static final Color STRUCTURE = new Color(0x25, 0x43, 0x56);
     private static final Color ACCENT = new Color(0x76, 0xB9, 0xD4);
@@ -30,29 +36,33 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private static final Color WHITE = Color.WHITE;
 
     private final Supplier<MechVariant> variant;
+    private final Supplier<SocketId> selectedSocket;
     private final Supplier<LayeredMechAssets> assets;
     private final Supplier<LayeredUnitAssets> technicianAssets;
     private final Supplier<SpriteAPI> tileSheet;
     private final DoubleSupplier elapsedSeconds;
 
     public MechLabDollCanvas(Supplier<MechVariant> variant,
+                             Supplier<SocketId> selectedSocket,
                              Supplier<LayeredMechAssets> assets,
                              Supplier<LayeredUnitAssets> technicianAssets,
                              Supplier<SpriteAPI> tileSheet) {
-        this(variant, assets, technicianAssets, tileSheet, () -> 0d);
+        this(variant, selectedSocket, assets, technicianAssets, tileSheet, () -> 0d);
     }
 
     public MechLabDollCanvas(Supplier<MechVariant> variant,
+                             Supplier<SocketId> selectedSocket,
                              Supplier<LayeredMechAssets> assets,
                              Supplier<LayeredUnitAssets> technicianAssets,
                              Supplier<SpriteAPI> tileSheet,
                              DoubleSupplier elapsedSeconds) {
-        if (variant == null || assets == null || technicianAssets == null
+        if (variant == null || selectedSocket == null || assets == null || technicianAssets == null
                 || tileSheet == null || elapsedSeconds == null) {
             throw new IllegalArgumentException(
-                    "variant, mech/technician/tile assets, and elapsed time are required");
+                    "variant, socket, mech/technician/tile assets, and elapsed time are required");
         }
         this.variant = variant;
+        this.selectedSocket = selectedSocket;
         this.assets = assets;
         this.technicianAssets = technicianAssets;
         this.tileSheet = tileSheet;
@@ -64,32 +74,41 @@ public final class MechLabDollCanvas implements CanvasProducer {
         float width = context.metrics().surfaceWidth();
         float height = context.metrics().surfaceHeight();
         float time = (float) elapsedSeconds.getAsDouble();
-        drawGarage(context, width, height, tileSheet.get());
+        float cell = garageCell(height);
+        drawGarage(context, width, height, cell, tileSheet.get());
 
         MechVariant selected = variant.get();
         LayeredMechAssets sprites = assets.get();
         if (selected == null || sprites == null) return;
 
-        float hull = Math.min(width * 0.42f, height * 0.50f);
+        // Use the battle renderer's sizing authority. The room may zoom with its
+        // tiles, but a mech and a technician always keep their in-game ratio.
+        float hull = UnitRenderService.layeredMechHullWidth(cell, selected.renderScale);
         float actorX = width * 0.5f;
         float actorCanvasY = height * 0.50f;
         float actorWorldY = height - actorCanvasY;
+        drawSocketOverlays(context, MechFittingLayout.forVariant(selected),
+                selectedSocket.get(), actorX, actorCanvasY, hull, cell);
         LayeredMechComposer.emit(new CanvasSink(context, height), sprites,
                 actorX, actorWorldY, hull,
-                0f, 0f, 0f, 0f, 0f, 0f, 0,
+                GANTRY_FACING_DEGREES, GANTRY_FACING_DEGREES,
+                0f, 0f, 0f, 0f, 0,
                 selected.chassisAppearance,
                 selected.arms.appearanceSelector,
                 appearance(selected.leftShoulder),
                 appearance(selected.rightShoulder), 1f);
 
-        drawTechnicians(context, width, height, time, technicianAssets.get());
+        drawTechnicians(context, width, height, cell, time, technicianAssets.get());
         drawWeld(context, width, height, time);
     }
 
-    private static void drawGarage(CanvasContext c, float width, float height,
+    private static float garageCell(float height) {
+        return Math.max(32f, Math.min(56f, height / 10f));
+    }
+
+    private static void drawGarage(CanvasContext c, float width, float height, float cell,
                                    SpriteAPI liveSheet) {
         c.fillRect(0f, 0f, width, height, BACKGROUND);
-        float cell = Math.max(32f, Math.min(48f, height / 10f));
         int columns = Math.max(1, (int) Math.ceil(width / cell));
         int rows = Math.max(1, (int) Math.ceil(height / cell));
         float originX = (width - columns * cell) * 0.5f;
@@ -162,16 +181,78 @@ public final class MechLabDollCanvas implements CanvasProducer {
     }
 
     private static void drawTechnicians(CanvasContext c, float width, float height,
-                                        float time, LayeredUnitAssets crew) {
+                                        float cell, float time, LayeredUnitAssets crew) {
         if (crew == null) return;
+        float shoulder = UnitRenderService.layeredInfantryShoulderWidth(
+                cell, UnitType.ENGINEER.renderScale);
         float walkPhase = (time * 0.15f) % 1f;
         float walkX = width * (0.18f + 0.22f * walkPhase);
-        drawTechnician(c, crew, walkX, height * 0.82f, 38f, 90f,
+        drawTechnician(c, crew, walkX, height * 0.82f, shoulder, 90f,
                 walkPhase, true);
-        drawTechnician(c, crew, width * 0.78f, height * 0.66f, 38f, 250f,
+        drawTechnician(c, crew, width * 0.78f, height * 0.66f, shoulder, 250f,
                 0f, false);
-        drawTechnician(c, crew, width * 0.23f, height * 0.58f, 38f, 70f,
+        drawTechnician(c, crew, width * 0.23f, height * 0.58f, shoulder, 70f,
                 0f, false);
+    }
+
+    private static void drawSocketOverlays(CanvasContext c, MechFittingLayout layout,
+                                           SocketId selectedSocket, float actorX,
+                                           float actorCanvasY, float hull, float cell) {
+        float radians = (float) Math.toRadians(GANTRY_FACING_DEGREES);
+        float cos = (float) Math.cos(radians);
+        float sin = (float) Math.sin(radians);
+        for (SocketDef socket : layout.sockets()) {
+            float localX = socket.localRight() * hull;
+            float localY = socket.localForward() * hull;
+            float worldX = localX * cos - localY * sin;
+            float worldY = localX * sin + localY * cos;
+            float centerX = actorX + worldX;
+            float centerY = actorCanvasY - worldY;
+            float socketWidth = socket.footprintWidthCells() * cell;
+            float socketHeight = socket.footprintHeightCells() * cell;
+            boolean occupied = layout.occupied(socket.id());
+            boolean selected = socket.id() == selectedSocket;
+            Color base = socketColor(socket.type());
+            int fillAlpha = selected ? 78 : occupied ? 24 : 58;
+            int strokeAlpha = selected ? 230 : occupied ? 92 : 188;
+            c.fillRect(centerX - socketWidth * 0.5f, centerY - socketHeight * 0.5f,
+                    socketWidth, socketHeight, withAlpha(base, fillAlpha));
+            c.strokeRect(centerX - socketWidth * 0.5f, centerY - socketHeight * 0.5f,
+                    socketWidth, socketHeight, withAlpha(base, strokeAlpha),
+                    selected ? 2f : 1f);
+            drawCapacityPips(c, socket, centerX, centerY, socketWidth, socketHeight,
+                    base, selected || !occupied);
+        }
+    }
+
+    private static void drawCapacityPips(CanvasContext c, SocketDef socket,
+                                         float centerX, float centerY,
+                                         float socketWidth, float socketHeight,
+                                         Color base, boolean prominent) {
+        float gap = 3f;
+        float pip = Math.max(3f, Math.min(6f,
+                (socketWidth - gap * (socket.capacity() + 1)) / socket.capacity()));
+        float run = socket.capacity() * pip + (socket.capacity() - 1) * gap;
+        float x = centerX - run * 0.5f;
+        float y = centerY + socketHeight * 0.5f - pip - 3f;
+        for (int index = 0; index < socket.capacity(); index++) {
+            c.fillRect(x + index * (pip + gap), y, pip, pip,
+                    withAlpha(base, prominent ? 220 : 110));
+        }
+    }
+
+    private static Color socketColor(SocketType type) {
+        return switch (type) {
+            case CORE -> new Color(0xF0, 0xC9, 0x52);
+            case BALLISTIC -> new Color(0xE5, 0x83, 0x45);
+            case MISSILE -> new Color(0x6D, 0xD5, 0xF2);
+            case AMMO -> new Color(0x9E, 0xBD, 0x6A);
+            case UTILITY -> new Color(0xB1, 0x8B, 0xE8);
+        };
+    }
+
+    private static Color withAlpha(Color color, int alpha) {
+        return new Color(color.getRed(), color.getGreen(), color.getBlue(), alpha);
     }
 
     private static void drawTechnician(CanvasContext c, LayeredUnitAssets crew,

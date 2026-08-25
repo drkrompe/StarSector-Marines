@@ -2,7 +2,7 @@
 
 Status: ACTIVE
 Written: 2026-08-23
-Updated: 2026-08-25 — folded the shipped fragmentation-grenade special.
+Updated: 2026-08-25 — folded collectible equipment templates and cargo-backed squad issue.
 
 | Story | Shipped | Commit(s) | Fold destination |
 | --- | --- | --- | --- |
@@ -14,3 +14,4 @@ Updated: 2026-08-25 — folded the shipped fragmentation-grenade special.
 | `s2c-satchel-charges.md` | 2026-08-23 | this commit | `progression-nouns.md` — reusable cooldown-gated contact demolition, attached fuses, opportunity AI, friendly hazard response, and campaign issue |
 | `s2-primary-weapon-catalog-expansion.md` | 2026-08-25 | this commit | `progression-nouns.md` — shredder-carbine and squad-automatic identities, simultaneous release versus temporal burst, campaign reachability, and faction availability; `moddable-weapons-nouns.md` — projectile-release authoring law |
 | `s2d-frag-grenades.md` | 2026-08-25 | this commit | `progression-nouns.md` — three-use anti-personnel special, honest cluster AI, reservations, campaign acquisition, Fleet Assault doctrine, and faction availability; `moddable-weapons-nouns.md` — registry-owned short-arc projectile and detonation behavior |
+| `equipment-template-cargo-economy.md` | 2026-08-25 | this commit | `progression-nouns.md` — permanent equipment-template ownership, base-game cargo issue costs, legacy recipe migration, and removal of printed stock from live squad issue; `company-view-nouns.md` — template-bounded authoring and atomic squad materialization |

@@ -141,7 +141,7 @@ discovery for submods and representative live Conquest acceptance also remain.
   `faction-ground-contract-policy.md`.
 - Faction tactical decision-making — `target-faction-command-doctrine.md`.
 - Faction facility geometry — `target-faction-facility-treatment.md`.
-- Player schematic acquisition and factional recipe provenance —
+- Player equipment-template acquisition and factional template provenance —
   `s6-unlock-ladder-expansion.md`.
 - Armor-role mechanics and concrete pattern catalog —
   `powered-assault-armor-roles.md`.

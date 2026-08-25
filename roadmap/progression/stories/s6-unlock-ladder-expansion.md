@@ -3,11 +3,11 @@
 > The ladder is four rungs long and ends at mission five. Four armor
 > patterns are fully authored and unreachable.
 
-Status: PLANNED — depends on `s5-parts-acquisition-channels.md` and the
-remaining S2E–S2G special-equipment stories; armor expansion also depends on
+Status: PLANNED — depends on the remaining S2E–S2G special-equipment stories;
+armor expansion also depends on
 `powered-assault-armor-roles.md`.
 Written: 2026-08-22
-Updated: 2026-08-24 — added weapon-mechanism, boarding-tool, stim, and faction-demolition provenance to the unlock contract.
+Updated: 2026-08-25 — aligned the ladder with shipped collectible equipment templates and cargo-backed issue.
 
 ## Problem
 
@@ -59,17 +59,18 @@ The smallest correct fix, shippable on its own:
   path. This is the guard that stops the audit's finding from recurring the
   next time an asset is authored.
 
-## Slice 2 — Reframe recipes as recoverable blueprints
+## Slice 2 — Recover and collect equipment template cards
 
-**Recommended direction.** Replace victory-count milestones with
-**recovered fabrication schematics** — a recipe is something you *find*,
-not something a counter hands you.
+**Recommended direction.** Replace victory-count milestones with recovered or
+purchased **equipment template cards** — permanent capabilities the player can
+find, earn, license, and collect rather than a counter handing them abstractly.
 
 Why this is the right reframe:
 
 - It is native to Starsector. The player already understands blueprints as
-  a thing you salvage, are paid in, and go looking for.
-- It makes recipes a **loot and reward payload**, which plugs straight into
+  things they salvage, are paid in, purchase, and go looking for. Template cards
+  are the infantry-equipment form of that collection loop.
+- It makes templates a **loot and reward payload**, which plugs straight into
   S5's channels instead of needing a parallel system.
 - It makes the ladder *world-reactive* — what you unlock depends on where
   you have been fighting and who you have been working for
@@ -77,13 +78,13 @@ Why this is the right reframe:
 - It gives special missions a reward that is not money
   ([[feedback_patron_narrative_discoverable]]).
 
-Sources for a schematic: high-risk operation loot, patron contract reward,
-story/special mission, MRB licensing tier, and a modest set of
+Sources for a template card: high-risk operation loot, patron contract reward,
+story/special mission, market purchase, MRB licensing tier, and a modest set of
 early-campaign milestone grants so a green company is not gated behind luck
 in its first hours.
 
 Installation recovery is specific: `intact-installation-recovery.md` may admit
-a faction-provenance schematic only when the matching site was secured in an
+a faction-provenance template only when the matching site was secured in an
 eligible state and accepted terms grant recovery. Destroying the site or merely
 fighting on a market with that faction cannot produce the same pristine pool.
 
@@ -123,8 +124,8 @@ Why this fits the mod's existing commitments:
 - It makes the ladder **world-reactive** — what you can field depends on
   where you have operated and who has employed you
   ([[feedback_world_reactive_over_expressive]]).
-- It gives Slice 2's blueprint reframe somewhere much better to go. A
-  schematic recovered from a Hegemony armory is a *specific* thing, not a
+- It gives Slice 2's collection reframe somewhere much better to go. A
+  template recovered from a Hegemony armory is a *specific* thing, not a
   generic unlock token.
 - It gives patron contract rewards real flavor, and pairs with the shipped
   house-flavor work in
@@ -144,19 +145,19 @@ it in `InfantryCombatStats` rather than duplicating `MarineWeapon` entries.
 A small number of genuinely faction-exclusive families can then exist as
 real chase items without the catalog exploding.
 
-For the first implementation, faction identity attaches to recipe provenance
+For the first implementation, faction identity attaches to template provenance
 and a thin grade-side treatment. It supplies availability, presentation, and a
 bounded stat skew composed with family/grade/profile. It does **not** grant set
 bonuses. Genuinely exclusive weapon families remain separately authored content
 rather than empty cells in a faction cross-product.
 
 Armor uses the same provenance principle but not weapon grade. A recovered suit
-recipe names a concrete pattern whose light, line, or heavy role and faction
+template names a concrete pattern whose light, line, or heavy role and faction
 tradition are authored by `powered-assault-armor-roles.md`. Do not flatten
 Hegemony Domain-pattern heavy armor, Tri-Tachyon composite recon armor, Church
 consecrated legacy suits, and Path/pirate industrial rigs into one faction tint
 over `RED_ELITE`; their silhouette, availability, maintenance, and bounded
-tradeoff must agree with the pattern the player actually prints.
+tradeoff must agree with the pattern the player actually issues.
 
 **2. Coherence versus mongrel.** Can the player field a matched
 single-faction kit, or are they always running whatever they scavenged?
@@ -181,39 +182,39 @@ and its own identity work in flight; do not front-run it.
 Where a milestone gate is still the right tool, gate on more than a count:
 
 - Total and high-risk victories (existing).
-- Advanced components held or spent — ties the ceiling to S5's chase
-  currency.
+- Specific recovered template cards or faction licenses, so rare capability
+  remains tied to operations and relationships rather than only fleet wealth.
 - MRB licensing tier, which is already computed
   (`ContractEligibility`) and currently gates only patron access. Extending
   it to armory access makes company reputation mean something concrete.
-- Patron standing with a specific house — a Corporate patron opening
-  fabrication lines reads correctly.
+- Patron standing with a specific house — a Corporate patron opening its
+  equipment catalog reads correctly.
 - Named operational achievements, e.g. clearing a hardened military site.
 
 ## Out of scope
 
-- Where parts come from — `s5-parts-acquisition-channels.md`.
 - New special equipment to unlock —
   `s2e-close-contact-boarding-tools.md`, `s2f-combat-stim-injectors.md`, and
   `s2g-martyr-rigs-and-carried-ieds.md`. New armor roles and patterns belong to
   `powered-assault-armor-roles.md`. The shipped AMR, smoke grenades, and satchel
-  kits are already starter issue, while the shipped frag recipe has a temporary
+  kits are already starter templates, while the shipped frag template has a temporary
   two-victory acquisition rung. All must remain covered by the stranded-asset
   check, and Slice 2 may replace the frag milestone with an equally reachable
-  schematic path rather than strand or duplicate it.
+  recovery path rather than strand or duplicate it.
 - Visual differentiation of unlocked tiers —
   `s7-grade-visual-identity.md`.
-- Any change to printing costs beyond repricing against S5's stated income
-  curve.
+- Repricing the shipped base-game cargo issue costs; tune them after the
+  acquisition ladder and early-company play pass establish real pressure.
 
 ## Acceptance
 
 - Every authored weapon, grade, special item, and armor pattern is reachable,
   enforced by the stranded-asset test.
-- The ladder has meaningful rungs past mission 30, verified against S5's
-  stated income curve at missions 5, 15, and 30.
-- No rung is reachable by money alone.
-- Every core faction has at least one reachable, recognizable recipe-provenance
+- The ladder has meaningful rungs past mission 30, with target collection
+  breadth stated explicitly at missions 5, 15, and 30.
+- Advanced capability is not reachable by unrestricted money alone. Market
+  cards may still require faction access, licensing, or operational discovery.
+- Every core faction has at least one reachable, recognizable template-provenance
   path or explicit catalog reason for having none in a given equipment family;
   unknown/modded factions use the Independent baseline unless merged data
   declares their own treatment.
@@ -236,9 +237,9 @@ Where a milestone gate is still the right tool, gate on more than a count:
   player start armorless and *earn* their first real armor is a stronger
   opening beat, but it interacts with early-operations balance, which is
   currently tuned around a company that has them.
-- Do schematics fully replace milestone unlocks, or coexist? Leaning:
+- Do recovered cards fully replace milestone grants, or coexist? Leaning:
   coexist, with milestones covering the guaranteed early ladder and
-  schematics covering everything above it — so no player is ever hard-stuck
+  recovery/purchase channels covering everything above it — so no player is ever hard-stuck
   behind a drop that did not come.
 - Coherent faction kits remain an achievable collection/presentation goal, but
   the first implementation has no set bonus; the default company is a mongrel
