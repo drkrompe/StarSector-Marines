@@ -112,7 +112,6 @@ public final class FleetArmoryOverviewScreen implements Screen {
         props.put("fleetSummary", viewModel.fleetSummary());
         props.put("companyCards", viewModel.companyCards());
         props.put("back", (Runnable) () -> context.returnFromArmory());
-        props.put("legacy", (Runnable) () -> context.goTo(ScreenId.ARMORY));
         props.put("reload", (Runnable) () -> reloadRequested = true);
         props.put("reloadStatus", reloadStatus);
         return props;
@@ -123,7 +122,7 @@ public final class FleetArmoryOverviewScreen implements Screen {
                 "fleet-armory-overview-root", "company-overview-header",
                 "company-overview-intro", "company-overview-summary",
                 "company-list", "company-overview-footer", "company-overview-back",
-                "company-overview-legacy", "company-overview-reload",
+                "company-overview-reload",
                 "company-overview-reload-status")) {
             component.requireElement(id);
         }

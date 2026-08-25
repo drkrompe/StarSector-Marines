@@ -1,0 +1,60 @@
+<template props="selectedSquadReadiness,reinforceLabel,reinforceDisabled,reinforceSquad,weaponDoctrineSummary,armorDoctrineSummary,weaponDoctrineTiles,armorDoctrineTiles,transactionSummary,transactionClasses,applyDisabled,applyLabel,apply">
+  <div id="squad-doctrine-strip" class="panel squad-doctrine-strip">
+    <div id="squad-doctrine-heading-row">
+      <div id="squad-doctrine-heading" class="label heading tone-edge">SQUAD EQUIPMENT</div>
+      <div id="selected-squad-readiness" class="label surface-dark tone-edge">{selectedSquadReadiness}</div>
+      <button id="reinforce-selected-squad" disabled="{reinforceDisabled}" onclick="{reinforceSquad}">{reinforceLabel}</button>
+    </div>
+    <div id="doctrine-slot-row">
+      <div id="weapon-doctrine-slot" class="doctrine-slot">
+        <div id="weapon-doctrine-heading" class="label heading tone-accent">WEAPON EQUIPMENT</div>
+        <div id="weapon-doctrine-summary" class="label surface-dark tone-edge">{weaponDoctrineSummary}</div>
+        <div id="weapon-doctrine-list" class="doctrine-list">
+          <button each="tile in weaponDoctrineTiles" key="{tile.id}" id="{tile.id}" class="{tile.classes}" onclick="{tile.select}">
+            <div id="{tile.nameId}" class="doctrine-name label tone-edge">{tile.name}</div>
+            <div id="{tile.descriptionId}" class="doctrine-description label tone-muted">{tile.description}</div>
+            <div id="{tile.distributionId}" class="doctrine-distribution label tone-accent">{tile.distribution}</div>
+          </button>
+        </div>
+      </div>
+      <div id="armor-doctrine-slot" class="doctrine-slot">
+        <div id="armor-doctrine-heading" class="label heading tone-accent">ARMOR EQUIPMENT</div>
+        <div id="armor-doctrine-summary" class="label surface-dark tone-edge">{armorDoctrineSummary}</div>
+        <div id="armor-doctrine-list" class="doctrine-list">
+          <button each="tile in armorDoctrineTiles" key="{tile.id}" id="{tile.id}" class="{tile.classes}" onclick="{tile.select}">
+            <div id="{tile.nameId}" class="doctrine-name label tone-edge">{tile.name}</div>
+            <div id="{tile.descriptionId}" class="doctrine-description label tone-muted">{tile.description}</div>
+            <div id="{tile.distributionId}" class="doctrine-distribution label tone-accent">{tile.distribution}</div>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div id="squad-equip-row">
+      <div id="transaction-result" class="{transactionClasses}">{transactionSummary}</div>
+      <button id="apply-squad-equipment" class="apply-button" disabled="{applyDisabled}" onclick="{apply}">{applyLabel}</button>
+    </div>
+  </div>
+</template>
+
+<style>
+  .squad-doctrine-strip { flex-direction: column; height: 226px; padding: 7px; gap: 5px; overflow: hidden; }
+  .label { overflow: hidden; }
+  .heading { font-family: heading; }
+  #squad-doctrine-heading-row { flex-direction: row; height: 28px; gap: 6px; }
+  #squad-doctrine-heading { width: 190px; padding: 4px 2px; }
+  #selected-squad-readiness { width: 0px; flex-grow: 1; padding: 4px 7px; }
+  #reinforce-selected-squad { padding: 4px 8px; border-width: 1px; font-family: body; text-align: center; }
+  #doctrine-slot-row { flex-direction: row; height: 152px; gap: 7px; }
+  .doctrine-slot { flex-direction: column; width: 0px; flex-grow: 1; padding: 5px; gap: 3px; border-width: 1px; overflow: hidden; }
+  #weapon-doctrine-heading, #armor-doctrine-heading { height: 18px; }
+  #weapon-doctrine-summary, #armor-doctrine-summary { height: 20px; padding: 2px 5px; }
+  .doctrine-list { flex-direction: row; height: 0px; flex-grow: 1; gap: 5px; padding: 1px; overflow: scroll; }
+  .doctrine-tile { flex-direction: column; width: 230px; height: 92px; padding: 5px; gap: 2px; border-width: 1px; font-family: body; text-align: left; overflow: hidden; }
+  .doctrine-tile.selected { background-color: #345a7c; border-color: #53c6e8; }
+  .doctrine-name { height: 18px; }
+  .doctrine-description { height: 34px; }
+  .doctrine-distribution { height: 30px; }
+  #squad-equip-row { flex-direction: row; height: 30px; gap: 7px; }
+  .transaction-result { width: 0px; flex-grow: 1; padding: 4px 7px; border-width: 1px; overflow: hidden; }
+  .apply-button { padding: 4px 9px; border-width: 1px; font-family: body; text-align: center; }
+</style>

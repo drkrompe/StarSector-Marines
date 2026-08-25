@@ -1,4 +1,4 @@
-<template props="companySummary,squadCards,back,legacy,reload,reloadStatus">
+<template props="companySummary,squadCards,back,reload,reloadStatus">
   <div id="fleet-armory-root" class="fleet-armory-root">
     <div id="armory-header" class="panel surface-dark">
       <div id="armory-title" class="label title tone-accent">FLEET ARMORY</div>
@@ -16,14 +16,13 @@
     <div id="squad-overview-intro" class="panel">
       <div id="squad-overview-heading" class="label heading tone-edge">PRIMARY FORMATION</div>
       <div id="squad-overview-summary" class="label surface-dark">{companySummary}</div>
-      <div id="squad-overview-copy" class="label tone-muted">Select a squad to inspect its three fire teams and their equipment templates.</div>
+      <div id="squad-overview-copy" class="label tone-muted">Select a squad to inspect its marines and issue squad weapon and armor equipment.</div>
     </div>
 
     <armory-squad-list squadCards="{squadCards}" />
 
     <div id="armory-footer" class="panel surface-dark">
       <button id="armory-back" onclick="{back}">Back to Companies</button>
-      <button id="legacy-armory" onclick="{legacy}">Armory Administration</button>
       <button id="reload-armory" onclick="{reload}">Reload UI</button>
       <div id="armory-reload-status" class="label tone-good">{reloadStatus}</div>
     </div>

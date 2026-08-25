@@ -181,7 +181,7 @@ Captains carry traits; nothing shows them.
 - Changing aptitude, XP, or trait *mechanics*. This story is presentation
   only, with the single exception of surfacing data S3 already persists.
 - In-battle conveyance — `s9-in-battle-quality-conveyance.md`.
-- Any new screen shell. This extends `ArmoryScreen`'s PERSONNEL surface
+- Any new screen shell. This belongs in a focused retained personnel surface
   rather than adding another full-canvas takeover.
 
 ## Acceptance

@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineSquad;
-import com.dillon.starsectormarines.ops.battleview.ArmoryFireTeamPreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.ArmoryMarinePreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.ArmoryPreviewAssets;
 import com.dillon.starsectormarines.ui.retained.UiAlign;
@@ -37,12 +36,12 @@ public final class FleetArmoryScreen implements Screen {
             "data/ui/components/armory/armory-squad-list.mlx",
             "data/ui/components/armory/fleet-armory-fireteam.mlx",
             "data/ui/components/armory/armory-fireteam-list.mlx",
-            "data/ui/components/armory/armory-template-library.mlx",
+            "data/ui/components/armory/armory-squad-doctrine.mlx",
             "data/ui/components/armory/armory-refit-transaction.mlx");
 
     private final Reactor reactor = new Reactor();
     private final MutableSignal<String> reloadStatus = reactor.signal(
-            "Retained production slice  ·  C15 formation / template / transaction");
+            "Retained production slice  ·  Squad equipment doctrine / atomic issue");
     private final MarkupLoader markup = new MarkupLoader(
             path -> Global.getSettings().loadText(path), COMPONENT_PATHS);
     private final ArmoryPreviewAssets previewAssets = new ArmoryPreviewAssets();
@@ -67,7 +66,7 @@ public final class FleetArmoryScreen implements Screen {
         MarineRosterScript script = MarineRosterScript.getInstance();
         MarineRoster liveRoster = script != null ? script.roster() : null;
         if (liveRoster == null) {
-            context.goTo(ScreenId.ARMORY);
+            context.returnFromFleetArmoryWorkspace();
             return;
         }
         liveRoster.bootstrapInitialComplement(MarineSquad.CAPACITY);
@@ -110,12 +109,6 @@ public final class FleetArmoryScreen implements Screen {
                             ? () -> context.returnFromFleetArmoryWorkspace()
                             : this::showSquadOverview);
             if (view == View.FIRETEAMS) {
-                for (FleetArmoryViewModel.TemplateTile tile : viewModel.templateTiles().get()) {
-                    built.canvases().set(candidate.requireElement(tile.canvasId()),
-                            new ArmoryFireTeamPreviewCanvas(
-                                    () -> viewModel.billetsForTemplate(tile.templateId()),
-                                    previewAssets));
-                }
                 for (int index = 0; index < MarineSquad.TEAM_SIZE; index++) {
                     int slot = index;
                     built.canvases().set(candidate.requireElement("marine-preview:" + index),
@@ -148,30 +141,26 @@ public final class FleetArmoryScreen implements Screen {
         props.put("fireTeamOverviews", viewModel.fireTeamOverviews());
         props.put("squadRows", viewModel.squadRows());
         props.put("teamRows", viewModel.teamRows());
-        props.put("templateTiles", viewModel.templateTiles());
         props.put("targetSummary", viewModel.targetSummary());
         props.put("candidateSummary", viewModel.candidateSummary());
         props.put("selectedSquadReadiness", viewModel.selectedSquadReadiness());
         props.put("reinforceLabel", viewModel.reinforceLabel());
         props.put("reinforceDisabled", viewModel.reinforceDisabled());
         props.put("reinforceSquad", viewModel.reinforceSelectedSquadAction());
-        props.put("pickerClasses", viewModel.pickerClasses());
-        props.put("pickerToggleLabel", viewModel.pickerToggleLabel());
-        props.put("togglePicker", viewModel.toggleLoadoutPickerAction());
-        props.put("billetRows", viewModel.billetRows());
+        props.put("weaponDoctrineTiles", viewModel.weaponDoctrineTiles());
+        props.put("armorDoctrineTiles", viewModel.armorDoctrineTiles());
+        props.put("weaponDoctrineSummary", viewModel.weaponDoctrineSummary());
+        props.put("armorDoctrineSummary", viewModel.armorDoctrineSummary());
         props.put("marineCards", viewModel.marineCards());
-        props.put("previewSummary", viewModel.previewSummary());
         props.put("transactionSummary", viewModel.transactionSummary());
         props.put("transactionClasses", viewModel.transactionClasses());
         props.put("applyDisabled", viewModel.applyDisabled());
-        props.put("applyClasses", viewModel.applyClasses());
         props.put("applyLabel", viewModel.applyLabel());
         props.put("apply", viewModel.applyAction());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         props.put("back", (Runnable) () -> context.returnFromFleetArmoryWorkspace());
         props.put("backToSquads", (Runnable) this::showSquadOverview);
-        props.put("legacy", (Runnable) () -> context.goTo(ScreenId.ARMORY));
         props.put("reload", (Runnable) () -> reloadRequested = true);
         props.put("reloadStatus", reloadStatus);
         return props;
@@ -181,25 +170,19 @@ public final class FleetArmoryScreen implements Screen {
         List<String> required = view == View.FIRETEAMS
                 ? List.of("fleet-armory-fireteam-root", "fireteam-header",
                 "fireteam-breadcrumb", "back-to-squads", "fireteam-body",
-                "fireteam-rail", "fireteam-list", "template-library", "template-list",
-                "refit-transaction", "squad-readiness-row", "selected-squad-readiness",
+                "squad-doctrine-strip", "weapon-doctrine-list", "armor-doctrine-list",
+                "fireteam-rail", "fireteam-list", "refit-transaction", "selected-squad-readiness",
                 "reinforce-selected-squad", "viewer-context", "target-summary",
-                "candidate-summary", "marine-card-grid", "equip-row",
-                "toggle-loadout-picker",
-                "transaction-result", "apply-template", "transaction-feedback", "fireteam-footer",
-                "fireteam-back", "fireteam-legacy", "fireteam-reload",
+                "candidate-summary", "marine-card-grid", "squad-equip-row",
+                "transaction-result", "apply-squad-equipment", "transaction-feedback", "fireteam-footer",
+                "fireteam-back", "fireteam-reload",
                 "fireteam-reload-status", "marine-preview:0", "marine-preview:1",
                 "marine-preview:2", "marine-preview:3")
                 : List.of("fleet-armory-root", "armory-header", "squad-breadcrumb",
                 "squad-overview-intro", "squad-card-list", "armory-footer",
-                "armory-back", "legacy-armory", "reload-armory", "armory-reload-status");
+                "armory-back", "reload-armory", "armory-reload-status");
         for (String id : required) {
             component.requireElement(id);
-        }
-        if (view == View.FIRETEAMS) {
-            for (FleetArmoryViewModel.TemplateTile tile : viewModel.templateTiles().get()) {
-                component.requireElement(tile.canvasId());
-            }
         }
     }
 

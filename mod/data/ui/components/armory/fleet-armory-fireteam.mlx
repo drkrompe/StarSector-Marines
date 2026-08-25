@@ -1,4 +1,4 @@
-<template props="companySummary,selectedSquadName,fireTeamOverviews,templateTiles,targetSummary,candidateSummary,selectedSquadReadiness,reinforceLabel,reinforceDisabled,reinforceSquad,marineCards,pickerClasses,pickerToggleLabel,togglePicker,transactionSummary,transactionClasses,applyDisabled,applyClasses,applyLabel,apply,feedbackText,feedbackClasses,backToSquads,back,legacy,reload,reloadStatus">
+<template props="companySummary,selectedSquadName,fireTeamOverviews,targetSummary,candidateSummary,selectedSquadReadiness,reinforceLabel,reinforceDisabled,reinforceSquad,marineCards,weaponDoctrineSummary,armorDoctrineSummary,weaponDoctrineTiles,armorDoctrineTiles,transactionSummary,transactionClasses,applyDisabled,applyLabel,apply,feedbackText,feedbackClasses,backToSquads,back,reload,reloadStatus">
   <div id="fleet-armory-fireteam-root" class="fleet-armory-root">
     <div id="fireteam-header" class="panel surface-dark">
       <div id="fireteam-title" class="label title tone-accent">FLEET ARMORY</div>
@@ -13,14 +13,15 @@
       </div>
     </div>
 
+    <armory-squad-doctrine selectedSquadReadiness="{selectedSquadReadiness}" reinforceLabel="{reinforceLabel}" reinforceDisabled="{reinforceDisabled}" reinforceSquad="{reinforceSquad}" weaponDoctrineSummary="{weaponDoctrineSummary}" armorDoctrineSummary="{armorDoctrineSummary}" weaponDoctrineTiles="{weaponDoctrineTiles}" armorDoctrineTiles="{armorDoctrineTiles}" transactionSummary="{transactionSummary}" transactionClasses="{transactionClasses}" applyDisabled="{applyDisabled}" applyLabel="{applyLabel}" apply="{apply}" />
+
     <div id="fireteam-body">
       <armory-fireteam-list fireTeamOverviews="{fireTeamOverviews}" />
-      <armory-refit-transaction targetSummary="{targetSummary}" candidateSummary="{candidateSummary}" selectedSquadReadiness="{selectedSquadReadiness}" reinforceLabel="{reinforceLabel}" reinforceDisabled="{reinforceDisabled}" reinforceSquad="{reinforceSquad}" marineCards="{marineCards}" templateTiles="{templateTiles}" pickerClasses="{pickerClasses}" pickerToggleLabel="{pickerToggleLabel}" togglePicker="{togglePicker}" transactionSummary="{transactionSummary}" transactionClasses="{transactionClasses}" applyDisabled="{applyDisabled}" applyClasses="{applyClasses}" applyLabel="{applyLabel}" apply="{apply}" feedbackText="{feedbackText}" feedbackClasses="{feedbackClasses}" />
+      <armory-refit-transaction targetSummary="{targetSummary}" candidateSummary="{candidateSummary}" marineCards="{marineCards}" feedbackText="{feedbackText}" feedbackClasses="{feedbackClasses}" />
     </div>
 
     <div id="fireteam-footer" class="panel surface-dark">
       <button id="fireteam-back" onclick="{back}">Back to Companies</button>
-      <button id="fireteam-legacy" onclick="{legacy}">Armory Administration</button>
       <button id="fireteam-reload" onclick="{reload}">Reload UI</button>
       <div id="fireteam-reload-status" class="label tone-good">{reloadStatus}</div>
     </div>

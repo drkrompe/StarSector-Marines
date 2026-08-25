@@ -97,7 +97,6 @@ class FleetArmoryOverviewViewModelTest {
         props.put("fleetSummary", viewModel.fleetSummary());
         props.put("companyCards", viewModel.companyCards());
         props.put("back", (Runnable) () -> { });
-        props.put("legacy", (Runnable) () -> { });
         props.put("reload", (Runnable) () -> { });
         props.put("reloadStatus", "Test");
         return props;
