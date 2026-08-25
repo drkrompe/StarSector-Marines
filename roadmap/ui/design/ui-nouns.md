@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — desktop authoring pages now share one discoverable host and lifecycle.
+Updated: 2026-08-25 — made shipboard room identity and spatial transition language a standing company-surface navigation law.
 
 ## Purpose
 
@@ -58,6 +58,9 @@ them.
   ordinary boxes: formation connectors, graphs, paper dolls, or transaction flows.
 - A **surface** is a document plus its view model, navigation behavior, and host
   lifecycle. Fleet Armory, Company HQ, and the UI workbench are surfaces.
+- A **shipboard room** is the fiction and navigation identity of a player-facing
+  company surface. The bridge Company HQ and Fleet Armory are current rooms; the
+  retained document remains the implementation surface underneath that spatial frame.
 - A **preview fixture** assembles a surface from controlled domain state for UX
   evidence. It is presentation input, never a replacement campaign authority.
 - A **snapshot suite** is one named, deterministic collection of visual evidence.
@@ -147,6 +150,9 @@ the retained model.
     authoring-page seam instead of adding Gradle launch tasks or coupling the
     generic workbench to a mod-domain catalog. Closing the host consults every
     page's dirty state and closes every created page exactly once.
+14. **Shipboard navigation is spatial.** Company surfaces identify the flagship room
+    the captain occupies and phrase transitions as movement between real destinations.
+    Future room names do not appear as dead controls before their surfaces exist.
 
 ## Intrinsic text and typography
 

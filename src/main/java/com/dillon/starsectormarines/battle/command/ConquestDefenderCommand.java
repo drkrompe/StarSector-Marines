@@ -130,15 +130,15 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         for (CommandSquadState state : frame.squads()) {
             PlanningSquad squad = new PlanningSquad(state);
             allSquads.put(squad.id, squad);
+            if (squad.aliveMembers <= 0) continue;
             int home = homeTrack(squad);
-            if (!initialMobileSquads.contains(squad.id)) {
-                if (squad.role == UnitRole.GARRISON) {
-                    directives.put(squad.id, directive(squad, home, home,
-                            AssignmentReason.DEFENDER_GARRISON_HOLD));
-                }
+            if (!isCommandPoolSquad(squad)) {
+                AssignmentReason reason = squad.role == UnitRole.GARRISON
+                        ? AssignmentReason.DEFENDER_GARRISON_HOLD
+                        : AssignmentReason.DEFENDER_EXTERNAL_ASSIGNMENT_PRESERVED;
+                directives.put(squad.id, directive(squad, home, home, reason));
                 continue;
             }
-            if (squad.aliveMembers <= 0) continue;
             if (squad.localContact) {
                 clearMissionRally(squad);
                 directives.put(squad.id, directive(squad, home, home,
@@ -218,9 +218,11 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         }
         squads.sort(Comparator.comparingInt(s -> s.id));
         for (Squad squad : squads) {
-            if (squad.aliveMembers <= 0 || !isPatrolSquad(squad, sim)) continue;
+            if (!isPatrolSquad(squad, sim)) continue;
             initialMobileSquads.add(squad.id);
-            homeTracks.put(squad.id, trackFor(squad.centroidX, squad.centroidY));
+            long anchor = sim.squadMemberAt(squad.id, 0);
+            homeTracks.put(squad.id, trackFor(
+                    sim.world().cellX(anchor), sim.world().cellY(anchor)));
         }
         initialPoolCaptured = true;
     }
@@ -373,6 +375,13 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         return squad.originalDirective != null
                 && squad.originalDirective.authority().priority()
                 > CommandAuthority.MISSION_COMMAND.priority();
+    }
+
+    private boolean isCommandPoolSquad(PlanningSquad squad) {
+        if (initialMobileSquads.contains(squad.id)) return true;
+        return squad.originalDirective != null
+                && squad.originalDirective.authority() == CommandAuthority.MISSION_COMMAND
+                && strategyId().equals(squad.originalDirective.issuer());
     }
 
     private void clearMissionRally(PlanningSquad squad) {

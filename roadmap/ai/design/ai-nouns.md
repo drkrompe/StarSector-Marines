@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns autonomous mission command, squad planning, belief-de
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — defined the two-sided command-duel baseline, frozen command inputs, directive ownership, spawn-time external claims, and form-up execution suspension.
+Updated: 2026-08-25 — defined the two-sided command-duel baseline, frozen command inputs, perspective-local directive disclosure, spawn-time external claims, form-up execution suspension, and dead-identity invalidation at commander influence publication.
 
 AI turns mission context and what a side has learned into coordinated
 movement, posture, and fire intent. It is a decision system, not the authority
