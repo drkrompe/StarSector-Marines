@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "weapons": [
+    "data/marines/marine-weapons.weapon.json",
+    "data/marines/turret-weapons.weapon.json"
+  ],
+  "specialEquipment": [
+    "data/marines/marine-special-equipment.equipment.json"
+  ],
+  "armor": [
+    "data/marines/marine-armor-catalog.armor.json"
+  ],
+  "groundRosters": [
+    "data/marines/faction-ground-rosters.roster.json"
+  ],
+  "equipmentTemplates": [
+    "data/marines/equipment-templates.template.json"
+  ]
+}

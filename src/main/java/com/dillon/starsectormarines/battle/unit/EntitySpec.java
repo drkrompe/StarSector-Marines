@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 /**
  * Construction spec for a ground-roster unit — the mutable bag of "what to spawn"
@@ -51,6 +52,8 @@ public final class EntitySpec {
     public int secondaryAmmo;
     public AirBody body;
     public MarineWeapon primaryWeapon;
+    /** Authoritative definition; may have no built-in enum compatibility handle. */
+    public WeaponDef primaryWeaponDef;
     public EquipmentGrade equipmentGrade = EquipmentGrade.SERVICE;
     public SoldierProfile soldierProfile = SoldierProfile.REGULAR;
     public String campaignSoldierId;
@@ -184,12 +187,34 @@ public final class EntitySpec {
     public EntitySpec primaryWeapon(MarineWeapon weapon, EquipmentGrade grade,
                                     SoldierProfile profile) {
         this.primaryWeapon = weapon;
+        this.primaryWeaponDef = weapon != null ? weapon.def() : null;
+        return primaryWeaponStats(this.primaryWeaponDef, grade, profile);
+    }
+
+    /** Equips an arbitrary contributed marine-primary definition. */
+    public EntitySpec primaryWeapon(WeaponDef weapon, EquipmentGrade grade,
+                                    SoldierProfile profile) {
+        this.primaryWeaponDef = weapon;
+        try {
+            this.primaryWeapon = weapon != null ? MarineWeapon.fromId(weapon.id) : null;
+        } catch (IllegalArgumentException ignored) {
+            this.primaryWeapon = null;
+        }
+        return primaryWeaponStats(weapon, grade, profile);
+    }
+
+    private EntitySpec primaryWeaponStats(WeaponDef weapon, EquipmentGrade grade,
+                                          SoldierProfile profile) {
         this.equipmentGrade = grade != null ? grade : EquipmentGrade.SERVICE;
         this.soldierProfile = profile != null ? profile : SoldierProfile.REGULAR;
-        this.attackRange = InfantryCombatStats.range(weapon, this.equipmentGrade);
-        this.attackDamage = InfantryCombatStats.damage(weapon, this.equipmentGrade);
-        this.accuracy = InfantryCombatStats.accuracy(weapon, this.equipmentGrade, this.soldierProfile);
-        this.attackCooldown = InfantryCombatStats.cooldown(weapon, this.equipmentGrade, this.soldierProfile);
+        if (weapon != null) {
+            this.attackRange = InfantryCombatStats.range(weapon, this.equipmentGrade);
+            this.attackDamage = InfantryCombatStats.damage(weapon, this.equipmentGrade);
+            this.accuracy = InfantryCombatStats.accuracy(
+                    weapon, this.equipmentGrade, this.soldierProfile);
+            this.attackCooldown = InfantryCombatStats.cooldown(
+                    weapon, this.equipmentGrade, this.soldierProfile);
+        }
         return this;
     }
 

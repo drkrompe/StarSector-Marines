@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.combat.RangeFalloff;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 /** Pure resolver for family × equipment grade × individual profile stats. */
 public final class InfantryCombatStats {
@@ -8,29 +9,52 @@ public final class InfantryCombatStats {
     private InfantryCombatStats() {}
 
     public static float range(MarineWeapon family, EquipmentGrade grade) {
-        return family.range() * grade.rangeMult;
+        return range(family.def(), grade);
+    }
+
+    public static float range(WeaponDef family, EquipmentGrade grade) {
+        return family.range * grade.rangeMult;
     }
 
     public static float damage(MarineWeapon family, EquipmentGrade grade) {
-        return family.damage() * grade.damageMult;
+        return damage(family.def(), grade);
+    }
+
+    public static float damage(WeaponDef family, EquipmentGrade grade) {
+        return family.damage * grade.damageMult;
     }
 
     public static float accuracy(MarineWeapon family, EquipmentGrade grade,
                                  SoldierProfile profile) {
+        return accuracy(family.def(), grade, profile);
+    }
+
+    public static float accuracy(WeaponDef family, EquipmentGrade grade,
+                                 SoldierProfile profile) {
         ExperienceTier exp = profile.experienceTier();
-        return clamp01(family.accuracy() * grade.accuracyMult
+        return clamp01(family.accuracy * grade.accuracyMult
                 * profile.aptitude().accuracyMult * exp.accuracyMult);
     }
 
     public static float cooldown(MarineWeapon family, EquipmentGrade grade,
                                  SoldierProfile profile) {
-        return family.cooldown() * grade.cooldownMult
+        return cooldown(family.def(), grade, profile);
+    }
+
+    public static float cooldown(WeaponDef family, EquipmentGrade grade,
+                                 SoldierProfile profile) {
+        return family.cooldown * grade.cooldownMult
                 * profile.experienceTier().cooldownMult;
     }
 
     public static float spread(MarineWeapon family, EquipmentGrade grade,
                                SoldierProfile profile) {
-        return family.hitSpread() * grade.spreadMult
+        return spread(family.def(), grade, profile);
+    }
+
+    public static float spread(WeaponDef family, EquipmentGrade grade,
+                               SoldierProfile profile) {
+        return family.hitSpread * grade.spreadMult
                 * profile.aptitude().spreadMult
                 * profile.experienceTier().spreadMult;
     }

@@ -121,8 +121,8 @@ public final class GroundSimPresentation {
                 TurretFxRuntime.spawnImpactAndAftermath(
                         fx, s, isWallAt(grid, s.toX, s.toY));
             } else {
-                ImpactProfile profile = s.marineWeapon != null
-                        ? s.marineWeapon.impactProfile() : ImpactProfile.RIFLE;
+                ImpactProfile profile = s.primaryWeaponDef != null
+                        ? s.primaryWeaponDef.impactProfile : ImpactProfile.RIFLE;
                 fx.spawnImpact(profile, s.toX, s.visualToY(), isWallAt(grid, s.toX, s.toY));
             }
         }
@@ -150,8 +150,8 @@ public final class GroundSimPresentation {
                     playAtCell(s.marineSecondary.impactSoundId(),
                             0.9f + rng.nextFloat() * 0.2f, 0.70f, s.toX, s.toY);
                 }
-            } else if (s.marineWeapon != null) {
-                fx.spawnImpact(s.marineWeapon.impactProfile(), s.toX, s.visualToY(), isWall);
+            } else if (s.primaryWeaponDef != null) {
+                fx.spawnImpact(s.primaryWeaponDef.impactProfile, s.toX, s.visualToY(), isWall);
             } else if (s.mechWeapon != null) {
                 ImpactProfile profile = s.mechWeapon.impactProfile;
                 fx.spawnImpact(profile, s.toX, s.visualToY(), isWall);
@@ -172,8 +172,8 @@ public final class GroundSimPresentation {
                 playAtCell(s.turretKind.fireSoundId(), pitch, 1.0f, s.fromX, s.fromY);
             } else if (s.marineSecondary != null) {
                 playAtCell(s.marineSecondary.fireSoundId(), pitch, 1.0f, s.fromX, s.fromY);
-            } else if (s.marineWeapon != null) {
-                playAtCell(s.marineWeapon.fireSoundId(), pitch, 0.85f, s.fromX, s.fromY);
+            } else if (s.primaryWeaponDef != null) {
+                playAtCell(s.primaryWeaponDef.fireSoundId, pitch, 0.85f, s.fromX, s.fromY);
             } else if (s.mechWeapon != null) {
                 playAtCell(s.mechWeapon.fireSoundId, pitch, 1.0f, s.fromX, s.fromY);
             } else {
