@@ -139,6 +139,15 @@ public final class EntityWorld {
     public long   getLong(long e, ComponentType ct, int f)   { long l = requireLoc(e); return tables.get(tableIdx(l)).longs(ct, f).get(row(l)); }
     public void   setLong(long e, ComponentType ct, int f, long v)  { long l = requireLoc(e); tables.get(tableIdx(l)).longs(ct, f).set(row(l), v); }
     public float  getFloat(long e, ComponentType ct, int f)  { long l = requireLoc(e); return tables.get(tableIdx(l)).floats(ct, f).get(row(l)); }
+    /** Allocation-free paired field read through one entity-location probe. */
+    public void readFloatPair(long e, ComponentType ct, int firstField,
+                              int secondField, float[] destination) {
+        long l = requireLoc(e);
+        ArchetypeTable table = tables.get(tableIdx(l));
+        int row = row(l);
+        destination[0] = table.floats(ct, firstField).get(row);
+        destination[1] = table.floats(ct, secondField).get(row);
+    }
     /** Tolerant read: {@code orElse} when {@code e} is missing or lacks {@code ct} — one location probe, for liveness-style checks over maybe-dead ids. */
     public float  getFloat(long e, ComponentType ct, int f, float orElse) {
         long l = location.get(e);

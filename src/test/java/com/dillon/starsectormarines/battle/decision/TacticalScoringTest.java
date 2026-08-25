@@ -1057,6 +1057,29 @@ public class TacticalScoringTest {
     }
 
     @Test
+    public void closestEnemyInAttackRangeUsesFractionalLivePositionForRangeAndLosCell() {
+        BattleSimulation sim = openArena(20, 10);
+        long marine = unit(sim, Faction.MARINE, 5, 4);
+        long enemy = unit(sim, Faction.DEFENDER, 10, 4);
+        float marineX = 5.9f;
+        float marineY = 4.9f;
+        float enemyX = 10.1f;
+        float enemyY = 4.1f;
+        sim.world().setPos(marine, marineX, marineY);
+        sim.world().setPos(enemy, enemyX, enemyY);
+        sim.world().setAttackRange(marine,
+                TacticalScoring.cellDistance(marineX, marineY, enemyX, enemyY));
+
+        sim.getGrid().setWalkable(8, 4, false);
+        assertEquals(0L, sim.getTacticalScoring().closestEnemyInAttackRange(marine),
+                "fractional positions floor to the blocked live LoS cells");
+
+        sim.getGrid().setWalkableFloor(8, 4);
+        assertEquals(enemy, sim.getTacticalScoring().closestEnemyInAttackRange(marine),
+                "the same live floats remain shootable on the inclusive range boundary");
+    }
+
+    @Test
     public void closestEnemyInAttackRangeSkipsKilledSpatialCandidate() {
         BattleSimulation sim = openArena(20, 10);
         long marine = unit(sim, Faction.MARINE, 5, 5);
