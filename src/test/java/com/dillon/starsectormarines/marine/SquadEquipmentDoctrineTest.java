@@ -29,6 +29,26 @@ class SquadEquipmentDoctrineTest {
     }
 
     @Test
+    void starterDefinitionsConcentrateBetterIssueOnEachFireTeamLeader() {
+        MarineRoster roster = fullSquad();
+        MarineSquad squad = roster.squads().get(0);
+        SquadEquipmentPreview preview = roster.previewSquadEquipment(
+                squad.id(), SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,
+                SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR);
+
+        assertTrue(preview.canApply());
+        for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
+            int leader = team * MarineSquad.TEAM_SIZE;
+            assertEquals(MarineWeapon.PULSE_RIFLE, preview.billet(leader).primary());
+            assertEquals(MarineArmorPattern.MILITIA, preview.billet(leader).armor());
+            for (int local = 1; local < MarineSquad.TEAM_SIZE; local++) {
+                assertEquals(MarineWeapon.FIELD_RIFLE, preview.billet(leader + local).primary());
+                assertEquals(MarineArmorPattern.ARMORLESS, preview.billet(leader + local).armor());
+            }
+        }
+    }
+
+    @Test
     void fireSupportDoctrineIssuesOneSquadAutomaticPerTeamFromStarterStock() {
         MarineRoster roster = fullSquad();
         MarineSquad squad = roster.squads().get(0);
@@ -93,7 +113,7 @@ class SquadEquipmentDoctrineTest {
             assertEquals(fatigues.billet(billet).specialEquipmentId(),
                     combatArmor.billet(billet).specialEquipmentId());
         }
-        assertEquals(MarineArmorPattern.ARMORLESS, fatigues.billet(0).armor());
+        assertEquals(MarineArmorPattern.MILITIA, fatigues.billet(0).armor());
         assertEquals(MarineArmorPattern.CHARCOAL, combatArmor.billet(0).armor());
     }
 
