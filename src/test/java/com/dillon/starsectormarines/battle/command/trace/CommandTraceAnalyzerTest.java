@@ -220,8 +220,236 @@ class CommandTraceAnalyzerTest {
     }
 
     @Test
+    void measuresMarkerClosureTargetZoneArrivalAndCompoundPresence()
+            throws Exception {
+        String trace = String.join("\n",
+                header(),
+                compound(0, "COMMAND_POST@20,20", "COMMAND_POST",
+                        "DEFENDER_HELD"),
+                presence(0, "COMMAND_POST@20,20", "DEFENDER_ONLY", 0, 4, 0),
+                physicalPerspective(75, 10f, 10f, 1, false,
+                        "COMPOUND_ASSAULT_ADJACENT"),
+                presence(100, "COMMAND_POST@20,20", "MIXED", 2, 4, 0),
+                physicalPerspective(150, 14f, 14f, 1, false,
+                        "COMPOUND_CAPTURE_PRESERVED"),
+                presence(180, "COMMAND_POST@20,20", "MARINE_ONLY", 3, 0,
+                        2_500),
+                physicalPerspective(225, 20.5f, 20.5f, 5, true,
+                        "COMPOUND_CAPTURE_PRESERVED"),
+                "{\"stream\":\"referee\",\"tick\":300,"
+                        + "\"event\":\"timeout\",\"maxTicks\":300}",
+                "");
+
+        Analysis analysis = CommandTraceAnalyzer.analyze(trace);
+        var physical = analysis.factions().get(Faction.MARINE)
+                .physicalProgress();
+
+        assertEquals(1, physical.movementEpisodes());
+        assertEquals(1, physical.maximumConcurrentAliveSquads());
+        assertEquals(4, physical.maximumConcurrentAliveMembers());
+        assertEquals(1, physical.episodesWithMarkerClosure());
+        assertEquals(1, physical.episodesObservedInTargetZone());
+        assertEquals(1, physical.compoundAssaultThresholdCommitments());
+        assertEquals(1, physical.secureCompoundEpisodes());
+        assertEquals(1,
+                physical.secureCompoundEpisodesObservedInTargetZone());
+        assertEquals(150L, physical.comparableTravelSquadTicks());
+        assertEquals(150L, physical.markerClosingSquadTicks());
+        assertEquals(75L, physical.targetZoneSquadTicks());
+        assertEquals(List.of(150), physical.targetZoneEntryLatenciesTicks());
+
+        var presence = analysis.conquest().physicalPresence();
+        assertEquals(1, presence.compoundsWithMarinePresence());
+        assertEquals(300L, presence.observedCompoundTicks());
+        assertEquals(200L, presence.marinePresentCompoundTicks());
+        assertEquals(120L, presence.marineOnlyCompoundTicks());
+        assertEquals(80L, presence.mixedCompoundTicks());
+        assertEquals(100L, presence.defenderOnlyCompoundTicks());
+        assertEquals(120, presence.longestMarineOnlyPresenceRunTicks());
+        assertEquals(3, presence.maximumMarineUnits());
+        assertEquals(2_500, presence.maximumCaptureProgressBasisPoints());
+    }
+
+    @Test
+    void suspensionAndObservationGapCensorMovementAndEntryLatency()
+            throws Exception {
+        String forming = physicalPerspective(75, 10f, 10f, 1, false,
+                "COMPOUND_CAPTURE_PRESERVED")
+                .replace("\"executionSuspension\":null",
+                        "\"executionSuspension\":\"FORMING_UP\"");
+        String resumed = physicalPerspective(75, 20.5f, 20.5f, 5, false,
+                "COMPOUND_CAPTURE_PRESERVED")
+                .replace("\"observedTick\":75", "\"observedTick\":200");
+        String trace = String.join("\n",
+                header(),
+                forming,
+                "{\"stream\":\"control\",\"tick\":100,"
+                        + "\"event\":\"capture-paused\"}",
+                "{\"stream\":\"control\",\"tick\":200,"
+                        + "\"event\":\"capture-resumed\"}",
+                resumed,
+                "{\"stream\":\"referee\",\"tick\":300,"
+                        + "\"event\":\"timeout\",\"maxTicks\":300}",
+                "");
+
+        var physical = CommandTraceAnalyzer.analyze(trace).factions()
+                .get(Faction.MARINE).physicalProgress();
+
+        assertEquals(25L, physical.suspendedAssignmentSquadTicks());
+        assertEquals(1, physical.movementEpisodes());
+        assertEquals(0L, physical.comparableTravelSquadTicks());
+        assertEquals(1, physical.episodesObservedInTargetZone());
+        assertTrue(physical.targetZoneEntryLatenciesTicks().isEmpty(),
+                "a resumed in-zone baseline is left-censored, not a zero-latency entry");
+    }
+
+    @Test
+    void countsLateAdjacentCommitmentOnceAndSeparatesPresenceAcrossGaps()
+            throws Exception {
+        String trace = String.join("\n",
+                header(),
+                presence(0, "COMMAND_POST@20,20", "MARINE_ONLY", 2, 0,
+                        1_000),
+                physicalPerspective(0, 10f, 10f, 1, false,
+                        "COMPOUND_CAPTURE_PRESERVED"),
+                physicalPerspective(75, 12f, 12f, 1, false,
+                        "COMPOUND_ASSAULT_ADJACENT"),
+                "{\"stream\":\"control\",\"tick\":100,"
+                        + "\"event\":\"capture-paused\"}",
+                "{\"stream\":\"control\",\"tick\":200,"
+                        + "\"event\":\"capture-resumed\"}",
+                presence(200, "COMMAND_POST@20,20", "MARINE_ONLY", 2, 0,
+                        1_000),
+                physicalPerspective(200, 14f, 14f, 1, false,
+                        "COMPOUND_ASSAULT_ADJACENT"),
+                "{\"stream\":\"referee\",\"tick\":300,"
+                        + "\"event\":\"timeout\",\"maxTicks\":300}",
+                "");
+
+        Analysis analysis = CommandTraceAnalyzer.analyze(trace);
+
+        assertEquals(1, analysis.factions().get(Faction.MARINE)
+                .physicalProgress().compoundAssaultThresholdCommitments());
+        assertEquals(200L,
+                analysis.conquest().physicalPresence().marineOnlyCompoundTicks());
+        assertEquals(100, analysis.conquest().physicalPresence()
+                .longestMarineOnlyPresenceRunTicks());
+    }
+
+    @Test
+    void resumedBaselineCannotManufactureMarkerClosureAcrossAGap()
+            throws Exception {
+        String resumed = physicalPerspective(75, 19f, 19f, 1, false,
+                "COMPOUND_CAPTURE_PRESERVED")
+                .replace("\"observedTick\":75", "\"observedTick\":200")
+                .replace("\"tick\":75", "\"tick\":200");
+        String trace = String.join("\n",
+                header(),
+                physicalPerspective(75, 5f, 5f, 1, false,
+                        "COMPOUND_CAPTURE_PRESERVED"),
+                "{\"stream\":\"control\",\"tick\":100,"
+                        + "\"event\":\"capture-paused\"}",
+                "{\"stream\":\"control\",\"tick\":200,"
+                        + "\"event\":\"capture-resumed\"}",
+                resumed,
+                "{\"stream\":\"referee\",\"tick\":300,"
+                        + "\"event\":\"timeout\",\"maxTicks\":300}",
+                "");
+
+        var physical = CommandTraceAnalyzer.analyze(trace).factions()
+                .get(Faction.MARINE).physicalProgress();
+
+        assertEquals(1, physical.movementEpisodes());
+        assertEquals(0, physical.episodesWithMarkerClosure());
+        assertEquals(0L, physical.comparableTravelSquadTicks());
+    }
+
+    @Test
+    void rejectedPlanDoesNotBecomePhysicalProgress() throws Exception {
+        String rejected = physicalPerspective(75, 10f, 10f, 1, false,
+                "COMPOUND_ASSAULT_ADJACENT")
+                .replace("\"status\":\"ACTIVE\"",
+                        "\"status\":\"REJECTED\"");
+        String trace = String.join("\n",
+                header(),
+                rejected,
+                "{\"stream\":\"referee\",\"tick\":150,"
+                        + "\"event\":\"timeout\",\"maxTicks\":150}",
+                "");
+
+        var physical = CommandTraceAnalyzer.analyze(trace).factions()
+                .get(Faction.MARINE).physicalProgress();
+
+        assertEquals(0, physical.movementEpisodes());
+        assertEquals(0, physical.compoundAssaultThresholdCommitments());
+    }
+
+    @Test
+    void retargetClosesTheIntervalGovernedByThePriorDirective()
+            throws Exception {
+        String retargeted = physicalPerspective(150, 15f, 15f, 1, false,
+                "COMPOUND_CAPTURE_PRESERVED")
+                .replace("\"issuedTick\":75", "\"issuedTick\":150")
+                .replace("\"targetZoneId\":5", "\"targetZoneId\":6")
+                .replace("\"markerCellX\":20", "\"markerCellX\":40")
+                .replace("\"markerCellY\":20", "\"markerCellY\":40");
+        String trace = String.join("\n",
+                header(),
+                physicalPerspective(75, 10f, 10f, 1, false,
+                        "COMPOUND_CAPTURE_PRESERVED"),
+                retargeted,
+                "{\"stream\":\"referee\",\"tick\":225,"
+                        + "\"event\":\"timeout\",\"maxTicks\":225}",
+                "");
+
+        var physical = CommandTraceAnalyzer.analyze(trace).factions()
+                .get(Faction.MARINE).physicalProgress();
+
+        assertEquals(2, physical.movementEpisodes());
+        assertEquals(1, physical.episodesWithMarkerClosure());
+        assertEquals(75L, physical.comparableTravelSquadTicks());
+        assertEquals(75L, physical.markerClosingSquadTicks());
+    }
+
+    @Test
+    void acceptsLegacyV2WithoutPhysicalRowsAndRejectsV3EventUnderV2()
+            throws Exception {
+        String legacyHeader = header().replace("\"schemaVersion\":3",
+                "\"schemaVersion\":2");
+        String legacyPerspective = perspective(75, "MARINE", 0,
+                directive("ACTIVE", 75, 1),
+                action("TRACK_ADVANCE", 0), tracks(0, 4, 0, 0))
+                .replace(",\"squads\":[]", "");
+        String trace = String.join("\n",
+                legacyHeader,
+                legacyPerspective,
+                "{\"stream\":\"referee\",\"tick\":150,"
+                        + "\"event\":\"timeout\",\"maxTicks\":150}",
+                "");
+
+        assertEquals(0, CommandTraceAnalyzer.analyze(trace).factions()
+                .get(Faction.MARINE).physicalProgress().squadSamples());
+        String mislabeledTrace = String.join("\n",
+                legacyHeader,
+                physicalPerspective(75, 10f, 10f, 1, false,
+                        "COMPOUND_CAPTURE_PRESERVED"),
+                "{\"stream\":\"referee\",\"tick\":150,"
+                        + "\"event\":\"timeout\",\"maxTicks\":150}",
+                "");
+        assertEquals(0, CommandTraceAnalyzer.analyze(mislabeledTrace)
+                .factions().get(Faction.MARINE).physicalProgress()
+                .squadSamples());
+        assertThrows(IllegalArgumentException.class,
+                () -> CommandTraceAnalyzer.analyze(String.join("\n",
+                        legacyHeader,
+                        presence(0, "COMMAND_POST@20,20", "EMPTY",
+                                0, 0, 0),
+                        "")));
+    }
+
+    @Test
     void rejectsUnsupportedSchemasAndDuplicateHeaders() {
-        String old = header().replace("\"schemaVersion\":2",
+        String old = header().replace("\"schemaVersion\":3",
                 "\"schemaVersion\":1");
         assertThrows(IllegalArgumentException.class,
                 () -> CommandTraceAnalyzer.analyze(old));
@@ -230,7 +458,7 @@ class CommandTraceAnalyzerTest {
     }
 
     private static String header() {
-        return "{\"stream\":\"run\",\"tick\":0,\"schemaVersion\":2,"
+        return "{\"stream\":\"run\",\"tick\":0,\"schemaVersion\":3,"
                 + "\"fixtureKind\":\"CONQUEST\","
                 + "\"schedulerMode\":\"SERIAL_DETERMINISTIC\"}";
     }
@@ -274,8 +502,58 @@ class CommandTraceAnalyzerTest {
                 + ",\"conquest\":{\"axis\":\"SOUTH_TO_NORTH\""
                 + ",\"phase\":\"LANE_ADVANCE\",\"remainingCompounds\":3"
                 + ",\"keepZoneId\":9,\"keepState\":\"DEFENDER_HELD\""
-                + ",\"tracks\":" + tracks + ",\"actions\":[" + action
+                + ",\"tracks\":" + tracks + ",\"squads\":[]"
+                + ",\"actions\":[" + action
                 + "]}}";
+    }
+
+    private static String physicalPerspective(
+            int tick, float centroidX, float centroidY, int currentZone,
+            boolean localContact, String reason) {
+        return "{\"stream\":\"perspective\",\"tick\":" + tick
+                + ",\"observedTick\":" + tick
+                + ",\"perspective\":\"MARINE\",\"strategy\":\"conquest\""
+                + ",\"phase\":\"LANE_ADVANCE\",\"influenceTick\":" + tick
+                + ",\"commandPoolSize\":1,\"reserveCount\":0"
+                + ",\"objectives\":[],\"directives\":["
+                + secureDirective() + "]"
+                + ",\"conquest\":{\"axis\":\"SOUTH_TO_NORTH\""
+                + ",\"phase\":\"LANE_ADVANCE\",\"remainingCompounds\":1"
+                + ",\"keepZoneId\":5,\"keepState\":\"DEFENDER_HELD\""
+                + ",\"tracks\":[],\"squads\":[{\"squadId\":1"
+                + ",\"aliveMembers\":4,\"centroidX\":" + centroidX
+                + ",\"centroidY\":" + centroidY
+                + ",\"currentZoneId\":" + currentZone
+                + ",\"executionSuspension\":null,\"localContact\":"
+                + localContact + "}],\"actions\":[{\"squadId\":1"
+                + ",\"preferredTrack\":0,\"effectiveTrack\":0,\"reason\":\""
+                + reason + "\",\"assignmentKind\":\"SECURE_COMPOUND\""
+                + ",\"targetZoneId\":5,\"targetCellX\":-1"
+                + ",\"targetCellY\":-1,\"markerCellX\":20"
+                + ",\"markerCellY\":20}]}}";
+    }
+
+    private static String secureDirective() {
+        return "{\"squadId\":1,\"issuer\":\"conquest\""
+                + ",\"authority\":\"MISSION_COMMAND\",\"status\":\"ACTIVE\""
+                + ",\"reason\":\"COMPOUND_CAPTURE_PRESERVED\""
+                + ",\"disposition\":\"committed\",\"issuedTick\":75"
+                + ",\"stableUntilTick\":300,\"leaseUntilTick\":-1"
+                + ",\"assignment\":{\"kind\":\"SECURE_COMPOUND\""
+                + ",\"targetZoneId\":5,\"targetNode\":\"COMMAND_POST\""
+                + ",\"objectiveId\":-1,\"targetCellX\":-1"
+                + ",\"targetCellY\":-1}}";
+    }
+
+    private static String presence(int tick, String subject, String occupancy,
+                                   int marines, int defenders, int progress) {
+        return "{\"stream\":\"referee\",\"tick\":" + tick
+                + ",\"event\":\"compound-presence\",\"subject\":\""
+                + subject + "\",\"compoundKind\":\"COMMAND_POST\""
+                + ",\"anchorX\":20,\"anchorY\":20,\"anchorZoneId\":5"
+                + ",\"occupancy\":\"" + occupancy + "\",\"marineUnits\":"
+                + marines + ",\"defenderUnits\":" + defenders
+                + ",\"captureProgressBasisPoints\":" + progress + '}';
     }
 
     private static String directive(String status, int issuedTick,
