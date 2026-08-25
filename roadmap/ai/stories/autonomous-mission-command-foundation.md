@@ -1,8 +1,10 @@
 # Autonomous mission-command foundation
 
-Status: READY — establish the shared command-duel contract before adding more mission-specific commanders.
+Status: IN PROGRESS — the shared frame/plan/commit envelope, paired Conquest migration, and common diagnostics are implemented; writer ownership, disclosure hardening, stability coverage, and live acceptance remain.
 
 Written: 2026-08-25
+
+Updated: 2026-08-25 — recorded the paired Conquest reference migration and common selected-squad/dump visibility while keeping broader ownership, determinism, and playtest acceptance open.
 
 Read `ai-nouns.md`, `conquest-nouns.md`, and `battle-fixtures-nouns.md` before
 implementing this story.
@@ -72,12 +74,12 @@ interventions.
 - [ ] Directive stability spans at least one useful squad-plan interval unless
   objective completion, squad loss, unreachable context, ownership handoff, or
   a legal intervention invalidates it.
-- [ ] Conquest attacker and defender migrate without losing their typed front
+- [x] Conquest attacker and defender migrate without losing their typed front
   snapshot, asymmetric authority, or existing automated acceptance.
-- [ ] A synthetic topology-agnostic paired fixture proves the envelope is not
+- [x] A synthetic topology-agnostic paired fixture proves the envelope is not
   coupled to directional tracks; the first non-Conquest production migration
   remains a later mission story.
-- [ ] Selected-squad and dump output agree on perspective, strategy, phase,
+- [x] Selected-squad and dump output agree on perspective, strategy, phase,
   assignment, reason, authority, issue tick, and lease/supersession state.
 - [ ] Deterministic tests cover empty command pools, disconnected topology,
   invalid targets, simultaneous side changes, and assignment handoff.

@@ -51,6 +51,7 @@ import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.ParkedAircraft;
 import com.dillon.starsectormarines.battle.command.MissionCommand;
+import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.combat.BallisticResolver;
 import com.dillon.starsectormarines.battle.combat.DamageResolver;
 import com.dillon.starsectormarines.battle.combat.DamageService;
@@ -1050,6 +1051,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         return commanders.getCommander(faction);
     }
 
+    /** Latest post-commit autonomous command snapshot for one perspective. */
+    public CommanderSnapshot<?> getCommanderSnapshot(Faction faction) {
+        return commanders.snapshot(faction);
+    }
+
     @Override
     public CommanderInfluenceSnapshot getCommanderInfluence(Faction faction) {
         // Influence is a read-only diagnostic today. Preserve its 15-tick
@@ -1220,7 +1226,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // Commander-tier slow tick — runs before per-squad replan so any
         // assignment written this tick is visible to the GOAP relevance pass
         // below. Cadence + early-skip-when-empty live inside the registry.
-        commanders.tick(TICK_DT, cmd -> cmd.tick(this));
+        commanders.tick(TICK_DT, this);
         // A campaign squad still arriving by lift holds at its LZ: this clears
         // the advancing assignment the commanders just wrote, for every
         // commander at once. Must run after them, not inside them.

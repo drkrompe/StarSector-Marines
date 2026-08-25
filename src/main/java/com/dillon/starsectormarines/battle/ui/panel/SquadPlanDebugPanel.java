@@ -10,10 +10,10 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Doctrine;
+import com.dillon.starsectormarines.battle.command.CommandDirective;
+import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
-import com.dillon.starsectormarines.battle.command.ConquestFrontCommand;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
-import com.dillon.starsectormarines.battle.command.MissionCommand;
 import com.dillon.starsectormarines.battle.combat.FireGate;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
@@ -300,9 +300,14 @@ public final class SquadPlanDebugPanel implements HudPanel {
         // Section 2: contact/doctrine, initiative, HOLD freshness, and fire readiness.
         lines += 7;
         dividers += 1;
-        // Section 3: goal + assignment; Conquest adds command/front reasoning.
+        // Section 3: goal + assignment; autonomous command adds the committed
+        // common envelope and Conquest adds its typed track reasoning.
         lines += 2;
-        if (conquestSnapshot(s, ctx.getSim()) != null) lines += 2;
+        CommanderSnapshot<?> commander = commanderSnapshot(s, ctx.getSim());
+        if (commander != null) {
+            lines += 4;
+            if (conquestSnapshot(commander) != null) lines += 1;
+        }
         dividers += 1;
         // Section 4: "Plan: …" line + per-step (action line + slot lines).
         lines += 1;
@@ -501,6 +506,12 @@ public final class SquadPlanDebugPanel implements HudPanel {
             }
         }
         lineY -= DETAIL_LINE_H;
+        CommanderSnapshot<?> commander = commanderSnapshot(s, ctx.getSim());
+        CommandDirective directive = commander != null
+                ? commander.directiveFor(s.id) : null;
+        ObjectiveAssignment displayedAssignment = directive != null
+                && directive.status() != CommandDirective.Status.REJECTED
+                ? directive.assignment() : s.assignedObjective;
         // Commander assignment readout — what Tier C told this squad to do
         // (or "—" if no commander wrote one). Distinct from Goal: the goal
         // is what the squad picked to pursue *this tick*; the assignment is
@@ -510,8 +521,8 @@ public final class SquadPlanDebugPanel implements HudPanel {
         if (detailScroll.lineVisible(lineY, DETAIL_LINE_H, vpBottomY, vpTopY)) {
             font.drawString("Assignment:", lineX, lineY, DETAIL_LABEL_FG, alphaMult);
             String assignLabel = "—";
-            if (s.assignedObjective != null) {
-                ObjectiveAssignment a = s.assignedObjective;
+            if (displayedAssignment != null) {
+                ObjectiveAssignment a = displayedAssignment;
                 StringBuilder sb = new StringBuilder(a.kind().name());
                 if (a.targetZoneId() >= 0) sb.append(" zone:").append(a.targetZoneId());
                 if (a.targetNode() != null) sb.append(" node");
@@ -525,16 +536,25 @@ public final class SquadPlanDebugPanel implements HudPanel {
             font.drawString(assignLabel, lineX + 96f, lineY, DETAIL_VALUE_FG, alphaMult);
         }
         lineY -= DETAIL_LINE_H;
-        ConquestFrontSnapshot conquest = conquestSnapshot(s, ctx.getSim());
-        if (conquest != null) {
-            ConquestFrontSnapshot.SquadDirective directive =
-                    conquest.directiveFor(s.id);
-            lineY = drawLineIfVisible(font, commandSummary(conquest, directive),
+        if (commander != null) {
+            lineY = drawLineIfVisible(font, commandSummary(commander),
                     lineX, lineY, DETAIL_VALUE_FG, alphaMult,
                     vpBottomY, vpTopY);
-            lineY = drawLineIfVisible(font, trackSummary(conquest, directive),
+            lineY = drawLineIfVisible(font, directiveSummary(directive),
                     lineX, lineY, DETAIL_VALUE_FG, alphaMult,
                     vpBottomY, vpTopY);
+            lineY = drawLineIfVisible(font, provenanceSummary(directive),
+                    lineX, lineY, DETAIL_VALUE_FG, alphaMult,
+                    vpBottomY, vpTopY);
+            lineY = drawLineIfVisible(font, stabilitySummary(directive),
+                    lineX, lineY, DETAIL_VALUE_FG, alphaMult,
+                    vpBottomY, vpTopY);
+            ConquestFrontSnapshot conquest = conquestSnapshot(commander);
+            if (conquest != null) {
+                lineY = drawLineIfVisible(font, trackSummary(conquest,
+                                conquest.directiveFor(s.id)), lineX, lineY,
+                        DETAIL_VALUE_FG, alphaMult, vpBottomY, vpTopY);
+            }
         }
         lineY = dividerIfVisible(x0, bodyW, lineY, alphaMult, vpBottomY, vpTopY);
 
@@ -701,17 +721,44 @@ public final class SquadPlanDebugPanel implements HudPanel {
                 TacticalScoring.HOLD_AFTER_LOS_TICKS);
     }
 
-    private static ConquestFrontSnapshot conquestSnapshot(
+    private static CommanderSnapshot<?> commanderSnapshot(
             Squad squad, BattleSimulation sim) {
-        MissionCommand command = sim.getCommander(squad.faction);
-        return ConquestFrontCommand.snapshotOf(command);
+        return sim.getCommanderSnapshot(squad.faction);
     }
 
-    static String commandSummary(ConquestFrontSnapshot snapshot,
-                                 ConquestFrontSnapshot.SquadDirective directive) {
-        String reason = directive != null ? directive.reason().name() : "—";
-        return String.format("Command %s %s   Reason %s",
-                snapshot.perspective(), snapshot.phase(), reason);
+    private static ConquestFrontSnapshot conquestSnapshot(
+            CommanderSnapshot<?> snapshot) {
+        return snapshot.detail() instanceof ConquestFrontSnapshot conquest
+                ? conquest : null;
+    }
+
+    static String commandSummary(CommanderSnapshot<?> snapshot) {
+        return String.format("Command %s %s   Phase %s",
+                snapshot.perspective(), snapshot.strategy(), snapshot.phase());
+    }
+
+    static String directiveSummary(CommandDirective directive) {
+        return directive == null
+                ? "Directive —   Authority —"
+                : String.format("Directive %s   Authority %s",
+                directive.status(), directive.authority());
+    }
+
+    static String provenanceSummary(CommandDirective directive) {
+        return directive == null
+                ? "Issuer —   Reason —"
+                : String.format("Issuer %s   Reason %s",
+                directive.issuer(), directive.reason());
+    }
+
+    static String stabilitySummary(CommandDirective directive) {
+        if (directive == null) return "Issued —   Lease —   Disposition —";
+        String lease = directive.leaseUntilTick() >= 0
+                ? Integer.toString(directive.leaseUntilTick()) : "—";
+        String disposition = directive.dispositionReason().isEmpty()
+                ? "—" : directive.dispositionReason();
+        return String.format("Issued %d   Lease %s   Disposition %s",
+                directive.issuedTick(), lease, disposition);
     }
 
     static String trackSummary(ConquestFrontSnapshot snapshot,

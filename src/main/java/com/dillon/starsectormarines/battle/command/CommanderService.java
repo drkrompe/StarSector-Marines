@@ -2,10 +2,13 @@ package com.dillon.starsectormarines.battle.command;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 
+import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
+import java.util.WeakHashMap;
 
 /**
  * Per-faction strategic commanders. A faction with no entry here has no
@@ -20,10 +23,10 @@ import java.util.function.Consumer;
  * {@link FogOfWarService}, and
  * {@link com.dillon.starsectormarines.battle.combat.ShotService}.
  *
- * <p>{@link #tick(float, Consumer)} owns the COMMANDER_TICK_PERIOD cadence;
- * the per-commander dispatch goes through the supplied {@code Consumer} so
- * this class doesn't import {@code BattleSimulation} (the same callback
- * shape {@code ShotService} uses for projectile arrivals).
+ * <p>{@link #tick(float, BattleView)} owns the COMMANDER_TICK_PERIOD cadence.
+ * Migrated autonomous commands freeze every perspective before any strategy
+ * plans, then commit every proposal through one assignment arbiter. Legacy
+ * commands retain their old direct tick temporarily while missions migrate.
  */
 public final class CommanderService {
 
@@ -38,6 +41,10 @@ public final class CommanderService {
     public static final float COMMANDER_TICK_PERIOD = 2.5f;
 
     private final Map<Faction, MissionCommand> commanders = new EnumMap<>(Faction.class);
+    private final Map<Faction, CommanderSnapshot<?>> snapshots = new EnumMap<>(Faction.class);
+    private final AssignmentArbiter assignments = new AssignmentArbiter();
+    private static final Map<AutonomousMissionCommand<?, ?>, AssignmentArbiter>
+            DIRECT_SERVICES = java.util.Collections.synchronizedMap(new WeakHashMap<>());
 
     /**
      * Sim-seconds accumulated since the last commander slow-tick. When this
@@ -55,8 +62,10 @@ public final class CommanderService {
     public void setCommander(Faction faction, MissionCommand commander) {
         if (commander == null) {
             commanders.remove(faction);
+            snapshots.remove(faction);
         } else {
-            commanders.put(faction, commander);
+            MissionCommand previous = commanders.put(faction, commander);
+            if (previous != commander) snapshots.remove(faction);
         }
     }
 
@@ -67,6 +76,15 @@ public final class CommanderService {
 
     public boolean isEmpty() { return commanders.isEmpty(); }
 
+    /** Latest committed common snapshot for one perspective, or {@code null}. */
+    public CommanderSnapshot<?> snapshot(Faction faction) {
+        return snapshots.get(faction);
+    }
+
+    public AssignmentArbiter assignments() {
+        return assignments;
+    }
+
     /**
      * Accumulates {@code dt} into the cadence timer and, when it crosses
      * {@link #COMMANDER_TICK_PERIOD}, dispatches every registered commander
@@ -75,13 +93,90 @@ public final class CommanderService {
      * Per-faction order is enum-declaration order via the EnumMap —
      * deterministic across runs.
      */
-    public void tick(float dt, Consumer<MissionCommand> tickHandler) {
+    public void tick(float dt, BattleView sim) {
         if (commanders.isEmpty()) return;
         accumulator += dt;
         if (accumulator < COMMANDER_TICK_PERIOD) return;
         accumulator -= COMMANDER_TICK_PERIOD;
-        for (MissionCommand cmd : commanders.values()) {
-            tickHandler.accept(cmd);
-        }
+        runPulse(sim);
     }
+
+    private void runPulse(BattleView sim) {
+        Map<Faction, String> issuers = new EnumMap<>(Faction.class);
+        for (Map.Entry<Faction, MissionCommand> entry : commanders.entrySet()) {
+            if (entry.getValue() instanceof AutonomousMissionCommand<?, ?> autonomous) {
+                issuers.put(entry.getKey(), autonomous.strategyId());
+            }
+        }
+        assignments.synchronizeCompatibilityAssignments(sim, issuers);
+        CommandTopology topology = CommandTopology.freeze(sim);
+        CommandAssignmentSnapshot assignmentFrame = assignments.snapshot();
+
+        List<FrozenCommand> frozen = new ArrayList<>();
+        List<MissionCommand> legacy = new ArrayList<>();
+        for (MissionCommand command : commanders.values()) {
+            if (command instanceof AutonomousMissionCommand<?, ?> autonomous) {
+                frozen.add(freeze(autonomous, sim, topology, assignmentFrame));
+            } else {
+                legacy.add(command);
+            }
+        }
+
+        List<PreparedCommand> prepared = new ArrayList<>(frozen.size());
+        for (FrozenCommand command : frozen) prepared.add(plan(command));
+
+        // No plan may observe another side's newly committed assignment: every
+        // frame and plan exists before this loop begins.
+        for (PreparedCommand command : prepared) commit(command, sim, topology);
+        for (MissionCommand command : legacy) command.tick(sim);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static FrozenCommand freeze(AutonomousMissionCommand command,
+                                        BattleView sim,
+                                        CommandTopology topology,
+                                        CommandAssignmentSnapshot assignments) {
+        CommandFrame frame = command.freeze(sim, topology, assignments);
+        return new FrozenCommand(command, frame);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static PreparedCommand plan(FrozenCommand frozen) {
+        AutonomousMissionCommand command = frozen.command;
+        CommandPlan<?> plan = command.plan(frozen.frame);
+        if (plan.perspective() != frozen.command.faction()) {
+            throw new IllegalStateException("command plan perspective does not match registration");
+        }
+        return new PreparedCommand(frozen.command, plan);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private void commit(PreparedCommand prepared, BattleView sim,
+                        CommandTopology topology) {
+        CommanderSnapshot snapshot = assignments.commit(prepared.plan, sim, topology);
+        snapshots.put(snapshot.perspective(), snapshot);
+        prepared.command.publish(snapshot);
+    }
+
+    static <F extends CommandFrame, D> void runSingle(
+            AutonomousMissionCommand<F, D> command, BattleView sim) {
+        AssignmentArbiter arbiter = DIRECT_SERVICES.computeIfAbsent(command,
+                ignored -> new AssignmentArbiter());
+        arbiter.synchronizeCompatibilityAssignments(sim,
+                Map.of(command.faction(), command.strategyId()));
+        CommandTopology topology = CommandTopology.freeze(sim);
+        F frame = command.freeze(sim, topology, arbiter.snapshot());
+        CommandPlan<D> plan = command.plan(frame);
+        if (plan.perspective() != command.faction()) {
+            throw new IllegalStateException(
+                    "command plan perspective does not match registration");
+        }
+        command.publish(arbiter.commit(plan, sim, topology));
+    }
+
+    private record PreparedCommand(AutonomousMissionCommand<?, ?> command,
+                                   CommandPlan<?> plan) { }
+
+    private record FrozenCommand(AutonomousMissionCommand<?, ?> command,
+                                 CommandFrame frame) { }
 }

@@ -15,9 +15,9 @@ import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.decision.goap.action.ClearZone;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
-import com.dillon.starsectormarines.battle.command.ConquestFrontCommand;
+import com.dillon.starsectormarines.battle.command.CommandDirective;
+import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
-import com.dillon.starsectormarines.battle.command.MissionCommand;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
@@ -152,7 +152,9 @@ public final class SquadStateDumper {
         o.put("assignedNodeMustHold", squad.assignedNode != null && squad.assignedNode.mustHold);
         o.put("assignedObjective", squad.assignedObjective != null
                 ? buildAssignmentJson(squad.assignedObjective) : JSONObject.NULL);
-        o.put("conquestCommand", buildConquestCommandJson(squad, sim));
+        CommanderSnapshot<?> commander = sim.getCommanderSnapshot(squad.faction);
+        o.put("commander", buildCommanderJson(squad, commander, sim));
+        o.put("conquestCommand", buildConquestCommandJson(squad, commander, sim));
         // Garrison-specific flags — load-bearing for "why won't this squad fire" diagnostics.
         o.put("holdsFireUntilKillZone", squad.holdsFireUntilKillZone);
         o.put("killZoneLosTicks", squad.killZoneLosTicks);
@@ -308,11 +310,64 @@ public final class SquadStateDumper {
         return o;
     }
 
+    private static Object buildCommanderJson(Squad squad,
+                                              CommanderSnapshot<?> snapshot,
+                                              BattleSimulation sim)
+            throws Exception {
+        if (snapshot == null) return JSONObject.NULL;
+        JSONObject out = new JSONObject();
+        out.put("tick", snapshot.tick());
+        out.put("ageTicks", snapshot.tick() >= 0
+                ? Math.max(0, sim.simTickIndex - snapshot.tick()) : -1);
+        out.put("influenceTick", snapshot.influenceTick());
+        out.put("influenceAgeTicks", snapshot.influenceTick() >= 0
+                ? Math.max(0, sim.simTickIndex - snapshot.influenceTick()) : -1);
+        out.put("perspective", snapshot.perspective().name());
+        out.put("strategy", snapshot.strategy());
+        out.put("phase", snapshot.phase());
+        out.put("commandPoolSize", snapshot.commandPoolSize());
+        out.put("reserveCount", snapshot.reserveCount());
+        JSONArray objectives = new JSONArray();
+        for (String objective : snapshot.objectiveSummaries()) {
+            objectives.put(objective);
+        }
+        out.put("objectives", objectives);
+
+        CommandDirective directive = snapshot.directiveFor(squad.id);
+        if (directive == null) {
+            out.put("squadDirective", JSONObject.NULL);
+        } else {
+            JSONObject row = new JSONObject();
+            row.put("issuer", directive.issuer());
+            row.put("authority", directive.authority().name());
+            row.put("status", directive.status().name());
+            row.put("reason", directive.reason());
+            row.put("dispositionReason", directive.dispositionReason());
+            row.put("issuedTick", directive.issuedTick());
+            row.put("leaseUntilTick", directive.leaseUntilTick());
+            ObjectiveAssignment effective = directive.status()
+                    == CommandDirective.Status.REJECTED
+                    ? squad.assignedObjective : directive.assignment();
+            row.put("assignment", effective != null
+                    ? buildAssignmentJson(effective)
+                    : JSONObject.NULL);
+            row.put("proposedAssignment", directive.status()
+                    == CommandDirective.Status.REJECTED
+                    && directive.assignment() != null
+                    ? buildAssignmentJson(directive.assignment())
+                    : JSONObject.NULL);
+            out.put("squadDirective", row);
+        }
+        return out;
+    }
+
     private static Object buildConquestCommandJson(Squad squad,
+                                                   CommanderSnapshot<?> commander,
                                                    BattleSimulation sim)
             throws Exception {
-        MissionCommand command = sim.getCommander(squad.faction);
-        ConquestFrontSnapshot snapshot = ConquestFrontCommand.snapshotOf(command);
+        ConquestFrontSnapshot snapshot = commander != null
+                && commander.detail() instanceof ConquestFrontSnapshot conquest
+                ? conquest : null;
         if (snapshot == null) return JSONObject.NULL;
         JSONObject out = new JSONObject();
         out.put("tick", snapshot.tick());

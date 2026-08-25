@@ -2,7 +2,11 @@ package com.dillon.starsectormarines.battle.ui.panel;
 
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
+import com.dillon.starsectormarines.battle.command.CommandAuthority;
+import com.dillon.starsectormarines.battle.command.CommandDirective;
+import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.AssignmentReason;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.Phase;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.SquadDirective;
@@ -118,9 +122,24 @@ class SquadPlanDebugPanelTest {
                 TraversalAxis.SOUTH_TO_NORTH, Phase.FRONT_ADJUST, 2,
                 25, CompoundState.DEFENDER_HELD, List.of(track),
                 List.of(directive));
+        CommandDirective committed = new CommandDirective(9, Faction.MARINE,
+                "conquest-attacker", CommandAuthority.MISSION_COMMAND,
+                "ADJACENT_TRACK_SUPPORT", ObjectiveAssignment.clearZone(9, 17),
+                44, -1, CommandDirective.Status.ACTIVE, "");
+        CommanderSnapshot<ConquestFrontSnapshot> commander =
+                new CommanderSnapshot<>(Faction.MARINE, "conquest-attacker",
+                        Phase.FRONT_ADJUST.name(), 44, 42, 3, 0,
+                        List.of("remaining compounds=2"), List.of(committed),
+                        snapshot);
 
-        assertEquals("Command MARINE FRONT_ADJUST   Reason ADJACENT_TRACK_SUPPORT",
-                SquadPlanDebugPanel.commandSummary(snapshot, directive));
+        assertEquals("Command MARINE conquest-attacker   Phase FRONT_ADJUST",
+                SquadPlanDebugPanel.commandSummary(commander));
+        assertEquals("Directive ACTIVE   Authority MISSION_COMMAND",
+                SquadPlanDebugPanel.directiveSummary(committed));
+        assertEquals("Issuer conquest-attacker   Reason ADJACENT_TRACK_SUPPORT",
+                SquadPlanDebugPanel.provenanceSummary(committed));
+        assertEquals("Issued 44   Lease —   Disposition —",
+                SquadPlanDebugPanel.stabilitySummary(committed));
         assertEquals("Track P2→E1   Front F0.72/H0.68   Press 5.4/4.2",
                 SquadPlanDebugPanel.trackSummary(snapshot, directive));
     }
