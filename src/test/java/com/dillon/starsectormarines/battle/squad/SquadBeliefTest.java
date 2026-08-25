@@ -88,6 +88,25 @@ class SquadBeliefTest {
     }
 
     @Test
+    void squadsIndependentlyObserveTheSameContact() {
+        BattleSimulation sim = openSim();
+        int firstSquadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        int secondSquadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        sim.spawn(new EntitySpec("first-observer", Faction.MARINE,
+                UnitType.MARINE, 5, 5).squad(firstSquadId));
+        sim.spawn(new EntitySpec("second-observer", Faction.MARINE,
+                UnitType.MARINE, 5, 6).squad(secondSquadId));
+        long target = sim.spawn(new EntitySpec("target", Faction.DEFENDER,
+                UnitType.MARINE, 10, 5));
+
+        sim.advance(BattleSimulation.TICK_DT);
+
+        assertNotNull(sim.getSquad(firstSquadId).believedContact(target));
+        assertNotNull(sim.getSquad(secondSquadId).believedContact(target),
+                "one squad's direct-observation stamp must not suppress another squad");
+    }
+
+    @Test
     void directObservationSharesEveryContactAndRefreshesMovedCell() {
         BattleSimulation sim = openSim();
         int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);

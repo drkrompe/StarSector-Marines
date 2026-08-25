@@ -195,9 +195,14 @@ public final class SquadAlertSystem {
                         + (float) cellDy * cellDy;
                 boolean inKillZone = needsKillZone
                         && distanceSquared <= KILL_ZONE_RANGE_CELLS * KILL_ZONE_RANGE_CELLS;
+                int otherRosterSlot = UnitRosterService.INVALID_INDEX;
                 boolean needsObservation = visionRange > 0f
-                        && cellDistanceSquared <= visionRangeSquared
-                        && !squad.observedDirectlyOnTick(other, simTick);
+                        && cellDistanceSquared <= visionRangeSquared;
+                if (needsObservation) {
+                    otherRosterSlot = roster.indexOf(other);
+                    needsObservation = !squad.observedDirectlyOnTick(
+                            otherRosterSlot, simTick);
+                }
                 if (!inKillZone && !needsObservation) continue;
                 if (!TacticalScoring.canSeePair(grid, uCellX, uCellY, otherCellX, otherCellY,
                         uAir, vision.airLosRadius(other))) continue;
@@ -207,7 +212,8 @@ public final class SquadAlertSystem {
                 }
                 if (needsObservation) {
                     squad._engagedThisTick = true;
-                    squad.observeDirectContact(other, otherCellX, otherCellY, simTick);
+                    squad.observeDirectContact(other, otherCellX, otherCellY,
+                            simTick, otherRosterSlot);
                 }
             }
         }
