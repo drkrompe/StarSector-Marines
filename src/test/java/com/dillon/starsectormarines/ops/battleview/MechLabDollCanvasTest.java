@@ -14,18 +14,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class MechLabDollCanvasTest {
 
     @Test
-    void dropTargetDimensionsFollowTheDollRatherThanTheBattleCell() {
+    void dropTargetUsesTheGantryAroundTheDollWhileLeaderRetainsPhysicalAnchor() {
         SocketDef core = MechFittingLayout.forVariant(MechVariant.BULWARK)
                 .socket(SocketId.CORE);
 
         MechLabDollCanvas.SocketDropTarget target =
                 MechLabDollCanvas.socketDropTarget(core, 500f, 300f, 160f, 160f);
 
-        assertEquals(60.8f, target.width(), 1e-4f);
-        assertEquals(57.6f, target.height(), 1e-4f);
+        assertEquals(136f, target.width(), 1e-4f);
+        assertEquals(54.4f, target.height(), 1e-4f);
+        assertEquals(500f, target.anchorX(), 1e-4f);
+        assertEquals(304.8f, target.anchorY(), 1e-4f);
         assertEquals(500f, target.centerX(), 1e-4f);
-        assertEquals(304.8f, target.centerY(), 1e-4f);
+        assertEquals(60f, target.centerY(), 1e-4f);
         assertTrue(target.contains(target.centerX(), target.centerY()));
+        assertTrue(target.bottom() < target.anchorY());
     }
 
     @Test
@@ -36,8 +39,8 @@ class MechLabDollCanvasTest {
         MechLabDollCanvas.SocketDropTarget target =
                 MechLabDollCanvas.socketDropTarget(miniFab, 200f, 160f, 80f, 80f);
 
-        assertEquals(40f, target.width(), 1e-4f);
-        assertEquals(32f, target.height(), 1e-4f);
+        assertEquals(64f, target.width(), 1e-4f);
+        assertEquals(38f, target.height(), 1e-4f);
         assertEquals(1, target.capacity());
     }
 
