@@ -60,7 +60,8 @@ final class StarsectorUiPaintTarget implements UiPaintTarget {
 
     @Override
     public float devicePixelRatio() {
-        return Display.getWidth() / Math.max(1f, Global.getSettings().getScreenWidth());
+        return viewport.documentScale()
+                * Display.getWidth() / Math.max(1f, Global.getSettings().getScreenWidth());
     }
 
     @Override
@@ -79,14 +80,16 @@ final class StarsectorUiPaintTarget implements UiPaintTarget {
 
     @Override
     public void outline(Rect rect, Color color, float width, float alphaMult) {
-        outlineGl(rect, viewport, color, width, alphaMult);
+        outlineGl(rect, viewport, color, width * devicePixelRatio(), alphaMult);
     }
 
     @Override
     public void text(BitmapFont font, String text, Rect lineBox,
                      Color color, float alphaMult) {
-        font.drawString(text, viewport.screenXFor(lineBox.x()),
-                viewport.screenTopFor(lineBox.y()), color, alphaMult);
+        font.drawStringScaled(text, viewport.screenXFor(lineBox.x()),
+                viewport.screenTopFor(lineBox.y()),
+                viewport.documentScale(), viewport.documentScale(),
+                color, alphaMult);
     }
 
     @Override

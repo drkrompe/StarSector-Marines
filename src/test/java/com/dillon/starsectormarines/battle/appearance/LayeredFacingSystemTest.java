@@ -126,6 +126,29 @@ public class LayeredFacingSystemTest {
     }
 
     @Test
+    public void shoulderedObliqueTargetSharesTorsoAndHelmetBearing() {
+        BattleSimulation sim = arena();
+        BattleComponents c = sim.getBattleComponents();
+        long marine = sim.spawn(new EntitySpec("m", Faction.MARINE,
+                UnitType.MARINE, 5, 5));
+        long enemy = sim.spawn(new EntitySpec("e", Faction.DEFENDER,
+                UnitType.MARINE, 8, 7));
+        float targetFacing = LayeredAppearance.facingDegrees(3, 2);
+        sim.getEntityWorld().setFloat(marine, c.LAYERED_ANIMATION,
+                BattleComponents.LAYERED_FACING_DEGREES, targetFacing);
+        sim.world().setTargetId(marine, enemy);
+        sim.world().setCooldownTimer(marine, sim.world().attackCooldown(marine));
+
+        new FacingSystem(sim.getEntityWorld(), c, sim.getRoster()).tick();
+
+        assertEquals(targetFacing,
+                f(sim, marine, BattleComponents.LAYERED_FACING_DEGREES), 0.001f);
+        assertEquals(0f,
+                f(sim, marine, BattleComponents.LAYERED_HEAD_LOOK_DEGREES), 0.001f,
+                "torso and helmet consume the same continuous target bearing");
+    }
+
+    @Test
     public void civilianFacingTurnsGraduallyAndHoldsItsLastIdleLook() {
         BattleSimulation sim = arena();
         BattleComponents c = sim.getBattleComponents();

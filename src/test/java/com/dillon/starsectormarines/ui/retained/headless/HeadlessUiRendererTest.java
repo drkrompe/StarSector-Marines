@@ -54,6 +54,27 @@ class HeadlessUiRendererTest {
     }
 
     @Test
+    void relativeResolutionFitPreservesLayoutWhileUiScaleChangesIt() {
+        UiElement lowResolutionRoot = new UiElement("low-resolution-root");
+        UiDocument lowResolution = new UiDocument(lowResolutionRoot);
+        UiElement scaledUiRoot = new UiElement("scaled-ui-root");
+        UiDocument scaledUi = new UiDocument(scaledUiRoot);
+        HeadlessUiRenderer renderer = renderer();
+
+        BufferedImage compact = renderer.renderRelative(
+                lowResolution, 160, 60, 1f, 320f, 120f);
+        BufferedImage userScaled = renderer.renderRelative(
+                scaledUi, 320, 120, 2f, 320f, 120f);
+
+        assertEquals(160, compact.getWidth());
+        assertEquals(320f, lowResolutionRoot.box().borderBox().width());
+        assertEquals(120f, lowResolutionRoot.box().borderBox().height());
+        assertEquals(160f, scaledUiRoot.box().borderBox().width());
+        assertEquals(60f, scaledUiRoot.box().borderBox().height());
+        assertEquals(320, userScaled.getWidth());
+    }
+
+    @Test
     void canvasSpritesShareAtlasTintAndBlendSemantics(@TempDir Path resourceRoot)
             throws Exception {
         Path asset = resourceRoot.resolve("graphics/test-atlas.png");

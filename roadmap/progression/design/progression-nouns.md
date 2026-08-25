@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — separated infantry weapon role from delivery mechanism and routed contact tools, stims, and faction demolition through special-equipment authority.
+Updated: 2026-08-25 — made target-faction availability a data-authored composition of existing weapon, grade, armor, and special-equipment identities.
 
 ## Purpose
 
@@ -161,6 +161,16 @@ upgrade. Martyr rigs and carried improvised charges are explicit faction
 content with their own carrier cost and counterplay; faction flavor may not
 silently graft self-detonation, aim bonuses, or shock immunity onto ordinary
 infantry.
+
+Target defenders consume one battle-frozen `GroundRosterProfile`. Its JSON
+weights select among stable primary, grade, armor, special-equipment, and mech
+ids already owned by their respective catalogs; they do not create factional
+copies of those items or faction-only execution rules. Risk chooses which
+weighted quality/protection tables apply, while mission setup retains force
+scale and support gates. The current armor enum and art may still carry palette
+names, but roster data uses semantic armor ids (`field-fatigues`, `scout`,
+`combat`, `line`, `heavy`, `outlaw`, `militia`) so the next visual/content pass
+can change colors without changing doctrine identity.
 
 The first four built-in identities are the rocket launcher, anti-materiel
 rifle, Wayfarer smoke grenades, and Breachhand mag-clamp satchel. The first two

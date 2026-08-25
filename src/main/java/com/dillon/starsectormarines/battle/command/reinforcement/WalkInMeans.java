@@ -9,6 +9,9 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
+import com.dillon.starsectormarines.battle.setup.InfantryLoadoutRolls;
+import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
@@ -63,10 +66,18 @@ public final class WalkInMeans implements ReinforcementMeans {
     private static final int MEMBER_SCAN_RADIUS = 4;
 
     private final TraversalAxis axis;
+    private final GroundRosterProfile groundRoster;
+    private final RiskLevel risk;
     private int nextUnitId = 0;
 
     public WalkInMeans(TraversalAxis axis) {
+        this(axis, null, RiskLevel.LOW);
+    }
+
+    public WalkInMeans(TraversalAxis axis, GroundRosterProfile groundRoster, RiskLevel risk) {
         this.axis = axis;
+        this.groundRoster = groundRoster;
+        this.risk = risk != null ? risk : RiskLevel.LOW;
     }
 
     @Override
@@ -105,12 +116,18 @@ public final class WalkInMeans implements ReinforcementMeans {
         TacticalNode anchor = objectiveNode != null
                 ? objectiveNode
                 : nearestCompoundNode(sim, req.rallyX, req.rallyY);
-        UnitType infantryType = FactionUnitRoster.forFaction(req.side).infantry();
+        UnitType infantryType = groundRoster != null
+                ? groundRoster.unitType(GroundRosterProfile.ForceTier.BULK)
+                : FactionUnitRoster.forFaction(req.side).infantry();
 
         Squad squad = null;
         int spawned = 0;
         for (int[] cell : spawnCells) {
             EntitySpec unit = new EntitySpec("r" + (nextUnitId++), req.side, infantryType, cell[0], cell[1]);
+            if (groundRoster != null) {
+                InfantryLoadoutRolls.defenderLoadout(groundRoster,
+                        GroundRosterProfile.ForceTier.BULK, risk, sim.random()).seedInto(unit);
+            }
             unit.role(UnitRole.PATROL);
             if (squad == null) {
                 int sid = sim.mintSquad(req.side, infantryType);

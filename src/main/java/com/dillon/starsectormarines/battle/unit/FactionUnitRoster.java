@@ -6,16 +6,16 @@ import java.util.EnumMap;
 import java.util.Map;
 
 /**
- * Per-{@link Faction} catalogue of which {@link UnitType} represents the
- * bulk infantry, the stiffening elite, and the heavy mech for that side.
- * Centralises faction-tier picks consumed by battle setup, delivery payloads,
- * garrisons, and reinforcement means.
+ * Per-battle-side compatibility catalogue of default {@link UnitType}s.
+ * Player/story payloads and unprofiled legacy callers still need these stable
+ * defaults. Campaign-target defenders instead freeze a
+ * {@link com.dillon.starsectormarines.battle.setup.GroundRosterProfile} during
+ * setup and every initial/reinforcement source consumes that profile.
  *
  * <p>The ownership contract lives in {@code reinforcement-nouns.md}. The short version:
- * marines bulk-spawn {@link UnitType#MARINE}, defenders bulk-spawn
- * {@link UnitType#MILITIA}, and the elite slot lets shuttle-drop / future
- * elite-roll paths pick a stiffer type without each call site re-deriving
- * the mapping. Static registry — same data shape across every battle.
+ * marines bulk-spawn {@link UnitType#MARINE}; a defender without campaign
+ * target context falls back to {@link UnitType#MILITIA}. This type does not
+ * express campaign faction identity or equipment doctrine.
  */
 public final class FactionUnitRoster {
 

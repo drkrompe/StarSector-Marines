@@ -82,7 +82,8 @@ import java.util.List;
  *   <li><b>Apply</b> — clamp each accumulated impulse to {@link
  *       #MAX_PUSH_SPEED}{@code × dt}, walkability-guard the resulting
  *       position (full move, else X-only slide, else Y-only slide, else drop
- *       the impulse), and write it back via {@link World#setPos}.</li>
+ *       the impulse), and write it back through the authoritative POSITION
+ *       and MOVEMENT columns.</li>
  * </ol>
  *
  * <p>Every applied displacement is also folded additively into the
@@ -842,58 +843,60 @@ public final class SeparationSystem {
 
     private void apply(long[] dense, int liveCount, float dt) {
         float maxMag = MAX_PUSH_SPEED * dt;
-        for (int i = 0; i < liveCount; i++) {
-            float ix = impulseX[i];
-            float iy = impulseY[i];
-            if (ix == 0f && iy == 0f) continue;
-            float mag = (float) Math.sqrt(ix * ix + iy * iy);
-            if (mag > maxMag) {
-                float scale = maxMag / mag;
-                ix *= scale;
-                iy *= scale;
+        for (ArchetypeTable table : entityWorld.matched(components.gridOccupants)) {
+            if (!table.has(components.MOVEMENT)) continue;
+            float[] posX = table.floats(components.POSITION,
+                    BattleComponents.POSITION_X).array();
+            float[] posY = table.floats(components.POSITION,
+                    BattleComponents.POSITION_Y).array();
+            float[] velX = table.floats(components.MOVEMENT,
+                    BattleComponents.MOVEMENT_VEL_X).array();
+            float[] velY = table.floats(components.MOVEMENT,
+                    BattleComponents.MOVEMENT_VEL_Y).array();
+            for (int row = 0, rows = table.rowCount(); row < rows; row++) {
+                int i = collisionSlot(table.entityAt(row), dense, liveCount);
+                if (i == UnitRosterService.INVALID_INDEX) continue;
+                float ix = impulseX[i];
+                float iy = impulseY[i];
+                if (ix == 0f && iy == 0f) continue;
+                float mag = (float) Math.sqrt(ix * ix + iy * iy);
+                if (mag > maxMag) {
+                    float scale = maxMag / mag;
+                    ix *= scale;
+                    iy *= scale;
+                }
+                float ax = collisionX[i];
+                float ay = collisionY[i];
+                float nx = ax + ix;
+                float ny = ay + iy;
+                float appliedX, appliedY;
+                if (grid.isWalkable((int) Math.floor(nx), (int) Math.floor(ny))) {
+                    posX[row] = nx;
+                    posY[row] = ny;
+                    appliedX = ix;
+                    appliedY = iy;
+                } else if (grid.isWalkable((int) Math.floor(nx),
+                        (int) Math.floor(ay))) {
+                    // X-only slide: the full move clips a wall, but sliding along it does not.
+                    posX[row] = nx;
+                    posY[row] = ay;
+                    appliedX = ix;
+                    appliedY = 0f;
+                } else if (grid.isWalkable((int) Math.floor(ax),
+                        (int) Math.floor(ny))) {
+                    // Y-only slide, the perpendicular case.
+                    posX[row] = ax;
+                    posY[row] = ny;
+                    appliedX = 0f;
+                    appliedY = iy;
+                } else {
+                    // Every candidate cell is non-walkable — drop the impulse this tick.
+                    continue;
+                }
+                velX[row] = velX[row] + appliedX / dt;
+                velY[row] = velY[row] + appliedY / dt;
             }
-            long a = dense[i];
-            float ax = collisionX[i];
-            float ay = collisionY[i];
-            float nx = ax + ix;
-            float ny = ay + iy;
-            float appliedX, appliedY;
-            if (grid.isWalkable((int) Math.floor(nx), (int) Math.floor(ny))) {
-                world.setPos(a, nx, ny);
-                appliedX = ix;
-                appliedY = iy;
-            } else if (grid.isWalkable((int) Math.floor(nx), (int) Math.floor(ay))) {
-                // X-only slide: the full move clips a wall, but sliding along it does not.
-                world.setPos(a, nx, ay);
-                appliedX = ix;
-                appliedY = 0f;
-            } else if (grid.isWalkable((int) Math.floor(ax), (int) Math.floor(ny))) {
-                // Y-only slide, the perpendicular case.
-                world.setPos(a, ax, ny);
-                appliedX = 0f;
-                appliedY = iy;
-            } else {
-                // Every candidate cell is non-walkable — drop the impulse this tick.
-                continue;
-            }
-            foldIntoVelocity(a, appliedX / dt, appliedY / dt);
         }
-    }
-
-    /**
-     * Additively folds this tick's separation displacement (as a velocity,
-     * cells/sec) into the {@code MOVEMENT} component's velocity fields —
-     * the same fields {@link MovementService#setVelocity} writes — so
-     * {@code FacingSystem} (which reads "velocity applied this tick" to pick
-     * a walk/idle pose) animates a shoved unit instead of ghost-sliding it.
-     * {@code MovementService.beginTick} already zeroed these for every mover
-     * before this system runs, so this is a set-from-zero, not a stomp.
-     */
-    private void foldIntoVelocity(long id, float dvx, float dvy) {
-        float vx = entityWorld.getFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_VEL_X);
-        float vy = entityWorld.getFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_VEL_Y);
-        entityWorld.setFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_VEL_X, vx + dvx);
-        entityWorld.setFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_VEL_Y, vy + dvy);
     }
 
     /**

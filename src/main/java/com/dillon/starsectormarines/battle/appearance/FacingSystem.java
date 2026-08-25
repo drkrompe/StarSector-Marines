@@ -67,6 +67,8 @@ public final class FacingSystem {
     private final EntityWorld world;
     private final BattleComponents components;
     private final UnitRosterService roster;
+    /** Serial tick scratch for a target's continuous POSITION pair. */
+    private final float[] targetPosition = new float[2];
 
     public FacingSystem(EntityWorld world, BattleComponents components, UnitRosterService roster) {
         this.world = world;
@@ -186,8 +188,11 @@ public final class FacingSystem {
                             ? secondaryAimTarget[r]
                             : (reflexTargetId[r] != 0L ? reflexTargetId[r] : targetId[r]);
                     if (tid != 0L && roster.isLive(tid)) {
-                        int tcx = (int) Math.floor(world.getFloat(tid, components.POSITION, BattleComponents.POSITION_X));
-                        int tcy = (int) Math.floor(world.getFloat(tid, components.POSITION, BattleComponents.POSITION_Y));
+                        world.readFloatPair(tid, components.POSITION,
+                                BattleComponents.POSITION_X,
+                                BattleComponents.POSITION_Y, targetPosition);
+                        int tcx = (int) Math.floor(targetPosition[0]);
+                        int tcy = (int) Math.floor(targetPosition[1]);
                         int tdx = tcx - rowCellX;
                         int tdy = tcy - rowCellY;
                         if (tdx != 0 || tdy != 0) {
@@ -375,17 +380,23 @@ public final class FacingSystem {
         // shouldered. The helmet can continue tracking the target independently.
         int torsoDx = 0;
         int torsoDy = -1;
+        boolean torsoTracksTarget = false;
         if ((inAim || primaryUp) && haveTargetDelta) {
             torsoDx = targetDx;
             torsoDy = targetDy;
+            torsoTracksTarget = true;
         } else if (haveTravelDelta) {
             torsoDx = travelDx;
             torsoDy = travelDy;
         } else if (haveTargetDelta) {
             torsoDx = targetDx;
             torsoDy = targetDy;
+            torsoTracksTarget = true;
         }
-        float torsoFacing = LayeredAppearance.facingDegrees(torsoDx, torsoDy);
+        float targetFacing = haveTargetDelta
+                ? LayeredAppearance.facingDegrees(targetDx, targetDy) : 0f;
+        float torsoFacing = torsoTracksTarget
+                ? targetFacing : LayeredAppearance.facingDegrees(torsoDx, torsoDy);
         if (!type.combatant) {
             // A held civilian keeps the last authored look instead of snapping
             // to the generic south-idle fallback between movement substeps.
@@ -403,8 +414,7 @@ public final class FacingSystem {
         // but a newly-started action can settle out of the exact prior stride.
         locomotion[row] = LayeredAppearance.locomotionPhase(gaitPhase[row]);
         headLook[row] = haveTargetDelta
-                ? LayeredAppearance.headLookDegrees(torsoFacing,
-                    LayeredAppearance.facingDegrees(targetDx, targetDy))
+                ? LayeredAppearance.headLookDegrees(torsoFacing, targetFacing)
                 : 0f;
 
         int authoredPose = LayeredAppearance.POSE_IDLE;

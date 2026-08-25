@@ -11,6 +11,43 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SharedGoalPathfinderTest {
 
     @Test
+    void preservesExactPathCellsAcrossHeapTieHeavyFields() {
+        NavigationGrid grid = openGrid(9, 7);
+        for (int y = 0; y < 7; y++) {
+            if (y != 1 && y != 5) grid.setWalkable(4, y, false);
+        }
+        byte[] occupancy = new byte[9 * 7];
+        occupancy[grid.index(2, 1)] = 1;
+        occupancy[grid.index(3, 5)] = 1;
+        occupancy[grid.index(6, 5)] = 2;
+        SharedGoalPathfinder pathfinder =
+                new SharedGoalPathfinder(grid, occupancy);
+        pathfinder.beginSnapshot();
+        int[][] requests = {
+                {0, 3, 8, 3}, {8, 3, 0, 3},
+                {0, 0, 8, 6}, {8, 6, 0, 0},
+                {2, 6, 7, 0}, {7, 0, 2, 6},
+                {1, 5, 7, 1}, {7, 1, 1, 5}
+        };
+        int[][] expected = {
+                {0, 3, 1, 2, 2, 2, 3, 1, 4, 1, 5, 1, 6, 1, 7, 2, 8, 3},
+                {8, 3, 7, 2, 6, 1, 5, 1, 4, 1, 3, 1, 2, 2, 1, 3, 0, 3},
+                {0, 0, 1, 0, 2, 0, 3, 1, 4, 1, 5, 1, 5, 2, 6, 3, 6, 4, 7, 5, 8, 6},
+                {8, 6, 7, 5, 6, 4, 5, 3, 5, 2, 5, 1, 4, 1, 3, 1, 2, 0, 1, 0, 0, 0},
+                {2, 6, 2, 5, 3, 4, 3, 3, 3, 2, 3, 1, 4, 1, 5, 1, 6, 0, 7, 0},
+                {7, 0, 6, 1, 5, 1, 4, 1, 3, 1, 2, 2, 2, 3, 2, 4, 2, 5, 2, 6},
+                {1, 5, 2, 4, 3, 3, 3, 2, 3, 1, 4, 1, 5, 1, 6, 1, 7, 1},
+                {7, 1, 6, 1, 5, 1, 4, 1, 3, 1, 2, 2, 1, 3, 1, 4, 1, 5}
+        };
+        for (int request = 0; request < requests.length; request++) {
+            int[] r = requests[request];
+            assertArrayEquals(expected[request], pathfinder.findPath(
+                    r[0], r[1], r[2], r[3], false),
+                    "exact path for request " + request);
+        }
+    }
+
+    @Test
     void preservesEndpointAndUnreachableContracts() {
         NavigationGrid grid = openGrid(4, 1);
         byte[] occupancy = new byte[4];

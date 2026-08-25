@@ -113,4 +113,22 @@ class DefenderRosterMechCompositionTest {
         assertEquals(MechRole.ASSAULT, MechVariant.HOUND.defaultRole);
         assertEquals(MechRole.LR_SUPPORT, MechVariant.SIROCCO.defaultRole);
     }
+
+    @Test
+    void factionProfileChoosesHeavyIdentityWithoutBypassingAdmissionGate() {
+        GroundRosterProfile path = GroundRosterRegistry.resolve("luddic_path");
+        DefenderRoster admitted = DefenderRoster.forMission(
+                MissionType.CONQUEST, OperationTier.FULL_STRENGTH,
+                RiskLevel.HIGH, true, Float.POSITIVE_INFINITY, path);
+        assertEquals(List.of(
+                MechVariant.HOUND, MechVariant.HOUND, MechVariant.HOUND,
+                MechVariant.HOUND, MechVariant.HOUND, MechVariant.HOUND),
+                admitted.mechVariants);
+
+        DefenderRoster gated = DefenderRoster.forMission(
+                MissionType.CONQUEST, OperationTier.FULL_STRENGTH,
+                RiskLevel.HIGH, false, Float.POSITIVE_INFINITY, path);
+        assertTrue(gated.mechVariants.isEmpty());
+        assertEquals(gated.totalCount, gated.eliteCount + gated.militiaCount);
+    }
 }
