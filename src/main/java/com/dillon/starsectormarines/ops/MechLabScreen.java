@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
+import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
 import com.dillon.starsectormarines.ops.battleview.MechLabDollCanvas;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
@@ -39,6 +40,7 @@ public final class MechLabScreen implements Screen {
     private UiDocument document;
     private MarkupInstance markupInstance;
     private StarsectorUiInputAdapter input;
+    private double previewSeconds;
 
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
@@ -72,9 +74,15 @@ public final class MechLabScreen implements Screen {
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard()).onCancel(this::close);
             previewSprites.ensureLayeredMechSprites();
+            previewSprites.ensureLayeredUnitSprites();
+            previewSprites.ensureTileSheet();
             built.canvases().set(candidate.requireElement("mech-doll-canvas"),
                     new MechLabDollCanvas(viewModel::selectedVariant,
-                            previewSprites::layeredMechSprites));
+                            previewSprites::layeredMechSprites,
+                            () -> previewSprites.layeredUnitSprites().get(
+                                    LayeredArmorFamily.ARMY_GREEN),
+                            previewSprites::tileSheet,
+                            () -> previewSeconds));
             if (viewport != null) {
                 built.layout(viewport.documentWidth(), viewport.documentHeight());
             }
@@ -102,10 +110,15 @@ public final class MechLabScreen implements Screen {
         props.put("performanceMeters", viewModel.performanceMeters());
         props.put("leftSlotRows", viewModel.leftSlotRows());
         props.put("rightSlotRows", viewModel.rightSlotRows());
+        props.put("slotRows", viewModel.slotRows());
         props.put("selectedSlotTitle", viewModel.selectedSlotTitle());
         props.put("selectedSlotCopy", viewModel.selectedSlotCopy());
         props.put("selectedSlotRule", viewModel.selectedSlotRule());
         props.put("catalogRows", viewModel.catalogRows());
+        props.put("pickerClasses", viewModel.pickerClasses());
+        props.put("workspaceClasses", viewModel.workspaceClasses());
+        props.put("openAssetPicker", viewModel.openAssetPickerAction());
+        props.put("closeAssetPicker", viewModel.closeAssetPickerAction());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MECH_LAB,
@@ -120,10 +133,10 @@ public final class MechLabScreen implements Screen {
         for (String id : List.of(
                 "mech-lab-root", "marine-ops-page-nav", "page-nav-return",
                 "page-nav-hq", "page-nav-armory", "page-nav-mech-lab",
-                "mech-lab-intro", "mech-lab-body", "mech-lab-roster",
-                "mech-squad-list", "mech-list", "mech-doll-workspace",
-                "mech-performance-grid", "mech-doll-bay", "mech-doll-canvas",
-                "mech-left-slots", "mech-right-slots", "mech-component-catalog",
+                "mech-lab-room-bar", "mech-lab-body", "mech-asset-picker",
+                "mech-squad-list", "mech-list", "mech-fitting-workspace",
+                "mech-performance-grid", "mech-garage-stage", "mech-doll-canvas",
+                "mech-slot-rack", "mech-component-catalog",
                 "mech-catalog-list",
                 "mech-lab-feedback")) {
             component.requireElement(id);
@@ -136,6 +149,7 @@ public final class MechLabScreen implements Screen {
 
     @Override
     public void advance(float dt) {
+        previewSeconds += Math.max(0f, dt);
         if (markupInstance != null) markupInstance.flush();
         if (document != null) document.advance(dt);
     }

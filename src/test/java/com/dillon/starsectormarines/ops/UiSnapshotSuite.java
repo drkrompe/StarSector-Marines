@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.CampaignMech;
+import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MechBay;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
@@ -95,7 +96,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("mech-lab-low-resolution.png",
                         renderMechLab(context, renderer, 1163, 625, 1f)),
                 new SnapshotArtifact("mech-lab-ui-scale-150.png",
-                        renderMechLab(context, renderer, 1744, 938, 1.5f)));
+                        renderMechLab(context, renderer, 1744, 938, 1.5f)),
+                new SnapshotArtifact("mech-lab-asset-picker-wide.png",
+                        renderMechLab(context, renderer, 1744, 938, 1f, true)));
     }
 
     private static BufferedImage renderCompanyHq(
@@ -220,6 +223,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static BufferedImage renderMechLab(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, float uiScale) throws Exception {
+        return renderMechLab(context, renderer, width, height, uiScale, false);
+    }
+
+    private static BufferedImage renderMechLab(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, float uiScale, boolean pickerOpen) throws Exception {
         Reactor reactor = new Reactor();
         MechBay bay = new MechBay();
         bay.addMech(MechBay.STARTER_SQUAD_ID, new CampaignMech(
@@ -230,6 +239,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 MechRole.LR_SUPPORT, MissileReplenisherComponent.ACCELERATED_FEED.id()));
         bay.addReplenisher(MissileReplenisherComponent.ACCELERATED_FEED.id(), 1);
         MechLabViewModel viewModel = new MechLabViewModel(reactor, bay);
+        if (pickerOpen) viewModel.openAssetPickerAction().run();
+        HeadlessArmoryPreviewRenderer technicianPreview =
+                new HeadlessArmoryPreviewRenderer(context.modRoot());
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), MECH_LAB_COMPONENTS);
         loader.reload();
@@ -241,7 +253,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             document.theme(MarineOpsThemes.standard());
             document.canvases().set(instance.requireElement("mech-doll-canvas"),
                     new MechLabDollCanvas(viewModel::selectedVariant,
-                            MechLabDollCanvas::headlessAssets));
+                            MechLabDollCanvas::headlessAssets,
+                            () -> technicianPreview.assets().layered(
+                                    MarineArmorPattern.ARMY_GREEN),
+                            () -> null));
             return renderRelative(renderer, document, width, height, uiScale);
         }
     }
@@ -339,10 +354,15 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("performanceMeters", viewModel.performanceMeters());
         props.put("leftSlotRows", viewModel.leftSlotRows());
         props.put("rightSlotRows", viewModel.rightSlotRows());
+        props.put("slotRows", viewModel.slotRows());
         props.put("selectedSlotTitle", viewModel.selectedSlotTitle());
         props.put("selectedSlotCopy", viewModel.selectedSlotCopy());
         props.put("selectedSlotRule", viewModel.selectedSlotRule());
         props.put("catalogRows", viewModel.catalogRows());
+        props.put("pickerClasses", viewModel.pickerClasses());
+        props.put("workspaceClasses", viewModel.workspaceClasses());
+        props.put("openAssetPicker", viewModel.openAssetPickerAction());
+        props.put("closeAssetPicker", viewModel.closeAssetPickerAction());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MECH_LAB,
