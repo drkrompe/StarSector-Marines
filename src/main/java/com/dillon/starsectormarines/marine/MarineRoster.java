@@ -223,6 +223,32 @@ public class MarineRoster implements Serializable {
         return !isFireTeamTemplateReferenced(cardId) && armory.deleteTemplateCard(cardId);
     }
 
+    public boolean isWeaponDoctrineAssigned(String doctrineId) {
+        if (doctrineId == null) return false;
+        for (MarineSquad squad : squads) {
+            if (doctrineId.equals(squad.weaponDoctrineId())) return true;
+        }
+        return false;
+    }
+
+    public boolean isArmorDoctrineAssigned(String doctrineId) {
+        if (doctrineId == null) return false;
+        for (MarineSquad squad : squads) {
+            if (doctrineId.equals(squad.armorDoctrineId())) return true;
+        }
+        return false;
+    }
+
+    public boolean deleteWeaponDoctrine(String doctrineId) {
+        return !isWeaponDoctrineAssigned(doctrineId)
+                && armory.deleteWeaponDoctrine(doctrineId);
+    }
+
+    public boolean deleteArmorDoctrine(String doctrineId) {
+        return !isArmorDoctrineAssigned(doctrineId)
+                && armory.deleteArmorDoctrine(doctrineId);
+    }
+
     public List<MarineSoldier> soldiers() {
         return Collections.unmodifiableList(soldiers);
     }
@@ -774,11 +800,11 @@ public class MarineRoster implements Serializable {
         if (squad == null || squad.reserve()) {
             return squadEquipmentFailure(SquadEquipmentResult.INVALID_SQUAD);
         }
-        SquadWeaponDoctrine weapons = SquadEquipmentDoctrines.weaponById(weaponDoctrineId);
+        SquadWeaponDoctrine weapons = armory.weaponDoctrineById(weaponDoctrineId);
         if (weapons == null) {
             return squadEquipmentFailure(SquadEquipmentResult.UNKNOWN_WEAPON_DOCTRINE);
         }
-        SquadArmorDoctrine armor = SquadEquipmentDoctrines.armorById(armorDoctrineId);
+        SquadArmorDoctrine armor = armory.armorDoctrineById(armorDoctrineId);
         if (armor == null) {
             return squadEquipmentFailure(SquadEquipmentResult.UNKNOWN_ARMOR_DOCTRINE);
         }
@@ -1494,6 +1520,7 @@ public class MarineRoster implements Serializable {
         if (nextSoldierNumber <= 0) nextSoldierNumber = soldiers.size() + 1;
         if (nextSquadNumber <= 0) nextSquadNumber = squads.size() + 1;
         if (!soldiers.isEmpty()) initialComplementIssued = true;
+        migrateLegacySquadEquipmentIntent();
         for (MarineSoldier soldier : soldiers) {
             if (squadForSoldier(soldier.id()) == null) assignToSquad(soldier);
         }
@@ -1502,6 +1529,38 @@ public class MarineRoster implements Serializable {
         refreshLeadership();
         repairCaptainCandidates();
         return this;
+    }
+
+    private void migrateLegacySquadEquipmentIntent() {
+        for (MarineSquad squad : squads) {
+            if (squad == null || squad.reserve()
+                    || squad.weaponDoctrineId() != null || squad.armorDoctrineId() != null) continue;
+            List<SquadWeaponIssue> weapons = new ArrayList<>();
+            List<MarineArmorPattern> armor = new ArrayList<>();
+            boolean complete = true;
+            for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
+                FireTeamTemplateCard card = armory.templateCardById(
+                        squad.teamTemplateCardId(team));
+                if (card == null) {
+                    complete = false;
+                    break;
+                }
+                for (FireTeamBillet billet : card.billets()) {
+                    weapons.add(new SquadWeaponIssue(
+                            billet.name(), billet.primary(), billet.grade(),
+                            billet.specialEquipmentId()));
+                    armor.add(billet.armor());
+                }
+            }
+            if (!complete || weapons.size() != MarineSquad.CAPACITY) continue;
+            String weaponId = "migrated:weapons:" + squad.id();
+            String armorId = "migrated:armor:" + squad.id();
+            armory.ensureWeaponDoctrine(weaponId,
+                    squad.name() + " Legacy Weapon Issue", weapons);
+            armory.ensureArmorDoctrine(armorId,
+                    squad.name() + " Legacy Armor Issue", armor);
+            squad.migrateEquipmentDoctrineIds(weaponId, armorId);
+        }
     }
 
     private void repairCaptainCandidates() {

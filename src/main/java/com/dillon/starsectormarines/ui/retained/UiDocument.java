@@ -245,6 +245,20 @@ public final class UiDocument {
             return moveFocus(held.contains(KeyModifier.SHIFT));
         }
         if (!held.isEmpty()) return false;
+        if (focused != null && focused.tag() == UiTag.INPUT) {
+            if (key == UiKey.BACKSPACE) {
+                if (!repeat || focused.text() != null && !focused.text().isEmpty()) {
+                    String value = focused.text() == null ? "" : focused.text();
+                    if (!value.isEmpty()) focused.editInput(value.substring(0, value.length() - 1));
+                }
+                return true;
+            }
+            if (key == UiKey.DELETE) return true;
+            if (key == UiKey.ENTER || key == UiKey.ESCAPE) {
+                if (!repeat) requestFocus(null, false);
+                return true;
+            }
+        }
         if (key == UiKey.ENTER && focused != null && focused.clickable()) {
             if (!repeat) focused.click();
             return true;
@@ -261,6 +275,16 @@ public final class UiDocument {
             return true;
         }
         return false;
+    }
+
+    /** Appends one host-translated printable character to the focused text input. */
+    public boolean characterTyped(char value) {
+        validateInteractionReferences();
+        if (focused == null || focused.tag() != UiTag.INPUT
+                || Character.isISOControl(value)) return false;
+        String current = focused.text() == null ? "" : focused.text();
+        if (current.length() >= focused.inputMaxLength()) return true;
+        return focused.editInput(current + value);
     }
 
     public boolean keyReleased(UiKey key, Set<KeyModifier> modifiers) {

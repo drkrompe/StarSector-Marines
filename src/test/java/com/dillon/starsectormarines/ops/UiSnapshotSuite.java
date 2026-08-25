@@ -41,6 +41,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             "data/ui/components/armory/fleet-armory.mlx",
             "data/ui/components/armory/armory-squad-list.mlx",
             "data/ui/components/armory/fleet-armory-fireteam.mlx",
+            "data/ui/components/armory/fleet-armory-doctrine-designer.mlx",
             "data/ui/components/armory/armory-fireteam-list.mlx",
             "data/ui/components/armory/armory-squad-doctrine.mlx",
             "data/ui/components/armory/armory-refit-transaction.mlx");
@@ -84,6 +85,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("fleet-armory-equipment-preview-wide.png",
                         renderFleetArmoryWorkspace(
                                 context, renderer, 1744, 938, true, true)),
+                new SnapshotArtifact("fleet-armory-equipment-designer-wide.png",
+                        renderEquipmentDesigner(context, renderer, 1744, 938)),
+                new SnapshotArtifact("fleet-armory-equipment-designer-low-resolution.png",
+                        renderEquipmentDesigner(context, renderer, 1163, 625)),
                 new SnapshotArtifact("mech-lab-wide.png",
                         renderMechLab(context, renderer, 1744, 938, 1f)),
                 new SnapshotArtifact("mech-lab-low-resolution.png",
@@ -180,6 +185,37 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         }
     }
 
+    private static BufferedImage renderEquipmentDesigner(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height) throws Exception {
+        Reactor reactor = new Reactor();
+        MarineRoster roster = new MarineRoster();
+        roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
+        FleetArmoryViewModel armory = new FleetArmoryViewModel(reactor, roster);
+        EquipmentDoctrineDesignerViewModel designer = new EquipmentDoctrineDesignerViewModel(
+                reactor, roster, armory.selectedSquadId(),
+                armory.selectedWeaponDoctrineId(), armory.selectedArmorDoctrineId());
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                context.modRoot().resolve(path)), WORKSPACE_COMPONENTS);
+        loader.reload();
+        try (MarkupInstance instance = loader.build(
+                reactor, "fleet-armory-doctrine-designer", designerProps(designer))) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            HeadlessArmoryPreviewRenderer armoryPreview =
+                    new HeadlessArmoryPreviewRenderer(context.modRoot());
+            for (int index = 0; index < MarineSquad.TEAM_SIZE; index++) {
+                int billet = index;
+                document.canvases().set(instance.requireElement(
+                                "designer-marine-preview:" + index),
+                        new ArmoryMarinePreviewCanvas(
+                                () -> designer.viewerBilletAt(billet), armoryPreview.assets()));
+            }
+            return renderRelative(renderer, document, width, height, 1f);
+        }
+    }
+
     private static BufferedImage renderMechLab(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, float uiScale) throws Exception {
@@ -237,6 +273,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("reinforceLabel", viewModel.reinforceLabel());
         props.put("reinforceDisabled", viewModel.reinforceDisabled());
         props.put("reinforceSquad", viewModel.reinforceSelectedSquadAction());
+        props.put("designEquipment", (Runnable) () -> { });
         props.put("weaponDoctrineTiles", viewModel.weaponDoctrineTiles());
         props.put("armorDoctrineTiles", viewModel.armorDoctrineTiles());
         props.put("weaponDoctrineSummary", viewModel.weaponDoctrineSummary());
@@ -251,6 +288,33 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("feedbackClasses", viewModel.feedbackClasses());
         props.put("back", (Runnable) () -> { });
         props.put("backToSquads", (Runnable) () -> { });
+        putArmoryPageNavigation(props);
+        return props;
+    }
+
+    private static Map<String, Object> designerProps(
+            EquipmentDoctrineDesignerViewModel viewModel) {
+        Map<String, Object> props = new LinkedHashMap<>();
+        props.put("squadName", viewModel.squadName());
+        props.put("designerHeading", viewModel.heading());
+        props.put("designerSubheading", viewModel.subheading());
+        props.put("draftName", viewModel.draftName());
+        props.put("editName", viewModel.editName());
+        props.put("definitions", viewModel.definitions());
+        props.put("teamTabs", viewModel.teamTabs());
+        props.put("billets", viewModel.billets());
+        props.put("feedback", viewModel.feedback());
+        props.put("showWeapons", viewModel.showWeapons());
+        props.put("showArmor", viewModel.showArmor());
+        props.put("newDraft", viewModel.newDraft());
+        props.put("cloneSelected", viewModel.cloneSelected());
+        props.put("saveAsNew", viewModel.saveAsNew());
+        props.put("rename", viewModel.rename());
+        props.put("renameDisabled", viewModel.renameDisabled());
+        props.put("delete", viewModel.delete());
+        props.put("deleteDisabled", viewModel.deleteDisabled());
+        props.put("backToFireTeams", (Runnable) () -> { });
+        props.put("back", (Runnable) () -> { });
         putArmoryPageNavigation(props);
         return props;
     }
