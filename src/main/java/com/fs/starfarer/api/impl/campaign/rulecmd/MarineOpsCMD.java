@@ -1,6 +1,7 @@
 package com.fs.starfarer.api.impl.campaign.rulecmd;
 
 import com.dillon.starsectormarines.ops.MarineOpsDialogDelegate;
+import com.dillon.starsectormarines.ops.MarineOpsDialogSize;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.InteractionDialogAPI;
 import com.fs.starfarer.api.campaign.PlanetAPI;
@@ -29,10 +30,6 @@ public class MarineOpsCMD extends BaseCommandPlugin {
 
     private static final Logger LOG = Global.getLogger(MarineOpsCMD.class);
 
-    /** Fraction of the parent dialog's reported screen size to occupy. */
-    private static final float WIDTH_FRACTION  = 0.92f;
-    private static final float HEIGHT_FRACTION = 0.88f;
-
     @Override
     public boolean execute(String ruleId,
                            InteractionDialogAPI dialog,
@@ -42,8 +39,8 @@ public class MarineOpsCMD extends BaseCommandPlugin {
 
         String sub = params.get(0).getString(memoryMap);
         if ("open".equals(sub)) {
-            float w = Global.getSettings().getScreenWidth()  * WIDTH_FRACTION;
-            float h = Global.getSettings().getScreenHeight() * HEIGHT_FRACTION;
+            float w = MarineOpsDialogSize.requestedWidth();
+            float h = MarineOpsDialogSize.requestedHeight();
             LOG.info(String.format("MarineOpsCMD: opening custom dialog at %.0fx%.0f", w, h));
 
             // Collapse parent dialog chrome so the custom dialog isn't competing for space.

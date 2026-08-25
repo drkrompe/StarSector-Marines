@@ -111,9 +111,21 @@ public final class SquadEquipmentDoctrines {
                             weapon("Anti-Armor", MarineWeapon.PULSE_RIFLE, MarineSecondary.ROCKET_LAUNCHER))));
 
     private static final List<SquadArmorDoctrine> ARMOR = List.of(
-            armorDoctrine(FIELD_FATIGUES_ARMOR, "Field Fatigues",
-                    "Minimal protection with maximum mobility.",
-                    repeat(MarineArmorPattern.ARMORLESS, MarineSquad.CAPACITY)),
+            armorDoctrine(FIELD_FATIGUES_ARMOR, "Frontier Patchwork Protection",
+                    "Scarce militia plate protects each fire-team leader; line billets keep mobile fatigues.",
+                    concat(
+                            List.of(MarineArmorPattern.MILITIA,
+                                    MarineArmorPattern.ARMORLESS,
+                                    MarineArmorPattern.ARMORLESS,
+                                    MarineArmorPattern.ARMORLESS),
+                            List.of(MarineArmorPattern.MILITIA,
+                                    MarineArmorPattern.ARMORLESS,
+                                    MarineArmorPattern.ARMORLESS,
+                                    MarineArmorPattern.ARMORLESS),
+                            List.of(MarineArmorPattern.MILITIA,
+                                    MarineArmorPattern.ARMORLESS,
+                                    MarineArmorPattern.ARMORLESS,
+                                    MarineArmorPattern.ARMORLESS))),
             armorDoctrine(SINDRIAN_SECURITY_ARMOR, "Sindrian Civilian Security Equipment",
                     "Low-to-medium tier security protection mixed by billet.",
                     concat(repeat(MarineArmorPattern.ARMORLESS, 4),

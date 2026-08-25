@@ -4,8 +4,12 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — separated Mech Lab asset selection from its wide fitting
-gantry and established the animated fabrication bay around its canonical mech doll.
+Updated: 2026-08-25 — the equipment designer now pairs compact live billet
+renders with flavor and catalog-normalized combat meters; starter issue visibly
+concentrates scarce weapon and armor upgrades on each fire-team lead. The Mech Lab
+separates asset selection from a wide fitting gantry, with a battle-tileset
+fabrication bay around its canonical mech doll and typed, sized-slot extension
+boundary.
 
 ## Purpose
 
@@ -141,6 +145,13 @@ values remain legible beside comparative capability meters. Live portraits cycle
 the authored idle clip with stable per-slot phase offsets; headless evidence fixes
 the phase for deterministic comparison.
 
+The separate equipment designer uses the same visual language before a definition
+is saved: each billet card keeps a compact live render in its upper-right corner,
+reserves a short line for role or equipment flavor, and shows fixed-scale capability
+meters beside exact values. Those scales use catalog ceilings rather than the other
+three visible billets, so cycling an item produces a meaningful at-a-glance change
+and team selection cannot rewrite the comparison baseline.
+
 Issue is explicit, atomic, and net of returns. The target squad's current twelve
 kits return before the candidate pair is checked. A stationed squad, any vacancy or
 WIA billet, a locked recipe, or insufficient primary, armor, or special stock leaves
@@ -157,6 +168,13 @@ beside that immutable built-in catalog. Authoring is free and may mix every bill
 stock, recipes, readiness, and stationing constrain only the later squad issue.
 Edits remain a draft until **Save as New**, so a definition already assigned to a
 squad never silently refits its materialized equipment.
+The early **Frontier Security Equipment** and **Frontier Patchwork Protection**
+pair deliberately spend scarce pulse rifles and militia plate on the first billet
+of Alpha, Bravo, and Charlie while their line marines retain field rifles and
+unplated fatigues. Starting and migrated armories carry enough of that exact issue
+for the definition to remain an immediately usable baseline rather than a display-only
+promise.
+
 **Fleet Assault Equipment** is the built-in player assault profile: its twelve
 exact billets contain one Shattercap frag carrier, so the doctrine cannot multiply
 scarce special stock by team. Player-authored definitions must likewise resolve to
