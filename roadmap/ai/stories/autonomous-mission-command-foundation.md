@@ -1,10 +1,10 @@
 # Autonomous mission-command foundation
 
-Status: IN PROGRESS — the shared frame/plan/commit envelope, paired Conquest migration, common diagnostics, spawn-time ownership, and disclosure boundary are implemented; legacy scripted writers, stability coverage, and live acceptance remain.
+Status: IN PROGRESS — the shared frame/plan/commit envelope, paired Conquest migration, common diagnostics, spawn-time ownership, disclosure boundary, and directive stability are implemented; legacy scripted writers and live acceptance remain.
 
 Written: 2026-08-25
 
-Updated: 2026-08-25 — removed the live-view contract from autonomous strategies, installed stateless battle-owned Conquest disclosures, moved defender starting-force capture into immutable setup data, and completed deterministic order/empty-pool/malformed-target acceptance. Other missions deliberately retain their current legacy/no-op assignment behavior.
+Updated: 2026-08-25 — enforced battle-tick directive stability separately from temporary authority leases, added typed objective/context invalidations, protected registered provenance from legacy direct writes, and reconciled Conquest detail against committed orders. Other missions deliberately retain their current legacy/no-op assignment behavior.
 
 Read `ai-nouns.md`, `conquest-nouns.md`, and `battle-fixtures-nouns.md` before
 implementing this story.
@@ -79,10 +79,10 @@ interventions.
 - [x] A strategy cannot read a hidden hostile identity or live cell except
   through its faction-local influence/contact evidence or an explicitly
   authorized mission fact.
-- [ ] Assignment provenance prevents mission command from overwriting born
+- [x] Assignment provenance prevents mission command from overwriting born
   garrisons, payload guards, reinforcement/counterattack ownership, or a valid
   leased intervention.
-- [ ] Directive stability spans at least one useful squad-plan interval unless
+- [x] Directive stability spans at least one useful squad-plan interval unless
   objective completion, squad loss, unreachable context, ownership handoff, or
   a legal intervention invalidates it.
 - [x] Conquest attacker and defender migrate without losing their typed front

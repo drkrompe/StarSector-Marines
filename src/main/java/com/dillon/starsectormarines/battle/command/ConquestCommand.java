@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
 
 /**
@@ -352,12 +353,20 @@ public final class ConquestCommand implements ConquestFrontCommand,
 
         ConquestFrontSnapshot detail = buildFrontSnapshot(frame, phase,
                 remainingCompounds, keep, directives, allSquads);
-        List<CommandProposal> proposals = buildProposals(frame, allSquads, directives);
+        List<CommandProposal> proposals = buildProposals(
+                frame, allSquads, directives, phase);
         return new CommandPlan<>(faction(), strategyId(), phase.name(), frame.tick(),
                 frame.influence() != null ? frame.influence().updatedTick() : -1,
                 squads.size(), 0,
                 List.of("remaining compounds=" + remainingCompounds),
                 proposals, detail);
+    }
+
+    @Override
+    public CommanderSnapshot<ConquestFrontSnapshot> reconcile(
+            CommanderSnapshot<ConquestFrontSnapshot> snapshot) {
+        return snapshot.withDetail(snapshot.detail().reconcileStableDirectives(
+                snapshot, frontSnapshot, strategyId()));
     }
 
     @Override
@@ -932,7 +941,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
     private List<CommandProposal> buildProposals(
             ConquestCommandFrame frame,
             Map<Integer, PlanningSquad> squads,
-            Map<Integer, SquadDirective> directives) {
+            Map<Integer, SquadDirective> directives,
+            Phase phase) {
         List<CommandProposal> proposals = new ArrayList<>();
         for (Map.Entry<Integer, SquadDirective> entry : directives.entrySet()) {
             int squadId = entry.getKey();
@@ -940,6 +950,9 @@ public final class ConquestCommand implements ConquestFrontCommand,
             CommandSquadState frozen = frame.squad(squadId);
             if (planned == null || frozen == null) continue;
             CommandDirective incumbent = frozen.directive();
+            CommandStabilityBreak stabilityBreak = stabilityBreak(
+                    frame, planned, incumbent, phase,
+                    entry.getValue().reason());
             if (incumbent != null
                     && incumbent.authority().priority()
                     > CommandAuthority.MISSION_COMMAND.priority()) {
@@ -949,11 +962,11 @@ public final class ConquestCommand implements ConquestFrontCommand,
             } else if (planned.assignedObjective != null) {
                 proposals.add(CommandProposal.assign(planned.assignedObjective,
                         CommandAuthority.MISSION_COMMAND,
-                        entry.getValue().reason().name()));
+                        entry.getValue().reason().name(), stabilityBreak));
             } else if (frozen.assignment() != null) {
                 proposals.add(CommandProposal.release(squadId,
                         CommandAuthority.MISSION_COMMAND,
-                        entry.getValue().reason().name()));
+                        entry.getValue().reason().name(), stabilityBreak));
             } else {
                 proposals.add(CommandProposal.retain(squadId,
                         CommandAuthority.MISSION_COMMAND,
@@ -961,6 +974,51 @@ public final class ConquestCommand implements ConquestFrontCommand,
             }
         }
         return proposals;
+    }
+
+    private CommandStabilityBreak stabilityBreak(
+            ConquestCommandFrame frame, PlanningSquad squad,
+            CommandDirective incumbent, Phase phase,
+            AssignmentReason reason) {
+        if (incumbent == null || incumbent.assignment() == null
+                || incumbent.issuer() == null
+                || !strategyId().equals(incumbent.issuer())
+                || Objects.equals(incumbent.assignment(), squad.assignedObjective)) {
+            return CommandStabilityBreak.NONE;
+        }
+        ObjectiveAssignment old = incumbent.assignment();
+        if (frontSnapshot != null && frontSnapshot.phase() != phase) {
+            return CommandStabilityBreak.OBJECTIVE_COMPLETED;
+        }
+        if (old.kind() == AssignmentKind.SECURE_COMPOUND) {
+            CompoundTarget target = compoundTarget(old.targetZoneId());
+            if (target == null
+                    || target.state == CompoundService.CompoundState.MARINE_HELD) {
+                return CommandStabilityBreak.OBJECTIVE_COMPLETED;
+            }
+            if (!reachableZone(squad, old.targetZoneId(), frame)) {
+                return CommandStabilityBreak.TARGET_UNREACHABLE;
+            }
+        } else if (old.kind() == AssignmentKind.CLEAR_ZONE) {
+            if (!reachableZone(squad, old.targetZoneId(), frame)) {
+                return CommandStabilityBreak.TARGET_UNREACHABLE;
+            }
+            if (!hasKnownHostileInZone(old.targetZoneId(), frame)
+                    || reason == AssignmentReason.NO_ACTIONABLE_TRACK_TARGET) {
+                return CommandStabilityBreak.CONTEXT_INVALIDATED;
+            }
+        }
+        if (reason == AssignmentReason.NO_REACHABLE_COMPOUND_TARGET) {
+            return CommandStabilityBreak.TARGET_UNREACHABLE;
+        }
+        return CommandStabilityBreak.NONE;
+    }
+
+    private CompoundTarget compoundTarget(int zoneId) {
+        for (CompoundTarget target : compoundTargets) {
+            if (target.anchorZoneId == zoneId) return target;
+        }
+        return null;
     }
 
     private static float normalizedProgress(float forward, int extent) {

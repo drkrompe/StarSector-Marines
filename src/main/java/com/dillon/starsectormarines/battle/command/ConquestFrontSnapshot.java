@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.command.compound.CompoundService.Comp
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /** Immutable command-authored explanation of the current Conquest front. */
@@ -107,6 +108,40 @@ public record ConquestFrontSnapshot(
             if (track.index() == index) return track;
         }
         return null;
+    }
+
+    /** Replaces stability-held proposal rows with the arbiter's effective order. */
+    public ConquestFrontSnapshot reconcileStableDirectives(
+            CommanderSnapshot<?> committed, ConquestFrontSnapshot prior,
+            String strategy) {
+        List<SquadDirective> reconciled = new ArrayList<>(directives.size());
+        for (SquadDirective planned : directives) {
+            CommandDirective result = committed.directiveFor(planned.squadId());
+            if (result == null || result.status() != CommandDirective.Status.RETAINED
+                    || !strategy.equals(result.issuer())
+                    || !result.dispositionReason().startsWith("stable through tick")) {
+                reconciled.add(planned);
+                continue;
+            }
+            SquadDirective previous = prior != null
+                    ? prior.directiveFor(planned.squadId()) : null;
+            int preferred = previous != null
+                    ? previous.preferredTrack() : planned.preferredTrack();
+            int effective = previous != null
+                    ? previous.effectiveTrack() : planned.effectiveTrack();
+            ObjectiveAssignment assignment = result.assignment();
+            AssignmentReason effectiveReason = AssignmentReason.valueOf(
+                    result.reason());
+            reconciled.add(new SquadDirective(planned.squadId(), preferred,
+                    effective, effectiveReason,
+                    assignment != null ? assignment.kind() : null,
+                    assignment != null ? assignment.targetZoneId() : -1,
+                    assignment != null ? assignment.targetCellX() : -1,
+                    assignment != null ? assignment.targetCellY() : -1));
+        }
+        return new ConquestFrontSnapshot(tick, influenceTick, perspective,
+                axis, phase, remainingCompounds, keepZoneId, keepState,
+                tracks, reconciled);
     }
 
     public static ConquestFrontSnapshot empty(Faction perspective,
