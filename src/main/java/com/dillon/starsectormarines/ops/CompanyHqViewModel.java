@@ -46,6 +46,7 @@ final class CompanyHqViewModel {
 
     static CompanyHqViewModel current(
             Runnable openArmory,
+            Runnable openMechLab,
             Runnable close,
             Function<CompanyClocks.Entry, Runnable> respond) {
         int day = CampaignClock.day();
@@ -55,7 +56,7 @@ final class CompanyHqViewModel {
         CampaignState state = script != null ? script.state() : null;
         List<CompanyNews.Entry> news = CompanyNews.latest(
                 state, day, NEWS_LIMIT, PlayerEventTarget::displayName);
-        return build(standing, clocks, news, day, openArmory, close, respond);
+        return build(standing, clocks, news, day, openArmory, openMechLab, close, respond);
     }
 
     private static CompanyHqViewModel build(
@@ -64,6 +65,7 @@ final class CompanyHqViewModel {
             List<CompanyNews.Entry> news,
             int day,
             Runnable openArmory,
+            Runnable openMechLab,
             Runnable close,
             Function<CompanyClocks.Entry, Runnable> respond) {
         Map<String, Object> props = baseLabels();
@@ -108,13 +110,8 @@ final class CompanyHqViewModel {
         props.put("newsEmpty", news.isEmpty()
                 ? Strings.get("companyHqNewsEmpty") : "");
 
-        props.put("returnAction", close);
-        props.put("hqAction", (Runnable) () -> { });
-        props.put("armoryAction", openArmory);
-        props.put("hqClasses", "selected page-nav-current");
-        props.put("hqDisabled", false);
-        props.put("armoryClasses", "");
-        props.put("armoryDisabled", false);
+        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ, close,
+                () -> { }, openArmory, openMechLab);
         return new CompanyHqViewModel(props);
     }
 
@@ -122,13 +119,8 @@ final class CompanyHqViewModel {
     static CompanyHqViewModel preview() {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("purpose", "FLAGSHIP  /  BRIDGE  /  COMMAND NETWORK");
-        props.put("returnAction", (Runnable) () -> { });
-        props.put("hqAction", (Runnable) () -> { });
-        props.put("armoryAction", (Runnable) () -> { });
-        props.put("hqClasses", "selected page-nav-current");
-        props.put("hqDisabled", false);
-        props.put("armoryClasses", "");
-        props.put("armoryDisabled", false);
+        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ,
+                () -> { }, () -> { }, () -> { }, () -> { });
         props.put("assessmentHeader", "BRIDGE ADJUTANT  //  DAILY ASSESSMENT");
         props.put("ratingHeader", "MERCENARY RATING");
         props.put("rating", "RECOGNIZED");

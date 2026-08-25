@@ -2,8 +2,8 @@
 
 Status: IN PROGRESS — company/squad/fire-team drill-down and template issue migrated; broader parity remains
 Written: 2026-08-23
-Updated: 2026-08-25 — Fire-team marine cards now present catalog-normalized
-capability meters with exact values beneath a compact single-row hierarchy header.
+Updated: 2026-08-25 — Mech Lab now ships as a separately routed retained room with
+active-lance selection, read-only chassis hardpoints, and authoritative subsystem refits.
 
 Read `company-view-nouns.md`, `ui-nouns.md`, and
 `c14-fire-team-equipment-templates.md` first.
@@ -14,9 +14,8 @@ Fleet Armory's underlying template and arrangement operations now work, but the
 screen remains organized around legacy tabs, individual paper-doll mutation, and a
 flat absolute-positioned widget list. The presentation does not make company ->
 squad -> fire team -> billet the primary path, and routine changes rebuild the whole
-screen. The newly shipped Mech Lab correctly uses campaign authorities but shares
-that legacy presentation stack, so its mech-squad and finite-stock workflow must
-also survive the retained migration.
+screen. The Mech Lab now uses its own retained room while preserving the same
+campaign-authoritative mech-squad and finite-stock workflow.
 
 ## Outcome
 
@@ -59,11 +58,11 @@ drill-down reachable. Templates remain plans, never collectible cards.
   and transaction model, not a separate deck or persistence system.
 - **Marine inspector:** aptitude, career, wounds, and materialized billet equipment;
   no routine per-marine equipment authoring after C14 retires it.
-- **Mech Lab mode:** active support squad -> chassis -> installed loadout, with fixed
+- **Mech Lab room:** active support squad -> chassis -> installed loadout, with fixed
   hardpoints presented beside the finite subsystem inventory and its explicit
   install action. It invokes `MechBay` rather than adapting fire-team templates.
 - **Armory Administration:** a named transitional destination for Personnel,
-  Template Designer, Squad Arrangements, Mech Lab, and the remaining individual-kit
+  Template Designer, Squad Arrangements, and the remaining individual-kit
   compatibility inspector. Formation browsing and routine refits do not return to
   this older tab shell; each authoring job migrates independently before the shell is
   removed.

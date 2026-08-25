@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — separated physical resolution fit from explicit UI scale and established the shared top room-navigation shell.
+Updated: 2026-08-25 — added Mech Lab as a real shipboard room in the responsive top navigation shell.
 
 ## Purpose
 
@@ -57,10 +57,11 @@ them.
 - A **canvas element** is the procedural escape hatch for visuals that do not fit
   ordinary boxes: formation connectors, graphs, paper dolls, or transaction flows.
 - A **surface** is a document plus its view model, navigation behavior, and host
-  lifecycle. Fleet Armory, Company HQ, and the UI workbench are surfaces.
+  lifecycle. Fleet Armory, Company HQ, Mech Lab, and the UI workbench are surfaces.
 - A **shipboard room** is the fiction and navigation identity of a player-facing
-  company surface. The bridge Company HQ and Fleet Armory are current rooms; the
-  retained document remains the implementation surface underneath that spatial frame.
+  company surface. The bridge Company HQ, Fleet Armory, and Mech Lab are current
+  rooms; the retained document remains the implementation surface underneath that
+  spatial frame.
 - A **preview fixture** assembles a surface from controlled domain state for UX
   evidence. It is presentation input, never a replacement campaign authority.
 - A **snapshot suite** is one named, deterministic collection of visual evidence.
