@@ -41,7 +41,9 @@ import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.command.AssaultCommand;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ConquestCommand;
+import com.dillon.starsectormarines.battle.command.ConquestCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.ConquestDefenderCommand;
+import com.dillon.starsectormarines.battle.command.ConquestDefenderStartingForce;
 import com.dillon.starsectormarines.battle.command.ConquestTrackLayout;
 import com.dillon.starsectormarines.battle.command.OpeningOperationCommand;
 import com.dillon.starsectormarines.battle.command.SabotageCommand;
@@ -1071,10 +1073,18 @@ public final class BattleSetup {
         // retain separate, faction-honest influence pictures and policies.
         ConquestTrackLayout tracks = new ConquestTrackLayout(
                 axis, map.grid.getWidth(), map.grid.getHeight());
-        sim.setCommander(Faction.MARINE, new ConquestCommand(tracks));
-        ConquestDefenderCommand defenderCommand = new ConquestDefenderCommand(tracks);
-        defenderCommand.captureStartingForce(sim);
-        sim.setCommander(Faction.DEFENDER, defenderCommand);
+        sim.setAutonomousCommander(Faction.MARINE, new ConquestCommand(tracks),
+                ConquestCommandDisclosure.INSTANCE);
+        ConquestDefenderStartingForce startingForce =
+                ConquestDefenderStartingForce.capture(sim, tracks);
+        ConquestDefenderCommand defenderCommand = new ConquestDefenderCommand(
+                tracks, startingForce);
+        for (int squadId : startingForce.mobileSquadIds()) {
+            sim.claimSquadCommand(squadId, CommandAuthority.MISSION_COMMAND,
+                    defenderCommand.strategyId(), "authored Conquest patrol reserve");
+        }
+        sim.setAutonomousCommander(Faction.DEFENDER, defenderCommand,
+                ConquestCommandDisclosure.INSTANCE);
         sim.setGarrisonSystem(new CompoundGarrisonSystem(axis));
         installReinforcementLayer(sim, map, axis, groundRoster, risk);
         return new MapBuild(sim, build.structures());
