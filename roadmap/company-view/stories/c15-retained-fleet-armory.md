@@ -1,9 +1,10 @@
 # C15 — Retained Fleet Armory
 
-Status: IN PROGRESS — retained hierarchy and squad equipment issue ship; focused Mech Lab and broader company administration remain
+Status: IN PROGRESS — retained hierarchy, squad equipment issue, and focused Mech Lab ship; broader company administration remains
 Written: 2026-08-23
-Updated: 2026-08-25 — added persistent player-authored Weapon and Armor definitions,
-the retained twelve-billet designer, and non-destructive legacy intent migration.
+Updated: 2026-08-25 — the separately routed Mech Lab now ships alongside persistent
+player-authored Weapon and Armor definitions, their retained twelve-billet designer,
+and non-destructive legacy intent migration.
 
 Read `company-view-nouns.md` and `ui-nouns.md` first.
 
@@ -13,7 +14,8 @@ Fleet Armory must make company -> squad -> fire team -> marine legible at large
 company scale without asking the player to author or assign gear twelve people at a
 time. The former administration shell duplicated the retained hierarchy and kept a
 second fire-team template workflow alive. Squad equipment now needs one scalable,
-inventory-honest authoring seam.
+inventory-honest authoring seam. Mech Lab needs an equally focused route without
+recreating that catch-all shell.
 
 ## Outcome
 
@@ -61,8 +63,9 @@ breadcrumb keeps every completed level directly reachable.
   but this viewer omits its free-stock/returns/required-issue ledger.
 - **Marine inspector:** aptitude, career, wounds, and materialized billet equipment;
   there is no routine per-marine equipment authoring.
-- **Mech Lab:** remains a distinct future retained surface over `MechBay`. Its old
-  administration tab was removed with the shell rather than preserved as duplicate UI.
+- **Mech Lab:** active support squad -> chassis -> installed loadout, with fixed
+  hardpoints beside the finite subsystem inventory and its explicit install action.
+  It invokes `MechBay` rather than adapting squad equipment doctrine.
 
 ## Scope
 
@@ -72,8 +75,8 @@ breadcrumb keeps every completed level directly reachable.
   preview. The view model never invents a second allocation answer.
 - Preserve the completed save migration from legacy per-team template intent into
   player-authored squad definitions without rewriting an existing marine's materialized kit.
-- Return Mech Lab later as a focused retained surface over `MechBay`; do not restore
-  the removed catch-all administration shell.
+- Preserve Mech Lab as a focused retained surface over `MechBay`; do not restore the
+  removed catch-all administration shell.
 
 ## Acceptance
 
@@ -115,3 +118,5 @@ breadcrumb keeps every completed level directly reachable.
 - Mouse and keyboard interactions reach the same domain commands.
 - Fleet Armory exposes no Armory Administration route, legacy individual-kit editor,
   template picker, or squad-arrangement editor.
+- Mech subsystem counts and enabled install actions come from `MechBay`; the retained
+  room neither recomputes stock nor creates another loadout authority.

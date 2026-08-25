@@ -27,13 +27,13 @@ import java.util.function.Consumer;
  * to invoke it (mission select's Back does; briefing's Back goes to
  * {@link ScreenId#MISSION_SELECT} instead).
  *
- * <p><b>Routing constraint.</b> Every screen except {@link ScreenId#COMPANY_HQ}
- * assumes a market, a mission, or a battle, and therefore a non-null
- * {@code MarineOpsContext.planet}. A host opened planet-free — the campaign-map
- * company entry from {@link CompanyViewAbility} — starts on {@code COMPANY_HQ} and
- * must never route to {@code MISSION_SELECT}, {@code BRIEFING},
+ * <p><b>Routing constraint.</b> Operational screens assume a market, a mission,
+ * or a battle, and therefore a non-null {@code MarineOpsContext.planet}. A host
+ * opened planet-free — the campaign-map company entry from
+ * {@link CompanyViewAbility} — starts on {@code COMPANY_HQ} and must never route
+ * to {@code MISSION_SELECT}, {@code BRIEFING},
  * {@code SQUAD_DEPLOYMENT}, {@code BATTLE}, {@code RESULTS}, or {@code LOOT}.
- * {@code FLEET_ARMORY_OVERVIEW}, {@code FLEET_ARMORY}, and the
+ * {@code FLEET_ARMORY_OVERVIEW}, {@code FLEET_ARMORY}, {@code MECH_LAB}, and the
  * dev-only {@code UI_WORKBENCH} are safe: none reads a planet. A planet-scoped
  * host reaches everything as before.
  */
@@ -54,6 +54,7 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
             EnumSet.of(ScreenId.COMPANY_HQ, ScreenId.UI_WORKBENCH,
                     ScreenId.MISSION_SELECT,
                     ScreenId.FLEET_ARMORY_OVERVIEW, ScreenId.FLEET_ARMORY,
+                    ScreenId.MECH_LAB,
                     ScreenId.BRIEFING, ScreenId.SQUAD_DEPLOYMENT, ScreenId.STATIONING);
 
     private final MarineOpsContext ctx;
@@ -82,6 +83,7 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
         screens.put(ScreenId.MISSION_SELECT, new MissionSelectScreen());
         screens.put(ScreenId.FLEET_ARMORY_OVERVIEW, new FleetArmoryOverviewScreen());
         screens.put(ScreenId.FLEET_ARMORY,  new FleetArmoryScreen());
+        screens.put(ScreenId.MECH_LAB,      new MechLabScreen());
         screens.put(ScreenId.BRIEFING,       new BriefingScreen());
         screens.put(ScreenId.SQUAD_DEPLOYMENT, new SquadDeploymentScreen());
         screens.put(ScreenId.STATIONING,     new StationingScreen());

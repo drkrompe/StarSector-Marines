@@ -9,7 +9,7 @@ package com.dillon.starsectormarines.ops;
 public enum ScreenId {
     /**
      * The company's between-contracts home, opened from the campaign map with no
-     * planet behind it. The only screen here that tolerates a null
+     * planet behind it. It and the other shipboard rooms tolerate a null
      * {@code MarineOpsContext.planet} — see {@link MarineOpsPanelPlugin}.
      */
     COMPANY_HQ,
@@ -20,6 +20,8 @@ public enum ScreenId {
     FLEET_ARMORY_OVERVIEW,
     /** Production retained formation/template/refit slice; safe without a planet. */
     FLEET_ARMORY,
+    /** Retained support-lance and mech-subsystem room; safe without a planet. */
+    MECH_LAB,
     BRIEFING,
     SQUAD_DEPLOYMENT,
     STATIONING,
