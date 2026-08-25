@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns mission command, squad planning, belief-derived conta
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — defined belief-honest Conquest defender mobilization, shared track geometry, and authored member positions at defensive places.
+Updated: 2026-08-25 — clarified actionable contacts, dispersed-squad contact locality, coordinated fixing movement, and plan-owned path lifecycle.
 
 AI turns mission context and what a side has learned into coordinated
 movement, posture, and fire intent. It is a decision system, not the authority
@@ -26,6 +26,13 @@ A **unit execution** is the per-tick realization of the assigned role. It can
 move, hold, acquire a target, or author a legal fire intent, but it does not
 silently replace the squad's plan. Combat systems remain responsible for
 whether an authored shot lands and what it damages.
+
+An assignment change is a tactical-plan interrupt: the squad replans against
+the new mission context immediately instead of finishing work authored for the
+former assignment. Movement paths belong to the plan that authored them. A
+planless unit drops that path, while a path may survive the instant a completed
+step hands off to its sibling step so coordinated approach and engagement do
+not erase one another's execution state.
 
 Goal priority is categorical: MISSION authority outranks survival, survival
 outranks engagement, and engagement outranks idle behavior. Relevance chooses
@@ -52,6 +59,17 @@ fresh direct motion when evidence supports it, confidence-weighted hostile
 presence, known friendly presence, local balance, and selected doctrine.
 Presentation and diagnostics consume that published picture; they do not
 reconstruct it from hidden world state.
+
+Contact locality follows the squad's live member footprint rather than only
+its centroid. A dispersed fireteam therefore retains a contact local to that
+element even when sibling teams pull the centroid away. Immediate friendly
+strength is measured around the primary contact, so a remote sibling element
+does not make an isolated fireteam's local balance appear favorable. A
+remembered identity may remain useful evidence, but it is actionable planner
+contact only while it still resolves to a live hostile combatant; a dead or
+released identity cannot satisfy target, line-of-sight, range, or identified
+contact-reinforcement facts. An anonymous current audible bearing remains a
+valid investigation cue without inventing a hostile identity.
 
 Direct contact, alert and morale transitions, casualties, and hostile incoming
 fire are tactical interrupts. The periodic replan remains the convergence path.
@@ -108,6 +126,13 @@ footprint, but doorways, constrained navigation, authored posts, and a live
 contact-bound maneuver override decorative formation pressure. Acquisition
 may retain a legal target through near-equal alternatives so reflex delay and
 visual facing do not chatter.
+
+In a coordinated flank, the fixing element does not remain passively parked
+once direct contact establishes the enemy line. It moves to reachable firing
+or vantage positions and holds there while the maneuver element advances. An
+unreachable maneuver waypoint completes the maneuver attempt and hands control
+back to ordinary contact doctrine; it must not trap the squad in an endless
+approach/replan loop.
 
 Assigned defense stays bounded to its authored place. A compound garrison
 re-clears and patrols eligible rooms inside the compound footprint; a live

@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.decision.goap.action.EnterZone;
 import com.dillon.starsectormarines.battle.command.DefendAssignedTrackGoal;
+import com.dillon.starsectormarines.battle.nav.Paths;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
@@ -17,6 +18,7 @@ import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Per-unit GOAP dispatch for infantry. Pairs with the squad-level replan
@@ -118,6 +120,16 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         // aim still completes — tickAimAndShortCircuit is a committed-shot
         // lifecycle, not a fresh tactical choice.
         SquadPlan prepPlan = squad.currentPlan;
+        if (prepPlan == null && !Paths.isEmpty(sim.world().path(unit))) {
+            // A path is execution state owned by the plan that authored it.
+            // Once no plan can advance that path, retaining it produces a
+            // ghost movement order in diagnostics and can leak into a later
+            // plan. A merely-complete plan is intentionally excluded: another
+            // member may have just completed Approach while siblings still
+            // need that path under the next Engage plan. Committed aim still
+            // completes in prepareForAction below.
+            sim.clearPath(unit);
+        }
         SquadPlan.Step prepStep = prepPlan != null && !prepPlan.isComplete()
                 ? prepPlan.currentStep() : null;
         boolean permitsPreparationFire = prepStep == null
@@ -215,6 +227,8 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         }
 
         boolean memberCountChanged = squad.aliveMembers != squad.aliveMembersAtLastPlan;
+        boolean assignmentChanged = !Objects.equals(squad.assignedObjective,
+                squad.assignedObjectiveAtLastPlan);
         // Incoming fire is a tactical interrupt, not something infantry should
         // ignore until the normal two-second cadence. SquadAlertSystem computes
         // this from the same shot/LOS contract as UNDER_FIRE_AT_LOS immediately
@@ -231,6 +245,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
                            || squad.currentPlan.isComplete()
                            || squad.timeSinceReplan >= Planner.REPLAN_PERIOD
                            || memberCountChanged
+                           || assignmentChanged
                            || incomingFireStarted
                            || contactStateChanged
                            || squad._contactDoctrineChangedThisTick
@@ -249,6 +264,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             squad.currentGoal = null;
             squad.timeSinceReplan = 0f;
             squad.aliveMembersAtLastPlan = squad.aliveMembers;
+            squad.assignedObjectiveAtLastPlan = squad.assignedObjective;
             squad.clearMechScreen();
             return;
         }
@@ -296,6 +312,7 @@ public final class GoapInfantryBehavior implements UnitBehavior {
         squad.currentGoal = goal;
         squad.timeSinceReplan = 0f;
         squad.aliveMembersAtLastPlan = squad.aliveMembers;
+        squad.assignedObjectiveAtLastPlan = squad.assignedObjective;
     }
 
     private static boolean protectedShelterGuard(

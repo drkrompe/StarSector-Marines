@@ -31,7 +31,7 @@ import java.util.TreeMap;
 /**
  * Marine-side strategic commander for CONQUEST — the land-war pattern
  * (total map control along the {@link TraversalAxis}, push enemies toward
- * the far side). Two passes per slow tick:
+ * the far side). The command evaluates these layers each slow tick:
  *
  * <ol>
  *   <li><b>Deliberate compound capture (map-global).</b> Conquest is won
@@ -57,7 +57,12 @@ import java.util.TreeMap;
  *   <li><b>Keep convergence.</b> Once the canonical command post is the only
  *       uncaptured compound, every mobile assault squad converges on its
  *       {@link AssignmentKind#SECURE_COMPOUND} objective. Born-holding
- *       garrisons remain excluded, and recapture elsewhere ends convergence.</li>
+ *       garrisons remain excluded.</li>
+ *   <li><b>Final-compound convergence.</b> If the keep is already held and a
+ *       contested non-keep compound is the sole remaining objective, capture
+ *       quota remains deliberate while every other mobile squad receives
+ *       room-clear support across any track. More than one recapture reopens
+ *       the ordinary front.</li>
  * </ol>
  *
  * <p>Distinct partition strategy from {@link SabotageCommand}'s
@@ -240,10 +245,19 @@ public final class ConquestCommand implements ConquestFrontCommand {
         IntOpenHashSet committed = new IntOpenHashSet();
         CompoundTarget keep = canonicalKeep();
         int remainingCompounds = remainingCompounds();
+        CompoundTarget soleRemaining = remainingCompounds == 1
+                ? soleRemainingCompound() : null;
         boolean keepConvergence = keep != null
                 && keep.record.state != CompoundService.CompoundState.MARINE_HELD
                 && remainingCompounds == 1;
-        Phase phase = keepConvergence ? Phase.KEEP_CONVERGENCE : Phase.LANE_ADVANCE;
+        boolean finalCompoundConvergence = keep != null
+                && keep.record.state == CompoundService.CompoundState.MARINE_HELD
+                && soleRemaining != null
+                && soleRemaining != keep
+                && isContested(soleRemaining, sim);
+        Phase phase = keepConvergence ? Phase.KEEP_CONVERGENCE
+                : finalCompoundConvergence
+                ? Phase.FINAL_COMPOUND_CONVERGENCE : Phase.LANE_ADVANCE;
 
         if (keepConvergence) {
             for (Squad squad : squads) {
@@ -263,7 +277,9 @@ public final class ConquestCommand implements ConquestFrontCommand {
             for (Squad squad : squads) {
                 if (committed.contains(squad.id)) continue;
                 int preferredTrack = stripFor(squad);
-                TargetChoice choice = targetChoice(squad, preferredTrack, sim);
+                TargetChoice choice = finalCompoundConvergence
+                        ? finalCompoundSupportChoice(squad, soleRemaining, sim)
+                        : targetChoice(squad, preferredTrack, sim);
                 if (choice.targetZoneId < 0) {
                     squad.assignedObjective = null;
                     directives.put(squad.id, directive(squad, preferredTrack,
@@ -281,7 +297,10 @@ public final class ConquestCommand implements ConquestFrontCommand {
                 AssignmentReason reason = choice.trackIndex == preferredTrack
                         ? AssignmentReason.TRACK_ADVANCE
                         : AssignmentReason.ADJACENT_TRACK_SUPPORT;
-                if (reason == AssignmentReason.ADJACENT_TRACK_SUPPORT) {
+                if (finalCompoundConvergence) {
+                    reason = AssignmentReason.FINAL_COMPOUND_SUPPORT;
+                    phase = Phase.FINAL_COMPOUND_CONVERGENCE;
+                } else if (reason == AssignmentReason.ADJACENT_TRACK_SUPPORT) {
                     phase = Phase.FRONT_ADJUST;
                 }
                 directives.put(squad.id, directive(squad, preferredTrack,
@@ -463,6 +482,18 @@ public final class ConquestCommand implements ConquestFrontCommand {
         return remaining;
     }
 
+    private CompoundTarget soleRemainingCompound() {
+        CompoundTarget remaining = null;
+        for (CompoundTarget target : compoundTargets) {
+            if (target.record.state == CompoundService.CompoundState.MARINE_HELD) {
+                continue;
+            }
+            if (remaining != null) return null;
+            remaining = target;
+        }
+        return remaining;
+    }
+
     private void putCompoundDirective(Squad squad, CompoundTarget target,
                                       Map<Integer, SquadDirective> directives,
                                       AssignmentReason reason) {
@@ -611,6 +642,37 @@ public final class ConquestCommand implements ConquestFrontCommand {
     }
 
     private record TargetChoice(int trackIndex, int targetZoneId) { }
+
+    /**
+     * When a recaptured non-keep compound is the sole territorial objective,
+     * capture quota still owns SECURE_COMPOUND. Remaining mobile squads may
+     * support the assault across any empty track by clearing an occupied,
+     * reachable room in that compound's authored footprint.
+     */
+    private TargetChoice finalCompoundSupportChoice(Squad squad,
+                                                     CompoundTarget target,
+                                                     BattleView sim) {
+        int currentZone = ZoneQueries.squadCurrentZone(squad, sim);
+        int bestZone = -1;
+        float bestDistance = Float.MAX_VALUE;
+        for (int zoneId : target.garrisonZones) {
+            if (ZoneQueries.zoneClear(zoneId, Faction.DEFENDER, sim)) continue;
+            if (currentZone >= 0
+                    && ZoneQueries.zonePathBfs(currentZone, zoneId, sim).isEmpty()) {
+                continue;
+            }
+            float dx = squad.centroidX - zoneCentroidX[zoneId];
+            float dy = squad.centroidY - zoneCentroidY[zoneId];
+            float distance = dx * dx + dy * dy;
+            if (distance < bestDistance
+                    || (distance == bestDistance && zoneId < bestZone)) {
+                bestDistance = distance;
+                bestZone = zoneId;
+            }
+        }
+        return new TargetChoice(bestZone >= 0 ? trackForZone(bestZone) : -1,
+                bestZone);
+    }
 
     private TargetChoice targetChoice(Squad squad, int preferredTrack,
                                       BattleView sim) {

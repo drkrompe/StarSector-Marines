@@ -4,7 +4,7 @@ Status: IN PROGRESS — implementation is complete; live keep-convergence accept
 
 Written: 2026-08-24
 
-Updated: 2026-08-24 — implementation and automated acceptance are complete; live convergence acceptance remains with playtest.
+Updated: 2026-08-25 — covered sole-contested-compound convergence and assignment/path handoff found in live play.
 
 Read `conquest-nouns.md` and `ai-nouns.md` before implementing this story.
 
@@ -14,7 +14,7 @@ Keep the useful lateral organization of the Conquest advance without treating
 track boundaries as exclusive ownership. Publish the front each track believes
 it is serving, let idle squads support nearby resistance across a boundary, and
 converge the assault force on the canonical keep when it becomes the remaining
-territorial objective.
+territorial objective, or on a sole contested recapture after the keep falls.
 
 ## Scope
 
@@ -28,6 +28,9 @@ territorial objective.
   the only uncaptured compound. Give every available assault squad useful
   approach or room-clear work across track boundaries while preserving
   distinct approach sectors where the keep geometry permits them.
+- Enter final-compound convergence when the keep is held and one contested
+  non-keep compound is the sole remaining objective. Preserve the capture quota
+  and give every other mobile squad room-clear support across any track.
 - Publish a per-squad command decision with preferred/effective track,
   assignment reason, target, and convergence state through the selected-squad
   panel and state dump.
@@ -51,6 +54,10 @@ territorial objective.
   front metrics.
 - [x] Confirm existing compound quotas, capture preservation, strip preference,
   and full Conquest victory tests remain green.
+- [x] Hold the keep, reopen one distant compound as contested, and confirm its
+  capture quota remains deliberate while squads from nonadjacent tracks receive
+  explicit final-compound room-clear work. An uncontested final compound keeps
+  ordinary capture allocation.
 
 ## Constraints
 

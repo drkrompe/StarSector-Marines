@@ -28,7 +28,9 @@ import java.util.List;
  *
  * <p>Custom-plan: computes a flanking waypoint ~90° off the friendly
  * engagement axis and emits a single {@link FlankApproach} step. One team
- * moves to the waypoint while the remaining teams hold and take legal shots.
+ * moves to the waypoint while the remaining teams establish reachable support
+ * lines and take legal shots. Arrival or structural failure hands the squad
+ * back to ordinary contact doctrine rather than recreating the same flank.
  *
  * <p>Its engagement priority means both {@link SurviveContact} and
  * {@link RecoverFromAmbush} preempt it. A mauled patrol retreats; an exposed
@@ -68,10 +70,32 @@ public final class ReinforceContact implements Goal {
         if (squad.alertLevel == SquadAlertLevel.UNAWARE) return 0f;
         if (squad.lastSeenEnemyX < 0 || squad.lastSeenEnemyY < 0) return 0f;
         if (state.get(Predicate.MORALE_BROKEN)) return 0f;
+        // Identity-backed reinforcement requires a still-live hostile. A
+        // source-less audible bearing remains a legitimate investigation
+        // cue, but a dead identity's legacy last-seen projection must not
+        // restart the flank after WorldState has rejected that contact.
+        if (!state.get(Predicate.HAS_TARGET)
+                && squad.audibleBearing() == null) return 0f;
 
-        float dx = squad.centroidX - (squad.lastSeenEnemyX + 0.5f);
-        float dy = squad.centroidY - (squad.lastSeenEnemyY + 0.5f);
-        if (Math.sqrt(dx * dx + dy * dy) <= ALREADY_AT_CONTACT_RADIUS) return 0f;
+        // Direct contact belongs to the ordinary contact doctrine. An
+        // already-running flank may finish its maneuver, but once it hands
+        // off, registry-order ties must not recreate the same flank forever.
+        if (squad.alertLevel == SquadAlertLevel.ENGAGED
+                && squad.currentGoal != INSTANCE) return 0f;
+        if (squad.currentGoal == INSTANCE && squad.currentPlan != null
+                && squad.currentPlan.isComplete()) return 0f;
+        if (squad.contactPicture.primaryEngageableFireTeams() > 0) return 0f;
+
+        float contactX = squad.lastSeenEnemyX + 0.5f;
+        float contactY = squad.lastSeenEnemyY + 0.5f;
+        for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
+            long member = sim.squadMemberAt(squad.id, i);
+            float dx = sim.world().x(member) - contactX;
+            float dy = sim.world().y(member) - contactY;
+            if (Math.sqrt(dx * dx + dy * dy) <= ALREADY_AT_CONTACT_RADIUS) {
+                return 0f;
+            }
+        }
 
         return 1.0f;
     }
