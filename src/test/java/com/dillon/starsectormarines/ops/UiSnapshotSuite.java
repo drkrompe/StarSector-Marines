@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
-import com.dillon.starsectormarines.ops.battleview.ArmoryFireTeamPreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.ArmoryMarinePreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
@@ -33,7 +32,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             "data/ui/components/armory/armory-squad-list.mlx",
             "data/ui/components/armory/fleet-armory-fireteam.mlx",
             "data/ui/components/armory/armory-fireteam-list.mlx",
-            "data/ui/components/armory/armory-template-library.mlx",
+            "data/ui/components/armory/armory-squad-doctrine.mlx",
             "data/ui/components/armory/armory-refit-transaction.mlx");
 
     @Override
@@ -63,7 +62,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("fleet-armory-workspace-wide.png",
                         renderFleetArmoryWorkspace(
                                 context, renderer, 1744, 938, true, false)),
-                new SnapshotArtifact("fleet-armory-loadout-preview-wide.png",
+                new SnapshotArtifact("fleet-armory-equipment-preview-wide.png",
                         renderFleetArmoryWorkspace(
                                 context, renderer, 1744, 938, true, true)));
     }
@@ -83,7 +82,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         roster.recruitToSquad(roster.reserveSquad().id());
         FleetArmoryViewModel viewModel = new FleetArmoryViewModel(
                 reactor, roster, () -> { }, () -> 100d);
-        if (fireteam && pickerOpen) viewModel.toggleLoadoutPickerAction().run();
+        if (fireteam && pickerOpen) viewModel.weaponDoctrineTiles().get().get(1).select().run();
         HeadlessArmoryPreviewRenderer armoryPreview =
                 new HeadlessArmoryPreviewRenderer(context.modRoot());
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
@@ -104,12 +103,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
             if (fireteam) {
-                for (FleetArmoryViewModel.TemplateTile tile : viewModel.templateTiles().get()) {
-                    document.canvases().set(instance.requireElement(tile.canvasId()),
-                            new ArmoryFireTeamPreviewCanvas(
-                                    () -> viewModel.billetsForTemplate(tile.templateId()),
-                                    armoryPreview.assets()));
-                }
                 for (int index = 0; index < MarineSquad.TEAM_SIZE; index++) {
                     int billet = index;
                     document.canvases().set(instance.requireElement("marine-preview:" + index),
@@ -155,7 +148,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("fleetSummary", viewModel.fleetSummary());
         props.put("companyCards", viewModel.companyCards());
         props.put("back", (Runnable) () -> { });
-        props.put("legacy", (Runnable) () -> { });
         props.put("reload", (Runnable) () -> { });
         props.put("reloadStatus", "Headless UX preview  ·  No engine process");
         return props;
@@ -169,30 +161,26 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("fireTeamOverviews", viewModel.fireTeamOverviews());
         props.put("squadRows", viewModel.squadRows());
         props.put("teamRows", viewModel.teamRows());
-        props.put("templateTiles", viewModel.templateTiles());
         props.put("targetSummary", viewModel.targetSummary());
         props.put("candidateSummary", viewModel.candidateSummary());
         props.put("selectedSquadReadiness", viewModel.selectedSquadReadiness());
         props.put("reinforceLabel", viewModel.reinforceLabel());
         props.put("reinforceDisabled", viewModel.reinforceDisabled());
         props.put("reinforceSquad", viewModel.reinforceSelectedSquadAction());
-        props.put("pickerClasses", viewModel.pickerClasses());
-        props.put("pickerToggleLabel", viewModel.pickerToggleLabel());
-        props.put("togglePicker", viewModel.toggleLoadoutPickerAction());
-        props.put("billetRows", viewModel.billetRows());
+        props.put("weaponDoctrineTiles", viewModel.weaponDoctrineTiles());
+        props.put("armorDoctrineTiles", viewModel.armorDoctrineTiles());
+        props.put("weaponDoctrineSummary", viewModel.weaponDoctrineSummary());
+        props.put("armorDoctrineSummary", viewModel.armorDoctrineSummary());
         props.put("marineCards", viewModel.marineCards());
-        props.put("previewSummary", viewModel.previewSummary());
         props.put("transactionSummary", viewModel.transactionSummary());
         props.put("transactionClasses", viewModel.transactionClasses());
         props.put("applyDisabled", viewModel.applyDisabled());
-        props.put("applyClasses", viewModel.applyClasses());
         props.put("applyLabel", viewModel.applyLabel());
         props.put("apply", viewModel.applyAction());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         props.put("back", (Runnable) () -> { });
         props.put("backToSquads", (Runnable) () -> { });
-        props.put("legacy", (Runnable) () -> { });
         props.put("reload", (Runnable) () -> { });
         props.put("reloadStatus", "Headless UX preview  ·  No engine process");
         return props;

@@ -71,7 +71,7 @@ public class MissionSelectScreen implements Screen {
         layout = new ColumnLayout(position);
 
         clientList.setOnBack(dismissDialog);
-        clientList.setOnArmory(() -> ctx.openArmoryFrom(ScreenId.MISSION_SELECT, 0));
+        clientList.setOnArmory(() -> ctx.openCompanyArmoryFrom(ScreenId.MISSION_SELECT));
         // The panel asks for a re-layout when its scroll offset changes —
         // it doesn't own the widget tree, so it can't rebuild on its own.
         commsConsole.setRequestRebuild(this::rebuild);

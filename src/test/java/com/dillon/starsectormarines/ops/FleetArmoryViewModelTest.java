@@ -1,11 +1,10 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.marine.FireTeamBillet;
-import com.dillon.starsectormarines.marine.FireTeamRefitPreview;
-import com.dillon.starsectormarines.marine.FireTeamTemplateResult;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.marine.SquadEquipmentPreview;
+import com.dillon.starsectormarines.marine.SquadEquipmentResult;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
@@ -35,7 +34,7 @@ class FleetArmoryViewModelTest {
             "mod/data/ui/components/armory/armory-squad-list.mlx",
             "mod/data/ui/components/armory/fleet-armory-fireteam.mlx",
             "mod/data/ui/components/armory/armory-fireteam-list.mlx",
-            "mod/data/ui/components/armory/armory-template-library.mlx",
+            "mod/data/ui/components/armory/armory-squad-doctrine.mlx",
             "mod/data/ui/components/armory/armory-refit-transaction.mlx");
 
     @Test
@@ -44,11 +43,12 @@ class FleetArmoryViewModelTest {
         Reactor reactor = new Reactor();
         FleetArmoryViewModel viewModel = new FleetArmoryViewModel(reactor, roster);
 
-        FireTeamRefitPreview authoritative = roster.previewFireTeamTemplate(
-                viewModel.selectedSquadId(), viewModel.selectedTeamIndex(),
-                viewModel.selectedTemplateId());
-        assertEquals(authoritative.result(), viewModel.currentPreview().result());
-        assertEquals(authoritative.gear(), viewModel.currentPreview().gear());
+        SquadEquipmentPreview authoritative = roster.previewSquadEquipment(
+                viewModel.selectedSquadId(), viewModel.selectedWeaponDoctrineId(),
+                viewModel.selectedArmorDoctrineId());
+        assertEquals(authoritative.result(),
+                viewModel.currentSquadEquipmentPreview().result());
+        assertEquals(authoritative.gear(), viewModel.currentSquadEquipmentPreview().gear());
         assertEquals(MarineSquad.TEAM_SIZE, viewModel.marineCards().get().size());
         assertTrue(viewModel.marineCards().get().get(0).name().contains(" "));
         FleetArmoryViewModel.MarineViewerCard firstMarine =
@@ -60,11 +60,12 @@ class FleetArmoryViewModelTest {
         assertTrue(firstMarine.weaponStats().stream().allMatch(stat ->
                 stat.fillStyle().matches("width: \\d{1,3}%;")));
 
-        assertEquals(FireTeamTemplateResult.APPLIED, viewModel.applySelection());
+        assertEquals(SquadEquipmentResult.APPLIED,
+                viewModel.applySquadEquipmentSelection());
         MarineSquad squad = roster.squadById(viewModel.selectedSquadId());
-        assertEquals(viewModel.selectedTemplateId(),
-                squad.teamTemplateCardId(viewModel.selectedTeamIndex()));
-        assertTrue(viewModel.feedbackText().get().contains("equipped"));
+        assertEquals(viewModel.selectedWeaponDoctrineId(), squad.weaponDoctrineId());
+        assertEquals(viewModel.selectedArmorDoctrineId(), squad.armorDoctrineId());
+        assertTrue(viewModel.feedbackText().get().contains("issued"));
     }
 
     @Test
@@ -72,17 +73,17 @@ class FleetArmoryViewModelTest {
         MarineRoster roster = new MarineRoster();
         roster.ensureActiveSoldiers(MarineSquad.TEAM_SIZE);
         FleetArmoryViewModel viewModel = new FleetArmoryViewModel(new Reactor(), roster);
-        viewModel.teamRows().get().get(1).select().run();
-
-        assertEquals(FireTeamTemplateResult.TEAM_NOT_READY,
-                viewModel.currentPreview().result());
+        assertEquals(SquadEquipmentResult.SQUAD_NOT_READY,
+                viewModel.currentSquadEquipmentPreview().result());
         assertTrue(viewModel.applyDisabled().get());
-        assertEquals(FireTeamTemplateResult.TEAM_NOT_READY, viewModel.applySelection());
-        assertNull(roster.squads().get(0).teamTemplateCardId(1));
+        assertEquals(SquadEquipmentResult.SQUAD_NOT_READY,
+                viewModel.applySquadEquipmentSelection());
+        assertNull(roster.squads().get(0).weaponDoctrineId());
+        assertNull(roster.squads().get(0).armorDoctrineId());
     }
 
     @Test
-    void shippedComponentsKeepKeyedTemplateIdentityAcrossSelection() throws Exception {
+    void shippedComponentsKeepKeyedDoctrineAndMarineIdentityAcrossInspection() throws Exception {
         MarineRoster roster = fullSquad();
         Reactor reactor = new Reactor();
         FleetArmoryViewModel viewModel = new FleetArmoryViewModel(reactor, roster);
@@ -109,9 +110,20 @@ class FleetArmoryViewModelTest {
                         <= root.box().contentBox().bottom() + 0.01f);
             }
 
-            UiElement list = instance.requireElement("template-list");
+            UiElement list = instance.requireElement("weapon-doctrine-list");
             UiElement marineCard = instance.requireElement("marine-card:0");
             UiElement marineCanvas = instance.requireElement("marine-preview:0");
+            UiElement first = list.childAt(0);
+            UiElement second = list.childAt(1);
+            FleetArmoryViewModel.DoctrineTile alternative =
+                    viewModel.weaponDoctrineTiles().get().get(1);
+            alternative.select().run();
+            instance.flush();
+
+            assertSame(first, list.childAt(0));
+            assertSame(second, list.childAt(1));
+            assertTrue(instance.requireElement(alternative.id()).selected());
+            String selectedWeapon = viewModel.selectedWeaponDoctrineId();
             String alphaName = viewModel.marineCards().get().get(0).name();
             viewModel.fireTeamOverviews().get().get(1).select().run();
             instance.flush();
@@ -119,27 +131,12 @@ class FleetArmoryViewModelTest {
             assertSame(marineCard, instance.requireElement("marine-card:0"));
             assertSame(marineCanvas, instance.requireElement("marine-preview:0"));
             assertNotEquals(alphaName, viewModel.marineCards().get().get(0).name());
+            assertEquals(selectedWeapon, viewModel.selectedWeaponDoctrineId());
             assertEquals(viewModel.marineCards().get().get(0).name(),
                     instance.requireElement("marine-card:0:name").text());
 
-            UiElement first = list.childAt(0);
-            UiElement second = list.childAt(1);
-            viewModel.toggleLoadoutPickerAction().run();
-            FleetArmoryViewModel.TemplateTile alternative = viewModel.templateTiles().get()
-                    .stream()
-                    .filter(tile -> !tile.disabled())
-                    .filter(tile -> !tile.templateId().equals(viewModel.selectedTemplateId()))
-                    .findFirst()
-                    .orElse(viewModel.templateTiles().get().get(0));
-            alternative.select().run();
-            instance.flush();
-
-            assertSame(first, list.childAt(0));
-            assertSame(second, list.childAt(1));
-            assertTrue(viewModel.loadoutPickerOpen());
-            assertTrue(instance.requireElement(alternative.id()).selected());
-            assertEquals(viewModel.currentPreview().canApply(),
-                    !instance.requireElement("apply-template").disabled());
+            assertEquals(viewModel.currentSquadEquipmentPreview().canApply(),
+                    !instance.requireElement("apply-squad-equipment").disabled());
             assertTrue(viewModel.marineCards().get().get(0).weaponDelta().contains("DMG"));
             for (int slot = 0; slot < MarineSquad.TEAM_SIZE; slot++) {
                 assertEquals(viewModel.marineCards().get().get(slot).name(),
@@ -149,26 +146,12 @@ class FleetArmoryViewModelTest {
     }
 
     @Test
-    void billetSelectionDrivesTheMaterializedPreviewWithoutMutatingTheTemplate() {
-        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(new Reactor(), fullSquad());
-        FireTeamBillet first = viewModel.selectedBillet();
-
-        viewModel.billetRows().get().get(1).select().run();
-
-        assertEquals(1, viewModel.selectedBilletIndex());
-        assertSame(viewModel.selectedBillet(),
-                viewModel.roster().armory().templateCardById(viewModel.selectedTemplateId())
-                        .billet(1));
-        assertFalse(first == viewModel.selectedBillet());
-        assertTrue(viewModel.billetRows().get().get(1).classes().contains("selected"));
-        assertTrue(viewModel.previewSummary().get().contains(viewModel.selectedBillet().name()));
-    }
-
-    @Test
-    void playerFacingMarkupUsesTemplateLanguage() throws Exception {
+    void playerFacingMarkupUsesDoctrineLanguageAndHasNoLegacyPicker() throws Exception {
         for (String path : COMPONENTS) {
             String source = Files.readString(Path.of(path)).toLowerCase(Locale.ROOT);
             assertFalse(source.matches("(?s).*\\b(deck|hand|consume)\\b.*"), path);
+            assertFalse(source.contains("armory-template-library"), path);
+            assertFalse(source.contains("change loadout"), path);
         }
     }
 
@@ -273,30 +256,26 @@ class FleetArmoryViewModelTest {
         props.put("fireTeamOverviews", viewModel.fireTeamOverviews());
         props.put("squadRows", viewModel.squadRows());
         props.put("teamRows", viewModel.teamRows());
-        props.put("templateTiles", viewModel.templateTiles());
         props.put("targetSummary", viewModel.targetSummary());
         props.put("candidateSummary", viewModel.candidateSummary());
         props.put("selectedSquadReadiness", viewModel.selectedSquadReadiness());
         props.put("reinforceLabel", viewModel.reinforceLabel());
         props.put("reinforceDisabled", viewModel.reinforceDisabled());
         props.put("reinforceSquad", viewModel.reinforceSelectedSquadAction());
-        props.put("pickerClasses", viewModel.pickerClasses());
-        props.put("pickerToggleLabel", viewModel.pickerToggleLabel());
-        props.put("togglePicker", viewModel.toggleLoadoutPickerAction());
-        props.put("billetRows", viewModel.billetRows());
+        props.put("weaponDoctrineTiles", viewModel.weaponDoctrineTiles());
+        props.put("armorDoctrineTiles", viewModel.armorDoctrineTiles());
+        props.put("weaponDoctrineSummary", viewModel.weaponDoctrineSummary());
+        props.put("armorDoctrineSummary", viewModel.armorDoctrineSummary());
         props.put("marineCards", viewModel.marineCards());
-        props.put("previewSummary", viewModel.previewSummary());
         props.put("transactionSummary", viewModel.transactionSummary());
         props.put("transactionClasses", viewModel.transactionClasses());
         props.put("applyDisabled", viewModel.applyDisabled());
-        props.put("applyClasses", viewModel.applyClasses());
         props.put("applyLabel", viewModel.applyLabel());
         props.put("apply", viewModel.applyAction());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         props.put("back", (Runnable) () -> { });
         props.put("backToSquads", (Runnable) () -> { });
-        props.put("legacy", (Runnable) () -> { });
         props.put("reload", (Runnable) () -> { });
         props.put("reloadStatus", "Test");
         return props;
