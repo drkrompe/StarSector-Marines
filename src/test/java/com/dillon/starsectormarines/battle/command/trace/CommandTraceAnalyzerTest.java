@@ -176,6 +176,24 @@ class CommandTraceAnalyzerTest {
     }
 
     @Test
+    void countsPublishedDistantCaptureDeferrals() throws Exception {
+        String trace = String.join("\n",
+                header(),
+                perspective(75, "MARINE", 0,
+                        directive("ACTIVE", 75, 1),
+                        action("TRACK_ADVANCE", 0, true),
+                        tracks(1, 4, 0, 0)),
+                "{\"stream\":\"referee\",\"tick\":150,"
+                        + "\"event\":\"timeout\",\"maxTicks\":150}",
+                "");
+
+        Analysis analysis = CommandTraceAnalyzer.analyze(trace);
+
+        assertEquals(1, analysis.factions().get(Faction.MARINE)
+                .distantCaptureDeferredSquadPulses());
+    }
+
+    @Test
     void terminalAfterEmptyResumedWindowDoesNotUncensorOldThreat()
             throws Exception {
         String trace = String.join("\n",
@@ -414,7 +432,7 @@ class CommandTraceAnalyzerTest {
     @Test
     void acceptsLegacyV2WithoutPhysicalRowsAndRejectsV3EventUnderV2()
             throws Exception {
-        String legacyHeader = header().replace("\"schemaVersion\":3",
+        String legacyHeader = header().replace("\"schemaVersion\":4",
                 "\"schemaVersion\":2");
         String legacyPerspective = perspective(75, "MARINE", 0,
                 directive("ACTIVE", 75, 1),
@@ -449,7 +467,7 @@ class CommandTraceAnalyzerTest {
 
     @Test
     void rejectsUnsupportedSchemasAndDuplicateHeaders() {
-        String old = header().replace("\"schemaVersion\":3",
+        String old = header().replace("\"schemaVersion\":4",
                 "\"schemaVersion\":1");
         assertThrows(IllegalArgumentException.class,
                 () -> CommandTraceAnalyzer.analyze(old));
@@ -458,7 +476,7 @@ class CommandTraceAnalyzerTest {
     }
 
     private static String header() {
-        return "{\"stream\":\"run\",\"tick\":0,\"schemaVersion\":3,"
+        return "{\"stream\":\"run\",\"tick\":0,\"schemaVersion\":4,"
                 + "\"fixtureKind\":\"CONQUEST\","
                 + "\"schedulerMode\":\"SERIAL_DETERMINISTIC\"}";
     }
@@ -573,11 +591,18 @@ class CommandTraceAnalyzerTest {
     }
 
     private static String action(String reason, int track) {
+        return action(reason, track, false);
+    }
+
+    private static String action(String reason, int track,
+                                 boolean distantCaptureDeferred) {
         return "{\"squadId\":1,\"preferredTrack\":" + track
                 + ",\"effectiveTrack\":" + track + ",\"reason\":\""
                 + reason + "\",\"assignmentKind\":null,\"targetZoneId\":-1"
                 + ",\"targetCellX\":-1,\"targetCellY\":-1"
-                + ",\"markerCellX\":-1,\"markerCellY\":-1}";
+                + ",\"markerCellX\":-1,\"markerCellY\":-1"
+                + ",\"distantCaptureDeferred\":"
+                + distantCaptureDeferred + '}';
     }
 
     private static String tracks(int contacts, int first, int second,

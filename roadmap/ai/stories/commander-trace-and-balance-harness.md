@@ -4,7 +4,7 @@ Status: IN PROGRESS — live diagnostics, deterministic Conquest evidence, and p
 
 Written: 2026-08-25
 
-Updated: 2026-08-25 — separated perspective-safe squad approach/arrival evidence from neutral capture-zone occupancy and added both to the canonical report.
+Updated: 2026-08-25 — landed the belief-honest distant-capture reserve rule and exposed binding deferrals in schema-4 live and headless diagnostics; canonical rerun remains.
 
 Read `ai-nouns.md` and `battle-fixtures-nouns.md` before implementing this
 story.
@@ -54,6 +54,10 @@ churned, or collapsed before tuning force budgets or doctrine.
 - [x] Conquest evidence distinguishes own-squad approach and target-zone
   arrival from neutral mixed or marine-only presence in the exact compound
   capture zone without leaking opposing occupancy into commander perspective.
+- [x] Conquest capture allocation preserves in-flight and adjacent commitments
+  while globally retaining useful executable force for actionable front
+  resistance; published actions expose a binding distant-capture deferral
+  separately from the reason for actual front work.
 - [ ] The harness can compare a bounded player intervention with the same
   zero-input baseline once interventions exist, without making input mandatory.
 - [x] Live Conquest diagnostics can select one perspective and display its
@@ -108,22 +112,26 @@ The schema-3 rerun adds the physical distinction the first baseline lacked:
 
 All observed non-closing travel intervals carried local contact, and neither
 fixture produced an adjacent-assault commitment or target-zone observation.
-The traces also expose a commander-policy problem: every observed marine
-command action in these two fixtures is a distant `SECURE_COMPOUND`, because
-absence of a faction-local defender belief currently reads as an uncontested
-compound. The attacker therefore bypasses broader-front work and meets contact
-on a long capture route.
+The traces exposed a commander-policy problem: every observed marine command
+action in these two fixtures was a distant `SECURE_COMPOUND`, because absence
+of a faction-local defender belief read as an uncontested compound. The
+attacker therefore bypassed broader-front work and met contact on a long
+capture route.
 
 This remains evidence, not a balance verdict. Construction fixtures replay the
 production scenario factory but do not apply the campaign deployment overlay;
 their generated sortie squads therefore do not exercise campaign identity or
 form-up suspension. `launch-fixture-fidelity.md` must bring that overlay into a
 representative commander workload before concentration or reinforcement timing
-is tuned. The policy correction is independently valid: unknown occupancy is
-not positive knowledge that a distant compound is clear. Fresh distant capture
-allocation must be globally capped while actionable front resistance exists;
-in-flight captures and the adjacent-threshold commitment path remain valid,
-and neutral referee occupancy never becomes commander input.
+is tuned. The independently valid policy correction is now implemented:
+unknown occupancy permits a measured probe but is not positive knowledge that
+a distant compound is clear. Fresh distant capture allocation leaves at least
+one executable actionable squad on the front, prefers squads without useful
+front work, preserves in-flight captures, and exempts the adjacent-threshold
+commitment path. Neutral referee occupancy never becomes commander input. A
+canonical rerun must now establish whether and where that cap binds in the two
+construction fixtures; the prior baseline remains historical evidence rather
+than validation of the correction.
 
 ## Constraints
 

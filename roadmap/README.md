@@ -81,14 +81,13 @@ See `ui-nouns.md` and `company-view-nouns.md`.
 
 ## Immediate recommendation
 
-Use the physical Conquest baseline to correct attacker commitment policy:
-absence of a believed defender must not make a distant compound "clear," and
-fresh capture detachments must leave useful force on the broader front while
-actionable resistance exists. Preserve in-flight captures and the existing
-adjacent-threshold commitment path. Add the
-campaign deployment/form-up overlay from `launch-fixture-fidelity.md` to the
-commander matrix before treating its force-concentration results as a balance
-verdict. Then close the remaining assignment-writer and live-acceptance edges
+Rerun the physical Conquest baseline against the landed distant-capture reserve
+rule and confirm the published deferral flag binds where actionable front
+resistance overlaps an open capture slot. Then add the campaign deployment/
+form-up overlay from `launch-fixture-fidelity.md` to the commander matrix before
+treating its force-concentration results as a balance verdict. Keep exact
+capture-zone presence as neutral outcome evidence, never commander input. Then
+close the remaining assignment-writer and live-acceptance edges
 in `autonomous-mission-command-foundation.md`. Opening Operations remains the
 smallest second command-duel proof; later missions adapt the same knowledge,
 ownership, cadence, and diagnostic contracts through their own geometry.
