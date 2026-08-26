@@ -27,7 +27,8 @@ public record MarineCatalogManifest(
         List<CatalogFile> specialEquipment,
         List<CatalogFile> armor,
         List<CatalogFile> groundRosters,
-        List<CatalogFile> equipmentTemplates) {
+        List<CatalogFile> equipmentTemplates,
+        List<CatalogFile> factionEquipment) {
 
     public static final int SCHEMA_VERSION = 1;
     public static final String MANIFEST_PATH = "data/marines/starsector-marines.catalog.json";
@@ -40,6 +41,7 @@ public record MarineCatalogManifest(
         armor = List.copyOf(armor);
         groundRosters = List.copyOf(groundRosters);
         equipmentTemplates = List.copyOf(equipmentTemplates);
+        factionEquipment = List.copyOf(factionEquipment);
     }
 
     /** Discovers the fixed manifest in every enabled mod, preserving game load order. */
@@ -100,7 +102,8 @@ public record MarineCatalogManifest(
                 paths(modId, root.optJSONArray("specialEquipment")),
                 paths(modId, root.optJSONArray("armor")),
                 paths(modId, root.optJSONArray("groundRosters")),
-                paths(modId, root.optJSONArray("equipmentTemplates")));
+                paths(modId, root.optJSONArray("equipmentTemplates")),
+                paths(modId, root.optJSONArray("factionEquipment")));
     }
 
     private static List<CatalogFile> paths(String modId, JSONArray array) throws JSONException {
@@ -144,6 +147,7 @@ public record MarineCatalogManifest(
         private final List<CatalogFile> armor = new ArrayList<>();
         private final List<CatalogFile> groundRosters = new ArrayList<>();
         private final List<CatalogFile> equipmentTemplates = new ArrayList<>();
+        private final List<CatalogFile> factionEquipment = new ArrayList<>();
 
         void add(MarineCatalogManifest manifest) {
             tilesets.addAll(manifest.tilesets);
@@ -153,12 +157,13 @@ public record MarineCatalogManifest(
             armor.addAll(manifest.armor);
             groundRosters.addAll(manifest.groundRosters);
             equipmentTemplates.addAll(manifest.equipmentTemplates);
+            factionEquipment.addAll(manifest.factionEquipment);
         }
 
         MarineCatalogManifest build() {
             return new MarineCatalogManifest(tilesets, tileMappings,
                     weapons, specialEquipment, armor,
-                    groundRosters, equipmentTemplates);
+                    groundRosters, equipmentTemplates, factionEquipment);
         }
     }
 }

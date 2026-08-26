@@ -2,7 +2,7 @@
 
 Status: ACTIVE — 12 open stories
 Written: 2026-08-23
-Updated: 2026-08-25 — shipped equipment-template collection and cargo-backed issue; retired the bespoke parts-currency plan.
+Updated: 2026-08-26 — shipped additive faction source pools; S6 still owns campaign population and long-horizon reachability.
 
 Read `progression-nouns.md` before changing a progression story.
 
@@ -15,7 +15,7 @@ Read `progression-nouns.md` before changing a progression story.
 | `s2f-combat-stim-injectors.md` | Planned | Adds finite, temporary handling utility while keeping neural/HUD interfaces out of hidden stat and knowledge bonuses. |
 | `s2g-martyr-rigs-and-carried-ieds.md` | Planned | Adds rare Pather martyr rigs and visible carried improvised charges as explicit faction equipment with ordinary collateral and casualty authority. |
 | `powered-assault-armor-roles.md` | Planned | Names light, line, and heavy suit roles; gives patterns faction provenance; preserves an explicit infantry/mech and concealment boundary. |
-| `s6-unlock-ladder-expansion.md` | Planned | Depends on remaining S2 catalogs and the armor-role story; factional template recovery coordinates with `intact-installation-recovery.md`. Must make every player asset starter issue or reachable. |
+| `s6-unlock-ladder-expansion.md` | Planned | Faction source data and cross-mod merge are shipped. Campaign market/license/patron/recovery population still depends on the remaining S2 catalogs and armor roles; installation recovery coordinates with `intact-installation-recovery.md`. |
 | `s7-grade-visual-identity.md` | Planned | Depends on shipped S1. Presentation-only grade signal. |
 | `s8-roster-legibility.md` | Ready | Requires shipped telemetry. Establishes campaign quality readout and UI-scale prerequisite. |
 | `s9-in-battle-quality-conveyance.md` | Ready | Requires shipped telemetry; coordinate its person-driven signal with S7. |
