@@ -316,21 +316,27 @@ class SubmodEquipmentContributionTest {
 
     private static JSONObject externalTemplates() throws Exception {
         JSONObject grades = new JSONObject()
-                .put("surplus", new JSONObject().put("supplies", 2))
-                .put("service", new JSONObject().put("supplies", 4)
+                .put("surplus", new JSONObject().put("accessTier", "common")
+                        .put("supplies", 2))
+                .put("service", new JSONObject().put("accessTier", "common")
+                        .put("supplies", 4)
                         .put("heavyArmaments", 1))
-                .put("milspec", new JSONObject().put("supplies", 5)
+                .put("milspec", new JSONObject().put("accessTier", "advanced")
+                        .put("supplies", 5)
                         .put("heavyArmaments", 2))
-                .put("masterwork", new JSONObject().put("supplies", 7)
+                .put("masterwork", new JSONObject().put("accessTier", "prestige")
+                        .put("supplies", 7)
                         .put("heavyArmaments", 3));
         JSONObject primary = new JSONObject()
                 .put("equipmentId", "example.weapon-needle-rifle")
                 .put("grades", grades);
         JSONObject armor = new JSONObject()
                 .put("equipmentId", "example.armor-ceramic")
+                .put("accessTier", "advanced")
                 .put("issueCost", new JSONObject().put("supplies", 3));
         JSONObject special = new JSONObject()
                 .put("equipmentId", "example.special-signal-smoke")
+                .put("accessTier", "common")
                 .put("issueCost", new JSONObject().put("supplies", 1));
         return new JSONObject()
                 .put("primaries", new JSONArray().put(primary))

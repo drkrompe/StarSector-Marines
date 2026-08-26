@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — added a source-aware 5/15/30/40-victory collection breadth safety net.
+Updated: 2026-08-26 — added shared data-authored access tiers across all faction acquisition channels.
 
 ## Purpose
 
@@ -69,6 +69,10 @@ legibility.
   may make a template card available: ordinary market stock, licensed access,
   patron reward, or operational recovery. A source declares eligibility and
   relative selection weight; it does not itself grant, sell, or recover a card.
+- **Equipment access tier** — a card's authored Common, Advanced, or Prestige
+  campaign band. It is independent of grade, armor role, provenance, issue
+  cost, and loadout collectible rarity; acquisition channels interpret it
+  through shared company-history and reputation gates.
 - **Armory** — the persistent campaign authority for collected equipment
   templates and reusable squad definitions. Materialized marine kit persists on
   the marine; changed incoming issue is paid from ordinary fleet cargo.
@@ -169,10 +173,16 @@ never learns a carried card implicitly, and leaves at least four of the current
 32-card catalog to faction sources and active collection.
 
 Faction source pools author which cards may enter through market, license,
-patron, and recovery channels. Open markets now
-stock a faction-and-market-stable weighted selection that rotates monthly and
-scales with market size. Favorable-or-better standing adds licensed offers, and
-already-owned or carried cards are omitted. Each completed patron contract also issues one
+patron, and recovery channels. Every card also authors an access tier. Open
+markets admit Common cards only, so unrestricted credits cannot buy Advanced
+or Prestige capability. Their faction-and-market-stable weighted selection
+rotates monthly and scales with market size. Favorable-or-better standing adds
+licensed offers; MRB reputation admits Advanced at 5 and Prestige at 20, using
+the same bands as patron contract access. Patron rewards apply those MRB bands
+as well. High-risk recovery instead uses operational history, admitting Advanced
+after 5 company victories and Prestige after 15, so field discovery does not
+require bureaucratic standing. Already-owned or carried cards are omitted.
+Each completed patron contract also issues one
 weighted card from that patron faction's pool through the immutable engagement
 ledger. Delivery is exactly once, excludes learned or already-carried cards, and
 does not treat system-generated extraction as patron work. A victorious high-risk
@@ -195,12 +205,13 @@ knowledge, so infantry equipment cannot leak into ship production or the ship
 editor. Market, reward, and salvage systems create the same validated cargo
 payload; the S6 acquisition ladder still owns the eligibility of each entrance.
 
-Collectible eligibility and issue cost are catalog data rather than a closed
+Collectible access tier and issue cost are catalog data rather than a closed
 Java list. Each enabled catalog provider may add complete four-grade primary
 families, armor cards, and special-equipment cards after the referenced
 equipment has loaded. Card ids are derived from the stable equipment id,
 duplicate claims fail with provider provenance, and learning keeps the same
-Marine-Armory-only boundary. A provider adding a marine primary, armor, or
+Marine-Armory-only boundary. Missing or unknown access tiers fail catalog load
+rather than silently entering the opening pool. A provider adding a marine primary, armor, or
 special item must either contribute its complete player-template treatment or
 declare a non-empty reason that the identity is not player equipment. A partial
 primary grade matrix and a collectible-plus-exclusion contradiction both stop
@@ -228,10 +239,12 @@ application loading and never a hidden combat modifier.
 
 The merged catalogs enforce the standing reachability law at application load:
 every collectible card must be starter-owned or appear in at least one faction
-pool through market, license, patron, or recovery. This is global reachability,
-not universal faction availability. It lets add-ons keep faction identity while
-ensuring that a newly collectible family, grade, suit, or special item cannot be
-stranded by an omitted source file.
+pool through a channel that can eventually admit its access tier. An Advanced
+or Prestige card authored only for the Common-only open market is therefore
+still stranded. This is global reachability, not universal faction availability.
+It lets add-ons keep faction identity while ensuring that a newly collectible
+family, grade, suit, or special item cannot be stranded by an omitted or
+permanently ineligible source.
 
 Armor patterns are authored player kit with distinct defensive and mobility
 tradeoffs. Every currently authored pattern has a collectible card and faction
