@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.battle.infantry;
 
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+
 import com.dillon.starsectormarines.battle.combat.BallisticResolver;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.combat.ShotService;
@@ -85,7 +88,7 @@ class InfantryWeaponsTest {
 
     @Test
     void shredderReleasesOneSimultaneousSixProjectileCloud() {
-        Fixture f = fixture(ExperienceTier.REGULAR, false, MarineWeapon.SMG);
+        Fixture f = fixture(ExperienceTier.REGULAR, false, WeaponRegistry.require(WeaponRegistry.SMG_ID));
 
         f.weapons.fireShot(f.shooter, f.target, FireStance.STANCED,
                 new ConstantRandom(0.5f));
@@ -95,11 +98,11 @@ class InfantryWeaponsTest {
     }
 
     private static Fixture fixture(ExperienceTier experience, boolean friendlyInLane) {
-        return fixture(experience, friendlyInLane, MarineWeapon.PULSE_RIFLE);
+        return fixture(experience, friendlyInLane, WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID));
     }
 
     private static Fixture fixture(ExperienceTier experience, boolean friendlyInLane,
-                                   MarineWeapon weapon) {
+                                   WeaponDef weapon) {
         NavigationGrid grid = new NavigationGrid(WIDTH, HEIGHT);
         for (int y = 0; y < HEIGHT; y++) {
             for (int x = 0; x < WIDTH; x++) grid.setWalkableFloor(x, y);

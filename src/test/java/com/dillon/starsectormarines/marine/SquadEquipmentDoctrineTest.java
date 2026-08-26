@@ -1,7 +1,9 @@
 package com.dillon.starsectormarines.marine;
 
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -24,7 +26,7 @@ class SquadEquipmentDoctrineTest {
                 SquadEquipmentDoctrines.ASSAULT_WEAPONS);
         assertNotNull(doctrine);
         assertEquals(1, doctrine.issues().stream()
-                .filter(issue -> issue.special() == MarineSecondary.FRAG_GRENADE)
+                .filter(issue -> issue.specialDef() == SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID))
                 .count());
     }
 
@@ -39,10 +41,10 @@ class SquadEquipmentDoctrineTest {
         assertTrue(preview.canApply());
         for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
             int leader = team * MarineSquad.TEAM_SIZE;
-            assertEquals(MarineWeapon.PULSE_RIFLE, preview.billet(leader).primary());
+            assertEquals(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), preview.billet(leader).primaryDef());
             assertEquals(MarineArmorPattern.MILITIA, preview.billet(leader).armor());
             for (int local = 1; local < MarineSquad.TEAM_SIZE; local++) {
-                assertEquals(MarineWeapon.FIELD_RIFLE, preview.billet(leader + local).primary());
+                assertEquals(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID), preview.billet(leader + local).primaryDef());
                 assertEquals(MarineArmorPattern.ARMORLESS, preview.billet(leader + local).armor());
             }
         }
@@ -59,8 +61,8 @@ class SquadEquipmentDoctrineTest {
 
         assertTrue(preview.canApply());
         for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
-            assertEquals(MarineWeapon.SQUAD_AUTOMATIC,
-                    preview.billet(team * MarineSquad.TEAM_SIZE + 1).primary());
+            assertEquals(WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID),
+                    preview.billet(team * MarineSquad.TEAM_SIZE + 1).primaryDef());
         }
     }
 
@@ -75,17 +77,17 @@ class SquadEquipmentDoctrineTest {
 
         assertTrue(preview.canApply());
         assertEquals(MarineSquad.CAPACITY, preview.billets().size());
-        assertEquals(MarineWeapon.SMG, preview.billet(1).primary());
-        assertEquals(MarineSecondary.SATCHEL_CHARGE, preview.billet(1).special());
+        assertEquals(WeaponRegistry.require(WeaponRegistry.SMG_ID), preview.billet(1).primaryDef());
+        assertEquals(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID), preview.billet(1).specialDef());
         assertEquals(MarineArmorPattern.ARMORLESS, preview.billet(1).armor());
         assertEquals(SquadEquipmentResult.APPLIED, roster.applySquadEquipment(
                 squad.id(), SquadEquipmentDoctrines.LUDDIC_PATH_ASSAULT_WEAPONS,
                 SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR));
 
         List<String> members = roster.manningMemberIds(squad);
-        assertEquals(MarineWeapon.SMG, roster.soldierById(members.get(1)).primary());
-        assertEquals(MarineSecondary.SATCHEL_CHARGE,
-                roster.soldierById(members.get(1)).secondary());
+        assertEquals(WeaponRegistry.require(WeaponRegistry.SMG_ID), roster.soldierById(members.get(1)).primaryDef());
+        assertEquals(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID),
+                roster.soldierById(members.get(1)).specialEquipmentDef());
         assertEquals(SquadEquipmentDoctrines.LUDDIC_PATH_ASSAULT_WEAPONS,
                 squad.weaponDoctrineId());
         assertEquals(SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR,
@@ -108,7 +110,7 @@ class SquadEquipmentDoctrineTest {
                 SquadEquipmentDoctrines.FLEET_COMBAT_ARMOR);
 
         for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
-            assertEquals(fatigues.billet(billet).primary(), combatArmor.billet(billet).primary());
+            assertEquals(fatigues.billet(billet).primaryDef(), combatArmor.billet(billet).primaryDef());
             assertEquals(fatigues.billet(billet).grade(), combatArmor.billet(billet).grade());
             assertEquals(fatigues.billet(billet).specialEquipmentId(),
                     combatArmor.billet(billet).specialEquipmentId());
@@ -124,8 +126,8 @@ class SquadEquipmentDoctrineTest {
         assertEquals(SquadEquipmentResult.APPLIED, roster.applySquadEquipment(
                 squad.id(), SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,
                 SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR));
-        List<MarineWeapon> priorWeapons = roster.manningMemberIds(squad).stream()
-                .map(roster::soldierById).map(MarineSoldier::primary).toList();
+        List<WeaponDef> priorWeapons = roster.manningMemberIds(squad).stream()
+                .map(roster::soldierById).map(MarineSoldier::primaryDef).toList();
         String priorWeaponDoctrine = squad.weaponDoctrineId();
         String priorArmorDoctrine = squad.armorDoctrineId();
 
@@ -134,7 +136,7 @@ class SquadEquipmentDoctrineTest {
                 SquadEquipmentDoctrines.SINDRIAN_SECURITY_ARMOR));
 
         assertEquals(priorWeapons, roster.manningMemberIds(squad).stream()
-                .map(roster::soldierById).map(MarineSoldier::primary).toList());
+                .map(roster::soldierById).map(MarineSoldier::primaryDef).toList());
         assertEquals(priorWeaponDoctrine, squad.weaponDoctrineId());
         assertEquals(priorArmorDoctrine, squad.armorDoctrineId());
     }
@@ -158,8 +160,8 @@ class SquadEquipmentDoctrineTest {
         MarineRoster roster = fullSquad();
         MarineSquad squad = roster.squads().get(0);
         TestResources resources = new TestResources(EquipmentTemplateCost.ZERO);
-        List<MarineWeapon> priorWeapons = roster.manningMemberIds(squad).stream()
-                .map(roster::soldierById).map(MarineSoldier::primary).toList();
+        List<WeaponDef> priorWeapons = roster.manningMemberIds(squad).stream()
+                .map(roster::soldierById).map(MarineSoldier::primaryDef).toList();
 
         SquadEquipmentPreview blocked = roster.previewSquadEquipment(
                 squad.id(), SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,
@@ -172,7 +174,7 @@ class SquadEquipmentDoctrineTest {
         assertEquals(0, resources.spendCalls);
         assertNull(squad.weaponDoctrineId());
         assertEquals(priorWeapons, roster.manningMemberIds(squad).stream()
-                .map(roster::soldierById).map(MarineSoldier::primary).toList());
+                .map(roster::soldierById).map(MarineSoldier::primaryDef).toList());
 
         resources.available = blocked.issueCost();
         assertEquals(SquadEquipmentResult.APPLIED, roster.applySquadEquipment(
@@ -206,8 +208,8 @@ class SquadEquipmentDoctrineTest {
                 persisted.weaponDoctrineId());
         assertEquals(SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR,
                 persisted.armorDoctrineId());
-        assertEquals(MarineSecondary.SATCHEL_CHARGE,
-                loaded.soldierById(loaded.manningMemberIds(persisted).get(1)).secondary());
+        assertEquals(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID),
+                loaded.soldierById(loaded.manningMemberIds(persisted).get(1)).specialEquipmentDef());
     }
 
     @Test
@@ -243,8 +245,8 @@ class SquadEquipmentDoctrineTest {
         squad.setTeamTemplateCardId(0, FireTeamTemplateCards.FIELD_ID);
         squad.setTeamTemplateCardId(1, FireTeamTemplateCards.RECON_ID);
         squad.setTeamTemplateCardId(2, FireTeamTemplateCards.FIRE_SUPPORT_ID);
-        List<MarineWeapon> before = roster.manningMemberIds(squad).stream()
-                .map(roster::soldierById).map(MarineSoldier::primary).toList();
+        List<WeaponDef> before = roster.manningMemberIds(squad).stream()
+                .map(roster::soldierById).map(MarineSoldier::primaryDef).toList();
 
         MarineRoster loaded = roundTrip(roster);
         MarineSquad migrated = loaded.squadById(squad.id());
@@ -253,7 +255,7 @@ class SquadEquipmentDoctrineTest {
         assertNotNull(migrated.armorDoctrineId());
         assertNotNull(loaded.armory().weaponDoctrineById(migrated.weaponDoctrineId()));
         assertEquals(before, loaded.manningMemberIds(migrated).stream()
-                .map(loaded::soldierById).map(MarineSoldier::primary).toList());
+                .map(loaded::soldierById).map(MarineSoldier::primaryDef).toList());
         assertEquals(FireTeamTemplateCards.FIELD_ID, migrated.teamTemplateCardId(0),
                 "migration preserves compatibility intent until the next successful issue");
     }

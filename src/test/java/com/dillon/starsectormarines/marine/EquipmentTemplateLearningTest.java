@@ -1,7 +1,8 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.fs.starfarer.api.campaign.impl.items.BlueprintProviderItem;
 import org.junit.jupiter.api.Test;
 
@@ -20,7 +21,7 @@ class EquipmentTemplateLearningTest {
     void learningMovesAnUnknownTemplateIntoTheArmory() {
         MarineArmory armory = new MarineArmory();
         String id = EquipmentTemplateCatalog.primaryId(
-                MarineWeapon.DMR, EquipmentGrade.MASTERWORK);
+                WeaponRegistry.require(WeaponRegistry.DMR_ID), EquipmentGrade.MASTERWORK);
 
         assertEquals(EquipmentTemplateLearning.Result.LEARNED,
                 EquipmentTemplateLearning.status(armory, id));

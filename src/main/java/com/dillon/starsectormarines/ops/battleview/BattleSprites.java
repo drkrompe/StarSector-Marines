@@ -4,11 +4,12 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.weapon.MountClass;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKind;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.tiles.SheetTexture;
@@ -93,8 +94,6 @@ public class BattleSprites {
      */
     private final java.util.Map<String, ShuttleSpriteCache> projectileSpriteByPath =
             new java.util.HashMap<>();
-    private final java.util.EnumMap<MarineSecondary, UnitSpriteCache> marineSecondaryAimSheets =
-            new java.util.EnumMap<>(MarineSecondary.class);
     private final Map<String, UnitSpriteCache> specialEquipmentAimSheets = new LinkedHashMap<>();
     private boolean marineSecondarySpritesLoadAttempted;
 
@@ -172,7 +171,6 @@ public class BattleSprites {
     public java.util.EnumMap<TurretKind, ShuttleSpriteCache> turretRecoilSprites() { return turretRecoilSprites; }
     /** Carrier-agnostic projectile-sprite lookup by texture path (what {@code ShotFx.Sprite} resolves against). Null if not loaded / no such path. */
     public ShuttleSpriteCache projectileSprite(String path) { return path == null ? null : projectileSpriteByPath.get(path); }
-    public java.util.EnumMap<MarineSecondary, UnitSpriteCache> marineSecondaryAimSheets() { return marineSecondaryAimSheets; }
     public Map<String, UnitSpriteCache> specialEquipmentAimSheets() {
         return specialEquipmentAimSheets;
     }
@@ -443,32 +441,30 @@ public class BattleSprites {
                 UnitSpriteCache aim = loadUnitSheet(sec.aimSpritePath());
                 if (aim != null) {
                     specialEquipmentAimSheets.put(sec.id(), aim);
-                    MarineSecondary compatibility =
-                            SpecialEquipmentRegistry.compatibilityHandle(sec.id());
-                    if (compatibility != null) marineSecondaryAimSheets.put(compatibility, aim);
                 }
             }
         }
         // Primary projectile sprites (field-rifle / SMG shells today). Skip
         // weapons whose projectile path is null — those share the tinted bolt.
-        for (MarineWeapon w : MarineWeapon.values()) {
-            if (w.projectileSpritePath() == null) continue;
+        for (WeaponDef w : WeaponRegistry.installed().all()) {
+            if (w.mount != MountClass.MARINE_PRIMARY) continue;
+            if (w.projectileSpritePath == null) continue;
             try {
-                Global.getSettings().loadTexture(w.projectileSpritePath());
-                SpriteAPI sprite = Global.getSettings().getSprite(w.projectileSpritePath());
+                Global.getSettings().loadTexture(w.projectileSpritePath);
+                SpriteAPI sprite = Global.getSettings().getSprite(w.projectileSpritePath);
                 if (sprite == null) {
-                    LOG.warn("BattleSprites: getSprite returned null for " + w.projectileSpritePath());
+                    LOG.warn("BattleSprites: getSprite returned null for " + w.projectileSpritePath);
                     continue;
                 }
                 float pw = sprite.getWidth();
                 float ph = sprite.getHeight();
                 float aspect = (ph > 0f) ? pw / ph : 1f;
                 ShuttleSpriteCache cache = new ShuttleSpriteCache(sprite, aspect);
-                projectileSpriteByPath.put(w.projectileSpritePath(), cache);
-                LOG.info("BattleSprites: loaded " + w.projectileSpritePath()
+                projectileSpriteByPath.put(w.projectileSpritePath, cache);
+                LOG.info("BattleSprites: loaded " + w.projectileSpritePath
                         + " (" + pw + "x" + ph + ", aspect=" + aspect + ")");
             } catch (Exception e) {
-                LOG.error("BattleSprites: failed to load primary projectile " + w.projectileSpritePath(), e);
+                LOG.error("BattleSprites: failed to load primary projectile " + w.projectileSpritePath, e);
             }
         }
         // Bolt families may use mod or vanilla textures. The derived path set

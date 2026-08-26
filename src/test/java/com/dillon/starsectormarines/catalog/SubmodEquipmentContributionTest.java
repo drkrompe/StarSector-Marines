@@ -95,13 +95,10 @@ class SubmodEquipmentContributionTest {
                     GroundRosterProfile.ForceTier.BULK, RiskLevel.LOW, new ZeroRandom());
 
             assertEquals("roster.example-oc", profile.id());
-            assertEquals("example.weapon-needle-rifle", loadout.primaryDef.id);
+            assertEquals("example.weapon-needle-rifle", loadout.primaryDef().id);
             assertEquals(LayeredWeaponFamily.RIFLE,
-                    loadout.primaryDef.heldSpriteFamily);
-            assertNull(loadout.primary, "external definitions must not require an enum constant");
-            assertEquals("example.special-signal-smoke", loadout.specialDef.id());
-            assertNull(loadout.secondary,
-                    "external special equipment must not require an enum constant");
+                    loadout.primaryDef().heldSpriteFamily);
+            assertEquals("example.special-signal-smoke", loadout.specialDef().id());
             assertEquals("ARMY_GREEN", loadout.armorFamily.name());
             assertTrue(EquipmentTemplateCatalog.contains(
                     "equipment-template:example.weapon-needle-rifle:service"));
@@ -115,7 +112,7 @@ class SubmodEquipmentContributionTest {
             loadout.seedInto(entity);
             assertEquals("example.weapon-needle-rifle", entity.primaryWeaponDef.id);
             assertEquals("example.special-signal-smoke", entity.specialEquipment.id());
-            assertEquals(loadout.primaryDef.range, entity.attackRange);
+            assertEquals(loadout.primaryDef().range, entity.attackRange);
 
             BattleSimulation sim = openArena(12, 8);
             long carrier = sim.spawn(entity);
@@ -127,10 +124,9 @@ class SubmodEquipmentContributionTest {
                     "the contributed utility must execute through its typed activation");
 
             ShotEvent shot = ShotEvent.primary(0f, 0f, 0f, 4f, 0f, 0f,
-                    true, Faction.DEFENDER, 0.2f, loadout.primaryDef,
+                    true, Faction.DEFENDER, 0.2f, loadout.primaryDef(),
                     1f, true, BallisticResolver.StopKind.UNIT_HIT, 42L);
-            assertNull(shot.marineWeapon);
-            assertEquals(loadout.primaryDef, shot.primaryWeaponDef);
+            assertEquals(loadout.primaryDef(), shot.primaryWeaponDef);
             assertTrue(ShotFx.of(shot).body() instanceof ShotFx.Sprite);
 
             MarineRoster playerRoster = playerCanLearnAuthorIssueAndDeployContributedKit();
@@ -226,16 +222,15 @@ class SubmodEquipmentContributionTest {
                 squad.id(), weapons.id(), armor.id()));
         MarineSoldier issued = roster.squadMembers(squad).get(0);
         assertEquals("example.weapon-needle-rifle", issued.primaryId());
-        assertNull(issued.primary(), "custom player issue must not require an enum constant");
+        assertTrue(issued.primaryDef() != null);
         assertEquals("example.armor-ceramic", issued.armorId());
         assertNull(issued.armor(), "custom player armor must not require an enum constant");
         assertEquals("example.special-signal-smoke", issued.specialEquipmentId());
-        assertNull(issued.secondary(), "custom player special must not require an enum constant");
+        assertTrue(issued.specialEquipmentDef() != null);
 
         MarineLoadout deployed = CampaignMarineDeployment.freeze(roster, 1).seat(0);
-        assertEquals("example.weapon-needle-rifle", deployed.primaryDef.id);
-        assertEquals("example.special-signal-smoke", deployed.specialDef.id());
-        assertNull(deployed.secondary);
+        assertEquals("example.weapon-needle-rifle", deployed.primaryDef().id);
+        assertEquals("example.special-signal-smoke", deployed.specialDef().id());
         assertEquals("ARMY_GREEN", deployed.armorFamily.name());
         return roster;
     }

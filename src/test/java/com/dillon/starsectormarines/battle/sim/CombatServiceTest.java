@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.sim;
 
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.ExperienceTier;
 import com.dillon.starsectormarines.battle.infantry.SoldierAptitude;
@@ -46,12 +47,12 @@ public class CombatServiceTest {
         // seedPrimaryWeapon set the weapon ref only (no stat derivation) — the
         // EntitySpec equivalent is the post-spawn setter, not .primaryWeapon()
         // (which also derives range/damage/accuracy/cooldown from the weapon).
-        combat.setPrimaryWeapon(id, MarineWeapon.PULSE_RIFLE);
+        combat.setPrimaryWeapon(id, WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID));
 
         assertTrue(combat.has(id));
         // Seeded from the write-only seed (no Entity deref afterward) — the SAME
         // flyweight instance the deboard loadout handed in, not a copy.
-        assertSame(MarineWeapon.PULSE_RIFLE, combat.primaryWeapon(id));
+        assertSame(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), combat.primaryWeapon(id));
     }
 
     @Test
@@ -73,8 +74,8 @@ public class CombatServiceTest {
 
         // The deboard-loadout seam: setPrimaryWeapon writes the same column the
         // fire/scoring code reads back.
-        combat.setPrimaryWeapon(id, MarineWeapon.SMG);
-        assertSame(MarineWeapon.SMG, combat.primaryWeapon(id));
+        combat.setPrimaryWeapon(id, WeaponRegistry.require(WeaponRegistry.SMG_ID));
+        assertSame(WeaponRegistry.require(WeaponRegistry.SMG_ID), combat.primaryWeapon(id));
     }
 
     @Test
@@ -97,7 +98,7 @@ public class CombatServiceTest {
         long id = r.spawn(unit("u"));
         CombatService combat = r.combat();
         SoldierProfile green = new SoldierProfile(SoldierAptitude.STEADY, 0);
-        combat.equipPrimaryWeapon(id, MarineWeapon.DMR, EquipmentGrade.SURPLUS, green);
+        combat.equipPrimaryWeapon(id, WeaponRegistry.require(WeaponRegistry.DMR_ID), EquipmentGrade.SURPLUS, green);
         float greenAccuracy = combat.accuracy(id);
         float greenCooldown = combat.attackCooldown(id);
 

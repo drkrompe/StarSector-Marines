@@ -1,8 +1,10 @@
 package com.dillon.starsectormarines.battle.weapon;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
@@ -11,7 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import java.awt.Color;
 import java.util.HashSet;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -22,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Pins {@code data/marines/marine-weapons.weapon.json} field-for-field against
- * the values {@link MarineWeapon} carried before the catalog moved to data.
+ * the values {@link WeaponDef} carried before the catalog moved to data.
  * This is the artifact that makes a substrate migration reviewable: the JSON is
  * correct if and only if every number below still matches, and the expectations
  * are written as literals rather than read back from the registry so a typo in
@@ -37,19 +39,24 @@ class WeaponRegistryParityTest {
     private static final float EPS = 1e-6f;
 
     @Test
-    void everyEnumConstantResolvesToExactlyOneDef() {
+    void everyShippedHandleResolvesToExactlyOneDef() {
         Set<String> ids = new HashSet<>();
-        for (MarineWeapon weapon : MarineWeapon.values()) {
-            assertNotNull(weapon.def(), weapon + " must resolve through the registry");
+        for (WeaponDef weapon : List.of(
+                WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID),
+                WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID),
+                WeaponRegistry.require(WeaponRegistry.SMG_ID),
+                WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID),
+                WeaponRegistry.require(WeaponRegistry.DMR_ID),
+                WeaponRegistry.require(WeaponRegistry.DRONE_PULSE_ID))) {
             assertTrue(ids.add(weapon.id), "duplicate id " + weapon.id);
-            assertSame(MountClass.MARINE_PRIMARY, weapon.def().mount,
+            assertSame(MountClass.MARINE_PRIMARY, weapon.mount,
                     weapon + " is a marine primary");
         }
-        for (MarineSecondary weapon : MarineSecondary.values()) {
-            if (weapon.specialDef().weaponId() == null) continue;
-            assertNotNull(weapon.def(), weapon + " must resolve through the registry");
-            assertTrue(ids.add(weapon.def().id), "duplicate id " + weapon.def().id);
-            assertSame(MountClass.MARINE_SECONDARY, weapon.def().mount,
+        for (SpecialEquipmentDef weapon : SpecialEquipmentRegistry.installed().all()) {
+            if (weapon.weaponId() == null) continue;
+            assertNotNull(weapon.weaponDef(), weapon + " must resolve through the registry");
+            assertTrue(ids.add(weapon.weaponDef().id), "duplicate id " + weapon.weaponDef().id);
+            assertSame(MountClass.MARINE_SECONDARY, weapon.weaponDef().mount,
                     weapon + " is weapon-like special equipment");
         }
         for (MechWeapon weapon : MechWeapon.values()) {
@@ -58,10 +65,10 @@ class WeaponRegistryParityTest {
             assertSame(MountClass.MECH_MOUNT, weapon.def().mount,
                     weapon + " is a mech-mounted weapon");
         }
-        long weaponLikeSpecials = Arrays.stream(MarineSecondary.values())
-                .filter(weapon -> weapon.specialDef().weaponId() != null)
+        long weaponLikeSpecials = SpecialEquipmentRegistry.installed().all().stream()
+                .filter(weapon -> weapon.weaponId() != null)
                 .count();
-        assertEquals(MarineWeapon.values().length + weaponLikeSpecials
+        assertEquals(6 + weaponLikeSpecials
                         + MechWeapon.values().length
                         + TurretKind.values().length,
                 WeaponRegistry.installed().size(),
@@ -114,7 +121,7 @@ class WeaponRegistryParityTest {
 
     @Test
     void rocketMigrationPreservesItsShippedValues() {
-        MarineSecondary rocket = MarineSecondary.ROCKET_LAUNCHER;
+        SpecialEquipmentDef rocket = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID);
         assertEquals(32f, rocket.range(), EPS);
         assertEquals(162f, rocket.damage(), EPS);
         assertEquals(0.85f, rocket.accuracy(), EPS);
@@ -122,100 +129,100 @@ class WeaponRegistryParityTest {
         assertEquals(1.5f, rocket.aoeRadius(), EPS);
         assertEquals(50, rocket.wallDamage());
         assertEquals(0.65f, rocket.aimDuration(), EPS);
-        assertImpact(rocket.def(), ImpactKind.HE);
+        assertImpact(rocket.weaponDef(), ImpactKind.HE);
     }
 
     @Test
     void antiMaterielRifleIsPreciseRegistryOwnedHeavyFire() {
-        MarineSecondary amr = MarineSecondary.ANTI_MATERIEL_RIFLE;
-        assertEquals("weapon.anti-materiel-rifle", amr.def().id);
+        SpecialEquipmentDef amr = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID);
+        assertEquals("weapon.anti-materiel-rifle", amr.weaponDef().id);
         assertEquals(4, amr.startingAmmo());
-        assertTrue(amr.range() > MarineWeapon.DMR.range());
+        assertTrue(amr.range() > WeaponRegistry.require(WeaponRegistry.DMR_ID).range());
         assertEquals(18f, amr.penetration(), EPS);
         assertEquals(0f, amr.aoeRadius(), EPS);
         assertEquals(0, amr.wallDamage());
         assertNull(amr.projectileSpritePath());
-        assertImpact(amr.def(), ImpactKind.KINETIC);
+        assertImpact(amr.weaponDef(), ImpactKind.KINETIC);
     }
 
     @Test
     void fragmentationGrenadeOwnsItsArcAndCompactAntiPersonnelBlast() {
-        MarineSecondary frag = MarineSecondary.FRAG_GRENADE;
-        assertEquals("weapon.frag-grenade", frag.def().id);
+        SpecialEquipmentDef frag = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID);
+        assertEquals("weapon.frag-grenade", frag.weaponDef().id);
         assertEquals(8.5f, frag.range(), EPS);
         assertEquals(32f, frag.damage(), EPS);
         assertEquals(2f, frag.penetration(), EPS);
         assertEquals(1.45f, frag.aoeRadius(), EPS);
         assertEquals(1.8f, frag.arcHeight(), EPS);
         assertEquals(0, frag.wallDamage());
-        assertTrue(frag.def().indirectFire);
-        assertTrue(frag.def().interceptableProjectile);
+        assertTrue(frag.weaponDef().indirectFire);
+        assertTrue(frag.weaponDef().interceptableProjectile);
     }
 
     @Test
     void fieldRifleMatchesItsShippedValues() {
-        assertSim(MarineWeapon.FIELD_RIFLE, 22f, 14.0f, 0.28f, 1.15f, 7f,
+        assertSim(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID), 22f, 14.0f, 0.28f, 1.15f, 7f,
                 1, 0f, 0.42f, 0.75f, 48f);
-        assertPresentation(MarineWeapon.FIELD_RIFLE, new Color(0xFF, 0xD0, 0x88),
+        assertPresentation(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID), new Color(0xFF, 0xD0, 0x88),
                 ImpactKind.RIFLE, "graphics/missiles/shell_small_yellow.png", 0.18f,
                 "light_autocannon_fire");
-        assertEquals("Field Rifle", MarineWeapon.FIELD_RIFLE.displayName());
-        assertEquals("Rook", MarineWeapon.FIELD_RIFLE.modelName());
+        assertEquals("Field Rifle", WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID).displayName());
+        assertEquals("Rook", WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID).modelName());
     }
 
     @Test
     void pulseRifleMatchesItsShippedValues() {
-        assertSim(MarineWeapon.PULSE_RIFLE, 24f, 9.0f, 0.35f, 1.0f, 5f,
+        assertSim(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), 24f, 9.0f, 0.35f, 1.0f, 5f,
                 3, 0.09f, 0.30f, 0.4f, 55f);
-        assertPresentation(MarineWeapon.PULSE_RIFLE, new Color(0x80, 0xFF, 0x80),
+        assertPresentation(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), new Color(0x80, 0xFF, 0x80),
                 ImpactKind.RIFLE, null, 0f, "pulse_laser_fire");
-        assertEquals("Pulse Rifle", MarineWeapon.PULSE_RIFLE.displayName());
-        assertEquals("Lancer", MarineWeapon.PULSE_RIFLE.modelName());
+        assertEquals("Pulse Rifle", WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID).displayName());
+        assertEquals("Lancer", WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID).modelName());
     }
 
     @Test
     void shredderCarbineOwnsTheCloseContactFlechetteRole() {
-        assertSim(MarineWeapon.SMG, 14f, 3.0f, 0.68f, 0.75f, 1f,
+        assertSim(WeaponRegistry.require(WeaponRegistry.SMG_ID), 14f, 3.0f, 0.68f, 0.75f, 1f,
                 1, 0f, 0.75f, 1.7f, 45f);
-        assertEquals(6, MarineWeapon.SMG.projectilesPerShot());
-        assertPresentation(MarineWeapon.SMG, new Color(0xFF, 0xE8, 0xC0),
+        assertEquals(6, WeaponRegistry.require(WeaponRegistry.SMG_ID).projectilesPerShot());
+        assertPresentation(WeaponRegistry.require(WeaponRegistry.SMG_ID), new Color(0xFF, 0xE8, 0xC0),
                 ImpactKind.RIFLE, "graphics/missiles/shell_small_yellow.png", 0.15f,
                 "light_machinegun_fire");
-        assertEquals("Shredder Carbine", MarineWeapon.SMG.displayName());
-        assertEquals("Rattler", MarineWeapon.SMG.modelName());
+        assertEquals("Shredder Carbine", WeaponRegistry.require(WeaponRegistry.SMG_ID).displayName());
+        assertEquals("Rattler", WeaponRegistry.require(WeaponRegistry.SMG_ID).modelName());
     }
 
     @Test
     void squadAutomaticOwnsTheSustainedSlugRole() {
-        assertSim(MarineWeapon.SQUAD_AUTOMATIC, 22f, 5.8f, 0.34f, 1.60f, 5f,
+        assertSim(WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID), 22f, 5.8f, 0.34f, 1.60f, 5f,
                 8, 0.10f, 0.45f, 0.9f, 52f);
-        assertEquals(1, MarineWeapon.SQUAD_AUTOMATIC.projectilesPerShot());
-        assertPresentation(MarineWeapon.SQUAD_AUTOMATIC,
+        assertEquals(1, WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID).projectilesPerShot());
+        assertPresentation(WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID),
                 new Color(0xFF, 0xD6, 0xA0), ImpactKind.RIFLE,
                 "graphics/missiles/shell_small_yellow.png", 0.16f,
                 "light_machinegun_fire");
-        assertEquals("Squad Automatic", MarineWeapon.SQUAD_AUTOMATIC.displayName());
-        assertEquals("Stalwart", MarineWeapon.SQUAD_AUTOMATIC.modelName());
+        assertEquals("Squad Automatic", WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID).displayName());
+        assertEquals("Stalwart", WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID).modelName());
     }
 
     @Test
     void railgunMatchesItsShippedValues() {
-        assertSim(MarineWeapon.DMR, 32f, 18.0f, 0.55f, 1.10f, 11f,
+        assertSim(WeaponRegistry.require(WeaponRegistry.DMR_ID), 32f, 18.0f, 0.55f, 1.10f, 11f,
                 1, 0f, 0.10f, 0.15f, 110f);
-        assertPresentation(MarineWeapon.DMR, new Color(0xE0, 0xF0, 0xFF),
+        assertPresentation(WeaponRegistry.require(WeaponRegistry.DMR_ID), new Color(0xE0, 0xF0, 0xFF),
                 ImpactKind.KINETIC, null, 0f, "railgun_fire");
-        assertEquals("Railgun", MarineWeapon.DMR.displayName());
-        assertEquals("Longbow", MarineWeapon.DMR.modelName());
+        assertEquals("Railgun", WeaponRegistry.require(WeaponRegistry.DMR_ID).displayName());
+        assertEquals("Longbow", WeaponRegistry.require(WeaponRegistry.DMR_ID).modelName());
     }
 
     @Test
     void dronePulseMatchesItsShippedValues() {
-        assertSim(MarineWeapon.DRONE_PULSE, 26f, 7.2f, 0.40f, 1.0f, 5f,
+        assertSim(WeaponRegistry.require(WeaponRegistry.DRONE_PULSE_ID), 26f, 7.2f, 0.40f, 1.0f, 5f,
                 2, 0.10f, 0.35f, 0.5f, 55f);
-        assertPresentation(MarineWeapon.DRONE_PULSE, new Color(0x60, 0xCF, 0xFF),
+        assertPresentation(WeaponRegistry.require(WeaponRegistry.DRONE_PULSE_ID), new Color(0x60, 0xCF, 0xFF),
                 ImpactKind.RIFLE, null, 0f, "pulse_laser_fire");
-        assertEquals("Drone Pulse Laser", MarineWeapon.DRONE_PULSE.displayName());
-        assertEquals("Wisp", MarineWeapon.DRONE_PULSE.modelName());
+        assertEquals("Drone Pulse Laser", WeaponRegistry.require(WeaponRegistry.DRONE_PULSE_ID).displayName());
+        assertEquals("Wisp", WeaponRegistry.require(WeaponRegistry.DRONE_PULSE_ID).modelName());
     }
 
     /**
@@ -226,21 +233,21 @@ class WeaponRegistryParityTest {
      */
     @Test
     void catalogNamingSurvivedTheSwitchToData() {
-        assertEquals("FR-1", MarineWeapon.FIELD_RIFLE.designation(EquipmentGrade.SERVICE));
-        assertEquals("FR-1", MarineWeapon.FIELD_RIFLE.designation(EquipmentGrade.MASTERWORK),
+        assertEquals("FR-1", WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID).designation(EquipmentGrade.SERVICE));
+        assertEquals("FR-1", WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID).designation(EquipmentGrade.MASTERWORK),
                 "recruit issue is untiered — its designation ignores grade");
-        assertEquals("PLS-2", MarineWeapon.PULSE_RIFLE.designation(EquipmentGrade.SERVICE));
-        assertEquals("SHD-3", MarineWeapon.SMG.designation(EquipmentGrade.MILSPEC));
-        assertEquals("SA-2", MarineWeapon.SQUAD_AUTOMATIC.designation(EquipmentGrade.SERVICE));
-        assertEquals("RG-4", MarineWeapon.DMR.designation(EquipmentGrade.MASTERWORK));
-        assertEquals("DPLS-1", MarineWeapon.DRONE_PULSE.designation(EquipmentGrade.SURPLUS));
+        assertEquals("PLS-2", WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID).designation(EquipmentGrade.SERVICE));
+        assertEquals("SHD-3", WeaponRegistry.require(WeaponRegistry.SMG_ID).designation(EquipmentGrade.MILSPEC));
+        assertEquals("SA-2", WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID).designation(EquipmentGrade.SERVICE));
+        assertEquals("RG-4", WeaponRegistry.require(WeaponRegistry.DMR_ID).designation(EquipmentGrade.MASTERWORK));
+        assertEquals("DPLS-1", WeaponRegistry.require(WeaponRegistry.DRONE_PULSE_ID).designation(EquipmentGrade.SURPLUS));
 
-        assertEquals("PLS-2 Lancer", MarineWeapon.PULSE_RIFLE.catalogName(EquipmentGrade.SERVICE));
-        assertEquals("FR-1 Rook", MarineWeapon.FIELD_RIFLE.catalogName(null),
+        assertEquals("PLS-2 Lancer", WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID).catalogName(EquipmentGrade.SERVICE));
+        assertEquals("FR-1 Rook", WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID).catalogName(null),
                 "a null grade falls back to tier 1, as the switch did");
     }
 
-    private static void assertSim(MarineWeapon weapon, float range, float damage,
+    private static void assertSim(WeaponDef weapon, float range, float damage,
                                   float accuracy, float cooldown, float penetration,
                                   int burstCount, float burstSpacing,
                                   float accuracyFalloff, float hitSpread,
@@ -257,11 +264,11 @@ class WeaponRegistryParityTest {
         assertEquals(roundVelocity, weapon.roundVelocity(), EPS, weapon + " round velocity");
     }
 
-    private static void assertPresentation(MarineWeapon weapon, Color tracer,
+    private static void assertPresentation(WeaponDef weapon, Color tracer,
                                            ImpactKind impact, String spritePath,
                                            float visualCells, String fireSound) {
         assertEquals(tracer, weapon.tracerColor(), weapon + " tracer color");
-        assertImpact(weapon.def(), impact);
+        assertImpact(weapon, impact);
         if (spritePath == null) {
             assertNull(weapon.projectileSpritePath(),
                     weapon + " shares the tinted bolt and must carry no projectile sprite");
