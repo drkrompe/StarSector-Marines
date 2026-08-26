@@ -44,8 +44,9 @@ public final class VanillaHullSilhouettes {
         this.core = starsectorCore;
     }
 
-    /** One vanilla hull: its outline and the complement and hold that size its decks. */
-    public record Hull(String id, HullSilhouette silhouette, int maxCrew, int cargo) {}
+    /** One vanilla hull: its outline, class, and the complement and hold that size its decks. */
+    public record Hull(String id, HullSilhouette silhouette, HullClass hullClass,
+                       int maxCrew, int cargo) {}
 
     /** Whether the installed game is present; suites skip their evidence when it is not. */
     public boolean available() {
@@ -61,8 +62,11 @@ public final class VanillaHullSilhouettes {
         if (!Files.isRegularFile(spec)) return null;
 
         String spriteName;
+        HullClass hullClass;
         try (Reader reader = Files.newBufferedReader(spec, StandardCharsets.UTF_8)) {
-            spriteName = new JSONObject(new JSONTokener(reader)).optString("spriteName", null);
+            JSONObject json = new JSONObject(new JSONTokener(reader));
+            spriteName = json.optString("spriteName", null);
+            hullClass = HullClass.fromHullSize(json.optString("hullSize", null));
         } catch (JSONException | RuntimeException malformed) {
             return null;
         }
@@ -74,7 +78,7 @@ public final class VanillaHullSilhouettes {
         if (image == null) return null;
 
         int[] crewAndCargo = readCrewAndCargo(hullId);
-        return new Hull(hullId, trace(image, hullId), crewAndCargo[0], crewAndCargo[1]);
+        return new Hull(hullId, trace(image, hullId), hullClass, crewAndCargo[0], crewAndCargo[1]);
     }
 
     /** Reads {@code max crew} and {@code cargo} for one hull from the vanilla ship table. */

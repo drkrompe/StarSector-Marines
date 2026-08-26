@@ -57,10 +57,11 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
         if (vanilla.available()) {
             for (String hullId : HULLS) {
                 VanillaHullSilhouettes.Hull hull = vanilla.read(hullId);
-                if (hull == null) continue;
+                if (hull == null || !hull.hullClass().boardable()) continue;
                 artifacts.add(plan(hull.id(), hull.silhouette(),
-                        DeckSizing.planFor(hull.maxCrew(), hull.cargo()),
-                        hull.maxCrew() + " crew, " + hull.cargo() + " cargo"));
+                        DeckSizing.planFor(hull.hullClass(), hull.maxCrew(), hull.cargo()),
+                        hull.hullClass() + ", " + hull.maxCrew() + " crew, "
+                                + hull.cargo() + " cargo"));
             }
         }
         if (artifacts.isEmpty()) {
