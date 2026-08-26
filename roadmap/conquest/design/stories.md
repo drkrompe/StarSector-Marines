@@ -14,7 +14,6 @@ Reinforcement feature:
 
 | Story | State | Intent |
 |---|---|---|
-| `conquest-paired-arrival-plan.md` | IN PROGRESS | Resolve two six-seat transports into one authored landing area and one assembled squad, with mission-owned drop-and-depart policy. |
 | `front-command-and-keep-convergence.md` | IN PROGRESS | Replace exclusive strips with inspectable tracks, cross-track support, and a culminating keep assault. |
 | `defender-track-mobilization.md` | IN PROGRESS | Turn faction-honest first contact into bounded patrol mobilization along the shared Conquest tracks. |
 | `progressive-reinforcement.md` | PARKED | Manually verify defender frontline response, safe delivery, and supply degradation across a Conquest push. |
