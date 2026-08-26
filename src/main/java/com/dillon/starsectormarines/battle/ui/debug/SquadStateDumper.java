@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
 import com.dillon.starsectormarines.battle.command.SabotageSiteSnapshot;
+import com.dillon.starsectormarines.battle.command.SabotageDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.influence.CommanderContact;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
@@ -174,6 +175,8 @@ public final class SquadStateDumper {
                 squad, commander, commandDirective, sim));
         o.put("conquestCommand", buildConquestCommandJson(squad, commander, sim));
         o.put("sabotageCommand", buildSabotageCommandJson(squad, commander, sim));
+        o.put("sabotageDefenseCommand", buildSabotageDefenseCommandJson(
+                squad, commander, sim));
         o.put("currentCommanderInfluence", buildCommanderInfluenceJson(
                 squad.faction, sim));
         // Garrison-specific flags — load-bearing for "why won't this squad fire" diagnostics.
@@ -511,6 +514,61 @@ public final class SquadStateDumper {
             row.put("planterSquads", site.planterSquads());
             row.put("retrieverSquads", site.retrieverSquads());
             row.put("securitySquads", site.securitySquads());
+            row.put("liveMembers", site.liveMembers());
+            row.put("friendlyPressure", site.friendlyPressure());
+            row.put("knownHostilePressure", site.knownHostilePressure());
+            sites.put(row);
+        }
+        out.put("sites", sites);
+        return out;
+    }
+
+    private static Object buildSabotageDefenseCommandJson(
+            Squad squad, CommanderSnapshot<?> commander, BattleSimulation sim)
+            throws Exception {
+        SabotageDefenseSnapshot snapshot = commander != null
+                && commander.detail() instanceof SabotageDefenseSnapshot defense
+                ? defense : null;
+        if (snapshot == null) return JSONObject.NULL;
+        JSONObject out = new JSONObject();
+        out.put("tick", snapshot.tick());
+        out.put("ageTicks", snapshot.tick() >= 0
+                ? Math.max(0, sim.simTickIndex - snapshot.tick()) : -1);
+        out.put("influenceTick", snapshot.influenceTick());
+        out.put("perspective", snapshot.perspective().name());
+        out.put("phase", snapshot.phase().name());
+        out.put("mobilePool", snapshot.mobilePool());
+        out.put("reserveCount", snapshot.reserveCount());
+        SabotageDefenseSnapshot.SquadDirective directive =
+                snapshot.directiveFor(squad.id);
+        if (directive == null) {
+            out.put("squadDirective", JSONObject.NULL);
+        } else {
+            JSONObject row = new JSONObject();
+            row.put("siteIndex", directive.siteIndex());
+            row.put("role", directive.role().name());
+            row.put("reason", directive.reason().name());
+            row.put("assignmentKind", directive.assignmentKind() != null
+                    ? directive.assignmentKind().name() : JSONObject.NULL);
+            row.put("markerCellX", directive.markerCellX());
+            row.put("markerCellY", directive.markerCellY());
+            out.put("squadDirective", row);
+        }
+        JSONArray sites = new JSONArray();
+        for (SabotageDefenseSnapshot.SiteState site : snapshot.sites()) {
+            JSONObject row = new JSONObject();
+            row.put("index", site.index());
+            row.put("id", site.id());
+            row.put("name", site.name());
+            row.put("cellX", site.cellX());
+            row.put("cellY", site.cellY());
+            row.put("zoneId", site.zoneId());
+            row.put("complete", site.complete());
+            row.put("alarmActive", site.alarmActive());
+            row.put("alarmRaisedTick", site.alarmRaisedTick());
+            row.put("alarmExpiresTick", site.alarmExpiresTick());
+            row.put("routineSquads", site.routineSquads());
+            row.put("respondingSquads", site.respondingSquads());
             row.put("liveMembers", site.liveMembers());
             row.put("friendlyPressure", site.friendlyPressure());
             row.put("knownHostilePressure", site.knownHostilePressure());
