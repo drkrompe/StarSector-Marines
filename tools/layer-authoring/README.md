@@ -42,6 +42,14 @@ deltas from the neutral mastering pose. Body and helmet mastering are resolved
 independently, so mixed equipment appearances retain the correct settings for
 each source family.
 
+Armor masters declare `marine-line` as their animation source. Their own **Field
+loadout / Mastering pose** remains editable; the other variants are read-only
+previews of the normal soldier's animation sheet with the selected armor master
+composed over it. Choose **Rifle loadout / Walking** and press Play (or scrub the
+locomotion phase) to review that armor in motion. Edit shared walking, aiming,
+firing, feet, and weapon choreography on **Marine — army-green line kit** so all
+like armor units continue to use one animation authority.
+
 Playback smoothsteps matching layers between adjacent keyframes, including offsets,
 independent scale, angle, and pivot. This makes articulated mech linkages directly
 authorable: a walk keyframe can move a foot while changing the connected thigh's
