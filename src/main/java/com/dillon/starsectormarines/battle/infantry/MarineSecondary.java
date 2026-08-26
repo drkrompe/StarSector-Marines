@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.infantry;
 
-import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.marine.SpecialActivation;
@@ -82,7 +81,6 @@ public enum MarineSecondary {
         return isUtility() ? 0f : def().projectileVisualCells;
     }
     public Color tracerColor() { return def().tracerColor; }
-    public ImpactProfile impactProfile() { return def().impactProfile; }
     public float range() { return def().range; }
     public float damage() { return def().damage; }
     public float accuracy() { return def().accuracy; }

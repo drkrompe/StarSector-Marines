@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.infantry;
 
-import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 
@@ -136,7 +135,6 @@ public enum MarineWeapon {
     public float cooldown() { return def().cooldown; }
     public float penetration() { return def().penetration; }
     /** Visual character of the impact at endpoint. */
-    public ImpactProfile impactProfile() { return def().impactProfile; }
     /** Rounds per fire decision. 1 = single shot. &gt;1 = burst: the AI fires the first round and {@code InfantryWeapons.tick} emits the remainder at {@link #burstSpacing()} intervals. */
     public int burstCount() { return def().burstCount; }
     /** Sim-seconds between burst rounds. Ignored when {@link #burstCount()} == 1. */

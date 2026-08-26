@@ -10,7 +10,7 @@
         "aoeRadius": 0.6, "wallDamage": 3
       },
       "render": {
-        "impact": "rifle", "projectileSprite": "graphics/missiles/shell_small_yellow.png",
+        "projectileSprite": "graphics/missiles/shell_small_yellow.png",
         "projectileVisualCells": 0.22
       },
       "fx": {
@@ -31,7 +31,7 @@
       "catalog": { "displayName": "Arbalest Autocannon", "modelName": "Arbalest", "designation": "ARB", "designationTiered": false },
       "sim": { "range": 30.0, "damage": 45.0, "accuracy": 0.5, "cooldown": 1.5, "penetration": 8.0 },
       "render": {
-        "impact": "kinetic", "projectileSprite": "graphics/missiles/shell_large_green.png",
+        "projectileSprite": "graphics/missiles/shell_large_green.png",
         "projectileVisualCells": 0.3
       },
       "fx": {
@@ -58,7 +58,7 @@
         "flightSec": 0.6
       },
       "render": {
-        "impact": "cannon-he", "projectileSprite": "graphics/missiles/shell_round_lrg.png",
+        "projectileSprite": "graphics/missiles/shell_round_lrg.png",
         "projectileVisualCells": 0.32
       },
       "fx": {
@@ -90,7 +90,7 @@
       "catalog": { "displayName": "Dual Flak Cannon", "modelName": "Dual Flak", "designation": "DFK", "designationTiered": false },
       "sim": { "range": 26.0, "damage": 36.0, "accuracy": 0.4, "cooldown": 0.8, "penetration": 5.0 },
       "render": {
-        "impact": "kinetic", "projectileSprite": "graphics/missiles/shell_large_blue.png",
+        "projectileSprite": "graphics/missiles/shell_large_blue.png",
         "projectileVisualCells": 0.28
       },
       "fx": {
@@ -118,7 +118,7 @@
         "flightSec": 0.55
       },
       "render": {
-        "impact": "cannon-he", "projectileSprite": "graphics/missiles/shell_hephag.png",
+        "projectileSprite": "graphics/missiles/shell_hephag.png",
         "projectileVisualCells": 0.35
       },
       "fx": {
@@ -153,8 +153,8 @@
         "flightSec": 0.65, "arcHeight": 2.5, "interceptableProjectile": true
       },
       "render": {
-        "impact": "he", "projectileSprite": "graphics/missiles/mortar_round.png",
-        "projectileVisualCells": 0.55, "smokeTrail": true
+        "projectileSprite": "graphics/missiles/mortar_round.png",
+        "projectileVisualCells": 0.55
       },
       "fx": {
         "muzzle": [
@@ -189,7 +189,7 @@
         "boostRamp": true, "indirectFire": true, "noLosAccuracyMult": 0.55
       },
       "render": {
-        "impact": "he", "projectileSprite": "graphics/missiles/missile_locust.png",
+        "projectileSprite": "graphics/missiles/missile_locust.png",
         "projectileVisualCells": 0.45, "contrail": "missile-smoke"
       },
       "fx": {
@@ -227,7 +227,7 @@
         "minRange": 3.0, "aoeRadius": 0.8, "wallDamage": 5, "flightSec": 0.18
       },
       "render": {
-        "impact": "kinetic", "projectileSprite": "graphics/missiles/shell_small_yellow.png",
+        "projectileSprite": "graphics/missiles/shell_small_yellow.png",
         "projectileVisualCells": 0.22
       },
       "fx": {
