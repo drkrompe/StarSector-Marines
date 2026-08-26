@@ -18,6 +18,13 @@ import com.dillon.starsectormarines.battle.unit.UnitRole;
  */
 public final class ChargeSiteObjective implements Objective {
 
+    /** Coarse defender alarm hold after the last legally detected tamper. */
+    public static final int ALARM_HOLD_TICKS = Math.round(15f / BattleSimulation.TICK_DT);
+
+    public record SiteAlarm(boolean active, int raisedTick, int expiresTick) {
+        public static SiteAlarm quiet() { return new SiteAlarm(false, -1, -1); }
+    }
+
     private final int cellX;
     private final int cellY;
     private final float plantDuration;
@@ -27,6 +34,8 @@ public final class ChargeSiteObjective implements Objective {
     private float progress = 0f;
     private boolean complete = false;
     private boolean planterOnSiteThisTick = false;
+    private int alarmRaisedTick = -1;
+    private int alarmLastTamperTick = -1;
 
     public ChargeSiteObjective(int cellX, int cellY, float plantDuration, String displayName) {
         this(cellX, cellY, plantDuration, displayName, displayName);
@@ -48,12 +57,29 @@ public final class ChargeSiteObjective implements Objective {
     public String siteId() { return siteId; }
     public boolean planterOnSite() { return planterOnSiteThisTick; }
 
+    /**
+     * Identity-free installation alarm legally available to the owning
+     * defender.  The authored site cell is already known; this reports no
+     * attacker identity, cell, role, squad, or planting progress.
+     */
+    public SiteAlarm defenderAlarm(int tick) {
+        if (complete || alarmLastTamperTick < 0
+                || tick > alarmLastTamperTick + ALARM_HOLD_TICKS) {
+            return SiteAlarm.quiet();
+        }
+        return new SiteAlarm(true, alarmRaisedTick,
+                alarmLastTamperTick + ALARM_HOLD_TICKS);
+    }
+
     @Override
     public Faction owningFaction() { return Faction.MARINE; }
 
     @Override
     public void tick(BattleView sim) {
-        if (complete) return;
+        if (complete) {
+            planterOnSiteThisTick = false;
+            return;
+        }
         planterOnSiteThisTick = false;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
             long u = sim.liveUnitAt(i);
@@ -65,6 +91,12 @@ public final class ChargeSiteObjective implements Objective {
             }
         }
         if (planterOnSiteThisTick) {
+            int tick = sim.getSimTickIndex();
+            if (alarmLastTamperTick < 0
+                    || tick > alarmLastTamperTick + ALARM_HOLD_TICKS) {
+                alarmRaisedTick = tick;
+            }
+            alarmLastTamperTick = tick;
             progress += BattleSimulation.TICK_DT;
             if (progress >= plantDuration) {
                 progress = plantDuration;

@@ -103,6 +103,31 @@ class DefendAssignedTrackGoalTest {
                 WorldState.EMPTY.with(Predicate.HAS_TARGET, true), squad, sim));
     }
 
+    @Test
+    void sabotageSiteDefenseIsSharedAndKeepsItsOwnAssignmentKind() {
+        BattleSimulation sim = openSim();
+        int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.MILITIA);
+        long member = sim.spawn(new EntitySpec("site-security",
+                Faction.DEFENDER, UnitType.MILITIA, 2, 2).squad(squadId));
+        Squad squad = sim.getSquad(squadId);
+        squad.assignedObjective = ObjectiveAssignment.defendSite(
+                squadId, 14, 6);
+
+        assertTrue(GoapInfantryBehavior.INFANTRY_GOALS.contains(
+                DefendAssignedSiteGoal.INSTANCE));
+        assertTrue(GoapMechBehavior.MECH_GOALS.contains(
+                DefendAssignedSiteGoal.INSTANCE));
+        assertTrue(DefendAssignedSiteGoal.INSTANCE.relevance(
+                WorldState.EMPTY, squad, sim) > 0f);
+        SquadPlan plan = DefendAssignedSiteGoal.INSTANCE.customPlan(squad, sim);
+        DefendTrack action = (DefendTrack) plan.currentStep().action;
+        assertEquals(AssignmentKind.DEFEND_SITE, action.assignmentKind());
+        assertEquals("DefendSite", action.name());
+        assertEquals(ActionStatus.RUNNING, action.execute(member, squad, sim));
+        assertEquals(14, Paths.destX(sim.world().path(member)));
+        assertEquals(6, Paths.destY(sim.world().path(member)));
+    }
+
     private static BattleSimulation openSim() {
         NavigationGrid grid = new NavigationGrid(20, 10);
         for (int y = 0; y < grid.getHeight(); y++) {

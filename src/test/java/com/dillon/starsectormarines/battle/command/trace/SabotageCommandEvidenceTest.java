@@ -72,6 +72,8 @@ class SabotageCommandEvidenceTest {
                         second.analysis.canonicalJson(),
                         "same fixture must produce byte-stable metrics: " + runId);
                 assertTrue(first.trace.contains("\"perspective\":\"MARINE\""));
+                assertTrue(first.trace.contains("\"perspective\":\"DEFENDER\""));
+                assertTrue(first.trace.contains("\"sabotageDefense\":{"));
                 assertTrue(first.trace.contains("\"event\":\"charge-site-state\""));
                 Files.writeString(traces.resolve(runId + ".jsonl"), first.trace,
                         StandardCharsets.UTF_8);
