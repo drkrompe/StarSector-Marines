@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.battle.satchel.SatchelChargeService;
 import com.dillon.starsectormarines.battle.grenade.FragGrenadeService;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationTracker;
+import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
 
 import java.util.Collection;
 import java.util.List;
@@ -48,6 +49,9 @@ import java.util.Random;
 public interface BattleView {
 
     NavigationGrid getGrid();
+
+    /** Faction equipment doctrine frozen at battle creation, or {@code null} in legacy fixtures. */
+    GroundRosterProfile getGroundRoster();
 
     /** Simulation-owned, faction-neutral smoke fields and throws. */
     SmokeFieldService smokeFields();
