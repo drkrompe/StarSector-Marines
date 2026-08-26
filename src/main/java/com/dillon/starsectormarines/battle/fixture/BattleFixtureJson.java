@@ -2,8 +2,15 @@ package com.dillon.starsectormarines.battle.fixture;
 
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
-import com.dillon.starsectormarines.battle.fixture.ConquestBattleFixture.WingCommitment;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+import com.dillon.starsectormarines.battle.infantry.SoldierAptitude;
+import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
+import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -21,10 +28,19 @@ import java.util.Set;
 public final class BattleFixtureJson {
 
     public static final int SCHEMA_VERSION = 1;
+    public static final int LAUNCH_SCHEMA_VERSION = 2;
 
     private BattleFixtureJson() {}
 
     public static JSONObject toJson(BattleFixture fixture) throws Exception {
+        if (fixture instanceof BattleLaunchFixture launch) {
+            JSONObject root = new JSONObject();
+            root.put("schemaVersion", LAUNCH_SCHEMA_VERSION);
+            root.put("kind", launch.kind());
+            root.put("construction", toJson(launch.construction()));
+            root.put("launch", launchToJson(launch.launch()));
+            return root;
+        }
         JSONObject root = new JSONObject();
         root.put("schemaVersion", SCHEMA_VERSION);
         if (fixture instanceof CivilianRescueBattleFixture rescue) {
@@ -59,9 +75,26 @@ public final class BattleFixtureJson {
         int version = root.getInt("schemaVersion");
         return switch (version) {
             case 1 -> decodeV1(root);
+            case 2 -> decodeV2(root);
             default -> throw new IllegalArgumentException(
                     "Unsupported battle fixture schemaVersion: " + version);
         };
+    }
+
+    private static BattleLaunchFixture decodeV2(JSONObject root) throws Exception {
+        JSONObject encodedConstruction = root.getJSONObject("construction");
+        if (encodedConstruction.getInt("schemaVersion") != SCHEMA_VERSION) {
+            throw new IllegalArgumentException(
+                    "A launch fixture must contain a V1 construction fixture");
+        }
+        BattleFixture construction = decodeV1(encodedConstruction);
+        String outerKind = root.getString("kind");
+        if (!outerKind.equals(construction.kind())) {
+            throw new IllegalArgumentException("Launch kind '" + outerKind
+                    + "' does not match construction kind '" + construction.kind() + "'");
+        }
+        return new BattleLaunchFixture(construction,
+                launchFromJson(root.getJSONObject("launch")));
     }
 
     /** Retained decoder branch so future schema bumps can keep loading V1. */
@@ -138,9 +171,9 @@ public final class BattleFixtureJson {
     }
 
     private static JSONArray wingsToJson(
-            List<WingCommitment> commitments) throws Exception {
+            List<FighterWingCommitment> commitments) throws Exception {
         JSONArray wings = new JSONArray();
-        for (WingCommitment commitment : commitments) {
+        for (FighterWingCommitment commitment : commitments) {
             JSONObject encoded = new JSONObject();
             encoded.put("profile", commitment.profile().name());
             encoded.put("side", commitment.side().name());
@@ -152,12 +185,12 @@ public final class BattleFixtureJson {
         return wings;
     }
 
-    private static List<WingCommitment> wingsFromJson(
+    private static List<FighterWingCommitment> wingsFromJson(
             JSONArray encodedWings) throws Exception {
-        List<WingCommitment> wings = new ArrayList<>();
+        List<FighterWingCommitment> wings = new ArrayList<>();
         for (int i = 0; i < encodedWings.length(); i++) {
             JSONObject encoded = encodedWings.getJSONObject(i);
-            wings.add(new WingCommitment(
+            wings.add(new FighterWingCommitment(
                     enumValue(FighterProfile.class,
                             encoded.getString("profile"), "fighter profile"),
                     enumValue(Faction.class,
@@ -167,6 +200,161 @@ public final class BattleFixtureJson {
                     (float) encoded.getDouble("spawnIntervalSec")));
         }
         return wings;
+    }
+
+    private static JSONObject launchToJson(BattleLaunchOverlay launch) throws Exception {
+        JSONObject encoded = new JSONObject();
+        encoded.put("playerShuttleMissionsToSkip",
+                launch.playerShuttleMissionsToSkip());
+        encoded.put("marineSeats", marineSeatsToJson(launch.marineSeats()));
+        encoded.put("marineFighterSupport",
+                wingsToJson(launch.marineFighterSupport()));
+        encoded.put("debugFighterSupport",
+                wingsToJson(launch.debugFighterSupport()));
+        encoded.put("commandPowers", powersToJson(launch.commandPowers()));
+        JSONObject resources = new JSONObject();
+        resources.put("supplies", launch.startingSupplies());
+        encoded.put("commandPowerResources", resources);
+        return encoded;
+    }
+
+    private static BattleLaunchOverlay launchFromJson(JSONObject encoded) throws Exception {
+        return new BattleLaunchOverlay(
+                encoded.getInt("playerShuttleMissionsToSkip"),
+                marineSeatsFromJson(encoded.getJSONArray("marineSeats")),
+                wingsFromJson(encoded.getJSONArray("marineFighterSupport")),
+                wingsFromJson(encoded.getJSONArray("debugFighterSupport")),
+                powersFromJson(encoded.getJSONArray("commandPowers")),
+                encoded.getJSONObject("commandPowerResources").getInt("supplies"));
+    }
+
+    private static JSONArray marineSeatsToJson(
+            List<MarineSeatCommitment> commitments) throws Exception {
+        JSONArray seats = new JSONArray();
+        for (MarineSeatCommitment seat : commitments) {
+            JSONObject encoded = new JSONObject();
+            putNullable(encoded, "campaignSoldierId", seat.campaignSoldierId());
+            encoded.put("primaryWeaponId", seat.primaryWeaponId());
+            encoded.put("equipmentGrade", seat.equipmentGrade().name());
+            JSONObject profile = new JSONObject();
+            profile.put("aptitude", seat.soldierProfile().aptitude().name());
+            profile.put("experienceXp", seat.soldierProfile().experienceXp());
+            encoded.put("soldierProfile", profile);
+            putNullable(encoded, "specialEquipmentId", seat.specialEquipmentId());
+            putNullable(encoded, "armorFamily",
+                    seat.armorFamily() != null ? seat.armorFamily().name() : null);
+            encoded.put("armorPool", seat.armorPool());
+            encoded.put("armorRating", seat.armorRating());
+            encoded.put("armorMoveSpeedMult", seat.armorMoveSpeedMult());
+            encoded.put("armorIncomingAccuracyMult",
+                    seat.armorIncomingAccuracyMult());
+            if (seat.campaignSquadId() != null) {
+                JSONObject squad = new JSONObject();
+                squad.put("squadId", seat.campaignSquadId());
+                squad.put("label", seat.campaignSquadLabel());
+                squad.put("leader", seat.campaignSquadLeader());
+                squad.put("strength", seat.campaignSquadStrength());
+                squad.put("fireTeamIndex", seat.campaignFireTeamIndex());
+                encoded.put("campaignSquad", squad);
+            }
+            seats.put(encoded);
+        }
+        return seats;
+    }
+
+    private static List<MarineSeatCommitment> marineSeatsFromJson(
+            JSONArray encodedSeats) throws Exception {
+        List<MarineSeatCommitment> seats = new ArrayList<>();
+        for (int i = 0; i < encodedSeats.length(); i++) {
+            JSONObject encoded = encodedSeats.getJSONObject(i);
+            JSONObject squad = encoded.optJSONObject("campaignSquad");
+            seats.add(new MarineSeatCommitment(
+                    nullableString(encoded, "campaignSoldierId"),
+                    encoded.getString("primaryWeaponId"),
+                    enumValue(EquipmentGrade.class,
+                            encoded.getString("equipmentGrade"), "equipment grade"),
+                    soldierProfileFromJson(encoded.getJSONObject("soldierProfile")),
+                    nullableString(encoded, "specialEquipmentId"),
+                    nullableEnum(LayeredArmorFamily.class,
+                            nullableString(encoded, "armorFamily"), "armor family"),
+                    (float) encoded.getDouble("armorPool"),
+                    (float) encoded.getDouble("armorRating"),
+                    (float) encoded.getDouble("armorMoveSpeedMult"),
+                    (float) encoded.getDouble("armorIncomingAccuracyMult"),
+                    squad != null ? squad.getString("squadId") : null,
+                    squad != null ? squad.getString("label") : null,
+                    squad != null && squad.getBoolean("leader"),
+                    squad != null ? squad.getInt("strength") : 0,
+                    squad != null ? squad.getInt("fireTeamIndex") : -1));
+        }
+        return List.copyOf(seats);
+    }
+
+    private static JSONArray powersToJson(
+            List<CommandPowerCommitment> commitments) throws Exception {
+        JSONArray powers = new JSONArray();
+        for (CommandPowerCommitment commitment : commitments) {
+            JSONObject encoded = new JSONObject();
+            encoded.put("id", commitment.id());
+            JSONArray deployments = new JSONArray();
+            for (MechDeploymentSpec deployment : commitment.mechDeployments()) {
+                JSONObject mech = new JSONObject();
+                mech.put("variantId", deployment.variant().id);
+                mech.put("role", deployment.role().name());
+                mech.put("missileReplenisherId",
+                        deployment.missileReplenisher().id());
+                deployments.put(mech);
+            }
+            encoded.put("mechDeployments", deployments);
+            powers.put(encoded);
+        }
+        return powers;
+    }
+
+    private static SoldierProfile soldierProfileFromJson(JSONObject encoded)
+            throws Exception {
+        return new SoldierProfile(
+                enumValue(SoldierAptitude.class,
+                        encoded.getString("aptitude"), "soldier aptitude"),
+                encoded.getInt("experienceXp"));
+    }
+
+    private static List<CommandPowerCommitment> powersFromJson(
+            JSONArray encodedPowers) throws Exception {
+        List<CommandPowerCommitment> powers = new ArrayList<>();
+        for (int i = 0; i < encodedPowers.length(); i++) {
+            JSONObject encoded = encodedPowers.getJSONObject(i);
+            JSONArray encodedDeployments = encoded.getJSONArray("mechDeployments");
+            List<MechDeploymentSpec> deployments = new ArrayList<>();
+            for (int j = 0; j < encodedDeployments.length(); j++) {
+                JSONObject mech = encodedDeployments.getJSONObject(j);
+                String replenisherId = mech.getString("missileReplenisherId");
+                MissileReplenisherComponent replenisher =
+                        MissileReplenisherComponent.requireById(replenisherId);
+                deployments.add(new MechDeploymentSpec(
+                        MechVariant.fromId(mech.getString("variantId")),
+                        enumValue(MechRole.class, mech.getString("role"), "mech role"),
+                        replenisher));
+            }
+            powers.add(new CommandPowerCommitment(
+                    encoded.getString("id"), deployments));
+        }
+        return List.copyOf(powers);
+    }
+
+    private static void putNullable(JSONObject object, String key, String value)
+            throws Exception {
+        object.put(key, value != null ? value : JSONObject.NULL);
+    }
+
+    private static String nullableString(JSONObject object, String key)
+            throws Exception {
+        return object.isNull(key) ? null : object.getString(key);
+    }
+
+    private static <E extends Enum<E>> E nullableEnum(
+            Class<E> enumType, String value, String field) {
+        return value != null ? enumValue(enumType, value, field) : null;
     }
 
     private static JSONObject targetProfileToJson(

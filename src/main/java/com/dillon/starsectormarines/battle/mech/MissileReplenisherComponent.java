@@ -64,6 +64,16 @@ public record MissileReplenisherComponent(
         return null;
     }
 
+    /** Resolves a persisted item id, rejecting unknown fixture vocabulary. */
+    public static MissileReplenisherComponent requireById(String id) {
+        MissileReplenisherComponent component = findById(id);
+        if (component == null) {
+            throw new IllegalArgumentException(
+                    "Unknown missile replenisher id '" + id + "'");
+        }
+        return component;
+    }
+
     /** Legacy-safe resolution for a live loadout. */
     public static MissileReplenisherComponent resolve(String id) {
         MissileReplenisherComponent component = findById(id);

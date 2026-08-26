@@ -3,8 +3,18 @@ package com.dillon.starsectormarines.battle.fixture;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
-import com.dillon.starsectormarines.battle.fixture.ConquestBattleFixture.WingCommitment;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.infantry.SoldierAptitude;
+import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
+import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
+import com.dillon.starsectormarines.battle.power.MechSupport;
+import com.dillon.starsectormarines.battle.power.ReconPing;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -62,18 +72,63 @@ class BattleFixtureJsonTest {
                 new TargetProfile(7, 4, 6, 3, "hegemony",
                         EnumSet.of(EconomicFunction.HEAVY_INDUSTRY,
                                 EconomicFunction.SPACEPORT)),
-                List.of(new WingCommitment(FighterProfile.BROADSWORD,
+                List.of(new FighterWingCommitment(FighterProfile.BROADSWORD,
                         Faction.MARINE, 2, 12f, 30f)),
                 List.of(
-                        new WingCommitment(FighterProfile.DAGGER,
+                        new FighterWingCommitment(FighterProfile.DAGGER,
                                 Faction.DEFENDER, 1, 20f, 45f),
-                        new WingCommitment(FighterProfile.TALON,
+                        new FighterWingCommitment(FighterProfile.TALON,
                                 Faction.DEFENDER, 3, 10f, 15f)));
 
         BattleFixture decoded = BattleFixtureJson.fromJson(
                 BattleFixtureJson.toJson(fixture));
 
         assertEquals(fixture, decoded);
+    }
+
+    @Test
+    void roundTripsV2LaunchOverlayWhileLeavingConstructionAtV1() throws Exception {
+        ConquestBattleFixture construction = new ConquestBattleFixture(
+                8_192L,
+                List.of(new ShuttleAssignment(ShuttleType.VALKYRIE, 1)),
+                false,
+                OperationTier.REINFORCED,
+                RiskLevel.MEDIUM,
+                TargetProfile.NEUTRAL,
+                List.of(),
+                List.of(new FighterWingCommitment(FighterProfile.TALON,
+                        Faction.DEFENDER, 1, 9f, 20f)));
+        MarineSeatCommitment seat = new MarineSeatCommitment(
+                "marine-17", MarineWeapon.PULSE_RIFLE.id,
+                EquipmentGrade.MILSPEC,
+                new SoldierProfile(SoldierAptitude.GIFTED, 321),
+                null, LayeredArmorFamily.CHARCOAL,
+                60f, 5f, 0.95f, 0.9f,
+                "squad-2", "Second Squad", true, 1, 0);
+        BattleLaunchOverlay launch = new BattleLaunchOverlay(
+                0,
+                List.of(seat),
+                List.of(new FighterWingCommitment(FighterProfile.BROADSWORD,
+                        Faction.MARINE, 2, 4f, 15f)),
+                List.of(new FighterWingCommitment(FighterProfile.DAGGER,
+                        Faction.DEFENDER, 1, 7f, 30f)),
+                List.of(
+                        new CommandPowerCommitment(ReconPing.ID, List.of()),
+                        new CommandPowerCommitment(MechSupport.ID, List.of(
+                                new MechDeploymentSpec(MechVariant.SIROCCO,
+                                        MechRole.LR_SUPPORT,
+                                        MissileReplenisherComponent.ACCELERATED_FEED)))),
+                37);
+        BattleLaunchFixture fixture = new BattleLaunchFixture(construction, launch);
+
+        JSONObject encoded = BattleFixtureJson.toJson(fixture);
+        BattleFixture decoded = BattleFixtureJson.fromJson(encoded);
+
+        assertEquals(2, encoded.getInt("schemaVersion"));
+        assertEquals(1, encoded.getJSONObject("construction")
+                .getInt("schemaVersion"));
+        assertEquals(fixture, decoded);
+        assertEquals(encoded.toString(), BattleFixtureJson.toJson(decoded).toString());
     }
 
     @Test
@@ -94,6 +149,14 @@ class BattleFixtureJsonTest {
         badRisk.put("risk", "IMPOSSIBLE");
         assertThrows(IllegalArgumentException.class,
                 () -> BattleFixtureJson.fromJson(badRisk));
+
+        BattleLaunchFixture launch = new BattleLaunchFixture(
+                canonicalFixture(), new BattleLaunchOverlay(
+                0, List.of(), List.of(), List.of(), List.of(), 0));
+        JSONObject badLaunchKind = BattleFixtureJson.toJson(launch);
+        badLaunchKind.put("kind", ConquestBattleFixture.KIND);
+        assertThrows(IllegalArgumentException.class,
+                () -> BattleFixtureJson.fromJson(badLaunchKind));
     }
 
     @Test

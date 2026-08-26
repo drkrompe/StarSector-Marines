@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.evacuation.SwarmDefenseRoster;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
+import com.dillon.starsectormarines.battle.fixture.BattleLaunchFixture;
+import com.dillon.starsectormarines.battle.fixture.BattleLaunchOverlay;
 import com.dillon.starsectormarines.battle.fixture.CivilianRescueBattleFixture;
 import com.dillon.starsectormarines.battle.fixture.ConquestBattleFixture;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
@@ -193,18 +195,17 @@ public final class MissionLaunch {
                     det.shuttleManifest, firstPlayerShuttle);
             ctx.setMarineDeploymentCapacity(playerSeats);
             MarineRosterScript personnel = MarineRosterScript.getInstance();
+            CampaignMarineDeployment deployment = CampaignMarineDeployment.EMPTY;
             // One deployment shape for both sources: a debug mission fields a
             // detached MarineRoster built by DebugCompany, so it earns the same
             // squad tags, NCO leaders and multi-lift joins the campaign gets.
             if (m.source.isDebug()) {
                 MarineRoster company = ctx.getDebugCompanyRoster();
-                CampaignMarineDeployment.freezeSelection(company,
-                        new LinkedHashSet<>(DebugCompany.lineSquadIds(company)), playerSeats)
-                        .applyTo(sim, firstPlayerShuttle);
+                deployment = CampaignMarineDeployment.freezeSelection(company,
+                        new LinkedHashSet<>(DebugCompany.lineSquadIds(company)), playerSeats);
             } else if (personnel != null) {
-                CampaignMarineDeployment.freezeSelection(personnel.roster(),
-                        ctx.getSelectedMarineSquadIds(), playerSeats)
-                        .applyTo(sim, firstPlayerShuttle);
+                deployment = CampaignMarineDeployment.freezeSelection(personnel.roster(),
+                        ctx.getSelectedMarineSquadIds(), playerSeats);
             }
 
             // Generic factories leave only the enemy wings that fit their shared
@@ -212,10 +213,15 @@ public final class MissionLaunch {
             // (committed bays + employer), then any force-spawned debug wings (both
             // sides — each FighterWing carries its own side, so the overlay spawns
             // it right); then install the active command-power roster.
-            sim.setFlybyRoster(FlybyRoster.combine(
-                    FlybyRoster.combine(det.marineWings, sim.getFlybyRoster()), debugWings));
-            sim.setCommandPowers(det.powers);
-            sim.setCommandPowerResources(new CampaignCommandPowerResources());
+            CampaignCommandPowerResources liveResources =
+                    new CampaignCommandPowerResources();
+            BattleLaunchOverlay launch = BattleLaunchOverlay.capture(
+                    firstPlayerShuttle, deployment, det.marineWings, debugWings,
+                    det.powers, Math.max(0, liveResources.availableSupplies()));
+            launch.applyTo(sim, liveResources);
+            if (fixture != null) {
+                fixture = new BattleLaunchFixture(fixture, launch);
+            }
 
             return new PreparedBattle(sim, fixture, det);
         } catch (RuntimeException | Error failure) {
