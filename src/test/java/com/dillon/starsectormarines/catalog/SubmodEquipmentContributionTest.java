@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.catalog;
 
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
+import com.dillon.starsectormarines.battle.appearance.LayeredWeaponFamily;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
 import com.dillon.starsectormarines.battle.setup.GroundRosterRegistry;
@@ -95,6 +96,8 @@ class SubmodEquipmentContributionTest {
 
             assertEquals("roster.example-oc", profile.id());
             assertEquals("example.weapon-needle-rifle", loadout.primaryDef.id);
+            assertEquals(LayeredWeaponFamily.RIFLE,
+                    loadout.primaryDef.heldSpriteFamily);
             assertNull(loadout.primary, "external definitions must not require an enum constant");
             assertEquals("example.special-signal-smoke", loadout.specialDef.id());
             assertNull(loadout.secondary,

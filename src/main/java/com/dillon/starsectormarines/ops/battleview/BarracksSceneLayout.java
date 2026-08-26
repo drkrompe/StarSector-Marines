@@ -99,7 +99,7 @@ final class BarracksSceneLayout {
                             21.5f, lockerY),
                     stop(22.3f, 7.5f, 0.35f, AmbientActivity.IDLE,
                             24.5f, 7.5f),
-                    stop(laneX, 5.2f, 7.2f, AmbientActivity.FIRING_PRIMARY,
+                    stop(laneX, 5.2f, 7.2f, AmbientActivity.PRACTICING_EQUIPMENT,
                             laneX, 13.5f),
                     stop(24.5f, 7.5f, 0.35f, AmbientActivity.IDLE,
                             22.3f, 7.5f))));

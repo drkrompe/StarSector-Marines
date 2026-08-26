@@ -4,10 +4,9 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — authored a furnished habitation deck and moved Barracks
-leisure/range choreography onto the battle-owned ambient task seam shared with
-Mech Lab technicians and future mission actors; also restored the Mech Lab's
-lance-wide workshop overview and eased socket selection into its active gantry.
+Updated: 2026-08-25 — Barracks practice now projects each marine's exact
+data-defined primary sprite family and carried special-equipment use pose through
+the shared battle-owned ambient task seam.
 
 ## Purpose
 
@@ -301,9 +300,10 @@ animation. The same deterministic station/walk/activity sampler now drives Mech 
 technicians and is available to mission setup for civilians, workers, engineers, or
 guards. A bounded scene seeks exact route time without advancing combat. A live battle
 advances assignments before ordinary unit execution and releases an actor when its
-declared threat policy trips, allowing its existing role to resume. Practice-fire poses
-display the marine's actual issued primary weapon and muzzle presentation but author no
-shot, damage, ammunition, or inventory transaction.
+declared threat policy trips, allowing its existing role to resume. Practice drills
+display the marine's actual issued primary weapon family and, when present, cycle the
+carried special-equipment use pose. They author no shot, damage, ammunition, cooldown,
+or inventory transaction.
 
 ## Deployment identity
 

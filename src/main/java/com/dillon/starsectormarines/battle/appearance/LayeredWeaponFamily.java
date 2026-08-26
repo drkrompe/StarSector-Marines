@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.appearance;
 
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import org.json.JSONException;
 
 /** Explicit bridge from combat loadout identity to a modular weapon sprite. */
 public enum LayeredWeaponFamily {
@@ -10,14 +11,19 @@ public enum LayeredWeaponFamily {
     DMR;
 
     /** Null is the baked-stat militia/legacy rifle rather than an unknown weapon. */
-    public static LayeredWeaponFamily fromPrimary(MarineWeapon weapon) {
-        if (weapon == null) return RIFLE;
-        return switch (weapon) {
-            case FIELD_RIFLE -> RIFLE;
-            case PULSE_RIFLE, DRONE_PULSE -> LASER_GUN;
-            case SMG -> SMG;
-            case SQUAD_AUTOMATIC -> RIFLE;
-            case DMR -> DMR;
-        };
+    public static LayeredWeaponFamily fromPrimary(WeaponDef weapon) {
+        return weapon != null ? weapon.heldSpriteFamily : RIFLE;
+    }
+
+    public static LayeredWeaponFamily fromKey(String key, String weaponId)
+            throws JSONException {
+        if (key != null) {
+            String normalized = key.trim().replace('-', '_');
+            for (LayeredWeaponFamily family : values()) {
+                if (family.name().equalsIgnoreCase(normalized)) return family;
+            }
+        }
+        throw new JSONException("Marine primary '" + weaponId
+                + "' has unknown heldSpriteFamily '" + key + "'");
     }
 }
