@@ -161,6 +161,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
             roster.add(starter);
             LOG.info("Starsector Marines: injected starter captain " + starter.name() + " [" + starter.id() + "]");
         }
+        script.ensureStartingCompany();
     }
 
     private static void ensureCaptainDiscoverySalvageListener() {

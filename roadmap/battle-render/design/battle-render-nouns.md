@@ -4,8 +4,8 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — bounded live-fire scenes now render simulation-authored shots
-and consume the same weapon-audio dispatch as the standalone battle.
+Updated: 2026-08-26 — bounded live-fire hosts now load the projectile cache required
+by their selected shot layer and anchor authored weapon clips in the campaign world.
 
 ## Vocabulary
 
@@ -43,7 +43,11 @@ pure pose frame, or it may advance a bounded simulation when authored activity n
 real time-dependent state. In the latter case an ambient primary-fire beat enters the
 ordinary infantry and ballistics services; the renderer only consumes the resulting
 entity pose, active `ShotEvent`s, and impact effects. The same weapon definition selects
-the fire clip in standalone positional audio and embedded UI-local audio. Carried
+the fire clip in standalone positional audio and embedded campaign-local positional
+audio. Because vanilla weapon clips are combat sounds rather than UI cues, an embedded
+host anchors them at the player fleet instead of routing them through the UI-sound API.
+Selecting `SHOTS` also requires that host to load the shared projectile and bolt cache;
+otherwise a valid simulation event may have no drawable body. Carried
 special-equipment poses may remain dry drills. Route ownership, interruption, and
 whether an action has physical consequences remain simulation concerns; the render
 pipeline never manufactures a shot.
