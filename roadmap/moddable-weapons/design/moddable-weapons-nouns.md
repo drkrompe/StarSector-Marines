@@ -1,11 +1,11 @@
 # Moddable Weapons
 
-Status: ACTIVE — handheld, special-item and turret weapon data is owned; mech migration remains
+Status: ACTIVE — handheld, special-item, mech, and turret weapon data is owned; layered FX and compatibility retirement remain
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — accepted the shared provider boundary live and made
-marine-primary held-sprite families explicit through battle and previews.
+Updated: 2026-08-25 — made mech weapon definitions registry-owned while
+preserving mount-owned racks, ammunition, geometry, and appearance.
 
 ## Purpose
 
@@ -88,7 +88,10 @@ before catalog-walking presentation consumers initialize. A loadout or legacy
 handle supplies an id; firing, UI, audio, and rendering resolve the same
 definition and use only the portion they own. The currently shipped
 marine-primary handle delegates to that registry, so gameplay and catalog
-presentation do not retain a duplicate Java stat table.
+presentation do not retain a duplicate Java stat table. Mech loadout components
+likewise carry stable weapon ids; simulation and presentation resolve the same
+mech-mount definition while the component retains rack, ammunition, geometry,
+and appearance policy.
 
 Manifest discovery and catalog reads go through Starsector's provider-scoped
 resource API. An absent fixed manifest means that enabled mod is not a catalog
@@ -200,8 +203,9 @@ The public manifest and authoring examples live in `submod-catalog-contract.md`.
 
 ## Transition boundaries
 
-Registry-owned handheld primary and weapon-like-secondary definitions are the
-authoritative data boundary. `MarineWeapon` and `MarineSecondary` remain
+Registry-owned handheld primary, weapon-like-secondary, mech-mount, and turret-mount
+definitions are the authoritative data boundary. `MarineWeapon`, `MarineSecondary`,
+`MechWeapon`, and `TurretKind` remain
 id-backed compatibility handles rather than parallel stat authorities; a
 weapon-like special reaches its definition through the distinct
 progression-owned special-equipment identity. That identity now comes from a
@@ -210,11 +214,13 @@ through the marine-secondary mount class. Progression also owns actor-local
 equipment composition and preview recipes; the layered-effects weapon story
 remains specifically about muzzle, tracer, trail, and impact FX.
 
-Mech weapon stat carriers remain a temporary transition boundary until their
-definitions and mount rules enter the registry. `TurretKind` remains only as a
-stable-id compatibility handle whose accessors resolve shipped catalog
-definitions; it owns no duplicate authored values. Both families still obey
-the same penetration and mutually exclusive contact-versus-area payload laws.
+Mech weapon components store stable ids and remain the authority for mount
+family, rack size, ammunition, geometry, and appearance. Mech weapon behavior
+and presentation resolve through the registry, including the separate
+simulation decision to create an interceptable projectile and presentation
+decision to draw an engine trail. Compatibility handles own no duplicate
+authored values. Mech and turret families still obey the same penetration and
+mutually exclusive contact-versus-area payload laws.
 
 Generated faction and player-authored primary, armor, and special-equipment
 issue consume contributed definitions directly. Player doctrine selection,
