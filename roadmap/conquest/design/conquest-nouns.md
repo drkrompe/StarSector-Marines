@@ -4,7 +4,7 @@ Status: ACTIVE — Conquest owns reversible compound territory, deliberate captu
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — paired Aeroshuttles cycle every selected squad through the beachhead, while convoy delivery uses a defender-commanded rear-front handoff.
+Updated: 2026-08-26 — mission-configured Aeroshuttle pairs cycle every selected squad through lane-aligned beachheads with deterministic timing variance.
 
 Conquest is a territorial assault: marines establish a beachhead, take the
 defender's supply hubs through the city, and finish at the keep. It is not a
@@ -31,12 +31,16 @@ briefing, carrier, or meta layer must provide proportionally more drops.
 
 Conquest owns a mission-configurable paired arrival policy. Committed campaign
 transports supply the operation's lift, while dedicated six-seat Aeroshuttles
-make the final descent. Two Aeroshuttles approach distinct berths in one
-map-authored BEACH arrival area on the same wave delay. They leave after every
-drop, re-arm off-map, and reuse those berths for the next squad. The authored
-drop demand is a minimum commitment, not a ceiling: every selected campaign or
-debug squad is added to the cycle plan instead of remaining in an implicit
-orbital reserve.
+make the final descent. A mission authors how many BEACH arrival areas are
+active, how many reusable Aeroshuttle pairs serve each area, and the maximum
+per-craft timing variance. Normal Conquest uses its three tactical lanes as
+three drop zones with one dedicated pair per zone. Each pair approaches the
+area's two distinct berths, leaves after every drop, re-arms off-map, and
+reuses those berths for later squads. Initial launch and re-arm variance are
+seeded construction facts, so craft do not fly in lockstep while fixture
+replays remain deterministic. The authored drop demand is a minimum
+commitment, not a ceiling: every selected campaign or debug squad is added to
+the cycle plan instead of remaining in an implicit orbital reserve.
 Their passengers join one twelve-marine ground squad, form up before executing
 the commander's advance, and later cycles create new squads rather than
 silently enlarging the first. Employer and player craft never share an arrival
@@ -44,11 +48,16 @@ group or reusable pair across the ownership boundary.
 
 Arrival areas are generated after terrain, structures, and the spawn anchor are
 final. Each publishes two clear 5×5 berths, a shared SOUTH or WEST approach, and
-a stable identity. Conquest setup needs at most one area for employer lift and
-one for player lift; additional committed hulls and selected squads increase
-cycles rather than permanent on-map craft or berth demand. These troop transports
-retain their weapons during approach and egress but depart as soon as unloading
-completes; armed loiter remains available to other mission policies.
+a stable identity. Player pairs are balanced across the mission's configured
+areas and additional committed hulls or selected squads increase cycles rather
+than permanent on-map craft. More than one configured pair per area reuses its
+two berths on staggered arrival groups. Employer lift remains ownership-separated
+but reuses the selected physical areas instead of inventing another beachhead.
+An unusually small manifest spawns only pairs with at least one real sortie; the
+configuration never creates unbacked personnel merely to fill an empty pair.
+These troop transports retain their weapons during approach and egress but
+depart as soon as unloading completes; armed loiter remains available to other
+mission policies.
 
 ## Territory and compounds
 

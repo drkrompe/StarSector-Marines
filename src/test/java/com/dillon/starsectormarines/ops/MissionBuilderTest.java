@@ -54,6 +54,8 @@ class MissionBuilderTest {
         assertEquals(0, mission.payout);
         assertEquals(0, mission.requiredDrops);
         assertEquals(0, mission.employerShuttles);
+        assertEquals(ConquestArrivalConfig.LEGACY,
+                mission.conquestArrivalConfig());
     }
 
     /**
@@ -79,6 +81,7 @@ class MissionBuilderTest {
                 .employerPowerIds(List.of("orbital_strike", "sensor_sweep"))
                 .requiredDrops(6)
                 .employerShuttles(2)
+                .conquestArrivalConfig(new ConquestArrivalConfig(4, 2, 1.5f))
                 .targetPlanetName("Eidolon")
                 .targetIndustryId("refining")
                 .targetFactionId("independent")
@@ -111,6 +114,8 @@ class MissionBuilderTest {
         assertEquals(original.employerPowerIds, copy.employerPowerIds);
         assertEquals(original.requiredDrops, copy.requiredDrops);
         assertEquals(original.employerShuttles, copy.employerShuttles);
+        assertEquals(original.conquestArrivalConfig(),
+                copy.conquestArrivalConfig());
         assertEquals(original.targetPlanetName, copy.targetPlanetName);
         assertEquals(original.targetIndustryId, copy.targetIndustryId);
         assertEquals(original.targetFactionId, copy.targetFactionId);

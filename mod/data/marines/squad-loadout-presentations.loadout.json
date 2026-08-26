@@ -6,7 +6,7 @@
       "tier": 1,
       "rarity": "COMMON",
       "provenance": "Independent frontier",
-      "lore": "A practical security issue copied from isolated stations that cannot expect prompt naval help. Reliable Rooks fill the racks while each fire-team lead receives the one pulse rifle worth entrusting to a trained hand."
+      "lore": "A practical station-security issue for settlements that cannot expect prompt naval help. Ubiquitous Domain-pattern Rooks fill the racks while each fire-team lead receives the one traded Lancer worth entrusting to a trained hand."
     },
     {
       "id": "weapons:luddic-path-assault",
@@ -14,31 +14,31 @@
       "tier": 3,
       "rarity": "RARE",
       "provenance": "Luddic Path",
-      "lore": "Recovered Pather assault tables favor violent entry over a sustained firing line. Breaching carbines, improvised demolition tools, and scarce anti-armor weapons turn ordinary compartments into close, decisive killing grounds."
+      "lore": "Recovered Pather assault tables contain no clean quartermaster's mirror of a state arsenal. Blackforge Rattlers, old Rooks, industrial Breachhands, and a scarce captured heavy weapon turn ordinary compartments into close, decisive killing grounds."
     },
     {
       "id": "weapons:line-infantry",
       "kind": "WEAPON",
       "tier": 3,
       "rarity": "UNCOMMON",
-      "provenance": "Domain fleet lineage",
-      "lore": "Fleet line doctrine assumes disciplined volleys, organic marksmen, and enough smoke to keep a stalled advance moving. It is expensive to sustain on the frontier but reassuringly familiar to academy-trained officers."
+      "provenance": "Persean League coalition",
+      "lore": "League interoperability means agreeing on cells, ammunition, and fire-team roles without pretending every member world owns the same factories. Lancers lead, Rooks and Stalwarts sustain the line, Longbows exploit open lanes, and Wayfarer smoke keeps a stalled advance moving."
     },
     {
       "id": "weapons:assault",
       "kind": "WEAPON",
       "tier": 4,
       "rarity": "RARE",
-      "provenance": "Fleet boarding arm",
-      "lore": "A modern boarding package for breaking defended rooms before the enemy can reorganize. Shredder teams open the breach while a single Shattercap carrier holds the answer to massed soft targets."
+      "provenance": "Deniable corporate security",
+      "lore": "A Tri-Tachyon-adjacent blacksite package for breaking defended rooms before the enemy can reorganize. Clean Lancer cells provide the line fire; serial-free Rattlers open the breach; a single diverted Shattercap answers massed soft targets without appearing on a corporate manifest."
     },
     {
       "id": "weapons:fire-support",
       "kind": "WEAPON",
       "tier": 4,
       "rarity": "EXOTIC",
-      "provenance": "Expeditionary arsenal",
-      "lore": "This scarce support establishment gives every fire team a marksman, an automatic weapon, and access to ship-killing hardware cut down for ground use. Few independent companies can replace its losses quickly."
+      "provenance": "Hegemony auxiliary tables",
+      "lore": "A low-tech support establishment built to keep firing after a campaign has outlasted its first supply plan. Every team combines the serviceable Rook, a Stalwart automatic, and a Longbow marksman; old Annihilator clusters and tightly controlled Breachlights provide the scarce heavy issue."
     },
     {
       "id": "armor:field-fatigues",
@@ -46,7 +46,7 @@
       "tier": 1,
       "rarity": "COMMON",
       "provenance": "Independent frontier",
-      "lore": "Vac-rated workwear and scavenged militia plate form the baseline protection of cash-poor companies. The leaders wear the armor because someone must still be standing when the section loses direction."
+      "lore": "Domain-pattern workwear and locally assembled Ward plate form the baseline protection of cash-poor companies. The leaders wear the armor because someone must still be standing when the section loses direction."
     },
     {
       "id": "armor:sindrian-security",
@@ -54,23 +54,23 @@
       "tier": 2,
       "rarity": "UNCOMMON",
       "provenance": "Sindrian security",
-      "lore": "A mixed protection schedule descended from refinery guards and planetary auxiliaries. It spends proper scout plate where mobility matters and accepts conspicuous gaps everywhere else."
+      "lore": "A mixed protection schedule descended from refinery guards and planetary auxiliaries. Imported Janus suits go to mobile response billets, Ward kits go where cameras are watching, and the rest receive sealed fatigues beneath a very visible uniform."
     },
     {
       "id": "armor:fleet-combat",
       "kind": "ARMOR",
       "tier": 3,
       "rarity": "RARE",
-      "provenance": "Domain fleet lineage",
-      "lore": "Fleet combat protection concentrates dependable laminate around the marines expected to take and hold the contact line. Rear billets trade some protection for the mobility needed to exploit a breach."
+      "provenance": "Hegemony line formations",
+      "lore": "Hegemony protection tables privilege standardized, repairable plate over elegant integration. Legionary suits and captured or licensed Bastion laminates concentrate protection around the marines expected to take and hold contact; rear billets retain vac-fatigue mobility."
     },
     {
       "id": "armor:recon",
       "kind": "ARMOR",
       "tier": 3,
       "rarity": "RARE",
-      "provenance": "Naval reconnaissance",
-      "lore": "Low-profile scout plate was designed for teams that must see the enemy, survive the first exchange, and disappear before heavier forces arrive. Militia backing keeps the schedule attainable outside a naval depot."
+      "provenance": "Tri-Tachyon security doctrine",
+      "lore": "Janus scout suits equip the operators expected to see the enemy, survive the first exchange, and disappear before heavier forces arrive. Cheaper Ward backing leaves the expensive sensor weave concentrated where corporate doctrine expects the best return."
     }
   ]
 }
