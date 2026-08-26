@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.ops.battleview.ArmoryMarinePreviewCanvas;
+import com.dillon.starsectormarines.ops.battleview.BarracksCanvas;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
 import com.dillon.starsectormarines.ops.battleview.MechLabDollCanvas;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
@@ -37,6 +38,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static final List<String> COMPANY_HQ_COMPONENTS = List.of(
             "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/company/company-hq.mlx");
+    private static final List<String> BARRACKS_COMPONENTS = List.of(
+            "data/ui/components/marine-ops-page-nav.mlx",
+            "data/ui/components/company/shipboard-barracks.mlx");
     private static final List<String> OVERVIEW_COMPONENTS = List.of(
             "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/armory/fleet-armory-overview.mlx",
@@ -76,6 +80,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderCompanyHq(context, renderer, 1163, 625, 1f)),
                 new SnapshotArtifact("company-hq-bridge-ui-scale-150.png",
                         renderCompanyHq(context, renderer, 1744, 938, 1.5f)),
+                new SnapshotArtifact("barracks-wide.png",
+                        renderBarracks(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
                 new SnapshotArtifact("fleet-armory-overview-wide.png",
                         renderFleetArmoryOverview(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
@@ -140,6 +147,37 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             int width, int height, boolean fireteam, boolean pickerOpen) throws Exception {
         return renderFleetArmoryWorkspace(
                 context, renderer, width, height, fireteam, pickerOpen, false);
+    }
+
+    private static BufferedImage renderBarracks(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height) throws Exception {
+        Reactor reactor = new Reactor();
+        MarineRoster roster = new MarineRoster();
+        roster.bootstrapInitialComplement(MarineSquad.CAPACITY * 3);
+        MarineSquad squad = roster.squads().stream()
+                .filter(candidate -> !candidate.reserve())
+                .findFirst().orElseThrow();
+        Map<String, MarineSoldierStatus> postBattle = new LinkedHashMap<>();
+        postBattle.put(squad.memberIds().get(3), MarineSoldierStatus.WIA);
+        roster.applySoldierOutcome(postBattle, 0, 100f, 1.25f);
+        BarracksViewModel viewModel = new BarracksViewModel(reactor, roster, () -> 100d);
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                context.modRoot().resolve(path)), BARRACKS_COMPONENTS);
+        loader.reload();
+        HeadlessArmoryPreviewRenderer preview =
+                new HeadlessArmoryPreviewRenderer(context.modRoot());
+
+        try (MarkupInstance instance = loader.build(
+                reactor, "shipboard-barracks", props(viewModel))) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            document.canvases().set(instance.requireElement("barracks-canvas"),
+                    new BarracksCanvas(viewModel::sceneMarines, preview.assets(),
+                            null, null, () -> 0d));
+            return renderRelative(renderer, document, width, height, 1f);
+        }
     }
 
     private static BufferedImage renderFleetArmoryWorkspace(
@@ -318,6 +356,18 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("fleetSummary", viewModel.fleetSummary());
         props.put("companyCards", viewModel.companyCards());
         putArmoryPageNavigation(props);
+        return props;
+    }
+
+    private static Map<String, Object> props(BarracksViewModel viewModel) {
+        Map<String, Object> props = new LinkedHashMap<>();
+        props.put("squadRows", viewModel.squadRows());
+        props.put("musterRows", viewModel.musterRows());
+        props.put("selectedSquadName", viewModel.selectedSquadName());
+        props.put("selectedSquadSummary", viewModel.selectedSquadSummary());
+        props.put("quartersStatus", viewModel.quartersStatus());
+        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.BARRACKS,
+                () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
         return props;
     }
 
