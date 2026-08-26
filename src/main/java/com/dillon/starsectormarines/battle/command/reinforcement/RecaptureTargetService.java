@@ -98,8 +98,9 @@ public final class RecaptureTargetService {
      * Mark a target as having a reinforcement en route, suppressing re-dispatch
      * until it arrives or the wave is wiped.
      *
-     * <p>Contract for the dispatch layer (slices 3-4): call this only when a
-     * means has actually dispatched, and give the spawned squad
+     * <p>Contract for the dispatch layer (slices 3-4): reserve while a request
+     * is pending, release immediately if every means rejects, and give a
+     * committed spawned squad
      * {@code assignedNode == target.node} at deboard — <em>not</em> only after
      * it physically reaches the node. The flag self-clears the moment an alive
      * squad is assigned to the node; if that squad is then wiped (even mid-
@@ -107,16 +108,27 @@ public final class RecaptureTargetService {
      * at-deboard assignment and a squad wiped before arrival leaves the target
      * {@code open && dispatched} forever — silently un-reinforced.
      *
-     * <p>Delivery-pipeline losses the assignment contract can't see (a means
-     * whose dispatch aborts after the request was consumed, a request no
-     * means could fulfill, {@code SquadFallbackSystem} re-assigning a mauled
-     * squad's node away from the target) are healed by the
+     * <p>Later delivery-pipeline losses the assignment contract can't see
+     * ({@code SquadFallbackSystem} re-assigning a mauled squad's node away
+     * from the target, or an in-flight actor never arriving) are healed by the
      * {@link RecaptureTargetSystem#DISPATCH_TIMEOUT_TICKS} safety net rather
      * than tracked individually.
      */
     public void markDispatched(RecaptureTarget target) {
         target.dispatched = true;
         target.dispatchAgeTicks = 0;
+        target.dispatchReservationGeneration++;
+    }
+
+    /** Reserve one target and return its idempotent terminal-rejection release. */
+    ReinforcementDispatchReservation reserveDispatch(RecaptureTarget target) {
+        markDispatched(target);
+        long generation = target.dispatchReservationGeneration;
+        return () -> {
+            if (target.dispatchReservationGeneration != generation) return;
+            target.dispatched = false;
+            target.dispatchAgeTicks = 0;
+        };
     }
 
     /** All recapture targets, regardless of state. */

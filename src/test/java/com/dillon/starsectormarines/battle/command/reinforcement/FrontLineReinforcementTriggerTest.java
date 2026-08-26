@@ -2,8 +2,12 @@ package com.dillon.starsectormarines.battle.command.reinforcement;
 
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.command.BattleResources;
+import com.dillon.starsectormarines.battle.command.ResourceType;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
@@ -24,8 +28,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Slice-3 coverage for {@link FrontLineReinforcementTrigger}: nearest-to-
  * defender slice selection, in-slice round-robin, the dispatched/conceded
  * eligibility filters (inherited from {@link RecaptureTargetService}), the
- * rear-shift rally clamp, and the {@link RecaptureTargetService#markDispatched}
- * wiring on a full {@link FrontLineReinforcementTrigger#check} pass. Fixture
+ * rear-shift rally clamp, and provisional dispatch reservation/release wiring
+ * on a full {@link FrontLineReinforcementTrigger#check} pass. Fixture
  * mirrors {@link RecaptureTargetServiceTest}.
  */
 public class FrontLineReinforcementTriggerTest {
@@ -160,6 +164,44 @@ public class FrontLineReinforcementTriggerTest {
         assertEquals(fort.anchorY, req.objectiveY);
         assertTrue(targetFor(reg, fort).isDispatched(), "check() marks the picked target dispatched");
         assertTrue(reg.eligibleTargets().isEmpty(), "dispatched target drops out of eligibility");
+    }
+
+    @Test
+    public void terminalDispatchRejectionImmediatelyReopensReservedTarget() {
+        NavigationGrid grid = openGrid();
+        BattleSimulation sim = new BattleSimulation(grid, new CellTopology(W, H));
+        BiomeMap biomes = biomeMap();
+        TacticalNode fort = node(10, 87);
+        RecaptureTargetService reg = new RecaptureTargetService(
+                new TacticalMap(List.of(fort)), biomes);
+        makeEligible(reg, targetFor(reg, fort));
+        ReinforcementService service = new ReinforcementService();
+        new FrontLineReinforcementTrigger(reg, TraversalAxis.SOUTH_TO_NORTH)
+                .check(sim, service::post);
+        service.addMeans(new ReinforcementMeans() {
+            @Override
+            public boolean canFulfill(BattleView view,
+                                      ReinforcementRequest request) {
+                return true;
+            }
+
+            @Override
+            public ReinforcementDispatchResult dispatch(
+                    BattleControl control, ReinforcementRequest request) {
+                return ReinforcementDispatchResult.REJECTED;
+            }
+        });
+        BattleResources resources = new BattleResources();
+        resources.produce(Faction.DEFENDER,
+                ResourceType.REINFORCEMENT, 1f);
+
+        new ReinforcementSystem(service, resources).tick(1f, sim);
+
+        assertEquals(1f, resources.getBalance(
+                Faction.DEFENDER, ResourceType.REINFORCEMENT), 0.0001f);
+        assertTrue(service.isPendingEmpty());
+        assertEquals(1, reg.eligibleTargets().size(),
+                "terminal rejection releases provisional dispatch immediately");
     }
 
     @Test

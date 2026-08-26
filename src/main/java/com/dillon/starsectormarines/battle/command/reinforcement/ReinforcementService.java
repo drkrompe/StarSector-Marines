@@ -39,9 +39,11 @@ public final class ReinforcementService {
 
     /**
      * Register a means provider. Order matters — providers are tried in
-     * insertion order on each request; first {@link ReinforcementMeans#canFulfill}
-     * wins. Production registers the readable defender ladder as convoy,
-     * shuttle, then walk-in; supply loss or map feasibility may force fallback.
+     * insertion order on each request. A provider whose feasibility probe
+     * passes gets an atomic commit attempt; rejection falls through to the next
+     * provider. Production registers the readable defender ladder as convoy,
+     * shuttle, then walk-in; supply loss, map feasibility, or route proof may
+     * force fallback.
      */
     public void addMeans(ReinforcementMeans m) { means.add(m); }
 

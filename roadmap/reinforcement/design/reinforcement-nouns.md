@@ -1,10 +1,10 @@
 # Reinforcement
 
-Status: ACTIVE — side-owned requests separate trigger, supply, means, delivery hint, objective, and ticket authority; the installed ladder is defender-side, with marine dispatch, force scale, player readout, and atomic delivery outcomes as extension paths.
+Status: ACTIVE — side-owned requests separate trigger, supply, means, delivery hint, objective, and ticket authority; the installed ladder is defender-side, with marine dispatch, force scale, and player readout as extension paths.
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — installed the target-faction ground-roster catalog and froze one profile across initial defenders and every reinforcement means.
+Updated: 2026-08-26 — made means commitment transactional and added Conquest convoy command handoff.
 
 ## Vocabulary
 
@@ -23,11 +23,11 @@ Updated: 2026-08-25 — installed the target-faction ground-roster catalog and f
 
 Battle setup registers the applicable triggers and a priority-ordered means ladder. The reinforcement service owns that registry and the pending request queue; the reinforcement system polls triggers on its slow cadence, drains requests in FIFO order, and asks the means in order until one can fulfill a request.
 
-Before ordinary dispatch, the system spends one reinforcement ticket from the requesting side. A request that cannot yet pay remains pending for a later cadence. A request with no feasible means refunds its ordinary ticket and is dropped as a map/supply diagnostic. Prepaid counterattack requests are different: their reserve was paid at muster, so dispatch neither spends again nor refunds an undeliverable launched request.
+Before ordinary dispatch, the system reserves one reinforcement ticket from the requesting side. A request that cannot yet pay remains pending for a later cadence. Each means reports `COMMITTED`, `REJECTED`, or `RETRYABLE`: only a committed actor or squad consumes the ordinary ticket, rejection falls through to the next provider, and retryable state refunds and requeues without trying a lower-priority means. If every means rejects, the ordinary ticket is refunded and the request is dropped as a map/supply diagnostic. Prepaid counterattack requests are different: their reserve was paid at muster, so dispatch neither spends again nor refunds an undeliverable launched request.
 
 The selected means creates normal battle actors rather than a reinforcement-specific simulation path. A convoy follows the vehicle/delivery model owned by `convoy-nouns.md`; a shuttle follows the air transport model owned by `air-nouns.md`; a walk-in creates an ordinary infantry squad. Each defender means receives the same battle-frozen ground roster as initial allocation: convoys and walk-ins draw bulk issue, while shuttle drops draw elite issue. Once delivered, the squad enters the normal roster, commander, and tactical-assignment flow.
 
-For Conquest, recapture-target recomputation runs before reinforcement dispatch. The frontline trigger chooses the defender-rear-most contested biome slice with an open target, rotates through that slice's targets, gives the request a rear-shifted delivery hint, and assigns the target as its objective. Marking a target dispatched prevents duplicate waves while an answer is in flight; an assignment or delivery failure eventually re-opens it rather than permanently suppressing the position.
+For Conquest, recapture-target recomputation runs before reinforcement dispatch. The frontline trigger chooses the defender-rear-most contested biome slice with an open target, rotates through that slice's targets, gives the request a rear-shifted delivery hint, and assigns the target as its objective. At convoy dispatch, defender command may refine that hint into a safe band behind its latest known hostile front without changing the objective. The delivered convoy squad is minted under `conquest-defender` with a node hold or lost-zone clear assignment; other means keep their existing ownership policy. Marking a target dispatched prevents duplicate waves while an answer is in flight. Terminal rejection releases that reservation immediately, while a later in-flight or assignment failure retains the bounded timeout recovery path.
 
 Zone loss remains a parallel trigger: when marines take a previously defender-held objective, it posts a defender request that uses the lost zone as both delivery hint and tactical objective. This fallback operates alongside either the Conquest frontline trigger or the non-Conquest garrison trigger.
 
@@ -40,7 +40,7 @@ The installed means ladder is defender-only: convoy, then shuttle, then walk-in.
 3. Means are selected by feasibility and priority, not by request reason. Reasons preserve gameplay meaning and reporting context; they do not become a hidden behavior switch.
 4. A means must create ordinary battle actors that use their owning domain's lifecycle. Reinforcement orchestration never becomes a parallel unit, air, vehicle, or commander model.
 5. Supply gates live at means feasibility. Triggers may avoid obvious noise, but they must not duplicate the authoritative question of whether a delivery capability remains.
-6. Ordinary dispatch is paid before commitment and refunds only when no means can deliver. A prepaid counterattack is an intentional exception: its reserve is committed at muster and remains at risk after launch.
+6. Ordinary dispatch reserves payment before the attempt and consumes it only on `COMMITTED`; rejected providers fall through, retryable attempts requeue, and total rejection refunds. A prepaid counterattack is an intentional exception: its reserve is committed at muster and remains at risk after launch.
 7. A target may not stay suppressed merely because a delivery pipeline failed. Dispatch state is provisional until an assigned live squad closes the loop, with a bounded recovery path for lost deliveries.
 8. Faction identity is data on every request, but symmetric behavior is not implied by the type. The installed ladder is defender-side; marine-side triggers, supply interpretation, and means eligibility require explicit authority.
 9. The frozen ground roster chooses defender unit tier and equipment/protection identity. It does not decide force quantity, support eligibility, delivery feasibility, AI, objectives, or the player's campaign roster.
