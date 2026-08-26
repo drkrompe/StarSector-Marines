@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — grounded shipped equipment provenance, circulation, and deliberate faction absences.
+Updated: 2026-08-26 — grounded shipped equipment provenance and connected faction pools to market, license, and patron rewards.
 
 ## Purpose
 
@@ -163,8 +163,11 @@ Shattercap after two victories. Faction source pools now author which cards may
 enter through market, license, patron, and recovery channels. Open markets now
 stock a faction-and-market-stable weighted selection that rotates monthly and
 scales with market size. Favorable-or-better standing adds licensed offers, and
-already-owned cards are omitted. Patron and operational-recovery consumers, plus
-the full asset reachability ladder, remain planned.
+already-owned cards are omitted. Each completed patron contract also issues one
+weighted card from that patron faction's pool through the immutable engagement
+ledger. Delivery is exactly once, excludes learned or already-carried cards, and
+does not treat system-generated extraction as patron work. Operational recovery
+and the full asset reachability ladder remain planned.
 
 A template card may exist in fleet cargo as one parameterized Starsector special
 item whose data is the stable equipment-template id. Right-click learning follows

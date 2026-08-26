@@ -1,0 +1,489 @@
+package com.dillon.starsectormarines.battle.world.gen.ship.stage;
+
+import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.GenStage;
+import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
+import com.dillon.starsectormarines.battle.world.gen.ship.DeckProfile;
+import com.dillon.starsectormarines.battle.world.gen.ship.DeckSide;
+import com.dillon.starsectormarines.battle.world.gen.ship.DeckZone;
+import com.dillon.starsectormarines.battle.world.gen.ship.RoomRecipe;
+import com.dillon.starsectormarines.battle.world.gen.ship.RoomShape;
+import com.dillon.starsectormarines.battle.world.gen.ship.ShipKeys;
+import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.PriorityQueue;
+
+/**
+ * Step 3 (ship) — pack the deck's room program into the hull, then cut each
+ * room's access out of whatever that packing left behind.
+ *
+ * <p>This replaces an earlier model that ruled evenly spaced athwartships
+ * corridors across the deck first and subdivided the bays between them. That
+ * model could only produce what it was given: bay-length slabs, all the same
+ * depth, every one opening onto the spine. Enlarging the deck enlarged the slabs
+ * instead of fitting more rooms, and no room was ever the size its purpose
+ * called for.
+ *
+ * <p>Here the rooms come first, and they are packed rather than partitioned.
+ * Each {@link RoomRecipe} carries its own {@link RoomShape}, so a berth is a
+ * berth-sized compartment wherever it lands and the mech bay is forty frames
+ * long because that is what servicing a walker needs. Shapes are laid largest
+ * first in any orientation, scored to sit in the {@link DeckZone} their purpose
+ * belongs to and otherwise to wedge tight against the hull, the spine, and each
+ * other.
+ *
+ * <p><b>Circulation is the negative space.</b> A packed deck leaves ragged gaps
+ * — where the hull flares, where a shape did not divide the pocket it filled,
+ * where two blocks of compartments meet at different depths — and passages are
+ * cut through those. That is what gives the deck hallways of differing length
+ * and width instead of a comb, and it is why the packing is allowed to be
+ * uneven rather than tidied into a grid.
+ *
+ * <p>What survives all of that is offered to the small {@link RoomRecipe#UTILITY}
+ * rooms, which take any pocket already touching a passage. A void that is left
+ * over after even those have had their pick is not floor at all: it stays solid
+ * as ship's structure.
+ */
+public final class RoomPlacementStage implements GenStage {
+
+    /** Weight keeping a room in its own zone; large enough to outrank any packing score. */
+    private static final int ZONE_BONUS = 1_000_000;
+    /** How many of the best-scoring placements to try before giving a room up as unfittable. */
+    private static final int PLACEMENT_ATTEMPTS = 8;
+    private static final int[][] STEPS = { { 0, -1 }, { 0, 1 }, { -1, 0 }, { 1, 0 } };
+
+    /** Cost of running a passage through deck nobody claimed. */
+    private static final int OPEN_COST = 1;
+    /**
+     * Cost of taking a passage through a bulkhead. High enough that a route
+     * prefers open deck and only crosses structure where it has to, which is
+     * what makes a passage cross a bulkhead squarely — as a door — instead of
+     * running along one and unzipping the compartment behind it.
+     */
+    private static final int WALL_COST = 8;
+
+    /** Padded by one cell each side, so a room's bulkhead ring never falls off the array. */
+    private boolean[][] hull;
+    private boolean[][] claimed;
+    private boolean[][] floor;
+    private boolean[][] passage;
+    private int[][] claimedSum;
+    private int width;
+    private int height;
+
+    @Override
+    public void run(GenContext ctx) {
+        DeckProfile profile = ctx.get(ShipKeys.DECK_PROFILE);
+        List<RoomRecipe> program = ctx.get(ShipKeys.ROOM_PROGRAM);
+        if (profile == null || program == null) {
+            throw new IllegalStateException(
+                    "RoomPlacementStage requires a deck profile and a room program");
+        }
+
+        initMasks(ctx, profile);
+
+        List<RoomRecipe> ordered = new ArrayList<>(program);
+        ordered.sort(Comparator.comparingInt(RoomRecipe::area).reversed()
+                .thenComparing(recipe -> recipe.purpose().name()));
+
+        List<DeckGraph.Compartment> placed = new ArrayList<>();
+        List<RoomRecipe> unplaced = new ArrayList<>();
+        for (RoomRecipe recipe : ordered) {
+            DeckGraph.Compartment compartment = place(ctx, profile, recipe, placed, true);
+            if (compartment == null) {
+                unplaced.add(recipe);
+            } else {
+                placed.add(compartment);
+            }
+        }
+        fillPockets(ctx, profile, placed);
+        ctx.put(ShipKeys.DECK_GRAPH, new DeckGraph(placed, unplaced));
+    }
+
+    /**
+     * Everything inside the hull starts free; the spine and its two bulkhead
+     * rows start taken, because the corridor was cut before this stage ran and
+     * no room may eat into it.
+     */
+    private void initMasks(GenContext ctx, DeckProfile profile) {
+        width = ctx.width;
+        height = ctx.height;
+        hull = new boolean[width + 2][height + 2];
+        claimed = new boolean[width + 2][height + 2];
+        floor = new boolean[width + 2][height + 2];
+        passage = new boolean[width + 2][height + 2];
+        for (boolean[] column : claimed) {
+            Arrays.fill(column, true);
+        }
+        for (int x = 0; x < profile.frames(); x++) {
+            for (int y = profile.top(x); y <= profile.bottom(x); y++) {
+                claimed[x + 1][y + 1] = false;
+                hull[x + 1][y + 1] = true;
+            }
+            for (int y = profile.spineTop() - 1; y <= profile.spineBottom() + 1; y++) {
+                claimed[x + 1][y + 1] = true;
+            }
+            for (int y = profile.spineTop(); y <= profile.spineBottom(); y++) {
+                floor[x + 1][y + 1] = true;
+                passage[x + 1][y + 1] = true;
+            }
+        }
+        rebuildSums();
+    }
+
+    /**
+     * Offer every pocket the authored rooms did not want to the utility set,
+     * largest first, until a whole pass places nothing. There is no count to cap
+     * here: the deck has a finite number of cells, every placement consumes
+     * some, and how many there were to begin with is exactly what the density
+     * dial decides. Utility rooms take a direct door only — a locker is worth a
+     * pocket that already touches a passage, never worth tunnelling to.
+     */
+    private void fillPockets(GenContext ctx, DeckProfile profile,
+                             List<DeckGraph.Compartment> placed) {
+        List<RoomRecipe> utility = new ArrayList<>(RoomRecipe.UTILITY);
+        utility.sort(Comparator.comparingInt(RoomRecipe::area).reversed());
+        boolean progressed = true;
+        while (progressed) {
+            progressed = false;
+            for (RoomRecipe recipe : utility) {
+                DeckGraph.Compartment compartment = place(ctx, profile, recipe, placed, false);
+                if (compartment == null) continue;
+                placed.add(compartment);
+                progressed = true;
+                break;
+            }
+        }
+    }
+
+    /**
+     * Find this room the best position it can still have, cut it in, and open it
+     * onto the deck's circulation. Returns null when nothing fits, or when
+     * nothing that fits can be reached.
+     *
+     * @param mayTunnel whether the room is worth cutting a fresh passage to
+     */
+    private DeckGraph.Compartment place(GenContext ctx, DeckProfile profile, RoomRecipe recipe,
+                                        List<DeckGraph.Compartment> placed, boolean mayTunnel) {
+        List<Candidate> candidates = candidates(ctx, profile, recipe);
+        int attempts = Math.min(PLACEMENT_ATTEMPTS, candidates.size());
+        for (int i = 0; i < attempts; i++) {
+            Candidate candidate = candidates.get(i);
+            Access access = findAccess(candidate, mayTunnel);
+            if (access == null) continue;
+            commit(ctx, candidate, recipe.purpose(), access);
+            return describe(profile, candidate, recipe.purpose(), placed.size());
+        }
+        return null;
+    }
+
+    /** One way of laying a room down: an orientation of its shape at an origin, and its score. */
+    private record Candidate(RoomShape shape, int x, int y, int score) {}
+
+    /**
+     * Every position and orientation this room could legally take, best first.
+     *
+     * <p>A candidate is legal when all of its floor is unclaimed and none of its
+     * bulkhead ring is already walkable — a room may share a wall with the hull,
+     * the spine, or another compartment, but it may never stand open along a
+     * whole edge onto a corridor or a neighbour.
+     *
+     * <p>Score is zone first, then how much of the ring is already solid. That
+     * second term is the packing: a position wedged into a corner outscores one
+     * floating in open deck, so rooms gather into blocks and the space they
+     * leave collects into passages instead of scattering as slivers.
+     */
+    private List<Candidate> candidates(GenContext ctx, DeckProfile profile, RoomRecipe recipe) {
+        List<Candidate> found = new ArrayList<>();
+        for (RoomShape shape : recipe.shape().orientations()) {
+            int w = shape.width();
+            int h = shape.height();
+            int slack = w * h - shape.area();
+            for (int x = 0; x + w <= width; x++) {
+                DeckZone zone = profile.zone(clampFrame(profile, x + w / 2));
+                int zoneBonus = recipe.zone() == null || zone == recipe.zone() ? ZONE_BONUS : 0;
+                for (int y = 0; y + h <= height; y++) {
+                    // Necessary condition first: if the bounding box is more
+                    // occupied than the shape's own holes could absorb, no
+                    // per-cell test can save it.
+                    if (sum(claimedSum, x, y, w, h) > slack) continue;
+                    if (!floorFits(shape, x, y)) continue;
+                    int contact = wallContact(shape, x, y);
+                    if (contact < 0) continue;
+                    found.add(new Candidate(shape, x, y,
+                            zoneBonus + contact + ctx.rng.nextInt(3)));
+                }
+            }
+        }
+        found.sort(Comparator.comparingInt(Candidate::score).reversed()
+                .thenComparingInt(Candidate::x)
+                .thenComparingInt(Candidate::y));
+        return found;
+    }
+
+    private static int clampFrame(DeckProfile profile, int frame) {
+        return Math.max(0, Math.min(profile.frames() - 1, frame));
+    }
+
+    /** Whether every cell of the shape lands on unclaimed deck. */
+    private boolean floorFits(RoomShape shape, int ox, int oy) {
+        for (int[] cell : shape.filled()) {
+            int x = ox + cell[0];
+            int y = oy + cell[1];
+            if (!inBounds(x, y) || claimed[x + 1][y + 1]) return false;
+        }
+        return true;
+    }
+
+    /**
+     * How much of the room's bulkhead ring already backs onto something solid,
+     * or -1 when the ring crosses a walkable cell and the placement is illegal.
+     */
+    private int wallContact(RoomShape shape, int ox, int oy) {
+        int contact = 0;
+        for (int[] cell : shape.wall()) {
+            int x = ox + cell[0];
+            int y = oy + cell[1];
+            if (!inBounds(x, y)) {
+                contact++;
+                continue;
+            }
+            if (floor[x + 1][y + 1]) return -1;
+            if (claimed[x + 1][y + 1]) contact++;
+        }
+        return contact;
+    }
+
+    /** A door through one bulkhead cell, and the passage cells cut to reach it. */
+    private record Access(int doorX, int doorY, List<int[]> passage) {}
+
+    /**
+     * How this room joins the rest of the deck. A room whose bulkhead already
+     * backs onto the spine or an existing passage needs only a door; otherwise a
+     * passage is cut through unclaimed deck until it meets one.
+     *
+     * <p>A door has to open onto <b>circulation</b>, never merely onto walkable
+     * space. Accepting any floor let rooms chain doorways through one another,
+     * and a deck where the way outboard is through somebody's berth and out the
+     * far side is an enfilade, not a ship: no hallways, no way past a held
+     * compartment, and every room on the route a through-route.
+     */
+    private Access findAccess(Candidate candidate, boolean mayTunnel) {
+        for (int[] doorway : candidate.shape().doorways()) {
+            int outsideX = candidate.x() + doorway[2];
+            int outsideY = candidate.y() + doorway[3];
+            if (!inBounds(outsideX, outsideY) || !passage[outsideX + 1][outsideY + 1]) continue;
+            return new Access(candidate.x() + doorway[0], candidate.y() + doorway[1], List.of());
+        }
+        return mayTunnel ? cutPassage(candidate) : null;
+    }
+
+    /**
+     * Cheapest route from any of this room's bulkheads to existing circulation,
+     * preferring open deck and paying to cross structure. The result is the
+     * least disruptive passage joining this room to the rest of the deck, which
+     * is why passages thread between blocks already placed rather than wandering
+     * or tearing through them.
+     */
+    private Access cutPassage(Candidate candidate) {
+        int[][] cost = new int[width][height];
+        int[][] cameFrom = new int[width][height];
+        for (int[] column : cost) {
+            Arrays.fill(column, Integer.MAX_VALUE);
+        }
+        for (int[] column : cameFrom) {
+            Arrays.fill(column, -1);
+        }
+        PriorityQueue<int[]> frontier =
+                new PriorityQueue<>(Comparator.comparingInt(entry -> entry[2]));
+        for (int[] doorway : candidate.shape().doorways()) {
+            int outsideX = candidate.x() + doorway[2];
+            int outsideY = candidate.y() + doorway[3];
+            int step = stepCost(candidate, outsideX, outsideY);
+            if (step < 0 || step >= cost[outsideX][outsideY]) continue;
+            cost[outsideX][outsideY] = step;
+            cameFrom[outsideX][outsideY] =
+                    doorMarker(candidate.x() + doorway[0], candidate.y() + doorway[1]);
+            frontier.add(new int[]{ outsideX, outsideY, step });
+        }
+        while (!frontier.isEmpty()) {
+            int[] cell = frontier.poll();
+            if (cell[2] > cost[cell[0]][cell[1]]) continue;
+            if (touchesPassage(cell[0], cell[1])) return trace(cameFrom, cell);
+            for (int[] step : STEPS) {
+                int nx = cell[0] + step[0];
+                int ny = cell[1] + step[1];
+                int stepCost = stepCost(candidate, nx, ny);
+                if (stepCost < 0) continue;
+                int next = cell[2] + stepCost;
+                if (next >= cost[nx][ny]) continue;
+                cost[nx][ny] = next;
+                cameFrom[nx][ny] = cell[0] * height + cell[1];
+                frontier.add(new int[]{ nx, ny, next });
+            }
+        }
+        return null;
+    }
+
+    /**
+     * What it costs to route a passage through one cell, or -1 where it may not
+     * go at all.
+     *
+     * <p>Walkable cells are never routed through — a passage that runs across
+     * somebody's berth is not a passage — and neither is anything outside the
+     * hull or belonging to the room currently being placed, which is not
+     * committed yet and so is invisible to the masks.
+     *
+     * <p>The interesting exclusion is the last one. A bulkhead with room floor
+     * on both sides is the wall two compartments share, and cutting along it
+     * would open them both down their whole length; a bulkhead with circulation
+     * on one side is simply where a door belongs. That single rule is the
+     * difference between passages that cross structure and passages that
+     * dissolve it.
+     */
+    private int stepCost(Candidate candidate, int x, int y) {
+        if (!inBounds(x, y) || !hull[x + 1][y + 1] || floor[x + 1][y + 1]) return -1;
+        int localX = x - candidate.x();
+        int localY = y - candidate.y();
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dy = -1; dy <= 1; dy++) {
+                if (candidate.shape().contains(localX + dx, localY + dy)) return -1;
+            }
+        }
+        if (!claimed[x + 1][y + 1]) return OPEN_COST;
+        if (isRoomFloor(x - 1, y) && isRoomFloor(x + 1, y)) return -1;
+        if (isRoomFloor(x, y - 1) && isRoomFloor(x, y + 1)) return -1;
+        return WALL_COST;
+    }
+
+    /** Walkable, and part of a room rather than part of the circulation. */
+    private boolean isRoomFloor(int x, int y) {
+        return inBounds(x, y) && floor[x + 1][y + 1] && !passage[x + 1][y + 1];
+    }
+
+    private boolean touchesPassage(int x, int y) {
+        for (int[] step : STEPS) {
+            int nx = x + step[0];
+            int ny = y + step[1];
+            if (inBounds(nx, ny) && passage[nx + 1][ny + 1]) return true;
+        }
+        return false;
+    }
+
+    private boolean inBounds(int x, int y) {
+        return x >= 0 && y >= 0 && x < width && y < height;
+    }
+
+    /** Search origins are tagged with the door they came from, below every real cell index. */
+    private int doorMarker(int x, int y) {
+        return -2 - (x * height + y);
+    }
+
+    /** Walk the search back to the bulkhead it started from, collecting the passage. */
+    private Access trace(int[][] cameFrom, int[] end) {
+        List<int[]> passage = new ArrayList<>();
+        int x = end[0];
+        int y = end[1];
+        while (true) {
+            passage.add(new int[]{ x, y });
+            int from = cameFrom[x][y];
+            if (from <= -2) {
+                int door = -(from + 2);
+                return new Access(door / height, door % height, List.copyOf(passage));
+            }
+            x = from / height;
+            y = from % height;
+        }
+    }
+
+    /** Cut the room, its bulkheads, its passage, and its door into the deck. */
+    private void commit(GenContext ctx, Candidate candidate, RoomPurpose purpose, Access access) {
+        RoomShape shape = candidate.shape();
+        for (int[] cell : shape.filled()) {
+            carve(ctx, candidate.x() + cell[0], candidate.y() + cell[1], purpose, GroundKind.INDOOR);
+        }
+        for (int[] cell : shape.wall()) {
+            int x = candidate.x() + cell[0];
+            int y = candidate.y() + cell[1];
+            if (inBounds(x, y)) claimed[x + 1][y + 1] = true;
+        }
+        for (int[] cell : access.passage()) {
+            carve(ctx, cell[0], cell[1], RoomPurpose.CORRIDOR, GroundKind.INDOOR);
+            passage[cell[0] + 1][cell[1] + 1] = true;
+            widen(ctx, cell[0], cell[1]);
+        }
+        // The door itself is a threshold, not circulation: leaving it out of the
+        // passage mask is what stops the next room treating it as a hallway.
+        carve(ctx, access.doorX(), access.doorY(), RoomPurpose.CORRIDOR, GroundKind.STRIPED);
+        rebuildSums();
+    }
+
+    /**
+     * Give a cut passage a second cell wherever the deck can spare one. Single
+     * file is a movement trap for a squad, and the widened cell is always
+     * unclaimed deck, so this never eats a bulkhead.
+     */
+    private void widen(GenContext ctx, int x, int y) {
+        for (int[] step : STEPS) {
+            int nx = x + step[0];
+            int ny = y + step[1];
+            if (!inBounds(nx, ny) || claimed[nx + 1][ny + 1]) continue;
+            carve(ctx, nx, ny, RoomPurpose.CORRIDOR, GroundKind.INDOOR);
+            passage[nx + 1][ny + 1] = true;
+            return;
+        }
+    }
+
+    private void carve(GenContext ctx, int x, int y, RoomPurpose purpose, GroundKind kind) {
+        if (!inBounds(x, y)) return;
+        ctx.grid.setWalkableFloor(x, y);
+        ctx.topology.setGroundKind(x, y, kind);
+        ctx.topology.setRoomPurpose(x, y, purpose);
+        claimed[x + 1][y + 1] = true;
+        floor[x + 1][y + 1] = true;
+    }
+
+    private DeckGraph.Compartment describe(DeckProfile profile, Candidate candidate,
+                                           RoomPurpose purpose, int id) {
+        int left = candidate.x();
+        int top = candidate.y();
+        int right = left + candidate.shape().width() - 1;
+        int bottom = top + candidate.shape().height() - 1;
+        int spineCentre = (profile.spineTop() + profile.spineBottom()) / 2;
+        DeckSide side = (top + bottom) / 2 < spineCentre ? DeckSide.PORT : DeckSide.STARBOARD;
+        DeckZone zone = profile.zone(clampFrame(profile, (left + right) / 2));
+        return new DeckGraph.Compartment(id, left, top, right, bottom, side, zone, purpose);
+    }
+
+    private void rebuildSums() {
+        claimedSum = prefix(claimed);
+    }
+
+    /** Summed-area table over the padded mask, so the bounding-box reject is four lookups. */
+    private static int[][] prefix(boolean[][] mask) {
+        int w = mask.length;
+        int h = mask[0].length;
+        int[][] sums = new int[w + 1][h + 1];
+        for (int x = 0; x < w; x++) {
+            for (int y = 0; y < h; y++) {
+                sums[x + 1][y + 1] = (mask[x][y] ? 1 : 0)
+                        + sums[x][y + 1] + sums[x + 1][y] - sums[x][y];
+            }
+        }
+        return sums;
+    }
+
+    /** Count of set cells in the unpadded rect {@code (x, y, w, h)}, clipped to the padded mask. */
+    private static int sum(int[][] sums, int x, int y, int w, int h) {
+        int x0 = Math.max(0, Math.min(sums.length - 1, x + 1));
+        int y0 = Math.max(0, Math.min(sums[0].length - 1, y + 1));
+        int x1 = Math.max(x0, Math.min(sums.length - 1, x + 1 + w));
+        int y1 = Math.max(y0, Math.min(sums[0].length - 1, y + 1 + h));
+        return sums[x1][y1] - sums[x0][y1] - sums[x1][y0] + sums[x0][y0];
+    }
+}

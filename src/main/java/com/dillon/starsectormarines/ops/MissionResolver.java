@@ -32,6 +32,7 @@ import com.dillon.starsectormarines.campaign.SilentColonyMissionResolution;
 import com.dillon.starsectormarines.campaign.StationingIncidentMissionKey;
 import com.dillon.starsectormarines.campaign.StationingIncidentPayload;
 import com.dillon.starsectormarines.campaign.StationingIncidentResolution;
+import com.dillon.starsectormarines.campaign.systems.PatronEquipmentRewardSystem;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -371,6 +372,10 @@ public final class MissionResolver {
         MarineRoster roster = applyPersonnelOutcome(outcome);
         if (outcome.contractId != -1L) {
             applyContractBridge(outcome, roster);
+            CampaignStateScript campaign = CampaignStateScript.getInstance();
+            if (campaign != null) {
+                PatronEquipmentRewardSystem.deliverPending(campaign.state());
+            }
         }
 
         if (outcome.victory && outcome.missionSource == MissionSource.STORY
