@@ -70,6 +70,18 @@ public final class EquipmentTemplateCardItemPlugin extends BaseSpecialItemPlugin
         tooltip.addPara(MessageFormat.format(Strings.get("equipmentTemplateUnlockFmt"),
                         template.displayName(), kind), pad,
                 Misc.getHighlightColor(), template.displayName());
+        String access = accessLabel(template.accessTier());
+        tooltip.addPara(MessageFormat.format(Strings.get("equipmentTemplateAccessFmt"),
+                        access), pad, Misc.getHighlightColor(), access);
+        if (template.accessTier() == EquipmentAccessTier.COMMON) {
+            tooltip.addPara(Strings.get("equipmentTemplateAccessCommonRoute"), pad);
+        } else {
+            tooltip.addPara(MessageFormat.format(
+                    Strings.get("equipmentTemplateAccessGatedRouteFmt"),
+                    EquipmentAcquisitionEligibility.requiredMrb(template.accessTier()),
+                    EquipmentAcquisitionEligibility.requiredRecoveryVictories(
+                            template.accessTier())), pad);
+        }
         tooltip.addPara(Strings.get("equipmentTemplateShipBoundary"), pad);
         addCostLabel(tooltip, pad, transferHandler, stackSource);
 
@@ -140,5 +152,13 @@ public final class EquipmentTemplateCardItemPlugin extends BaseSpecialItemPlugin
 
     private static EquipmentTemplateCard resolveTemplate(String id) {
         return EquipmentTemplateCatalog.contains(id) ? EquipmentTemplateCatalog.require(id) : null;
+    }
+
+    private static String accessLabel(EquipmentAccessTier tier) {
+        return Strings.get(switch (tier) {
+            case COMMON -> "equipmentTemplateAccessCommon";
+            case ADVANCED -> "equipmentTemplateAccessAdvanced";
+            case PRESTIGE -> "equipmentTemplateAccessPrestige";
+        });
     }
 }
