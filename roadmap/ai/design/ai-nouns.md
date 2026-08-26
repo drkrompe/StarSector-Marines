@@ -4,7 +4,8 @@ Status: ACTIVE — AI owns autonomous mission command, squad planning, belief-de
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — added perspective-safe squad approach evidence and neutral capture-zone occupancy over the canonical Conquest trace split.
+Updated: 2026-08-25 — added battle-owned ambient task assignments as interruptible
+world work below survival and tactical execution.
 
 AI turns mission context and what a side has learned into coordinated
 movement, posture, and fire intent. It is a decision system, not the authority
@@ -43,6 +44,23 @@ more highly.
 Squad replanning remains serial unless a measured, explicit parallel contract
 is introduced. Its state, goals, actions, and read-only view boundary may
 support that extension, but parallel behavior is not implied by their shape.
+
+An **ambient task assignment** is low-stakes authored world work for an existing
+battle actor: resting at a berth, inspecting a console, maintaining machinery,
+or using already-issued equipment at a practice station. The battle owns the
+assignment, deterministic route sampling, and temporary execution exclusion;
+the actor retains its ordinary role and identity. Each route declares whether
+any armed presence or only a hostile combatant interrupts it. An interrupted
+actor leaves the route before ordinary unit dispatch and immediately resumes
+its existing flee, guard, worker, or combat behavior. Ambient work never authors
+damage, campaign recovery, inventory mutation, or mission authority.
+
+Bounded embedded scenes may seek the same route sampler at an exact presentation
+time without advancing combat. Live battle hosts advance it in the normal tick
+before occupancy and unit execution, then reassert its pose after ordinary
+appearance authoring. This shared mechanism makes shipboard leisure and workshop
+activity useful proving grounds for future civilians, technicians, guards, and
+other map-authored workers without creating presentation-only actor scripts.
 
 ## Autonomous command duel
 

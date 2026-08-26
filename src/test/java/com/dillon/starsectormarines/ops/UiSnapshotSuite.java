@@ -177,7 +177,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             document.theme(MarineOpsThemes.standard());
             document.canvases().set(instance.requireElement("barracks-canvas"),
                     new BarracksCanvas(viewModel::sceneMarines,
-                            new BarracksBattleScene()));
+                            new BarracksBattleScene(), () -> 18d));
             return renderRelative(renderer, document, width, height, 1f);
         }
     }

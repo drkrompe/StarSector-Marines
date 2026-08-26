@@ -2,6 +2,9 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
+import com.dillon.starsectormarines.battle.ambient.AmbientActivity;
+import com.dillon.starsectormarines.battle.ambient.AmbientTaskPose;
+import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.DollDef;
@@ -249,8 +252,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
         float shoulder = UnitRenderService.layeredInfantryShoulderWidth(
                 cell, UnitType.ENGINEER.renderScale);
         for (int index = 0; index < MechLabSceneLayout.TECHNICIAN_JOBS.size(); index++) {
-            MechLabTechnicianJobs.TechnicianPose pose =
-                    MechLabTechnicianJobs.sample(index, time);
+            AmbientTaskPose pose = AmbientTaskService.sample(
+                    MechLabSceneLayout.TECHNICIAN_JOBS.get(index), time);
             drawTechnician(c, crew,
                     camera.cellToScreenX(pose.worldX()),
                     height - camera.cellToScreenY(pose.worldY()),
@@ -424,9 +427,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
         float originX = MechLabBattleScene.mechWorldX(selectedGantry);
         float originY = MechLabBattleScene.mechWorldY(selectedGantry);
         for (int index = 0; index < MechLabSceneLayout.TECHNICIAN_JOBS.size(); index++) {
-            MechLabTechnicianJobs.TechnicianPose pose =
-                    MechLabTechnicianJobs.sample(index, time);
-            if (pose.activity() != MechLabTechnicianJobs.TechnicianActivity.WELDING) {
+            AmbientTaskPose pose = AmbientTaskService.sample(
+                    MechLabSceneLayout.TECHNICIAN_JOBS.get(index), time);
+            if (pose.activity() != AmbientActivity.WORKING) {
                 continue;
             }
             float technicianX = projection.actorX()

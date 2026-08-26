@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.ambient.AmbientActivity;
+import com.dillon.starsectormarines.battle.ambient.AmbientTaskRoute;
+import com.dillon.starsectormarines.battle.ambient.AmbientThreatPolicy;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
 import java.util.List;
@@ -26,7 +29,7 @@ final class MechLabSceneLayout {
             new PropPlacement(29, 8, 3, 3),
             new PropPlacement(33, 8, 9, 1));
 
-    static final List<TechnicianJob> TECHNICIAN_JOBS = List.of(
+    static final List<AmbientTaskRoute> TECHNICIAN_JOBS = List.of(
             technicianJob("fabricator one", 0f, 7, -1f),
             technicianJob("fabricator two", 5.5f, 15, 1f),
             technicianJob("fabricator three", 10.5f, 23, -1f),
@@ -58,21 +61,22 @@ final class MechLabSceneLayout {
         return List.copyOf(result);
     }
 
-    private static TechnicianJob technicianJob(String name, float phaseOffsetSeconds,
-                                                int gantryX, float side) {
+    private static AmbientTaskRoute technicianJob(String name, float phaseOffsetSeconds,
+                                                   int gantryX, float side) {
         float weldX = gantryX + 0.5f + side * 1.35f;
         float weldFocusX = gantryX + 0.5f + side * 0.72f;
         float storageX = gantryX + 0.5f - side * 2f;
         float machineryX = gantryX + 0.5f + side * 2f;
-        return new TechnicianJob(name, phaseOffsetSeconds, List.of(
-                new TechnicianStop(weldX, 5.5f, 4.4f,
-                        MechLabTechnicianJobs.TechnicianActivity.WELDING,
+        return new AmbientTaskRoute(name, phaseOffsetSeconds, 0.72f, 14f,
+                AmbientThreatPolicy.ANY_COMBATANT, List.of(
+                new AmbientTaskRoute.Stop(weldX, 5.5f, 4.4f,
+                        AmbientActivity.WORKING,
                         weldFocusX, 5.5f),
-                new TechnicianStop(storageX, 7.5f, 3.2f,
-                        MechLabTechnicianJobs.TechnicianActivity.SORTING,
+                new AmbientTaskRoute.Stop(storageX, 7.5f, 3.2f,
+                        AmbientActivity.SOCIALIZING,
                         storageX, 8.5f),
-                new TechnicianStop(machineryX, 7.5f, 2.6f,
-                        MechLabTechnicianJobs.TechnicianActivity.INSPECTING,
+                new AmbientTaskRoute.Stop(machineryX, 7.5f, 2.6f,
+                        AmbientActivity.INSPECTING,
                         machineryX, 8.5f)));
     }
 
@@ -82,21 +86,4 @@ final class MechLabSceneLayout {
 
     record PropPlacement(int cellX, int cellY, int tileColumn, int tileRow) { }
 
-    record TechnicianJob(String name, float phaseOffsetSeconds,
-                         List<TechnicianStop> stops) {
-        TechnicianJob {
-            stops = List.copyOf(stops);
-            if (stops.isEmpty()) throw new IllegalArgumentException("technician job requires stops");
-        }
-    }
-
-    record TechnicianStop(float worldX, float worldY, float dwellSeconds,
-                          MechLabTechnicianJobs.TechnicianActivity activity,
-                          float focusX, float focusY) {
-        TechnicianStop {
-            if (activity == null || dwellSeconds <= 0f) {
-                throw new IllegalArgumentException("technician stop requires activity and dwell");
-            }
-        }
-    }
 }
