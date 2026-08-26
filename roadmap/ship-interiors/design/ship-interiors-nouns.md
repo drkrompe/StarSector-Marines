@@ -56,9 +56,14 @@ authored content.
 - The **hull profile** is the deck's beam as a function of frame: narrow at the
   bow, broadest amidships, tapering aft, and not required to be equal to port and
   starboard. The profile is the family's visual and tactical identity.
-- The **spine** is the primary fore-aft circulation corridor. Compartments hang
-  off it. It is the deck's authored main line, not whichever corridor turns out
-  longest.
+- The **spine** is the primary fore-aft circulation corridor. It is the deck's
+  authored main line, not whichever corridor turns out longest. Compartments do
+  not all hang off it: a deck where every room opens on the spine is a comb, and
+  blocks of rooms reached by their own passages are what a ship actually looks
+  like.
+- A **passage** is connective walkable space that is not the spine. Passages are
+  not ruled out in advance; they are cut where rooms need to be reached, which is
+  what gives a deck hallways of differing length and route rather than a grid.
 - A **transverse bulkhead** divides the deck across its beam at one frame and
   admits passage only through its authored hatches. It is the ship's natural
   chokepoint, and unlike a station's scattered articulation rooms, bulkheads come
@@ -70,6 +75,17 @@ authored content.
   without a coordinate table.
 - A **compartment** is one purposed room on a deck, labeled at carve time with an
   ordinary room purpose. Consumers ask its purpose.
+- A **room shape** is a compartment's footprint expressed as a mask of cells,
+  carried with no orientation. A rectangle is the easy case, not the model: a
+  bridge is a diamond, a range is an L, and a compartment may wrap a hull flare.
+  A packer built around a width and a height could place none of those.
+- A **room recipe** is the authored pairing of a purpose with its shape, the zone
+  it belongs in, and the capacity one of it supplies. It is why a room is the
+  size its function calls for rather than the size the leftover space happened to
+  be.
+- A **room program** is the list of recipes one deck owes, derived from the
+  ship's complement, hold, and class. The program sizes the deck; the deck does
+  not size the program.
 - A **facility** is a compartment the company operates: a barracks, a mech bay,
   an armory, a medical bay. A facility owns fixture counts, extent, and the
   capacity those imply. It is the thing an upgrade acts on.
@@ -292,6 +308,15 @@ it is presentation-only by charter. The tactical articulation of a bay is a
 10. **Floor area is used or argued for.** Every part of a compartment is a
     fixture group, a circulation lane, or deliberately clear for a stated
     tactical reason. Leftover emptiness is a defect.
+11. **Rooms are packed, not partitioned.** Shapes are laid into the hull and
+    circulation is cut from what the packing leaves. Ruling corridors first and
+    subdividing the bays between them can only ever produce bay-sized slabs of
+    uniform depth: enlarging such a deck enlarges the slabs instead of fitting
+    more rooms, and no room is ever the size its purpose called for.
+12. **A door opens onto circulation.** Never merely onto walkable space. A deck
+    whose rooms chain doorways into one another is an enfilade — the way
+    outboard runs through somebody's berth and out the far side, there are no
+    hallways, and a single held compartment severs the deck.
 
 ## Boundaries
 

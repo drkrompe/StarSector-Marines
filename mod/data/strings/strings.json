@@ -266,6 +266,8 @@
 		"equipmentTemplateAlreadyKnown": "Template already known",
 		"equipmentTemplateArmoryUnavailable": "The Fleet Armory is unavailable. The template was not consumed.",
 		"equipmentTemplateLearnedFmt": "Acquired equipment template: {0}",
+		"equipmentTemplatePatronRewardFmt": "{0} issued an equipment template: {1}",
+		"equipmentTemplateUnknownPatron": "Your patron",
 		"equipmentTemplateAlreadyKnownFmt": "{0}: equipment template already known"
 	}
 }

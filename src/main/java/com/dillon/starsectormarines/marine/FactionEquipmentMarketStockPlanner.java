@@ -1,11 +1,8 @@
 package com.dillon.starsectormarines.marine;
 
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 
 /** Pure monthly selection policy for faction-authored equipment-card stock. */
@@ -21,18 +18,16 @@ final class FactionEquipmentMarketStockPlanner {
                           Set<String> ownedTemplateIds) {
         Set<String> unavailable = new HashSet<>(ownedTemplateIds != null
                 ? ownedTemplateIds : Set.of());
-        List<String> market = pick(
-                FactionEquipmentCatalog.offers(factionId, FactionEquipmentSource.MARKET),
-                marketSlots(marketSize), seed(factionId, marketId, rotation, "market"),
-                unavailable, FactionEquipmentSource.MARKET);
+        List<String> market = FactionEquipmentPicker.pick(factionId,
+                FactionEquipmentSource.MARKET, marketSlots(marketSize),
+                seed(factionId, marketId, rotation, "market"), unavailable);
         unavailable.addAll(market);
 
         List<String> licensed = hasLicenseAccess
-                ? pick(FactionEquipmentCatalog.offers(
-                                factionId, FactionEquipmentSource.LICENSE),
-                        licenseSlots(marketSize),
+                ? FactionEquipmentPicker.pick(factionId,
+                        FactionEquipmentSource.LICENSE, licenseSlots(marketSize),
                         seed(factionId, marketId, rotation, "license"),
-                        unavailable, FactionEquipmentSource.LICENSE)
+                        unavailable)
                 : List.of();
         return new StockPlan(market, licensed);
     }
@@ -44,32 +39,6 @@ final class FactionEquipmentMarketStockPlanner {
     private static int licenseSlots(int marketSize) {
         if (marketSize < 4) return 0;
         return Math.max(1, Math.min(MAX_LICENSE_SLOTS, marketSize - 4));
-    }
-
-    private static List<String> pick(List<FactionEquipmentOffer> offers, int limit,
-                                     long seed, Set<String> unavailable,
-                                     FactionEquipmentSource source) {
-        if (limit <= 0 || offers.isEmpty()) return List.of();
-        List<FactionEquipmentOffer> candidates = offers.stream()
-                .filter(offer -> !unavailable.contains(offer.templateId()))
-                .sorted(Comparator.comparing(FactionEquipmentOffer::templateId))
-                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
-        Random random = new Random(seed);
-        List<String> selected = new ArrayList<>();
-        while (!candidates.isEmpty() && selected.size() < limit) {
-            int totalWeight = candidates.stream().mapToInt(offer -> offer.weight(source)).sum();
-            int roll = random.nextInt(totalWeight);
-            for (int index = 0; index < candidates.size(); index++) {
-                FactionEquipmentOffer candidate = candidates.get(index);
-                roll -= candidate.weight(source);
-                if (roll < 0) {
-                    selected.add(candidate.templateId());
-                    candidates.remove(index);
-                    break;
-                }
-            }
-        }
-        return List.copyOf(selected);
     }
 
     private static long seed(String factionId, String marketId, long rotation, String channel) {

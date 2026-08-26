@@ -9,7 +9,7 @@
         "designation": "FR-1",
         "designationTiered": false,
         "role": "LINE",
-        "description": "The rugged Rook is the frontier's common chemical-propellant rifle. Its heavy single shot rewards steady aim, but the slow action punishes a collapsing line."
+        "description": "Preserved in countless Domain forge archives, the Rook serves Hegemony auxiliaries, Church militias, and frontier guards. Its heavy slug rewards steady aim; the slow action punishes a collapsing line."
       },
       "sim": {
         "range": 22.0,
@@ -46,7 +46,7 @@
         "designation": "PLS",
         "designationTiered": true,
         "role": "LINE",
-        "description": "The Lancer packages a dependable three-pulse burst into familiar fleet-service controls. It remains useful at almost every distance without matching a specialist weapon at its preferred fight."
+        "description": "Tri-Tachyon sold the Lancer as a corporate-security arm before the AI Wars made its logo awkward. Proprietary cells deliver flexible three-pulse fire at a corporate-maintenance price."
       },
       "sim": {
         "range": 24.0,
@@ -83,7 +83,7 @@
         "designation": "SHD",
         "designationTiered": true,
         "role": "ASSAULT",
-        "description": "The Rattler throws a dense flechette cloud through doorways and compartments. Its pattern is devastating up close and rapidly loses coherence across open ground."
+        "description": "Rattler is a black-market family, not one factory pattern. Pirate shops and Pather cells turn civilian flechette mechanisms into brutal close-range boarding carbines."
       },
       "sim": {
         "range": 14.0,
@@ -121,7 +121,7 @@
         "designation": "SA",
         "designationTiered": true,
         "role": "SUPPORT",
-        "description": "The Stalwart feeds a long string of chemical slugs through a reinforced receiver. It keeps hostile heads down while the fire team changes position."
+        "description": "The Hegemony standardized the Stalwart from a Domain support rifle. Its reinforced receiver sustains long slug bursts while League and Diktat arsenals copy it freely."
       },
       "sim": {
         "range": 22.0,
@@ -159,7 +159,7 @@
         "designation": "RG",
         "designationTiered": true,
         "role": "MARKSMAN",
-        "description": "The Longbow accelerates a narrow penetrator with exceptional consistency. A patient marksman can exploit sight lines ordinary rifles cannot contest."
+        "description": "Kazeron combines revived the Longbow as a League interoperability project. Its standardized cells drive a narrow penetrator down sight lines ordinary rifles cannot contest."
       },
       "sim": {
         "range": 32.0,
@@ -198,7 +198,7 @@
         "designation": "DPLS",
         "designationTiered": true,
         "role": "DRONE",
-        "description": "The Wisp is a compact pulse emitter for autonomous security platforms. It favors persistent pressure over the decisive burst of a marine-carried rifle."
+        "description": "Tri-Tachyon designed the Wisp for tireless facility-security drones. Its measured two-pulse cadence favors persistent pressure; human-compatible stocks were never part of the contract."
       },
       "sim": {
         "range": 26.0,

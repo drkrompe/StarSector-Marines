@@ -5,15 +5,19 @@ import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import java.util.List;
 
 /**
- * The ship deck's published structure: its compartments and the athwartships
- * corridors that divide them.
+ * The ship deck's published structure: the rooms that were placed, and the ones
+ * the hull could not hold.
  *
  * <p>This is deliberately <em>not</em> the station's room/corridor graph. There,
  * corridors are edges between room vertices, which suits a layout organized
- * around a core. On a ship the spine and its transverse passages are places in
- * their own right — the main line of advance and the cross-connections that
- * make the deck something other than a comb — so they are recorded rather than
+ * around a core. On a ship the spine and the passages branching off it are
+ * places in their own right — the main line of advance and the local access to
+ * each block of compartments — so they are cut into the deck rather than
  * reduced to adjacency.
+ *
+ * <p>{@link #unplaced()} is deliberately visible rather than swallowed. A deck
+ * that could not fit part of its program is a sizing defect, and hiding it would
+ * turn a measurable shortfall into a deck that merely looks a little empty.
  *
  * <p>Topological roles such as depth-from-entry and must-pass chokepoints are
  * not here yet; they arrive with the bulkhead stage that gives the deck its
@@ -21,7 +25,7 @@ import java.util.List;
  */
 public final class DeckGraph {
 
-    /** One carved compartment. Bounds are the inclusive walkable cell rect. */
+    /** One placed room. Bounds are the inclusive walkable cell rect, excluding its bulkheads. */
     public record Compartment(int id, int left, int top, int right, int bottom,
                               DeckSide side, DeckZone zone, RoomPurpose purpose) {
 
@@ -39,23 +43,26 @@ public final class DeckGraph {
             return right - left + 1;
         }
 
-        /** Depth outboard from the spine, in cells. */
+        /** Extent across the beam, in cells. */
         public int depth() {
             return bottom - top + 1;
+        }
+
+        public int area() {
+            return width() * depth();
         }
     }
 
     private final List<Compartment> compartments;
-    private final int[] corridorFrames;
+    private final List<RoomRecipe> unplaced;
 
     /**
-     * @param compartments carved compartments, in deterministic carve order
-     * @param corridorFrames the fore-most column of each athwartships corridor,
-     *     ascending bow to stern
+     * @param compartments placed rooms, in deterministic placement order
+     * @param unplaced rooms from the program the deck had no space for
      */
-    public DeckGraph(List<Compartment> compartments, int[] corridorFrames) {
+    public DeckGraph(List<Compartment> compartments, List<RoomRecipe> unplaced) {
         this.compartments = List.copyOf(compartments);
-        this.corridorFrames = corridorFrames.clone();
+        this.unplaced = List.copyOf(unplaced);
     }
 
     public List<Compartment> compartments() {
@@ -66,8 +73,8 @@ public final class DeckGraph {
         return compartments.size();
     }
 
-    /** The fore-most column of each athwartships corridor, ascending bow to stern. */
-    public int[] corridorFrames() {
-        return corridorFrames.clone();
+    /** Rooms the program owed that would not fit. Empty on a correctly sized deck. */
+    public List<RoomRecipe> unplaced() {
+        return unplaced;
     }
 }

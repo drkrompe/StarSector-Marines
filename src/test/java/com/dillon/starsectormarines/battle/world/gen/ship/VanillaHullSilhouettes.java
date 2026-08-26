@@ -130,25 +130,37 @@ public final class VanillaHullSilhouettes {
      * clip, which is what makes small hulls produce usable decks.
      */
     private static HullSilhouette trace(BufferedImage image, String hullId) {
-        int height = image.getHeight();
-        int width = image.getWidth();
-        float centre = (width - 1) / 2f;
+        // Vanilla art is drawn bow-up, but a few hulls are broader than they are
+        // long. Walking the short axis of one of those would trace across the
+        // beam and produce a deck at right angles to the ship, so the long axis
+        // is chosen rather than assumed.
+        boolean bowUp = image.getHeight() >= image.getWidth();
+        int along = bowUp ? image.getHeight() : image.getWidth();
+        int across = bowUp ? image.getWidth() : image.getHeight();
+        float centre = (across - 1) / 2f;
 
         float[] port = new float[SAMPLES];
         float[] starboard = new float[SAMPLES];
+        int firstOccupied = -1;
+        int lastOccupied = -1;
+        float widest = 0f;
 
         for (int s = 0; s < SAMPLES; s++) {
-            int row = Math.min(height - 1, Math.round((float) s / (SAMPLES - 1) * (height - 1)));
+            int line = Math.min(along - 1, Math.round((float) s / (SAMPLES - 1) * (along - 1)));
             int first = -1;
             int last = -1;
-            for (int x = 0; x < width; x++) {
-                if ((image.getRGB(x, row) >>> 24) < OPAQUE) continue;
-                if (first < 0) first = x;
-                last = x;
+            for (int a = 0; a < across; a++) {
+                int argb = bowUp ? image.getRGB(a, line) : image.getRGB(line, a);
+                if ((argb >>> 24) < OPAQUE) continue;
+                if (first < 0) first = a;
+                last = a;
             }
             if (first < 0) continue;
             port[s] = Math.max(0f, centre - first);
             starboard[s] = Math.max(0f, last - centre);
+            if (firstOccupied < 0) firstOccupied = s;
+            lastOccupied = s;
+            widest = Math.max(widest, last - first + 1);
         }
 
         float reference = typicalHalfBeam(port, starboard);
@@ -156,7 +168,14 @@ public final class VanillaHullSilhouettes {
             port[s] /= reference;
             starboard[s] /= reference;
         }
-        return new HullSilhouette(port, starboard, hullId);
+        // Aspect has to come from the hull, not the canvas. Sprites are padded,
+        // and a small hull on a large sheet measured corner to corner reads as
+        // almost square — which produced a deck shaped like a station.
+        float length = firstOccupied < 0
+                ? along
+                : (lastOccupied - firstOccupied + 1) / (float) SAMPLES * along;
+        return new HullSilhouette(port, starboard,
+                Math.max(0.05f, widest / Math.max(1f, length)), hullId);
     }
 
     /** The {@link #BEAM_PERCENTILE} half-beam across every sample the hull occupies. */

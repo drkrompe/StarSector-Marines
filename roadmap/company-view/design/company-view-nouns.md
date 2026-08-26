@@ -4,7 +4,8 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — Barracks actors claim exclusive activity sites; Conquest distributes every selected squad across mission-configured reusable Aeroshuttle pairs and drop zones.
+Updated: 2026-08-26 — grounded built-in equipment provenance and distributed
+Conquest deployment across mission-configured Aeroshuttle pairs and drop zones.
 
 ## Purpose
 
@@ -202,9 +203,9 @@ unplated fatigues. Starting and migrated armories collect every template referen
 by that exact issue; the live cargo preview remains honest about the cost to
 materialize it.
 
-**Fleet Assault Equipment** is the built-in player assault profile: its twelve
-exact billets contain one Shattercap frag carrier, so its authored distribution stays
-legible. Player-authored definitions must likewise resolve to
+**Corporate Blacksite Breach** is the built-in player assault profile:
+its twelve exact billets contain one Shattercap frag carrier, so its authored
+distribution stays legible. Player-authored definitions must likewise resolve to
 twelve exact billets before the same issue transaction can commit.
 
 Legacy four-billet templates, three-template arrangements, and their persisted ids

@@ -297,7 +297,7 @@ class MarineArmoryTest {
         assertEquals(12, pulseRifles.free());
         assertEquals(0, pulseRifles.returned());
         assertEquals(4, pulseRifles.required());
-        FireTeamGearDelta charcoal = delta(preview, "Charcoal combat armor");
+        FireTeamGearDelta charcoal = delta(preview, "Bastion line armor");
         assertEquals(2, charcoal.free());
         assertEquals(4, charcoal.returned());
         assertEquals(4, charcoal.required());

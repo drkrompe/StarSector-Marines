@@ -7,7 +7,7 @@ Status: PLANNED — depends on the remaining S2E–S2G special-equipment stories
 armor expansion also depends on
 `powered-assault-armor-roles.md`.
 Written: 2026-08-22
-Updated: 2026-08-26 — landed rotating faction market stock and relationship-gated licenses; patron and recovery consumers remain.
+Updated: 2026-08-26 — landed faction market, license, and completed-patron reward consumers; operational recovery remains.
 
 Read `progression-nouns.md`, `faction-lore-nouns.md`, and
 `powered-assault-armor-roles.md` before implementing this story.
@@ -96,7 +96,13 @@ weighted selection: larger markets carry more cards, templates already owned
 by the player are omitted, and `license` offers join the same stock only at
 Favorable-or-better standing. Unknown faction ids consume the Independent
 fallback pool while explicit exclusions such as the Remnants remain empty.
-Patron reward selection and operational recovery remain the work of this story.
+Completed patron contracts now consume the same ledger that records patron
+history and issue one weighted card from the patron faction's `patron` pool.
+The delivery is exactly once across battle-resolved and time-resolved contracts,
+omits templates already learned or held in cargo, retries when fleet cargo is
+temporarily unavailable, and compensates existing saves from their unprocessed
+completion history. System-generated extraction work is not a patron reward.
+Operational recovery remains the work of this story.
 
 The parameterized cargo item and its right-click learning transition are now
 shipped. A source can create its validated payload from any stable
