@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout.DollDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
@@ -15,14 +16,15 @@ class MechLabDollCanvasTest {
 
     @Test
     void dropTargetUsesTheGantryAroundTheDollWhileLeaderRetainsPhysicalAnchor() {
-        SocketDef core = MechFittingLayout.forVariant(MechVariant.BULWARK)
-                .socket(SocketId.CORE);
+        MechFittingLayout layout = MechFittingLayout.forVariant(MechVariant.BULWARK);
+        SocketDef core = layout.socket(SocketId.CORE);
 
         MechLabDollCanvas.SocketDropTarget target =
-                MechLabDollCanvas.socketDropTarget(core, 500f, 300f, 160f, 160f);
+                MechLabDollCanvas.socketDropTarget(layout.doll(), core,
+                        500f, 300f, 160f, 160f);
 
-        assertEquals(136f, target.width(), 1e-4f);
-        assertEquals(54.4f, target.height(), 1e-4f);
+        assertEquals(272f, target.width(), 1e-4f);
+        assertEquals(108.8f, target.height(), 1e-4f);
         assertEquals(500f, target.anchorX(), 1e-4f);
         assertEquals(304.8f, target.anchorY(), 1e-4f);
         assertEquals(500f, target.centerX(), 1e-4f);
@@ -33,23 +35,25 @@ class MechLabDollCanvasTest {
 
     @Test
     void oneSlotSocketRetainsAPracticalMinimumDropAreaOnSmallDolls() {
-        SocketDef miniFab = MechFittingLayout.forVariant(MechVariant.HOUND)
-                .socket(SocketId.MINI_FAB);
+        MechFittingLayout layout = MechFittingLayout.forVariant(MechVariant.HOUND);
+        SocketDef miniFab = layout.socket(SocketId.MINI_FAB);
 
         MechLabDollCanvas.SocketDropTarget target =
-                MechLabDollCanvas.socketDropTarget(miniFab, 200f, 160f, 80f, 80f);
+                MechLabDollCanvas.socketDropTarget(layout.doll(), miniFab,
+                        200f, 160f, 80f, 80f);
 
-        assertEquals(64f, target.width(), 1e-4f);
-        assertEquals(38f, target.height(), 1e-4f);
+        assertEquals(128f, target.width(), 1e-4f);
+        assertEquals(76f, target.height(), 1e-4f);
         assertEquals(1, target.capacity());
     }
 
     @Test
     void capacityCellsAreContiguousOrderedPlacementUnitsInsideTheDropTarget() {
-        SocketDef arms = MechFittingLayout.forVariant(MechVariant.BULWARK)
-                .socket(SocketId.ARMS);
+        MechFittingLayout layout = MechFittingLayout.forVariant(MechVariant.BULWARK);
+        SocketDef arms = layout.socket(SocketId.ARMS);
         MechLabDollCanvas.SocketDropTarget target =
-                MechLabDollCanvas.socketDropTarget(arms, 400f, 300f, 160f, 160f);
+                MechLabDollCanvas.socketDropTarget(layout.doll(), arms,
+                        400f, 300f, 160f, 160f);
 
         List<MechLabDollCanvas.CapacityCell> cells =
                 MechLabDollCanvas.capacityCells(target);
@@ -67,5 +71,21 @@ class MechLabDollCanvasTest {
                 assertTrue(cell.x() > prior.x() + prior.width());
             }
         }
+    }
+
+    @Test
+    void dropTargetAndLeaderConsumeTheAuthoredDollFacing() {
+        MechFittingLayout layout = MechFittingLayout.forVariant(MechVariant.BULWARK);
+        SocketDef core = layout.socket(SocketId.CORE);
+        DollDef eastFacing = new DollDef(90f, List.of(core));
+
+        MechLabDollCanvas.SocketDropTarget target =
+                MechLabDollCanvas.socketDropTarget(eastFacing, core,
+                        500f, 300f, 160f, 160f);
+
+        assertEquals(495.2f, target.anchorX(), 1e-3f);
+        assertEquals(300f, target.anchorY(), 1e-3f);
+        assertEquals(740f, target.centerX(), 1e-3f);
+        assertEquals(300f, target.centerY(), 1e-3f);
     }
 }

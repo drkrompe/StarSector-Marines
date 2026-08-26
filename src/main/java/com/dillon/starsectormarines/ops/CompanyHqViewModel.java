@@ -45,6 +45,7 @@ final class CompanyHqViewModel {
     }
 
     static CompanyHqViewModel current(
+            Runnable openBarracks,
             Runnable openArmory,
             Runnable openMechLab,
             Runnable close,
@@ -56,7 +57,8 @@ final class CompanyHqViewModel {
         CampaignState state = script != null ? script.state() : null;
         List<CompanyNews.Entry> news = CompanyNews.latest(
                 state, day, NEWS_LIMIT, PlayerEventTarget::displayName);
-        return build(standing, clocks, news, day, openArmory, openMechLab, close, respond);
+        return build(standing, clocks, news, day, openBarracks, openArmory,
+                openMechLab, close, respond);
     }
 
     private static CompanyHqViewModel build(
@@ -64,6 +66,7 @@ final class CompanyHqViewModel {
             List<CompanyClocks.Entry> clocks,
             List<CompanyNews.Entry> news,
             int day,
+            Runnable openBarracks,
             Runnable openArmory,
             Runnable openMechLab,
             Runnable close,
@@ -111,7 +114,7 @@ final class CompanyHqViewModel {
                 ? Strings.get("companyHqNewsEmpty") : "");
 
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ, close,
-                () -> { }, openArmory, openMechLab);
+                () -> { }, openBarracks, openArmory, openMechLab);
         return new CompanyHqViewModel(props);
     }
 
@@ -120,7 +123,7 @@ final class CompanyHqViewModel {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("purpose", "FLAGSHIP  /  BRIDGE  /  COMMAND NETWORK");
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ,
-                () -> { }, () -> { }, () -> { }, () -> { });
+                () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
         props.put("assessmentHeader", "BRIDGE ADJUTANT  //  DAILY ASSESSMENT");
         props.put("ratingHeader", "MERCENARY RATING");
         props.put("rating", "RECOGNIZED");

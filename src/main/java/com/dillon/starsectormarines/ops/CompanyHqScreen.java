@@ -53,6 +53,7 @@ public final class CompanyHqScreen implements Screen {
 
     private void installDocument() {
         CompanyHqViewModel viewModel = CompanyHqViewModel.current(
+                this::onBarracks,
                 this::onArmory,
                 this::onMechLab,
                 this::onClose,
@@ -84,7 +85,8 @@ public final class CompanyHqScreen implements Screen {
     private static void requireWiredElements(MarkupInstance component) {
         for (String id : List.of(
                 "company-hq-root", "marine-ops-page-nav", "page-nav-return",
-                "page-nav-hq", "page-nav-armory", "page-nav-mech-lab",
+                "page-nav-hq", "page-nav-barracks", "page-nav-armory",
+                "page-nav-mech-lab",
                 "company-hq-assessment",
                 "company-hq-main", "company-hq-sidebar", "company-hq-force",
                 "company-hq-finance", "company-hq-standing", "company-hq-board",
@@ -103,6 +105,10 @@ public final class CompanyHqScreen implements Screen {
 
     private void onArmory() {
         if (context != null) context.openCompanyArmoryFrom(ScreenId.COMPANY_HQ);
+    }
+
+    private void onBarracks() {
+        if (context != null) context.goTo(ScreenId.BARRACKS);
     }
 
     private void onMechLab() {

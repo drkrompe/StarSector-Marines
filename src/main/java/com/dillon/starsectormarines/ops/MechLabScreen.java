@@ -133,6 +133,7 @@ public final class MechLabScreen implements Screen {
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MECH_LAB,
                 this::close,
                 () -> context.goTo(ScreenId.COMPANY_HQ),
+                () -> context.goTo(ScreenId.BARRACKS),
                 () -> context.openCompanyArmoryFrom(ScreenId.MECH_LAB),
                 () -> { });
         return props;
@@ -141,7 +142,8 @@ public final class MechLabScreen implements Screen {
     private static void requireWiredElements(MarkupInstance component) {
         for (String id : List.of(
                 "mech-lab-root", "marine-ops-page-nav", "page-nav-return",
-                "page-nav-hq", "page-nav-armory", "page-nav-mech-lab",
+                "page-nav-hq", "page-nav-barracks", "page-nav-armory",
+                "page-nav-mech-lab",
                 "mech-lab-room-bar", "mech-lab-body", "mech-asset-picker",
                 "mech-squad-list", "mech-list", "mech-fitting-workspace",
                 "mech-performance-grid", "mech-garage-stage", "mech-doll-canvas",
