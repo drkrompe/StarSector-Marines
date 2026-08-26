@@ -1030,7 +1030,13 @@ public final class BattleSetup {
         MapResult map = MAP_GEN.generate(gridW, gridH, seed, axis, profile);
 
         List<MapVehicle> vehiclePlacements = stampVehicles(map, rng);
-        List<ShuttleAssignment> assignments = resolveManifest(manifest);
+        ShuttleArrivalPlan requestedArrivalPlan = arrivalPlan != null
+                ? arrivalPlan : ShuttleArrivalPlan.legacy();
+        ShuttleArrivalPlan.ResolvedManifest resolvedManifest =
+                requestedArrivalPlan.resolveManifest(resolveManifest(manifest));
+        List<ShuttleAssignment> assignments = resolvedManifest.assignments();
+        ShuttleArrivalPlan resolvedArrivalPlan = new ShuttleArrivalPlan(
+                requestedArrivalPlan.policy(), resolvedManifest.firstPlayerShuttle());
         DefenderForcePlan defenders = defenderForcePlan(
                 MissionType.CONQUEST, tier, risk, enemyHasHeavyArmor,
                 assignments, map.defensePosts, marineFighterSupport,
@@ -1060,9 +1066,7 @@ public final class BattleSetup {
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
 
         List<ConquestArrivalSlot> arrivalSlots = conquestArrivalSlots(
-                map, assignments, axis, rng, arrivalPlan);
-        ShuttleArrivalPlan resolvedArrivalPlan = arrivalPlan != null
-                ? arrivalPlan : ShuttleArrivalPlan.legacy();
+                map, assignments, axis, rng, resolvedArrivalPlan);
         List<int[]> lzCells = arrivalSlots.stream()
                 .map(slot -> new int[]{slot.pad().centerX, slot.pad().centerY})
                 .toList();
@@ -1081,7 +1085,10 @@ public final class BattleSetup {
                     a.seatsPerSortie);
             ShuttleMission mission = sim.world().mission(shuttleId);
             mission.totalCycles = a.cycles;
-            mission.manifestOrdinal = i;
+            mission.manifestOrdinal = i < resolvedManifest.firstPlayerShuttle()
+                    ? i
+                    : requestedArrivalPlan.firstPlayerShuttle()
+                            + i - resolvedManifest.firstPlayerShuttle();
             mission.landingAreaId = slot.landingAreaId();
             mission.arrivalGroupId = slot.arrivalGroupId();
             mission.expectedArrivalStrength = slot.expectedStrength();

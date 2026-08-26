@@ -739,6 +739,15 @@ public class BriefingScreen implements Screen {
     }
 
     private int requiredPersonnelSeats(Mission m) {
+        int base = basePersonnelSeats(m);
+        if (m == null || m.type != MissionType.CONQUEST) return base;
+        MarineRoster roster = liveRoster();
+        int selected = PersonnelReadiness.assessSelection(roster,
+                ctx.getSelectedMarineSquadIds(), 0).selectedReady();
+        return Math.max(base, selected);
+    }
+
+    private int basePersonnelSeats(Mission m) {
         if (m == null) return 0;
         List<ShuttleAssignment> manifest = DetachmentResolver.buildShuttleManifest(
                 m, m.source == MissionSource.STATIONING
