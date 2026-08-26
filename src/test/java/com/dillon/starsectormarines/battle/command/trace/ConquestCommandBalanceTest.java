@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.command.trace.CommandTraceAnalyzer.Analysis;
 import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
 import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
+import com.dillon.starsectormarines.battle.fixture.BattleFixture;
+import com.dillon.starsectormarines.battle.fixture.BattleLaunchFixture;
 import com.dillon.starsectormarines.battle.fixture.ConquestBattleFixture;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -62,7 +64,7 @@ class ConquestCommandBalanceTest {
             List<ReportRow> rows = new ArrayList<>(matrix.size());
             for (FixtureSpec spec : matrix) {
                 LoadedFixture loaded = load(spec);
-                ConquestBattleFixture fixture = loaded.fixture;
+                BattleFixture fixture = loaded.fixture;
                 String runId = reportId(spec.id, spec.external, loaded.sha256);
                 RunResult first = run(fixture, maxTicks);
                 RunResult second = run(fixture, maxTicks);
@@ -77,7 +79,7 @@ class ConquestCommandBalanceTest {
                 Files.writeString(traces.resolve(runId + ".jsonl"), first.trace,
                         StandardCharsets.UTF_8);
                 rows.add(new ReportRow(runId, loaded.sha256,
-                        fixture, first.analysis));
+                        loaded.construction, first.analysis));
                 System.out.println("[commander-balance] " + runId + " "
                         + first.analysis.run().termination() + " winner="
                         + first.analysis.run().winner() + " ticks="
@@ -97,7 +99,7 @@ class ConquestCommandBalanceTest {
                 + output.resolve("summary.md").toAbsolutePath());
     }
 
-    private static RunResult run(ConquestBattleFixture fixture, int maxTicks)
+    private static RunResult run(BattleFixture fixture, int maxTicks)
             throws Exception {
         try (BattleSimulation sim = fixture.build()) {
             sim.setCommandTraceEnabled(true, fixture.kind());
@@ -139,11 +141,17 @@ class ConquestCommandBalanceTest {
         } else {
             json = Files.readString(Path.of(spec.location));
         }
-        ConquestBattleFixture fixture = (ConquestBattleFixture)
-                BattleFixtureJson.fromJson(new JSONObject(json));
+        BattleFixture fixture = BattleFixtureJson.fromJson(new JSONObject(json));
+        BattleFixture construction = fixture instanceof BattleLaunchFixture launch
+                ? launch.construction() : fixture;
+        if (!(construction instanceof ConquestBattleFixture conquest)) {
+            throw new IllegalArgumentException(
+                    "Commander balance requires a Conquest fixture: " + fixture.kind());
+        }
         byte[] digest = MessageDigest.getInstance("SHA-256")
                 .digest(json.getBytes(StandardCharsets.UTF_8));
-        return new LoadedFixture(fixture, HexFormat.of().formatHex(digest));
+        return new LoadedFixture(fixture, conquest,
+                HexFormat.of().formatHex(digest));
     }
 
     static String summaryJson(List<ReportRow> rows, int maxTicks,
@@ -370,7 +378,8 @@ class ConquestCommandBalanceTest {
     }
 
     private record LoadedFixture(
-            ConquestBattleFixture fixture, String sha256) { }
+            BattleFixture fixture, ConquestBattleFixture construction,
+            String sha256) { }
 
     private record RunResult(String trace, Analysis analysis) { }
 

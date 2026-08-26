@@ -82,13 +82,15 @@ See `ui-nouns.md` and `company-view-nouns.md`.
 
 ## Immediate recommendation
 
-Rerun the physical Conquest baseline against the landed distant-capture reserve
-rule and confirm the published deferral flag binds where actionable front
-resistance overlaps an open capture slot. Then add the campaign deployment/
-form-up overlay from `launch-fixture-fidelity.md` to the commander matrix before
-treating its force-concentration results as a balance verdict. Keep exact
-capture-zone presence as neutral outcome evidence, never commander input. Then
-close the remaining assignment-writer and live-acceptance edges
+Capture representative full-company Conquest launches as V2 fixtures and
+replace the construction-only rows in the commander matrix before treating its
+force-concentration results as a balance verdict. The launch envelope can now
+replay persistent personnel, fighter cover, powers, and finite resources
+through the production overlay seam, while the schema-4 rerun proved the
+distant-capture reserve binds. The current canonical rows still delivered only
+one to four simultaneous marine squads and neither produced capture-zone
+entry. Keep exact capture-zone presence as neutral outcome evidence, never
+commander input. Then close the remaining assignment-writer and live-acceptance edges
 in `autonomous-mission-command-foundation.md`. Opening Operations remains the
 smallest second command-duel proof; later missions adapt the same knowledge,
 ownership, cadence, and diagnostic contracts through their own geometry.

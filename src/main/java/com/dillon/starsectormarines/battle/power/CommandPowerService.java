@@ -116,6 +116,9 @@ public final class CommandPowerService {
 
     public float getMaxCommandPoints() { return MAX_COMMAND_POINTS; }
 
+    /** Supplies visible to command powers at this instant. */
+    public int getAvailableSupplies() { return resources.availableSupplies(); }
+
     public CommandPower getPower(String id) { return powers.get(id); }
 
     public void setResources(CommandPowerResources resources) {

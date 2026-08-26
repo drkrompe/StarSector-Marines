@@ -36,6 +36,7 @@ class MechLabViewModelTest {
         MechBay bay = new MechBay();
         MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay);
         CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
+        viewModel.gantryRows().get().get(0).select().run();
 
         MechLabViewModel.CatalogRow accelerated = viewModel.catalogRows().get()
                 .stream()
@@ -61,6 +62,7 @@ class MechLabViewModelTest {
         MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay);
         CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
         String originalReplenisher = mech.missileReplenisherId();
+        viewModel.gantryRows().get().get(0).select().run();
 
         viewModel.leftSlotRows().get().stream()
                 .filter(row -> row.id().endsWith("arms"))
@@ -91,6 +93,31 @@ class MechLabViewModelTest {
         viewModel.mechRows().get().get(0).select().run();
         assertTrue(viewModel.pickerClasses().get().contains("hidden"));
         assertFalse(viewModel.workspaceClasses().get().contains("hidden"));
+        assertTrue(viewModel.fittingFocused());
+        assertFalse(viewModel.catalogClasses().get().contains("hidden"));
+        assertTrue(viewModel.overviewRailClasses().get().contains("hidden"));
+    }
+
+    @Test
+    void lanceOverviewHasNoSelectedChassisOrFittingColumns() {
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), new MechBay());
+
+        assertFalse(viewModel.fittingFocused());
+        assertNull(viewModel.selectedVariant());
+        assertTrue(viewModel.catalogClasses().get().contains("hidden"));
+        assertTrue(viewModel.slotRackClasses().get().contains("hidden"));
+        assertTrue(viewModel.performanceClasses().get().contains("hidden"));
+        assertTrue(viewModel.fittingHeaderClasses().get().contains("hidden"));
+        assertFalse(viewModel.overviewRailClasses().get().contains("hidden"));
+        assertEquals(4, viewModel.gantryRows().get().size());
+        assertFalse(viewModel.gantryRows().get().get(0).disabled());
+        assertTrue(viewModel.gantryRows().get().get(1).disabled());
+
+        viewModel.gantryRows().get().get(0).select().run();
+        assertTrue(viewModel.fittingFocused());
+        assertEquals(MechVariant.BULWARK, viewModel.selectedVariant());
+        assertFalse(viewModel.catalogClasses().get().contains("hidden"));
+        assertFalse(viewModel.slotRackClasses().get().contains("hidden"));
     }
 
     @Test
@@ -107,6 +134,7 @@ class MechLabViewModelTest {
         viewModel.nextGantryAction().run();
         assertEquals(1, viewModel.selectedGantryIndex());
         assertEquals(MechVariant.HOUND, viewModel.selectedVariant());
+        assertTrue(viewModel.fittingFocused());
         assertTrue(viewModel.activeGantryLabel().get().contains("GANTRY 02 / 04"));
         assertEquals("Hound 02", viewModel.selectedMechName().get());
 
@@ -114,6 +142,8 @@ class MechLabViewModelTest {
         viewModel.nextGantryAction().run();
         assertEquals(3, viewModel.selectedGantryIndex());
         assertNull(viewModel.selectedVariant());
+        assertFalse(viewModel.fittingFocused());
+        assertTrue(viewModel.catalogClasses().get().contains("hidden"));
         assertTrue(viewModel.activeGantryLabel().get().contains("VACANT"));
 
         viewModel.nextGantryAction().run();
@@ -193,7 +223,9 @@ class MechLabViewModelTest {
         props.put("labSummary", viewModel.labSummary());
         props.put("squadRows", viewModel.squadRows());
         props.put("mechRows", viewModel.mechRows());
+        props.put("gantryRows", viewModel.gantryRows());
         props.put("activeGantryLabel", viewModel.activeGantryLabel());
+        props.put("garageTitle", viewModel.garageTitle());
         props.put("selectedMechName", viewModel.selectedMechName());
         props.put("selectedMechIdentity", viewModel.selectedMechIdentity());
         props.put("selectedMechDoctrine", viewModel.selectedMechDoctrine());
@@ -207,6 +239,11 @@ class MechLabViewModelTest {
         props.put("catalogRows", viewModel.catalogRows());
         props.put("pickerClasses", viewModel.pickerClasses());
         props.put("workspaceClasses", viewModel.workspaceClasses());
+        props.put("fittingHeaderClasses", viewModel.fittingHeaderClasses());
+        props.put("performanceClasses", viewModel.performanceClasses());
+        props.put("catalogClasses", viewModel.catalogClasses());
+        props.put("slotRackClasses", viewModel.slotRackClasses());
+        props.put("overviewRailClasses", viewModel.overviewRailClasses());
         props.put("openAssetPicker", viewModel.openAssetPickerAction());
         props.put("closeAssetPicker", viewModel.closeAssetPickerAction());
         props.put("previousGantry", viewModel.previousGantryAction());
