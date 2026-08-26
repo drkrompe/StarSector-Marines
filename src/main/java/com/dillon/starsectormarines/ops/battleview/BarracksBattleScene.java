@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskPose;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskRoute;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
+import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -21,6 +22,7 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
 
 import java.util.EnumSet;
+import java.util.ArrayList;
 import java.util.List;
 
 /** Bounded battle-renderer host for the flagship's marine quarters. */
@@ -28,9 +30,11 @@ public final class BarracksBattleScene implements AutoCloseable {
 
     static final int GRID_WIDTH = BarracksSceneLayout.WIDTH;
     static final int GRID_HEIGHT = BarracksSceneLayout.HEIGHT;
+    private static final float MAX_REPLAY_SECONDS = 30f;
     private static final EnumSet<RenderLayer> BACKDROP_LAYERS = EnumSet.of(
             RenderLayer.GROUND, RenderLayer.DOODADS);
-    private static final EnumSet<RenderLayer> ACTOR_LAYERS = EnumSet.of(RenderLayer.UNITS);
+    private static final EnumSet<RenderLayer> ACTOR_LAYERS = EnumSet.of(
+            RenderLayer.UNITS, RenderLayer.SHOTS);
 
     private final BattleRenderer renderer;
     private final HighlightOverlay highlights = new HighlightOverlay();
@@ -38,6 +42,7 @@ public final class BarracksBattleScene implements AutoCloseable {
     private final BattleCamera camera = new BattleCamera(GRID_WIDTH, GRID_HEIGHT);
     private BattleSimulation simulation;
     private List<MarineSoldier> renderedMarines = List.of();
+    private float simulatedSeconds;
 
     public BarracksBattleScene(BattleSprites sprites) {
         if (sprites == null) throw new IllegalArgumentException("battle sprites are required");
@@ -56,6 +61,38 @@ public final class BarracksBattleScene implements AutoCloseable {
 
     public BattleSceneHostPass actorPass(List<MarineSoldier> marines, float elapsedSeconds) {
         return pass(marines, elapsedSeconds, ACTOR_LAYERS);
+    }
+
+    /**
+     * Advances the embedded room through the ordinary fixed-step battle clock.
+     * Repeated calls at the same authored time are no-ops, allowing the
+     * backdrop and actor render passes to observe one authoritative frame.
+     */
+    public void advanceTo(List<MarineSoldier> marines, float elapsedSeconds) {
+        if (!Float.isFinite(elapsedSeconds)) {
+            throw new IllegalArgumentException("Barracks time must be finite");
+        }
+        float targetSeconds = Math.max(0f, elapsedSeconds);
+        boolean rebuilt = ensureSimulation(marines);
+        if (targetSeconds < simulatedSeconds) {
+            rebuildSimulation(renderedMarines);
+            rebuilt = true;
+        }
+        if (rebuilt && targetSeconds > MAX_REPLAY_SECONDS) {
+            simulation.ambientTasks().seek(targetSeconds);
+            simulatedSeconds = targetSeconds;
+            return;
+        }
+        float dt = targetSeconds - simulatedSeconds;
+        if (dt > 0f) {
+            simulation.advance(dt);
+            simulatedSeconds = targetSeconds;
+        }
+    }
+
+    /** New shot events emitted by the most recent embedded-scene advance. */
+    public List<ShotEvent> shotsThisFrame() {
+        return simulation != null ? simulation.getShotsThisFrame() : List.of();
     }
 
     private BattleSceneHostPass pass(List<MarineSoldier> marines,
@@ -87,8 +124,7 @@ public final class BarracksBattleScene implements AutoCloseable {
         if (viewport.width() <= 0f || viewport.height() <= 0f) {
             throw new IllegalArgumentException("Barracks viewport must be visible");
         }
-        ensureSimulation(marines);
-        simulation.ambientTasks().seek(elapsedSeconds);
+        advanceTo(marines, elapsedSeconds);
         configureCamera(camera, viewport.screenX(), viewport.screenY(),
                 viewport.width(), viewport.height());
         RenderContext context = new RenderContext(simulation, camera, null,
@@ -110,12 +146,18 @@ public final class BarracksBattleScene implements AutoCloseable {
         camera.centerOn(GRID_WIDTH * 0.5f, GRID_HEIGHT * 0.5f);
     }
 
-    private void ensureSimulation(List<MarineSoldier> marines) {
+    private boolean ensureSimulation(List<MarineSoldier> marines) {
         List<MarineSoldier> copy = List.copyOf(marines);
-        if (simulation != null && renderedMarines.equals(copy)) return;
+        if (simulation != null && renderedMarines.equals(copy)) return false;
+        rebuildSimulation(copy);
+        return true;
+    }
+
+    private void rebuildSimulation(List<MarineSoldier> marines) {
         if (simulation != null) simulation.close();
-        renderedMarines = copy;
-        simulation = buildSimulation(copy);
+        renderedMarines = List.copyOf(marines);
+        simulation = buildSimulation(renderedMarines);
+        simulatedSeconds = 0f;
     }
 
     static BattleSimulation buildSimulation() {
@@ -132,7 +174,7 @@ public final class BarracksBattleScene implements AutoCloseable {
                 else grid.setWalkableFloor(x, y);
             }
         }
-        java.util.ArrayList<Doodad> props = new java.util.ArrayList<>();
+        ArrayList<Doodad> props = new ArrayList<>();
         for (BarracksSceneLayout.PropPlacement placement : BarracksSceneLayout.PROPS) {
             DoodadDef definition = TileRegistry.installed().doodad(placement.doodadId());
             Doodad doodad = new Doodad(placement.cellX(), placement.cellY(), definition);
@@ -144,6 +186,13 @@ public final class BarracksBattleScene implements AutoCloseable {
         }
         BattleSimulation sim = new BattleSimulation(grid, topology, 0x4241525241434B53L);
         for (Doodad prop : props) sim.addDoodad(prop);
+        long[] rangeTargets = new long[3];
+        for (int lane = 0; lane < rangeTargets.length; lane++) {
+            int targetX = 25 + lane * 2;
+            rangeTargets[lane] = sim.spawn(new EntitySpec(
+                    "range target " + (lane + 1), Faction.DEFENDER,
+                    UnitType.RANGE_TARGET, targetX, 13).role(UnitRole.STRUCTURE));
+        }
         int count = Math.min(marines.size(), BarracksSceneLayout.MARINE_TASKS.size());
         for (int index = 0; index < count; index++) {
             MarineSoldier soldier = marines.get(index);
@@ -160,9 +209,8 @@ public final class BarracksBattleScene implements AutoCloseable {
                     soldier.armorDef().moveSpeedMult(),
                     soldier.armorDef().incomingAccuracyMult(), null).seedInto(spec);
             long actor = sim.spawn(spec);
-            sim.ambientTasks().assign(actor, route);
+            sim.ambientTasks().assignLiveFire(actor, route, rangeTargets[index % 3]);
         }
-        sim.ambientTasks().seek(0f);
         sim.getFogOfWar().tick(0, sim.getRoster());
         return sim;
     }
@@ -188,5 +236,6 @@ public final class BarracksBattleScene implements AutoCloseable {
             simulation = null;
         }
         renderedMarines = List.of();
+        simulatedSeconds = 0f;
     }
 }

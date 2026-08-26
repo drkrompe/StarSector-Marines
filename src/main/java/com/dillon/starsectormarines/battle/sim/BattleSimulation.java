@@ -65,6 +65,7 @@ import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.combat.BallisticResolver;
 import com.dillon.starsectormarines.battle.combat.DamageResolver;
 import com.dillon.starsectormarines.battle.combat.DamageService;
+import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropService;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropSystem;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
@@ -538,6 +539,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 det -> { synchronized (detonations) { detonations.queue(det); } },
                 hitResponse, world, ballisticResolver, rosterService.telemetry());
         this.infantry = new InfantryWeapons(rosterService, ballisticResolver, shots, grid, rng);
+        this.ambientTasks.setLiveFireSink((actorId, targetId) -> {
+            if (rosterService.isLive(actorId) && rosterService.isLive(targetId)) {
+                infantry.fireShot(actorId, targetId, FireStance.STANCED);
+                rosterService.combat().beginBurst(actorId, targetId);
+            }
+        });
         this.firingSystem = new FiringSystem(grid, rosterService);
         this.heavy = new HeavyWeapons(rosterService, grid, ballisticResolver, shots, detonations, rng);
         this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, world, turretFire,
