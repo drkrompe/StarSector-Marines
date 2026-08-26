@@ -20,6 +20,8 @@ Select a unit, equipment variant, animation, keyframe, and layer, then:
 
 - drag the selected layer to change its normalized actor-local offset;
 - use the wheel to scale both axes, Shift-wheel for X only, or Alt-wheel for Y only;
+- apply the selected part's current scale to its matching layer id across every
+  authored keyframe in the unit with one undoable inspector action;
 - drag the gold pivot handle to rotate, use Ctrl-wheel, or enter an exact value
   in the inspector;
 - adjust pivot, visibility, z-order, source sprite, and frame duration;
@@ -51,6 +53,11 @@ composed over it. Choose **Rifle loadout / Walking** and press Play (or scrub th
 locomotion phase) to review that armor in motion. Edit shared walking, aiming,
 firing, feet, and weapon choreography on **Marine — army-green line kit** so all
 like armor units continue to use one animation authority.
+
+**Apply scale to all frames** operates only on the selected unit's owned variants,
+matching the selected layer id across all of their animations and keyframes. It does
+not rewrite an armor master's inherited `marine-line` preview; select the concrete
+source unit when the shared soldier sheet itself should change.
 
 Playback smoothsteps matching layers between adjacent keyframes, including offsets,
 independent scale, angle, and pivot. This makes articulated mech linkages directly

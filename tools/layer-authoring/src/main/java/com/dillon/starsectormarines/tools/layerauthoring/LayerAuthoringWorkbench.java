@@ -97,6 +97,8 @@ public final class LayerAuthoringWorkbench {
         private final JSpinner offsetY = number(0.0, -5.0, 5.0, 0.005);
         private final JSpinner scaleX = number(1.0, 0.01, 10.0, 0.01);
         private final JSpinner scaleY = number(1.0, 0.01, 10.0, 0.01);
+        private final JButton applyScaleToAllFrames = button(
+                "Apply scale to all frames", event -> applyScaleToAllFrames());
         private final JSpinner angle = number(0.0, -360.0, 360.0, 0.5);
         private final JSpinner pivotX = number(0.5, 0.0, 1.0, 0.01);
         private final JSpinner pivotY = number(0.5, 0.0, 1.0, 0.01);
@@ -296,6 +298,11 @@ public final class LayerAuthoringWorkbench {
             panel.add(row("Offset Y", offsetY));
             panel.add(row("Scale X", scaleX));
             panel.add(row("Scale Y", scaleY));
+            applyScaleToAllFrames.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+            applyScaleToAllFrames.setToolTipText(
+                    "Set this layer id's scale in every authored keyframe of the unit");
+            panel.add(applyScaleToAllFrames);
+            panel.add(Box.createVerticalStrut(5));
             panel.add(row("Angle", angle));
             panel.add(row("Pivot X", pivotX));
             panel.add(row("Pivot Y", pivotY));
@@ -316,7 +323,9 @@ public final class LayerAuthoringWorkbench {
                     + "<b>Canvas</b><br>Click to select<br>Drag layer to position<br>"
                     + "Drag gold handle to rotate<br>"
                     + "Wheel: scale<br>Shift-wheel: X only<br>Alt-wheel: Y only<br>"
-                    + "Ctrl-wheel: rotate<br><br><b>History</b><br>Ctrl+Z: undo<br>"
+                    + "Ctrl-wheel: rotate<br>Apply scale uses the selected part's scale "
+                    + "for every authored keyframe in this unit.<br><br>"
+                    + "<b>History</b><br>Ctrl+Z: undo<br>"
                     + "Ctrl+Shift+Z: redo<br><br><b>Save</b><br>Ctrl+S opens a confirmation "
                     + "before replacing the mod JSON.</html>");
             help.setForeground(new Color(0x55, 0x55, 0x55));
@@ -536,9 +545,11 @@ public final class LayerAuthoringWorkbench {
             }
             boolean editable = !inheritedPreview();
             for (JComponent component : List.of(offsetX, offsetY, scaleX, scaleY,
-                    angle, pivotX, pivotY, z, duration, driver, visible, loop, sprite)) {
+                    applyScaleToAllFrames, angle, pivotX, pivotY, z, duration, driver,
+                    visible, loop, sprite)) {
                 component.setEnabled(editable);
             }
+            applyScaleToAllFrames.setEnabled(editable && layer != null);
             refreshing = false;
         }
 
@@ -559,6 +570,39 @@ public final class LayerAuthoringWorkbench {
             finishHistoryChange();
             canvas.repaint();
             sheet.repaint();
+        }
+
+        private void applyScaleToAllFrames() {
+            stopPlayback();
+            if (rejectInheritedEdit()) return;
+            UnitComposition unit = unit();
+            LayerDefinition selected = layer();
+            if (unit == null || selected == null) return;
+            try {
+                refreshing = true;
+                scaleX.commitEdit();
+                scaleY.commitEdit();
+            } catch (java.text.ParseException failure) {
+                JOptionPane.showMessageDialog(this, failure.getMessage(),
+                        "Invalid scale value", JOptionPane.ERROR_MESSAGE);
+                return;
+            } finally {
+                refreshing = false;
+            }
+
+            double selectedScaleX = value(scaleX);
+            double selectedScaleY = value(scaleY);
+            beginHistoryChange();
+            int matches = unit.applyScaleToAllFrames(selected.id(),
+                    selectedScaleX, selectedScaleY);
+            finishHistoryChange();
+            refreshFields();
+            canvas.repaint();
+            sheet.repaint();
+            status.setText("Applied " + selected.id() + " scale "
+                    + selectedScaleX + " × " + selectedScaleY + " to " + matches
+                    + " authored frame" + (matches == 1 ? "" : "s") + " in "
+                    + unit.label());
         }
 
         private void updateLoop() {

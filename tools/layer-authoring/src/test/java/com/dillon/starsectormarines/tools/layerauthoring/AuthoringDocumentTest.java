@@ -147,6 +147,67 @@ class AuthoringDocumentTest {
     }
 
     @Test
+    void unitWideScaleAppliesToMatchingLayersAcrossEveryAuthoredFrame() throws Exception {
+        AuthoringDocument document = AuthoringDocument.load(Path.of("."));
+        UnitComposition marine = document.units().stream()
+                .filter(unit -> unit.id().equals("marine-line"))
+                .findFirst().orElseThrow();
+        int expectedMatches = marine.variants().stream()
+                .flatMap(variant -> variant.animations().stream())
+                .flatMap(animation -> animation.frames().stream())
+                .mapToInt(frame -> (int) frame.layers().stream()
+                        .filter(layer -> layer.id().equals("body")).count())
+                .sum();
+        double originalPrimaryScale = marine.variants().get(0).animations().get(0)
+                .frames().get(0).layers().stream()
+                .filter(layer -> layer.id().equals("primary"))
+                .findFirst().orElseThrow().scaleX();
+
+        int matches = marine.applyScaleToAllFrames("body", 1.37, 0.82);
+
+        assertEquals(expectedMatches, matches);
+        assertTrue(matches > 1);
+        assertTrue(marine.variants().stream()
+                .flatMap(variant -> variant.animations().stream())
+                .flatMap(animation -> animation.frames().stream())
+                .flatMap(frame -> frame.layers().stream())
+                .filter(layer -> layer.id().equals("body"))
+                .allMatch(layer -> Math.abs(layer.scaleX() - 1.37) < 0.000001
+                        && Math.abs(layer.scaleY() - 0.82) < 0.000001));
+        assertEquals(originalPrimaryScale, marine.variants().get(0).animations().get(0)
+                .frames().get(0).layers().stream()
+                .filter(layer -> layer.id().equals("primary"))
+                .findFirst().orElseThrow().scaleX(), 0.000001);
+    }
+
+    @Test
+    void armorMasterScaleDoesNotMutateInheritedPreviewFrames() throws Exception {
+        AuthoringDocument document = AuthoringDocument.load(Path.of("."));
+        UnitComposition marine = document.units().stream()
+                .filter(unit -> unit.id().equals("marine-line"))
+                .findFirst().orElseThrow();
+        UnitComposition aegis = document.units().stream()
+                .filter(unit -> unit.id().equals("armor-master-aegis"))
+                .findFirst().orElseThrow();
+        LayerDefinition inheritedHead = marine.variants().get(0).animations().get(0)
+                .frames().get(0).layers().stream()
+                .filter(layer -> layer.id().equals("head"))
+                .findFirst().orElseThrow();
+        double inheritedScaleX = inheritedHead.scaleX();
+        double inheritedScaleY = inheritedHead.scaleY();
+
+        int matches = aegis.applyScaleToAllFrames("head", 1.91, 1.63);
+
+        assertEquals(1, matches);
+        assertEquals(1.91, aegis.variants().get(0).animations().get(0)
+                .frames().get(0).layers().stream()
+                .filter(layer -> layer.id().equals("head"))
+                .findFirst().orElseThrow().scaleX(), 0.000001);
+        assertEquals(inheritedScaleX, inheritedHead.scaleX(), 0.000001);
+        assertEquals(inheritedScaleY, inheritedHead.scaleY(), 0.000001);
+    }
+
+    @Test
     void historyRestoresWholeDocumentChangesAndSupportsRedo() throws Exception {
         AuthoringDocument document = AuthoringDocument.load(Path.of("."));
         DocumentHistory history = new DocumentHistory();
