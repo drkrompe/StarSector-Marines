@@ -15,19 +15,20 @@ final class FactionEquipmentMarketStockPlanner {
 
     static StockPlan plan(String factionId, String marketId, int marketSize,
                           long rotation, boolean hasLicenseAccess,
-                          Set<String> ownedTemplateIds) {
+                          Set<String> ownedTemplateIds,
+                          EquipmentAcquisitionEligibility.Progress progress) {
         Set<String> unavailable = new HashSet<>(ownedTemplateIds != null
                 ? ownedTemplateIds : Set.of());
         List<String> market = FactionEquipmentPicker.pick(factionId,
                 FactionEquipmentSource.MARKET, marketSlots(marketSize),
-                seed(factionId, marketId, rotation, "market"), unavailable);
+                seed(factionId, marketId, rotation, "market"), unavailable, progress);
         unavailable.addAll(market);
 
         List<String> licensed = hasLicenseAccess
                 ? FactionEquipmentPicker.pick(factionId,
                         FactionEquipmentSource.LICENSE, licenseSlots(marketSize),
                         seed(factionId, marketId, rotation, "license"),
-                        unavailable)
+                        unavailable, progress)
                 : List.of();
         return new StockPlan(market, licensed);
     }
