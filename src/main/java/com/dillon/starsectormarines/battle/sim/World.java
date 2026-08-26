@@ -8,6 +8,8 @@ import com.dillon.starsectormarines.battle.air.engine.ThrusterFx;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -191,13 +193,23 @@ public final class World {
     public long burstTargetId(long id) { return combat.burstTargetId(id); }
     public void setBurstTargetId(long id, long v) { combat.setBurstTargetId(id, v); }
 
-    // Secondary weapon is an OPTIONAL capability living in the world's
-    // SECONDARY_WEAPON component. hasSecondaryWeapon is the presence check that
-    // replaces the old `secondaryWeapon != null`; every other accessor is
+    // Special equipment is an OPTIONAL capability living in the world's
+    // SECONDARY_WEAPON component. hasSecondaryWeapon is the compatibility-named
+    // presence check; every other accessor is
     // fail-loud on a unit that lacks the component, so callers MUST gate on
     // hasSecondaryWeapon first.
     public boolean hasSecondaryWeapon(long id) { return entityWorld.has(id, components.SECONDARY_WEAPON); }
-    public MarineSecondary secondaryWeapon(long id) { return (MarineSecondary) entityWorld.getObject(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC); }
+    public SpecialEquipmentDef specialEquipment(long id) {
+        Object value = entityWorld.getObject(id, components.SECONDARY_WEAPON,
+                BattleComponents.SECONDARY_WEAPON_SPEC);
+        return value instanceof SpecialEquipmentDef def
+                ? def : value instanceof MarineSecondary legacy ? legacy.specialDef() : null;
+    }
+    /** Built-in compatibility handle; contributed equipment intentionally returns null. */
+    public MarineSecondary secondaryWeapon(long id) {
+        SpecialEquipmentDef def = specialEquipment(id);
+        return def != null ? SpecialEquipmentRegistry.compatibilityHandle(def.id()) : null;
+    }
     public int secondaryAmmo(long id) { return entityWorld.getInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_AMMO); }
     public void setSecondaryAmmo(long id, int v) { entityWorld.setInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_AMMO, v); }
 
@@ -215,6 +227,10 @@ public final class World {
 
     /** Grant the secondary capability to a live unit at runtime (archetype row-move). Serial-only — never mid-{@code Query} walk. */
     public void attachSecondaryWeapon(long id, MarineSecondary spec, int ammo) {
+        attachSpecialEquipment(id, spec != null ? spec.specialDef() : null, ammo);
+    }
+
+    public void attachSpecialEquipment(long id, SpecialEquipmentDef spec, int ammo) {
         entityWorld.addComponent(id, components.SECONDARY_WEAPON);
         entityWorld.setObject(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC, spec);
         entityWorld.setInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_AMMO, ammo);

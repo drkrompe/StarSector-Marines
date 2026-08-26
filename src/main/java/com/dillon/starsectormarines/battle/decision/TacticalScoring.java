@@ -7,7 +7,7 @@ import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.world.model.DoodadService;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.combat.ShotService;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
@@ -546,8 +546,8 @@ public final class TacticalScoring {
         } else {
             primary = 0f;
         }
-        MarineSecondary special = world.hasSecondaryWeapon(self)
-                ? world.secondaryWeapon(self) : null;
+        SpecialEquipmentDef special = world.hasSecondaryWeapon(self)
+                ? world.specialEquipment(self) : null;
         float secondary = special != null && special.isDirectFireWeapon()
                 && world.secondaryAmmo(self) > 0 ? special.penetration() : 0f;
         float relativeToServiceRifle = Math.min(
@@ -595,7 +595,7 @@ public final class TacticalScoring {
         World world = roster.world();
         if (!isHardened(roster.identity().type(target))
                 || !world.hasSecondaryWeapon(shooter)) return false;
-        MarineSecondary special = world.secondaryWeapon(shooter);
+        SpecialEquipmentDef special = world.specialEquipment(shooter);
         return special.isDirectFireWeapon()
                 && world.secondaryAmmo(shooter) > 0;
     }
@@ -611,7 +611,7 @@ public final class TacticalScoring {
     public float effectiveAttackRange(long shooter, long target, float shooterAttackRange) {
         if (canSpecialTarget(shooter, target)) {
             World world = roster.world();
-            return Math.max(shooterAttackRange, world.secondaryWeapon(shooter).range());
+            return Math.max(shooterAttackRange, world.specialEquipment(shooter).range());
         }
         return shooterAttackRange;
     }
@@ -636,7 +636,7 @@ public final class TacticalScoring {
     public boolean shouldCommitSpecial(long shooter, long target) {
         World world = roster.world();
         if (!world.hasSecondaryWeapon(shooter) || world.secondaryAmmo(shooter) <= 0) return false;
-        if (!world.secondaryWeapon(shooter).isDirectFireWeapon()) return false;
+        if (!world.specialEquipment(shooter).isDirectFireWeapon()) return false;
         if (target == 0L || !roster.isAliveById(target)) return false;
         float remainingDurability = world.hp(target)
                 + (world.hasArmor(target) ? world.armor(target) : 0f);
@@ -677,7 +677,7 @@ public final class TacticalScoring {
                 if (!world.hasSecondaryWeapon(u)) continue;
                 if (world.secondaryActionTimer(u) <= 0f) continue;
                 if (world.secondaryAimTargetId(u) != target) continue;
-                MarineSecondary sw = world.secondaryWeapon(u);
+                SpecialEquipmentDef sw = world.specialEquipment(u);
                 if (!sw.isDirectFireWeapon()) continue;
                 total += projectedResolvedDamage(target, sw.damage(), sw.penetration());
             }
@@ -704,7 +704,7 @@ public final class TacticalScoring {
             }
         }
         for (ShotService.PendingImpact impact : shots.snapshotActiveImpacts()) {
-            if (impact.marineSecondary == null || impact.victimId != target) continue;
+            if (impact.specialEquipmentDef == null || impact.victimId != target) continue;
             if (!roster.isAliveById(impact.shooterId)) continue;
             if (roster.identity().faction(impact.shooterId) != shooterFaction) continue;
             total += projectedResolvedDamage(target, impact.damage, impact.penetration);
@@ -1202,7 +1202,7 @@ public final class TacticalScoring {
         Faction selfFaction = roster.identity().faction(self);
         float maxWeaponReach = world.attackRange(self);
         if (world.hasSecondaryWeapon(self) && world.secondaryAmmo(self) > 0) {
-            MarineSecondary special = world.secondaryWeapon(self);
+            SpecialEquipmentDef special = world.specialEquipment(self);
             if (special.isDirectFireWeapon()) {
                 maxWeaponReach = Math.max(maxWeaponReach, special.range());
             }

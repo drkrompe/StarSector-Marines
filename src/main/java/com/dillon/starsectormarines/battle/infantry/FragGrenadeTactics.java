@@ -14,6 +14,9 @@ import com.dillon.starsectormarines.battle.squad.BelievedContact;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.marine.SpecialActivation;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 
 /** Honest-contact cluster scoring, reservations, safety, and observed-hazard response. */
 public final class FragGrenadeTactics {
@@ -27,8 +30,14 @@ public final class FragGrenadeTactics {
     private FragGrenadeTactics() {
     }
 
-    /** Commits a carrier to the best useful, friendly-safe believed soft cluster. */
+    /** Built-in compatibility overload for focused behavior callers. */
     public static boolean tryCommitThrow(long carrier, MarineSecondary grenade,
+                                         BattleControl sim) {
+        return tryCommitThrow(carrier, grenade.specialDef(), sim);
+    }
+
+    /** Commits a carrier to the best useful, friendly-safe believed soft cluster. */
+    public static boolean tryCommitThrow(long carrier, SpecialEquipmentDef grenade,
                                          BattleControl sim) {
         Squad squad = sim.squadOf(carrier);
         if (squad == null || blockedByHigherPriorityWork(carrier, squad)) return false;
@@ -52,6 +61,7 @@ public final class FragGrenadeTactics {
             if (softTargets < MIN_SOFT_TARGETS) continue;
             if (!friendlyFootprintClear(carrier, targetX, targetY, grenade, sim)) continue;
             if (overlapsCommittedGrenade(targetX, targetY, grenade.aoeRadius(),
+                    grenade.weaponId(),
                     sim.identity().faction(carrier), sim)) continue;
             Candidate candidate = new Candidate(targetX, targetY, softTargets, distanceSq);
             if (best == null || candidate.softTargets > best.softTargets
@@ -109,7 +119,8 @@ public final class FragGrenadeTactics {
             long carrier = sim.resolveUnit(reservation.carrierId());
             return carrier != 0L
                     && sim.world().hasSecondaryWeapon(carrier)
-                    && sim.world().secondaryWeapon(carrier) == MarineSecondary.FRAG_GRENADE
+                    && sim.world().specialEquipment(carrier).activation()
+                    == SpecialActivation.ARC_EXPLOSIVE
                     && sim.world().secondaryActionTimer(carrier) > 0f;
         });
     }
@@ -152,7 +163,7 @@ public final class FragGrenadeTactics {
     }
 
     private static boolean friendlyFootprintClear(long carrier, float targetX, float targetY,
-                                                  MarineSecondary grenade,
+                                                  SpecialEquipmentDef grenade,
                                                   BattleView sim) {
         Faction faction = sim.identity().faction(carrier);
         float dangerRadius = grenade.aoeRadius() + grenade.hitSpread() + SAFETY_MARGIN;
@@ -176,12 +187,12 @@ public final class FragGrenadeTactics {
     }
 
     private static boolean overlapsCommittedGrenade(float targetX, float targetY,
-                                                     float radius, Faction faction,
+                                                     float radius, String weaponId,
+                                                     Faction faction,
                                                      BattleView sim) {
         for (Projectile projectile : sim.snapshotActiveProjectiles()) {
             if (projectile.shooterFaction != faction
-                    || !MarineSecondary.FRAG_GRENADE.def().id
-                    .equals(projectile.sourceWeaponId)) continue;
+                    || !weaponId.equals(projectile.sourceWeaponId)) continue;
             float reach = radius + (projectile.onArrival != null
                     ? projectile.onArrival.aoeRadius : radius);
             if (distanceSq(projectile.toX, projectile.toY, targetX, targetY)
@@ -196,7 +207,7 @@ public final class FragGrenadeTactics {
         Projectile nearest = null;
         float nearestSq = Float.MAX_VALUE;
         for (Projectile projectile : sim.snapshotActiveProjectiles()) {
-            if (!"weapon.frag-grenade".equals(projectile.sourceWeaponId)
+            if (!isArcExplosiveWeapon(projectile.sourceWeaponId)
                     || projectile.onArrival == null) continue;
             if (projectile.shooterFaction != faction
                     && !squadObservesProjectile(squad, unit, projectile, sim)) continue;
@@ -264,6 +275,16 @@ public final class FragGrenadeTactics {
         float progress = projectile.progress();
         if (projectile.hasBoostRamp) progress = Projectile.applyBoostCurve(progress);
         return projectile.fromY + (projectile.toY - projectile.fromY) * progress;
+    }
+
+    private static boolean isArcExplosiveWeapon(String weaponId) {
+        SpecialEquipmentRegistry registry = SpecialEquipmentRegistry.installed();
+        if (registry == null || weaponId == null) return false;
+        for (SpecialEquipmentDef equipment : registry.all()) {
+            if (equipment.activation() == SpecialActivation.ARC_EXPLOSIVE
+                    && weaponId.equals(equipment.weaponId())) return true;
+        }
+        return false;
     }
 
     private record Candidate(float targetX, float targetY, int softTargets,

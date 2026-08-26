@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
@@ -18,6 +17,8 @@ import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
 import com.dillon.starsectormarines.marine.SquadWeaponIssue;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
@@ -232,7 +233,7 @@ public final class EquipmentDoctrineDesignerViewModel {
                         "Role  ·  " + issue.role(),
                         "Primary  ·  " + issue.primaryDef().catalogName(issue.grade().tier),
                         "Grade  ·  " + title(issue.grade().name()),
-                        "Special  ·  " + specialName(issue.special()),
+                        "Special  ·  " + specialName(issue.specialDef()),
                         () -> cycleRole(billet), () -> cycleWeapon(billet),
                         () -> cycleGrade(billet), () -> cycleSpecial(billet)));
             } else {
@@ -304,18 +305,24 @@ public final class EquipmentDoctrineDesignerViewModel {
 
     private void cycleSpecial(int index) {
         SquadWeaponIssue issue = weaponIssues.get(index);
-        MarineSecondary current = issue.special();
-        List<MarineSecondary> owned = new ArrayList<>();
-        for (MarineSecondary special : MarineSecondary.values()) {
-            if (roster.armory().ownsSpecialTemplate(special)) owned.add(special);
+        String current = issue.specialEquipmentId();
+        List<SpecialEquipmentDef> owned = new ArrayList<>();
+        SpecialEquipmentRegistry registry = SpecialEquipmentRegistry.installed();
+        if (registry != null) {
+            for (SpecialEquipmentDef special : registry.all()) {
+                if (roster.armory().ownsSpecialTemplate(special.id())) owned.add(special);
+            }
         }
-        int currentIndex = current == null ? -1 : owned.indexOf(current);
-        MarineSecondary next = currentIndex < 0
+        int currentIndex = -1;
+        for (int i = 0; i < owned.size(); i++) {
+            if (owned.get(i).id().equals(current)) currentIndex = i;
+        }
+        SpecialEquipmentDef next = currentIndex < 0
                 ? owned.isEmpty() ? null : owned.get(0)
                 : currentIndex == owned.size() - 1 ? null : owned.get(currentIndex + 1);
         weaponIssues.set(index, new SquadWeaponIssue(
                 issue.role(), issue.primaryId(), issue.grade(),
-                next != null ? next.specialEquipmentId : null));
+                next != null ? next.id() : null));
         changed("Special equipment changed to " + specialName(next) + ".");
     }
 
@@ -436,7 +443,7 @@ public final class EquipmentDoctrineDesignerViewModel {
         }
     }
 
-    private static String specialName(MarineSecondary special) {
+    private static String specialName(SpecialEquipmentDef special) {
         return special != null ? special.displayName() : "None";
     }
 
