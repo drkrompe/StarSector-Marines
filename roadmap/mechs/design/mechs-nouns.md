@@ -4,8 +4,9 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — separated each fitting socket's physical mount anchor
-from its large, doll-relative equipment dock in the surrounding gantry workspace.
+Updated: 2026-08-25 — made the fitting doll an asset-authored definition whose
+maintenance facing, physical mount anchors, equipment docks, and socket footprints
+are owned per chassis rather than inferred by the Mech Lab renderer.
 
 ## Purpose
 
@@ -63,6 +64,13 @@ increasing an encounter's total armored threat.
   footprint means an authored socket is unoccupied; an omitted socket is still
   genuinely absent. The drag gesture is presentation; the validated resulting
   placement is domain intent.
+- A **fitting doll** is the asset-authored maintenance presentation of one mech
+  or vehicle class. It references the same ordered appearance and physical scale
+  used in battle, while owning the maintenance facing and every socket's physical
+  mount anchor, remote equipment dock, interaction footprint, compatibility, and
+  capacity. The renderer consumes that definition; it does not guess mount
+  locations from a generic chassis shape. Future external authoring may move the
+  definition out of code without changing that ownership boundary.
 - A **weapon family** owns projectile behavior and presentation; a component
   turns it into a mountable rack/arm with capacity and appearance. The gun,
   mount, and chassis remain distinct authorities.
@@ -163,7 +171,7 @@ determines the payload, not the entitlement to call it.
   selected asset or distort its physical size relative to technicians, tiles,
   props, or another chassis.
 - Socket overlays consume the selected asset's authored fitting layout. Their
-  translucent type color, hull-relative drop footprint, and segmented capacity
+  strongly translucent type color, large hull-relative drop footprint, and segmented capacity
   cells occupy the gantry around the physical doll, with a light leader returning
   to the authored mount anchor. The doll remains readable instead of becoming a
   pile of UI rectangles, and the rendered room becomes useful fitting space.
