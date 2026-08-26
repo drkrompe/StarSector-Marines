@@ -95,6 +95,15 @@ authored content.
   between a hull's minimum and maximum crew. It is the number that separates a
   ship carrying people from a ship employing them, and it is what sizes the
   boat bays. Reading maximum crew alone makes those two ships the same ship.
+- **Crew spaces** are the rooms everyone aboard needs regardless of why they
+  are aboard: berths, heads, a mess, a sick bay. They scale with the whole
+  complement rather than with the crew, because a passenger eats too, and
+  together they are most of the rooms on a ship. A hull programmed only with
+  its working spaces comes out hollow.
+- A **room program is gated by size as well as role.** Room footprints do not
+  shrink, so a hull below destroyer size cannot hold a range, a briefing room,
+  or a proper sick bay without those rooms becoming the ship. A frigate keeps a
+  gig and a locker.
 - A **shuttle bay** is the deck's own way in and out: where troops embark for
   the surface, where they return, and the natural place for boarders to arrive.
   Alone among rooms it must reach the side of the ship, which is the first

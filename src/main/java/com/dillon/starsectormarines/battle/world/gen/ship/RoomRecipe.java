@@ -96,13 +96,79 @@ public record RoomRecipe(RoomPurpose purpose, RoomShape shape, DeckZone zone,
     public static final RoomRecipe SHUTTLE_BAY = new RoomRecipe(
             RoomPurpose.HANGAR, RoomShape.rectangle(28, 16), DeckZone.MIDSHIPS, 120, true);
 
+    /**
+     * The single boat a small hull carries, and its bay. A frigate has a gig,
+     * not a hangar deck; giving her the full bay put a room the size of her
+     * machinery spaces amidships and left no ship around it.
+     */
+    public static final RoomRecipe BOAT_BAY = new RoomRecipe(
+            RoomPurpose.HANGAR, RoomShape.rectangle(16, 10), DeckZone.MIDSHIPS, 40, true);
+
     /** Bulk hold. Large and sparse inside. */
     public static final RoomRecipe HOLD = new RoomRecipe(
             RoomPurpose.STOCKROOM, RoomShape.rectangle(18, 12), DeckZone.MIDSHIPS, 250);
 
-    /** Power, drive, and life support machinery; aft, against the engines. */
+    /**
+     * Mess and galley. Sized by sittings rather than by heads: a ship feeds its
+     * complement in watches, so the room holds a fraction of the crew at once
+     * and does it several times a day.
+     */
+    public static final RoomRecipe MESS = new RoomRecipe(
+            RoomPurpose.MESS_HALL, RoomShape.rectangle(22, 12), DeckZone.MIDSHIPS, 90);
+
+    /**
+     * Small-arms range: a bank of lanes with a ready area off one end, which is
+     * why it is an L and not a box. Marines who never shoot are marines who
+     * cannot, and a transport carrying a landing force wants more than one.
+     */
+    public static final RoomRecipe RANGE = new RoomRecipe(
+            RoomPurpose.FIRING_RANGE, RoomShape.of(
+                    "##############################",
+                    "##############################",
+                    "##############################",
+                    "##############################",
+                    "##########....................",
+                    "##########....................",
+                    "##########....................",
+                    "##########...................."),
+            DeckZone.MIDSHIPS, 200);
+
+    /** Sick bay: treatment and a ward, amidships where it can be reached from either end. */
+    public static final RoomRecipe SICK_BAY = new RoomRecipe(
+            RoomPurpose.PATIENT_WARD, RoomShape.rectangle(14, 10), DeckZone.MIDSHIPS, 200);
+
+    /** Briefing room, forward by the bridge. Where a patron's job stops being a rumour. */
+    public static final RoomRecipe BRIEFING = new RoomRecipe(
+            RoomPurpose.CONFERENCE_ROOM, RoomShape.rectangle(14, 10), DeckZone.FORE, 0);
+
+    /**
+     * Heads and washroom. Small, numerous, and tied to the berthing they serve,
+     * which makes them the authored rooms best suited to the awkward pockets a
+     * block of berths leaves behind.
+     */
+    public static final RoomRecipe WASHROOM = new RoomRecipe(
+            RoomPurpose.WASHROOM, RoomShape.rectangle(6, 5), DeckZone.FORE, 60);
+
+    /** Machine shop aft, where a part gets made rather than drawn from a cage. */
+    public static final RoomRecipe MACHINE_SHOP = new RoomRecipe(
+            RoomPurpose.PARTS_CAGE, RoomShape.rectangle(14, 10), DeckZone.AFT, 0);
+
+    /**
+     * Power, drive, and life support machinery, aft against the engines. Scales
+     * with the complement rather than sitting at one per ship: keeping four
+     * hundred people alive and moving takes more plant than keeping thirty
+     * alive, and machinery is most of what a stern is.
+     */
     public static final RoomRecipe ENGINEERING = new RoomRecipe(
-            RoomPurpose.PRODUCTION_FLOOR, RoomShape.rectangle(20, 14), DeckZone.AFT, 0);
+            RoomPurpose.PRODUCTION_FLOOR, RoomShape.rectangle(20, 14), DeckZone.AFT, 150);
+
+    /**
+     * Provisions and consumable stores, struck down aft by the machinery they
+     * feed. Distinct from the cargo hold: this is what the ship eats on the way,
+     * not what she is carrying for somebody else.
+     */
+    public static final RoomRecipe PROVISIONS = new RoomRecipe(
+            RoomPurpose.LOADING_BAY, RoomShape.rectangle(18, 12), DeckZone.AFT, 200);
 
     /**
      * The small rooms that exist because the packing left somewhere to put

@@ -394,6 +394,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static Map<String, Object> props(FleetArmoryOverviewViewModel viewModel) {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("fleetSummary", viewModel.fleetSummary());
+        props.put("templateCollectionSummary", viewModel.templateCollectionSummary());
+        props.put("accessStatusSummary", viewModel.accessStatusSummary());
+        props.put("accessNextSummary", viewModel.accessNextSummary());
         props.put("companyCards", viewModel.companyCards());
         putArmoryPageNavigation(props);
         return props;
