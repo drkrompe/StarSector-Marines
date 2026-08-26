@@ -4,6 +4,8 @@ Status: ACTIVE — the model is authored; no generator, facility, or adoption sl
 
 Written: 2026-08-26
 
+Updated: 2026-08-26 — added fill-quality standards and non-overlapping compartment levels; split within-deck elevation from deck stacking in law 1.
+
 Ship interiors is the model for navigable shipboard space: the decks a mercenary
 company lives and works on, the facilities it operates and grows, and the hostile
 decks it will eventually board. It owns the *ship as a place*. It does not own
@@ -75,6 +77,18 @@ authored content.
   tactical effect — cover, blocking, sightline — and its **ambient affordance**,
   the activity an idle crew member performs at it. A berth affords rest; a gantry
   affords work; a firing lane affords practice.
+- A **fixture group** is the placement unit: an anchor fixture, its satellites,
+  and a shared orientation. A workspace is a bench with its stool, its parts bin,
+  and its clutter, all facing the same way. Fixtures are placed as groups, never
+  as independent points on a grid.
+- A **circulation lane** is authored walkable space connecting a compartment's
+  entries to its fixture groups. It is a placement obligation: a fill may not
+  encroach on it, and it is why a room reads as somewhere people move through
+  rather than an obstacle field.
+- A **level** is a discrete elevation within one deck — the floor, and any
+  raised catwalk, mezzanine, or gallery above it. Levels do not overlap: a cell
+  belongs to exactly one level, and a raised gallery surrounds an open well
+  rather than roofing it.
 - A **breach point** is where boarders enter a deck: an airlock, a docking
   collar, or a cut hull section. It sets the origin of the longitudinal assault
   gradient and is a generation fact, not a spawn coordinate discovered later.
@@ -139,11 +153,65 @@ standing reason fixtures must declare affordance rather than only appearance. Th
 ambient service itself is already generic — it executes any route it is handed —
 so route authorship is the only missing half.
 
+## Fill quality
+
+The flagship rooms that exist today are the reference for *structure* and the
+counter-example for *fill*. Four gantries with service access, berths along the
+hull, a practice range behind a blast wall — those arrangements are sound. What
+they contain is not, and a generated compartment that reproduced them would
+inherit the problem:
+
+- **Uniform low density.** Props are sprinkled at roughly even spacing instead of
+  clustering where work actually happens.
+- **Unarticulated floor.** Large expanses of open deck with no sub-structure, no
+  reason to be there, and no reason to cross them one way rather than another.
+- **Isolated props.** A workstation with nothing around it is a sprite, not a
+  workspace. Fixtures do not read as furniture until they read as groups.
+- **No scale anchor.** Nothing in a mech bay communicates that the machine in it
+  is twelve metres tall.
+
+The standard is therefore not "as good as the current rooms" but *used space*:
+every part of a compartment is either a fixture group, a circulation lane, or
+deliberately clear for a stated tactical reason such as a firing lane or a
+weapons-free approach to a hatch. Emptiness is allowed when it is argued for and
+is a defect when it is merely left over.
+
+Density varies on purpose. Work areas are dense and cluttered; transit is clear
+and legible; the boundary between them is visible from the fixtures alone,
+without a floor decal explaining it.
+
+## Elevation
+
+A compartment may have more than one **level**. This is the model's answer to
+unarticulated floor as much as it is a visual one: a mech bay with a catwalk
+gallery around an open gantry well uses its footprint twice, gives the space a
+scale anchor at mech-torso height, and creates firing positions that overlook the
+floor. Flat is the wrong default for the largest compartments a ship has.
+
+Levels are constrained to keep this affordable. They do not overlap, so one cell
+still belongs to exactly one level and the per-cell topology, fog of war, and
+occupancy models are untouched in shape. A raised gallery rings an open well; it
+never roofs the floor beneath it. Movement between levels happens only at
+authored transitions — stairs, ladders, lifts — which are ordinary chokepoints in
+the deck graph. Line of sight between levels is a stated rule of the level pair,
+not an emergent consequence of geometry.
+
+This is distinct from stacking a ship's decks, which law 1 keeps out. Within-deck
+elevation changes what one map contains; deck stacking would change what a map
+*is*, and it is the latter that drags in a second grid, cross-level shadowcasting,
+and vertical pathfinding.
+
+Note that existing relief is presentation only — a shading signal that explicitly
+does not alter navigation, collision, or targeting. A level is a tactical fact
+and is not that. The two must not be conflated: relief makes a flat floor look
+raised, and a level makes a raised floor be raised.
+
 ## Standing laws
 
 1. **A deck is the map unit.** One battle occupies one deck. Movement between
-   decks is mission structure, not map topology, and does not enter the tile
-   grid, line of sight, or fog of war.
+   *decks* is mission structure, not map topology, and does not enter the tile
+   grid, line of sight, or fog of war. Elevation *within* a deck is a different
+   question and is permitted under law 9.
 2. **The axis is authored.** Spine, frame numbering, zones, and bulkhead order
    are generation facts consumers query. No consumer re-derives them from cell
    coordinates.
@@ -156,6 +224,13 @@ so route authorship is the only missing half.
 7. **Ambient routes are derived**, never authored per deck.
 8. **One pipeline.** Home and prize decks differ by parameter, never by a second
    generator.
+9. **Levels do not overlap.** A cell belongs to exactly one level; a gallery
+   rings an open well and never roofs it. Level changes happen only at authored
+   transitions, and cross-level sight is a stated rule rather than an emergent
+   one.
+10. **Floor area is used or argued for.** Every part of a compartment is a
+    fixture group, a circulation lane, or deliberately clear for a stated
+    tactical reason. Leftover emptiness is a defect.
 
 ## Boundaries
 
