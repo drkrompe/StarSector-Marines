@@ -56,7 +56,7 @@ class FleetArmoryOverviewViewModelTest {
                 new Reactor(), roster, () -> { }, () -> 0d,
                 () -> new EquipmentAcquisitionEligibility.Progress(4, 4));
 
-        assertTrue(opening.templateCollectionSummary().get().contains("14 / 32 known"));
+        assertTrue(opening.templateCollectionSummary().get().contains("14 / 41 known"));
         assertTrue(opening.templateCollectionSummary().get().contains("Common"));
         assertTrue(opening.templateCollectionSummary().get().contains("Advanced"));
         assertTrue(opening.templateCollectionSummary().get().contains("Prestige"));
