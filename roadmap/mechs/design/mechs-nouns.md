@@ -4,9 +4,8 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — made the fitting doll an asset-authored per-chassis
-definition and made live and headless Mech Lab views collect the same bounded
-battle-simulation render commands.
+Updated: 2026-08-25 — made Mech Lab technicians real room actors following
+authored workshop jobs, with welding presentation attached to the active job.
 
 ## Purpose
 
@@ -71,6 +70,12 @@ increasing an encounter's total armored threat.
   capacity. The renderer consumes that definition; it does not guess mount
   locations from a generic chassis shape. Future external authoring may move the
   definition out of code without changing that ownership boundary.
+- A **workshop job** is an authored presentation loop for one Mech Lab
+  technician. It owns the worker's route between storage, machinery, and a
+  gantry; dwell activity; facing; and any job-local tool or effect. The worker
+  remains a real room entity rendered by the battle unit pipeline. A workshop
+  job communicates a busy fabrication space but owns no refit duration,
+  inventory movement, or campaign outcome.
 - A **weapon family** owns projectile behavior and presentation; a component
   turns it into a mountable rack/arm with capacity and appearance. The gun,
   mount, and chassis remain distinct authorities.
@@ -183,7 +188,10 @@ determines the payload, not the entitlement to call it.
   battle entities consumed by the ordinary unit render system. The retained host
   supplies only a bounded viewport and camera: battle HUD, input, selection,
   audio, fog, combat decorators, and surface-relief targets remain detached.
-  Presentation-only welding or station motion may continue while the player
+  It does not advance combat AI, but deterministic workshop jobs may author real
+  technician positions, walk poses, facing, tools, and effects as presentation time
+  advances. Welding sparks exist only while a technician is dwelling at a welding
+  job; they are not a fixed canvas ornament. Job motion continues while the player
   inspects equipment, but it never decides refit duration, stock, or command success.
 - Live rendering and headless evidence consume one room layout: ground kind,
   perimeter walls, gantry overlays, props, workers, and every lance asset occupy authored

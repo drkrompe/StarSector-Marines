@@ -56,13 +56,15 @@ public final class MechLabBattleScene implements AutoCloseable {
     }
 
     public BattleSceneHostPass backdropPass(List<MechVariant> variants,
-                                            int selectedGantry) {
-        return pass(variants, selectedGantry, BACKDROP_LAYERS);
+                                            int selectedGantry,
+                                            float elapsedSeconds) {
+        return pass(variants, selectedGantry, elapsedSeconds, BACKDROP_LAYERS);
     }
 
     public BattleSceneHostPass actorPass(List<MechVariant> variants,
-                                         int selectedGantry) {
-        return pass(variants, selectedGantry, ACTOR_LAYERS);
+                                         int selectedGantry,
+                                         float elapsedSeconds) {
+        return pass(variants, selectedGantry, elapsedSeconds, ACTOR_LAYERS);
     }
 
     static BattleCamera cameraForSurface(float width, float height, int selectedGantry) {
@@ -82,12 +84,14 @@ public final class MechLabBattleScene implements AutoCloseable {
     }
 
     private BattleSceneHostPass pass(List<MechVariant> variants, int selectedGantry,
+                                     float elapsedSeconds,
                                      EnumSet<RenderLayer> layers) {
         List<MechVariant> snapshot = variants != null ? List.copyOf(variants) : List.of();
         return new BattleSceneHostPass() {
             @Override
             public BattleSceneFrame prepare(CanvasHostViewport viewport, float alphaMult) {
-                return prepareFrame(viewport, snapshot, selectedGantry, alphaMult, layers);
+                return prepareFrame(viewport, snapshot, selectedGantry,
+                        elapsedSeconds, alphaMult, layers);
             }
 
             @Override
@@ -103,12 +107,14 @@ public final class MechLabBattleScene implements AutoCloseable {
 
     private BattleSceneFrame prepareFrame(CanvasHostViewport viewport,
                                            List<MechVariant> variants,
-                                           int selectedGantry, float alphaMult,
+                                           int selectedGantry, float elapsedSeconds,
+                                           float alphaMult,
                                            EnumSet<RenderLayer> layers) {
         if (variants.isEmpty() || viewport.width() <= 0f || viewport.height() <= 0f) {
             throw new IllegalArgumentException("Mech Lab scene requires assets and a visible viewport");
         }
         ensureSimulation(variants);
+        MechLabTechnicianJobs.apply(simulation, elapsedSeconds);
         configureCamera(camera, viewport.screenX(), viewport.screenY(),
                 viewport.width(), viewport.height());
         if (!cameraZoomApplied) {
@@ -177,11 +183,15 @@ public final class MechLabBattleScene implements AutoCloseable {
             sim.world().attachMechLoadout(mech,
                     variant.createLoadout(variant.defaultRole));
         }
-        for (MechLabSceneLayout.TechnicianPlacement technician
-                : MechLabSceneLayout.TECHNICIANS) {
-            spawnTechnician(sim, technician.name(),
-                    technician.cellX(), technician.cellY());
+        for (int index = 0; index < MechLabSceneLayout.TECHNICIAN_JOBS.size(); index++) {
+            MechLabSceneLayout.TechnicianJob job =
+                    MechLabSceneLayout.TECHNICIAN_JOBS.get(index);
+            MechLabTechnicianJobs.TechnicianPose pose =
+                    MechLabTechnicianJobs.sample(index, 0f);
+            spawnTechnician(sim, job.name(),
+                    (int) Math.floor(pose.worldX()), (int) Math.floor(pose.worldY()));
         }
+        MechLabTechnicianJobs.apply(sim, 0f);
         sim.getFogOfWar().tick(0, sim.getRoster());
         return sim;
     }
