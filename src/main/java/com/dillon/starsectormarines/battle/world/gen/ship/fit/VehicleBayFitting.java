@@ -42,6 +42,19 @@ public final class VehicleBayFitting implements RoomFitting {
     private static final int DOOR_CLEARANCE = 1;
 
     /**
+     * The bay floor, taken from the hand-authored Mech Lab rather than invented.
+     *
+     * <p>Row three of the urban sheet carries a marked industrial deck: column
+     * one edges a bay, columns nought and two alternate across its middle. A
+     * shade of the room colour was never going to do this job — a bay is a
+     * marked-out rectangle of floor, and painting it is what stops a row of bays
+     * reading as frames standing on nothing.
+     */
+    private static final int FLOOR_ROW = 3;
+    private static final int FLOOR_EDGE_COLUMN = 1;
+    private static final int[] FLOOR_FIELD_COLUMNS = { 0, 2 };
+
+    /**
      * The gantry frame down each side of a bay, and the clutter that collects
      * between bays.
      *
@@ -144,6 +157,7 @@ public final class VehicleBayFitting implements RoomFitting {
     private void layBay(CompartmentFloor floor, boolean lengthwise,
                         int origin, int band, int depth, boolean headOutboard) {
         mark(floor, lengthwise, origin, band, BAY_WIDTH, depth);
+        paveBay(floor, lengthwise, origin, band, depth);
         reserve(floor, lengthwise, origin + 1, band, BAY_WIDTH - 2, depth);
 
         // Corners first: a placed cell refuses a second fixture, so laying the
@@ -165,6 +179,24 @@ public final class VehicleBayFitting implements RoomFitting {
         int head = headOutboard ? band : band + depth - 1;
         for (int i = 0; i < BAY_STATION.length; i++) {
             place(floor, lengthwise, origin + 1 + i, head, BAY_STATION[i]);
+        }
+    }
+
+    /** Paint the bay's deck, edged and then checkered, before anything stands on it. */
+    private void paveBay(CompartmentFloor floor, boolean lengthwise,
+                         int origin, int band, int depth) {
+        // The long sides are left unpaved: the gantry frame stands there, and a
+        // hazard tile under it only hides it. What gets painted is the deck the
+        // machine occupies, banded at each end where it is driven in and out.
+        for (int step = 0; step < depth; step++) {
+            for (int side = 1; side < BAY_WIDTH - 1; side++) {
+                boolean threshold = step == 0 || step == depth - 1;
+                int column = threshold ? FLOOR_EDGE_COLUMN
+                        : FLOOR_FIELD_COLUMNS[((side + step) & 1)];
+                int x = lengthwise ? origin + side : band + step;
+                int y = lengthwise ? band + step : origin + side;
+                floor.pave(x, y, column, FLOOR_ROW);
+            }
         }
     }
 
