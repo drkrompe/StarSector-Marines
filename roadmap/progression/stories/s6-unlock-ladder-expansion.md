@@ -1,35 +1,32 @@
 # S6 — Unlock ladder expansion
 
-> The ladder is four rungs long and ends at mission five. Four armor
-> patterns are fully authored and unreachable.
+> Every current asset is reachable; the remaining problem is turning that
+> complete catalog into a paced 30-mission collection arc.
 
 Status: PLANNED — depends on the remaining S2E–S2G special-equipment stories;
 armor expansion also depends on
 `powered-assault-armor-roles.md`.
 Written: 2026-08-22
-Updated: 2026-08-26 — landed all four faction-pool consumers; asset reachability and the long-horizon ladder remain.
+Updated: 2026-08-26 — shipped the fail-loud asset-reachability audit; long-horizon pacing remains.
 
 Read `progression-nouns.md`, `faction-lore-nouns.md`, and
 `powered-assault-armor-roles.md` before implementing this story.
 
 ## Problem
 
-`MarineArmory.recordVictory` is the whole progression ladder:
+`MarineArmory.recordVictory` is still the whole guaranteed milestone ladder:
 
 - 2 victories: `PULSE_RIFLE` MILSPEC
 - 3: shredder-carbine (`SMG` compatibility handle) MILSPEC
 - 4: `DMR` and `SQUAD_AUTOMATIC` MILSPEC
 - 5 victories and at least one high-risk: `DMR` MASTERWORK
 
-Then flat, forever. Consequences:
-
-- **No additional armor pattern is ever unlocked.** The anti-materiel rifle is
-  now starter issue, while `BLUE_SCOUT`, `RED_ELITE`,
-  `OUTLAW`, and `MILITIA` have stats, icons, and sprite layers and cannot
-  be reached in a real campaign. `RED_ELITE` is the best armor in the game.
-- Masterwork exists for exactly one weapon.
-- A pure victory counter is the least interesting possible gate: it does
-  not care what you fought, where, for whom, or how.
+Then flat, forever. Market, license, patron, and operational-recovery sources
+now make every current template card reachable, including every armor and every
+grade of all five player primary families. What remains is pacing and guarantee:
+the player can collect broadly, but there is not yet a deliberate breadth curve
+at missions 5, 15, and 30, and a pure victory counter still does not care what
+you fought, where, for whom, or how.
 
 ## Goal
 
@@ -41,26 +38,20 @@ long — a ladder that is **lateral as well as vertical**. Slice 3 makes
 faction the second axis, so progression is about *character* of kit, not
 only tier of kit.
 
-## Slice 1 — Close the stranded assets
+## Slice 1 — Close the stranded assets — SHIPPED
 
-The smallest correct fix, shippable on its own:
+The merged template and faction catalogs now enforce this at application load:
 
-- Every `MarineArmorPattern` gets a reachable unlock, laddered by its own role
-  and actual capability rather than blindly by its current `tier` field. The
-  initial mapping from `powered-assault-armor-roles.md` keeps tier 2 light
-  patterns (`BLUE_SCOUT`, `OUTLAW`, `MILITIA`) early, tier 3 line patterns
-  (`CHARCOAL`, `ARMY_GREEN`) mid — both currently starter issue, so decide
-  whether they stay starter — and the tier 4 `RED_ELITE` heavy battlesuit as a
-  genuine chase. Future high-end light suits remain eligible for late unlocks;
-  role is not tier.
-- Fill the grade matrix: MILSPEC and MASTERWORK for every primary family,
-  not just `DMR`. Special equipment remains an item family rather than a grade
-  matrix unless its own story explicitly authors grades.
-- Add a **ships-nothing-stranded check**: a test that asserts every
-  player primary x `EquipmentGrade`, every special-equipment id, and every
-  `MarineArmorPattern` is either starter issue or reachable through some unlock
-  path. This is the guard that stops the audit's finding from recurring the
-  next time an asset is authored.
+- all five player primary families have all four grade cards;
+- every armor and special-equipment identity has a card;
+- a marine primary, armor, or special item intended only for defenders or an
+  integrated platform requires an explicit non-player reason;
+- every collectible card is starter issue or appears in at least one faction
+  acquisition pool.
+
+The current integrated drone pulse weapon exercises the explicit exclusion.
+Provider contributions are audited only after the additive merge, so this same
+law covers OC factions without forcing one monolithic file.
 
 ## Slice 2 — Recover and collect equipment template cards
 
