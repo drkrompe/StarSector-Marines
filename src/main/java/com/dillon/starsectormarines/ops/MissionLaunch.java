@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.fixture.BattleLaunchFixture;
 import com.dillon.starsectormarines.battle.fixture.BattleLaunchOverlay;
 import com.dillon.starsectormarines.battle.fixture.CivilianRescueBattleFixture;
 import com.dillon.starsectormarines.battle.fixture.ConquestBattleFixture;
+import com.dillon.starsectormarines.battle.fixture.SabotageBattleFixture;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -181,9 +182,13 @@ public final class MissionLaunch {
             fixture = rescueFixture;
         } else switch (m.type) {
             case SABOTAGE:
-                sim = BattleSetup.createSabotage(seed, det.shuttleManifest,
-                        enemyHasHeavyArmor, m.tier, m.risk, profile,
-                        det.marineWings, m.enemyFighterSupport);
+                SabotageBattleFixture sabotageFixture =
+                        SabotageBattleFixture.fromFactoryInputs(seed,
+                                det.shuttleManifest, enemyHasHeavyArmor,
+                                m.tier, m.risk, profile, det.marineWings,
+                                m.enemyFighterSupport);
+                sim = sabotageFixture.build();
+                fixture = sabotageFixture;
                 break;
             case CONQUEST:
                 ConquestBattleFixture conquestFixture =

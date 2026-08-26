@@ -68,6 +68,17 @@ public final class BattleFixtureJson {
             root.put("arrivalPlan", arrivalPlanToJson(conquest.arrivalPlan()));
             return root;
         }
+        if (fixture instanceof SabotageBattleFixture sabotage) {
+            encodeCommon(root, sabotage.kind(), sabotage.seed(),
+                    sabotage.manifest(), sabotage.enemyHasHeavyArmor(),
+                    sabotage.risk(), sabotage.targetProfile());
+            root.put("tier", sabotage.tier().name());
+            root.put("marineFighterSupport",
+                    wingsToJson(sabotage.marineFighterSupport()));
+            root.put("enemyFighterSupport",
+                    wingsToJson(sabotage.enemyFighterSupport()));
+            return root;
+        }
         throw new IllegalArgumentException("Unsupported battle fixture: " + fixture);
     }
 
@@ -132,6 +143,7 @@ public final class BattleFixtureJson {
         return switch (kind) {
             case CivilianRescueBattleFixture.KIND -> decodeCivilianRescue(root);
             case ConquestBattleFixture.KIND -> decodeConquestV2(root);
+            case SabotageBattleFixture.KIND -> decodeSabotage(root);
             default -> throw new IllegalArgumentException(
                     "Unsupported battle fixture kind: " + kind);
         };
@@ -185,6 +197,19 @@ public final class BattleFixtureJson {
                 wingsFromJson(root.getJSONArray("marineFighterSupport")),
                 wingsFromJson(root.getJSONArray("enemyFighterSupport")),
                 arrivalPlanFromJson(root.getJSONObject("arrivalPlan")));
+    }
+
+    private static SabotageBattleFixture decodeSabotage(
+            JSONObject root) throws Exception {
+        return new SabotageBattleFixture(
+                root.getLong("seed"),
+                shuttlesFromJson(root.getJSONArray("shuttles")),
+                root.getBoolean("enemyHasHeavyArmor"),
+                enumValue(OperationTier.class, root.getString("tier"), "tier"),
+                enumValue(RiskLevel.class, root.getString("risk"), "risk"),
+                targetProfileFromJson(root.getJSONObject("targetProfile")),
+                wingsFromJson(root.getJSONArray("marineFighterSupport")),
+                wingsFromJson(root.getJSONArray("enemyFighterSupport")));
     }
 
     private static void encodeCommon(

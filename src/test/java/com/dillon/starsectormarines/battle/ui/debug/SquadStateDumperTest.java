@@ -6,6 +6,9 @@ import com.dillon.starsectormarines.battle.command.ConquestCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.CommanderService;
+import com.dillon.starsectormarines.battle.command.SabotageCommand;
+import com.dillon.starsectormarines.battle.command.SabotageCommandDisclosure;
+import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.combat.FireGate;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.combat.FiringSystem;
@@ -261,6 +264,33 @@ class SquadStateDumperTest {
                 conquest.getInt("markerCellX"));
         assertEquals(assigned.getInt("targetCellY"),
                 conquest.getInt("markerCellY"));
+    }
+
+    @Test
+    void dumpPublishesSabotageSiteIdentityAndGroupState() throws Exception {
+        BattleSimulation sim = openSim();
+        sim.addObjective(new ChargeSiteObjective(
+                20, 12, 8f, "SAB-01", "reactor"));
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        long member = sim.spawn(new EntitySpec("security", Faction.MARINE,
+                UnitType.MARINE, 3, 12).squad(squadId));
+        squad.leaderId = member;
+        sim.setAutonomousCommander(Faction.MARINE, new SabotageCommand(),
+                SabotageCommandDisclosure.INSTANCE);
+        sim.advance(CommanderService.COMMANDER_TICK_PERIOD
+                + BattleSimulation.TICK_DT);
+
+        JSONObject dump = SquadStateDumper.buildSquadJson(squad, sim);
+        JSONObject sabotage = dump.getJSONObject("sabotageCommand");
+        JSONObject directive = sabotage.getJSONObject("squadDirective");
+        JSONObject site = sabotage.getJSONArray("sites").getJSONObject(0);
+        assertEquals("SAB-01", site.getString("id"));
+        assertEquals(0, directive.getInt("siteIndex"));
+        assertEquals("SECURITY", directive.getString("groupRole"));
+        assertEquals("CLEAR_ZONE", directive.getString("assignmentKind"));
+        assertEquals("sabotage-attacker",
+                dump.getJSONObject("commander").getString("strategy"));
     }
 
     private static BattleSimulation openSim() {
