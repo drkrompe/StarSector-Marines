@@ -452,7 +452,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("labSummary", viewModel.labSummary());
         props.put("squadRows", viewModel.squadRows());
         props.put("mechRows", viewModel.mechRows());
+        props.put("gantryRows", viewModel.gantryRows());
         props.put("activeGantryLabel", viewModel.activeGantryLabel());
+        props.put("garageTitle", viewModel.garageTitle());
         props.put("selectedMechName", viewModel.selectedMechName());
         props.put("selectedMechIdentity", viewModel.selectedMechIdentity());
         props.put("selectedMechDoctrine", viewModel.selectedMechDoctrine());
@@ -466,6 +468,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("catalogRows", viewModel.catalogRows());
         props.put("pickerClasses", viewModel.pickerClasses());
         props.put("workspaceClasses", viewModel.workspaceClasses());
+        props.put("fittingHeaderClasses", viewModel.fittingHeaderClasses());
+        props.put("performanceClasses", viewModel.performanceClasses());
+        props.put("catalogClasses", viewModel.catalogClasses());
+        props.put("slotRackClasses", viewModel.slotRackClasses());
+        props.put("overviewRailClasses", viewModel.overviewRailClasses());
         props.put("openAssetPicker", viewModel.openAssetPickerAction());
         props.put("closeAssetPicker", viewModel.closeAssetPickerAction());
         props.put("previousGantry", viewModel.previousGantryAction());

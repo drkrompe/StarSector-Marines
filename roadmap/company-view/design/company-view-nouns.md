@@ -4,9 +4,9 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — Barracks practice now projects each marine's exact
-data-defined primary sprite family and carried special-equipment use pose through
-the shared battle-owned ambient task seam.
+Updated: 2026-08-25 — separated the Mech Lab's non-selected lance overview from
+its fitting workspace, while Barracks practice now projects exact data-defined
+primary families and carried special-equipment poses through shared ambient tasks.
 
 ## Purpose
 
@@ -231,15 +231,19 @@ support squad of up to four chassis. The retained room shows the whole squad and
 separate asset-selection screen; choosing an assigned chassis opens its existing
 gantry without changing lance composition.
 The fitting header also provides explicit previous/next controls over the lance's four
-numbered gantry pads. Those controls can focus a vacant station without hiding the
-physical room; the asset browser remains the direct way to jump across lances.
-Entering the room or selecting a lance presents the wider working bay first. Selecting
-a fitting socket eases the shared room camera into that asset without interrupting the
-technicians' presentation clock, and selecting the already-occupied `MECH LAB` room
-route returns to the lance overview rather than acting as a dead control.
-That workspace gives its three primary regions to the equipment catalog, a wide
-top-down fabrication bay, and the socket rack. Selecting a location scopes the
-equipment catalog. The catalog may inspect fixed
+numbered gantry pads. Reaching a vacant station clears the chassis selection and returns
+the room to its overview treatment; the asset browser remains the direct way to jump
+across lances.
+Entering the room or selecting a lance presents the wider working bay first. This
+overview has no selected chassis and therefore renders neither equipment selectors nor
+socket details; a compact four-gantry rail identifies the assigned assets without
+taking width from the room. Choosing an occupied gantry establishes the selected asset,
+eases the shared camera into it without interrupting the technicians' task clock, and
+reveals the fitting controls. Selecting the already-occupied `MECH LAB` room route
+clears that selection and returns to the lance overview rather than acting as a dead
+control. The focused workspace gives its three primary regions to the equipment
+catalog, a wide top-down fabrication bay, and the socket rack. Selecting a location
+scopes the equipment catalog. The catalog may inspect fixed
 chassis, weapon, and ammunition assemblies, but exposes a commit action only when a
 real campaign inventory and install command exist.
 

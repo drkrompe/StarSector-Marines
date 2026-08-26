@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -128,6 +129,48 @@ class CampaignMarineDeploymentTest {
 
         assertEquals(0, assignedPersonnel(sim, ShuttleType.AEROSHUTTLE, null));
         assertEquals(1, assignedPersonnel(sim, ShuttleType.HERMES, playerMarine.id()));
+    }
+
+    @Test
+    void commitmentReplayPreservesScenarioRoleAndObjective() {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(1);
+        MarineSoldier marine = roster.lineReadySoldiers().get(0);
+        BattleSimulation sim = BattleSetup.createSabotage(
+                8_191L,
+                Collections.singletonList(new ShuttleAssignment(ShuttleType.HERMES, 1)),
+                false,
+                RiskLevel.LOW);
+        try {
+            ShuttleMission mission = missionFor(sim, ShuttleType.HERMES);
+            MarineLoadout scenarioSeat = mission.cycleLoadouts[0][0];
+            assertEquals(UnitRole.PLANTER, scenarioSeat.role);
+            assertNotNull(scenarioSeat.objective);
+
+            CampaignMarineDeployment frozen = CampaignMarineDeployment.freeze(roster, 1);
+            CampaignMarineDeployment.fromCommitments(frozen.commitments()).applyTo(sim);
+
+            MarineLoadout applied = mission.cycleLoadouts[0][0];
+            assertEquals(UnitRole.PLANTER, applied.role);
+            assertSame(scenarioSeat.objective, applied.objective);
+            assertEquals(marine.id(), applied.campaignSoldierId);
+        } finally {
+            sim.close();
+        }
+    }
+
+    private static ShuttleMission missionFor(BattleSimulation sim, ShuttleType shuttleType) {
+        BattleComponents components = sim.getBattleComponents();
+        for (ArchetypeTable table : sim.getEntityWorld().matched(components.airCraft)) {
+            Object[] types = table.objects(components.AIR_IDENTITY,
+                    BattleComponents.AIR_IDENTITY_TYPE).array();
+            Object[] missions = table.objects(components.SHUTTLE_MISSION,
+                    BattleComponents.SHUTTLE_MISSION_STATE).array();
+            for (int row = 0; row < table.rowCount(); row++) {
+                if (types[row] == shuttleType) return (ShuttleMission) missions[row];
+            }
+        }
+        throw new AssertionError("No " + shuttleType + " mission");
     }
 
     private static int assignedPersonnel(BattleSimulation sim, ShuttleType shuttleType,

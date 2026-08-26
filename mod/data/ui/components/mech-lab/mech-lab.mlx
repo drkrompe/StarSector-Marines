@@ -1,4 +1,4 @@
-<template props="labSummary,squadRows,mechRows,activeGantryLabel,selectedMechName,selectedMechIdentity,selectedMechDoctrine,performanceMeters,leftSlotRows,rightSlotRows,slotRows,selectedSlotTitle,selectedSlotCopy,selectedSlotRule,catalogRows,pickerClasses,workspaceClasses,openAssetPicker,closeAssetPicker,previousGantry,nextGantry,feedbackText,feedbackClasses,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses">
+<template props="labSummary,squadRows,mechRows,gantryRows,activeGantryLabel,garageTitle,selectedMechName,selectedMechIdentity,selectedMechDoctrine,performanceMeters,leftSlotRows,rightSlotRows,slotRows,selectedSlotTitle,selectedSlotCopy,selectedSlotRule,catalogRows,pickerClasses,workspaceClasses,fittingHeaderClasses,performanceClasses,catalogClasses,slotRackClasses,overviewRailClasses,openAssetPicker,closeAssetPicker,previousGantry,nextGantry,feedbackText,feedbackClasses,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses">
   <div id="mech-lab-root" class="mech-lab-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" contextLabel="FLAGSHIP / MECH BAY / FABRICATION GANTRY" />
 
@@ -42,7 +42,7 @@
       </div>
 
       <div id="mech-fitting-workspace" class="{workspaceClasses}">
-        <div id="mech-asset-strip" class="asset-strip edge-surface">
+        <div id="mech-asset-strip" class="{fittingHeaderClasses}">
           <div id="mech-asset-strip-copy" class="asset-strip-copy">
             <div id="selected-mech-name" class="label asset-name tone-accent">{selectedMechName}</div>
             <div id="selected-mech-identity" class="label tone-muted asset-identity">{selectedMechIdentity}</div>
@@ -56,7 +56,7 @@
           <button id="mech-change-asset" class="compact-action" onclick="{openAssetPicker}">BROWSE LANCE</button>
         </div>
 
-        <div id="mech-performance-grid" class="performance-grid">
+        <div id="mech-performance-grid" class="{performanceClasses}">
           <div each="meter in performanceMeters" key="{meter.id}" id="{meter.id}" class="performance-meter surface-dark">
             <div id="{meter.labelId}" class="label heading tone-muted meter-label">{meter.label}</div>
             <div id="{meter.valueId}" class="label heading tone-edge meter-value">{meter.value}</div>
@@ -67,7 +67,7 @@
         </div>
 
         <div id="mech-fitting-body" class="fitting-body">
-          <div id="mech-component-catalog" class="panel catalog-panel">
+          <div id="mech-component-catalog" class="{catalogClasses}">
             <div id="mech-catalog-kicker" class="section-title label heading tone-edge">EQUIPMENT / SELECTED SOCKET</div>
             <div id="mech-catalog-heading" class="label catalog-heading tone-accent">{selectedSlotTitle}</div>
             <div id="mech-catalog-copy" class="label tone-muted catalog-copy">{selectedSlotCopy}</div>
@@ -90,13 +90,23 @@
 
           <div id="mech-garage-stage" class="garage-stage">
             <div id="mech-garage-heading" class="garage-heading">
-              <div id="mech-garage-title" class="label heading tone-edge">{activeGantryLabel}</div>
+              <div id="mech-garage-title" class="label heading tone-edge">{garageTitle}</div>
               <div id="mech-garage-status" class="label heading tone-muted garage-status">CREW ACTIVE  ·  FABRICATORS STANDBY</div>
             </div>
             <canvas id="mech-doll-canvas" class="mech-doll-canvas" width="900" height="520" />
+            <div id="mech-overview-rail" class="{overviewRailClasses}">
+              <div id="mech-overview-gantries" class="overview-gantry-list">
+                <button each="gantry in gantryRows" key="{gantry.id}" id="{gantry.id}" class="{gantry.classes}" disabled="{gantry.disabled}" onclick="{gantry.select}">
+                  <div id="{gantry.stationId}" class="label heading tone-edge overview-station">{gantry.station}</div>
+                  <div id="{gantry.nameId}" class="label heading overview-name">{gantry.name}</div>
+                  <div id="{gantry.detailId}" class="label tone-muted overview-detail">{gantry.detail}</div>
+                </button>
+              </div>
+              <button id="mech-overview-browse" class="overview-browse" onclick="{openAssetPicker}">BROWSE LANCES</button>
+            </div>
           </div>
 
-          <div id="mech-slot-rack" class="panel slot-panel">
+          <div id="mech-slot-rack" class="{slotRackClasses}">
             <div id="mech-slot-heading" class="section-title label heading tone-edge">FITTING LOCATIONS</div>
             <div id="mech-slot-copy" class="label tone-muted slot-copy">Select a socket to filter hardware.</div>
             <div id="mech-slot-list" class="slot-list">
@@ -177,9 +187,17 @@
 
   .garage-stage { flex-direction: column; width: 0px; flex-grow: 1; padding: 5px; gap: 3px; border-width: 1px; overflow: hidden; }
   .garage-heading { flex-direction: row; width: 100%; height: 19px; padding: 0px 3px; }
-  #mech-garage-title { width: 180px; }
+  #mech-garage-title { width: 300px; }
   .garage-status { width: 0px; flex-grow: 1; text-align: right; }
   .mech-doll-canvas { width: 100%; height: 0px; flex-grow: 1; }
+  .overview-rail { flex-direction: row; width: 100%; height: 76px; gap: 5px; }
+  .overview-gantry-list { flex-direction: row; width: 0px; height: 76px; flex-grow: 1; gap: 5px; }
+  .overview-gantry { flex-direction: column; width: 0px; height: 76px; flex-grow: 1; padding: 6px; gap: 1px; border-width: 1px; text-align: left; }
+  .overview-gantry.occupied { background-color: #132c3d; border-color: #4c93b5; }
+  .overview-gantry.occupied:hover { background-color: #1b435a; border-color: #ffd464; }
+  .overview-gantry.vacant { background-color: #0c1620; border-color: #243849; opacity: 0.72; }
+  .overview-station, .overview-name, .overview-detail { height: 18px; }
+  .overview-browse { width: 142px; height: 76px; padding: 7px; text-align: center; }
 
   .slot-panel { flex-direction: column; width: 245px; padding: 7px; gap: 5px; overflow: hidden; }
   .slot-copy { height: 34px; }

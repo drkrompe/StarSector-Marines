@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 2,
+  "kind": "CONQUEST",
+  "construction": {
+    "schemaVersion": 1,
+    "kind": "CONQUEST",
+    "seed": 1,
+    "enemyHasHeavyArmor": false,
+    "tier": "REINFORCED",
+    "risk": "LOW",
+    "shuttles": [
+      { "type": "KITE", "cycles": 10 },
+      { "type": "KITE", "cycles": 9 },
+      { "type": "KITE", "cycles": 9 }
+    ],
+    "targetProfile": {
+      "marketSize": 5,
+      "stability": 7,
+      "defenseLevel": 2,
+      "spaceportTier": 1,
+      "factionId": "independent",
+      "functions": [ "HABITATION", "SPACEPORT" ]
+    },
+    "marineFighterSupport": [
+      {
+        "profile": "BROADSWORD",
+        "side": "MARINE",
+        "sortieCount": 1,
+        "firstArrivalSec": 8.0,
+        "spawnIntervalSec": 30.0
+      }
+    ],
+    "enemyFighterSupport": [
+      {
+        "profile": "TALON",
+        "side": "DEFENDER",
+        "sortieCount": 1,
+        "firstArrivalSec": 15.0,
+        "spawnIntervalSec": 30.0
+      }
+    ]
+  },
+  "launch": {
+    "playerShuttleMissionsToSkip": 0,
+    "marineSeats": [
+      {
+        "campaignSoldierId": "fixture-marine-001",
+        "primaryWeaponId": "weapon.pulse-rifle",
+        "equipmentGrade": "SERVICE",
+        "soldierProfile": {
+          "aptitude": "STEADY",
+          "experienceXp": 120
+        },
+        "specialEquipmentId": null,
+        "armorFamily": "CHARCOAL",
+        "armorPool": 60.0,
+        "armorRating": 5.0,
+        "armorMoveSpeedMult": 1.0,
+        "armorIncomingAccuracyMult": 1.0,
+        "campaignSquad": {
+          "squadId": "fixture-squad-01",
+          "label": "Fixture Squad",
+          "leader": true,
+          "strength": 1,
+          "fireTeamIndex": 0
+        }
+      }
+    ],
+    "marineFighterSupport": [
+      {
+        "profile": "BROADSWORD",
+        "side": "MARINE",
+        "sortieCount": 1,
+        "firstArrivalSec": 8.0,
+        "spawnIntervalSec": 30.0
+      }
+    ],
+    "debugFighterSupport": [],
+    "commandPowers": [
+      { "id": "recon_ping", "mechDeployments": [] }
+    ],
+    "commandPowerResources": { "supplies": 20 }
+  }
+}

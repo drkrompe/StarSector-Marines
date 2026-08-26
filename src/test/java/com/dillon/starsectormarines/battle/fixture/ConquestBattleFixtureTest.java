@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.fixture;
 import com.dillon.starsectormarines.battle.command.ConquestCommand;
 import com.dillon.starsectormarines.battle.command.ConquestDefenderCommand;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
-import com.dillon.starsectormarines.battle.fixture.ConquestBattleFixture.WingCommitment;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.flyby.FighterWing;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
@@ -49,10 +48,10 @@ class ConquestBattleFixtureTest {
         }
     }
 
-    private static FlybyRoster roster(List<WingCommitment> commitments) {
+    private static FlybyRoster roster(List<FighterWingCommitment> commitments) {
         if (commitments.isEmpty()) return FlybyRoster.EMPTY;
         List<FighterWing> wings = new ArrayList<>();
-        for (WingCommitment commitment : commitments) {
+        for (FighterWingCommitment commitment : commitments) {
             wings.add(new FighterWing(commitment.profile(), commitment.side(),
                     commitment.sortieCount(), commitment.firstArrivalSec(),
                     commitment.spawnIntervalSec()));
