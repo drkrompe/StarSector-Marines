@@ -46,6 +46,19 @@ final class LayeredUnitComposer {
                      float facingDeg, float headLookDeg, float locomotionPhase,
                      float weaponPhase, int pose, int flags, float alpha,
                      LayerPose authoredPose) {
+        emit(out, assets, head, primary, drawWeaponLayers,
+                special != null ? special.specialDef() : null, equipmentGrade,
+                actorX, actorY, shoulderPx, facingDeg, headLookDeg, locomotionPhase,
+                weaponPhase, pose, flags, alpha, authoredPose);
+    }
+
+    static void emit(DrawList out, LayeredUnitAssets assets, LayeredSpriteCache head,
+                     MarineWeapon primary, boolean drawWeaponLayers,
+                     SpecialEquipmentDef special, EquipmentGrade equipmentGrade,
+                     float actorX, float actorY, float shoulderPx,
+                     float facingDeg, float headLookDeg, float locomotionPhase,
+                     float weaponPhase, int pose, int flags, float alpha,
+                     LayerPose authoredPose) {
         emit((layer, centerX, centerY, width, height, angleDegrees, red, green, blue, opacity) ->
                         out.addSprite(RenderLayer.UNITS, layer.sprite, centerX, centerY,
                                 width, height, angleDegrees, red, green, blue, opacity),
@@ -73,6 +86,19 @@ final class LayeredUnitComposer {
                      float facingDeg, float headLookDeg, float locomotionPhase,
                      float weaponPhase, int pose, int flags, float alpha,
                      LayerPose authoredPose) {
+        emit(out, assets, head, primary, drawWeaponLayers,
+                special != null ? special.specialDef() : null, equipmentGrade,
+                actorX, actorY, shoulderPx, facingDeg, headLookDeg, locomotionPhase,
+                weaponPhase, pose, flags, alpha, authoredPose);
+    }
+
+    static void emit(SpriteEmitter out, LayeredUnitAssets assets, LayeredSpriteCache head,
+                     MarineWeapon primary, boolean drawWeaponLayers,
+                     SpecialEquipmentDef special, EquipmentGrade equipmentGrade,
+                     float actorX, float actorY, float shoulderPx,
+                     float facingDeg, float headLookDeg, float locomotionPhase,
+                     float weaponPhase, int pose, int flags, float alpha,
+                     LayerPose authoredPose) {
         float pxPerSw = shoulderPx;
         boolean moving = (flags & LayeredAppearance.FLAG_MOVING) != 0;
         boolean rocket = pose == LayeredAppearance.POSE_ROCKET_AIM
@@ -81,7 +107,7 @@ final class LayeredUnitComposer {
                 || pose == LayeredAppearance.POSE_AMR_FIRE;
         boolean overShoulder = (flags & LayeredAppearance.FLAG_WEAPON_OVER_SHOULDER) != 0;
 
-        SpecialEquipmentDef specialDef = special != null ? special.specialDef() : null;
+        SpecialEquipmentDef specialDef = special;
         EquipmentLayerDef specialLayer = specialDef != null
                 ? specialDef.presentation().carrierLayer() : null;
         SpecialUsePose usePose = specialDef != null
@@ -105,7 +131,7 @@ final class LayeredUnitComposer {
                 ? LayeredWeaponFamily.fromPrimary(primary) : null;
         LayeredSpriteCache weapon = drawPrimaryLayers
                 ? (rocket ? assets.rocketLauncher
-                        : amr && special == MarineSecondary.ANTI_MATERIEL_RIFLE
+                        : amr
                                 ? assets.antiMaterielRifle
                                 : assets.weapon(weaponFamily, equipmentGrade))
                 : null;

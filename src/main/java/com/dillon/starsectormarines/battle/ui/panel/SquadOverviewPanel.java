@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.SquadMoraleSystem;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
@@ -109,7 +109,7 @@ public final class SquadOverviewPanel implements HudPanel {
                 counts[0]++;
             }
             if (sim.world().hasSecondaryWeapon(u)) {
-                MarineSecondary special = sim.world().secondaryWeapon(u);
+                SpecialEquipmentDef special = sim.world().specialEquipment(u);
                 if (special.hasAvailableUse(sim.world().secondaryAmmo(u))
                         && sim.world().secondaryCooldownTimer(u) <= 0f) counts[4]++;
             }

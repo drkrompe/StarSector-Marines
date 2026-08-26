@@ -8,6 +8,9 @@ import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.marine.SpecialActivation;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
@@ -50,6 +53,8 @@ public class ShotEvent {
     public final WeaponDef primaryWeaponDef;
     /** Non-null when a marine fired their secondary (rocket, etc.) — drives projectile sprite + impact recipe. Mutually exclusive with {@link #turretKind} and {@link #marineWeapon}. */
     public final MarineSecondary marineSecondary;
+    /** Authoritative special-equipment source, including contributed items. */
+    public final SpecialEquipmentDef specialEquipmentDef;
     /** Non-null when a mech fired one of its chassis weapons (chaingun, SRM pod, LRM). Drives projectile sprite + fire/impact sound + impact profile. Mutually exclusive with all the other source tags. */
     public final MechWeapon mechWeapon;
     /** Scales the morale drain this shot inflicts if it counts as a near-miss against a hostile squad. Sourced from the shooter's {@link UnitType#moraleImpact} at fire time. Defaults to 1.0 for shots emitted by paths that don't thread shooter type (detonations, legacy callers). */
@@ -170,7 +175,8 @@ public class ShotEvent {
         this(fromX, fromY, fromZ, toX, toY, toZ, hit, shooterFaction, lifetime,
                 turretKind, marineWeapon,
                 marineWeapon != null ? marineWeapon.def() : null,
-                marineSecondary, mechWeapon, moraleImpact, struckUnit, stopKind, shooterId);
+                marineSecondary != null ? marineSecondary.specialDef() : null,
+                mechWeapon, moraleImpact, struckUnit, stopKind, shooterId);
     }
 
     /** Creates a primary shot from an arbitrary catalog definition. */
@@ -190,11 +196,23 @@ public class ShotEvent {
                 moraleImpact, struckUnit, stopKind, shooterId);
     }
 
+    /** Creates a shot from arbitrary data-authored special equipment. */
+    public static ShotEvent special(float fromX, float fromY, float fromZ,
+                                    float toX, float toY, float toZ,
+                                    boolean hit, Faction shooterFaction, float lifetime,
+                                    SpecialEquipmentDef equipment, float moraleImpact,
+                                    boolean struckUnit, BallisticResolver.StopKind stopKind,
+                                    long shooterId) {
+        return new ShotEvent(fromX, fromY, fromZ, toX, toY, toZ, hit,
+                shooterFaction, lifetime, null, null, null, equipment, null,
+                moraleImpact, struckUnit, stopKind, shooterId);
+    }
+
     private ShotEvent(float fromX, float fromY, float fromZ,
                       float toX, float toY, float toZ,
                       boolean hit, Faction shooterFaction, float lifetime,
                       TurretKind turretKind, MarineWeapon marineWeapon,
-                      WeaponDef primaryWeaponDef, MarineSecondary marineSecondary,
+                      WeaponDef primaryWeaponDef, SpecialEquipmentDef specialEquipmentDef,
                       MechWeapon mechWeapon, float moraleImpact, boolean struckUnit,
                       BallisticResolver.StopKind stopKind, long shooterId) {
         this.fromX = fromX;
@@ -211,7 +229,9 @@ public class ShotEvent {
         this.turretKind = turretKind;
         this.marineWeapon = marineWeapon;
         this.primaryWeaponDef = primaryWeaponDef;
-        this.marineSecondary = marineSecondary;
+        this.specialEquipmentDef = specialEquipmentDef;
+        this.marineSecondary = specialEquipmentDef != null
+                ? SpecialEquipmentRegistry.compatibilityHandle(specialEquipmentDef.id()) : null;
         this.mechWeapon = mechWeapon;
         this.moraleImpact = moraleImpact;
         this.struckUnit = struckUnit;
@@ -221,13 +241,14 @@ public class ShotEvent {
     /** Source link safe to expose to hearing; indirect launches stay anonymous. */
     public long audibleSourceUnitId() {
         return isIndirectFire()
-                || marineSecondary == MarineSecondary.ANTI_MATERIEL_RIFLE
+                || specialEquipmentDef != null
+                && specialEquipmentDef.activation() == SpecialActivation.DIRECT_PRECISION
                 ? 0L : shooterId;
     }
 
     public boolean isIndirectFire() {
-        if (marineSecondary != null && (marineSecondary.def().indirectFire
-                || marineSecondary.arcHeight() > 0f)) return true;
+        if (specialEquipmentDef != null && (specialEquipmentDef.weaponDef().indirectFire
+                || specialEquipmentDef.arcHeight() > 0f)) return true;
         if (mechWeapon != null && mechWeapon.arcHeight > 0f) return true;
         return turretKind != null
                 && (turretKind.indirectFire() || turretKind.arcHeight() > 0f);
@@ -235,7 +256,7 @@ public class ShotEvent {
 
     /** Coarse ground-combat loudness used by the squad hearing model. */
     public float noiseMagnitude() {
-        if (marineSecondary != null) return 2.5f;
+        if (specialEquipmentDef != null) return 2.5f;
         if (mechWeapon != null) return Math.min(4f, 2f + mechWeapon.aoeRadius);
         if (turretKind != null) return Math.min(4f, 1.5f + turretKind.aoeRadius());
         if (primaryWeaponDef != null && primaryWeaponDef.impactProfile == ImpactProfile.KINETIC) {
@@ -262,7 +283,7 @@ public class ShotEvent {
     /** Carrier-agnostic presentation class for muzzle, impact, light, decal, and audio recipes. */
     public ImpactProfile impactProfile() {
         if (turretKind != null) return turretKind.impactProfile();
-        if (marineSecondary != null) return marineSecondary.impactProfile();
+        if (specialEquipmentDef != null) return specialEquipmentDef.impactProfile();
         if (primaryWeaponDef != null) return primaryWeaponDef.impactProfile;
         if (mechWeapon != null) return mechWeapon.impactProfile;
         return ImpactProfile.RIFLE;

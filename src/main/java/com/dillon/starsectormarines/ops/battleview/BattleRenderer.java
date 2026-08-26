@@ -317,7 +317,7 @@ public class BattleRenderer {
         // runs (BattleScreen.attach order).
         registerSpriteSheetBatches(sprites.unitDeadSprites().values());
         registerSpriteSheetBatches(sprites.unitSprites().values());
-        registerSpriteSheetBatches(sprites.marineSecondaryAimSheets().values());
+        registerSpriteSheetBatches(sprites.specialEquipmentAimSheets().values());
     }
 
     /** Builds + registers one {@link QuadBatch} per distinct sheet in {@code caches} (idempotent). */

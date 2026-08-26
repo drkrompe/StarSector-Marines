@@ -415,7 +415,7 @@ public final class UnitRosterService {
         boolean mobile = !spec.type.isStatic();
         boolean combatant = spec.type.combatant;
         boolean hasArmor = spec.maxArmor > 0f;
-        boolean hasSecondary = spec.secondaryWeapon != null;
+        boolean hasSecondary = spec.specialEquipment != null || spec.secondaryWeapon != null;
         // SPRITE iff sheet-drawn (UnitType.drawnAsSheet) — see the bullet above.
         boolean sheetDrawn = spec.type.drawnAsSheet();
         boolean layerDrawn = spec.type.drawnAsLayers();
@@ -584,7 +584,10 @@ public final class UnitRosterService {
                     spec.soldierProfile);
         }
         if (hasSecondary) {
-            entityWorld.setObject(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC, spec.secondaryWeapon);
+            entityWorld.setObject(id, components.SECONDARY_WEAPON,
+                    BattleComponents.SECONDARY_WEAPON_SPEC,
+                    spec.specialEquipment != null
+                            ? spec.specialEquipment : spec.secondaryWeapon.specialDef());
             entityWorld.setInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_AMMO, spec.secondaryAmmo);
         }
         // Seed the flier's KINEMATICS body — the SAME AirBody instance the unit's

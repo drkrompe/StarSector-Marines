@@ -1,8 +1,8 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.marine.SpecialActivation;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
@@ -93,7 +93,6 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
 
     private static final EnumMap<TurretKind, ShotFx>      TURRET    = build(TurretKind.class,      ShotFx::deriveTurret);
     private static final EnumMap<MarineWeapon, ShotFx>    PRIMARY   = build(MarineWeapon.class,    ShotFx::derivePrimary);
-    private static final EnumMap<MarineSecondary, ShotFx> SECONDARY = buildSecondaries();
     private static final EnumMap<MechWeapon, ShotFx>      MECH      = build(MechWeapon.class,      ShotFx::deriveMech);
     /** No weapon source (detonations / legacy callers) → a faction-default tracer. */
     private static final ShotFx NO_SOURCE = new ShotFx(new Tracer(null), 0f, false, false, false, null);
@@ -101,10 +100,7 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
     /** The composition for a shot — never null; dispatches on the single non-null weapon source. */
     public static ShotFx of(ShotEvent s) {
         if (s.turretKind != null)      return TURRET.get(s.turretKind);
-        if (s.marineSecondary != null) {
-            ShotFx fx = SECONDARY.get(s.marineSecondary);
-            return fx != null ? fx : NO_SOURCE;
-        }
+        if (s.specialEquipmentDef != null) return deriveSecondary(s.specialEquipmentDef);
         if (s.primaryWeaponDef != null) return derivePrimary(s.primaryWeaponDef);
         if (s.mechWeapon != null)      return MECH.get(s.mechWeapon);
         return NO_SOURCE;
@@ -166,24 +162,14 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
         return Set.copyOf(paths);
     }
 
-    private static ShotFx deriveSecondary(MarineSecondary w) {
+    private static ShotFx deriveSecondary(SpecialEquipmentDef w) {
         Body body = w.projectileSpritePath() != null
                 ? new Sprite(w.projectileSpritePath(), w.projectileVisualCells())
                 : new Bolt(RAIL_NEEDLE_SPRITE_PATH, w.tracerColor(), 2.2f, 0.20f);
-        return new ShotFx(body, w.def().arcHeight, w.def().boostRamp,
+        return new ShotFx(body, w.weaponDef().arcHeight, w.weaponDef().boostRamp,
                 false, false,
                 w.activation() == SpecialActivation.DIRECT_EXPLOSIVE
                         ? ContrailStyle.MISSILE_SMOKE : null);
-    }
-
-    private static EnumMap<MarineSecondary, ShotFx> buildSecondaries() {
-        EnumMap<MarineSecondary, ShotFx> effects = new EnumMap<>(MarineSecondary.class);
-        for (MarineSecondary secondary : MarineSecondary.values()) {
-            if (secondary.specialDef().weaponId() != null) {
-                effects.put(secondary, deriveSecondary(secondary));
-            }
-        }
-        return effects;
     }
 
     private static ShotFx deriveMech(MechWeapon w) {

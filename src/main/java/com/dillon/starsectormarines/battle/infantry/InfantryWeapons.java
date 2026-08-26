@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.marine.SpecialActivation;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import java.util.Random;
@@ -264,7 +265,7 @@ public class InfantryWeapons {
      * real in-flight entity, queryable by squad-coordination scorers
      * ({@link com.dillon.starsectormarines.battle.decision.TacticalScoring#shouldCommitRocket})
      * via {@code sim.getActiveProjectiles()} and (eventually) interceptable
-     * by point defense. {@link MarineSecondary#roundVelocity()} derives a
+     * by point defense. {@link SpecialEquipmentDef#roundVelocity()} derives a
      * cells/sec speed from the former maximum-range timing, so closer physical
      * stops arrive sooner.
      *
@@ -281,7 +282,7 @@ public class InfantryWeapons {
         Faction shooterFaction = roster.identity().faction(shooter);
         long shooterId = shooter;
         if (!world.hasSecondaryWeapon(shooterId)) return;
-        MarineSecondary sec = world.secondaryWeapon(shooterId);
+        SpecialEquipmentDef sec = world.specialEquipment(shooterId);
         if (!sec.isDirectFireWeapon()) return;
         int ammo = world.secondaryAmmo(shooterId);
         if (ammo <= 0) return;
@@ -310,11 +311,10 @@ public class InfantryWeapons {
                         sec.penetration(), roster.identity().type(shooter).moraleImpact,
                         res.friendlyHit(), sec));
             }
-            shots.postShot(new ShotEvent(fromX, fromY, 0f,
+            shots.postShot(ShotEvent.special(fromX, fromY, 0f,
                     res.endX(), res.endY(), res.endZ(),
                     res.hitIntended(), shooterFaction, Math.max(res.flightTime(), 0.05f),
-                    null, null, sec, null, 1f,
-                    res.victimId() != 0L, res.kind(), shooter));
+                    sec, 1f, res.victimId() != 0L, res.kind(), shooter));
             return;
         }
 
@@ -337,18 +337,17 @@ public class InfantryWeapons {
                 /*hasBoostRamp*/ true, /*arcHeight*/ 0f,
                 shooterFaction, /*aerialDelivery*/ false,
                 res.flightTime(), onArrival));
-        shots.postShot(new ShotEvent(fromX, fromY, 0f,
+        shots.postShot(ShotEvent.special(fromX, fromY, 0f,
                 res.endX(), res.endY(), res.endZ(),
                 res.hitIntended(), shooterFaction, Math.max(res.flightTime(), 0.05f),
-                null, null, sec, null, 1f,
-                res.victimId() != 0L, res.kind(), shooter));
+                sec, 1f, res.victimId() != 0L, res.kind(), shooter));
     }
 
     /** Releases a short-arc, ground-targeted fragmentation grenade. */
     public void throwFragmentationGrenade(long carrier, float targetX, float targetY) {
         World world = roster.world();
         if (!world.hasSecondaryWeapon(carrier)) return;
-        MarineSecondary grenade = world.secondaryWeapon(carrier);
+        SpecialEquipmentDef grenade = world.specialEquipment(carrier);
         if (grenade.activation() != SpecialActivation.ARC_EXPLOSIVE) return;
         int ammo = world.secondaryAmmo(carrier);
         if (ammo <= 0) return;
@@ -390,11 +389,10 @@ public class InfantryWeapons {
                 /*spawnDustOnWallBreak*/ false, /*friendlyFireImmune*/ false);
         shots.queueProjectile(new Projectile(fromX, fromY, targetX, targetY,
                 /*hasBoostRamp*/ false, grenade.arcHeight(), faction,
-                /*aerialDelivery*/ false, flightTime, payload, grenade.def().id));
-        shots.postShot(new ShotEvent(fromX, fromY, 0f,
+                /*aerialDelivery*/ false, flightTime, payload, grenade.weaponDef().id));
+        shots.postShot(ShotEvent.special(fromX, fromY, 0f,
                 targetX, targetY, 0f, false, faction, flightTime,
-                null, null, grenade, null,
-                roster.identity().type(carrier).moraleImpact,
+                grenade, roster.identity().type(carrier).moraleImpact,
                 false, null, carrier));
     }
 }

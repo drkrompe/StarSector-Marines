@@ -73,7 +73,7 @@ public final class ResupplySystem {
     private boolean needsSupply(long unit) {
         World world = roster.world();
         if (world.hasSecondaryWeapon(unit)
-                && world.secondaryAmmo(unit) < world.secondaryWeapon(unit).startingAmmo()) return true;
+                && world.secondaryAmmo(unit) < world.specialEquipment(unit).startingAmmo()) return true;
         MechLoadoutComponent mech = world.mechLoadout(unit);
         return mech != null && mech.needsSupply();
     }
@@ -82,7 +82,7 @@ public final class ResupplySystem {
         World world = roster.world();
         if (world.hasSecondaryWeapon(unit)) {
             int current = world.secondaryAmmo(unit);
-            int maximum = world.secondaryWeapon(unit).startingAmmo();
+            int maximum = world.specialEquipment(unit).startingAmmo();
             if (current < maximum) {
                 world.setSecondaryAmmo(unit, current + 1);
                 return true;

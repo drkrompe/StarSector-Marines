@@ -58,6 +58,9 @@ public final class SquadWeaponIssue implements Serializable {
     public MarineSecondary special() {
         return SpecialEquipmentRegistry.compatibilityHandle(specialEquipmentId);
     }
+    public SpecialEquipmentDef specialDef() {
+        return SpecialEquipmentRegistry.get(specialEquipmentId);
+    }
 
     private Object readResolve() {
         if (role == null || role.isBlank()) role = "Marine";
@@ -71,7 +74,11 @@ public final class SquadWeaponIssue implements Serializable {
         }
         primary = null;
         if (grade == null) grade = EquipmentGrade.SERVICE;
-        if (SpecialEquipmentRegistry.get(specialEquipmentId) == null) specialEquipmentId = null;
+        if (specialEquipmentId != null && SpecialEquipmentRegistry.get(specialEquipmentId) == null) {
+            LOG.warn("Clearing doctrine billet '" + role + "' unresolved special equipment '"
+                    + specialEquipmentId + "'");
+            specialEquipmentId = null;
+        }
         return this;
     }
 

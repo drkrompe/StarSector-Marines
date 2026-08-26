@@ -94,6 +94,7 @@ public class BattleSprites {
             new java.util.HashMap<>();
     private final java.util.EnumMap<MarineSecondary, UnitSpriteCache> marineSecondaryAimSheets =
             new java.util.EnumMap<>(MarineSecondary.class);
+    private final Map<String, UnitSpriteCache> specialEquipmentAimSheets = new LinkedHashMap<>();
     private boolean marineSecondarySpritesLoadAttempted;
 
     // ---- decal sheet --------------------------------------------------------
@@ -165,6 +166,9 @@ public class BattleSprites {
     /** Carrier-agnostic projectile-sprite lookup by texture path (what {@code ShotFx.Sprite} resolves against). Null if not loaded / no such path. */
     public ShuttleSpriteCache projectileSprite(String path) { return path == null ? null : projectileSpriteByPath.get(path); }
     public java.util.EnumMap<MarineSecondary, UnitSpriteCache> marineSecondaryAimSheets() { return marineSecondaryAimSheets; }
+    public Map<String, UnitSpriteCache> specialEquipmentAimSheets() {
+        return specialEquipmentAimSheets;
+    }
     public SpriteAPI smokeGrenadeSprite() { return smokeGrenadeSprite; }
     public SpriteAPI smokePuffSprite() { return smokePuffSprite; }
     public SpriteAPI satchelChargeSprite() { return satchelChargeSprite; }
@@ -381,7 +385,9 @@ public class BattleSprites {
     public void ensureMarineSecondarySprites() {
         if (marineSecondarySpritesLoadAttempted) return;
         marineSecondarySpritesLoadAttempted = true;
-        for (MarineSecondary sec : MarineSecondary.values()) {
+        SpecialEquipmentRegistry registry = SpecialEquipmentRegistry.installed();
+        if (registry == null) return;
+        for (SpecialEquipmentDef sec : registry.all()) {
             if (sec.projectileSpritePath() != null) {
                 try {
                     Global.getSettings().loadTexture(sec.projectileSpritePath());
@@ -403,7 +409,12 @@ public class BattleSprites {
             }
             if (sec.aimSpritePath() != null) {
                 UnitSpriteCache aim = loadUnitSheet(sec.aimSpritePath());
-                if (aim != null) marineSecondaryAimSheets.put(sec, aim);
+                if (aim != null) {
+                    specialEquipmentAimSheets.put(sec.id(), aim);
+                    MarineSecondary compatibility =
+                            SpecialEquipmentRegistry.compatibilityHandle(sec.id());
+                    if (compatibility != null) marineSecondaryAimSheets.put(compatibility, aim);
+                }
             }
         }
         // Primary projectile sprites (field-rifle / SMG shells today). Skip
