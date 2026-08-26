@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.SabotageSiteSnapshot;
+import com.dillon.starsectormarines.battle.command.SabotageDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
@@ -288,6 +289,8 @@ public final class CommandTraceRecorder {
             conquest(out, conquest);
         } else if (snapshot.detail() instanceof SabotageSiteSnapshot sabotage) {
             sabotage(out, sabotage);
+        } else if (snapshot.detail() instanceof SabotageDefenseSnapshot defense) {
+            sabotageDefense(out, defense);
         }
         return end(out);
     }
@@ -480,6 +483,61 @@ public final class CommandTraceRecorder {
         numberField(out, "markerCellX", action.markerCellX());
         numberField(out, "markerCellY", action.markerCellY());
         out.append('}');
+    }
+
+    private static void sabotageDefense(StringBuilder out,
+                                         SabotageDefenseSnapshot snapshot) {
+        out.append(",\"sabotageDefense\":{");
+        rawField(out, "phase", snapshot.phase().name());
+        numberField(out, "mobilePool", snapshot.mobilePool());
+        numberField(out, "reserveCount", snapshot.reserveCount());
+        List<SabotageDefenseSnapshot.SiteState> sites =
+                new ArrayList<>(snapshot.sites());
+        sites.sort(Comparator.comparingInt(
+                SabotageDefenseSnapshot.SiteState::index));
+        out.append(",\"sites\":[");
+        for (int i = 0; i < sites.size(); i++) {
+            if (i > 0) out.append(',');
+            SabotageDefenseSnapshot.SiteState site = sites.get(i);
+            out.append('{');
+            rawNumberField(out, "index", site.index());
+            field(out, "id", site.id());
+            field(out, "name", site.name());
+            numberField(out, "cellX", site.cellX());
+            numberField(out, "cellY", site.cellY());
+            numberField(out, "zoneId", site.zoneId());
+            booleanField(out, "complete", site.complete());
+            booleanField(out, "alarmActive", site.alarmActive());
+            numberField(out, "alarmRaisedTick", site.alarmRaisedTick());
+            numberField(out, "alarmExpiresTick", site.alarmExpiresTick());
+            numberField(out, "routineSquads", site.routineSquads());
+            numberField(out, "respondingSquads", site.respondingSquads());
+            numberField(out, "liveMembers", site.liveMembers());
+            floatField(out, "friendlyPressure", site.friendlyPressure());
+            floatField(out, "knownHostilePressure", site.knownHostilePressure());
+            out.append('}');
+        }
+        out.append(']');
+        List<SabotageDefenseSnapshot.SquadDirective> actions =
+                new ArrayList<>(snapshot.directives());
+        actions.sort(Comparator.comparingInt(
+                SabotageDefenseSnapshot.SquadDirective::squadId));
+        out.append(",\"actions\":[");
+        for (int i = 0; i < actions.size(); i++) {
+            if (i > 0) out.append(',');
+            SabotageDefenseSnapshot.SquadDirective action = actions.get(i);
+            out.append('{');
+            rawNumberField(out, "squadId", action.squadId());
+            numberField(out, "siteIndex", action.siteIndex());
+            field(out, "role", action.role().name());
+            field(out, "reason", action.reason().name());
+            nullableField(out, "assignmentKind", action.assignmentKind() != null
+                    ? action.assignmentKind().name() : null);
+            numberField(out, "markerCellX", action.markerCellX());
+            numberField(out, "markerCellY", action.markerCellY());
+            out.append('}');
+        }
+        out.append("]}");
     }
 
     private static StringBuilder begin(String stream, int tick) {
