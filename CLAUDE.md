@@ -104,7 +104,12 @@ Do not run builds or leave generated task files there.
   It exposes specialized projectile/artillery behavior and audio; preview
   flight reads the authored burst, boost, arc, contrail, and directional
   launch-FX data instead of substituting a generic projectile treatment.
-  Both pages validate before replacement; the Turrets page prepares every
+  The Tilesets page turns a raw art sheet into a loadable tileset: it finds the
+  pieces by keying on alpha, proposes a footprint for each from the sheet grid,
+  and exports a packed atlas plus its `*.tileset.json`. Footprints are
+  edited there rather than inferred, because how much deck a piece covers is a
+  judgement about the object, not a measurement of the art.
+  All three pages validate before replacement; the Turrets page prepares every
   linked target before replacing files atomically and rolls back earlier files
   if a later replacement fails.
 - `gradlew.bat deployMod` → generates the gitignored `mod/sounds/` outputs
