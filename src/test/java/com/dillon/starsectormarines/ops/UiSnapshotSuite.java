@@ -22,6 +22,8 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 import com.dillon.starsectormarines.ui.retained.UiAlign;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.ui.retained.UiElement;
+import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.headless.HeadlessUiRenderer;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
@@ -103,6 +105,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderFleetArmoryWorkspace(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
                                 true, false)),
+                new SnapshotArtifact("fleet-armory-equipment-tooltip-wide.png",
+                        renderFleetArmoryWorkspace(
+                                context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                true, false, false, true)),
                 new SnapshotArtifact("fleet-armory-equipment-preview-wide.png",
                         renderFleetArmoryWorkspace(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
@@ -152,7 +158,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, boolean fireteam, boolean pickerOpen) throws Exception {
         return renderFleetArmoryWorkspace(
-                context, renderer, width, height, fireteam, pickerOpen, false);
+                context, renderer, width, height, fireteam, pickerOpen, false, false);
     }
 
     private static BufferedImage renderBarracks(
@@ -187,6 +193,15 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, boolean fireteam, boolean pickerOpen,
             boolean armorPicker) throws Exception {
+        return renderFleetArmoryWorkspace(
+                context, renderer, width, height, fireteam, pickerOpen,
+                armorPicker, false);
+    }
+
+    private static BufferedImage renderFleetArmoryWorkspace(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, boolean fireteam, boolean pickerOpen,
+            boolean armorPicker, boolean equipmentTooltip) throws Exception {
         Reactor reactor = new Reactor();
         MarineRoster roster = new MarineRoster();
         roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
@@ -210,9 +225,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         try (MarkupInstance instance = loader.build(
                 reactor, fireteam ? "fleet-armory-fireteam" : "fleet-armory",
                 props(viewModel))) {
+            ArmoryEquipmentTooltips tooltips = ArmoryEquipmentTooltips.empty();
             if (fireteam) {
                 instance.requireElement("transaction-feedback")
                         .align(UiAlign.STRETCH, UiAlign.CENTER);
+                tooltips = ArmoryEquipmentTooltips.bind(
+                        instance, viewModel.marineCards().get());
             }
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
@@ -225,6 +243,20 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                     () -> viewModel.viewerBilletAt(billet),
                                     armoryPreview.assets()));
                 }
+            }
+            if (equipmentTooltip) {
+                UiViewport viewport = UiViewport.relative(
+                        0f, 0f, width, height, 1f,
+                        MarineOpsUiViewport.REFERENCE_WIDTH,
+                        MarineOpsUiViewport.REFERENCE_HEIGHT);
+                document.layout(viewport.documentWidth(), viewport.documentHeight());
+                UiElement target = instance.requireElement(
+                        viewModel.marineCards().get().get(0).primaryId());
+                document.pointerMoved(
+                        target.box().borderBox().x() + target.box().borderBox().width() / 2f,
+                        target.box().borderBox().y() + target.box().borderBox().height() / 2f);
+                tooltips.update();
+                document.advance(0f);
             }
             return renderRelative(renderer, document, width, height, 1f);
         }

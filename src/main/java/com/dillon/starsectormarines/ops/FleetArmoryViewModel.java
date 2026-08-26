@@ -161,7 +161,7 @@ public final class FleetArmoryViewModel {
         loadoutFilter = reactor.signal(LoadoutFilter.ALL);
         domainRevision = reactor.signal(0);
         feedback = reactor.signal(Feedback.neutral(
-                "Choose squad Weapon and Armor equipment, inspect each team, then issue when ready."));
+                "Hover equipment names for field notes. Choose squad equipment, inspect each team, then issue when ready."));
 
         companySummary = reactor.computed(this::buildCompanySummary);
         squadCards = reactor.computed(this::buildSquadCards);
@@ -576,7 +576,7 @@ public final class FleetArmoryViewModel {
                     ? billet.armorDef() : null;
             WeaponDef primary = billet != null ? billet.primaryDef() : null;
             marines.add(new MarineViewerCard(
-                    id, "marine-preview:" + index, id + ":header",
+                    id, id + ":content", "marine-preview:" + index, id + ":header",
                     id + ":hero", id + ":identity",
                     id + ":badges", id + ":class-badge", id + ":weapon-badge",
                     id + ":armor-badge", id + ":name", id + ":role",
@@ -1232,7 +1232,8 @@ public final class FleetArmoryViewModel {
     }
 
     public record MarineViewerCard(
-            String id, String canvasId, String headerId, String heroId, String identityId,
+            String id, String contentId, String canvasId, String headerId, String heroId,
+            String identityId,
             String badgesId, String classBadgeId, String weaponBadgeId,
             String armorBadgeId, String nameId, String roleId,
             String statusId, String serviceId, String personnelId, String primaryId,
@@ -1252,6 +1253,7 @@ public final class FleetArmoryViewModel {
         public Object markupProperty(String property) {
             return switch (property) {
                 case "id" -> id;
+                case "contentId" -> contentId;
                 case "canvasId" -> canvasId;
                 case "headerId" -> headerId;
                 case "heroId" -> heroId;
