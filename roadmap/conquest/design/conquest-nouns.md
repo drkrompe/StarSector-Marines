@@ -49,11 +49,18 @@ momentary absence.
 ## Assault and control loop
 
 The marine commander treats compound capture as a primary objective. It sends
-a measured, capped detachment to an uncontested compound and preserves a
-capture already underway. A compound still defended is not fed a fresh assault
-squad; only a squad already at its threshold may commit. Other squads keep
-pushing the broader front. This prevents both accidental capture avoidance and
-the entire assault force abandoning the fight for one building.
+a measured, capped detachment toward a compound with no believed defender and
+preserves a capture already underway. Unknown occupancy is authorization for a
+probe, not positive knowledge that a distant compound is clear. When actionable
+front resistance exists, squads without useful front work take distant capture
+duty first and fresh allocations must leave at least one executable actionable
+squad on the broader front. This budget is global across all compounds and
+therefore cannot reset once per objective or once per command pulse. A compound
+still believed defended is not fed a fresh assault squad; a squad already at
+any objective's threshold may commit without consuming the distant budget.
+Explicit keep convergence remains the culminating exception. This prevents
+both accidental capture avoidance and the assault force abandoning the fight
+for distant buildings.
 
 The broader front is organized into lateral **tracks**. A squad keeps a sticky
 preferred track so the assault remains readable, but the track is a coordination
@@ -66,7 +73,10 @@ Conquest command publishes an immutable **front snapshot** after each command
 tick. It explains the current phase, every mobile squad's preferred and
 effective track, the reason and target behind its order, and each track's
 friendly progress and belief-derived hostile pressure/frontier. Selected-squad
-presentation and dumps consume that published command state; they do not infer
+diagnostics additionally mark when a reachable distant capture was deferred to
+retain that squad for actionable front resistance; this policy explanation is
+separate from the reason for any actual lane order. Presentation and dumps
+consume that published command state; they do not infer
 a second plan or reveal hidden defenders. The assignment decision remains the
 commander's authority, while local squad doctrine decides how to prosecute the
 contact.

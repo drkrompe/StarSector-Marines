@@ -148,6 +148,8 @@ class SquadStateDumperTest {
         assertEquals("LANE_ADVANCE", conquest.getString("phase"));
         assertEquals(commonDirective.getString("reason"), conquest
                 .getJSONObject("squadDirective").getString("reason"));
+        assertFalse(conquest.getJSONObject("squadDirective")
+                .getBoolean("distantCaptureDeferred"));
         assertEquals(3, conquest.getJSONArray("tracks").length());
 
         JSONObject influence = dump.getJSONObject("currentCommanderInfluence");

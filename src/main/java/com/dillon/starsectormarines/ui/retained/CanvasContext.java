@@ -36,8 +36,8 @@ public abstract class CanvasContext {
 
     /**
      * Runs a bounded renderer-owned pass when this canvas is painting to the
-     * live host. Returns false for headless or non-native targets so the caller
-     * can emit ordinary canvas primitives as deterministic evidence.
+     * target host. Returns false when the target cannot interpret this pass so
+     * the caller can emit ordinary canvas primitives as deterministic evidence.
      */
     public final boolean hostPass(CanvasHostPass pass) {
         if (pass == null) throw new IllegalArgumentException("host pass is required");

@@ -113,6 +113,26 @@ class HeadlessUiRendererTest {
         assertEquals(background.getBlue() + tint.getBlue(), additive.getBlue());
     }
 
+    @Test
+    void typedHostPassCanUseTheHeadlessCanvasDrain() {
+        UiElement canvas = new UiElement("canvas").tag(UiTag.CANVAS).canvasSize(40, 20);
+        UiDocument document = new UiDocument(canvas);
+        document.canvases().set(canvas, context -> context.hostPass((viewport, alpha) -> {
+            throw new AssertionError("native pass should not execute in headless rendering");
+        }));
+        HeadlessUiRenderer renderer = new HeadlessUiRenderer(
+                (pass, context, viewport, alpha) -> {
+                    assertEquals(40f, viewport.width());
+                    assertEquals(20f, viewport.height());
+                    context.fillRect(0f, 0f, 40f, 20f, Color.MAGENTA);
+                    return true;
+                }, Path.of("mod"));
+
+        BufferedImage result = renderer.render(document, 40, 20);
+
+        assertEquals(Color.MAGENTA.getRGB(), result.getRGB(20, 10));
+    }
+
     private static HeadlessUiRenderer renderer() {
         Path starsectorCore = Path.of(System.getProperty("starsectorDir"))
                 .resolve("starsector-core");
