@@ -9,12 +9,15 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
+import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -115,27 +118,54 @@ class DebugCompanyTest {
     }
 
     @Test
-    void theArmoryActuallyIssuesTheStagesKit() {
-        // The kit is allocated through the real inventory-checked path, so an
-        // under-stocked armory would show up as marines quietly holding the
-        // starter rifle rather than as a failure. Assert the scarce items
-        // landed: the graded marksman rifle in every squad.
-        MarineRoster roster = DebugCompany.roster(DebugCompanyStage.VETERAN_COMPANY);
-        int masterworkDmrs = 0;
-        for (MarineSoldier soldier : roster.activeSoldiers()) {
-            if (soldier.primaryDef() == WeaponRegistry.require(WeaponRegistry.DMR_ID)
-                    && soldier.primaryGrade() == EquipmentGrade.MASTERWORK) masterworkDmrs++;
+    void everySquadReceivesOneRandomizedAuthoredLoadout() {
+        MarineRoster roster = DebugCompany.roster(
+                DebugCompanyStage.VETERAN_COMPANY, 6, new Random(7_211L));
+        Set<String> weaponDoctrines = new HashSet<>();
+        Set<String> armorDoctrines = new HashSet<>();
+
+        for (MarineSquad squad : roster.squads()) {
+            SquadWeaponDoctrine weapons = roster.armory()
+                    .weaponDoctrineById(squad.weaponDoctrineId());
+            SquadArmorDoctrine armor = roster.armory()
+                    .armorDoctrineById(squad.armorDoctrineId());
+            assertNotNull(weapons, "the card can resolve its authored weapon loadout");
+            assertNotNull(armor, "the card can resolve its authored armor loadout");
+            weaponDoctrines.add(weapons.id());
+            armorDoctrines.add(armor.id());
+
+            List<MarineSoldier> squadMembers = members(roster, squad);
+            boolean masterworkMarksmanSeen = false;
+            for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
+                MarineSoldier soldier = squadMembers.get(billet);
+                assertEquals(weapons.issue(billet).primaryId(), soldier.primaryId());
+                assertEquals(weapons.issue(billet).specialEquipmentId(),
+                        soldier.specialEquipmentId());
+                assertEquals(armor.issueId(billet), soldier.armorId());
+                if (WeaponRegistry.STARTER_PRIMARY_ID.equals(soldier.primaryId())) {
+                    assertSame(EquipmentGrade.SERVICE, soldier.primaryGrade());
+                } else if (!masterworkMarksmanSeen
+                        && WeaponRegistry.DMR_ID.equals(soldier.primaryId())) {
+                    assertSame(EquipmentGrade.MASTERWORK, soldier.primaryGrade());
+                    masterworkMarksmanSeen = true;
+                } else {
+                    assertSame(EquipmentGrade.MILSPEC, soldier.primaryGrade());
+                }
+            }
         }
-        assertEquals(DebugCompanyStage.VETERAN_COMPANY.squads, masterworkDmrs,
-                "one masterwork DMR per squad — the armory was stocked for the plan");
+
+        assertEquals(5, weaponDoctrines.size(),
+                "the first shuffle bag exposes every faction-flavored weapon doctrine");
+        assertEquals(4, armorDoctrines.size(),
+                "the first shuffle bag exposes every faction-flavored armor doctrine");
     }
 
     @Test
     void theSquadDialResizesWithoutChangingQuality() {
         // The balance question CONQUEST HIGH raised — "how many marines does
         // this actually need" — is a size question, and the stage ladder can
-        // only offer fixed points. Dialling size must not quietly re-roll the
-        // company's quality.
+        // only offer fixed points. Dialling size may roll different equipment,
+        // but must not quietly change the company's experience quality.
         MarineRoster small = DebugCompany.roster(DebugCompanyStage.VETERAN_COMPANY, 2);
         MarineRoster large = DebugCompany.roster(DebugCompanyStage.VETERAN_COMPANY, 20);
 

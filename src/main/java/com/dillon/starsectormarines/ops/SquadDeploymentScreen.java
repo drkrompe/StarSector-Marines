@@ -6,6 +6,8 @@ import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
+import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
 import com.dillon.starsectormarines.ops.detachment.PersonnelReadiness;
 import com.dillon.starsectormarines.ops.detachment.CaptainDeploymentPolicy;
 import com.dillon.starsectormarines.ops.detachment.TaskForce;
@@ -133,6 +135,12 @@ public final class SquadDeploymentScreen implements Screen {
                         + (!canToggle ? "   COMMAND LIMIT" : ""),
                 x + 8f, y, selected ? SELECTED : canToggle ? HEADER : BAD));
 
+        String loadout = loadoutSummary(squad, w - 36f);
+        if (!loadout.isEmpty()) {
+            widgets.add(new LabelWidget(Fonts.ORBITRON_20,
+                    loadout, x + 28f, y - 20f, MUTED));
+        }
+
         int wia = 0, mia = 0, kia = 0;
         for (MarineSoldier soldier : roster.squadMembers(squad)) {
             if (soldier.status() == MarineSoldierStatus.WIA) wia++;
@@ -146,6 +154,23 @@ public final class SquadDeploymentScreen implements Screen {
         if (!unavailable.isEmpty()) {
             widgets.add(new LabelWidget(Fonts.ORBITRON_20, unavailable, x + w * 0.58f, y, MUTED));
         }
+    }
+
+    private String loadoutSummary(MarineSquad squad, float maxWidth) {
+        SquadWeaponDoctrine weapons = roster.armory()
+                .weaponDoctrineById(squad.weaponDoctrineId());
+        SquadArmorDoctrine armor = roster.armory()
+                .armorDoctrineById(squad.armorDoctrineId());
+        if (weapons == null && armor == null) return "";
+        String weaponName = weapons != null ? weapons.displayName() : "Field weapons";
+        String armorName = armor != null ? armor.displayName() : "Field armor";
+        String summary = "LOADOUT  " + weaponName + "  /  " + armorName;
+        if (Fonts.ORBITRON_20.measureWidth(summary) <= maxWidth) return summary;
+        String suffix = "...";
+        int end = summary.length();
+        while (end > 0 && Fonts.ORBITRON_20.measureWidth(
+                summary.substring(0, end) + suffix) > maxWidth) end--;
+        return summary.substring(0, end) + suffix;
     }
 
     private void addButton(float x, float y, float w, String label, Runnable action, Color color) {

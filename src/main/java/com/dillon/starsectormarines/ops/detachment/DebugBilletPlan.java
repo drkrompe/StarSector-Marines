@@ -1,36 +1,28 @@
 package com.dillon.starsectormarines.ops.detachment;
 
-import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
-import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
-import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarineSquad;
-import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 
 /**
- * How one squad's twelve billets are manned and equipped — the quality axis
- * of a {@link DebugCompanyStage}, separated from the size axis so the two can
- * vary independently.
+ * How one squad's twelve billets are experienced — the quality axis of a
+ * {@link DebugCompanyStage}, separated from both force size and equipment.
  *
  * <p>Split out when the stage ladder grew past three points: five stages each
  * carrying their own copy of a billet plan was five copies of the same three
  * patterns. A stage now names a plan and a size, and the briefing's squad
  * dial overrides the size without touching the quality.
  *
- * <p><b>{@code null} means "leave the campaign's own auto-issue alone"</b>,
- * not "issue nothing" — that is how {@link #STARTER_ISSUE} stays a faithful
- * copy of a new game's opening complement rather than a reconstruction of it.
+ * <p>Equipment is deliberately absent from this ladder. The debug selector
+ * answers an experience question; {@link DebugCompany} rolls each squad's
+ * weapon and armor doctrine separately from the authored faction-flavored
+ * catalog.
  *
  * <p>See `c12-the-debug-company.md`.
  */
 public enum DebugBilletPlan {
 
-    /** A green squad in whatever a new campaign hands out. Nothing is overridden. */
+    /** A green squad on its first operation. */
     STARTER_ISSUE {
         @Override public int experienceXp(int billet) { return 0; }
-        @Override public String primaryId(int billet) { return null; }
-        @Override public EquipmentGrade grade(int billet) { return null; }
-        @Override public String specialEquipmentId(int billet) { return null; }
-        @Override public MarineArmorPattern armor(int billet) { return null; }
     },
 
     /**
@@ -46,17 +38,9 @@ public enum DebugBilletPlan {
             if (billet >= REPLACEMENTS) return 40;       // recent replacements
             return 130;
         }
-        @Override public String primaryId(int billet) { return standardPrimaryId(billet); }
-        @Override public EquipmentGrade grade(int billet) {
-            return billet == MARKSMAN ? EquipmentGrade.MILSPEC : EquipmentGrade.SERVICE;
-        }
-        @Override public String specialEquipmentId(int billet) { return antiArmorId(billet); }
-        @Override public MarineArmorPattern armor(int billet) {
-            return MarineArmorPattern.ARMY_GREEN;
-        }
     },
 
-    /** An elite sergeant over veterans, Milspec throughout, masterwork marksman. */
+    /** An elite sergeant over veterans and seasoned team leaders. */
     HARDENED {
         @Override public int experienceXp(int billet) {
             if (billet == 0) return 900;                 // Elite sergeant
@@ -64,47 +48,12 @@ public enum DebugBilletPlan {
             if (billet >= REPLACEMENTS) return 200;
             return 400;
         }
-        @Override public String primaryId(int billet) { return standardPrimaryId(billet); }
-        @Override public EquipmentGrade grade(int billet) {
-            return billet == MARKSMAN ? EquipmentGrade.MASTERWORK : EquipmentGrade.MILSPEC;
-        }
-        @Override public String specialEquipmentId(int billet) { return antiArmorId(billet); }
-        @Override public MarineArmorPattern armor(int billet) {
-            return MarineArmorPattern.RED_ELITE;
-        }
     };
 
     /** Billets from here up are recent replacements — the green tail every squad carries. */
     private static final int REPLACEMENTS = MarineSquad.CAPACITY - 2;
     /** Local alias so the billet plans read in fire teams. */
     private static final int TEAM = MarineSquad.TEAM_SIZE;
-    /** The squad's designated marksman. */
-    private static final int MARKSMAN = 3;
-    /** The squad's single anti-armor billet — one per squad, decided in C7. */
-    private static final int ANTI_ARMOR = MarineSquad.CAPACITY - 1;
-
-    private static String standardPrimaryId(int billet) {
-        if (billet == 1) return WeaponRegistry.SMG_ID;
-        if (billet == MARKSMAN) return WeaponRegistry.DMR_ID;
-        return WeaponRegistry.PULSE_RIFLE_ID;
-    }
-
-    private static String antiArmorId(int billet) {
-        return billet == ANTI_ARMOR ? SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID : null;
-    }
-
     /** Experience for one billet, keyed on position within the squad (0-based). */
     public abstract int experienceXp(int billet);
-
-    /** Primary weapon, or {@code null} to keep the campaign auto-issue. */
-    public abstract String primaryId(int billet);
-
-    /** Grade for {@link #primaryId}, or {@code null} to keep the campaign auto-issue. */
-    public abstract EquipmentGrade grade(int billet);
-
-    /** Secondary, or {@code null} for none. */
-    public abstract String specialEquipmentId(int billet);
-
-    /** Armor, or {@code null} to keep the campaign auto-issue. */
-    public abstract MarineArmorPattern armor(int billet);
 }
