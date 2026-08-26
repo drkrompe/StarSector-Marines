@@ -882,8 +882,9 @@ public final class SquadPlanDebugPanel implements HudPanel {
         if (directive == null) return "Site state —";
         SabotageSiteSnapshot.SiteState site = snapshot.site(directive.siteIndex());
         if (site == null) return "Site state —";
-        return String.format("Site %s %.1f/%.1f   Security %d   Press %.1f/%.1f",
-                site.id(), site.progress(), site.plantDuration(), site.securitySquads(),
+        return String.format("Site %s %.1f/%.1f   %s   Security %d   Press %.1f/%.1f",
+                site.id(), site.progress(), site.plantDuration(), site.groupReason(),
+                site.securitySquads(),
                 site.friendlyPressure(), site.knownHostilePressure());
     }
 

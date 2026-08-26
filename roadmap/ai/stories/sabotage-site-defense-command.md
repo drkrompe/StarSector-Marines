@@ -4,8 +4,8 @@ Status: DRAFT — pair attacker site task groups with defender guards and a mobi
 
 Written: 2026-08-25
 
-Read `ai-nouns.md`, `autonomous-mission-command-foundation.md`, and
-`sabotage-site-task-groups.md` before planning this story.
+Read `ai-nouns.md` and `autonomous-mission-command-foundation.md` before
+planning this story.
 
 ## Intent
 

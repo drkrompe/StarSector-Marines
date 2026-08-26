@@ -1,12 +1,13 @@
 # Battle fixtures
 
-Status: ACTIVE — V1 scenario construction and V2 post-briefing launch capture,
-headless replay, and opt-in forced-serial Conquest command evidence are shipped.
+Status: ACTIVE — versioned scenario construction and post-briefing launch capture,
+headless replay, and opt-in forced-serial Conquest and Sabotage command evidence
+are shipped.
 
 Written: 2026-08-24
 
-Updated: 2026-08-25 — added the V2 launch overlay around the unchanged V1
-construction layer.
+Updated: 2026-08-26 — added Sabotage construction/launch replay and bounded
+named-site command evidence.
 
 ## Vocabulary
 
@@ -105,6 +106,16 @@ reconstruction with eight four-cycle Valkyries at six seats per sortie (192
 seats), and the command harness can consume legacy and current schemas. The canonical command
 matrix remains on its historical V1 fixtures until representative live
 full-company launches are captured and deliberately rebaselined.
+
+Sabotage construction captures the same stable scenario inputs accepted by its
+production factory and rebuilds the mission's three named charge sites and
+Marine commander through that factory. The generic launch envelope can wrap
+that construction without changing site identity or commander shape. Its
+opt-in command-evidence run is likewise forced serial and compares two replay
+traces and normalized summaries byte for byte. Sabotage-owned analysis reports
+site coverage, planter/retriever and recovery transitions, directive churn,
+objective progress, casualties, duration, and terminal or timeout outcome; it
+does not turn one fixture into a balance target.
 
 ## Extension boundary
 

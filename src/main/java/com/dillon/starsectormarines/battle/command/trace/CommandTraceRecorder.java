@@ -455,6 +455,9 @@ public final class CommandTraceRecorder {
         floatField(out, "plantDuration", site.plantDuration());
         booleanField(out, "planterOnSite", site.planterOnSite());
         booleanField(out, "complete", site.complete());
+        numberField(out, "activeKitDrops", site.activeKitDrops());
+        numberField(out, "unclaimedKitDrops", site.unclaimedKitDrops());
+        field(out, "groupReason", site.groupReason().name());
         numberField(out, "planterSquads", site.planterSquads());
         numberField(out, "retrieverSquads", site.retrieverSquads());
         numberField(out, "securitySquads", site.securitySquads());

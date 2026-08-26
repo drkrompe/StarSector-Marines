@@ -3,6 +3,10 @@ package com.dillon.starsectormarines.battle.fixture;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.command.CommanderService;
+import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
+import com.dillon.starsectormarines.battle.command.SabotageSiteSnapshot;
+import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
@@ -31,6 +35,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -95,6 +100,44 @@ class BattleLaunchFixtureTest {
             assertNotSame(firstPowers.get(1), secondPowers.get(1));
             assertEquals(((MechSupport) firstPowers.get(1)).deployments(),
                     ((MechSupport) secondPowers.get(1)).deployments());
+        }
+    }
+
+    @Test
+    void sabotageLaunchWrapperPreservesNamedSiteCommanderShape() {
+        SabotageBattleFixture construction = new SabotageBattleFixture(
+                48_151L,
+                List.of(
+                        new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 2, 6),
+                        new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1, 6)),
+                true, OperationTier.ESTABLISHED, RiskLevel.MEDIUM,
+                TargetProfile.NEUTRAL, List.of(), List.of());
+        BattleLaunchFixture fixture = new BattleLaunchFixture(construction,
+                new BattleLaunchOverlay(
+                        0, List.of(), List.of(), List.of(), List.of(), 0));
+
+        try (BattleSimulation simulation = fixture.build()) {
+            int commanderTicks = (int) Math.ceil(
+                    CommanderService.COMMANDER_TICK_PERIOD
+                            / BattleSimulation.TICK_DT) + 1;
+            for (int i = 0; i < commanderTicks; i++) {
+                simulation.advance(BattleSimulation.TICK_DT);
+            }
+
+            assertEquals(List.of("SAB-01", "SAB-02", "SAB-03"),
+                    simulation.getObjectives().stream()
+                            .filter(ChargeSiteObjective.class::isInstance)
+                            .map(ChargeSiteObjective.class::cast)
+                            .map(ChargeSiteObjective::siteId)
+                            .toList());
+            CommanderSnapshot<?> snapshot =
+                    simulation.getCommanderSnapshot(Faction.MARINE);
+            SabotageSiteSnapshot detail = assertInstanceOf(
+                    SabotageSiteSnapshot.class, snapshot.detail());
+            assertEquals(List.of("SAB-01", "SAB-02", "SAB-03"),
+                    detail.sites().stream()
+                            .map(SabotageSiteSnapshot.SiteState::id)
+                            .toList());
         }
     }
 

@@ -241,6 +241,32 @@ public final class AssignmentArbiter {
             return rejected(plan, proposal, "unregistered assignment is externally owned");
         }
 
+        if (proposal.action() == CommandProposal.Action.CLAIM) {
+            if (incumbent != null && !incumbent.issuer().equals(plan.strategy())
+                    && ownershipBlocks(incumbent, proposal.authority(), tick)) {
+                return rejected(plan, proposal,
+                        "owned by " + incumbent.issuer() + " ("
+                                + incumbent.authority() + ")");
+            }
+            boolean unchanged = incumbent != null
+                    && incumbent.issuer().equals(plan.strategy())
+                    && incumbent.authority() == proposal.authority()
+                    && incumbent.assignment() == null;
+            if (!unchanged && holdsStableIncumbent(incumbent, proposal, tick)) {
+                return stabilityRetained(incumbent, proposal, tick);
+            }
+            int issuedTick = unchanged ? incumbent.issuedTick() : tick;
+            CommandDirective claimed = new CommandDirective(squad.id,
+                    plan.perspective(), plan.strategy(), proposal.authority(),
+                    proposal.reason(), null, issuedTick, -1,
+                    proposal.leaseUntilTick(), CommandDirective.Status.ACTIVE,
+                    unchanged ? incumbent.dispositionReason()
+                            : supersessionDisposition(incumbent, proposal, tick));
+            active.put(squad.id, claimed);
+            squad.assignedObjective = null;
+            return claimed;
+        }
+
         if (incumbent != null && !incumbent.issuer().equals(plan.strategy())
                 && ownershipBlocks(incumbent, proposal.authority(), tick)) {
             return rejected(plan, proposal,

@@ -44,6 +44,10 @@ while defenders mobilize patrols, preserve strongpoints, and retain
 reinforcement ownership. It is the reference migration for a broader autonomous
 command-duel foundation in which both sides can progress the mission without
 player micromanagement; foundation migration and paired live acceptance remain.
+Marine Sabotage is the second production attacker migration: exactly three named
+sites organize stable planter, kit-recovery, security, and reinforcement groups
+with deterministic headless evidence. Its defender site-security commander is
+the explicit paired follow-on.
 Each later mission keeps its own strategy geometry. See `conquest-nouns.md`,
 `ai-nouns.md`, `reinforcement-nouns.md`, and `convoy-nouns.md`.
 
@@ -107,9 +111,10 @@ distant-capture reserve binds. The current canonical rows still delivered only
 one to four simultaneous marine squads and neither produced capture-zone
 entry. Keep exact capture-zone presence as neutral outcome evidence, never
 commander input. Then close the remaining assignment-writer and live-acceptance edges
-in `autonomous-mission-command-foundation.md`. Opening Operations remains the
-smallest second command-duel proof; later missions adapt the same knowledge,
-ownership, cadence, and diagnostic contracts through their own geometry.
+in `autonomous-mission-command-foundation.md`. Sabotage site defense is the next
+paired mission-command proof; Opening Operations remains the smallest later
+command-duel proof. Each mission adapts the same knowledge, ownership, cadence,
+and diagnostic contracts through its own geometry.
 
 ## How to use this directory
 

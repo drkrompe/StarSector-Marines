@@ -77,7 +77,8 @@ public final class SabotageCommand implements
                 AssignmentReason reason = AssignmentReason.PLANTER_OBJECTIVE_PRESERVED;
                 directives.put(squad.squadId(), directive(squad, specialSite,
                         reason, null, frame));
-                proposals.add(releaseOrRetain(squad, reason,
+                proposals.add(CommandProposal.claim(squad.squadId(),
+                        CommandAuthority.MISSION_COMMAND, reason.name(),
                         CommandStabilityBreak.CONTEXT_INVALIDATED));
                 continue;
             }
@@ -85,7 +86,8 @@ public final class SabotageCommand implements
                 AssignmentReason reason = AssignmentReason.KIT_RECOVERY_PRESERVED;
                 directives.put(squad.squadId(), directive(squad, specialSite,
                         reason, null, frame));
-                proposals.add(releaseOrRetain(squad, reason,
+                proposals.add(CommandProposal.claim(squad.squadId(),
+                        CommandAuthority.MISSION_COMMAND, reason.name(),
                         CommandStabilityBreak.CONTEXT_INVALIDATED));
                 continue;
             }
@@ -267,7 +269,9 @@ public final class SabotageCommand implements
             }
             sites.add(new SiteState(site.index(), site.id(), site.name(), site.cellX(),
                     site.cellY(), site.zoneId(), site.progress(), site.plantDuration(),
-                    site.planterOnSite(), site.complete(), site.planterSquadIds().size(),
+                    site.planterOnSite(), site.complete(), site.activeKitDrops(),
+                    site.unclaimedKitDrops(), groupReason(site),
+                    site.planterSquadIds().size(),
                     site.retrieverSquadIds().size(), security, liveMembers,
                     influence != null ? influence.friendlyAtWorld(
                             site.cellX(), site.cellY()) : 0f,
@@ -283,6 +287,21 @@ public final class SabotageCommand implements
                 influence != null ? influence.updatedTick() : -1,
                 frame.perspective(), phase, sites, squads,
                 new ArrayList<>(directives.values()));
+    }
+
+    private static SabotageSiteSnapshot.GroupReason groupReason(
+            SabotageCommandFacts.Site site) {
+        if (site.complete()) return SabotageSiteSnapshot.GroupReason.COMPLETE;
+        if (!site.planterSquadIds().isEmpty()) {
+            return SabotageSiteSnapshot.GroupReason.PLANTER_ACTIVE;
+        }
+        if (site.unclaimedKitDrops() > 0) {
+            return SabotageSiteSnapshot.GroupReason.KIT_RECOVERY_UNSUPPORTED;
+        }
+        if (!site.retrieverSquadIds().isEmpty()) {
+            return SabotageSiteSnapshot.GroupReason.KIT_RECOVERY_ASSIGNED;
+        }
+        return SabotageSiteSnapshot.GroupReason.AWAITING_PLANTER;
     }
 
     private static Set<Integer> squadIds(SabotageCommandFacts facts, boolean planter) {
@@ -316,6 +335,11 @@ public final class SabotageCommand implements
                                Set<Integer> retrieverSquads) {
         if (activeSites.isEmpty()) return Phase.COMPLETE;
         if (!retrieverSquads.isEmpty()) return Phase.KIT_RECOVERY;
+        for (SabotageCommandFacts.Site site : facts.sites()) {
+            if (!site.complete() && site.activeKitDrops() > 0) {
+                return Phase.KIT_RECOVERY;
+            }
+        }
         for (SabotageCommandFacts.Site site : facts.sites()) {
             if (!site.complete() && (site.planterOnSite() || site.progress() > 0f)) {
                 return Phase.PLANTING;
