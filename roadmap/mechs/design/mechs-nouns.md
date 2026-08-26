@@ -193,6 +193,10 @@ determines the payload, not the entitlement to call it.
 - Vehicle selection changes the battle camera's gantry target without changing
   cell scale. A later eased camera move interpolates between those authored targets;
   it does not move or respawn the garage contents to fake a transition.
+- The fitting header exposes previous/next gantry controls and a numbered
+  `01 / 04` station position. Navigation visits all four physical pads, including a
+  vacant pad, and wraps at the ends. Lance browsing remains a separate direct-jump
+  surface; it is not required for sequential station inspection.
 - Campaign-to-battle deployment freezes values. Live battle code does not read
   or mutate the campaign mech, squad, or fleet inventory.
 - Gun-launched HE is a ballistic shot whose timed detonation owns splash and

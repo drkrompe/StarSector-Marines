@@ -67,7 +67,7 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
 
     private void drawCommand(CanvasContext context, CanvasHostViewport viewport,
                              DrawCommand command) {
-        float surfaceHeight = viewport.surfaceHeight();
+        float surfaceHeight = viewport.height();
         Color tint = color(command);
         switch (command.kind()) {
             case SHEET_QUAD -> {

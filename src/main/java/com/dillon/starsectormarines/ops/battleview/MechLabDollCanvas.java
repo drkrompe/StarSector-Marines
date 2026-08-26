@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
+import com.dillon.starsectormarines.marine.CampaignMechSquad;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.retained.CanvasBlend;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
@@ -112,10 +113,10 @@ public final class MechLabDollCanvas implements CanvasProducer {
         float height = context.metrics().surfaceHeight();
         float time = (float) elapsedSeconds.getAsDouble();
         List<MechVariant> lance = variants.get();
-        int gantryIndex = selectedIndex(lance, selectedGantry.getAsInt());
-        MechVariant selected = gantryIndex >= 0 ? lance.get(gantryIndex) : null;
+        int gantryIndex = selectedIndex(selectedGantry.getAsInt());
+        MechVariant selected = gantryIndex < lance.size() ? lance.get(gantryIndex) : null;
         LayeredMechAssets sprites = assets.get();
-        if (selected == null || sprites == null) return;
+        if (sprites == null) return;
 
         CanvasHostViewport[] liveViewport = new CanvasHostViewport[1];
         BattleSceneHostPass backdrop = battleScene != null
@@ -139,10 +140,12 @@ public final class MechLabDollCanvas implements CanvasProducer {
             CanvasHostViewport viewport = liveViewport[0];
             sceneCamera = MechLabBattleScene.cameraForSurface(
                     viewport.width(), viewport.height(), gantryIndex);
-            projection = SceneProjection.forLive(sceneCamera, viewport, selected, gantryIndex);
+            projection = selected != null
+                    ? SceneProjection.forLive(sceneCamera, viewport, selected, gantryIndex) : null;
         } else {
             sceneCamera = MechLabBattleScene.cameraForSurface(width, height, gantryIndex);
-            projection = SceneProjection.forCanvas(sceneCamera, height, selected, gantryIndex);
+            projection = selected != null
+                    ? SceneProjection.forCanvas(sceneCamera, height, selected, gantryIndex) : null;
             drawGarage(context, sceneCamera, height, tileSheet.get());
         }
 
@@ -150,12 +153,15 @@ public final class MechLabDollCanvas implements CanvasProducer {
             context.hostPass(battleScene.actorPass(lance, gantryIndex));
         } else {
             drawLance(context, sceneCamera, height, sprites, lance);
-            drawTechnicians(context, sceneCamera, height, projection.cellX(),
+            drawTechnicians(context, sceneCamera, height,
+                    projection != null ? projection.cellX() : sceneCamera.cellPxSize(),
                     technicianAssets.get());
         }
-        drawWeld(context, projection, time);
-        drawSocketOverlays(context, MechFittingLayout.forVariant(selected),
-                selectedSocket.get(), projection);
+        if (selected != null) {
+            drawWeld(context, projection, time);
+            drawSocketOverlays(context, MechFittingLayout.forVariant(selected),
+                    selectedSocket.get(), projection);
+        }
     }
 
     private static void drawGarage(CanvasContext c, BattleCamera camera, float height,
@@ -254,9 +260,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
         };
     }
 
-    private static int selectedIndex(List<MechVariant> variants, int requested) {
-        if (variants == null || variants.isEmpty()) return -1;
-        return Math.max(0, Math.min(variants.size() - 1, requested));
+    private static int selectedIndex(int requested) {
+        return Math.max(0, Math.min(CampaignMechSquad.CAPACITY - 1, requested));
     }
 
     private static void drawSocketOverlays(CanvasContext c, MechFittingLayout layout,

@@ -462,6 +462,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("workspaceClasses", viewModel.workspaceClasses());
         props.put("openAssetPicker", viewModel.openAssetPickerAction());
         props.put("closeAssetPicker", viewModel.closeAssetPickerAction());
+        props.put("previousGantry", viewModel.previousGantryAction());
+        props.put("nextGantry", viewModel.nextGantryAction());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MECH_LAB,

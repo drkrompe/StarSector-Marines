@@ -160,6 +160,10 @@ breadcrumb keeps every completed level directly reachable.
   floor, walls, props, and independently animated maintenance crew rendered through
   the layered infantry compositor. Narrower and 150% UI-scale views preserve commands
   with bounded scrolling.
+- Headless room evidence preserves the live host's square battle-cell geometry even
+  when the canvas content box and authored surface have different aspect ratios.
+- Previous/next gantry actions are visible in the fitting header, cycle through all
+  four numbered pads, and keep the room rendered when the focused pad is vacant.
 - Location selection changes catalog context without mutating hardware. Unsupported
   core, weapon, and ammunition locations remain visibly factory locked.
 - Future drag-and-drop placement validates socket type, sized capacity, chassis
