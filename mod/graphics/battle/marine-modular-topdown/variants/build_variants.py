@@ -119,6 +119,15 @@ def main() -> None:
         "outlaw": ("outlaw-body.png", "outlaw-head.png"),
         "army-green": ("army-green-body.png", "army-green-head.png"),
         "militia": ("militia-body.png", "militia-head.png"),
+        "aegis": ("faction-armor/aegis/body.png", "faction-armor/aegis/head.png"),
+        "palatine": ("faction-armor/palatine/body.png", "faction-armor/palatine/head.png"),
+        "furnace-line": ("faction-armor/furnace-line/body.png", "faction-armor/furnace-line/head.png"),
+        "reaver": ("faction-armor/reaver/body.png", "faction-armor/reaver/head.png"),
+        "specter-heavy": ("faction-armor/specter-heavy/body.png", "faction-armor/specter-heavy/head.png"),
+        "bulwark-heavy": ("faction-armor/bulwark-heavy/body.png", "faction-armor/bulwark-heavy/head.png"),
+        "reliquary-heavy": ("faction-armor/reliquary-heavy/body.png", "faction-armor/reliquary-heavy/head.png"),
+        "lions-mantle": ("faction-armor/lions-mantle/body.png", "faction-armor/lions-mantle/head.png"),
+        "foundry-breaker": ("faction-armor/foundry-breaker/body.png", "faction-armor/foundry-breaker/head.png"),
     }
     built = {}
     for family, (body_source, head_source) in families.items():
@@ -181,6 +190,15 @@ def main() -> None:
          STANDARD_WEAPON_OFFSET,
          (masterwork_dmr.width // 2, round(masterwork_dmr.height * 0.75)),
          "under_body"),
+        ("aegis-rifle.png", "aegis", rifle, 0, STANDARD_WEAPON_OFFSET, None, "under_body"),
+        ("palatine-rifle.png", "palatine", rifle, 0, STANDARD_WEAPON_OFFSET, None, "under_body"),
+        ("furnace-line-rifle.png", "furnace-line", rifle, 0, STANDARD_WEAPON_OFFSET, None, "under_body"),
+        ("reaver-rifle.png", "reaver", rifle, 0, STANDARD_WEAPON_OFFSET, None, "under_body"),
+        ("specter-heavy-rifle.png", "specter-heavy", rifle, 0, STANDARD_WEAPON_OFFSET, None, "under_body"),
+        ("bulwark-heavy-rifle.png", "bulwark-heavy", rifle, 0, STANDARD_WEAPON_OFFSET, None, "under_body"),
+        ("reliquary-heavy-rifle.png", "reliquary-heavy", rifle, 0, STANDARD_WEAPON_OFFSET, None, "under_body"),
+        ("lions-mantle-rifle.png", "lions-mantle", rifle, 0, STANDARD_WEAPON_OFFSET, None, "under_body"),
+        ("foundry-breaker-rifle.png", "foundry-breaker", rifle, 0, STANDARD_WEAPON_OFFSET, None, "under_body"),
     )
     for (filename, family, weapon, head_angle, weapon_offset, weapon_pivot,
          weapon_layer) in combinations:

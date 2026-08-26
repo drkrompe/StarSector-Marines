@@ -227,6 +227,15 @@ public final class HeadlessArmoryPreviewRenderer {
                 case OUTLAW -> "outlaw";
                 case ARMY_GREEN -> "army-green";
                 case MILITIA -> "militia";
+                case AEGIS_COMPOSITE -> "aegis";
+                case PALATINE -> "palatine";
+                case FURNACE_LINE -> "furnace-line";
+                case REAVER -> "reaver";
+                case SPECTER_HEAVY -> "specter-heavy";
+                case BULWARK_HEAVY -> "bulwark-heavy";
+                case RELIQUARY_HEAVY -> "reliquary-heavy";
+                case LIONS_MANTLE -> "lions-mantle";
+                case FOUNDRY_BREAKER -> "foundry-breaker";
                 default -> throw new IllegalArgumentException(
                         "Campaign Armory preview does not support " + family);
             };

@@ -20,6 +20,12 @@ public final class UnitLayerLayouts {
     public static final int SCHEMA_VERSION = 3;
 
     private static UnitLayerLayouts active = new UnitLayerLayouts(Map.of());
+    private static final String ARMOR_MASTER_VARIANT = "field-loadout";
+    private static final String ARMOR_MASTER_ANIMATION = "idle";
+    private static final float MASTER_BODY_OFFSET_X = 0f;
+    private static final float MASTER_BODY_OFFSET_Y = -0.12f;
+    private static final float MASTER_HEAD_OFFSET_X = 0f;
+    private static final float MASTER_HEAD_OFFSET_Y = 0.08f;
 
     private final Map<String, UnitLayout> units;
 
@@ -57,6 +63,45 @@ public final class UnitLayerLayouts {
         if (unit == null) return null;
         VariantLayout variant = unit.variants().get(variantId);
         return variant != null ? variant.animations().get(animationId) : null;
+    }
+
+    /**
+     * Applies workbench-authored registration for independently selected armor
+     * body and helmet families without replacing the active movement/action pose.
+     * Master scale is multiplicative; offset and angle are deltas from the
+     * neutral marine pose shown by the workbench.
+     */
+    public LayerPose applyArmorMastering(LayerPose pose,
+                                         LayeredArmorFamily bodyFamily,
+                                         LayeredArmorFamily headFamily) {
+        if (pose == null) return null;
+        LayerTransform body = armorMaster(bodyFamily, "body");
+        LayerTransform head = armorMaster(headFamily, "head");
+        if (body == null && head == null) return pose;
+        return pose.withArmorMastering(body, head);
+    }
+
+    private LayerTransform armorMaster(LayeredArmorFamily family, String layerId) {
+        String unitId = armorMasterUnitId(family);
+        if (unitId == null) return null;
+        AnimationClip clip = clip(unitId, ARMOR_MASTER_VARIANT, ARMOR_MASTER_ANIMATION);
+        return clip != null ? clip.frames().get(0).pose().layer(layerId) : null;
+    }
+
+    private static String armorMasterUnitId(LayeredArmorFamily family) {
+        if (family == null) return null;
+        return switch (family) {
+            case AEGIS_COMPOSITE -> "armor-master-aegis";
+            case PALATINE -> "armor-master-palatine";
+            case FURNACE_LINE -> "armor-master-furnace-line";
+            case REAVER -> "armor-master-reaver";
+            case SPECTER_HEAVY -> "armor-master-specter-heavy";
+            case BULWARK_HEAVY -> "armor-master-bulwark-heavy";
+            case RELIQUARY_HEAVY -> "armor-master-reliquary-heavy";
+            case LIONS_MANTLE -> "armor-master-lions-mantle";
+            case FOUNDRY_BREAKER -> "armor-master-foundry-breaker";
+            default -> null;
+        };
     }
 
     public enum AnimationDriver {
@@ -200,6 +245,31 @@ public final class UnitLayerLayouts {
                 if (replacement != null) combined.put(layerId, replacement);
             }
             return new LayerPose(Collections.unmodifiableMap(combined));
+        }
+
+        private LayerPose withArmorMastering(LayerTransform bodyMaster,
+                                             LayerTransform headMaster) {
+            Map<String, LayerTransform> combined = new LinkedHashMap<>(layers);
+            applyMaster(combined, "body", bodyMaster,
+                    MASTER_BODY_OFFSET_X, MASTER_BODY_OFFSET_Y);
+            applyMaster(combined, "head", headMaster,
+                    MASTER_HEAD_OFFSET_X, MASTER_HEAD_OFFSET_Y);
+            return new LayerPose(Collections.unmodifiableMap(combined));
+        }
+
+        private static void applyMaster(Map<String, LayerTransform> target,
+                                        String layerId, LayerTransform master,
+                                        float neutralOffsetX, float neutralOffsetY) {
+            LayerTransform animated = target.get(layerId);
+            if (animated == null || master == null) return;
+            target.put(layerId, new LayerTransform(animated.id, animated.spritePath,
+                    animated.offsetX + master.offsetX - neutralOffsetX,
+                    animated.offsetY + master.offsetY - neutralOffsetY,
+                    animated.scaleX * master.scaleX,
+                    animated.scaleY * master.scaleY,
+                    animated.angleDegrees + master.angleDegrees,
+                    master.pivotX, master.pivotY,
+                    animated.z, animated.visible && master.visible));
         }
 
         /**
