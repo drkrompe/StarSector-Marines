@@ -57,20 +57,140 @@
       "lore": "A mixed protection schedule descended from refinery guards and planetary auxiliaries. Imported Janus suits go to mobile response billets, Ward kits go where cameras are watching, and the rest receive sealed fatigues beneath a very visible uniform."
     },
     {
+      "id": "armor:hegemony-auxiliary",
+      "kind": "ARMOR",
+      "tier": 2,
+      "rarity": "UNCOMMON",
+      "provenance": "Hegemony auxiliary formations",
+      "lore": "The Hegemony expects auxiliaries to hold formation even when the quartermaster cannot furnish a regular battalion. Ward security kits cover the section while one Legionary suit per fire team anchors the billets most likely to receive contact."
+    },
+    {
+      "id": "armor:league-mobile",
+      "kind": "ARMOR",
+      "tier": 2,
+      "rarity": "UNCOMMON",
+      "provenance": "Persean League mobile guard",
+      "lore": "A coalition screen values common interfaces more than a single world’s parade standard. Imported Janus suits give half the formation speed and threat awareness; locally replaceable Ward kits keep the remainder useful when the imported weave needs a depot."
+    },
+    {
+      "id": "armor:church-wardens",
+      "kind": "ARMOR",
+      "tier": 2,
+      "rarity": "UNCOMMON",
+      "provenance": "Luddic Church wardens",
+      "lore": "Parish wardens do not waste inherited machinery where common plate will serve. Ward kits protect the congregation’s ordinary defenders while two maintained Legionary shells per squad are entrusted to proven custodians expected to stand against the first breach."
+    },
+    {
+      "id": "armor:outlaw-raiders",
+      "kind": "ARMOR",
+      "tier": 2,
+      "rarity": "UNCOMMON",
+      "provenance": "Pirate and Pather raiders",
+      "lore": "Blackforge shops cut security shells and cargo frames down for fast violent work, then issue the results to almost everyone expected to reach the target. The final pair receive sealed fatigues, a weapon, and no illusion that recovery is part of the plan."
+    },
+    {
+      "id": "armor:recon",
+      "kind": "ARMOR",
+      "tier": 2,
+      "rarity": "RARE",
+      "provenance": "Tri-Tachyon security doctrine",
+      "lore": "Janus scout suits equip the operators expected to see the enemy, survive the first exchange, and disappear before heavier forces arrive. Cheaper Ward backing leaves the expensive sensor weave concentrated where corporate doctrine expects the best return."
+    },
+    {
       "id": "armor:fleet-combat",
       "kind": "ARMOR",
       "tier": 3,
       "rarity": "RARE",
       "provenance": "Hegemony line formations",
-      "lore": "Hegemony protection tables privilege standardized, repairable plate over elegant integration. Legionary suits and captured or licensed Bastion laminates concentrate protection around the marines expected to take and hold contact; rear billets retain vac-fatigue mobility."
+      "lore": "Hegemony protection tables privilege standardized, repairable plate over elegant integration. Legionary suits dominate the establishment and Bastion laminates fill the remaining powered billets, giving the whole squad the weight to take contact and keep its formation."
     },
     {
-      "id": "armor:recon",
+      "id": "armor:league-line",
+      "kind": "ARMOR",
+      "tier": 3,
+      "rarity": "UNCOMMON",
+      "provenance": "Persean League coalition line",
+      "lore": "A full Bastion schedule is the League ideal: not identical national uniforms, but plates, seals, and powered joints that member worlds have agreed to replace. Its protection and handling stay deliberately balanced because coalition logistics punish brilliant exceptions."
+    },
+    {
+      "id": "armor:corporate-line",
       "kind": "ARMOR",
       "tier": 3,
       "rarity": "RARE",
-      "provenance": "Tri-Tachyon security doctrine",
-      "lore": "Janus scout suits equip the operators expected to see the enemy, survive the first exchange, and disappear before heavier forces arrive. Cheaper Ward backing leaves the expensive sensor weave concentrated where corporate doctrine expects the best return."
+      "provenance": "Tri-Tachyon response teams",
+      "lore": "Aegis composite armor refuses the low-tech premise that line infantry must become easy targets to survive. Predictive threat displays and powered balance correction preserve speed and reduce clean hostile solutions, paid for with less plate and a demanding maintenance train."
+    },
+    {
+      "id": "armor:church-line",
+      "kind": "ARMOR",
+      "tier": 3,
+      "rarity": "RARE",
+      "provenance": "Luddic Church sanctioned guard",
+      "lore": "Palatine shells are inherited tools under discipline, not casual celebrations of machinery. Artisan-fitted ceramic and conservative joint governors make the formation slow, but its unusually resistant plate rewards the guardians who hold a chosen line."
+    },
+    {
+      "id": "armor:sindrian-line",
+      "kind": "ARMOR",
+      "tier": 3,
+      "rarity": "RARE",
+      "provenance": "Sindrian regular formations",
+      "lore": "Furnace armor turns petrochemical industry into visible state power. Thick sacrificial laminate gives every soldier a deep protection reserve, while heat, ordinary resistance materials, and a conspicuous silhouette make maneuver and incoming fire less forgiving."
+    },
+    {
+      "id": "armor:outlaw-line",
+      "kind": "ARMOR",
+      "tier": 3,
+      "rarity": "UNCOMMON",
+      "provenance": "Veteran outlaw warbands",
+      "lore": "A Reaver rig is what remains when a Blackforge frame survives enough raids to earn powered bracing and still more ship plate. Veteran crews get speed and an intimidating reserve of material, but mismatched layers provide poor resistance to a serious penetrator."
+    },
+    {
+      "id": "armor:hegemony-shock",
+      "kind": "ARMOR",
+      "tier": 4,
+      "rarity": "EXOTIC",
+      "provenance": "Hegemony XIV shock tables",
+      "lore": "A complete XIV battlesuit establishment is the Hegemony’s answer to a breach that must become a held corridor. Dense Domain-spec ceramic and standardized powered bracing absorb sustained punishment, while the squad accepts a measured advance and an obvious target profile."
+    },
+    {
+      "id": "armor:corporate-heavy",
+      "kind": "ARMOR",
+      "tier": 4,
+      "rarity": "EXOTIC",
+      "provenance": "Tri-Tachyon blacksite security",
+      "lore": "Specter battlesuits make a walking tank behave like corporate response equipment: high-output joints, composite protection, and continuous threat prediction over maximum plate. They cross danger quickly and remain difficult to settle sights on, but cannot trade punishment with XIV shells forever."
+    },
+    {
+      "id": "armor:league-heavy",
+      "kind": "ARMOR",
+      "tier": 4,
+      "rarity": "RARE",
+      "provenance": "Persean League breach formations",
+      "lore": "Bulwark suits extend coalition interoperability into the assault role. Replaceable actuators and modular plate blocks give member worlds a heavy system they can actually sustain, producing credible protection and handling without relying on one inaccessible miracle component."
+    },
+    {
+      "id": "armor:knights-heavy",
+      "kind": "ARMOR",
+      "tier": 4,
+      "rarity": "EXOTIC",
+      "provenance": "Knights of Ludd consecrated custody",
+      "lore": "Reliquary battlesuits are restored one shell at a time and entrusted only after strict trials of stewardship. Their dense fitted armor turns aside heavy fire better than most infantry systems, but immense mass and conservative governors demand patience from the knight inside."
+    },
+    {
+      "id": "armor:lions-guard-heavy",
+      "kind": "ARMOR",
+      "tier": 4,
+      "rarity": "EXOTIC",
+      "provenance": "Lion’s Guard prestige issue",
+      "lore": "The Lion’s Mantle is armor as state theater: oversized cooling loops, lavish support, thick laminate, and polished fittings visible across a refinery concourse. Its enormous reserve rewards a disciplined frontal advance while weight and spectacle surrender both speed and subtlety."
+    },
+    {
+      "id": "armor:outlaw-heavy",
+      "kind": "ARMOR",
+      "tier": 4,
+      "rarity": "RARE",
+      "provenance": "Pather and pirate foundry cells",
+      "lore": "Foundry-breakers are cargo exoskeletons buried under stolen servos and welded ship plate. Crude mass lets them keep moving after cleaner suits would fail, but poor resistance, brutal handling, and a vast target profile make every assault a wager against concentrated fire."
     }
   ]
 }

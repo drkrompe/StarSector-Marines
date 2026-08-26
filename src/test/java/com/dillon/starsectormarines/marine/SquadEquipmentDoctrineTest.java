@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.battle.combat.DurabilityModel;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
@@ -19,6 +20,78 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SquadEquipmentDoctrineTest {
+
+    @Test
+    void armorDoctrinesFormFactionSidegradesAcrossExplicitPowerBands() {
+        int[] doctrinesByTier = new int[5];
+        for (SquadArmorDoctrine doctrine : SquadEquipmentDoctrines.armorDoctrines()) {
+            assertEquals(MarineSquad.CAPACITY, doctrine.issueIds().size());
+            doctrine.issueIds().forEach(MarineArmorCatalogRegistry::require);
+            SquadLoadoutPresentationDef presentation =
+                    SquadLoadoutPresentationRegistry.get(doctrine.id());
+            assertNotNull(presentation, doctrine.id() + " has authored tier and lore");
+            doctrinesByTier[presentation.tier()]++;
+        }
+
+        assertEquals(19, SquadEquipmentDoctrines.armorDoctrines().size());
+        assertEquals(1, doctrinesByTier[1], "unpowered protection remains the baseline");
+        assertEquals(6, doctrinesByTier[2], "light/security factions share a power band");
+        assertEquals(6, doctrinesByTier[3], "line factions share a power band");
+        assertEquals(6, doctrinesByTier[4], "heavy factions share a power band");
+
+        MarineArmorCatalogDef hegemonyLine = MarineArmorCatalogRegistry.require("armor.line");
+        MarineArmorCatalogDef corporateLine =
+                MarineArmorCatalogRegistry.require("armor.aegis-composite");
+        MarineArmorCatalogDef churchLine = MarineArmorCatalogRegistry.require("armor.palatine");
+        MarineArmorCatalogDef diktatLine =
+                MarineArmorCatalogRegistry.require("armor.furnace-line");
+        MarineArmorCatalogDef outlawLine = MarineArmorCatalogRegistry.require("armor.reaver");
+        assertEquals(3, corporateLine.tier());
+        assertTrue(corporateLine.moveSpeedMult() > hegemonyLine.moveSpeedMult());
+        assertTrue(corporateLine.incomingAccuracyMult()
+                < hegemonyLine.incomingAccuracyMult());
+        assertTrue(churchLine.armorRating() > hegemonyLine.armorRating());
+        assertTrue(diktatLine.armorPool() > hegemonyLine.armorPool());
+        assertTrue(outlawLine.armorPool() > hegemonyLine.armorPool());
+        assertTrue(outlawLine.armorRating() < hegemonyLine.armorRating());
+        assertComparableProtection(hegemonyLine, List.of(corporateLine, churchLine,
+                diktatLine, outlawLine, MarineArmorCatalogRegistry.require("armor.combat")));
+
+        MarineArmorCatalogDef xiv = MarineArmorCatalogRegistry.require("armor.heavy");
+        MarineArmorCatalogDef specter =
+                MarineArmorCatalogRegistry.require("armor.specter-heavy");
+        MarineArmorCatalogDef reliquary =
+                MarineArmorCatalogRegistry.require("armor.reliquary-heavy");
+        MarineArmorCatalogDef foundry =
+                MarineArmorCatalogRegistry.require("armor.foundry-breaker");
+        assertEquals(4, specter.tier());
+        assertTrue(specter.moveSpeedMult() > xiv.moveSpeedMult());
+        assertTrue(specter.armorPool() < xiv.armorPool());
+        assertTrue(reliquary.armorRating() > xiv.armorRating());
+        assertTrue(foundry.armorPool() > xiv.armorPool());
+        assertTrue(foundry.armorRating() < xiv.armorRating());
+        assertComparableProtection(xiv, List.of(specter, reliquary, foundry,
+                MarineArmorCatalogRegistry.require("armor.bulwark-heavy"),
+                MarineArmorCatalogRegistry.require("armor.lions-mantle")));
+    }
+
+    private static void assertComparableProtection(
+            MarineArmorCatalogDef reference, List<MarineArmorCatalogDef> peers) {
+        float referenceExposure = expectedDamageToBreak(reference, 7f);
+        for (MarineArmorCatalogDef peer : peers) {
+            float ratio = expectedDamageToBreak(peer, 7f) / referenceExposure;
+            assertTrue(ratio >= 0.80f && ratio <= 1.20f,
+                    peer.id() + " protection ratio " + ratio + " leaves its peer band");
+        }
+    }
+
+    /** Expected aimed damage before armor breaks, including the suit's hit profile. */
+    private static float expectedDamageToBreak(
+            MarineArmorCatalogDef armor, float penetration) {
+        return armor.armorPool()
+                / DurabilityModel.armorEfficiency(penetration, armor.armorRating())
+                / armor.incomingAccuracyMult();
+    }
 
     @Test
     void patherAssaultDoctrineDoesNotMirrorStatePulseIssue() {
@@ -126,7 +199,7 @@ class SquadEquipmentDoctrineTest {
                     combatArmor.billet(billet).specialEquipmentId());
         }
         assertEquals(MarineArmorPattern.MILITIA, fatigues.billet(0).armor());
-        assertEquals(MarineArmorPattern.CHARCOAL, combatArmor.billet(0).armor());
+        assertEquals(MarineArmorPattern.ARMY_GREEN, combatArmor.billet(0).armor());
     }
 
     @Test
