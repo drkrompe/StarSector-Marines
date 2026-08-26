@@ -4,7 +4,7 @@ Status: ACTIVE — handheld, special-item and turret weapon data is owned; mech 
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — made discovery sandbox-safe and carried contributed special equipment through player/faction issue and typed battle execution.
+Updated: 2026-08-25 — extended shared provider discovery and provenance through additive tilesets and mappings.
 
 ## Purpose
 
@@ -177,8 +177,8 @@ The public manifest and authoring examples live in `submod-catalog-contract.md`.
   and undo/redo spans the linked document so cross-catalog edits cannot drift.
 - Shared mod discovery and merge rules are one cross-catalog concern with
   moddable tilesets. Weapons, special equipment, armor, faction rosters, and
-  collectible templates use the shipped manifest/provenance contract; tilesets
-  must adopt it rather than invent an override scheme.
+  collectible templates, tilesets, and tile mappings use the shipped
+  manifest/provenance contract without inventing per-domain override schemes.
 - A utility activation may reuse projectiles, detonations, and authored FX,
   but those shared execution primitives do not make its cloud or placement
   channel a weapon definition.
@@ -229,7 +229,7 @@ catalog-provider adoption belong to the work lifecycle tracked only by
 ## Boundaries
 
 `moddable-tilesets-nouns.md` owns the sibling asset-catalog model; the two
-features share only future discovery/merge machinery, not weapon semantics.
+features share discovery/merge machinery, not weapon semantics.
 Progression owns availability and economic value, while this feature owns
 what an available weapon is. Combat and rendering own execution of the
 definition, not catalog parsing or progression choices. Progression also owns

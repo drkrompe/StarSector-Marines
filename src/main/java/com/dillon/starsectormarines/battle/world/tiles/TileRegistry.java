@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.world.tiles;
 
+import com.dillon.starsectormarines.catalog.CatalogSource;
+import com.dillon.starsectormarines.catalog.MarineCatalogManifest.CatalogFile;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -21,8 +23,8 @@ import java.util.Objects;
  *
  * <p>Parsing ({@link #ingestSheet}) is decoupled from the game's
  * {@link com.fs.starfarer.api.SettingsAPI} so tests can feed a {@link JSONObject}
- * read straight off disk; {@link #loadBuiltins()} is the in-game path that pulls
- * the bundled resources and installs the result.
+ * read straight off disk; {@link #loadContributions(List)} is the in-game path
+ * that installs every enabled provider's explicitly declared resources.
  *
  * <p>The registry is the installed authority used by generation and rendering.
  * Parity tests pin the bundled definitions to their established visual and
@@ -33,9 +35,9 @@ public final class TileRegistry {
     private static final Logger LOG = Global.getLogger(TileRegistry.class);
 
     /**
-     * Built-in tileset resources bundled with the mod. Phase 3 (submod support)
-     * replaces this fixed list with discovery + cross-mod merge; for now the
-     * bundled sheets are listed explicitly.
+     * Core resources retained for standalone tools and compatibility tests.
+     * Production discovers these through the core manifest alongside external
+     * provider contributions.
      */
     public static final List<String> BUILTIN_TILESETS = List.of(
             "data/tilesets/nature-tiles.tileset.json",
@@ -55,6 +57,8 @@ public final class TileRegistry {
     private final Map<String, GridBlockDef> blocksById = new LinkedHashMap<>();
     /** Decorative props (Phase 2), addressed by id — one source cell + an intrinsic tactical cover. */
     private final Map<String, DoodadDef> doodadsById = new LinkedHashMap<>();
+    /** Provider provenance for the shared tile/block/doodad id namespace. */
+    private final Map<String, CatalogSource> sourceById = new LinkedHashMap<>();
     /**
      * Folded-in per-cell viewer annotations from each sheet's {@code "cells"}
      * array, keyed by {@code sheetPath} then a packed {@code (col,row)} key. The
@@ -62,6 +66,7 @@ public final class TileRegistry {
      * by the dev viewer via {@link #cellLabel}.
      */
     private final Map<String, Map<Long, CellLabel>> cellsBySheet = new LinkedHashMap<>();
+    private final Map<String, Map<Long, CatalogSource>> cellSourcesBySheet = new LinkedHashMap<>();
 
     private static long cellKey(int col, int row) { return ((long) col << 32) | (row & 0xFFFFFFFFL); }
 
@@ -92,6 +97,9 @@ public final class TileRegistry {
     public DoodadDef doodad(String id)          { return doodadsById.get(id); }
     public boolean hasDoodad(String id)         { return doodadsById.containsKey(id); }
     public Collection<DoodadDef> doodads()      { return doodadsById.values(); }
+
+    /** Exact provider and catalog resource that declared {@code id}, or null when unknown. */
+    public CatalogSource sourceOf(String id) { return sourceById.get(id); }
 
     /**
      * The viewer annotation for one source cell of {@code sheetPath}, or
@@ -124,35 +132,39 @@ public final class TileRegistry {
      * Installs {@code reg} as the process-wide registry. Intended for tests that
      * need {@link #installed()} populated before calling gen code that reads it
      * (e.g. {@link com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator}
-     * via {@code NatureZoneFiller}). Production code uses {@link #loadBuiltins()}.
+     * via {@code NatureZoneFiller}). Production code uses
+     * {@link #loadContributions(List)}.
      */
     public static void install(TileRegistry reg) { installed = reg; }
 
     /**
      * Parses one tileset JSON document and adds its tiles. Fails loud on a
      * duplicate id — the registry is authoritative, so a colliding sheet is a
-     * bug to surface, not a tile to silently drop. (Submod <em>override</em>
-     * semantics are a deliberate Phase 3 concern, not an accidental
-     * last-one-wins here.)
+     * bug to surface, not a tile to silently drop. Cross-provider catalogs are
+     * additive and retain this same no-override law.
      */
     public void ingestSheet(JSONObject root) throws JSONException {
+        ingestSheet(root, CatalogSource.unspecified("<in-memory tileset>"));
+    }
+
+    public void ingestSheet(JSONObject root, CatalogSource source) throws JSONException {
         String sheet = root.getString("sheet");
         JSONArray tiles = root.optJSONArray("tiles");
-        if (tiles != null) ingestTiles(tiles, sheet);
+        if (tiles != null) ingestTiles(tiles, sheet, source);
         JSONArray blocks = root.optJSONArray("blocks");
-        if (blocks != null) ingestBlocks(blocks, sheet, root.optInt("cellPx", 0));
+        if (blocks != null) ingestBlocks(blocks, sheet, root.optInt("cellPx", 0), source);
         JSONArray cells = root.optJSONArray("cells");
-        if (cells != null) ingestCells(cells, sheet);
+        if (cells != null) ingestCells(cells, sheet, source);
         JSONArray doodads = root.optJSONArray("doodads");
-        if (doodads != null) ingestDoodads(doodads, sheet);
+        if (doodads != null) ingestDoodads(doodads, sheet, source);
     }
 
     /** Decorative-prop defs (id + source cell + intrinsic cover). See {@link #ingestSheet}. */
-    private void ingestDoodads(JSONArray doodads, String sheet) throws JSONException {
+    private void ingestDoodads(JSONArray doodads, String sheet, CatalogSource source) throws JSONException {
         for (int i = 0; i < doodads.length(); i++) {
             JSONObject o = doodads.getJSONObject(i);
             String id = o.getString("id");
-            requireUniqueId(id, sheet);
+            requireUniqueId(id, source);
             int col = o.getInt("col");
             int row = o.getInt("row");
             DoodadCover cover = DoodadCover.fromJson(o.optString("cover", "none"));
@@ -190,15 +202,16 @@ public final class TileRegistry {
             doodadsById.put(id, new DoodadDef(
                     id, sheet, col, row, cover, ballisticHalfHeight,
                     footprintCellsX, footprintCellsY, preferredWallSide));
+            sourceById.put(id, source);
         }
     }
 
     /** Sliced-sheet tiles (frame-indexed). See {@link #ingestSheet}. */
-    private void ingestTiles(JSONArray tiles, String sheet) throws JSONException {
+    private void ingestTiles(JSONArray tiles, String sheet, CatalogSource source) throws JSONException {
         for (int i = 0; i < tiles.length(); i++) {
             JSONObject o = tiles.getJSONObject(i);
             String id = o.getString("id");
-            requireUniqueId(id, sheet);
+            requireUniqueId(id, source);
             // Sliced tiles must pin a frame explicitly — a missing 'frame' must
             // fail loud, not silently default to the -1 block sentinel (grid
             // blocks carry origin+layout instead, parsed by ingestBlocks).
@@ -221,33 +234,46 @@ public final class TileRegistry {
                     validOn, name, description);
             byId.put(id, def);
             byIndex.add(def);
+            sourceById.put(id, source);
         }
     }
 
     /**
      * Per-cell viewer annotations (folded in from the former {@code .catalog.json}).
      * Doc-only: not validated against block/tile coverage and never read by sim or
-     * render — only {@link #cellLabel}. Last duplicate {@code (col,row)} wins.
+     * render — only {@link #cellLabel}. Duplicate {@code (col,row)} annotations
+     * fail rather than becoming a hidden provider-order override.
      */
-    private void ingestCells(JSONArray cells, String sheet) throws JSONException {
+    private void ingestCells(JSONArray cells, String sheet, CatalogSource source) throws JSONException {
         Map<Long, CellLabel> bySheet = cellsBySheet.computeIfAbsent(sheet, k -> new LinkedHashMap<>());
+        Map<Long, CatalogSource> sources = cellSourcesBySheet.computeIfAbsent(
+                sheet, ignored -> new LinkedHashMap<>());
         for (int i = 0; i < cells.length(); i++) {
             JSONObject o = cells.getJSONObject(i);
             int col = o.getInt("col");
             int row = o.getInt("row");
-            bySheet.put(cellKey(col, row), new CellLabel(o.optString("name", ""), o.optString("description", "")));
+            long key = cellKey(col, row);
+            CatalogSource previous = sources.get(key);
+            if (previous != null) {
+                throw new IllegalStateException("TileRegistry: duplicate cell label for sheet '"
+                        + sheet + "' at [" + col + "," + row + "]: first declared by "
+                        + previous.describe() + ", then by " + source.describe());
+            }
+            bySheet.put(key, new CellLabel(o.optString("name", ""), o.optString("description", "")));
+            sources.put(key, source);
         }
     }
 
     /** Fixed-grid autotile/single blocks (origin + named {@link GridLayout}). See {@link #ingestSheet}. */
-    private void ingestBlocks(JSONArray blocks, String sheet, int cellPx) throws JSONException {
+    private void ingestBlocks(JSONArray blocks, String sheet, int cellPx,
+                              CatalogSource source) throws JSONException {
         if (cellPx <= 0) {
             throw new IllegalStateException("TileRegistry: sheet '" + sheet + "' has blocks but no positive 'cellPx'");
         }
         for (int i = 0; i < blocks.length(); i++) {
             JSONObject o = blocks.getJSONObject(i);
             String id = o.getString("id");
-            requireUniqueId(id, sheet);
+            requireUniqueId(id, source);
             JSONArray cellsArr = o.optJSONArray("cells");
             if (cellsArr != null) {
                 // Variant pool — explicit {col,row} cells, hash-picked.
@@ -260,6 +286,7 @@ public final class TileRegistry {
                     cells[k] = new int[]{cell.getInt(0), cell.getInt(1)};
                 }
                 blocksById.put(id, GridBlockDef.variantPool(id, sheet, cellPx, cells));
+                sourceById.put(id, source);
                 continue;
             }
             JSONArray origin = o.getJSONArray("origin");
@@ -268,13 +295,16 @@ public final class TileRegistry {
             GridLayout layout = GridLayout.fromJson(o.getString("layout"));
             Integer fillRgb = o.has("fillRgb") ? Integer.decode(o.getString("fillRgb")) : null;
             blocksById.put(id, new GridBlockDef(id, sheet, cellPx, oc, or, layout, fillRgb));
+            sourceById.put(id, source);
         }
     }
 
     /** Ids share one namespace across sliced tiles, grid blocks, and doodads — a collision is a bug to surface. */
-    private void requireUniqueId(String id, String sheet) {
+    private void requireUniqueId(String id, CatalogSource source) {
         if (byId.containsKey(id) || blocksById.containsKey(id) || doodadsById.containsKey(id)) {
-            throw new IllegalStateException("TileRegistry: duplicate id '" + id + "' (sheet " + sheet + ")");
+            throw new IllegalStateException("TileRegistry: duplicate id '" + id
+                    + "': first declared by " + sourceById.get(id).describe()
+                    + ", then by " + source.describe());
         }
     }
 
@@ -320,7 +350,7 @@ public final class TileRegistry {
             TileRegistry reg = new TileRegistry();
             for (String path : BUILTIN_TILESETS) {
                 JSONObject root = Global.getSettings().loadJSON(path, true);
-                reg.ingestSheet(root);
+                reg.ingestSheet(root, CatalogSource.unspecified(path));
             }
             reg.validateReferences();
             installed = reg;
@@ -329,5 +359,22 @@ public final class TileRegistry {
         } catch (Exception e) {
             LOG.error("TileRegistry: failed to load built-in tilesets — registry not installed", e);
         }
+    }
+
+    /** Loads every enabled-mod tileset contribution in manifest order. */
+    public static void loadContributions(List<CatalogFile> catalogs) {
+        TileRegistry registry = new TileRegistry();
+        for (CatalogFile catalog : catalogs) {
+            try {
+                registry.ingestSheet(catalog.loadJson(), catalog.source());
+            } catch (Exception failure) {
+                throw new IllegalStateException("Failed to ingest tileset catalog "
+                        + catalog.source().describe(), failure);
+            }
+        }
+        registry.validateReferences();
+        installed = registry;
+        LOG.info("TileRegistry: loaded " + registry.size() + " sliced tiles from "
+                + catalogs.size() + " contributed tilesets");
     }
 }

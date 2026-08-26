@@ -1,10 +1,10 @@
 # Moddable Tilesets
 
-Status: ACTIVE — built-in data registry; external merge deferred
+Status: ACTIVE — additive external catalogs shipped; variant-pool cleanup remains
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — replaced migration phases with durable catalog, mapping, and external-provider boundaries.
+Updated: 2026-08-25 — adopted the shared enabled-mod manifest and provenance contract for additive tilesets and mappings.
 
 Read `stories.md` for open work.
 
@@ -16,10 +16,10 @@ describes how existing generation and rendering policies select that content.
 The result removes PNG-order and coordinate-table authority from Java while
 keeping terrain generation deterministic and its tactical rules explicit.
 
-The feature currently makes the built-in catalog data-driven. It is not yet a
-submod loader: an external contribution cannot be discovered, merged, or given
-override precedence until a real additional provider establishes an explicit
-external-provider contract.
+The feature makes both built-in and contributed catalogs data-driven. Enabled
+mods can add tiles, blocks, doodads, and named mapping entries through the
+shared marine-catalog manifest. Contributions are additive rather than an
+override layer: changing core generation policy remains a deliberate core edit.
 
 ## Vocabulary and ownership
 
@@ -43,8 +43,8 @@ external-provider contract.
   only an in-memory implementation detail for a generated cell, never a
   cross-load identity or save format.
 
-`TileRegistry` owns the built-in asset catalog and `GenMappingRegistry` owns
-the built-in use mapping. The application lifecycle loads the asset catalog
+`TileRegistry` owns the merged asset catalog and `GenMappingRegistry` owns
+the merged use mapping. The application lifecycle loads the asset catalog
 before the mapping, because mapping references must resolve to assets.
 Render systems consume surface mappings; mapgen fillers consume pools and
 tunables. Fillers, layouts, autotile resolvers, and topology own algorithms
@@ -53,9 +53,12 @@ generation logic.
 
 ## Data and authority flow
 
-At application load, the fixed built-in tileset definitions are ingested into
-one registry and checked for duplicate ids and resolvable overlay selectors.
-The fixed built-in mapping definitions then populate the mapping registry.
+At application load, every enabled mod's fixed marine-catalog manifest is
+discovered in game load order. Its explicit `tilesets` resources are loaded
+from that exact provider into one registry and checked for duplicate ids and
+resolvable overlay selectors. Explicit `tileMappings` resources then populate
+the mapping registry and validate their tile, block, doodad, and filler-pool
+references against the complete asset catalog.
 During battle generation, code-owned fillers select mapped pools and values;
 during rendering, mapped ids select most ground tiles and blocks. Primary
 sliced grass/dirt variants are the current exception: code still owns their
@@ -136,24 +139,30 @@ surface relief owns what those height values mean and how rendering uses them.
 5. Tile metadata is not automatic navigation authority. A new visual property
    can affect walkability, cover, sight, or collision only through the code
    path that owns that tactical law.
-6. The current validation is for the known built-ins. Strict unknown-key
-   diagnostics, asset-bound checks, cross-mapping preflight, and external
-   provenance/precedence belong to the external-provider contract.
+6. Cross-provider ids and mapping keys are add-only. A collision reports both
+   declaring mod ids and resource paths; it never becomes load-order override.
+   Mapping references preflight against the complete tile catalog before the
+   mapping is installed.
 7. Code may choose a layout from topology, but declared content owns the
    membership of a visual variant pool. A compatibility fallback may preserve
    output only while the registry is unavailable; it is not another catalog.
 
-## External-provider boundary
+## External-provider contract
 
-This boundary opens only when a real additional content provider needs to
-participate. Its contract must define discovery and source provenance,
-deterministic load order, extend-versus-override semantics, collision
-diagnostics, strict schema and reference validation, and an atomic result that
-consumers can trust. It must not turn the present fixed-list loader into
-accidental last-one-wins behavior.
+Tilesets use the same provider manifest, exact-mod resource loading, stable
+iteration order, and provenance diagnostics as equipment catalogs. An absent
+manifest is not an error; an unreadable manifest or declared resource is.
+Registry installation is atomic after all contributions and cross-references
+validate. Provider ids, definition ids, mapping keys, sheet paths, and other
+asset paths should be namespaced by the contributing mod. Art paths still live
+in Starsector's shared asset namespace even though their catalog JSON is loaded
+from an exact provider.
 
-Until then, a JSON edit can tune bundled content, but it cannot make a
-third-party tileset moddable at runtime.
+Mapping contributions may add named doodad pools and any still-unclaimed
+closed mapping key. They may not replace a core ground-render target, filler
+configuration, macro-height value, or named pool. Richer selectable terrain
+themes require a future map-generation selection noun rather than implicit
+load-order overrides.
 
 ## Adjacent features
 
@@ -163,8 +172,6 @@ map recipes, fillers, or the tactical validity of a map. `GenRecipe` chooses
 which generation stages execute, while a mapping chooses the content an
 already-selected stage consumes.
 
-Moddable weapons follows the same registry pattern for a different domain.
-The two catalogs may share test/bootstrap conventions, but their ids, schemas,
-validation, and gameplay authority remain independent. A future common
-submod-discovery mechanism must preserve those separate domain contracts rather
-than merge tile and weapon content into one registry.
+Moddable weapons supplies the shared provider discovery mechanism while
+remaining a different domain. The catalogs share discovery and provenance,
+but their ids, schemas, validation, and gameplay authority remain independent.
