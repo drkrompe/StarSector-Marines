@@ -543,6 +543,8 @@ public final class SquadStateDumper {
             }
             o.put("cellX", sim.world().cellX(u));
             o.put("cellY", sim.world().cellY(u));
+            o.put("x", sim.world().x(u));
+            o.put("y", sim.world().y(u));
             // homeCell{X,Y} = -1 sentinel for units without a post (marines,
             // patrols). Emit anyway so the dump distinguishes "no home" from
             // "home but drifted off" — key signal for diagnosing why a
@@ -572,6 +574,12 @@ public final class SquadStateDumper {
             // Future make-passage actions (breach door, blow wall) should
             // key off this flag. JSONObject.NULL when the unit has no target.
             o.put("targetReachable", computeTargetReachable(u, sim));
+            // Keep perceived cell visibility separate from the exact physical
+            // firing segment. A true/false split here is the signature of the
+            // SQ-169 failure: the cheap cell ray saw contact while the
+            // continuous source-to-target ray crossed a neighboring wall.
+            o.put("targetCellVisible", computeTargetCellVisible(u, sim));
+            o.put("targetClearShot", computeTargetClearShot(u, sim));
             o.put("cooldownTimer", sim.world().cooldownTimer(u));
             int[] path = sim.world().path(u);
             int pathLen = Paths.cellCount(path);
@@ -618,6 +626,20 @@ public final class SquadStateDumper {
                 sim.world().cellX(self), sim.world().cellY(self),
                 sim.world().cellX(target), sim.world().cellY(target));
         return path.length > 0;
+    }
+
+    private static Object computeTargetCellVisible(long self, BattleSimulation sim) {
+        long target = sim.resolveUnit(sim.targetOf(self));
+        if (target == 0L) return JSONObject.NULL;
+        return sim.getGrid().hasLineOfSight(
+                sim.world().cellX(self), sim.world().cellY(self),
+                sim.world().cellX(target), sim.world().cellY(target));
+    }
+
+    private static Object computeTargetClearShot(long self, BattleSimulation sim) {
+        long target = sim.resolveUnit(sim.targetOf(self));
+        if (target == 0L) return JSONObject.NULL;
+        return sim.getTacticalScoring().hasClearShot(self, target);
     }
 
     /**

@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns autonomous mission command, squad planning, belief-de
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — added perspective-safe squad approach evidence and neutral capture-zone occupancy over the canonical Conquest trace split.
+Updated: 2026-08-25 — separated cheap perceived visibility from exact continuous direct-fire eligibility.
 
 AI turns mission context and what a side has learned into coordinated
 movement, posture, and fire intent. It is a decision system, not the authority
@@ -248,6 +248,14 @@ footprint, but doorways, constrained navigation, authored posts, and a live
 contact-bound maneuver override decorative formation pressure. Acquisition
 may retain a legal target through near-equal alternatives so reflex delay and
 visual facing do not chatter.
+
+A perceived contact and a usable firing line are distinct. Perception may use
+the cached projected-cell line of sight, while a ground direct-fire decision
+must validate the member's true point against the intended target's true point.
+Firing-line coverage, opportunistic acquisition, and firing-position selection
+all consume that stronger result; a cell-visible but physically occluded squad
+therefore maneuvers instead of publishing coverage and repeatedly shooting a
+wall.
 
 In a coordinated flank, the fixing element does not remain passively parked
 once direct contact establishes the enemy line. It moves to reachable firing

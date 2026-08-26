@@ -518,6 +518,23 @@ public class NavigationGrid {
     }
 
     /**
+     * Exact continuous-point firing trace through the grid. Unlike {@link
+     * #hasLineOfSight(int, int, int, int)}, this follows the segment from the
+     * source's real point to the target's real point and visits every cell
+     * whose interior the segment crosses. The source and target cells are
+     * exempt, matching the ordinary LoS endpoint contract.
+     *
+     * <p>This is intentionally uncached and more expensive than cell
+     * Bresenham. Perception, fog, and topology remain cell projections; use
+     * this only where a direct-fire decision needs to agree with the physical
+     * ballistic ray.
+     */
+    public boolean hasLineOfFire(float x0, float y0, float x1, float y1) {
+        return firstBlockOnLine(x0, y0, x1, y1,
+                false, true) == noBlockPacked();
+    }
+
+    /**
      * Bounded {@link #hasLineOfSight}: returns false when the Euclidean cell
      * distance between {@code (x0,y0)} and {@code (x1,y1)} exceeds
      * {@code maxCells}, regardless of whether the line is geometrically clear.
@@ -598,5 +615,93 @@ public class NavigationGrid {
             if (e2 > -dy) { err -= dy; x += sx; }
             if (e2 <  dx) { err += dx; y += sy; }
         }
+    }
+
+    /**
+     * Continuous-point counterpart to {@link #firstWallOnLine(int, int, int,
+     * int)}. Walks the actual segment rather than the Bresenham lane between
+     * projected cells. Only structural blockers stop the ray; smoke remains a
+     * visibility concern and bullets pass through it.
+     */
+    public long firstWallOnLine(float x0, float y0, float x1, float y1) {
+        return firstBlockOnLine(x0, y0, x1, y1,
+                true, false);
+    }
+
+    /**
+     * Amanatides-Woo grid traversal. Returned format matches
+     * {@link #firstWallOnLine(int, int, int, int)}. When {@code structuralOnly}
+     * is false, transient opacity also blocks. When {@code excludeEnd} is true,
+     * the target cell is exempt.
+     */
+    private long firstBlockOnLine(float x0, float y0, float x1, float y1,
+                                  boolean structuralOnly, boolean excludeEnd) {
+        if (!Float.isFinite(x0) || !Float.isFinite(y0)
+                || !Float.isFinite(x1) || !Float.isFinite(y1)) {
+            throw new IllegalArgumentException("Ray endpoints must be finite");
+        }
+        int x = (int) Math.floor(x0);
+        int y = (int) Math.floor(y0);
+        int endX = (int) Math.floor(x1);
+        int endY = (int) Math.floor(y1);
+        if (x == endX && y == endY) return noBlockPacked();
+
+        float dx = x1 - x0;
+        float dy = y1 - y0;
+        int stepX = Float.compare(dx, 0f);
+        int stepY = Float.compare(dy, 0f);
+        float tDeltaX = stepX == 0 ? Float.POSITIVE_INFINITY : Math.abs(1f / dx);
+        float tDeltaY = stepY == 0 ? Float.POSITIVE_INFINITY : Math.abs(1f / dy);
+        float nextBoundaryX = stepX > 0 ? x + 1f : x;
+        float nextBoundaryY = stepY > 0 ? y + 1f : y;
+        float tMaxX = stepX == 0 ? Float.POSITIVE_INFINITY
+                : (nextBoundaryX - x0) / dx;
+        float tMaxY = stepY == 0 ? Float.POSITIVE_INFINITY
+                : (nextBoundaryY - y0) / dy;
+
+        while (x != endX || y != endY) {
+            if (tMaxX < tMaxY) {
+                x += stepX;
+                tMaxX += tDeltaX;
+                if (blocksRayCell(x, y, endX, endY,
+                        structuralOnly, excludeEnd)) return packCell(x, y);
+            } else if (tMaxY < tMaxX) {
+                y += stepY;
+                tMaxY += tDeltaY;
+                if (blocksRayCell(x, y, endX, endY,
+                        structuralOnly, excludeEnd)) return packCell(x, y);
+            } else {
+                // At an exact corner the zero-width segment enters only the
+                // diagonal cell; the orthogonal neighbors are touched at one
+                // boundary point but their interiors are not crossed. This
+                // preserves diagonal fire through a one-cell doorway corner.
+                x += stepX;
+                y += stepY;
+                tMaxX += tDeltaX;
+                tMaxY += tDeltaY;
+                if (blocksRayCell(x, y, endX, endY,
+                        structuralOnly, excludeEnd)) return packCell(x, y);
+            }
+        }
+        return noBlockPacked();
+    }
+
+    private boolean blocksRayCell(int x, int y, int endX, int endY,
+                                  boolean structuralOnly, boolean excludeEnd) {
+        if (excludeEnd && x == endX && y == endY) return false;
+        if (!inBounds(x, y)) return false;
+        int idx = index(x, y);
+        return structuralOnly
+                ? blocksStructuralLineOfSightAt(idx)
+                : blocksLineOfSightAt(idx);
+    }
+
+    private static long packCell(int x, int y) {
+        return (((long) y & 0xFFFFFFFFL) << 32)
+                | ((long) x & 0xFFFFFFFFL);
+    }
+
+    private static long noBlockPacked() {
+        return packCell(-1, -1);
     }
 }

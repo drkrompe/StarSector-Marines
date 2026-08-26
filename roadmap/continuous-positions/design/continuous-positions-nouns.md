@@ -4,7 +4,7 @@ Status: SHIPPED — ground combat uses continuous cell-space positions over a di
 
 Written: 2026-08-23
 
-Updated: 2026-08-23 — bounded arrival-formation memory for shared destinations.
+Updated: 2026-08-25 — distinguished projected visibility from continuous direct-fire tracing.
 
 ## Vocabulary
 
@@ -24,7 +24,13 @@ Updated: 2026-08-23 — bounded arrival-formation memory for shared destinations
 
 `POSITION` is the sole authoritative location for a ground combat entity and remains meaningful for its corpse presentation. Cell-native setup data is converted to a center when an entity enters the world; no render-only or mirrored grid coordinate is maintained.
 
-Navigation retains ownership of discrete map facts: A* routes, walkability and occupancy density, line of sight, fog, zones, and topology all consume a grid projection at their boundary. A grid result is converted back to a center only when it becomes a point-space destination.
+Navigation retains ownership of discrete map facts: A* routes, walkability and
+occupancy density, perception line of sight, fog, zones, and topology all
+consume a grid projection at their boundary. A grid result is converted back
+to a center only when it becomes a point-space destination. Direct-fire
+legality is the narrow exception: it traces the source and intended target's
+true points through those same discrete blocker cells so separation within a
+cell cannot invent a firing lane the physical round does not have.
 
 The movement service follows the center-based path continuously, records the velocity actually applied this tick, and pins a completed route exactly to its final center. Appearance derives travel state from applied velocity, so it follows the same movement that simulation used. Post-movement separation may make a bounded, walkability-guarded adjustment; later combat, presentation, and proximity consumers see that final position.
 
@@ -34,7 +40,10 @@ Nearby-unit queries snapshot true positions once per tick. Point-space consumers
 
 1. A ground entity has one position. Rendering, audio, effects, range, proximity, and corpse presentation read that point; a cell is always derived or explicitly authored grid data.
 2. The cell-space convention is fixed: cells are half-open unit squares, centers end in `.5`, and the grid projection is `floor`. A new boundary must state which side of that conversion it owns.
-3. Grid algorithms remain grid algorithms. Continuous motion does not turn A*, line of sight, fog, occupancy, zones, or map topology into geometric systems.
+3. Grid algorithms remain grid algorithms. Continuous motion does not turn A*,
+   perception line of sight, fog, occupancy, zones, or map topology into
+   geometric systems. Direct fire may intersect a continuous segment with
+   grid-cell blocker shapes; it does not create a second terrain model.
 4. Arrival, settling, and repath permission must never be inferred from one old-style progress flag or exact point equality. A completed route pins its final center so arrival and settling agree for its own destination.
 5. A live spatial distance must use true positions. A bucket, cache key, destination cell, or map lookup may use projected cells only where the discrete abstraction is the intended authority.
 6. Radius is the shared interaction footprint. Direct-fire aim remains
@@ -53,6 +62,7 @@ Nearby-unit queries snapshot true positions once per tick. Point-space consumers
 Air and convoy systems own their own continuous bodies; they are not ground `POSITION` occupants merely because they render in the same battle. Drones that are position-slaved to a flight body likewise stay outside ground separation.
 
 Future work may improve path geometry, tactical scoring precision, or
-firing-position selection, but must preserve the projection boundary.
+firing-position selection, but must preserve the projection boundary and the
+separate point-authoritative direct-fire boundary.
 Surface-to-surface range rules and broader ballistic-contact changes belong to
 the combat model; they are not implied by continuous positions.
