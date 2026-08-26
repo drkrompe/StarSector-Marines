@@ -81,14 +81,17 @@ See `ui-nouns.md` and `company-view-nouns.md`.
 
 ## Immediate recommendation
 
-Use the reviewed zero-capture Conquest fixture baseline to add physical
-travel, assault-entry, and capture-zone evidence in
-`commander-trace-and-balance-harness.md`; then close the remaining
-assignment-writer and live-acceptance edges in
-`autonomous-mission-command-foundation.md`. Opening Operations remains the
-smallest second command-duel proof. Assault, Sabotage, Rescue, and Silent
-Colony can then adapt the same knowledge, ownership, cadence, and diagnostic
-contracts through their own mission geometry.
+Use the physical Conquest baseline to correct attacker commitment policy:
+absence of a believed defender must not make a distant compound "clear," and
+fresh capture detachments must leave useful force on the broader front while
+actionable resistance exists. Preserve in-flight captures and the existing
+adjacent-threshold commitment path. Add the
+campaign deployment/form-up overlay from `launch-fixture-fidelity.md` to the
+commander matrix before treating its force-concentration results as a balance
+verdict. Then close the remaining assignment-writer and live-acceptance edges
+in `autonomous-mission-command-foundation.md`. Opening Operations remains the
+smallest second command-duel proof; later missions adapt the same knowledge,
+ownership, cadence, and diagnostic contracts through their own geometry.
 
 ## How to use this directory
 

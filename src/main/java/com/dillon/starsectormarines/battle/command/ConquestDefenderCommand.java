@@ -58,8 +58,10 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         final float centroidY;
         final int anchorCellX;
         final int anchorCellY;
+        final int currentZoneId;
         final UnitRole role;
         final boolean localContact;
+        final String executionSuspension;
         final CommandDirective originalDirective;
         ObjectiveAssignment assignedObjective;
 
@@ -70,8 +72,10 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             centroidY = state.centroidY();
             anchorCellX = state.anchorCellX();
             anchorCellY = state.anchorCellY();
+            currentZoneId = state.currentZoneId();
             role = state.role();
             localContact = state.localContact();
+            executionSuspension = state.executionSuspension();
             originalDirective = state.directive();
             assignedObjective = state.assignment();
         }
@@ -456,7 +460,20 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                 influence != null ? influence.updatedTick() : -1,
                 Faction.DEFENDER, trackLayout.axis(), phase,
                 remainingCompounds, keepZone, keepState,
-                states, new ArrayList<>(directives.values()));
+                states, squadStates(squads),
+                new ArrayList<>(directives.values()));
+    }
+
+    private static List<ConquestFrontSnapshot.SquadState> squadStates(
+            Map<Integer, PlanningSquad> squads) {
+        List<ConquestFrontSnapshot.SquadState> states = new ArrayList<>(squads.size());
+        for (PlanningSquad squad : squads.values()) {
+            states.add(new ConquestFrontSnapshot.SquadState(
+                    squad.id, squad.aliveMembers, squad.centroidX,
+                    squad.centroidY, squad.currentZoneId,
+                    squad.executionSuspension, squad.localContact));
+        }
+        return states;
     }
 
     private List<CommandProposal> buildProposals(

@@ -106,12 +106,24 @@ public final class EquipmentTemplateCatalog {
         return require(primaryId(weapon, grade));
     }
 
+    public static EquipmentTemplateCard primary(String weaponId, EquipmentGrade grade) {
+        return require(primaryId(weaponId, grade));
+    }
+
     public static EquipmentTemplateCard armor(MarineArmorPattern armor) {
         return require(armorId(armor));
     }
 
+    public static EquipmentTemplateCard armor(String armorId) {
+        return require(armorId(armorId));
+    }
+
     public static EquipmentTemplateCard special(MarineSecondary special) {
         return require(specialId(special));
+    }
+
+    public static EquipmentTemplateCard special(String specialId) {
+        return require(specialId(specialId));
     }
 
     public static EquipmentTemplateCard require(String id) {
@@ -160,6 +172,7 @@ public final class EquipmentTemplateCatalog {
                 if (!grades.has(gradeKey)) continue;
                 register(new EquipmentTemplateCard(primaryId(weaponId, grade),
                         weapon.catalogName(grade.tier), EquipmentTemplateCard.Kind.PRIMARY,
+                        weaponId, grade,
                         parseCost(grades.getJSONObject(gradeKey))), source);
             }
         }
@@ -172,7 +185,8 @@ public final class EquipmentTemplateCatalog {
             String armorId = requireText(entry, "equipmentId");
             MarineArmorCatalogDef armor = MarineArmorCatalogRegistry.require(armorId);
             register(new EquipmentTemplateCard(armorId(armorId), armor.displayName(),
-                    EquipmentTemplateCard.Kind.ARMOR, parseCost(entry.getJSONObject("issueCost"))),
+                    EquipmentTemplateCard.Kind.ARMOR, armorId, null,
+                    parseCost(entry.getJSONObject("issueCost"))),
                     source);
         }
     }
@@ -184,7 +198,7 @@ public final class EquipmentTemplateCatalog {
             String specialId = requireText(entry, "equipmentId");
             SpecialEquipmentDef special = SpecialEquipmentRegistry.require(specialId);
             register(new EquipmentTemplateCard(specialId(specialId), special.displayName(),
-                    EquipmentTemplateCard.Kind.SPECIAL,
+                    EquipmentTemplateCard.Kind.SPECIAL, specialId, null,
                     parseCost(entry.getJSONObject("issueCost"))), source);
         }
     }

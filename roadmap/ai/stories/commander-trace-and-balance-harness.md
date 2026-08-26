@@ -1,10 +1,10 @@
 # Commander trace and balance harness
 
-Status: IN PROGRESS — live diagnostics, the Conquest construction fixture, canonical trace analysis, and the first reviewed forced-serial baseline are landed; richer physical-progress metrics and intervention comparison remain.
+Status: IN PROGRESS — live diagnostics, deterministic Conquest evidence, and physical approach/capture-zone metrics are landed; bounded intervention comparison remains.
 
 Written: 2026-08-25
 
-Updated: 2026-08-25 — reviewed the first full canonical matrix, fixed false elimination between shuttle cycles, and recorded the zero-capture baseline.
+Updated: 2026-08-25 — separated perspective-safe squad approach/arrival evidence from neutral capture-zone occupancy and added both to the canonical report.
 
 Read `ai-nouns.md` and `battle-fixtures-nouns.md` before implementing this
 story.
@@ -25,6 +25,9 @@ churned, or collapsed before tuning force budgets or doctrine.
 - Report unassigned mobile combat power, directive churn, response latency,
   stalled/unreachable directives, reserve duration and release timing, force
   concentration, objective progress, casualties, duration, and outcome.
+- Distinguish commanded marker closure, contact-bound and quiet non-closure,
+  target-zone arrival, adjacent compound-assault commitment, and exact neutral
+  capture-zone presence. Form-up and observation gaps censor physical evidence.
 - Start with Conquest, then register each mission command duel as it ships.
 - Keep the harness headless and separate from player-facing difficulty claims;
   it supplies evidence rather than silently changing balance.
@@ -48,6 +51,9 @@ churned, or collapsed before tuning force budgets or doctrine.
   to progress an actionable objective is reported explicitly.
 - [x] Conquest produces zero-input duration, outcome, casualty, territorial
   progress, reserve, and response metrics across a documented seed set.
+- [x] Conquest evidence distinguishes own-squad approach and target-zone
+  arrival from neutral mixed or marine-only presence in the exact compound
+  capture zone without leaking opposing occupancy into commander perspective.
 - [ ] The harness can compare a bounded player intervention with the same
   zero-input baseline once interventions exist, without making input mandatory.
 - [x] Live Conquest diagnostics can select one perspective and display its
@@ -93,11 +99,31 @@ rather than fabricated losses.
 | `undercommitted-south` | TIMEOUT at 18,000 | 111 / 52 | 0 captures; STALLED |
 | `expected-west` | TIMEOUT at 18,000 | 252 / 30 | 0 captures; STALLED |
 
-This is not a balance verdict. It establishes that assignment churn and
-command-unassigned time are near zero while physical territorial progress is
-also zero, so the next evidence slice must measure squad travel, contact,
-assault entry, and capture-zone presence before doctrine or force budgets are
-tuned.
+The schema-3 rerun adds the physical distinction the first baseline lacked:
+
+| Fixture | Peak observed live force | Marker closure | Exact capture-zone presence |
+|---|---:|---:|---:|
+| `undercommitted-south` | 12 members / 5 squads | 8 / 28 secure-compound episodes | none |
+| `expected-west` | 3 members / 1 squad | 0 / 21 secure-compound episodes | none |
+
+All observed non-closing travel intervals carried local contact, and neither
+fixture produced an adjacent-assault commitment or target-zone observation.
+The traces also expose a commander-policy problem: every observed marine
+command action in these two fixtures is a distant `SECURE_COMPOUND`, because
+absence of a faction-local defender belief currently reads as an uncontested
+compound. The attacker therefore bypasses broader-front work and meets contact
+on a long capture route.
+
+This remains evidence, not a balance verdict. Construction fixtures replay the
+production scenario factory but do not apply the campaign deployment overlay;
+their generated sortie squads therefore do not exercise campaign identity or
+form-up suspension. `launch-fixture-fidelity.md` must bring that overlay into a
+representative commander workload before concentration or reinforcement timing
+is tuned. The policy correction is independently valid: unknown occupancy is
+not positive knowledge that a distant compound is clear. Fresh distant capture
+allocation must be globally capped while actionable front resistance exists;
+in-flight captures and the adjacent-threshold commitment path remain valid,
+and neutral referee occupancy never becomes commander input.
 
 ## Constraints
 

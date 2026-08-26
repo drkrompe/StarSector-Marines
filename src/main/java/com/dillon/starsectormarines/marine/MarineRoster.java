@@ -821,8 +821,8 @@ public class MarineRoster implements Serializable {
         for (int index = 0; index < MarineSquad.CAPACITY; index++) {
             SquadWeaponIssue weapon = weapons.issue(index);
             billets.add(new SquadEquipmentBillet(
-                    weapon.role(), weapon.primary(), weapon.grade(),
-                    weapon.specialEquipmentId(), armor.issue(index)));
+                    weapon.role(), weapon.primaryId(), weapon.grade(),
+                    weapon.specialEquipmentId(), armor.issueId(index)));
         }
         if (squad.stationed()) {
             return new SquadEquipmentPreview(
@@ -846,25 +846,27 @@ public class MarineRoster implements Serializable {
 
         boolean ownsTemplates = true;
         for (SquadEquipmentBillet billet : billets) {
-            MarineSecondary special = billet.special();
-            ownsTemplates &= armory.ownsPrimaryTemplate(billet.primary(), billet.grade())
-                    && armory.ownsArmorTemplate(billet.armor())
-                    && (special == null || armory.ownsSpecialTemplate(special));
+            ownsTemplates &= armory.ownsPrimaryTemplate(billet.primaryId(), billet.grade())
+                    && armory.ownsArmorTemplate(billet.armorId())
+                    && (billet.specialEquipmentId() == null
+                    || armory.ownsSpecialTemplate(billet.specialEquipmentId()));
         }
         EquipmentTemplateCost cost = EquipmentTemplateCost.ZERO;
         for (int index = 0; index < members.size(); index++) {
             MarineSoldier soldier = members.get(index);
             SquadEquipmentBillet billet = billets.get(index);
-            if (soldier.primary() != billet.primary()
+            if (!soldier.primaryId().equals(billet.primaryId())
                     || soldier.primaryGrade() != billet.grade()) {
                 cost = cost.plus(EquipmentTemplateCatalog
-                        .primary(billet.primary(), billet.grade()).issueCost());
+                        .primary(billet.primaryId(), billet.grade()).issueCost());
             }
-            if (soldier.armor() != billet.armor()) {
-                cost = cost.plus(EquipmentTemplateCatalog.armor(billet.armor()).issueCost());
+            if (!soldier.armorId().equals(billet.armorId())) {
+                cost = cost.plus(EquipmentTemplateCatalog.armor(billet.armorId()).issueCost());
             }
-            if (soldier.secondary() != billet.special() && billet.special() != null) {
-                cost = cost.plus(EquipmentTemplateCatalog.special(billet.special()).issueCost());
+            if (!java.util.Objects.equals(soldier.specialEquipmentId(),
+                    billet.specialEquipmentId()) && billet.specialEquipmentId() != null) {
+                cost = cost.plus(EquipmentTemplateCatalog
+                        .special(billet.specialEquipmentId()).issueCost());
             }
         }
         EquipmentTemplateCost available = resources.available();
@@ -898,9 +900,9 @@ public class MarineRoster implements Serializable {
         for (int index = 0; index < memberIds.size(); index++) {
             MarineSoldier soldier = soldierById(memberIds.get(index));
             SquadEquipmentBillet billet = preview.billet(index);
-            soldier.setPrimary(billet.primary(), billet.grade());
+            soldier.setPrimary(billet.primaryId(), billet.grade());
             soldier.setSecondary(billet.special());
-            soldier.setArmor(billet.armor());
+            soldier.setArmor(billet.armorId());
         }
         squad.setEquipmentDoctrineIds(weaponDoctrineId, armorDoctrineId);
         return SquadEquipmentResult.APPLIED;
@@ -1519,9 +1521,10 @@ public class MarineRoster implements Serializable {
                 }
                 for (FireTeamBillet billet : card.billets()) {
                     weapons.add(new SquadWeaponIssue(
-                            billet.name(), billet.primary(), billet.grade(),
+                            billet.name(), billet.primaryId(), billet.grade(),
                             billet.specialEquipmentId()));
-                    armor.add(billet.armor());
+                    armor.add(billet.armor() != null
+                            ? billet.armor() : MarineArmorPattern.ARMORLESS);
                 }
             }
             if (!complete || weapons.size() != MarineSquad.CAPACITY) continue;

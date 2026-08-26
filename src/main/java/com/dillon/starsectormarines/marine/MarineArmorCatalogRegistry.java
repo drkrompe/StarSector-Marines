@@ -114,6 +114,10 @@ public final class MarineArmorCatalogRegistry {
         return byId.values();
     }
 
+    public MarineArmorCatalogDef get(String id) {
+        return byId.get(id);
+    }
+
     public int size() {
         return byId.size();
     }

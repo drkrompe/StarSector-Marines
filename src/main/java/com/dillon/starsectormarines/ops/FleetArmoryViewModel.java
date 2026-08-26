@@ -2,14 +2,15 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.battle.weapon.MountClass;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.FireTeamTemplateCard;
 import com.dillon.starsectormarines.marine.EquipmentIssueResources;
 import com.dillon.starsectormarines.marine.MarineCaptain;
-import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics;
@@ -438,7 +439,7 @@ public final class FleetArmoryViewModel {
         String selected = selectedArmorDoctrineId.get();
         List<DoctrineTile> tiles = new ArrayList<>();
         for (SquadArmorDoctrine doctrine : roster.armory().armorDoctrines()) {
-            boolean available = roster.armory().canAuthorArmorDoctrine(doctrine.issues());
+            boolean available = roster.armory().canAuthorArmorDoctrineIds(doctrine.issueIds());
             if (!available) continue;
             SquadLoadoutPresentationDef presentation = loadoutPresentation(
                     doctrine.id(), SquadLoadoutPresentationDef.Kind.ARMOR,
@@ -500,7 +501,7 @@ public final class FleetArmoryViewModel {
     private int knownArmorLoadouts() {
         int known = 0;
         for (SquadArmorDoctrine doctrine : roster.armory().armorDoctrines()) {
-            if (roster.armory().canAuthorArmorDoctrine(doctrine.issues())) known++;
+            if (roster.armory().canAuthorArmorDoctrineIds(doctrine.issueIds())) known++;
         }
         return known;
     }
@@ -521,7 +522,9 @@ public final class FleetArmoryViewModel {
 
     private static int maximumArmorTier(SquadArmorDoctrine doctrine) {
         int tier = 1;
-        for (MarineArmorPattern armor : doctrine.issues()) tier = Math.max(tier, armor.tier);
+        for (String armorId : doctrine.issueIds()) {
+            tier = Math.max(tier, MarineArmorCatalogRegistry.require(armorId).tier());
+        }
         return tier;
     }
 
@@ -570,7 +573,8 @@ public final class FleetArmoryViewModel {
             SpecialEquipmentDef special = billet != null
                     ? SpecialEquipmentRegistry.get(billet.specialEquipmentId()) : null;
             MarineArmorCatalogDef armorCatalog = billet != null
-                    ? MarineArmorCatalogRegistry.require(billet.armor().id) : null;
+                    ? billet.armorDef() : null;
+            WeaponDef primary = billet != null ? billet.primaryDef() : null;
             marines.add(new MarineViewerCard(
                     id, "marine-preview:" + index, id + ":header",
                     id + ":hero", id + ":identity",
@@ -592,13 +596,13 @@ public final class FleetArmoryViewModel {
                     personnelSummary(soldier),
                     armorCatalog != null ? armorCatalog.unitClass() : "VACANT",
                     billet != null ? "W " + billet.grade().tierMark() : "W —",
-                    billet != null ? "A " + billet.armor().tierMark() : "A —",
-                    billet != null ? billet.primary().catalogName(billet.grade()) + "  ·  "
+                    billet != null ? "A " + tierMark(armorCatalog.tier()) : "A —",
+                    billet != null ? primary.catalogName(billet.grade().tier) + "  ·  "
                             + billet.grade().displayName : "No primary",
-                    billet != null ? billet.primary().catalogDescription() : "",
+                    billet != null ? primary.catalogDescription : "",
                     weaponStats(id, billet, soldier),
-                    billet != null ? billet.armor().displayName + "  ·  Tier "
-                            + billet.armor().tierMark() : "No armor",
+                    billet != null ? armorCatalog.displayName() + "  ·  Tier "
+                            + tierMark(armorCatalog.tier()) : "No armor",
                     armorStats(id, billet), armorCatalog != null ? armorCatalog.description() : "",
                     special != null ? special.displayName() : "No specialty equipment",
                     special != null ? special.catalogDescription()
@@ -745,10 +749,13 @@ public final class FleetArmoryViewModel {
 
     private static String weaponDistribution(SquadWeaponDoctrine doctrine) {
         List<String> parts = new ArrayList<>();
-        for (MarineWeapon weapon : MarineWeapon.values()) {
+        for (WeaponDef weapon : WeaponRegistry.installed().all()) {
+            if (weapon.mount != MountClass.MARINE_PRIMARY) continue;
             int count = 0;
-            for (var issue : doctrine.issues()) if (issue.primary() == weapon) count++;
-            if (count > 0) parts.add(count + " " + weapon.displayName());
+            for (var issue : doctrine.issues()) {
+                if (issue.primaryId().equals(weapon.id)) count++;
+            }
+            if (count > 0) parts.add(count + " " + weapon.displayName);
         }
         int specials = 0;
         for (var issue : doctrine.issues()) if (issue.specialEquipmentId() != null) specials++;
@@ -758,10 +765,12 @@ public final class FleetArmoryViewModel {
 
     private static String armorDistribution(SquadArmorDoctrine doctrine) {
         List<String> parts = new ArrayList<>();
-        for (MarineArmorPattern pattern : MarineArmorPattern.values()) {
+        for (MarineArmorCatalogDef pattern : MarineArmorCatalogRegistry.installed().all()) {
             int count = 0;
-            for (MarineArmorPattern issue : doctrine.issues()) if (issue == pattern) count++;
-            if (count > 0) parts.add(count + " " + pattern.displayName);
+            for (String issueId : doctrine.issueIds()) {
+                if (issueId.equals(pattern.id())) count++;
+            }
+            if (count > 0) parts.add(count + " " + pattern.displayName());
         }
         return String.join("  ·  ", parts);
     }
@@ -871,14 +880,14 @@ public final class FleetArmoryViewModel {
         String role = assigned != null && billetIndex < assigned.billets().size()
                 ? assigned.billet(billetIndex).name()
                 : billetIndex == 0 ? "Team Leader" : "Rifleman";
-        return new FireTeamBillet(role, soldier.primary(), soldier.primaryGrade(),
-                soldier.secondary(), soldier.armor());
+        return new FireTeamBillet(role, soldier.primaryId(), soldier.primaryGrade(),
+                soldier.specialEquipmentId(), soldier.armorId());
     }
 
     private static FireTeamBillet asFireTeamBillet(SquadEquipmentBillet billet) {
         return billet != null ? new FireTeamBillet(
-                billet.role(), billet.primary(), billet.grade(),
-                billet.special(), billet.armor()) : null;
+                billet.role(), billet.primaryId(), billet.grade(),
+                billet.specialEquipmentId(), billet.armorId()) : null;
     }
 
     private static String marineCardClasses(MarineSoldier soldier, boolean previewing) {
@@ -939,12 +948,12 @@ public final class FleetArmoryViewModel {
             String cardId, FireTeamBillet billet, MarineSoldier soldier) {
         if (billet == null || soldier == null) return List.of();
         SoldierProfile profile = soldier.profile();
-        float damage = InfantryCombatStats.damage(billet.primary(), billet.grade());
-        float range = InfantryCombatStats.range(billet.primary(), billet.grade());
+        float damage = InfantryCombatStats.damage(billet.primaryDef(), billet.grade());
+        float range = InfantryCombatStats.range(billet.primaryDef(), billet.grade());
         float accuracy = InfantryCombatStats.accuracy(
-                billet.primary(), billet.grade(), profile);
+                billet.primaryDef(), billet.grade(), profile);
         float dps = InfantryCombatStats.estimatedDps(
-                billet.primary(), billet.grade(), profile);
+                billet.primaryDef(), billet.grade(), profile);
         return List.of(
                 statMeter(cardId + ":damage", "DMG", formatOneDecimal(damage),
                         damage, maximumWeaponDamage()),
@@ -961,17 +970,17 @@ public final class FleetArmoryViewModel {
             FireTeamBillet billet, MarineSoldier soldier, boolean previewing) {
         if (!previewing || billet == null || soldier == null) return "";
         SoldierProfile profile = soldier.profile();
-        float damage = InfantryCombatStats.damage(billet.primary(), billet.grade())
-                - InfantryCombatStats.damage(soldier.primary(), soldier.primaryGrade());
-        float range = InfantryCombatStats.range(billet.primary(), billet.grade())
-                - InfantryCombatStats.range(soldier.primary(), soldier.primaryGrade());
+        float damage = InfantryCombatStats.damage(billet.primaryDef(), billet.grade())
+                - InfantryCombatStats.damage(soldier.primaryDef(), soldier.primaryGrade());
+        float range = InfantryCombatStats.range(billet.primaryDef(), billet.grade())
+                - InfantryCombatStats.range(soldier.primaryDef(), soldier.primaryGrade());
         float accuracy = (InfantryCombatStats.accuracy(
-                billet.primary(), billet.grade(), profile)
+                billet.primaryDef(), billet.grade(), profile)
                 - InfantryCombatStats.accuracy(
-                soldier.primary(), soldier.primaryGrade(), profile)) * 100f;
-        float dps = InfantryCombatStats.estimatedDps(billet.primary(), billet.grade(), profile)
+                soldier.primaryDef(), soldier.primaryGrade(), profile)) * 100f;
+        float dps = InfantryCombatStats.estimatedDps(billet.primaryDef(), billet.grade(), profile)
                 - InfantryCombatStats.estimatedDps(
-                soldier.primary(), soldier.primaryGrade(), profile);
+                soldier.primaryDef(), soldier.primaryGrade(), profile);
         return String.format(Locale.ROOT,
                 "DMG %+.1f  ·  RNG %+.0f  ·  ACC %+.0f%%  ·  DPS %+.1f",
                 damage, range, accuracy, dps);
@@ -979,21 +988,21 @@ public final class FleetArmoryViewModel {
 
     private static List<StatMeter> armorStats(String cardId, FireTeamBillet billet) {
         if (billet == null) return List.of();
-        MarineArmorPattern armor = billet.armor();
+        MarineArmorCatalogDef armor = billet.armorDef();
         return List.of(
                 statMeter(cardId + ":health", "HEALTH",
                         String.format(Locale.ROOT, "%.0f", UnitType.MARINE.maxHp),
                         UnitType.MARINE.maxHp, UnitType.MARINE.maxHp),
                 statMeter(cardId + ":armor-value", "ARMOR",
-                        String.format(Locale.ROOT, "%.0f", armor.armorPool),
-                        armor.armorPool, maximumArmorPool()),
+                        String.format(Locale.ROOT, "%.0f", armor.armorPool()),
+                        armor.armorPool(), maximumArmorPool()),
                 statMeter(cardId + ":resist", "RESIST",
-                        String.format(Locale.ROOT, "%.0f", armor.armorRating),
-                        armor.armorRating, maximumArmorRating()),
+                        String.format(Locale.ROOT, "%.0f", armor.armorRating()),
+                        armor.armorRating(), maximumArmorRating()),
                 statMeter(cardId + ":speed", "SPEED",
                         String.format(Locale.ROOT, "%.1f",
-                                UnitType.MARINE.moveSpeed * armor.moveSpeedMult),
-                        UnitType.MARINE.moveSpeed * armor.moveSpeedMult,
+                                UnitType.MARINE.moveSpeed * armor.moveSpeedMult()),
+                        UnitType.MARINE.moveSpeed * armor.moveSpeedMult(),
                         UnitType.MARINE.moveSpeed * maximumMoveSpeed()));
     }
 
@@ -1011,7 +1020,8 @@ public final class FleetArmoryViewModel {
 
     private static float maximumWeaponDamage() {
         float maximum = 1f;
-        for (MarineWeapon weapon : MarineWeapon.values()) {
+        for (WeaponDef weapon : WeaponRegistry.installed().all()) {
+            if (weapon.mount != MountClass.MARINE_PRIMARY) continue;
             for (EquipmentGrade grade : EquipmentGrade.values()) {
                 maximum = Math.max(maximum, InfantryCombatStats.damage(weapon, grade));
             }
@@ -1021,7 +1031,8 @@ public final class FleetArmoryViewModel {
 
     private static float maximumWeaponRange() {
         float maximum = 1f;
-        for (MarineWeapon weapon : MarineWeapon.values()) {
+        for (WeaponDef weapon : WeaponRegistry.installed().all()) {
+            if (weapon.mount != MountClass.MARINE_PRIMARY) continue;
             for (EquipmentGrade grade : EquipmentGrade.values()) {
                 maximum = Math.max(maximum, InfantryCombatStats.range(weapon, grade));
             }
@@ -1031,7 +1042,8 @@ public final class FleetArmoryViewModel {
 
     private static float maximumWeaponDps(SoldierProfile profile) {
         float maximum = 1f;
-        for (MarineWeapon weapon : MarineWeapon.values()) {
+        for (WeaponDef weapon : WeaponRegistry.installed().all()) {
+            if (weapon.mount != MountClass.MARINE_PRIMARY) continue;
             for (EquipmentGrade grade : EquipmentGrade.values()) {
                 maximum = Math.max(maximum,
                         InfantryCombatStats.estimatedDps(weapon, grade, profile));
@@ -1042,24 +1054,24 @@ public final class FleetArmoryViewModel {
 
     private static float maximumArmorPool() {
         float maximum = 1f;
-        for (MarineArmorPattern armor : MarineArmorPattern.values()) {
-            maximum = Math.max(maximum, armor.armorPool);
+        for (MarineArmorCatalogDef armor : MarineArmorCatalogRegistry.installed().all()) {
+            maximum = Math.max(maximum, armor.armorPool());
         }
         return maximum;
     }
 
     private static float maximumArmorRating() {
         float maximum = 1f;
-        for (MarineArmorPattern armor : MarineArmorPattern.values()) {
-            maximum = Math.max(maximum, armor.armorRating);
+        for (MarineArmorCatalogDef armor : MarineArmorCatalogRegistry.installed().all()) {
+            maximum = Math.max(maximum, armor.armorRating());
         }
         return maximum;
     }
 
     private static float maximumMoveSpeed() {
         float maximum = 1f;
-        for (MarineArmorPattern armor : MarineArmorPattern.values()) {
-            maximum = Math.max(maximum, armor.moveSpeedMult);
+        for (MarineArmorCatalogDef armor : MarineArmorCatalogRegistry.installed().all()) {
+            maximum = Math.max(maximum, armor.moveSpeedMult());
         }
         return maximum;
     }
@@ -1067,12 +1079,14 @@ public final class FleetArmoryViewModel {
     private static String armorDelta(
             FireTeamBillet billet, MarineSoldier soldier, boolean previewing) {
         if (!previewing || billet == null || soldier == null) return "";
+        MarineArmorCatalogDef next = billet.armorDef();
+        MarineArmorCatalogDef current = soldier.armorDef();
         return String.format(Locale.ROOT,
                 "ARMOR %+.0f  ·  RESIST %+.0f  ·  SPEED %+.1f",
-                billet.armor().armorPool - soldier.armor().armorPool,
-                billet.armor().armorRating - soldier.armor().armorRating,
+                next.armorPool() - current.armorPool(),
+                next.armorRating() - current.armorRating(),
                 UnitType.MARINE.moveSpeed
-                        * (billet.armor().moveSpeedMult - soldier.armor().moveSpeedMult));
+                        * (next.moveSpeedMult() - current.moveSpeedMult()));
     }
 
     private static String careerSummary(MarineSoldier soldier) {

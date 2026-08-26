@@ -22,8 +22,13 @@ class MechFittingLayoutTest {
             for (SocketDef socket : layout.sockets()) {
                 assertTrue(ids.add(socket.id()));
                 assertTrue(socket.capacity() > 0);
-                assertTrue(socket.footprintWidthCells() > 0f);
-                assertTrue(socket.footprintHeightCells() > 0f);
+                assertTrue(socket.footprintWidthHull() > 0f);
+                assertTrue(socket.footprintHeightHull() > 0f);
+                double anchorToDock = Math.hypot(
+                        socket.dockRight() - socket.localRight(),
+                        socket.dockForward() - socket.localForward());
+                assertTrue(anchorToDock > 0.5,
+                        "equipment dock should use the gantry around " + socket.id());
             }
             assertEquals(EnumSet.allOf(SocketId.class), ids);
         }
@@ -38,7 +43,7 @@ class MechFittingLayoutTest {
         assertTrue(bulwark.occupied(SocketId.RIGHT_SHOULDER));
         assertNotEquals(hound.socket(SocketId.RIGHT_SHOULDER).capacity(),
                 bulwark.socket(SocketId.RIGHT_SHOULDER).capacity());
-        assertNotEquals(hound.socket(SocketId.ARMS).footprintWidthCells(),
-                bulwark.socket(SocketId.ARMS).footprintWidthCells());
+        assertNotEquals(hound.socket(SocketId.ARMS).footprintWidthHull(),
+                bulwark.socket(SocketId.ARMS).footprintWidthHull());
     }
 }

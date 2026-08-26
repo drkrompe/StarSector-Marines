@@ -64,8 +64,17 @@ public final class InfantryCombatStats {
         return damage(family, grade) * family.burstCount() * family.projectilesPerShot();
     }
 
+    public static float volleyDamage(WeaponDef family, EquipmentGrade grade) {
+        return damage(family, grade) * family.burstCount * family.projectilesPerShot;
+    }
+
     /** Sustained raw output based on the interval between trigger pulls. */
     public static float estimatedDps(MarineWeapon family, EquipmentGrade grade,
+                                     SoldierProfile profile) {
+        return volleyDamage(family, grade) / Math.max(0.01f, cooldown(family, grade, profile));
+    }
+
+    public static float estimatedDps(WeaponDef family, EquipmentGrade grade,
                                      SoldierProfile profile) {
         return volleyDamage(family, grade) / Math.max(0.01f, cooldown(family, grade, profile));
     }

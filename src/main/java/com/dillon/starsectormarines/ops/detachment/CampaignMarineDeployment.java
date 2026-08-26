@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.ops.detachment;
 
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
-import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.squad.CampaignSquadTag;
@@ -10,7 +9,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
-import com.dillon.starsectormarines.marine.MarineArmorPattern;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineSoldier;
@@ -102,12 +101,13 @@ public final class CampaignMarineDeployment {
         for (int i = 0; i < seats; i++) {
             MarineSoldier soldier = active.get(i);
             MarineSecondary secondary = soldier.secondary();
-            frozen.add(new MarineLoadout(UnitRole.COMBATANT, null,
-                    soldier.primary(), soldier.primaryGrade(), soldier.profile(),
-                    secondary, secondary != null ? secondary.startingAmmo() : 0,
-                    soldier.id(), armorFamily(soldier.armor()),
-                    soldier.armor().armorPool, soldier.armor().armorRating,
-                    soldier.armor().moveSpeedMult, soldier.armor().incomingAccuracyMult,
+            MarineArmorCatalogDef armor = soldier.armorDef();
+            frozen.add(MarineLoadout.fromCatalog(UnitRole.COMBATANT, null,
+                    soldier.primaryDef(), soldier.primaryGrade(), soldier.profile(),
+                    secondary != null ? secondary.specialDef() : null,
+                    soldier.id(), armor.appearanceFamily(),
+                    armor.armorPool(), armor.armorRating(),
+                    armor.moveSpeedMult(), armor.incomingAccuracyMult(),
                     tag(roster, owners.get(i), soldier, strengths)));
         }
         return new CampaignMarineDeployment(frozen);
@@ -160,6 +160,15 @@ public final class CampaignMarineDeployment {
     }
 
     private static MarineLoadout merge(MarineLoadout scenario, MarineLoadout allocation) {
+        if (allocation.primaryDef != null) {
+            return MarineLoadout.fromCatalog(scenario.role, scenario.objective,
+                    allocation.primaryDef, allocation.equipmentGrade,
+                    allocation.soldierProfile, allocation.specialDef,
+                    allocation.campaignSoldierId, allocation.armorFamily,
+                    allocation.armorPool, allocation.armorRating,
+                    allocation.armorMoveSpeedMult, allocation.armorIncomingAccuracyMult,
+                    allocation.campaignSquad);
+        }
         return new MarineLoadout(scenario.role, scenario.objective,
                 allocation.primary, allocation.equipmentGrade, allocation.soldierProfile,
                 allocation.secondary, allocation.secondaryAmmo,
@@ -198,16 +207,4 @@ public final class CampaignMarineDeployment {
         return requiredSeats(manifest, 0);
     }
 
-    private static LayeredArmorFamily armorFamily(MarineArmorPattern armor) {
-        if (armor == null) return LayeredArmorFamily.ARMORLESS;
-        return switch (armor) {
-            case ARMORLESS -> LayeredArmorFamily.ARMORLESS;
-            case CHARCOAL -> LayeredArmorFamily.CHARCOAL;
-            case BLUE_SCOUT -> LayeredArmorFamily.BLUE_SCOUT;
-            case RED_ELITE -> LayeredArmorFamily.RED_ELITE;
-            case OUTLAW -> LayeredArmorFamily.OUTLAW;
-            case ARMY_GREEN -> LayeredArmorFamily.ARMY_GREEN;
-            case MILITIA -> LayeredArmorFamily.MILITIA;
-        };
-    }
 }
