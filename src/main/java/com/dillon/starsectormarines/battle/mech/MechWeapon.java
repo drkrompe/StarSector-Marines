@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.mech;
 
-import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 
@@ -52,7 +51,6 @@ public enum MechWeapon {
     public float accuracy() { return def().accuracy; }
     public float cooldown() { return def().cooldown; }
     public float penetration() { return def().penetration; }
-    public ImpactProfile impactProfile() { return def().impactProfile; }
     public int burstCount() { return def().burstCount; }
     public float burstSpacing() { return def().burstSpacing; }
     public String projectileSpritePath() { return def().projectileSpritePath; }
@@ -60,7 +58,6 @@ public enum MechWeapon {
     public float flightSec() { return def().flightSec; }
     public float arcHeight() { return def().arcHeight; }
     public float hitSpread() { return def().hitSpread; }
-    public boolean engineTrail() { return def().engineTrail; }
     public float aoeRadius() { return def().aoeRadius; }
     public int wallDamage() { return def().wallDamage; }
     public float wallDamageRadius() { return def().wallDamageRadius; }

@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.turret;
 
-import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 import com.dillon.starsectormarines.battle.weapon.ContrailProfile;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxDef;
@@ -90,8 +89,6 @@ public enum TurretKind {
 
     public float minRange() { return weapon().minRange; }
 
-    public boolean smokeTrail() { return weapon().smokeTrail; }
-
     public boolean indirectFire() { return weapon().indirectFire; }
 
     public float noLosAccuracyMult() { return weapon().noLosAccuracyMult; }
@@ -129,5 +126,4 @@ public enum TurretKind {
 
     public WeaponFxDef fx() { return weapon().fx; }
 
-    public ImpactProfile impactProfile() { return weapon().impactProfile; }
 }

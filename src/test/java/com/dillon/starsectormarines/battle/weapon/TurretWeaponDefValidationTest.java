@@ -55,6 +55,10 @@ class TurretWeaponDefValidationTest {
                   "sim": {
                     "range": 10.0, "damage": 10.0, "accuracy": 0.5,
                     "cooldown": 1.0, "penetration": 1.0
+                  },
+                  "fx": {
+                    "muzzle": [{"kind":"glow", "radius":0.2, "lifetime":0.1}],
+                    "impact": [{"kind":"glow", "radius":0.2, "lifetime":0.1}]
                   }
                 }
                 """);

@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.marine;
 
-import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import org.json.JSONException;
@@ -162,7 +161,6 @@ public record SpecialEquipmentDef(
         return weaponId != null ? weaponDef().projectileVisualCells : 0f;
     }
     public Color tracerColor() { return weaponDef().tracerColor; }
-    public ImpactProfile impactProfile() { return weaponDef().impactProfile; }
     public float range() { return weaponDef().range; }
     public float damage() { return weaponDef().damage; }
     public float accuracy() { return weaponDef().accuracy; }

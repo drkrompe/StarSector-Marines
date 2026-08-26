@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.combat;
 
-import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -157,7 +156,7 @@ class DirectFireUnificationTest {
 
         ShotEvent cannon = onlyShot(mechSim);
         assertSame(MechWeapon.HEAVY_CANNON, cannon.mechWeapon);
-        assertSame(ImpactProfile.CANNON_HE, cannon.impactProfile());
+        assertTrue(cannon.weaponDef().fx.hasHeavyImpact());
         assertEquals(BallisticResolver.StopKind.WALL, cannon.stopKind);
         assertEquals(WALL_X, cannon.toX, EPS);
         assertTrue(mechSim.getActiveProjectiles().isEmpty(),
@@ -176,7 +175,7 @@ class DirectFireUnificationTest {
                 /*aerialShooter*/ false, /*hasLos*/ true);
 
         ShotEvent mortarShot = onlyShot(turretSim);
-        assertSame(ImpactProfile.CANNON_HE, mortarShot.impactProfile());
+        assertTrue(mortarShot.weaponDef().fx.hasHeavyImpact());
         assertEquals(BallisticResolver.StopKind.WALL, mortarShot.stopKind);
         assertEquals(1, turretSim.getInflightDetonations().size());
         PendingDetonation mortarBlast = turretSim.getInflightDetonations().get(0);
@@ -198,7 +197,7 @@ class DirectFireUnificationTest {
 
         ShotEvent shot = onlyShot(sim);
         assertSame(TurretKind.HEPHAESTUS, shot.turretKind);
-        assertSame(ImpactProfile.CANNON_HE, shot.impactProfile());
+        assertTrue(shot.weaponDef().fx.hasHeavyImpact());
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, shot.stopKind);
         assertTrue(sim.getActiveProjectiles().isEmpty(),
                 "the cannon shell uses the modeled ground direct-fire path, not a missile entity");

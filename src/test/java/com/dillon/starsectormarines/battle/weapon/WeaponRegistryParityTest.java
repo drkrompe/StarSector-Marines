@@ -1,12 +1,12 @@
 package com.dillon.starsectormarines.battle.weapon;
 
-import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.weapon.fx.FxSlot;
 import org.junit.jupiter.api.Test;
 
 import java.awt.Color;
@@ -84,31 +84,31 @@ class WeaponRegistryParityTest {
                 30f, 13.5f, 0.55f, 2f, 5f,
                 12, 0.06f, 1.2f, 300f, 0.10f, 0f,
                 0.6f, 3, 0f, false, false, 1f,
-                new Color(0xFF, 0xE8, 0xC0), ImpactProfile.KINETIC,
+                new Color(0xFF, 0xE8, 0xC0), ImpactKind.KINETIC,
                 "graphics/missiles/shell_small_yellow.png", 0.18f, "chaingun_fire");
         assertMech(MechWeapon.LINEAR_CANNON,
                 32f, 27f, 0.68f, 2.8f, 8f,
                 2, 0.12f, 0.35f, 160f, 0.20f, 0f,
                 0.35f, 4, 0f, false, false, 1f,
-                new Color(0xB8, 0xE8, 0xFF), ImpactProfile.KINETIC,
+                new Color(0xB8, 0xE8, 0xFF), ImpactKind.KINETIC,
                 "graphics/missiles/shell_large_blue.png", 0.20f, "needler_fire");
         assertMech(MechWeapon.HEAVY_CANNON,
                 26f, 45f, 0.76f, 2.5f, 18f,
                 1, 0f, 0.12f, 86.666664f, 0.30f, 0f,
                 1f, 18, 0.9f, false, false, 1f,
-                new Color(0xFF, 0xD0, 0x88), ImpactProfile.CANNON_HE,
+                new Color(0xFF, 0xD0, 0x88), ImpactKind.CANNON_HE,
                 "graphics/missiles/shell_hellbore.png", 0.34f, "hellbore_fire");
         assertMech(MechWeapon.SRM_POD,
                 18f, 49.5f, 0.55f, 5.5f, 14f,
                 4, 0.10f, 0f, 32.727272f, 0.55f, 0f,
                 1.3f, 25, 1.3f, true, false, 1f,
-                new Color(0xFF, 0xC0, 0x80), ImpactProfile.HE,
+                new Color(0xFF, 0xC0, 0x80), ImpactKind.HE,
                 "graphics/missiles/missile_SRM.png", 0.40f, "annihilator_fire");
         assertMech(MechWeapon.LRM_ARTILLERY,
                 40f, 81f, 0.55f, 9f, 16f,
                 5, 0.11f, 1.5f, 28.571428f, 1.40f, 5f,
                 2f, 40, 2f, true, true, 0.55f,
-                new Color(0xC8, 0xD8, 0xFF), ImpactProfile.HE,
+                new Color(0xC8, 0xD8, 0xFF), ImpactKind.HE,
                 "graphics/missiles/missile_LRM.png", 0.65f, "pilum_lrm_fire");
     }
 
@@ -122,7 +122,7 @@ class WeaponRegistryParityTest {
         assertEquals(1.5f, rocket.aoeRadius(), EPS);
         assertEquals(50, rocket.wallDamage());
         assertEquals(0.65f, rocket.aimDuration(), EPS);
-        assertSame(ImpactProfile.HE, rocket.impactProfile());
+        assertImpact(rocket.def(), ImpactKind.HE);
     }
 
     @Test
@@ -135,7 +135,7 @@ class WeaponRegistryParityTest {
         assertEquals(0f, amr.aoeRadius(), EPS);
         assertEquals(0, amr.wallDamage());
         assertNull(amr.projectileSpritePath());
-        assertSame(ImpactProfile.KINETIC, amr.impactProfile());
+        assertImpact(amr.def(), ImpactKind.KINETIC);
     }
 
     @Test
@@ -157,7 +157,7 @@ class WeaponRegistryParityTest {
         assertSim(MarineWeapon.FIELD_RIFLE, 22f, 14.0f, 0.28f, 1.15f, 7f,
                 1, 0f, 0.42f, 0.75f, 48f);
         assertPresentation(MarineWeapon.FIELD_RIFLE, new Color(0xFF, 0xD0, 0x88),
-                ImpactProfile.RIFLE, "graphics/missiles/shell_small_yellow.png", 0.18f,
+                ImpactKind.RIFLE, "graphics/missiles/shell_small_yellow.png", 0.18f,
                 "light_autocannon_fire");
         assertEquals("Field Rifle", MarineWeapon.FIELD_RIFLE.displayName());
         assertEquals("Rook", MarineWeapon.FIELD_RIFLE.modelName());
@@ -168,7 +168,7 @@ class WeaponRegistryParityTest {
         assertSim(MarineWeapon.PULSE_RIFLE, 24f, 9.0f, 0.35f, 1.0f, 5f,
                 3, 0.09f, 0.30f, 0.4f, 55f);
         assertPresentation(MarineWeapon.PULSE_RIFLE, new Color(0x80, 0xFF, 0x80),
-                ImpactProfile.RIFLE, null, 0f, "pulse_laser_fire");
+                ImpactKind.RIFLE, null, 0f, "pulse_laser_fire");
         assertEquals("Pulse Rifle", MarineWeapon.PULSE_RIFLE.displayName());
         assertEquals("Lancer", MarineWeapon.PULSE_RIFLE.modelName());
     }
@@ -179,7 +179,7 @@ class WeaponRegistryParityTest {
                 1, 0f, 0.75f, 1.7f, 45f);
         assertEquals(6, MarineWeapon.SMG.projectilesPerShot());
         assertPresentation(MarineWeapon.SMG, new Color(0xFF, 0xE8, 0xC0),
-                ImpactProfile.RIFLE, "graphics/missiles/shell_small_yellow.png", 0.15f,
+                ImpactKind.RIFLE, "graphics/missiles/shell_small_yellow.png", 0.15f,
                 "light_machinegun_fire");
         assertEquals("Shredder Carbine", MarineWeapon.SMG.displayName());
         assertEquals("Rattler", MarineWeapon.SMG.modelName());
@@ -191,7 +191,7 @@ class WeaponRegistryParityTest {
                 8, 0.10f, 0.45f, 0.9f, 52f);
         assertEquals(1, MarineWeapon.SQUAD_AUTOMATIC.projectilesPerShot());
         assertPresentation(MarineWeapon.SQUAD_AUTOMATIC,
-                new Color(0xFF, 0xD6, 0xA0), ImpactProfile.RIFLE,
+                new Color(0xFF, 0xD6, 0xA0), ImpactKind.RIFLE,
                 "graphics/missiles/shell_small_yellow.png", 0.16f,
                 "light_machinegun_fire");
         assertEquals("Squad Automatic", MarineWeapon.SQUAD_AUTOMATIC.displayName());
@@ -203,7 +203,7 @@ class WeaponRegistryParityTest {
         assertSim(MarineWeapon.DMR, 32f, 18.0f, 0.55f, 1.10f, 11f,
                 1, 0f, 0.10f, 0.15f, 110f);
         assertPresentation(MarineWeapon.DMR, new Color(0xE0, 0xF0, 0xFF),
-                ImpactProfile.KINETIC, null, 0f, "railgun_fire");
+                ImpactKind.KINETIC, null, 0f, "railgun_fire");
         assertEquals("Railgun", MarineWeapon.DMR.displayName());
         assertEquals("Longbow", MarineWeapon.DMR.modelName());
     }
@@ -213,7 +213,7 @@ class WeaponRegistryParityTest {
         assertSim(MarineWeapon.DRONE_PULSE, 26f, 7.2f, 0.40f, 1.0f, 5f,
                 2, 0.10f, 0.35f, 0.5f, 55f);
         assertPresentation(MarineWeapon.DRONE_PULSE, new Color(0x60, 0xCF, 0xFF),
-                ImpactProfile.RIFLE, null, 0f, "pulse_laser_fire");
+                ImpactKind.RIFLE, null, 0f, "pulse_laser_fire");
         assertEquals("Drone Pulse Laser", MarineWeapon.DRONE_PULSE.displayName());
         assertEquals("Wisp", MarineWeapon.DRONE_PULSE.modelName());
     }
@@ -258,10 +258,10 @@ class WeaponRegistryParityTest {
     }
 
     private static void assertPresentation(MarineWeapon weapon, Color tracer,
-                                           ImpactProfile impact, String spritePath,
+                                           ImpactKind impact, String spritePath,
                                            float visualCells, String fireSound) {
         assertEquals(tracer, weapon.tracerColor(), weapon + " tracer color");
-        assertSame(impact, weapon.impactProfile(), weapon + " impact profile");
+        assertImpact(weapon.def(), impact);
         if (spritePath == null) {
             assertNull(weapon.projectileSpritePath(),
                     weapon + " shares the tinted bolt and must carry no projectile sprite");
@@ -279,9 +279,9 @@ class WeaponRegistryParityTest {
                                    float hitSpread, float roundVelocity,
                                    float flightSec, float arcHeight,
                                    float aoeRadius, int wallDamage,
-                                   float wallDamageRadius, boolean engineTrail,
+                                   float wallDamageRadius, boolean authoredTrail,
                                    boolean indirectFire, float noLosAccuracyMult,
-                                   Color tracer, ImpactProfile impact,
+                                   Color tracer, ImpactKind impact,
                                    String projectileSpritePath,
                                    float projectileVisualCells,
                                    String fireSoundId) {
@@ -300,19 +300,39 @@ class WeaponRegistryParityTest {
         assertEquals(wallDamage, weapon.wallDamage(), weapon + " wall damage");
         assertEquals(wallDamageRadius, weapon.wallDamageRadius(), EPS,
                 weapon + " wall damage radius");
-        assertEquals(engineTrail, weapon.engineTrail(), weapon + " engine trail");
-        assertEquals(engineTrail, weapon.interceptableProjectile(),
+        assertEquals(authoredTrail, !weapon.def().fx.layers(FxSlot.TRAIL).isEmpty(),
+                weapon + " authored trail");
+        assertEquals(authoredTrail, weapon.interceptableProjectile(),
                 weapon + " interceptable projectile");
-        assertEquals(engineTrail, weapon.boostRamp(), weapon + " boost ramp");
+        assertEquals(authoredTrail, weapon.boostRamp(), weapon + " boost ramp");
         assertEquals(indirectFire, weapon.indirectFire(), weapon + " indirect fire");
         assertEquals(noLosAccuracyMult, weapon.noLosAccuracyMult(), EPS,
                 weapon + " no-LOS accuracy");
         assertEquals(tracer, weapon.tracerColor(), weapon + " tracer");
-        assertSame(impact, weapon.impactProfile(), weapon + " impact profile");
+        assertImpact(weapon.def(), impact);
         assertEquals(projectileSpritePath, weapon.projectileSpritePath(),
                 weapon + " projectile sprite");
         assertEquals(projectileVisualCells, weapon.projectileVisualCells(), EPS,
                 weapon + " projectile visual size");
         assertEquals(fireSoundId, weapon.fireSoundId(), weapon + " fire sound");
+    }
+
+    private static void assertImpact(WeaponDef weapon, ImpactKind expected) {
+        boolean explosive = weapon.fx.hasExplosiveImpact();
+        boolean heavy = weapon.fx.hasHeavyImpact();
+        boolean kinetic = weapon.fx.hasKineticImpact();
+        switch (expected) {
+            case RIFLE -> assertEquals(false, explosive || kinetic, weapon.id + " rifle impact");
+            case KINETIC -> assertTrue(kinetic, weapon.id + " kinetic impact");
+            case HE -> assertEquals(true, explosive && !heavy, weapon.id + " HE impact");
+            case CANNON_HE -> assertTrue(heavy, weapon.id + " heavy impact");
+        }
+    }
+
+    private enum ImpactKind {
+        RIFLE,
+        KINETIC,
+        HE,
+        CANNON_HE
     }
 }

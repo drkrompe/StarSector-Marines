@@ -18,10 +18,10 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Ground-combat impact FX engine. Owns a particle list, lazy-loads the shared
- * smoke / fire / alpha-glow sprites, and exposes high-level spawn helpers
- * keyed by weapon type. {@link com.dillon.starsectormarines.ops.BattleScreen}
- * holds one instance per screen lifetime.
+ * Ground-combat particle backend. Owns a particle list, lazy-loads the shared
+ * smoke / fire / alpha-glow sprites, and installs resolved authored commands.
+ * {@link com.dillon.starsectormarines.ops.BattleScreen} holds one instance per
+ * screen lifetime.
  *
  * <p>Parallel to the particle subsystem inside
  * {@code com.dillon.starsectormarines.battle.flyby.FlybyOverlay} — same sheets,
@@ -29,19 +29,6 @@ import java.util.Random;
  * untouched while we iterate on ground impacts; if the two grow into one
  * shared engine later, the rendering math here is the obvious extraction
  * point.
- *
- * <p>Recipes per weapon class:
- * <ul>
- *   <li>Rifle (null kind, marines / militia / aliens) — one small spark,
- *       one tiny dust puff. Fast, brief, no smoke.</li>
- *   <li>Vulcan — same shape as rifle but slightly punchier; still no smoke.</li>
- *   <li>Arbalest / Dual Flak / Hephaestus (kinetic shells) — spark + a small
- *       smoke puff. Reads as a real impact, not a flash.</li>
- *   <li>Rocket HE — a fire burst plus 2-3 smoke puffs. Reads as a detonation,
- *       and the caller layers an explosion clip on top.</li>
- *   <li>Heavy cannon HE — a muzzle blast plus vanilla explosion frame and
- *       shock ring, fire, dust, and lingering smoke.</li>
- * </ul>
  */
 public final class ImpactFx {
 
@@ -76,10 +63,6 @@ public final class ImpactFx {
     private static final Color WALL_CHIP_COLOR   = new Color(0xA0, 0xA0, 0xA0);
     /** Hot, bright spark — close to white with a yellow lean. */
     private static final Color SPARK_COLOR       = new Color(0xFF, 0xE0, 0x80);
-    /** Tracer-yellow hot puff used as a small additive flash at the impact point on every kinetic round. */
-    private static final Color KINETIC_FLASH_COLOR = new Color(0xFF, 0xC8, 0x60);
-    /** Warm white/orange tint for the vanilla cannon blast and shock ring. */
-    private static final Color CANNON_BLAST_COLOR = new Color(0xFF, 0xD0, 0x88);
 
     private final List<Particle> particles = new ArrayList<>();
     private final Random rng = new Random();
@@ -194,107 +177,6 @@ public final class ImpactFx {
         particles.add(particle);
     }
 
-    /**
-     * Routes the impact to the right particle recipe based on its visual
-     * profile. Callers map their weapon catalog (turret kinds, marine
-     * primaries, marine secondaries) onto a profile so the FX engine doesn't
-     * need to know about every source enum.
-     */
-    public void spawnImpact(ImpactProfile profile, float x, float y, boolean isWall) {
-        if (profile == null) {
-            spawnRifleImpact(x, y, isWall);
-            return;
-        }
-        switch (profile) {
-            case KINETIC:   spawnKineticImpact(x, y, isWall); break;
-            case HE:        spawnHeImpact(x, y, isWall); break;
-            case CANNON_HE: spawnCannonHeImpact(x, y, isWall); break;
-            case RIFLE:
-            default:        spawnRifleImpact(x, y, isWall); break;
-        }
-    }
-
-    // ---- Recipes --------------------------------------------------------------
-
-    /** Small spark + tiny dust puff. Rifle / vulcan profile — should read as quick and incidental. */
-    private void spawnRifleImpact(float x, float y, boolean isWall) {
-        spawnSparkFlash(x, y, 0.28f, 0.10f, SPARK_COLOR);
-        spawnDust(x, y, isWall, 0.22f, 0.18f);
-    }
-
-    /** Punchier flash + a small smoke puff so the impact lingers a beat. */
-    private void spawnKineticImpact(float x, float y, boolean isWall) {
-        spawnSparkFlash(x, y, 0.42f, 0.14f, KINETIC_FLASH_COLOR);
-        spawnDust(x, y, isWall, 0.32f, 0.28f);
-        spawnSmokePuff(x, y, 0.35f, 0.70f);
-    }
-
-    /** Fire burst + 2-3 smoke puffs. The HE detonation read. Caller pairs this with an explosion clip. */
-    private void spawnHeImpact(float x, float y, boolean isWall) {
-        spawnSparkFlash(x, y, 0.70f, 0.16f, SPARK_COLOR);
-        spawnFireBurst(x, y, 0.55f, 0.45f);
-        int puffs = 2 + rng.nextInt(2);
-        for (int i = 0; i < puffs; i++) {
-            float jx = x + (rng.nextFloat() * 2f - 1f) * 0.45f;
-            float jy = y + (rng.nextFloat() * 2f - 1f) * 0.45f;
-            spawnSmokePuff(jx, jy, 0.55f + rng.nextFloat() * 0.25f, 1.10f + rng.nextFloat() * 0.4f);
-        }
-        spawnDust(x, y, isWall, 0.55f, 0.32f);
-    }
-
-    /**
-     * Gun-launched heavy HE: sharp core flash, one vanilla explosion frame,
-     * an expanding shock ring, then fire/dust and a broader smoke crown. The
-     * short bright phase distinguishes a cannon shell from the softer rocket
-     * plume while the lingering smoke preserves impact readability.
-     */
-    private void spawnCannonHeImpact(float x, float y, boolean isWall) {
-        spawnSparkFlash(x, y, 1.05f, 0.18f, SPARK_COLOR);
-
-        SpriteAPI explosion = explosionSprites[rng.nextInt(explosionSprites.length)];
-        if (explosion != null) {
-            Particle blast = new Particle();
-            blast.x = x;
-            blast.y = y;
-            blast.lifetimeRemaining = 0.42f;
-            blast.lifetimeMax = 0.42f;
-            blast.radiusCells = 0.72f;
-            blast.radiusGrowthPerSec = 0.65f;
-            blast.color = CANNON_BLAST_COLOR;
-            blast.sprite = explosion;
-            blast.additive = true;
-            blast.angleDeg = rng.nextFloat() * 360f;
-            particles.add(blast);
-        }
-
-        if (explosionRingSprite != null) {
-            Particle ring = new Particle();
-            ring.x = x;
-            ring.y = y;
-            ring.lifetimeRemaining = 0.34f;
-            ring.lifetimeMax = 0.34f;
-            ring.radiusCells = 0.48f;
-            ring.radiusGrowthPerSec = 2.8f;
-            ring.color = CANNON_BLAST_COLOR;
-            ring.sprite = explosionRingSprite;
-            ring.additive = true;
-            ring.angleDeg = rng.nextFloat() * 360f;
-            particles.add(ring);
-        }
-
-        spawnFireBurst(x, y, 0.80f, 0.62f);
-        int puffs = 4 + rng.nextInt(3);
-        for (int i = 0; i < puffs; i++) {
-            float angle = rng.nextFloat() * (float) (Math.PI * 2.0);
-            float distance = rng.nextFloat() * 0.75f;
-            float px = x + (float) Math.cos(angle) * distance;
-            float py = y + (float) Math.sin(angle) * distance;
-            spawnSmokePuff(px, py, 0.65f + rng.nextFloat() * 0.35f,
-                    1.25f + rng.nextFloat() * 0.55f);
-        }
-        spawnDust(x, y, isWall, 0.90f, 0.46f);
-    }
-
     // ---- Primitive spawn helpers ---------------------------------------------
 
     /** Bright additive flash using the radial alpha sprite. Parked, brief, no growth. */
@@ -360,82 +242,6 @@ public final class ImpactFx {
         }
         spawnDust(x, y, false, core, 0.6f);
     }
-
-    /**
-     * Emits a small additive glow particle as a rocket-engine puff at (x, y).
-     * Drives the lit-engine trail behind in-flight rockets — callers spawn
-     * one per render frame at the rocket's tail position so successive
-     * particles overlap into a fading streak. Short lifetime keeps the trail
-     * tight; hot-orange tint sells it as rocket exhaust.
-     */
-    public void spawnEngineTrail(float x, float y, float radiusCells) {
-        spawnSparkFlash(x, y, radiusCells, 0.25f, ENGINE_TRAIL_COLOR);
-    }
-
-    /**
-     * Emits a small gray smoke puff at (x, y) for a ballistic round in flight.
-     * Like {@link #spawnEngineTrail} but normal-blend gray instead of additive
-     * orange — reads as gunpowder smoke trailing a lobbed grenade, not engine
-     * exhaust. Callers spawn one per render frame at the round's tail; short
-     * lifetime + slight drift gives the streak a "tighter than wreck smoke"
-     * read while still dispersing realistically.
-     */
-    public void spawnSmokeTrail(float x, float y, float radiusCells) {
-        if (glowSprite == null) return;
-        Particle p = new Particle();
-        p.x = x; p.y = y;
-        // A gentle drift downward off the moving round so the trail hangs
-        // behind it rather than tracking with the projectile.
-        p.vx = (rng.nextFloat() * 2f - 1f) * 0.15f;
-        p.vy = (rng.nextFloat() * 2f - 1f) * 0.15f;
-        p.radiusGrowthPerSec = 0.30f;
-        p.lifetimeRemaining = 0.45f;
-        p.lifetimeMax = 0.45f;
-        p.radiusCells = radiusCells;
-        p.color = SMOKE_TRAIL_COLOR;
-        p.sprite = glowSprite;
-        p.additive = false;
-        particles.add(p);
-    }
-
-    /** Smoke-trail tint — mid gray with a slight warm cast so it reads as gunpowder smoke against the ground palette. */
-    private static final Color SMOKE_TRAIL_COLOR = new Color(0xB0, 0xA8, 0xA0);
-
-    /**
-     * Bright muzzle-flash variant exposed publicly so the battle renderer
-     * can pin a flash at the firing unit's position when a chaingun round
-     * goes out. Same primitive as the internal spark-flash recipe — a hot
-     * additive glow with no growth — but the cell radius is bigger so the
-     * flash reads at a unit's muzzle rather than at an impact point.
-     */
-    public void spawnMuzzleFlash(float x, float y, float radiusCells, float lifetime) {
-        spawnSparkFlash(x, y, radiusCells, lifetime, SPARK_COLOR);
-    }
-
-    /**
-     * Heavy-cannon muzzle recipe placed just ahead of the shooter centroid:
-     * white-hot flash, compact flame, and two smoke puffs that hang after the
-     * shell leaves. {@code bearingDeg} follows the Starsector 0°=north convention.
-     */
-    public void spawnCannonMuzzleBlast(float shooterX, float shooterY, float bearingDeg) {
-        float rad = (float) Math.toRadians(bearingDeg);
-        float dx = (float) Math.sin(rad);
-        float dy = (float) Math.cos(rad);
-        float muzzleX = shooterX + dx * 0.58f;
-        float muzzleY = shooterY + dy * 0.58f;
-        spawnSparkFlash(muzzleX, muzzleY, 0.82f, 0.11f, SPARK_COLOR);
-        spawnFireBurst(muzzleX, muzzleY, 0.42f, 0.28f);
-        for (int i = 0; i < 2; i++) {
-            float lateral = (rng.nextFloat() * 2f - 1f) * 0.18f;
-            spawnSmokePuff(muzzleX - dx * (0.08f + i * 0.10f) + dy * lateral,
-                    muzzleY - dy * (0.08f + i * 0.10f) - dx * lateral,
-                    0.30f + rng.nextFloat() * 0.12f,
-                    0.65f + rng.nextFloat() * 0.30f);
-        }
-    }
-
-    /** Engine-trail tint — hot orange so it reads as exhaust against the muted ground palette. */
-    private static final Color ENGINE_TRAIL_COLOR = new Color(0xFF, 0x90, 0x40);
 
     /** Smoke puff from the flipbook sheet. Light upward drift, random rotation, normal-alpha. Tuned smaller than the FlybyOverlay variant since ground impacts are point events, not aerial bursts. */
     private void spawnSmokePuff(float x, float y, float radiusCells, float lifetime) {

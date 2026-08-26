@@ -3,7 +3,8 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
-import com.dillon.starsectormarines.battle.weapon.fx.TurretFxRuntime;
+import com.dillon.starsectormarines.battle.weapon.fx.FxSlot;
+import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxRuntime;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 
 import java.awt.Color;
@@ -14,7 +15,7 @@ import java.util.List;
  * traveling tinted bolts, and projectile sprites ({@code SPRITE}) — driven by
  * the {@link ShotFx} effect composition rather than the old per-carrier {@code if
  * turretKind … else if marineWeapon …} cascade. The sweeps key on the shot's
- * effects, never on who fired it: a future arc-and-contrail marine grenade
+ * effects, never on who fired it: a future arc-and-trail marine grenade
  * launcher flows through here with no new branch.
  *
  * <p>Three sweeps in submission order: <strong>tracers</strong>,
@@ -23,9 +24,8 @@ import java.util.List;
  * contrails → tracers → bolts → sprites.
  *
  * <p>Holds only immutable refs: {@link BattleSprites} (projectile sprites resolved
- * by path — carrier-agnostic) and {@link ImpactFx} (the engine/smoke trail spawn
- * sink, gated on the {@code engineTrail}/{@code smokeTrail} effects in the sprite
- * sweep). Per-frame state comes via the {@link RenderContext}.
+ * by path — carrier-agnostic) and {@link ImpactFx} (the authored trail spawn
+ * sink). Per-frame state comes via the {@link RenderContext}.
  */
 public final class ShotRenderService implements RenderSystem {
 
@@ -127,18 +127,12 @@ public final class ShotRenderService implements RenderSystem {
                     pxW, pxH, bearing, 1f, 1f, 1f, alphaMult);
 
             if (progress > 0.02f && progress < 0.98f
-                    && (s.turretKind != null || fx.engineTrail() || fx.smokeTrail())) {
+                    && !WeaponFxRuntime.definition(s).layers(FxSlot.TRAIL).isEmpty()) {
                 float headingRad = (float) Math.toRadians(bearing);
                 float tailDx = -(float) Math.sin(headingRad) * 0.15f;
                 float tailDy = -(float) Math.cos(headingRad) * 0.15f;
-                if (s.turretKind != null) {
-                    TurretFxRuntime.spawnTrail(
-                            impactFx, s, px + tailDx, py + tailDy, bearing);
-                } else if (fx.engineTrail()) {
-                    impactFx.spawnEngineTrail(px + tailDx, py + tailDy, 0.18f);
-                } else {
-                    impactFx.spawnSmokeTrail(px + tailDx, py + tailDy, 0.20f);
-                }
+                WeaponFxRuntime.spawnTrail(
+                        impactFx, s, px + tailDx, py + tailDy, bearing);
             }
         }
     }

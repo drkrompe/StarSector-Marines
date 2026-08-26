@@ -26,7 +26,6 @@ import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineRoster;
-import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import com.dillon.starsectormarines.ops.detachment.CommandDeck;
 import com.dillon.starsectormarines.ops.detachment.DebugCompany;
@@ -193,7 +192,7 @@ public class BriefingScreen implements Screen {
         if (position == null || ctx == null) return;
         layout = new BriefingLayout(position);
         MarineRosterScript personnel = MarineRosterScript.getInstance();
-        if (personnel != null) personnel.roster().bootstrapInitialComplement(MarineSquad.CAPACITY);
+        if (personnel != null) personnel.ensureStartingCompany();
 
         // Default to the first ACTIVE captain if nothing's selected yet — saves
         // a click for the common case. User's pick survives across re-attaches.

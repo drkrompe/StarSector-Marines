@@ -1,8 +1,9 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
-import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
+import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import org.junit.jupiter.api.Test;
@@ -33,7 +34,9 @@ class GroundLightServiceTest {
     @Test
     void selectionKeepsEightNearestVisibleLightsInDistanceOrder() {
         GroundLightService lights = new GroundLightService();
-        for (int x = 1; x <= 10; x++) lights.spawnImpact(ImpactProfile.RIFLE, x, 10f);
+        for (int x = 1; x <= 10; x++) {
+            lights.spawnImpact(MarineWeapon.FIELD_RIFLE.def().fx, x, 10f);
+        }
 
         assertEquals(GroundLightService.MAX_SHADER_LIGHTS, lights.selectNearest(camera()));
         for (int i = 0; i < GroundLightService.MAX_SHADER_LIGHTS; i++) {
@@ -44,12 +47,12 @@ class GroundLightServiceTest {
     @Test
     void cannonHeCarriesTheLargestImpactLight() {
         GroundLightService lights = new GroundLightService();
-        lights.spawnImpact(ImpactProfile.HE, 10f, 10f);
+        lights.spawnImpact(MarineSecondary.ROCKET_LAUNCHER.def().fx, 10f, 10f);
         lights.selectNearest(camera());
         GroundLightService.Light ordinaryHe = lights.selected(0);
 
         lights.clear();
-        lights.spawnImpact(ImpactProfile.CANNON_HE, 10f, 10f);
+        lights.spawnImpact(MechWeapon.HEAVY_CANNON.def().fx, 10f, 10f);
         lights.selectNearest(camera());
         GroundLightService.Light cannonHe = lights.selected(0);
 

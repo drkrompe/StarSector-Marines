@@ -35,6 +35,29 @@ public final class WeaponFxDef {
         return layersBySlot;
     }
 
+    /** True when one slot contains the requested primitive. */
+    public boolean hasLayer(FxSlot slot, FxLayerKind kind) {
+        return layers(slot).stream().anyMatch(layer -> layer.kind() == kind);
+    }
+
+    /** Fire, explosion, or ring layers identify a detonation without a fixed profile name. */
+    public boolean hasExplosiveImpact() {
+        return hasLayer(FxSlot.IMPACT, FxLayerKind.FIRE)
+                || hasLayer(FxSlot.IMPACT, FxLayerKind.EXPLOSION)
+                || hasLayer(FxSlot.IMPACT, FxLayerKind.RING);
+    }
+
+    /** Explosion/ring primitives mark the heavier gun-launched detonation treatment. */
+    public boolean hasHeavyImpact() {
+        return hasLayer(FxSlot.IMPACT, FxLayerKind.EXPLOSION)
+                || hasLayer(FxSlot.IMPACT, FxLayerKind.RING);
+    }
+
+    /** A lingering smoke layer without explosive primitives identifies a kinetic strike. */
+    public boolean hasKineticImpact() {
+        return !hasExplosiveImpact() && hasLayer(FxSlot.IMPACT, FxLayerKind.SMOKE);
+    }
+
     /** Parses the contents of a weapon's {@code fx} object. */
     public static WeaponFxDef parse(String id, JSONObject json) throws JSONException {
         if (id == null || id.isBlank()) throw new JSONException("FX definition id may not be blank");

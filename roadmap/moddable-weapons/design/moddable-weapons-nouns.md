@@ -1,11 +1,11 @@
 # Moddable Weapons
 
-Status: ACTIVE — handheld, special-item, mech, and turret weapon data is owned; layered FX and compatibility retirement remain
+Status: ACTIVE — weapon definitions and presentation are data-owned; compatibility retirement remains
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — made mech weapon definitions registry-owned while
-preserving mount-owned racks, ammunition, geometry, and appearance.
+Updated: 2026-08-26 — made authored layered effects authoritative for every
+weapon family and removed named impact and trail recipes.
 
 ## Purpose
 
@@ -122,9 +122,9 @@ authoring surface resolves the same chain in memory and feeds current edits to
 the same catalog preview before a validated multi-file save.
 
 Registry loading is deliberately fail-loud: a missing registry, unknown id,
-duplicate id, malformed required value, unknown mount class, or invalid
-impact-profile name stops loading instead of producing a harmless-looking but
-unwinnable weapon. Turret cross-catalog references and sprite assets are also
+duplicate id, malformed required value, unknown mount class, or missing
+required effect slot stops loading instead of producing a harmless-looking
+but unwinnable weapon. Turret cross-catalog references and sprite assets are also
 validated before presentation consumers see them. Optional presentation
 values have defined neutral defaults. Cross-mod contributions are additive:
 enabled-mod order controls deterministic ingestion and iteration, never override
@@ -164,10 +164,11 @@ The public manifest and authoring examples live in `submod-catalog-contract.md`.
 - If two platforms using one gun need different health, ammunition, targeting,
   or geometry answers, that answer belongs to the platform or mount, never to
   the weapon.
-- Data-authored effects compose layers rather than select a fixed global
-  recipe. Turret launch, muzzle, trail, impact and aftermath presentation already uses
-  this model; the current named impact profile remains a compatibility bridge
-  for unmigrated weapon families and shared decals, lights and audio.
+- Data-authored effects compose ordered launch, muzzle, tracer, trail, impact,
+  and aftermath layers rather than select a fixed global recipe. Runtime for
+  every weapon family and the catalog preview use the same seeded composition path;
+  decals, lights, and audio derive supporting treatment from the authored
+  primitives without restoring a named visual profile.
 - Launch layers may author forward/lateral offsets and velocities in the
   firing bearing's local frame. Persistent projectile ribbons and impact audio
   are weapon presentation fields consumed consistently by runtime and preview;
@@ -211,14 +212,14 @@ weapon-like special reaches its definition through the distinct
 progression-owned special-equipment identity. That identity now comes from a
 separate JSON catalog and validates that every weapon reference resolves
 through the marine-secondary mount class. Progression also owns actor-local
-equipment composition and preview recipes; the layered-effects weapon story
-remains specifically about muzzle, tracer, trail, and impact FX.
+equipment composition and preview recipes; weapon FX owns only shot
+presentation slots and their composition.
 
 Mech weapon components store stable ids and remain the authority for mount
 family, rack size, ammunition, geometry, and appearance. Mech weapon behavior
 and presentation resolve through the registry, including the separate
 simulation decision to create an interceptable projectile and presentation
-decision to draw an engine trail. Compatibility handles own no duplicate
+decision to compose an authored trail. Compatibility handles own no duplicate
 authored values. Mech and turret families still obey the same penetration and
 mutually exclusive contact-versus-area payload laws.
 
@@ -231,8 +232,7 @@ at built-in compatibility APIs and legacy-save boundaries. Removing a provider
 repairs player primary and armor ids to their safe starters and clears an
 unresolved special slot with a warning.
 
-Catalog expansion and mount validation, layered effects, compatibility-enum
-completion, and compatibility-enum retirement and persistence repair belong to
+Compatibility-enum retirement and persistence repair belong to
 the work lifecycle tracked only by `stories.md`.
 
 ## Boundaries

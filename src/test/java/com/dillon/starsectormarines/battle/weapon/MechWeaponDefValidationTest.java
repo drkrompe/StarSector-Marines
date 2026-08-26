@@ -30,6 +30,14 @@ class MechWeaponDefValidationTest {
         assertThrows(JSONException.class, () -> WeaponDef.parse(json));
     }
 
+    @Test
+    void mechMountRejectsRetiredEngineTrailBoolean() throws Exception {
+        JSONObject json = mechWeapon();
+        json.getJSONObject("render").put("engineTrail", true);
+
+        assertThrows(JSONException.class, () -> WeaponDef.parse(json));
+    }
+
     private static JSONObject mechWeapon() throws Exception {
         return new JSONObject("""
                 {
@@ -50,8 +58,11 @@ class MechWeaponDefValidationTest {
                   },
                   "render": {
                     "projectileSprite": "graphics/test.png",
-                    "projectileVisualCells": 0.5,
-                    "engineTrail": true
+                    "projectileVisualCells": 0.5
+                  },
+                  "fx": {
+                    "trail": [{"kind":"glow", "radius":0.2, "lifetime":0.2}],
+                    "impact": [{"kind":"fire", "radius":0.5, "lifetime":0.3}]
                   }
                 }
                 """);

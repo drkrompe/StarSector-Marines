@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.weapon;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredWeaponFamily;
-import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 import com.dillon.starsectormarines.battle.weapon.fx.FxSlot;
 import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxDef;
 import org.json.JSONException;
@@ -89,30 +88,23 @@ public final class WeaponDef {
     public final boolean indirectFire;
     /** Accuracy multiplier for an indirect shot fired without line of sight. */
     public final float noLosAccuracyMult;
+    /** Coarse hearing-model magnitude; simulation data, never inferred from visual effects. */
+    public final float noiseMagnitude;
 
     // ---- render ----
     /** Modular actor sprite family used while a marine carries this primary. */
     public final LayeredWeaponFamily heldSpriteFamily;
     /** Traveling-body tint, so the player can identify fire at a glance. */
     public final Color tracerColor;
-    /**
-     * Impact character. A named profile reference today; W2 replaces this
-     * with an authored layer list, at which point this field goes away.
-     */
-    public final ImpactProfile impactProfile;
     /** Optional projectile sprite; null means the shared tinted bolt. */
     public final String projectileSpritePath;
     /** Projectile visual size in cells (long axis). Ignored when {@link #projectileSpritePath} is null. */
     public final float projectileVisualCells;
-    /** Whether the traveling body emits the compatibility smoke-puff trail. W2 replaces this with authored layers. */
-    public final boolean smokeTrail;
-    /** Whether the traveling body emits the compatibility glowing rocket-engine trail. */
-    public final boolean engineTrail;
     /** Optional persistent projectile-ribbon profile, resolved by render consumers. */
     public final ContrailProfile contrailProfile;
     /** Whether the authored FX declares a launch composition at the mount center. */
     public final boolean launchBackblast;
-    /** Optional authored particle composition. Null keeps legacy profile-backed presentation. */
+    /** Authored particle composition shared by runtime and deterministic previews. */
     public final WeaponFxDef fx;
 
     // ---- audio ----
@@ -132,10 +124,10 @@ public final class WeaponDef {
                       float wallDamageRadius, float aimDuration, float flightSec,
                       float arcHeight, boolean interceptableProjectile,
                       boolean boostRamp, boolean indirectFire, float noLosAccuracyMult,
+                      float noiseMagnitude,
                       LayeredWeaponFamily heldSpriteFamily,
-                      Color tracerColor, ImpactProfile impactProfile,
+                      Color tracerColor,
                       String projectileSpritePath, float projectileVisualCells,
-                      boolean smokeTrail, boolean engineTrail,
                       ContrailProfile contrailProfile,
                       WeaponFxDef fx,
                       String fireSoundId, String impactSoundId) {
@@ -171,13 +163,11 @@ public final class WeaponDef {
         this.boostRamp = boostRamp;
         this.indirectFire = indirectFire;
         this.noLosAccuracyMult = noLosAccuracyMult;
+        this.noiseMagnitude = noiseMagnitude;
         this.heldSpriteFamily = heldSpriteFamily;
         this.tracerColor = tracerColor;
-        this.impactProfile = impactProfile;
         this.projectileSpritePath = projectileSpritePath;
         this.projectileVisualCells = projectileVisualCells;
-        this.smokeTrail = smokeTrail;
-        this.engineTrail = engineTrail;
         this.contrailProfile = contrailProfile;
         this.launchBackblast = fx != null && !fx.layers(FxSlot.LAUNCH).isEmpty();
         this.fx = fx;
@@ -208,8 +198,11 @@ public final class WeaponDef {
         JSONObject contact = sim.optJSONObject("contact");
         JSONObject render = json.optJSONObject("render");
         JSONObject audio = json.optJSONObject("audio");
-        WeaponFxDef fx = json.has("fx") && !json.isNull("fx")
-                ? WeaponFxDef.parse(id, json.getJSONObject("fx")) : null;
+        if (!json.has("fx") || json.isNull("fx")) {
+            throw new JSONException("Weapon '" + id + "' must declare authored fx");
+        }
+        rejectLegacyFxFields(render, id);
+        WeaponFxDef fx = WeaponFxDef.parse(id, json.getJSONObject("fx"));
         WeaponDef def = new WeaponDef(
                 id,
                 mount,
@@ -243,13 +236,11 @@ public final class WeaponDef {
                 sim.optBoolean("boostRamp", false),
                 sim.optBoolean("indirectFire", false),
                 (float) sim.optDouble("noLosAccuracyMult", 1.0),
+                (float) sim.optDouble("noiseMagnitude", 1.0),
                 parseHeldSpriteFamily(render, mount, id),
                 render != null ? parseColor(render.optString("tracerColor", null), id) : Color.WHITE,
-                render != null ? parseImpact(render.optString("impact", null), id) : ImpactProfile.RIFLE,
                 render != null ? emptyToNull(render.optString("projectileSprite", null)) : null,
                 render != null ? (float) render.optDouble("projectileVisualCells", 0.0) : 0f,
-                render != null && render.optBoolean("smokeTrail", false),
-                render != null && render.optBoolean("engineTrail", false),
                 ContrailProfile.fromKey(
                         render != null ? render.optString("contrail", null) : null, id),
                 fx,
@@ -325,13 +316,13 @@ public final class WeaponDef {
             throw new JSONException("Weapon '" + def.id
                     + "' declares noLosAccuracyMult without indirectFire");
         }
+        if (!(def.noiseMagnitude > 0f) || !Float.isFinite(def.noiseMagnitude)) {
+            throw new JSONException("Weapon '" + def.id
+                    + "' noiseMagnitude must be finite and positive");
+        }
+        requireFxSlot(def, FxSlot.IMPACT);
         if (def.mount == MountClass.TURRET_MOUNT) {
-            if (def.fx == null) {
-                throw new JSONException("Turret weapon '" + def.id
-                        + "' must declare authored fx");
-            }
             requireFxSlot(def, FxSlot.MUZZLE);
-            requireFxSlot(def, FxSlot.IMPACT);
             if (def.aoeRadius >= 1f) requireFxSlot(def, FxSlot.AFTERMATH);
             if (def.interceptableProjectile) requireFxSlot(def, FxSlot.TRAIL);
         }
@@ -339,8 +330,19 @@ public final class WeaponDef {
 
     private static void requireFxSlot(WeaponDef def, FxSlot slot) throws JSONException {
         if (def.fx.layers(slot).isEmpty()) {
-            throw new JSONException("Turret weapon '" + def.id
+            throw new JSONException("Weapon '" + def.id
                     + "' must declare fx slot '" + slot.key + "'");
+        }
+    }
+
+    private static void rejectLegacyFxFields(JSONObject render, String weaponId)
+            throws JSONException {
+        if (render == null) return;
+        for (String field : new String[] {"impact", "smokeTrail", "engineTrail"}) {
+            if (render.has(field)) {
+                throw new JSONException("Weapon '" + weaponId + "' uses retired render."
+                        + field + "; author the corresponding fx slot instead");
+            }
         }
     }
 
@@ -373,12 +375,4 @@ public final class WeaponDef {
         }
     }
 
-    private static ImpactProfile parseImpact(String key, String weaponId) throws JSONException {
-        String value = emptyToNull(key);
-        if (value == null) return ImpactProfile.RIFLE;
-        for (ImpactProfile profile : ImpactProfile.values()) {
-            if (profile.name().equalsIgnoreCase(value.replace('-', '_'))) return profile;
-        }
-        throw new JSONException("Weapon '" + weaponId + "' has unknown impact profile '" + key + "'");
-    }
 }
