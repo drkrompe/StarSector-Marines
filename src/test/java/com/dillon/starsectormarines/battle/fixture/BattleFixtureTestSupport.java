@@ -19,6 +19,8 @@ public final class BattleFixtureTestSupport {
             "/battle-fixtures/civilian-rescue-v1.json";
     private static final String CONQUEST_RESOURCE =
             "/battle-fixtures/conquest-undercommitted-v1.json";
+    private static final String CONQUEST_LAUNCH_RESOURCE =
+            "/battle-fixtures/conquest-launch-v2.json";
 
     private BattleFixtureTestSupport() {}
 
@@ -28,6 +30,10 @@ public final class BattleFixtureTestSupport {
 
     public static ConquestBattleFixture loadConquestFixture() throws Exception {
         return (ConquestBattleFixture) loadResource(CONQUEST_RESOURCE);
+    }
+
+    public static BattleLaunchFixture loadConquestLaunchFixture() throws Exception {
+        return (BattleLaunchFixture) loadResource(CONQUEST_LAUNCH_RESOURCE);
     }
 
     private static BattleFixture loadResource(String resource) throws Exception {

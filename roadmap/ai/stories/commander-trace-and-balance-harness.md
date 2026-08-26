@@ -118,12 +118,13 @@ of a faction-local defender belief read as an uncontested compound. The
 attacker therefore bypassed broader-front work and met contact on a long
 capture route.
 
-This remains evidence, not a balance verdict. Construction fixtures replay the
-production scenario factory but do not apply the campaign deployment overlay;
-their generated sortie squads therefore do not exercise campaign identity or
-form-up suspension. `launch-fixture-fidelity.md` must bring that overlay into a
-representative commander workload before concentration or reinforcement timing
-is tuned. The independently valid policy correction is now implemented:
+This remains evidence, not a balance verdict. The historical construction
+fixtures replay the production scenario factory but do not apply the campaign
+deployment overlay; their generated sortie squads therefore do not exercise
+campaign identity or form-up suspension. V2 launch fixtures can now bring that
+overlay into a representative commander workload, but the canonical matrix
+must still be populated with captured full-company launches before
+concentration or reinforcement timing is tuned. The independently valid policy correction is now implemented:
 unknown occupancy permits a measured probe but is not positive knowledge that
 a distant compound is clear. Fresh distant capture allocation leaves at least
 one executable actionable squad on the front, prefers squads without useful
@@ -155,7 +156,7 @@ The earlier terminal/outcome delta is descriptive only. Combat and rendering
 work also advanced between these baselines, so the defender terminal in
 `undercommitted-south` cannot be attributed solely to capture allocation. The
 commander conclusion is narrower and supported directly by perspective data:
-the reserve binds, in-flight captures remain stable, and the construction
+the reserve binds, in-flight captures remain stable, and the current canonical
 fixtures still lack launch-faithful simultaneous force. Neither fixture
 exercised the adjacent exception, which remains covered by focused unit tests.
 
