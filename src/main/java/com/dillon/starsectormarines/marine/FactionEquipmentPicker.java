@@ -13,13 +13,17 @@ public final class FactionEquipmentPicker {
 
     public static List<String> pick(String factionId, FactionEquipmentSource source,
                                     int limit, long seed,
-                                    Set<String> unavailableTemplateIds) {
+                                    Set<String> unavailableTemplateIds,
+                                    EquipmentAcquisitionEligibility.Progress progress) {
         if (source == null || limit <= 0) return List.of();
         Set<String> unavailable = unavailableTemplateIds != null
                 ? unavailableTemplateIds : Set.of();
         List<FactionEquipmentOffer> candidates =
                 FactionEquipmentCatalog.offers(factionId, source).stream()
                         .filter(offer -> !unavailable.contains(offer.templateId()))
+                        .filter(offer -> EquipmentAcquisitionEligibility.allows(
+                                EquipmentTemplateCatalog.require(offer.templateId()),
+                                source, progress))
                         .sorted(Comparator.comparing(FactionEquipmentOffer::templateId))
                         .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
         Random random = new Random(seed);

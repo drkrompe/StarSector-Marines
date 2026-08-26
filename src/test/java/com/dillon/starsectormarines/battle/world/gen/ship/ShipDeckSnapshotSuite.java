@@ -50,16 +50,17 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
      * are drawn as lines now, which is also closer to how the tiers consume
      * them: a cut across the hull, not a wash over it.
      */
-    private static final Map<RoomPurpose, Color> ROOM_COLORS = Map.of(
-            RoomPurpose.CONTROL_ROOM, new Color(0x8d, 0x6f, 0xc9),
-            RoomPurpose.BARRACKS, new Color(0x3f, 0x7f, 0xc4),
-            RoomPurpose.ARMORY, new Color(0xc4, 0x4b, 0x4b),
-            RoomPurpose.VEHICLE_BAY, new Color(0xd8, 0x8b, 0x2f),
-            RoomPurpose.STOCKROOM, new Color(0x9a, 0x7a, 0x45),
-            RoomPurpose.PRODUCTION_FLOOR, new Color(0x4d, 0x9c, 0x5f),
-            RoomPurpose.PARTS_CAGE, new Color(0x3f, 0x9a, 0x93),
-            RoomPurpose.SERVER_ROOM, new Color(0x4a, 0xb5, 0xd6),
-            RoomPurpose.GENERIC, new Color(0x6f, 0x76, 0x84));
+    private static final Map<RoomPurpose, Color> ROOM_COLORS = Map.ofEntries(
+            Map.entry(RoomPurpose.CONTROL_ROOM, new Color(0x8d, 0x6f, 0xc9)),
+            Map.entry(RoomPurpose.BARRACKS, new Color(0x3f, 0x7f, 0xc4)),
+            Map.entry(RoomPurpose.ARMORY, new Color(0xc4, 0x4b, 0x4b)),
+            Map.entry(RoomPurpose.VEHICLE_BAY, new Color(0xd8, 0x8b, 0x2f)),
+            Map.entry(RoomPurpose.STOCKROOM, new Color(0x9a, 0x7a, 0x45)),
+            Map.entry(RoomPurpose.PRODUCTION_FLOOR, new Color(0x4d, 0x9c, 0x5f)),
+            Map.entry(RoomPurpose.PARTS_CAGE, new Color(0x3f, 0x9a, 0x93)),
+            Map.entry(RoomPurpose.SERVER_ROOM, new Color(0x4a, 0xb5, 0xd6)),
+            Map.entry(RoomPurpose.GENERIC, new Color(0x6f, 0x76, 0x84)),
+            Map.entry(RoomPurpose.HANGAR, new Color(0xd8, 0x5c, 0x9a)));
 
     @Override
     public String id() {
@@ -80,10 +81,11 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
                 VanillaHullSilhouettes.Hull hull = vanilla.read(hullId);
                 if (hull == null || !hull.hullClass().boardable()) continue;
                 artifacts.add(plan(hull.id(), hull.silhouette(),
-                        DeckSizing.planFor(hull.hullClass(), hull.maxCrew(), hull.cargo(),
-                                hull.silhouette().aspect()),
-                        hull.hullClass() + ", " + hull.maxCrew() + " crew, "
-                                + hull.cargo() + " cargo"));
+                        DeckSizing.planFor(hull.hullClass(), hull.role(), hull.minCrew(),
+                                hull.maxCrew(), hull.cargo(), hull.silhouette().aspect()),
+                        hull.role().name().toLowerCase().replace('_', ' ')
+                                + ", " + hull.minCrew() + "/" + hull.maxCrew() + " crew, "
+                                + hull.lift() + " lift, " + hull.cargo() + " cargo"));
             }
         }
         if (artifacts.isEmpty()) {
