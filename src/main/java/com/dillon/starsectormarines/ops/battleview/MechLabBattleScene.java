@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import com.dillon.starsectormarines.battle.ambient.AmbientTaskPose;
+import com.dillon.starsectormarines.battle.ambient.AmbientTaskRoute;
+import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -114,7 +117,7 @@ public final class MechLabBattleScene implements AutoCloseable {
             throw new IllegalArgumentException("Mech Lab scene requires a visible viewport");
         }
         ensureSimulation(variants);
-        MechLabTechnicianJobs.apply(simulation, elapsedSeconds);
+        simulation.ambientTasks().seek(elapsedSeconds);
         configureCamera(camera, viewport.screenX(), viewport.screenY(),
                 viewport.width(), viewport.height());
         if (!cameraZoomApplied) {
@@ -184,20 +187,19 @@ public final class MechLabBattleScene implements AutoCloseable {
                     variant.createLoadout(variant.defaultRole));
         }
         for (int index = 0; index < MechLabSceneLayout.TECHNICIAN_JOBS.size(); index++) {
-            MechLabSceneLayout.TechnicianJob job =
-                    MechLabSceneLayout.TECHNICIAN_JOBS.get(index);
-            MechLabTechnicianJobs.TechnicianPose pose =
-                    MechLabTechnicianJobs.sample(index, 0f);
-            spawnTechnician(sim, job.name(),
+            AmbientTaskRoute job = MechLabSceneLayout.TECHNICIAN_JOBS.get(index);
+            AmbientTaskPose pose = AmbientTaskService.sample(job, 0f);
+            long technician = spawnTechnician(sim, job.id(),
                     (int) Math.floor(pose.worldX()), (int) Math.floor(pose.worldY()));
+            sim.ambientTasks().assign(technician, job);
         }
-        MechLabTechnicianJobs.apply(sim, 0f);
+        sim.ambientTasks().seek(0f);
         sim.getFogOfWar().tick(0, sim.getRoster());
         return sim;
     }
 
-    private static void spawnTechnician(BattleSimulation sim, String name, int x, int y) {
-        sim.spawn(new EntitySpec(name, Faction.MARINE, UnitType.ENGINEER, x, y)
+    private static long spawnTechnician(BattleSimulation sim, String name, int x, int y) {
+        return sim.spawn(new EntitySpec(name, Faction.MARINE, UnitType.ENGINEER, x, y)
                 .layeredArmorFamily(LayeredArmorFamily.ARMY_GREEN));
     }
 

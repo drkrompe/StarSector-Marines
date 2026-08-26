@@ -42,6 +42,7 @@ public final class BarracksScreen implements Screen {
     private MarkupInstance markupInstance;
     private StarsectorUiInputAdapter input;
     private BarracksBattleScene battleScene;
+    private double previewSeconds;
     private int projectedCampaignHour = Integer.MIN_VALUE;
 
     @Override
@@ -79,9 +80,11 @@ public final class BarracksScreen implements Screen {
             battleSprites.ensureLayeredUnitSprites();
             battleSprites.ensureTileSheet();
             battleSprites.ensureRoadSheet();
+            battleSprites.ensureDoodadSheet();
             if (battleScene == null) battleScene = new BarracksBattleScene(battleSprites);
             built.canvases().set(candidate.requireElement("barracks-canvas"),
-                    new BarracksCanvas(viewModel::sceneMarines, battleScene));
+                    new BarracksCanvas(viewModel::sceneMarines, battleScene,
+                            () -> previewSeconds));
             if (viewport != null) {
                 built.layout(viewport.documentWidth(), viewport.documentHeight());
             }
@@ -131,6 +134,7 @@ public final class BarracksScreen implements Screen {
 
     @Override
     public void advance(float dt) {
+        previewSeconds += Math.max(0f, dt);
         int currentHour = campaignHour();
         if (viewModel != null && currentHour != projectedCampaignHour) {
             projectedCampaignHour = currentHour;
