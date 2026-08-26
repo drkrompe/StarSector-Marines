@@ -3,9 +3,9 @@
     {
       "id": "armor.field-fatigues",
       "catalog": {
-        "displayName": "Armorless fatigues",
+        "displayName": "Domain-pattern vac fatigues",
         "unitClass": "LINE",
-        "description": "Vac-rated fatigues and a web harness are the fleet infantry working uniform. They preserve unrestricted movement but leave the wearer dangerously exposed in a firefight.",
+        "description": "Domain-pattern vac fatigues remain the working uniform of crews, militias, and cash-poor infantry. Local factories preserve the seals; unrestricted movement comes at the price of dangerous exposure.",
         "tier": 1,
         "iconPath": "graphics/ui/armory/armor-tier-1-field-kit.png"
       },
@@ -14,9 +14,9 @@
     {
       "id": "armor.combat",
       "catalog": {
-        "displayName": "Charcoal combat armor",
+        "displayName": "Bastion line armor",
         "unitClass": "LINE",
-        "description": "Charcoal laminate protects the torso and major joints without becoming a walking bulkhead. It accepts a modest mobility penalty for dependable line protection.",
+        "description": "Kazeron's Bastion pattern lets League member worlds replace one another's plates and seals. Layered laminate trades modest mobility for dependable coalition line protection.",
         "tier": 3,
         "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
       },
@@ -25,9 +25,9 @@
     {
       "id": "armor.scout",
       "catalog": {
-        "displayName": "Navy scout armor",
+        "displayName": "Janus scout suit",
         "unitClass": "SCOUT",
-        "description": "Navy reconnaissance plate uses overlapping segments and a low-profile sensor hood. It keeps a scout fast and elusive while stopping fragments and glancing fire.",
+        "description": "Tri-Tachyon's Janus suit hides composite segments beneath a sensor hood and electronic-warfare weave. Corporate scouts prize its speed; gray-market users struggle with the interfaces.",
         "tier": 2,
         "iconPath": "graphics/ui/armory/armor-tier-2-scout.png"
       },
@@ -36,9 +36,9 @@
     {
       "id": "armor.heavy",
       "catalog": {
-        "displayName": "Crimson elite armor",
+        "displayName": "XIV heavy battlesuit",
         "unitClass": "ASSAULT",
-        "description": "Crimson assault plate layers dense ceramic and powered bracing over every vital zone. It survives severe punishment, but its mass is obvious in every movement.",
+        "description": "The XIV heavy battlesuit is the Hegemony's Domain-spec answer to a breach: dense ceramic, powered bracing, and standardized hardpoints. It survives punishment at an obvious cost in speed.",
         "tier": 4,
         "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
       },
@@ -47,9 +47,9 @@
     {
       "id": "armor.outlaw",
       "catalog": {
-        "displayName": "Outlaw plate",
+        "displayName": "Blackforge patchwork rig",
         "unitClass": "RAIDER",
-        "description": "Outlaw plate combines cut-down security armor, ship plating, and hand-fitted seals. No two suits agree, but the better examples are quick and stubborn.",
+        "description": "Blackforge rig means cut-down security armor, industrial exoframe, ship plate, and hand-fitted seals from pirate or Pather shops. No two suits agree; the better examples are quick and stubborn.",
         "tier": 2,
         "iconPath": "graphics/ui/armory/armor-tier-2-scout.png"
       },
@@ -58,9 +58,9 @@
     {
       "id": "armor.line",
       "catalog": {
-        "displayName": "Army-green armor",
+        "displayName": "Legionary line suit",
         "unitClass": "LINE",
-        "description": "Army-green line armor favors interchangeable plates and field-serviceable joints. It is heavier than scout gear and built for days away from a proper armory.",
+        "description": "The Hegemony's Legionary suit favors interchangeable plates, pressure integrity, and field-serviceable joints. It is heavier than scout gear and built for disciplined formations far from a depot.",
         "tier": 3,
         "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
       },
@@ -69,9 +69,9 @@
     {
       "id": "armor.militia",
       "catalog": {
-        "displayName": "Militia kit",
+        "displayName": "Ward security kit",
         "unitClass": "SECURITY",
-        "description": "A militia kit combines a torso plate, helmet, and local impact layers. It protects a section leader from fragments but cannot replace full combat armor.",
+        "description": "Ward is the frontier name for locally assembled torso plate, sealed helmet, and available impact layers. Stations, Church villages, and auxiliaries issue it to section leaders.",
         "tier": 2,
         "iconPath": "graphics/ui/armory/armor-tier-2-scout.png"
       },

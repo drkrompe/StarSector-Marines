@@ -21,6 +21,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SquadEquipmentDoctrineTest {
 
     @Test
+    void patherAssaultDoctrineDoesNotMirrorStatePulseIssue() {
+        SquadWeaponDoctrine doctrine = SquadEquipmentDoctrines.weaponById(
+                SquadEquipmentDoctrines.LUDDIC_PATH_ASSAULT_WEAPONS);
+
+        assertNotNull(doctrine);
+        assertFalse(doctrine.issues().stream().anyMatch(issue ->
+                issue.primaryDef() == WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID)));
+    }
+
+    @Test
     void fleetAssaultDoctrineCarriesExactlyOneFragKit() {
         SquadWeaponDoctrine doctrine = SquadEquipmentDoctrines.weaponById(
                 SquadEquipmentDoctrines.ASSAULT_WEAPONS);

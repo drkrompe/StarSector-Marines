@@ -4,6 +4,8 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
+Updated: 2026-08-26 — Conquest arrival fleets are mission-shaped across reusable zones and carry deterministic per-craft launch and re-arm variance.
+
 ## Purpose
 
 Air is the battle tier's atmospheric craft: transports that deliver people and
@@ -97,9 +99,12 @@ arrival policy rather than to the hull type.
 
 The Aeroshuttle is a purpose-built six-seat half-squad craft. Conquest keeps
 the committed campaign hull as its lift source but resolves the visible final
-descent to ownership-separated paired Aeroshuttles. Those final-descent craft
-are reusable: committed lift and selected personnel become additional cycles,
-not additional permanent landing berths.
+descent to ownership-separated paired Aeroshuttles. Its mission configuration
+owns the active zone count, reusable player pairs per zone, and timing jitter.
+Those final-descent craft are reusable: committed lift and selected personnel
+become additional cycles, not additional permanent landing berths. Seeded
+per-craft launch and re-arm offsets prevent lockstep flight without weakening
+deterministic fixture replay.
 
 ### Fighters and drones
 

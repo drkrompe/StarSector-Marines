@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — connected additive faction equipment pools to market, license, and patron rewards.
+Updated: 2026-08-26 — grounded shipped equipment provenance and connected faction pools to market, license, and patron rewards.
 
 ## Purpose
 
@@ -113,6 +113,9 @@ impact, telemetry, and presentation. Both families use the same faction-neutral
 engagement and maneuver rules for player and defender carriers. The automatic
 is starter-reachable and appears in the built-in Fire Support template; target
 faction profiles decide whether and how heavily defenders issue either family.
+`equipment-lore-catalog.md` owns the models' in-universe origin and credible
+circulation. Those origins are mod direction constrained by faction lore, not new
+claims about vanilla canon and not a reason to create equivalent faction clones.
 
 ### Aptitude and experience
 
