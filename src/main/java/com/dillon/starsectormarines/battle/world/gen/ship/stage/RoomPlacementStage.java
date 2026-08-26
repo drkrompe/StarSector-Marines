@@ -232,6 +232,7 @@ public final class RoomPlacementStage implements GenStage {
                     if (!floorFits(shape, x, y)) continue;
                     int contact = wallContact(shape, x, y);
                     if (contact < 0) continue;
+                    if (recipe.hullAccess() && !reachesHull(shape, x, y)) continue;
                     found.add(new Candidate(shape, x, y,
                             zoneBonus + contact + ctx.rng.nextInt(3)));
                 }
@@ -255,6 +256,23 @@ public final class RoomPlacementStage implements GenStage {
             if (!inBounds(x, y) || claimed[x + 1][y + 1]) return false;
         }
         return true;
+    }
+
+    /**
+     * Whether any of this room's bulkhead is the side of the ship.
+     *
+     * <p>A boat bay amidships opens onto the compartment next door. Requiring
+     * part of the ring to fall outside the hull is what makes the placer find a
+     * bay somewhere it could actually launch from, and it is the same test a
+     * breach point will want when boarding entry is authored.
+     */
+    private boolean reachesHull(RoomShape shape, int ox, int oy) {
+        for (int[] cell : shape.wall()) {
+            int x = ox + cell[0];
+            int y = oy + cell[1];
+            if (!inBounds(x, y) || !hull[x + 1][y + 1]) return true;
+        }
+        return false;
     }
 
     /**

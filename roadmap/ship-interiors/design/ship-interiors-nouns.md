@@ -84,8 +84,21 @@ authored content.
   size its function calls for rather than the size the leftover space happened to
   be.
 - A **room program** is the list of recipes one deck owes, derived from the
-  ship's complement, hold, and class. The program sizes the deck; the deck does
-  not size the program.
+  ship's role, complement, hold, and class. The program sizes the deck; the
+  deck does not size the program.
+- A **hull role** is what a ship is for, as opposed to how big it is. Class and
+  role are close to independent: a troop transport and a gun destroyer are the
+  same tonnage and share almost no interior. Role decides which rooms a hull
+  owes at all, and it is read from the game's own per-hull designation rather
+  than inferred from size.
+- **Lift** is everyone aboard who is not needed to work the ship — the gap
+  between a hull's minimum and maximum crew. It is the number that separates a
+  ship carrying people from a ship employing them, and it is what sizes the
+  boat bays. Reading maximum crew alone makes those two ships the same ship.
+- A **shuttle bay** is the deck's own way in and out: where troops embark for
+  the surface, where they return, and the natural place for boarders to arrive.
+  Alone among rooms it must reach the side of the ship, which is the first
+  placement constraint that is about the hull rather than about fit.
 - A **facility** is a compartment the company operates: a barracks, a mech bay,
   an armory, a medical bay. A facility owns fixture counts, extent, and the
   capacity those imply. It is the thing an upgrade acts on.

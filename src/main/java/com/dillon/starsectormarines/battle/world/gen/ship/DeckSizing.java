@@ -70,14 +70,17 @@ public final class DeckSizing {
      * Size a ship's deck from its class, complement, hold, and hull shape.
      *
      * @param hullClass the hull's size class
-     * @param maxCrew maximum crew complement; a vanilla hull's {@code max crew}
+     * @param role what the hull is for; decides which rooms it owes at all
+     * @param minCrew crew needed to work the ship; a vanilla hull's {@code min crew}
+     * @param maxCrew everyone she can carry; a vanilla hull's {@code max crew}
      * @param cargo hold capacity; a vanilla hull's {@code cargo}
      * @param aspect the hull's beam over its length; drives the deck's proportions
      */
-    public static DeckPlan planFor(HullClass hullClass, int maxCrew, int cargo, float aspect) {
+    public static DeckPlan planFor(HullClass hullClass, HullRole role,
+                                   int minCrew, int maxCrew, int cargo, float aspect) {
         if (!hullClass.boardable()) return new DeckPlan(0, 0, List.of());
 
-        List<RoomRecipe> rooms = programFor(hullClass, maxCrew, cargo);
+        List<RoomRecipe> rooms = programFor(hullClass, role, minCrew, maxCrew, cargo);
 
         int roomArea = 0;
         for (RoomRecipe room : rooms) roomArea += room.area();
@@ -94,21 +97,53 @@ public final class DeckSizing {
     }
 
     /**
-     * The rooms a ship owes. Berthing and stowage scale with what the hull
-     * carries; command and engineering are owed once because a ship needs them
-     * at all; a bay appears only on hulls large enough to service heavy assets.
+     * The rooms a ship owes.
+     *
+     * <p>Everything afloat needs somewhere to con her from, somewhere to sleep,
+     * machinery aft, and a boat bay. What separates one hull from another is
+     * the rest, and that comes from the role.
+     *
+     * <p><b>The gap between min and max crew is the interesting number.</b> A
+     * Valkyrie is ten hands to fly and two hundred and fifty aboard; the two
+     * hundred and forty in between are not crew, they are a ground force being
+     * carried, and they are what a shuttle bay exists to put ashore. A Conquest
+     * is four hundred to fly and five hundred aboard and has no such cargo.
+     * Reading only {@code max crew} makes those two ships the same ship.
      */
-    public static List<RoomRecipe> programFor(HullClass hullClass, int maxCrew, int cargo) {
+    public static List<RoomRecipe> programFor(HullClass hullClass, HullRole role,
+                                              int minCrew, int maxCrew, int cargo) {
+        int lift = Math.max(0, maxCrew - minCrew);
+
         List<RoomRecipe> rooms = new ArrayList<>();
         rooms.add(RoomRecipe.COMMAND);
         add(rooms, RoomRecipe.BERTHING, RoomRecipe.BERTHING.countFor(maxCrew));
-        add(rooms, RoomRecipe.ARMORY, RoomRecipe.ARMORY.countFor(maxCrew));
-        if (cargo > 0) add(rooms, RoomRecipe.HOLD, RoomRecipe.HOLD.countFor(cargo));
         add(rooms, RoomRecipe.ENGINEERING,
                 hullClass.ordinal() >= HullClass.CRUISER.ordinal() ? 2 : 1);
-        if (hullClass.carriesHeavyAssets()) rooms.add(RoomRecipe.VEHICLE_BAY);
+        add(rooms, RoomRecipe.SHUTTLE_BAY, RoomRecipe.SHUTTLE_BAY.countFor(lift));
+        if (cargo > 0) add(rooms, RoomRecipe.HOLD, RoomRecipe.HOLD.countFor(cargo));
+
+        switch (role) {
+            case TROOP_TRANSPORT -> {
+                // Armed for the force she carries, not the handful who fly her.
+                add(rooms, RoomRecipe.ARMORY, Math.max(1, lift / ARMED_PER_ARMORY));
+                rooms.add(RoomRecipe.VEHICLE_BAY);
+            }
+            case CARRIER -> {
+                add(rooms, RoomRecipe.ARMORY, RoomRecipe.ARMORY.countFor(maxCrew));
+                rooms.add(RoomRecipe.VEHICLE_BAY);
+            }
+            case WARSHIP -> {
+                add(rooms, RoomRecipe.ARMORY, RoomRecipe.ARMORY.countFor(maxCrew));
+                if (hullClass.carriesHeavyAssets()) rooms.add(RoomRecipe.VEHICLE_BAY);
+            }
+            // A hull built around its hold keeps a locker, not an armory.
+            case FREIGHTER, TANKER, LINER -> rooms.add(RoomRecipe.ARMORY);
+        }
         return rooms;
     }
+
+    /** Troops one armory issues for. Lower than a crew figure: everyone here draws a weapon. */
+    private static final int ARMED_PER_ARMORY = 120;
 
     /** A deck must at least fit its longest room lengthwise, with hull taper either side. */
     private static int minimumFrames(List<RoomRecipe> rooms) {
