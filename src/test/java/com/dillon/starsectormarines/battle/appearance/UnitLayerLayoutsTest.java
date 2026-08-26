@@ -77,6 +77,41 @@ class UnitLayerLayoutsTest {
     }
 
     @Test
+    void factionArmorMasteringScalesMixedBodyAndHelmetOverAnimation() throws Exception {
+        UnitLayerLayouts layouts = load();
+        LayerPose idle = layouts.clip("marine-line", "rifle", "idle").sample(0f);
+
+        LayerPose mastered = layouts.applyArmorMastering(idle,
+                LayeredArmorFamily.PALATINE, LayeredArmorFamily.SPECTER_HEAVY);
+
+        assertEquals(idle.layer("body").scaleX(),
+                mastered.layer("body").scaleX(), 0.000001f);
+        assertEquals(1.24f, mastered.layer("head").scaleX(), 0.000001f);
+        assertEquals(1.24f, mastered.layer("head").scaleY(), 0.000001f);
+        assertEquals(idle.layer("head").offsetY(),
+                mastered.layer("head").offsetY(), 0.000001f);
+        assertEquals(idle.layer("primary"), mastered.layer("primary"));
+    }
+
+    @Test
+    void everyFactionArmorMasterIsExposedAsAWorkbenchUnit() throws Exception {
+        UnitLayerLayouts layouts = load();
+        String[] ids = {
+                "armor-master-aegis", "armor-master-palatine",
+                "armor-master-furnace-line", "armor-master-reaver",
+                "armor-master-specter-heavy", "armor-master-bulwark-heavy",
+                "armor-master-reliquary-heavy", "armor-master-lions-mantle",
+                "armor-master-foundry-breaker"
+        };
+        for (String id : ids) {
+            AnimationClip clip = layouts.clip(id, "field-loadout", "idle");
+            assertNotNull(clip, id);
+            assertNotNull(clip.sample(0f).layer("body"), id);
+            assertNotNull(clip.sample(0f).layer("head"), id);
+        }
+    }
+
+    @Test
     void secondaryUseClipsCoverEveryExistingActionPose() throws Exception {
         UnitLayerLayouts layouts = load();
 

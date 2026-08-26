@@ -300,6 +300,132 @@
       ]
     },
     {
+      "id": "armor-master-aegis", "label": "Armor master — Aegis composite", "referencePixels": 150.0,
+      "variants": [ { "id": "field-loadout", "label": "Field loadout", "animations": [
+        { "id": "idle", "label": "Mastering pose", "driver": "time", "loop": true, "frames": [
+          { "id": "mastered", "label": "Mastered", "durationMs": 900, "layers": [
+            { "id": "left-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [-0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+            { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+            { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.1867, 0.08], "scale": [1.0, 1.0], "angleDegrees": 45.0, "pivot": [0.5, 0.7449], "z": 20 },
+            { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/aegis/body.png", "offset": [0.0, -0.12], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
+            { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/aegis/head.png", "offset": [0.0, 0.08], "scale": [1.08, 1.08], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
+          ] }
+        ] }
+      ] } ]
+    },
+    {
+      "id": "armor-master-palatine", "label": "Armor master — Palatine", "referencePixels": 150.0,
+      "variants": [ { "id": "field-loadout", "label": "Field loadout", "animations": [
+        { "id": "idle", "label": "Mastering pose", "driver": "time", "loop": true, "frames": [
+          { "id": "mastered", "label": "Mastered", "durationMs": 900, "layers": [
+            { "id": "left-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [-0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+            { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+            { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.1867, 0.08], "scale": [1.0, 1.0], "angleDegrees": 45.0, "pivot": [0.5, 0.7449], "z": 20 },
+            { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/palatine/body.png", "offset": [0.0, -0.12], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
+            { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/palatine/head.png", "offset": [0.0, 0.08], "scale": [1.18, 1.18], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
+          ] }
+        ] }
+      ] } ]
+    },
+    {
+      "id": "armor-master-furnace-line", "label": "Armor master — Furnace line", "referencePixels": 150.0,
+      "variants": [ { "id": "field-loadout", "label": "Field loadout", "animations": [
+        { "id": "idle", "label": "Mastering pose", "driver": "time", "loop": true, "frames": [
+          { "id": "mastered", "label": "Mastered", "durationMs": 900, "layers": [
+            { "id": "left-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [-0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+            { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+            { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.1867, 0.08], "scale": [1.0, 1.0], "angleDegrees": 45.0, "pivot": [0.5, 0.7449], "z": 20 },
+            { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/furnace-line/body.png", "offset": [0.0, -0.12], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
+            { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/furnace-line/head.png", "offset": [0.0, 0.08], "scale": [1.18, 1.18], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
+          ] }
+        ] }
+      ] } ]
+    },
+    {
+      "id": "armor-master-reaver", "label": "Armor master — Reaver", "referencePixels": 150.0,
+      "variants": [ { "id": "field-loadout", "label": "Field loadout", "animations": [
+        { "id": "idle", "label": "Mastering pose", "driver": "time", "loop": true, "frames": [
+          { "id": "mastered", "label": "Mastered", "durationMs": 900, "layers": [
+            { "id": "left-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [-0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+            { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+            { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.1867, 0.08], "scale": [1.0, 1.0], "angleDegrees": 45.0, "pivot": [0.5, 0.7449], "z": 20 },
+            { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/reaver/body.png", "offset": [0.0, -0.12], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
+            { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/reaver/head.png", "offset": [0.0, 0.08], "scale": [1.16, 1.16], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
+          ] }
+        ] }
+      ] } ]
+    },
+    {
+      "id": "armor-master-specter-heavy", "label": "Armor master — Specter heavy", "referencePixels": 150.0,
+      "variants": [ { "id": "field-loadout", "label": "Field loadout", "animations": [
+        { "id": "idle", "label": "Mastering pose", "driver": "time", "loop": true, "frames": [
+          { "id": "mastered", "label": "Mastered", "durationMs": 900, "layers": [
+            { "id": "left-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [-0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+            { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+            { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.1867, 0.08], "scale": [1.0, 1.0], "angleDegrees": 45.0, "pivot": [0.5, 0.7449], "z": 20 },
+            { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/body.png", "offset": [0.0, -0.12], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
+            { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/head.png", "offset": [0.0, 0.08], "scale": [1.24, 1.24], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
+          ] }
+        ] }
+      ] } ]
+    },
+    {
+      "id": "armor-master-bulwark-heavy", "label": "Armor master — Bulwark heavy", "referencePixels": 150.0,
+      "variants": [ { "id": "field-loadout", "label": "Field loadout", "animations": [
+        { "id": "idle", "label": "Mastering pose", "driver": "time", "loop": true, "frames": [
+          { "id": "mastered", "label": "Mastered", "durationMs": 900, "layers": [
+            { "id": "left-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [-0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+            { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+            { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.1867, 0.08], "scale": [1.0, 1.0], "angleDegrees": 45.0, "pivot": [0.5, 0.7449], "z": 20 },
+            { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/bulwark-heavy/body.png", "offset": [0.0, -0.12], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
+            { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/bulwark-heavy/head.png", "offset": [0.0, 0.08], "scale": [1.30, 1.30], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
+          ] }
+        ] }
+      ] } ]
+    },
+    {
+      "id": "armor-master-reliquary-heavy", "label": "Armor master — Reliquary heavy", "referencePixels": 150.0,
+      "variants": [ { "id": "field-loadout", "label": "Field loadout", "animations": [
+        { "id": "idle", "label": "Mastering pose", "driver": "time", "loop": true, "frames": [
+          { "id": "mastered", "label": "Mastered", "durationMs": 900, "layers": [
+            { "id": "left-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [-0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+            { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+            { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.1867, 0.08], "scale": [1.0, 1.0], "angleDegrees": 45.0, "pivot": [0.5, 0.7449], "z": 20 },
+            { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/reliquary-heavy/body.png", "offset": [0.0, -0.12], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
+            { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/reliquary-heavy/head.png", "offset": [0.0, 0.08], "scale": [1.30, 1.30], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
+          ] }
+        ] }
+      ] } ]
+    },
+    {
+      "id": "armor-master-lions-mantle", "label": "Armor master — Lion's mantle", "referencePixels": 150.0,
+      "variants": [ { "id": "field-loadout", "label": "Field loadout", "animations": [
+        { "id": "idle", "label": "Mastering pose", "driver": "time", "loop": true, "frames": [
+          { "id": "mastered", "label": "Mastered", "durationMs": 900, "layers": [
+            { "id": "left-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [-0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+            { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+            { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.1867, 0.08], "scale": [1.0, 1.0], "angleDegrees": 45.0, "pivot": [0.5, 0.7449], "z": 20 },
+            { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/lions-mantle/body.png", "offset": [0.0, -0.12], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
+            { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/lions-mantle/head.png", "offset": [0.0, 0.08], "scale": [1.30, 1.30], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
+          ] }
+        ] }
+      ] } ]
+    },
+    {
+      "id": "armor-master-foundry-breaker", "label": "Armor master — Foundry breaker", "referencePixels": 150.0,
+      "variants": [ { "id": "field-loadout", "label": "Field loadout", "animations": [
+        { "id": "idle", "label": "Mastering pose", "driver": "time", "loop": true, "frames": [
+          { "id": "mastered", "label": "Mastered", "durationMs": 900, "layers": [
+            { "id": "left-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [-0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 10 },
+            { "id": "right-foot", "sprite": "graphics/battle/marine-modular-topdown/marine-foot.png", "offset": [0.12, -0.2333], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
+            { "id": "primary", "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rifle.png", "offset": [0.1867, 0.08], "scale": [1.0, 1.0], "angleDegrees": 45.0, "pivot": [0.5, 0.7449], "z": 20 },
+            { "id": "body", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/foundry-breaker/body.png", "offset": [0.0, -0.12], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 },
+            { "id": "head", "sprite": "graphics/battle/marine-modular-topdown/variants/armor/foundry-breaker/head.png", "offset": [0.0, 0.08], "scale": [1.28, 1.28], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 40 }
+          ] }
+        ] }
+      ] } ]
+    },
+    {
       "id": "mech-bulwark", "label": "Mech — Bulwark", "referencePixels": 208.0,
       "variants": [
         { "id": "field-loadout", "label": "Field loadout", "animations": [

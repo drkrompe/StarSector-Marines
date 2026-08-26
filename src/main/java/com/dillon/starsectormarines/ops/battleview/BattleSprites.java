@@ -585,6 +585,15 @@ public class BattleSprites {
         loadLayeredFamily(LayeredArmorFamily.OUTLAW, "outlaw", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
         loadLayeredFamily(LayeredArmorFamily.ARMY_GREEN, "army-green", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
         loadLayeredFamily(LayeredArmorFamily.MILITIA, "militia", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamily(LayeredArmorFamily.AEGIS_COMPOSITE, "aegis", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamily(LayeredArmorFamily.PALATINE, "palatine", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamily(LayeredArmorFamily.FURNACE_LINE, "furnace-line", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamily(LayeredArmorFamily.REAVER, "reaver", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamily(LayeredArmorFamily.SPECTER_HEAVY, "specter-heavy", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamily(LayeredArmorFamily.BULWARK_HEAVY, "bulwark-heavy", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamily(LayeredArmorFamily.RELIQUARY_HEAVY, "reliquary-heavy", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamily(LayeredArmorFamily.LIONS_MANTLE, "lions-mantle", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
+        loadLayeredFamily(LayeredArmorFamily.FOUNDRY_BREAKER, "foundry-breaker", foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
         loadLayeredFamilyAt(LayeredArmorFamily.CIVILIAN_COLONIST,
                 "graphics/battle/colonist-modular-topdown/civilian/",
                 foot, rifle, laser, smg, dmr, rocket, amr, flash, surplusRifle, masterworkDmr);
