@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.marine.EquipmentAccessTier;
 import com.dillon.starsectormarines.marine.EquipmentAcquisitionEligibility;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
@@ -13,12 +14,14 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FleetArmoryOverviewViewModelTest {
@@ -50,16 +53,26 @@ class FleetArmoryOverviewViewModelTest {
     }
 
     @Test
-    void landingViewExplainsCollectionBandsAndNextAccessGates() {
+    void landingViewShowsOnlyAcquiredCollectionBandsAndNextAccessGates() {
         MarineRoster roster = new MarineRoster();
         FleetArmoryOverviewViewModel opening = new FleetArmoryOverviewViewModel(
                 new Reactor(), roster, () -> { }, () -> 0d,
                 () -> new EquipmentAcquisitionEligibility.Progress(4, 4));
 
-        assertTrue(opening.templateCollectionSummary().get().contains("14 / 41 known"));
-        assertTrue(opening.templateCollectionSummary().get().contains("Common"));
-        assertTrue(opening.templateCollectionSummary().get().contains("Advanced"));
-        assertTrue(opening.templateCollectionSummary().get().contains("Prestige"));
+        int[] acquired = new int[EquipmentAccessTier.values().length];
+        roster.armory().equipmentTemplateCards().forEach(
+                card -> acquired[card.accessTier().ordinal()]++);
+        List<String> expectedCollection = new ArrayList<>();
+        expectedCollection.add("TEMPLATE FILE  ·  "
+                + roster.armory().equipmentTemplateCards().size() + " acquired");
+        for (EquipmentAccessTier tier : EquipmentAccessTier.values()) {
+            int count = acquired[tier.ordinal()];
+            if (count > 0) expectedCollection.add(accessLabel(tier) + " " + count);
+        }
+        String collectionSummary = opening.templateCollectionSummary().get();
+        assertEquals(String.join("  ·  ", expectedCollection), collectionSummary);
+        assertFalse(collectionSummary.contains("/"));
+        assertFalse(collectionSummary.contains("known"));
         assertEquals("CURRENT ACCESS  ·  Licensed / patron Common at MRB +4"
                         + "  ·  Recovery Common at 4 victories  ·  Open market Common only",
                 opening.accessStatusSummary().get());
@@ -135,5 +148,13 @@ class FleetArmoryOverviewViewModelTest {
     private static void putPageNavigation(Map<String, Object> props) {
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.ARMORY,
                 () -> { }, () -> { }, () -> { }, () -> { });
+    }
+
+    private static String accessLabel(EquipmentAccessTier tier) {
+        return switch (tier) {
+            case COMMON -> "Common";
+            case ADVANCED -> "Advanced";
+            case PRESTIGE -> "Prestige";
+        };
     }
 }
