@@ -2,7 +2,8 @@ package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
@@ -46,11 +47,11 @@ public class GroundRosterRegistryTest {
                 pirates, GroundRosterProfile.ForceTier.BULK,
                 RiskLevel.LOW, new ZeroRandom());
 
-        assertEquals(MarineWeapon.FIELD_RIFLE, heg.primary);
+        assertEquals(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID), heg.primaryDef());
         assertEquals(LayeredArmorFamily.MILITIA, heg.armorFamily);
-        assertEquals(MarineWeapon.SMG, pirate.primary);
+        assertEquals(WeaponRegistry.require(WeaponRegistry.SMG_ID), pirate.primaryDef());
         assertEquals(LayeredArmorFamily.ARMORLESS, pirate.armorFamily);
-        assertNotEquals(heg.primary, pirate.primary);
+        assertNotEquals(heg.primaryDef(), pirate.primaryDef());
         assertNotNull(heg.equipmentGrade);
         assertNotNull(pirate.soldierProfile);
     }
@@ -81,12 +82,12 @@ public class GroundRosterRegistryTest {
         int pathAutomatics = 0;
         int pathShredders = 0;
         for (int i = 0; i < 2_000; i++) {
-            MarineWeapon hegWeapon = hegemony.pickPrimary(hegRandom);
-            MarineWeapon pathWeapon = path.pickPrimary(pathRandom);
-            if (hegWeapon == MarineWeapon.SQUAD_AUTOMATIC) hegemonyAutomatics++;
-            if (hegWeapon == MarineWeapon.SMG) hegemonyShredders++;
-            if (pathWeapon == MarineWeapon.SQUAD_AUTOMATIC) pathAutomatics++;
-            if (pathWeapon == MarineWeapon.SMG) pathShredders++;
+            WeaponDef hegWeapon = hegemony.pickPrimaryDef(hegRandom);
+            WeaponDef pathWeapon = path.pickPrimaryDef(pathRandom);
+            if (hegWeapon == WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID)) hegemonyAutomatics++;
+            if (hegWeapon == WeaponRegistry.require(WeaponRegistry.SMG_ID)) hegemonyShredders++;
+            if (pathWeapon == WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID)) pathAutomatics++;
+            if (pathWeapon == WeaponRegistry.require(WeaponRegistry.SMG_ID)) pathShredders++;
         }
 
         assertTrue(hegemonyAutomatics > 300,

@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.infantry;
 
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -35,7 +37,7 @@ public class KitRetrieverBehaviorTest {
     public void retrievalUpdateTicksAllThreeCooldownsAndWritesMovingIntentOnAnInRangeEnemy() {
         BattleSimulation sim = openArena(30, 10);
         long retriever = sim.spawn(new EntitySpec("r", Faction.MARINE, UnitType.MARINE, 5, 5)
-                .secondary(MarineSecondary.ROCKET_LAUNCHER, MarineSecondary.ROCKET_LAUNCHER.startingAmmo()));
+                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).startingAmmo()));
         sim.world().setAttackRange(retriever, 10f);
         sim.world().setCooldownTimer(retriever, 0.6f);
         sim.world().setSecondaryCooldownTimer(retriever, 0.6f);

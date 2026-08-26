@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.testsupport;
 
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
@@ -26,7 +28,7 @@ import java.nio.file.Paths;
  * skips overlay scatter, which diverges the gen RNG stream (and therefore every
  * preview PNG) from production. Without the mapping registry, fillers that read
  * {@code GenMappingRegistry.doodadPool(theme)} (moddable-tilesets Phase 2) fail.
- * Without the weapon registry, every {@code MarineWeapon} stat read throws;
+ * Without the weapon registry, every {@code WeaponDef} stat read throws;
  * without special equipment, persisted loadout ids and utility presentation
  * cannot resolve. Both catalogs deliberately fail loud rather than degrading.
  *

@@ -1,7 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
@@ -26,12 +27,12 @@ class EquipmentDoctrineDesignerViewModelTest {
         roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
         EquipmentDoctrineDesignerViewModel designer = designer(roster);
 
-        Set<MarineSecondary> seen = cycleSpecials(designer, 12);
-        assertFalse(seen.contains(MarineSecondary.FRAG_GRENADE));
+        Set<SpecialEquipmentDef> seen = cycleSpecials(designer, 12);
+        assertFalse(seen.contains(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID)));
 
-        roster.armory().unlockSecondary(MarineSecondary.FRAG_GRENADE);
+        roster.armory().unlockSecondary(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID));
         seen = cycleSpecials(designer, 12);
-        assertTrue(seen.contains(MarineSecondary.FRAG_GRENADE));
+        assertTrue(seen.contains(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID)));
     }
 
     @Test
@@ -95,12 +96,12 @@ class EquipmentDoctrineDesignerViewModelTest {
                 SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR);
     }
 
-    private static Set<MarineSecondary> cycleSpecials(
+    private static Set<SpecialEquipmentDef> cycleSpecials(
             EquipmentDoctrineDesignerViewModel designer, int count) {
-        Set<MarineSecondary> seen = new HashSet<>();
+        Set<SpecialEquipmentDef> seen = new HashSet<>();
         for (int index = 0; index < count; index++) {
             designer.billets().get().get(0).cycleSpecial().run();
-            seen.add(designer.viewerBilletAt(0).secondary());
+            seen.add(designer.viewerBilletAt(0).specialDef());
         }
         return seen;
     }

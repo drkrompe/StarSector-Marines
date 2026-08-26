@@ -4,8 +4,10 @@ import com.dillon.starsectormarines.battle.air.InfantryPayload;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -15,7 +17,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
-import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -50,14 +52,14 @@ public class MarineInsertionTest {
         assertEquals(lift, mission.marinesRemaining);
         assertNotNull(mission.marineLoadout);
         assertEquals(lift, mission.marineLoadout.length);
-        Set<MarineWeapon> manifestPrimaries = EnumSet.noneOf(MarineWeapon.class);
+        Set<WeaponDef> manifestPrimaries = new HashSet<>();
         int manifestRocketeers = 0;
         for (MarineLoadout loadout : mission.marineLoadout) {
-            assertNotNull(loadout.primary, "every dropped ally must carry a real primary");
-            manifestPrimaries.add(loadout.primary);
-            if (loadout.secondary == MarineSecondary.ROCKET_LAUNCHER) manifestRocketeers++;
+            assertNotNull(loadout.primaryDef(), "every dropped ally must carry a real primary");
+            manifestPrimaries.add(loadout.primaryDef());
+            if (loadout.specialDef() == SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID)) manifestRocketeers++;
         }
-        assertEquals(Set.of(MarineWeapon.SMG, MarineWeapon.DMR, MarineWeapon.PULSE_RIFLE),
+        assertEquals(Set.of(WeaponRegistry.require(WeaponRegistry.SMG_ID), WeaponRegistry.require(WeaponRegistry.DMR_ID), WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID)),
                 manifestPrimaries, "the injected roll must produce a visibly mixed squad");
         assertEquals(1, manifestRocketeers, "a full drop keeps the standard launcher specialist");
         assertEquals(1f + 0.5f * BattleSimulation.TICK_DT,
@@ -75,14 +77,14 @@ public class MarineInsertionTest {
         assertEquals(lift, squad.originalSize);
         assertTrue(squad.leaderId != 0L);
         int members = 0;
-        Set<MarineWeapon> livePrimaries = EnumSet.noneOf(MarineWeapon.class);
+        Set<WeaponDef> livePrimaries = new HashSet<>();
         for (int i = 0; i < sim.liveUnitCount(); i++) {
             long unit = sim.liveUnitAt(i);
             if (sim.identity().faction(unit) == Faction.MARINE
                     && sim.squad().hasSquad(unit)
                     && sim.squad().squadId(unit) == squad.id) {
                 members++;
-                MarineWeapon primary = sim.combat().primaryWeapon(unit);
+                WeaponDef primary = sim.combat().primaryWeapon(unit);
                 assertNotNull(primary, "deboarded allies must not fall back to generic line fire");
                 livePrimaries.add(primary);
             }

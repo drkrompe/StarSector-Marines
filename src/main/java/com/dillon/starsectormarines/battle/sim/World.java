@@ -7,9 +7,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.engine.ThrusterFx;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
-import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -202,13 +200,7 @@ public final class World {
     public SpecialEquipmentDef specialEquipment(long id) {
         Object value = entityWorld.getObject(id, components.SECONDARY_WEAPON,
                 BattleComponents.SECONDARY_WEAPON_SPEC);
-        return value instanceof SpecialEquipmentDef def
-                ? def : value instanceof MarineSecondary legacy ? legacy.specialDef() : null;
-    }
-    /** Built-in compatibility handle; contributed equipment intentionally returns null. */
-    public MarineSecondary secondaryWeapon(long id) {
-        SpecialEquipmentDef def = specialEquipment(id);
-        return def != null ? SpecialEquipmentRegistry.compatibilityHandle(def.id()) : null;
+        return value instanceof SpecialEquipmentDef def ? def : null;
     }
     public int secondaryAmmo(long id) { return entityWorld.getInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_AMMO); }
     public void setSecondaryAmmo(long id, int v) { entityWorld.setInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_AMMO, v); }
@@ -226,10 +218,6 @@ public final class World {
     public void setSecondaryFired(long id, boolean v) { entityWorld.setInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_FIRED, v ? 1 : 0); }
 
     /** Grant the secondary capability to a live unit at runtime (archetype row-move). Serial-only — never mid-{@code Query} walk. */
-    public void attachSecondaryWeapon(long id, MarineSecondary spec, int ammo) {
-        attachSpecialEquipment(id, spec != null ? spec.specialDef() : null, ammo);
-    }
-
     public void attachSpecialEquipment(long id, SpecialEquipmentDef spec, int ammo) {
         entityWorld.addComponent(id, components.SECONDARY_WEAPON);
         entityWorld.setObject(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC, spec);

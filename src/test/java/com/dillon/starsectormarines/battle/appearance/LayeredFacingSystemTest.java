@@ -1,7 +1,8 @@
 package com.dillon.starsectormarines.battle.appearance;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -188,13 +189,13 @@ public class LayeredFacingSystemTest {
     public void rocketSwitchesAboveShoulderOnlyAfterMidpointFire() {
         BattleSimulation sim = arena();
         long marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 5, 5)
-                .secondary(MarineSecondary.ROCKET_LAUNCHER, 3));
+                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), 3));
         long enemy = sim.spawn(new EntitySpec("e", Faction.DEFENDER, UnitType.HEAVY_MECH, 8, 5));
         sim.world().setTargetId(marine, enemy);
         sim.world().setSecondaryAimTargetId(marine, enemy);
         FacingSystem system = new FacingSystem(sim.getEntityWorld(), sim.getBattleComponents(), sim.getRoster());
 
-        sim.world().setSecondaryActionTimer(marine, MarineSecondary.ROCKET_LAUNCHER.aimDuration() * 0.75f);
+        sim.world().setSecondaryActionTimer(marine, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).aimDuration() * 0.75f);
         sim.world().setSecondaryFired(marine, false);
         system.tick();
         assertEquals(LayeredAppearance.POSE_ROCKET_AIM,
@@ -202,7 +203,7 @@ public class LayeredFacingSystemTest {
         assertFalse((i(sim, marine, BattleComponents.LAYERED_FLAGS)
                 & LayeredAppearance.FLAG_WEAPON_OVER_SHOULDER) != 0);
 
-        sim.world().setSecondaryActionTimer(marine, MarineSecondary.ROCKET_LAUNCHER.aimDuration() * 0.49f);
+        sim.world().setSecondaryActionTimer(marine, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).aimDuration() * 0.49f);
         sim.world().setSecondaryFired(marine, true);
         system.tick();
         assertEquals(LayeredAppearance.POSE_ROCKET_FIRE,
@@ -219,13 +220,13 @@ public class LayeredFacingSystemTest {
         BattleComponents c = sim.getBattleComponents();
         long marine = sim.spawn(new EntitySpec("m", Faction.MARINE,
                 UnitType.MARINE, 5, 5)
-                .secondary(MarineSecondary.ANTI_MATERIEL_RIFLE, 4));
+                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID), 4));
         sim.getEntityWorld().setFloat(marine, c.MOVEMENT,
                 BattleComponents.MOVEMENT_GAIT_PHASE, 0.25f);
         sim.getEntityWorld().setInt(marine, c.LAYERED_ANIMATION,
                 BattleComponents.LAYERED_FLAGS, LayeredAppearance.FLAG_MOVING);
         sim.world().setSecondaryActionTimer(marine,
-                MarineSecondary.ANTI_MATERIEL_RIFLE.aimDuration());
+                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID).aimDuration());
 
         FacingSystem system = new FacingSystem(sim.getEntityWorld(), c, sim.getRoster());
         system.tick();
@@ -236,7 +237,7 @@ public class LayeredFacingSystemTest {
                 & LayeredAppearance.FLAG_ACTION_FROM_MOVING) != 0);
 
         sim.world().setSecondaryActionTimer(marine,
-                MarineSecondary.ANTI_MATERIEL_RIFLE.aimDuration() * 0.85f);
+                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID).aimDuration() * 0.85f);
         system.tick();
         assertFalse((i(sim, marine, BattleComponents.LAYERED_FLAGS)
                 & LayeredAppearance.FLAG_ACTION_FROM_MOVING) != 0);
@@ -246,7 +247,7 @@ public class LayeredFacingSystemTest {
     public void antiMaterielBraceUsesDedicatedUnderBodyAimAndFirePoses() {
         BattleSimulation sim = arena();
         long marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 5, 5)
-                .secondary(MarineSecondary.ANTI_MATERIEL_RIFLE, 4));
+                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID), 4));
         long enemy = sim.spawn(new EntitySpec("e", Faction.DEFENDER,
                 UnitType.HEAVY_MECH, 8, 5));
         sim.world().setTargetId(marine, enemy);
@@ -255,13 +256,13 @@ public class LayeredFacingSystemTest {
                 sim.getBattleComponents(), sim.getRoster());
 
         sim.world().setSecondaryActionTimer(marine,
-                MarineSecondary.ANTI_MATERIEL_RIFLE.aimDuration() * 0.75f);
+                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID).aimDuration() * 0.75f);
         system.tick();
         assertEquals(LayeredAppearance.POSE_AMR_AIM,
                 i(sim, marine, BattleComponents.LAYERED_WEAPON_POSE));
 
         sim.world().setSecondaryActionTimer(marine,
-                MarineSecondary.ANTI_MATERIEL_RIFLE.aimDuration() * 0.49f);
+                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID).aimDuration() * 0.49f);
         sim.world().setSecondaryFired(marine, true);
         system.tick();
         assertEquals(LayeredAppearance.POSE_AMR_FIRE,
@@ -277,13 +278,13 @@ public class LayeredFacingSystemTest {
         BattleSimulation sim = arena();
         long marine = sim.spawn(new EntitySpec("m", Faction.MARINE,
                 UnitType.MARINE, 5, 5)
-                .secondary(MarineSecondary.SATCHEL_CHARGE, 0));
+                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID), 0));
         long enemy = sim.spawn(new EntitySpec("e", Faction.DEFENDER,
                 UnitType.HEAVY_MECH, 6, 5));
         sim.world().setTargetId(marine, enemy);
         sim.world().setSecondaryAimTargetId(marine, enemy);
         sim.world().setSecondaryActionTimer(marine,
-                MarineSecondary.SATCHEL_CHARGE.aimDuration() * 0.5f);
+                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID).aimDuration() * 0.5f);
 
         FacingSystem system = new FacingSystem(sim.getEntityWorld(),
                 sim.getBattleComponents(), sim.getRoster());

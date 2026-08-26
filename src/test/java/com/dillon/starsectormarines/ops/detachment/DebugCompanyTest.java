@@ -2,7 +2,8 @@ package com.dillon.starsectormarines.ops.detachment;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.ExperienceTier;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.marine.EnlistedRank;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldier;
@@ -122,7 +123,7 @@ class DebugCompanyTest {
         MarineRoster roster = DebugCompany.roster(DebugCompanyStage.VETERAN_COMPANY);
         int masterworkDmrs = 0;
         for (MarineSoldier soldier : roster.activeSoldiers()) {
-            if (soldier.primary() == MarineWeapon.DMR
+            if (soldier.primaryDef() == WeaponRegistry.require(WeaponRegistry.DMR_ID)
                     && soldier.primaryGrade() == EquipmentGrade.MASTERWORK) masterworkDmrs++;
         }
         assertEquals(DebugCompanyStage.VETERAN_COMPANY.squads, masterworkDmrs,
