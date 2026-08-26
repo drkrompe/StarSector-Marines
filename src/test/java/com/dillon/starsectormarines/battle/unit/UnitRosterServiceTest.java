@@ -7,7 +7,8 @@ import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadFormUpSystem;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.turret.StructureDef;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -68,10 +69,13 @@ public class UnitRosterServiceTest {
     public void turretGeometryComesFromItsStructureDefinition() {
         UnitRosterService r = roster();
         long turret = r.spawn(MapTurret.create(
-                "geometry", Faction.DEFENDER, TurretKind.HEPHAESTUS, 4, 5));
+                "geometry", Faction.DEFENDER,
+                TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID, 4, 5));
+        StructureDef structure = TurretCatalogRegistry.requireStructure(
+                TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID);
 
-        assertEquals(TurretKind.HEPHAESTUS.structure().radius, r.radius(turret), 0f);
-        assertEquals(TurretKind.HEPHAESTUS.structure().hitHalfHeight,
+        assertEquals(structure.radius, r.radius(turret), 0f);
+        assertEquals(structure.hitHalfHeight,
                 r.hitHalfHeight(turret), 0f);
     }
 

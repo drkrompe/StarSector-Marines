@@ -4,8 +4,11 @@ Status: PLANNED — begins after the neutral local-shield relay proves its place
 
 Written: 2026-08-24
 
-Read `mapgen-nouns.md`, `campaign-battle-bridge-nouns.md`, and
-`moddable-tilesets-nouns.md` before implementing this story.
+Updated: 2026-08-26 — routed faction facility authors through the enduring lore guide catalog.
+
+Read `mapgen-nouns.md`, `campaign-battle-bridge-nouns.md`,
+`faction-lore-nouns.md`, and `moddable-tilesets-nouns.md` before implementing
+this story.
 
 ## Problem
 

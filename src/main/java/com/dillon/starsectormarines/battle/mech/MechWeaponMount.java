@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+
 /** Mutable firing state for one installed {@link MechWeaponComponent}. */
 public final class MechWeaponMount {
 
@@ -22,9 +24,9 @@ public final class MechWeaponMount {
         this.ammo = component.ammoCapacity;
     }
 
-    public MechWeapon weapon() {
-        return component.weapon();
-    }
+    public String weaponId() { return component.weaponId; }
+
+    public WeaponDef weaponDef() { return component.weaponDef(); }
 
     public boolean hasAmmo() {
         return component.ammoCapacity < 0 || ammo > 0;
@@ -49,7 +51,7 @@ public final class MechWeaponMount {
             replenishmentProgressSeconds = 0f;
             return;
         }
-        float cadence = replenisher.replenishmentSeconds(weapon());
+        float cadence = replenisher.replenishmentSeconds(weaponId());
         if (!Float.isFinite(cadence)) {
             replenishmentProgressSeconds = 0f;
             return;

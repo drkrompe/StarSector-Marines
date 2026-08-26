@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
-import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.turret.StructureDef;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 
 /**
  * Static config for each ground-vehicle variant — sprite, capacity, handling
@@ -30,7 +31,8 @@ public enum VehicleType {
             /*deboardInterval*/ 0.8f, /*lookAheadCells*/ 2.2f,
             /*turretFrame*/ 1, /*turretMountX*/ -0.15866698f, /*turretMountY*/ 0.26800027f,
             /*turretPivotX*/ 0.108333334f, /*turretPivotY*/ 0.024999995f, /*turretVisualCells*/ 0.7f, /*turretSpriteFacingOffsetDeg*/ -90f,
-            /*turretKind*/ TurretKind.HEAVY_MG, /*departsAfterDeboard*/ false, /*overwatchDurationSec*/ 20f) {
+            /*turretStructureId*/ TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID,
+            /*departsAfterDeboard*/ false, /*overwatchDurationSec*/ 20f) {
         @Override
         public GroundBody createBody() {
             return new BicycleBody(
@@ -87,14 +89,19 @@ public enum VehicleType {
     public final float turretVisualCells;
     /** Facing offset for the turret sprite, degrees. Separate from {@link #spriteFacingOffsetDeg} because chassis and turret frames may face different directions in the sheet. */
     public final float turretSpriteFacingOffsetDeg;
-    /** Weapon kind for the vehicle-mounted turret, or {@code null} if no functional weapon. Drives the aim/fire loop in {@link GroundSystem}. */
-    public final TurretKind turretKind;
+    /** Stable structure id for the vehicle-mounted turret, or {@code null} if unarmed. */
+    public final String turretStructureId;
     /** If true, the vehicle departs immediately after all marines deboard (truck behavior). If false, it enters OVERWATCH first. */
     public final boolean departsAfterDeboard;
     /** Sim-seconds the vehicle holds overwatch before departing. Only meaningful when {@link #departsAfterDeboard} is false. */
     public final float overwatchDurationSec;
 
-    public boolean hasTurretWeapon() { return turretKind != null && turretFrame >= 0; }
+    public boolean hasTurretWeapon() { return turretStructureId != null && turretFrame >= 0; }
+
+    public StructureDef turretStructure() {
+        return hasTurretWeapon()
+                ? TurretCatalogRegistry.requireStructure(turretStructureId) : null;
+    }
 
     VehicleType(String spritePath, int spriteFrame, int frameCount,
                 float spriteFacingOffsetDeg,
@@ -104,7 +111,7 @@ public enum VehicleType {
                 int turretFrame, float turretMountX, float turretMountY,
                 float turretPivotX, float turretPivotY, float turretVisualCells,
                 float turretSpriteFacingOffsetDeg,
-                TurretKind turretKind, boolean departsAfterDeboard,
+                String turretStructureId, boolean departsAfterDeboard,
                 float overwatchDurationSec) {
         this.spritePath = spritePath;
         this.spriteFrame = spriteFrame;
@@ -125,7 +132,7 @@ public enum VehicleType {
         this.turretPivotY = turretPivotY;
         this.turretVisualCells = turretVisualCells;
         this.turretSpriteFacingOffsetDeg = turretSpriteFacingOffsetDeg;
-        this.turretKind = turretKind;
+        this.turretStructureId = turretStructureId;
         this.departsAfterDeboard = departsAfterDeboard;
         this.overwatchDurationSec = overwatchDurationSec;
     }

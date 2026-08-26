@@ -13,7 +13,7 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.sim.TurretStateService;
 import com.dillon.starsectormarines.battle.sim.World;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -128,7 +128,7 @@ public final class UnitRenderService implements RenderSystem {
     /**
      * Map-turret bodies: an optional recoil-displaced barrel {@code SPRITE} under
      * the base {@code SPRITE} (both whole-texture rotated). Faithful port of the
-     * inline turret pass — same recoil easing/offset, same per-{@code TurretKind}
+     * inline turret pass — same recoil easing/offset, same per-structure
      * base/barrel caches — minus the end-of-pass {@code setAngle(0)} reset loops
      * (the {@code SPRITE} drain resets angle after each draw). When the base sprite
      * is missing, a {@code DEFENDER_COLOR} {@code SOLID_RECT} fallback stands in
@@ -144,12 +144,12 @@ public final class UnitRenderService implements RenderSystem {
             long u = ctx.sim.liveUnitAt(i);
             if (!ctx.sim.identity().type(u).isTurret()) continue;
             long id = u;
-            TurretKind kind = turretState.kind(id);
+            StructureDef structure = turretState.structure(id);
             float facingDegrees = turretState.facingDegrees(id);
             float cx = cam.cellToScreenX(world.renderX(id));
             float cy = cam.cellToScreenY(world.renderY(id));
 
-            ShuttleSpriteCache base = sprites.turretSprites().get(kind);
+            ShuttleSpriteCache base = sprites.turretSprites().get(structure.id);
             if (base == null) {
                 float half = cellPx * BattleRenderer.UNIT_FRAC / 2f;
                 emitSolidQuad(out, cx, cy, half, DEFENDER_COLOR, alphaMult);
@@ -157,11 +157,11 @@ public final class UnitRenderService implements RenderSystem {
             }
 
             TurretLayerPose pose = TurretLayerPose.resolve(
-                    cx, cy, facingDegrees, kind.visualCells(), cellPx,
+                    cx, cy, facingDegrees, structure.mount.visualCells, cellPx,
                     turretState.recoilTimer(id), BattleRenderer.RECOIL_DURATION,
                     BattleRenderer.RECOIL_DISTANCE_FRAC);
 
-            ShuttleSpriteCache barrel = sprites.turretRecoilSprites().get(kind);
+            ShuttleSpriteCache barrel = sprites.turretRecoilSprites().get(structure.id);
             if (barrel != null) {
                 emitWholeSprite(out, barrel, pose.facingDegrees(), pose.spriteHeightPx(),
                         pose.recoilCenterX(), pose.recoilCenterY(), alphaMult);
@@ -648,7 +648,7 @@ public final class UnitRenderService implements RenderSystem {
             float cy = cam.cellToScreenY(world.renderY(u));
             float barY;
             if (ctx.sim.identity().type(u).isTurret()) {
-                barY = cy + turretState.kind(u).visualCells() * cellPx / 2f + BattleRenderer.HP_BAR_GAP;
+                barY = cy + turretState.mount(u).visualCells * cellPx / 2f + BattleRenderer.HP_BAR_GAP;
             } else if (ctx.sim.identity().type(u).isDroneHub()) {
                 barY = cy + DroneHub.VISUAL_CELLS * cellPx / 2f + BattleRenderer.HP_BAR_GAP;
             } else {

@@ -24,7 +24,7 @@ import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.squad.CampaignSquadIndex;
 import com.dillon.starsectormarines.battle.squad.CampaignSquadTag;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -328,8 +328,8 @@ public final class UnitRosterService {
     /** Profile-aware physical radius shared by selection, separation, ballistics and AoE. */
     public float radius(long id) {
         if (turretStateService.isTurret(id)) {
-            TurretKind turretKind = turretStateService.kind(id);
-            if (turretKind != null) return turretKind.structure().radius;
+            StructureDef structure = turretStateService.structure(id);
+            if (structure != null) return structure.radius;
         }
         MechVariant variant = identityService.mechVariant(id);
         return variant != null ? variant.radius : identityService.type(id).radius;
@@ -338,8 +338,8 @@ public final class UnitRosterService {
     /** Profile-aware target-plane half-height for ballistic contact. */
     public float hitHalfHeight(long id) {
         if (turretStateService.isTurret(id)) {
-            TurretKind turretKind = turretStateService.kind(id);
-            if (turretKind != null) return turretKind.structure().hitHalfHeight;
+            StructureDef structure = turretStateService.structure(id);
+            if (structure != null) return structure.hitHalfHeight;
         }
         MechVariant variant = identityService.mechVariant(id);
         return variant != null ? variant.hitHalfHeight : identityService.type(id).hitHalfHeight;
@@ -631,7 +631,8 @@ public final class UnitRosterService {
         // doesn't read as mid-recoil at sim start (a fresh row's zero-init would).
         // facingDegrees/burst* ride the zero-init.
         if (isTurret) {
-            entityWorld.setObject(id, components.TURRET_STATE, BattleComponents.TURRET_STATE_KIND, spec.turretKind);
+            entityWorld.setObject(id, components.TURRET_STATE,
+                    BattleComponents.TURRET_STATE_STRUCTURE_ID, spec.turretStructureId);
             entityWorld.setFloat(id, components.TURRET_STATE, BattleComponents.TURRET_STATE_RECOIL_TIMER, 1f);
         }
         // Seed the drone's live state (the DRONE_STATE component was attached above

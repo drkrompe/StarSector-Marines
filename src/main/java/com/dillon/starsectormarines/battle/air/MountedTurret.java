@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.air;
 
-import com.dillon.starsectormarines.battle.turret.TurretKind;
 
 /**
  * Runtime state for one hardpoint on an air craft. Pairs with the
@@ -22,7 +21,7 @@ public final class MountedTurret {
     public float facingDegrees;
     /** Sim-seconds until this mount can fire again. Decrements every tick. */
     public float cooldownTimer;
-    /** Rounds remaining in this mount's magazine. Initialized from {@link TurretKind#startingAmmo} at construction; the hover-loiter exits when every mount on the shuttle hits zero. */
+    /** Rounds remaining in this mount's magazine. Initialized from the authored mount capacity. */
     public int ammo;
     /**
      * Currently locked enemy as a {@code entityId} into the registry, or
@@ -62,7 +61,7 @@ public final class MountedTurret {
 
     public MountedTurret(TurretMount mount) {
         this.mount = mount;
-        this.ammo = mount.kind.startingAmmo();
+        this.ammo = mount.mountDef().ammoCapacity;
     }
 
     /** Write the locked target id ({@code 0L} = none) into {@link #targetId}. */

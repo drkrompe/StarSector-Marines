@@ -570,7 +570,7 @@ public final class TacticalScoring {
         if (primaryWeapon != null) {
             primary = primaryWeapon.penetration;
         } else if (roster.identity().type(self).isTurret()) {
-            primary = roster.turretState().kind(self).targetAffinityPenetration();
+            primary = roster.turretState().weapon(self).targetAffinityPenetration();
         } else {
             primary = 0f;
         }

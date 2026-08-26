@@ -11,11 +11,12 @@ import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 import java.util.Random;
 
 /**
- * Turret-kind fire procedure. Ground-level burst mounts resolve physical
+ * Definition-driven turret fire procedure. Ground-level burst mounts resolve physical
  * rounds; aerial and indirect mounts retain their existing accuracy/scatter
  * procedures. The system owns payload queuing and shot-event posting. Extracted
  * from {@code BattleSimulation.fireShotFrom} so the sim doesn't own weapon logic.
@@ -72,36 +73,37 @@ public final class TurretFireSystem implements TurretFireSink {
 
     @Override
     public void fire(long shooterId, float fromX, float fromY, Faction shooterFaction,
-                     TurretKind kind, long target, boolean aerialShooter, boolean hasLos) {
+                     StructureDef structure, long target, boolean aerialShooter, boolean hasLos) {
+        WeaponDef weapon = structure.mount.weapon;
         telemetry.recordRoundFired(shooterId);
         int tcx = world.cellX(target);
         int tcy = world.cellY(target);
         float distToTarget = (float) Math.sqrt(
                 (tcx + 0.5f - fromX) * (tcx + 0.5f - fromX) +
                 (tcy + 0.5f - fromY) * (tcy + 0.5f - fromY));
-        float effectiveAccuracy = kind.accuracy();
-        if (kind.indirectFire()) {
-            float distNorm = Math.min(1f, distToTarget / Math.max(0.0001f, kind.range()));
+        float effectiveAccuracy = weapon.accuracy;
+        if (weapon.indirectFire) {
+            float distNorm = Math.min(1f, distToTarget / Math.max(0.0001f, weapon.range));
             float distFalloff = Math.max(0f, 1f - distNorm * distNorm);
-            float losMult = hasLos ? 1f : kind.noLosAccuracyMult();
+            float losMult = hasLos ? 1f : weapon.noLosAccuracyMult;
             effectiveAccuracy *= distFalloff * losMult;
         }
-        if (!aerialShooter && kind.arcHeight() <= 0f && kind.cellsPerSec() <= 0f) {
+        if (!aerialShooter && weapon.arcHeight <= 0f && weapon.projectileCellsPerSec() <= 0f) {
             fireGroundDirect(shooterId, fromX, fromY, shooterFaction,
-                    kind, target, distToTarget, effectiveAccuracy);
+                    structure, target, distToTarget, effectiveAccuracy);
             return;
         }
 
-        if (kind.cellsPerSec() > 0f) {
-            spawnProjectile(shooterId, fromX, fromY, shooterFaction, kind, tcx, tcy, aerialShooter,
+        if (weapon.projectileCellsPerSec() > 0f) {
+            spawnProjectile(shooterId, fromX, fromY, shooterFaction, structure, tcx, tcy, aerialShooter,
                     distToTarget, effectiveAccuracy);
             return;
         }
 
         boolean hit = rng.nextFloat() < effectiveAccuracy;
-        boolean isAoe = kind.aoeRadius() > 0f;
-        boolean aerialDelivery = aerialShooter || kind.arcHeight() > 0f;
-        float effectiveSpread = kind.hitSpread() * Math.min(1f, distToTarget / kind.range());
+        boolean isAoe = weapon.aoeRadius > 0f;
+        boolean aerialDelivery = aerialShooter || weapon.arcHeight > 0f;
+        float effectiveSpread = weapon.hitSpread * Math.min(1f, distToTarget / weapon.range);
 
         float toX, toY;
         if (hit) {
@@ -124,84 +126,87 @@ public final class TurretFireSystem implements TurretFireSink {
         if (!isAoe && hit) {
             if (!aerialDelivery || !topology.isRoofIntact(tcx, tcy)) {
                 telemetry.recordRoundHit(shooterId);
-                damageService.applyDamage(target, shooterId, kind.damage(), kind.penetration(), 1f);
+                damageService.applyDamage(target, shooterId, weapon.damage, weapon.penetration, 1f);
                 hitResponse.rollFallbackOnHit(target);
             }
         }
 
         if (isAoe) {
-            float flight = kind.flightSec() > 0f ? kind.flightSec() : SHOT_LIFETIME;
+            float flight = weapon.flightSec > 0f ? weapon.flightSec : SHOT_LIFETIME;
             detonationSink.queue(new PendingDetonation(
                     shooterId,
                     toX, toY, flight,
-                    kind.aoeRadius(), kind.damage(), kind.penetration(),
-                    kind.wallDamage(), shooterFaction, aerialDelivery,
-                    kind.wallDamageRadius(), /*spawnDustOnWallBreak*/ true,
+                    weapon.aoeRadius, weapon.damage, weapon.penetration,
+                    weapon.wallDamage, shooterFaction, aerialDelivery,
+                    weapon.wallDamageRadius, /*spawnDustOnWallBreak*/ true,
                     /*friendlyFireImmune*/ false, /*authoredAftermath*/ true));
         }
-        float lifetime = kind.flightSec() > 0f ? kind.flightSec() : SHOT_LIFETIME;
+        float lifetime = weapon.flightSec > 0f ? weapon.flightSec : SHOT_LIFETIME;
         shots.postShot(new ShotEvent(shooterId, fromX, fromY, toX, toY, hit, shooterFaction,
-                lifetime, kind, null, null));
+                lifetime, structure, null, null));
     }
 
     /** Modeled ground-level path for Vulcan/Heavy-MG bursts and any future direct mount. */
     private void fireGroundDirect(long shooterId, float fromX, float fromY,
-                                  Faction shooterFaction, TurretKind kind,
+                                  Faction shooterFaction, StructureDef structure,
                                   long target, float distToTarget,
                                   float effectiveAccuracy) {
-        float effectiveSpread = kind.hitSpread()
-                * Math.min(1f, distToTarget / Math.max(0.0001f, kind.range()));
+        WeaponDef weapon = structure.mount.weapon;
+        float effectiveSpread = weapon.hitSpread
+                * Math.min(1f, distToTarget / Math.max(0.0001f, weapon.range));
         BallisticResolver.Source source = new BallisticResolver.Source(
                 shooterId, fromX, fromY, 0f, shooterFaction);
         BallisticResolver.Resolution res = resolver.resolve(
                 source, target, effectiveAccuracy, effectiveSpread,
-                kind.directRoundVelocity(), rng);
+                weapon.directRoundVelocity(), rng);
 
-        if (kind.aoeRadius() > 0f && res.impacts()) {
-            queueGroundDetonation(shooterId, shooterFaction, kind, res);
-        } else if (kind.aoeRadius() <= 0f && res.victimId() != 0L) {
+        if (weapon.aoeRadius > 0f && res.impacts()) {
+            queueGroundDetonation(shooterId, shooterFaction, structure, res);
+        } else if (weapon.aoeRadius <= 0f && res.victimId() != 0L) {
             float appliedDamage = res.friendlyHit()
-                    ? kind.damage() * BallisticResolver.FRIENDLY_FIRE_DAMAGE_MULT
-                    : kind.damage();
+                    ? weapon.damage * BallisticResolver.FRIENDLY_FIRE_DAMAGE_MULT
+                    : weapon.damage;
             shots.queueImpact(new ShotService.PendingImpact(
                     res.victimId(), shooterId, res.flightTime(), appliedDamage,
-                    kind.penetration(), /*moraleImpact*/ 1f, res.friendlyHit()));
+                    weapon.penetration, /*moraleImpact*/ 1f, res.friendlyHit()));
         }
 
         shots.postShot(new ShotEvent(fromX, fromY, 0f,
                 res.endX(), res.endY(), res.endZ(),
                 res.hitIntended(), shooterFaction, Math.max(res.flightTime(), 0.05f),
-                kind, null, null, null, /*moraleImpact*/ 1f,
+                structure, null, null, null, /*moraleImpact*/ 1f,
                 res.victimId() != 0L, res.kind(), shooterId));
     }
 
     private void queueGroundDetonation(long shooterId, Faction shooterFaction,
-                                       TurretKind kind,
+                                       StructureDef structure,
                                        BallisticResolver.Resolution res) {
-        boolean hasDirectPayload = res.victimId() != 0L && kind.contactDamage() > 0f;
+        WeaponDef weapon = structure.mount.weapon;
+        boolean hasDirectPayload = res.victimId() != 0L && weapon.contactDamage > 0f;
         float directDamage = hasDirectPayload && res.friendlyHit()
-                ? kind.contactDamage() * BallisticResolver.FRIENDLY_FIRE_DAMAGE_MULT
-                : hasDirectPayload ? kind.contactDamage() : 0f;
+                ? weapon.contactDamage * BallisticResolver.FRIENDLY_FIRE_DAMAGE_MULT
+                : hasDirectPayload ? weapon.contactDamage : 0f;
         detonationSink.queue(new PendingDetonation(
                 shooterId,
                 res.endX(), res.endY(), res.flightTime(),
-                kind.aoeRadius(), kind.damage(), kind.penetration(),
-                kind.wallDamage(), shooterFaction, /*aerialDelivery*/ false,
-                kind.wallDamageRadius(), /*spawnDustOnWallBreak*/ true,
+                weapon.aoeRadius, weapon.damage, weapon.penetration,
+                weapon.wallDamage, shooterFaction, /*aerialDelivery*/ false,
+                weapon.wallDamageRadius, /*spawnDustOnWallBreak*/ true,
                 /*friendlyFireImmune*/ false,
                 hasDirectPayload ? res.victimId() : 0L,
-                directDamage, hasDirectPayload ? kind.contactPenetration() : 0f,
+                directDamage, hasDirectPayload ? weapon.contactPenetration : 0f,
                 /*authoredAftermath*/ true));
     }
 
     private void spawnProjectile(long shooterId, float fromX, float fromY, Faction shooterFaction,
-                                 TurretKind kind, int tcx, int tcy, boolean aerialShooter,
+                                 StructureDef structure, int tcx, int tcy, boolean aerialShooter,
                                  float distToTarget, float effectiveAccuracy) {
-        boolean aerialDelivery = aerialShooter || kind.arcHeight() > 0f;
+        WeaponDef weapon = structure.mount.weapon;
+        boolean aerialDelivery = aerialShooter || weapon.arcHeight > 0f;
 
-        float distScale = Math.min(1f, distToTarget / Math.max(0.0001f, kind.range()));
+        float distScale = Math.min(1f, distToTarget / Math.max(0.0001f, weapon.range));
         boolean hit = rng.nextFloat() < effectiveAccuracy;
-        float scatterRadius = kind.hitSpread() * distScale;
+        float scatterRadius = weapon.hitSpread * distScale;
         if (!hit) {
             // Projectile kinds still resolve the same real accuracy roll as
             // instant/tracer kinds. A miss expands beyond the nominal impact
@@ -215,19 +220,19 @@ public final class TurretFireSystem implements TurretFireSink {
         float toX = tcx + 0.5f + (float) Math.cos(angle) * r;
         float toY = tcy + 0.5f + (float) Math.sin(angle) * r;
 
-        float flightTime = distToTarget / kind.cellsPerSec();
+        float flightTime = distToTarget / weapon.projectileCellsPerSec();
 
         PendingDetonation onArrival = new PendingDetonation(
                 shooterId,
                 toX, toY, flightTime,
-                kind.aoeRadius(), kind.damage(), kind.penetration(),
-                kind.wallDamage(), shooterFaction, aerialDelivery,
-                kind.wallDamageRadius(), /*spawnDustOnWallBreak*/ true,
+                weapon.aoeRadius, weapon.damage, weapon.penetration,
+                weapon.wallDamage, shooterFaction, aerialDelivery,
+                weapon.wallDamageRadius, /*spawnDustOnWallBreak*/ true,
                 /*friendlyFireImmune*/ false, /*authoredAftermath*/ true);
         shots.queueProjectile(new Projectile(fromX, fromY, toX, toY,
-                kind.hasBoostRamp(), kind.arcHeight(),
+                weapon.boostRamp, weapon.arcHeight,
                 shooterFaction, aerialDelivery, flightTime, onArrival));
         shots.postShot(new ShotEvent(shooterId, fromX, fromY, toX, toY, hit, shooterFaction,
-                flightTime, kind, null, null));
+                flightTime, structure, null, null));
     }
 }

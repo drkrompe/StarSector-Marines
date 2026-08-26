@@ -41,7 +41,8 @@ public class TurretBehaviorTest {
     @Test
     public void recoilTimerAgesEachUpdateWhenNoTargetInRange() {
         BattleSimulation sim = openArena(20, 20);
-        long turret = sim.spawn(MapTurret.create("t0", Faction.DEFENDER, TurretKind.VULCAN, 10, 10));
+        long turret = sim.spawn(MapTurret.create("t0", Faction.DEFENDER,
+                TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 10, 10));
 
         TurretBehavior.INSTANCE.update(turret, sim);
 
@@ -54,7 +55,8 @@ public class TurretBehaviorTest {
     @Test
     public void burstKindLatchesRemainingRoundsIntoTurretStateOnFire() {
         BattleSimulation sim = openArena(40, 40, 12345L);
-        long turret = sim.spawn(MapTurret.create("t0", Faction.DEFENDER, TurretKind.VULCAN, 10, 10));
+        long turret = sim.spawn(MapTurret.create("t0", Faction.DEFENDER,
+                TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 10, 10));
         // Due north of the turret (same cellX): bearing-to-target is exactly 0°,
         // matching the turret's zero-init facingDegrees, so the fire-arc gate
         // passes on the very first update with no slew needed. Well within
@@ -64,9 +66,10 @@ public class TurretBehaviorTest {
         TurretBehavior.INSTANCE.update(turret, sim);
 
         long id = turret;
-        assertEquals(TurretKind.VULCAN.burstCount() - 1, sim.turretState().burstRemaining(id),
+        var weapon = sim.turretState().weapon(id);
+        assertEquals(weapon.burstCount - 1, sim.turretState().burstRemaining(id),
                 "the trigger pull fires round 1; the burst pump latches the remaining rounds");
-        assertEquals(TurretKind.VULCAN.burstSpacing(), sim.turretState().burstTimer(id), 1e-4f);
+        assertEquals(weapon.burstSpacing, sim.turretState().burstTimer(id), 1e-4f);
         assertEquals(enemy, sim.turretState().burstTargetId(id),
                 "the burst locks onto the acquired target's id");
         assertEquals(0f, sim.turretState().recoilTimer(id), 1e-4f,
@@ -77,20 +80,21 @@ public class TurretBehaviorTest {
 
     @Test
     public void hephaestusIsAuthoredAsTheSlowDirectHitAntiArmorCannon() {
-        TurretKind cannon = TurretKind.HEPHAESTUS;
+        var cannon = TurretCatalogRegistry.requireStructure(
+                TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID).mount.weapon;
 
         assertEquals("Hephaestus Heavy Cannon", cannon.displayName());
         assertEquals(32f, cannon.range(), 0f);
-        assertEquals(117f, cannon.contactDamage(), 0f);
-        assertEquals(24f, cannon.contactPenetration(), 0f);
+        assertEquals(117f, cannon.contactDamage, 0f);
+        assertEquals(24f, cannon.contactPenetration, 0f);
         assertEquals(45f, cannon.damage(), 0f, "area payload damage");
         assertEquals(4f, cannon.penetration(), 0f, "area payload penetration");
         assertEquals(4.5f, cannon.cooldown(), 0f);
         assertEquals(0.65f, cannon.accuracy(), 0f);
-        assertEquals(1.6f, cannon.aoeRadius(), 0f);
-        assertEquals(30, cannon.wallDamage());
-        assertEquals(1.25f, cannon.wallDamageRadius(), 0f);
-        assertTrue(cannon.fx().hasHeavyImpact());
+        assertEquals(1.6f, cannon.aoeRadius, 0f);
+        assertEquals(30, cannon.wallDamage);
+        assertEquals(1.25f, cannon.wallDamageRadius, 0f);
+        assertTrue(cannon.fx.hasHeavyImpact());
         assertEquals(1, cannon.burstCount());
     }
 
@@ -98,7 +102,8 @@ public class TurretBehaviorTest {
     public void hephaestusBehaviorFiresOneHeavyCannonRoundAndEntersTheFullCooldown() {
         BattleSimulation sim = openArena(50, 50, 12345L);
         long turret = sim.spawn(MapTurret.create(
-                "hephaestus", Faction.DEFENDER, TurretKind.HEPHAESTUS, 10, 10));
+                "hephaestus", Faction.DEFENDER,
+                TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID, 10, 10));
         long enemy = sim.spawn(new EntitySpec(
                 "m0", Faction.MARINE, UnitType.MARINE, 10, 20));
         sim.spawn(new EntitySpec(
@@ -108,7 +113,8 @@ public class TurretBehaviorTest {
 
         assertEquals(1, sim.getShotsThisFrame().size());
         ShotEvent shot = sim.getShotsThisFrame().get(0);
-        assertSame(TurretKind.HEPHAESTUS, shot.turretKind);
+        assertSame(TurretCatalogRegistry.requireStructure(
+                TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID), shot.turretStructureDef);
         assertTrue(shot.weaponDef().fx.hasHeavyImpact());
         assertEquals(1, sim.getInflightDetonations().size(),
                 "single-shot cannon must queue its timed area payload through the turret fire path");

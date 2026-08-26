@@ -38,7 +38,6 @@ import com.dillon.starsectormarines.battle.air.PostDeliveryDisposition;
 import com.dillon.starsectormarines.battle.air.TurretMount;
 import com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver;
 import com.dillon.starsectormarines.battle.sim.World;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.command.AssaultCommand;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ConquestCommand;
@@ -510,7 +509,7 @@ public final class BattleSetup {
         // Loadout (what) from the role/hardpoint kit; positions (where) from the
         // hull's real weapon slots, converted at the one global pixel density.
         // Zip kind[i] with slot[i]; clamp to whichever runs out first.
-        TurretKind[] kit = ShuttleType.kitFor(mission.assignedRole, type.hardpoints);
+        String[] kit = ShuttleType.kitFor(mission.assignedRole, type.hardpoints);
         float[][] slots = TurretSlotResolver.resolve(type.renderHullId());
         int n = Math.min(kit.length, slots.length);
         if (n <= 0) return;
@@ -2673,9 +2672,8 @@ public final class BattleSetup {
         int h = 0;
         for (DefensePost post : posts) {
             for (DefensePost.TurretSpec spec : post.turrets) {
-                TurretKind kind = TurretKind.fromStructureId(spec.structureId);
                 long turret = sim.spawn(MapTurret.create("t" + i++, Faction.DEFENDER,
-                        kind, spec.cellX, spec.cellY));
+                        spec.structureId, spec.cellX, spec.cellY));
                 sim.getGrid().setWalkable(spec.cellX, spec.cellY, false);
                 sim.getGrid().recomputeCoverAt(spec.cellX + 1, spec.cellY);
                 sim.getGrid().recomputeCoverAt(spec.cellX - 1, spec.cellY);
