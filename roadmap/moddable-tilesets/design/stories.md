@@ -11,6 +11,7 @@ Read `moddable-tilesets-nouns.md` before changing a moddable-tilesets story.
 | `nature-variant-pool-authority-cleanup.md` | Proposed | Runtime grass/dirt primary variant membership remains hardcoded in `TileManifest`; preserve coordinate-hash parity while moving that membership to declared content. |
 
 External discovery and additive merge use the shared catalog-provider contract
-owned by `w5-submod-merge.md`; tilesets deliberately do not support overrides.
+defined in `../../moddable-weapons/design/submod-catalog-contract.md`; tilesets
+deliberately do not support overrides.
 The optional filler-dispatch field, more filler tunables, resolver/marker data,
 and richer overlay tags remain direction, not contracted work.

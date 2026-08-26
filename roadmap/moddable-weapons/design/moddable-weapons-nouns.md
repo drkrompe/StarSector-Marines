@@ -4,7 +4,7 @@ Status: ACTIVE — handheld, special-item and turret weapon data is owned; mech 
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — extended shared provider discovery and provenance through additive tilesets and mappings.
+Updated: 2026-08-25 — completed live two-provider acceptance of the shared catalog-provider boundary.
 
 ## Purpose
 
@@ -222,9 +222,8 @@ repairs player primary and armor ids to their safe starters and clears an
 unresolved special slot with a warning.
 
 Catalog expansion and mount validation, layered effects, compatibility-enum
-completion, compatibility-enum retirement and persistence repair, and remaining
-catalog-provider adoption belong to the work lifecycle tracked only by
-`stories.md`.
+completion, and compatibility-enum retirement and persistence repair belong to
+the work lifecycle tracked only by `stories.md`.
 
 ## Boundaries
 
