@@ -61,5 +61,12 @@
     { "equipmentId": "special.smoke-grenade", "issueCost": { "supplies": 2 } },
     { "equipmentId": "special.satchel-charge", "issueCost": { "supplies": 2, "heavyArmaments": 1, "heavyMachinery": 1 } },
     { "equipmentId": "special.frag-grenade", "issueCost": { "supplies": 2, "heavyArmaments": 1 } }
+  ],
+  "nonPlayerEquipment": [
+    {
+      "kind": "primary",
+      "equipmentId": "weapon.drone-pulse",
+      "reason": "Integrated drone armament is not compatible with human infantry issue."
+    }
   ]
 }
