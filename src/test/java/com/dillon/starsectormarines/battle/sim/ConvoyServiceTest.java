@@ -64,11 +64,11 @@ public class ConvoyServiceTest {
         assertEquals(0.5f, body.x, 1e-4, "body teleported to the inbound head cell");
         assertEquals(0.5f, body.y, 1e-4);
 
-        // HEAVY_APC is armed → GROUND_TURRET present, ammo seeded from the TurretKind.
+        // HEAVY_APC is armed → GROUND_TURRET present, ammo seeded from its mount definition.
         assertTrue(r.entityWorld().has(id, r.components().GROUND_TURRET), "armed vehicle carries GROUND_TURRET");
         assertNotNull(convoy.turret(id), "GROUND_TURRET seeded for an armed variant");
-        assertEquals(VehicleType.HEAVY_APC.turretKind.startingAmmo(), convoy.turret(id).ammo,
-                "turret ammo seeded from the TurretKind");
+        assertEquals(VehicleType.HEAVY_APC.turretStructure().mount.ammoCapacity,
+                convoy.turret(id).ammo, "turret ammo seeded from the mount definition");
 
         // The handed-in mission bag is the VEHICLE_MISSION payload (the id→mission resolution).
         assertSame(m, convoy.mission(id), "convoy.mission(id) resolves the seeded mission bag");

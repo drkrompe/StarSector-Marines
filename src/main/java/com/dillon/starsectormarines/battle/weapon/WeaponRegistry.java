@@ -43,6 +43,11 @@ public final class WeaponRegistry {
     public static final String SQUAD_AUTOMATIC_ID = "weapon.squad-automatic";
     public static final String DMR_ID = "weapon.dmr";
     public static final String DRONE_PULSE_ID = "weapon.drone-pulse";
+    public static final String MECH_CHAINGUN_ID = "weapon.mech-chaingun";
+    public static final String MECH_LINEAR_CANNON_ID = "weapon.mech-linear-cannon";
+    public static final String MECH_HEAVY_CANNON_ID = "weapon.mech-heavy-cannon";
+    public static final String MECH_SRM_POD_ID = "weapon.mech-srm-pod";
+    public static final String MECH_LRM_ARTILLERY_ID = "weapon.mech-lrm-artillery";
 
     /**
      * Core resources retained for standalone tools and compatibility tests.

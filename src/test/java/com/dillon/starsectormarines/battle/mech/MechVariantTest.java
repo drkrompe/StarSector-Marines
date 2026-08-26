@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
@@ -58,7 +59,7 @@ class MechVariantTest {
                 .component.projectilesPerTrigger);
 
         MechLoadoutComponent hound = MechVariant.HOUND.createLoadout(null);
-        assertFalse(hound.hasWeapon(MechWeapon.LRM_ARTILLERY));
+        assertFalse(hound.hasWeapon(WeaponRegistry.MECH_LRM_ARTILLERY_ID));
         assertSame(MechWeaponComponent.NOSE_CHAINGUN,
                 hound.mount(MechMountSlot.ARMS).component);
         assertSame(MechWeaponComponent.SRM_5,
@@ -67,21 +68,22 @@ class MechVariantTest {
         assertEquals(6, hound.mount(MechMountSlot.ARMS).component.projectilesPerTrigger);
 
         MechLoadoutComponent sirocco = MechVariant.SIROCCO.createLoadout(null);
-        assertFalse(sirocco.hasWeapon(MechWeapon.SRM_POD));
+        assertFalse(sirocco.hasWeapon(WeaponRegistry.MECH_SRM_POD_ID));
         assertSame(MechWeaponComponent.SINGLE_HEAVY_CANNON,
                 sirocco.mount(MechMountSlot.ARMS).component);
         assertSame(MechWeaponComponent.LRM_5,
                 sirocco.mount(MechMountSlot.LEFT_SHOULDER).component);
         assertSame(MechWeaponComponent.LRM_5,
                 sirocco.mount(MechMountSlot.RIGHT_SHOULDER).component);
-        assertEquals(45f, MechWeapon.HEAVY_CANNON.damage(), 0.001f);
-        assertEquals(18f, MechWeapon.HEAVY_CANNON.penetration(), 0.001f);
-        assertEquals(26f, MechWeapon.HEAVY_CANNON.range(), 0.001f);
-        assertTrue(MechWeapon.HEAVY_CANNON.def().fx.hasHeavyImpact());
-        assertEquals(1f, MechWeapon.HEAVY_CANNON.aoeRadius(), 0.001f);
-        assertEquals(18, MechWeapon.HEAVY_CANNON.wallDamage());
+        var heavyCannon = WeaponRegistry.require(WeaponRegistry.MECH_HEAVY_CANNON_ID);
+        assertEquals(45f, heavyCannon.damage, 0.001f);
+        assertEquals(18f, heavyCannon.penetration, 0.001f);
+        assertEquals(26f, heavyCannon.range, 0.001f);
+        assertTrue(heavyCannon.fx.hasHeavyImpact());
+        assertEquals(1f, heavyCannon.aoeRadius, 0.001f);
+        assertEquals(18, heavyCannon.wallDamage);
         assertEquals("graphics/missiles/shell_hellbore.png",
-                MechWeapon.HEAVY_CANNON.projectileSpritePath());
+                heavyCannon.projectileSpritePath);
 
         MechLoadoutComponent custom = new MechLoadoutComponent(MechVariant.HOUND,
                 MechWeaponComponent.DUAL_LINEAR_CANNONS,
@@ -142,7 +144,7 @@ class MechVariantTest {
         assertTrue(hound.mount(MechMountSlot.ARMS).cooldown > 0f);
         assertTrue(hound.mount(MechMountSlot.LEFT_SHOULDER).cooldown > 0f);
         assertNull(hound.mount(MechMountSlot.RIGHT_SHOULDER));
-        assertFalse(hound.hasWeapon(MechWeapon.LRM_ARTILLERY));
+        assertFalse(hound.hasWeapon(WeaponRegistry.MECH_LRM_ARTILLERY_ID));
 
         MechLoadoutComponent sirocco = MechVariant.SIROCCO.createLoadout(null);
         long siroccoId = sim.spawn(new EntitySpec("sirocco", Faction.DEFENDER,
@@ -155,7 +157,7 @@ class MechVariantTest {
         assertEquals(0f, sirocco.mount(MechMountSlot.ARMS).cooldown, 0.001f);
         assertTrue(sirocco.mount(MechMountSlot.LEFT_SHOULDER).cooldown > 0f);
         assertTrue(sirocco.mount(MechMountSlot.RIGHT_SHOULDER).cooldown > 0f);
-        assertFalse(sirocco.hasWeapon(MechWeapon.SRM_POD));
+        assertFalse(sirocco.hasWeapon(WeaponRegistry.MECH_SRM_POD_ID));
     }
 
     @Test

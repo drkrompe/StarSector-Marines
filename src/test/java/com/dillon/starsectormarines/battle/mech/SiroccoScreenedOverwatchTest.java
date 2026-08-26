@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -257,9 +258,9 @@ class SiroccoScreenedOverwatchTest {
         float dx = cellX - THREAT_X;
         float dy = cellY - THREAT_Y;
         float distance = (float) Math.sqrt(dx * dx + dy * dy);
-        assertTrue(distance >= MechWeapon.HEAVY_CANNON.range()
+        assertTrue(distance >= WeaponRegistry.require(WeaponRegistry.MECH_HEAVY_CANNON_ID).range
                 - OverwatchKillZone.DIRECT_FALLBACK_BAND_DEPTH);
-        assertTrue(distance <= MechWeapon.HEAVY_CANNON.range(),
+        assertTrue(distance <= WeaponRegistry.require(WeaponRegistry.MECH_HEAVY_CANNON_ID).range,
                 "fallback perch must let the unlimited heavy cannon fire");
     }
 

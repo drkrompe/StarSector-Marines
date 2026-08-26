@@ -22,6 +22,16 @@ public final class TurretCatalogRegistry {
     public static final List<String> BUILTIN_CATALOGS = List.of(
             "data/marines/turret-emplacements.turret.json");
 
+    public static final String VULCAN_STRUCTURE_ID = "structure.turret-vulcan";
+    public static final String ARBALEST_STRUCTURE_ID = "structure.turret-arbalest";
+    public static final String HEAVY_MORTAR_STRUCTURE_ID = "structure.turret-heavy-mortar";
+    public static final String DUAL_FLAK_STRUCTURE_ID = "structure.turret-dual-flak";
+    public static final String HEPHAESTUS_STRUCTURE_ID = "structure.turret-hephaestus";
+    public static final String GRENADE_LAUNCHER_STRUCTURE_ID =
+            "structure.turret-grenade-launcher";
+    public static final String LOCUST_STRUCTURE_ID = "structure.turret-locust";
+    public static final String HEAVY_MG_STRUCTURE_ID = "structure.turret-heavy-mg";
+
     private static volatile TurretCatalogRegistry installed;
 
     private final Map<String, TurretMountDef> mountsById = new LinkedHashMap<>();

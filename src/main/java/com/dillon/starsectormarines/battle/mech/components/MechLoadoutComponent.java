@@ -3,11 +3,11 @@ package com.dillon.starsectormarines.battle.mech.components;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
-import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 
 /**
  * Per-unit mutable state for a component-built mech loadout. Held in the world's
@@ -178,9 +178,9 @@ public final class MechLoadoutComponent {
         missileReplenisher = replenisher;
     }
 
-    public boolean hasWeapon(MechWeapon weapon) {
+    public boolean hasWeapon(String weaponId) {
         for (MechWeaponMount mount : mounts) {
-            if (mount != null && mount.weapon() == weapon) return true;
+            if (mount != null && mount.weaponId().equals(weaponId)) return true;
         }
         return false;
     }
@@ -190,10 +190,11 @@ public final class MechLoadoutComponent {
         float missileRange = 0f;
         float range = 0f;
         for (MechWeaponMount mount : mounts) {
-            if (mount != null && mount.hasAmmo() && mount.weapon() != MechWeapon.LRM_ARTILLERY) {
-                range = Math.max(range, mount.weapon().range());
-                if (mount.weapon() == MechWeapon.SRM_POD) {
-                    missileRange = Math.max(missileRange, mount.weapon().range());
+            if (mount != null && mount.hasAmmo()
+                    && !WeaponRegistry.MECH_LRM_ARTILLERY_ID.equals(mount.weaponId())) {
+                range = Math.max(range, mount.weaponDef().range);
+                if (WeaponRegistry.MECH_SRM_POD_ID.equals(mount.weaponId())) {
+                    missileRange = Math.max(missileRange, mount.weaponDef().range);
                 }
             }
         }
@@ -210,7 +211,8 @@ public final class MechLoadoutComponent {
     /** Supplies long-range racks first, then the remaining physical slot order. */
     public boolean resupplyOne() {
         for (MechWeaponMount mount : mounts) {
-            if (mount != null && mount.weapon() == MechWeapon.LRM_ARTILLERY
+            if (mount != null
+                    && WeaponRegistry.MECH_LRM_ARTILLERY_ID.equals(mount.weaponId())
                     && mount.resupplyOne()) return true;
         }
         for (MechWeaponMount mount : mounts) {

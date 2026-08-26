@@ -52,6 +52,6 @@ class MechTurretSystemTest {
 
         assertTrue(loadout.isAimedAt(target));
         MechCombatantBehavior.tryFireChaingun(mech, loadout, target, 3.7f, sim, true);
-        assertEquals(arms.weapon().cooldown(), arms.cooldown, 0.001f);
+        assertEquals(arms.weaponDef().cooldown, arms.cooldown, 0.001f);
     }
 }

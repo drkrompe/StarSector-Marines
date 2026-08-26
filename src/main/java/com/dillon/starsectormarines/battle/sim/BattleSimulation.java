@@ -33,7 +33,7 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.UnitDestinationSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
-import com.dillon.starsectormarines.battle.mech.MechWeapon;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 import com.dillon.starsectormarines.battle.air.AirProvider;
 import com.dillon.starsectormarines.battle.air.AirSystem;
@@ -95,7 +95,7 @@ import com.dillon.starsectormarines.battle.perception.NoiseEventBus;
 import com.dillon.starsectormarines.battle.decision.TacticalContextService;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.combat.Detonations;
@@ -1863,22 +1863,22 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** Delegates to {@link TurretFireSystem}. Kept for TurretBehavior and any remaining sim-surface callers on the deprecation path. */
     public void fireShotFrom(float fromX, float fromY, Faction shooterFaction,
-                             TurretKind kind, long target, boolean aerialShooter) {
-        turretFire.fire(fromX, fromY, shooterFaction, kind, target, aerialShooter);
+                             StructureDef structure, long target, boolean aerialShooter) {
+        turretFire.fire(fromX, fromY, shooterFaction, structure, target, aerialShooter);
     }
 
     /** Delegates to {@link TurretFireSystem}. */
     public void fireShotFrom(float fromX, float fromY, Faction shooterFaction,
-                             TurretKind kind, long target, boolean aerialShooter, boolean hasLos) {
-        turretFire.fire(fromX, fromY, shooterFaction, kind, target, aerialShooter, hasLos);
+                             StructureDef structure, long target, boolean aerialShooter, boolean hasLos) {
+        turretFire.fire(fromX, fromY, shooterFaction, structure, target, aerialShooter, hasLos);
     }
 
     /** Ground-entity turret overload that preserves the shooter id for resolver exclusion and hit response. */
     public void fireShotFrom(long shooterId, float fromX, float fromY,
-                             Faction shooterFaction, TurretKind kind, long target,
+                             Faction shooterFaction, StructureDef structure, long target,
                              boolean aerialShooter, boolean hasLos) {
         turretFire.fire(shooterId, fromX, fromY, shooterFaction,
-                kind, target, aerialShooter, hasLos);
+                structure, target, aerialShooter, hasLos);
     }
 
     /**
@@ -1886,7 +1886,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * surface because AI behaviors call {@code sim.fireMechWeapon(...)}
      * directly. Implementation lives in {@code battle/weapons/HeavyWeapons.java}.
      */
-    public void fireMechWeapon(long shooter, long target, MechWeapon weapon) {
+    public void fireMechWeapon(long shooter, long target, WeaponDef weapon) {
         heavy.fireMechWeapon(shooter, target, weapon);
     }
 
@@ -1894,7 +1894,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * Delegates to {@link HeavyWeapons#fireMechWeapon} with explicit accuracy
      * multiplier. Used by the LRM indirect-fire path (no LOS = reduced acc).
      */
-    public void fireMechWeapon(long shooter, long target, MechWeapon weapon, float accuracyMult) {
+    public void fireMechWeapon(long shooter, long target, WeaponDef weapon, float accuracyMult) {
         heavy.fireMechWeapon(shooter, target, weapon, accuracyMult);
     }
 

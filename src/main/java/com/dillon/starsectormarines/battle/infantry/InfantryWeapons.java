@@ -8,7 +8,7 @@ import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.combat.RangeFalloff;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -186,14 +186,15 @@ public class InfantryWeapons {
         }
         accuracy *= stance.accuracyMult;
 
-        TurretKind tk = shooterType.isTurret() ? roster.turretState().kind(shooter) : null;
+        StructureDef turretStructure = shooterType.isTurret()
+                ? roster.turretState().structure(shooter) : null;
         // Round velocity: weapon-owned where available; null-weapon militia /
         // alien callers use the shared default, while static turrets resolve
         // through their kind's direct-fire timing.
         float roundVelocity = weapon != null && weapon.roundVelocity > 0f
                 ? weapon.roundVelocity
-                : tk != null
-                        ? tk.directRoundVelocity()
+                : turretStructure != null
+                        ? turretStructure.mount.weapon.directRoundVelocity()
                         : BallisticResolver.DEFAULT_ROUND_VELOCITY;
 
         int projectileCount = weapon != null ? weapon.projectilesPerShot : 1;
@@ -239,11 +240,11 @@ public class InfantryWeapons {
             // physical endpoints and interception outcomes.
             float lifetime = Math.max(res.flightTime(), 0.05f);
             boolean struckUnit = res.victimId() != 0L;
-            if (tk != null) {
+            if (turretStructure != null) {
                 shots.postShot(new ShotEvent(fromX, fromY, 0f,
                         res.endX(), res.endY(), res.endZ(),
                         res.hitIntended(), shooterFaction, lifetime,
-                        tk, null, null, null, moraleImpact, struckUnit,
+                        turretStructure, null, null, null, moraleImpact, struckUnit,
                         res.kind(), shooter));
             } else {
                 shots.postShot(ShotEvent.primary(fromX, fromY, 0f,

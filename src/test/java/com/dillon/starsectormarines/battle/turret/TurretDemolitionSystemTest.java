@@ -44,7 +44,8 @@ public class TurretDemolitionSystemTest {
     @Test
     public void deadTurretIsDemolishedWhenTheMailboxDrains() {
         BattleSimulation sim = openArena(20, 20);
-        long turret = sim.spawn(MapTurret.create("t0", Faction.DEFENDER, TurretKind.VULCAN, 10, 10));
+        long turret = sim.spawn(MapTurret.create("t0", Faction.DEFENDER,
+                TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 10, 10));
         int wrecksBefore = sim.getSmokingWrecks().size();
 
         // Lethal hit, routed through the production damage path so the death
@@ -73,15 +74,17 @@ public class TurretDemolitionSystemTest {
         // A two-turret defense post; a garrison squad orbiting it on a tight
         // patrol radius. When BOTH turrets die the post is "down" and the
         // squad should revert to the wide default radius + drop its post link.
-        long a = sim.spawn(MapTurret.create("ta", Faction.DEFENDER, TurretKind.VULCAN, 10, 10));
-        long b = sim.spawn(MapTurret.create("tb", Faction.DEFENDER, TurretKind.VULCAN, 11, 10));
+        long a = sim.spawn(MapTurret.create("ta", Faction.DEFENDER,
+                TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 10, 10));
+        long b = sim.spawn(MapTurret.create("tb", Faction.DEFENDER,
+                TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 11, 10));
         // A lone, far-off MARINE keeps the battle in progress across both ticks
         // — without a live unit on each side the win-check eliminates MARINE
         // after tick 1 and the second advance() would no-op before the drain.
         sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 1, 1));
         DefensePost post = new DefensePost(DefensePostKind.LIGHT, 10, 10, List.of(
-                new DefensePost.TurretSpec(TurretKind.VULCAN, 10, 10),
-                new DefensePost.TurretSpec(TurretKind.VULCAN, 11, 10)));
+                new DefensePost.TurretSpec(TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 10, 10),
+                new DefensePost.TurretSpec(TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 11, 10)));
         sim.setDefensePosts(List.of(post));
 
         int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.MARINE);
@@ -108,7 +111,8 @@ public class TurretDemolitionSystemTest {
     @Test
     public void liveTurretIsLeftAlone() {
         BattleSimulation sim = openArena(20, 20);
-        long turret = sim.spawn(MapTurret.create("t0", Faction.DEFENDER, TurretKind.VULCAN, 10, 10));
+        long turret = sim.spawn(MapTurret.create("t0", Faction.DEFENDER,
+                TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 10, 10));
 
         sim.advance(BattleSimulation.TICK_DT);
 

@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.bsp;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -80,8 +80,8 @@ public class OverwatchTowerStageTest {
                     () -> "fortified world fielded fewer towers (" + f.size() + ") than neutral (" + n.size() + ")");
             neutralTotal += n.size();
             fortifiedTotal += f.size();
-            neutralHeavy += countKind(n, TurretKind.HEPHAESTUS);
-            fortifiedHeavy += countKind(f, TurretKind.HEPHAESTUS);
+            neutralHeavy += countStructure(n, TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID);
+            fortifiedHeavy += countStructure(f, TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID);
         }
         System.out.println("neutral towers=" + neutralTotal + " (heavy=" + neutralHeavy + "), "
                 + "fortified towers=" + fortifiedTotal + " (heavy=" + fortifiedHeavy + ")");
@@ -90,10 +90,10 @@ public class OverwatchTowerStageTest {
         assertTrue(fortifiedHeavy > 0, "fortified world mounted no heavy turrets — tier escalation not wired");
     }
 
-    private static int countKind(List<DefensePost> posts, TurretKind kind) {
+    private static int countStructure(List<DefensePost> posts, String structureId) {
         int c = 0;
         for (DefensePost p : posts) {
-            if (p.turrets.get(0).structureId.equals(kind.structureId)) c++;
+            if (p.turrets.get(0).structureId.equals(structureId)) c++;
         }
         return c;
     }
