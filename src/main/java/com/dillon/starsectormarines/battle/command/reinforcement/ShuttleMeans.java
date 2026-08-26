@@ -122,13 +122,19 @@ public final class ShuttleMeans implements ReinforcementMeans {
         // narrative of "expensive air-drop = stiffening delivery"). Default
         // player shuttles leave deboardUnitType null and get the bulk
         // infantry slot — see reinforcement-nouns.md.
-        mission.deboardUnitType = groundRoster != null
-                ? groundRoster.unitType(GroundRosterProfile.ForceTier.ELITE)
+        GroundRosterProfile effectiveRoster = groundRoster != null
+                ? groundRoster : sim.getGroundRoster();
+        mission.deboardUnitType = effectiveRoster != null
+                ? effectiveRoster.unitType(GroundRosterProfile.ForceTier.ELITE)
                 : FactionUnitRoster.forFaction(req.side).elite();
-        if (groundRoster != null) {
+        if (effectiveRoster != null) {
             mission.marineLoadout = InfantryLoadoutRolls.defenderSquad(
-                    DEFAULT_TYPE.capacity, groundRoster,
+                    DEFAULT_TYPE.capacity, effectiveRoster,
                     GroundRosterProfile.ForceTier.ELITE, risk, sim.random());
+        } else {
+            mission.marineLoadout = InfantryLoadoutRolls.defenderSquad(
+                    DEFAULT_TYPE.capacity, mission.deboardUnitType,
+                    risk, sim.random());
         }
         LOG.info("ShuttleMeans: dispatched " + DEFAULT_TYPE + " side=" + req.side
                 + " lz=(" + lz[0] + "," + lz[1] + ") entry=(" + entry[0] + "," + entry[1] + ")");

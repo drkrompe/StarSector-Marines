@@ -7,8 +7,8 @@ import com.dillon.starsectormarines.marine.Rank;
 /**
  * A point on the campaign arc, as a whole company rather than a personnel
  * flavor. Each constant is a snapshot the player could plausibly be at: how
- * many squads they field, how experienced those marines are, what the armory
- * has issued them, and what supporting arms come along.
+ * many squads they field, how experienced those marines are, and what
+ * supporting arms come along. Squad equipment is randomized independently.
  *
  * <p>Two axes, kept separate: {@link #squads} is size and {@link #plan} is
  * quality. The briefing's squad dial overrides size without touching quality,
@@ -29,9 +29,7 @@ import com.dillon.starsectormarines.marine.Rank;
 public enum DebugCompanyStage {
 
     /**
-     * The company on its first job — one squad of twelve, all Green, wearing
-     * whatever a new campaign issues. Equivalent to
-     * {@code bootstrapInitialComplement(MarineSquad.CAPACITY)}.
+     * The company on its first job — one squad of twelve, all Green.
      */
     FIRST_CONTRACT("First Contract", 1, 0, Rank.LIEUTENANT, DebugBilletPlan.STARTER_ISSUE),
 
@@ -65,7 +63,7 @@ public enum DebugCompanyStage {
     public final int mechs;
     /** Commanding officer's rank. Readout only — debug missions bypass the command cap. */
     public final Rank officerRank;
-    /** How this stage's squads are manned and equipped. */
+    /** How this stage's squads are experienced. */
     public final DebugBilletPlan plan;
 
     DebugCompanyStage(String displayName, int squads, int mechs,

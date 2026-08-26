@@ -60,6 +60,13 @@ class ConvoyMeansTest {
         assertEquals("conquest-defender", mission.commandClaim.issuer());
         assertEquals(target, mission.assignNode);
         assertTrue(mission.commandOwnsObjective);
+        assertEquals(VehicleType.HEAVY_APC.capacity, mission.marineLoadout.length);
+        for (var loadout : mission.marineLoadout) {
+            assertNotNull(loadout.primaryDef());
+            assertNotNull(loadout.equipmentGrade);
+            assertNotNull(loadout.soldierProfile);
+            assertNotNull(loadout.armorFamily);
+        }
 
         sim.spawn(new EntitySpec("battle-keeps-running", Faction.MARINE,
                 UnitType.MARINE, 5, 5).moveSpeed(0f).health(10_000f));
