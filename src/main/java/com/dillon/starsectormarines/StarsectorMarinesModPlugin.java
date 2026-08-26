@@ -26,6 +26,7 @@ import com.dillon.starsectormarines.ops.event.PlayerEventPresenter;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
+import com.dillon.starsectormarines.marine.FactionEquipmentCatalog;
 import com.dillon.starsectormarines.marine.SquadLoadoutPresentationRegistry;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -81,6 +82,9 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         // validate their referenced equipment only after all three equipment
         // registries are installed.
         EquipmentTemplateCatalog.loadContributions(marineCatalogs.equipmentTemplates());
+        // Faction acquisition pools consume stable template-card ids and may be
+        // extended additively by later providers, so they necessarily load next.
+        FactionEquipmentCatalog.loadContributions(marineCatalogs.factionEquipment());
         // Collectible-facing tier, rarity, provenance, and lore remain authored data;
         // their rarity is presentation scarcity rather than random selection weight.
         SquadLoadoutPresentationRegistry.loadBuiltins();

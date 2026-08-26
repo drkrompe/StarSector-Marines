@@ -17,6 +17,8 @@ import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
+import com.dillon.starsectormarines.marine.FactionEquipmentCatalog;
+import com.dillon.starsectormarines.marine.FactionEquipmentSource;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSquad;
@@ -61,6 +63,7 @@ class SubmodEquipmentContributionTest {
         SpecialEquipmentRegistry oldSpecials = SpecialEquipmentRegistry.installed();
         GroundRosterRegistry oldRosters = GroundRosterRegistry.installed();
         EquipmentTemplateCatalog oldTemplates = EquipmentTemplateCatalog.installed();
+        FactionEquipmentCatalog oldFactionEquipment = FactionEquipmentCatalog.installed();
         try {
             WeaponRegistry weapons = new WeaponRegistry();
             ingestFiles(weapons, "marine-weapons.weapon.json", "turret-weapons.weapon.json");
@@ -84,6 +87,12 @@ class SubmodEquipmentContributionTest {
             templates.ingest(externalTemplates(), OC);
             EquipmentTemplateCatalog.install(templates);
 
+            FactionEquipmentCatalog factionEquipment = new FactionEquipmentCatalog();
+            factionEquipment.ingest(read("faction-equipment.faction-equipment.json"), CORE);
+            factionEquipment.ingest(externalFactionEquipment(), OC);
+            factionEquipment.validateCompleteness();
+            FactionEquipmentCatalog.install(factionEquipment);
+
             GroundRosterRegistry rosters = new GroundRosterRegistry();
             rosters.ingest(read("faction-ground-rosters.roster.json"), CORE);
             rosters.ingest(externalRoster(), OC);
@@ -106,6 +115,12 @@ class SubmodEquipmentContributionTest {
                     "equipment-template:example.special-signal-smoke"));
             assertEquals("example_oc", EquipmentTemplateCatalog.installed().sourceOf(
                     "equipment-template:example.weapon-needle-rifle:service").modId());
+            assertTrue(FactionEquipmentCatalog.resolve("example_oc_faction").offers(
+                    "equipment-template:example.weapon-needle-rifle:service",
+                    FactionEquipmentSource.MARKET));
+            assertTrue(FactionEquipmentCatalog.resolve("example_oc_faction").offers(
+                    "equipment-template:example.armor-ceramic",
+                    FactionEquipmentSource.LICENSE));
 
             EntitySpec entity = new EntitySpec("OC marine", Faction.DEFENDER,
                     UnitType.MARINE, 1, 1);
@@ -143,6 +158,7 @@ class SubmodEquipmentContributionTest {
             MarineArmorCatalogRegistry.install(oldArmor);
             SpecialEquipmentRegistry.install(oldSpecials);
             EquipmentTemplateCatalog.install(oldTemplates);
+            FactionEquipmentCatalog.install(oldFactionEquipment);
             MarineRoster repaired = deserialize(providerSave);
             assertEquals("weapon.field-rifle", repaired.activeSoldiers().get(0).primaryId());
             assertEquals("armor.field-fatigues", repaired.activeSoldiers().get(0).armorId());
@@ -152,12 +168,14 @@ class SubmodEquipmentContributionTest {
             MarineArmorCatalogRegistry.install(armor);
             SpecialEquipmentRegistry.install(specials);
             EquipmentTemplateCatalog.install(templates);
+            FactionEquipmentCatalog.install(factionEquipment);
         } finally {
             WeaponRegistry.install(oldWeapons);
             MarineArmorCatalogRegistry.install(oldArmor);
             SpecialEquipmentRegistry.install(oldSpecials);
             GroundRosterRegistry.install(oldRosters);
             EquipmentTemplateCatalog.install(oldTemplates);
+            FactionEquipmentCatalog.install(oldFactionEquipment);
         }
     }
 
@@ -324,6 +342,27 @@ class SubmodEquipmentContributionTest {
                 .put("elite", new JSONObject(issue.toString()))
                 .put("heavySupport", new JSONArray());
         return new JSONObject().put("profiles", new JSONArray().put(profile));
+    }
+
+    private static JSONObject externalFactionEquipment() throws Exception {
+        JSONArray offers = new JSONArray()
+                .put(factionOffer("equipment-template:example.weapon-needle-rifle:service",
+                        "market", 8))
+                .put(factionOffer("equipment-template:example.armor-ceramic",
+                        "license", 6))
+                .put(factionOffer("equipment-template:example.special-signal-smoke",
+                        "patron", 4));
+        JSONObject faction = new JSONObject()
+                .put("factionId", "example_oc_faction")
+                .put("offers", offers);
+        return new JSONObject().put("factions", new JSONArray().put(faction));
+    }
+
+    private static JSONObject factionOffer(
+            String templateId, String source, int weight) throws Exception {
+        return new JSONObject()
+                .put("templateId", templateId)
+                .put("sources", new JSONObject().put(source, weight));
     }
 
     private static JSONObject risks(String id) throws Exception {

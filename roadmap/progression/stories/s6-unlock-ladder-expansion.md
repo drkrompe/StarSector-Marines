@@ -7,7 +7,7 @@ Status: PLANNED — depends on the remaining S2E–S2G special-equipment stories
 armor expansion also depends on
 `powered-assault-armor-roles.md`.
 Written: 2026-08-22
-Updated: 2026-08-26 — routed factional equipment provenance and availability through the enduring lore guide catalog.
+Updated: 2026-08-26 — landed additive faction source pools; acquisition consumers and provenance treatments remain.
 
 Read `progression-nouns.md`, `faction-lore-nouns.md`, and
 `powered-assault-armor-roles.md` before implementing this story.
@@ -86,6 +86,14 @@ story/special mission, market purchase, MRB licensing tier, and a modest set of
 early-campaign milestone grants so a green company is not gated behind luck
 in its first hours.
 
+Faction source pools now provide the shared data boundary for four of those
+channels: market, license, patron, and recovery. They resolve exact campaign
+faction ids, fall back to the Independent pool for unknown factions, and let
+submods add unique card/channel claims to either their own faction or an
+existing pool. The pool weights are not acquisition by themselves. Market
+population, reward selection, operational recovery, and access checks remain
+the work of this story.
+
 The parameterized cargo item and its right-click learning transition are now
 shipped. A source can create its validated payload from any stable
 equipment-template id; successful learning moves the capability into
@@ -155,11 +163,12 @@ it in `InfantryCombatStats` rather than duplicating `MarineWeapon` entries.
 A small number of genuinely faction-exclusive families can then exist as
 real chase items without the catalog exploding.
 
-For the first implementation, faction identity attaches to template provenance
-and a thin grade-side treatment. It supplies availability, presentation, and a
-bounded stat skew composed with family/grade/profile. It does **not** grant set
-bonuses. Genuinely exclusive weapon families remain separately authored content
-rather than empty cells in a faction cross-product.
+The first implementation now supplies faction availability as template-card
+source data without changing combat stats. Provenance presentation and any
+thin grade-side treatment remain later work and must compose with
+family/grade/profile rather than entering the availability registry. It does
+**not** grant set bonuses. Genuinely exclusive weapon families remain
+separately authored content rather than empty cells in a faction cross-product.
 
 Armor uses the same provenance principle but not weapon grade. A recovered suit
 template names a concrete pattern whose light, line, or heavy role and faction
