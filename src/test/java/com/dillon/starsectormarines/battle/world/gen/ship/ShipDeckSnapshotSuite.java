@@ -16,18 +16,20 @@ import java.util.List;
 
 /**
  * Deterministic plan views of generated ship decks — the readable evidence for
- * whether a deck's hull, spine, cross-passages, and compartment zoning came out
- * as intended. Compartments are tinted by longitudinal zone so the fore/
- * midships/aft gradient is visible at a glance rather than inferred.
+ * whether hull shape, circulation, and compartment zoning came out as intended.
  *
- * <p>Pure geometry: no Starsector process, no OpenGL context, no tile art.
+ * <p>Where the installed game is available the decks are traced from real
+ * vanilla hull sprites and sized from those hulls' crew and cargo, so the
+ * evidence shows the family against genuine proportions rather than against a
+ * curve chosen to flatter it. Without the install it falls back to the synthetic
+ * taper so the suite still produces evidence.
  */
 public final class ShipDeckSnapshotSuite implements SnapshotSuite {
 
-    private static final int WIDTH = 96;
-    private static final int HEIGHT = 28;
-    private static final int CELL = 9;
-    private static final long[] SEEDS = { 1L, 42L, 90210L };
+    /** Hulls chosen to span the size range: a shuttle, a personnel transport, a capital, a freighter. */
+    private static final String[] HULLS = { "kite", "valkyrie", "conquest", "atlas" };
+    private static final int CELL = 8;
+    private static final long SEED = 42L;
 
     private static final Color HULL = new Color(0x10, 0x16, 0x1e);
     private static final Color STRUCTURE = new Color(0x28, 0x31, 0x3d);
@@ -49,23 +51,43 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
     }
 
     @Override
-    public List<SnapshotArtifact> render(SnapshotContext context) {
+    public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
+        VanillaHullSilhouettes vanilla = new VanillaHullSilhouettes(context.starsectorCore());
         List<SnapshotArtifact> artifacts = new ArrayList<>();
-        for (long seed : SEEDS) {
-            ShipDeckGenerator generator = new ShipDeckGenerator();
-            MapResult map = generator.generateDeck(WIDTH, HEIGHT, seed);
-            artifacts.add(new SnapshotArtifact("ship-deck-seed-" + seed + ".png",
-                    renderPlan(map, generator.getLastDeckProfile(), generator.getLastDeckGraph(), seed)));
+        if (vanilla.available()) {
+            for (String hullId : HULLS) {
+                VanillaHullSilhouettes.Hull hull = vanilla.read(hullId);
+                if (hull == null) continue;
+                artifacts.add(plan(hull.id(), hull.silhouette(),
+                        DeckSizing.planFor(hull.maxCrew(), hull.cargo()),
+                        hull.maxCrew() + " crew, " + hull.cargo() + " cargo"));
+            }
+        }
+        if (artifacts.isEmpty()) {
+            artifacts.add(plan("synthetic", null, new DeckSizing.DeckPlan(1, 96, 28), "no game install"));
         }
         return List.copyOf(artifacts);
     }
 
-    private static BufferedImage renderPlan(MapResult map, DeckProfile profile,
-                                            DeckGraph graph, long seed) {
+    private static SnapshotArtifact plan(String name, HullSilhouette silhouette,
+                                         DeckSizing.DeckPlan deckPlan, String complement) {
+        ShipDeckGenerator generator = new ShipDeckGenerator();
+        MapResult map = generator.generateDeck(
+                deckPlan.frames(), deckPlan.height(), SEED, silhouette);
+        BufferedImage image = renderPlan(map, generator.getLastDeckProfile(),
+                generator.getLastDeckGraph(), name, deckPlan, complement);
+        return new SnapshotArtifact("ship-deck-" + name + ".png", image);
+    }
+
+    private static BufferedImage renderPlan(MapResult map, DeckProfile profile, DeckGraph graph,
+                                            String name, DeckSizing.DeckPlan deckPlan,
+                                            String complement) {
+        int width = deckPlan.frames();
+        int height = deckPlan.height();
         int margin = 12;
         int legend = 34;
         BufferedImage image = new BufferedImage(
-                WIDTH * CELL + margin * 2, HEIGHT * CELL + margin * 2 + legend,
+                width * CELL + margin * 2, height * CELL + margin * 2 + legend,
                 BufferedImage.TYPE_INT_RGB);
         Graphics2D g = image.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
@@ -73,8 +95,8 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
         g.setColor(HULL);
         g.fillRect(0, 0, image.getWidth(), image.getHeight());
 
-        for (int y = 0; y < HEIGHT; y++) {
-            for (int x = 0; x < WIDTH; x++) {
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
                 Color color = cellColor(map, profile, x, y);
                 if (color == null) continue;
                 g.setColor(color);
@@ -89,15 +111,13 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
 
         g.setColor(LABEL);
         g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
-        int baseline = margin + HEIGHT * CELL + 20;
-        g.drawString("seed " + seed
-                        + "   bow beam " + profile.beam(0)
-                        + "  midships " + profile.beam(WIDTH / 2)
-                        + "  stern " + profile.beam(WIDTH - 1)
+        g.drawString(name + "  (" + complement + ")"
+                        + "   deck " + width + "x" + height
+                        + " of " + deckPlan.deckCount()
                         + "   compartments " + graph.compartmentCount()
                         + "   cross-passages " + graph.corridorFrames().length
-                        + "   blue = fore, green = midships, amber = aft",
-                margin, baseline);
+                        + "   blue fore / green midships / amber aft",
+                margin, margin + height * CELL + 20);
         g.dispose();
         return image;
     }
@@ -107,8 +127,7 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
         if (!map.grid.isWalkable(x, y)) {
             return profile.containsCell(x, y) ? STRUCTURE : null;
         }
-        RoomPurpose purpose = map.topology.getRoomPurpose(x, y);
-        if (purpose == RoomPurpose.CORRIDOR) return CORRIDOR;
+        if (map.topology.getRoomPurpose(x, y) == RoomPurpose.CORRIDOR) return CORRIDOR;
         return switch (profile.zone(x)) {
             case FORE -> FORE_ROOM;
             case MIDSHIPS -> MIDSHIPS_ROOM;
