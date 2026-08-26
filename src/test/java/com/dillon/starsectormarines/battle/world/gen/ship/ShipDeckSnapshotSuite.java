@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.gen.ship;
 
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.ship.fit.RoomFit;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.tiles.FixedGridTileDrawer;
@@ -211,8 +212,10 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
             for (int y = -1; y <= c.depth(); y++) {
                 for (int x = -1; x <= c.width(); x++) {
                     boolean floor = c.contains(c.left() + x, c.top() + y);
-                    g.setColor(floor ? ROOM_COLORS.getOrDefault(entry.getKey(), UNKNOWN_ROOM)
-                            : STRUCTURE);
+                    Color base = ROOM_COLORS.getOrDefault(entry.getKey(), UNKNOWN_ROOM);
+                    boolean marked = floor && map.topology.getGroundKind(
+                            c.left() + x, c.top() + y) == CellTopology.GroundKind.STRIPED;
+                    g.setColor(floor ? (marked ? marked(base) : base) : STRUCTURE);
                     g.fillRect(ox + (x + 1) * DETAIL_CELL, top + (y + 1) * DETAIL_CELL,
                             DETAIL_CELL, DETAIL_CELL);
                     g.setColor(GRID_LINE);
@@ -347,6 +350,14 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
                     sink, doodad.tile, doodad.footprintCellsX, doodad.footprintCellsY,
                     x + w / 2f, y + h / 2f, w, h, 1f, FixedGridTileDrawer.OVERLAY_INSET_PX);
         }
+    }
+
+    /** Deck a fitting marked out — a gantry bay, a hazard zone — shaded off its room colour. */
+    private static Color marked(Color base) {
+        return new Color(
+                Math.min(255, base.getRed() * 3 / 4 + 40),
+                Math.min(255, base.getGreen() * 3 / 4 + 34),
+                Math.max(0, base.getBlue() * 3 / 5));
     }
 
     private static BufferedImage sheet(String sheetPath) {
