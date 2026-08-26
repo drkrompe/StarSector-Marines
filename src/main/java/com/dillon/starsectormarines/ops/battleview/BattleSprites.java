@@ -391,10 +391,9 @@ public class BattleSprites {
         if (unitSpritesLoadAttempted) return;
         unitSpritesLoadAttempted = true;
         for (UnitType type : UnitType.values()) {
-            // TURRET sprite is per-instance via the turret's TURRET_STATE kind,
-            // not per-type — its spritePath is intentionally empty so we skip
-            // the load here.
-            if (type == UnitType.TURRET) continue;
+            // Whole-sprite, separately rendered, and invisible types do not own
+            // a unit sheet. UnitType is the authority for that distinction.
+            if (!type.drawnAsSheet()) continue;
             unitSprites.put(type, loadUnitSheet(type.spritePath));
             if (type.deadSpritePath != null) {
                 UnitSpriteCache dead = loadUnitSheet(type.deadSpritePath);
