@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — made complete player-equipment reachability a fail-loud additive-catalog law.
+Updated: 2026-08-26 — added a source-aware 5/15/30/40-victory collection breadth safety net.
 
 ## Purpose
 
@@ -159,8 +159,17 @@ Weapon or Armor issue, including any leader-specific and special-equipment place
 Legacy recipes, printed counts, and fabrication materials remain save-migration
 input and compatibility state for retired fire-team APIs, not live Fleet Armory
 authority. Existing victory milestones grant template cards, including the
-Shattercap after two victories. Faction source pools now author which cards may
-enter through market, license, patron, and recovery channels. Open markets now
+Shattercap after two victories. A deterministic safety net now keeps permanent
+collection breadth at or above 19 cards after five victories, 23 after fifteen,
+27 after thirty, and 28 after forty. Cards already learned or still carried in
+cargo count toward that floor, so faction-shaped acquisition advances the same
+curve instead of being duplicated by it. When a company falls below a floor,
+the Armory grants the next bounded core fallback; the curve never revokes cards,
+never learns a carried card implicitly, and leaves at least four of the current
+32-card catalog to faction sources and active collection.
+
+Faction source pools author which cards may enter through market, license,
+patron, and recovery channels. Open markets now
 stock a faction-and-market-stable weighted selection that rotates monthly and
 scales with market size. Favorable-or-better standing adds licensed offers, and
 already-owned or carried cards are omitted. Each completed patron contract also issues one
@@ -173,8 +182,8 @@ card enters the frozen manifest and competes inside the player's existing salvag
 budget; settlement creates the same parameterized cargo item exactly once. Learned
 and already-carried cards are excluded before the manifest freezes, low-risk work
 does not roll this channel, unknown faction ids use the Independent fallback, and
-explicitly excluded factions remain empty. The full asset reachability ladder
-remains planned.
+explicitly excluded factions remain empty. The safety net guarantees breadth,
+while source channels still decide most collection identity and pace.
 
 A template card may exist in fleet cargo as one parameterized Starsector special
 item whose data is the stable equipment-template id. Right-click learning follows
@@ -449,12 +458,12 @@ The following are direction, not current behavior:
 - Replace flat survivor XP with deterministic, bounded performance-derived
   awards from frozen outcomes, while preserving meaningful participation and
   learning from losses.
-- Expand primary families and special-equipment options, and extend the unlock
-  ladder so every authored player asset has either starter status or a
-  reachable path. `stories.md` owns the concrete primary, contact-tool, stim,
-  grenade, and faction-demolition additions and their ordering.
-- Add world-reactive template-card acquisition through operations, patrons,
-  salvage, and markets while keeping advanced progression operation-gated.
+- Expand primary families and special-equipment options while preserving the
+  complete-template, explicit-exclusion, faction-source, and collection-floor
+  laws. `stories.md` owns the concrete contact-tool, stim, grenade, and
+  faction-demolition additions and their ordering.
+- Extend the shipped world-reactive sources with MRB, relationship, and named
+  operational gates while keeping advanced progression operation-shaped.
 - Make grade, aptitude, experience, career, and captain traits legible in
   campaign and battle surfaces without changing simulation authority.
 - Give only traits with an observable, domain-appropriate consequence a

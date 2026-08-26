@@ -133,6 +133,95 @@ class MarineArmoryTest {
     }
 
     @Test
+    void collectionSafetyNetReachesTheFiveFifteenThirtyAndFortyVictoryTargets() {
+        MarineArmory armory = new MarineArmory();
+        assertEquals(14, armory.equipmentTemplateCards().size());
+
+        for (int victory = 1; victory <= 40; victory++) {
+            armory.recordVictory(false);
+            if (victory == 5) {
+                assertEquals(EquipmentCollectionCurve.FIVE_VICTORY_TARGET,
+                        armory.equipmentTemplateCards().size());
+            } else if (victory == 15) {
+                assertEquals(EquipmentCollectionCurve.FIFTEEN_VICTORY_TARGET,
+                        armory.equipmentTemplateCards().size());
+            } else if (victory == 30) {
+                assertEquals(EquipmentCollectionCurve.THIRTY_VICTORY_TARGET,
+                        armory.equipmentTemplateCards().size());
+            } else if (victory == 40) {
+                assertEquals(EquipmentCollectionCurve.FORTY_VICTORY_TARGET,
+                        armory.equipmentTemplateCards().size());
+            }
+        }
+
+        assertTrue(armory.ownsArmorTemplate(MarineArmorPattern.BLUE_SCOUT));
+        assertTrue(armory.ownsArmorTemplate(MarineArmorPattern.RED_ELITE));
+        assertTrue(armory.ownsPrimaryTemplate(
+                WeaponRegistry.DMR_ID, EquipmentGrade.MASTERWORK));
+        assertTrue(armory.equipmentTemplateCards().size() < EquipmentTemplateCatalog.all().size(),
+                "the safety net must leave faction-source chase cards after its post-30 rung");
+    }
+
+    @Test
+    void collectionTargetIsMonotonicAndStopsBelowCatalogCompletion() {
+        int previous = 0;
+        for (int victories = 0; victories <= 100; victories++) {
+            int target = EquipmentCollectionCurve.minimumCollectedAtVictories(victories);
+            assertTrue(target >= previous);
+            previous = target;
+        }
+        assertEquals(EquipmentCollectionCurve.FORTY_VICTORY_TARGET, previous);
+        assertTrue(previous < EquipmentTemplateCatalog.all().size());
+    }
+
+    @Test
+    void cardsCollectedThroughOtherSourcesCountTowardTheSafetyNet() {
+        MarineArmory armory = new MarineArmory();
+        for (EquipmentTemplateCard card : EquipmentTemplateCatalog.all()) {
+            armory.acquireEquipmentTemplate(card.id());
+        }
+
+        for (int victory = 0; victory < 30; victory++) armory.recordVictory(false);
+
+        assertEquals(EquipmentTemplateCatalog.all().size(),
+                armory.equipmentTemplateCards().size());
+    }
+
+    @Test
+    void cargoHeldCardsCountWithoutBeingLearnedOrDuplicated() {
+        MarineArmory armory = new MarineArmory();
+        Set<String> held = Set.of(
+                EquipmentTemplateCatalog.primaryId(
+                        WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.MILSPEC),
+                EquipmentTemplateCatalog.armorId(MarineArmorPattern.BLUE_SCOUT),
+                EquipmentTemplateCatalog.armorId(MarineArmorPattern.OUTLAW),
+                EquipmentTemplateCatalog.primaryId(
+                        WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.MASTERWORK));
+
+        for (int victory = 0; victory < 15; victory++) {
+            armory.recordVictory(false, held);
+        }
+
+        assertEquals(EquipmentCollectionCurve.FIFTEEN_VICTORY_TARGET,
+                armory.equipmentTemplateCards().size() + held.size());
+        assertTrue(held.stream().noneMatch(armory::ownsEquipmentTemplate));
+    }
+
+    @Test
+    void existingLongRunningSaveReceivesTheCurrentCollectionFloor() throws Exception {
+        MarineArmory armory = new MarineArmory();
+        Field victories = MarineArmory.class.getDeclaredField("victories");
+        victories.setAccessible(true);
+        victories.setInt(armory, 30);
+
+        MarineArmory loaded = roundTrip(armory);
+        loaded.repairCollectionProgression(Set.of());
+
+        assertEquals(EquipmentCollectionCurve.THIRTY_VICTORY_TARGET,
+                loaded.equipmentTemplateCards().size());
+    }
+
+    @Test
     void fabricationAvailabilityIncludesRecipeAndMaterialCost() {
         MarineArmory armory = new MarineArmory();
         assertFalse(armory.canPrintPrimary(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), EquipmentGrade.SERVICE));
