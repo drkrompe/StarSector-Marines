@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.marine.EquipmentAccessTier;
 import com.dillon.starsectormarines.marine.EquipmentAcquisitionEligibility;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCard;
-import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
@@ -117,19 +116,19 @@ public final class FleetArmoryOverviewViewModel {
 
     private String buildTemplateCollectionSummary() {
         revision.get();
-        int[] total = new int[EquipmentAccessTier.values().length];
-        int[] owned = new int[EquipmentAccessTier.values().length];
-        for (EquipmentTemplateCard card : EquipmentTemplateCatalog.all()) {
+        int[] acquired = new int[EquipmentAccessTier.values().length];
+        for (EquipmentTemplateCard card : roster.armory().equipmentTemplateCards()) {
             int tier = card.accessTier().ordinal();
-            total[tier]++;
-            if (roster.armory().ownsEquipmentTemplate(card.id())) owned[tier]++;
+            acquired[tier]++;
         }
-        int totalCards = total[0] + total[1] + total[2];
-        int ownedCards = owned[0] + owned[1] + owned[2];
-        return "TEMPLATE FILE  ·  " + ownedCards + " / " + totalCards + " known"
-                + "  ·  Common " + owned[0] + " / " + total[0]
-                + "  ·  Advanced " + owned[1] + " / " + total[1]
-                + "  ·  Prestige " + owned[2] + " / " + total[2];
+        int acquiredCards = acquired[0] + acquired[1] + acquired[2];
+        List<String> summary = new ArrayList<>();
+        summary.add("TEMPLATE FILE  ·  " + acquiredCards + " acquired");
+        for (EquipmentAccessTier tier : EquipmentAccessTier.values()) {
+            int count = acquired[tier.ordinal()];
+            if (count > 0) summary.add(accessLabel(tier) + " " + count);
+        }
+        return String.join("  ·  ", summary);
     }
 
     private String buildAccessStatusSummary() {

@@ -195,6 +195,26 @@ public final class RoomShape {
         return text.toString();
     }
 
+    /**
+     * Value equality on the mask.
+     *
+     * <p>Shapes are produced fresh by {@link #orientations()} every time they
+     * are asked for, so identity equality made two structurally identical
+     * layouts compare unequal — which quietly disabled the determinism check
+     * that exists to catch layout drift.
+     */
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) return true;
+        if (!(other instanceof RoomShape shape)) return false;
+        return signature().equals(shape.signature());
+    }
+
+    @Override
+    public int hashCode() {
+        return signature().hashCode();
+    }
+
     @Override
     public String toString() {
         return "RoomShape[" + width + "x" + height + ", " + area + " cells]";

@@ -194,8 +194,9 @@ public final class RoomPlacementStage implements GenStage {
             Candidate candidate = candidates.get(i);
             Access access = findAccess(candidate, mayTunnel);
             if (access == null) continue;
-            commit(ctx, candidate, recipe.purpose(), access);
-            return describe(profile, candidate, recipe.purpose(), placed.size());
+            List<DeckGraph.Compartment.Door> doors =
+                    commit(ctx, candidate, recipe.purpose(), access);
+            return describe(profile, candidate, recipe.purpose(), placed.size(), doors);
         }
         return null;
     }
@@ -577,8 +578,13 @@ public final class RoomPlacementStage implements GenStage {
         }
     }
 
-    /** Cut the room, its bulkheads, its passage, and its door into the deck. */
-    private void commit(GenContext ctx, Candidate candidate, RoomPurpose purpose, Access access) {
+    /**
+     * Cut the room, its bulkheads, its passage, and its door into the deck.
+     *
+     * @return the door cells, which the fill needs to know where people enter
+     */
+    private List<DeckGraph.Compartment.Door> commit(GenContext ctx, Candidate candidate,
+                                                   RoomPurpose purpose, Access access) {
         RoomShape shape = candidate.shape();
         for (int[] cell : shape.filled()) {
             int x = candidate.x() + cell[0];
@@ -600,8 +606,12 @@ public final class RoomPlacementStage implements GenStage {
         // The door itself is a threshold, not circulation: leaving it out of the
         // passage mask is what stops the next room treating it as a hallway.
         carve(ctx, access.doorX(), access.doorY(), RoomPurpose.CORRIDOR, GroundKind.STRIPED);
-        widenDoorway(ctx, candidate, access);
+        List<DeckGraph.Compartment.Door> doors = new ArrayList<>();
+        doors.add(new DeckGraph.Compartment.Door(access.doorX(), access.doorY()));
+        DeckGraph.Compartment.Door widened = widenDoorway(ctx, candidate, access);
+        if (widened != null) doors.add(widened);
         rebuildSums();
+        return List.copyOf(doors);
     }
 
     /**
@@ -655,7 +665,8 @@ public final class RoomPlacementStage implements GenStage {
      * bulkhead and has to open onto the same circulation, so this widens the
      * door rather than punching a second one somewhere else in the wall.
      */
-    private void widenDoorway(GenContext ctx, Candidate candidate, Access access) {
+    private DeckGraph.Compartment.Door widenDoorway(GenContext ctx, Candidate candidate,
+                                                    Access access) {
         int perpX = access.dirY();
         int perpY = access.dirX();
         for (int side : new int[]{ 1, -1 }) {
@@ -671,8 +682,9 @@ public final class RoomPlacementStage implements GenStage {
             int outsideY = ny + access.dirY();
             if (!inBounds(outsideX, outsideY) || !floor[outsideX + 1][outsideY + 1]) continue;
             carve(ctx, nx, ny, RoomPurpose.CORRIDOR, GroundKind.STRIPED);
-            return;
+            return new DeckGraph.Compartment.Door(nx, ny);
         }
+        return null;
     }
 
     private void carve(GenContext ctx, int x, int y, RoomPurpose purpose, GroundKind kind) {
@@ -685,7 +697,8 @@ public final class RoomPlacementStage implements GenStage {
     }
 
     private DeckGraph.Compartment describe(DeckProfile profile, Candidate candidate,
-                                           RoomPurpose purpose, int id) {
+                                           RoomPurpose purpose, int id,
+                                           List<DeckGraph.Compartment.Door> doors) {
         int left = candidate.x();
         int top = candidate.y();
         int right = left + candidate.shape().width() - 1;
@@ -693,7 +706,8 @@ public final class RoomPlacementStage implements GenStage {
         int spineCentre = (profile.spineTop() + profile.spineBottom()) / 2;
         DeckSide side = (top + bottom) / 2 < spineCentre ? DeckSide.PORT : DeckSide.STARBOARD;
         DeckZone zone = profile.zone(clampFrame(profile, (left + right) / 2));
-        return new DeckGraph.Compartment(id, left, top, right, bottom, side, zone, purpose);
+        return new DeckGraph.Compartment(id, candidate.shape(), left, top,
+                side, zone, purpose, doors);
     }
 
     private void rebuildSums() {

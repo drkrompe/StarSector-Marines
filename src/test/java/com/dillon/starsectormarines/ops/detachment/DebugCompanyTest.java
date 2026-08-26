@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
+import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
 import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
 import com.dillon.starsectormarines.ops.OperationTier;
@@ -130,8 +131,10 @@ class DebugCompanyTest {
 
     @Test
     void everySquadReceivesOneRandomizedAuthoredLoadout() {
+        int catalogPass = Math.max(SquadEquipmentDoctrines.weaponDoctrines().size(),
+                SquadEquipmentDoctrines.armorDoctrines().size());
         MarineRoster roster = DebugCompany.roster(
-                DebugCompanyStage.VETERAN_COMPANY, 6, new Random(7_211L));
+                DebugCompanyStage.VETERAN_COMPANY, catalogPass, new Random(7_211L));
         Set<String> weaponDoctrines = new HashSet<>();
         Set<String> armorDoctrines = new HashSet<>();
 
@@ -165,9 +168,11 @@ class DebugCompanyTest {
             }
         }
 
-        assertEquals(5, weaponDoctrines.size(),
+        assertEquals(SquadEquipmentDoctrines.weaponDoctrines().size(),
+                weaponDoctrines.size(),
                 "the first shuffle bag exposes every faction-flavored weapon doctrine");
-        assertEquals(4, armorDoctrines.size(),
+        assertEquals(SquadEquipmentDoctrines.armorDoctrines().size(),
+                armorDoctrines.size(),
                 "the first shuffle bag exposes every faction-flavored armor doctrine");
     }
 

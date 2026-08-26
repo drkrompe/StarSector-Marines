@@ -1,8 +1,12 @@
 # Facility room themes
 
-Status: PLANNED
+Status: IN PROGRESS
 
 Written: 2026-08-26
+
+Updated: 2026-08-26 — rooms now arrive packed at authored footprints with real
+doors, so the fill has a compartment and its entries to work from. Capacity is
+now a property of the **refit**, not of the room's size.
 
 Read `ship-interiors-nouns.md` before implementing this story, especially the
 Fill quality section and law 9. Depends on `ship-deck-family.md`.
@@ -43,8 +47,14 @@ which is presentation only.
   and clear space only where a firing lane or hatch approach needs it.
 - Fixtures declare their tactical effect and their ambient affordance. Affordance
   is authored here and consumed by `fixture-derived-ambient-routes.md`.
-- Compartment extent follows from its parameters. A four-gantry bay and a
-  six-gantry bay are different sizes, not the same room with more clutter.
+- A **refit level** per compartment, which is how the upgrade chain works: the
+  same floor area fitted better holds more. A berth compartment given single
+  racks and generous aisles berths fewer than the same compartment given triple
+  racks and working room only. Capacity is the fixture count at the fitted
+  level, so an upgrade re-fits a room rather than enlarging it or adding a new
+  one.
+- Compartment extent follows from the room's authored footprint. A refit changes
+  what the floor holds, not how much floor there is.
 
 ## Constraints
 

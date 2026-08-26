@@ -56,7 +56,16 @@ delivery behavior, protection tradeoff, or special activation.
 | `armor.scout` | **Janus scout suit** — Tri-Tachyon composite reconnaissance protection with sensor and electronic-warfare integration. | Corporate teams; imported League and Diktat specialists; gray-market Independent users. | It is not ordinary Hegemony, Church, pirate, or Pather line protection. |
 | `armor.combat` | **Bastion line armor** — a Kazeron-led interchangeable coalition pattern. | League forces and exported, licensed, or captured Hegemony, Independent, and Diktat stocks. | Shared line role does not make it the Hegemony's preferred institutional suit. |
 | `armor.line` | **Legionary line suit** — standardized, pressure-sealed Hegemony armor designed for campaign repair. | Hegemony regulars, licensed Diktat formations, Church and Knight custodians, and battlefield recovery. | Tri-Tachyon internal forces prefer integrated composite systems; pirates and Pathers do not maintain clean Legionary issue at scale. |
+| `armor.aegis-composite` | **Aegis composite line suit** — a Tri-Tachyon response pattern with predictive threat displays and powered balance correction. | Corporate response teams and expensive licensed or recovered Independent examples. | Its speed and reduced incoming hit profile are bought with less pool and rating than low-tech line armor; no neural-interface faction bonus exists outside the suit. |
+| `armor.palatine` | **Palatine legacy line suit** — a Church pattern rebuilt from inherited shells and artisan-fitted resistant plate. | Church sanctioned guards, Knight custodians, and rare licensed or recovered examples. | High armor rating comes with low pool and a real mobility cost; consecration grants no hidden immunity. |
+| `armor.furnace-line` | **Furnace state line suit** — thick petrochemical laminate over a conventional Sindrian pressure frame. | Diktat regulars, Lion's Guard formations, and exported or recovered Independent stocks. | Its deep pool is paired with ordinary resistance, weight, and a conspicuous target profile. |
+| `armor.reaver` | **Reaver reinforced rig** — a veteran Blackforge frame with powered bracing and additional ship plate. | Pirate warbands, Pather cells, and battlefield recovery. | Raw pool and useful speed do not erase its poor armor rating or irregular maintenance. |
 | `armor.heavy` | **XIV heavy battlesuit** — a Hegemony Domain-spec breach and shock pattern with powered bracing. | Hegemony shock units, Knight custodians, Lion's Guard prestige formations, wealthy League forces, and rare recovered examples. | Heavy is a role, not universal top-tier faction armor. Tri-Tachyon heavy systems may become a separate item only if their mechanics justify it. |
+| `armor.specter-heavy` | **Specter composite battlesuit** — a high-output Tri-Tachyon breach shell with continuous threat prediction. | Corporate blacksite security and exceptionally rare patron or recovered Independent issue. | It is the fastest and hardest-to-hit heavy pattern, with materially less pool/rating than XIV armor and no free drone or neural mechanic. |
+| `armor.bulwark-heavy` | **Bulwark coalition battlesuit** — modular League heavy armor built around replaceable actuators and shared control standards. | League breach formations, wealthy member worlds, and mercenary patron or recovery channels. | Balance and repairability are its identity; it does not match each specialist heavy pattern at that pattern's strongest axis. |
+| `armor.reliquary-heavy` | **Reliquary consecrated battlesuit** — an artisan-restored legacy shell entrusted through Knightly trials. | Knights of Ludd and scarce Church or Independent patron/recovery channels. | Exceptional rating is paid for with lower pool and the heaviest deliberate movement; spiritual sanction is provenance, not damage reduction. |
+| `armor.lions-mantle` | **Lion's Mantle guard battlesuit** — prestige Sindrian armor with oversized cooling and lavish plate support. | Lion's Guard patron issue and rare captured or diverted examples. | The largest formal-faction armor reserve is slow and easy to hit; spectacle is a liability as well as flavor. |
+| `armor.foundry-breaker` | **Foundry-breaker industrial rig** — a cargo exoskeleton buried under illicit servos and welded ship plate. | Pirate and Pather foundry cells; Independent access is recovery-only. | Enormous crude pool cannot substitute for rating, mobility, or target denial, and the rig remains infantry rather than a mech. |
 
 ## Built-in loadout provenance
 
@@ -74,9 +83,13 @@ player how an institution composes shared equipment:
   Rattlers and one diverted Shattercap for a short blacksite action.
 - **Hegemony Auxiliary Fire Support** centers serviceable Rooks, Stalwarts, and
   Longbows around tightly controlled Annihilator and Breachlight issue.
-- **Sindrian Civilian Security Equipment** distributes imported Janus suits and Ward
-  kits unevenly; **Hegemony Line Protection** concentrates Legionary/Bastion plate;
-  **Tri-Tachyon Recon Protection** concentrates Janus suits on high-value operators.
+- Armor establishments form a visible power matrix: the universal **Frontier
+  Patchwork** baseline; six light/security schedules at tier II; six fully powered
+  line schedules at tier III; and six battlesuit schedules at tier IV. Faction peers
+  are side-grades rather than mirrors. Hegemony plate is standardized, Tri-Tachyon
+  composite issue is faster and harder to hit, League issue is balanced, Church and
+  Knight legacy armor is resistant but slow, Sindrian plate is deep and conspicuous,
+  and outlaw rigs survive through crude volume with weak resistance.
 
 ## Availability law
 

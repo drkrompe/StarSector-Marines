@@ -10,6 +10,8 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InitSolidStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.TacticalLinkStage;
+import com.dillon.starsectormarines.battle.world.gen.ship.fit.RoomFit;
+import com.dillon.starsectormarines.battle.world.gen.ship.stage.CompartmentFillStage;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.DeckEndSpawnStage;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.HullProfileStage;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.SpineStage;
@@ -49,12 +51,13 @@ public final class ShipDeckGenerator {
      *
      * @param silhouette hull outline to trace, or null for the synthetic taper
      */
-    private GenRecipe buildDeckRecipe(HullSilhouette silhouette) {
+    private GenRecipe buildDeckRecipe(HullSilhouette silhouette, RoomFit fit) {
         return new GenRecipe("ShipDeck", List.of(
                 new InitSolidStage(),                    // solid hull
                 new HullProfileStage(SPINE_WIDTH, silhouette),  // beam per frame + zones
                 new SpineStage(),                        // carve the fore-aft corridor
                 new RoomPlacementStage(),                // pack the room program; passages fall out
+                new CompartmentFillStage(fit),           // furnish each room at the deck refit
                 new DeckEndSpawnStage(),                 // bow / stern anchors
                 new TacticalLinkStage(),                 // (no nodes yet -> empty map)
                 new FinalizeStage()));                   // wall HP / cover / wall tags / buildings
@@ -77,9 +80,15 @@ public final class ShipDeckGenerator {
      * and asymmetry. Identical inputs produce an identical deck.
      */
     public MapResult generateDeck(DeckSizing.DeckPlan plan, long seed, HullSilhouette silhouette) {
+        return generateDeck(plan, seed, silhouette, RoomFit.STANDARD);
+    }
+
+    /** Generate one deck furnished at {@code fit} — how well its rooms are fitted out. */
+    public MapResult generateDeck(DeckSizing.DeckPlan plan, long seed,
+                                  HullSilhouette silhouette, RoomFit fit) {
         int width = plan.frames();
         int height = plan.height();
-        GenRecipe deckRecipe = buildDeckRecipe(silhouette);
+        GenRecipe deckRecipe = buildDeckRecipe(silhouette, fit);
         Random rng = new Random(seed);
         NavigationGrid grid = new NavigationGrid(width, height);
         CellTopology topology = new CellTopology(width, height);

@@ -198,6 +198,17 @@ beside that immutable built-in catalog. Authoring consumes nothing and may mix e
 billet, but every referenced primary-and-grade, armor pattern, and special must have
 a collected equipment template card. Cargo, readiness, and stationing constrain the
 later squad issue.
+
+Built-in armor definitions form explicit capability bands rather than a single
+faction ladder. Tier I is the universal unpowered baseline. Tiers II, III, and IV
+each contain multiple faction-authored equivalents, and equal tier means comparable
+battlefield ambition rather than identical values: Hegemony patterns emphasize
+standardized plate, Tri-Tachyon composites trade raw protection for movement and a
+harder firing solution, League patterns stay balanced, Church and Knight patterns
+favor resistant legacy armor at a mobility cost, Sindrian patterns carry deep visible
+plate reserves, and outlaw rigs pair crude material volume with poor resistance.
+Those differences live on concrete armor-pattern stats and twelve-billet issue, never
+on a hidden faction modifier or set bonus.
 Edits remain a draft until **Save as New**, so a definition already assigned to a
 squad never silently refits its materialized equipment.
 The early **Frontier Security Equipment** and **Frontier Patchwork Protection**
