@@ -55,11 +55,83 @@ public final class CommandTraceAnalyzer {
             long reserveSquadTicks,
             List<Integer> publishedMobilizationLatenciesTicks,
             int unmobilizedThreatEpisodes,
-            int peakPublishedTrackShareBasisPoints) {
+            int peakPublishedTrackShareBasisPoints,
+            PhysicalProgressMetrics physicalProgress) {
 
         public FactionMetrics {
             publishedMobilizationLatenciesTicks =
                     List.copyOf(publishedMobilizationLatenciesTicks);
+            physicalProgress = physicalProgress != null
+                    ? physicalProgress : PhysicalProgressMetrics.empty();
+        }
+
+        public FactionMetrics(int perspectiveSamples, int retargets,
+                              int releases, int reissues,
+                              int rejectedProposals, int stabilityHolds,
+                              int unassignedSquadPulses,
+                              int unassignedSquadTicks,
+                              int unreachableSquadPulses,
+                              int noActionableSquadPulses,
+                              long reserveSquadTicks,
+                              List<Integer> mobilizationLatencies,
+                              int unmobilizedThreatEpisodes,
+                              int peakTrackShare) {
+            this(perspectiveSamples, retargets, releases, reissues,
+                    rejectedProposals, stabilityHolds,
+                    unassignedSquadPulses, unassignedSquadTicks,
+                    unreachableSquadPulses, noActionableSquadPulses,
+                    reserveSquadTicks, mobilizationLatencies,
+                    unmobilizedThreatEpisodes, peakTrackShare,
+                    PhysicalProgressMetrics.empty());
+        }
+    }
+
+    public record PhysicalProgressMetrics(
+            int squadSamples,
+            int maximumConcurrentAliveSquads,
+            int maximumConcurrentAliveMembers,
+            int movementEpisodes,
+            int episodesWithMarkerClosure,
+            int episodesObservedInTargetZone,
+            int compoundAssaultThresholdCommitments,
+            int secureCompoundEpisodes,
+            int secureCompoundEpisodesObservedInTargetZone,
+            long comparableTravelSquadTicks,
+            long markerClosingSquadTicks,
+            long nonClosingWithContactSquadTicks,
+            long quietNonClosingSquadTicks,
+            long targetZoneSquadTicks,
+            long suspendedAssignmentSquadTicks,
+            List<Integer> targetZoneEntryLatenciesTicks) {
+
+        public PhysicalProgressMetrics {
+            targetZoneEntryLatenciesTicks =
+                    List.copyOf(targetZoneEntryLatenciesTicks);
+        }
+
+        static PhysicalProgressMetrics empty() {
+            return new PhysicalProgressMetrics(0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0L, 0L, 0L, 0L, 0L, 0L, List.of());
+        }
+    }
+
+    public record CompoundPresenceMetrics(
+            int observationEvents,
+            int compoundsWithMarinePresence,
+            long observedCompoundTicks,
+            long marinePresentCompoundTicks,
+            long marineOnlyCompoundTicks,
+            long mixedCompoundTicks,
+            long defenderOnlyCompoundTicks,
+            long emptyCompoundTicks,
+            long unresolvedCompoundTicks,
+            int longestMarineOnlyPresenceRunTicks,
+            int maximumMarineUnits,
+            int maximumCaptureProgressBasisPoints) {
+
+        static CompoundPresenceMetrics empty() {
+            return new CompoundPresenceMetrics(0, 0, 0L, 0L, 0L, 0L,
+                    0L, 0L, 0L, 0, 0, 0);
         }
     }
 
@@ -72,7 +144,25 @@ public final class CommandTraceAnalyzer {
             int losses,
             int keepCaptureTick,
             int longestObservedCaptureGapTicks,
-            boolean territorialProgressStalled) { }
+            boolean territorialProgressStalled,
+            CompoundPresenceMetrics physicalPresence) {
+
+        public ConquestMetrics {
+            physicalPresence = physicalPresence != null
+                    ? physicalPresence : CompoundPresenceMetrics.empty();
+        }
+
+        public ConquestMetrics(int compoundCount, int initialMarineHeld,
+                               int finalMarineHeld, int maximumMarineHeld,
+                               int captures, int losses, int keepCaptureTick,
+                               int longestObservedCaptureGapTicks,
+                               boolean territorialProgressStalled) {
+            this(compoundCount, initialMarineHeld, finalMarineHeld,
+                    maximumMarineHeld, captures, losses, keepCaptureTick,
+                    longestObservedCaptureGapTicks, territorialProgressStalled,
+                    CompoundPresenceMetrics.empty());
+        }
+    }
 
     public record Analysis(
             RunMetrics run,
@@ -137,6 +227,42 @@ public final class CommandTraceAnalyzer {
                         metrics.unmobilizedThreatEpisodes());
                 numberField(out, "peakPublishedTrackShareBasisPoints",
                         metrics.peakPublishedTrackShareBasisPoints());
+                PhysicalProgressMetrics physical = metrics.physicalProgress();
+                out.append(",\"physicalProgress\":{");
+                rawNumberField(out, "squadSamples", physical.squadSamples());
+                numberField(out, "maximumConcurrentAliveSquads",
+                        physical.maximumConcurrentAliveSquads());
+                numberField(out, "maximumConcurrentAliveMembers",
+                        physical.maximumConcurrentAliveMembers());
+                numberField(out, "movementEpisodes", physical.movementEpisodes());
+                numberField(out, "episodesWithMarkerClosure",
+                        physical.episodesWithMarkerClosure());
+                numberField(out, "episodesObservedInTargetZone",
+                        physical.episodesObservedInTargetZone());
+                numberField(out, "compoundAssaultThresholdCommitments",
+                        physical.compoundAssaultThresholdCommitments());
+                numberField(out, "secureCompoundEpisodes",
+                        physical.secureCompoundEpisodes());
+                numberField(out, "secureCompoundEpisodesObservedInTargetZone",
+                        physical.secureCompoundEpisodesObservedInTargetZone());
+                longField(out, "comparableTravelSquadTicks",
+                        physical.comparableTravelSquadTicks());
+                longField(out, "markerClosingSquadTicks",
+                        physical.markerClosingSquadTicks());
+                longField(out, "nonClosingWithContactSquadTicks",
+                        physical.nonClosingWithContactSquadTicks());
+                longField(out, "quietNonClosingSquadTicks",
+                        physical.quietNonClosingSquadTicks());
+                longField(out, "targetZoneSquadTicks",
+                        physical.targetZoneSquadTicks());
+                longField(out, "suspendedAssignmentSquadTicks",
+                        physical.suspendedAssignmentSquadTicks());
+                out.append(",\"targetZoneEntryLatenciesTicks\":[");
+                for (int i = 0; i < physical.targetZoneEntryLatenciesTicks().size(); i++) {
+                    if (i > 0) out.append(',');
+                    out.append(physical.targetZoneEntryLatenciesTicks().get(i));
+                }
+                out.append("]}");
                 out.append('}');
             }
             out.append('}');
@@ -154,6 +280,30 @@ public final class CommandTraceAnalyzer {
                     conquest.longestObservedCaptureGapTicks());
             booleanField(out, "territorialProgressStalled",
                     conquest.territorialProgressStalled());
+            CompoundPresenceMetrics presence = conquest.physicalPresence();
+            out.append(",\"physicalPresence\":{");
+            rawNumberField(out, "observationEvents", presence.observationEvents());
+            numberField(out, "compoundsWithMarinePresence",
+                    presence.compoundsWithMarinePresence());
+            longField(out, "observedCompoundTicks",
+                    presence.observedCompoundTicks());
+            longField(out, "marinePresentCompoundTicks",
+                    presence.marinePresentCompoundTicks());
+            longField(out, "marineOnlyCompoundTicks",
+                    presence.marineOnlyCompoundTicks());
+            longField(out, "mixedCompoundTicks", presence.mixedCompoundTicks());
+            longField(out, "defenderOnlyCompoundTicks",
+                    presence.defenderOnlyCompoundTicks());
+            longField(out, "emptyCompoundTicks", presence.emptyCompoundTicks());
+            longField(out, "unresolvedCompoundTicks",
+                    presence.unresolvedCompoundTicks());
+            numberField(out, "longestMarineOnlyPresenceRunTicks",
+                    presence.longestMarineOnlyPresenceRunTicks());
+            numberField(out, "maximumMarineUnits",
+                    presence.maximumMarineUnits());
+            numberField(out, "maximumCaptureProgressBasisPoints",
+                    presence.maximumCaptureProgressBasisPoints());
+            out.append('}');
             return out.append("}}\n").toString();
         }
     }
@@ -166,7 +316,8 @@ public final class CommandTraceAnalyzer {
             if (samples != null && !samples.isEmpty()) {
                 factions.put(faction, analyzeFaction(faction, samples,
                         trace.windowStarts, trace.windowEnds,
-                        trace.termination, trace.finalWindow()));
+                        trace.termination, trace.finalWindow(),
+                        trace.schemaVersion));
             }
         }
         return new Analysis(trace.runMetrics(), factions,
@@ -177,7 +328,8 @@ public final class CommandTraceAnalyzer {
             Faction faction, List<PerspectiveSample> samples,
             Map<Integer, Integer> windowStarts,
             Map<Integer, Integer> windowEnds,
-            Termination termination, int finalTraceWindow) throws Exception {
+            Termination termination, int finalTraceWindow,
+            int schemaVersion) throws Exception {
         Map<Integer, DirectiveState> directiveStates = new HashMap<>();
         int directiveWindow = -1;
         int retargets = 0;
@@ -322,10 +474,252 @@ public final class CommandTraceAnalyzer {
             }
         }
 
+        PhysicalProgressMetrics physical = analyzePhysicalProgress(
+                samples, windowStarts, windowEnds, schemaVersion);
         return new FactionMetrics(samples.size(), retargets, releases,
                 reissues, rejected, stabilityHolds, unassignedPulses,
                 unassignedTicks, unreachablePulses, noActionablePulses,
-                reserveTicks, latencies, unanswered, peakShare);
+                reserveTicks, latencies, unanswered, peakShare, physical);
+    }
+
+    private static PhysicalProgressMetrics analyzePhysicalProgress(
+            List<PerspectiveSample> samples,
+            Map<Integer, Integer> windowStarts,
+            Map<Integer, Integer> windowEnds,
+            int schemaVersion) throws Exception {
+        if (schemaVersion < 3) return PhysicalProgressMetrics.empty();
+        Map<Integer, MovementEpisode> episodes = new HashMap<>();
+        int squadSamples = 0;
+        int maximumAliveSquads = 0;
+        int maximumAliveMembers = 0;
+        int movementEpisodes = 0;
+        int episodesWithClosure = 0;
+        int episodesInZone = 0;
+        int thresholdCommitments = 0;
+        int secureEpisodes = 0;
+        int secureEpisodesInZone = 0;
+        long comparableTicks = 0L;
+        long closingTicks = 0L;
+        long contactTicks = 0L;
+        long quietTicks = 0L;
+        long targetZoneTicks = 0L;
+        long suspendedTicks = 0L;
+        List<Integer> entryLatencies = new ArrayList<>();
+
+        for (int sampleIndex = 0; sampleIndex < samples.size(); sampleIndex++) {
+            PerspectiveSample sample = samples.get(sampleIndex);
+            boolean baseline = sample.observedTick
+                    == windowStarts.getOrDefault(sample.window,
+                    Integer.MIN_VALUE);
+            JSONObject conquest = sample.row.optJSONObject("conquest");
+            if (conquest == null) continue;
+            int intervalEnd = intervalEnd(samples, sampleIndex, windowEnds);
+            int intervalTicks = Math.max(0, intervalEnd - sample.observedTick);
+            Map<Integer, JSONObject> states = bySquad(
+                    conquest.optJSONArray("squads"));
+            Map<Integer, JSONObject> effectiveDirectives = bySquad(
+                    sample.row.optJSONArray("directives"));
+            int aliveSquads = 0;
+            int aliveMembers = 0;
+            for (JSONObject state : states.values()) {
+                int members = state.getInt("aliveMembers");
+                if (members <= 0) continue;
+                aliveSquads++;
+                aliveMembers += members;
+            }
+            maximumAliveSquads = Math.max(maximumAliveSquads, aliveSquads);
+            maximumAliveMembers = Math.max(maximumAliveMembers, aliveMembers);
+            JSONArray actions = conquest.getJSONArray("actions");
+            Map<Integer, Boolean> observed = new HashMap<>();
+            for (int i = 0; i < actions.length(); i++) {
+                JSONObject action = actions.getJSONObject(i);
+                int squadId = action.getInt("squadId");
+                JSONObject state = states.get(squadId);
+                if (state == null) continue;
+                squadSamples++;
+                observed.put(squadId, true);
+                JSONObject effectiveDirective = effectiveDirectives.get(squadId);
+                if (!matchesEffectiveDirective(sample.row, action,
+                        effectiveDirective)) {
+                    episodes.remove(squadId);
+                    continue;
+                }
+                String assignmentKind = nullableString(action, "assignmentKind");
+                if (assignmentKind == null) {
+                    episodes.remove(squadId);
+                    continue;
+                }
+                int liveMembers = state.getInt("aliveMembers");
+                if (liveMembers <= 0) {
+                    episodes.remove(squadId);
+                    continue;
+                }
+                if (!state.isNull("executionSuspension")) {
+                    suspendedTicks += intervalTicks;
+                    episodes.remove(squadId);
+                    continue;
+                }
+                int markerX = action.getInt("markerCellX");
+                int markerY = action.getInt("markerCellY");
+                int targetZone = action.getInt("targetZoneId");
+                if (markerX < 0 || markerY < 0) {
+                    episodes.remove(squadId);
+                    continue;
+                }
+                String key = directiveIdentity(effectiveDirective, assignmentKind,
+                        targetZone, markerX, markerY);
+                double dx = state.getDouble("centroidX") - (markerX + 0.5);
+                double dy = state.getDouble("centroidY") - (markerY + 0.5);
+                double distance = Math.sqrt(dx * dx + dy * dy);
+                MovementEpisode episode = episodes.get(squadId);
+                if (episode == null || !episode.key.equals(key)) {
+                    if (episode != null && !baseline
+                            && episode.previousTick < sample.observedTick) {
+                        double oldDx = state.getDouble("centroidX")
+                                - (episode.markerX + 0.5);
+                        double oldDy = state.getDouble("centroidY")
+                                - (episode.markerY + 0.5);
+                        double oldDistance = Math.sqrt(
+                                oldDx * oldDx + oldDy * oldDy);
+                        int ticks = sample.observedTick - episode.previousTick;
+                        if (!episode.previousInTargetZone) {
+                            comparableTicks += ticks;
+                            if (oldDistance
+                                    < episode.previousDistance - 0.25) {
+                                closingTicks += ticks;
+                            } else if (episode.previousLocalContact
+                                    || state.getBoolean("localContact")) {
+                                contactTicks += ticks;
+                            } else {
+                                quietTicks += ticks;
+                            }
+                        }
+                        episode.minimumDistance = Math.min(
+                                episode.minimumDistance, oldDistance);
+                        if (!episode.closedRange
+                                && episode.initialDistance
+                                - episode.minimumDistance >= 1.0) {
+                            episode.closedRange = true;
+                            episodesWithClosure++;
+                        }
+                        boolean reachedOldZone = episode.targetZone >= 0
+                                && state.getInt("currentZoneId")
+                                == episode.targetZone;
+                        if (reachedOldZone && !episode.observedInTargetZone) {
+                            episode.observedInTargetZone = true;
+                            episodesInZone++;
+                            if (episode.secureCompound) secureEpisodesInZone++;
+                            entryLatencies.add(sample.observedTick
+                                    - episode.startedTick);
+                        }
+                    }
+                    episode = new MovementEpisode(key, sample.observedTick,
+                            distance, "SECURE_COMPOUND".equals(assignmentKind),
+                            markerX, markerY, targetZone);
+                    episodes.put(squadId, episode);
+                    movementEpisodes++;
+                    if (episode.secureCompound) secureEpisodes++;
+                } else if (!baseline
+                        && episode.previousTick < sample.observedTick) {
+                    int ticks = sample.observedTick - episode.previousTick;
+                    boolean inZoneBefore = episode.previousInTargetZone;
+                    if (!inZoneBefore) {
+                        comparableTicks += ticks;
+                        if (distance < episode.previousDistance - 0.25) {
+                            closingTicks += ticks;
+                        } else if (episode.previousLocalContact
+                                || state.getBoolean("localContact")) {
+                            contactTicks += ticks;
+                        } else {
+                            quietTicks += ticks;
+                        }
+                    }
+                }
+                if (baseline) {
+                    episode.initialDistance = distance;
+                    episode.minimumDistance = distance;
+                }
+                if (!episode.adjacentCommitted
+                        && "COMPOUND_ASSAULT_ADJACENT".equals(
+                        action.getString("reason"))
+                        && (!baseline || sample.window == 0)) {
+                    episode.adjacentCommitted = true;
+                    thresholdCommitments++;
+                }
+                if (distance < episode.minimumDistance) {
+                    episode.minimumDistance = distance;
+                }
+                if (!episode.closedRange
+                        && episode.initialDistance - episode.minimumDistance >= 1.0) {
+                    episode.closedRange = true;
+                    episodesWithClosure++;
+                }
+                boolean inTargetZone = targetZone >= 0
+                        && state.getInt("currentZoneId") == targetZone;
+                if (inTargetZone) targetZoneTicks += intervalTicks;
+                if (inTargetZone && !episode.observedInTargetZone) {
+                    episode.observedInTargetZone = true;
+                    episodesInZone++;
+                    if (episode.secureCompound) secureEpisodesInZone++;
+                    if (!baseline) {
+                        entryLatencies.add(
+                                sample.observedTick - episode.startedTick);
+                    }
+                }
+                episode.previousTick = sample.observedTick;
+                episode.previousDistance = distance;
+                episode.previousInTargetZone = inTargetZone;
+                episode.previousLocalContact = state.getBoolean("localContact");
+            }
+            episodes.keySet().removeIf(squadId -> !observed.containsKey(squadId));
+        }
+        return new PhysicalProgressMetrics(squadSamples, maximumAliveSquads,
+                maximumAliveMembers, movementEpisodes,
+                episodesWithClosure, episodesInZone, thresholdCommitments,
+                secureEpisodes, secureEpisodesInZone, comparableTicks,
+                closingTicks, contactTicks, quietTicks, targetZoneTicks,
+                suspendedTicks, entryLatencies);
+    }
+
+    private static Map<Integer, JSONObject> bySquad(JSONArray rows)
+            throws Exception {
+        Map<Integer, JSONObject> bySquad = new HashMap<>();
+        if (rows == null) return bySquad;
+        for (int i = 0; i < rows.length(); i++) {
+            JSONObject row = rows.getJSONObject(i);
+            bySquad.put(row.getInt("squadId"), row);
+        }
+        return bySquad;
+    }
+
+    private static boolean matchesEffectiveDirective(
+            JSONObject perspective, JSONObject action, JSONObject directive)
+            throws Exception {
+        if (directive == null || "REJECTED".equals(
+                directive.getString("status"))) return false;
+        if (!perspective.getString("strategy").equals(
+                directive.getString("issuer"))) return false;
+        JSONObject assignment = directive.optJSONObject("assignment");
+        String actionKind = nullableString(action, "assignmentKind");
+        if (assignment == null || actionKind == null) {
+            return assignment == null && actionKind == null;
+        }
+        return actionKind.equals(assignment.getString("kind"))
+                && action.getInt("targetZoneId")
+                == assignment.getInt("targetZoneId")
+                && action.getInt("targetCellX")
+                == assignment.getInt("targetCellX")
+                && action.getInt("targetCellY")
+                == assignment.getInt("targetCellY");
+    }
+
+    private static String directiveIdentity(
+            JSONObject directive, String assignmentKind, int targetZone,
+            int markerX, int markerY) throws Exception {
+        return directive.getString("issuer") + '|'
+                + directive.getInt("issuedTick") + '|'
+                + assignmentKind + '|' + targetZone + '|'
+                + markerX + '|' + markerY;
     }
 
     private static int intervalEnd(List<PerspectiveSample> samples, int index,
@@ -401,9 +795,109 @@ public final class CommandTraceAnalyzer {
         boolean progressStalled = trace.termination != Termination.INCOMPLETE
                 && compoundCount > 0 && observedDuration(trace) > 0
                 && captures == 0 && maxHeld <= initialHeld;
+        CompoundPresenceMetrics physicalPresence =
+                analyzeCompoundPresence(trace);
         return new ConquestMetrics(compoundCount, initialHeld, finalHeld,
                 maxHeld, captures, losses, keepTick, longestGap,
-                progressStalled);
+                progressStalled, physicalPresence);
+    }
+
+    private static CompoundPresenceMetrics analyzeCompoundPresence(
+            ParsedTrace trace) {
+        int events = 0;
+        long observedTicks = 0L;
+        long marinePresentTicks = 0L;
+        long marineOnlyTicks = 0L;
+        long mixedTicks = 0L;
+        long defenderOnlyTicks = 0L;
+        long emptyTicks = 0L;
+        long unresolvedTicks = 0L;
+        int longestMarineOnly = 0;
+        int maxMarineUnits = 0;
+        int maxProgress = 0;
+        Map<String, Boolean> compoundsWithMarines = new HashMap<>();
+
+        for (Map.Entry<Integer, Map<Integer, List<CompoundPresenceEvent>>>
+                windowEntry : trace.compoundPresence.entrySet()) {
+            int window = windowEntry.getKey();
+            int lastTick = trace.windowStarts.getOrDefault(window, 0);
+            Map<String, CompoundPresenceEvent> states = new HashMap<>();
+            Map<String, Integer> marineOnlyStarts = new HashMap<>();
+            for (Map.Entry<Integer, List<CompoundPresenceEvent>> tickEntry
+                    : windowEntry.getValue().entrySet()) {
+                int tick = tickEntry.getKey();
+                int span = Math.max(0, tick - lastTick);
+                for (CompoundPresenceEvent state : states.values()) {
+                    observedTicks += span;
+                    switch (state.occupancy) {
+                        case "MARINE_ONLY" -> {
+                            marinePresentTicks += span;
+                            marineOnlyTicks += span;
+                        }
+                        case "MIXED" -> {
+                            marinePresentTicks += span;
+                            mixedTicks += span;
+                        }
+                        case "DEFENDER_ONLY" -> defenderOnlyTicks += span;
+                        case "EMPTY" -> emptyTicks += span;
+                        case "UNRESOLVED" -> unresolvedTicks += span;
+                        default -> throw new IllegalArgumentException(
+                                "Unknown compound occupancy: " + state.occupancy);
+                    }
+                }
+                for (CompoundPresenceEvent event : tickEntry.getValue()) {
+                    events++;
+                    CompoundPresenceEvent prior = states.put(event.subject, event);
+                    if (event.marineUnits > 0) {
+                        compoundsWithMarines.put(event.subject, true);
+                    }
+                    maxMarineUnits = Math.max(maxMarineUnits, event.marineUnits);
+                    maxProgress = Math.max(maxProgress,
+                            event.captureProgressBasisPoints);
+                    boolean wasMarineOnly = prior != null
+                            && "MARINE_ONLY".equals(prior.occupancy);
+                    boolean nowMarineOnly = "MARINE_ONLY".equals(event.occupancy);
+                    if (!wasMarineOnly && nowMarineOnly) {
+                        marineOnlyStarts.put(event.subject, tick);
+                    } else if (wasMarineOnly && !nowMarineOnly) {
+                        Integer start = marineOnlyStarts.remove(event.subject);
+                        if (start != null) {
+                            longestMarineOnly = Math.max(longestMarineOnly,
+                                    tick - start);
+                        }
+                    }
+                }
+                lastTick = tick;
+            }
+            int windowEnd = trace.windowEnds.getOrDefault(window, lastTick);
+            int span = Math.max(0, windowEnd - lastTick);
+            for (CompoundPresenceEvent state : states.values()) {
+                observedTicks += span;
+                switch (state.occupancy) {
+                    case "MARINE_ONLY" -> {
+                        marinePresentTicks += span;
+                        marineOnlyTicks += span;
+                    }
+                    case "MIXED" -> {
+                        marinePresentTicks += span;
+                        mixedTicks += span;
+                    }
+                    case "DEFENDER_ONLY" -> defenderOnlyTicks += span;
+                    case "EMPTY" -> emptyTicks += span;
+                    case "UNRESOLVED" -> unresolvedTicks += span;
+                    default -> throw new IllegalArgumentException(
+                            "Unknown compound occupancy: " + state.occupancy);
+                }
+            }
+            for (Integer start : marineOnlyStarts.values()) {
+                longestMarineOnly = Math.max(longestMarineOnly,
+                        windowEnd - start);
+            }
+        }
+        return new CompoundPresenceMetrics(events, compoundsWithMarines.size(),
+                observedTicks, marinePresentTicks, marineOnlyTicks, mixedTicks,
+                defenderOnlyTicks, emptyTicks, unresolvedTicks,
+                longestMarineOnly, maxMarineUnits, maxProgress);
     }
 
     private static int observedDuration(ParsedTrace trace) {
@@ -442,11 +936,13 @@ public final class CommandTraceAnalyzer {
                         throw new IllegalArgumentException("Duplicate run header");
                     }
                     trace.headerSeen = true;
-                    if (row.getInt("schemaVersion") != 2) {
+                    int schemaVersion = row.getInt("schemaVersion");
+                    if (schemaVersion != 2 && schemaVersion != 3) {
                         throw new IllegalArgumentException(
                                 "Unsupported command trace schemaVersion: "
-                                        + row.getInt("schemaVersion"));
+                                        + schemaVersion);
                     }
+                    trace.schemaVersion = schemaVersion;
                     trace.startTick = tick;
                     trace.fixtureKind = nullableString(row, "fixtureKind");
                     trace.schedulerMode = row.getString("schedulerMode");
@@ -513,6 +1009,15 @@ public final class CommandTraceAnalyzer {
                     .add(new CompoundEvent(row.getString("subject"),
                             row.getString("compoundKind"),
                             row.getString("state")));
+            case "compound-presence" -> trace.compoundPresence
+                    .computeIfAbsent(requireSchema3(trace, window),
+                            ignored -> new TreeMap<>())
+                    .computeIfAbsent(tick, ignored -> new ArrayList<>())
+                    .add(new CompoundPresenceEvent(row.getString("subject"),
+                            row.getString("occupancy"),
+                            row.getInt("marineUnits"),
+                            row.getInt("defenderUnits"),
+                            row.getInt("captureProgressBasisPoints")));
             case "casualty" -> {
                 if (row.getBoolean("combatant")) {
                     Faction faction = enumValue(Faction.class,
@@ -540,6 +1045,14 @@ public final class CommandTraceAnalyzer {
         if (trace.termination != Termination.INCOMPLETE) {
             throw new IllegalArgumentException("Duplicate terminal trace event");
         }
+    }
+
+    private static int requireSchema3(ParsedTrace trace, int window) {
+        if (trace.schemaVersion < 3) {
+            throw new IllegalArgumentException(
+                    "compound-presence requires command trace schemaVersion 3");
+        }
+        return window;
     }
 
     private static void requireHeader(ParsedTrace trace) {
@@ -650,6 +1163,44 @@ public final class CommandTraceAnalyzer {
 
     private record CompoundEvent(String subject, String kind, String state) { }
 
+    private record CompoundPresenceEvent(
+            String subject, String occupancy, int marineUnits,
+            int defenderUnits, int captureProgressBasisPoints) { }
+
+    private static final class MovementEpisode {
+        final String key;
+        final int startedTick;
+        double initialDistance;
+        final boolean secureCompound;
+        final int markerX;
+        final int markerY;
+        final int targetZone;
+        double minimumDistance;
+        double previousDistance;
+        int previousTick;
+        boolean previousInTargetZone;
+        boolean previousLocalContact;
+        boolean closedRange;
+        boolean observedInTargetZone;
+        boolean adjacentCommitted;
+
+        private MovementEpisode(String key, int startedTick,
+                                double initialDistance,
+                                boolean secureCompound, int markerX,
+                                int markerY, int targetZone) {
+            this.key = key;
+            this.startedTick = startedTick;
+            this.initialDistance = initialDistance;
+            this.secureCompound = secureCompound;
+            this.markerX = markerX;
+            this.markerY = markerY;
+            this.targetZone = targetZone;
+            this.minimumDistance = initialDistance;
+            this.previousDistance = initialDistance;
+            this.previousTick = startedTick;
+        }
+    }
+
     private static final class ThreatState {
         int contacts;
         int startedTick;
@@ -664,6 +1215,7 @@ public final class CommandTraceAnalyzer {
 
     private static final class ParsedTrace {
         boolean headerSeen;
+        int schemaVersion;
         String fixtureKind;
         String schedulerMode;
         int startTick;
@@ -677,6 +1229,8 @@ public final class CommandTraceAnalyzer {
                 new EnumMap<>(Faction.class);
         final Map<Integer, Map<Integer, List<CompoundEvent>>> compounds =
                 new TreeMap<>();
+        final Map<Integer, Map<Integer, List<CompoundPresenceEvent>>>
+                compoundPresence = new TreeMap<>();
         final Map<Integer, Integer> windowStarts = new LinkedHashMap<>();
         final Map<Integer, Integer> windowEnds = new LinkedHashMap<>();
 

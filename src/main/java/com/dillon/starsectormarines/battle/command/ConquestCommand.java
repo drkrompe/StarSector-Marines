@@ -200,7 +200,10 @@ public final class ConquestCommand implements ConquestFrontCommand,
         final float centroidY;
         final int anchorCellX;
         final int anchorCellY;
+        final int currentZoneId;
         final UnitRole role;
+        final boolean localContact;
+        final String executionSuspension;
         final ObjectiveAssignment originalAssignment;
         ObjectiveAssignment assignedObjective;
 
@@ -212,7 +215,10 @@ public final class ConquestCommand implements ConquestFrontCommand,
             centroidY = state.centroidY();
             anchorCellX = state.anchorCellX();
             anchorCellY = state.anchorCellY();
+            currentZoneId = state.currentZoneId();
             role = state.role();
+            localContact = state.localContact();
+            executionSuspension = state.executionSuspension();
             originalAssignment = state.assignment();
             assignedObjective = state.assignment();
         }
@@ -982,7 +988,20 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 influenceTick, axis, phase, remainingCompounds,
                 keep != null ? keep.anchorZoneId : -1,
                 keep != null ? keep.state : null,
-                tracks, new ArrayList<>(directives.values()));
+                tracks, squadStates(allSquads),
+                new ArrayList<>(directives.values()));
+    }
+
+    private static List<ConquestFrontSnapshot.SquadState> squadStates(
+            Map<Integer, PlanningSquad> squads) {
+        List<ConquestFrontSnapshot.SquadState> states = new ArrayList<>(squads.size());
+        for (PlanningSquad squad : squads.values()) {
+            states.add(new ConquestFrontSnapshot.SquadState(
+                    squad.id, squad.aliveMembers, squad.centroidX,
+                    squad.centroidY, squad.currentZoneId,
+                    squad.executionSuspension, squad.localContact));
+        }
+        return states;
     }
 
     private List<CommandProposal> buildProposals(
