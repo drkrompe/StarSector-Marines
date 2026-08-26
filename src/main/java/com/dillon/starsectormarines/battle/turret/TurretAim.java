@@ -61,7 +61,7 @@ public final class TurretAim {
          * Output: line-of-sight state at the moment {@link #fireThisTick}
          * latched. The caller (turret behavior / air system) passes this into
          * the fire path so indirect-fire kinds can apply
-         * {@link com.dillon.starsectormarines.battle.turret.TurretKind#noLosAccuracyMult}
+         * the firing weapon definition's {@code noLosAccuracyMult}
          * to shots taken blind. Meaningful only when {@code fireThisTick} is
          * {@code true}.
          */

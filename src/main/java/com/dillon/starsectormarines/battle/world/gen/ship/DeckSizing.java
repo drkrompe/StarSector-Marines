@@ -1,0 +1,91 @@
+package com.dillon.starsectormarines.battle.world.gen.ship;
+
+/**
+ * How big a ship's interior is, and how it grows.
+ *
+ * <p>Crew alone is a poor proxy for size. A vanilla Atlas carries 50–100 crew,
+ * the same as a Hammerhead, but it is a vastly larger ship — the difference is
+ * 2000 units of hold against 100. So interior area is driven by <b>crew and
+ * cargo together</b>: complement wants habitation, command, and engineering
+ * space, while hold wants volume. Both are walkable during a boarding action,
+ * which is why both count.
+ *
+ * <p>Growth is not uniform. A deck lengthens faster than it widens, because a
+ * short wide deck reads as a station and loses the axis the whole family is
+ * built around. Past a playable envelope a deck stops growing altogether and the
+ * ship gains <b>more decks</b> instead, which keeps any single battle map
+ * legible and respects the standing law that one battle occupies one deck.
+ *
+ * <p>The constants are calibrated so a Valkyrie — the vanilla personnel
+ * transport, 250 maximum complement — comes out as roughly one full deck.
+ */
+public final class DeckSizing {
+
+    /** Walkable cells a crew berth implies once passages and working space are shared in. */
+    private static final float AREA_PER_CREW = 11f;
+    /** Walkable cells one unit of hold implies. Cargo is bulk, so it is cheap per unit. */
+    private static final float AREA_PER_CARGO = 0.5f;
+
+    /** Length-to-beam ratio a deck aims for. Below about four a deck stops reading as a ship. */
+    private static final float LENGTH_TO_BEAM = 4.5f;
+    /** Of the bounding rectangle, the share a tapered hull actually encloses. */
+    private static final float HULL_FILL = 0.7f;
+
+    private static final int MIN_FRAMES = 44;
+    private static final int MAX_FRAMES = 150;
+    /**
+     * Even the smallest deck keeps enough beam for a spine plus a usable
+     * compartment either side. Below this a hull's ordinary frames are too
+     * shallow to hold a room at all and the deck comes out as dead structure.
+     */
+    private static final int MIN_HEIGHT = 20;
+    private static final int MAX_HEIGHT = 34;
+
+    private DeckSizing() {}
+
+    /** One ship's interior budget: how many decks, and how big each one is. */
+    public record DeckPlan(int deckCount, int frames, int height) {
+
+        /** Bounding-rectangle area of a single deck, in cells. */
+        public int deckArea() {
+            return frames * height;
+        }
+    }
+
+    /**
+     * Size a ship's decks from its class, complement, and hold.
+     *
+     * <p>Class sets the footprint: a frigate's deck is short, a capital's is
+     * long, and that is what keeps interior granularity consistent across the
+     * fleet. Sizing from complement alone would give a shuttle and a cruiser
+     * decks of similar size, so one cell would mean something different on each
+     * and a small hull would end up with implausibly many rooms.
+     *
+     * <p>Complement and hold then decide how many decks of that footprint the
+     * ship needs. This is where a Superfreighter and a Battlecruiser part
+     * company despite sharing a class — the same deck plan, stacked a different
+     * number of times.
+     *
+     * @param hullClass the hull's size class
+     * @param maxCrew maximum crew complement; a vanilla hull's {@code max crew}
+     * @param cargo hold capacity; a vanilla hull's {@code cargo}
+     */
+    public static DeckPlan planFor(HullClass hullClass, int maxCrew, int cargo) {
+        if (!hullClass.boardable()) return new DeckPlan(0, 0, 0);
+
+        int frames = clamp(hullClass.deckFrames(), MIN_FRAMES, MAX_FRAMES);
+        int height = clamp(Math.round(frames / LENGTH_TO_BEAM), MIN_HEIGHT, MAX_HEIGHT);
+
+        float perDeck = frames * height * HULL_FILL;
+        int decks = Math.max(1, (int) Math.ceil(areaWanted(maxCrew, cargo) / perDeck));
+        return new DeckPlan(decks, frames, height);
+    }
+
+    private static float areaWanted(int maxCrew, int cargo) {
+        return Math.max(1f, maxCrew) * AREA_PER_CREW + Math.max(0, cargo) * AREA_PER_CARGO;
+    }
+
+    private static int clamp(int value, int min, int max) {
+        return Math.max(min, Math.min(max, value));
+    }
+}

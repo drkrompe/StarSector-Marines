@@ -7,7 +7,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.command.SquadDirectiveControl;
-import com.dillon.starsectormarines.battle.mech.MechWeapon;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
@@ -57,10 +57,10 @@ public interface BattleControl extends BattleView, SquadDirectiveControl {
     /** Complete a reserved contact-demolition plant and begin its fuse. */
     boolean plantSatchel(long carrier, long target);
 
-    void fireMechWeapon(long shooter, long target, MechWeapon weapon);
+    void fireMechWeapon(long shooter, long target, WeaponDef weapon);
 
     /** Mech fire with explicit accuracy multiplier (LRM indirect-fire path). */
-    void fireMechWeapon(long shooter, long target, MechWeapon weapon, float accuracyMult);
+    void fireMechWeapon(long shooter, long target, WeaponDef weapon, float accuracyMult);
 
     /** Mint a new squad for {@code faction} led by an existing unit {@code leaderId} ({@code 0L} for a leaderless squad); returns the new squad id. */
     int mintSquad(Faction faction, long leaderId);

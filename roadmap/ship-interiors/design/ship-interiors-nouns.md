@@ -4,8 +4,7 @@ Status: ACTIVE — the model is authored; no generator, facility, or adoption sl
 
 Written: 2026-08-26
 
-Updated: 2026-08-26 — added exclusive, physically navigated fixture task points
-while retaining the fill-quality, in-plane articulation, and flat-plane laws.
+Updated: 2026-08-26 — added the hull-size and growth model (complement plus hold, more decks past the playable envelope) and hull silhouettes, retaining the task-point, fill-quality, in-plane articulation, and flat-plane material.
 
 Ship interiors is the model for navigable shipboard space: the decks a mercenary
 company lives and works on, the facilities it operates and grows, and the hostile
@@ -86,6 +85,11 @@ authored content.
   entries to its fixture groups. It is a placement obligation: a fill may not
   encroach on it, and it is why a room reads as somewhere people move through
   rather than an obstacle field.
+- A **hull silhouette** is a ship's outline, normalized so it can be stretched
+  onto any deck size, recording port and starboard extent separately at each
+  sample. Keeping the sides apart is what preserves a real hull's asymmetry; a
+  synthetic curve can only produce something mirrored, which is the station
+  geometry this family exists to avoid.
 - A **breach point** is where boarders enter a deck: an airlock, a docking
   collar, or a cut hull section. It sets the origin of the longitudinal assault
   gradient and is a generation fact, not a spawn coordinate discovered later.
@@ -137,6 +141,38 @@ expanding one facility eventually costs another: bay space comes out of berthing
 berthing comes out of stores. The trade is the point. An upgrade chain that only
 ever adds is a menu; one that forces a company to decide what its ship is *for*
 is a decision.
+
+## Hull size and how a ship grows
+
+A ship's interior size comes from **complement and hold together**, never from
+crew alone. A vanilla Atlas carries the same 50–100 crew as a Hammerhead and is
+an enormously larger ship; the difference is two thousand units of cargo against
+one hundred. Complement wants habitation, command, and engineering space; hold
+wants volume. Both are walkable during a boarding action, so both count toward
+the interior a ship owes.
+
+Growth is not uniform in the two dimensions. A deck lengthens faster than it
+widens, because a short wide deck stops reading as a ship and starts reading as
+a station — it loses the axis the whole family is built on. So beam grows, but
+sub-linearly, and the length-to-beam ratio is held roughly constant.
+
+Past a playable envelope a deck stops growing at all and the ship gains **more
+decks** instead. This is what keeps an enormous hull from becoming an
+unnavigable map, and it follows directly from law 1: one battle occupies one
+deck, so decks are the unit that scales. A personnel transport is one full deck;
+a capital is several.
+
+A deck's outline should come from a **hull silhouette** wherever one is
+available, so a ship inherits real proportions and real asymmetry instead of a
+curve invented to look plausible. A synthetic taper — long pointed bow, short
+blunt stern — remains the fallback for hulls with no outline on hand, and the
+family must stay correct under both.
+
+Tracing an outline out of ship artwork is authoring-time work. Mod runtime code
+cannot read arbitrary files, so outlines reach a running game as baked catalog
+data rather than by inspecting art in place. That is a delivery boundary, not a
+change to the model: the generator consumes a silhouette and does not care who
+produced it.
 
 ## Ambient life
 

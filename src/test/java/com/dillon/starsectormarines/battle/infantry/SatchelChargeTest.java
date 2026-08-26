@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -44,7 +44,7 @@ class SatchelChargeTest {
 
     private static long turret(BattleSimulation sim, int x, int y) {
         return sim.spawn(MapTurret.create("turret-" + sim.liveUnitCount(),
-                Faction.DEFENDER, TurretKind.VULCAN, x, y));
+                Faction.DEFENDER, TurretCatalogRegistry.VULCAN_STRUCTURE_ID, x, y));
     }
 
     @Test

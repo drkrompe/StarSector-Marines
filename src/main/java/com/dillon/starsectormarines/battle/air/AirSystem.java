@@ -497,7 +497,7 @@ public class AirSystem {
                             AirTurrets rearm = world.airTurrets(id);
                             if (rearm != null) {
                                 for (MountedTurret mt : rearm.mounts) {
-                                    mt.ammo = mt.mount.kind.startingAmmo();
+                                    mt.ammo = mt.mount.mountDef().ammoCapacity;
                                     mt.targetId = 0L;
                                     mt.cooldownTimer = 0f;
                                 }
@@ -581,11 +581,11 @@ public class AirSystem {
                 aim.squadId = Squad.NO_SQUAD;
                 aim.excludeFromCrowding = 0L;
                 aim.facingDegrees = mt.facingDegrees;
-                aim.turnRateDegPerSec = mt.mount.kind.turnRateDegPerSec();
-                aim.attackRange = mt.mount.kind.range();
-                aim.minRange = mt.mount.kind.minRange();
+                aim.turnRateDegPerSec = mt.mount.mountDef().turnRateDegPerSec;
+                aim.attackRange = mt.mount.weaponDef().range;
+                aim.minRange = mt.mount.weaponDef().minRange;
                 aim.cooldownTimer = mt.cooldownTimer;
-                aim.attackCooldown = mt.mount.kind.cooldown();
+                aim.attackCooldown = mt.mount.weaponDef().cooldown;
                 aim.target = roster.isLive(mt.targetId) ? mt.targetId : 0L;
                 aim.ignoreCloseWalls = true;
                 aim.closeWallRadius = SHUTTLE_AIR_LOS_RADIUS;
@@ -610,26 +610,26 @@ public class AirSystem {
                 if (mt.burstRemaining > 0) {
                     mt.burstTimer -= dt;
                     if (mt.burstTimer <= 0f) {
-                        fireSink.fire(worldX, shotOriginY, faction, mt.mount.kind, currentBurstTarget, /*aerialShooter*/ true);
+                        fireSink.fire(worldX, shotOriginY, faction, mt.mount.structure(), currentBurstTarget, /*aerialShooter*/ true);
                         mt.recoilTimer = 0f;
                         mt.ammo--;
                         mt.burstRemaining--;
-                        mt.burstTimer = mt.mount.kind.burstSpacing();
+                        mt.burstTimer = mt.mount.weaponDef().burstSpacing;
                         if (mt.burstRemaining == 0) mt.burstTargetId = 0L;
                     }
                     continue;
                 }
 
                 if (aim.fireThisTick) {
-                    fireSink.fire(worldX, shotOriginY, faction, mt.mount.kind, aim.target, /*aerialShooter*/ true);
+                    fireSink.fire(worldX, shotOriginY, faction, mt.mount.structure(), aim.target, /*aerialShooter*/ true);
                     mt.recoilTimer = 0f;
                     mt.ammo--;
                     // Burst weapons latch the remaining rounds; single-shot
                     // kinds (burstCount == 1) skip this and behave as before.
-                    if (mt.mount.kind.burstCount() > 1
+                    if (mt.mount.weaponDef().burstCount > 1
                             && aim.target != 0L && world.isAlive(aim.target)) {
-                        mt.burstRemaining = mt.mount.kind.burstCount() - 1;
-                        mt.burstTimer = mt.mount.kind.burstSpacing();
+                        mt.burstRemaining = mt.mount.weaponDef().burstCount - 1;
+                        mt.burstTimer = mt.mount.weaponDef().burstSpacing;
                         mt.setBurstTarget(aim.target);
                     }
                 }

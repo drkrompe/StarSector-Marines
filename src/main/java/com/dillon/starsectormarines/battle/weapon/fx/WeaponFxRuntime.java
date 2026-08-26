@@ -47,7 +47,8 @@ public final class WeaponFxRuntime {
         float dx = shot.toX - shot.fromX;
         float dy = shot.toY - shot.fromY;
         float length = (float) Math.sqrt(dx * dx + dy * dy);
-        float offset = shot.turretKind != null ? shot.turretKind.mount().muzzleOffsetCells : 0f;
+        float offset = shot.turretStructureDef != null
+                ? shot.turretStructureDef.mount.muzzleOffsetCells : 0f;
         float muzzleX = shot.fromX;
         float muzzleY = shot.fromY;
         if (length > 1e-6f) {

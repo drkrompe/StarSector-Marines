@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder;
-import com.dillon.starsectormarines.battle.mech.MechWeapon;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.perception.NoiseKind;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -63,7 +63,8 @@ class SquadAudioBeliefTest {
 
         fixture.sim.postShot(new ShotEvent(fixture.shooter,
                 9.5f, 5.5f, 12.5f, 5.5f, false, Faction.DEFENDER, 0.1f,
-                null, null, null, MechWeapon.LRM_ARTILLERY, 1f));
+                null, null, null,
+                WeaponRegistry.require(WeaponRegistry.MECH_LRM_ARTILLERY_ID), 1f));
         fixture.sim.advance(BattleSimulation.TICK_DT);
 
         assertTrue(fixture.squad.believedContacts().isEmpty());

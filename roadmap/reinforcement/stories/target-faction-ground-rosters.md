@@ -4,12 +4,12 @@ Status: IN PROGRESS — roster data and all standard defender creation paths are
 
 Written: 2026-08-24
 
-Updated: 2026-08-25 — added shipped shredder and squad-automatic families to faction doctrine while retaining the remaining equipment and live-acceptance work.
+Updated: 2026-08-26 — routed faction roster authors through the enduring lore guide catalog.
 
 Read `reinforcement-nouns.md`, `campaign-battle-bridge-nouns.md`,
-`progression-nouns.md`, and `powered-assault-armor-roles.md` before implementing
-this story. The S2 infantry-equipment stories own the referenced weapon and
-special-item behavior.
+`progression-nouns.md`, `faction-lore-nouns.md`, and
+`powered-assault-armor-roles.md` before implementing this story. The S2
+infantry-equipment stories own the referenced weapon and special-item behavior.
 
 ## Problem
 

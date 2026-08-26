@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.battle.turret.preview;
 
-import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -19,21 +19,23 @@ class TurretCatalogPreviewOrientationTest {
 
     @Test
     void locustStoryboardAdvertisesItsSalvoAndBoostedArtilleryFlight() {
+        var mount = TurretCatalogRegistry.requireStructure(
+                TurretCatalogRegistry.LOCUST_STRUCTURE_ID).mount;
         assertEquals("SALVO LAUNCH ×8", TurretCatalogPreviewDocument
-                .stateLabelsFor(TurretKind.LOCUST.mount()).get(1));
+                .stateLabelsFor(mount).get(1));
         assertEquals("BOOSTED ARC + TRAIL", TurretCatalogPreviewDocument
-                .stateLabelsFor(TurretKind.LOCUST.mount()).get(2));
+                .stateLabelsFor(mount).get(2));
         assertEquals("SCATTER IMPACT", TurretCatalogPreviewDocument
-                .stateLabelsFor(TurretKind.LOCUST.mount()).get(3));
+                .stateLabelsFor(mount).get(3));
         assertEquals(3, TurretCatalogPreviewDocument
-                .visibleRoundCount(TurretKind.LOCUST.mount()));
+                .visibleRoundCount(mount));
         assertEquals(0.08f / 1.5f * 2f, TurretCatalogPreviewDocument
-                .previewBurstProgressSpacing(TurretKind.LOCUST.mount()), EPS);
+                .previewBurstProgressSpacing(mount), EPS);
         assertTrue(TurretCatalogPreviewDocument.previewBearingDegrees(
-                TurretKind.LOCUST.mount(), 0.25f) > -90f,
+                mount, 0.25f) > -90f,
                 "ascending missile should pitch above east");
         assertTrue(TurretCatalogPreviewDocument.previewBearingDegrees(
-                TurretKind.LOCUST.mount(), 0.75f) < -90f,
+                mount, 0.75f) < -90f,
                 "descending missile should pitch below east");
     }
 }

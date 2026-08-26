@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.battle.air;
 
-import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.turret.StructureDef;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+import com.dillon.starsectormarines.battle.turret.TurretMountDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 /**
  * Static config for one hardpoint on a {@link ShuttleType} — what kind of
@@ -13,15 +16,21 @@ import com.dillon.starsectormarines.battle.turret.TurretKind;
  */
 public final class TurretMount {
 
-    public final TurretKind kind;
+    public final String structureId;
     /** Lateral offset from shuttle center, cells. Positive = right side of the hull. */
     public final float localOffsetX;
     /** Longitudinal offset from shuttle center, cells. Positive = toward the nose. */
     public final float localOffsetY;
 
-    public TurretMount(TurretKind kind, float localOffsetX, float localOffsetY) {
-        this.kind = kind;
+    public TurretMount(String structureId, float localOffsetX, float localOffsetY) {
+        this.structureId = TurretCatalogRegistry.requireStructure(structureId).id;
         this.localOffsetX = localOffsetX;
         this.localOffsetY = localOffsetY;
     }
+
+    public StructureDef structure() { return TurretCatalogRegistry.requireStructure(structureId); }
+
+    public TurretMountDef mountDef() { return structure().mount; }
+
+    public WeaponDef weaponDef() { return mountDef().weapon; }
 }

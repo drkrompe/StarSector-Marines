@@ -2,11 +2,13 @@ package com.dillon.starsectormarines.battle.combat;
 
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
-import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.turret.StructureDef;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -115,14 +117,15 @@ class DirectFireUnificationTest {
 
     @Test
     void mechChaingunAndSrmUseResolvedStopsButLrmStaysIndirect() {
+        WeaponDef chaingunDef = WeaponRegistry.require(WeaponRegistry.MECH_CHAINGUN_ID);
         BattleSimulation chaingunSim = arena(true);
         long chaingunMech = chaingunSim.spawn(new EntitySpec("mech", Faction.MARINE,
                 UnitType.HEAVY_MECH, 2, ROW));
         long chaingunTarget = target(chaingunSim);
 
-        chaingunSim.fireMechWeapon(chaingunMech, chaingunTarget, MechWeapon.CHAINGUN);
+        chaingunSim.fireMechWeapon(chaingunMech, chaingunTarget, chaingunDef);
         ShotEvent chaingun = onlyShot(chaingunSim);
-        assertSame(MechWeapon.CHAINGUN, chaingun.mechWeapon);
+        assertSame(chaingunDef, chaingun.mechWeaponDef);
         assertEquals(BallisticResolver.StopKind.WALL, chaingun.stopKind);
         assertEquals(1, chaingunSim.getInflightDetonations().size());
         assertEquals(WALL_X,
@@ -131,9 +134,10 @@ class DirectFireUnificationTest {
         BattleSimulation srmSim = arena(true);
         long srmMech = srmSim.spawn(new EntitySpec("mech", Faction.MARINE,
                 UnitType.HEAVY_MECH, 2, ROW));
-        srmSim.fireMechWeapon(srmMech, target(srmSim), MechWeapon.SRM_POD);
+        WeaponDef srmDef = WeaponRegistry.require(WeaponRegistry.MECH_SRM_POD_ID);
+        srmSim.fireMechWeapon(srmMech, target(srmSim), srmDef);
         ShotEvent srm = onlyShot(srmSim);
-        assertSame(MechWeapon.SRM_POD, srm.mechWeapon);
+        assertSame(srmDef, srm.mechWeaponDef);
         assertEquals(BallisticResolver.StopKind.WALL, srm.stopKind);
         assertEquals(WALL_X,
                 srmSim.getActiveProjectiles().get(0).onArrival.endpointX, EPS);
@@ -141,22 +145,24 @@ class DirectFireUnificationTest {
         BattleSimulation lrmSim = arena(true);
         long lrmMech = lrmSim.spawn(new EntitySpec("mech", Faction.MARINE,
                 UnitType.HEAVY_MECH, 2, ROW));
-        lrmSim.fireMechWeapon(lrmMech, target(lrmSim), MechWeapon.LRM_ARTILLERY);
+        WeaponDef lrmDef = WeaponRegistry.require(WeaponRegistry.MECH_LRM_ARTILLERY_ID);
+        lrmSim.fireMechWeapon(lrmMech, target(lrmSim), lrmDef);
         ShotEvent lrm = onlyShot(lrmSim);
-        assertSame(MechWeapon.LRM_ARTILLERY, lrm.mechWeapon);
+        assertSame(lrmDef, lrm.mechWeaponDef);
         assertNull(lrm.stopKind, "indirect artillery retains its scatter/projectile path");
         assertTrue(lrmSim.getActiveProjectiles().get(0).onArrival.aerialDelivery);
     }
 
     @Test
     void gunLaunchedHeavyHeUsesVisibleBallisticRoundsAndTimedSplash() {
+        WeaponDef heavyCannon = WeaponRegistry.require(WeaponRegistry.MECH_HEAVY_CANNON_ID);
         BattleSimulation mechSim = arena(true);
         long mech = mechSim.spawn(new EntitySpec("sirocco", Faction.MARINE,
                 UnitType.HEAVY_MECH, 2, ROW));
-        mechSim.fireMechWeapon(mech, target(mechSim), MechWeapon.HEAVY_CANNON);
+        mechSim.fireMechWeapon(mech, target(mechSim), heavyCannon);
 
         ShotEvent cannon = onlyShot(mechSim);
-        assertSame(MechWeapon.HEAVY_CANNON, cannon.mechWeapon);
+        assertSame(heavyCannon, cannon.mechWeaponDef);
         assertTrue(cannon.weaponDef().fx.hasHeavyImpact());
         assertEquals(BallisticResolver.StopKind.WALL, cannon.stopKind);
         assertEquals(WALL_X, cannon.toX, EPS);
@@ -164,15 +170,17 @@ class DirectFireUnificationTest {
                 "a gun shell is a ballistic shot, not a boost-ramping missile entity");
         assertEquals(1, mechSim.getInflightDetonations().size());
         PendingDetonation cannonBlast = mechSim.getInflightDetonations().get(0);
-        assertEquals(MechWeapon.HEAVY_CANNON.aoeRadius(), cannonBlast.aoeRadius, EPS);
-        assertEquals(MechWeapon.HEAVY_CANNON.wallDamage(), cannonBlast.wallDamage);
+        assertEquals(heavyCannon.aoeRadius, cannonBlast.aoeRadius, EPS);
+        assertEquals(heavyCannon.wallDamage, cannonBlast.wallDamage);
 
         BattleSimulation turretSim = arena(true);
+        StructureDef mortarDef = TurretCatalogRegistry.requireStructure(
+                TurretCatalogRegistry.HEAVY_MORTAR_STRUCTURE_ID);
         long mortar = turretSim.spawn(MapTurret.create(
-                "heavy-mortar", Faction.MARINE, TurretKind.HEAVY_MORTAR, 2, ROW));
+                "heavy-mortar", Faction.MARINE, mortarDef.id, 2, ROW));
         turretSim.fireShotFrom(mortar,
                 turretSim.world().x(mortar), turretSim.world().y(mortar),
-                Faction.MARINE, TurretKind.HEAVY_MORTAR, target(turretSim),
+                Faction.MARINE, mortarDef, target(turretSim),
                 /*aerialShooter*/ false, /*hasLos*/ true);
 
         ShotEvent mortarShot = onlyShot(turretSim);
@@ -180,24 +188,26 @@ class DirectFireUnificationTest {
         assertEquals(BallisticResolver.StopKind.WALL, mortarShot.stopKind);
         assertEquals(1, turretSim.getInflightDetonations().size());
         PendingDetonation mortarBlast = turretSim.getInflightDetonations().get(0);
-        assertEquals(TurretKind.HEAVY_MORTAR.aoeRadius(), mortarBlast.aoeRadius, EPS);
-        assertEquals(TurretKind.HEAVY_MORTAR.wallDamage(), mortarBlast.wallDamage);
+        assertEquals(mortarDef.mount.weapon.aoeRadius, mortarBlast.aoeRadius, EPS);
+        assertEquals(mortarDef.mount.weapon.wallDamage, mortarBlast.wallDamage);
     }
 
     @Test
     void hephaestusDirectHitCarriesContactAndAreaPayloadsThroughTheTurretFirePath() {
         BattleSimulation sim = arena(false, 12345L);
+        StructureDef hephaestus = TurretCatalogRegistry.requireStructure(
+                TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID);
         long cannon = sim.spawn(MapTurret.create(
-                "hephaestus", Faction.MARINE, TurretKind.HEPHAESTUS, 2, ROW));
+                "hephaestus", Faction.MARINE, hephaestus.id, 2, ROW));
         long victim = target(sim);
 
         sim.fireShotFrom(cannon,
                 sim.world().x(cannon), sim.world().y(cannon),
-                Faction.MARINE, TurretKind.HEPHAESTUS, victim,
+                Faction.MARINE, hephaestus, victim,
                 /*aerialShooter*/ false, /*hasLos*/ true);
 
         ShotEvent shot = onlyShot(sim);
-        assertSame(TurretKind.HEPHAESTUS, shot.turretKind);
+        assertSame(hephaestus, shot.turretStructureDef);
         assertTrue(shot.weaponDef().fx.hasHeavyImpact());
         assertEquals(BallisticResolver.StopKind.UNIT_HIT, shot.stopKind);
         assertTrue(sim.getActiveProjectiles().isEmpty(),
@@ -219,26 +229,28 @@ class DirectFireUnificationTest {
     @Test
     void groundBurstTurretUsesResolverWhileAerialMountStaysLegacy() {
         BattleSimulation sim = arena(true);
+        StructureDef vulcan = TurretCatalogRegistry.requireStructure(
+                TurretCatalogRegistry.VULCAN_STRUCTURE_ID);
         long turret = sim.spawn(MapTurret.create(
-                "vulcan", Faction.MARINE, TurretKind.VULCAN, 2, ROW));
+                "vulcan", Faction.MARINE, vulcan.id, 2, ROW));
         long target = target(sim);
 
         sim.fireShotFrom(turret, sim.world().x(turret), sim.world().y(turret),
-                Faction.MARINE, TurretKind.VULCAN, target,
+                Faction.MARINE, vulcan, target,
                 /*aerialShooter*/ false, /*hasLos*/ true);
         ShotEvent ground = onlyShot(sim);
-        assertSame(TurretKind.VULCAN, ground.turretKind);
+        assertSame(vulcan, ground.turretStructureDef);
         assertEquals(BallisticResolver.StopKind.WALL, ground.stopKind);
         assertEquals(WALL_X,
                 sim.getInflightDetonations().get(0).endpointX, EPS);
 
         BattleSimulation aerialSim = arena(true);
         long aerialTurret = aerialSim.spawn(MapTurret.create(
-                "vulcan", Faction.MARINE, TurretKind.VULCAN, 2, ROW));
+                "vulcan", Faction.MARINE, vulcan.id, 2, ROW));
         long aerialTarget = target(aerialSim);
         aerialSim.fireShotFrom(aerialSim.world().x(aerialTurret),
                 aerialSim.world().y(aerialTurret),
-                Faction.MARINE, TurretKind.VULCAN, aerialTarget,
+                Faction.MARINE, vulcan, aerialTarget,
                 /*aerialShooter*/ true, /*hasLos*/ true);
         assertNull(onlyShot(aerialSim).stopKind,
                 "aerial mounts wait for the explicit airborne collision policy");

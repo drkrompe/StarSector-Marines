@@ -4,8 +4,8 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
-import com.dillon.starsectormarines.battle.mech.MechWeapon;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.turret.StructureDef;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.weapon.MountClass;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
@@ -78,10 +78,8 @@ public class BattleSprites {
 
     // ---- turret sprites -----------------------------------------------------
 
-    private final java.util.EnumMap<TurretKind, ShuttleSpriteCache> turretSprites =
-            new java.util.EnumMap<>(TurretKind.class);
-    private final java.util.EnumMap<TurretKind, ShuttleSpriteCache> turretRecoilSprites =
-            new java.util.EnumMap<>(TurretKind.class);
+    private final Map<String, ShuttleSpriteCache> turretSprites = new LinkedHashMap<>();
+    private final Map<String, ShuttleSpriteCache> turretRecoilSprites = new LinkedHashMap<>();
     private boolean turretSpritesLoadAttempted;
 
     // ---- marine secondary sprites -------------------------------------------
@@ -167,8 +165,8 @@ public class BattleSprites {
     public java.util.EnumMap<LayeredArmorFamily, LayeredUnitAssets> layeredUnitSprites() { return layeredUnitSprites; }
     public LayeredMechAssets layeredMechSprites() { return layeredMechSprites; }
     public java.util.EnumMap<VehicleKind.VehicleSheet, UnitSpriteCache> vehicleSheets() { return vehicleSheets; }
-    public java.util.EnumMap<TurretKind, ShuttleSpriteCache> turretSprites()   { return turretSprites; }
-    public java.util.EnumMap<TurretKind, ShuttleSpriteCache> turretRecoilSprites() { return turretRecoilSprites; }
+    public Map<String, ShuttleSpriteCache> turretSprites()   { return turretSprites; }
+    public Map<String, ShuttleSpriteCache> turretRecoilSprites() { return turretRecoilSprites; }
     /** Carrier-agnostic projectile-sprite lookup by texture path (what {@code ShotFx.Sprite} resolves against). Null if not loaded / no such path. */
     public ShuttleSpriteCache projectileSprite(String path) { return path == null ? null : projectileSpriteByPath.get(path); }
     public Map<String, UnitSpriteCache> specialEquipmentAimSheets() {
@@ -391,10 +389,9 @@ public class BattleSprites {
         if (unitSpritesLoadAttempted) return;
         unitSpritesLoadAttempted = true;
         for (UnitType type : UnitType.values()) {
-            // TURRET sprite is per-instance via the turret's TURRET_STATE kind,
-            // not per-type — its spritePath is intentionally empty so we skip
-            // the load here.
-            if (type == UnitType.TURRET) continue;
+            // Whole-sprite, separately rendered, and invisible types do not own
+            // a unit sheet. UnitType is the authority for that distinction.
+            if (!type.drawnAsSheet()) continue;
             unitSprites.put(type, loadUnitSheet(type.spritePath));
             if (type.deadSpritePath != null) {
                 UnitSpriteCache dead = loadUnitSheet(type.deadSpritePath);
@@ -476,8 +473,9 @@ public class BattleSprites {
         // Mech chassis projectile sprites — every entry has one (chaingun
         // shell / SRM / LRM). Same load + aspect-capture pattern as the marine
         // primaries above.
-        for (MechWeapon w : MechWeapon.values()) {
-            String projectileSpritePath = w.projectileSpritePath();
+        for (WeaponDef weapon : WeaponRegistry.installed().all()) {
+            if (weapon.mount != MountClass.MECH_MOUNT) continue;
+            String projectileSpritePath = weapon.projectileSpritePath;
             if (projectileSpritePath == null) continue;
             try {
                 Global.getSettings().loadTexture(projectileSpritePath);
@@ -724,12 +722,13 @@ public class BattleSprites {
     public void ensureTurretSprites() {
         if (turretSpritesLoadAttempted) return;
         turretSpritesLoadAttempted = true;
-        for (TurretKind kind : TurretKind.values()) {
-            loadTurretSpriteInto(turretSprites,       kind, kind.spritePath());
-            loadTurretSpriteInto(turretRecoilSprites, kind, kind.recoilSpritePath());
-            // Projectile sprite is path-keyed only (carrier-agnostic) — no per-kind map.
-            ShuttleSpriteCache proj = loadTurretSprite(kind.projectileSpritePath());
-            if (proj != null) projectileSpriteByPath.put(kind.projectileSpritePath(), proj);
+        for (StructureDef structure : TurretCatalogRegistry.installed().structures()) {
+            loadTurretSpriteInto(turretSprites, structure.id, structure.mount.spritePath);
+            loadTurretSpriteInto(turretRecoilSprites, structure.id,
+                    structure.mount.recoilSpritePath);
+            String projectilePath = structure.mount.weapon.projectileSpritePath;
+            ShuttleSpriteCache proj = loadTurretSprite(projectilePath);
+            if (proj != null) projectileSpriteByPath.put(projectilePath, proj);
         }
     }
 
@@ -800,11 +799,11 @@ public class BattleSprites {
         }
     }
 
-    /** {@link #loadTurretSprite} into a per-kind map (turret body + recoil sprites, read by the turret renderer). */
-    public void loadTurretSpriteInto(java.util.EnumMap<TurretKind, ShuttleSpriteCache> cache,
-                                     TurretKind kind, String path) {
+    /** {@link #loadTurretSprite} into a structure-id map read by the turret renderer. */
+    public void loadTurretSpriteInto(Map<String, ShuttleSpriteCache> cache,
+                                     String structureId, String path) {
         ShuttleSpriteCache c = loadTurretSprite(path);
-        if (c != null) cache.put(kind, c);
+        if (c != null) cache.put(structureId, c);
     }
 
     public UnitSpriteCache loadUnitSheet(String path) {

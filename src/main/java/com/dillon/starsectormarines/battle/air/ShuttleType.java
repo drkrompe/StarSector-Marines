@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.air;
 
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.turret.TurretRole;
 
 import java.util.Arrays;
@@ -40,7 +40,7 @@ import java.util.List;
  * AND fully armed (4 hardpoints, 150 HP, 60s loiter), while a Mudskipper is
  * nimble with a single hardpoint and 25s of fire-support fuel.
  * {@link #kitFor} maps {@code (role, hardpoints)} to a turret loadout (which
- * {@link TurretKind}s) — the default A2G role expands to a mix of Arbalests + a
+ * turret structure ids) — the default A2G role expands to a mix of Arbalests + a
  * Hephaestus on larger hulls, and a single Heavy MG on a one-hardpoint tugboat.
  * Where each turret <em>sits</em> comes from the hull's real {@code weaponSlots}
  * ({@link com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver}).
@@ -200,7 +200,7 @@ public enum ShuttleType implements AirHandling {
 
     /**
      * Expands a {@link TurretRole} into the turret <b>loadout</b> (which
-     * {@link TurretKind}s) for a hull of {@code hardpoints} mount points.
+     * structure ids for a hull of {@code hardpoints} mount points.
      * {@code null} role or zero hardpoints returns an empty array — these
      * shuttles skip HOVER_STATION entirely and depart as pure transports.
      *
@@ -215,13 +215,13 @@ public enum ShuttleType implements AirHandling {
      * are surfaced as real targets — the role itself is honored, but the
      * loadout has nothing meaningful to mount.
      */
-    public static TurretKind[] kitFor(TurretRole role, int hardpoints) {
-        if (role == null || hardpoints <= 0) return new TurretKind[0];
+    public static String[] kitFor(TurretRole role, int hardpoints) {
+        if (role == null || hardpoints <= 0) return new String[0];
         switch (role) {
             case A2G:           return a2gKit(hardpoints);
             case AA:
             case POINT_DEFENSE:
-            default:            return new TurretKind[0];
+            default:            return new String[0];
         }
     }
 
@@ -232,16 +232,21 @@ public enum ShuttleType implements AirHandling {
      * grenade pod. Kinds only; positions come from the hull's weapon slots in
      * spec order, so the listing order here is the slot-assignment order.
      */
-    private static TurretKind[] a2gKit(int hardpoints) {
+    private static String[] a2gKit(int hardpoints) {
         switch (hardpoints) {
-            case 1: return new TurretKind[]{ TurretKind.HEAVY_MG };
-            case 2: return new TurretKind[]{ TurretKind.ARBALEST, TurretKind.ARBALEST };
-            case 3: return new TurretKind[]{
-                    TurretKind.ARBALEST, TurretKind.ARBALEST, TurretKind.HEPHAESTUS };
+            case 1: return new String[]{ TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID };
+            case 2: return new String[]{ TurretCatalogRegistry.ARBALEST_STRUCTURE_ID,
+                    TurretCatalogRegistry.ARBALEST_STRUCTURE_ID };
+            case 3: return new String[]{
+                    TurretCatalogRegistry.ARBALEST_STRUCTURE_ID,
+                    TurretCatalogRegistry.ARBALEST_STRUCTURE_ID,
+                    TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID };
             case 4:
-            default: return new TurretKind[]{
-                    TurretKind.ARBALEST, TurretKind.HEAVY_MG,
-                    TurretKind.ARBALEST, TurretKind.GRENADE_LAUNCHER };
+            default: return new String[]{
+                    TurretCatalogRegistry.ARBALEST_STRUCTURE_ID,
+                    TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID,
+                    TurretCatalogRegistry.ARBALEST_STRUCTURE_ID,
+                    TurretCatalogRegistry.GRENADE_LAUNCHER_STRUCTURE_ID };
         }
     }
 
