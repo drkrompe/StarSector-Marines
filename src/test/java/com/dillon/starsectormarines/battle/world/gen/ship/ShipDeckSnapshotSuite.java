@@ -26,8 +26,8 @@ import java.util.List;
  */
 public final class ShipDeckSnapshotSuite implements SnapshotSuite {
 
-    /** Hulls chosen to span the size range: a shuttle, a personnel transport, a capital, a freighter. */
-    private static final String[] HULLS = { "kite", "valkyrie", "conquest", "atlas" };
+    /** Hulls chosen to span the size range: a frigate, a personnel transport, a capital, a freighter. */
+    private static final String[] HULLS = { "wolf", "valkyrie", "conquest", "atlas" };
     private static final int CELL = 8;
     private static final long SEED = 42L;
 
@@ -59,13 +59,15 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
                 VanillaHullSilhouettes.Hull hull = vanilla.read(hullId);
                 if (hull == null || !hull.hullClass().boardable()) continue;
                 artifacts.add(plan(hull.id(), hull.silhouette(),
-                        DeckSizing.planFor(hull.hullClass(), hull.maxCrew(), hull.cargo()),
+                        DeckSizing.planFor(hull.hullClass(), hull.maxCrew(), hull.cargo(),
+                                hull.silhouette().aspect()),
                         hull.hullClass() + ", " + hull.maxCrew() + " crew, "
                                 + hull.cargo() + " cargo"));
             }
         }
         if (artifacts.isEmpty()) {
-            artifacts.add(plan("synthetic", null, new DeckSizing.DeckPlan(1, 96, 28), "no game install"));
+            artifacts.add(plan("synthetic", null,
+                    new DeckSizing.DeckPlan(96, 28, List.of()), "no game install"));
         }
         return List.copyOf(artifacts);
     }
@@ -73,8 +75,7 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
     private static SnapshotArtifact plan(String name, HullSilhouette silhouette,
                                          DeckSizing.DeckPlan deckPlan, String complement) {
         ShipDeckGenerator generator = new ShipDeckGenerator();
-        MapResult map = generator.generateDeck(
-                deckPlan.frames(), deckPlan.height(), SEED, silhouette);
+        MapResult map = generator.generateDeck(deckPlan, SEED, silhouette);
         BufferedImage image = renderPlan(map, generator.getLastDeckProfile(),
                 generator.getLastDeckGraph(), name, deckPlan, complement);
         return new SnapshotArtifact("ship-deck-" + name + ".png", image);
@@ -89,9 +90,10 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
         int legend = 34;
         Font font = new Font(Font.SANS_SERIF, Font.PLAIN, 12);
         String caption = name + "  (" + complement + ")"
-                + "   deck " + width + "x" + height + " of " + deckPlan.deckCount()
-                + "   compartments " + graph.compartmentCount()
-                + "   cross-passages " + graph.corridorFrames().length
+                + "   deck " + width + "x" + height
+                + "   program " + deckPlan.rooms().size()
+                + "   placed " + graph.compartmentCount()
+                + "   unplaced " + graph.unplaced().size()
                 + "   blue fore / green midships / amber aft";
 
         // A short deck is narrower than its own caption, so the canvas has to
