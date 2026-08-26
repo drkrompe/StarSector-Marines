@@ -4,10 +4,8 @@ Status: ACTIVE — AI owns autonomous mission command, squad planning, belief-de
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — added battle-owned ambient task assignments as interruptible
-world work below survival and tactical execution, and separated cheap perceived
-visibility from exact continuous direct-fire eligibility; also added schema-4
-capture-deferral evidence while preserving the perspective/neutral trace split.
+Updated: 2026-08-25 — constrained must-hold contact doctrine to a squad's
+current defensive authority rather than a future capture destination.
 
 AI turns mission context and what a side has learned into coordinated
 movement, posture, and fire intent. It is a decision system, not the authority
@@ -248,8 +246,12 @@ squad's posture every tick. Advancing squads may press, establish a contact
 line, or withdraw from unfavorable local pressure; defending squads protect
 their assigned ground unless they are overmatched and not under a must-hold
 authority. An explicitly authored must-hold position can make its last infantry
-survivor hold rather than take an ordinary structural fallback. Morale survival
-behavior remains an independent higher-priority safety boundary elsewhere.
+survivor hold rather than take an ordinary structural fallback. That authority
+belongs only to the squad's current defensive post or an executable hold order;
+a must-hold node named as the destination of an approach or capture assignment
+does not turn the advancing squad into its garrison before arrival. Morale
+survival behavior remains an independent higher-priority safety boundary
+elsewhere.
 
 An advancing HOLD also publishes a contact initiative: **RECEIVE** or
 **PROSECUTE**. A defending or overmatched squad, an approaching enemy, or a

@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.decision.goap.world.TacticalNodeQueries;
 import com.dillon.starsectormarines.battle.squad.BelievedContact;
 import com.dillon.starsectormarines.battle.squad.BeliefSource;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -1663,11 +1664,7 @@ public final class TacticalScoring {
     }
 
     private static boolean mustHold(Squad squad) {
-        ObjectiveAssignment assignment = squad.assignmentForExecution();
-        if (assignment != null && assignment.targetNode() != null) {
-            return assignment.targetNode().mustHold;
-        }
-        return squad.assignedNode != null && squad.assignedNode.mustHold;
+        return TacticalNodeQueries.isMustHold(squad);
     }
 
     /**
