@@ -360,10 +360,18 @@ public final class MarineArmory implements Serializable {
     }
 
     public void unlockArmor(MarineArmorPattern armor) {
-        if (armor != null) {
-            unlockedRecipes.add(armorKey(armor));
-            acquireEquipmentTemplate(EquipmentTemplateCatalog.armorId(armor));
+        if (armor != null) unlockArmor(armor.id);
+    }
+
+    /** Compatibility unlock for enum-backed and additive data-authored armor patterns. */
+    public void unlockArmor(String armorId) {
+        if (armorId == null) return;
+        try {
+            unlockedRecipes.add(armorKey(MarineArmorPattern.fromId(armorId)));
+        } catch (IllegalArgumentException ignored) {
+            // Additive catalog ids have no legacy recipe-key representation.
         }
+        acquireEquipmentTemplate(EquipmentTemplateCatalog.armorId(armorId));
     }
 
     public int ownedPrimary(String weaponId, EquipmentGrade grade) {

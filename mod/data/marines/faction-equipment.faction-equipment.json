@@ -31,6 +31,15 @@
         { "templateId": "equipment-template:armor.combat", "sources": { "market": 8, "license": 6 } },
         { "templateId": "equipment-template:armor.line", "sources": { "license": 8, "recovery": 3 } },
         { "templateId": "equipment-template:armor.heavy", "sources": { "patron": 4, "recovery": 3 } },
+        { "templateId": "equipment-template:armor.aegis-composite", "sources": { "license": 4, "recovery": 3 } },
+        { "templateId": "equipment-template:armor.palatine", "sources": { "license": 3, "recovery": 4 } },
+        { "templateId": "equipment-template:armor.furnace-line", "sources": { "license": 4, "recovery": 3 } },
+        { "templateId": "equipment-template:armor.reaver", "sources": { "recovery": 6 } },
+        { "templateId": "equipment-template:armor.specter-heavy", "sources": { "patron": 2, "recovery": 2 } },
+        { "templateId": "equipment-template:armor.bulwark-heavy", "sources": { "patron": 3, "recovery": 3 } },
+        { "templateId": "equipment-template:armor.reliquary-heavy", "sources": { "patron": 2, "recovery": 2 } },
+        { "templateId": "equipment-template:armor.lions-mantle", "sources": { "patron": 2, "recovery": 2 } },
+        { "templateId": "equipment-template:armor.foundry-breaker", "sources": { "recovery": 5 } },
         { "templateId": "equipment-template:special.rocket-launcher", "sources": { "license": 7, "recovery": 4 } },
         { "templateId": "equipment-template:special.anti-materiel-rifle", "sources": { "license": 5, "patron": 4, "recovery": 3 } },
         { "templateId": "equipment-template:special.smoke-grenade", "sources": { "market": 8, "license": 4 } },
@@ -62,6 +71,8 @@
         { "templateId": "equipment-template:weapon.dmr:masterwork", "sources": { "patron": 7, "recovery": 4 } },
         { "templateId": "equipment-template:armor.scout", "sources": { "market": 9, "license": 6 } },
         { "templateId": "equipment-template:armor.combat", "sources": { "license": 9 } },
+        { "templateId": "equipment-template:armor.aegis-composite", "sources": { "license": 12 } },
+        { "templateId": "equipment-template:armor.specter-heavy", "sources": { "patron": 9, "recovery": 3 } },
         { "templateId": "equipment-template:special.smoke-grenade", "sources": { "market": 8 } },
         { "templateId": "equipment-template:special.anti-materiel-rifle", "sources": { "license": 8, "patron": 6 } }
       ]
@@ -75,6 +86,7 @@
         { "templateId": "equipment-template:weapon.squad-automatic:milspec", "sources": { "license": 8 } },
         { "templateId": "equipment-template:armor.scout", "sources": { "market": 8 } },
         { "templateId": "equipment-template:armor.combat", "sources": { "market": 8, "license": 5 } },
+        { "templateId": "equipment-template:armor.bulwark-heavy", "sources": { "patron": 8, "recovery": 3 } },
         { "templateId": "equipment-template:special.smoke-grenade", "sources": { "market": 9 } },
         { "templateId": "equipment-template:special.frag-grenade", "sources": { "market": 8 } },
         { "templateId": "equipment-template:special.rocket-launcher", "sources": { "license": 7 } }
@@ -89,6 +101,7 @@
         { "templateId": "equipment-template:weapon.dmr:milspec", "sources": { "license": 7, "patron": 5 } },
         { "templateId": "equipment-template:armor.militia", "sources": { "market": 12 } },
         { "templateId": "equipment-template:armor.line", "sources": { "license": 9 } },
+        { "templateId": "equipment-template:armor.palatine", "sources": { "license": 10, "patron": 5 } },
         { "templateId": "equipment-template:special.satchel-charge", "sources": { "market": 7, "recovery": 5 } },
         { "templateId": "equipment-template:special.rocket-launcher", "sources": { "license": 6 } }
       ]
@@ -101,6 +114,8 @@
         { "templateId": "equipment-template:weapon.squad-automatic:milspec", "sources": { "patron": 7 } },
         { "templateId": "equipment-template:armor.line", "sources": { "license": 8 } },
         { "templateId": "equipment-template:armor.heavy", "sources": { "patron": 9 } },
+        { "templateId": "equipment-template:armor.palatine", "sources": { "license": 9 } },
+        { "templateId": "equipment-template:armor.reliquary-heavy", "sources": { "patron": 11 } },
         { "templateId": "equipment-template:special.rocket-launcher", "sources": { "patron": 8 } },
         { "templateId": "equipment-template:special.satchel-charge", "sources": { "recovery": 6 } }
       ]
@@ -112,6 +127,8 @@
         { "templateId": "equipment-template:weapon.smg:surplus", "sources": { "market": 13, "recovery": 7 } },
         { "templateId": "equipment-template:weapon.smg:service", "sources": { "recovery": 8 } },
         { "templateId": "equipment-template:armor.outlaw", "sources": { "market": 11, "recovery": 8 } },
+        { "templateId": "equipment-template:armor.reaver", "sources": { "recovery": 10 } },
+        { "templateId": "equipment-template:armor.foundry-breaker", "sources": { "recovery": 9 } },
         { "templateId": "equipment-template:special.satchel-charge", "sources": { "recovery": 12 } },
         { "templateId": "equipment-template:special.frag-grenade", "sources": { "market": 7, "recovery": 8 } }
       ]
@@ -125,6 +142,7 @@
         { "templateId": "equipment-template:weapon.pulse-rifle:masterwork", "sources": { "patron": 8 } },
         { "templateId": "equipment-template:armor.line", "sources": { "license": 10 } },
         { "templateId": "equipment-template:armor.heavy", "sources": { "patron": 8 } },
+        { "templateId": "equipment-template:armor.furnace-line", "sources": { "license": 11 } },
         { "templateId": "equipment-template:special.rocket-launcher", "sources": { "license": 9 } },
         { "templateId": "equipment-template:special.frag-grenade", "sources": { "market": 7 } }
       ]
@@ -137,6 +155,8 @@
         { "templateId": "equipment-template:weapon.squad-automatic:milspec", "sources": { "patron": 8 } },
         { "templateId": "equipment-template:armor.line", "sources": { "license": 8 } },
         { "templateId": "equipment-template:armor.heavy", "sources": { "patron": 12 } },
+        { "templateId": "equipment-template:armor.furnace-line", "sources": { "license": 9 } },
+        { "templateId": "equipment-template:armor.lions-mantle", "sources": { "patron": 14 } },
         { "templateId": "equipment-template:special.rocket-launcher", "sources": { "patron": 9 } },
         { "templateId": "equipment-template:special.anti-materiel-rifle", "sources": { "patron": 7 } }
       ]
@@ -150,6 +170,8 @@
         { "templateId": "equipment-template:weapon.pulse-rifle:surplus", "sources": { "recovery": 7 } },
         { "templateId": "equipment-template:armor.outlaw", "sources": { "market": 13 } },
         { "templateId": "equipment-template:armor.militia", "sources": { "market": 9 } },
+        { "templateId": "equipment-template:armor.reaver", "sources": { "recovery": 11 } },
+        { "templateId": "equipment-template:armor.foundry-breaker", "sources": { "recovery": 10 } },
         { "templateId": "equipment-template:special.satchel-charge", "sources": { "market": 8, "recovery": 7 } },
         { "templateId": "equipment-template:special.frag-grenade", "sources": { "market": 10 } }
       ]

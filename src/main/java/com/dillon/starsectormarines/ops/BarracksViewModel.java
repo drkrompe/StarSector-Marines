@@ -116,7 +116,8 @@ public final class BarracksViewModel {
             String detail = wounded
                     ? "WIA  ·  RTD " + FleetArmoryViewModel.formatRemainingCompact(
                             soldier.unavailableUntilDay(), currentDay.getAsDouble())
-                    : soldier.primaryDef().displayName + "  ·  " + soldier.armor().displayName;
+                    : soldier.primaryDef().displayName + "  ·  "
+                    + soldier.armorDef().displayName();
             rows.add(new MusterRow(id, id + ":name", id + ":detail",
                     "muster-row " + (wounded ? "wounded" : "ready"),
                     soldier.enlistedRank().abbreviation() + " " + soldier.name(), detail));
