@@ -300,7 +300,7 @@
       ]
     },
     {
-      "id": "armor-master-aegis", "label": "Armor master — Aegis composite", "referencePixels": 150.0,
+      "id": "armor-master-aegis", "label": "Armor master — Aegis composite", "referencePixels": 150.0, "animationSource": "marine-line",
       "variants": [ { "id": "field-loadout", "label": "Field loadout", "animations": [
         { "id": "idle", "label": "Mastering pose", "driver": "time", "loop": true, "frames": [
           { "id": "mastered", "label": "Mastered", "durationMs": 900, "layers": [
@@ -314,7 +314,7 @@
       ] } ]
     },
     {
-      "id": "armor-master-palatine", "label": "Armor master — Palatine", "referencePixels": 150.0,
+      "id": "armor-master-palatine", "label": "Armor master — Palatine", "referencePixels": 150.0, "animationSource": "marine-line",
       "variants": [ { "id": "field-loadout", "label": "Field loadout", "animations": [
         { "id": "idle", "label": "Mastering pose", "driver": "time", "loop": true, "frames": [
           { "id": "mastered", "label": "Mastered", "durationMs": 900, "layers": [
@@ -328,7 +328,7 @@
       ] } ]
     },
     {
-      "id": "armor-master-furnace-line", "label": "Armor master — Furnace line", "referencePixels": 150.0,
+      "id": "armor-master-furnace-line", "label": "Armor master — Furnace line", "referencePixels": 150.0, "animationSource": "marine-line",
       "variants": [ { "id": "field-loadout", "label": "Field loadout", "animations": [
         { "id": "idle", "label": "Mastering pose", "driver": "time", "loop": true, "frames": [
           { "id": "mastered", "label": "Mastered", "durationMs": 900, "layers": [
@@ -342,7 +342,7 @@
       ] } ]
     },
     {
-      "id": "armor-master-reaver", "label": "Armor master — Reaver", "referencePixels": 150.0,
+      "id": "armor-master-reaver", "label": "Armor master — Reaver", "referencePixels": 150.0, "animationSource": "marine-line",
       "variants": [ { "id": "field-loadout", "label": "Field loadout", "animations": [
         { "id": "idle", "label": "Mastering pose", "driver": "time", "loop": true, "frames": [
           { "id": "mastered", "label": "Mastered", "durationMs": 900, "layers": [
@@ -356,7 +356,7 @@
       ] } ]
     },
     {
-      "id": "armor-master-specter-heavy", "label": "Armor master — Specter heavy", "referencePixels": 150.0,
+      "id": "armor-master-specter-heavy", "label": "Armor master — Specter heavy", "referencePixels": 150.0, "animationSource": "marine-line",
       "variants": [ { "id": "field-loadout", "label": "Field loadout", "animations": [
         { "id": "idle", "label": "Mastering pose", "driver": "time", "loop": true, "frames": [
           { "id": "mastered", "label": "Mastered", "durationMs": 900, "layers": [
@@ -370,7 +370,7 @@
       ] } ]
     },
     {
-      "id": "armor-master-bulwark-heavy", "label": "Armor master — Bulwark heavy", "referencePixels": 150.0,
+      "id": "armor-master-bulwark-heavy", "label": "Armor master — Bulwark heavy", "referencePixels": 150.0, "animationSource": "marine-line",
       "variants": [ { "id": "field-loadout", "label": "Field loadout", "animations": [
         { "id": "idle", "label": "Mastering pose", "driver": "time", "loop": true, "frames": [
           { "id": "mastered", "label": "Mastered", "durationMs": 900, "layers": [
@@ -384,7 +384,7 @@
       ] } ]
     },
     {
-      "id": "armor-master-reliquary-heavy", "label": "Armor master — Reliquary heavy", "referencePixels": 150.0,
+      "id": "armor-master-reliquary-heavy", "label": "Armor master — Reliquary heavy", "referencePixels": 150.0, "animationSource": "marine-line",
       "variants": [ { "id": "field-loadout", "label": "Field loadout", "animations": [
         { "id": "idle", "label": "Mastering pose", "driver": "time", "loop": true, "frames": [
           { "id": "mastered", "label": "Mastered", "durationMs": 900, "layers": [
@@ -398,7 +398,7 @@
       ] } ]
     },
     {
-      "id": "armor-master-lions-mantle", "label": "Armor master — Lion's mantle", "referencePixels": 150.0,
+      "id": "armor-master-lions-mantle", "label": "Armor master — Lion's mantle", "referencePixels": 150.0, "animationSource": "marine-line",
       "variants": [ { "id": "field-loadout", "label": "Field loadout", "animations": [
         { "id": "idle", "label": "Mastering pose", "driver": "time", "loop": true, "frames": [
           { "id": "mastered", "label": "Mastered", "durationMs": 900, "layers": [
@@ -412,7 +412,7 @@
       ] } ]
     },
     {
-      "id": "armor-master-foundry-breaker", "label": "Armor master — Foundry breaker", "referencePixels": 150.0,
+      "id": "armor-master-foundry-breaker", "label": "Armor master — Foundry breaker", "referencePixels": 150.0, "animationSource": "marine-line",
       "variants": [ { "id": "field-loadout", "label": "Field loadout", "animations": [
         { "id": "idle", "label": "Mastering pose", "driver": "time", "loop": true, "frames": [
           { "id": "mastered", "label": "Mastered", "durationMs": 900, "layers": [
