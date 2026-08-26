@@ -11,6 +11,7 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -34,6 +35,8 @@ public final class VanillaHullSilhouettes {
     private static final int OPAQUE = 40;
     /** Samples taken along the hull. Enough to keep a bow point crisp when stretched. */
     private static final int SAMPLES = 160;
+    /** Half-beam percentile that maps to full deck depth; above it the hull clips. */
+    private static final float BEAM_PERCENTILE = 0.80f;
 
     private final Path core;
 
@@ -110,9 +113,17 @@ public final class VanillaHullSilhouettes {
 
     /**
      * Walk the sprite bow to stern, recording how far the hull reaches either
-     * side of its own centreline at each sample. Both sides are normalized
-     * against the widest half-beam found, so the deck keeps the hull's real
-     * asymmetry rather than averaging it away.
+     * side of its own centreline at each sample. The two sides are kept apart
+     * so the deck inherits the hull's real asymmetry rather than averaging it
+     * away.
+     *
+     * <p>Normalizing against the hull's absolute widest point would be wrong.
+     * Many hulls are long and slender with one bulge — a wing root or an engine
+     * block — and dividing by that peak shrinks the whole rest of the ship to a
+     * sliver too shallow to hold any compartment, leaving a deck that is nearly
+     * all dead structure. Scaling against a high percentile instead maps the
+     * hull's <em>typical</em> beam near full depth and lets the genuine outlier
+     * clip, which is what makes small hulls produce usable decks.
      */
     private static HullSilhouette trace(BufferedImage image, String hullId) {
         int height = image.getHeight();
@@ -121,7 +132,6 @@ public final class VanillaHullSilhouettes {
 
         float[] port = new float[SAMPLES];
         float[] starboard = new float[SAMPLES];
-        float widest = 1f;
 
         for (int s = 0; s < SAMPLES; s++) {
             int row = Math.min(height - 1, Math.round((float) s / (SAMPLES - 1) * (height - 1)));
@@ -135,13 +145,28 @@ public final class VanillaHullSilhouettes {
             if (first < 0) continue;
             port[s] = Math.max(0f, centre - first);
             starboard[s] = Math.max(0f, last - centre);
-            widest = Math.max(widest, Math.max(port[s], starboard[s]));
         }
 
+        float reference = typicalHalfBeam(port, starboard);
         for (int s = 0; s < SAMPLES; s++) {
-            port[s] /= widest;
-            starboard[s] /= widest;
+            port[s] /= reference;
+            starboard[s] /= reference;
         }
         return new HullSilhouette(port, starboard, hullId);
+    }
+
+    /** The {@link #BEAM_PERCENTILE} half-beam across every sample the hull occupies. */
+    private static float typicalHalfBeam(float[] port, float[] starboard) {
+        float[] widths = new float[port.length];
+        int count = 0;
+        for (int s = 0; s < port.length; s++) {
+            float half = Math.max(port[s], starboard[s]);
+            if (half > 0f) widths[count++] = half;
+        }
+        if (count == 0) return 1f;
+        float[] present = Arrays.copyOf(widths, count);
+        Arrays.sort(present);
+        int index = Math.min(count - 1, Math.round((count - 1) * BEAM_PERCENTILE));
+        return Math.max(1f, present[index]);
     }
 }

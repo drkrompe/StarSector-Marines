@@ -33,7 +33,12 @@ public final class DeckSizing {
 
     private static final int MIN_FRAMES = 44;
     private static final int MAX_FRAMES = 150;
-    private static final int MIN_HEIGHT = 16;
+    /**
+     * Even the smallest deck keeps enough beam for a spine plus a usable
+     * compartment either side. Below this a hull's ordinary frames are too
+     * shallow to hold a room at all and the deck comes out as dead structure.
+     */
+    private static final int MIN_HEIGHT = 20;
     private static final int MAX_HEIGHT = 34;
 
     private DeckSizing() {}

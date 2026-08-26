@@ -86,8 +86,21 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
         int height = deckPlan.height();
         int margin = 12;
         int legend = 34;
+        Font font = new Font(Font.SANS_SERIF, Font.PLAIN, 12);
+        String caption = name + "  (" + complement + ")"
+                + "   deck " + width + "x" + height + " of " + deckPlan.deckCount()
+                + "   compartments " + graph.compartmentCount()
+                + "   cross-passages " + graph.corridorFrames().length
+                + "   blue fore / green midships / amber aft";
+
+        // A short deck is narrower than its own caption, so the canvas has to
+        // fit whichever is wider or the legend silently truncates.
+        int captionWidth = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB)
+                .createGraphics().getFontMetrics(font).stringWidth(caption);
+        int canvasWidth = Math.max(width * CELL, captionWidth) + margin * 2;
+
         BufferedImage image = new BufferedImage(
-                width * CELL + margin * 2, height * CELL + margin * 2 + legend,
+                canvasWidth, height * CELL + margin * 2 + legend,
                 BufferedImage.TYPE_INT_RGB);
         Graphics2D g = image.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
@@ -110,14 +123,8 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
         markSpawn(g, margin, map.defenderSpawnX, map.defenderSpawnY, new Color(0xef, 0x5f, 0x5f));
 
         g.setColor(LABEL);
-        g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
-        g.drawString(name + "  (" + complement + ")"
-                        + "   deck " + width + "x" + height
-                        + " of " + deckPlan.deckCount()
-                        + "   compartments " + graph.compartmentCount()
-                        + "   cross-passages " + graph.corridorFrames().length
-                        + "   blue fore / green midships / amber aft",
-                margin, margin + height * CELL + 20);
+        g.setFont(font);
+        g.drawString(caption, margin, margin + height * CELL + 20);
         g.dispose();
         return image;
     }
