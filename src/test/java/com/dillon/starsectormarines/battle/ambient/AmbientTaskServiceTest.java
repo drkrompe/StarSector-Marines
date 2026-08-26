@@ -2,9 +2,11 @@ package com.dillon.starsectormarines.battle.ambient;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.task.TaskPoint;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -67,8 +69,8 @@ class AmbientTaskServiceTest {
         try (BattleSimulation simulation = simulation()) {
             long actor = simulation.spawn(new EntitySpec(
                     "support marine", Faction.MARINE, UnitType.MARINE, 2, 2));
-            simulation.world().attachSecondaryWeapon(
-                    actor, MarineSecondary.ROCKET_LAUNCHER, 3);
+            simulation.world().attachSpecialEquipment(
+                    actor, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), 3);
             simulation.ambientTasks().assign(actor, oneStop(
                     AmbientActivity.PRACTICING_EQUIPMENT,
                     AmbientThreatPolicy.NONE, 0f));
@@ -111,7 +113,7 @@ class AmbientTaskServiceTest {
     }
 
     @Test
-    void phaseOffsetsReuseOneRouteShapeWithoutActorOverlap() {
+    void phaseOffsetsProduceDifferentRoutePhases() {
         AmbientTaskRoute first = twoStops(0f);
         AmbientTaskRoute second = twoStops(4f);
 
@@ -120,6 +122,65 @@ class AmbientTaskServiceTest {
 
         assertFalse(firstPose.moving());
         assertTrue(secondPose.moving());
+    }
+
+    @Test
+    void liveAmbientMovementUsesNavigationAroundBlockingTerrain() {
+        NavigationGrid grid = new NavigationGrid(12, 12);
+        CellTopology topology = new CellTopology(12, 12);
+        for (int y = 0; y < 12; y++) {
+            for (int x = 0; x < 12; x++) grid.setWalkableFloor(x, y);
+        }
+        for (int y = 0; y < 12; y++) {
+            if (y != 6) grid.setWalkable(5, y, false);
+        }
+        try (BattleSimulation simulation = new BattleSimulation(grid, topology, 8L)) {
+            simulation.setMissionCompletionEnabled(false);
+            long actor = simulation.spawn(new EntitySpec(
+                    "route marine", Faction.MARINE, UnitType.MARINE, 2, 2));
+            AmbientTaskRoute route = new AmbientTaskRoute(
+                    "through-door", 0f, 1f, 0f, AmbientThreatPolicy.NONE, List.of(
+                    new AmbientTaskRoute.Stop(8.5f, 2.5f, 30f,
+                            AmbientActivity.INSPECTING, 9.5f, 2.5f)));
+            simulation.ambientTasks().assign(actor, route);
+
+            for (int tick = 0; tick < 30 * 30; tick++) {
+                simulation.advance(1f / 30f);
+                assertTrue(grid.isWalkable(
+                                simulation.world().cellX(actor), simulation.world().cellY(actor)),
+                        "ambient movement must never write an actor into a wall");
+            }
+
+            assertTrue(simulation.movement().atCell(actor, 8, 2),
+                    "the normal path follower should route through the authored doorway; actor ended at "
+                            + simulation.world().x(actor) + "," + simulation.world().y(actor));
+        }
+    }
+
+    @Test
+    void ambientActorsClaimDifferentPointsFromTheSameActivityGroup() {
+        try (BattleSimulation simulation = simulation()) {
+            simulation.taskPoints().register(new TaskPoint(
+                    "range-a", "range", 7.5f, 3.5f, 7.5f, 9.5f));
+            simulation.taskPoints().register(new TaskPoint(
+                    "range-b", "range", 7.5f, 7.5f, 7.5f, 10.5f));
+            long first = simulation.spawn(new EntitySpec(
+                    "first", Faction.MARINE, UnitType.MARINE, 2, 2));
+            long second = simulation.spawn(new EntitySpec(
+                    "second", Faction.MARINE, UnitType.MARINE, 2, 8));
+            AmbientTaskRoute route = new AmbientTaskRoute(
+                    "range", 0f, 1f, 0f, AmbientThreatPolicy.NONE, List.of(
+                    new AmbientTaskRoute.Stop(7.5f, 5.5f, 30f,
+                            AmbientActivity.FIRING_PRIMARY, 7.5f, 10.5f, "range")));
+
+            simulation.ambientTasks().assign(first, route);
+            simulation.ambientTasks().assign(second, route);
+            simulation.advance(1f / 30f);
+
+            assertEquals("range-a", simulation.taskPoints().claimedPoint(first).id());
+            assertEquals("range-b", simulation.taskPoints().claimedPoint(second).id());
+            assertEquals(2, simulation.taskPoints().claimCount());
+        }
     }
 
     private static AmbientTaskRoute oneStop(

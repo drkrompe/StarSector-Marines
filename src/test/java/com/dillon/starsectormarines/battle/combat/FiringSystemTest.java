@@ -2,7 +2,8 @@ package com.dillon.starsectormarines.battle.combat;
 
 import com.dillon.starsectormarines.battle.infantry.ExperienceTier;
 import com.dillon.starsectormarines.battle.infantry.InfantryUnitPrep;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.infantry.RepositionToCover;
 import com.dillon.starsectormarines.battle.infantry.SoldierAptitude;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
@@ -202,7 +203,7 @@ public class FiringSystemTest {
         long target = combatant(sim, Faction.DEFENDER, 10, 5);
         // PULSE_RIFLE's 3-round burst gives beginBurst something to queue —
         // an observable, hit/miss-independent side effect of a fire.
-        sim.combat().setPrimaryWeapon(shooter, MarineWeapon.PULSE_RIFLE);
+        sim.combat().setPrimaryWeapon(shooter, WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID));
         sim.world().setAttackRange(shooter, 10f);
         // cooldownTimer defaults to 0 — ready to fire.
 
@@ -212,7 +213,7 @@ public class FiringSystemTest {
         assertEquals(0L, sim.combat().fireTargetId(shooter), "consume-once: intent cleared");
         assertEquals(sim.world().attackCooldown(shooter), sim.world().cooldownTimer(shooter), 1e-6f,
                 "a successful fire resets cooldownTimer to attackCooldown");
-        assertEquals(MarineWeapon.PULSE_RIFLE.burstCount() - 1, sim.world().burstRemaining(shooter),
+        assertEquals(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID).burstCount() - 1, sim.world().burstRemaining(shooter),
                 "PULSE_RIFLE's 3-round burst queues 2 follow-up rounds via beginBurst");
         assertEquals(target, sim.world().burstTargetId(shooter));
         assertEquals(FireGate.FIRED, sim.combat().lastFireGate(shooter));
@@ -508,7 +509,7 @@ public class FiringSystemTest {
         long target = combatant(sim, Faction.DEFENDER, 10, 5);
         sim.world().setAttackRange(shooterA, 10f);
         sim.world().setAttackRange(shooterB, 10f);
-        // No MarineWeapon on either shooter, so fireShot's accuracy/damage come
+        // No WeaponDef on either shooter, so fireShot's accuracy/damage come
         // straight off the baked (overridable) World accessors: force a
         // guaranteed hit and make a single hit lethal — either shot alone
         // kills, so the test isolates "does the second shooter still fire"
@@ -531,7 +532,7 @@ public class FiringSystemTest {
         // tick it's fired — it's deferred onto the resolved round's
         // flight-time clock (BallisticResolver.Resolution#flightTime /
         // ShotService.PendingImpact), drained in the SHOTS phase. Both
-        // shooters are unarmed (no MarineWeapon), so their rounds travel at
+        // shooters are unarmed (no WeaponDef), so their rounds travel at
         // BallisticResolver.DEFAULT_ROUND_VELOCITY; at 5 cells range that's
         // several ticks of flight, so the target is still alive right after
         // the firing tick.
@@ -552,7 +553,7 @@ public class FiringSystemTest {
     // applies to InfantryWeapons' INFANTRY_TICK burst continuation
     // specifically (as opposed to the FIRING-phase table walk the overkill
     // test above already exercises). InfantryWeapons.tick() only fires a
-    // burst round for a shooter carrying a MarineWeapon (a null weapon just
+    // burst round for a shooter carrying a WeaponDef (a null weapon just
     // clears the burst state without a shot), and a weapon's hit roll is
     // driven by its accuracy/accuracyFalloff through ThreadLocalRandom (an
     // unseeded per-worker java.util.Random) rather than the overridable

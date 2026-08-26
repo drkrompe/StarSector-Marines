@@ -1,15 +1,12 @@
 package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
-import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
 import java.util.ArrayList;
@@ -94,9 +91,6 @@ public final class GroundRosterProfile {
 
         public UnitType unitType() { return unitType; }
         public WeaponDef pickPrimaryDef(Random rng) { return primaries.pick(rng); }
-        public MarineWeapon pickPrimary(Random rng) {
-            return MarineWeapon.fromId(pickPrimaryDef(rng).id);
-        }
         public EquipmentGrade pickGrade(RiskLevel risk, Random rng) {
             return grades.get(resolvedRisk(risk)).pick(rng);
         }
@@ -108,10 +102,6 @@ public final class GroundRosterProfile {
         }
         public SpecialEquipmentDef pickSpecialDef(RiskLevel risk, Random rng) {
             return specials.get(resolvedRisk(risk)).pick(rng);
-        }
-        public MarineSecondary pickSpecial(RiskLevel risk, Random rng) {
-            SpecialEquipmentDef special = pickSpecialDef(risk, rng);
-            return special != null ? SpecialEquipmentRegistry.compatibilityHandle(special.id()) : null;
         }
 
         private static <T> Map<RiskLevel, WeightedTable<T>> completeRiskMap(

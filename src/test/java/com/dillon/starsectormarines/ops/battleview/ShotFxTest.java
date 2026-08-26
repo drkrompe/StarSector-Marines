@@ -1,8 +1,11 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.battle.weapon.MountClass;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -43,16 +46,20 @@ public class ShotFxTest {
         return new ShotEvent(0, 0, 1, 1, true, Faction.DEFENDER, 0.15f, k);
     }
 
-    private static ShotEvent shot(TurretKind t, MarineWeapon mw, MarineSecondary ms, MechWeapon mech) {
+    private static ShotEvent shot(TurretKind t, WeaponDef mw, SpecialEquipmentDef ms, MechWeapon mech) {
         return new ShotEvent(0, 0, 1, 1, true, Faction.MARINE, 0.15f, t, mw, ms, mech);
     }
 
     @Test
     public void everySourceResolvesToANonNullComposition() {
         for (TurretKind k : TurretKind.values())      assertNotNull(ShotFx.of(turretShot(k)), "turret " + k);
-        for (MarineWeapon w : MarineWeapon.values())  assertNotNull(ShotFx.of(shot(null, w, null, null)), "primary " + w);
-        for (MarineSecondary w : MarineSecondary.values()) {
-            if (w.specialDef().weaponId() != null) {
+        for (WeaponDef w : WeaponRegistry.installed().all()) {
+            if (w.mount == MountClass.MARINE_PRIMARY) {
+                assertNotNull(ShotFx.of(shot(null, w, null, null)), "primary " + w);
+            }
+        }
+        for (SpecialEquipmentDef w : SpecialEquipmentRegistry.installed().all()) {
+            if (w.weaponId() != null) {
                 assertNotNull(ShotFx.of(shot(null, null, w, null)), "secondary " + w);
             }
         }
@@ -101,7 +108,8 @@ public class ShotFxTest {
 
     @Test
     public void marinePrimariesUseDistinctTravelingBodyFamilies() {
-        for (MarineWeapon w : MarineWeapon.values()) {
+        for (WeaponDef w : WeaponRegistry.installed().all()) {
+            if (w.mount != MountClass.MARINE_PRIMARY) continue;
             ShotFx fx = ShotFx.of(shot(null, w, null, null));
             if (w.projectileSpritePath() != null) {
                 Sprite body = assertSprite(fx, "primary " + w);
@@ -111,16 +119,16 @@ public class ShotFxTest {
                 assertInstanceOf(Bolt.class, fx.body(), "primary should bolt: " + w);
                 Bolt bolt = (Bolt) fx.body();
                 assertSame(w.tracerColor(), bolt.color(), "bolt color for " + w);
-                BoltExpectation expected = switch (w) {
-                    case PULSE_RIFLE -> new BoltExpectation(
-                            ShotFx.PULSE_BOLT_SPRITE_PATH, 1.0f, 0.25f);
-                    case DMR -> new BoltExpectation(
-                            ShotFx.RAIL_NEEDLE_SPRITE_PATH, 1.8f, 0.16f);
-                    case DRONE_PULSE -> new BoltExpectation(
-                            ShotFx.DRONE_DART_SPRITE_PATH, 0.65f, 0.16f);
-                    case FIELD_RIFLE, SMG, SQUAD_AUTOMATIC -> throw new AssertionError(
-                            "sprite-backed primary reached bolt assertion: " + w);
-                };
+                BoltExpectation expected;
+                if (WeaponRegistry.PULSE_RIFLE_ID.equals(w.id)) {
+                    expected = new BoltExpectation(ShotFx.PULSE_BOLT_SPRITE_PATH, 1.0f, 0.25f);
+                } else if (WeaponRegistry.DMR_ID.equals(w.id)) {
+                    expected = new BoltExpectation(ShotFx.RAIL_NEEDLE_SPRITE_PATH, 1.8f, 0.16f);
+                } else if (WeaponRegistry.DRONE_PULSE_ID.equals(w.id)) {
+                    expected = new BoltExpectation(ShotFx.DRONE_DART_SPRITE_PATH, 0.65f, 0.16f);
+                } else {
+                    throw new AssertionError("sprite-backed primary reached bolt assertion: " + w);
+                }
                 assertEquals(expected.spritePath(), bolt.spritePath(), "bolt path for " + w);
                 assertEquals(expected.lengthCells(), bolt.lengthCells(), 0f, "bolt length for " + w);
                 assertEquals(expected.widthCells(), bolt.widthCells(), 0f, "bolt width for " + w);
@@ -140,7 +148,7 @@ public class ShotFxTest {
 
     @Test
     public void dmrNeedleUsesAHighContrastPaleBlueTint() {
-        assertEquals(new Color(0xE0, 0xF0, 0xFF), MarineWeapon.DMR.tracerColor());
+        assertEquals(new Color(0xE0, 0xF0, 0xFF), WeaponRegistry.require(WeaponRegistry.DMR_ID).tracerColor());
     }
 
     @Test
@@ -173,8 +181,8 @@ public class ShotFxTest {
 
     @Test
     public void marineSecondariesDeriveProjectileBodiesFromTheirWeaponDefinitions() {
-        for (MarineSecondary w : MarineSecondary.values()) {
-            if (w.specialDef().weaponId() == null) continue;
+        for (SpecialEquipmentDef w : SpecialEquipmentRegistry.installed().all()) {
+            if (w.weaponId() == null) continue;
             ShotFx fx = ShotFx.of(shot(null, null, w, null));
             if (w.projectileSpritePath() != null) {
                 Sprite body = assertSprite(fx, "secondary " + w);
@@ -190,8 +198,8 @@ public class ShotFxTest {
             }
             assertTrue(fx.travels(), "secondary body travels: " + w);
             assertEquals(w.arcHeight(), fx.arcHeight(), 0f, "arcHeight for " + w);
-            assertEquals(w.def().boostRamp, fx.boostRamp(), "boostRamp for " + w);
-            assertTrue(w.def().fx.layers(FxSlot.TRAIL).isEmpty(),
+            assertEquals(w.weaponDef().boostRamp, fx.boostRamp(), "boostRamp for " + w);
+            assertTrue(w.weaponDef().fx.layers(FxSlot.TRAIL).isEmpty(),
                     "secondary trail remains represented by its contrail ribbon");
         }
     }

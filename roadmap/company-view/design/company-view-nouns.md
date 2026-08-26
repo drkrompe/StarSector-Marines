@@ -4,9 +4,8 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — campaign roster load now establishes the starting company
-before any company surface opens; Barracks loads and presents its battle-authored
-range projectiles and weapon audio without an Armory initialization dependency.
+Updated: 2026-08-26 — Barracks ambient actors now claim exclusive activity sites
+and traverse the room through ordinary battle navigation and collision.
 
 ## Purpose
 
@@ -313,8 +312,12 @@ animation. The same deterministic station/walk/activity sampler now drives Mech 
 technicians and is available to mission setup for civilians, workers, engineers, or
 guards. Live Barracks presentation advances its bounded simulation on the ordinary
 fixed battle clock; deterministic evidence replays that same clock to an authored
-time. A live battle advances assignments before ordinary unit execution and releases
-an actor when its declared threat policy trips, allowing its existing role to resume.
+time. Barracks has no mission winner, so its bounded clock remains live until its host
+closes. A live route chooses destinations but never writes actor positions: marines
+claim lounge, locker, and firing-lane task points exclusively, travel through ordinary
+battle pathfinding and separation, and perform the activity only after arrival. A
+threat-policy interrupt releases both route and claim, allowing the actor's existing
+role to resume.
 
 An ambient route may bind a simulation-owned practice target. Crossing one of its
 authored primary-fire beats then calls the ordinary infantry firing service: the

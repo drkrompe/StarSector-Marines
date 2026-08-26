@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.ambient.AmbientActivity;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskRoute;
 import com.dillon.starsectormarines.battle.ambient.AmbientThreatPolicy;
+import com.dillon.starsectormarines.battle.task.TaskPoint;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
 import java.util.ArrayList;
@@ -59,6 +60,7 @@ final class BarracksSceneLayout {
             prop(30, 9, "doodad.industrial-generator"));
 
     static final List<AmbientTaskRoute> MARINE_TASKS = marineTasks();
+    static final List<TaskPoint> TASK_POINTS = taskPoints();
 
     private BarracksSceneLayout() { }
 
@@ -94,15 +96,32 @@ final class BarracksSceneLayout {
                     stop(berthX, berthY, 6.4f, AmbientActivity.RESTING,
                             berthX, berthFocusY),
                     stop(loungeX, loungeY, 5.2f, AmbientActivity.SOCIALIZING,
-                            16.5f, 7.5f),
+                            16.5f, 7.5f, loungeGroup(index % 4)),
                     stop(20.4f, lockerY, 3.1f, AmbientActivity.INSPECTING,
-                            21.5f, lockerY),
-                    stop(22.3f, 7.5f, 0.35f, AmbientActivity.IDLE,
-                            24.5f, 7.5f),
+                            21.5f, lockerY, lockerGroup(index % 2)),
                     stop(laneX, 5.2f, 7.2f, AmbientActivity.PRACTICING_EQUIPMENT,
-                            laneX, 13.5f),
-                    stop(24.5f, 7.5f, 0.35f, AmbientActivity.IDLE,
-                            22.3f, 7.5f))));
+                            laneX, 13.5f, firingLaneGroup(lane)))));
+        }
+        return List.copyOf(result);
+    }
+
+    private static List<TaskPoint> taskPoints() {
+        ArrayList<TaskPoint> result = new ArrayList<>();
+        for (int lounge = 0; lounge < 4; lounge++) {
+            float x = 14.5f + lounge * 1.7f;
+            float y = lounge % 2 == 0 ? 8.4f : 5.4f;
+            result.add(new TaskPoint("barracks.lounge." + lounge,
+                    loungeGroup(lounge), x, y, 16.5f, 7.5f));
+        }
+        for (int locker = 0; locker < 2; locker++) {
+            float y = locker == 0 ? 10.5f : 5.5f;
+            result.add(new TaskPoint("barracks.locker." + locker,
+                    lockerGroup(locker), 20.4f, y, 21.5f, y));
+        }
+        for (int lane = 0; lane < 3; lane++) {
+            float x = 25.5f + lane * 2f;
+            result.add(new TaskPoint("barracks.firing-lane." + lane,
+                    firingLaneGroup(lane), x, 5.5f, x, 13.5f));
         }
         return List.copyOf(result);
     }
@@ -111,6 +130,25 @@ final class BarracksSceneLayout {
             float x, float y, float dwell, AmbientActivity activity,
             float focusX, float focusY) {
         return new AmbientTaskRoute.Stop(x, y, dwell, activity, focusX, focusY);
+    }
+
+    private static AmbientTaskRoute.Stop stop(
+            float x, float y, float dwell, AmbientActivity activity,
+            float focusX, float focusY, String pointGroup) {
+        return new AmbientTaskRoute.Stop(
+                x, y, dwell, activity, focusX, focusY, pointGroup);
+    }
+
+    static String firingLaneGroup(int lane) {
+        return "barracks.firing-lane." + lane;
+    }
+
+    private static String loungeGroup(int lounge) {
+        return "barracks.lounge." + lounge;
+    }
+
+    private static String lockerGroup(int locker) {
+        return "barracks.locker." + locker;
     }
 
     private static PropPlacement prop(int x, int y, String doodadId) {

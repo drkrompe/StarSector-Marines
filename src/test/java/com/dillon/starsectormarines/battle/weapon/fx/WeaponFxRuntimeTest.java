@@ -1,8 +1,10 @@
 package com.dillon.starsectormarines.battle.weapon.fx;
 
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -28,16 +30,16 @@ class WeaponFxRuntimeTest {
     @Test
     void everyCarrierFamilyResolvesItsRegistryComposition() {
         ShotEvent primary = new ShotEvent(1f, 2f, 3f, 4f, true,
-                Faction.MARINE, 0.1f, null, MarineWeapon.DMR, null);
+                Faction.MARINE, 0.1f, null, WeaponRegistry.require(WeaponRegistry.DMR_ID), null);
         ShotEvent special = new ShotEvent(1f, 2f, 3f, 4f, true,
-                Faction.MARINE, 0.1f, null, null, MarineSecondary.ROCKET_LAUNCHER);
+                Faction.MARINE, 0.1f, null, null, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID));
         ShotEvent mech = new ShotEvent(1f, 2f, 3f, 4f, true,
                 Faction.MARINE, 0.1f, null, null, null, MechWeapon.SRM_POD);
         ShotEvent turret = new ShotEvent(1f, 2f, 3f, 4f, true,
                 Faction.DEFENDER, 0.1f, TurretKind.ARBALEST);
 
-        assertSame(MarineWeapon.DMR.def().fx, WeaponFxRuntime.definition(primary));
-        assertSame(MarineSecondary.ROCKET_LAUNCHER.def().fx,
+        assertSame(WeaponRegistry.require(WeaponRegistry.DMR_ID).fx, WeaponFxRuntime.definition(primary));
+        assertSame(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).weaponDef().fx,
                 WeaponFxRuntime.definition(special));
         assertSame(MechWeapon.SRM_POD.def().fx, WeaponFxRuntime.definition(mech));
         assertSame(TurretKind.ARBALEST.fx(), WeaponFxRuntime.definition(turret));

@@ -24,8 +24,8 @@ import java.util.Random;
  * Handheld squad weapons — rifles, SMGs, DMRs (primary line tracers / kinetic
  * bullets) and rocket launchers (secondary, AoE). Owns the firing math + the
  * per-tick burst continuation pass for every infantry-class unit:
- * marines, militia, aliens, and any future squaddie wielding a
- * {@link MarineWeapon}.
+ * marines, militia, aliens, and any future squaddie with a primary
+ * {@link WeaponDef}.
  *
  * <p>Burst continuation state lives on each {@code Entity}
  * ({@code burstRemaining} / {@code burstTimer} / {@code burstTargetId}) so a
@@ -128,9 +128,9 @@ public class InfantryWeapons {
 
     /**
      * Fires the shooter's primary at the target. Per-shot accuracy / damage /
-     * vsTurret pull from the marine's {@link MarineWeapon} when assigned;
+     * vsTurret pull from the marine's {@link WeaponDef} when assigned;
      * otherwise from the {@code Entity}'s baked-in stats (militia, aliens,
-     * turrets — all the "no MarineWeapon" callers). Accuracy is multiplied
+     * turrets — all callers without a per-primary definition). Accuracy is multiplied
      * by {@code stance.accuracyMult} — STANCED preserves the base roll,
      * MOVING applies the on-the-move suppression penalty. Cover is NOT part
      * of this accuracy stack — {@link BallisticResolver} re-expresses it as

@@ -4,9 +4,7 @@ package com.dillon.starsectormarines.battle.combat;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.perception.NoiseEventBus;
 import com.dillon.starsectormarines.battle.perception.NoiseKind;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
-import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -90,9 +88,7 @@ public final class ShotService {
         public final float moraleImpact;
         /** True when the victim shares the shooter's faction. Damage is already reduced accordingly; kept for FX/log — hit-response rolls still apply, since being shot by your own side is still getting shot. */
         public final boolean friendly;
-        /** Non-null when this direct round came from weapon-like special equipment. */
-        public final MarineSecondary marineSecondary;
-        /** Authoritative special-equipment source, including contributed items. */
+        /** Authoritative special-equipment source, when applicable. */
         public final SpecialEquipmentDef specialEquipmentDef;
 
         public PendingImpact(long victimId, long shooterId, float remainingTime,
@@ -100,13 +96,6 @@ public final class ShotService {
                              boolean friendly) {
             this(victimId, shooterId, remainingTime, damage, penetration,
                     moraleImpact, friendly, (SpecialEquipmentDef) null);
-        }
-
-        public PendingImpact(long victimId, long shooterId, float remainingTime,
-                             float damage, float penetration, float moraleImpact,
-                             boolean friendly, MarineSecondary marineSecondary) {
-            this(victimId, shooterId, remainingTime, damage, penetration, moraleImpact,
-                    friendly, marineSecondary != null ? marineSecondary.specialDef() : null);
         }
 
         public PendingImpact(long victimId, long shooterId, float remainingTime,
@@ -120,8 +109,6 @@ public final class ShotService {
             this.moraleImpact = moraleImpact;
             this.friendly = friendly;
             this.specialEquipmentDef = specialEquipmentDef;
-            this.marineSecondary = specialEquipmentDef != null
-                    ? SpecialEquipmentRegistry.compatibilityHandle(specialEquipmentDef.id()) : null;
         }
     }
 

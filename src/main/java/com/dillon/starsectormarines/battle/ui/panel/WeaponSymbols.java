@@ -1,9 +1,9 @@
 package com.dillon.starsectormarines.battle.ui.panel;
 
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 
@@ -23,29 +23,24 @@ public final class WeaponSymbols {
 
     private WeaponSymbols() {}
 
-    public static String primaryAbbrev(MarineWeapon w) {
+    public static String primaryAbbrev(WeaponDef w) {
         if (w == null) return "RIF";
-        switch (w) {
-            case FIELD_RIFLE: return "FLD";
-            case PULSE_RIFLE: return "RIF";
-            case SMG:         return "SHD";
-            case SQUAD_AUTOMATIC: return "SAW";
-            case DMR:         return "DMR";
-            default:          return w.name().substring(0, 3);
-        }
+        if (WeaponRegistry.STARTER_PRIMARY_ID.equals(w.id)) return "FLD";
+        if (WeaponRegistry.PULSE_RIFLE_ID.equals(w.id)) return "RIF";
+        if (WeaponRegistry.SMG_ID.equals(w.id)) return "SHD";
+        if (WeaponRegistry.SQUAD_AUTOMATIC_ID.equals(w.id)) return "SAW";
+        if (WeaponRegistry.DMR_ID.equals(w.id)) return "DMR";
+        String compact = w.displayName.replaceAll("[^A-Za-z0-9]", "").toUpperCase();
+        return compact.substring(0, Math.min(3, compact.length()));
     }
 
-    public static String primaryAbbrev(MarineWeapon w, EquipmentGrade grade) {
+    public static String primaryAbbrev(WeaponDef w, EquipmentGrade grade) {
         EquipmentGrade resolved = grade != null ? grade : EquipmentGrade.SERVICE;
         return primaryAbbrev(w) + "-" + resolved.tierMark();
     }
 
-    public static Color primaryColor(MarineWeapon w) {
-        return w != null ? w.tracerColor() : DEFAULT_FG;
-    }
-
-    public static String secondaryAbbrev(MarineSecondary s) {
-        return specialAbbrev(s != null ? s.specialDef() : null);
+    public static Color primaryColor(WeaponDef w) {
+        return w != null ? w.tracerColor : DEFAULT_FG;
     }
 
     public static String specialAbbrev(SpecialEquipmentDef special) {

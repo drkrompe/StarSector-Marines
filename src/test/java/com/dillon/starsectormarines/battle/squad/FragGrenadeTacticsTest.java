@@ -4,7 +4,8 @@ import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.infantry.FragGrenadeTactics;
 import com.dillon.starsectormarines.battle.infantry.InfantryUnitPrep;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -30,16 +31,16 @@ class FragGrenadeTacticsTest {
         long lone = enemy(isolated.sim, 10, 5);
         observe(isolated, lone);
         assertFalse(FragGrenadeTactics.tryCommitThrow(isolated.carrier,
-                MarineSecondary.FRAG_GRENADE, isolated.sim));
+                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID), isolated.sim));
 
         Fixture cluster = fixture();
         long first = enemy(cluster.sim, 10, 5);
         long second = enemy(cluster.sim, 10, 6);
         observe(cluster, first, second);
         assertTrue(FragGrenadeTactics.tryCommitThrow(cluster.carrier,
-                MarineSecondary.FRAG_GRENADE, cluster.sim));
+                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID), cluster.sim));
         assertNotNull(cluster.sim.fragGrenades().reservationFor(cluster.carrier));
-        assertEquals(MarineSecondary.FRAG_GRENADE.startingAmmo(),
+        assertEquals(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID).startingAmmo(),
                 cluster.sim.world().secondaryAmmo(cluster.carrier),
                 "commitment does not spend a grenade before release");
     }
@@ -52,7 +53,7 @@ class FragGrenadeTacticsTest {
         observe(fixture, first, second);
 
         assertTrue(FragGrenadeTactics.tryCommitThrow(fixture.carrier,
-                MarineSecondary.FRAG_GRENADE, fixture.sim));
+                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID), fixture.sim));
         assertNotNull(fixture.sim.fragGrenades().reservationFor(fixture.carrier));
     }
 
@@ -65,7 +66,7 @@ class FragGrenadeTacticsTest {
                 UnitType.MARINE, 10, 5));
         observe(current, a, b);
         assertFalse(FragGrenadeTactics.tryCommitThrow(current.carrier,
-                MarineSecondary.FRAG_GRENADE, current.sim));
+                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID), current.sim));
 
         Fixture moving = fixture();
         a = enemy(moving.sim, 10, 5);
@@ -75,7 +76,7 @@ class FragGrenadeTacticsTest {
         moving.sim.setPath(friendly, new int[]{3, 12, 10, 5});
         observe(moving, a, b);
         assertFalse(FragGrenadeTactics.tryCommitThrow(moving.carrier,
-                MarineSecondary.FRAG_GRENADE, moving.sim));
+                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID), moving.sim));
     }
 
     @Test
@@ -83,7 +84,7 @@ class FragGrenadeTacticsTest {
         Fixture fixture = fixture();
         long secondCarrier = fixture.sim.spawn(new EntitySpec("frag-2", Faction.MARINE,
                 UnitType.MARINE, 5, 10).squad(fixture.squad.id)
-                .secondary(MarineSecondary.FRAG_GRENADE, 3));
+                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID), 3));
         long a = enemy(fixture.sim, 10, 5);
         long b = enemy(fixture.sim, 10, 6);
         long c = enemy(fixture.sim, 10, 10);
@@ -91,9 +92,9 @@ class FragGrenadeTacticsTest {
         observe(fixture, a, b, c, d);
 
         assertTrue(FragGrenadeTactics.tryCommitThrow(fixture.carrier,
-                MarineSecondary.FRAG_GRENADE, fixture.sim));
+                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID), fixture.sim));
         assertTrue(FragGrenadeTactics.tryCommitThrow(secondCarrier,
-                MarineSecondary.FRAG_GRENADE, fixture.sim));
+                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID), fixture.sim));
         var first = fixture.sim.fragGrenades().reservationFor(fixture.carrier);
         var second = fixture.sim.fragGrenades().reservationFor(secondCarrier);
         float dx = first.targetX() - second.targetX();
@@ -110,9 +111,9 @@ class FragGrenadeTacticsTest {
         long second = enemy(fixture.sim, 10, 6);
         observe(fixture, first, second);
         assertTrue(FragGrenadeTactics.tryCommitThrow(fixture.carrier,
-                MarineSecondary.FRAG_GRENADE, fixture.sim));
+                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID), fixture.sim));
         fixture.sim.world().setSecondaryActionTimer(fixture.carrier,
-                MarineSecondary.FRAG_GRENADE.aimDuration() * 0.5f);
+                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID).aimDuration() * 0.5f);
         InfantryUnitPrep.tickAimAndShortCircuit(fixture.carrier, fixture.sim);
 
         assertEquals(2, fixture.sim.world().secondaryAmmo(fixture.carrier));
@@ -187,7 +188,7 @@ class FragGrenadeTacticsTest {
     private static Projectile hazard(Faction faction, float fromX, float fromY,
                                      float toX, float toY) {
         PendingDetonation payload = new PendingDetonation(0L, toX, toY, 1f,
-                MarineSecondary.FRAG_GRENADE.aoeRadius(), 32f, 2f, 0,
+                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID).aoeRadius(), 32f, 2f, 0,
                 faction, true);
         return new Projectile(fromX, fromY, toX, toY, false, 1.8f,
                 faction, true, 1f, payload, "weapon.frag-grenade");
@@ -202,8 +203,8 @@ class FragGrenadeTacticsTest {
         int squadId = sim.mintSquad(faction, UnitType.MARINE);
         long carrier = sim.spawn(new EntitySpec("frag", faction,
                 UnitType.MARINE, 5, 5).squad(squadId)
-                .secondary(MarineSecondary.FRAG_GRENADE,
-                        MarineSecondary.FRAG_GRENADE.startingAmmo()));
+                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID),
+                        SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID).startingAmmo()));
         return new Fixture(sim, sim.getSquad(squadId), carrier);
     }
 
