@@ -84,6 +84,7 @@ public final class RoomPlacementStage implements GenStage {
 
     /** Padded by one cell each side, so a room's bulkhead ring never falls off the array. */
     private boolean[][] hull;
+    private boolean[][] room;
     private boolean[][] claimed;
     private boolean[][] floor;
     private boolean[][] passage;
@@ -129,6 +130,7 @@ public final class RoomPlacementStage implements GenStage {
         width = ctx.width;
         height = ctx.height;
         hull = new boolean[width + 2][height + 2];
+        room = new boolean[width + 2][height + 2];
         claimed = new boolean[width + 2][height + 2];
         floor = new boolean[width + 2][height + 2];
         passage = new boolean[width + 2][height + 2];
@@ -300,6 +302,7 @@ public final class RoomPlacementStage implements GenStage {
             int outsideX = candidate.x() + doorway[2];
             int outsideY = candidate.y() + doorway[3];
             if (!inBounds(outsideX, outsideY) || !passage[outsideX + 1][outsideY + 1]) continue;
+            if (backsOntoRoom(candidate.x() + doorway[0], candidate.y() + doorway[1])) continue;
             return new Access(candidate.x() + doorway[0], candidate.y() + doorway[1],
                     doorway[2] - doorway[0], doorway[3] - doorway[1], List.of());
         }
@@ -330,8 +333,15 @@ public final class RoomPlacementStage implements GenStage {
             int outsideX = candidate.x() + doorway[2];
             int outsideY = candidate.y() + doorway[3];
             if (!inBounds(outsideX, outsideY)) continue;
+            // A bulkhead a second compartment also stands behind is a shared
+            // wall; a door there opens both rooms and joins them into one.
+            if (backsOntoRoom(candidate.x() + doorway[0], candidate.y() + doorway[1])) continue;
             int step = routeCost(routable, wide, outsideX, outsideY);
             if (step < 0 || step >= cost[outsideX][outsideY]) continue;
+            if (!crossesCleanly(routable, outsideX, outsideY,
+                    doorway[2] - doorway[0], doorway[3] - doorway[1])) {
+                continue;
+            }
             cost[outsideX][outsideY] = step;
             cameFrom[outsideX][outsideY] =
                     doorMarker(candidate.x() + doorway[0], candidate.y() + doorway[1]);
@@ -347,6 +357,7 @@ public final class RoomPlacementStage implements GenStage {
                 if (!inBounds(nx, ny)) continue;
                 int stepCost = routeCost(routable, wide, nx, ny);
                 if (stepCost < 0) continue;
+                if (!crossesCleanly(routable, nx, ny, step[0], step[1])) continue;
                 int next = cell[2] + stepCost;
                 if (next >= cost[nx][ny]) continue;
                 cost[nx][ny] = next;
@@ -366,12 +377,14 @@ public final class RoomPlacementStage implements GenStage {
      * hull or belonging to the room currently being placed, which is not
      * committed yet and so is invisible to the masks.
      *
-     * <p>The interesting exclusion is the last one. A bulkhead with room floor
-     * on both sides is the wall two compartments share, and cutting along it
-     * would open them both down their whole length; a bulkhead with circulation
-     * on one side is simply where a door belongs. That single rule is the
-     * difference between passages that cross structure and passages that
-     * dissolve it.
+     * <p>The interesting exclusion is the last one: <b>a route never cuts a
+     * cell that a room stands behind.</b> Only the deliberate door opens a
+     * compartment. Letting a route take any structure it could pay for was not
+     * enough of a limit — a room's outer wall is structure, so a passage could
+     * chew through one bulkhead cell after another and leave the compartment
+     * standing open for six cells at a stretch. Structure that no room backs
+     * onto — the spine bulkhead away from any compartment, plating, the walls
+     * of a pocket — is still crossable, which is all a passage actually needs.
      */
     private int stepCost(Candidate candidate, int x, int y) {
         if (!inBounds(x, y) || !hull[x + 1][y + 1] || floor[x + 1][y + 1]) return -1;
@@ -383,9 +396,7 @@ public final class RoomPlacementStage implements GenStage {
             }
         }
         if (!claimed[x + 1][y + 1]) return OPEN_COST;
-        if (isRoomFloor(x - 1, y) && isRoomFloor(x + 1, y)) return -1;
-        if (isRoomFloor(x, y - 1) && isRoomFloor(x, y + 1)) return -1;
-        return WALL_COST;
+        return backsOntoRoom(x, y) ? -1 : WALL_COST;
     }
 
     /**
@@ -422,6 +433,31 @@ public final class RoomPlacementStage implements GenStage {
         return wide;
     }
 
+    /**
+     * Whether a passage entering this cell on this heading is crossing the
+     * structure rather than running along it.
+     *
+     * <p>Paying a toll to cross a bulkhead is not enough on its own. A room's
+     * outer wall has its own floor on one side and open deck on the other, so
+     * nothing in the per-cell cost stops a route following that wall for its
+     * whole length — and a route that does strips the compartment behind it of
+     * a wall, which is worse than the enfilade a shared bulkhead would have
+     * caused, because it happens along the whole side of the room.
+     *
+     * <p>So structure may only be entered when the cell straight ahead is open
+     * deck or circulation already: in one side and out the other, which is a
+     * door. Two structure cells in a row on the same heading is either a wall
+     * being followed or a wall too thick to be a doorway, and neither is a
+     * passage.
+     */
+    private boolean crossesCleanly(int[][] routable, int x, int y, int stepX, int stepY) {
+        if (routable[x][y] != WALL_COST) return true;
+        int aheadX = x + stepX;
+        int aheadY = y + stepY;
+        if (!inBounds(aheadX, aheadY)) return false;
+        return !claimed[aheadX + 1][aheadY + 1] || passage[aheadX + 1][aheadY + 1];
+    }
+
     private static int routeCost(int[][] routable, boolean[][] wide, int x, int y) {
         int base = routable[x][y];
         if (base < 0) return -1;
@@ -442,9 +478,40 @@ public final class RoomPlacementStage implements GenStage {
         return stepCost(candidate, x, y) >= 0;
     }
 
-    /** Walkable, and part of a room rather than part of the circulation. */
+    /**
+     * Whether a compartment other than the one being placed stands behind this
+     * cell. The room being placed is already cut in by the time its door is
+     * widened, so plain {@link #backsOntoRoom} would refuse every second door
+     * cell on the grounds that a room is behind it — which is what a door is.
+     */
+    private boolean backsOntoOtherRoom(Candidate candidate, int x, int y) {
+        for (int[] step : STEPS) {
+            int nx = x + step[0];
+            int ny = y + step[1];
+            if (!isRoomFloor(nx, ny)) continue;
+            if (!candidate.shape().contains(nx - candidate.x(), ny - candidate.y())) return true;
+        }
+        return false;
+    }
+
+    /** Whether any compartment stands directly behind this cell. */
+    private boolean backsOntoRoom(int x, int y) {
+        for (int[] step : STEPS) {
+            if (isRoomFloor(x + step[0], y + step[1])) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Whether this cell is the floor of a compartment.
+     *
+     * <p>Recorded outright rather than inferred as walkable-but-not-passage. A
+     * door is walkable and is deliberately kept out of the passage mask, so that
+     * inference read every doorway as another compartment's floor, which
+     * silently refused to widen any door on the deck.
+     */
     private boolean isRoomFloor(int x, int y) {
-        return inBounds(x, y) && floor[x + 1][y + 1] && !passage[x + 1][y + 1];
+        return inBounds(x, y) && room[x + 1][y + 1];
     }
 
     private boolean touchesPassage(int x, int y) {
@@ -490,7 +557,10 @@ public final class RoomPlacementStage implements GenStage {
     private void commit(GenContext ctx, Candidate candidate, RoomPurpose purpose, Access access) {
         RoomShape shape = candidate.shape();
         for (int[] cell : shape.filled()) {
-            carve(ctx, candidate.x() + cell[0], candidate.y() + cell[1], purpose, GroundKind.INDOOR);
+            int x = candidate.x() + cell[0];
+            int y = candidate.y() + cell[1];
+            carve(ctx, x, y, purpose, GroundKind.INDOOR);
+            room[x + 1][y + 1] = true;
         }
         for (int[] cell : shape.wall()) {
             int x = candidate.x() + cell[0];
@@ -568,6 +638,7 @@ public final class RoomPlacementStage implements GenStage {
             int nx = access.doorX() + perpX * side;
             int ny = access.doorY() + perpY * side;
             if (!inBounds(nx, ny) || floor[nx + 1][ny + 1]) continue;
+            if (backsOntoOtherRoom(candidate, nx, ny)) continue;
             int localX = nx - candidate.x();
             int localY = ny - candidate.y();
             if (candidate.shape().contains(localX, localY)) continue;
