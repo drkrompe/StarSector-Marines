@@ -90,9 +90,8 @@ public final class RoomFittings {
 
         // Rooms whose point is the empty middle. Gear against the bulkheads,
         // deck clear for the machine or the lane.
-        register(new PerimeterFitting(RoomPurpose.VEHICLE_BAY, FixtureGroup.of(
-                "doodad.industrial-machine-tool", 2, 2,
-                new Satellite("doodad.industrial-drum-cluster", 1, 1))));
+        // A mech bay is bays, not one room: see VehicleBayFitting.
+        register(new VehicleBayFitting());
 
         register(new PerimeterFitting(RoomPurpose.HANGAR, FixtureGroup.of(
                 "doodad.industrial-crate-stack", 2, 2,
