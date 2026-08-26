@@ -21,6 +21,7 @@ import com.dillon.starsectormarines.campaign.systems.HousePowerSystem;
 import com.dillon.starsectormarines.campaign.systems.InternalFlipGarrisonSystem;
 import com.dillon.starsectormarines.campaign.systems.KingmakerTestamentSystem;
 import com.dillon.starsectormarines.campaign.systems.MoralCompassSystem;
+import com.dillon.starsectormarines.campaign.systems.PatronEquipmentRewardSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultExtractionSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultSystem;
 import com.dillon.starsectormarines.campaign.systems.SilentColonySpawnSystem;
@@ -66,6 +67,8 @@ class CampaignStateSystemOrderTest {
         int incidents = indexOf(systems, StationingIncidentSystem.class);
         int lapse = indexOf(systems, StationingLapseSystem.class);
         int lifecycle = indexOf(systems, ContractLifecycleSystem.class);
+        int patronEquipmentRewards = indexOf(systems,
+                PatronEquipmentRewardSystem.class);
         int civilWarParticipation = indexOf(systems, CivilWarParticipationSystem.class);
         int civilWarConsequences = indexOf(systems, CivilWarPlayerConsequenceSystem.class);
         int moralCompass = indexOf(systems, MoralCompassSystem.class);
@@ -103,6 +106,7 @@ class CampaignStateSystemOrderTest {
         assertTrue(flipDefense < lapse);
         assertTrue(incidents < lapse);
         assertTrue(lapse < lifecycle);
+        assertTrue(lifecycle < patronEquipmentRewards);
         assertTrue(lifecycle < civilWarParticipation);
         assertTrue(throneResolution < civilWarConsequences);
         assertTrue(civilWarParticipation < civilWarConsequences);
