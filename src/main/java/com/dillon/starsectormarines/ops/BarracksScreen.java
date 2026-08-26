@@ -58,6 +58,9 @@ public final class BarracksScreen implements Screen {
             context.goTo(ScreenId.COMPANY_HQ);
             return;
         }
+        // Defensive for a live session upgraded before onGameLoad can run;
+        // ordinary campaign loads establish this before any company screen.
+        script.ensureStartingCompany();
         if (viewModel == null || roster != liveRoster) {
             closeDocument();
             roster = liveRoster;
@@ -80,6 +83,10 @@ public final class BarracksScreen implements Screen {
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard()).onCancel(this::close);
             battleSprites.ensureLayeredUnitSprites();
+            // ShotRenderService resolves both projectile bodies and shared
+            // tinted bolts from this cache. Battles load it through their full
+            // sprite bootstrap; the bounded Barracks host must opt in too.
+            battleSprites.ensureMarineSecondarySprites();
             battleSprites.ensureTileSheet();
             battleSprites.ensureRoadSheet();
             battleSprites.ensureDoodadSheet();
@@ -139,7 +146,7 @@ public final class BarracksScreen implements Screen {
         previewSeconds += Math.max(0f, dt);
         if (battleScene != null && viewModel != null) {
             battleScene.advanceTo(viewModel.sceneMarines(), (float) previewSeconds);
-            BattleShotAudio.playUi(battleScene.shotsThisFrame(), 0.34f);
+            BattleShotAudio.playCampaignLocal(battleScene.shotsThisFrame(), 0.55f);
         }
         int currentHour = campaignHour();
         if (viewModel != null && currentHour != projectedCampaignHour) {

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.render2d.BattleCamera;
@@ -9,6 +10,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BarracksBattleSceneTest {
@@ -30,14 +32,28 @@ class BarracksBattleSceneTest {
 
     @Test
     void rangeRotationFiresIssuedPrimaryThroughTheRealShotService() {
-        MarineSoldier soldier = new MarineSoldier("marine-1", "Marine 001", null);
+        List<MarineSoldier> soldiers = java.util.stream.IntStream.range(0, 12)
+                .mapToObj(index -> new MarineSoldier(
+                        "marine-" + index, "Marine " + index, null))
+                .toList();
         try (BattleSimulation simulation = BarracksBattleScene.buildSimulation(
-                List.of(soldier))) {
-            simulation.advance(60f);
+                soldiers)) {
+            boolean emitted = false;
+            boolean visible = false;
+            ShotEvent firstShot = null;
+            for (int frame = 0; frame < 60 * 10; frame++) {
+                simulation.advance(1f / 60f);
+                emitted |= !simulation.getShotsThisFrame().isEmpty();
+                visible |= !simulation.getActiveShots().isEmpty();
+                if (firstShot == null && !simulation.getShotsThisFrame().isEmpty()) {
+                    firstShot = simulation.getShotsThisFrame().get(0);
+                }
+            }
 
-            assertFalse(simulation.getShotsThisFrame().isEmpty());
-            assertEquals(soldier.primaryDef(),
-                    simulation.getShotsThisFrame().get(0).primaryWeaponDef);
+            assertTrue(emitted, "range rotation should emit a shot on a normal display frame");
+            assertTrue(visible, "range rotation should leave a shot visible for rendering");
+            assertNotNull(firstShot);
+            assertEquals(soldiers.get(0).primaryDef(), firstShot.primaryWeaponDef);
         }
     }
 }

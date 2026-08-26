@@ -4,9 +4,9 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — expanded the Mech Lab overview into a four-bay facility
-whose fabrication and logistics activity uses the shared ambient-task simulation;
-Barracks range rotations now fire issued primaries through the ordinary battle seams.
+Updated: 2026-08-26 — campaign roster load now establishes the starting company
+before any company surface opens; Barracks loads and presents its battle-authored
+range projectiles and weapon audio without an Armory initialization dependency.
 
 ## Purpose
 
@@ -285,6 +285,11 @@ company between planets. A scalable squad rail selects one line formation at a t
 the main region shows that squad's quarters and a twelve-billet muster without exposing
 Armory authoring controls. The room is casual company browsing, not a second roster or
 equipment authority.
+
+The campaign roster holder establishes the one-time starting complement and reserve
+formation during game load. Company HQ, Barracks, and Fleet Armory therefore observe
+the same already-established company; visiting an authoring surface is never a
+prerequisite for a read-only room to contain its squad.
 
 The quarters use a bounded indoor `BattleSimulation` as a scene host, sharing battle
 tiles, registered building doodads, camera scale, and the layered marine compositor

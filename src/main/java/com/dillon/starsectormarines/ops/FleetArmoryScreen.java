@@ -68,8 +68,7 @@ public final class FleetArmoryScreen implements Screen {
             context.returnFromFleetArmoryWorkspace();
             return;
         }
-        liveRoster.bootstrapInitialComplement(MarineSquad.CAPACITY);
-        liveRoster.reserveSquad();
+        script.ensureStartingCompany();
         if (viewModel == null || roster != liveRoster) {
             closeDocument();
             roster = liveRoster;
