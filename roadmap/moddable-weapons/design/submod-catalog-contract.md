@@ -4,7 +4,8 @@ Status: ACTIVE
 
 Written: 2026-08-25
 
-Updated: 2026-08-25 — added the live compatibility-acceptance boundary.
+Updated: 2026-08-25 — documented live compatibility acceptance and the required
+marine-primary held-sprite family.
 
 ## Provider entry point
 
@@ -65,6 +66,12 @@ References therefore resolve eagerly and fail at application load. A primary
 template must name a `marine-primary` weapon. A special must reference a
 `marine-secondary` weapon when its activation is weapon-like. Armor, template,
 and roster references must exist before their consumers are installed.
+
+A `marine-primary` weapon also declares `render.heldSpriteFamily`. The supported
+modular actor families are `RIFLE`, `LASER_GUN`, `SMG`, and `DMR`; several weapon
+definitions may intentionally share one family. The family controls the weapon held
+by the layered marine actor in battle, Armory portraits, and embedded scenes. It is
+required and validated so a contributed id cannot quietly fall back to generic art.
 
 ## Tilesets and mappings
 

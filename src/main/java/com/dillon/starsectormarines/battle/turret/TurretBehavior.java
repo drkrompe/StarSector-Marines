@@ -1,4 +1,5 @@
 package com.dillon.starsectormarines.battle.turret;
+import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 import com.dillon.starsectormarines.battle.infantry.CombatantBehavior;
 
@@ -89,8 +90,10 @@ public final class TurretBehavior implements UnitBehavior {
                 // Direct-fire kinds gate LoS in the aim loop so by the time
                 // the burst started, LoS was good; the renderer keeps firing
                 // even if LoS breaks mid-burst, matching the existing behavior.
-                boolean hasLos = sim.getGrid().hasLineOfSight(
-                        sim.world().cellX(id), sim.world().cellY(id), sim.world().cellX(currentBurstTarget), sim.world().cellY(currentBurstTarget));
+                boolean hasLos = TacticalScoring.canShootPair(sim.getGrid(),
+                        sim.world().x(id), sim.world().y(id),
+                        sim.world().x(currentBurstTarget), sim.world().y(currentBurstTarget),
+                        0f, sim.vision().airLosRadius(currentBurstTarget));
                 sim.fireShotFrom(id, sim.world().x(id), sim.world().y(id), sim.identity().faction(u), kind, currentBurstTarget,
                         /*aerialShooter*/ false, hasLos);
                 turretState.setRecoilTimer(id, 0f);

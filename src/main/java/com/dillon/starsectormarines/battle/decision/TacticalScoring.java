@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.decision.goap.world.TacticalNodeQueries;
 import com.dillon.starsectormarines.battle.squad.BelievedContact;
 import com.dillon.starsectormarines.battle.squad.BeliefSource;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -338,14 +339,10 @@ public final class TacticalScoring {
      */
     public long refreshTargetIfNotShootable(long self) {
         World world = roster.world();
-        int sx = world.cellX(self);
-        int sy = world.cellY(self);
         long cur = world.targetId(self);
         if (roster.isLive(cur)) {
-            int cx = world.cellX(cur);
-            int cy = world.cellY(cur);
             if (cellDistance(world.x(self), world.y(self), world.x(cur), world.y(cur)) <= world.attackRange(self)
-                    && grid.hasLineOfSight(sx, sy, cx, cy)) {
+                    && hasClearShot(self, cur)) {
                 return cur;
             }
         }
@@ -517,6 +514,37 @@ public final class TacticalScoring {
             return grid.hasLineOfSight(sx, sy, tx, ty);
         }
         return TurretAim.airLosVisible(grid, sx, sy, tx, ty, shooterAirR, targetAirR);
+    }
+
+    /**
+     * True when a direct round can travel from {@code shooter}'s actual point
+     * to {@code target}'s actual point. Ground pairs use the exact uncached
+     * firing trace; airborne LoS retains its authored close-wall exception.
+     */
+    public boolean hasClearShot(long shooter, long target) {
+        World world = roster.world();
+        VisionService vision = roster.vision();
+        return canShootPair(grid,
+                world.x(shooter), world.y(shooter),
+                world.x(target), world.y(target),
+                vision.airLosRadius(shooter), vision.airLosRadius(target));
+    }
+
+    /**
+     * Direct-fire counterpart to {@link #canSeePair}. Point positions are
+     * authoritative for ground fire; perception continues to use projected
+     * cells and its tick cache.
+     */
+    public static boolean canShootPair(NavigationGrid grid,
+                                       float sx, float sy, float tx, float ty,
+                                       float shooterAirR, float targetAirR) {
+        if (shooterAirR <= 0f && targetAirR <= 0f) {
+            return grid.hasLineOfFire(sx, sy, tx, ty);
+        }
+        return canSeePair(grid,
+                (int) Math.floor(sx), (int) Math.floor(sy),
+                (int) Math.floor(tx), (int) Math.floor(ty),
+                shooterAirR, targetAirR);
     }
 
     /**
@@ -1034,8 +1062,6 @@ public final class TacticalScoring {
         Faction selfFaction = roster.identity().faction(self);
         float selfX = world.x(self);
         float selfY = world.y(self);
-        int sx = (int) Math.floor(selfX);
-        int sy = (int) Math.floor(selfY);
         float range = world.attackRange(self);
         VisionService vision = roster.vision();
         float selfAir = vision.airLosRadius(self);
@@ -1053,11 +1079,10 @@ public final class TacticalScoring {
             if (!roster.isAliveById(other)) continue;
             float otherX = world.x(other);
             float otherY = world.y(other);
-            int ox = (int) Math.floor(otherX);
-            int oy = (int) Math.floor(otherY);
             float d = cellDistance(selfX, selfY, otherX, otherY);
             if (d > range) continue;
-            if (!canSeePair(grid, sx, sy, ox, oy, selfAir, vision.airLosRadius(other))) continue;
+            if (!canShootPair(grid, selfX, selfY, otherX, otherY,
+                    selfAir, vision.airLosRadius(other))) continue;
             if (other == preferred) preferredDist = d;
             if (d < bestDist) {
                 bestDist = d;
@@ -1291,7 +1316,7 @@ public final class TacticalScoring {
         }
 
         if (squad.believedContacts().isEmpty()) {
-            FiringLineCoverage coverage = firingLineCoverage(squad, null);
+            FiringLineCoverage coverage = firingLineCoverage(squad, null, currentTick);
             return new SquadContactPicture(currentTick, postureOf(squad), 0f, 0f,
                     0, 0, 0f, 0, ForceBalance.NONE, Sector.NONE,
                     Motion.UNKNOWN, 0L, -1, -1, 0f, Doctrine.ADVANCE,
@@ -1334,7 +1359,7 @@ public final class TacticalScoring {
         }
 
         if (primary == null) {
-            FiringLineCoverage coverage = firingLineCoverage(squad, null);
+            FiringLineCoverage coverage = firingLineCoverage(squad, null, currentTick);
             return new SquadContactPicture(currentTick, posture, axis[0], axis[1],
                     0, 0, 0f, 0, ForceBalance.NONE, Sector.NONE,
                     Motion.UNKNOWN, 0L, -1, -1, 0f, Doctrine.ADVANCE,
@@ -1353,7 +1378,7 @@ public final class TacticalScoring {
         Doctrine doctrine = selectDoctrine(posture, balance, dominant, motion,
                 mustHold(squad), squad.contactPicture.doctrine(), true,
                 holdContactFresh);
-        FiringLineCoverage coverage = firingLineCoverage(squad, primary);
+        FiringLineCoverage coverage = firingLineCoverage(squad, primary, currentTick);
         boolean primaryDirect = primary.source() == BeliefSource.DIRECT
                 && primary.observedOnTick(currentTick);
         ContactInitiative initiative = selectContactInitiative(doctrine,
@@ -1370,7 +1395,8 @@ public final class TacticalScoring {
     }
 
     private FiringLineCoverage firingLineCoverage(Squad squad,
-                                                   BelievedContact primary) {
+                                                   BelievedContact primary,
+                                                   int currentTick) {
         int liveMembers = 0;
         int engageableMembers = 0;
         int liveTeamsMask = 0;
@@ -1385,13 +1411,22 @@ public final class TacticalScoring {
             liveTeamsMask |= teamBit;
             boolean engageable = false;
             if (primary != null) {
+                float targetX = primary.lastSeenCellX() + 0.5f;
+                float targetY = primary.lastSeenCellY() + 0.5f;
+                if (primary.source() == BeliefSource.DIRECT
+                        && primary.observedOnTick(currentTick)
+                        && roster.isAliveById(primary.unitId())) {
+                    targetX = roster.world().x(primary.unitId());
+                    targetY = roster.world().y(primary.unitId());
+                }
                 float distance = cellDistance(roster.world().x(member),
-                        roster.world().y(member), primary.lastSeenCellX() + 0.5f,
-                        primary.lastSeenCellY() + 0.5f);
+                        roster.world().y(member), targetX, targetY);
                 engageable = distance <= roster.world().attackRange(member)
-                        && grid.hasLineOfSight(roster.world().cellX(member),
-                        roster.world().cellY(member), primary.lastSeenCellX(),
-                        primary.lastSeenCellY());
+                        && canShootPair(grid,
+                        roster.world().x(member), roster.world().y(member),
+                        targetX, targetY,
+                        roster.vision().airLosRadius(member),
+                        roster.vision().airLosRadius(primary.unitId()));
             }
             if (engageable) {
                 engageableMembers++;
@@ -1629,11 +1664,7 @@ public final class TacticalScoring {
     }
 
     private static boolean mustHold(Squad squad) {
-        ObjectiveAssignment assignment = squad.assignmentForExecution();
-        if (assignment != null && assignment.targetNode() != null) {
-            return assignment.targetNode().mustHold;
-        }
-        return squad.assignedNode != null && squad.assignedNode.mustHold;
+        return TacticalNodeQueries.isMustHold(squad);
     }
 
     /**
@@ -1801,7 +1832,8 @@ public final class TacticalScoring {
                 float distFromTarget = (float) Math.sqrt(dx * dx + dy * dy);
                 if (distFromTarget > effectiveRange) continue;
                 if (distFromTarget < FIRING_MIN_DISTANCE) continue;
-                if (!canSeePair(grid, cx, cy, tx, ty, selfAir, targetAir)) continue;
+                if (!canShootPair(grid, cx + 0.5f, cy + 0.5f,
+                        world.x(target), world.y(target), selfAir, targetAir)) continue;
                 if (cellDistance(anchorX, anchorY, cx, cy) > maxDistFromAnchor) continue;
 
                 int occupants = occupantsExcludingSelf(self, sx, sy, cx, cy);
@@ -1864,7 +1896,8 @@ public final class TacticalScoring {
                 float distFromTarget = (float) Math.sqrt(dx * dx + dy * dy);
                 if (distFromTarget > effectiveRange) continue;
                 if (distFromTarget < FIRING_MIN_DISTANCE) continue;
-                if (!canSeePair(grid, cx, cy, tx, ty, selfAir, targetAir)) continue;
+                if (!canShootPair(grid, cx + 0.5f, cy + 0.5f,
+                        world.x(target), world.y(target), selfAir, targetAir)) continue;
 
                 int occupants = occupantsExcludingSelf(self, sx, sy, cx, cy);
                 int alliesNear = alliesNearForSpread(self, cx, cy);
@@ -1979,7 +2012,8 @@ public final class TacticalScoring {
                 int cy = ty + dy;
                 if (!grid.inBounds(cx, cy)) continue;
                 if (!grid.isWalkable(cx, cy)) continue;
-                if (!grid.hasLineOfSight(cx, cy, tx, ty)) continue;
+                if (!grid.hasLineOfFire(cx + 0.5f, cy + 0.5f,
+                        tx + 0.5f, ty + 0.5f)) continue;
                 hits.add(new int[]{cx, cy});
             }
         }
@@ -2018,7 +2052,8 @@ public final class TacticalScoring {
                 if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) continue;
                 float d = (float) Math.sqrt(dx * dx + dy * dy);
                 if (d > radius) continue;
-                if (!grid.hasLineOfSight(cx, cy, threatX, threatY)) continue;
+                if (!grid.hasLineOfFire(cx + 0.5f, cy + 0.5f,
+                        threatX + 0.5f, threatY + 0.5f)) continue;
                 // Per-facing cover: cell-grid wall + doodad, each looked up
                 // against the threat-direction snap. A cell with a wall east
                 // of it reads as covered only when the threat is east — the
@@ -2152,7 +2187,8 @@ public final class TacticalScoring {
                     if (forward < BOUNDING_MIN_FORWARD_PROGRESS) continue;
                     float remaining = cellDistance(memberX, memberY, destX, destY);
                     if (forward > remaining + 0.5f) continue;
-                    if (!grid.hasLineOfSight(x, y, threatX, threatY)) continue;
+                    if (!grid.hasLineOfFire(x + 0.5f, y + 0.5f,
+                            world.x(threat), world.y(threat))) continue;
                     if (cellDistance(x + 0.5f, y + 0.5f,
                             world.x(threat), world.y(threat)) > world.attackRange(member)) continue;
 
@@ -2263,7 +2299,8 @@ public final class TacticalScoring {
                 float distFromTarget = (float) Math.sqrt(dx * dx + dy * dy);
                 if (distFromTarget > selfRange) continue;
                 if (distFromTarget < FIRING_MIN_DISTANCE) continue;
-                if (!canSeePair(grid, cx, cy, tx, ty, selfAir, targetAir)) continue;
+                if (!canShootPair(grid, cx + 0.5f, cy + 0.5f,
+                        world.x(target), world.y(target), selfAir, targetAir)) continue;
 
                 int fdx = tx - cx;
                 int fdy = ty - cy;

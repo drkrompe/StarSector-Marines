@@ -4,9 +4,8 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — made the fitting doll an asset-authored per-chassis
-definition and made live and headless Mech Lab views collect the same bounded
-battle-simulation render commands.
+Updated: 2026-08-25 — separated the lance-wide workshop overview from the
+chassis-selected fitting workspace and its equipment controls.
 
 ## Purpose
 
@@ -71,6 +70,12 @@ increasing an encounter's total armored threat.
   capacity. The renderer consumes that definition; it does not guess mount
   locations from a generic chassis shape. Future external authoring may move the
   definition out of code without changing that ownership boundary.
+- A **workshop job** is an authored presentation loop for one Mech Lab
+  technician. It owns the worker's route between storage, machinery, and a
+  gantry; dwell activity; facing; and any job-local tool or effect. The worker
+  remains a real room entity rendered by the battle unit pipeline. A workshop
+  job communicates a busy fabrication space but owns no refit duration,
+  inventory movement, or campaign outcome.
 - A **weapon family** owns projectile behavior and presentation; a component
   turns it into a mountable rack/arm with capacity and appearance. The gun,
   mount, and chassis remain distinct authorities.
@@ -183,20 +188,29 @@ determines the payload, not the entitlement to call it.
   battle entities consumed by the ordinary unit render system. The retained host
   supplies only a bounded viewport and camera: battle HUD, input, selection,
   audio, fog, combat decorators, and surface-relief targets remain detached.
-  Presentation-only welding or station motion may continue while the player
+  It does not advance combat AI, but deterministic workshop jobs may author real
+  technician positions, walk poses, facing, tools, and effects as presentation time
+  advances. Welding sparks exist only while a technician is dwelling at a welding
+  job; they are not a fixed canvas ornament. Job motion continues while the player
   inspects equipment, but it never decides refit duration, stock, or command success.
 - Live rendering and headless evidence consume one room layout: ground kind,
   perimeter walls, gantry overlays, props, workers, and every lance asset occupy authored
   battle-grid cells. Headless evidence collects the ordinary battle renderer's command
   list and substitutes only a Java2D drain; it may not invent percentage-positioned
   scenery, off-grid props, actor approximations, or a second gantry illustration.
-- Vehicle selection changes the battle camera's gantry target without changing
-  cell scale. A later eased camera move interpolates between those authored targets;
-  it does not move or respawn the garage contents to fake a transition.
+- The room opens on a lance-wide camera frame so all assigned assets and workshop
+  jobs remain legible. This is a non-selected state: it gives the room its full width,
+  labels all four gantries, and exposes no equipment catalog, performance strip, or
+  socket rack. Selecting an occupied gantry establishes the fitting asset and eases
+  the same battle camera into it; only then does the fitting workspace reveal those
+  chassis-scoped controls. Returning through the current Mech Lab room route clears
+  that selection and restores the overview. No camera transition moves, respawns,
+  pauses, or rebuilds garage contents to fake motion.
 - The fitting header exposes previous/next gantry controls and a numbered
-  `01 / 04` station position. Navigation visits all four physical pads, including a
-  vacant pad, and wraps at the ends. Lance browsing remains a separate direct-jump
-  surface; it is not required for sequential station inspection.
+  `01 / 04` station position. Navigation wraps across the four physical pads; arriving
+  at a vacant pad clears the fitting selection and exposes that vacancy in the overview
+  rather than rendering chassis controls against nothing. Lance browsing remains a
+  separate direct-jump surface.
 - Campaign-to-battle deployment freezes values. Live battle code does not read
   or mutate the campaign mech, squad, or fleet inventory.
 - Gun-launched HE is a ballistic shot whose timed detonation owns splash and

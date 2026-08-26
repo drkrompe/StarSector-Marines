@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.weapon;
 
+import com.dillon.starsectormarines.battle.appearance.LayeredWeaponFamily;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 import com.dillon.starsectormarines.battle.weapon.fx.FxSlot;
 import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxDef;
@@ -90,6 +91,8 @@ public final class WeaponDef {
     public final float noLosAccuracyMult;
 
     // ---- render ----
+    /** Modular actor sprite family used while a marine carries this primary. */
+    public final LayeredWeaponFamily heldSpriteFamily;
     /** Traveling-body tint, so the player can identify fire at a glance. */
     public final Color tracerColor;
     /**
@@ -127,6 +130,7 @@ public final class WeaponDef {
                       float wallDamageRadius, float aimDuration, float flightSec,
                       float arcHeight, boolean interceptableProjectile,
                       boolean boostRamp, boolean indirectFire, float noLosAccuracyMult,
+                      LayeredWeaponFamily heldSpriteFamily,
                       Color tracerColor, ImpactProfile impactProfile,
                       String projectileSpritePath, float projectileVisualCells,
                       boolean smokeTrail, ContrailProfile contrailProfile,
@@ -164,6 +168,7 @@ public final class WeaponDef {
         this.boostRamp = boostRamp;
         this.indirectFire = indirectFire;
         this.noLosAccuracyMult = noLosAccuracyMult;
+        this.heldSpriteFamily = heldSpriteFamily;
         this.tracerColor = tracerColor;
         this.impactProfile = impactProfile;
         this.projectileSpritePath = projectileSpritePath;
@@ -234,6 +239,7 @@ public final class WeaponDef {
                 sim.optBoolean("boostRamp", false),
                 sim.optBoolean("indirectFire", false),
                 (float) sim.optDouble("noLosAccuracyMult", 1.0),
+                parseHeldSpriteFamily(render, mount, id),
                 render != null ? parseColor(render.optString("tracerColor", null), id) : Color.WHITE,
                 render != null ? parseImpact(render.optString("impact", null), id) : ImpactProfile.RIFLE,
                 render != null ? emptyToNull(render.optString("projectileSprite", null)) : null,
@@ -246,6 +252,17 @@ public final class WeaponDef {
                 audio != null ? emptyToNull(audio.optString("impactSound", null)) : null);
         validateMountFields(def);
         return def;
+    }
+
+    private static LayeredWeaponFamily parseHeldSpriteFamily(
+            JSONObject render, MountClass mount, String weaponId) throws JSONException {
+        if (mount != MountClass.MARINE_PRIMARY) return null;
+        if (render == null) {
+            throw new JSONException("Marine primary '" + weaponId
+                    + "' requires render.heldSpriteFamily");
+        }
+        return LayeredWeaponFamily.fromKey(
+                requireText(render, "heldSpriteFamily"), weaponId);
     }
 
     private static void validateMountFields(WeaponDef def) throws JSONException {

@@ -4,8 +4,9 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — moved Barracks room actors into its bounded battle
-simulation and made live and headless views consume the same render commands.
+Updated: 2026-08-25 — separated the Mech Lab's non-selected lance overview from
+its fitting workspace, while Barracks practice now projects exact data-defined
+primary families and carried special-equipment poses through shared ambient tasks.
 
 ## Purpose
 
@@ -230,11 +231,19 @@ support squad of up to four chassis. The retained room shows the whole squad and
 separate asset-selection screen; choosing an assigned chassis opens its existing
 gantry without changing lance composition.
 The fitting header also provides explicit previous/next controls over the lance's four
-numbered gantry pads. Those controls can focus a vacant station without hiding the
-physical room; the asset browser remains the direct way to jump across lances.
-That workspace gives its three primary regions to the equipment catalog, a wide
-top-down fabrication bay, and the socket rack. Selecting a location scopes the
-equipment catalog. The catalog may inspect fixed
+numbered gantry pads. Reaching a vacant station clears the chassis selection and returns
+the room to its overview treatment; the asset browser remains the direct way to jump
+across lances.
+Entering the room or selecting a lance presents the wider working bay first. This
+overview has no selected chassis and therefore renders neither equipment selectors nor
+socket details; a compact four-gantry rail identifies the assigned assets without
+taking width from the room. Choosing an occupied gantry establishes the selected asset,
+eases the shared camera into it without interrupting the technicians' task clock, and
+reveals the fitting controls. Selecting the already-occupied `MECH LAB` room route
+clears that selection and returns to the lance overview rather than acting as a dead
+control. The focused workspace gives its three primary regions to the equipment
+catalog, a wide top-down fabrication bay, and the socket rack. Selecting a location
+scopes the equipment catalog. The catalog may inspect fixed
 chassis, weapon, and ammunition assemblies, but exposes a commit action only when a
 real campaign inventory and install command exist.
 
@@ -275,19 +284,30 @@ Armory authoring controls. The room is casual company browsing, not a second ros
 equipment authority.
 
 The quarters use a bounded indoor `BattleSimulation` as a scene host, sharing battle
-tiles, props, camera scale, and the layered marine compositor with live combat and the
-Mech Lab. Ready marines aboard ship appear in their actual issued armor, weapons, and
-special equipment across Alpha, Bravo, and Charlie bay areas. Their authored idle clips
-may continue as presentation motion. WIA marines retain their named muster billet and
-recovery clock but are not fabricated as healthy room actors. Stationed squads leave
-their shipboard quarters empty, and vacancies remain explicit. None of those projections
-advances campaign time or mutates roster state.
+tiles, registered building doodads, camera scale, and the layered marine compositor
+with live combat and the Mech Lab. The authored deck contains twelve two-cell berths,
+lockers, lounge and planning furnishings, shipboard terminals, and a three-lane practice
+range behind an internal blast wall. Ready marines aboard ship appear in their actual
+issued armor, weapons, and special equipment. WIA marines retain their named muster
+billet and recovery clock but are not fabricated as healthy room actors. Stationed
+squads leave their shipboard quarters empty, and vacancies remain explicit. None of
+those projections advances campaign time or mutates roster state.
 
 Room actors are real entities in that bounded simulation, not separately painted
 portraits placed over a tile screenshot. Live Starsector rendering and deterministic
 headless evidence collect the same `GROUND + DOODADS` and `UNITS` command passes; only
 the final graphics drain changes. This keeps the snapshot useful as scene-composition
 proof without giving tooling a second barracks layout or appearance implementation.
+
+Leisure is authored as battle-owned **ambient task routes**, not Barracks canvas
+animation. The same deterministic station/walk/activity sampler now drives Mech Lab
+technicians and is available to mission setup for civilians, workers, engineers, or
+guards. A bounded scene seeks exact route time without advancing combat. A live battle
+advances assignments before ordinary unit execution and releases an actor when its
+declared threat policy trips, allowing its existing role to resume. Practice drills
+display the marine's actual issued primary weapon family and, when present, cycle the
+carried special-equipment use pose. They author no shot, damage, ammunition, cooldown,
+or inventory transaction.
 
 ## Deployment identity
 

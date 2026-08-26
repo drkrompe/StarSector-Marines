@@ -4,8 +4,8 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — made bounded embedded scenes collect one ordinary battle
-draw list for both the live Starsector drain and deterministic headless evidence.
+Updated: 2026-08-25 — bounded scenes render exact data-defined primary families
+and carried special-equipment practice through the battle-owned ambient-task path.
 
 ## Vocabulary
 
@@ -37,6 +37,14 @@ Systems pull fresh state every render frame, so camera motion, interpolation, vi
 Within a layer, producer submission order is paint order. Across layers, enum order is paint order. The drain may batch adjacent commands with the same compatible primitive and state, but it flushes whenever batching would invert that order. A foreign sprite render or a custom pass is treated as GL-state pollution until the engine has re-established the state required by the next batch.
 
 The standalone host normally renders every layer. A host can request a subset through the same pipeline, but it must supply the camera and context each selected producer needs; omitting a layer does not manufacture unavailable state. This is how the combat bridge presents ground content in vanilla combat without forking the ground renderer. The Mech Lab and Barracks use the same seam twice—`GROUND + DOODADS`, then `UNITS`—so retained overlays can sit between physical room content and the actual battle dolls. The live host drains those commands through Starsector/OpenGL; headless UI evidence collects the same systems and replays their sprite, sheet-quad, fill, and line commands through Java2D. The headless camera receives the canvas's actual content-box extent, and its resolved commands paint one-for-one in that box; the authored canvas surface must not apply a second non-uniform stretch that turns square battle cells into rectangles. Its embedded frame profile suppresses HP bars and surface-relief FBO work; fog is absent because these hosts do not request the fog layer.
+
+An embedded scene may seek a battle-owned ambient task route before collecting
+the frame. The renderer still reads only the resulting entity position and
+layered appearance, including the actor's real issued weapon during a cosmetic
+practice pose. An ambient route may also present the actor's carried special-equipment
+pose without activating that item. Route ownership, interruption, and whether an
+action has physical consequences remain simulation concerns; the render pipeline
+neither replays task logic nor manufactures shots.
 
 The current world order is `GROUND → DECALS → VEHICLES → DOODADS → HIGHLIGHTS → FOG → UNITS → ROOFS → DRONES → OBJECTIVES → COMPOUND → CONVOY → SHUTTLES → SHOTS → IMPACT_FX → FLYBY`. The enum is the authority for this order; the sequence here makes the standing occlusion contract legible without replacing it.
 

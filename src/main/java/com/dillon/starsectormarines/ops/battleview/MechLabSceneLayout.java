@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.ambient.AmbientActivity;
+import com.dillon.starsectormarines.battle.ambient.AmbientTaskRoute;
+import com.dillon.starsectormarines.battle.ambient.AmbientThreatPolicy;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
 import java.util.List;
@@ -26,11 +29,11 @@ final class MechLabSceneLayout {
             new PropPlacement(29, 8, 3, 3),
             new PropPlacement(33, 8, 9, 1));
 
-    static final List<TechnicianPlacement> TECHNICIANS = List.of(
-            new TechnicianPlacement("fabricator one", 10, 6),
-            new TechnicianPlacement("fabricator two", 13, 3),
-            new TechnicianPlacement("fabricator three", 26, 6),
-            new TechnicianPlacement("fabricator four", 29, 3));
+    static final List<AmbientTaskRoute> TECHNICIAN_JOBS = List.of(
+            technicianJob("fabricator one", 0f, 7, -1f),
+            technicianJob("fabricator two", 5.5f, 15, 1f),
+            technicianJob("fabricator three", 10.5f, 23, -1f),
+            technicianJob("fabricator four", 15.5f, 31, 1f));
 
     private MechLabSceneLayout() { }
 
@@ -58,11 +61,29 @@ final class MechLabSceneLayout {
         return List.copyOf(result);
     }
 
+    private static AmbientTaskRoute technicianJob(String name, float phaseOffsetSeconds,
+                                                   int gantryX, float side) {
+        float weldX = gantryX + 0.5f + side * 1.35f;
+        float weldFocusX = gantryX + 0.5f + side * 0.72f;
+        float storageX = gantryX + 0.5f - side * 2f;
+        float machineryX = gantryX + 0.5f + side * 2f;
+        return new AmbientTaskRoute(name, phaseOffsetSeconds, 0.72f, 14f,
+                AmbientThreatPolicy.ANY_COMBATANT, List.of(
+                new AmbientTaskRoute.Stop(weldX, 5.5f, 4.4f,
+                        AmbientActivity.WORKING,
+                        weldFocusX, 5.5f),
+                new AmbientTaskRoute.Stop(storageX, 7.5f, 3.2f,
+                        AmbientActivity.SOCIALIZING,
+                        storageX, 8.5f),
+                new AmbientTaskRoute.Stop(machineryX, 7.5f, 2.6f,
+                        AmbientActivity.INSPECTING,
+                        machineryX, 8.5f)));
+    }
+
     record Gantry(int cellX, int cellY) { }
 
     record FloorOverlayPlacement(int cellX, int cellY, int tileColumn, int tileRow) { }
 
     record PropPlacement(int cellX, int cellY, int tileColumn, int tileRow) { }
 
-    record TechnicianPlacement(String name, int cellX, int cellY) { }
 }

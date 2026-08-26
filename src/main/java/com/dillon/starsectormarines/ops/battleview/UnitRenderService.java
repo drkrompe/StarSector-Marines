@@ -447,7 +447,7 @@ public final class UnitRenderService implements RenderSystem {
                             secondary, layeredPose[r],
                             layeredLocomotion[r], layeredWeaponPhase[r], layeredFlags[r]);
                     LayeredUnitComposer.emit(out, layeredAssets, layeredHeadAssets.head,
-                            compatibilityPrimary(primaryWeapon != null ? primaryWeapon[r] : null),
+                            primaryDefinition(primaryWeapon != null ? primaryWeapon[r] : null),
                             type.drawsLayeredWeapon(),
                             secondary,
                             equipmentGrade != null ? (EquipmentGrade) equipmentGrade[r]
@@ -484,21 +484,10 @@ public final class UnitRenderService implements RenderSystem {
         }
     }
 
-    /**
-     * Layered infantry art still uses the built-in weapon-family bridge. The
-     * authoritative COMBAT column now stores {@link WeaponDef}; contributed
-     * definitions without a built-in compatibility identity deliberately use
-     * the ordinary rifle silhouette until weapon defs own their render family.
-     */
-    private static MarineWeapon compatibilityPrimary(Object primary) {
-        if (primary instanceof MarineWeapon weapon) return weapon;
-        if (primary instanceof WeaponDef definition) {
-            try {
-                return MarineWeapon.fromId(definition.id);
-            } catch (IllegalArgumentException ignored) {
-                return null;
-            }
-        }
+    /** Resolve legacy enum input without discarding a contributed definition's render identity. */
+    private static WeaponDef primaryDefinition(Object primary) {
+        if (primary instanceof WeaponDef definition) return definition;
+        if (primary instanceof MarineWeapon weapon) return weapon.def();
         return null;
     }
 

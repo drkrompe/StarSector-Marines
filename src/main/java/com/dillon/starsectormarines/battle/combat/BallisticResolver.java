@@ -270,19 +270,28 @@ public final class BallisticResolver {
         float rawEndX = fromX + dirX * rawLen;
         float rawEndY = fromY + dirY * rawLen;
 
-        int shooterCellX = (int) Math.floor(fromX);
-        int shooterCellY = (int) Math.floor(fromY);
-        int rawEndCellX = (int) Math.floor(rawEndX);
-        int rawEndCellY = (int) Math.floor(rawEndY);
-
-        long wallPacked = grid.firstWallOnLine(shooterCellX, shooterCellY, rawEndCellX, rawEndCellY);
+        long wallPacked = grid.firstWallOnLine(fromX, fromY, rawEndX, rawEndY);
         int wallCellX = (int) wallPacked;
         int wallCellY = (int) (wallPacked >>> 32);
         boolean wallFound = !(wallCellX == -1 && wallCellY == -1);
 
-        float rayEndX = wallFound ? wallCellX + 0.5f : rawEndX;
-        float rayEndY = wallFound ? wallCellY + 0.5f : rawEndY;
+        float wallEntry = wallFound
+                ? segmentCellEntryFraction(fromX, fromY, rawEndX, rawEndY,
+                wallCellX, wallCellY)
+                : 1f;
+        float wallBoundaryX = fromX + (rawEndX - fromX) * wallEntry;
+        float wallBoundaryY = fromY + (rawEndY - fromY) * wallEntry;
+        // Keep the committed endpoint one representable float inside the
+        // blocker. Detonation and wall-damage payloads project the endpoint
+        // with floor(); an exact east/south boundary would otherwise name the
+        // adjacent open cell when the round approached from that side.
+        float rayEndX = wallFound
+                ? Math.nextAfter(wallBoundaryX, rawEndX) : rawEndX;
+        float rayEndY = wallFound
+                ? Math.nextAfter(wallBoundaryY, rawEndY) : rawEndY;
         float rayLen = dist(fromX, fromY, rayEndX, rayEndY);
+        int shooterCellX = (int) Math.floor(fromX);
+        int shooterCellY = (int) Math.floor(fromY);
         int rayEndCellX = (int) Math.floor(rayEndX);
         int rayEndCellY = (int) Math.floor(rayEndY);
 
@@ -449,6 +458,20 @@ public final class BallisticResolver {
         StopKind finalKind = wallFound ? StopKind.WALL : StopKind.OVERSHOOT;
         return new Resolution(rayEndX, rayEndY, fromZ + zSlope * rayLen, rayLen / roundVelocity,
                 0L, false, false, finalKind);
+    }
+
+    /** Entry fraction of segment {@code a -> b} into one closed unit cell. */
+    private static float segmentCellEntryFraction(float ax, float ay, float bx, float by,
+                                                  int cellX, int cellY) {
+        float dx = bx - ax;
+        float dy = by - ay;
+        float xEntry = Float.NEGATIVE_INFINITY;
+        float yEntry = Float.NEGATIVE_INFINITY;
+        if (dx > 0f) xEntry = (cellX - ax) / dx;
+        else if (dx < 0f) xEntry = (cellX + 1f - ax) / dx;
+        if (dy > 0f) yEntry = (cellY - ay) / dy;
+        else if (dy < 0f) yEntry = (cellY + 1f - ay) / dy;
+        return Math.max(0f, Math.min(1f, Math.max(xEntry, yEntry)));
     }
 
     /**

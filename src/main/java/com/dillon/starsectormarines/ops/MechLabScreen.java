@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
 import com.dillon.starsectormarines.ops.battleview.MechLabBattleScene;
+import com.dillon.starsectormarines.ops.battleview.MechLabCameraController;
 import com.dillon.starsectormarines.ops.battleview.MechLabDollCanvas;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
@@ -32,6 +33,7 @@ public final class MechLabScreen implements Screen {
     private final MarkupLoader markup = new MarkupLoader(
             path -> Global.getSettings().loadText(path), COMPONENT_PATHS);
     private final BattleSprites previewSprites = new BattleSprites();
+    private final MechLabCameraController cameraController = new MechLabCameraController();
 
     private MarineOpsContext context;
     private Runnable dismissDialog;
@@ -59,6 +61,8 @@ public final class MechLabScreen implements Screen {
             closeDocument();
             roster = liveRoster;
             viewModel = new MechLabViewModel(reactor, roster.mechBay());
+            cameraController.snap(false, viewModel.selectedGantryIndex(),
+                    viewModel.gantryVariants().size());
         } else {
             viewModel.refresh();
         }
@@ -79,6 +83,7 @@ public final class MechLabScreen implements Screen {
             previewSprites.ensureLayeredUnitSprites();
             previewSprites.ensureTileSheet();
             previewSprites.ensureRoadSheet();
+            previewSprites.ensureMechLabFxSprites();
             if (battleScene == null) battleScene = new MechLabBattleScene(previewSprites);
             built.canvases().set(candidate.requireElement("mech-doll-canvas"),
                     new MechLabDollCanvas(viewModel::gantryVariants,
@@ -89,6 +94,10 @@ public final class MechLabScreen implements Screen {
                                     LayeredArmorFamily.ARMY_GREEN),
                             previewSprites::tileSheet,
                             previewSprites::roadSheet,
+                            previewSprites::mechLabWeldingTorch,
+                            previewSprites::mechLabWeldingSparks,
+                            cameraController::pose,
+                            viewModel::fittingFocused,
                             battleScene,
                             () -> previewSeconds));
             if (viewport != null) {
@@ -112,7 +121,9 @@ public final class MechLabScreen implements Screen {
         props.put("labSummary", viewModel.labSummary());
         props.put("squadRows", viewModel.squadRows());
         props.put("mechRows", viewModel.mechRows());
+        props.put("gantryRows", viewModel.gantryRows());
         props.put("activeGantryLabel", viewModel.activeGantryLabel());
+        props.put("garageTitle", viewModel.garageTitle());
         props.put("selectedMechName", viewModel.selectedMechName());
         props.put("selectedMechIdentity", viewModel.selectedMechIdentity());
         props.put("selectedMechDoctrine", viewModel.selectedMechDoctrine());
@@ -126,6 +137,11 @@ public final class MechLabScreen implements Screen {
         props.put("catalogRows", viewModel.catalogRows());
         props.put("pickerClasses", viewModel.pickerClasses());
         props.put("workspaceClasses", viewModel.workspaceClasses());
+        props.put("fittingHeaderClasses", viewModel.fittingHeaderClasses());
+        props.put("performanceClasses", viewModel.performanceClasses());
+        props.put("catalogClasses", viewModel.catalogClasses());
+        props.put("slotRackClasses", viewModel.slotRackClasses());
+        props.put("overviewRailClasses", viewModel.overviewRailClasses());
         props.put("openAssetPicker", viewModel.openAssetPickerAction());
         props.put("closeAssetPicker", viewModel.closeAssetPickerAction());
         props.put("previousGantry", viewModel.previousGantryAction());
@@ -137,7 +153,7 @@ public final class MechLabScreen implements Screen {
                 () -> context.goTo(ScreenId.COMPANY_HQ),
                 () -> context.goTo(ScreenId.BARRACKS),
                 () -> context.openCompanyArmoryFrom(ScreenId.MECH_LAB),
-                () -> { });
+                viewModel.overviewAction());
         return props;
     }
 
@@ -150,6 +166,7 @@ public final class MechLabScreen implements Screen {
                 "mech-squad-list", "mech-list", "mech-fitting-workspace",
                 "mech-previous-gantry", "mech-active-gantry", "mech-next-gantry",
                 "mech-performance-grid", "mech-garage-stage", "mech-doll-canvas",
+                "mech-overview-rail", "mech-overview-gantries", "mech-overview-browse",
                 "mech-slot-rack", "mech-component-catalog",
                 "mech-catalog-list",
                 "mech-lab-feedback")) {
@@ -164,6 +181,11 @@ public final class MechLabScreen implements Screen {
     @Override
     public void advance(float dt) {
         previewSeconds += Math.max(0f, dt);
+        if (viewModel != null) {
+            cameraController.target(viewModel.fittingFocused(),
+                    viewModel.selectedGantryIndex(), viewModel.gantryVariants().size());
+            cameraController.advance(dt);
+        }
         if (markupInstance != null) markupInstance.flush();
         if (document != null) document.advance(dt);
     }

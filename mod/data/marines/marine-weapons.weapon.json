@@ -24,6 +24,7 @@
         "roundVelocity": 48.0
       },
       "render": {
+        "heldSpriteFamily": "RIFLE",
         "tracerColor": "FFD088",
         "impact": "rifle",
         "projectileSprite": "graphics/missiles/shell_small_yellow.png",
@@ -55,6 +56,7 @@
         "roundVelocity": 55.0
       },
       "render": {
+        "heldSpriteFamily": "LASER_GUN",
         "tracerColor": "80FF80",
         "impact": "rifle",
         "projectileSprite": null,
@@ -87,6 +89,7 @@
         "roundVelocity": 45.0
       },
       "render": {
+        "heldSpriteFamily": "SMG",
         "tracerColor": "FFE8C0",
         "impact": "rifle",
         "projectileSprite": "graphics/missiles/shell_small_yellow.png",
@@ -119,6 +122,7 @@
         "roundVelocity": 52.0
       },
       "render": {
+        "heldSpriteFamily": "RIFLE",
         "tracerColor": "FFD6A0",
         "impact": "rifle",
         "projectileSprite": "graphics/missiles/shell_small_yellow.png",
@@ -150,6 +154,7 @@
         "roundVelocity": 110.0
       },
       "render": {
+        "heldSpriteFamily": "DMR",
         "tracerColor": "E0F0FF",
         "impact": "kinetic",
         "projectileSprite": null,
@@ -181,6 +186,7 @@
         "roundVelocity": 55.0
       },
       "render": {
+        "heldSpriteFamily": "LASER_GUN",
         "tracerColor": "60CFFF",
         "impact": "rifle",
         "projectileSprite": null,

@@ -149,7 +149,8 @@ public final class ChokePointHold implements Action {
                 if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) continue;
                 float d = (float) Math.sqrt(dx * dx + dy * dy);
                 if (d > radius) continue;
-                if (!grid.hasLineOfSight(cx, cy, threatX, threatY)) continue;
+                if (!grid.hasLineOfFire(cx + 0.5f, cy + 0.5f,
+                        threatX + 0.5f, threatY + 0.5f)) continue;
                 boolean excluded = false;
                 for (int[] e : exclude) {
                     if (e[0] == cx && e[1] == cy) { excluded = true; break; }
@@ -247,10 +248,9 @@ public final class ChokePointHold implements Action {
         long portalIntruder = enemyOnPortalCell(squad, sim);
         if (portalIntruder == 0L) return ActionStatus.RUNNING;
 
-        // LoS gate is by-cell: bound cells were picked with LoS at
-        // construction, but a movable doodad or transient cover change might
-        // have closed it. Re-check before firing.
-        if (!sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member), portalX, portalY)) {
+        // Re-check the actual member-to-intruder firing segment: continuous
+        // separation can move either body to an occluded edge of its cell.
+        if (!sim.getTacticalScoring().hasClearShot(member, portalIntruder)) {
             return ActionStatus.RUNNING;
         }
         float d = TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member), portalX + 0.5f, portalY + 0.5f);
