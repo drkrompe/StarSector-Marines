@@ -14,7 +14,9 @@ import com.dillon.starsectormarines.battle.turret.TurretAim;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.turret.TurretFireSink;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.turret.StructureDef;
+import com.dillon.starsectormarines.battle.turret.TurretMountDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -275,7 +277,9 @@ public class GroundSystem {
 
             GroundBody body = convoy.body(id);
             Faction faction = convoy.faction(id);
-            TurretKind kind = type.turretKind;
+            StructureDef structure = type.turretStructure();
+            TurretMountDef mount = structure.mount;
+            WeaponDef weapon = mount.weapon;
 
             float chassisRad = (float) Math.toRadians(body.facingDegrees);
             float cc = (float) Math.cos(chassisRad);
@@ -290,11 +294,11 @@ public class GroundSystem {
             if (gt.burstRemaining > 0) {
                 gt.burstTimer -= dt;
                 if (gt.burstTimer <= 0f && currentBurstTarget != 0L && world.isAlive(gt.burstTargetId)) {
-                    fireSink.fire(id, mountWorldX, mountWorldY, faction, kind,
+                    fireSink.fire(id, mountWorldX, mountWorldY, faction, structure,
                             currentBurstTarget, /*aerialShooter*/ false, /*hasLos*/ true);
                     gt.ammo--;
                     gt.burstRemaining--;
-                    gt.burstTimer = kind.burstSpacing();
+                    gt.burstTimer = weapon.burstSpacing;
                     if (gt.burstRemaining == 0) gt.burstTargetId = 0L;
                 }
                 if (currentBurstTarget == 0L || !world.isAlive(gt.burstTargetId)) {
@@ -311,11 +315,11 @@ public class GroundSystem {
             aim.originY = mountWorldY;
             aim.faction = faction;
             aim.facingDegrees = gt.facingDeg;
-            aim.turnRateDegPerSec = kind.turnRateDegPerSec();
-            aim.attackRange = kind.range();
-            aim.minRange = kind.minRange();
+            aim.turnRateDegPerSec = mount.turnRateDegPerSec;
+            aim.attackRange = weapon.range;
+            aim.minRange = weapon.minRange;
             aim.cooldownTimer = gt.cooldownTimer;
-            aim.attackCooldown = kind.cooldown();
+            aim.attackCooldown = weapon.cooldown;
             aim.target = roster.isLive(gt.targetId) ? gt.targetId : 0L;
 
             TurretAim.tick(aim, tacticalScoring, navigation.getGrid(), world, roster.vision(), dt);
@@ -325,12 +329,12 @@ public class GroundSystem {
             gt.targetId = aim.target;
 
             if (aim.fireThisTick && aim.target != 0L) {
-                fireSink.fire(id, mountWorldX, mountWorldY, faction, kind, aim.target,
+                fireSink.fire(id, mountWorldX, mountWorldY, faction, structure, aim.target,
                         /*aerialShooter*/ false, aim.lastFireHadLos);
                 gt.ammo--;
-                if (kind.burstCount() > 1 && world.isAlive(aim.target)) {
-                    gt.burstRemaining = kind.burstCount() - 1;
-                    gt.burstTimer = kind.burstSpacing();
+                if (weapon.burstCount > 1 && world.isAlive(aim.target)) {
+                    gt.burstRemaining = weapon.burstCount - 1;
+                    gt.burstTimer = weapon.burstSpacing;
                     gt.burstTargetId = aim.target;
                 }
             }

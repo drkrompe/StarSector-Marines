@@ -7,7 +7,10 @@ Status: PLANNED — depends on the remaining S2E–S2G special-equipment stories
 armor expansion also depends on
 `powered-assault-armor-roles.md`.
 Written: 2026-08-22
-Updated: 2026-08-25 — recognized the shipped learnable cargo-card seam; world sources and factional availability remain this story's work.
+Updated: 2026-08-26 — routed factional equipment provenance and availability through the enduring lore guide catalog.
+
+Read `progression-nouns.md`, `faction-lore-nouns.md`, and
+`powered-assault-armor-roles.md` before implementing this story.
 
 ## Problem
 

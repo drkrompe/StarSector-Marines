@@ -22,10 +22,10 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 class ConquestArrivalPlanTest {
 
     @Test
-    void eightCommittedValkyriesDeliverThroughFourSynchronizedAeroshuttlePairs() {
+    void fortyCommittedDropsCycleThroughOneReusableAeroshuttlePair() {
         List<ShuttleAssignment> manifest = new ArrayList<>();
-        for (int i = 0; i < 8; i++) {
-            manifest.add(new ShuttleAssignment(ShuttleType.VALKYRIE, 4, 6));
+        for (int i = 0; i < 40; i++) {
+            manifest.add(new ShuttleAssignment(ShuttleType.VALKYRIE, 1, 6));
         }
 
         try (BattleSimulation sim = BattleSetup.createConquest(
@@ -33,33 +33,51 @@ class ConquestArrivalPlanTest {
                 TargetProfile.NEUTRAL, FlybyRoster.EMPTY, FlybyRoster.EMPTY,
                 new ShuttleArrivalPlan(MarineArrivalPolicy.PAIRED_HALF_SQUAD, 0))) {
             List<ShuttleMission> missions = missions(sim);
-            assertEquals(8, missions.size());
+            assertEquals(2, missions.size());
             for (long aircraft : sim.getAirEntityIds()) {
                 assertEquals(ShuttleType.AEROSHUTTLE,
                         sim.world().airType(aircraft));
             }
-            for (int i = 0; i < missions.size(); i += 2) {
-                ShuttleMission first = missions.get(i);
-                ShuttleMission second = missions.get(i + 1);
-                assertEquals(i, first.manifestOrdinal);
-                assertEquals(i + 1, second.manifestOrdinal);
-                assertEquals(6, first.seatsPerSortie);
-                assertEquals(6, second.seatsPerSortie);
-                assertEquals(6, first.cycleLoadouts[0].length);
-                assertEquals(6, second.cycleLoadouts[0].length);
-                assertEquals(first.arrivalGroupId, second.arrivalGroupId);
-                assertEquals(first.landingAreaId, second.landingAreaId);
-                assertEquals(first.pendingDelay, second.pendingDelay);
-                assertEquals(12, first.expectedArrivalStrength);
-                assertEquals(12, second.expectedArrivalStrength);
-                assertEquals(PostDeliveryDisposition.DEPART,
-                        first.postDeliveryDisposition);
-                assertEquals(PostDeliveryDisposition.DEPART,
-                        second.postDeliveryDisposition);
-                assertNotEquals(first.lzX + "," + first.lzY,
-                        second.lzX + "," + second.lzY);
-            }
+            ShuttleMission first = missions.get(0);
+            ShuttleMission second = missions.get(1);
+            assertEquals(0, first.manifestOrdinal);
+            assertEquals(1, second.manifestOrdinal);
+            assertEquals(20, first.totalCycles);
+            assertEquals(20, second.totalCycles);
+            assertEquals(6, first.seatsPerSortie);
+            assertEquals(6, second.seatsPerSortie);
+            assertEquals(6, first.cycleLoadouts[0].length);
+            assertEquals(6, second.cycleLoadouts[0].length);
+            assertEquals(first.arrivalGroupId, second.arrivalGroupId);
+            assertEquals(first.landingAreaId, second.landingAreaId);
+            assertEquals(first.pendingDelay, second.pendingDelay);
+            assertEquals(12, first.expectedArrivalStrength);
+            assertEquals(12, second.expectedArrivalStrength);
+            assertEquals(PostDeliveryDisposition.DEPART,
+                    first.postDeliveryDisposition);
+            assertEquals(PostDeliveryDisposition.DEPART,
+                    second.postDeliveryDisposition);
+            assertNotEquals(first.lzX + "," + first.lzY,
+                    second.lzX + "," + second.lzY);
         }
+    }
+
+    @Test
+    void selectedConquestCompanyExtendsTheReusablePairInsteadOfTruncatingSquads() {
+        ShuttleArrivalPlan plan = new ShuttleArrivalPlan(
+                MarineArrivalPolicy.PAIRED_HALF_SQUAD, 0);
+
+        ShuttleArrivalPlan.ResolvedManifest resolved = plan.resolveManifest(
+                List.of(new ShuttleAssignment(ShuttleType.VALKYRIE, 40, 6)),
+                34 * 12);
+
+        assertEquals(2, resolved.assignments().size());
+        assertEquals(List.of(34, 34), resolved.assignments().stream()
+                .map(assignment -> assignment.cycles).toList());
+        assertEquals(34 * 12, resolved.assignments().stream()
+                .mapToInt(assignment -> assignment.cycles
+                        * assignment.seatsPerSortie)
+                .sum());
     }
 
     @Test

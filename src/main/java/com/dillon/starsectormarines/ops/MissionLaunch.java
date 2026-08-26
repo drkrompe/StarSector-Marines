@@ -22,6 +22,7 @@ import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import com.dillon.starsectormarines.ops.detachment.CampaignCommandPowerResources;
 import com.dillon.starsectormarines.ops.detachment.CommandDeck;
 import com.dillon.starsectormarines.ops.detachment.DebugCompany;
+import com.dillon.starsectormarines.ops.detachment.PersonnelReadiness;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
@@ -137,6 +138,17 @@ public final class MissionLaunch {
         long seed = System.currentTimeMillis();
         int firstPlayerShuttle = m.source == MissionSource.STATIONING
                 ? 0 : DetachmentResolver.employerPhysicalShipCount(m);
+        ShuttleArrivalPlan conquestArrivalPlan = new ShuttleArrivalPlan(
+                m.marineArrivalPolicy, firstPlayerShuttle);
+        if (m.type == MissionType.CONQUEST) {
+            ShuttleArrivalPlan.ResolvedManifest resolved = conquestArrivalPlan
+                    .resolveManifest(det.shuttleManifest,
+                            selectedConquestMarineSeats(ctx, m));
+            det = new Detachment(resolved.assignments(), det.marineWings, det.powers);
+            firstPlayerShuttle = resolved.firstPlayerShuttle();
+            conquestArrivalPlan = new ShuttleArrivalPlan(
+                    m.marineArrivalPolicy, firstPlayerShuttle);
+        }
         BattleSimulation sim;
         BattleFixture fixture = null;
         OpeningOperationKind openingOperation = OpeningOperationKind.fromMission(m);
@@ -177,8 +189,7 @@ public final class MissionLaunch {
                                 det.shuttleManifest, enemyHasHeavyArmor,
                                 m.tier, m.risk, profile, det.marineWings,
                                 m.enemyFighterSupport,
-                                new ShuttleArrivalPlan(m.marineArrivalPolicy,
-                                        firstPlayerShuttle));
+                                conquestArrivalPlan);
                 sim = conquestFixture.build();
                 fixture = conquestFixture;
                 break;
@@ -248,6 +259,19 @@ public final class MissionLaunch {
                 || mission.source
                     == MissionSource.DEBUG_CANONICAL_CIVILIAN_RESCUE
                 || CivilianRescueMissionKey.parse(mission.id) != null;
+    }
+
+    /** All named personnel selected for a Conquest launch; none stay in orbit. */
+    private static int selectedConquestMarineSeats(MarineOpsContext ctx,
+                                                    Mission mission) {
+        if (mission.source.isDebug()) {
+            MarineRoster company = ctx.getDebugCompanyRoster();
+            return company != null ? company.lineReadySoldiers().size() : 0;
+        }
+        MarineRosterScript personnel = MarineRosterScript.getInstance();
+        if (personnel == null) return 0;
+        return PersonnelReadiness.assessSelection(personnel.roster(),
+                ctx.getSelectedMarineSquadIds(), 0).selectedReady();
     }
 
     static boolean isSilentColonyBattle(Mission mission) {

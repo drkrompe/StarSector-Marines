@@ -3,13 +3,12 @@ package com.dillon.starsectormarines.battle.combat;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
-import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.marine.SpecialActivation;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 
 import com.dillon.starsectormarines.battle.turret.MapTurret;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.turret.StructureDef;
 
 /**
  * Visual record of a single shot fired by a unit in {@link BattleSimulation}.
@@ -19,7 +18,7 @@ import com.dillon.starsectormarines.battle.turret.TurretKind;
  * Lightweight {@code fromZ}/{@code toZ} offsets project into screen Y so a
  * miss can visibly fly high or low without introducing full 3D physics.
  *
- * <p>{@link #turretKind} is the bridge between the sim's faction-only
+ * <p>{@link #turretStructureDef} is the bridge between the sim's faction-only
  * abstraction and the renderer's per-weapon FX. When the shooter is a
  * {@link MapTurret}, the sim populates this so the renderer can substitute the
  * vanilla projectile sprite + per-kind fire sound for the marine line-tracer +
@@ -42,13 +41,13 @@ public class ShotEvent {
     /** Firing entity id, or {@code 0L} for anonymous/aerial legacy sources. */
     public final long shooterId;
     /** Non-null when the shooter is a turret — drives projectile sprite + fire sound. */
-    public final TurretKind turretKind;
+    public final StructureDef turretStructureDef;
     /** Authoritative marine-primary definition. */
     public final WeaponDef primaryWeaponDef;
     /** Authoritative special-equipment source. */
     public final SpecialEquipmentDef specialEquipmentDef;
     /** Non-null when a mech fired one of its chassis weapons (chaingun, SRM pod, LRM). Drives projectile sprite + fire/impact sound + impact profile. Mutually exclusive with all the other source tags. */
-    public final MechWeapon mechWeapon;
+    public final WeaponDef mechWeaponDef;
     /** Scales the morale drain this shot inflicts if it counts as a near-miss against a hostile squad. Sourced from the shooter's {@link UnitType#moraleImpact} at fire time. Defaults to 1.0 for shots emitted by paths that don't thread shooter type (detonations, legacy callers). */
     public final float moraleImpact;
     /**
@@ -81,88 +80,88 @@ public class ShotEvent {
     }
 
     public ShotEvent(float fromX, float fromY, float toX, float toY,
-                     boolean hit, Faction shooterFaction, float lifetime, TurretKind turretKind) {
-        this(fromX, fromY, toX, toY, hit, shooterFaction, lifetime, turretKind, null, null, null, 1.0f);
+                     boolean hit, Faction shooterFaction, float lifetime, StructureDef turretStructureDef) {
+        this(fromX, fromY, toX, toY, hit, shooterFaction, lifetime, turretStructureDef, null, null, null, 1.0f);
     }
 
     public ShotEvent(long shooterId, float fromX, float fromY, float toX, float toY,
                      boolean hit, Faction shooterFaction, float lifetime,
-                     TurretKind turretKind) {
+                     StructureDef turretStructureDef) {
         this(fromX, fromY, 0f, toX, toY, 0f, hit, shooterFaction, lifetime,
-                turretKind, null, null, null, 1f, false, null, shooterId);
+                turretStructureDef, null, null, null, 1f, false, null, shooterId);
     }
 
     public ShotEvent(float fromX, float fromY, float toX, float toY,
                      boolean hit, Faction shooterFaction, float lifetime,
-                     TurretKind turretKind, WeaponDef primaryWeaponDef,
+                     StructureDef turretStructureDef, WeaponDef primaryWeaponDef,
                      SpecialEquipmentDef specialEquipmentDef) {
         this(fromX, fromY, toX, toY, hit, shooterFaction, lifetime,
-                turretKind, primaryWeaponDef, specialEquipmentDef, null, 1.0f);
+                turretStructureDef, primaryWeaponDef, specialEquipmentDef, null, 1.0f);
     }
 
     public ShotEvent(long shooterId, float fromX, float fromY, float toX, float toY,
                      boolean hit, Faction shooterFaction, float lifetime,
-                     TurretKind turretKind, WeaponDef primaryWeaponDef,
+                     StructureDef turretStructureDef, WeaponDef primaryWeaponDef,
                      SpecialEquipmentDef specialEquipmentDef) {
         this(fromX, fromY, 0f, toX, toY, 0f, hit, shooterFaction, lifetime,
-                turretKind, primaryWeaponDef, specialEquipmentDef, null, 1f,
+                turretStructureDef, primaryWeaponDef, specialEquipmentDef, null, 1f,
                 false, null, shooterId);
     }
 
     public ShotEvent(float fromX, float fromY, float toX, float toY,
                      boolean hit, Faction shooterFaction, float lifetime,
-                     TurretKind turretKind, WeaponDef primaryWeaponDef,
-                     SpecialEquipmentDef specialEquipmentDef, MechWeapon mechWeapon) {
+                     StructureDef turretStructureDef, WeaponDef primaryWeaponDef,
+                     SpecialEquipmentDef specialEquipmentDef, WeaponDef mechWeaponDef) {
         this(fromX, fromY, toX, toY, hit, shooterFaction, lifetime,
-                turretKind, primaryWeaponDef, specialEquipmentDef, mechWeapon, 1.0f);
+                turretStructureDef, primaryWeaponDef, specialEquipmentDef, mechWeaponDef, 1.0f);
     }
 
     public ShotEvent(float fromX, float fromY, float toX, float toY,
                      boolean hit, Faction shooterFaction, float lifetime,
-                     TurretKind turretKind, WeaponDef primaryWeaponDef,
-                     SpecialEquipmentDef specialEquipmentDef, MechWeapon mechWeapon,
+                     StructureDef turretStructureDef, WeaponDef primaryWeaponDef,
+                     SpecialEquipmentDef specialEquipmentDef, WeaponDef mechWeaponDef,
                      float moraleImpact) {
         this(fromX, fromY, toX, toY, hit, shooterFaction, lifetime,
-                turretKind, primaryWeaponDef, specialEquipmentDef, mechWeapon, moraleImpact, false);
+                turretStructureDef, primaryWeaponDef, specialEquipmentDef, mechWeaponDef, moraleImpact, false);
     }
 
     public ShotEvent(long shooterId, float fromX, float fromY, float toX, float toY,
                      boolean hit, Faction shooterFaction, float lifetime,
-                     TurretKind turretKind, WeaponDef primaryWeaponDef,
-                     SpecialEquipmentDef specialEquipmentDef, MechWeapon mechWeapon,
+                     StructureDef turretStructureDef, WeaponDef primaryWeaponDef,
+                     SpecialEquipmentDef specialEquipmentDef, WeaponDef mechWeaponDef,
                      float moraleImpact) {
         this(fromX, fromY, 0f, toX, toY, 0f, hit, shooterFaction, lifetime,
-                turretKind, primaryWeaponDef, specialEquipmentDef, mechWeapon,
+                turretStructureDef, primaryWeaponDef, specialEquipmentDef, mechWeaponDef,
                 moraleImpact, false, null, shooterId);
     }
 
     public ShotEvent(float fromX, float fromY, float toX, float toY,
                      boolean hit, Faction shooterFaction, float lifetime,
-                     TurretKind turretKind, WeaponDef primaryWeaponDef,
-                     SpecialEquipmentDef specialEquipmentDef, MechWeapon mechWeapon,
+                     StructureDef turretStructureDef, WeaponDef primaryWeaponDef,
+                     SpecialEquipmentDef specialEquipmentDef, WeaponDef mechWeaponDef,
                      float moraleImpact, boolean struckUnit) {
         this(fromX, fromY, 0f, toX, toY, 0f, hit, shooterFaction, lifetime,
-                turretKind, primaryWeaponDef, specialEquipmentDef, mechWeapon,
+                turretStructureDef, primaryWeaponDef, specialEquipmentDef, mechWeaponDef,
                 moraleImpact, struckUnit, null);
     }
 
     public ShotEvent(float fromX, float fromY, float fromZ,
                      float toX, float toY, float toZ,
                      boolean hit, Faction shooterFaction, float lifetime,
-                     TurretKind turretKind, WeaponDef primaryWeaponDef,
-                     SpecialEquipmentDef specialEquipmentDef, MechWeapon mechWeapon,
+                     StructureDef turretStructureDef, WeaponDef primaryWeaponDef,
+                     SpecialEquipmentDef specialEquipmentDef, WeaponDef mechWeaponDef,
                      float moraleImpact, boolean struckUnit,
                      BallisticResolver.StopKind stopKind) {
         this(fromX, fromY, fromZ, toX, toY, toZ, hit, shooterFaction, lifetime,
-                turretKind, primaryWeaponDef, specialEquipmentDef, mechWeapon,
+                turretStructureDef, primaryWeaponDef, specialEquipmentDef, mechWeaponDef,
                 moraleImpact, struckUnit, stopKind, 0L);
     }
 
     public ShotEvent(float fromX, float fromY, float fromZ,
                      float toX, float toY, float toZ,
                      boolean hit, Faction shooterFaction, float lifetime,
-                     TurretKind turretKind, WeaponDef primaryWeaponDef,
-                     SpecialEquipmentDef specialEquipmentDef, MechWeapon mechWeapon,
+                     StructureDef turretStructureDef, WeaponDef primaryWeaponDef,
+                     SpecialEquipmentDef specialEquipmentDef, WeaponDef mechWeaponDef,
                      float moraleImpact, boolean struckUnit,
                      BallisticResolver.StopKind stopKind, long shooterId) {
         this.fromX = fromX;
@@ -176,10 +175,10 @@ public class ShotEvent {
         this.shooterId = shooterId;
         this.lifetime = lifetime;
         this.lifetimeMax = lifetime;
-        this.turretKind = turretKind;
+        this.turretStructureDef = turretStructureDef;
         this.primaryWeaponDef = primaryWeaponDef;
         this.specialEquipmentDef = specialEquipmentDef;
-        this.mechWeapon = mechWeapon;
+        this.mechWeaponDef = mechWeaponDef;
         this.moraleImpact = moraleImpact;
         this.struckUnit = struckUnit;
         this.stopKind = stopKind;
@@ -219,26 +218,29 @@ public class ShotEvent {
     public boolean isIndirectFire() {
         if (specialEquipmentDef != null && (specialEquipmentDef.weaponDef().indirectFire
                 || specialEquipmentDef.arcHeight() > 0f)) return true;
-        if (mechWeapon != null && mechWeapon.arcHeight() > 0f) return true;
-        return turretKind != null
-                && (turretKind.indirectFire() || turretKind.arcHeight() > 0f);
+        if (mechWeaponDef != null && mechWeaponDef.arcHeight > 0f) return true;
+        return turretStructureDef != null
+                && (turretStructureDef.mount.weapon.indirectFire
+                || turretStructureDef.mount.weapon.arcHeight > 0f);
     }
 
     /** Coarse ground-combat loudness used by the squad hearing model. */
     public float noiseMagnitude() {
         if (specialEquipmentDef != null) return 2.5f;
-        if (mechWeapon != null) return Math.min(4f, 2f + mechWeapon.aoeRadius());
-        if (turretKind != null) return Math.min(4f, 1.5f + turretKind.aoeRadius());
+        if (mechWeaponDef != null) return Math.min(4f, 2f + mechWeaponDef.aoeRadius);
+        if (turretStructureDef != null) {
+            return Math.min(4f, 1.5f + turretStructureDef.mount.weapon.aoeRadius);
+        }
         if (primaryWeaponDef != null) return primaryWeaponDef.noiseMagnitude;
         return 1f;
     }
 
     /** Authoritative weapon definition independent of the carrier compatibility handle. */
     public WeaponDef weaponDef() {
-        if (turretKind != null) return turretKind.weapon();
+        if (turretStructureDef != null) return turretStructureDef.mount.weapon;
         if (specialEquipmentDef != null) return specialEquipmentDef.weaponDef();
         if (primaryWeaponDef != null) return primaryWeaponDef;
-        if (mechWeapon != null) return mechWeapon.def();
+        if (mechWeaponDef != null) return mechWeaponDef;
         return null;
     }
 

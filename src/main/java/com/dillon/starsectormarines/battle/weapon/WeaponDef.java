@@ -214,6 +214,21 @@ public final class WeaponDef {
     public float projectileVisualCells() { return projectileVisualCells; }
     public String fireSoundId() { return fireSoundId; }
 
+    /** Speed only for an interceptable projectile entity; resolved rounds return zero. */
+    public float projectileCellsPerSec() {
+        return interceptableProjectile ? roundVelocity : 0f;
+    }
+
+    /** Modeled direct-fire speed; nearer impacts arrive sooner. */
+    public float directRoundVelocity() {
+        return flightSec > 0f ? range / flightSec : 60f;
+    }
+
+    /** Strongest penetration payload this weapon can deliver to a selected target. */
+    public float targetAffinityPenetration() {
+        return Math.max(penetration, contactPenetration);
+    }
+
     /**
      * Parses one entry. Throws rather than defaulting on anything a weapon
      * cannot function without — a typo in a damage figure should fail at

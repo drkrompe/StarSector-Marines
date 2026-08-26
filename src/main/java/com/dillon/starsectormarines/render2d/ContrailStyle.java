@@ -11,7 +11,7 @@ package com.dillon.starsectormarines.render2d;
  * {@code contrailColor} — but flattened to plain floats so the same struct
  * works for engine plumes, missile smoke, wreck smoke, shuttle wash, etc.
  *
- * <p>Immutable. Build once per kind (e.g. on the {@link com.dillon.starsectormarines.battle.turret.TurretKind})
+ * <p>Immutable. Build once per authored weapon definition
  * and share across every trail instance of that kind.
  */
 public final class ContrailStyle {

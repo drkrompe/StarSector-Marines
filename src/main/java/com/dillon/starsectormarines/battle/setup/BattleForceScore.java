@@ -7,7 +7,7 @@ import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.turret.StructureDef;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -80,8 +80,8 @@ public final class BattleForceScore {
     }
 
     /** Data-authored emplacement value used by force-budget accounting. */
-    static float turret(TurretKind kind) {
-        return kind != null ? kind.structure().forceScore : 0f;
+    static float turret(StructureDef structure) {
+        return structure != null ? structure.forceScore : 0f;
     }
 
     /**

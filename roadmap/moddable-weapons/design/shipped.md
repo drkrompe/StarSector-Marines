@@ -6,6 +6,7 @@ Written: 2026-08-23
 
 | Story | Shipped | Commit | Folded into |
 | --- | --- | --- | --- |
+| `w4-retire-enums.md` | 2026-08-26 | this commit | `moddable-weapons-nouns.md` — stable-id carrier state, direct definition resolution, legacy save repair boundary, and removal of weapon-enumerating Java types. |
 | `w2-layered-fx.md` | 2026-08-26 | `391efe8a` | `moddable-weapons-nouns.md` — authoritative seeded effect composition for every weapon family; `submod-catalog-contract.md` — public slots, primitives, ranges, and validation rules. |
 | `w3-remaining-catalogs.md` | 2026-08-25 | `97243ba2`, `12175f27`, `02f861b7` | `moddable-weapons-nouns.md` — registry-owned marine-secondary and mech-mount definitions, mount-owned rack and appearance policy, and mount-class validation. |
 | `w5-submod-merge.md` | 2026-08-25 | `50846136`, `b576c595`, `cea351c1`, `b9d13639`, `4ed228cf` | `moddable-weapons-nouns.md` — enabled-provider authority and executable contributed loadouts; `submod-catalog-contract.md` — public manifest, additive ownership, load order, runtime consumption, and live compatibility acceptance. |

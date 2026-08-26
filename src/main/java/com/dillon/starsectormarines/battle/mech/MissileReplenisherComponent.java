@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+
 import java.util.List;
 
 /**
@@ -44,9 +46,9 @@ public record MissileReplenisherComponent(
     }
 
     /** Seconds required to restore one trigger pack for {@code weapon}. */
-    public float replenishmentSeconds(MechWeapon weapon) {
-        if (weapon == MechWeapon.SRM_POD) return srmReplenishmentSeconds;
-        if (weapon == MechWeapon.LRM_ARTILLERY) return lrmReplenishmentSeconds;
+    public float replenishmentSeconds(String weaponId) {
+        if (WeaponRegistry.MECH_SRM_POD_ID.equals(weaponId)) return srmReplenishmentSeconds;
+        if (WeaponRegistry.MECH_LRM_ARTILLERY_ID.equals(weaponId)) return lrmReplenishmentSeconds;
         return Float.POSITIVE_INFINITY;
     }
 

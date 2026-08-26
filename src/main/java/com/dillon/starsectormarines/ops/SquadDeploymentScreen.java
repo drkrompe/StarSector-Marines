@@ -52,6 +52,12 @@ public final class SquadDeploymentScreen implements Screen {
         float left = position.getX() + PAD;
         float top = position.getY() + position.getHeight() - PAD;
         int capacity = ctx.getMarineDeploymentCapacity();
+        Mission mission = ctx.getSelectedMission();
+        if (mission != null && mission.type == MissionType.CONQUEST) {
+            int selected = PersonnelReadiness.assessSelection(roster,
+                    ctx.getSelectedMarineSquadIds(), 0).selectedReady();
+            capacity = Math.max(capacity, selected);
+        }
         PersonnelReadiness readiness = PersonnelReadiness.assessSelection(
                 roster, ctx.getSelectedMarineSquadIds(), capacity);
         TaskForce force = TaskForce.of(roster, ctx.getSelectedCaptain(),

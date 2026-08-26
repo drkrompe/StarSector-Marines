@@ -349,9 +349,11 @@ squad still assembling from one already mauled.
 Scenario-generated personnel normally retain the per-sortie fallback. A
 mission-authored paired arrival is the exception: its two craft share a stable
 arrival-group-and-wave identity, mint one generated battle squad, and assemble
-toward the combined embarked strength. A debug company intentionally freezes a
-real detached roster and therefore carries campaign-shaped identity without
-touching campaign state.
+toward the combined embarked strength. Conquest extends the reusable pair's
+cycle plan until every selected named squad has a seat; selection beyond the
+mission's minimum demand is deployed rather than labelled as an orbital reserve.
+A debug company intentionally freezes a real detached roster and therefore
+carries campaign-shaped identity without touching campaign state.
 
 The standing law is **values cross the campaign-to-battle seam; campaign
 objects do not**. Labels remain stable, battle code never resolves the roster,

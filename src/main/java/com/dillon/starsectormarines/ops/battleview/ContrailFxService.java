@@ -29,7 +29,7 @@ import java.util.Set;
  * they curve all come from {@link ShotFx}: {@code fx.contrail()} both selects the
  * shot (non-null) <em>and</em> is the {@code ContrailStyle}, and
  * {@code boostRamp()}/{@code arcHeight()} drive the sample position — the same
- * effect composition the body sweeps key on. No {@code turretKind} cascade; a
+ * effect composition the body sweeps key on. No carrier-type cascade; a
  * future arc-and-contrail grenade launcher trails with no edit here.
  */
 public final class ContrailFxService {
