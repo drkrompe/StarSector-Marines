@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.appearance;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
@@ -12,6 +11,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import com.dillon.starsectormarines.marine.SpecialActivation;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialUsePose;
 
 /**
@@ -241,8 +241,8 @@ public final class FacingSystem {
                 }
                 // Render-tier's frameIdx-out-of-range clamp (sheet-cache-dependent)
                 // stays out of this system — it authors the unclamped logical frame.
-                MarineSecondary secondary = inAim && secondarySpec != null
-                        ? (MarineSecondary) secondarySpec[r] : null;
+                SpecialEquipmentDef secondary = inAim && secondarySpec != null
+                        ? (SpecialEquipmentDef) secondarySpec[r] : null;
                 boolean utilityAction = secondary != null
                         && (secondary.activation() == SpecialActivation.UTILITY_SMOKE
                         || secondary.activation() == SpecialActivation.UTILITY_SATCHEL
@@ -423,11 +423,11 @@ public final class FacingSystem {
         int authoredFlags = moving ? LayeredAppearance.FLAG_MOVING : 0;
 
         if (inAim) {
-            MarineSecondary secondary = (MarineSecondary) secondarySpec[row];
+            SpecialEquipmentDef secondary = (SpecialEquipmentDef) secondarySpec[row];
             float duration = secondary != null ? secondary.aimDuration() : 1f;
             float progress = clamp01((duration - actionTimer[row]) / duration);
             boolean fired = secondaryFired[row] != 0 || progress >= 0.5f;
-            SpecialUsePose usePose = secondary.specialDef().presentation().usePose();
+            SpecialUsePose usePose = secondary.presentation().usePose();
             boolean direct = secondary.activation() == SpecialActivation.DIRECT_EXPLOSIVE
                     || secondary.activation() == SpecialActivation.DIRECT_PRECISION;
             authoredPose = switch (usePose) {

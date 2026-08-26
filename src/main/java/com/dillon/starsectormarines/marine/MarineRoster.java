@@ -901,7 +901,7 @@ public class MarineRoster implements Serializable {
             MarineSoldier soldier = soldierById(memberIds.get(index));
             SquadEquipmentBillet billet = preview.billet(index);
             soldier.setPrimary(billet.primaryId(), billet.grade());
-            soldier.setSecondary(billet.special());
+            soldier.setSpecialEquipment(billet.specialEquipmentId());
             soldier.setArmor(billet.armorId());
         }
         squad.setEquipmentDoctrineIds(weaponDoctrineId, armorDoctrineId);

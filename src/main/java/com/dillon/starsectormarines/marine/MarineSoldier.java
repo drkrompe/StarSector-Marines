@@ -83,6 +83,9 @@ public final class MarineSoldier implements Serializable {
         return resolved != null ? resolved : secondary;
     }
     public String specialEquipmentId() { return specialEquipmentId; }
+    public SpecialEquipmentDef specialEquipmentDef() {
+        return SpecialEquipmentRegistry.get(specialEquipmentId);
+    }
     public MarineArmorPattern armor() {
         MarineArmorPattern resolved = armorHandle(armorId);
         return resolved != null ? resolved : armor;
@@ -118,7 +121,10 @@ public final class MarineSoldier implements Serializable {
     }
 
     void setSecondary(MarineSecondary value) {
-        specialEquipmentId = value != null ? value.specialEquipmentId : null;
+        setSpecialEquipment(value != null ? value.specialEquipmentId : null);
+    }
+    void setSpecialEquipment(String value) {
+        specialEquipmentId = value != null ? SpecialEquipmentRegistry.require(value).id() : null;
         secondary = null;
     }
     void setArmor(MarineArmorPattern value) {
@@ -164,6 +170,11 @@ public final class MarineSoldier implements Serializable {
         if (career == null) career = new SoldierCareer();
         if (specialEquipmentId == null && secondary != null) {
             specialEquipmentId = secondary.specialEquipmentId;
+        }
+        if (specialEquipmentId != null && SpecialEquipmentRegistry.get(specialEquipmentId) == null) {
+            LOG.warn("Clearing marine '" + id + "' unresolved special equipment '"
+                    + specialEquipmentId + "'");
+            specialEquipmentId = null;
         }
         secondary = null;
         experienceXp = Math.max(0, experienceXp);

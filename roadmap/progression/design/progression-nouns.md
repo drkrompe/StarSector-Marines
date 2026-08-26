@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — made learned contributed primary and armor cards selectable, persistable, issuable, and deployable through stable catalog ids.
+Updated: 2026-08-25 — made learned contributed special cards authorable, issuable, deployable, and executable through stable catalog ids.
 
 ## Purpose
 
@@ -172,13 +172,15 @@ loaded. Card ids are derived from the stable equipment id, duplicate claims fail
 with provider provenance, and learning keeps the same Marine-Armory-only
 boundary. A provider adding a weapon or armor does not automatically make it
 player collectible; it must deliberately contribute the corresponding template.
-The doctrine editor derives primary family/grade and armor choices from the
-owned cards in that additive catalog. Persisted doctrines, resolved billets,
-and materialized marines retain the contributed equipment ids directly, so a
-learned provider card can be selected, saved, issued for its authored cargo
-cost, and deployed without a Java enum constant. If that provider later
-disappears, save repair warns and returns unresolved primaries to the starter
-field rifle and unresolved armor to field fatigues.
+The doctrine editor derives primary family/grade, armor, and special-equipment
+choices from the owned cards in that additive catalog. Persisted doctrines,
+resolved billets, and materialized marines retain the contributed equipment ids
+directly, so a learned provider card can be selected, saved, issued for its
+authored cargo cost, and deployed without a Java enum constant. Special items
+then execute through their closed typed activation and AI policy. If that
+provider later disappears, save repair warns, returns unresolved primaries to
+the starter field rifle and unresolved armor to field fatigues, and clears an
+unresolved special slot.
 
 Armor patterns are authored player kit with distinct defensive and mobility
 tradeoffs. Some authored patterns are not presently reachable by the live
@@ -243,8 +245,9 @@ mode, initial ammunition, Armory art, activation type, AI policy, use-pose
 profile, and local presentation recipe; the
 referenced weapon definition owns range, damage, accuracy, impact, projectile,
 and audio behavior. Persisted marines and billets use the stable `special.*`
-id, while collected cards derive their stable identity from it. `MarineSecondary` remains a transitional battle handle
-and legacy-save input, not a second stat catalogue.
+id, while collected cards derive their stable identity from it. `MarineSecondary`
+remains a built-in compatibility API and legacy-save input, not a battle-runtime
+authority or second stat catalogue.
 
 Those item definitions load from the built-in special-equipment JSON catalog
 after the weapon registry. Parsing and reference validation fail loud:

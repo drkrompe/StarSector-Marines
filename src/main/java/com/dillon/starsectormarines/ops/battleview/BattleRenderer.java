@@ -317,7 +317,7 @@ public class BattleRenderer {
         // runs (BattleScreen.attach order).
         registerSpriteSheetBatches(sprites.unitDeadSprites().values());
         registerSpriteSheetBatches(sprites.unitSprites().values());
-        registerSpriteSheetBatches(sprites.marineSecondaryAimSheets().values());
+        registerSpriteSheetBatches(sprites.specialEquipmentAimSheets().values());
     }
 
     /** Builds + registers one {@link QuadBatch} per distinct sheet in {@code caches} (idempotent). */
@@ -786,11 +786,7 @@ public class BattleRenderer {
      * pipeline serves the standalone screen view and the combat layer unchanged.
      */
     public void renderWorld(RenderContext rc, java.util.EnumSet<RenderLayer> layers) {
-        this.rc = rc;
-        drawList.clear();
-        for (RenderSystem system : worldSystems) {
-            if (layers.contains(system.layer())) system.collect(rc, drawList);
-        }
+        collectWorld(rc, layers);
         boolean parallax = rc.hostProfile.surfaceReliefEnabled()
                 && DevConfig.SURFACE_RELIEF_PARALLAX
                 && layers.contains(RenderLayer.GROUND);
@@ -806,5 +802,23 @@ public class BattleRenderer {
                 drainLayer(layer);
             }
         }
+    }
+
+    /**
+     * Collects the selected world layers without touching GL. The returned
+     * command list is renderer-owned and remains valid only until this renderer
+     * collects another frame. Live rendering drains it immediately; headless
+     * evidence replays the same commands through its raster backend.
+     */
+    public DrawList collectWorld(RenderContext rc, java.util.EnumSet<RenderLayer> layers) {
+        if (rc == null || layers == null) {
+            throw new IllegalArgumentException("render context and layers are required");
+        }
+        this.rc = rc;
+        drawList.clear();
+        for (RenderSystem system : worldSystems) {
+            if (layers.contains(system.layer())) system.collect(rc, drawList);
+        }
+        return drawList;
     }
 }

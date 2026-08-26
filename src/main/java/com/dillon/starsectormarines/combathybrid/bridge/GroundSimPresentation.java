@@ -144,10 +144,10 @@ public final class GroundSimPresentation {
                     float pitch = 0.9f + rng.nextFloat() * 0.2f;
                     playAtCell(cue.soundId(), pitch, cue.volume(), s.toX, s.toY);
                 }
-            } else if (s.marineSecondary != null) {
-                fx.spawnImpact(s.marineSecondary.impactProfile(), s.toX, s.visualToY(), isWall);
-                if (s.marineSecondary.impactSoundId() != null) {
-                    playAtCell(s.marineSecondary.impactSoundId(),
+            } else if (s.specialEquipmentDef != null) {
+                fx.spawnImpact(s.specialEquipmentDef.impactProfile(), s.toX, s.visualToY(), isWall);
+                if (s.specialEquipmentDef.impactSoundId() != null) {
+                    playAtCell(s.specialEquipmentDef.impactSoundId(),
                             0.9f + rng.nextFloat() * 0.2f, 0.70f, s.toX, s.toY);
                 }
             } else if (s.primaryWeaponDef != null) {
@@ -170,8 +170,8 @@ public final class GroundSimPresentation {
             float pitch = 1f + (rng.nextFloat() * 2f - 1f) * RIFLE_PITCH_JITTER;
             if (s.turretKind != null) {
                 playAtCell(s.turretKind.fireSoundId(), pitch, 1.0f, s.fromX, s.fromY);
-            } else if (s.marineSecondary != null) {
-                playAtCell(s.marineSecondary.fireSoundId(), pitch, 1.0f, s.fromX, s.fromY);
+            } else if (s.specialEquipmentDef != null) {
+                playAtCell(s.specialEquipmentDef.fireSoundId(), pitch, 1.0f, s.fromX, s.fromY);
             } else if (s.primaryWeaponDef != null) {
                 playAtCell(s.primaryWeaponDef.fireSoundId, pitch, 0.85f, s.fromX, s.fromY);
             } else if (s.mechWeapon != null) {

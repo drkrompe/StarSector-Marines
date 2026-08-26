@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
-import com.dillon.starsectormarines.ops.battleview.ArmoryPreviewAssets;
 import com.dillon.starsectormarines.ops.battleview.BarracksBattleScene;
 import com.dillon.starsectormarines.ops.battleview.BarracksCanvas;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
@@ -33,7 +32,6 @@ public final class BarracksScreen implements Screen {
     private final MarkupLoader markup = new MarkupLoader(
             path -> Global.getSettings().loadText(path), COMPONENT_PATHS);
     private final BattleSprites battleSprites = new BattleSprites();
-    private final ArmoryPreviewAssets marineAssets = new ArmoryPreviewAssets();
 
     private MarineOpsContext context;
     private Runnable dismissDialog;
@@ -44,7 +42,6 @@ public final class BarracksScreen implements Screen {
     private MarkupInstance markupInstance;
     private StarsectorUiInputAdapter input;
     private BarracksBattleScene battleScene;
-    private double previewSeconds;
     private int projectedCampaignHour = Integer.MIN_VALUE;
 
     @Override
@@ -84,9 +81,7 @@ public final class BarracksScreen implements Screen {
             battleSprites.ensureRoadSheet();
             if (battleScene == null) battleScene = new BarracksBattleScene(battleSprites);
             built.canvases().set(candidate.requireElement("barracks-canvas"),
-                    new BarracksCanvas(viewModel::sceneMarines, marineAssets,
-                            battleSprites::tileSheet, battleScene,
-                            () -> previewSeconds));
+                    new BarracksCanvas(viewModel::sceneMarines, battleScene));
             if (viewport != null) {
                 built.layout(viewport.documentWidth(), viewport.documentHeight());
             }
@@ -136,7 +131,6 @@ public final class BarracksScreen implements Screen {
 
     @Override
     public void advance(float dt) {
-        previewSeconds += Math.max(0f, dt);
         int currentHour = campaignHour();
         if (viewModel != null && currentHour != projectedCampaignHour) {
             projectedCampaignHour = currentHour;

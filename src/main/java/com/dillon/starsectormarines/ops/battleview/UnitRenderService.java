@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerPose
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.sim.TurretStateService;
@@ -19,6 +20,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef.LayerClips;
@@ -313,8 +315,8 @@ public final class UnitRenderService implements RenderSystem {
      * When the authored selector is {@code SPRITE_SHEET ==
      * LiveAppearance.SHEET_SECONDARY_AIM} and the row carries a
      * {@code SECONDARY_WEAPON}, the aim cache is looked up by <em>that weapon's own
-     * spec</em> — {@code sprites.marineSecondaryAimSheets().get(spec)}, joined off
-     * the row's {@code SECONDARY_WEAPON_SPEC} column, not the unit's type (aim
+     * equipment id</em> — {@code sprites.specialEquipmentAimSheets().get(id)},
+     * joined off the row's {@code SECONDARY_WEAPON_SPEC} definition, not the unit's type (aim
      * sheets are keyed by weapon kind, so resolving off {@code IDENTITY_TYPE} would
      * draw the wrong — or no — aim sheet the moment a second secondary with aim art
      * exists) — and used only if it's non-null with loaded frames; otherwise the
@@ -438,13 +440,14 @@ public final class UnitRenderService implements RenderSystem {
                 if (layeredAssets != null && layeredHeadAssets != null) {
                     float cx = cam.cellToScreenX(rx[r]);
                     float cy = cam.cellToScreenY(ry[r]);
-                    MarineSecondary secondary = secSpec != null
-                            ? (MarineSecondary) secSpec[r] : null;
-                    LayerPose authoredPose = infantryPose(type.drawsLayeredWeapon(),
+                    SpecialEquipmentDef secondary = secSpec != null
+                            ? (SpecialEquipmentDef) secSpec[r] : null;
+                    LayerPose authoredPose = infantryPoseDef(sprites.unitLayerLayouts(),
+                            type.drawsLayeredWeapon(),
                             secondary, layeredPose[r],
                             layeredLocomotion[r], layeredWeaponPhase[r], layeredFlags[r]);
                     LayeredUnitComposer.emit(out, layeredAssets, layeredHeadAssets.head,
-                            primaryWeapon != null ? (MarineWeapon) primaryWeapon[r] : null,
+                            compatibilityPrimary(primaryWeapon != null ? primaryWeapon[r] : null),
                             type.drawsLayeredWeapon(),
                             secondary,
                             equipmentGrade != null ? (EquipmentGrade) equipmentGrade[r]
@@ -458,7 +461,8 @@ public final class UnitRenderService implements RenderSystem {
                 }
                 UnitSpriteCache cache = sprites.unitSprites().get(type);
                 if (sheetSel[r] == LiveAppearance.SHEET_SECONDARY_AIM && secSpec != null) {
-                    UnitSpriteCache aim = sprites.marineSecondaryAimSheets().get((MarineSecondary) secSpec[r]);
+                    SpecialEquipmentDef equipment = (SpecialEquipmentDef) secSpec[r];
+                    UnitSpriteCache aim = sprites.specialEquipmentAimSheets().get(equipment.id());
                     if (aim != null && aim.sheet != null && aim.frames != null
                             && aim.frames.frames.length > 0) {
                         cache = aim;
@@ -480,6 +484,24 @@ public final class UnitRenderService implements RenderSystem {
         }
     }
 
+    /**
+     * Layered infantry art still uses the built-in weapon-family bridge. The
+     * authoritative COMBAT column now stores {@link WeaponDef}; contributed
+     * definitions without a built-in compatibility identity deliberately use
+     * the ordinary rifle silhouette until weapon defs own their render family.
+     */
+    private static MarineWeapon compatibilityPrimary(Object primary) {
+        if (primary instanceof MarineWeapon weapon) return weapon;
+        if (primary instanceof WeaponDef definition) {
+            try {
+                return MarineWeapon.fromId(definition.id);
+            } catch (IllegalArgumentException ignored) {
+                return null;
+            }
+        }
+        return null;
+    }
+
     static LayerPose infantryPose(boolean drawsLayeredWeapon, MarineSecondary secondary,
                                   int pose,
                                   float locomotionPhase, float actionPhase, int flags) {
@@ -490,6 +512,21 @@ public final class UnitRenderService implements RenderSystem {
     static LayerPose infantryPose(UnitLayerLayouts layouts, boolean drawsLayeredWeapon,
                                   MarineSecondary secondary, int pose,
                                   float locomotionPhase, float actionPhase, int flags) {
+        return infantryPoseDef(layouts, drawsLayeredWeapon,
+                secondary != null ? secondary.specialDef() : null, pose,
+                locomotionPhase, actionPhase, flags);
+    }
+
+    static LayerPose infantryPoseDef(boolean drawsLayeredWeapon, SpecialEquipmentDef secondary,
+                                     int pose, float locomotionPhase,
+                                     float actionPhase, int flags) {
+        return infantryPoseDef(UnitLayerLayouts.get(), drawsLayeredWeapon, secondary,
+                pose, locomotionPhase, actionPhase, flags);
+    }
+
+    static LayerPose infantryPoseDef(UnitLayerLayouts layouts, boolean drawsLayeredWeapon,
+                                     SpecialEquipmentDef secondary, int pose,
+                                     float locomotionPhase, float actionPhase, int flags) {
         if (!drawsLayeredWeapon) return null;
         boolean moving = (flags & LayeredAppearance.FLAG_MOVING) != 0;
         String variantId = "rifle";
@@ -513,10 +550,10 @@ public final class UnitRenderService implements RenderSystem {
                  LayeredAppearance.POSE_SMOKE_THROW,
                  LayeredAppearance.POSE_SATCHEL_PLANT -> {
                 if (secondary == null
-                        || secondary.specialDef().presentation().layerClips() == null) {
+                        || secondary.presentation().layerClips() == null) {
                     return null;
                 }
-                LayerClips layerClips = secondary.specialDef().presentation().layerClips();
+                LayerClips layerClips = secondary.presentation().layerClips();
                 boolean firing = pose == LayeredAppearance.POSE_ROCKET_FIRE
                         || pose == LayeredAppearance.POSE_AMR_FIRE;
                 variantId = layerClips.variant();

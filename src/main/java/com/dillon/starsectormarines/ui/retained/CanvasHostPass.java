@@ -3,9 +3,10 @@ package com.dillon.starsectormarines.ui.retained;
 /**
  * Optional live-host drawing pass inside a retained canvas clip.
  *
- * <p>This is the bounded escape hatch for an existing renderer that already
- * owns its complete GL lifecycle. Headless targets decline the pass so the
- * canvas producer can provide deterministic primitive evidence instead.</p>
+ * <p>This is the bounded escape hatch for an existing renderer that owns a
+ * native draw lifecycle. A headless backend may recognize a typed pass and
+ * provide an equivalent drain; unknown passes are declined so the canvas
+ * producer can still provide deterministic primitive evidence.</p>
  */
 @FunctionalInterface
 public interface CanvasHostPass {

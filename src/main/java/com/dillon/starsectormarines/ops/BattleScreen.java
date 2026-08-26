@@ -846,7 +846,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             renderer.getGroundLights().spawnMuzzle(s);
             // Every shooting marine / militia / alien ejects a casing where
             // they're standing (skip rockets — tube-launched, no brass).
-            if (s.marineSecondary == null && s.turretKind == null) {
+            if (s.specialEquipmentDef == null && s.turretKind == null) {
                 ImpactDecals.spawnShellCasing(sim, rng, s.fromX, s.fromY);
             }
             // Mech chaingun particle muzzle flash — bright additive pop at
@@ -900,15 +900,15 @@ public class BattleScreen implements Screen, BattleUiContext {
                     Global.getSoundPlayer().playSound(
                             cue.soundId(), pitch, cue.volume(), loc, zeroVel);
                 }
-            } else if (s.marineSecondary != null) {
-                profile = s.marineSecondary.impactProfile();
+            } else if (s.specialEquipmentDef != null) {
+                profile = s.specialEquipmentDef.impactProfile();
                 renderer.getImpactFx().spawnImpact(profile, s.toX, s.visualToY(), isWall);
                 float pitch = 0.9f + rng.nextFloat() * 0.2f;
                 Vector2f loc = new Vector2f(
                         s.toX * AUDIO_WORLD_UNITS_PER_CELL,
                         s.toY * AUDIO_WORLD_UNITS_PER_CELL);
-                if (s.marineSecondary.impactSoundId() != null) {
-                    Global.getSoundPlayer().playSound(s.marineSecondary.impactSoundId(),
+                if (s.specialEquipmentDef.impactSoundId() != null) {
+                    Global.getSoundPlayer().playSound(s.specialEquipmentDef.impactSoundId(),
                             pitch, 0.70f, loc, zeroVel);
                 }
             } else if (s.primaryWeaponDef != null) {
@@ -958,8 +958,8 @@ public class BattleScreen implements Screen, BattleUiContext {
             // requires; distance attenuation does the volume-falloff work.
             if (s.turretKind != null) {
                 Global.getSoundPlayer().playSound(s.turretKind.fireSoundId(), pitch, 1.0f, loc, zeroVel);
-            } else if (s.marineSecondary != null) {
-                Global.getSoundPlayer().playSound(s.marineSecondary.fireSoundId(),
+            } else if (s.specialEquipmentDef != null) {
+                Global.getSoundPlayer().playSound(s.specialEquipmentDef.fireSoundId(),
                         pitch, 1.0f, loc, zeroVel);
             } else if (s.primaryWeaponDef != null) {
                 Global.getSoundPlayer().playSound(s.primaryWeaponDef.fireSoundId,
