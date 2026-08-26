@@ -35,10 +35,23 @@ class SquadEquipmentDoctrineTest {
         }
 
         assertEquals(19, SquadEquipmentDoctrines.armorDoctrines().size());
-        assertEquals(1, doctrinesByTier[1], "unpowered protection remains the baseline");
+        assertEquals(1, doctrinesByTier[1], "frontier garbage protection remains the baseline");
         assertEquals(6, doctrinesByTier[2], "light/security factions share a power band");
         assertEquals(6, doctrinesByTier[3], "line factions share a power band");
         assertEquals(6, doctrinesByTier[4], "heavy factions share a power band");
+
+        MarineArmorCatalogDef cordon =
+                MarineArmorCatalogRegistry.require("armor.cordon-shell");
+        MarineArmorCatalogDef lashplate =
+                MarineArmorCatalogRegistry.require("armor.lashplate-harness");
+        assertEquals(1, cordon.tier());
+        assertEquals(1, lashplate.tier());
+        assertEquals(LayeredArmorFamily.MILITIA, cordon.appearanceFamily());
+        assertEquals(LayeredArmorFamily.OUTLAW, lashplate.appearanceFamily());
+        assertTrue(cordon.armorPool()
+                < MarineArmorCatalogRegistry.require("armor.militia").armorPool());
+        assertTrue(lashplate.armorRating()
+                < MarineArmorCatalogRegistry.require("armor.outlaw").armorRating());
 
         MarineArmorCatalogDef hegemonyLine = MarineArmorCatalogRegistry.require("armor.line");
         MarineArmorCatalogDef corporateLine =
@@ -143,9 +156,13 @@ class SquadEquipmentDoctrineTest {
             int leader = team * MarineSquad.TEAM_SIZE;
             assertEquals(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), preview.billet(leader).primaryDef());
             assertEquals(MarineArmorPattern.MILITIA, preview.billet(leader).armor());
+            assertEquals("armor.cordon-shell", preview.billet(leader + 1).armorId());
+            assertEquals("armor.lashplate-harness", preview.billet(leader + 2).armorId());
+            assertEquals(MarineArmorPattern.ARMORLESS,
+                    preview.billet(leader + 3).armor());
             for (int local = 1; local < MarineSquad.TEAM_SIZE; local++) {
-                assertEquals(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID), preview.billet(leader + local).primaryDef());
-                assertEquals(MarineArmorPattern.ARMORLESS, preview.billet(leader + local).armor());
+                assertEquals(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID),
+                        preview.billet(leader + local).primaryDef());
             }
         }
     }
@@ -179,7 +196,7 @@ class SquadEquipmentDoctrineTest {
         assertEquals(MarineSquad.CAPACITY, preview.billets().size());
         assertEquals(WeaponRegistry.require(WeaponRegistry.SMG_ID), preview.billet(1).primaryDef());
         assertEquals(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID), preview.billet(1).specialDef());
-        assertEquals(MarineArmorPattern.ARMORLESS, preview.billet(1).armor());
+        assertEquals("armor.cordon-shell", preview.billet(1).armorId());
         assertEquals(SquadEquipmentResult.APPLIED, roster.applySquadEquipment(
                 squad.id(), SquadEquipmentDoctrines.LUDDIC_PATH_ASSAULT_WEAPONS,
                 SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR));
@@ -320,10 +337,10 @@ class SquadEquipmentDoctrineTest {
                 "My Fleet Issue",
                 SquadEquipmentDoctrines.weaponById(
                         SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS).issues());
-        SquadArmorDoctrine customArmor = roster.armory().createArmorDoctrine(
+        SquadArmorDoctrine customArmor = roster.armory().createArmorDoctrineIds(
                 "My Field Protection",
                 SquadEquipmentDoctrines.armorById(
-                        SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR).issues());
+                        SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR).issueIds());
 
         assertTrue(roster.previewSquadEquipment(
                 squad.id(), customWeapons.id(), customArmor.id()).canApply());

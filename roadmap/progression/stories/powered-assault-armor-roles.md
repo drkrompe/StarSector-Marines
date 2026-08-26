@@ -1,15 +1,15 @@
 # Powered assault-armor roles
 
 Status: PARTIALLY SHIPPED — the cross-faction line/heavy pattern catalog, bounded
-stat side-grades, acquisition sources, and tiered built-in doctrine matrix are live.
-Explicit role/provenance fields, comparison presentation, defender adoption, and
+stat side-grades, acquisition sources, tiered built-in doctrine matrix, and defender
+adoption are live. Explicit role/provenance fields, comparison presentation, and
 concealment still coordinate with `s6-unlock-ladder-expansion.md` and
 `target-faction-ground-rosters.md`; concealment behavior requires an explicit shared
 perception contract.
 
 Written: 2026-08-24
 
-Updated: 2026-08-26 — shipped the faction side-grade catalog and nineteen-card doctrine ladder.
+Updated: 2026-08-26 — attached concrete faction suits to defender tables and broadened tier-I scrap issue.
 
 Read `progression-nouns.md`, `combat-durability-nouns.md`, `mechs-nouns.md`,
 and `faction-lore-nouns.md` before implementing this story.
@@ -85,7 +85,7 @@ non-duplicative mechanic.
 ## Shipped doctrine matrix
 
 The first live breadth pass contains nineteen deterministic twelve-billet armor
-cards: one tier-I unpowered baseline and six faction-authored alternatives in each
+cards: one mixed tier-I frontier baseline and six faction-authored alternatives in each
 of tiers II, III, and IV. A doctrine tier is expected squad capability, not the
 maximum catalog tier of any single leader's suit; this permits auxiliary schedules
 to mix a few institutional shells into common security protection without pretending
@@ -98,6 +98,13 @@ balanced center. Church and Knight suits emphasize rating with a mobility penalt
 Diktat and Lion's Guard suits emphasize pool while remaining conspicuous. Outlaw
 patterns use very high crude pool, weak rating, and worsening handling as weight
 rises. No doctrine applies a faction-wide multiplier after issue.
+
+The tier-I baseline now distinguishes three forms of bad protection inside that one
+doctrine: mobile Domain-pattern fatigues with no armor pool, expired Cordon security
+shells with a little rated plate, and slow Lashplate cargo harnesses with crude pool
+but almost no resistance. They reuse the established low-end militia/outlaw
+silhouettes and are intentionally broad circulation categories rather than a new
+faction-equivalent matrix.
 
 ## Data and authority
 
