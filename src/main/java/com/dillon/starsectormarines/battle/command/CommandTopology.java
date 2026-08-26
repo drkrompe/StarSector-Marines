@@ -104,4 +104,15 @@ public final class CommandTopology {
         return GridPathfinder.findPath(grid, startX, startY,
                 targetX, targetY).length > 0;
     }
+
+    /** Frozen-grid route length, or {@code Integer.MAX_VALUE} when unreachable. */
+    public int routeLength(int startX, int startY, int targetX, int targetY) {
+        if (!inBounds(startX, startY) || !inBounds(targetX, targetY)) {
+            return Integer.MAX_VALUE;
+        }
+        if (startX == targetX && startY == targetY) return 0;
+        int length = GridPathfinder.findPath(grid, startX, startY,
+                targetX, targetY).length;
+        return length > 0 ? length : Integer.MAX_VALUE;
+    }
 }

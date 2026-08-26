@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.command.SabotageSiteSnapshot;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.AssignmentReason;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.Phase;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.SquadDirective;
@@ -150,6 +151,27 @@ class SquadPlanDebugPanelTest {
                         + "   Capture DEFERRED_FOR_FRONT_RESISTANCE",
                 SquadPlanDebugPanel.conquestReasonSummary(
                         directive.withDistantCaptureDeferred()));
+    }
+
+    @Test
+    void selectedSquadSummariesExplainSabotageSiteGroup() {
+        SabotageSiteSnapshot.SiteState site =
+                new SabotageSiteSnapshot.SiteState(0, "SAB-01", "reactor",
+                        12, 7, 3, 2f, 8f, true, false,
+                        1, 0, 2, 12, 4f, 3f);
+        SabotageSiteSnapshot.SquadDirective directive =
+                new SabotageSiteSnapshot.SquadDirective(9, 0,
+                        SabotageSiteSnapshot.GroupRole.SECURITY,
+                        SabotageSiteSnapshot.AssignmentReason.SITE_SECURITY_PRESERVED,
+                        AssignmentKind.CLEAR_ZONE, 3, 12, 7);
+        SabotageSiteSnapshot snapshot = new SabotageSiteSnapshot(44, 42,
+                Faction.MARINE, SabotageSiteSnapshot.Phase.PLANTING,
+                List.of(site), List.of(), List.of(directive));
+
+        assertEquals("Site group S1   SECURITY   Reason SITE_SECURITY_PRESERVED",
+                SquadPlanDebugPanel.sabotageOrderSummary(directive));
+        assertEquals("Site SAB-01 2.0/8.0   Security 2   Press 4.0/3.0",
+                SquadPlanDebugPanel.sabotageSiteSummary(snapshot, directive));
     }
 
     @Test

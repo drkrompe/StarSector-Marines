@@ -35,6 +35,7 @@ import com.dillon.starsectormarines.battle.ui.panel.TickProfileDebugPanel;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.highlight.CommanderInfluenceOverlayPublisher;
 import com.dillon.starsectormarines.battle.ui.highlight.ConquestCommanderOverlayPublisher;
+import com.dillon.starsectormarines.battle.ui.highlight.SabotageCommanderOverlayPublisher;
 import com.dillon.starsectormarines.battle.ui.highlight.SelectionHighlightPublisher;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.ui.picking.WorldPicker;
@@ -487,8 +488,12 @@ public class BattleScreen implements Screen, BattleUiContext {
                     sim.getCommanderSnapshot(debugConquestPerspective),
                     sim.getGrid().getWidth(), sim.getGrid().getHeight(),
                     selection.getSelectedSquadId());
+            SabotageCommanderOverlayPublisher.publish(highlights,
+                    sim.getCommanderSnapshot(debugConquestPerspective),
+                    selection.getSelectedSquadId());
         } else {
             ConquestCommanderOverlayPublisher.clear(highlights);
+            SabotageCommanderOverlayPublisher.clear(highlights);
         }
         // Roof alpha lerp runs on real dt (not sim-scaled) so the fog-of-war
         // fade keeps animating even when the sim is paused — matches how the
@@ -570,10 +575,10 @@ public class BattleScreen implements Screen, BattleUiContext {
         debugPanel.addToggle("Defender hostile field",
                 () -> debugDefenderHostileInfluence,
                 () -> debugDefenderHostileInfluence = !debugDefenderHostileInfluence);
-        debugPanel.addToggle("Marine Conquest picture",
+        debugPanel.addToggle("Marine commander picture",
                 () -> debugConquestPerspective == Faction.MARINE,
                 () -> toggleConquestPicture(Faction.MARINE));
-        debugPanel.addToggle("Defender Conquest picture",
+        debugPanel.addToggle("Defender commander picture",
                 () -> debugConquestPerspective == Faction.DEFENDER,
                 () -> toggleConquestPicture(Faction.DEFENDER));
         debugPanel.addDial("Structure relief",

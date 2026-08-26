@@ -71,6 +71,7 @@ public final class EquipmentDropSystem {
             for (int i = 0, n = rosterService.liveCount(); i < n; i++) {
                 long u = rosterService.get(i);
                 if (rosterService.identity().faction(u) != Faction.MARINE) continue;
+                if (squadHasConflictingSpecialTask(u, drop, role, task)) continue;
                 if (!rosterService.movement().atCell(u, drop.cellX, drop.cellY)) continue;
                 role.setRole(u, UnitRole.PLANTER);
                 // setAssignedObjective first (adds TASK if this was a plain combatant),
@@ -126,6 +127,7 @@ public final class EquipmentDropSystem {
         for (int i = 0, n = rosterService.liveCount(); i < n; i++) {
             long u = rosterService.get(i);
             if (rosterService.identity().faction(u) != Faction.MARINE) continue;
+            if (squadHasActiveSpecialTask(u, role, task)) continue;
             Objective ao = task.assignedObjective(u);
             if (role.role(u) == UnitRole.PLANTER
                     && ao != null
@@ -141,5 +143,51 @@ public final class EquipmentDropSystem {
             }
         }
         return best;
+    }
+
+    /** Avoids giving one squad simultaneous planter/retriever obligations. */
+    private boolean squadHasActiveSpecialTask(long candidate, RoleService role,
+                                              TaskService task) {
+        if (!rosterService.squad().hasSquad(candidate)) return false;
+        int squadId = rosterService.squad().squadId(candidate);
+        for (int i = 0, n = rosterService.liveCount(); i < n; i++) {
+            long member = rosterService.get(i);
+            if (!rosterService.squad().hasSquad(member)
+                    || rosterService.squad().squadId(member) != squadId) continue;
+            Objective objective = task.assignedObjective(member);
+            if (role.role(member) == UnitRole.PLANTER
+                    && objective != null && !objective.isComplete()) return true;
+            EquipmentDrop drop = task.equipmentDropTarget(member);
+            if (role.role(member) == UnitRole.KIT_RETRIEVER
+                    && drop != null && !drop.consumed) return true;
+        }
+        return false;
+    }
+
+    /** Allows the nominated retriever through, but not a second site's duty. */
+    private boolean squadHasConflictingSpecialTask(long candidate,
+                                                   EquipmentDrop target,
+                                                   RoleService role,
+                                                   TaskService task) {
+        if (!rosterService.squad().hasSquad(candidate)) return false;
+        int squadId = rosterService.squad().squadId(candidate);
+        for (int i = 0, n = rosterService.liveCount(); i < n; i++) {
+            long member = rosterService.get(i);
+            if (!rosterService.squad().hasSquad(member)
+                    || rosterService.squad().squadId(member) != squadId) continue;
+            Objective objective = task.assignedObjective(member);
+            if (role.role(member) == UnitRole.PLANTER && objective != null
+                    && !objective.isComplete() && objective != target.objective) {
+                return true;
+            }
+            EquipmentDrop assignedDrop = task.equipmentDropTarget(member);
+            if (role.role(member) == UnitRole.KIT_RETRIEVER
+                    && assignedDrop != null && !assignedDrop.consumed
+                    && assignedDrop != target
+                    && assignedDrop.objective != target.objective) {
+                return true;
+            }
+        }
+        return false;
     }
 }
