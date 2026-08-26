@@ -169,9 +169,9 @@ public class MarineOpsContext {
     }
 
     public void setDebugSquadCount(int squads) {
-        int clamped = DebugCompany.clampSquads(squads);
-        if (clamped == debugSquadCount) return;
-        debugSquadCount = clamped;
+        int normalized = DebugCompany.normalizeSquads(squads);
+        if (normalized == debugSquadCount) return;
+        debugSquadCount = normalized;
         debugCompanyRoster = null;
     }
 

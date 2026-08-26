@@ -99,6 +99,7 @@ public final class MechSupport extends AirDeliveryPower {
     }
 
     private static int lanceCount(int mechCount) {
-        return Math.max(1, (mechCount + LANCE_SIZE - 1) / LANCE_SIZE);
+        return (int) Math.max(1L,
+                ((long) mechCount + LANCE_SIZE - 1L) / LANCE_SIZE);
     }
 }

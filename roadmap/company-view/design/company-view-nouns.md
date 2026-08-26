@@ -4,8 +4,9 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — grounded built-in equipment provenance and distributed
-Conquest deployment across mission-configured Aeroshuttle pairs and drop zones.
+Updated: 2026-08-26 — grounded built-in equipment provenance, distributed
+Conquest deployment across mission-configured Aeroshuttle pairs and drop zones,
+and removed authored ceilings from debug force-size controls.
 
 ## Purpose
 
@@ -524,7 +525,9 @@ and form-up behavior instead of maintaining a parallel fixture model.
 quality, and mech support; an explicit squad-count control may override size
 without changing quality. Stages may exceed one officer's command cap so large
 mission balance can be exercised, but debug command readiness does not redefine
-campaign deployment law. Player-side vehicle support remains deferred until a
+campaign deployment law. The debug squad control has no scenario-authored upper
+ceiling; requested scale is limited only by the host's practical runtime resources,
+and missions still apply their real arrival policy. Player-side vehicle support remains deferred until a
 production vehicle deployment seam exists.
 
 ## Invariants for future work

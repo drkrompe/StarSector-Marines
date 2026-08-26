@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -110,6 +111,16 @@ public class MechSupportTest {
                 MechVariant.BULWARK, MechVariant.HOUND),
                 power.lanceForRemainingCharges(1));
         assertEquals(List.of(MechVariant.SIROCCO),
+                power.lanceForRemainingCharges(0));
+    }
+
+    @Test
+    public void finalSortieBeyondFormerDebugCeilingCarriesRemainder() {
+        MechSupport power = new MechSupport(
+                Collections.nCopies(101, MechVariant.HOUND));
+
+        assertEquals(26, power.maxCharges);
+        assertEquals(List.of(MechVariant.HOUND),
                 power.lanceForRemainingCharges(0));
     }
 
