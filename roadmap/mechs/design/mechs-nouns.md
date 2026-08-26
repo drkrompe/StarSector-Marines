@@ -4,8 +4,8 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — made the Mech Lab open on a lance-wide workshop frame and
-ease into the selected gantry only when fitting begins.
+Updated: 2026-08-25 — separated the lance-wide workshop overview from the
+chassis-selected fitting workspace and its equipment controls.
 
 ## Purpose
 
@@ -199,14 +199,18 @@ determines the payload, not the entitlement to call it.
   list and substitutes only a Java2D drain; it may not invent percentage-positioned
   scenery, off-grid props, actor approximations, or a second gantry illustration.
 - The room opens on a lance-wide camera frame so all assigned assets and workshop
-  jobs remain legible. Selecting a fitting socket eases the same battle camera into
-  that asset's authored gantry while zoom and pan preserve one cell projection.
-  Returning through the current Mech Lab room route restores the overview. No camera
-  transition moves, respawns, pauses, or rebuilds garage contents to fake motion.
+  jobs remain legible. This is a non-selected state: it gives the room its full width,
+  labels all four gantries, and exposes no equipment catalog, performance strip, or
+  socket rack. Selecting an occupied gantry establishes the fitting asset and eases
+  the same battle camera into it; only then does the fitting workspace reveal those
+  chassis-scoped controls. Returning through the current Mech Lab room route clears
+  that selection and restores the overview. No camera transition moves, respawns,
+  pauses, or rebuilds garage contents to fake motion.
 - The fitting header exposes previous/next gantry controls and a numbered
-  `01 / 04` station position. Navigation visits all four physical pads, including a
-  vacant pad, and wraps at the ends. Lance browsing remains a separate direct-jump
-  surface; it is not required for sequential station inspection.
+  `01 / 04` station position. Navigation wraps across the four physical pads; arriving
+  at a vacant pad clears the fitting selection and exposes that vacancy in the overview
+  rather than rendering chassis controls against nothing. Lance browsing remains a
+  separate direct-jump surface.
 - Campaign-to-battle deployment freezes values. Live battle code does not read
   or mutate the campaign mech, squad, or fleet inventory.
 - Gun-launched HE is a ballistic shot whose timed detonation owns splash and
