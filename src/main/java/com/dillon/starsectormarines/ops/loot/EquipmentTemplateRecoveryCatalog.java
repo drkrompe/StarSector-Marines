@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.loot;
 
 import com.dillon.starsectormarines.marine.EquipmentTemplateCard;
+import com.dillon.starsectormarines.marine.EquipmentAcquisitionEligibility;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
 import com.dillon.starsectormarines.marine.FactionEquipmentPicker;
 import com.dillon.starsectormarines.marine.FactionEquipmentSource;
@@ -20,7 +21,8 @@ final class EquipmentTemplateRecoveryCatalog {
     static List<LootCandidate> candidates(LootRollRequest request,
                                           Set<String> unavailableTemplateIds,
                                           int unitValue, float cargoPerUnit,
-                                          String iconPath) {
+                                          String iconPath,
+                                          EquipmentAcquisitionEligibility.Progress progress) {
         if (request == null || request.risk != RiskLevel.HIGH || request.entitlement <= 0
                 || request.targetFactionId == null || unavailableTemplateIds == null
                 || unitValue <= 0) {
@@ -28,7 +30,8 @@ final class EquipmentTemplateRecoveryCatalog {
         }
         List<String> selected = FactionEquipmentPicker.pick(request.targetFactionId,
                 FactionEquipmentSource.RECOVERY, 1,
-                LootRoller.seedOf(request) ^ SEED_SALT, unavailableTemplateIds);
+                LootRoller.seedOf(request) ^ SEED_SALT, unavailableTemplateIds,
+                progress);
         if (selected.isEmpty()) return List.of();
         EquipmentTemplateCard template = EquipmentTemplateCatalog.require(selected.get(0));
         return List.of(new LootCandidate(LootKind.SPECIAL, template.id(),

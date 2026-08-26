@@ -31,16 +31,26 @@ import java.util.List;
  * stockroom, serviced hulls for a vehicle bay. Zero means the room earns its
  * place by function rather than by capacity, like a command centre.
  */
-public record RoomRecipe(RoomPurpose purpose, RoomShape shape, DeckZone zone, int provides) {
+public record RoomRecipe(RoomPurpose purpose, RoomShape shape, DeckZone zone,
+                        int provides, boolean hullAccess) {
+
+    /** A room that only needs to be somewhere on the deck. */
+    public RoomRecipe(RoomPurpose purpose, RoomShape shape, DeckZone zone, int provides) {
+        this(purpose, shape, zone, provides, false);
+    }
 
     /**
      * Bunks and living space for a watch of twelve. Two rows of stacked bunks
      * either side of a single aisle, with a locker run at one end and nothing
      * else — a ship berths its crew in many small compartments spread through
      * the hull, not in one dormitory.
+     *
+     * <p>Berthed forward, which is both the traditional arrangement and the
+     * practical one here: berths are the smallest rooms and the most numerous,
+     * so they are what can fill a tapering bow that no bay or hold would fit.
      */
     public static final RoomRecipe BERTHING = new RoomRecipe(
-            RoomPurpose.BARRACKS, RoomShape.rectangle(8, 6), DeckZone.MIDSHIPS, 12);
+            RoomPurpose.BARRACKS, RoomShape.rectangle(8, 6), DeckZone.FORE, 12);
 
     /** Gantry space for servicing heavy assets; the largest room a ship carries. */
     public static final RoomRecipe VEHICLE_BAY = new RoomRecipe(
@@ -73,6 +83,18 @@ public record RoomRecipe(RoomPurpose purpose, RoomShape shape, DeckZone zone, in
                     "...#######...",
                     ".....###....."),
             DeckZone.FORE, 0);
+
+    /**
+     * Boat bay, and the deck's only way in or out under its own power. Troops
+     * embark here for the surface and come back through it, so its capacity is
+     * a lift cycle rather than a headcount that lives aboard.
+     *
+     * <p>The one room that must reach the hull. A bay buried amidships opens
+     * onto nothing, so this is where {@link #hullAccess} earns its place: the
+     * placer has to find it a wall of the ship, not merely a wall.
+     */
+    public static final RoomRecipe SHUTTLE_BAY = new RoomRecipe(
+            RoomPurpose.HANGAR, RoomShape.rectangle(28, 16), DeckZone.MIDSHIPS, 120, true);
 
     /** Bulk hold. Large and sparse inside. */
     public static final RoomRecipe HOLD = new RoomRecipe(

@@ -22,6 +22,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FactionEquipmentMarketStockTest {
 
+    private static final EquipmentAcquisitionEligibility.Progress FULL_ACCESS =
+            new EquipmentAcquisitionEligibility.Progress(15, 20);
+
     @Test
     void stockIsStableWithinAMonthAndRotatesAcrossMonths() {
         FactionEquipmentMarketStockPlanner.StockPlan first = plan(
@@ -59,6 +62,37 @@ class FactionEquipmentMarketStockTest {
         assertFalse(FactionEquipmentMarketStock.hasLicenseAccess(RepLevel.NEUTRAL));
         assertTrue(FactionEquipmentMarketStock.hasLicenseAccess(RepLevel.FAVORABLE));
         assertTrue(FactionEquipmentMarketStock.hasLicenseAccess(RepLevel.COOPERATIVE));
+    }
+
+    @Test
+    void licenseStockUsesMrbAccessBandsBeforeWeightedSelection() {
+        FactionEquipmentMarketStockPlanner.StockPlan opening =
+                FactionEquipmentMarketStockPlanner.plan(
+                        "hegemony", "chicomoztoc", 6, 30L, true, Set.of(),
+                        new EquipmentAcquisitionEligibility.Progress(100, 0));
+        FactionEquipmentMarketStockPlanner.StockPlan advanced =
+                FactionEquipmentMarketStockPlanner.plan(
+                        "hegemony", "chicomoztoc", 6, 30L, true, Set.of(),
+                        new EquipmentAcquisitionEligibility.Progress(0, 5));
+
+        assertTrue(opening.licensedTemplateIds().isEmpty());
+        assertEquals(2, advanced.licensedTemplateIds().size());
+        assertTrue(advanced.licensedTemplateIds().stream()
+                .map(EquipmentTemplateCatalog::require)
+                .allMatch(card -> card.accessTier() == EquipmentAccessTier.ADVANCED));
+    }
+
+    @Test
+    void openMarketNeverLeaksAdvancedCardsAtHighCompanyStanding() {
+        for (long month = 0; month < 100; month++) {
+            FactionEquipmentMarketStockPlanner.StockPlan plan =
+                    FactionEquipmentMarketStockPlanner.plan(
+                            "independent", "access-audit", 8, month, true, Set.of(),
+                            new EquipmentAcquisitionEligibility.Progress(100, 100));
+            assertTrue(plan.marketTemplateIds().stream()
+                    .map(EquipmentTemplateCatalog::require)
+                    .allMatch(card -> card.accessTier() == EquipmentAccessTier.COMMON));
+        }
     }
 
     @Test
@@ -112,7 +146,7 @@ class FactionEquipmentMarketStockTest {
                 method.equals("getCargo") ? cargo : defaultValue(returnType));
 
         FactionEquipmentMarketStock.replaceStock(submarket, "hegemony", "chicomoztoc",
-                6, 30L, true, Set.of());
+                6, 30L, true, Set.of(), FULL_ACCESS);
 
         assertEquals(List.of(staleMarineCard), removed);
         assertEquals(4, added.size());
@@ -127,7 +161,7 @@ class FactionEquipmentMarketStockTest {
             String factionId, String marketId, int marketSize, long rotation,
             boolean licensed, Set<String> owned) {
         return FactionEquipmentMarketStockPlanner.plan(
-                factionId, marketId, marketSize, rotation, licensed, owned);
+                factionId, marketId, marketSize, rotation, licensed, owned, FULL_ACCESS);
     }
 
     private static CargoStackAPI stack(SpecialItemData data) {

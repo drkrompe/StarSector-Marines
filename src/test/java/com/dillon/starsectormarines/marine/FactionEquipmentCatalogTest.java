@@ -6,6 +6,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -84,6 +86,35 @@ class FactionEquipmentCatalogTest {
 
         assertTrue(failure.getMessage().contains(
                 "equipment-template:weapon.field-rifle:surplus"));
+    }
+
+    @Test
+    void advancedCardWithOnlyAnOpenMarketClaimIsStillStranded() throws Exception {
+        JSONObject root = new JSONObject(Files.readString(Path.of(
+                "mod", "data", "marines", "faction-equipment.faction-equipment.json")));
+        String templateId = "equipment-template:weapon.field-rifle:masterwork";
+        for (int factionIndex = 0; factionIndex < root.getJSONArray("factions").length();
+             factionIndex++) {
+            JSONObject faction = root.getJSONArray("factions").getJSONObject(factionIndex);
+            if (!faction.has("offers")) continue;
+            for (int offerIndex = 0; offerIndex < faction.getJSONArray("offers").length();
+                 offerIndex++) {
+                JSONObject offer = faction.getJSONArray("offers").getJSONObject(offerIndex);
+                if (templateId.equals(offer.getString("templateId"))) {
+                    offer.put("sources", new JSONObject().put("market", 10));
+                }
+            }
+        }
+        FactionEquipmentCatalog catalog = new FactionEquipmentCatalog();
+        catalog.ingest(root, CORE);
+        catalog.validateCompleteness();
+
+        IllegalStateException failure = assertThrows(IllegalStateException.class,
+                () -> catalog.validateReachability(
+                        new MarineArmory().ownedEquipmentTemplateIds()));
+
+        assertTrue(failure.getMessage().contains(templateId));
+        assertTrue(failure.getMessage().contains("eventually eligible"));
     }
 
     @Test
