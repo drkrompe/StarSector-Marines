@@ -2,9 +2,11 @@ package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.ExperienceTier;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.infantry.SoldierAptitude;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -44,16 +46,16 @@ public class InfantryLoadoutRollsTest {
 
     @Test
     public void defenderFamilyDoctrineDiffersByTroopType() {
-        assertEquals(MarineWeapon.SMG,
+        assertEquals(WeaponRegistry.require(WeaponRegistry.SMG_ID),
                 InfantryLoadoutRolls.defenderPrimary(UnitType.MILITIA, new FixedRandom(20)));
-        assertEquals(MarineWeapon.DMR,
+        assertEquals(WeaponRegistry.require(WeaponRegistry.DMR_ID),
                 InfantryLoadoutRolls.defenderPrimary(UnitType.MILITIA, new FixedRandom(45)));
-        assertEquals(MarineWeapon.PULSE_RIFLE,
+        assertEquals(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID),
                 InfantryLoadoutRolls.defenderPrimary(UnitType.MILITIA, new FixedRandom(70)));
 
-        assertEquals(MarineWeapon.SMG,
+        assertEquals(WeaponRegistry.require(WeaponRegistry.SMG_ID),
                 InfantryLoadoutRolls.defenderPrimary(UnitType.MARINE_RED, new FixedRandom(10)));
-        assertEquals(MarineWeapon.DMR,
+        assertEquals(WeaponRegistry.require(WeaponRegistry.DMR_ID),
                 InfantryLoadoutRolls.defenderPrimary(UnitType.MARINE_RED, new FixedRandom(30)));
     }
 
@@ -87,13 +89,13 @@ public class InfantryLoadoutRollsTest {
     public void defenderAmrAvailabilityIsExplicitHighRiskDoctrine() {
         MarineLoadout[] high = InfantryLoadoutRolls.defenderSquad(
                 4, UnitType.MARINE_RED, RiskLevel.HIGH, new FixedRandom(50));
-        assertEquals(MarineSecondary.ANTI_MATERIEL_RIFLE, high[3].secondary);
-        assertEquals(MarineSecondary.ANTI_MATERIEL_RIFLE.startingAmmo(),
+        assertEquals(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID), high[3].specialDef());
+        assertEquals(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID).startingAmmo(),
                 high[3].secondaryAmmo);
 
         MarineLoadout[] militia = InfantryLoadoutRolls.defenderSquad(
                 4, UnitType.MILITIA, RiskLevel.HIGH, new FixedRandom(50));
-        assertNull(militia[3].secondary,
+        assertNull(militia[3].specialDef(),
                 "local militia do not gain the elite anti-materiel issue");
     }
 }

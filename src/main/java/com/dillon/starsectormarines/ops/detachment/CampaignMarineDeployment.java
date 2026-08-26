@@ -232,18 +232,10 @@ public final class CampaignMarineDeployment {
     }
 
     private static MarineLoadout merge(MarineLoadout scenario, MarineLoadout allocation) {
-        if (allocation.primaryDef != null) {
-            return MarineLoadout.fromCatalog(scenario.role, scenario.objective,
-                    allocation.primaryDef, allocation.equipmentGrade,
-                    allocation.soldierProfile, allocation.specialDef,
-                    allocation.campaignSoldierId, allocation.armorFamily,
-                    allocation.armorPool, allocation.armorRating,
-                    allocation.armorMoveSpeedMult, allocation.armorIncomingAccuracyMult,
-                    allocation.campaignSquad);
-        }
         return new MarineLoadout(scenario.role, scenario.objective,
-                allocation.primary, allocation.equipmentGrade, allocation.soldierProfile,
-                allocation.secondary, allocation.secondaryAmmo,
+                allocation.primaryWeaponId, allocation.equipmentGrade,
+                allocation.soldierProfile, allocation.specialEquipmentId,
+                allocation.secondaryAmmo,
                 allocation.campaignSoldierId, allocation.armorFamily,
                 allocation.armorPool, allocation.armorRating,
                 allocation.armorMoveSpeedMult, allocation.armorIncomingAccuracyMult,

@@ -2,7 +2,8 @@ package com.dillon.starsectormarines.battle.ambient;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -67,8 +68,8 @@ class AmbientTaskServiceTest {
         try (BattleSimulation simulation = simulation()) {
             long actor = simulation.spawn(new EntitySpec(
                     "support marine", Faction.MARINE, UnitType.MARINE, 2, 2));
-            simulation.world().attachSecondaryWeapon(
-                    actor, MarineSecondary.ROCKET_LAUNCHER, 3);
+            simulation.world().attachSpecialEquipment(
+                    actor, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), 3);
             simulation.ambientTasks().assign(actor, oneStop(
                     AmbientActivity.PRACTICING_EQUIPMENT,
                     AmbientThreatPolicy.NONE, 0f));

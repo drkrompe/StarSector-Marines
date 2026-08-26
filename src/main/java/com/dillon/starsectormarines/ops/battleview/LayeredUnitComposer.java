@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.battle.appearance.LayeredWeaponFamily;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerPose;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerTransform;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.marine.EquipmentLayerDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
@@ -29,27 +28,13 @@ final class LayeredUnitComposer {
 
     static void emit(DrawList out, LayeredUnitAssets assets, LayeredSpriteCache head,
                      WeaponDef primary, boolean drawWeaponLayers,
-                     MarineSecondary special,
-                     EquipmentGrade equipmentGrade,
+                     SpecialEquipmentDef special, EquipmentGrade equipmentGrade,
                      float actorX, float actorY, float shoulderPx,
                      float facingDeg, float headLookDeg, float locomotionPhase,
                      float weaponPhase, int pose, int flags, float alpha) {
         emit(out, assets, head, primary, drawWeaponLayers, special, equipmentGrade,
                 actorX, actorY, shoulderPx, facingDeg, headLookDeg, locomotionPhase,
                 weaponPhase, pose, flags, alpha, null);
-    }
-
-    static void emit(DrawList out, LayeredUnitAssets assets, LayeredSpriteCache head,
-                     WeaponDef primary, boolean drawWeaponLayers,
-                     MarineSecondary special, EquipmentGrade equipmentGrade,
-                     float actorX, float actorY, float shoulderPx,
-                     float facingDeg, float headLookDeg, float locomotionPhase,
-                     float weaponPhase, int pose, int flags, float alpha,
-                     LayerPose authoredPose) {
-        emit(out, assets, head, primary, drawWeaponLayers,
-                special != null ? special.specialDef() : null, equipmentGrade,
-                actorX, actorY, shoulderPx, facingDeg, headLookDeg, locomotionPhase,
-                weaponPhase, pose, flags, alpha, authoredPose);
     }
 
     static void emit(DrawList out, LayeredUnitAssets assets, LayeredSpriteCache head,
@@ -69,27 +54,13 @@ final class LayeredUnitComposer {
 
     static void emit(SpriteEmitter out, LayeredUnitAssets assets, LayeredSpriteCache head,
                      WeaponDef primary, boolean drawWeaponLayers,
-                     MarineSecondary special,
-                     EquipmentGrade equipmentGrade,
+                     SpecialEquipmentDef special, EquipmentGrade equipmentGrade,
                      float actorX, float actorY, float shoulderPx,
                      float facingDeg, float headLookDeg, float locomotionPhase,
                      float weaponPhase, int pose, int flags, float alpha) {
         emit(out, assets, head, primary, drawWeaponLayers, special, equipmentGrade,
                 actorX, actorY, shoulderPx, facingDeg, headLookDeg, locomotionPhase,
                 weaponPhase, pose, flags, alpha, null);
-    }
-
-    static void emit(SpriteEmitter out, LayeredUnitAssets assets, LayeredSpriteCache head,
-                     WeaponDef primary, boolean drawWeaponLayers,
-                     MarineSecondary special, EquipmentGrade equipmentGrade,
-                     float actorX, float actorY, float shoulderPx,
-                     float facingDeg, float headLookDeg, float locomotionPhase,
-                     float weaponPhase, int pose, int flags, float alpha,
-                     LayerPose authoredPose) {
-        emit(out, assets, head, primary, drawWeaponLayers,
-                special != null ? special.specialDef() : null, equipmentGrade,
-                actorX, actorY, shoulderPx, facingDeg, headLookDeg, locomotionPhase,
-                weaponPhase, pose, flags, alpha, authoredPose);
     }
 
     static void emit(SpriteEmitter out, LayeredUnitAssets assets, LayeredSpriteCache head,

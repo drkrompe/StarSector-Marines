@@ -3,11 +3,12 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.marine.SpecialActivation;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.MountClass;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.render2d.ContrailStyle;
 
 import java.awt.Color;
@@ -90,7 +91,6 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
     }
 
     private static final EnumMap<TurretKind, ShotFx>      TURRET    = build(TurretKind.class,      ShotFx::deriveTurret);
-    private static final EnumMap<MarineWeapon, ShotFx>    PRIMARY   = build(MarineWeapon.class,    ShotFx::derivePrimary);
     private static final EnumMap<MechWeapon, ShotFx>      MECH      = build(MechWeapon.class,      ShotFx::deriveMech);
     /** No weapon source (detonations / legacy callers) → a faction-default tracer. */
     private static final ShotFx NO_SOURCE = new ShotFx(new Tracer(null), 0f, false, null);
@@ -121,10 +121,6 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
                 contrail);
     }
 
-    private static ShotFx derivePrimary(MarineWeapon w) {
-        return derivePrimary(w.def());
-    }
-
     private static ShotFx derivePrimary(WeaponDef weapon) {
         Body body = weapon.projectileSpritePath != null
                 ? new Sprite(weapon.projectileSpritePath, weapon.projectileVisualCells)
@@ -132,18 +128,14 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
         return new ShotFx(body, 0f, false, null);
     }
 
-    private static Bolt bolt(MarineWeapon w) {
-        return bolt(w.def());
-    }
-
     private static Bolt bolt(WeaponDef weapon) {
-        if (MarineWeapon.PULSE_RIFLE.id.equals(weapon.id)) {
+        if (WeaponRegistry.PULSE_RIFLE_ID.equals(weapon.id)) {
             return new Bolt(PULSE_BOLT_SPRITE_PATH, weapon.tracerColor, 1.0f, 0.25f);
         }
-        if (MarineWeapon.DMR.id.equals(weapon.id)) {
+        if (WeaponRegistry.DMR_ID.equals(weapon.id)) {
             return new Bolt(RAIL_NEEDLE_SPRITE_PATH, weapon.tracerColor, 1.8f, 0.16f);
         }
-        if (MarineWeapon.DRONE_PULSE.id.equals(weapon.id)) {
+        if (WeaponRegistry.DRONE_PULSE_ID.equals(weapon.id)) {
             return new Bolt(DRONE_DART_SPRITE_PATH, weapon.tracerColor, 0.65f, 0.16f);
         }
         return new Bolt(PULSE_BOLT_SPRITE_PATH, weapon.tracerColor, 1.0f, 0.22f);
@@ -152,7 +144,9 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
     /** Distinct traveling-bolt textures for cache loading; derived from effects, not carriers. */
     static Set<String> boltSpritePaths() {
         Set<String> paths = new HashSet<>();
-        for (ShotFx fx : PRIMARY.values()) {
+        for (WeaponDef weapon : WeaponRegistry.installed().all()) {
+            if (weapon.mount != MountClass.MARINE_PRIMARY) continue;
+            ShotFx fx = derivePrimary(weapon);
             if (fx.body() instanceof Bolt bolt) paths.add(bolt.spritePath());
         }
         return Set.copyOf(paths);

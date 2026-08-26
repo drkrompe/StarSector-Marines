@@ -5,7 +5,8 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.infantry.SoldierAptitude;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
@@ -111,7 +112,7 @@ class BattleFixtureJsonTest {
                 List.of(new FighterWingCommitment(FighterProfile.TALON,
                         Faction.DEFENDER, 1, 9f, 20f)));
         MarineSeatCommitment seat = new MarineSeatCommitment(
-                "marine-17", MarineWeapon.PULSE_RIFLE.id,
+                "marine-17", WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID).id,
                 EquipmentGrade.MILSPEC,
                 new SoldierProfile(SoldierAptitude.GIFTED, 321),
                 null, LayeredArmorFamily.CHARCOAL,

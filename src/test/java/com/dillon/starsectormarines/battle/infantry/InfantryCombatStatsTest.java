@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.battle.infantry;
 
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -12,23 +15,23 @@ public class InfantryCombatStatsTest {
 
     @Test
     public void fieldRifleIsARealDowngradeFromPulseIssue() {
-        assertTrue(MarineWeapon.FIELD_RIFLE.cooldown() > MarineWeapon.PULSE_RIFLE.cooldown());
-        assertTrue(MarineWeapon.FIELD_RIFLE.accuracy() < MarineWeapon.PULSE_RIFLE.accuracy());
-        assertTrue(MarineWeapon.FIELD_RIFLE.accuracyFalloff() > MarineWeapon.PULSE_RIFLE.accuracyFalloff());
-        assertEquals(1, MarineWeapon.FIELD_RIFLE.burstCount());
+        assertTrue(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID).cooldown() > WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID).cooldown());
+        assertTrue(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID).accuracy() < WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID).accuracy());
+        assertTrue(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID).accuracyFalloff() > WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID).accuracyFalloff());
+        assertEquals(1, WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID).burstCount());
         // The downgrade is in sustained output, not per-round damage: recruit
         // issue fires a heavier round precisely because a single-shot weapon
         // that also lost on damage could not kill anything (S1 measured 0
         // kills in 120 trials against an unarmored marine).
-        assertTrue(InfantryCombatStats.estimatedDps(MarineWeapon.FIELD_RIFLE,
+        assertTrue(InfantryCombatStats.estimatedDps(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID),
                         EquipmentGrade.SERVICE, SoldierProfile.REGULAR)
-                < InfantryCombatStats.estimatedDps(MarineWeapon.PULSE_RIFLE,
+                < InfantryCombatStats.estimatedDps(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID),
                         EquipmentGrade.SERVICE, SoldierProfile.REGULAR));
     }
 
     @Test
     public void serviceRegularIsTheFamilyBaseline() {
-        MarineWeapon family = MarineWeapon.PULSE_RIFLE;
+        WeaponDef family = WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID);
         SoldierProfile regular = SoldierProfile.REGULAR;
 
         assertEquals(family.range(),
@@ -48,7 +51,7 @@ public class InfantryCombatStatsTest {
         SoldierProfile green = new SoldierProfile(SoldierAptitude.LIMITED, 0);
         SoldierProfile elite = new SoldierProfile(SoldierAptitude.EXCEPTIONAL,
                 ExperienceTier.ELITE.minimumXp);
-        MarineWeapon family = MarineWeapon.DMR;
+        WeaponDef family = WeaponRegistry.require(WeaponRegistry.DMR_ID);
 
         float roughAccuracy = InfantryCombatStats.accuracy(
                 family, EquipmentGrade.SURPLUS, green);
@@ -64,24 +67,24 @@ public class InfantryCombatStatsTest {
     @Test
     public void comparisonStatsRepresentBurstOutputAndRangeFalloff() {
         assertEquals(27f, InfantryCombatStats.volleyDamage(
-                MarineWeapon.PULSE_RIFLE, EquipmentGrade.SERVICE), 1e-6f);
+                WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), EquipmentGrade.SERVICE), 1e-6f);
         assertEquals(27f, InfantryCombatStats.estimatedDps(
-                MarineWeapon.PULSE_RIFLE, EquipmentGrade.SERVICE, SoldierProfile.REGULAR), 1e-6f);
+                WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), EquipmentGrade.SERVICE, SoldierProfile.REGULAR), 1e-6f);
         assertEquals(18f, InfantryCombatStats.volleyDamage(
-                MarineWeapon.SMG, EquipmentGrade.SERVICE), 1e-6f);
+                WeaponRegistry.require(WeaponRegistry.SMG_ID), EquipmentGrade.SERVICE), 1e-6f);
         assertEquals(24f, InfantryCombatStats.estimatedDps(
-                MarineWeapon.SMG, EquipmentGrade.SERVICE, SoldierProfile.REGULAR), 1e-6f);
+                WeaponRegistry.require(WeaponRegistry.SMG_ID), EquipmentGrade.SERVICE, SoldierProfile.REGULAR), 1e-6f);
         assertEquals(46.4f, InfantryCombatStats.volleyDamage(
-                MarineWeapon.SQUAD_AUTOMATIC, EquipmentGrade.SERVICE), 1e-6f);
+                WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID), EquipmentGrade.SERVICE), 1e-6f);
         assertEquals(29f, InfantryCombatStats.estimatedDps(
-                MarineWeapon.SQUAD_AUTOMATIC, EquipmentGrade.SERVICE, SoldierProfile.REGULAR), 1e-6f);
+                WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID), EquipmentGrade.SERVICE, SoldierProfile.REGULAR), 1e-6f);
 
         float near = InfantryCombatStats.accuracyAtRangeFraction(
-                MarineWeapon.SMG, EquipmentGrade.SERVICE, SoldierProfile.REGULAR, 0.2f);
+                WeaponRegistry.require(WeaponRegistry.SMG_ID), EquipmentGrade.SERVICE, SoldierProfile.REGULAR, 0.2f);
         float middle = InfantryCombatStats.accuracyAtRangeFraction(
-                MarineWeapon.SMG, EquipmentGrade.SERVICE, SoldierProfile.REGULAR, 0.6f);
+                WeaponRegistry.require(WeaponRegistry.SMG_ID), EquipmentGrade.SERVICE, SoldierProfile.REGULAR, 0.6f);
         float maximum = InfantryCombatStats.accuracyAtRangeFraction(
-                MarineWeapon.SMG, EquipmentGrade.SERVICE, SoldierProfile.REGULAR, 1f);
+                WeaponRegistry.require(WeaponRegistry.SMG_ID), EquipmentGrade.SERVICE, SoldierProfile.REGULAR, 1f);
         assertTrue(near > middle);
         assertTrue(middle > maximum);
         assertEquals(0.17f, maximum, 1e-6f);
@@ -99,12 +102,12 @@ public class InfantryCombatStatsTest {
     public void entitySpecSeedsResolvedTieredStats() {
         SoldierProfile profile = new SoldierProfile(SoldierAptitude.GIFTED, 400);
         EntitySpec spec = new EntitySpec("u", Faction.MARINE, UnitType.MARINE, 0, 0)
-                .primaryWeapon(MarineWeapon.SMG, EquipmentGrade.MILSPEC, profile);
+                .primaryWeapon(WeaponRegistry.require(WeaponRegistry.SMG_ID), EquipmentGrade.MILSPEC, profile);
 
-        assertEquals(MarineWeapon.SMG, spec.primaryWeapon);
+        assertEquals(WeaponRegistry.require(WeaponRegistry.SMG_ID), spec.primaryWeaponDef);
         assertEquals(EquipmentGrade.MILSPEC, spec.equipmentGrade);
         assertEquals(profile, spec.soldierProfile);
-        assertEquals(InfantryCombatStats.accuracy(MarineWeapon.SMG,
+        assertEquals(InfantryCombatStats.accuracy(WeaponRegistry.require(WeaponRegistry.SMG_ID),
                 EquipmentGrade.MILSPEC, profile), spec.accuracy, 1e-6f);
     }
 }

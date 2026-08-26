@@ -6,7 +6,8 @@ import com.dillon.starsectormarines.battle.balance.TtkHarness.Measurement;
 import com.dillon.starsectormarines.battle.balance.TtkHarness.Scenario;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.ExperienceTier;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.infantry.SoldierAptitude;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -74,9 +75,9 @@ class TtkReportTest {
                 .append("50% of effective range, defender in the open, stationary shooter, no return fire.\n");
 
         List<Measurement> byWeapon = new ArrayList<>();
-        for (MarineWeapon weapon : new MarineWeapon[]{
-                MarineWeapon.FIELD_RIFLE, MarineWeapon.PULSE_RIFLE, MarineWeapon.SMG,
-                MarineWeapon.SQUAD_AUTOMATIC, MarineWeapon.DMR}) {
+        for (WeaponDef weapon : new WeaponDef[]{
+                WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID), WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), WeaponRegistry.require(WeaponRegistry.SMG_ID),
+                WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID), WeaponRegistry.require(WeaponRegistry.DMR_ID)}) {
             for (Defender defender : new Defender[]{
                     MILITIA, UNARMORED, MID_ARMOR, HEAVY_ARMOR, ALIEN, SWARM_RUNNER}) {
                 byWeapon.add(TtkHarness.measure(new Scenario(weapon, EquipmentGrade.SERVICE,
@@ -89,7 +90,7 @@ class TtkReportTest {
         List<Measurement> byGrade = new ArrayList<>();
         for (EquipmentGrade grade : EquipmentGrade.values()) {
             for (Defender defender : new Defender[]{UNARMORED, MID_ARMOR, HEAVY_ARMOR}) {
-                byGrade.add(TtkHarness.measure(new Scenario(MarineWeapon.PULSE_RIFLE, grade,
+                byGrade.add(TtkHarness.measure(new Scenario(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), grade,
                         REGULAR, defender, BASELINE_RANGE_FRACTION, Cover.OPEN), TRIALS));
             }
         }
@@ -99,7 +100,7 @@ class TtkReportTest {
         List<Measurement> byProfile = new ArrayList<>();
         for (SoldierProfile profile : new SoldierProfile[]{GREEN, REGULAR, VETERAN, ELITE}) {
             for (Defender defender : new Defender[]{UNARMORED, MID_ARMOR}) {
-                byProfile.add(TtkHarness.measure(new Scenario(MarineWeapon.PULSE_RIFLE,
+                byProfile.add(TtkHarness.measure(new Scenario(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID),
                         EquipmentGrade.SERVICE, profile, defender,
                         BASELINE_RANGE_FRACTION, Cover.OPEN), TRIALS));
             }
@@ -111,7 +112,7 @@ class TtkReportTest {
         List<Measurement> byCoverAndRange = new ArrayList<>();
         for (Cover cover : Cover.values()) {
             for (float fraction : new float[]{0.25f, 0.5f, 0.9f}) {
-                byCoverAndRange.add(TtkHarness.measure(new Scenario(MarineWeapon.PULSE_RIFLE,
+                byCoverAndRange.add(TtkHarness.measure(new Scenario(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID),
                         EquipmentGrade.SERVICE, REGULAR, UNARMORED, fraction, cover), TRIALS));
             }
         }
@@ -149,7 +150,7 @@ class TtkReportTest {
         // pulse rifle is the baseline every other table is expressed against,
         // so a row of it failing to resolve means the harness itself broke.
         for (Measurement m : byWeapon) {
-            if (m.scenario().weapon() != MarineWeapon.PULSE_RIFLE) continue;
+            if (m.scenario().weapon() != WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID)) continue;
             assertTrue(m.fullyResolved(),
                     () -> "the baseline pulse-rifle engagement should always resolve, but "
                             + describe(m) + " killed in only " + m.kills()

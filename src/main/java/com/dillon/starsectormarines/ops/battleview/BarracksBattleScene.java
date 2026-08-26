@@ -203,7 +203,7 @@ public final class BarracksBattleScene implements AutoCloseable {
                     (int) Math.floor(pose.worldY()));
             MarineLoadout.fromCatalog(UnitRole.COMBATANT, null,
                     soldier.primaryDef(), soldier.primaryGrade(), soldier.profile(),
-                    soldier.secondary() != null ? soldier.secondary().specialDef() : null,
+                    soldier.specialEquipmentDef(),
                     soldier.id(), soldier.armorDef().appearanceFamily(),
                     soldier.armorDef().armorPool(), soldier.armorDef().armorRating(),
                     soldier.armorDef().moveSpeedMult(),
