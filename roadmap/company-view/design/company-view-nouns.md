@@ -4,9 +4,8 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — separated the Mech Lab's non-selected lance overview from
-its fitting workspace, while Barracks practice now projects exact data-defined
-primary families and carried special-equipment poses through shared ambient tasks.
+Updated: 2026-08-25 — expanded the Mech Lab overview into a four-bay facility
+whose fabrication and logistics activity uses the shared ambient-task simulation.
 
 ## Purpose
 
@@ -234,10 +233,12 @@ The fitting header also provides explicit previous/next controls over the lance'
 numbered gantry pads. Reaching a vacant station clears the chassis selection and returns
 the room to its overview treatment; the asset browser remains the direct way to jump
 across lances.
-Entering the room or selecting a lance presents the wider working bay first. This
+Entering the room or selecting a lance presents the wider facility first. This
 overview has no selected chassis and therefore renders neither equipment selectors nor
 socket details; a compact four-gantry rail identifies the assigned assets without
-taking width from the room. Choosing an occupied gantry establishes the selected asset,
+taking width from the room. The camera always includes all four physical pads rather
+than adapting its crop to the occupied count, so vacancies and future assigned armor
+retain stable places. Choosing an occupied gantry establishes the selected asset,
 eases the shared camera into it without interrupting the technicians' task clock, and
 reveals the fitting controls. Selecting the already-occupied `MECH LAB` room route
 clears that selection and returns to the lance overview rather than acting as a dead
@@ -247,12 +248,13 @@ scopes the equipment catalog. The catalog may inspect fixed
 chassis, weapon, and ammunition assemblies, but exposes a commit action only when a
 real campaign inventory and install command exist.
 
-The fabrication bay is a diegetic, flat top-down ship room rather than a neutral
-diagram or pseudo-3D illustration. Its floor, walls, hazard pad, consoles, shelves,
-and crates reuse the battle renderer's indoor tileset cells. The selected mech uses
+The fabrication bay is a diegetic, flat top-down ship facility rather than a neutral
+diagram or pseudo-3D illustration. Its floor, walls, four hazard pads, registered
+industrial fixtures, service gallery, and connected cross-corridor reuse the battle
+renderer and the same room vocabulary as generated facilities. The selected mech uses
 the battle compositor's actual layer order and hull-relative mount transforms, while
-workers use real layered infantry dolls and continue flavor motion around it. Those
-actors are presentation-only and do not create a
+workers use real layered infantry dolls on shared ambient routes for welding, parts
+movement, inspection, and coordination. Those actors are presentation-only and do not create a
 second schedule, labor, inventory, or refit authority. Wide-screen layout is the
 reference composition; narrow and user-scaled layouts retain access through bounded
 scrolling rather than compressing the room until every label is simultaneously visible.

@@ -91,7 +91,7 @@
           <div id="mech-garage-stage" class="garage-stage">
             <div id="mech-garage-heading" class="garage-heading">
               <div id="mech-garage-title" class="label heading tone-edge">{garageTitle}</div>
-              <div id="mech-garage-status" class="label heading tone-muted garage-status">CREW ACTIVE  ·  FABRICATORS STANDBY</div>
+              <div id="mech-garage-status" class="label heading tone-muted garage-status">FABRICATION CREW ACTIVE  ·  LOGISTICS ROTATION</div>
             </div>
             <canvas id="mech-doll-canvas" class="mech-doll-canvas" width="900" height="520" />
             <div id="mech-overview-rail" class="{overviewRailClasses}">
