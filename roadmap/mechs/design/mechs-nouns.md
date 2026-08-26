@@ -4,8 +4,8 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — separated the lance-wide workshop overview from the
-chassis-selected fitting workspace and its equipment controls.
+Updated: 2026-08-25 — expanded the overview to the whole four-bay facility and
+its battle-owned fabrication, logistics, and inspection activity.
 
 ## Purpose
 
@@ -70,12 +70,12 @@ increasing an encounter's total armored threat.
   capacity. The renderer consumes that definition; it does not guess mount
   locations from a generic chassis shape. Future external authoring may move the
   definition out of code without changing that ownership boundary.
-- A **workshop job** is an authored presentation loop for one Mech Lab
-  technician. It owns the worker's route between storage, machinery, and a
-  gantry; dwell activity; facing; and any job-local tool or effect. The worker
-  remains a real room entity rendered by the battle unit pipeline. A workshop
-  job communicates a busy fabrication space but owns no refit duration,
-  inventory movement, or campaign outcome.
+- A **workshop task route** is a battle-owned ambient assignment for one Mech Lab
+  worker. Fabrication, parts-running, inspection, and coordination routes own the
+  actor's stations, walking, dwell activity, facing, and any task-local tool or
+  effect. The worker remains a real room entity rendered by the battle unit
+  pipeline. A workshop route communicates a busy facility but owns no refit
+  duration, inventory movement, or campaign outcome.
 - A **weapon family** owns projectile behavior and presentation; a component
   turns it into a mountable rack/arm with capacity and appearance. The gun,
   mount, and chassis remain distinct authorities.
@@ -168,9 +168,10 @@ determines the payload, not the entitlement to call it.
   but it may not approximate mount scale, pivots, absence, or above/below-chassis
   order independently. The gantry rotates that complete composition south toward
   the player; it does not rotate individual equipment layers independently.
-- The fitting room is one lance-scale garage battle scene rendered through the
+- The fitting room is one lance-scale facility battle scene rendered through the
   shared battle camera and ordered render systems. Its four striped-and-grated
-  gantry pads are real grid-aligned atlas cells and its south edge is the vehicle
+  gantry pads, service gallery, storage machinery, and connected ship corridor are
+  real grid-aligned room cells and registered fixtures; its south edge is the vehicle
   entrance. Responsive layout may change the camera's fitted cell size or choose
   a closer framing, but it may not canvas-fit the
   selected asset or distort its physical size relative to technicians, tiles,
@@ -198,10 +199,12 @@ determines the payload, not the entitlement to call it.
   battle-grid cells. Headless evidence collects the ordinary battle renderer's command
   list and substitutes only a Java2D drain; it may not invent percentage-positioned
   scenery, off-grid props, actor approximations, or a second gantry illustration.
-- The room opens on a lance-wide camera frame so all assigned assets and workshop
-  jobs remain legible. This is a non-selected state: it gives the room its full width,
-  labels all four gantries, and exposes no equipment catalog, performance strip, or
-  socket rack. Selecting an occupied gantry establishes the fitting asset and eases
+- The room opens on a facility-wide camera frame that always includes all four
+  physical pads—including vacant ones—plus the adjacent service and circulation
+  space. The camera does not crop to the number of assigned assets. This is a
+  non-selected state: it gives the room its full width, labels all four gantries,
+  and exposes no equipment catalog, performance strip, or socket rack. Selecting
+  an occupied gantry establishes the fitting asset and eases
   the same battle camera into it; only then does the fitting workspace reveal those
   chassis-scoped controls. Returning through the current Mech Lab room route clears
   that selection and restores the overview. No camera transition moves, respawns,

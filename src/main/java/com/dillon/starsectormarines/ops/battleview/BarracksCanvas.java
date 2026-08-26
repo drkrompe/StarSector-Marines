@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.function.Supplier;
 import java.util.function.DoubleSupplier;
 
-/** One selected squad rendered as a bounded, non-advancing battle scene. */
+/** One selected squad rendered from its bounded shipboard battle scene. */
 public final class BarracksCanvas implements CanvasProducer {
 
     private static final Color BACKGROUND = new Color(0x08, 0x0E, 0x15);

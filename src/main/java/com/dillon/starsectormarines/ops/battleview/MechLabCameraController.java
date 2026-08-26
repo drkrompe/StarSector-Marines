@@ -3,8 +3,8 @@ package com.dillon.starsectormarines.ops.battleview;
 /** Eased presentation camera for the wide Mech Lab and its focused fitting view. */
 public final class MechLabCameraController {
 
-    static final float WIDE_ZOOM_NOTCHES = 1.25f;
-    static final float FITTING_ZOOM_NOTCHES = 5f;
+    static final float WIDE_ZOOM_NOTCHES = 0f;
+    static final float FITTING_ZOOM_NOTCHES = 6.25f;
     static final float TRANSITION_SECONDS = 0.72f;
 
     private CameraPose current = widePose(0);
@@ -41,20 +41,8 @@ public final class MechLabCameraController {
     }
 
     static CameraPose widePose(int assignedAssets) {
-        int count = Math.max(0, Math.min(MechLabSceneLayout.GANTRIES.size(), assignedAssets));
-        if (count == 0) {
-            return new CameraPose(MechLabBattleScene.GRID_WIDTH * 0.5f,
-                    MechLabBattleScene.GRID_HEIGHT * 0.5f, WIDE_ZOOM_NOTCHES);
-        }
-        float firstX = MechLabBattleScene.mechWorldX(0);
-        float lastX = MechLabBattleScene.mechWorldX(count - 1);
-        float zoomNotches = switch (count) {
-            case 1, 2 -> 3.2f;
-            case 3 -> 2.5f;
-            default -> WIDE_ZOOM_NOTCHES;
-        };
-        return new CameraPose((firstX + lastX) * 0.5f,
-                MechLabBattleScene.GRID_HEIGHT * 0.5f, zoomNotches);
+        return new CameraPose(MechLabBattleScene.GRID_WIDTH * 0.5f,
+                MechLabBattleScene.GRID_HEIGHT * 0.5f, WIDE_ZOOM_NOTCHES);
     }
 
     static CameraPose fittingPose(int gantryIndex) {
