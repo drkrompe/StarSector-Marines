@@ -4,7 +4,8 @@ Status: ACTIVE
 
 Written: 2026-08-25
 
-Updated: 2026-08-25 — documented the required marine-primary held-sprite family.
+Updated: 2026-08-25 — documented live compatibility acceptance and the required
+marine-primary held-sprite family.
 
 ## Provider entry point
 
@@ -141,3 +142,18 @@ presentation data supply ballistics, audio, sprites, and carrier layers.
 Removing the provider repairs unresolved player primaries to
 `weapon.field-rifle`, armor to `armor.field-fatigues`, and unresolved special
 equipment to an empty slot, with a warning rather than a corrupt roster.
+
+## Compatibility acceptance
+
+Headless registry tests prove manifest validation, deterministic merge, and
+provenance diagnostics. A live compatibility pass additionally proves the
+boundary those tests cannot replace: Starsector's enabled-mod discovery order
+and provider-scoped resource loading. That pass uses two separately rooted test
+mods and must demonstrate both an additive union and a duplicate-id failure that
+names the first and second provider ids and paths.
+
+The live pass launches the installed game executable and is therefore explicit,
+isolated acceptance work rather than part of the ordinary build. It redirects
+all writable game paths into build output. One accepted pass is sufficient until
+the supported Starsector version or the discovery/resource-loading boundary
+changes.

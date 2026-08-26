@@ -104,6 +104,14 @@ Do not run builds or leave generated task files there.
   (requires `ffmpeg` on `PATH`) and syncs `mod/` into
   `<starsectorDir>/mods/StarsectorMarines/`.
 - `gradlew.bat runStarsector` → deploys then launches via `starsector-core/starsector.bat`.
+- `gradlew.bat prepareCatalogSmoke` → stages the additive two-provider catalog
+  acceptance fixture without launching Starsector. Pass
+  `-PcatalogSmokeMode=collision` to stage the duplicate-id variant.
+- `gradlew.bat catalogSmokeLive` → explicitly launches the installed Starsector
+  executable against the isolated staged fixture, captures application-load
+  evidence, and terminates only its launched process tree. It redirects mods,
+  saves, screenshots, and logs under `build/catalog-smoke/`; use only when a
+  live game-runtime acceptance pass is intentionally required.
 
 ### Visual snapshot workflow
 
