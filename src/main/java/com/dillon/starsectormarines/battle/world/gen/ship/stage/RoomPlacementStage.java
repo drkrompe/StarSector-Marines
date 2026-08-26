@@ -66,6 +66,14 @@ public final class RoomPlacementStage implements GenStage {
      * running along one and unzipping the compartment behind it.
      */
     private static final int WALL_COST = 8;
+    /**
+     * Surcharge on a stretch of route that could only ever be single file. Two
+     * abreast is the width a squad can actually use — one wide is a movement
+     * trap, and a door one cell across is the same trap at its worst place — so
+     * a route with room to open out is preferred, though not so strongly that a
+     * passage will tear through structure to get it.
+     */
+    private static final int NARROW_PENALTY = 3;
 
     /** Padded by one cell each side, so a room's bulkhead ring never falls off the array. */
     private boolean[][] hull;
@@ -260,7 +268,14 @@ public final class RoomPlacementStage implements GenStage {
     }
 
     /** A door through one bulkhead cell, and the passage cells cut to reach it. */
-    private record Access(int doorX, int doorY, List<int[]> passage) {}
+    /**
+     * @param doorX door cell, in the bulkhead of the room being placed
+     * @param doorY door cell, in the bulkhead of the room being placed
+     * @param dirX outward step from the door to the cell it opens onto
+     * @param dirY outward step from the door to the cell it opens onto
+     * @param passage cells cut to reach circulation, nearest circulation first
+     */
+    private record Access(int doorX, int doorY, int dirX, int dirY, List<int[]> passage) {}
 
     /**
      * How this room joins the rest of the deck. A room whose bulkhead already
@@ -278,7 +293,8 @@ public final class RoomPlacementStage implements GenStage {
             int outsideX = candidate.x() + doorway[2];
             int outsideY = candidate.y() + doorway[3];
             if (!inBounds(outsideX, outsideY) || !passage[outsideX + 1][outsideY + 1]) continue;
-            return new Access(candidate.x() + doorway[0], candidate.y() + doorway[1], List.of());
+            return new Access(candidate.x() + doorway[0], candidate.y() + doorway[1],
+                    doorway[2] - doorway[0], doorway[3] - doorway[1], List.of());
         }
         return mayTunnel ? cutPassage(candidate) : null;
     }
@@ -320,6 +336,7 @@ public final class RoomPlacementStage implements GenStage {
                 int ny = cell[1] + step[1];
                 int stepCost = stepCost(candidate, nx, ny);
                 if (stepCost < 0) continue;
+                if (!canRunAbreast(candidate, nx, ny, step[1], step[0])) stepCost += NARROW_PENALTY;
                 int next = cell[2] + stepCost;
                 if (next >= cost[nx][ny]) continue;
                 cost[nx][ny] = next;
@@ -361,6 +378,29 @@ public final class RoomPlacementStage implements GenStage {
         return WALL_COST;
     }
 
+    /** Whether a passage through this cell could take a second cell alongside it. */
+    private boolean canRunAbreast(Candidate candidate, int x, int y, int perpX, int perpY) {
+        return widenTarget(candidate, x, y, perpX, perpY, false)
+                || widenTarget(candidate, x, y, -perpX, -perpY, false);
+    }
+
+    /**
+     * Whether the cell beside {@code (x, y)} can carry the second lane of a
+     * passage. Open deck always can, and deck that is already walkable is
+     * already wide. Bulkhead is offered only while the passage is crossing one:
+     * a two-cell hatch through a wall is a door, but a passage that kept eating
+     * the bulkhead it runs alongside would unzip the compartment behind it.
+     */
+    private boolean widenTarget(Candidate candidate, int x, int y,
+                                int perpX, int perpY, boolean crossing) {
+        int nx = x + perpX;
+        int ny = y + perpY;
+        if (!inBounds(nx, ny)) return false;
+        if (floor[nx + 1][ny + 1]) return true;
+        if (claimed[nx + 1][ny + 1] && !crossing) return false;
+        return stepCost(candidate, nx, ny) >= 0;
+    }
+
     /** Walkable, and part of a room rather than part of the circulation. */
     private boolean isRoomFloor(int x, int y) {
         return inBounds(x, y) && floor[x + 1][y + 1] && !passage[x + 1][y + 1];
@@ -394,7 +434,11 @@ public final class RoomPlacementStage implements GenStage {
             int from = cameFrom[x][y];
             if (from <= -2) {
                 int door = -(from + 2);
-                return new Access(door / height, door % height, List.copyOf(passage));
+                int doorX = door / height;
+                int doorY = door % height;
+                // The search started on the cell just outside the door, so the
+                // outward direction is simply where that origin sits from it.
+                return new Access(doorX, doorY, x - doorX, y - doorY, List.copyOf(passage));
             }
             x = from / height;
             y = from % height;
@@ -412,29 +456,74 @@ public final class RoomPlacementStage implements GenStage {
             int y = candidate.y() + cell[1];
             if (inBounds(x, y)) claimed[x + 1][y + 1] = true;
         }
-        for (int[] cell : access.passage()) {
+        List<int[]> route = access.passage();
+        int side = 0;
+        for (int i = 0; i < route.size(); i++) {
+            int[] cell = route.get(i);
+            boolean crossing = claimed[cell[0] + 1][cell[1] + 1];
             carve(ctx, cell[0], cell[1], RoomPurpose.CORRIDOR, GroundKind.INDOOR);
             passage[cell[0] + 1][cell[1] + 1] = true;
-            widen(ctx, cell[0], cell[1]);
+            int[] heading = i + 1 < route.size()
+                    ? new int[]{ route.get(i + 1)[0] - cell[0], route.get(i + 1)[1] - cell[1] }
+                    : new int[]{ access.dirX(), access.dirY() };
+            side = widen(ctx, candidate, cell[0], cell[1], heading[1], heading[0], side, crossing);
         }
         // The door itself is a threshold, not circulation: leaving it out of the
         // passage mask is what stops the next room treating it as a hallway.
         carve(ctx, access.doorX(), access.doorY(), RoomPurpose.CORRIDOR, GroundKind.STRIPED);
+        widenDoorway(ctx, candidate, access);
         rebuildSums();
     }
 
     /**
-     * Give a cut passage a second cell wherever the deck can spare one. Single
-     * file is a movement trap for a squad, and the widened cell is always
-     * unclaimed deck, so this never eats a bulkhead.
+     * Open one cell of a passage out to two abreast, across the direction of
+     * travel rather than into whichever neighbour happened to be free —
+     * widening along the route only thickens it into a blob. The side that
+     * worked last time is tried first, so a hall reads as one ribbon of
+     * consistent width instead of alternating flanks down its length.
+     *
+     * @return the side actually used, to carry into the next cell
      */
-    private void widen(GenContext ctx, int x, int y) {
-        for (int[] step : STEPS) {
-            int nx = x + step[0];
-            int ny = y + step[1];
-            if (!inBounds(nx, ny) || claimed[nx + 1][ny + 1]) continue;
-            carve(ctx, nx, ny, RoomPurpose.CORRIDOR, GroundKind.INDOOR);
-            passage[nx + 1][ny + 1] = true;
+    private int widen(GenContext ctx, Candidate candidate, int x, int y,
+                      int perpX, int perpY, int preferredSide, boolean crossing) {
+        int[] order = preferredSide == 0
+                ? new int[]{ 1, -1 }
+                : new int[]{ preferredSide, -preferredSide };
+        for (int side : order) {
+            if (!widenTarget(candidate, x, y, perpX * side, perpY * side, crossing)) continue;
+            int nx = x + perpX * side;
+            int ny = y + perpY * side;
+            if (!floor[nx + 1][ny + 1]) {
+                carve(ctx, nx, ny, RoomPurpose.CORRIDOR, GroundKind.INDOOR);
+                passage[nx + 1][ny + 1] = true;
+            }
+            return side;
+        }
+        return preferredSide;
+    }
+
+    /**
+     * Take the door to two cells where the wall and the space beyond allow it.
+     * A compartment berthing a watch behind a one-cell threshold bottlenecks
+     * everything that happens at it. The second cell has to be this room's own
+     * bulkhead and has to open onto the same circulation, so this widens the
+     * door rather than punching a second one somewhere else in the wall.
+     */
+    private void widenDoorway(GenContext ctx, Candidate candidate, Access access) {
+        int perpX = access.dirY();
+        int perpY = access.dirX();
+        for (int side : new int[]{ 1, -1 }) {
+            int nx = access.doorX() + perpX * side;
+            int ny = access.doorY() + perpY * side;
+            if (!inBounds(nx, ny) || floor[nx + 1][ny + 1]) continue;
+            int localX = nx - candidate.x();
+            int localY = ny - candidate.y();
+            if (candidate.shape().contains(localX, localY)) continue;
+            if (!candidate.shape().contains(localX - access.dirX(), localY - access.dirY())) continue;
+            int outsideX = nx + access.dirX();
+            int outsideY = ny + access.dirY();
+            if (!inBounds(outsideX, outsideY) || !floor[outsideX + 1][outsideY + 1]) continue;
+            carve(ctx, nx, ny, RoomPurpose.CORRIDOR, GroundKind.STRIPED);
             return;
         }
     }
