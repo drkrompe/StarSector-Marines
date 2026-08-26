@@ -18,6 +18,7 @@ import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
+import com.dillon.starsectormarines.battle.command.AssaultSearchSnapshot;
 import com.dillon.starsectormarines.battle.command.SabotageSiteSnapshot;
 import com.dillon.starsectormarines.battle.command.SabotageDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.influence.CommanderContact;
@@ -174,6 +175,7 @@ public final class SquadStateDumper {
         o.put("commander", buildCommanderJson(
                 squad, commander, commandDirective, sim));
         o.put("conquestCommand", buildConquestCommandJson(squad, commander, sim));
+        o.put("assaultCommand", buildAssaultCommandJson(squad, commander, sim));
         o.put("sabotageCommand", buildSabotageCommandJson(squad, commander, sim));
         o.put("sabotageDefenseCommand", buildSabotageDefenseCommandJson(
                 squad, commander, sim));
@@ -520,6 +522,57 @@ public final class SquadStateDumper {
             sites.put(row);
         }
         out.put("sites", sites);
+        return out;
+    }
+
+    private static Object buildAssaultCommandJson(
+            Squad squad, CommanderSnapshot<?> commander, BattleSimulation sim)
+            throws Exception {
+        AssaultSearchSnapshot snapshot = commander != null
+                && commander.detail() instanceof AssaultSearchSnapshot assault
+                ? assault : null;
+        if (snapshot == null) return JSONObject.NULL;
+        JSONObject out = new JSONObject();
+        out.put("tick", snapshot.tick());
+        out.put("ageTicks", snapshot.tick() >= 0
+                ? Math.max(0, sim.simTickIndex - snapshot.tick()) : -1);
+        out.put("influenceTick", snapshot.influenceTick());
+        out.put("perspective", snapshot.perspective().name());
+        out.put("phase", snapshot.phase().name());
+        out.put("searchPass", snapshot.searchPass());
+        AssaultSearchSnapshot.SquadDirective directive =
+                snapshot.directiveFor(squad.id);
+        if (directive == null) {
+            out.put("squadDirective", JSONObject.NULL);
+        } else {
+            JSONObject row = new JSONObject();
+            row.put("sectorIndex", directive.sectorIndex());
+            row.put("reason", directive.reason().name());
+            row.put("assignmentKind", directive.assignmentKind() != null
+                    ? directive.assignmentKind().name() : JSONObject.NULL);
+            row.put("targetCellX", directive.targetCellX());
+            row.put("targetCellY", directive.targetCellY());
+            out.put("squadDirective", row);
+        }
+        JSONArray sectors = new JSONArray();
+        for (AssaultSearchSnapshot.SectorState sector : snapshot.sectors()) {
+            JSONObject row = new JSONObject();
+            row.put("index", sector.index());
+            row.put("minCellX", sector.minCellX());
+            row.put("minCellY", sector.minCellY());
+            row.put("width", sector.width());
+            row.put("height", sector.height());
+            row.put("status", sector.status().name());
+            row.put("visitedLegs", sector.visitedLegs());
+            row.put("totalLegs", sector.totalLegs());
+            row.put("believedContacts", sector.believedContacts());
+            row.put("freshestContactTick", sector.freshestContactTick());
+            row.put("assignedSquads", sector.assignedSquads());
+            row.put("leadTargetCellX", sector.leadTargetCellX());
+            row.put("leadTargetCellY", sector.leadTargetCellY());
+            sectors.put(row);
+        }
+        out.put("sectors", sectors);
         return out;
     }
 
