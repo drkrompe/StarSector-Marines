@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
@@ -201,6 +202,8 @@ public class BattleSprites {
     public SpriteAPI iconAlarm()                   { return iconAlarm; }
     public SpriteAPI iconDanger()                  { return iconDanger; }
     public SpriteAPI iconStar()                    { return iconStar; }
+    /** Authored pose authority; overridable by tooling that loads assets off disk. */
+    public UnitLayerLayouts unitLayerLayouts()     { return UnitLayerLayouts.get(); }
 
     // =========================================================================
     // Ensure methods (moved verbatim from BattleScreen; batch lines deleted)

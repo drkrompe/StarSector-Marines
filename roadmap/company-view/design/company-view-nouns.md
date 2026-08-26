@@ -4,9 +4,8 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — separated the read-only shipboard Barracks from the
-Fleet Armory's deliberate inspect/edit workflow and grounded its quarters in the
-same bounded battle-renderer scene vocabulary as the Mech Lab.
+Updated: 2026-08-25 — moved Barracks room actors into its bounded battle
+simulation and made live and headless views consume the same render commands.
 
 ## Purpose
 
@@ -279,6 +278,12 @@ may continue as presentation motion. WIA marines retain their named muster bille
 recovery clock but are not fabricated as healthy room actors. Stationed squads leave
 their shipboard quarters empty, and vacancies remain explicit. None of those projections
 advances campaign time or mutates roster state.
+
+Room actors are real entities in that bounded simulation, not separately painted
+portraits placed over a tile screenshot. Live Starsector rendering and deterministic
+headless evidence collect the same `GROUND + DOODADS` and `UNITS` command passes; only
+the final graphics drain changes. This keeps the snapshot useful as scene-composition
+proof without giving tooling a second barracks layout or appearance implementation.
 
 ## Deployment identity
 

@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.ui.BitmapFont;
 import com.dillon.starsectormarines.ui.retained.CanvasBlend;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.CanvasMetrics;
+import com.dillon.starsectormarines.ui.retained.CanvasHostPass;
+import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
 import com.dillon.starsectormarines.ui.retained.CanvasSpriteRegion;
 import com.dillon.starsectormarines.ui.retained.Rect;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
@@ -43,13 +45,25 @@ import java.util.Map;
 public final class HeadlessUiRenderer {
 
     private final ResourceStore resources;
+    private final HeadlessHostPassRenderer hostPassRenderer;
 
     public HeadlessUiRenderer(Path... resourceRoots) {
         this(List.of(resourceRoots));
     }
 
     public HeadlessUiRenderer(List<Path> resourceRoots) {
+        this(resourceRoots, null);
+    }
+
+    public HeadlessUiRenderer(List<Path> resourceRoots,
+                              HeadlessHostPassRenderer hostPassRenderer) {
         resources = new ResourceStore(resourceRoots);
+        this.hostPassRenderer = hostPassRenderer;
+    }
+
+    public HeadlessUiRenderer(HeadlessHostPassRenderer hostPassRenderer,
+                              Path... resourceRoots) {
+        this(List.of(resourceRoots), hostPassRenderer);
     }
 
     public BufferedImage render(UiDocument document, int width, int height) {
@@ -92,7 +106,8 @@ public final class HeadlessUiRenderer {
         Graphics2D graphics = output.createGraphics();
         configure(graphics);
         graphics.scale(deviceScale, deviceScale);
-        document.render(new RasterTarget(graphics, resources, deviceScale), alphaMult);
+        document.render(new RasterTarget(graphics, resources, hostPassRenderer,
+                deviceScale), alphaMult);
         graphics.dispose();
         return output;
     }
@@ -122,13 +137,16 @@ public final class HeadlessUiRenderer {
     private static final class RasterTarget implements UiPaintTarget {
         private final Graphics2D graphics;
         private final ResourceStore resources;
+        private final HeadlessHostPassRenderer hostPassRenderer;
         private final float devicePixelRatio;
         private Shape initialClip;
 
         private RasterTarget(Graphics2D graphics, ResourceStore resources,
+                             HeadlessHostPassRenderer hostPassRenderer,
                              float devicePixelRatio) {
             this.graphics = graphics;
             this.resources = resources;
+            this.hostPassRenderer = hostPassRenderer;
             this.devicePixelRatio = devicePixelRatio;
         }
 
@@ -183,7 +201,7 @@ public final class HeadlessUiRenderer {
         public CanvasContext canvasContext(CanvasMetrics metrics, Rect visibleBounds,
                                            float alphaMult) {
             return new RasterCanvasContext(graphics, resources, metrics,
-                    visibleBounds, alphaMult);
+                    visibleBounds, alphaMult, hostPassRenderer);
         }
 
         private void withAlpha(Color color, float alphaMult, Runnable draw) {
@@ -198,13 +216,16 @@ public final class HeadlessUiRenderer {
     private static final class RasterCanvasContext extends CanvasContext {
         private final Graphics2D graphics;
         private final ResourceStore resources;
+        private final HeadlessHostPassRenderer hostPassRenderer;
 
         private RasterCanvasContext(Graphics2D graphics, ResourceStore resources,
                                     CanvasMetrics metrics, Rect visibleBounds,
-                                    float alphaMult) {
+                                    float alphaMult,
+                                    HeadlessHostPassRenderer hostPassRenderer) {
             super(metrics, visibleBounds, alphaMult);
             this.graphics = graphics;
             this.resources = resources;
+            this.hostPassRenderer = hostPassRenderer;
         }
 
         @Override
@@ -262,6 +283,7 @@ public final class HeadlessUiRenderer {
             graphics.rotate(Math.toRadians(-angleDegrees));
             graphics.scale(width * metrics.scaleX() / image.getWidth(),
                     height * metrics.scaleY() / image.getHeight());
+            graphics.scale(region.flipX() ? -1d : 1d, region.flipY() ? -1d : 1d);
             float opacity = clampAlpha(tint.getAlpha() / 255f * alphaMult());
             graphics.setComposite(blend == CanvasBlend.ADDITIVE
                     ? new AdditiveComposite(opacity)
@@ -269,6 +291,16 @@ public final class HeadlessUiRenderer {
             graphics.drawImage(image, -image.getWidth() / 2, -image.getHeight() / 2, null);
             graphics.setComposite(composite);
             graphics.setTransform(transform);
+        }
+
+        @Override
+        protected boolean drawHostPass(CanvasHostPass pass) {
+            if (hostPassRenderer == null) return false;
+            CanvasMetrics metrics = metrics();
+            CanvasHostViewport viewport = new CanvasHostViewport(
+                    0f, 0f, metrics.surfaceWidth(), metrics.surfaceHeight(),
+                    metrics.surfaceWidth(), metrics.surfaceHeight());
+            return hostPassRenderer.draw(pass, this, viewport, alphaMult());
         }
 
         private static BufferedImage sourceRegion(BufferedImage source,

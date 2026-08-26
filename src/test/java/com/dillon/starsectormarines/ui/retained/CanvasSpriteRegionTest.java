@@ -15,6 +15,8 @@ class CanvasSpriteRegionTest {
         assertEquals(0.5f, frame.y());
         assertEquals(0.25f, frame.width());
         assertEquals(0.25f, frame.height());
+        assertEquals(new CanvasSpriteRegion(0.25f, 0.5f, 0.25f, 0.25f,
+                false, true), frame.flippedVertically());
     }
 
     @Test
