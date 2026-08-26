@@ -52,6 +52,7 @@ public final class CommandTraceAnalyzer {
             int unassignedSquadTicks,
             int unreachableSquadPulses,
             int noActionableSquadPulses,
+            int distantCaptureDeferredSquadPulses,
             long reserveSquadTicks,
             List<Integer> publishedMobilizationLatenciesTicks,
             int unmobilizedThreatEpisodes,
@@ -80,7 +81,7 @@ public final class CommandTraceAnalyzer {
                     rejectedProposals, stabilityHolds,
                     unassignedSquadPulses, unassignedSquadTicks,
                     unreachableSquadPulses, noActionableSquadPulses,
-                    reserveSquadTicks, mobilizationLatencies,
+                    0, reserveSquadTicks, mobilizationLatencies,
                     unmobilizedThreatEpisodes, peakTrackShare,
                     PhysicalProgressMetrics.empty());
         }
@@ -214,6 +215,8 @@ public final class CommandTraceAnalyzer {
                         metrics.unreachableSquadPulses());
                 numberField(out, "noActionableSquadPulses",
                         metrics.noActionableSquadPulses());
+                numberField(out, "distantCaptureDeferredSquadPulses",
+                        metrics.distantCaptureDeferredSquadPulses());
                 longField(out, "reserveSquadTicks",
                         metrics.reserveSquadTicks());
                 out.append(",\"publishedMobilizationLatenciesTicks\":[");
@@ -341,6 +344,7 @@ public final class CommandTraceAnalyzer {
         int unassignedTicks = 0;
         int unreachablePulses = 0;
         int noActionablePulses = 0;
+        int distantCaptureDeferredPulses = 0;
         long reserveTicks = 0;
         int peakShare = 0;
         Map<Integer, ThreatState> threats = new HashMap<>();
@@ -400,6 +404,10 @@ public final class CommandTraceAnalyzer {
             for (int i = 0; i < actions.length(); i++) {
                 JSONObject action = actions.getJSONObject(i);
                 String reason = action.getString("reason");
+                if (!baseline && action.optBoolean(
+                        "distantCaptureDeferred", false)) {
+                    distantCaptureDeferredPulses++;
+                }
                 if ("NO_REACHABLE_COMPOUND_TARGET".equals(reason)) {
                     if (!baseline) {
                         unreachablePulses++;
@@ -479,7 +487,8 @@ public final class CommandTraceAnalyzer {
         return new FactionMetrics(samples.size(), retargets, releases,
                 reissues, rejected, stabilityHolds, unassignedPulses,
                 unassignedTicks, unreachablePulses, noActionablePulses,
-                reserveTicks, latencies, unanswered, peakShare, physical);
+                distantCaptureDeferredPulses, reserveTicks, latencies,
+                unanswered, peakShare, physical);
     }
 
     private static PhysicalProgressMetrics analyzePhysicalProgress(
@@ -937,7 +946,8 @@ public final class CommandTraceAnalyzer {
                     }
                     trace.headerSeen = true;
                     int schemaVersion = row.getInt("schemaVersion");
-                    if (schemaVersion != 2 && schemaVersion != 3) {
+                    if (schemaVersion != 2 && schemaVersion != 3
+                            && schemaVersion != 4) {
                         throw new IllegalArgumentException(
                                 "Unsupported command trace schemaVersion: "
                                         + schemaVersion);
