@@ -37,6 +37,22 @@ class MechLabBattleSceneTest {
     }
 
     @Test
+    void wideCameraKeepsTheEntireLanceInsideTheWorkshopView() {
+        BattleCamera camera = MechLabBattleScene.cameraForSurface(
+                900f, 520f, MechLabCameraController.widePose(4));
+
+        float first = camera.cellToScreenX(MechLabBattleScene.mechWorldX(0));
+        float last = camera.cellToScreenX(MechLabBattleScene.mechWorldX(3));
+        assertTrue(first > 0f);
+        assertTrue(last < 900f);
+        assertTrue(last - first > 600f);
+        assertEquals(camera.cellPxSize(),
+                camera.cellToScreenX(2f) - camera.cellToScreenX(1f), 1e-4f);
+        assertEquals(camera.cellPxSize(),
+                camera.cellToScreenY(2f) - camera.cellToScreenY(1f), 1e-4f);
+    }
+
+    @Test
     void garageIsARealBattleSceneWithFourGantryPadsAndLanceDolls() {
         List<MechVariant> variants = List.of(
                 MechVariant.BULWARK, MechVariant.HOUND,

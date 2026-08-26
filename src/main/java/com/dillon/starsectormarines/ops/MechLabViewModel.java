@@ -29,6 +29,7 @@ public final class MechLabViewModel {
     private final MutableSignal<String> selectedMechId;
     private final MutableSignal<Integer> selectedGantry;
     private final MutableSignal<SocketId> selectedSlot;
+    private final MutableSignal<Boolean> fittingFocused;
     private final MutableSignal<Boolean> assetPickerOpen;
     private final MutableSignal<String> feedbackText;
     private final MutableSignal<String> feedbackClasses;
@@ -61,6 +62,7 @@ public final class MechLabViewModel {
         selectedMechId = reactor.signal(initialMech != null ? initialMech.id() : null);
         selectedGantry = reactor.signal(0);
         selectedSlot = reactor.signal(SocketId.MINI_FAB);
+        fittingFocused = reactor.signal(false);
         assetPickerOpen = reactor.signal(false);
         feedbackText = reactor.signal(
                 "Select a location on the doll. Only stocked bay hardware can be committed.");
@@ -124,11 +126,15 @@ public final class MechLabViewModel {
     public Runnable closeAssetPickerAction() { return this::closeAssetPicker; }
     public Runnable previousGantryAction() { return this::previousGantry; }
     public Runnable nextGantryAction() { return this::nextGantry; }
+    public Runnable overviewAction() { return this::showLanceOverview; }
     public Signal<String> feedbackText() { return feedbackText; }
     public Signal<String> feedbackClasses() { return feedbackClasses; }
 
     /** Current authored fitting socket; shared with the physical room overlay. */
     public SocketId selectedSocket() { return selectedSlot.get(); }
+
+    /** Whether the garage camera should frame the selected asset for fitting. */
+    public boolean fittingFocused() { return fittingFocused.get(); }
 
     /** Current preview identity; the canvas deliberately reads no mutable battle state. */
     public MechVariant selectedVariant() {
@@ -160,6 +166,8 @@ public final class MechLabViewModel {
         }
         CampaignMech mech = mechAt(squad, selectedGantryIndex());
         selectedMechId.set(mech != null ? mech.id() : null);
+        fittingFocused.set(false);
+        assetPickerOpen.set(false);
         revision.update(value -> value + 1);
     }
 
@@ -310,6 +318,7 @@ public final class MechLabViewModel {
         selectedMechId.set(mech != null ? mech.id() : null);
         selectedGantry.set(0);
         selectedSlot.set(SocketId.MINI_FAB);
+        fittingFocused.set(false);
         feedbackText.set(squad.displayName() + " is now the active Mech Support lance.");
         feedbackClasses.set("mech-lab-feedback tone-good surface-dark");
         revision.update(value -> value + 1);
@@ -326,6 +335,7 @@ public final class MechLabViewModel {
         }
         selectedMechId.set(mechId);
         selectedSlot.set(SocketId.MINI_FAB);
+        fittingFocused.set(false);
         assetPickerOpen.set(false);
         feedbackText.set("Inspecting " + squad.mechById(mechId).displayName()
                 + ". No campaign hardware changed.");
@@ -347,6 +357,7 @@ public final class MechLabViewModel {
         selectedGantry.set(index);
         selectedMechId.set(mech != null ? mech.id() : null);
         selectedSlot.set(SocketId.MINI_FAB);
+        fittingFocused.set(false);
         assetPickerOpen.set(false);
         feedbackText.set(mech != null
                 ? "Gantry " + String.format(Locale.ROOT, "%02d", index + 1)
@@ -358,21 +369,31 @@ public final class MechLabViewModel {
 
     private void openAssetPicker() {
         assetPickerOpen.set(true);
+        fittingFocused.set(false);
         feedbackText.set("Choose a support lance and assigned asset to open its gantry.");
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
     }
 
     private void closeAssetPicker() {
         assetPickerOpen.set(false);
+        fittingFocused.set(false);
         feedbackText.set("Returned to the fitting gantry. No campaign hardware changed.");
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
     }
 
     private void selectSlot(SocketId slot) {
         selectedSlot.set(slot);
+        fittingFocused.set(true);
         feedbackText.set(slot.label() + " selected. " + (slot == SocketId.MINI_FAB
                 ? "Compatible fleet stock is ready for refit."
                 : "Inspection only; this hardware has no campaign refit authority yet."));
+        feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
+    }
+
+    private void showLanceOverview() {
+        assetPickerOpen.set(false);
+        fittingFocused.set(false);
+        feedbackText.set("Lance overview restored. Select a fitting location to inspect its gantry.");
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
     }
 
