@@ -115,6 +115,7 @@ public final class FleetArmoryOverviewScreen implements Screen {
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.ARMORY,
                 dismissDialog,
                 () -> context.goTo(ScreenId.COMPANY_HQ),
+                () -> context.goTo(ScreenId.BARRACKS),
                 () -> { },
                 () -> context.goTo(ScreenId.MECH_LAB));
     }
@@ -122,8 +123,8 @@ public final class FleetArmoryOverviewScreen implements Screen {
     private static void requireWiredElements(MarkupInstance component) {
         for (String id : List.of(
                 "fleet-armory-overview-root", "marine-ops-page-nav",
-                "page-nav-return", "page-nav-hq", "page-nav-armory",
-                "page-nav-mech-lab",
+                "page-nav-return", "page-nav-hq", "page-nav-barracks",
+                "page-nav-armory", "page-nav-mech-lab",
                 "company-overview-intro", "company-overview-summary",
                 "company-list")) {
             component.requireElement(id);
