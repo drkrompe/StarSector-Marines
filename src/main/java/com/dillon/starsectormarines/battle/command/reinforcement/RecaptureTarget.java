@@ -35,9 +35,9 @@ public final class RecaptureTarget {
      * confirmed arrived — prevents duplicate dispatch while a squad is en
      * route. Cleared automatically when an alive defender is again assigned to
      * the node (the replacement arrived), so a subsequent wipe re-opens it; or
-     * by the {@link RecaptureTargetSystem#DISPATCH_TIMEOUT_TICKS} safety net
-     * when no arrival is ever observed (the dispatch died in the delivery
-     * pipeline).
+     * immediately when every means rejects, or by the
+     * {@link RecaptureTargetSystem#DISPATCH_TIMEOUT_TICKS} safety net when a
+     * committed in-flight delivery never arrives.
      */
     boolean dispatched;
 
@@ -62,6 +62,9 @@ public final class RecaptureTarget {
      * observed held.
      */
     int dispatchAgeTicks;
+
+    /** Monotonic owner token preventing an expired request from releasing a newer reservation. */
+    long dispatchReservationGeneration;
 
     RecaptureTarget(TacticalNode node, BiomeKind slice) {
         this.node = node;

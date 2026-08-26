@@ -140,6 +140,8 @@ public final class CampaignState implements Serializable {
     public int[] patronEngagementHappenedTick =
             filledInts(INITIAL_CAPACITY, -1);
     public int patronEngagementCount = 0;
+    /** Next immutable engagement row awaiting faction equipment reward processing. */
+    public int patronEquipmentRewardCursor = 0;
 
     // ---------- moralChoices[] (hidden player-character record) ----------
 

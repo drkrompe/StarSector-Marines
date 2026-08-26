@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.HouseSeeder;
 import com.dillon.starsectormarines.campaign.personnel.CaptainDiscoverySalvageListener;
+import com.dillon.starsectormarines.campaign.systems.PatronEquipmentRewardSystem;
 import com.dillon.starsectormarines.catalog.MarineCatalogManifest;
 import com.dillon.starsectormarines.combathybrid.probe.CombatHybridCampaignPlugin;
 import com.dillon.starsectormarines.combathybrid.probe.CombatHybridInputListener;
@@ -26,6 +27,8 @@ import com.dillon.starsectormarines.ops.event.PlayerEventPresenter;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
+import com.dillon.starsectormarines.marine.FactionEquipmentCatalog;
+import com.dillon.starsectormarines.marine.FactionEquipmentMarketStock;
 import com.dillon.starsectormarines.marine.SquadLoadoutPresentationRegistry;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -81,6 +84,9 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         // validate their referenced equipment only after all three equipment
         // registries are installed.
         EquipmentTemplateCatalog.loadContributions(marineCatalogs.equipmentTemplates());
+        // Faction acquisition pools consume stable template-card ids and may be
+        // extended additively by later providers, so they necessarily load next.
+        FactionEquipmentCatalog.loadContributions(marineCatalogs.factionEquipment());
         // Collectible-facing tier, rarity, provenance, and lore remain authored data;
         // their rarity is presentation scarcity rather than random selection weight.
         SquadLoadoutPresentationRegistry.loadBuiltins();
@@ -100,7 +106,9 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         // starter-captain creation stamps a day.
         ensureCampaignState();
         ensureMarineRoster();
+        deliverPendingPatronEquipmentRewards();
         ensureCaptainDiscoverySalvageListener();
+        ensureFactionEquipmentMarketStock();
         ensurePlayerEventPresenter();
         ensureCompanyViewAbility();
         ensureCivilianRescueIntel();
@@ -171,6 +179,24 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         sector.getListenerManager().addListener(
                 new CaptainDiscoverySalvageListener(), true);
         LOG.info("Starsector Marines: captain discovery salvage listener registered");
+    }
+
+    private static void deliverPendingPatronEquipmentRewards() {
+        CampaignStateScript script = CampaignStateScript.getInstance();
+        if (script == null) return;
+        int granted = PatronEquipmentRewardSystem.deliverPending(script.state());
+        if (granted > 0) {
+            LOG.info("Starsector Marines: delivered " + granted
+                    + " pending patron equipment reward(s)");
+        }
+    }
+
+    private static void ensureFactionEquipmentMarketStock() {
+        SectorAPI sector = Global.getSector();
+        sector.getListenerManager().removeListenerOfClass(FactionEquipmentMarketStock.class);
+        sector.getListenerManager().addListener(new FactionEquipmentMarketStock(), true);
+        FactionEquipmentMarketStock.refreshAllMarkets();
+        LOG.info("Starsector Marines: faction equipment market stock registered");
     }
 
     private static void ensureCampaignState() {

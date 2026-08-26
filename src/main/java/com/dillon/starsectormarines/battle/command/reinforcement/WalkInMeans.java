@@ -97,19 +97,20 @@ public final class WalkInMeans implements ReinforcementMeans {
     }
 
     @Override
-    public void dispatch(BattleControl sim, ReinforcementRequest req) {
+    public ReinforcementDispatchResult dispatch(BattleControl sim,
+                                                ReinforcementRequest req) {
         int[] primary = pickPrimaryCell(sim, req);
         if (primary == null) {
             LOG.warn("WalkInMeans: no walkable perimeter cell for side=" + req.side
                     + " rally=(" + req.rallyX + "," + req.rallyY + ")");
-            return;
+            return ReinforcementDispatchResult.REJECTED;
         }
         LandingZoneScorer scorer = new LandingZoneScorer(sim.getGrid(), sim.getTopology());
         List<int[]> spawnCells = collectAdjacentCells(sim.getGrid(), scorer, primary[0], primary[1], SQUAD_SIZE);
         if (spawnCells.isEmpty()) {
             LOG.warn("WalkInMeans: primary cell (" + primary[0] + "," + primary[1]
                     + ") had no walkable BFS neighborhood");
-            return;
+            return ReinforcementDispatchResult.REJECTED;
         }
 
         TacticalNode objectiveNode = ObjectiveNodes.resolve(sim.getTacticalMap(), req);
@@ -147,6 +148,7 @@ public final class WalkInMeans implements ReinforcementMeans {
                 + primary[0] + "," + primary[1] + ")"
                 + (anchor != null ? " anchor=(" + anchor.anchorX + "," + anchor.anchorY + ")" : " free-agent")
                 + " rally=(" + req.rallyX + "," + req.rallyY + ")");
+        return ReinforcementDispatchResult.COMMITTED;
     }
 
     /**

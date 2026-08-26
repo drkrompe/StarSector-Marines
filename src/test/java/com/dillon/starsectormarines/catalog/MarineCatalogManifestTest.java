@@ -42,7 +42,8 @@ class MarineCatalogManifestTest {
                   "weapons": ["data/oc/weapons.weapon.json"],
                   "armor": ["data/oc/armor.armor.json"],
                   "groundRosters": ["data/oc/roster.roster.json"],
-                  "equipmentTemplates": ["data/oc/templates.template.json"]
+                  "equipmentTemplates": ["data/oc/templates.template.json"],
+                  "factionEquipment": ["data/oc/faction-equipment.json"]
                 }
                 """));
 
@@ -54,6 +55,8 @@ class MarineCatalogManifestTest {
                 manifest.weapons().get(0).source().path());
         assertEquals(1, manifest.armor().size());
         assertEquals(0, manifest.specialEquipment().size());
+        assertEquals("data/oc/faction-equipment.json",
+                manifest.factionEquipment().get(0).source().path());
     }
 
     @Test

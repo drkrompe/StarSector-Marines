@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.command;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
+import com.dillon.starsectormarines.battle.command.reinforcement.ConvoyDeployment;
+import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementRequest;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -76,6 +78,55 @@ class ConquestDefenderCommandTest {
     }
 
     @Test
+    void convoyDeploymentUsesLatestDefenderFrontAndMissionOwnership() {
+        BattleSimulation sim = openSim();
+        Squad reporter = addDefender(sim, "reporter", 5, 10,
+                UnitRole.PATROL);
+        addDefender(sim, "reserve", 5, 48, UnitRole.PATROL);
+        sim.spawn(new EntitySpec("contact", Faction.MARINE,
+                UnitType.MARINE, 5, 14).moveSpeed(0f).health(10_000f));
+        sim.advance(BattleSimulation.TICK_DT);
+        assertTrue(reporter.hasBelievedContacts());
+        ConquestDefenderCommand command = command(sim);
+        tick(command, sim);
+        ReinforcementRequest request = new ReinforcementRequest(
+                Faction.DEFENDER,
+                ReinforcementRequest.Reason.GARRISON_DEPLETED,
+                ReinforcementRequest.Strength.SMALL,
+                5, 18, 5, 14);
+
+        ConvoyDeployment deployment = command.deploymentFor(request);
+
+        assertTrue(deployment.strictDefenderRearEntry());
+        assertTrue(deployment.minimumDefenderForward()
+                        >= 14 + ConquestDefenderCommand.CONVOY_REAR_STANDOFF_CELLS,
+                "delivery must remain behind the latest believed hostile front");
+        assertEquals(deployment.minimumDefenderForward(), deployment.hintY());
+        assertEquals(CommandAuthority.MISSION_COMMAND,
+                deployment.squadClaim().authority());
+        assertEquals(command.strategyId(), deployment.squadClaim().issuer());
+        assertTrue(deployment.commandOwnsObjective());
+    }
+
+    @Test
+    void objectiveLostConvoyKeepsRearStandoffWithoutEnemyBelief() {
+        ConquestDefenderCommand command = new ConquestDefenderCommand(
+                new ConquestTrackLayout(
+                        TraversalAxis.SOUTH_TO_NORTH, W, H));
+        ReinforcementRequest request = new ReinforcementRequest(
+                Faction.DEFENDER,
+                ReinforcementRequest.Reason.OBJECTIVE_LOST,
+                ReinforcementRequest.Strength.SMALL,
+                5, 14, 5, 14);
+
+        ConvoyDeployment deployment = command.deploymentFor(request);
+
+        assertTrue(deployment.minimumDefenderForward()
+                        >= 14 + ConquestDefenderCommand.CONVOY_REAR_STANDOFF_CELLS,
+                "objective truth still requires a rear drop when belief is empty");
+    }
+
+    @Test
     void framePlanningDoesNotMutateLiveSquadBeforeArbitration() {
         BattleSimulation sim = openSim();
         addDefender(sim, "reporter", 5, 10, UnitRole.PATROL);
@@ -135,6 +186,42 @@ class ConquestDefenderCommandTest {
         assertEquals(AssignmentKind.HOLD_NODE, mustHold.assignedObjective.kind());
         assertEquals(ConquestFrontSnapshot.AssignmentReason.DEFENDER_EXTERNAL_ASSIGNMENT_PRESERVED,
                 command.frontSnapshot().directiveFor(mustHold.id).reason());
+    }
+
+    @Test
+    void commanderOwnedConvoyReliefKeepsNodeAndZoneAssignments() {
+        BattleSimulation sim = openSim();
+        Squad relief = addDefender(sim, "convoy-relief", 5, 48,
+                UnitRole.PATROL);
+        Squad zoneRelief = addDefender(sim, "convoy-zone-relief", 15, 48,
+                UnitRole.PATROL);
+        TacticalNode node = new TacticalNode(TacticalNode.Kind.GUARDPOST,
+                5, 48, 4, 47, 6, 49, Faction.DEFENDER, 50, 2);
+        SquadCommandClaim.mission("conquest-defender", "convoy relief")
+                .apply(sim, ObjectiveAssignment.holdNode(relief.id, node));
+        SquadCommandClaim.mission("conquest-defender", "convoy zone relief")
+                .apply(sim, ObjectiveAssignment.clearZone(zoneRelief.id, 0));
+        sim.spawn(new EntitySpec("battle-keeps-running", Faction.MARINE,
+                UnitType.MARINE, 25, 5).moveSpeed(0f).health(10_000f));
+
+        ConquestDefenderCommand command = command(sim);
+        sim.setAutonomousCommander(Faction.DEFENDER, command,
+                ConquestCommandDisclosure.INSTANCE);
+        int commandTicks = (int) Math.ceil(
+                CommanderService.COMMANDER_TICK_PERIOD
+                        / BattleSimulation.TICK_DT) + 1;
+        for (int i = 0; i < commandTicks; i++) {
+            sim.advance(BattleSimulation.TICK_DT);
+        }
+
+        assertEquals(AssignmentKind.HOLD_NODE,
+                relief.assignedObjective.kind());
+        assertEquals(ConquestFrontSnapshot.AssignmentReason.DEFENDER_RELIEF_OBJECTIVE,
+                command.frontSnapshot().directiveFor(relief.id).reason());
+        assertEquals(AssignmentKind.CLEAR_ZONE,
+                zoneRelief.assignedObjective.kind());
+        assertEquals(ConquestFrontSnapshot.AssignmentReason.DEFENDER_RELIEF_OBJECTIVE,
+                command.frontSnapshot().directiveFor(zoneRelief.id).reason());
     }
 
     @Test

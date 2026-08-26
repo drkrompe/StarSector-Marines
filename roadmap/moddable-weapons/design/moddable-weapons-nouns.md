@@ -4,8 +4,8 @@ Status: SHIPPED — weapon identity, behavior, and presentation are data-owned
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — retired the remaining weapon enums; mech and turret
-carriers now persist stable ids and resolve installed definitions directly.
+Updated: 2026-08-26 — connected additive faction availability to stable
+equipment-template ids without moving progression policy into weapon data.
 
 ## Purpose
 
@@ -96,6 +96,13 @@ resource API. An absent fixed manifest means that enabled mod is not a catalog
 provider; a present but unreadable or malformed manifest remains a load error.
 Shipped mod code never probes provider directories through Java filesystem or
 reflection APIs, which the game's script classloader rejects.
+
+After weapons, special equipment, armor, and collectible templates resolve,
+progression loads faction-equipment source contributions. Those files may add
+a unique template/channel claim to an existing campaign faction or define a new
+faction pool. They consume weapon identity through the derived template id and
+cannot change a weapon definition, combat behavior, or vanilla production
+knowledge.
 
 Turret catalogs load after weapons and resolve structure → mount → weapon
 references immediately. A static emplacement takes durability, collision

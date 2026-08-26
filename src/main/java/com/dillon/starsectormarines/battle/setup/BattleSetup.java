@@ -56,6 +56,7 @@ import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadReservation;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.command.reinforcement.ConvoyMeans;
+import com.dillon.starsectormarines.battle.command.reinforcement.ConvoyDeploymentPolicy;
 import com.dillon.starsectormarines.battle.command.reinforcement.CounterattackSystem;
 import com.dillon.starsectormarines.battle.command.reinforcement.FrontLineReinforcementTrigger;
 import com.dillon.starsectormarines.battle.command.reinforcement.GarrisonDepletedTrigger;
@@ -400,7 +401,7 @@ public final class BattleSetup {
         // planter has died) spread across the multi-site map instead of
         // dogpiling the nearest fight.
         sim.setCommander(Faction.MARINE, new SabotageCommand());
-        installReinforcementLayer(sim, map, null, groundRoster, risk);
+        installReinforcementLayer(sim, map, null, groundRoster, risk, null);
         return sim;
     }
 
@@ -632,7 +633,7 @@ public final class BattleSetup {
         allocateDefenders(sim, map, defenders.roster(), groundRoster, rng);
         spawnAmbientCivilians(sim, map, rng);
         spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
-        installReinforcementLayer(sim, map, null, groundRoster, risk);
+        installReinforcementLayer(sim, map, null, groundRoster, risk, null);
         if (type == MissionType.ASSAULT) {
             sim.setCommander(Faction.MARINE, new AssaultCommand());
         }
@@ -1124,7 +1125,8 @@ public final class BattleSetup {
         sim.setAutonomousCommander(Faction.DEFENDER, defenderCommand,
                 ConquestCommandDisclosure.INSTANCE);
         sim.setGarrisonSystem(new CompoundGarrisonSystem(axis));
-        installReinforcementLayer(sim, map, axis, groundRoster, risk);
+        installReinforcementLayer(sim, map, axis, groundRoster, risk,
+                defenderCommand);
         return new MapBuild(sim, build.structures());
     }
 
@@ -1336,7 +1338,8 @@ public final class BattleSetup {
     private static void installReinforcementLayer(BattleSimulation sim, MapResult map,
                                                   TraversalAxis axis,
                                                   GroundRosterProfile groundRoster,
-                                                  RiskLevel risk) {
+                                                  RiskLevel risk,
+                                                  ConvoyDeploymentPolicy convoyPolicy) {
         ReinforcementService rs = sim.getReinforcementService();
         if (map.biomeMap != null && map.tacticalMap != null && map.tacticalMap.size() > 0) {
             RecaptureTargetService recaptureTargets = new RecaptureTargetService(map.tacticalMap, map.biomeMap);
@@ -1348,7 +1351,8 @@ public final class BattleSetup {
             rs.addTrigger(new GarrisonDepletedTrigger());
         }
         rs.addTrigger(new ObjectiveLostTrigger());
-        rs.addMeans(new ConvoyMeans(map.roadGraph, axis, groundRoster, risk));
+        rs.addMeans(new ConvoyMeans(map.roadGraph, axis, groundRoster, risk,
+                convoyPolicy));
         rs.addMeans(new ShuttleMeans(axis, groundRoster, risk));
         rs.addMeans(new WalkInMeans(axis, groundRoster, risk));
     }
