@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.loot;
 
+import com.dillon.starsectormarines.marine.EquipmentTemplateCardItemPlugin;
 import com.dillon.starsectormarines.ops.MarineOpsContext;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CargoAPI;
@@ -52,11 +53,16 @@ public final class LootSettlementService {
                 cargo.getFreeFuelSpace(), cargo.getFreeCrewSpace());
     }
 
-    private static void addKept(CargoAPI cargo, LootSettlementLine line) {
+    static void addKept(CargoAPI cargo, LootSettlementLine line) {
         int quantity = line.keptQuantity;
         if (quantity <= 0) return;
         if (line.stack.kind == LootKind.WEAPON) {
             cargo.addWeapons(line.stack.itemId, quantity);
+            return;
+        }
+        if (line.stack.kind == LootKind.SPECIAL) {
+            cargo.addSpecial(EquipmentTemplateCardItemPlugin.itemData(
+                    line.stack.itemId), quantity);
             return;
         }
         switch (line.bucket) {
