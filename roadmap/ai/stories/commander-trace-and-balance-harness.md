@@ -70,7 +70,7 @@ churned, or collapsed before tuning force budgets or doctrine.
 
 ## Canonical Conquest matrix
 
-`conquestCommandBalance` runs each entry twice with unit updates forced serial,
+`commanderEvidence -Pmission=conquest` runs each entry twice with unit updates forced serial,
 advancing only `BattleSimulation.TICK_DT`, and compares both the JSONL bytes and
 normalized summary bytes. The default 18,000-tick bound is ten simulated
 minutes; an unfinished battle records `TIMEOUT` and remains evidence rather

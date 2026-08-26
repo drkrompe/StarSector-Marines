@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
+import com.dillon.starsectormarines.battle.command.AssaultSearchSnapshot;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.SabotageSiteSnapshot;
@@ -71,6 +72,39 @@ class CommandTraceRecorderTest {
                 .contains("\"perspective\":\"DEFENDER\""));
         assertTrue(lines.get(2)
                 .contains("\"perspective\":\"MARINE\""));
+    }
+
+    @Test
+    void assaultDetailSerializesSectorsAndActionsInCanonicalOrder() {
+        AssaultSearchSnapshot.SectorState later =
+                new AssaultSearchSnapshot.SectorState(2, 20, 10, 10, 8,
+                        AssaultSearchSnapshot.SectorStatus.ACTIVE,
+                        3, 9, 2, 70, 1, 24, 13);
+        AssaultSearchSnapshot.SectorState earlier =
+                new AssaultSearchSnapshot.SectorState(0, 0, 0, 10, 8,
+                        AssaultSearchSnapshot.SectorStatus.SEARCHING,
+                        1, 9, 0, -1, 1, 4, 3);
+        AssaultSearchSnapshot.SquadDirective action =
+                new AssaultSearchSnapshot.SquadDirective(7, 2,
+                        AssaultSearchSnapshot.AssignmentReason
+                                .ACTIVE_CONTACT_REINFORCEMENT,
+                        AssignmentKind.SWEEP_SECTOR, 24, 13);
+        AssaultSearchSnapshot detail = new AssaultSearchSnapshot(75, 70,
+                Faction.MARINE, AssaultSearchSnapshot.Phase.CONVERGE, 1,
+                List.of(later, earlier), List.of(), List.of(action));
+        CommanderSnapshot<AssaultSearchSnapshot> snapshot =
+                new CommanderSnapshot<>(Faction.MARINE, "assault-attacker",
+                        "CONVERGE", 75, 70, 1, 0, List.of(), List.of(), detail);
+        CommandTraceRecorder recorder = new CommandTraceRecorder(
+                "ASSAULT", "SERIAL_DETERMINISTIC", 0);
+
+        recorder.recordPerspective(snapshot);
+        String row = recorder.canonicalJsonLines().lines().toList().get(1);
+
+        assertTrue(row.contains("\"assault\":{\"phase\":\"CONVERGE\""));
+        assertTrue(row.indexOf("\"index\":0") < row.indexOf("\"index\":2"));
+        assertTrue(row.contains("\"reason\":\"ACTIVE_CONTACT_REINFORCEMENT\""));
+        assertTrue(row.contains("\"believedContacts\":2"));
     }
 
     @Test

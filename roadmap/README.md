@@ -111,10 +111,12 @@ distant-capture reserve binds. The current canonical rows still delivered only
 one to four simultaneous marine squads and neither produced capture-zone
 entry. Keep exact capture-zone presence as neutral outcome evidence, never
 commander input. Then close the remaining assignment-writer and live-acceptance edges
-in `autonomous-mission-command-foundation.md`. Sabotage site defense is the next
-paired mission-command proof; Opening Operations remains the smallest later
-command-duel proof. Each mission adapts the same knowledge, ownership, cadence,
-and diagnostic contracts through its own geometry.
+in `autonomous-mission-command-foundation.md`. Assault's production attacker now
+searches from persistent sector coverage and faction-local reports; its authored
+strongpoint/mobile-reserve defender is the next paired mission-command proof.
+Opening Operations remains the smallest later command-duel proof. Each mission
+adapts the same knowledge, ownership, cadence, and diagnostic contracts through
+its own geometry.
 
 ## How to use this directory
 
