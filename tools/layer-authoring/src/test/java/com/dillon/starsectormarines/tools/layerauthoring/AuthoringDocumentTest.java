@@ -229,7 +229,9 @@ class AuthoringDocumentTest {
         assertTrue(aegis.isInheritedPreview(rifle));
         assertEquals("graphics/battle/marine-modular-topdown/variants/armor/aegis/head.png",
                 previewHead.spritePath());
-        assertEquals(sourceHead.scaleX() * 1.5, previewHead.scaleX(), 0.000001);
+        assertEquals(0.8, sourceHead.scaleX(), 0.000001);
+        assertEquals(1.5, previewHead.scaleX(), 0.000001);
+        assertEquals(1.5, previewHead.scaleY(), 0.000001);
         assertEquals(sourceHead.offsetY() + 0.061, previewHead.offsetY(), 0.000001);
         assertEquals(sourceFoot.spritePath(), previewFoot.spritePath());
         assertEquals(sourceFoot.offsetX(), previewFoot.offsetX(), 0.000001);
