@@ -135,7 +135,9 @@ class MarineArmoryTest {
     @Test
     void collectionSafetyNetReachesTheFiveFifteenThirtyAndFortyVictoryTargets() {
         MarineArmory armory = new MarineArmory();
-        assertEquals(14, armory.equipmentTemplateCards().size());
+        assertEquals(16, armory.equipmentTemplateCards().size());
+        assertTrue(armory.ownsArmorTemplate("armor.cordon-shell"));
+        assertTrue(armory.ownsArmorTemplate("armor.lashplate-harness"));
 
         for (int victory = 1; victory <= 40; victory++) {
             armory.recordVictory(false);

@@ -488,6 +488,8 @@ public final class MarineArmory implements Serializable {
         unlockSecondary(SpecialEquipmentRegistry.SMOKE_GRENADE_ID);
         unlockSecondary(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID);
         unlockArmor(MarineArmorPattern.ARMORLESS);
+        unlockArmor("armor.cordon-shell");
+        unlockArmor("armor.lashplate-harness");
         unlockArmor(MarineArmorPattern.MILITIA);
         unlockArmor(MarineArmorPattern.CHARCOAL);
         unlockArmor(MarineArmorPattern.ARMY_GREEN);

@@ -4,7 +4,7 @@ Status: IN PROGRESS — roster data and all standard defender creation paths are
 
 Written: 2026-08-24
 
-Updated: 2026-08-26 — routed faction roster authors through the enduring lore guide catalog.
+Updated: 2026-08-26 — replaced generic defender armor placeholders with concrete faction patterns and tier-I scrap issue.
 
 Read `reinforcement-nouns.md`, `campaign-battle-bridge-nouns.md`,
 `progression-nouns.md`, `faction-lore-nouns.md`, and
@@ -105,6 +105,11 @@ loudly; an unknown faction id itself does not fail the battle.
   profiles issue automatic support; Path and pirate profiles retain their
   stronger close-range shredder identity without acquiring automatics by
   generic fallback.
+- Defender armor tables now issue the concrete Aegis/Specter, Bulwark,
+  Palatine/Reliquary, Furnace/Mantle, and Reaver/Foundry pattern families. Low-risk
+  Independent, auxiliary, Church, Diktat, pirate, and Pather tables also draw from
+  Cordon surplus shells or Lashplate salvage harnesses where that circulation is
+  credible. Every selection still freezes through the same armor catalog values.
 
 The current catalog can only select implemented equipment. The richer cutter,
 stim, IED/martyr, micro-missile, neural/drone, and powered-assault

@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — made access state legible without exposing undiscovered equipment cards.
+Updated: 2026-08-26 — connected faction armor side-grades to defender issue and broadened the tier-I frontier baseline.
 
 ## Purpose
 
@@ -164,13 +164,13 @@ Legacy recipes, printed counts, and fabrication materials remain save-migration
 input and compatibility state for retired fire-team APIs, not live Fleet Armory
 authority. Existing victory milestones grant template cards, including the
 Shattercap after two victories. A deterministic safety net now keeps permanent
-collection breadth at or above 19 cards after five victories, 23 after fifteen,
-27 after thirty, and 28 after forty. Cards already learned or still carried in
+collection breadth at or above 21 cards after five victories, 25 after fifteen,
+29 after thirty, and 30 after forty. Cards already learned or still carried in
 cargo count toward that floor, so faction-shaped acquisition advances the same
 curve instead of being duplicated by it. When a company falls below a floor,
 the Armory grants the next bounded core fallback; the curve never revokes cards,
 never learns a carried card implicitly, and leaves at least four of the current
-32-card catalog to faction sources and active collection.
+34-card catalog to faction sources and active collection.
 
 Faction source pools author which cards may enter through market, license,
 patron, and recovery channels. Every card also authors an access tier. Open
@@ -206,6 +206,14 @@ A physical template-card tooltip repeats that acquired item's authored tier and
 the shared MRB/recovery requirements, reading threshold values from the same
 policy used by candidate filtering rather than maintaining presentation-only
 numbers.
+
+The lowest protection band is deliberately plural rather than one universal
+"unarmored" result. Domain-pattern fatigues preserve mobility and sealing with no
+armor reserve; expired Cordon security shells provide a little rated plate; and
+Lashplate breaker harnesses supply crude mass with poor resistance and handling.
+The opening Frontier Patchwork definition issues all three beneath one sound Ward
+kit per fire team. These are generic circulation categories for early companies and
+low-end defenders, not faction-equivalent powered suits.
 
 A template card may exist in fleet cargo as one parameterized Starsector special
 item whose data is the stable equipment-template id. Right-click learning follows

@@ -120,8 +120,8 @@ fighting on a market with that faction cannot produce the same pristine pool.
 ### Collection breadth safety net — SHIPPED
 
 Learned and cargo-held cards share one breadth count. The successful-operation
-floors are 19 of 32 cards after victory 5, 23 after victory 15, 27 after victory
-30, and 28 after victory 40. Ordinary faction sources are expected to meet or
+floors are 21 of 34 cards after victory 5, 25 after victory 15, 29 after victory
+30, and 30 after victory 40. Ordinary faction sources are expected to meet or
 beat those numbers. Only a company below its current floor receives the next
 deterministic core fallback, so purchases, licenses, patron rewards, and
 recovery replace milestone grants one-for-one rather than stacking with them.
