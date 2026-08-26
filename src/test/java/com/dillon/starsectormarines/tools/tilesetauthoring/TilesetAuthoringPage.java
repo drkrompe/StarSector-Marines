@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.tools.authoring.AuthoringPageContext;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
+import javax.swing.ImageIcon;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -61,6 +62,8 @@ public final class TilesetAuthoringPage implements AuthoringPage {
     private final JSpinner alphaMin =
             new JSpinner(new SpinnerNumberModel(SheetSlicer.DEFAULT_ALPHA_MIN, 1, 254, 1));
     private final JSpinner gridCell = new JSpinner(new SpinnerNumberModel(104, 8, 512, 1));
+    private final JSpinner screenCellPx = new JSpinner(new SpinnerNumberModel(40, 8, 160, 4));
+    private final JLabel preview = new JLabel("", JLabel.CENTER);
     private final JLabel summary = new JLabel(" ");
 
     private BufferedImage source;
@@ -100,6 +103,14 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         bar.add(new JLabel("  cellPx "));
         bar.add(small(cellPx, 70));
         bar.addSeparator();
+        bar.add(new JLabel(" cell on screen "));
+        bar.add(small(screenCellPx, 66));
+        bar.add(new AbstractAction("Refresh preview") {
+            @Override public void actionPerformed(ActionEvent e) {
+                refreshPreview();
+            }
+        });
+        bar.addSeparator();
         JButton export = new JButton(new AbstractAction("Export tileset") {
             @Override public void actionPerformed(ActionEvent e) {
                 export();
@@ -116,10 +127,19 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         });
 
         JScrollPane tableScroll = new JScrollPane(table);
-        tableScroll.setPreferredSize(new Dimension(520, 200));
+        tableScroll.setPreferredSize(new Dimension(520, 260));
+        preview.setVerticalAlignment(JLabel.TOP);
+        JScrollPane previewScroll = new JScrollPane(preview);
+        previewScroll.setPreferredSize(new Dimension(520, 320));
+        previewScroll.setBorder(BorderFactory.createTitledBorder(
+                "Compartment preview — the tileset as loaded, at deck scale"));
+
+        JSplitPane rightSide = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
+                tableScroll, previewScroll);
+        rightSide.setResizeWeight(0.45);
         JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-                new JScrollPane(view), tableScroll);
-        split.setResizeWeight(0.62);
+                new JScrollPane(view), rightSide);
+        split.setResizeWeight(0.5);
 
         summary.setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 8));
         root.add(bar, BorderLayout.NORTH);
@@ -193,6 +213,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         view.setEntries(entries);
         markDirty();
         report();
+        refreshPreview();
     }
 
     private void splitSelected() {
@@ -222,6 +243,33 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         view.setEntries(replaced);
         markDirty();
         report();
+        refreshPreview();
+    }
+
+    /**
+     * Pack, load and draw the tileset as it currently stands, without writing
+     * anything. Checking art should not require exporting it and starting the
+     * game — and ingesting the document here means one that would not load
+     * fails in front of the person editing it rather than at startup.
+     */
+    private void refreshPreview() {
+        if (source == null || model.entries.isEmpty()) {
+            preview.setIcon(null);
+            preview.setText("open a sheet");
+            return;
+        }
+        try {
+            int cell = (Integer) cellPx.getValue();
+            BufferedImage atlas = TilesetExport.atlas(source, model.entries, cell);
+            BufferedImage image = TilesetPreview.render(atlas,
+                    TilesetExport.tileset("graphics/doodads/preview.png", cell, model.entries),
+                    cell, (Integer) screenCellPx.getValue());
+            preview.setIcon(new ImageIcon(image));
+            preview.setText(null);
+        } catch (Exception failure) {
+            preview.setIcon(null);
+            preview.setText("preview failed: " + failure.getMessage());
+        }
     }
 
     private void export() {
@@ -379,6 +427,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             }
             markDirty();
             report();
+            refreshPreview();
         }
     }
 }
