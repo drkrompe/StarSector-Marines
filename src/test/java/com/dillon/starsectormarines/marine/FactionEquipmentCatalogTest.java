@@ -43,10 +43,17 @@ class FactionEquipmentCatalogTest {
                 "equipment-template:weapon.field-rifle:service",
                 FactionEquipmentSource.MARKET));
 
-        FactionEquipmentPool remnants = FactionEquipmentCatalog.resolve("remnants");
+        FactionEquipmentPool remnants = FactionEquipmentCatalog.resolve("remnant");
         assertTrue(remnants.offers().isEmpty());
         assertNotNull(remnants.noPlayerEquipmentReason());
-        assertTrue(FactionEquipmentCatalog.hasExactFaction("remnants"));
+        assertTrue(FactionEquipmentCatalog.hasExactFaction("remnant"));
+
+        assertTrue(FactionEquipmentCatalog.resolve("sindrian_diktat").offers(
+                "equipment-template:weapon.pulse-rifle:masterwork",
+                FactionEquipmentSource.PATRON));
+        assertTrue(FactionEquipmentCatalog.resolve("lions_guard").offers(
+                "equipment-template:armor.heavy",
+                FactionEquipmentSource.PATRON));
     }
 
     @Test

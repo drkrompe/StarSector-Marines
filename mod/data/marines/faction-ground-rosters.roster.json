@@ -272,7 +272,7 @@
     },
     {
       "id": "roster.sindrian-diktat",
-      "factionIds": ["diktat"],
+      "factionIds": ["sindrian_diktat", "lions_guard"],
       "heavySupport": ["bulwark", "sirocco", "hound"],
       "bulk": {
         "unitType": "MILITIA",

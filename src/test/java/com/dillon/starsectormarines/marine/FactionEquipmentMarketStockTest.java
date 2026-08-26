@@ -78,7 +78,7 @@ class FactionEquipmentMarketStockTest {
 
     @Test
     void explicitExclusionsProduceNoCards() {
-        assertTrue(plan("remnants", "redacted", 8, 50L,
+        assertTrue(plan("remnant", "redacted", 8, 50L,
                 true, Set.of()).allTemplateIds().isEmpty());
     }
 
