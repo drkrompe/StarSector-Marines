@@ -4,8 +4,10 @@ Status: PLANNED — follows accepted-offer lifecycle repair and should coordinat
 
 Written: 2026-08-24
 
-Read `contracts-nouns.md`, `themes.md`, and `mission-tier-nouns.md` before
-implementing this story.
+Updated: 2026-08-26 — routed faction contract-policy authors through the enduring lore guide catalog.
+
+Read `contracts-nouns.md`, `themes.md`, `mission-tier-nouns.md`, and
+`faction-lore-nouns.md` before implementing this story.
 
 ## Problem
 
