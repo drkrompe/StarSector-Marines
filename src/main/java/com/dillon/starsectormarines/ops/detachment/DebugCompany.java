@@ -43,13 +43,7 @@ public final class DebugCompany {
      */
     private static final int FABRICATION_BUDGET = 1_000_000;
 
-    /**
-     * Ceiling on the squad dial. Forty squads is 480 marines, which is exactly
-     * the lift a CONQUEST at HIGH risk can put on the ground (40 required
-     * drops at a Valkyrie's twelve seats). Past it the manifest truncates and
-     * the extra squads would never leave orbit, so the dial stops where the
-     * transports do.
-     */
+    /** Performance-bounded ceiling on the debug squad dial (480 marines). */
     public static final int MAX_SQUADS = 40;
 
     private DebugCompany() {}

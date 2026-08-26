@@ -97,7 +97,9 @@ arrival policy rather than to the hull type.
 
 The Aeroshuttle is a purpose-built six-seat half-squad craft. Conquest keeps
 the committed campaign hull as its lift source but resolves the visible final
-descent to paired Aeroshuttles.
+descent to ownership-separated paired Aeroshuttles. Those final-descent craft
+are reusable: committed lift and selected personnel become additional cycles,
+not additional permanent landing berths.
 
 ### Fighters and drones
 
