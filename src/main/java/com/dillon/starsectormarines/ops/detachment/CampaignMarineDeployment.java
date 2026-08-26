@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.ops.detachment;
 
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.squad.CampaignSquadTag;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -100,11 +99,10 @@ public final class CampaignMarineDeployment {
         }
         for (int i = 0; i < seats; i++) {
             MarineSoldier soldier = active.get(i);
-            MarineSecondary secondary = soldier.secondary();
             MarineArmorCatalogDef armor = soldier.armorDef();
             frozen.add(MarineLoadout.fromCatalog(UnitRole.COMBATANT, null,
                     soldier.primaryDef(), soldier.primaryGrade(), soldier.profile(),
-                    secondary != null ? secondary.specialDef() : null,
+                    soldier.specialEquipmentDef(),
                     soldier.id(), armor.appearanceFamily(),
                     armor.armorPool(), armor.armorRating(),
                     armor.moveSpeedMult(), armor.incomingAccuracyMult(),

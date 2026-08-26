@@ -63,8 +63,7 @@ public final class ArmoryLoadoutPreviewComposer {
         LayeredSpriteCache primary = layered != null
                 ? layered.weapon(LayeredWeaponFamily.fromPrimary(billet.primary()), billet.grade())
                 : null;
-        SpecialEquipmentDef special = billet.secondary() != null
-                ? billet.secondary().specialDef() : null;
+        SpecialEquipmentDef special = billet.specialDef();
         LayeredSpriteCache specialIcon = special != null
                 ? assets.icon(special.armoryIconPath()) : null;
         drawSocket(sink, armor, socketX, socketY[0], socketSize, socketSize);
@@ -138,8 +137,7 @@ public final class ArmoryLoadoutPreviewComposer {
         LayeredSpriteCache primary = layered != null
                 ? layered.weapon(LayeredWeaponFamily.fromPrimary(billet.primary()), billet.grade())
                 : null;
-        SpecialEquipmentDef special = billet.secondary() != null
-                ? billet.secondary().specialDef() : null;
+        SpecialEquipmentDef special = billet.specialDef();
         LayeredSpriteCache specialIcon = special != null
                 ? assets.icon(special.armoryIconPath()) : null;
 
@@ -187,14 +185,14 @@ public final class ArmoryLoadoutPreviewComposer {
                                     float surfaceHeight, float idleSeconds) {
         LayeredUnitAssets layered = assets.layered(billet.armorDef().appearanceFamily());
         if (layered == null) return;
-        MarineSecondary special = billet.secondary();
+        SpecialEquipmentDef special = billet.specialDef();
         SpecialEquipmentPresentationDef.Preview preview = special != null
-                ? special.specialDef().presentation().preview() : null;
+                ? special.presentation().preview() : null;
         float phase = preview != null ? preview.phase() : 1f;
-        int pose = poseFor(special, preview);
+        int pose = poseForDef(special, preview);
         LayerPose authoredPose = pose == LayeredAppearance.POSE_IDLE
                 ? idlePose(assets.unitLayerLayouts(), idleSeconds)
-                : UnitRenderService.infantryPose(
+                : UnitRenderService.infantryPoseDef(
                 assets.unitLayerLayouts(), true, special, pose, 0f, phase, 0);
         LayeredUnitComposer.emit(
                 (layer, centerX, centerY, spriteWidth, spriteHeight, angle,
@@ -216,10 +214,15 @@ public final class ArmoryLoadoutPreviewComposer {
 
     public static int poseFor(MarineSecondary special,
                               SpecialEquipmentPresentationDef.Preview preview) {
+        return poseForDef(special != null ? special.specialDef() : null, preview);
+    }
+
+    public static int poseForDef(SpecialEquipmentDef special,
+                                 SpecialEquipmentPresentationDef.Preview preview) {
         if (special == null || preview == null || !"using".equals(preview.state())) {
             return LayeredAppearance.POSE_IDLE;
         }
-        SpecialUsePose usePose = special.specialDef().presentation().usePose();
+        SpecialUsePose usePose = special.presentation().usePose();
         return switch (usePose) {
             case SHOULDER_LAUNCHER -> LayeredAppearance.POSE_ROCKET_AIM;
             case BRACED_RIFLE -> LayeredAppearance.POSE_AMR_AIM;

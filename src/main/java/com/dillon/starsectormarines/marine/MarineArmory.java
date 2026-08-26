@@ -91,7 +91,7 @@ public final class MarineArmory implements Serializable {
         for (SquadWeaponIssue issue : issues) {
             if (issue == null || !ownsPrimaryTemplate(issue.primaryId(), issue.grade())
                     || (issue.specialEquipmentId() != null
-                    && (issue.special() == null
+                    && (issue.specialDef() == null
                     || !ownsSpecialTemplate(issue.specialEquipmentId())))) {
                 return false;
             }

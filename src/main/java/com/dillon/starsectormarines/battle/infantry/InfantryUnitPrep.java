@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.marine.SpecialActivation;
 import com.dillon.starsectormarines.marine.SpecialAiPolicy;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 
 
 /**
@@ -43,7 +44,7 @@ public final class InfantryUnitPrep {
         // Presence-gate before any SECONDARY_WEAPON read: a unit without the
         // capability lacks the component (the timer read would fail loud).
         if (!w.hasSecondaryWeapon(id) || w.secondaryActionTimer(id) <= 0f) return false;
-        MarineSecondary sec = w.secondaryWeapon(id);
+        SpecialEquipmentDef sec = w.specialEquipment(id);
         if (sec.activation() == SpecialActivation.UTILITY_SMOKE) {
             return tickSmokeThrow(unit, sec, sim);
         }
@@ -138,13 +139,13 @@ public final class InfantryUnitPrep {
         if (sim.world().secondaryCooldownTimer(id) > 0f) return false;
         if (sim.world().secondaryActionTimer(id) > 0f) return false;
 
-        MarineSecondary sec = sim.world().secondaryWeapon(id);
+        SpecialEquipmentDef sec = sim.world().specialEquipment(id);
         if (!sec.hasAvailableUse(sim.world().secondaryAmmo(id))) return false;
-        if (sec.specialDef().aiPolicy() == SpecialAiPolicy.SQUAD_SMOKE_SCREEN) return false;
-        if (sec.specialDef().aiPolicy() == SpecialAiPolicy.CONTACT_DEMOLITION) {
+        if (sec.aiPolicy() == SpecialAiPolicy.SQUAD_SMOKE_SCREEN) return false;
+        if (sec.aiPolicy() == SpecialAiPolicy.CONTACT_DEMOLITION) {
             return tryOpportunitySatchel(unit, sec, sim);
         }
-        if (sec.specialDef().aiPolicy() == SpecialAiPolicy.SOFT_CLUSTER_INDIRECT) {
+        if (sec.aiPolicy() == SpecialAiPolicy.SOFT_CLUSTER_INDIRECT) {
             return FragGrenadeTactics.tryCommitThrow(unit, sec, sim);
         }
         float range = sec.range();
@@ -186,7 +187,7 @@ public final class InfantryUnitPrep {
     }
 
     private static boolean legalSpecialShot(long unit, long target,
-                                            MarineSecondary special,
+                                            SpecialEquipmentDef special,
                                             BattleView sim) {
         if (target == 0L || !TacticalScoring.isHardened(sim.identity().type(target))) {
             return false;
@@ -203,7 +204,7 @@ public final class InfantryUnitPrep {
                 sim.world().cellX(target), sim.world().cellY(target));
     }
 
-    private static boolean tickSmokeThrow(long unit, MarineSecondary special,
+    private static boolean tickSmokeThrow(long unit, SpecialEquipmentDef special,
                                           BattleControl sim) {
         World world = sim.world();
         float duration = special.smokeGrenadeSpec().throwDuration();
@@ -226,7 +227,7 @@ public final class InfantryUnitPrep {
         return true;
     }
 
-    private static boolean tickFragThrow(long unit, MarineSecondary special,
+    private static boolean tickFragThrow(long unit, SpecialEquipmentDef special,
                                          BattleControl sim) {
         World world = sim.world();
         world.setSecondaryActionTimer(unit,
@@ -250,7 +251,7 @@ public final class InfantryUnitPrep {
         return true;
     }
 
-    private static boolean tryOpportunitySatchel(long unit, MarineSecondary special,
+    private static boolean tryOpportunitySatchel(long unit, SpecialEquipmentDef special,
                                                   BattleControl sim) {
         float range = special.satchelChargeSpec().contactRange();
         long bestTarget = 0L;
@@ -275,7 +276,7 @@ public final class InfantryUnitPrep {
         return true;
     }
 
-    private static boolean tickSatchelPlant(long unit, MarineSecondary special,
+    private static boolean tickSatchelPlant(long unit, SpecialEquipmentDef special,
                                             BattleControl sim) {
         World world = sim.world();
         world.setSecondaryActionTimer(unit,
@@ -292,7 +293,7 @@ public final class InfantryUnitPrep {
     }
 
     private static boolean legalSatchelTarget(long unit, long target,
-                                               MarineSecondary special,
+                                               SpecialEquipmentDef special,
                                                BattleView sim) {
         if (target == 0L || !TacticalScoring.isHardened(sim.identity().type(target))) {
             return false;
