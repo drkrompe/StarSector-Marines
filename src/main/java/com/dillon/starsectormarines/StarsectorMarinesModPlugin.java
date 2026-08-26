@@ -27,6 +27,7 @@ import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
 import com.dillon.starsectormarines.marine.FactionEquipmentCatalog;
+import com.dillon.starsectormarines.marine.FactionEquipmentMarketStock;
 import com.dillon.starsectormarines.marine.SquadLoadoutPresentationRegistry;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -105,6 +106,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         ensureCampaignState();
         ensureMarineRoster();
         ensureCaptainDiscoverySalvageListener();
+        ensureFactionEquipmentMarketStock();
         ensurePlayerEventPresenter();
         ensureCompanyViewAbility();
         ensureCivilianRescueIntel();
@@ -175,6 +177,14 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         sector.getListenerManager().addListener(
                 new CaptainDiscoverySalvageListener(), true);
         LOG.info("Starsector Marines: captain discovery salvage listener registered");
+    }
+
+    private static void ensureFactionEquipmentMarketStock() {
+        SectorAPI sector = Global.getSector();
+        sector.getListenerManager().removeListenerOfClass(FactionEquipmentMarketStock.class);
+        sector.getListenerManager().addListener(new FactionEquipmentMarketStock(), true);
+        FactionEquipmentMarketStock.refreshAllMarkets();
+        LOG.info("Starsector Marines: faction equipment market stock registered");
     }
 
     private static void ensureCampaignState() {
