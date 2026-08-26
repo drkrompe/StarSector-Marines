@@ -103,7 +103,7 @@ public final class CompoundGarrisonSystem {
         // GarrisonCompound behavior), so it garrisons without the commander
         // pinning whichever assault squad captured the place.
         mission.garrisonNode = node;
-        LOG.info("CompoundGarrisonSystem: garrison shuttle dispatched to compound "
+        LOG.debug("CompoundGarrisonSystem: garrison shuttle dispatched to compound "
                 + node.kind + " lz=(" + lz[0] + "," + lz[1] + ")");
         return true;
     }

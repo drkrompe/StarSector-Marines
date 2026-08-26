@@ -43,7 +43,7 @@ public final class CompoundClaimStage implements GenStage {
                 biomeMap, ctx.rng));
         ctx.put(BspKeys.COMPOUNDS, compounds);
         if (!compounds.isEmpty()) {
-            LOG.info("BspCityGenerator: " + compounds.size() + " compound(s) claimed");
+            LOG.debug("BspCityGenerator: " + compounds.size() + " compound(s) claimed");
         }
     }
 }

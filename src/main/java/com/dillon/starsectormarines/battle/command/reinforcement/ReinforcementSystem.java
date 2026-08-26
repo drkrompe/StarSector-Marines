@@ -76,15 +76,13 @@ public final class ReinforcementSystem {
             if (m.canFulfill(sim, req)) {
                 ReinforcementDispatchResult result = m.dispatch(sim, req);
                 if (result == ReinforcementDispatchResult.COMMITTED) {
-                    LOG.info("reinforcement: dispatched " + req + " via "
-                            + m.getClass().getSimpleName());
                     return true;
                 }
                 if (result == ReinforcementDispatchResult.RETRYABLE) {
                     if (!req.prepaid) {
                         resources.produce(req.side, ResourceType.REINFORCEMENT, cost);
                     }
-                    LOG.info("reinforcement: retry deferred " + req + " after "
+                    LOG.debug("reinforcement: retry deferred " + req + " after "
                             + m.getClass().getSimpleName());
                     return false;
                 }

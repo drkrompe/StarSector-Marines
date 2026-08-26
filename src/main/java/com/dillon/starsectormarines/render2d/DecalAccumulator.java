@@ -418,7 +418,7 @@ public final class DecalAccumulator {
             return;
         }
 
-        LOG.info("DecalAccumulator FBO " + fbo + " complete at " + fboPxW + "x" + fboPxH
+        LOG.debug("DecalAccumulator FBO " + fbo + " complete at " + fboPxW + "x" + fboPxH
                 + " (cells " + gridW + "x" + gridH + " × " + fboPxPerCell + "px)");
         // FBO starts with random / zeroed contents — make sure it's a clean
         // transparent surface so the blit doesn't paint random pixels over the

@@ -138,6 +138,12 @@ public final class MissionResolver {
         return compute(sim, mission, captain, Collections.emptySet());
     }
 
+    static void logCombatTelemetry(String missionId, List<CombatTelemetryRow> rows) {
+        if (!LOG.isDebugEnabled()) return;
+        LOG.debug("MarineOps: combat telemetry for " + missionId + System.lineSeparator()
+                + CombatTelemetryReport.format(rows));
+    }
+
     public static MissionOutcome compute(BattleSimulation sim, Mission mission,
                                          MarineCaptain captain,
                                          Set<String> deployedFireteamIds) {
@@ -179,8 +185,8 @@ public final class MissionResolver {
         int marinesEngaged = marinesAlive + rawMarinesLost;
 
         // Per-soldier combat telemetry. One gather, two consumers: the whole
-        // set (defenders, employer militia, turrets, the fallen) is the balance
-        // artifact and goes to the log, while only rows the campaign roster
+        // set (defenders, employer militia, turrets, the fallen) is available
+        // as a DEBUG balance artifact, while only rows the campaign roster
         // tracks cross onto the outcome for the career record.
         //
         // Deliberately a separate walk from the casualty tally above, even
@@ -190,8 +196,7 @@ public final class MissionResolver {
         // put the second definition behind the first.
         // See progression-nouns.md.
         List<CombatTelemetryRow> telemetryRows = CombatTelemetryReport.gather(sim);
-        LOG.info("MarineOps: combat telemetry for " + mission.id + System.lineSeparator()
-                + CombatTelemetryReport.format(telemetryRows));
+        logCombatTelemetry(mission.id, telemetryRows);
         Map<String, CombatTelemetryRow> soldierTelemetry = new LinkedHashMap<>();
         for (CombatTelemetryRow row : telemetryRows) {
             if (row.campaignSoldierId() != null) soldierTelemetry.put(row.campaignSoldierId(), row);
