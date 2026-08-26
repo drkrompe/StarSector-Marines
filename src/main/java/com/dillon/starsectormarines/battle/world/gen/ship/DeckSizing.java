@@ -53,29 +53,36 @@ public final class DeckSizing {
     }
 
     /**
-     * Size a ship's decks from its complement and hold.
+     * Size a ship's decks from its class, complement, and hold.
      *
+     * <p>Class sets the footprint: a frigate's deck is short, a capital's is
+     * long, and that is what keeps interior granularity consistent across the
+     * fleet. Sizing from complement alone would give a shuttle and a cruiser
+     * decks of similar size, so one cell would mean something different on each
+     * and a small hull would end up with implausibly many rooms.
+     *
+     * <p>Complement and hold then decide how many decks of that footprint the
+     * ship needs. This is where a Superfreighter and a Battlecruiser part
+     * company despite sharing a class — the same deck plan, stacked a different
+     * number of times.
+     *
+     * @param hullClass the hull's size class
      * @param maxCrew maximum crew complement; a vanilla hull's {@code max crew}
      * @param cargo hold capacity; a vanilla hull's {@code cargo}
      */
-    public static DeckPlan planFor(int maxCrew, int cargo) {
-        float wanted = Math.max(1f, maxCrew) * AREA_PER_CREW + Math.max(0, cargo) * AREA_PER_CARGO;
+    public static DeckPlan planFor(HullClass hullClass, int maxCrew, int cargo) {
+        if (!hullClass.boardable()) return new DeckPlan(0, 0, 0);
 
-        int frames = clamp(Math.round(lengthFor(wanted)), MIN_FRAMES, MAX_FRAMES);
+        int frames = clamp(hullClass.deckFrames(), MIN_FRAMES, MAX_FRAMES);
         int height = clamp(Math.round(frames / LENGTH_TO_BEAM), MIN_HEIGHT, MAX_HEIGHT);
 
         float perDeck = frames * height * HULL_FILL;
-        int decks = Math.max(1, (int) Math.ceil(wanted / perDeck));
+        int decks = Math.max(1, (int) Math.ceil(areaWanted(maxCrew, cargo) / perDeck));
         return new DeckPlan(decks, frames, height);
     }
 
-    /**
-     * Length that would hold the wanted area at the target ratio, before either
-     * dimension is clamped. Clamping is what converts further growth into extra
-     * decks rather than an unplayably long map.
-     */
-    private static float lengthFor(float wantedArea) {
-        return (float) Math.sqrt(wantedArea * LENGTH_TO_BEAM / HULL_FILL);
+    private static float areaWanted(int maxCrew, int cargo) {
+        return Math.max(1f, maxCrew) * AREA_PER_CREW + Math.max(0, cargo) * AREA_PER_CARGO;
     }
 
     private static int clamp(int value, int min, int max) {
