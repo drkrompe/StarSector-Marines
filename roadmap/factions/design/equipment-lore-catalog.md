@@ -51,6 +51,8 @@ delivery behavior, protection tradeoff, or special activation.
 | Stable id | Shipped identity and origin | Credible circulation | Deliberate limits |
 | --- | --- | --- | --- |
 | `armor.field-fatigues` | **Domain-pattern vac fatigues** — ubiquitous sealed working dress with a load web. | Every human faction can maintain local versions. | This is unpowered field kit, not a light powered-assault suit. |
+| `armor.cordon-shell` | **Cordon surplus shell** — an obsolete station-security cuirass returned to use after its seals, shock liners, or inspection marks failed. | Independent, League, Church, Hegemony auxiliary, Diktat security, and captured pirate stocks. | Cordon is unreliable tier-I salvage, not a faction's current professional security standard and not a cheap Ward equivalent. |
+| `armor.lashplate-harness` | **Lashplate salvage harness** — a cargo frame and pressure web carrying breaker-yard slabs with almost no material matching. | Independent breaker crews, pirates, Pathers, and battlefield recovery. | Crude pool is paid for with poor rating, slow balance, exposed lines, and a conspicuous silhouette; formal factions do not need a clean equivalent. |
 | `armor.militia` | **Ward security kit** — a frontier category for locally assembled torso plate, sealed helmet, and impact layers. | Independent, Church, planetary auxiliary, Diktat security, pirate, and Pather use. | Ward is a trade category rather than one faction's standardized factory model. |
 | `armor.outlaw` | **Blackforge patchwork rig** — industrial exoframe, salvaged security shell, ship plate, and hand-fitted seals. | Pirates, Pathers, deniable raiders, and frontier recovery. | Formal factions do not need a parade-quality Blackforge equivalent; captured suits remain visually irregular. |
 | `armor.scout` | **Janus scout suit** — Tri-Tachyon composite reconnaissance protection with sensor and electronic-warfare integration. | Corporate teams; imported League and Diktat specialists; gray-market Independent users. | It is not ordinary Hegemony, Church, pirate, or Pather line protection. |
@@ -83,8 +85,9 @@ player how an institution composes shared equipment:
   Rattlers and one diverted Shattercap for a short blacksite action.
 - **Hegemony Auxiliary Fire Support** centers serviceable Rooks, Stalwarts, and
   Longbows around tightly controlled Annihilator and Breachlight issue.
-- Armor establishments form a visible power matrix: the universal **Frontier
-  Patchwork** baseline; six light/security schedules at tier II; six fully powered
+- Armor establishments form a visible power matrix: the mixed **Frontier
+  Patchwork** baseline, where each team stretches one sound Ward kit across Cordon,
+  Lashplate, and fatigue billets; six light/security schedules at tier II; six fully powered
   line schedules at tier III; and six battlesuit schedules at tier IV. Faction peers
   are side-grades rather than mirrors. Hegemony plate is standardized, Tri-Tachyon
   composite issue is faster and harder to hit, League issue is balanced, Church and

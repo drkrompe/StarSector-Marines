@@ -12,6 +12,28 @@
       "battle": { "appearanceFamily": "ARMORLESS", "armorPool": 0.0, "armorRating": 0.0, "moveSpeedMult": 1.08, "incomingAccuracyMult": 0.92 }
     },
     {
+      "id": "armor.cordon-shell",
+      "catalog": {
+        "displayName": "Cordon surplus shell",
+        "unitClass": "SECURITY",
+        "description": "Cordon shells are obsolete station-security cuirasses sold after their seals, shock liners, or liability tags fail inspection. A local armorer can make one wearable again, but mismatched plates and tired joints leave the user with protection no professional force would call dependable.",
+        "tier": 1,
+        "iconPath": "graphics/ui/armory/armor-tier-1-field-kit.png"
+      },
+      "battle": { "appearanceFamily": "MILITIA", "armorPool": 3.0, "armorRating": 2.0, "moveSpeedMult": 0.99, "incomingAccuracyMult": 0.99 }
+    },
+    {
+      "id": "armor.lashplate-harness",
+      "catalog": {
+        "displayName": "Lashplate salvage harness",
+        "unitClass": "RAIDER",
+        "description": "A Lashplate harness is a cargo frame, pressure web, and slabs of whatever a breaker crew could drill and wire into place. The mass can catch fragments and weak rounds, but crude balance, exposed lines, and almost nonexistent material matching make it cheap protection for expendable hands.",
+        "tier": 1,
+        "iconPath": "graphics/ui/armory/armor-tier-1-field-kit.png"
+      },
+      "battle": { "appearanceFamily": "OUTLAW", "armorPool": 5.0, "armorRating": 1.0, "moveSpeedMult": 0.94, "incomingAccuracyMult": 1.03 }
+    },
+    {
       "id": "armor.combat",
       "catalog": {
         "displayName": "Bastion line armor",

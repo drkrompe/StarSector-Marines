@@ -49,10 +49,10 @@ class FactionEquipmentMarketStockTest {
         FactionEquipmentMarketStockPlanner.StockPlan licensed = plan(
                 "hegemony", "chicomoztoc", 6, 30L, true, Set.of());
 
-        assertEquals(2, unlicensed.marketTemplateIds().size());
+        assertEquals(3, unlicensed.marketTemplateIds().size());
         assertTrue(unlicensed.licensedTemplateIds().isEmpty());
         assertEquals(2, licensed.licensedTemplateIds().size());
-        assertEquals(4, new HashSet<>(licensed.allTemplateIds()).size());
+        assertEquals(5, new HashSet<>(licensed.allTemplateIds()).size());
 
         Set<String> owned = Set.copyOf(licensed.allTemplateIds());
         FactionEquipmentMarketStockPlanner.StockPlan filtered = plan(
@@ -149,8 +149,8 @@ class FactionEquipmentMarketStockTest {
                 6, 30L, true, Set.of(), FULL_ACCESS);
 
         assertEquals(List.of(staleMarineCard), removed);
-        assertEquals(4, added.size());
-        assertEquals(4, added.stream().map(SpecialItemData::getData).distinct().count());
+        assertEquals(5, added.size());
+        assertEquals(5, added.stream().map(SpecialItemData::getData).distinct().count());
         assertTrue(added.stream().allMatch(data ->
                 EquipmentTemplateCardItemPlugin.ITEM_ID.equals(data.getId())));
         assertTrue(cleaned[0]);
