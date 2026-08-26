@@ -35,11 +35,14 @@ public final class FactionEquipmentMarketStock implements SubmarketUpdateListene
                 ? playerFaction.getRelationshipLevel(market.getFactionId()) : null;
         boolean hasLicenseAccess = hasLicenseAccess(relationship);
 
-        MarineRosterScript script = MarineRosterScript.getInstance();
-        Set<String> owned = script != null
-                ? script.roster().armory().ownedEquipmentTemplateIds() : Set.of();
+        Set<String> unavailable = EquipmentTemplateCardInventory.playerUnavailableTemplateIds();
+        if (unavailable == null) {
+            MarineRosterScript script = MarineRosterScript.getInstance();
+            unavailable = script != null
+                    ? script.roster().armory().ownedEquipmentTemplateIds() : Set.of();
+        }
         replaceStock(submarket, market.getFactionId(), market.getId(), market.getSize(),
-                rotation, hasLicenseAccess, owned);
+                rotation, hasLicenseAccess, unavailable);
     }
 
     /** Seeds existing saves immediately; later rotations follow vanilla submarket refreshes. */
