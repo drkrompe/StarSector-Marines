@@ -18,10 +18,10 @@ import org.apache.log4j.Logger;
  * Service(data-owner)/System(processor) convention — see
  * {@code ecs-nouns.md}.
  *
- * <p>Dispatch is resource-gated: each successful dispatch debits one
- * {@link ResourceType#REINFORCEMENT} ticket from the requesting side's
- * {@link BattleResources} pool. Insufficient balance re-queues the request for
- * the next tick.
+ * <p>Dispatch is resource-gated: one
+ * {@link ResourceType#REINFORCEMENT} ticket is reserved before attempts and
+ * retained only by a committed dispatch. Insufficient balance or a retryable
+ * attempt re-queues the request for the next tick.
  */
 public final class ReinforcementSystem {
 
@@ -74,15 +74,27 @@ public final class ReinforcementSystem {
         }
         for (ReinforcementMeans m : service.means()) {
             if (m.canFulfill(sim, req)) {
-                m.dispatch(sim, req);
-                LOG.info("reinforcement: dispatched " + req + " via " + m.getClass().getSimpleName());
-                return true;
+                ReinforcementDispatchResult result = m.dispatch(sim, req);
+                if (result == ReinforcementDispatchResult.COMMITTED) {
+                    LOG.info("reinforcement: dispatched " + req + " via "
+                            + m.getClass().getSimpleName());
+                    return true;
+                }
+                if (result == ReinforcementDispatchResult.RETRYABLE) {
+                    if (!req.prepaid) {
+                        resources.produce(req.side, ResourceType.REINFORCEMENT, cost);
+                    }
+                    LOG.info("reinforcement: retry deferred " + req + " after "
+                            + m.getClass().getSimpleName());
+                    return false;
+                }
             }
         }
         if (!req.prepaid) {
             resources.produce(req.side, ResourceType.REINFORCEMENT, cost);
         }
-        LOG.warn("reinforcement: no means could fulfill " + req + " — bugged map?");
+        req.releaseDispatchReservation();
+        LOG.warn("reinforcement: no means could fulfill " + req + " - bugged map?");
         return true;
     }
 }

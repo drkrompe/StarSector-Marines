@@ -4,7 +4,7 @@ Status: ACTIVE — paired Conquest command is implemented; live command-duel and
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — made Conquest the first paired proof for the autonomous mission-command foundation.
+Updated: 2026-08-26 — added defender-commanded convoy deployment and handoff.
 
 The territorial model, compound loop, deliberate capture allocation, paired
 track behaviors, and Conquest victory law are implemented. Remaining foundation
@@ -16,6 +16,7 @@ Reinforcement feature:
 |---|---|---|
 | `front-command-and-keep-convergence.md` | IN PROGRESS | Replace exclusive strips with inspectable tracks, cross-track support, and a culminating keep assault. |
 | `defender-track-mobilization.md` | IN PROGRESS | Turn faction-honest first contact into bounded patrol mobilization along the shared Conquest tracks. |
+| `defender-convoy-deployment-and-handoff.md` | IN PROGRESS | Give Conquest convoys commander-authored rear-edge deployment bands and transfer their delivered squads into the defender command plan. |
 | `progressive-reinforcement.md` | PARKED | Manually verify defender frontline response, safe delivery, and supply degradation across a Conquest push. |
 | `biome-counterattack.md` | PARKED | Manually tune and verify the telegraphed defender counterattack as a territorial swing. |
 

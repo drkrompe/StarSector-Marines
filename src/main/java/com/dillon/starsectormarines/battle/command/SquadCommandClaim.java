@@ -25,8 +25,22 @@ public record SquadCommandClaim(CommandAuthority authority, String issuer, Strin
                 REINFORCEMENT_ISSUER, reason);
     }
 
+    public static SquadCommandClaim mission(String issuer, String reason) {
+        return new SquadCommandClaim(CommandAuthority.MISSION_COMMAND,
+                issuer, reason);
+    }
+
     /** Claims command of {@code squadId} without inventing a tactical assignment. */
     public void apply(SquadDirectiveControl control, int squadId) {
         control.claimSquadCommand(squadId, authority, issuer, reason);
+    }
+
+    /** Claims the squad and installs its first assignment atomically by issuer. */
+    public void apply(SquadDirectiveControl control,
+                      ObjectiveAssignment assignment) {
+        if (assignment == null) {
+            throw new IllegalArgumentException("assignment is required");
+        }
+        control.assignSquadCommand(assignment, authority, issuer, reason);
     }
 }

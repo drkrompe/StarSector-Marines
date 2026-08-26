@@ -112,7 +112,10 @@ public class CounterattackSystemTest {
         public boolean canFulfill(BattleView sim, ReinforcementRequest req) { return true; }
 
         @Override
-        public void dispatch(BattleControl sim, ReinforcementRequest req) { }
+        public ReinforcementDispatchResult dispatch(
+                BattleControl sim, ReinforcementRequest req) {
+            return ReinforcementDispatchResult.COMMITTED;
+        }
     }
 
     /**
@@ -593,8 +596,10 @@ public class CounterattackSystemTest {
             }
 
             @Override
-            public void dispatch(BattleControl sim, ReinforcementRequest req) {
+            public ReinforcementDispatchResult dispatch(
+                    BattleControl sim, ReinforcementRequest req) {
                 dispatched[0] = true;
+                return ReinforcementDispatchResult.COMMITTED;
             }
         });
         service.post(new ReinforcementRequest(Faction.DEFENDER, ReinforcementRequest.Reason.COUNTERATTACK,

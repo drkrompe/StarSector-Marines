@@ -89,14 +89,15 @@ public final class ShuttleMeans implements ReinforcementMeans {
     }
 
     @Override
-    public void dispatch(BattleControl sim, ReinforcementRequest req) {
+    public ReinforcementDispatchResult dispatch(BattleControl sim,
+                                                ReinforcementRequest req) {
         NavigationGrid grid = sim.getGrid();
         int[] lz = new LandingZoneScorer(grid, sim.getTopology())
                 .bestNear(req.rallyX, req.rallyY, LZ_SCAN_RADIUS, SHUTTLE_MIN_CLEARANCE);
         if (lz == null) {
             LOG.warn("ShuttleMeans: no viable LZ within " + LZ_SCAN_RADIUS
                     + " cells of rally=(" + req.rallyX + "," + req.rallyY + ")");
-            return;
+            return ReinforcementDispatchResult.REJECTED;
         }
 
         float lzX = lz[0] + 0.5f;
@@ -131,6 +132,7 @@ public final class ShuttleMeans implements ReinforcementMeans {
         }
         LOG.info("ShuttleMeans: dispatched " + DEFAULT_TYPE + " side=" + req.side
                 + " lz=(" + lz[0] + "," + lz[1] + ") entry=(" + entry[0] + "," + entry[1] + ")");
+        return ReinforcementDispatchResult.COMMITTED;
     }
 
     /**
