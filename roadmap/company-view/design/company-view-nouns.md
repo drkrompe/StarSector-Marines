@@ -4,9 +4,9 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — fire-team inspection now pairs a two-by-two marine dossier
-viewer with a known-only, filtered loadout browser; Alpha, Bravo, and Charlie share
-the viewer context line and marine status is reinforced by dossier border color.
+Updated: 2026-08-25 — separated the read-only shipboard Barracks from the
+Fleet Armory's deliberate inspect/edit workflow and grounded its quarters in the
+same bounded battle-renderer scene vocabulary as the Mech Lab.
 
 ## Purpose
 
@@ -67,13 +67,19 @@ company view composes their stable outputs.
   mech subsystem stock defined by `mechs-nouns.md`. It presents
   chassis and hardpoints but mutates only inventory authorities that actually
   exist.
+- **Barracks** — the read-only shipboard quarters browser for squads currently
+  carried aboard the flagship. It presents roster truth through a physical room;
+  it does not author equipment, recovery, stationing, or personnel state.
 
 ## Surface boundary
 
-The retained Company -> Squad -> Fire Team hierarchy is the Fleet Armory's home.
-Its selectable company and squad cards own inspection, readiness, recovery, and
-reinforcement in formation context. A reinforcement control is a secondary card
-action; selecting the rest of a squad card still enters that squad.
+The retained Company -> Squad -> Fire Team hierarchy is shared across two rooms
+with different intent. Barracks is the ordinary read-only browse path: selecting a
+squad visits its assigned quarters and muster. Fleet Armory is the deliberate
+inspect/edit path for equipment definitions, exact billet comparison, and issue.
+Its selectable company and squad cards retain readiness, recovery, and reinforcement
+in formation context. A reinforcement control is a secondary card action; selecting
+the rest of an Armory squad card still enters that squad.
 
 Fleet Armory is the only Armory route. The former Armory Administration shell,
 its individual-kit browser, fire-team template designer, squad-arrangement editor,
@@ -257,6 +263,23 @@ the candidate is checked. The active squad freezes into plain deployment values
 only when a sourced Mech Support power is resolved, preserving the same rule as
 personnel deployment: campaign objects do not enter battle.
 
+## Shipboard Barracks
+
+Barracks represents the marine habitation deck while the flagship is carrying the
+company between planets. A scalable squad rail selects one line formation at a time;
+the main region shows that squad's quarters and a twelve-billet muster without exposing
+Armory authoring controls. The room is casual company browsing, not a second roster or
+equipment authority.
+
+The quarters use a bounded indoor `BattleSimulation` as a scene host, sharing battle
+tiles, props, camera scale, and the layered marine compositor with live combat and the
+Mech Lab. Ready marines aboard ship appear in their actual issued armor, weapons, and
+special equipment across Alpha, Bravo, and Charlie bay areas. Their authored idle clips
+may continue as presentation motion. WIA marines retain their named muster billet and
+recovery clock but are not fabricated as healthy room actors. Stationed squads leave
+their shipboard quarters empty, and vacancies remain explicit. None of those projections
+advances campaign time or mutates roster state.
+
 ## Deployment identity
 
 A campaign deployment is a frozen value snapshot, never a live roster
@@ -366,12 +389,12 @@ request, then closes the HQ rather than routing through those screens itself.
 
 Company surfaces are places aboard the player's flagship rather than abstract
 application modules. Company HQ is the bridge command station and the nerve center
-for the whole organization. A persistent top shell exposes `RETURN`, `HQ`,
+for the whole organization. A persistent top shell exposes `RETURN`, `HQ`, `BARRACKS`,
 `ARMORY`, and `MECH LAB`, marks the occupied room, and carries the precise location context at the
 right. `RETURN` closes the shipboard UI; room routes move directly between top-level
 surfaces. Armory company, squad, and fire-team breadcrumbs remain page-specific below
 that shell, while the bottom of every room is reserved for its own content. Future
-Barracks, Briefing Room, medical, logistics, or fabrication surfaces should join the
+Briefing Room, medical, logistics, or fabrication surfaces should join the
 same spatial navigation vocabulary only when their real destination exists. A screen
 says where the captain is and uses movement language for room transitions. It does not
 advertise dead rooms as disabled feature promises.

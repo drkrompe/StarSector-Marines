@@ -4,7 +4,7 @@ Status: ACTIVE — handheld, special-item and turret weapon data is owned; mech 
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — carried contributed special-equipment definitions through player/faction issue and typed battle execution.
+Updated: 2026-08-25 — made discovery sandbox-safe and carried contributed special equipment through player/faction issue and typed battle execution.
 
 ## Purpose
 
@@ -88,6 +88,12 @@ handle supplies an id; firing, UI, audio, and rendering resolve the same
 definition and use only the portion they own. The currently shipped
 marine-primary handle delegates to that registry, so gameplay and catalog
 presentation do not retain a duplicate Java stat table.
+
+Manifest discovery and catalog reads go through Starsector's provider-scoped
+resource API. An absent fixed manifest means that enabled mod is not a catalog
+provider; a present but unreadable or malformed manifest remains a load error.
+Shipped mod code never probes provider directories through Java filesystem or
+reflection APIs, which the game's script classloader rejects.
 
 Turret catalogs load after weapons and resolve structure → mount → weapon
 references immediately. A static emplacement takes durability, collision

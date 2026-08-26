@@ -1,0 +1,82 @@
+<template props="squadRows,musterRows,selectedSquadName,selectedSquadSummary,quartersStatus,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses">
+  <div id="barracks-root" class="barracks-root">
+    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" contextLabel="FLAGSHIP / HABITATION DECK / MARINE QUARTERS" />
+
+    <div id="barracks-room-bar" class="panel barracks-room-bar">
+      <div id="barracks-room-title" class="label heading tone-edge">BARRACKS  //  COMPANY QUARTERS</div>
+      <div id="barracks-room-copy" class="label tone-muted">Browse the formations aboard the flagship between planetary operations.</div>
+    </div>
+
+    <div id="barracks-body" class="barracks-body">
+      <div id="barracks-squad-rail" class="panel squad-rail">
+        <div id="barracks-squad-heading" class="label heading tone-edge section-heading">LINE SQUADS</div>
+        <div id="barracks-squad-copy" class="label tone-muted rail-copy">Select a formation.</div>
+        <div id="barracks-squad-list" class="squad-list">
+          <button each="squad in squadRows" key="{squad.id}" id="{squad.id}" class="{squad.classes}" onclick="{squad.select}">
+            <div id="{squad.nameId}" class="label squad-name">{squad.name}</div>
+            <div id="{squad.statusId}" class="label heading tone-accent squad-status">{squad.status}</div>
+            <div id="{squad.detailId}" class="label tone-muted squad-detail">{squad.detail}</div>
+          </button>
+        </div>
+      </div>
+
+      <div id="barracks-stage" class="panel barracks-stage">
+        <div id="barracks-selected-heading" class="selected-heading edge-surface">
+          <div id="barracks-selected-copy" class="selected-copy">
+            <div id="barracks-selected-name" class="label selected-name tone-accent">{selectedSquadName}</div>
+            <div id="barracks-selected-summary" class="label tone-muted">{selectedSquadSummary}</div>
+          </div>
+          <div id="barracks-quarters-status" class="label heading tone-edge quarters-status">{quartersStatus}</div>
+        </div>
+
+        <canvas id="barracks-canvas" class="barracks-canvas" width="1280" height="650" />
+
+        <div id="barracks-muster" class="muster-panel surface-dark">
+          <div id="barracks-muster-heading" class="label heading tone-edge section-heading">SHIPBOARD MUSTER</div>
+          <div id="barracks-muster-list" class="muster-list">
+            <div each="marine in musterRows" key="{marine.id}" id="{marine.id}" class="{marine.classes}">
+              <div id="{marine.nameId}" class="label muster-name">{marine.name}</div>
+              <div id="{marine.detailId}" class="label tone-muted muster-detail">{marine.detail}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style>
+  .barracks-root { flex-direction: column; padding: 10px; gap: 7px; border-width: 2px; overflow: hidden; }
+  .label { overflow: hidden; }
+  .heading { font-family: heading; }
+  .section-heading { height: 19px; }
+
+  .barracks-room-bar { flex-direction: row; height: 42px; padding: 8px 10px; gap: 12px; }
+  #barracks-room-title { width: 330px; }
+  #barracks-room-copy { width: 0px; flex-grow: 1; text-align: right; }
+
+  .barracks-body { flex-direction: row; width: 100%; height: 0px; flex-grow: 1; gap: 7px; overflow: hidden; }
+  .squad-rail { flex-direction: column; width: 254px; padding: 8px; gap: 6px; overflow: hidden; }
+  .rail-copy { height: 22px; }
+  .squad-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 6px; overflow: scroll; }
+  .barracks-squad-row { flex-direction: column; width: 100%; height: 76px; padding: 8px; gap: 3px; border-width: 1px; text-align: left; }
+  .barracks-squad-row.selected { background-color: #183b50; border-color: #ffd464; }
+  .barracks-squad-row.stationed { opacity: 0.68; }
+  .squad-name { height: 20px; }
+  .squad-status, .squad-detail { height: 17px; }
+
+  .barracks-stage { flex-direction: column; width: 0px; flex-grow: 1; padding: 7px; gap: 6px; overflow: hidden; }
+  .selected-heading { flex-direction: row; height: 53px; padding: 7px 9px; gap: 8px; }
+  .selected-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 2px; }
+  .selected-name { height: 25px; font-family: title; }
+  .quarters-status { width: 430px; padding-top: 9px; text-align: right; }
+  .barracks-canvas { width: 100%; height: 0px; flex-grow: 1; border-width: 1px; }
+
+  .muster-panel { flex-direction: column; height: 160px; padding: 7px; gap: 5px; border-width: 1px; }
+  .muster-list { display: grid; height: 0px; flex-grow: 1; gap: 4px; overflow: hidden; }
+  .muster-row { flex-direction: column; width: 208px; height: 52px; padding: 5px 7px; gap: 2px; border-width: 1px; border-color: #31485f; }
+  .muster-row.ready { border-color: #4f9a68; }
+  .muster-row.wounded { border-color: #ffd464; background-color: #332b1c; }
+  .muster-row.vacant { opacity: 0.55; }
+  .muster-name, .muster-detail { height: 17px; }
+</style>
