@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — made access-tier collection and next-gate state legible in the Fleet Armory.
+Updated: 2026-08-26 — made access state legible without exposing undiscovered equipment cards.
 
 ## Purpose
 
@@ -196,12 +196,16 @@ explicitly excluded factions remain empty. The safety net guarantees breadth,
 while source channels still decide most collection identity and pace.
 
 The Fleet Armory landing view is the player-facing summary of this policy. It
-shows known-versus-total cards for each access tier, the company's current
+shows only acquired card counts, including only access tiers represented in the
+player's collection. Undiscovered cards leave no placeholder, catalog total,
+identity, source, or per-card acquisition hint. The company's current generic
 licensed/patron and recovery ceilings, the facts producing those ceilings, and
-the next uncleared thresholds. Open-market Common-only status is stated beside
-them. A physical template-card tooltip repeats its authored tier and the shared
-MRB/recovery requirements, reading threshold values from the same policy used
-by candidate filtering rather than maintaining presentation-only numbers.
+the next uncleared thresholds remain visible; those explain company capability,
+not undiscovered contents. Open-market Common-only status is stated beside them.
+A physical template-card tooltip repeats that acquired item's authored tier and
+the shared MRB/recovery requirements, reading threshold values from the same
+policy used by candidate filtering rather than maintaining presentation-only
+numbers.
 
 A template card may exist in fleet cargo as one parameterized Starsector special
 item whose data is the stable equipment-template id. Right-click learning follows
