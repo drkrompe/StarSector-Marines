@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.ui.retained.CanvasProducer;
 import java.awt.Color;
 import java.util.List;
 import java.util.function.Supplier;
+import java.util.function.DoubleSupplier;
 
 /** One selected squad rendered as a bounded, non-advancing battle scene. */
 public final class BarracksCanvas implements CanvasProducer {
@@ -19,14 +20,17 @@ public final class BarracksCanvas implements CanvasProducer {
 
     private final Supplier<List<MarineSoldier>> marines;
     private final BarracksBattleScene battleScene;
+    private final DoubleSupplier elapsedSeconds;
 
     public BarracksCanvas(Supplier<List<MarineSoldier>> marines,
-                          BarracksBattleScene battleScene) {
-        if (marines == null || battleScene == null) {
+                          BarracksBattleScene battleScene,
+                          DoubleSupplier elapsedSeconds) {
+        if (marines == null || battleScene == null || elapsedSeconds == null) {
             throw new IllegalArgumentException("marines and battle scene are required");
         }
         this.marines = marines;
         this.battleScene = battleScene;
+        this.elapsedSeconds = elapsedSeconds;
     }
 
     @Override
@@ -34,8 +38,9 @@ public final class BarracksCanvas implements CanvasProducer {
         float width = context.metrics().surfaceWidth();
         float height = context.metrics().surfaceHeight();
         List<MarineSoldier> visible = marines.get();
+        float elapsed = (float) elapsedSeconds.getAsDouble();
         CanvasHostViewport[] viewport = new CanvasHostViewport[1];
-        BattleSceneHostPass backdrop = battleScene.backdropPass(visible);
+        BattleSceneHostPass backdrop = battleScene.backdropPass(visible, elapsed);
         boolean rendered = context.hostPass(new BattleSceneHostPass() {
             @Override
             public BattleSceneFrame prepare(CanvasHostViewport value, float alphaMult) {
@@ -57,19 +62,20 @@ public final class BarracksCanvas implements CanvasProducer {
         Projection projection = viewport[0] != null
                 ? Projection.forHost(viewport[0])
                 : Projection.forCanvas(width, height);
-        drawTeamZones(context, projection);
-        context.hostPass(battleScene.actorPass(visible));
+        drawRangeGuides(context, projection);
+        context.hostPass(battleScene.actorPass(visible, elapsed));
     }
 
-    private static void drawTeamZones(CanvasContext context, Projection projection) {
-        int[] centers = {5, 14, 23};
-        for (int center : centers) {
-            float left = projection.x(center - 3.5f);
-            float right = projection.x(center + 3.5f);
-            float top = projection.y(9.5f);
-            float bottom = projection.y(3.5f);
-            context.fillRect(left, top, right - left, bottom - top, TEAM_FILL);
-            context.strokeRect(left, top, right - left, bottom - top, TEAM_EDGE, 1f);
+    private static void drawRangeGuides(CanvasContext context, Projection projection) {
+        float left = projection.x(24.3f);
+        float right = projection.x(30.7f);
+        float top = projection.y(13.8f);
+        float bottom = projection.y(4.3f);
+        context.fillRect(left, top, right - left, bottom - top, TEAM_FILL);
+        context.strokeRect(left, top, right - left, bottom - top, TEAM_EDGE, 1f);
+        for (float laneX : new float[]{26.5f, 28.5f}) {
+            float x = projection.x(laneX);
+            context.fillRect(x, top, 1f, bottom - top, TEAM_EDGE);
         }
     }
 

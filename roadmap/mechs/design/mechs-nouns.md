@@ -4,8 +4,8 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — made Mech Lab technicians real room actors following
-authored workshop jobs, with welding presentation attached to the active job.
+Updated: 2026-08-25 — made the Mech Lab open on a lance-wide workshop frame and
+ease into the selected gantry only when fitting begins.
 
 ## Purpose
 
@@ -198,9 +198,11 @@ determines the payload, not the entitlement to call it.
   battle-grid cells. Headless evidence collects the ordinary battle renderer's command
   list and substitutes only a Java2D drain; it may not invent percentage-positioned
   scenery, off-grid props, actor approximations, or a second gantry illustration.
-- Vehicle selection changes the battle camera's gantry target without changing
-  cell scale. A later eased camera move interpolates between those authored targets;
-  it does not move or respawn the garage contents to fake a transition.
+- The room opens on a lance-wide camera frame so all assigned assets and workshop
+  jobs remain legible. Selecting a fitting socket eases the same battle camera into
+  that asset's authored gantry while zoom and pan preserve one cell projection.
+  Returning through the current Mech Lab room route restores the overview. No camera
+  transition moves, respawns, pauses, or rebuilds garage contents to fake motion.
 - The fitting header exposes previous/next gantry controls and a numbered
   `01 / 04` station position. Navigation visits all four physical pads, including a
   vacant pad, and wraps at the ends. Lance browsing remains a separate direct-jump

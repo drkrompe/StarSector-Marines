@@ -113,13 +113,11 @@ public final class TurretAim {
 
         // Target is freshly acquired from findBestTarget this tick (callers
         // recreate State each tick), so a by-id cell read is always live.
-        int tcx = world.cellX(s.target);
-        int tcy = world.cellY(s.target);
         float dist = TacticalScoring.cellDistance(
                 s.originX, s.originY, world.x(s.target), world.y(s.target));
         boolean inRange = dist <= s.attackRange && dist >= s.minRange;
-        boolean visible = TacticalScoring.canSeePair(grid,
-                s.originCellX, s.originCellY, tcx, tcy,
+        boolean visible = TacticalScoring.canShootPair(grid,
+                s.originX, s.originY, world.x(s.target), world.y(s.target),
                 shooterAirR, vision.airLosRadius(s.target));
         // Direct-fire kinds drop on either out-of-range OR LoS loss; indirect-
         // fire kinds keep the lock when LoS breaks (the kremlin wall doesn't

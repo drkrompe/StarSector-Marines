@@ -381,6 +381,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** Owns the parallel UPDATE_UNITS dispatch + the worker {@code ForkJoinPool} + per-role behavior dispatch. This is the entity-for-loop seam — see the class doc for the ECS/SoA promotion plan. */
     private final com.dillon.starsectormarines.battle.decision.UnitUpdateSystem unitUpdate;
+    /** Interruptible authored work shared by live battles and bounded scene hosts. */
+    private final com.dillon.starsectormarines.battle.ambient.AmbientTaskService ambientTasks;
     /** Post-movement ground-unit separation and terrain-aware squad-formation relaxation. See {@link SeparationSystem} class doc; ticked right after the occupancy-delta drain, before the spawn flush. */
     private final SeparationSystem separation;
     /** Short-range allied-infantry steer away from hostile alien bodies. */
@@ -518,6 +520,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 navigation, rosterService, attackerIndex, shots, doodadService);
         this.unitUpdate = new com.dillon.starsectormarines.battle.decision.UnitUpdateSystem(
                 rosterService, damageService, tickInnerProfile);
+        this.ambientTasks = new com.dillon.starsectormarines.battle.ambient.AmbientTaskService(
+                rosterService, this::clearPath);
         this.swarmAvoidance = new SwarmAvoidanceSystem(
                 rosterService, unitIndex, grid);
         this.separation = new SeparationSystem(rosterService, unitIndex, grid);
@@ -621,6 +625,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** Data owner for the TASK component (objective/kit assignment) — {@code sim.task().assignedObjective(id)} / {@code equipmentDropTarget(id)}. */
     public TaskService task() { return rosterService.task(); }
+
+    /** Interruptible authored world-work assignments for civilians, workers, guards, and embedded scenes. */
+    public com.dillon.starsectormarines.battle.ambient.AmbientTaskService ambientTasks() {
+        return ambientTasks;
+    }
 
     /** The battle's archetype-table entity world — every unit as {@code {IDENTITY, HEALTH}}, corpses as the corpse archetype. Walk it via {@link #getBattleComponents()}' shared queries. */
     public EntityWorld getEntityWorld() { return entityWorld; }
@@ -1322,6 +1331,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // breach, then enables auto-init for the duration of the tick. Paired
         // with navigation.endTick() at the bottom.
         navigation.beginTick();
+        // Authored ambient work owns assigned actors only while its threat
+        // policy remains quiet. Position first so occupancy, spatial indices,
+        // and ordinary unit dispatch all observe the same task sample. A
+        // released actor falls through to its existing role this tick.
+        ambientTasks.advance(TICK_DT);
         // Smoke lands/expires before perception so stationary observers recast
         // against the same opacity state direct-fire AI sees this tick.
         smokeFields.tick(TICK_DT);
@@ -1608,6 +1622,10 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         mechLocomotionSystem.tick(TICK_DT);
         mechTurretSystem.tick(TICK_DT);
         facingSystem.tick();
+        // FacingSystem authors the ordinary battle pose. Active ambient work
+        // reasserts its narrower presentation contract afterwards, including
+        // dry-fire use of the actor's already-issued primary weapon.
+        ambientTasks.applyAppearance();
         tickProfile.lap(TickProfile.Phase.APPEARANCE);
         if (commandTraceEnabled) commandTrace.sample(this);
         // Tick barrier for the entity world: apply structural changes queued on

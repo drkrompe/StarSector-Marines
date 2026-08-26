@@ -250,9 +250,9 @@ public class HeavyWeapons {
                 MechWeapon weapon = mount.weapon();
                 float accuracyMult = 1f;
                 if (weapon == MechWeapon.LRM_ARTILLERY) {
-                    boolean hasLos = grid.hasLineOfSight(
-                            world.cellX(u), world.cellY(u),
-                            world.cellX(target), world.cellY(target));
+                    boolean hasLos = grid.hasLineOfFire(
+                            world.x(u), world.y(u),
+                            world.x(target), world.y(target));
                     accuracyMult = hasLos ? 1f : MechWeapon.LRM_NO_LOS_ACC_MULT;
                 }
                 fireMechWeapon(u, target, weapon, accuracyMult);

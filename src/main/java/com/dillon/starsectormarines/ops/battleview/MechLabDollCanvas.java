@@ -2,6 +2,9 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
+import com.dillon.starsectormarines.battle.ambient.AmbientActivity;
+import com.dillon.starsectormarines.battle.ambient.AmbientTaskPose;
+import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.DollDef;
@@ -24,6 +27,7 @@ import com.fs.starfarer.api.graphics.SpriteAPI;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
@@ -53,6 +57,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private final Supplier<SpriteAPI> tileSheet;
     private final Supplier<SpriteAPI> weldingTorch;
     private final Supplier<SpriteAPI> weldingSparks;
+    private final Supplier<MechLabCameraController.CameraPose> cameraPose;
+    private final BooleanSupplier fittingOverlaysVisible;
     private final MechLabBattleScene battleScene;
     private final DoubleSupplier elapsedSeconds;
 
@@ -85,7 +91,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
                              DoubleSupplier elapsedSeconds) {
         this(singletonVariants(variant), () -> 0, selectedSocket, assets,
                 technicianAssets, tileSheet, roadSheet,
-                () -> null, () -> null, battleScene, elapsedSeconds);
+                () -> null, () -> null,
+                () -> MechLabCameraController.fittingPose(0), () -> true,
+                battleScene, elapsedSeconds);
     }
 
     public MechLabDollCanvas(Supplier<List<MechVariant>> variants,
@@ -99,6 +107,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
                              DoubleSupplier elapsedSeconds) {
         this(variants, selectedGantry, selectedSocket, assets, technicianAssets,
                 tileSheet, roadSheet, () -> null, () -> null,
+                () -> MechLabCameraController.fittingPose(
+                        selectedIndex(selectedGantry.getAsInt())), () -> true,
                 battleScene, elapsedSeconds);
     }
 
@@ -111,12 +121,15 @@ public final class MechLabDollCanvas implements CanvasProducer {
                              Supplier<SpriteAPI> roadSheet,
                              Supplier<SpriteAPI> weldingTorch,
                              Supplier<SpriteAPI> weldingSparks,
+                             Supplier<MechLabCameraController.CameraPose> cameraPose,
+                             BooleanSupplier fittingOverlaysVisible,
                              MechLabBattleScene battleScene,
                              DoubleSupplier elapsedSeconds) {
         if (variants == null || selectedGantry == null || selectedSocket == null
                 || assets == null || technicianAssets == null
                 || tileSheet == null || roadSheet == null
                 || weldingTorch == null || weldingSparks == null
+                || cameraPose == null || fittingOverlaysVisible == null
                 || elapsedSeconds == null) {
             throw new IllegalArgumentException(
                     "variants, gantry, socket, mech/technician/tile assets, and elapsed time are required");
@@ -129,6 +142,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
         this.tileSheet = tileSheet;
         this.weldingTorch = weldingTorch;
         this.weldingSparks = weldingSparks;
+        this.cameraPose = cameraPose;
+        this.fittingOverlaysVisible = fittingOverlaysVisible;
         this.battleScene = battleScene;
         this.elapsedSeconds = elapsedSeconds;
     }
@@ -140,13 +155,15 @@ public final class MechLabDollCanvas implements CanvasProducer {
         float time = (float) elapsedSeconds.getAsDouble();
         List<MechVariant> lance = variants.get();
         int gantryIndex = selectedIndex(selectedGantry.getAsInt());
+        MechLabCameraController.CameraPose pose = cameraPose.get();
+        if (pose == null) return;
         MechVariant selected = gantryIndex < lance.size() ? lance.get(gantryIndex) : null;
         LayeredMechAssets sprites = assets.get();
         if (sprites == null) return;
 
         CanvasHostViewport[] liveViewport = new CanvasHostViewport[1];
         BattleSceneHostPass backdrop = battleScene != null
-                ? battleScene.backdropPass(lance, gantryIndex, time) : null;
+                ? battleScene.backdropPass(lance, pose, time) : null;
         boolean liveScene = backdrop != null && context.hostPass(new BattleSceneHostPass() {
             @Override
             public BattleSceneFrame prepare(CanvasHostViewport viewport, float alphaMult) {
@@ -165,27 +182,29 @@ public final class MechLabDollCanvas implements CanvasProducer {
         if (liveScene) {
             CanvasHostViewport viewport = liveViewport[0];
             sceneCamera = MechLabBattleScene.cameraForSurface(
-                    viewport.width(), viewport.height(), gantryIndex);
+                    viewport.width(), viewport.height(), pose);
             projection = selected != null
                     ? SceneProjection.forLive(sceneCamera, viewport, selected, gantryIndex) : null;
         } else {
-            sceneCamera = MechLabBattleScene.cameraForSurface(width, height, gantryIndex);
+            sceneCamera = MechLabBattleScene.cameraForSurface(width, height, pose);
             projection = selected != null
                     ? SceneProjection.forCanvas(sceneCamera, height, selected, gantryIndex) : null;
             drawGarage(context, sceneCamera, height, tileSheet.get());
         }
 
         if (liveScene) {
-            context.hostPass(battleScene.actorPass(lance, gantryIndex, time));
+            context.hostPass(battleScene.actorPass(lance, pose, time));
         } else {
             drawLance(context, sceneCamera, height, sprites, lance);
             drawTechnicians(context, sceneCamera, height,
                     projection != null ? projection.cellX() : sceneCamera.cellPxSize(),
                     time, technicianAssets.get());
         }
-        if (selected != null) {
+        if (selected != null && fittingOverlaysVisible.getAsBoolean()) {
             drawSocketOverlays(context, MechFittingLayout.forVariant(selected),
                     selectedSocket.get(), projection);
+        }
+        if (projection != null) {
             drawTechnicianFx(context, projection, gantryIndex, time,
                     weldingTorch.get(), weldingSparks.get());
         }
@@ -249,8 +268,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
         float shoulder = UnitRenderService.layeredInfantryShoulderWidth(
                 cell, UnitType.ENGINEER.renderScale);
         for (int index = 0; index < MechLabSceneLayout.TECHNICIAN_JOBS.size(); index++) {
-            MechLabTechnicianJobs.TechnicianPose pose =
-                    MechLabTechnicianJobs.sample(index, time);
+            AmbientTaskPose pose = AmbientTaskService.sample(
+                    MechLabSceneLayout.TECHNICIAN_JOBS.get(index), time);
             drawTechnician(c, crew,
                     camera.cellToScreenX(pose.worldX()),
                     height - camera.cellToScreenY(pose.worldY()),
@@ -424,9 +443,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
         float originX = MechLabBattleScene.mechWorldX(selectedGantry);
         float originY = MechLabBattleScene.mechWorldY(selectedGantry);
         for (int index = 0; index < MechLabSceneLayout.TECHNICIAN_JOBS.size(); index++) {
-            MechLabTechnicianJobs.TechnicianPose pose =
-                    MechLabTechnicianJobs.sample(index, time);
-            if (pose.activity() != MechLabTechnicianJobs.TechnicianActivity.WELDING) {
+            AmbientTaskPose pose = AmbientTaskService.sample(
+                    MechLabSceneLayout.TECHNICIAN_JOBS.get(index), time);
+            if (pose.activity() != AmbientActivity.WORKING) {
                 continue;
             }
             float technicianX = projection.actorX()
