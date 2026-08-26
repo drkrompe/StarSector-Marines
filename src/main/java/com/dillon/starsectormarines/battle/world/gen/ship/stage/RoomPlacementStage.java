@@ -67,13 +67,20 @@ public final class RoomPlacementStage implements GenStage {
      */
     private static final int WALL_COST = 8;
     /**
-     * Surcharge on a stretch of route that could only ever be single file. Two
-     * abreast is the width a squad can actually use — one wide is a movement
-     * trap, and a door one cell across is the same trap at its worst place — so
-     * a route with room to open out is preferred, though not so strongly that a
-     * passage will tear through structure to get it.
+     * Surcharge on a cell no two-by-two square of open deck covers. Two abreast
+     * is the width a squad can actually use, and it has to hold on both axes at
+     * once: a corridor widened only across its direction of travel pinches back
+     * to one cell at every corner, and a one-cell corner is a movement trap in
+     * the worst possible place. So width is judged as a square, not as a pair.
+     *
+     * <p>Two is a floor, not a ceiling. Squares stamped along a route overlap
+     * and merge with the ones already there, so halls open out wherever the deck
+     * has room and only narrow where it genuinely does not.
      */
     private static final int NARROW_PENALTY = 3;
+
+    /** Corners of the two-by-two square a route cell may be covered by. */
+    private static final int[][] LANE_ANCHORS = { { 0, 0 }, { -1, 0 }, { 0, -1 }, { -1, -1 } };
 
     /** Padded by one cell each side, so a room's bulkhead ring never falls off the array. */
     private boolean[][] hull;
@@ -307,6 +314,8 @@ public final class RoomPlacementStage implements GenStage {
      * or tearing through them.
      */
     private Access cutPassage(Candidate candidate) {
+        int[][] routable = routableGrid(candidate);
+        boolean[][] wide = wideGrid(routable);
         int[][] cost = new int[width][height];
         int[][] cameFrom = new int[width][height];
         for (int[] column : cost) {
@@ -320,7 +329,8 @@ public final class RoomPlacementStage implements GenStage {
         for (int[] doorway : candidate.shape().doorways()) {
             int outsideX = candidate.x() + doorway[2];
             int outsideY = candidate.y() + doorway[3];
-            int step = stepCost(candidate, outsideX, outsideY);
+            if (!inBounds(outsideX, outsideY)) continue;
+            int step = routeCost(routable, wide, outsideX, outsideY);
             if (step < 0 || step >= cost[outsideX][outsideY]) continue;
             cost[outsideX][outsideY] = step;
             cameFrom[outsideX][outsideY] =
@@ -334,9 +344,9 @@ public final class RoomPlacementStage implements GenStage {
             for (int[] step : STEPS) {
                 int nx = cell[0] + step[0];
                 int ny = cell[1] + step[1];
-                int stepCost = stepCost(candidate, nx, ny);
+                if (!inBounds(nx, ny)) continue;
+                int stepCost = routeCost(routable, wide, nx, ny);
                 if (stepCost < 0) continue;
-                if (!canRunAbreast(candidate, nx, ny, step[1], step[0])) stepCost += NARROW_PENALTY;
                 int next = cell[2] + stepCost;
                 if (next >= cost[nx][ny]) continue;
                 cost[nx][ny] = next;
@@ -378,27 +388,58 @@ public final class RoomPlacementStage implements GenStage {
         return WALL_COST;
     }
 
-    /** Whether a passage through this cell could take a second cell alongside it. */
-    private boolean canRunAbreast(Candidate candidate, int x, int y, int perpX, int perpY) {
-        return widenTarget(candidate, x, y, perpX, perpY, false)
-                || widenTarget(candidate, x, y, -perpX, -perpY, false);
+    /**
+     * What every cell of the deck would cost this room's passage, worked out
+     * once per attempt. The per-cell test walks the room being placed, so
+     * calling it from inside the search — for the cell and for its neighbours,
+     * on every relaxation — was the same work over and over.
+     */
+    private int[][] routableGrid(Candidate candidate) {
+        int[][] costs = new int[width][height];
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                costs[x][y] = stepCost(candidate, x, y);
+            }
+        }
+        return costs;
+    }
+
+    /** Cells some two-by-two square of routable deck covers — where a hall can be full width. */
+    private boolean[][] wideGrid(int[][] routable) {
+        boolean[][] wide = new boolean[width][height];
+        for (int x = 0; x + 1 < width; x++) {
+            for (int y = 0; y + 1 < height; y++) {
+                if (routable[x][y] < 0 || routable[x + 1][y] < 0
+                        || routable[x][y + 1] < 0 || routable[x + 1][y + 1] < 0) {
+                    continue;
+                }
+                wide[x][y] = true;
+                wide[x + 1][y] = true;
+                wide[x][y + 1] = true;
+                wide[x + 1][y + 1] = true;
+            }
+        }
+        return wide;
+    }
+
+    private static int routeCost(int[][] routable, boolean[][] wide, int x, int y) {
+        int base = routable[x][y];
+        if (base < 0) return -1;
+        return wide[x][y] ? base : base + NARROW_PENALTY;
     }
 
     /**
-     * Whether the cell beside {@code (x, y)} can carry the second lane of a
-     * passage. Open deck always can, and deck that is already walkable is
-     * already wide. Bulkhead is offered only while the passage is crossing one:
-     * a two-cell hatch through a wall is a door, but a passage that kept eating
-     * the bulkhead it runs alongside would unzip the compartment behind it.
+     * Whether one cell can carry part of a hall. Open deck can, and deck that is
+     * already walkable is already a hall. Bulkhead is offered only while the
+     * passage is crossing one: a wide hatch through a wall is a door, but a hall
+     * that kept eating the bulkhead it runs alongside would unzip the
+     * compartment behind it.
      */
-    private boolean widenTarget(Candidate candidate, int x, int y,
-                                int perpX, int perpY, boolean crossing) {
-        int nx = x + perpX;
-        int ny = y + perpY;
-        if (!inBounds(nx, ny)) return false;
-        if (floor[nx + 1][ny + 1]) return true;
-        if (claimed[nx + 1][ny + 1] && !crossing) return false;
-        return stepCost(candidate, nx, ny) >= 0;
+    private boolean laneOk(Candidate candidate, int x, int y, boolean crossing) {
+        if (!inBounds(x, y)) return false;
+        if (floor[x + 1][y + 1]) return true;
+        if (claimed[x + 1][y + 1] && !crossing) return false;
+        return stepCost(candidate, x, y) >= 0;
     }
 
     /** Walkable, and part of a room rather than part of the circulation. */
@@ -456,17 +497,11 @@ public final class RoomPlacementStage implements GenStage {
             int y = candidate.y() + cell[1];
             if (inBounds(x, y)) claimed[x + 1][y + 1] = true;
         }
-        List<int[]> route = access.passage();
-        int side = 0;
-        for (int i = 0; i < route.size(); i++) {
-            int[] cell = route.get(i);
+        int[] anchor = null;
+        for (int[] cell : access.passage()) {
             boolean crossing = claimed[cell[0] + 1][cell[1] + 1];
-            carve(ctx, cell[0], cell[1], RoomPurpose.CORRIDOR, GroundKind.INDOOR);
-            passage[cell[0] + 1][cell[1] + 1] = true;
-            int[] heading = i + 1 < route.size()
-                    ? new int[]{ route.get(i + 1)[0] - cell[0], route.get(i + 1)[1] - cell[1] }
-                    : new int[]{ access.dirX(), access.dirY() };
-            side = widen(ctx, candidate, cell[0], cell[1], heading[1], heading[0], side, crossing);
+            carveLane(ctx, cell[0], cell[1]);
+            anchor = stampLane(ctx, candidate, cell[0], cell[1], anchor, crossing);
         }
         // The door itself is a threshold, not circulation: leaving it out of the
         // passage mask is what stops the next room treating it as a hallway.
@@ -476,30 +511,47 @@ public final class RoomPlacementStage implements GenStage {
     }
 
     /**
-     * Open one cell of a passage out to two abreast, across the direction of
-     * travel rather than into whichever neighbour happened to be free —
-     * widening along the route only thickens it into a blob. The side that
-     * worked last time is tried first, so a hall reads as one ribbon of
-     * consistent width instead of alternating flanks down its length.
+     * Cover one cell of a route with a two-by-two square of hall, so the passage
+     * is two wide on both axes there and not merely across the way it happened
+     * to be heading. Squares laid down the route overlap, which is what turns a
+     * corner into a proper elbow instead of the one-cell pinch a
+     * travel-relative widening leaves.
      *
-     * @return the side actually used, to carry into the next cell
+     * <p>The square that worked last time is tried first, so a straight run
+     * keeps to one side and reads as a single ribbon. Where no square fits at
+     * all the route stays single file rather than forcing its way through: a
+     * squeeze somewhere the deck is genuinely tight is honest, and the routing
+     * cost already steered around it if there was any alternative.
+     *
+     * @return the anchor used, to carry into the next cell
      */
-    private int widen(GenContext ctx, Candidate candidate, int x, int y,
-                      int perpX, int perpY, int preferredSide, boolean crossing) {
-        int[] order = preferredSide == 0
-                ? new int[]{ 1, -1 }
-                : new int[]{ preferredSide, -preferredSide };
-        for (int side : order) {
-            if (!widenTarget(candidate, x, y, perpX * side, perpY * side, crossing)) continue;
-            int nx = x + perpX * side;
-            int ny = y + perpY * side;
-            if (!floor[nx + 1][ny + 1]) {
-                carve(ctx, nx, ny, RoomPurpose.CORRIDOR, GroundKind.INDOOR);
-                passage[nx + 1][ny + 1] = true;
+    private int[] stampLane(GenContext ctx, Candidate candidate, int x, int y,
+                            int[] preferred, boolean crossing) {
+        for (int attempt = 0; attempt <= LANE_ANCHORS.length; attempt++) {
+            int[] anchor = attempt == 0 ? preferred : LANE_ANCHORS[attempt - 1];
+            if (anchor == null) continue;
+            int ax = x + anchor[0];
+            int ay = y + anchor[1];
+            if (!laneOk(candidate, ax, ay, crossing)
+                    || !laneOk(candidate, ax + 1, ay, crossing)
+                    || !laneOk(candidate, ax, ay + 1, crossing)
+                    || !laneOk(candidate, ax + 1, ay + 1, crossing)) {
+                continue;
             }
-            return side;
+            carveLane(ctx, ax, ay);
+            carveLane(ctx, ax + 1, ay);
+            carveLane(ctx, ax, ay + 1);
+            carveLane(ctx, ax + 1, ay + 1);
+            return anchor;
         }
-        return preferredSide;
+        return preferred;
+    }
+
+    /** Cut one cell of hall, leaving deck that is already walkable alone. */
+    private void carveLane(GenContext ctx, int x, int y) {
+        if (!inBounds(x, y) || floor[x + 1][y + 1]) return;
+        carve(ctx, x, y, RoomPurpose.CORRIDOR, GroundKind.INDOOR);
+        passage[x + 1][y + 1] = true;
     }
 
     /**

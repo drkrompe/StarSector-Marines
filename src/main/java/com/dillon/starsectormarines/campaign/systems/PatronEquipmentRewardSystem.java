@@ -7,16 +7,14 @@ import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.PatronEngagementOutcome;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCard;
+import com.dillon.starsectormarines.marine.EquipmentTemplateCardInventory;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCardItemPlugin;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
 import com.dillon.starsectormarines.marine.FactionEquipmentPicker;
 import com.dillon.starsectormarines.marine.FactionEquipmentSource;
-import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.CargoAPI;
-import com.fs.starfarer.api.campaign.CargoStackAPI;
-import com.fs.starfarer.api.campaign.SpecialItemData;
 
 import java.text.MessageFormat;
 import java.util.EnumSet;
@@ -161,22 +159,7 @@ public final class PatronEquipmentRewardSystem implements CampaignSystem {
     private static final class StarsectorRewardAccess implements RewardAccess {
         @Override
         public Set<String> unavailableTemplateIds() {
-            CargoAPI cargo = playerCargo();
-            if (cargo == null) return null;
-            Set<String> unavailable = new HashSet<>();
-            MarineRosterScript roster = MarineRosterScript.getInstance();
-            if (roster != null) {
-                unavailable.addAll(roster.roster().armory().ownedEquipmentTemplateIds());
-            }
-            for (CargoStackAPI stack : cargo.getStacksCopy()) {
-                SpecialItemData special = stack.getSpecialDataIfSpecial();
-                if (special != null
-                        && EquipmentTemplateCardItemPlugin.ITEM_ID.equals(special.getId())
-                        && special.getData() != null) {
-                    unavailable.add(special.getData());
-                }
-            }
-            return unavailable;
+            return EquipmentTemplateCardInventory.playerUnavailableTemplateIds();
         }
 
         @Override
