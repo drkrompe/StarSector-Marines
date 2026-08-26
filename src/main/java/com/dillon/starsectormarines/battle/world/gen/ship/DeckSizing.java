@@ -43,7 +43,7 @@ public final class DeckSizing {
      * every cell it is given and a deck with nowhere to run a passage is worse
      * than a slightly loose one.
      */
-    private static final float CIRCULATION = 1.75f;
+    private static final float CIRCULATION = 1.40f;
 
     private DeckSizing() {}
 
@@ -113,33 +113,72 @@ public final class DeckSizing {
     public static List<RoomRecipe> programFor(HullClass hullClass, HullRole role,
                                               int minCrew, int maxCrew, int cargo) {
         int lift = Math.max(0, maxCrew - minCrew);
+        // Below destroyer size a hull has no room to spare and nobody aboard to
+        // spare it for. A frigate keeps a gig and a locker; the range, the
+        // briefing room, and a proper sick bay all belong to ships carrying
+        // enough people to need them.
+        boolean substantial = hullClass.ordinal() >= HullClass.DESTROYER.ordinal();
 
         List<RoomRecipe> rooms = new ArrayList<>();
         rooms.add(RoomRecipe.COMMAND);
-        add(rooms, RoomRecipe.BERTHING, RoomRecipe.BERTHING.countFor(maxCrew));
-        add(rooms, RoomRecipe.ENGINEERING,
-                hullClass.ordinal() >= HullClass.CRUISER.ordinal() ? 2 : 1);
-        add(rooms, RoomRecipe.SHUTTLE_BAY, RoomRecipe.SHUTTLE_BAY.countFor(lift));
+        add(rooms, RoomRecipe.ENGINEERING, Math.max(
+                hullClass.ordinal() >= HullClass.CRUISER.ordinal() ? 2 : 1,
+                RoomRecipe.ENGINEERING.countFor(maxCrew)));
+        add(rooms, RoomRecipe.PROVISIONS, RoomRecipe.PROVISIONS.countFor(maxCrew));
+        RoomRecipe boats = substantial ? RoomRecipe.SHUTTLE_BAY : RoomRecipe.BOAT_BAY;
+        add(rooms, boats, boats.countFor(lift));
         if (cargo > 0) add(rooms, RoomRecipe.HOLD, RoomRecipe.HOLD.countFor(cargo));
+        addCrewSpaces(rooms, maxCrew, substantial);
+        rooms.add(RoomRecipe.MACHINE_SHOP);
 
         switch (role) {
             case TROOP_TRANSPORT -> {
-                // Armed for the force she carries, not the handful who fly her.
+                // Armed and drilled for the force she carries, not the handful
+                // who fly her.
                 add(rooms, RoomRecipe.ARMORY, Math.max(1, lift / ARMED_PER_ARMORY));
-                rooms.add(RoomRecipe.VEHICLE_BAY);
+                if (substantial) {
+                    add(rooms, RoomRecipe.RANGE, RoomRecipe.RANGE.countFor(lift));
+                    rooms.add(RoomRecipe.BRIEFING);
+                    rooms.add(RoomRecipe.VEHICLE_BAY);
+                }
             }
             case CARRIER -> {
                 add(rooms, RoomRecipe.ARMORY, RoomRecipe.ARMORY.countFor(maxCrew));
-                rooms.add(RoomRecipe.VEHICLE_BAY);
+                if (substantial) {
+                    rooms.add(RoomRecipe.RANGE);
+                    rooms.add(RoomRecipe.BRIEFING);
+                    rooms.add(RoomRecipe.VEHICLE_BAY);
+                }
             }
             case WARSHIP -> {
                 add(rooms, RoomRecipe.ARMORY, RoomRecipe.ARMORY.countFor(maxCrew));
+                if (substantial) {
+                    rooms.add(RoomRecipe.RANGE);
+                    rooms.add(RoomRecipe.BRIEFING);
+                }
                 if (hullClass.carriesHeavyAssets()) rooms.add(RoomRecipe.VEHICLE_BAY);
             }
-            // A hull built around its hold keeps a locker, not an armory.
+            // A hull built around its hold keeps a locker, not an armory, and
+            // nobody aboard has any business on a range.
             case FREIGHTER, TANKER, LINER -> rooms.add(RoomRecipe.ARMORY);
         }
         return rooms;
+    }
+
+    /**
+     * What everyone aboard needs regardless of why they are aboard: somewhere to
+     * sleep, wash, eat, and be treated. These scale with the whole complement
+     * rather than with the crew, because a passenger eats too — and together
+     * they are most of the rooms on a ship, which is what fills a hull that the
+     * working spaces alone leave hollow.
+     */
+    private static void addCrewSpaces(List<RoomRecipe> rooms, int maxCrew, boolean substantial) {
+        add(rooms, RoomRecipe.BERTHING, RoomRecipe.BERTHING.countFor(maxCrew));
+        add(rooms, RoomRecipe.WASHROOM, RoomRecipe.WASHROOM.countFor(maxCrew));
+        add(rooms, RoomRecipe.MESS, RoomRecipe.MESS.countFor(maxCrew));
+        if (substantial) {
+            add(rooms, RoomRecipe.SICK_BAY, RoomRecipe.SICK_BAY.countFor(maxCrew));
+        }
     }
 
     /** Troops one armory issues for. Lower than a crew figure: everyone here draws a weapon. */
