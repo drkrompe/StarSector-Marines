@@ -1,4 +1,4 @@
-<template props="fleetSummary,companyCards,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses">
+<template props="fleetSummary,templateCollectionSummary,accessStatusSummary,accessNextSummary,companyCards,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses">
   <div id="fleet-armory-overview-root" class="fleet-armory-overview-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" contextLabel="FLAGSHIP / ARMORY / COMPANY ROSTER" />
 
@@ -6,6 +6,9 @@
       <div id="company-overview-heading" class="label heading tone-edge">SELECT A COMPANY</div>
       <div id="company-overview-copy" class="label tone-muted">Choose a company to inspect its squads, marines, readiness, and finite equipment.</div>
       <div id="company-overview-summary" class="label surface-dark">{fleetSummary}</div>
+      <div id="template-collection-summary" class="label surface-dark tone-edge">{templateCollectionSummary}</div>
+      <div id="equipment-access-status" class="label tone-muted">{accessStatusSummary}</div>
+      <div id="equipment-access-next" class="label tone-accent">{accessNextSummary}</div>
     </div>
 
     <armory-company-list companyCards="{companyCards}" />
@@ -27,7 +30,7 @@
 
   #company-overview-intro {
     flex-direction: column;
-    height: 72px;
+    height: 132px;
     padding: 7px 8px;
     gap: 3px;
   }
@@ -35,5 +38,8 @@
   #company-overview-heading { height: 18px; }
   #company-overview-copy { height: 17px; }
   #company-overview-summary { height: 19px; padding: 2px 6px; }
+  #template-collection-summary { height: 19px; padding: 2px 6px; }
+  #equipment-access-status { height: 17px; }
+  #equipment-access-next { height: 17px; }
 
 </style>

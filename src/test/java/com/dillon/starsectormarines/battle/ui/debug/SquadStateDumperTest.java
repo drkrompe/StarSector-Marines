@@ -286,6 +286,9 @@ class SquadStateDumperTest {
         JSONObject directive = sabotage.getJSONObject("squadDirective");
         JSONObject site = sabotage.getJSONArray("sites").getJSONObject(0);
         assertEquals("SAB-01", site.getString("id"));
+        assertEquals("AWAITING_PLANTER", site.getString("groupReason"));
+        assertEquals(0, site.getInt("activeKitDrops"));
+        assertEquals(0, site.getInt("unclaimedKitDrops"));
         assertEquals(0, directive.getInt("siteIndex"));
         assertEquals("SECURITY", directive.getString("groupRole"));
         assertEquals("CLEAR_ZONE", directive.getString("assignmentKind"));

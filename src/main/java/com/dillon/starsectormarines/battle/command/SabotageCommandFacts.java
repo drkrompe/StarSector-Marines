@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,6 +27,8 @@ public final class SabotageCommandFacts {
             float plantDuration,
             boolean planterOnSite,
             boolean complete,
+            int activeKitDrops,
+            int unclaimedKitDrops,
             List<Integer> planterSquadIds,
             List<Integer> retrieverSquadIds) {
 
@@ -49,6 +53,8 @@ public final class SabotageCommandFacts {
 
         List<Set<Integer>> planterSquads = new ArrayList<>(objectives.size());
         List<Set<Integer>> retrieverSquads = new ArrayList<>(objectives.size());
+        Set<EquipmentDrop> claimedDrops = Collections.newSetFromMap(
+                new IdentityHashMap<>());
         for (int i = 0; i < objectives.size(); i++) {
             planterSquads.add(new LinkedHashSet<>());
             retrieverSquads.add(new LinkedHashSet<>());
@@ -73,8 +79,21 @@ public final class SabotageCommandFacts {
                 int siteIndex = identityIndex(objectives, site);
                 if (siteIndex >= 0 && !site.isComplete()) {
                     retrieverSquads.get(siteIndex).add(squadId);
+                    if (!drop.consumed) claimedDrops.add(drop);
                 }
             }
+        }
+
+        int[] activeKitDrops = new int[objectives.size()];
+        int[] unclaimedKitDrops = new int[objectives.size()];
+        for (EquipmentDrop drop : sim.getEquipmentDrops()) {
+            if (drop == null || drop.consumed
+                    || !(drop.objective instanceof ChargeSiteObjective site)
+                    || site.isComplete()) continue;
+            int siteIndex = identityIndex(objectives, site);
+            if (siteIndex < 0) continue;
+            activeKitDrops[siteIndex]++;
+            if (!claimedDrops.contains(drop)) unclaimedKitDrops[siteIndex]++;
         }
 
         List<Site> facts = new ArrayList<>(objectives.size());
@@ -83,7 +102,8 @@ public final class SabotageCommandFacts {
             facts.add(new Site(i, site.siteId(), site.displayName(), site.cellX(), site.cellY(),
                     sim.getZoneGraph().zoneIdAt(site.cellX(), site.cellY()),
                     site.progress(), site.plantDuration(), site.planterOnSite(),
-                    site.isComplete(), new ArrayList<>(planterSquads.get(i)),
+                    site.isComplete(), activeKitDrops[i], unclaimedKitDrops[i],
+                    new ArrayList<>(planterSquads.get(i)),
                     new ArrayList<>(retrieverSquads.get(i))));
         }
         return new SabotageCommandFacts(facts);

@@ -268,6 +268,12 @@
 		"equipmentTemplateLearnedFmt": "Acquired equipment template: {0}",
 		"equipmentTemplatePatronRewardFmt": "{0} issued an equipment template: {1}",
 		"equipmentTemplateUnknownPatron": "Your patron",
-		"equipmentTemplateAlreadyKnownFmt": "{0}: equipment template already known"
+		"equipmentTemplateAlreadyKnownFmt": "{0}: equipment template already known",
+		"equipmentTemplateAccessFmt": "Access tier: {0}",
+		"equipmentTemplateAccessCommon": "Common",
+		"equipmentTemplateAccessAdvanced": "Advanced",
+		"equipmentTemplateAccessPrestige": "Prestige",
+		"equipmentTemplateAccessCommonRoute": "Common templates may circulate through unrestricted faction markets.",
+		"equipmentTemplateAccessGatedRouteFmt": "Licensed and patron access requires MRB +{0}; high-risk recovery requires {1} company victories. Licensed stock also requires Favorable standing with the selling faction."
 	}
 }

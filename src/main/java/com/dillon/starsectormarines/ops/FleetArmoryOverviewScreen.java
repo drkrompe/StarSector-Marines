@@ -104,6 +104,9 @@ public final class FleetArmoryOverviewScreen implements Screen {
     private Map<String, Object> props() {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("fleetSummary", viewModel.fleetSummary());
+        props.put("templateCollectionSummary", viewModel.templateCollectionSummary());
+        props.put("accessStatusSummary", viewModel.accessStatusSummary());
+        props.put("accessNextSummary", viewModel.accessNextSummary());
         props.put("companyCards", viewModel.companyCards());
         putPageNavigation(props);
         return props;
@@ -124,6 +127,8 @@ public final class FleetArmoryOverviewScreen implements Screen {
                 "page-nav-return", "page-nav-hq", "page-nav-barracks",
                 "page-nav-armory", "page-nav-mech-lab",
                 "company-overview-intro", "company-overview-summary",
+                "template-collection-summary", "equipment-access-status",
+                "equipment-access-next",
                 "company-list")) {
             component.requireElement(id);
         }

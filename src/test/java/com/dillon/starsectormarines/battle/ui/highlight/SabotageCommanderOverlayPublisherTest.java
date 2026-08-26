@@ -18,6 +18,7 @@ class SabotageCommanderOverlayPublisherTest {
         SabotageSiteSnapshot.SiteState site =
                 new SabotageSiteSnapshot.SiteState(0, "SAB-01", "reactor",
                         12, 7, 3, 2f, 8f, true, false,
+                        0, 0, SabotageSiteSnapshot.GroupReason.PLANTER_ACTIVE,
                         1, 0, 2, 12, 4f, 3f);
         SabotageSiteSnapshot.SquadDirective directive =
                 new SabotageSiteSnapshot.SquadDirective(9, 0,

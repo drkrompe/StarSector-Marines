@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -47,6 +48,22 @@ class EquipmentAcquisitionEligibilityTest {
                 progress(14, 100)));
         assertTrue(allows(prestige, FactionEquipmentSource.RECOVERY,
                 progress(15, -100)));
+    }
+
+    @Test
+    void presentationThresholdsComeFromTheSamePolicyAsFiltering() {
+        assertEquals(5, EquipmentAcquisitionEligibility.requiredMrb(
+                EquipmentAccessTier.ADVANCED));
+        assertEquals(20, EquipmentAcquisitionEligibility.requiredMrb(
+                EquipmentAccessTier.PRESTIGE));
+        assertEquals(5, EquipmentAcquisitionEligibility.requiredRecoveryVictories(
+                EquipmentAccessTier.ADVANCED));
+        assertEquals(15, EquipmentAcquisitionEligibility.requiredRecoveryVictories(
+                EquipmentAccessTier.PRESTIGE));
+        assertEquals(EquipmentAccessTier.ADVANCED,
+                EquipmentAcquisitionEligibility.licensedTier(progress(0, 5)));
+        assertEquals(EquipmentAccessTier.PRESTIGE,
+                EquipmentAcquisitionEligibility.recoveryTier(progress(15, -100)));
     }
 
     private static EquipmentAcquisitionEligibility.Progress progress(

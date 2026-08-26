@@ -136,6 +136,35 @@ class BattleFixtureJsonTest {
     }
 
     @Test
+    void roundTripsSabotageLaunchOverlayAroundV2Construction() throws Exception {
+        SabotageBattleFixture construction = new SabotageBattleFixture(
+                48_151L,
+                List.of(
+                        new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 2, 6),
+                        new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1, 6)),
+                true,
+                OperationTier.ESTABLISHED,
+                RiskLevel.MEDIUM,
+                TargetProfile.NEUTRAL,
+                List.of(),
+                List.of());
+        BattleLaunchFixture fixture = new BattleLaunchFixture(construction,
+                new BattleLaunchOverlay(
+                        0, List.of(), List.of(), List.of(), List.of(), 0));
+
+        JSONObject encoded = BattleFixtureJson.toJson(fixture);
+        BattleFixture decoded = BattleFixtureJson.fromJson(encoded);
+
+        assertEquals(3, encoded.getInt("schemaVersion"));
+        assertEquals(SabotageBattleFixture.KIND, encoded.getString("kind"));
+        assertEquals(2, encoded.getJSONObject("construction")
+                .getInt("schemaVersion"));
+        assertEquals(fixture, decoded);
+        assertEquals(encoded.toString(),
+                BattleFixtureJson.toJson(decoded).toString());
+    }
+
+    @Test
     void roundTripsV3LaunchOverlayWithV2Construction() throws Exception {
         ConquestBattleFixture construction = new ConquestBattleFixture(
                 8_192L,

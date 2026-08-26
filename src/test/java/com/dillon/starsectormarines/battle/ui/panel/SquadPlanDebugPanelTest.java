@@ -158,6 +158,7 @@ class SquadPlanDebugPanelTest {
         SabotageSiteSnapshot.SiteState site =
                 new SabotageSiteSnapshot.SiteState(0, "SAB-01", "reactor",
                         12, 7, 3, 2f, 8f, true, false,
+                        0, 0, SabotageSiteSnapshot.GroupReason.PLANTER_ACTIVE,
                         1, 0, 2, 12, 4f, 3f);
         SabotageSiteSnapshot.SquadDirective directive =
                 new SabotageSiteSnapshot.SquadDirective(9, 0,
@@ -170,7 +171,7 @@ class SquadPlanDebugPanelTest {
 
         assertEquals("Site group S1   SECURITY   Reason SITE_SECURITY_PRESERVED",
                 SquadPlanDebugPanel.sabotageOrderSummary(directive));
-        assertEquals("Site SAB-01 2.0/8.0   Security 2   Press 4.0/3.0",
+        assertEquals("Site SAB-01 2.0/8.0   PLANTER_ACTIVE   Security 2   Press 4.0/3.0",
                 SquadPlanDebugPanel.sabotageSiteSummary(snapshot, directive));
     }
 
