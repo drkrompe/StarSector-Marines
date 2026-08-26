@@ -96,4 +96,14 @@ public enum RoomPurpose {
      * because the storage layer packs {@link #ordinal()} into a byte.
      */
     HANGAR,
+    /**
+     * Ship deck — crew mess and galley. The largest space aboard that is
+     * neither a bay nor a hold, and the one room the whole complement passes
+     * through every day.
+     */
+    MESS_HALL,
+    /** Ship deck — enclosed small-arms range and the ready area serving it. */
+    FIRING_RANGE,
+    /** Ship deck — heads and washroom serving a berthing block. */
+    WASHROOM,
 }
