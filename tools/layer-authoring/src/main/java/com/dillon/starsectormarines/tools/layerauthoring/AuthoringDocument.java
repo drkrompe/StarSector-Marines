@@ -13,7 +13,9 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -59,6 +61,9 @@ public final class AuthoringDocument {
         for (int index = 0; index < unitArray.length(); index++) {
             units.add(UnitComposition.parse(unitArray.getJSONObject(index)));
         }
+        Map<String, UnitComposition> unitsById = new LinkedHashMap<>();
+        for (UnitComposition unit : units) unitsById.putIfAbsent(unit.id(), unit);
+        for (UnitComposition unit : units) unit.resolveAnimationSource(unitsById);
         AuthoringDocument document = new AuthoringDocument(normalizedRoot, source, units,
                 sourceTemplate);
         List<String> errors = document.validate();
@@ -96,6 +101,16 @@ public final class AuthoringDocument {
             if (!unitIds.add(unit.id())) errors.add("Duplicate unit id: " + unit.id());
             if (unit.referencePixels() <= 0.0) {
                 errors.add(unit.id() + " referencePixels must be positive");
+            }
+            if (unit.animationSourceId() != null && unit.animationSource() == null) {
+                errors.add(unit.id() + " animationSource does not exist: "
+                        + unit.animationSourceId());
+            } else if (unit.animationSource() == unit) {
+                errors.add(unit.id() + " cannot use itself as animationSource");
+            } else if (unit.animationSource() != null
+                    && unit.animationSource().animationSourceId() != null) {
+                errors.add(unit.id() + " animationSource must be a concrete unit: "
+                        + unit.animationSourceId());
             }
             Set<String> variantIds = new HashSet<>();
             for (AppearanceVariant variant : unit.variants()) {
@@ -200,13 +215,17 @@ public final class AuthoringDocument {
         private final String id;
         private final String label;
         private final double referencePixels;
+        private final String animationSourceId;
         private final List<AppearanceVariant> variants;
+        private UnitComposition animationSource;
 
         private UnitComposition(String id, String label, double referencePixels,
+                                String animationSourceId,
                                 List<AppearanceVariant> variants) {
             this.id = id;
             this.label = label;
             this.referencePixels = referencePixels;
+            this.animationSourceId = animationSourceId;
             this.variants = variants;
         }
 
@@ -217,20 +236,43 @@ public final class AuthoringDocument {
                 variants.add(AppearanceVariant.parse(variantArray.getJSONObject(index)));
             }
             return new UnitComposition(json.getString("id"), json.getString("label"),
-                    json.getDouble("referencePixels"), variants);
+                    json.getDouble("referencePixels"),
+                    json.has("animationSource")
+                            ? json.getString("animationSource") : null,
+                    variants);
         }
 
         JSONObject toJson() throws JSONException {
             JSONArray variantArray = new JSONArray();
             for (AppearanceVariant variant : variants) variantArray.put(variant.toJson());
-            return new JSONObject().put("id", id).put("label", label)
-                    .put("referencePixels", referencePixels).put("variants", variantArray);
+            JSONObject json = new JSONObject().put("id", id).put("label", label)
+                    .put("referencePixels", referencePixels);
+            if (animationSourceId != null) {
+                json.put("animationSource", animationSourceId);
+            }
+            return json.put("variants", variantArray);
+        }
+
+        private void resolveAnimationSource(Map<String, UnitComposition> unitsById) {
+            animationSource = animationSourceId != null
+                    ? unitsById.get(animationSourceId) : null;
         }
 
         public String id() { return id; }
         public String label() { return label; }
         public double referencePixels() { return referencePixels; }
+        public String animationSourceId() { return animationSourceId; }
+        public UnitComposition animationSource() { return animationSource; }
         public List<AppearanceVariant> variants() { return variants; }
+        public List<AppearanceVariant> previewVariants() {
+            if (animationSource == null) return variants;
+            List<AppearanceVariant> preview = new ArrayList<>(variants);
+            preview.addAll(animationSource.variants());
+            return List.copyOf(preview);
+        }
+        public boolean isInheritedPreview(AppearanceVariant variant) {
+            return animationSource != null && animationSource.variants().contains(variant);
+        }
         @Override public String toString() { return label; }
     }
 
