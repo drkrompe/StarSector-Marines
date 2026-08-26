@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.campaign.ContractEligibility;
 import com.dillon.starsectormarines.catalog.CatalogSource;
 import com.dillon.starsectormarines.catalog.MarineCatalogManifest.CatalogFile;
 import com.fs.starfarer.api.Global;
@@ -92,17 +93,28 @@ public final class FactionEquipmentCatalog {
         }
     }
 
-    /** Every collectible card must be granted at start or offered by some faction source. */
+    /** Every collectible card must be granted at start or offered through an eventual source. */
     public void validateReachability(Collection<String> starterTemplateIds) {
         Set<String> reachable = new HashSet<>(starterTemplateIds);
-        for (MutablePool pool : pools.values()) reachable.addAll(pool.offers.keySet());
+        EquipmentAcquisitionEligibility.Progress maximumProgress =
+                new EquipmentAcquisitionEligibility.Progress(
+                        EquipmentAcquisitionEligibility.PRESTIGE_RECOVERY_VICTORIES,
+                        ContractEligibility.TIER_3_MRB_REQUIRED);
+        for (MutablePool pool : pools.values()) {
+            for (MutableOffer offer : pool.offers.values()) {
+                boolean eventuallyEligible = offer.sourceWeights.keySet().stream()
+                        .anyMatch(source -> EquipmentAcquisitionEligibility.allows(
+                                offer.template, source, maximumProgress));
+                if (eventuallyEligible) reachable.add(offer.template.id());
+            }
+        }
         List<String> stranded = EquipmentTemplateCatalog.all().stream()
                 .map(EquipmentTemplateCard::id)
                 .filter(id -> !reachable.contains(id))
                 .toList();
         if (!stranded.isEmpty()) {
             throw new IllegalStateException("Equipment templates have neither starter issue nor "
-                    + "a faction acquisition source: " + stranded);
+                    + "an eventually eligible faction acquisition source: " + stranded);
         }
     }
 

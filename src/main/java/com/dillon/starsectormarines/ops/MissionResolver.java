@@ -36,6 +36,7 @@ import com.dillon.starsectormarines.campaign.systems.PatronEquipmentRewardSystem
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
+import com.dillon.starsectormarines.marine.EquipmentTemplateCardInventory;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.Status;
 import com.dillon.starsectormarines.marine.Trait;
@@ -441,7 +442,10 @@ public final class MissionResolver {
                 resolvePersonnelOutcomes(outcome), survivorXp, currentDayInt(), wiaDays,
                 outcome.soldierTelemetry, outcome.victory);
         if (outcome.victory) {
-            roster.armory().recordVictory(outcome.risk == RiskLevel.HIGH);
+            Set<String> acquiredOrCarried =
+                    EquipmentTemplateCardInventory.playerUnavailableTemplateIds();
+            roster.armory().recordVictory(outcome.risk == RiskLevel.HIGH,
+                    acquiredOrCarried != null ? acquiredOrCarried : Set.of());
         }
         return roster;
     }

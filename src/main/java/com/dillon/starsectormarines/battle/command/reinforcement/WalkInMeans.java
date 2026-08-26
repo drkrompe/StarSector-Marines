@@ -117,17 +117,22 @@ public final class WalkInMeans implements ReinforcementMeans {
         TacticalNode anchor = objectiveNode != null
                 ? objectiveNode
                 : nearestCompoundNode(sim, req.rallyX, req.rallyY);
-        UnitType infantryType = groundRoster != null
-                ? groundRoster.unitType(GroundRosterProfile.ForceTier.BULK)
+        GroundRosterProfile effectiveRoster = groundRoster != null
+                ? groundRoster : sim.getGroundRoster();
+        UnitType infantryType = effectiveRoster != null
+                ? effectiveRoster.unitType(GroundRosterProfile.ForceTier.BULK)
                 : FactionUnitRoster.forFaction(req.side).infantry();
 
         Squad squad = null;
         int spawned = 0;
         for (int[] cell : spawnCells) {
             EntitySpec unit = new EntitySpec("r" + (nextUnitId++), req.side, infantryType, cell[0], cell[1]);
-            if (groundRoster != null) {
-                InfantryLoadoutRolls.defenderLoadout(groundRoster,
+            if (effectiveRoster != null) {
+                InfantryLoadoutRolls.defenderLoadout(effectiveRoster,
                         GroundRosterProfile.ForceTier.BULK, risk, sim.random()).seedInto(unit);
+            } else {
+                InfantryLoadoutRolls.defenderSquad(
+                        1, infantryType, risk, sim.random())[0].seedInto(unit);
             }
             unit.role(UnitRole.PATROL);
             if (squad == null) {

@@ -148,6 +148,7 @@ class PatronEquipmentRewardSystemTest {
 
     private static Fixture fixture(String factionId) {
         CampaignState state = new CampaignState();
+        state.playerMrbRep = 20;
         int market = state.marketRegistry.intern("test_market");
         int faction = state.factionRegistry.intern(factionId);
         long patron = state.addHouse(market, faction, HouseFlavor.CORPORATE,
@@ -183,6 +184,11 @@ class PatronEquipmentRewardSystemTest {
         @Override
         public Set<String> unavailableTemplateIds() {
             return cargoAvailable ? Set.copyOf(unavailable) : null;
+        }
+
+        @Override
+        public int victories() {
+            return 15;
         }
 
         @Override

@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.loot;
 
 import com.dillon.starsectormarines.marine.EquipmentTemplateCardInventory;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCardItemPlugin;
+import com.dillon.starsectormarines.marine.EquipmentAcquisitionEligibility;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.SettingsAPI;
 import com.fs.starfarer.api.campaign.FactionAPI;
@@ -48,7 +49,8 @@ public final class StarsectorLootCatalog {
         out.addAll(EquipmentTemplateRecoveryCatalog.candidates(request,
                 EquipmentTemplateCardInventory.playerUnavailableTemplateIds(),
                 Math.max(1, Math.round(spec.getBasePrice())),
-                Math.max(0f, spec.getCargoSpace()), spec.getIconName()));
+                Math.max(0f, spec.getCargoSpace()), spec.getIconName(),
+                EquipmentAcquisitionEligibility.currentProgress()));
     }
 
     private static void addAiCores(List<LootCandidate> out, SettingsAPI settings,

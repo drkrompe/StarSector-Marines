@@ -44,9 +44,26 @@ public final class VanillaHullSilhouettes {
         this.core = starsectorCore;
     }
 
-    /** One vanilla hull: its outline, class, and the complement and hold that size its decks. */
-    public record Hull(String id, HullSilhouette silhouette, HullClass hullClass,
-                       int maxCrew, int cargo) {}
+    /**
+     * One vanilla hull: its outline, its class and role, and the complement and
+     * hold that size its decks.
+     *
+     * <p>{@link #minCrew} is carried alongside {@link #maxCrew} because the gap
+     * between them is the ship's lift: the hands she needs to fly against
+     * everyone she can hold. A hull whose maximum dwarfs its minimum is carrying
+     * people rather than employing them.
+     */
+    public record Hull(String id, HullSilhouette silhouette, HullClass hullClass, HullRole role,
+                       int minCrew, int maxCrew, int cargo) {
+
+        /** Everyone aboard who is not needed to work the ship. */
+        public int lift() {
+            return Math.max(0, maxCrew - minCrew);
+        }
+    }
+
+    /** The row of the vanilla ship table this family reads. */
+    private record Complement(String designation, int minCrew, int maxCrew, int cargo) {}
 
     /** Whether the installed game is present; suites skip their evidence when it is not. */
     public boolean available() {
@@ -77,26 +94,38 @@ public final class VanillaHullSilhouettes {
         BufferedImage image = ImageIO.read(sprite.toFile());
         if (image == null) return null;
 
-        int[] crewAndCargo = readCrewAndCargo(hullId);
-        return new Hull(hullId, trace(image, hullId), hullClass, crewAndCargo[0], crewAndCargo[1]);
+        Complement complement = readComplement(hullId);
+        return new Hull(hullId, trace(image, hullId), hullClass,
+                HullRole.fromDesignation(complement.designation()),
+                complement.minCrew(), complement.maxCrew(), complement.cargo());
     }
 
-    /** Reads {@code max crew} and {@code cargo} for one hull from the vanilla ship table. */
-    private int[] readCrewAndCargo(String hullId) throws IOException {
+    /** Reads designation, crew, and hold for one hull from the vanilla ship table. */
+    private Complement readComplement(String hullId) throws IOException {
+        Complement unknown = new Complement(null, 1, 1, 0);
         Path table = core.resolve("data/hulls/ship_data.csv");
-        if (!Files.isRegularFile(table)) return new int[]{ 1, 0 };
+        if (!Files.isRegularFile(table)) return unknown;
         List<String> lines = Files.readAllLines(table, StandardCharsets.ISO_8859_1);
-        if (lines.isEmpty()) return new int[]{ 1, 0 };
+        if (lines.isEmpty()) return unknown;
         String[] header = lines.get(0).split(",", -1);
         int idColumn = columnOf(header, "id");
-        int crewColumn = columnOf(header, "max crew");
+        int designationColumn = columnOf(header, "designation");
+        int minCrewColumn = columnOf(header, "min crew");
+        int maxCrewColumn = columnOf(header, "max crew");
         int cargoColumn = columnOf(header, "cargo");
         for (String line : lines.subList(1, lines.size())) {
             String[] cells = line.split(",", -1);
             if (idColumn >= cells.length || !cells[idColumn].trim().equals(hullId)) continue;
-            return new int[]{ intAt(cells, crewColumn, 1), intAt(cells, cargoColumn, 0) };
+            int maxCrew = intAt(cells, maxCrewColumn, 1);
+            return new Complement(
+                    designationColumn >= 0 && designationColumn < cells.length
+                            ? cells[designationColumn].trim()
+                            : null,
+                    Math.min(maxCrew, intAt(cells, minCrewColumn, maxCrew)),
+                    maxCrew,
+                    intAt(cells, cargoColumn, 0));
         }
-        return new int[]{ 1, 0 };
+        return unknown;
     }
 
     private static int columnOf(String[] header, String name) {

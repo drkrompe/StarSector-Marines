@@ -67,7 +67,8 @@ public final class ShipDeckGenerator {
      */
     public MapResult generateDeck(int width, int height, long seed) {
         return generateDeck(new DeckSizing.DeckPlan(width, height,
-                DeckSizing.programFor(HullClass.CRUISER, 120, 200)), seed, null);
+                DeckSizing.programFor(HullClass.CRUISER, HullRole.WARSHIP, 60, 120, 200)),
+                seed, null);
     }
 
     /**
