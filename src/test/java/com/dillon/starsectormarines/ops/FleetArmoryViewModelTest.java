@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.marine.SquadEquipmentPreview;
 import com.dillon.starsectormarines.marine.SquadEquipmentResult;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
+import com.dillon.starsectormarines.ui.retained.UiLayout;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
@@ -64,6 +65,8 @@ class FleetArmoryViewModelTest {
         assertEquals("A II", firstMarine.armorBadge());
         assertTrue(firstMarine.primaryDescription().length() > 80);
         assertTrue(firstMarine.armorDescription().length() > 80);
+        assertTrue(viewModel.feedbackText().get().startsWith(
+                "Hover equipment names for field notes."));
         FleetArmoryViewModel.DoctrineTile firstLoadout =
                 viewModel.weaponDoctrineTiles().get().get(0);
         assertEquals("Common", firstLoadout.rarity());
@@ -176,6 +179,61 @@ class FleetArmoryViewModelTest {
     }
 
     @Test
+    void equipmentLoreUsesBoundedHoverTooltipsWithoutDisplacingComparisonStats()
+            throws Exception {
+        MarineRoster roster = fullSquad();
+        Reactor reactor = new Reactor();
+        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(reactor, roster);
+        MarkupLoader loader = new MarkupLoader(
+                path -> Files.readString(Path.of(path)), COMPONENTS);
+        loader.reload();
+
+        try (MarkupInstance instance = loader.build(reactor, "fleet-armory-fireteam",
+                props(viewModel))) {
+            FleetArmoryViewModel.MarineViewerCard marine =
+                    viewModel.marineCards().get().get(0);
+            ArmoryEquipmentTooltips tooltips = ArmoryEquipmentTooltips.bind(
+                    instance, viewModel.marineCards().get());
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            document.layout(1744f, 938f);
+
+            UiElement card = instance.requireElement(marine.id());
+            UiElement target = instance.requireElement(marine.primaryId());
+            UiElement popup = instance.requireElement(marine.primaryDescriptionId());
+            UiElement stats = instance.requireElement(marine.weaponStatsId());
+            assertEquals(UiLayout.STACK, card.layout());
+            assertSame(card, popup.parent());
+            assertTrue(popup.text().startsWith(marine.primary()));
+            assertTrue(popup.text().contains(marine.primaryDescription()));
+            assertTrue(popup.hasClass("tooltip-hidden"));
+            assertTrue(stats.box().borderBox().width() > 250f);
+
+            document.pointerMoved(centerX(target), centerY(target));
+            tooltips.update();
+            document.advance(0f);
+
+            assertFalse(popup.hasClass("tooltip-hidden"));
+            assertTrue(popup.box().borderBox().width() >= 350f);
+            assertTrue(popup.box().borderBox().height() >= 130f);
+            assertTrue(popup.box().borderBox().right()
+                    <= card.box().contentBox().right() + 0.01f);
+            assertTrue(popup.box().borderBox().bottom()
+                    <= card.box().contentBox().bottom() + 0.01f);
+            assertTrue(stats.box().borderBox().width() > 250f,
+                    "opening lore must not resize the comparison meters");
+
+            document.pointerMoved(
+                    card.box().contentBox().x() + 8f,
+                    card.box().contentBox().bottom() - 8f);
+            tooltips.update();
+            document.advance(0f);
+            assertTrue(popup.hasClass("tooltip-hidden"));
+        }
+    }
+
+    @Test
     void playerFacingMarkupUsesDoctrineLanguageAndHasNoLegacyPicker() throws Exception {
         for (String path : COMPONENTS) {
             String source = Files.readString(Path.of(path)).toLowerCase(Locale.ROOT);
@@ -267,10 +325,18 @@ class FleetArmoryViewModelTest {
     }
 
     private static void click(UiDocument document, UiElement element) {
-        float x = element.box().borderBox().x() + element.box().borderBox().width() / 2f;
-        float y = element.box().borderBox().y() + element.box().borderBox().height() / 2f;
+        float x = centerX(element);
+        float y = centerY(element);
         document.pointerDown(x, y);
         document.pointerUp(x, y);
+    }
+
+    private static float centerX(UiElement element) {
+        return element.box().borderBox().x() + element.box().borderBox().width() / 2f;
+    }
+
+    private static float centerY(UiElement element) {
+        return element.box().borderBox().y() + element.box().borderBox().height() / 2f;
     }
 
     private static MarineRoster fullSquad() {
