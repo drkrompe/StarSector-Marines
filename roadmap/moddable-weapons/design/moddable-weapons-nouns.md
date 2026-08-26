@@ -4,7 +4,8 @@ Status: ACTIVE — handheld, special-item and turret weapon data is owned; mech 
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — extended shared provider discovery and provenance through additive tilesets and mappings.
+Updated: 2026-08-25 — marine-primary definitions now own their explicit modular
+held-sprite family, including contributed equipment rendered in battle and previews.
 
 ## Purpose
 
@@ -151,6 +152,9 @@ The public manifest and authoring examples live in `submod-catalog-contract.md`.
   break a roster.
 - Simulation fields and presentation fields may travel together in a
   definition, but presentation never changes simulation outcomes.
+- Every marine-primary definition declares its held-sprite family. Runtime combat,
+  Armory portraits, and embedded shipboard scenes resolve that family directly from
+  the definition; an unrecognized contributed id never silently becomes a generic rifle.
 - Mount classes constrain authoring once multiple families populate the
   registry. Fields that make no sense for a family are authoring errors, not
   spare switches for consumers to interpret.

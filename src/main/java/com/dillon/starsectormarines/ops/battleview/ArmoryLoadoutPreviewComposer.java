@@ -61,7 +61,7 @@ public final class ArmoryLoadoutPreviewComposer {
         LayeredUnitAssets layered = assets.layered(billet.armorDef().appearanceFamily());
         LayeredSpriteCache armor = assets.icon(billet.armorDef().iconPath());
         LayeredSpriteCache primary = layered != null
-                ? layered.weapon(LayeredWeaponFamily.fromPrimary(billet.primary()), billet.grade())
+                ? layered.weapon(LayeredWeaponFamily.fromPrimary(billet.primaryDef()), billet.grade())
                 : null;
         SpecialEquipmentDef special = billet.specialDef();
         LayeredSpriteCache specialIcon = special != null
@@ -135,7 +135,7 @@ public final class ArmoryLoadoutPreviewComposer {
         LayeredUnitAssets layered = assets.layered(billet.armorDef().appearanceFamily());
         LayeredSpriteCache armor = assets.icon(billet.armorDef().iconPath());
         LayeredSpriteCache primary = layered != null
-                ? layered.weapon(LayeredWeaponFamily.fromPrimary(billet.primary()), billet.grade())
+                ? layered.weapon(LayeredWeaponFamily.fromPrimary(billet.primaryDef()), billet.grade())
                 : null;
         SpecialEquipmentDef special = billet.specialDef();
         LayeredSpriteCache specialIcon = special != null
@@ -199,7 +199,7 @@ public final class ArmoryLoadoutPreviewComposer {
                  red, green, blue, alpha) -> sink.sprite(layer, centerX,
                         surfaceHeight - centerY, spriteWidth, spriteHeight, angle,
                         color(red, green, blue, alpha)),
-                layered, layered.head, billet.primary(), true, special, billet.grade(),
+                layered, layered.head, billet.primaryDef(), true, special, billet.grade(),
                 actorX, actorY, shoulderPx, 0f, 0f, 0f,
                 phase, pose, 0, 1f, authoredPose);
     }

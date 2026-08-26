@@ -14,5 +14,6 @@ public enum AmbientActivity {
     WORKING,
     INSPECTING,
     FIRING_PRIMARY,
+    PRACTICING_EQUIPMENT,
     WALKING
 }

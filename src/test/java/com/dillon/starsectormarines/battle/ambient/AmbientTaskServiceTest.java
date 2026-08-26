@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.ambient;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -58,6 +59,35 @@ class AmbientTaskServiceTest {
 
             assertFalse(simulation.ambientTasks().isControlling(worker));
             assertEquals(UnitRole.FLEE, simulation.role().role(worker));
+        }
+    }
+
+    @Test
+    void equipmentPracticeUsesCarriedSpecialWithoutSpendingIt() {
+        try (BattleSimulation simulation = simulation()) {
+            long actor = simulation.spawn(new EntitySpec(
+                    "support marine", Faction.MARINE, UnitType.MARINE, 2, 2));
+            simulation.world().attachSecondaryWeapon(
+                    actor, MarineSecondary.ROCKET_LAUNCHER, 3);
+            simulation.ambientTasks().assign(actor, oneStop(
+                    AmbientActivity.PRACTICING_EQUIPMENT,
+                    AmbientThreatPolicy.NONE, 0f));
+
+            simulation.ambientTasks().seek(0.075f);
+
+            assertEquals(LayeredAppearance.POSE_FIRING,
+                    simulation.getEntityWorld().getInt(actor,
+                            simulation.getBattleComponents().LAYERED_ANIMATION,
+                            BattleComponents.LAYERED_WEAPON_POSE));
+
+            simulation.ambientTasks().seek(0.80f);
+
+            assertEquals(LayeredAppearance.POSE_ROCKET_FIRE,
+                    simulation.getEntityWorld().getInt(actor,
+                            simulation.getBattleComponents().LAYERED_ANIMATION,
+                            BattleComponents.LAYERED_WEAPON_POSE));
+            assertEquals(3, simulation.world().secondaryAmmo(actor),
+                    "cosmetic practice must not consume issued equipment");
         }
     }
 
