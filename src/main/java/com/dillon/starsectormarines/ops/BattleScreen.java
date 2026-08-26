@@ -49,6 +49,7 @@ import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ops.battleview.BattleRenderer;
+import com.dillon.starsectormarines.ops.battleview.BattleShotAudio;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
 import com.dillon.starsectormarines.ops.battleview.GroundParallaxPipeline;
 import com.dillon.starsectormarines.ops.battleview.ShotFx;
@@ -128,7 +129,6 @@ public class BattleScreen implements Screen, BattleUiContext {
             "marines_battle_music_10",
     };
     private static final String LOOP_TICKING  = "marines_ticking_clock";
-    private static final String SFX_RIFLE     = "marines_smallarms_rifle";
     private static final String SFX_VOICE_DEAD = "marines_voice_dead";
     private static final String SFX_DISTANT_BOOM = "marines_explosion_muffled";
     private static final String SFX_NEAR_EXPLOSION = "marines_explosion";
@@ -137,11 +137,8 @@ public class BattleScreen implements Screen, BattleUiContext {
     /** Pitch lerp endpoints for the shuttle engine loop: idle on the ground → full at cruise. */
     private static final float ENGINE_PITCH_IDLE   = 0.7f;
     private static final float ENGINE_PITCH_CRUISE = 1.0f;
-    /** Half-width of the rifle pitch jitter — ±10% on top of 1.0, so the 2-clip pool feels richer than 2 clips. */
-    private static final float RIFLE_PITCH_JITTER = 0.10f;
-    private static final float RIFLE_VOLUME       = 0.5f;
     /** Cells → OpenAL world units, for positional SFX. Must match {@code FlybyOverlay.AUDIO_WORLD_UNITS_PER_CELL}. */
-    private static final float AUDIO_WORLD_UNITS_PER_CELL = 30f;
+    private static final float AUDIO_WORLD_UNITS_PER_CELL = BattleShotAudio.WORLD_UNITS_PER_CELL;
     /** OpenAL distance the distant-boom emitter sits from the camera focus. Far enough to attenuate noticeably (read as "off in the distance") but close enough to remain audible. */
     private static final float DISTANT_BOOM_EMITTER_DISTANCE = 600f;
 
@@ -945,34 +942,8 @@ public class BattleScreen implements Screen, BattleUiContext {
     }
 
     private void playCombatEventSounds(BattleSimulation sim) {
-        java.util.Random rng = java.util.concurrent.ThreadLocalRandom.current();
+        BattleShotAudio.playPositional(sim.getShotsThisFrame());
         Vector2f zeroVel = new Vector2f(0f, 0f);
-        for (ShotEvent s : sim.getShotsThisFrame()) {
-            float pitch = 1f + (rng.nextFloat() * 2f - 1f) * RIFLE_PITCH_JITTER;
-            Vector2f loc = new Vector2f(
-                    s.fromX * AUDIO_WORLD_UNITS_PER_CELL,
-                    s.fromY * AUDIO_WORLD_UNITS_PER_CELL);
-            // Per-weapon fire sound dispatch. All four sources (turret, marine
-            // secondary, marine primary, raw rifle) play through positional
-            // playSound — vanilla weapon SFX are mono, which the spatial pipeline
-            // requires; distance attenuation does the volume-falloff work.
-            if (s.turretKind != null) {
-                Global.getSoundPlayer().playSound(s.turretKind.fireSoundId(), pitch, 1.0f, loc, zeroVel);
-            } else if (s.specialEquipmentDef != null) {
-                Global.getSoundPlayer().playSound(s.specialEquipmentDef.fireSoundId(),
-                        pitch, 1.0f, loc, zeroVel);
-            } else if (s.primaryWeaponDef != null) {
-                Global.getSoundPlayer().playSound(s.primaryWeaponDef.fireSoundId,
-                        pitch, 0.85f, loc, zeroVel);
-            } else if (s.mechWeapon != null) {
-                // Mech chassis weapons — chaingun_fire / annihilator_fire /
-                // pilum_lrm_fire. All play at full volume; the chaingun burst
-                // cadence is the *point*, so the brrt should dominate.
-                Global.getSoundPlayer().playSound(s.mechWeapon.fireSoundId, pitch, 1.0f, loc, zeroVel);
-            } else {
-                Global.getSoundPlayer().playSound(SFX_RIFLE, pitch, RIFLE_VOLUME, loc, zeroVel);
-            }
-        }
         LongList deaths = sim.getDeathsThisFrame();
         for (int i = 0, n = deaths.size(); i < n; i++) {
             long u = deaths.getLong(i);

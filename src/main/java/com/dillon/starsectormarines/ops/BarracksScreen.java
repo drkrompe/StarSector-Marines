@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ops.battleview.BarracksBattleScene;
 import com.dillon.starsectormarines.ops.battleview.BarracksCanvas;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
+import com.dillon.starsectormarines.ops.battleview.BattleShotAudio;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
@@ -49,6 +50,7 @@ public final class BarracksScreen implements Screen {
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
         context = ctx;
         this.dismissDialog = dismissDialog;
+        previewSeconds = 0d;
         viewport = MarineOpsUiViewport.from(position);
         MarineRosterScript script = MarineRosterScript.getInstance();
         MarineRoster liveRoster = script != null ? script.roster() : null;
@@ -135,6 +137,10 @@ public final class BarracksScreen implements Screen {
     @Override
     public void advance(float dt) {
         previewSeconds += Math.max(0f, dt);
+        if (battleScene != null && viewModel != null) {
+            battleScene.advanceTo(viewModel.sceneMarines(), (float) previewSeconds);
+            BattleShotAudio.playUi(battleScene.shotsThisFrame(), 0.34f);
+        }
         int currentHour = campaignHour();
         if (viewModel != null && currentHour != projectedCampaignHour) {
             projectedCampaignHour = currentHour;

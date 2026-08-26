@@ -94,6 +94,9 @@ public final class RenderAppearance {
         if (t.drawnAsSheet()) {
             kind = SpriteKind.SHEET;
             footprint = false;
+        } else if (t == UnitType.RANGE_TARGET) {
+            kind = SpriteKind.NONE;
+            footprint = false;
         } else if (t.isStatic()) {
             kind = SpriteKind.WHOLE_SPRITE;
             footprint = true;
@@ -102,7 +105,8 @@ public final class RenderAppearance {
             kind = SpriteKind.NONE;
             footprint = false;
         }
-        boolean hpBar = t.combatant && t != UnitType.DRONE;
+        boolean hpBar = t.combatant && t != UnitType.DRONE
+                && t != UnitType.RANGE_TARGET;
         boolean deathPose = t.deadSpritePath != null;
         return new RenderAppearance(kind, footprint, hpBar, deathPose, t.frameLayout, t.renderScale);
     }

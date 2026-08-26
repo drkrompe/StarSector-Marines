@@ -41,6 +41,8 @@ public enum UnitType {
     ENGINEER   ("graphics/battle/engineer.png",    null,                                   false, 10f, 0f,   2.2f, 0f,    1f,   0f,    12.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.3f, 0.45f),
     /** Lab tech. Same role as civilian — wanders, flees. Lower HP than engineer; same speed. */
     SCIENTIST  ("graphics/battle/scientist.png",   null,                                   false,  8f, 0f,   2.2f, 0f,    1f,   0f,    12.0f, FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.3f, 0.45f),
+    /** Invisible, simulation-only backstop used by authored live-fire tasks. It is targetable and static but never participates in a campaign roster or render pass. */
+    RANGE_TARGET("",                               null,                                   true, 1_000_000f, 0f, 0f, 0f, 1f, 0f, 0f, FrameLayout.WNES_WEAPON_UP, 1f, 0f, 0.25f, 0.45f),
     /** Static ground turret. Combatant so it targets and gets targeted, but its sprite + stats come from the {@code TurretKind} baked in at construction (see {@code MapTurret#create}) — the values here are zero placeholders that {@code MapTurret#create} overwrites. */
     TURRET     ("",                                null,                                   true,   0f, 0f,   0f,   0f,    1f,   0f,    0f,    FrameLayout.WNES_WEAPON_UP, 1.0f, 1.0f, 0.45f, 0.60f),
     /** Drone launch hub — a static structure that periodically deploys aerial drones (see {@link com.dillon.starsectormarines.battle.drone.DroneHub}). Combatant so marines target and damage it, but its role is {@link UnitRole#STRUCTURE} (no aim loop, no firing). Sprite path is empty because the hub uses a per-instance vanilla weapon sprite picked at construction, same convention as {@link #TURRET}. HP set on the instance, not here. */
@@ -130,7 +132,9 @@ public enum UnitType {
      * ever splits these — mobile-but-mindless, or static-but-thinking — this one
      * predicate becomes two.
      */
-    public boolean isStatic() { return this == TURRET || this == DRONE_HUB_STRUCTURE; }
+    public boolean isStatic() {
+        return this == TURRET || this == DRONE_HUB_STRUCTURE || this == RANGE_TARGET;
+    }
 
     /**
      * Whether this archetype is a drone launch hub — the classification gate

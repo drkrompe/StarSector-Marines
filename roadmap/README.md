@@ -73,11 +73,13 @@ See `mapgen-nouns.md`, `moddable-tilesets-nouns.md`, and
 The retained UI foundation is proven in-engine and is being adopted one
 production surface at a time. Company HQ reads as the flagship bridge's
 command station, Fleet Armory owns deliberate equipment inspection and issue,
-and the Barracks is becoming the ordinary read-only place to browse squads aboard
-ship between operations. The UI toolkit remains presentation infrastructure rather than company
-or inventory authority. Barracks and Mech Lab headless evidence now collects the
-same bounded battle-simulation commands as the live views and substitutes only the
-final Java2D drain; HQ and Armory evidence also render as deterministic PNGs without launching the game.
+and Barracks is the ordinary read-only place to browse squads aboard ship between
+operations. Its practice range now fires issued primaries through a disposable bounded
+battle simulation while campaign personnel and inventory remain untouched. The UI
+toolkit remains presentation infrastructure rather than company or inventory authority.
+Barracks and Mech Lab headless evidence collect the same bounded battle-simulation
+commands as the live views and substitute only the final Java2D drain; HQ and Armory
+evidence also render as deterministic PNGs without launching the game.
 See `ui-nouns.md` and `company-view-nouns.md`.
 
 ## Immediate recommendation
