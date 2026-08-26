@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.command.reinforcement;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
 import com.dillon.starsectormarines.battle.vehicle.ConvoyPlanner;
 import com.dillon.starsectormarines.battle.vehicle.TerrainCostField;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
@@ -202,11 +203,19 @@ public final class ConvoyMeans implements ReinforcementMeans {
                     req.objectiveX, req.objectiveY);
         }
         mission.commandOwnsObjective = deployment.commandOwnsObjective();
-        if (groundRoster != null) {
-            mission.deboardUnitType = groundRoster.unitType(GroundRosterProfile.ForceTier.BULK);
+        GroundRosterProfile effectiveRoster = groundRoster != null
+                ? groundRoster : sim.getGroundRoster();
+        mission.deboardUnitType = effectiveRoster != null
+                ? effectiveRoster.unitType(GroundRosterProfile.ForceTier.BULK)
+                : FactionUnitRoster.forFaction(req.side).infantry();
+        if (effectiveRoster != null) {
             mission.marineLoadout = InfantryLoadoutRolls.defenderSquad(
-                    VehicleType.HEAVY_APC.capacity, groundRoster,
+                    VehicleType.HEAVY_APC.capacity, effectiveRoster,
                     GroundRosterProfile.ForceTier.BULK, risk, sim.random());
+        } else {
+            mission.marineLoadout = InfantryLoadoutRolls.defenderSquad(
+                    VehicleType.HEAVY_APC.capacity, mission.deboardUnitType,
+                    risk, sim.random());
         }
         sim.addConvoyVehicle(VehicleType.HEAVY_APC, Faction.DEFENDER, mission);
         LOG.info("ConvoyMeans: dispatched HEAVY_APC entry=(" + entry.cellX + "," + entry.cellY

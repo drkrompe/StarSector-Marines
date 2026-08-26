@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
+import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 
@@ -60,12 +61,13 @@ public final class InfantryLoadoutRolls {
                     : i == smokeSlot
                     ? SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID)
                     : null;
-            roster[i] = new MarineLoadout(UnitRole.COMBATANT, null,
-                    defenderPrimary(type, rng).id,
+            MarineArmorPattern armor = defenderArmor(type, resolvedRisk, rng);
+            roster[i] = MarineLoadout.fromCatalog(UnitRole.COMBATANT, null,
+                    defenderPrimary(type, rng),
                     defenderEquipmentGrade(type, resolvedRisk, rng),
-                    defenderProfile(type, resolvedRisk, rng),
-                    special != null ? special.id() : null,
-                    special != null ? special.startingAmmo() : 0);
+                    defenderProfile(type, resolvedRisk, rng), special, null,
+                    armor.layeredFamily(), armor.armorPool, armor.armorRating,
+                    armor.moveSpeedMult, armor.incomingAccuracyMult);
         }
         return roster;
     }
@@ -97,6 +99,37 @@ public final class InfantryLoadoutRolls {
             result[i] = defenderLoadout(roster, tier, risk, rng);
         }
         return result;
+    }
+
+    /** Generic fallback armor for legacy/headless battles without a frozen faction roster. */
+    public static MarineArmorPattern defenderArmor(
+            UnitType type, RiskLevel risk, Random rng) {
+        RiskLevel resolvedRisk = risk != null ? risk : RiskLevel.LOW;
+        int roll = rng.nextInt(100);
+        if (type == UnitType.MILITIA) {
+            int fatigues = resolvedRisk == RiskLevel.LOW ? 35
+                    : resolvedRisk == RiskLevel.MEDIUM ? 20 : 10;
+            int security = resolvedRisk == RiskLevel.LOW ? 85
+                    : resolvedRisk == RiskLevel.MEDIUM ? 75 : 55;
+            if (roll < fatigues) return MarineArmorPattern.ARMORLESS;
+            if (roll < security) return MarineArmorPattern.MILITIA;
+            return resolvedRisk == RiskLevel.HIGH
+                    ? MarineArmorPattern.ARMY_GREEN : MarineArmorPattern.CHARCOAL;
+        }
+        if (resolvedRisk == RiskLevel.LOW) {
+            if (roll < 30) return MarineArmorPattern.MILITIA;
+            if (roll < 85) return MarineArmorPattern.CHARCOAL;
+            return MarineArmorPattern.ARMY_GREEN;
+        }
+        if (resolvedRisk == RiskLevel.MEDIUM) {
+            if (roll < 15) return MarineArmorPattern.MILITIA;
+            if (roll < 70) return MarineArmorPattern.CHARCOAL;
+            if (roll < 90) return MarineArmorPattern.ARMY_GREEN;
+            return MarineArmorPattern.RED_ELITE;
+        }
+        if (roll < 40) return MarineArmorPattern.CHARCOAL;
+        if (roll < 70) return MarineArmorPattern.ARMY_GREEN;
+        return MarineArmorPattern.RED_ELITE;
     }
 
     /** Weighted player primary roll: pulse workhorse, evenly split specialist slots. */
