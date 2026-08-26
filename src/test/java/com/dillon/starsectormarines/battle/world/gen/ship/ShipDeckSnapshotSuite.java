@@ -3,15 +3,15 @@ package com.dillon.starsectormarines.battle.world.gen.ship;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.ship.fit.RoomFit;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
-import com.dillon.starsectormarines.battle.world.model.CellTopology;
-import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
-import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.tiles.FixedGridTileDrawer;
 import com.dillon.starsectormarines.battle.world.tiles.Graphics2DTileSink;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.world.tiles.TileSink;
+import com.dillon.starsectormarines.ops.battleview.HeadlessBattleSceneRenderer;
+import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
+import com.dillon.starsectormarines.ui.retained.headless.HeadlessUiRenderer;
 import org.json.JSONObject;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
@@ -136,7 +136,7 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
                 artifacts.add(plan(hull.id(), hull.silhouette(), deckPlan,
                         complement, RoomFit.STANDARD));
                 if (hull.id().equals(DETAIL_HULL)) {
-                    artifacts.add(roomDetail(hull.silhouette(), deckPlan));
+                    artifacts.add(roomDetail(context, hull.silhouette(), deckPlan));
                 }
                 if (hull.id().equals(REFIT_HULL)) {
                     // The same hull at three fittings, which is the upgrade
@@ -174,7 +174,8 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
      * and a crate are the same four pixels. This is the sheet the fill is
      * actually judged on.
      */
-    private static SnapshotArtifact roomDetail(HullSilhouette silhouette,
+    private static SnapshotArtifact roomDetail(SnapshotContext context,
+                                               HullSilhouette silhouette,
                                                DeckSizing.DeckPlan deckPlan) {
         ShipDeckGenerator generator = new ShipDeckGenerator();
         MapResult map = generator.generateDeck(deckPlan, SEED, silhouette, RoomFit.STANDARD);
@@ -217,53 +218,45 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
         g.fillRect(0, 0, image.getWidth(), image.getHeight());
         g.setFont(font);
 
-        int index = 0;
-        for (Map.Entry<RoomPurpose, DeckGraph.Compartment> entry : byPurpose.entrySet()) {
-            DeckGraph.Compartment c = entry.getValue();
-            int ox = margin + (index % columns) * (cellWidth + margin);
-            int oy = margin + (index / columns) * (cellHeight + margin);
-            index++;
+        // The rooms are drawn by the game's own renderer rather than by a second
+        // painter here. A room-authoring pass is only worth anything if what it
+        // shows is what the deck will look like, and the surest way to hold that
+        // is to leave no separate drawing code that can drift from it.
+        HeadlessBattleSceneRenderer scenes =
+                new HeadlessBattleSceneRenderer(context.modRoot());
+        HeadlessUiRenderer drain = new HeadlessUiRenderer(scenes, context.modRoot());
 
-            g.setColor(LABEL);
-            g.drawString(entry.getKey().name().toLowerCase().replace('_', ' ')
-                    + "  " + c.width() + "x" + c.depth(), ox, oy + 13);
-            int top = oy + caption;
-            for (int y = -1; y <= c.depth(); y++) {
-                for (int x = -1; x <= c.width(); x++) {
-                    int cx = c.left() + x;
-                    int cy = c.top() + y;
-                    boolean walkable = map.grid.inBounds(cx, cy) && map.grid.isWalkable(cx, cy);
-                    int px = ox + (x + 1) * DETAIL_CELL;
-                    int py = top + (y + 1) * DETAIL_CELL;
-                    if (!walkable || !drawFloorTile(g, map, cx, cy, px, py, DETAIL_CELL)) {
-                        g.setColor(walkable
-                                ? ROOM_COLORS.getOrDefault(entry.getKey(), UNKNOWN_ROOM)
-                                : STRUCTURE);
-                        g.fillRect(px, py, DETAIL_CELL, DETAIL_CELL);
-                    }
-                    g.setColor(GRID_LINE);
-                    g.drawRect(px, py, DETAIL_CELL, DETAIL_CELL);
+        int index = 0;
+        try (ShipDeckBattleScene scene = new ShipDeckBattleScene(map, SEED)) {
+            for (Map.Entry<RoomPurpose, DeckGraph.Compartment> entry : byPurpose.entrySet()) {
+                DeckGraph.Compartment c = entry.getValue();
+                int ox = margin + (index % columns) * (cellWidth + margin);
+                int oy = margin + (index / columns) * (cellHeight + margin);
+                index++;
+
+                g.setColor(LABEL);
+                g.drawString(entry.getKey().name().toLowerCase().replace('_', ' ')
+                        + "  " + c.width() + "x" + c.depth(), ox, oy + 13);
+                int top = oy + caption;
+
+                // One cell of surround, so the bulkhead the room was cut from is
+                // visible and a door reads as a hole in something.
+                int across = c.width() + 2;
+                int down = c.depth() + 2;
+                g.drawImage(drain.renderHostPass(
+                        scene.pass(ShipDeckBattleScene.DeckView.over(
+                                c.left() - 1, c.top() - 1, across, down, DETAIL_CELL)),
+                        across * DETAIL_CELL, down * DETAIL_CELL), ox, top, null);
+
+                // Doors are compartment-graph facts, not world art: the renderer
+                // has no idea which opening is this room's way in. Marking them
+                // over the render is the annotation this pass is read with.
+                for (DeckGraph.Compartment.Door door : c.doors()) {
+                    g.setColor(DOOR_MARK);
+                    g.fillRect(ox + (door.x() - c.left() + 1) * DETAIL_CELL,
+                            top + (door.y() - c.top() + 1) * DETAIL_CELL,
+                            DETAIL_CELL, DETAIL_CELL);
                 }
-            }
-            for (DeckGraph.Compartment.Door door : c.doors()) {
-                g.setColor(DOOR_MARK);
-                g.fillRect(ox + (door.x() - c.left() + 1) * DETAIL_CELL,
-                        top + (door.y() - c.top() + 1) * DETAIL_CELL,
-                        DETAIL_CELL, DETAIL_CELL);
-            }
-            for (Doodad doodad : map.doodads) {
-                if (!c.contains(doodad.cellX, doodad.cellY)) continue;
-                int w = Math.max(1, doodad.footprintCellsX) * DETAIL_CELL;
-                int h = Math.max(1, doodad.footprintCellsY) * DETAIL_CELL;
-                int dx = ox + (doodad.cellX - c.left() + 1) * DETAIL_CELL;
-                int dy = top + (doodad.cellY - c.top() + 1) * DETAIL_CELL;
-                BufferedImage sheet = sheet(doodad.sheetPath);
-                if (sheet == null) continue;
-                new FixedGridTileDrawer(doodad.sourceCellPx).drawSpan(
-                        new Graphics2DTileSink(g, sheet), doodad.tile,
-                        doodad.footprintCellsX, doodad.footprintCellsY,
-                        dx + w / 2f, dy + h / 2f, w, h, 1f,
-                        FixedGridTileDrawer.OVERLAY_INSET_PX);
             }
         }
         g.dispose();
@@ -295,45 +288,6 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
             mapping.validateReferences();
             GenMappingRegistry.install(mapping);
         }
-    }
-
-    /**
-     * Draw one cell of deck from the tileset, the way the game draws it.
-     *
-     * <p>A room-authoring pass is judged on what the room looks like, and a flat
-     * colour per purpose cannot answer that. The colour map stays for the deck
-     * plans, where the question is which room is where; here the floor is the
-     * floor. Ground kind resolves through the same mapping and the same block
-     * resolver the ground pass uses, so a cell that is grating in game is
-     * grating here.
-     *
-     * @return whether a tile was drawn; false means fall back to a flat colour
-     */
-    private static boolean drawFloorTile(Graphics2D g, MapResult map,
-                                         int x, int y, int px, int py, int cellPx) {
-        GenMappingRegistry mapping = GenMappingRegistry.installed();
-        TileRegistry tiles = TileRegistry.installed();
-        if (mapping == null || tiles == null) return false;
-        CellTopology.GroundKind kind = map.topology.getGroundKind(x, y);
-        if (kind == null) return false;
-        String blockId = mapping.groundBlockId(kind);
-        GridBlockDef block = blockId == null ? null : tiles.block(blockId);
-        if (block == null) return false;
-        BufferedImage sheet = sheet(block.sheetPath);
-        if (sheet == null) return false;
-        int[] cell = block.resolve(
-                isWall(map, x, y - 1), isWall(map, x, y + 1),
-                isWall(map, x + 1, y), isWall(map, x - 1, y), x, y);
-        if (cell == null) return false;
-        new FixedGridTileDrawer(block.cellPx).draw(
-                new Graphics2DTileSink(g, sheet), new TileManifest.TileFrame(cell[0], cell[1]),
-                px + cellPx / 2f, py + cellPx / 2f, cellPx, cellPx, 1f,
-                FixedGridTileDrawer.OVERLAY_INSET_PX);
-        return true;
-    }
-
-    private static boolean isWall(MapResult map, int x, int y) {
-        return !map.grid.inBounds(x, y) || !map.grid.isWalkable(x, y);
     }
 
     private static BufferedImage renderPlan(MapResult map, DeckProfile profile, DeckGraph graph,
@@ -429,14 +383,6 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
                     sink, doodad.tile, doodad.footprintCellsX, doodad.footprintCellsY,
                     x + w / 2f, y + h / 2f, w, h, 1f, FixedGridTileDrawer.OVERLAY_INSET_PX);
         }
-    }
-
-    /** Deck a fitting marked out — a gantry bay, a hazard zone — shaded off its room colour. */
-    private static Color marked(Color base) {
-        return new Color(
-                Math.min(255, base.getRed() * 3 / 4 + 40),
-                Math.min(255, base.getGreen() * 3 / 4 + 34),
-                Math.max(0, base.getBlue() * 3 / 5));
     }
 
     private static BufferedImage sheet(String sheetPath) {

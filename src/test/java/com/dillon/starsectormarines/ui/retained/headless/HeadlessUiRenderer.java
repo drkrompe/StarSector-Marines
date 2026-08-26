@@ -75,6 +75,45 @@ public final class HeadlessUiRenderer {
     }
 
     /**
+     * Render one canvas host pass straight to an image, with no document around it.
+     *
+     * <p>An embedded scene is the same renderer whether it is drawn into a Marine
+     * Ops page, under vanilla combat, or into a PNG for review — only the drain
+     * differs. A tool that wants to look at a scene should not have to build a
+     * retained document to reach it, so the raster drain is exposed on its own:
+     * hand it a pass and a size, get pixels back.
+     *
+     * <p>The surface is one-to-one, so a host pass resolves its camera directly
+     * in the returned image's own pixels and nothing is rescaled on the way out.
+     *
+     * @throws IllegalStateException when this renderer was built without a
+     *     host-pass backend, which is the only thing that can interpret the pass
+     */
+    public BufferedImage renderHostPass(CanvasHostPass pass, int width, int height) {
+        return renderHostPass(pass, width, height, 1f);
+    }
+
+    public BufferedImage renderHostPass(CanvasHostPass pass, int width, int height,
+                                        float alphaMult) {
+        if (pass == null) throw new IllegalArgumentException("host pass is required");
+        if (hostPassRenderer == null) {
+            throw new IllegalStateException("No host-pass backend to draw " + pass);
+        }
+        if (width <= 0 || height <= 0) {
+            throw new IllegalArgumentException("viewport dimensions must be positive");
+        }
+        BufferedImage output = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = output.createGraphics();
+        configure(graphics);
+        Rect surface = new Rect(0f, 0f, width, height);
+        CanvasMetrics metrics = new CanvasMetrics(surface, width, height, 1f);
+        new RasterCanvasContext(graphics, resources, metrics, surface, alphaMult,
+                hostPassRenderer).hostPass(pass);
+        graphics.dispose();
+        return output;
+    }
+
+    /**
      * Renders the live resolution/UI-scale policy into a physical-pixel image.
      * Resolution fit may shrink the whole document, while {@code uiScale}
      * independently changes the logical workspace available to layout.
