@@ -129,9 +129,9 @@ public final class CompositionRenderer {
 
     /**
      * Applies a like-unit's authored master layers over one frame from its
-     * animation source. This mirrors live rendering: offsets and angles are
-     * deltas, scales multiply the animated pose, and all unmastered layers
-     * retain the source animation unchanged.
+     * animation source. Offsets and angles remain animated deltas, while each
+     * mastered layer owns one absolute scale so source-frame scale cannot leak
+     * into a like unit. All unmastered layers retain the source animation.
      */
     public FrameDefinition composeAnimationPreview(UnitComposition unit,
                                                    FrameDefinition source) {
@@ -153,8 +153,7 @@ public final class CompositionRenderer {
                 layer.spritePath(master.spritePath());
                 layer.offset(animated.offsetX() + master.offsetX() - neutral[0],
                         animated.offsetY() + master.offsetY() - neutral[1]);
-                layer.scale(animated.scaleX() * master.scaleX(),
-                        animated.scaleY() * master.scaleY());
+                layer.scale(master.scaleX(), master.scaleY());
                 layer.angleDegrees(animated.angleDegrees() + master.angleDegrees());
                 layer.pivot(master.pivotX(), master.pivotY());
                 layer.visible(animated.visible() && master.visible());

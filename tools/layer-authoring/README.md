@@ -36,11 +36,13 @@ Select a unit, equipment variant, animation, keyframe, and layer, then:
 The unit selector also exposes one **Armor master — ...** composition for each
 faction armor family. Select its `body` or `head` layer to master that family's
 scale, registration, angle, and pivot against a neutral rifle stance. The saved
-body and helmet settings are runtime authority in both the Armory and battle:
-scale multiplies the active animation, while offset and angle are applied as
-deltas from the neutral mastering pose. Body and helmet mastering are resolved
-independently, so mixed equipment appearances retain the correct settings for
-each source family.
+body and helmet settings are shared authority for the workbench preview, Armory,
+and battle. Scale is taken absolutely from each mastered body or helmet, while
+offset and angle are applied as deltas from the neutral mastering pose.
+This keeps the source marine's per-frame scale from distorting like-unit armor
+and avoids redefining an armor scale across every inherited frame. Body and
+helmet mastering are resolved independently, so mixed equipment appearances
+retain the correct settings for each source family.
 
 Armor masters declare `marine-line` as their animation source. Their own **Field
 loadout / Mastering pose** remains editable; the other variants are read-only
