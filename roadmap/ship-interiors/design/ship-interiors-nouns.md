@@ -104,6 +104,12 @@ authored content.
   shrink, so a hull below destroyer size cannot hold a range, a briefing room,
   or a proper sick bay without those rooms becoming the ship. A frigate keeps a
   gig and a locker.
+- **Hull contact** is the outside of the ship a room has to meet, as opposed to
+  the zone it merely belongs in. Most rooms only need to fit. A boat bay must
+  reach a flank or it opens onto the compartment next door; an engine room must
+  sit against the transom or it is not driving anything. For those rooms a
+  placement that fits is still wrong, and it is the same test a breach point
+  will want.
 - A **shuttle bay** is the deck's own way in and out: where troops embark for
   the surface, where they return, and the natural place for boarders to arrive.
   Alone among rooms it must reach the side of the ship, which is the first

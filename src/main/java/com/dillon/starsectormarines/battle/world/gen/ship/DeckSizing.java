@@ -121,6 +121,9 @@ public final class DeckSizing {
 
         List<RoomRecipe> rooms = new ArrayList<>();
         rooms.add(RoomRecipe.COMMAND);
+        // Twin shafts on anything cruiser-sized or larger.
+        add(rooms, RoomRecipe.ENGINE_ROOM,
+                hullClass.ordinal() >= HullClass.CRUISER.ordinal() ? 2 : 1);
         add(rooms, RoomRecipe.ENGINEERING, Math.max(
                 hullClass.ordinal() >= HullClass.CRUISER.ordinal() ? 2 : 1,
                 RoomRecipe.ENGINEERING.countFor(maxCrew)));

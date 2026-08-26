@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.smoke.SmokeFieldService;
 import com.dillon.starsectormarines.battle.satchel.SatchelChargeService;
 import com.dillon.starsectormarines.battle.grenade.FragGrenadeService;
+import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationTracker;
 import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
@@ -209,6 +210,9 @@ public interface BattleView {
 
     /** Mission objectives carried by both sides. */
     List<Objective> getObjectives();
+
+    /** Active battlefield equipment kits, exposed for trusted mission disclosure. */
+    List<EquipmentDrop> getEquipmentDrops();
 
     /** Mission-local rescue cohort lifecycle; empty in ordinary battles. */
     CivilianEvacuationTracker getCivilianEvacuationTracker();

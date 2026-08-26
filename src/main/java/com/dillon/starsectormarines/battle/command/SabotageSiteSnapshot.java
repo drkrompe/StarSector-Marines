@@ -32,6 +32,15 @@ public record SabotageSiteSnapshot(
         ALL_SITES_COMPLETE
     }
 
+    /** Why an unfinished site currently has, or lacks, planting capability. */
+    public enum GroupReason {
+        COMPLETE,
+        PLANTER_ACTIVE,
+        KIT_RECOVERY_ASSIGNED,
+        KIT_RECOVERY_UNSUPPORTED,
+        AWAITING_PLANTER
+    }
+
     public record SiteState(
             int index,
             String id,
@@ -43,6 +52,9 @@ public record SabotageSiteSnapshot(
             float plantDuration,
             boolean planterOnSite,
             boolean complete,
+            int activeKitDrops,
+            int unclaimedKitDrops,
+            GroupReason groupReason,
             int planterSquads,
             int retrieverSquads,
             int securitySquads,
