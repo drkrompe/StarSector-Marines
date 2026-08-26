@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.flyby;
 
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
+import com.dillon.starsectormarines.battle.combat.fx.ImpactDecals;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.AirHandling;
@@ -741,11 +742,9 @@ public final class FlybyOverlay {
         dust.color = isWall ? WALL_CHIP_DUST : FLOOR_KICK_DUST;
         particles.add(dust);
         // Persistent decal so strafing runs leave a permanent peppered trail.
-        // KINETIC profile gives bullet-hole / small-crater treatment matching
-        // a fighter's chain gun, distinct from the lighter rifle marks.
-        com.dillon.starsectormarines.battle.combat.fx.ImpactDecals.spawnImpact(sim, rng,
-                com.dillon.starsectormarines.battle.combat.fx.ImpactProfile.KINETIC,
-                endX, endY, isWall);
+        // Kinetic treatment gives bullet-hole / small-crater marks matching
+        // a fighter's chain gun, distinct from lighter rifle strikes.
+        ImpactDecals.spawnKineticImpact(sim, rng, endX, endY, isWall);
     }
 
     /**
@@ -925,9 +924,7 @@ public final class FlybyOverlay {
         if (sim != null) {
             boolean isWall = !sim.getGrid().inBounds((int) Math.floor(p.worldX), (int) Math.floor(p.worldY))
                     || !sim.getGrid().isWalkable((int) Math.floor(p.worldX), (int) Math.floor(p.worldY));
-            com.dillon.starsectormarines.battle.combat.fx.ImpactDecals.spawnImpact(sim, rng,
-                    com.dillon.starsectormarines.battle.combat.fx.ImpactProfile.HE,
-                    p.worldX, p.worldY, isWall);
+            ImpactDecals.spawnExplosiveImpact(sim, rng, p.worldX, p.worldY, false);
         }
         // Positional detonation audio — mono pool, plays alongside Doppler launch.
         Vector2f loc = new Vector2f(p.worldX * AUDIO_WORLD_UNITS_PER_CELL,

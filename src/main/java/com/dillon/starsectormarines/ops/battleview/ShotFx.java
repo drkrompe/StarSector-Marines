@@ -38,12 +38,10 @@ import java.util.function.Function;
  * @param body       projectile sprite vs. hitscan tracer
  * @param arcHeight  visual parabola peak in cells; {@code 0} = flat
  * @param boostRamp  accelerate-from-rest boost-then-cruise flight curve
- * @param engineTrail spawn a glowing engine trail in flight
- * @param smokeTrail  spawn a gray smoke puff in flight
  * @param contrail   ribbon style, or {@code null} for none
  */
 public record ShotFx(Body body, float arcHeight, boolean boostRamp,
-                     boolean engineTrail, boolean smokeTrail, ContrailStyle contrail) {
+                     ContrailStyle contrail) {
 
     /** S3's soft white-base energy bolt, retained for the pulse-rifle family. */
     public static final String PULSE_BOLT_SPRITE_PATH = "graphics/fx/round_bolt.png";
@@ -95,7 +93,7 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
     private static final EnumMap<MarineWeapon, ShotFx>    PRIMARY   = build(MarineWeapon.class,    ShotFx::derivePrimary);
     private static final EnumMap<MechWeapon, ShotFx>      MECH      = build(MechWeapon.class,      ShotFx::deriveMech);
     /** No weapon source (detonations / legacy callers) → a faction-default tracer. */
-    private static final ShotFx NO_SOURCE = new ShotFx(new Tracer(null), 0f, false, false, false, null);
+    private static final ShotFx NO_SOURCE = new ShotFx(new Tracer(null), 0f, false, null);
 
     /** The composition for a shot — never null; dispatches on the single non-null weapon source. */
     public static ShotFx of(ShotEvent s) {
@@ -120,8 +118,6 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
                 new Sprite(k.projectileSpritePath(), k.projectileVisualCells()),
                 k.arcHeight(),
                 k.hasBoostRamp(),
-                false,
-                k.smokeTrail() && contrail == null,
                 contrail);
     }
 
@@ -133,7 +129,7 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
         Body body = weapon.projectileSpritePath != null
                 ? new Sprite(weapon.projectileSpritePath, weapon.projectileVisualCells)
                 : bolt(weapon);
-        return new ShotFx(body, 0f, false, false, false, null);
+        return new ShotFx(body, 0f, false, null);
     }
 
     private static Bolt bolt(MarineWeapon w) {
@@ -167,7 +163,6 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
                 ? new Sprite(w.projectileSpritePath(), w.projectileVisualCells())
                 : new Bolt(RAIL_NEEDLE_SPRITE_PATH, w.tracerColor(), 2.2f, 0.20f);
         return new ShotFx(body, w.weaponDef().arcHeight, w.weaponDef().boostRamp,
-                false, false,
                 w.activation() == SpecialActivation.DIRECT_EXPLOSIVE
                         ? ContrailStyle.MISSILE_SMOKE : null);
     }
@@ -179,7 +174,7 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
         Body body = w.projectileSpritePath() != null
                 ? new Sprite(w.projectileSpritePath(), w.projectileVisualCells())
                 : new Tracer(null);
-        return new ShotFx(body, w.arcHeight(), false, w.engineTrail(), false, null);
+        return new ShotFx(body, w.arcHeight(), false, null);
     }
 
     private static <E extends Enum<E>> EnumMap<E, ShotFx> build(Class<E> cls, Function<E, ShotFx> derive) {

@@ -70,6 +70,12 @@ tilesets and weapons separate data catalogs from the code that consumes them.
 See `mapgen-nouns.md`, `moddable-tilesets-nouns.md`, and
 `moddable-weapons-nouns.md`.
 
+Shipboard space is a new model rather than shipped work. The flagship rooms the
+player sees today are hand-authored constant layouts; `ship-interiors-nouns.md`
+proposes one longitudinal deck family that generates them from parameters, makes
+facility capacity spatial and upgradeable, and yields hostile decks for boarding
+from the same pipeline. Nothing in it has been implemented.
+
 The retained UI foundation is proven in-engine and is being adopted one
 production surface at a time. Company HQ reads as the flagship bridge's
 command station, Fleet Armory owns deliberate equipment inspection and issue,

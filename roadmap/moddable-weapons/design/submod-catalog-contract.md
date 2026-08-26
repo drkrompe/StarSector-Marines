@@ -4,8 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-25
 
-Updated: 2026-08-25 — documented live compatibility acceptance and the required
-marine-primary held-sprite family.
+Updated: 2026-08-26 — documented the shared layered weapon-effect contract.
 
 ## Provider entry point
 
@@ -72,6 +71,43 @@ modular actor families are `RIFLE`, `LASER_GUN`, `SMG`, and `DMR`; several weapo
 definitions may intentionally share one family. The family controls the weapon held
 by the layered marine actor in battle, Armory portraits, and embedded scenes. It is
 required and validated so a contributed id cannot quietly fall back to generic art.
+
+## Weapon effects
+
+Every weapon definition declares an `fx` object with at least an ordered
+`impact` layer list. Optional independent slots are `launch`, `muzzle`,
+`tracer`, `trail`, and `aftermath`. Turret weapons additionally require a
+`muzzle` slot; large area-effect turrets require `aftermath`, and traveling
+interceptable turret rounds require `trail`.
+
+```json
+"fx": {
+  "muzzle": [
+    { "kind": "glow", "radius": 0.30, "lifetime": 0.06, "color": "FFF0C0" }
+  ],
+  "impact": [
+    { "kind": "glow", "radius": 0.70, "lifetime": 0.16, "color": "FFE080" },
+    { "kind": "fire", "radius": 0.55, "lifetime": 0.45 },
+    { "kind": "smoke", "radius": [0.55, 0.80],
+      "lifetime": [1.10, 1.50], "count": [2, 3], "jitter": 0.45 },
+    { "kind": "dust", "radius": 0.55, "lifetime": 0.32 }
+  ]
+}
+```
+
+Available primitives are `glow`, `dust`, `smoke`, `fire`, `explosion`, and
+`ring`. Positive `radius` and `lifetime` are required. A number is a fixed
+value; `[minimum, maximum]` authors a deterministic seeded range. Optional
+`count`, `jitter`, `delay`, local-frame offsets and velocities, and bounded
+`emissionDuration` plus `emissionInterval` compose variation and lingering
+effects without a new Java recipe. Unknown fields and unbounded schedules fail
+catalog loading.
+
+The same seeded composer supplies battle particles and catalog previews, so
+layer order is visible behavior and does not depend on provider order. Retired
+`render.impact`, `render.smokeTrail`, and `render.engineTrail` fields are errors;
+author the corresponding effect slot instead. Effect layers are presentation
+only and cannot change damage, penetration, hearing, or projectile simulation.
 
 ## Tilesets and mappings
 

@@ -40,6 +40,9 @@ class MarineWeaponDefValidationTest {
                   },
                   "render": {
                     "heldSpriteFamily": "RIFLE"
+                  },
+                  "fx": {
+                    "impact": [{"kind":"glow", "radius":0.2, "lifetime":0.1}]
                   }
                 }
                 """);

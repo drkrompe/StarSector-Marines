@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.combat.fx;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxDef;
 
 import java.util.Random;
 
@@ -19,43 +20,54 @@ public final class ImpactDecals {
     private ImpactDecals() {}
 
     /**
-     * Drops a persistent decal at the impact endpoint, keyed off the visual
-     * impact profile and the surface type (wall vs floor). Rifle/kinetic
-     * profiles drop bullet holes on walls and small craters on floors; HE
-     * profiles drop a medium crater plus a rubble pile (with a small chance
-     * of the fire variant).
+     * Drops a persistent decal at a weapon impact. The authored primitives
+     * supply the impact character: smoke-only strikes receive kinetic marks,
+     * fire receives explosive aftermath, and explosion/ring layers receive
+     * the heavier cannon scale.
      */
-    public static void spawnImpact(BattleSimulation sim, Random rng,
-                                   ImpactProfile profile, float x, float y, boolean isWall) {
-        if (profile == null) return;
+    public static void spawnWeaponImpact(BattleSimulation sim, Random rng,
+                                         WeaponFxDef fx, float x, float y,
+                                         boolean isWall) {
+        if (fx == null) return;
+        if (fx.hasHeavyImpact()) {
+            spawnExplosiveImpact(sim, rng, x, y, true);
+        } else if (fx.hasExplosiveImpact()) {
+            spawnExplosiveImpact(sim, rng, x, y, false);
+        } else if (fx.hasKineticImpact()) {
+            spawnKineticImpact(sim, rng, x, y, isWall);
+        } else if (isWall) {
+            sim.addDecal(new Decal(x, y, DecalKind.BULLET_HOLE_SINGLE.index,
+                    rng.nextFloat() * 360f, 0.55f));
+        }
+    }
+
+    /** Explicit kinetic decal recipe for non-weapon aerial strafing effects. */
+    public static void spawnKineticImpact(BattleSimulation sim, Random rng,
+                                          float x, float y, boolean isWall) {
         float rot = rng.nextFloat() * 360f;
-        switch (profile) {
-            case RIFLE:
-                if (isWall) {
-                    sim.addDecal(new Decal(x, y, DecalKind.BULLET_HOLE_SINGLE.index, rot, 0.55f));
-                }
-                break;
-            case KINETIC:
-                if (isWall) {
-                    int idx = rng.nextBoolean()
-                            ? DecalKind.BULLET_HOLE_LARGE_SINGLE.index
-                            : DecalKind.BULLET_HOLE_LARGE_MULTI.index;
-                    sim.addDecal(new Decal(x, y, idx, rot, 0.75f));
-                } else {
-                    int idx = rng.nextBoolean()
-                            ? DecalKind.CRATER_SMALL.index
-                            : DecalKind.CRATER_SMALL_ALT.index;
-                    sim.addDecal(new Decal(x, y, idx, rot, 0.75f));
-                }
-                break;
-            case HE:
-                spawnHeAftermath(sim, rng, x, y, rot,
-                        1.30f, 1.10f, 0.35f, 0.20f);
-                break;
-            case CANNON_HE:
-                spawnHeAftermath(sim, rng, x, y, rot,
-                        1.65f, 1.35f, 0.45f, 0.35f);
-                break;
+        if (isWall) {
+            int idx = rng.nextBoolean()
+                    ? DecalKind.BULLET_HOLE_LARGE_SINGLE.index
+                    : DecalKind.BULLET_HOLE_LARGE_MULTI.index;
+            sim.addDecal(new Decal(x, y, idx, rot, 0.75f));
+        } else {
+            int idx = rng.nextBoolean()
+                    ? DecalKind.CRATER_SMALL.index
+                    : DecalKind.CRATER_SMALL_ALT.index;
+            sim.addDecal(new Decal(x, y, idx, rot, 0.75f));
+        }
+    }
+
+    /** Explicit explosive decal recipe for non-weapon aerial detonations. */
+    public static void spawnExplosiveImpact(BattleSimulation sim, Random rng,
+                                            float x, float y, boolean heavy) {
+        float rotation = rng.nextFloat() * 360f;
+        if (heavy) {
+            spawnHeAftermath(sim, rng, x, y, rotation,
+                    1.65f, 1.35f, 0.45f, 0.35f);
+        } else {
+            spawnHeAftermath(sim, rng, x, y, rotation,
+                    1.30f, 1.10f, 0.35f, 0.20f);
         }
     }
 

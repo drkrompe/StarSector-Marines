@@ -2,33 +2,44 @@ package com.dillon.starsectormarines.battle.weapon.fx;
 
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-/** Shared runtime routing from turret shot events to their authored FX slots. */
-public final class TurretFxRuntime {
+/** Shared definition-driven routing from any weapon shot to authored FX slots. */
+public final class WeaponFxRuntime {
 
-    private TurretFxRuntime() {}
+    /** Compatibility presentation for anonymous legacy shots with no weapon definition. */
+    private static final WeaponFxDef LEGACY_RIFLE = legacyRifle();
 
-    /** Emits the launch composition at the mount-authored muzzle position. */
+    private WeaponFxRuntime() {}
+
+    /** Resolves the authoritative authored composition carried by a shot. */
+    public static WeaponFxDef definition(ShotEvent shot) {
+        WeaponDef weapon = shot.weaponDef();
+        return weapon != null ? weapon.fx : LEGACY_RIFLE;
+    }
+
+    /** Emits launch and muzzle composition at their carrier-appropriate origins. */
     public static void spawnMuzzle(ImpactFx backend, ShotEvent shot) {
-        if (shot.turretKind == null) return;
-        backend.spawnAuthored(shot.turretKind.fx(), FxSlot.LAUNCH, launchContext(shot));
-        backend.spawnAuthored(shot.turretKind.fx(), FxSlot.MUZZLE, muzzleContext(shot));
+        WeaponFxDef fx = definition(shot);
+        backend.spawnAuthored(fx, FxSlot.LAUNCH, launchContext(shot));
+        backend.spawnAuthored(fx, FxSlot.MUZZLE, muzzleContext(shot));
     }
 
     /** Emits both the immediate impact and its delayed authored aftermath. */
     public static void spawnImpactAndAftermath(ImpactFx backend, ShotEvent shot,
                                                 boolean wallImpact) {
-        if (shot.turretKind == null) return;
+        WeaponFxDef fx = definition(shot);
         FxCompositionContext context = impactContext(shot, wallImpact);
-        backend.spawnAuthored(shot.turretKind.fx(), FxSlot.IMPACT, context);
-        backend.spawnAuthored(shot.turretKind.fx(), FxSlot.AFTERMATH, context);
+        backend.spawnAuthored(fx, FxSlot.IMPACT, context);
+        backend.spawnAuthored(fx, FxSlot.AFTERMATH, context);
     }
 
     /** Emits one authored trail sample at the resolved projectile tail. */
     public static void spawnTrail(ImpactFx backend, ShotEvent shot,
                                   float x, float y, float bearingDegrees) {
-        if (shot.turretKind == null) return;
-        backend.spawnAuthored(shot.turretKind.fx(), FxSlot.TRAIL,
+        backend.spawnAuthored(definition(shot), FxSlot.TRAIL,
                 new FxCompositionContext(x, y, bearingDegrees, false, shot.lifetime));
     }
 
@@ -36,7 +47,7 @@ public final class TurretFxRuntime {
         float dx = shot.toX - shot.fromX;
         float dy = shot.toY - shot.fromY;
         float length = (float) Math.sqrt(dx * dx + dy * dy);
-        float offset = shot.turretKind.mount().muzzleOffsetCells;
+        float offset = shot.turretKind != null ? shot.turretKind.mount().muzzleOffsetCells : 0f;
         float muzzleX = shot.fromX;
         float muzzleY = shot.fromY;
         if (length > 1e-6f) {
@@ -71,5 +82,18 @@ public final class TurretFxRuntime {
         float dy = toY - fromY;
         if (dx == 0f && dy == 0f) return 0f;
         return (float) Math.toDegrees(Math.atan2(dy, dx)) - 90f;
+    }
+
+    private static WeaponFxDef legacyRifle() {
+        try {
+            return WeaponFxDef.parse("fx.legacy-rifle", new JSONObject("""
+                    {"impact":[
+                      {"kind":"glow","radius":0.28,"lifetime":0.10,"color":"FFE080"},
+                      {"kind":"dust","radius":0.22,"lifetime":0.18}
+                    ]}
+                    """));
+        } catch (JSONException e) {
+            throw new ExceptionInInitializerError(e);
+        }
     }
 }
