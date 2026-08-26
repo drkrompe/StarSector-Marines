@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -93,6 +94,12 @@ public final class VehicleMission {
      * Mirrors {@link com.dillon.starsectormarines.battle.air.ShuttleMission#assignNode}.
      */
     public TacticalNode assignNode;
+
+    /** Zone fallback for an objective that is not backed by a tactical node. */
+    public int assignZoneId = ObjectiveAssignment.UNSCOPED;
+
+    /** Mint the delivered squad with a command-owned node hold or zone-clear task. */
+    public boolean commandOwnsObjective;
 
     /**
      * Squad identity assigned to all marines deboarded from this vehicle. Lazily

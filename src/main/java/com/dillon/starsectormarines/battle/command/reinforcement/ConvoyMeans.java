@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.command.reinforcement;
 
-import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -22,6 +21,7 @@ import org.apache.log4j.Logger;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,14 +30,13 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Convoy-vehicle delivery means. Spawns a {@link VehicleType#HEAVY_APC}
- * at a perimeter road-graph entry that's reachable to the request's rally
- * point, drives it in, deboards marines, and stays parked in overwatch
- * with its turret active. Routing sorts perimeter nodes by distance to
- * the rally, BFS-floods the reachable component from each, and picks
- * the entry whose component contains the best interior junction near
- * the rally. Falls back gracefully across disconnected components so a
- * stub perimeter doesn't kill the spawn.
+ * Convoy-vehicle delivery means. It proves a complete inbound/drop/outbound
+ * journey before spawning a {@link VehicleType#HEAVY_APC}, then uses the
+ * ordinary vehicle lifecycle to drive, deboard, overwatch, and depart.
+ * Perimeter entries and viable junctions are ranked deterministically and
+ * tried until one has both turn-feasible route legs. An optional mission
+ * policy may constrain entry, drop band, and delivered-squad ownership;
+ * without one the legacy defender-side behavior is retained.
  */
 public final class ConvoyMeans implements ReinforcementMeans {
 
@@ -50,15 +49,24 @@ public final class ConvoyMeans implements ReinforcementMeans {
     private static final float PENDING_SEC = 6f;
     /** Cells the off-map staging waypoint sits beyond the perimeter — the truck visibly drives onto the map rather than popping in at the edge. */
     private static final float OFFMAP_PAD = 6f;
-    /** Minimum cell separation between a fresh dispatch's destination junction and any already-active convoy truck's LZ. Soft preference — exhausted before degrading to no-separation (see {@link #bestInteriorJunctionWithin}) so a clogged rally still resolves rather than failing. */
+    /** Minimum cell separation between a fresh dispatch's destination junction and any already-active convoy truck's LZ. Soft preference — route candidates degrade to overlap only after separated peers. */
     private static final int MIN_DEST_SEPARATION = 4;
-    /** Max Chebyshev rings {@link VehicleRoutePlanner#snapToMask} searches when pulling an eroded perimeter cell onto the nearest drivable cell. Generous — clearance radius is only 1–2, so the nearest in-mask cell is a couple cells in. */
+    /** Max Chebyshev rings used to resolve an interior junction onto the vehicle-clearance mask. */
     private static final int SNAP_RADIUS = 8;
+    /**
+     * A perimeter graph node is not a valid full-body routing pose: an APC
+     * centered one cell inside the edge still hangs off-map, so the
+     * footprint-aware route validator correctly rejects it.  Route proof
+     * therefore begins/ends at this fully in-bounds staging depth; dispatch
+     * still prepends/appends the actual off-map point.
+     */
+    private static final int PERIMETER_STAGING_INSET = 2;
 
     private final RoadGraph graph;
     private final TraversalAxis axis;
     private final GroundRosterProfile groundRoster;
     private final RiskLevel risk;
+    private final ConvoyDeploymentPolicy deploymentPolicy;
     /**
      * Per-battle terrain cost field, baked lazily on first dispatch. Ground kinds
      * are effectively static (rubble appears only on wall breach); a slightly
@@ -69,15 +77,22 @@ public final class ConvoyMeans implements ReinforcementMeans {
     private final Map<Integer, VehicleClearance> clearanceByRadius = new HashMap<>();
 
     public ConvoyMeans(RoadGraph graph, TraversalAxis axis) {
-        this(graph, axis, null, RiskLevel.LOW);
+        this(graph, axis, null, RiskLevel.LOW, null);
     }
 
     public ConvoyMeans(RoadGraph graph, TraversalAxis axis,
                        GroundRosterProfile groundRoster, RiskLevel risk) {
+        this(graph, axis, groundRoster, risk, null);
+    }
+
+    public ConvoyMeans(RoadGraph graph, TraversalAxis axis,
+                       GroundRosterProfile groundRoster, RiskLevel risk,
+                       ConvoyDeploymentPolicy deploymentPolicy) {
         this.graph = graph;
         this.axis = axis;
         this.groundRoster = groundRoster;
         this.risk = risk != null ? risk : RiskLevel.LOW;
+        this.deploymentPolicy = deploymentPolicy;
     }
 
     @Override
@@ -100,77 +115,29 @@ public final class ConvoyMeans implements ReinforcementMeans {
     }
 
     @Override
-    public void dispatch(BattleControl sim, ReinforcementRequest req) {
-        int rx = req.rallyX;
-        int ry = req.rallyY;
+    public ReinforcementDispatchResult dispatch(BattleControl sim,
+                                                ReinforcementRequest req) {
+        ConvoyDeployment deployment = deploymentPolicy != null
+                ? deploymentPolicy.deploymentFor(req)
+                : ConvoyDeployment.legacy(req);
+        if (deployment == null) deployment = ConvoyDeployment.legacy(req);
+        int rx = deployment.hintX();
+        int ry = deployment.hintY();
         int gw = sim.getGrid().getWidth();
         int gh = sim.getGrid().getHeight();
-
-        List<RoadGraph.Node> perim = defenderSidePerimeter(graph.perimeterNodes(), gw, gh);
-        List<RoadGraph.Node> perimByDist = sortedByDistance(perim, rx, ry);
-        List<int[]> reservedLz = activeConvoyDestinations(sim);
-        LandingZoneScorer scorer = new LandingZoneScorer(sim.getGrid(), sim.getTopology());
-
-        RoadGraph.Node entry = null;
-        RoadGraph.Node dest = null;
-        for (RoadGraph.Node candidate : perimByDist) {
-            Set<RoadGraph.Node> reachable = reachableFrom(candidate);
-            RoadGraph.Node candDest = bestInteriorJunctionWithin(scorer, reachable, rx, ry, reservedLz);
-            if (candDest != null && candDest != candidate) {
-                entry = candidate;
-                dest = candDest;
-                break;
-            }
+        RoutePlan route = routePlan(sim, deployment, rx, ry);
+        if (route == null) {
+            LOG.warn("ConvoyMeans: no complete HEAVY_APC route from "
+                    + (deployment.strictDefenderRearEntry() ? "defender rear" : "eligible perimeter")
+                    + " to hint=(" + rx + "," + ry + ") minForward="
+                    + deployment.minimumDefenderForward());
+            return ReinforcementDispatchResult.REJECTED;
         }
-        if (entry == null) {
-            LOG.warn("ConvoyMeans: no entry/dest pair reachable for rally=(" + rx + "," + ry
-                    + ") — " + perimByDist.size() + " perimeter candidates tried");
-            return;
-        }
-
-        // Cost-field routing (cost-field-routing slice 2): roads are a cost
-        // *bias* now, not a topology the truck is confined to — the route hugs
-        // streets but cuts across open ground when that genuinely pays. The road
-        // graph still SELECTS the entry perimeter node + interior drop-off
-        // junction (good, scored drop-offs); only the route BETWEEN them is now a
-        // cost-weighted grid search. The ReferenceCorridor → LocalTrajectoryPlanner
-        // → VehicleController stack downstream is unchanged.
-        int radius = VehicleClearance.radiusForWidth(VehicleType.HEAVY_APC.visualWidthCells);
-        TerrainCostField cost = costFieldFor(sim);
-        VehicleClearance clr = clearanceFor(sim, radius);
-
-        // Snap the graph node cells into the clearance mask: at radius ≥1 the mask
-        // erodes every cell within r of the border (and of any wall), so a
-        // perimeter entry — and often a junction hard against a building — isn't
-        // itself passable and route() would return null. Snap to the nearest cell
-        // the footprint actually fits.
-        int[] entryCell = VehicleRoutePlanner.snapToMask(clr, entry.cellX, entry.cellY, SNAP_RADIUS);
-        int[] destCell  = VehicleRoutePlanner.snapToMask(clr, dest.cellX, dest.cellY, SNAP_RADIUS);
-        if (entryCell == null || destCell == null) {
-            LOG.warn("ConvoyMeans: no clearance cell (r=" + radius + ") near entry=("
-                    + entry.cellX + "," + entry.cellY + ") or dest=("
-                    + dest.cellX + "," + dest.cellY + ") — skipping HEAVY_APC");
-            return;
-        }
-        // Distinct graph nodes can snap to the same in-mask cell on a small or
-        // heavily-eroded map; that's a degenerate start==goal route (null), not a
-        // no-path failure — log it as its own case so the route()-null warn below
-        // stays meaningful.
-        if (entryCell[0] == destCell[0] && entryCell[1] == destCell[1]) {
-            LOG.warn("ConvoyMeans: entry and dest snapped to the same clearance cell ("
-                    + entryCell[0] + "," + entryCell[1] + ") — drop-off too close to the gate"
-                    + " for HEAVY_APC; skipping");
-            return;
-        }
-
-        float[][] inboundCells = VehicleRoutePlanner.routeDrivable(
-                entryCell[0], entryCell[1], destCell[0], destCell[1],
-                sim.getGrid(), cost, clr, VehicleType.HEAVY_APC);
-        if (inboundCells == null) {
-            LOG.warn("ConvoyMeans: cost route failed entry=(" + entry.cellX + "," + entry.cellY
-                    + ")→dest=(" + dest.cellX + "," + dest.cellY + ") for HEAVY_APC (r=" + radius + ")");
-            return;
-        }
+        RoadGraph.Node entry = route.entry();
+        RoadGraph.Node dest = route.destination();
+        RoadGraph.Node exitNode = route.exit();
+        float[][] inboundCells = route.inbound();
+        float[][] outCells = route.outbound();
 
         float offX = entry.cellX + 0.5f;
         float offY = entry.cellY + 0.5f;
@@ -186,24 +153,6 @@ public final class ConvoyMeans implements ReinforcementMeans {
         inY[0] = offY;
         System.arraycopy(inboundCells[0], 0, inX, 1, len);
         System.arraycopy(inboundCells[1], 0, inY, 1, len);
-
-        // Exit perimeter node still chosen by the graph (farthest reachable from
-        // entry, so the truck drives across the city rather than reversing out its
-        // gate); the route there is cost-field. Snap the eroded perimeter cell in.
-        RoadGraph.Node exitNode = ConvoyPlanner.pickExitNode(graph, dest, entry);
-        int[] exitCell = VehicleRoutePlanner.snapToMask(clr, exitNode.cellX, exitNode.cellY, SNAP_RADIUS);
-        float[][] outCells = null;
-        if (exitCell != null) {
-            outCells = VehicleRoutePlanner.routeDrivable(
-                    destCell[0], destCell[1], exitCell[0], exitCell[1],
-                    sim.getGrid(), cost, clr, VehicleType.HEAVY_APC);
-        }
-        if (outCells == null) {
-            LOG.warn("ConvoyMeans: no turn-feasible outbound route dest=("
-                    + dest.cellX + "," + dest.cellY + ")→exit=("
-                    + exitNode.cellX + "," + exitNode.cellY + ") for HEAVY_APC — skipping dispatch");
-            return;
-        }
 
         int inLast = inboundCells[0].length - 1;
         float lzX = inboundCells[0][inLast];
@@ -238,15 +187,21 @@ public final class ConvoyMeans implements ReinforcementMeans {
         VehicleMission mission = new VehicleMission(
                 inX, inY, outX, outY,
                 PENDING_SEC, VehicleType.HEAVY_APC.capacity);
-        mission.commandClaim = SquadCommandClaim.reinforcement(req.reason.name());
+        mission.commandClaim = deployment.squadClaim();
         // Stash the routing inputs so the recovery ladder can re-route mid-drive.
-        mission.routeCostField = cost;
-        mission.routeClearance = clr;
+        mission.routeCostField = route.cost();
+        mission.routeClearance = route.clearance();
         // Objective assignment (progressive-reinforcement slice 4): resolve the
         // request's objective to a tactical node now, at dispatch time, so the
         // deboarded squad is assigned the moment it deboards rather than only
         // once it physically walks to the position — see ObjectiveNodes.
         mission.assignNode = ObjectiveNodes.resolve(sim.getTacticalMap(), req);
+        if (mission.assignNode == null && req.hasObjective()
+                && sim.getZoneGraph() != null) {
+            mission.assignZoneId = sim.getZoneGraph().zoneIdAt(
+                    req.objectiveX, req.objectiveY);
+        }
+        mission.commandOwnsObjective = deployment.commandOwnsObjective();
         if (groundRoster != null) {
             mission.deboardUnitType = groundRoster.unitType(GroundRosterProfile.ForceTier.BULK);
             mission.marineLoadout = InfantryLoadoutRolls.defenderSquad(
@@ -256,7 +211,87 @@ public final class ConvoyMeans implements ReinforcementMeans {
         sim.addConvoyVehicle(VehicleType.HEAVY_APC, Faction.DEFENDER, mission);
         LOG.info("ConvoyMeans: dispatched HEAVY_APC entry=(" + entry.cellX + "," + entry.cellY
                 + ") exit=(" + exitNode.cellX + "," + exitNode.cellY
-                + ") rally=(" + rx + "," + ry + ") wps=" + inX.length + "in/" + outX.length + "out");
+                + ") drop=(" + (int) lzX + "," + (int) lzY + ") hint=("
+                + rx + "," + ry + ") minForward="
+                + deployment.minimumDefenderForward() + " wps="
+                + inX.length + "in/" + outX.length + "out");
+        return ReinforcementDispatchResult.COMMITTED;
+    }
+
+    private record RoutePlan(RoadGraph.Node entry,
+                             RoadGraph.Node destination,
+                             RoadGraph.Node exit,
+                             float[][] inbound,
+                             float[][] outbound,
+                             TerrainCostField cost,
+                             VehicleClearance clearance) { }
+
+    /** Proves both travel legs before a world actor is created. */
+    private RoutePlan routePlan(BattleControl sim, ConvoyDeployment deployment,
+                                int hintX, int hintY) {
+        int width = sim.getGrid().getWidth();
+        int height = sim.getGrid().getHeight();
+        List<RoadGraph.Node> perimeter = deployment.strictDefenderRearEntry()
+                ? defenderRearPerimeter(graph.perimeterNodes(), width, height)
+                : defenderSidePerimeter(graph.perimeterNodes(), width, height);
+        if (perimeter.isEmpty()) return null;
+
+        List<RoadGraph.Node> entries = sortedByDistance(perimeter, hintX, hintY);
+        List<int[]> reserved = activeConvoyDestinations(sim);
+        LandingZoneScorer scorer = new LandingZoneScorer(
+                sim.getGrid(), sim.getTopology());
+        int radius = VehicleClearance.radiusForWidth(
+                VehicleType.HEAVY_APC.visualWidthCells);
+        TerrainCostField cost = costFieldFor(sim);
+        VehicleClearance clearance = clearanceFor(sim, radius);
+
+        for (RoadGraph.Node entry : entries) {
+            int[] entryCell = perimeterRouteCell(clearance, entry,
+                    width, height);
+            if (entryCell == null) continue;
+            List<RoadGraph.Node> destinations = interiorJunctionsWithin(
+                    scorer, reachableFrom(entry), hintX, hintY, reserved,
+                    deployment.minimumDefenderForward());
+            for (RoadGraph.Node destination : destinations) {
+                int[] destinationCell = VehicleRoutePlanner.snapToMask(clearance,
+                        destination.cellX, destination.cellY, SNAP_RADIUS);
+                if (destinationCell == null
+                        || entryCell[0] == destinationCell[0]
+                        && entryCell[1] == destinationCell[1]
+                        || !scorer.isViable(destinationCell[0], destinationCell[1])
+                        || !behindMinimum(destinationCell[0], destinationCell[1],
+                        deployment.minimumDefenderForward())) {
+                    continue;
+                }
+                float[][] inbound = VehicleRoutePlanner.routeDrivable(
+                        entryCell[0], entryCell[1],
+                        destinationCell[0], destinationCell[1],
+                        sim.getGrid(), cost, clearance,
+                        VehicleType.HEAVY_APC);
+                if (inbound == null) continue;
+
+                List<RoadGraph.Node> exits = deployment.strictDefenderRearEntry()
+                        ? sortedByDistance(perimeter,
+                        destination.cellX, destination.cellY)
+                        : List.of(ConvoyPlanner.pickExitNode(
+                        graph, destination, entry));
+                for (RoadGraph.Node exit : exits) {
+                    int[] exitCell = perimeterRouteCell(clearance, exit,
+                            width, height);
+                    if (exitCell == null) continue;
+                    float[][] outbound = VehicleRoutePlanner.routeDrivable(
+                            destinationCell[0], destinationCell[1],
+                            exitCell[0], exitCell[1],
+                            sim.getGrid(), cost, clearance,
+                            VehicleType.HEAVY_APC);
+                    if (outbound != null) {
+                        return new RoutePlan(entry, destination, exit,
+                                inbound, outbound, cost, clearance);
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     /** Lazily bakes (and caches) the per-battle terrain cost field from the map's ground kinds. */
@@ -288,6 +323,50 @@ public final class ConvoyMeans implements ReinforcementMeans {
             out.add(n);
         }
         return out.isEmpty() ? nodes : out;
+    }
+
+    /** Strict Conquest source edge: defender rear only, with no lateral fallback. */
+    private List<RoadGraph.Node> defenderRearPerimeter(
+            List<RoadGraph.Node> nodes, int width, int height) {
+        List<RoadGraph.Node> out = new ArrayList<>();
+        for (RoadGraph.Node node : nodes) {
+            if ((axis == TraversalAxis.SOUTH_TO_NORTH
+                    && node.cellY == height - 1)
+                    || (axis == TraversalAxis.WEST_TO_EAST
+                    && node.cellX == width - 1)) {
+                out.add(node);
+            }
+        }
+        return out;
+    }
+
+    /** Pull a graph-edge endpoint inward until the complete APC pose fits. */
+    private int[] perimeterRouteCell(VehicleClearance clearance,
+                                     RoadGraph.Node node,
+                                     int width, int height) {
+        int inwardX = 0;
+        int inwardY = 0;
+        if (axis == TraversalAxis.SOUTH_TO_NORTH && node.cellY == height - 1) {
+            inwardY = -1;
+        } else if (axis == TraversalAxis.WEST_TO_EAST && node.cellX == width - 1) {
+            inwardX = -1;
+        } else if (node.cellY == 0) {
+            inwardY = 1;
+        } else if (node.cellY == height - 1) {
+            inwardY = -1;
+        } else if (node.cellX == 0) {
+            inwardX = 1;
+        } else if (node.cellX == width - 1) {
+            inwardX = -1;
+        } else {
+            return null;
+        }
+        // Keep the graph gate's lateral coordinate. A sideways snap would
+        // leave the coarse off-map tail free to cut diagonally through a
+        // blocker before full-body validation begins.
+        int x = node.cellX + inwardX * PERIMETER_STAGING_INSET;
+        int y = node.cellY + inwardY * PERIMETER_STAGING_INSET;
+        return clearance.isPassable(x, y) ? new int[]{x, y} : null;
     }
 
     private boolean isMarineEntryEdge(RoadGraph.Node n, int gw, int gh) {
@@ -323,51 +402,41 @@ public final class ConvoyMeans implements ReinforcementMeans {
         return seen;
     }
 
-    /**
-     * Best interior junction within a reachable set, near ({@code cx, cy}).
-     * Two priority axes: junction quality (degree ≥ 3 preferred, ≥ 2
-     * tolerated) and separation from already-active convoy destinations
-     * in {@code reserved}. Degree quality wins outright — a separated
-     * degree-2 junction loses to an overlapping degree-3 — because a
-     * degree-2 node forces the truck to back out the way it came at
-     * arrival. Within each degree tier, separation is preferred but
-     * not required: an overlapping high-quality junction beats no
-     * junction at all.
-     *
-     * <p>Junctions whose cell isn't a viable dropoff (walkable, outside any
-     * building — {@link LandingZoneScorer}) are skipped, so the truck never
-     * parks to deboard inside a building or on blocked ground. Road-graph
-     * junctions sit on roads and normally pass; the gate guards against
-     * pathological road/building overlaps and keeps the scorer authoritative
-     * for every means' deboard cell.
-     *
-     * <p>{@code reserved} is the list of {@code (lzCellX, lzCellY)} for
-     * every currently in-flight or landed convoy truck. Empty list →
-     * separation never kicks in, behaviour matches the pre-separation
-     * implementation.
-     */
-    private static RoadGraph.Node bestInteriorJunctionWithin(LandingZoneScorer scorer,
-                                                             Set<RoadGraph.Node> reachable,
-                                                             int cx, int cy,
-                                                             List<int[]> reserved) {
-        for (int minDegree = 3; minDegree >= 2; minDegree--) {
-            for (boolean useSeparation : new boolean[]{true, false}) {
-                RoadGraph.Node best = null;
-                int bestD2 = Integer.MAX_VALUE;
-                for (RoadGraph.Node n : reachable) {
-                    if (n.perimeter) continue;
-                    if (!scorer.isViable(n.cellX, n.cellY)) continue;
-                    if (n.degree() < minDegree) continue;
-                    if (useSeparation && nearAnyReserved(n.cellX, n.cellY, reserved)) continue;
-                    int dx = n.cellX - cx;
-                    int dy = n.cellY - cy;
-                    int d2 = dx * dx + dy * dy;
-                    if (d2 < bestD2) { bestD2 = d2; best = n; }
-                }
-                if (best != null) return best;
+    /** Ranked viable drop junctions; route proof, not graph proximity, makes the commitment. */
+    private List<RoadGraph.Node> interiorJunctionsWithin(
+            LandingZoneScorer scorer, Set<RoadGraph.Node> reachable,
+            int hintX, int hintY, List<int[]> reserved,
+            int minimumForward) {
+        List<RoadGraph.Node> candidates = new ArrayList<>();
+        for (RoadGraph.Node node : reachable) {
+            if (node.perimeter || node.degree() < 2
+                    || !scorer.isViable(node.cellX, node.cellY)
+                    || !behindMinimum(node.cellX, node.cellY, minimumForward)) {
+                continue;
             }
+            candidates.add(node);
         }
-        return null;
+        candidates.sort(Comparator
+                .comparingInt((RoadGraph.Node node) -> node.degree() >= 3 ? 0 : 1)
+                .thenComparingInt(node -> nearAnyReserved(
+                        node.cellX, node.cellY, reserved) ? 1 : 0)
+                .thenComparingInt(node -> distanceSquared(
+                        node.cellX, node.cellY, hintX, hintY))
+                .thenComparingInt(node -> node.cellX)
+                .thenComparingInt(node -> node.cellY));
+        return candidates;
+    }
+
+    private boolean behindMinimum(int x, int y, int minimumForward) {
+        if (minimumForward < 0) return true;
+        int forward = axis == TraversalAxis.WEST_TO_EAST ? x : y;
+        return forward >= minimumForward;
+    }
+
+    private static int distanceSquared(int ax, int ay, int bx, int by) {
+        int dx = ax - bx;
+        int dy = ay - by;
+        return dx * dx + dy * dy;
     }
 
     /** {@code (lzCellX, lzCellY)} of every convoy vehicle that's still inbound or landed. DEPARTING / GONE trucks aren't holding the cell any more, so they're excluded. */

@@ -4,7 +4,7 @@ Status: ACTIVE — Conquest owns reversible compound territory, deliberate captu
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — paired, area-authored six-plus-six shuttle arrivals with immediate post-drop departure.
+Updated: 2026-08-26 — made convoy deployment a defender-commanded rear-front handoff.
 
 Conquest is a territorial assault: marines establish a beachhead, take the
 defender's supply hubs through the city, and finish at the keep. It is not a
@@ -141,14 +141,20 @@ cell, and the receiving squad's local contact picture supersedes it on contact.
 Born garrisons never enter this mobile pool. Explicit hold or recapture work
 outranks a soft track response, at least one otherwise-free patrol remains in
 reserve when possible, and an expired faction report releases only assignments
-owned by defender command. Squads delivered later remain under reinforcement
-and counterattack authority rather than being silently absorbed into the
-starting reserve. The setup pool is captured from the live squad roster before
-the first alert aggregation, so roster membership and `PATROL` role—not a
-not-yet-populated cached alive count—define the starting force. Authored setup
-garrisons claim garrison ownership at setup. A later squad becomes eligible
-only through an explicit handoff to `conquest-defender`; the handoff never
-happens implicitly at delivery.
+owned by defender command. The setup pool is captured from the live squad
+roster before the first alert aggregation, so roster membership and `PATROL`
+role--not a not-yet-populated cached alive count--define the starting force.
+Authored setup garrisons claim garrison ownership at setup.
+
+Conquest convoy delivery is the explicit later-force handoff. At dispatch time
+the defender commander converts its latest faction-honest hostile-front belief
+and the request's track into a quantized safe deployment band behind contact.
+The vehicle enters from the strict defender rear edge, and its passengers are
+minted directly under `MISSION_COMMAND / conquest-defender` with the request's
+node hold or lost-zone clear objective. Defender command preserves and reports
+that relief objective instead of absorbing the squad into a soft track reserve. Shuttle and walk-in
+reinforcements retain their existing reinforcement ownership until their own
+mission policies explicitly opt into a handoff.
 
 Conquest is the first production **command duel**: attacker and defender
 strategies can progress the territorial battle without requiring direct player

@@ -252,6 +252,31 @@ public class RecaptureTargetServiceTest {
     }
 
     @Test
+    public void staleReservationCannotReleaseNewerDispatch() {
+        BiomeMap biomes = biomeMap();
+        TacticalNode city = node(TacticalNode.Kind.HEAVY_TOWER,
+                10, 55, Faction.DEFENDER, 4);
+        RecaptureTargetService reg = new RecaptureTargetService(
+                new TacticalMap(List.of(city)), biomes);
+        RecaptureTarget target = targetFor(reg, city);
+        target.manned = true;
+        target.open = true;
+        reg.setContested(target.slice, true);
+
+        ReinforcementDispatchReservation stale = reg.reserveDispatch(target);
+        target.dispatched = false; // models timeout/arrival reopening the target
+        ReinforcementDispatchReservation current = reg.reserveDispatch(target);
+
+        stale.release();
+
+        assertTrue(target.isDispatched());
+        assertTrue(reg.eligibleTargets().isEmpty(),
+                "stale request must not release the newer reservation");
+        current.release();
+        assertEquals(1, reg.eligibleTargets().size());
+    }
+
+    @Test
     public void neverMannedTargetIsNotEligible() {
         BattleSimulation sim = openSim();
         BiomeMap biomes = biomeMap();

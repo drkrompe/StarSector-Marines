@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.unit.FactionUnitRoster;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -215,7 +216,20 @@ public class GroundSystem {
         if (m.squadId == Squad.NO_SQUAD) {
             m.squadId = roster.mintSquad(faction, deboardType);
             if (m.commandClaim != null) {
-                m.commandClaim.apply(commandControl, m.squadId);
+                ObjectiveAssignment initialAssignment = null;
+                if (m.commandOwnsObjective && m.assignNode != null) {
+                    initialAssignment = ObjectiveAssignment.holdNode(
+                            m.squadId, m.assignNode);
+                } else if (m.commandOwnsObjective
+                        && m.assignZoneId != ObjectiveAssignment.UNSCOPED) {
+                    initialAssignment = ObjectiveAssignment.clearZone(
+                            m.squadId, m.assignZoneId);
+                }
+                if (initialAssignment != null) {
+                    m.commandClaim.apply(commandControl, initialAssignment);
+                } else {
+                    m.commandClaim.apply(commandControl, m.squadId);
+                }
             }
             if (m.assignNode != null) {
                 Squad minted = roster.getSquad(m.squadId);

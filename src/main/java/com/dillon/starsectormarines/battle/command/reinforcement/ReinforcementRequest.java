@@ -4,8 +4,8 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 
 /**
  * A request for "more units" posted by a {@link ReinforcementTrigger} and
- * fulfilled by the first {@link ReinforcementMeans} that returns
- * {@code canFulfill = true}. See {@code reinforcement-nouns.md}.
+ * offered in priority order until a {@link ReinforcementMeans} commits it.
+ * See {@code reinforcement-nouns.md}.
  *
  * <p>Side capability: the request type can represent defenders or attackers,
  * while production means currently dispatch defenders only. The
@@ -78,6 +78,7 @@ public final class ReinforcementRequest {
      * constructor — the steady per-dispatch debit is unchanged.
      */
     public final boolean prepaid;
+    private final ReinforcementDispatchReservation dispatchReservation;
 
     public ReinforcementRequest(Faction side, Reason reason, Strength strength,
                                 int rallyX, int rallyY) {
@@ -94,6 +95,15 @@ public final class ReinforcementRequest {
                                 int rallyX, int rallyY,
                                 int objectiveX, int objectiveY,
                                 boolean prepaid) {
+        this(side, reason, strength, rallyX, rallyY,
+                objectiveX, objectiveY, prepaid, null);
+    }
+
+    private ReinforcementRequest(Faction side, Reason reason, Strength strength,
+                                 int rallyX, int rallyY,
+                                 int objectiveX, int objectiveY,
+                                 boolean prepaid,
+                                 ReinforcementDispatchReservation reservation) {
         this.side = side;
         this.reason = reason;
         this.strength = strength;
@@ -102,6 +112,19 @@ public final class ReinforcementRequest {
         this.objectiveX = objectiveX;
         this.objectiveY = objectiveY;
         this.prepaid = prepaid;
+        this.dispatchReservation = reservation;
+    }
+
+    /** Returns the same request data carrying provisional trigger state. */
+    ReinforcementRequest withDispatchReservation(
+            ReinforcementDispatchReservation reservation) {
+        return new ReinforcementRequest(side, reason, strength,
+                rallyX, rallyY, objectiveX, objectiveY, prepaid, reservation);
+    }
+
+    /** Release provisional trigger state after every means rejects. */
+    void releaseDispatchReservation() {
+        if (dispatchReservation != null) dispatchReservation.release();
     }
 
     public boolean hasRally() { return rallyX != RALLY_UNSET && rallyY != RALLY_UNSET; }
