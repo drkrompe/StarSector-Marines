@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.command.ConquestCommand;
 import com.dillon.starsectormarines.battle.command.AssaultCommand;
 import com.dillon.starsectormarines.battle.command.AssaultCommandDisclosure;
+import com.dillon.starsectormarines.battle.command.AssaultDefenderCommand;
+import com.dillon.starsectormarines.battle.command.AssaultDefenderCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.ConquestCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
@@ -371,6 +373,40 @@ class SquadStateDumperTest {
         assertFalse(site.has("activeKitDrops"));
         assertEquals("sabotage-defender",
                 dump.getJSONObject("commander").getString("strategy"));
+    }
+
+    @Test
+    void assaultDefenderDumpPublishesOnlyDefenderAreaBeliefs()
+            throws Exception {
+        BattleSimulation sim = openSim();
+        for (int y = 0; y < sim.getGrid().getHeight(); y++) {
+            sim.getGrid().setWalkable(16, y, false);
+        }
+        int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.MILITIA);
+        Squad squad = sim.getSquad(squadId);
+        long member = sim.spawn(new EntitySpec("security", Faction.DEFENDER,
+                UnitType.MILITIA, 3, 12).squad(squadId).role(UnitRole.PATROL));
+        squad.leaderId = member;
+        sim.spawn(new EntitySpec("hidden-marine", Faction.MARINE,
+                UnitType.MARINE, 25, 12).moveSpeed(0f));
+        sim.setAutonomousCommander(Faction.DEFENDER,
+                new AssaultDefenderCommand(java.util.Set.of(squadId)),
+                AssaultDefenderCommandDisclosure.INSTANCE);
+        sim.advance(CommanderService.COMMANDER_TICK_PERIOD
+                + BattleSimulation.TICK_DT);
+
+        JSONObject dump = SquadStateDumper.buildSquadJson(squad, sim);
+        JSONObject defense = dump.getJSONObject("assaultDefenseCommand");
+        JSONObject directive = defense.getJSONObject("squadDirective");
+        JSONObject area = defense.getJSONArray("areas").getJSONObject(0);
+        assertEquals("DEFENDER", defense.getString("perspective"));
+        assertEquals("AREA_SECURITY", defense.getString("phase"));
+        assertEquals("QUIET", area.getString("reportState"));
+        assertEquals("ROUTINE_SECURITY", directive.getString("role"));
+        assertTrue(defense.has("strongpoints"));
+        assertTrue(dump.isNull("assaultCommand"));
+        assertFalse(area.has("hostileCellX"));
+        assertFalse(area.has("hostileCellY"));
     }
 
     private static BattleSimulation openSim() {

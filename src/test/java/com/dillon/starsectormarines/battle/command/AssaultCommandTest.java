@@ -146,6 +146,24 @@ class AssaultCommandTest {
     }
 
     @Test
+    void blockedIncumbentSearchOrderMayBeReplacedDuringStabilityWindow() {
+        BattleSimulation sim = openSim(60, 30);
+        Squad squad = addSquad(sim, Faction.MARINE, UnitType.MARINE, 3, 3);
+        AssaultCommand command = new AssaultCommand();
+        tick(command, sim);
+        ObjectiveAssignment blocked = squad.assignedObjective;
+        sim.getGrid().setWalkable(
+                blocked.targetCellX(), blocked.targetCellY(), false);
+
+        tick(command, sim);
+
+        assertNotEquals(blocked, squad.assignedObjective);
+        assertTrue(sim.getGrid().isWalkable(
+                squad.assignedObjective.targetCellX(),
+                squad.assignedObjective.targetCellY()));
+    }
+
+    @Test
     void completedFirstPassKeepsBoundedRecheckOrdersActive() {
         BattleSimulation sim = openSim(60, 30);
         for (int i = 0; i < 4; i++) {

@@ -87,7 +87,8 @@ dependencies {
 
 test {
     useJUnitPlatform {
-        excludeTags 'battle-profile', 'commander-balance', 'sabotage-command-evidence'
+        excludeTags 'battle-profile', 'commander-balance',
+                'sabotage-command-evidence', 'assault-command-evidence'
     }
     testLogging {
         // Audit-style tests print their report to stdout — stream it to the
@@ -111,6 +112,7 @@ def commanderEvidenceMission = providers.gradleProperty('mission')
 def commanderEvidenceTags = [
         conquest: 'commander-balance',
         sabotage: 'sabotage-command-evidence',
+        assault: 'assault-command-evidence',
 ]
 
 tasks.register('commanderEvidence', Test) {
@@ -127,8 +129,11 @@ tasks.register('commanderEvidence', Test) {
     systemProperty 'starsectorDir', starsectorDir.absolutePath
     systemProperty 'battle.unitUpdate.minimumParallelUnits', Integer.MAX_VALUE.toString()
     if (commanderEvidenceTags.containsKey(commanderEvidenceMission)) {
-        def prefix = commanderEvidenceMission == 'conquest'
-                ? 'commander.balance' : 'sabotage.command.evidence'
+        def prefix = [
+                conquest: 'commander.balance',
+                sabotage: 'sabotage.command.evidence',
+                assault: 'assault.command.evidence',
+        ][commanderEvidenceMission]
         systemProperty "${prefix}.outputDir",
                 layout.buildDirectory.dir(
                         "reports/commander/${commanderEvidenceMission}")
@@ -149,7 +154,7 @@ tasks.register('commanderEvidence', Test) {
     doFirst {
         if (!commanderEvidenceTags.containsKey(commanderEvidenceMission)) {
             throw new GradleException(
-                    'commanderEvidence requires -Pmission=conquest or -Pmission=sabotage')
+                    'commanderEvidence requires -Pmission=conquest, sabotage, or assault')
         }
     }
     testLogging {

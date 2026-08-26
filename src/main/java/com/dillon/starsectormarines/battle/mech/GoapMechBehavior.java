@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.command.DefendAssignedTrackGoal;
 import com.dillon.starsectormarines.battle.command.DefendAssignedSiteGoal;
+import com.dillon.starsectormarines.battle.command.DefendAssignedAreaGoal;
 import com.dillon.starsectormarines.battle.command.AdvanceAssignedTrackGoal;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 
@@ -50,6 +51,7 @@ public final class GoapMechBehavior implements UnitBehavior {
             SweepAssignedSectorGoal.INSTANCE,
             AdvanceAssignedTrackGoal.INSTANCE,
             DefendAssignedSiteGoal.INSTANCE,
+            DefendAssignedAreaGoal.INSTANCE,
             DefendAssignedTrackGoal.INSTANCE,
             AssaultAssignedObjectiveGoal.INSTANCE,
             OverwatchKillZoneGoal.INSTANCE,

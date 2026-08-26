@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 2,
+  "kind": "ASSAULT",
+  "seed": 607898,
+  "enemyHasHeavyArmor": true,
+  "tier": "ESTABLISHED",
+  "risk": "HIGH",
+  "shuttles": [
+    { "type": "AEROSHUTTLE", "cycles": 3, "seatsPerSortie": 6 },
+    { "type": "AEROSHUTTLE", "cycles": 3, "seatsPerSortie": 6 },
+    { "type": "AEROSHUTTLE", "cycles": 3, "seatsPerSortie": 6 },
+    { "type": "AEROSHUTTLE", "cycles": 3, "seatsPerSortie": 6 }
+  ],
+  "targetProfile": {
+    "marketSize": 6,
+    "stability": 7,
+    "defenseLevel": 5,
+    "spaceportTier": 2,
+    "factionId": "independent",
+    "functions": [ "HABITATION", "SPACEPORT", "MILITARY" ]
+  },
+  "marineFighterSupport": [],
+  "enemyFighterSupport": []
+}

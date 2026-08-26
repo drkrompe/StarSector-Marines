@@ -1,6 +1,6 @@
 # Assault search-sector picture
 
-Status: IN PROGRESS — migrate the attacker to belief-honest search and pair it with `assault-area-defense-command.md`.
+Status: IN PROGRESS — paired production implementation complete; awaiting live acceptance and canonical-duration evidence review.
 
 Written: 2026-08-24
 
@@ -53,13 +53,21 @@ remaining contact without duplicating the same route or reading hidden units.
   reinforcement, report convergence, external ownership, progress persistence,
   deterministic serialization, and production installation.
 
-Paired headless evidence will extend the shared `commanderEvidence` task with
-`-Pmission=assault`; mission and fixture selection are arguments, not new
-mission-specific Gradle tasks.
+Paired headless evidence extends the shared `commanderEvidence` task with
+`-Pmission=assault`; mission, fixture, and maximum-tick selection are arguments,
+not new mission-specific Gradle tasks. A forced-serial smoke run proves both
+perspective blocks and byte-stable duplicate traces; canonical-duration review
+remains deferred with live acceptance.
 
-The attacker production slice is complete. Story exit remains paired no-input
-acceptance with `assault-area-defense-command.md`; do not retire this file until
-the defender side and shared Assault evidence argument ship.
+The smoke contract also requires live attacker search allocation, a legal
+defender report paired with a bounded response, and surviving unrelated-area
+coverage. Its summary labels argument-shortened runs `AD_HOC` and publishes
+these metrics; focused tests separately prove legal report expiry and responder
+release without turning a short continuous-contact smoke into invented evidence.
+
+Both production slices and the shared Assault evidence argument are complete.
+Do not retire this file until the deferred live play pass and canonical-duration
+evidence review close the paired command duel.
 
 ## Constraints
 

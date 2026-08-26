@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
 import com.dillon.starsectormarines.battle.command.AssaultSearchSnapshot;
+import com.dillon.starsectormarines.battle.command.AssaultDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.SabotageSiteSnapshot;
 import com.dillon.starsectormarines.battle.command.SabotageDefenseSnapshot;
@@ -197,6 +198,47 @@ class SquadPlanDebugPanelTest {
                 SquadPlanDebugPanel.assaultOrderSummary(directive));
         assertEquals("Sector SUSPECTED   Coverage 3/9   Contacts 1   Squads 2",
                 SquadPlanDebugPanel.assaultSectorSummary(snapshot, directive));
+    }
+
+    @Test
+    void selectedDefenderSummaryExplainsAreaReportAndReserveResponse() {
+        AssaultDefenseSnapshot.AreaState area =
+                new AssaultDefenseSnapshot.AreaState(1, 15, 0, 15, 15,
+                        80, 1, 1, 1, 1,
+                        AssaultDefenseSnapshot.ReportState.SUSPECTED,
+                        2, 40, 490, 4f, 3f, 20, 7);
+        AssaultDefenseSnapshot.SquadDirective directive =
+                new AssaultDefenseSnapshot.SquadDirective(9, 1,
+                        AssaultDefenseSnapshot.Role.RESPONDER,
+                        AssaultDefenseSnapshot.Reason
+                                .SUSPECTED_CONTACT_RESPONSE,
+                        AssignmentKind.DEFEND_AREA, 20, 7);
+        AssaultDefenseSnapshot snapshot = new AssaultDefenseSnapshot(
+                44, 42, Faction.DEFENDER,
+                AssaultDefenseSnapshot.Phase.REPORTED_CONTACT_RESPONSE,
+                4, 1, List.of(area), List.of(), List.of(),
+                List.of(directive));
+
+        assertEquals("Defense area A2   DEFEND_AREA   Role RESPONDER"
+                        + "   Target 20,7   Reason SUSPECTED_CONTACT_RESPONSE",
+                SquadPlanDebugPanel.assaultDefenseOrderSummary(directive));
+        assertEquals("Report SUSPECTED 2 contacts exp 490   Cover 1+1"
+                        + "   Press 4.0/3.0",
+                SquadPlanDebugPanel.assaultDefenseAreaSummary(
+                        snapshot, directive));
+    }
+
+    @Test
+    void selectedDefenderSummaryDoesNotInventAreaZeroForUnreachableOrder() {
+        AssaultDefenseSnapshot.SquadDirective directive =
+                new AssaultDefenseSnapshot.SquadDirective(9, -1,
+                        AssaultDefenseSnapshot.Role.RESERVE,
+                        AssaultDefenseSnapshot.Reason.NO_REACHABLE_AREA,
+                        null, -1, -1);
+
+        assertEquals("Defense area —   UNASSIGNED   Role RESERVE"
+                        + "   Target —   Reason NO_REACHABLE_AREA",
+                SquadPlanDebugPanel.assaultDefenseOrderSummary(directive));
     }
 
     @Test
