@@ -4,12 +4,18 @@ Status: ACTIVE
 
 Written: 2026-08-25
 
+Updated: 2026-08-25 — clarified optional manifest discovery through the game resource API.
+
 ## Provider entry point
 
 An enabled provider opts into Starsector Marines content discovery by shipping
 this exact path inside its own mod:
 
 `data/marines/starsector-marines.catalog.json`
+
+Discovery is performed through Starsector's provider-scoped resource API. An
+enabled mod without this file contributes nothing; direct filesystem access is
+not part of the provider contract.
 
 The manifest is a small index, not a content catalog. Paths are relative to the
 provider mod and explicitly ordered:
