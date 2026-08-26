@@ -6,7 +6,7 @@ Status: IN PROGRESS
 
 Written: 2026-08-22
 
-Updated: 2026-08-25 — player primary and armor doctrine, billet, and marine persistence now use stable ids with legacy enum input and provider-removal repair; special and broader battle handles remain.
+Updated: 2026-08-26 — handheld primary and special-equipment enum handles are removed across persistence, campaign, battle, rendering, and tests; mech and turret compatibility handles remain.
 
 Read `moddable-weapons-nouns.md` before implementing this story.
 

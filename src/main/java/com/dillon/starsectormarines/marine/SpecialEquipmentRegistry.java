@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.marine;
 
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.weapon.MountClass;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.catalog.CatalogSource;
@@ -135,12 +134,17 @@ public final class SpecialEquipmentRegistry {
         return byId.size();
     }
 
-    public static MarineSecondary compatibilityHandle(String id) {
-        if (ROCKET_LAUNCHER_ID.equals(id)) return MarineSecondary.ROCKET_LAUNCHER;
-        if (ANTI_MATERIEL_RIFLE_ID.equals(id)) return MarineSecondary.ANTI_MATERIEL_RIFLE;
-        if (SMOKE_GRENADE_ID.equals(id)) return MarineSecondary.SMOKE_GRENADE;
-        if (SATCHEL_CHARGE_ID.equals(id)) return MarineSecondary.SATCHEL_CHARGE;
-        if (FRAG_GRENADE_ID.equals(id)) return MarineSecondary.FRAG_GRENADE;
-        return null;
+    /** Translates names written by the retired {@code MarineSecondary} enum. */
+    public static String legacyId(String savedValue) {
+        if (savedValue == null || savedValue.isBlank()) return null;
+        if (savedValue.startsWith("special.")) return savedValue;
+        return switch (savedValue) {
+            case "ROCKET_LAUNCHER" -> ROCKET_LAUNCHER_ID;
+            case "ANTI_MATERIEL_RIFLE" -> ANTI_MATERIEL_RIFLE_ID;
+            case "SMOKE_GRENADE" -> SMOKE_GRENADE_ID;
+            case "SATCHEL_CHARGE" -> SATCHEL_CHARGE_ID;
+            case "FRAG_GRENADE" -> FRAG_GRENADE_ID;
+            default -> null;
+        };
     }
 }

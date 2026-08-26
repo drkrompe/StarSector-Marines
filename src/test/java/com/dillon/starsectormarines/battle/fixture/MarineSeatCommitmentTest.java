@@ -4,7 +4,8 @@ import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.command.objective.EliminateFactionObjective;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.infantry.SoldierAptitude;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.squad.CampaignSquadTag;
@@ -28,7 +29,7 @@ class MarineSeatCommitmentTest {
         MarineLoadout loadout = MarineLoadout.fromCatalog(
                 UnitRole.PLANTER,
                 new EliminateFactionObjective(Faction.MARINE, Faction.DEFENDER),
-                MarineWeapon.DMR.def(),
+                WeaponRegistry.require(WeaponRegistry.DMR_ID),
                 EquipmentGrade.MASTERWORK,
                 profile,
                 SpecialEquipmentRegistry.require(
@@ -45,11 +46,11 @@ class MarineSeatCommitmentTest {
         MarineLoadout restored = commitment.toLoadout();
 
         assertEquals("marine-17", restored.campaignSoldierId);
-        assertEquals(MarineWeapon.DMR.id, restored.primaryDef.id);
+        assertEquals(WeaponRegistry.require(WeaponRegistry.DMR_ID).id, restored.primaryDef().id);
         assertEquals(EquipmentGrade.MASTERWORK, restored.equipmentGrade);
         assertEquals(profile, restored.soldierProfile);
         assertEquals(SpecialEquipmentRegistry.SMOKE_GRENADE_ID,
-                restored.specialDef.id());
+                restored.specialDef().id());
         assertEquals(LayeredArmorFamily.BLUE_SCOUT, restored.armorFamily);
         assertEquals(63f, restored.armorPool);
         assertEquals(4.5f, restored.armorRating);
@@ -69,13 +70,13 @@ class MarineSeatCommitmentTest {
     void deploymentCommitmentsRetainOrderedValueEquality() {
         MarineSeatCommitment first = MarineSeatCommitment.capture(
                 MarineLoadout.fromCatalog(UnitRole.COMBATANT, null,
-                        MarineWeapon.PULSE_RIFLE.def(), EquipmentGrade.SERVICE,
+                        WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), EquipmentGrade.SERVICE,
                         SoldierProfile.REGULAR, null, "marine-a",
                         LayeredArmorFamily.CHARCOAL, 50f, 4f, 1f, 1f,
                         new CampaignSquadTag("squad-a", "A", true, 2, 0)));
         MarineSeatCommitment second = MarineSeatCommitment.capture(
                 MarineLoadout.fromCatalog(UnitRole.COMBATANT, null,
-                        MarineWeapon.SMG.def(), EquipmentGrade.SURPLUS,
+                        WeaponRegistry.require(WeaponRegistry.SMG_ID), EquipmentGrade.SURPLUS,
                         new SoldierProfile(SoldierAptitude.STEADY, 23), null,
                         "marine-b", LayeredArmorFamily.ARMY_GREEN,
                         40f, 3f, 0.98f, 0.9f,

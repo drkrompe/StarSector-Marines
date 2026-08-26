@@ -1,7 +1,8 @@
 package com.dillon.starsectormarines.battle.appearance;
 
 import org.junit.jupiter.api.Test;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -117,10 +118,10 @@ public class LayeredAppearanceTest {
         assertEquals(LayeredWeaponFamily.RIFLE,
                 LayeredWeaponFamily.fromPrimary((WeaponDef) null));
         assertEquals(LayeredWeaponFamily.LASER_GUN,
-                LayeredWeaponFamily.fromPrimary(MarineWeapon.PULSE_RIFLE.def()));
+                LayeredWeaponFamily.fromPrimary(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID)));
         assertEquals(LayeredWeaponFamily.SMG,
-                LayeredWeaponFamily.fromPrimary(MarineWeapon.SMG.def()));
+                LayeredWeaponFamily.fromPrimary(WeaponRegistry.require(WeaponRegistry.SMG_ID)));
         assertEquals(LayeredWeaponFamily.DMR,
-                LayeredWeaponFamily.fromPrimary(MarineWeapon.DMR.def()));
+                LayeredWeaponFamily.fromPrimary(WeaponRegistry.require(WeaponRegistry.DMR_ID)));
     }
 }

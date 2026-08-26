@@ -3,8 +3,10 @@ package com.dillon.starsectormarines.battle.decision.goap.action;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.infantry.GoapInfantryBehavior;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -51,7 +53,7 @@ public class BoundingOverwatchTest {
         for (int i = 0; i < 4; i++) {
             EntitySpec spec = new EntitySpec("m" + i, Faction.MARINE,
                     UnitType.MARINE, 10, 14 + i).squad(squadId);
-            if (i == 0) spec.primaryWeapon(MarineWeapon.SQUAD_AUTOMATIC);
+            if (i == 0) spec.primaryWeapon(WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID));
             long member = sim.spawn(spec);
             sim.world().setAttackRange(member, 30f);
             members.add(member);
@@ -152,7 +154,7 @@ public class BoundingOverwatchTest {
         assertTrue(Paths.isEmpty(f.sim.world().path(suppressor)),
                 "overwatch clears objective movement and holds");
         assertEquals(f.firstThreat, f.sim.combat().fireTargetId(suppressor));
-        assertEquals(MarineWeapon.SQUAD_AUTOMATIC,
+        assertEquals(WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID),
                 f.sim.combat().primaryWeapon(suppressor));
         assertEquals(FireStance.STANCED.ordinal(), fireStance(f.sim, suppressor));
 
@@ -232,8 +234,8 @@ public class BoundingOverwatchTest {
         BattleSimulation sim = openSim();
         long marine = sim.spawn(new EntitySpec("rocketeer", Faction.MARINE,
                 UnitType.MARINE, 10, 15));
-        sim.world().attachSecondaryWeapon(marine, MarineSecondary.ROCKET_LAUNCHER,
-                MarineSecondary.ROCKET_LAUNCHER.startingAmmo());
+        sim.world().attachSpecialEquipment(marine, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID),
+                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).startingAmmo());
         sim.spawn(MapTurret.create("turret", Faction.DEFENDER,
                 TurretKind.VULCAN, 20, 15));
 

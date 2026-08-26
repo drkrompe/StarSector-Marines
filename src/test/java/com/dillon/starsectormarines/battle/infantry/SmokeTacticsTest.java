@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.infantry;
 
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -22,8 +24,8 @@ class SmokeTacticsTest {
         long carrier = sim.spawn(new EntitySpec("smoke", Faction.MARINE,
                 UnitType.MARINE, 5, 5)
                 .squad(squadId)
-                .secondary(MarineSecondary.SMOKE_GRENADE,
-                        MarineSecondary.SMOKE_GRENADE.startingAmmo()));
+                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID),
+                        SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID).startingAmmo()));
         long threat = sim.spawn(new EntitySpec("threat", Faction.DEFENDER,
                 UnitType.MARINE, 15, 5));
         Squad squad = sim.getSquad(squadId);
@@ -35,14 +37,14 @@ class SmokeTacticsTest {
         assertTrue(SmokeTactics.holdForAdvanceSmoke(squad, threat, 20, 5, sim),
                 "the squad keeps waiting on the existing reservation");
 
-        float duration = MarineSecondary.SMOKE_GRENADE.smokeGrenadeSpec().throwDuration();
+        float duration = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID).smokeGrenadeSpec().throwDuration();
         sim.world().setSecondaryActionTimer(carrier, duration * 0.5f);
         assertTrue(InfantryUnitPrep.tickAimAndShortCircuit(carrier, sim));
         assertEquals(1, sim.world().secondaryAmmo(carrier));
         assertEquals(1, sim.smokeFields().throwsInFlight().size());
 
         sim.smokeFields().tick(
-                MarineSecondary.SMOKE_GRENADE.smokeGrenadeSpec().flightSeconds());
+                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID).smokeGrenadeSpec().flightSeconds());
         assertEquals(1, sim.smokeFields().activeFields().size());
         assertFalse(SmokeTactics.holdForAdvanceSmoke(squad, threat, 20, 5, sim),
                 "an active screen releases the squad instead of scheduling a duplicate");
@@ -55,8 +57,8 @@ class SmokeTacticsTest {
         BattleSimulation sim = openArena(30, 12);
         long carrier = sim.spawn(new EntitySpec("smoke", Faction.MARINE,
                 UnitType.MARINE, 5, 5)
-                .secondary(MarineSecondary.SMOKE_GRENADE,
-                        MarineSecondary.SMOKE_GRENADE.startingAmmo()));
+                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID),
+                        SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID).startingAmmo()));
         sim.spawn(new EntitySpec("hard-target", Faction.DEFENDER,
                 UnitType.HEAVY_MECH, 12, 5));
 

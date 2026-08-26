@@ -90,7 +90,7 @@ public class ShuttleMeansTest {
                 mission.deboardUnitType);
         assertEquals(4, mission.marineLoadout.length);
         for (int i = 0; i < mission.marineLoadout.length; i++) {
-            assertTrue(mission.marineLoadout[i].primary != null);
+            assertTrue(mission.marineLoadout[i].primaryDef() != null);
             assertTrue(mission.marineLoadout[i].armorFamily != null);
         }
     }

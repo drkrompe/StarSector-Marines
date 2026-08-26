@@ -9,9 +9,7 @@ import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.Animation
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerPose;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.sim.TurretStateService;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -484,26 +482,9 @@ public final class UnitRenderService implements RenderSystem {
         }
     }
 
-    /** Resolve legacy enum input without discarding a contributed definition's render identity. */
+    /** Resolve the catalog definition stored in the combat component. */
     private static WeaponDef primaryDefinition(Object primary) {
-        if (primary instanceof WeaponDef definition) return definition;
-        if (primary instanceof MarineWeapon weapon) return weapon.def();
-        return null;
-    }
-
-    static LayerPose infantryPose(boolean drawsLayeredWeapon, MarineSecondary secondary,
-                                  int pose,
-                                  float locomotionPhase, float actionPhase, int flags) {
-        return infantryPose(UnitLayerLayouts.get(), drawsLayeredWeapon, secondary,
-                pose, locomotionPhase, actionPhase, flags);
-    }
-
-    static LayerPose infantryPose(UnitLayerLayouts layouts, boolean drawsLayeredWeapon,
-                                  MarineSecondary secondary, int pose,
-                                  float locomotionPhase, float actionPhase, int flags) {
-        return infantryPoseDef(layouts, drawsLayeredWeapon,
-                secondary != null ? secondary.specialDef() : null, pose,
-                locomotionPhase, actionPhase, flags);
+        return primary instanceof WeaponDef definition ? definition : null;
     }
 
     static LayerPose infantryPoseDef(boolean drawsLayeredWeapon, SpecialEquipmentDef secondary,

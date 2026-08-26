@@ -9,7 +9,8 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
 import com.dillon.starsectormarines.battle.infantry.InfantryUnitPrep;
 import com.dillon.starsectormarines.battle.infantry.InfantryWeapons;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -105,7 +106,7 @@ public final class TtkHarness {
     }
 
     /** One measurable combination: who shoots what, with which kit, from how far, into how much cover. */
-    public record Scenario(MarineWeapon weapon, EquipmentGrade grade, SoldierProfile profile,
+    public record Scenario(WeaponDef weapon, EquipmentGrade grade, SoldierProfile profile,
                            Defender defender, float rangeFraction, Cover cover) {}
 
     /**

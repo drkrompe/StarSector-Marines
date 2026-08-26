@@ -1,7 +1,8 @@
 package com.dillon.starsectormarines.battle.appearance;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -270,7 +271,7 @@ public class FacingSystemTest {
     public void secondaryAimSelectsAimSheetAndForcesWeaponUp() {
         BattleSimulation sim = openArena(40, 40);
         long marine = sim.spawn(new EntitySpec("m0", Faction.MARINE, UnitType.MARINE, 5, 5)
-                .secondary(MarineSecondary.ROCKET_LAUNCHER, 0));
+                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), 0));
         long enemy = sim.spawn(new EntitySpec("d0", Faction.DEFENDER, UnitType.MARINE, 8, 5));
         sim.world().setTargetId(marine, enemy);
         sim.world().setSecondaryActionTimer(marine, 0.5f);
