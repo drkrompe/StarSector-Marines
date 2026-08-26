@@ -5,9 +5,7 @@ Status: PLANNED
 Written: 2026-08-26
 
 Read `ship-interiors-nouns.md` before implementing this story, especially the
-Fill quality section. Depends on `ship-deck-family.md`, and should follow
-`compartment-elevation.md` — a bay designed flat and raised afterwards is a
-different room, not the same room with a walkway added.
+Fill quality section and law 9. Depends on `ship-deck-family.md`.
 
 Fill mech bay and barracks compartments from parameters.
 
@@ -23,6 +21,12 @@ Start with the mech bay. It is the higher-information case — identical gantry
 bays make the parameter obvious, and it is the compartment where the current fill
 fails hardest, since nothing in it establishes the scale of the machine it exists
 to service.
+
+The bay is also where law 9 bites. The deck is flat: no catwalks, no galleries,
+no walkable elevation. Articulation and scale come from in-plane structure —
+columns, gantry frames, recessed maintenance trenches, and human-sized objects
+beside the machine — plus rendering height on walls and overhead structure,
+which is presentation only.
 
 ## Scope
 
@@ -72,6 +76,9 @@ Fill criteria, which today's rooms would fail:
 - **Density varies by function.** Work and living clusters measurably exceed
   transit density within the same compartment, so the boundary is legible from
   fixtures alone rather than from floor decals.
+- **Scale is anchored in-plane.** The mech bay places human-sized fixtures
+  adjacent to its gantries, and its structure subdivides the floor. No fixture,
+  tile, or flag implies a walkable surface above the deck.
 - **Circulation survives the fill.** Every entry reaches every fixture group
   along authored lanes, and no fixture encroaches on a lane.
 - A deterministic seed sweep produces no room whose fixtures block its own

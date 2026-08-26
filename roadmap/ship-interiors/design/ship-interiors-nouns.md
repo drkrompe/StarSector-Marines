@@ -4,8 +4,8 @@ Status: ACTIVE — the model is authored; no generator, facility, or adoption sl
 
 Written: 2026-08-26
 
-Updated: 2026-08-26 — defined exclusive fixture task points and physically
-navigated ambient work as the execution contract for inhabited rooms.
+Updated: 2026-08-26 — added exclusive, physically navigated fixture task points
+while retaining the fill-quality, in-plane articulation, and flat-plane laws.
 
 Ship interiors is the model for navigable shipboard space: the decks a mercenary
 company lives and works on, the facilities it operates and grows, and the hostile
@@ -86,10 +86,6 @@ authored content.
   entries to its fixture groups. It is a placement obligation: a fill may not
   encroach on it, and it is why a room reads as somewhere people move through
   rather than an obstacle field.
-- A **level** is a discrete elevation within one deck — the floor, and any
-  raised catwalk, mezzanine, or gallery above it. Levels do not overlap: a cell
-  belongs to exactly one level, and a raised gallery surrounds an open well
-  rather than roofing it.
 - A **breach point** is where boarders enter a deck: an airlock, a docking
   collar, or a cut hull section. It sets the origin of the longitudinal assault
   gradient and is a generation fact, not a spawn coordinate discovered later.
@@ -191,38 +187,57 @@ Density varies on purpose. Work areas are dense and cluttered; transit is clear
 and legible; the boundary between them is visible from the fixtures alone,
 without a floor decal explaining it.
 
-## Elevation
+Because the deck is flat, articulation and scale are entirely a fixture and art
+problem. The techniques that carry that load in-plane:
 
-A compartment may have more than one **level**. This is the model's answer to
-unarticulated floor as much as it is a visual one: a mech bay with a catwalk
-gallery around an open gantry well uses its footprint twice, gives the space a
-scale anchor at mech-torso height, and creates firing positions that overlook the
-floor. Flat is the wrong default for the largest compartments a ship has.
+- **Subdivide with real structure.** Support columns, gantry frames, equipment
+  rows, and low railings break a large rectangle into functional bays and carry
+  genuine cover and blocking values rather than only appearance.
+- **Recess rather than raise.** A maintenance trench under a gantry reads as
+  depth, gives a mech's torso a reason to sit at eye level, and is an ordinary
+  non-walkable or cover cell — the flat-plane-safe half of verticality.
+- **Anchor scale with human-sized objects.** A twelve-metre machine reads as
+  twelve metres when tool carts, service stairs, ladders, and working crew sit
+  beside it. Scale is communicated by neighbours, not by elevation.
+- **Let relief do the looking-tall.** Rendering height on walls, frames, and
+  overhead structure is exactly the presentation-only signal for this, and it
+  cannot leak into play.
 
-Levels are constrained to keep this affordable. They do not overlap, so one cell
-still belongs to exactly one level and the per-cell topology, fog of war, and
-occupancy models are untouched in shape. A raised gallery rings an open well; it
-never roofs the floor beneath it. Movement between levels happens only at
-authored transitions — stairs, ladders, lifts — which are ordinary chokepoints in
-the deck graph. Line of sight between levels is a stated rule of the level pair,
-not an emergent consequence of geometry.
+## The deck is flat
 
-This is distinct from stacking a ship's decks, which law 1 keeps out. Within-deck
-elevation changes what one map contains; deck stacking would change what a map
-*is*, and it is the latter that drags in a second grid, cross-level shadowcasting,
-and vertical pathfinding.
+**The simulation takes place on a flat plane.** Walls and obstacles have
+rendering height, not actual height. The engine does not support walkable
+separate height surfaces, and a ship deck does not get to invent them.
 
-Note that existing relief is presentation only — a shading signal that explicitly
-does not alter navigation, collision, or targeting. A level is a tactical fact
-and is not that. The two must not be conflated: relief makes a flat floor look
-raised, and a level makes a raised floor be raised.
+This is recorded here because a mech bay is exactly the room that tempts someone
+to try. Catwalk galleries, mezzanine control rooms, and gantry platforms are the
+genre's defining image of the space, and a non-overlapping scheme of levels — one
+cell per position, a gallery ringing an open well — looks affordable enough to
+sneak in.
+
+It is not, because faking height leaks into everything that assumes the plane:
+
+- Line of sight is a cell-pair question asked across the decision layer by
+  targeting, zone control, and tactical scoring, with no place to say "but not
+  from up there." Every one of those callers would silently be wrong.
+- Adjacency is planar, so walkability, occupancy, contact, separation, and
+  radius queries would all treat a raised cell as neighbouring the floor beside
+  it.
+- Projectiles already carry a Z, but it tests the round against **doodad
+  silhouettes** — a rendering-height collision proxy. It is not a world
+  elevation, and extending it to carry units would be the fake becoming load
+  bearing.
+
+So the vertical impression of a bay is a **presentation** problem, solved with
+relief shading and art, which is what relief is for and which cannot leak because
+it is presentation-only by charter. The tactical articulation of a bay is a
+**fixture** problem, solved in-plane. Neither is an elevation.
 
 ## Standing laws
 
 1. **A deck is the map unit.** One battle occupies one deck. Movement between
-   *decks* is mission structure, not map topology, and does not enter the tile
-   grid, line of sight, or fog of war. Elevation *within* a deck is a different
-   question and is permitted under law 9.
+   decks is mission structure, not map topology, and does not enter the tile
+   grid, line of sight, or fog of war.
 2. **The axis is authored.** Spine, frame numbering, zones, and bulkhead order
    are generation facts consumers query. No consumer re-derives them from cell
    coordinates.
@@ -235,10 +250,9 @@ raised, and a level makes a raised floor be raised.
 7. **Ambient routes are derived**, never authored per deck.
 8. **One pipeline.** Home and prize decks differ by parameter, never by a second
    generator.
-9. **Levels do not overlap.** A cell belongs to exactly one level; a gallery
-   rings an open well and never roofs it. Level changes happen only at authored
-   transitions, and cross-level sight is a stated rule rather than an emergent
-   one.
+9. **The deck is flat.** No walkable elevation, no levels, no vertical
+   traversal. Height is a rendering property of walls and obstacles and never a
+   tactical fact.
 10. **Floor area is used or argued for.** Every part of a compartment is a
     fixture group, a circulation lane, or deliberately clear for a stated
     tactical reason. Leftover emptiness is a defect.

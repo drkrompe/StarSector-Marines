@@ -3,13 +3,10 @@ package com.dillon.starsectormarines.battle.combat;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.marine.SpecialActivation;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
-import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
@@ -46,13 +43,9 @@ public class ShotEvent {
     public final long shooterId;
     /** Non-null when the shooter is a turret — drives projectile sprite + fire sound. */
     public final TurretKind turretKind;
-    /** Non-null when a marine fired their primary — drives tracer color + per-weapon fire sound. Mutually exclusive with {@link #turretKind} and {@link #marineSecondary}. */
-    public final MarineWeapon marineWeapon;
-    /** Authoritative primary definition, including contributed weapons without an enum handle. */
+    /** Authoritative marine-primary definition. */
     public final WeaponDef primaryWeaponDef;
-    /** Non-null when a marine fired their secondary (rocket, etc.) — drives projectile sprite + impact recipe. Mutually exclusive with {@link #turretKind} and {@link #marineWeapon}. */
-    public final MarineSecondary marineSecondary;
-    /** Authoritative special-equipment source, including contributed items. */
+    /** Authoritative special-equipment source. */
     public final SpecialEquipmentDef specialEquipmentDef;
     /** Non-null when a mech fired one of its chassis weapons (chaingun, SRM pod, LRM). Drives projectile sprite + fire/impact sound + impact profile. Mutually exclusive with all the other source tags. */
     public final MechWeapon mechWeapon;
@@ -101,119 +94,77 @@ public class ShotEvent {
 
     public ShotEvent(float fromX, float fromY, float toX, float toY,
                      boolean hit, Faction shooterFaction, float lifetime,
-                     TurretKind turretKind, MarineWeapon marineWeapon, MarineSecondary marineSecondary) {
+                     TurretKind turretKind, WeaponDef primaryWeaponDef,
+                     SpecialEquipmentDef specialEquipmentDef) {
         this(fromX, fromY, toX, toY, hit, shooterFaction, lifetime,
-                turretKind, marineWeapon, marineSecondary, null, 1.0f);
+                turretKind, primaryWeaponDef, specialEquipmentDef, null, 1.0f);
     }
 
     public ShotEvent(long shooterId, float fromX, float fromY, float toX, float toY,
                      boolean hit, Faction shooterFaction, float lifetime,
-                     TurretKind turretKind, MarineWeapon marineWeapon,
-                     MarineSecondary marineSecondary) {
+                     TurretKind turretKind, WeaponDef primaryWeaponDef,
+                     SpecialEquipmentDef specialEquipmentDef) {
         this(fromX, fromY, 0f, toX, toY, 0f, hit, shooterFaction, lifetime,
-                turretKind, marineWeapon, marineSecondary, null, 1f,
+                turretKind, primaryWeaponDef, specialEquipmentDef, null, 1f,
                 false, null, shooterId);
     }
 
     public ShotEvent(float fromX, float fromY, float toX, float toY,
                      boolean hit, Faction shooterFaction, float lifetime,
-                     TurretKind turretKind, MarineWeapon marineWeapon,
-                     MarineSecondary marineSecondary, MechWeapon mechWeapon) {
+                     TurretKind turretKind, WeaponDef primaryWeaponDef,
+                     SpecialEquipmentDef specialEquipmentDef, MechWeapon mechWeapon) {
         this(fromX, fromY, toX, toY, hit, shooterFaction, lifetime,
-                turretKind, marineWeapon, marineSecondary, mechWeapon, 1.0f);
+                turretKind, primaryWeaponDef, specialEquipmentDef, mechWeapon, 1.0f);
     }
 
     public ShotEvent(float fromX, float fromY, float toX, float toY,
                      boolean hit, Faction shooterFaction, float lifetime,
-                     TurretKind turretKind, MarineWeapon marineWeapon,
-                     MarineSecondary marineSecondary, MechWeapon mechWeapon,
+                     TurretKind turretKind, WeaponDef primaryWeaponDef,
+                     SpecialEquipmentDef specialEquipmentDef, MechWeapon mechWeapon,
                      float moraleImpact) {
         this(fromX, fromY, toX, toY, hit, shooterFaction, lifetime,
-                turretKind, marineWeapon, marineSecondary, mechWeapon, moraleImpact, false);
+                turretKind, primaryWeaponDef, specialEquipmentDef, mechWeapon, moraleImpact, false);
     }
 
     public ShotEvent(long shooterId, float fromX, float fromY, float toX, float toY,
                      boolean hit, Faction shooterFaction, float lifetime,
-                     TurretKind turretKind, MarineWeapon marineWeapon,
-                     MarineSecondary marineSecondary, MechWeapon mechWeapon,
+                     TurretKind turretKind, WeaponDef primaryWeaponDef,
+                     SpecialEquipmentDef specialEquipmentDef, MechWeapon mechWeapon,
                      float moraleImpact) {
         this(fromX, fromY, 0f, toX, toY, 0f, hit, shooterFaction, lifetime,
-                turretKind, marineWeapon, marineSecondary, mechWeapon,
+                turretKind, primaryWeaponDef, specialEquipmentDef, mechWeapon,
                 moraleImpact, false, null, shooterId);
     }
 
     public ShotEvent(float fromX, float fromY, float toX, float toY,
                      boolean hit, Faction shooterFaction, float lifetime,
-                     TurretKind turretKind, MarineWeapon marineWeapon,
-                     MarineSecondary marineSecondary, MechWeapon mechWeapon,
+                     TurretKind turretKind, WeaponDef primaryWeaponDef,
+                     SpecialEquipmentDef specialEquipmentDef, MechWeapon mechWeapon,
                      float moraleImpact, boolean struckUnit) {
         this(fromX, fromY, 0f, toX, toY, 0f, hit, shooterFaction, lifetime,
-                turretKind, marineWeapon, marineSecondary, mechWeapon,
+                turretKind, primaryWeaponDef, specialEquipmentDef, mechWeapon,
                 moraleImpact, struckUnit, null);
     }
 
     public ShotEvent(float fromX, float fromY, float fromZ,
                      float toX, float toY, float toZ,
                      boolean hit, Faction shooterFaction, float lifetime,
-                     TurretKind turretKind, MarineWeapon marineWeapon,
-                     MarineSecondary marineSecondary, MechWeapon mechWeapon,
+                     TurretKind turretKind, WeaponDef primaryWeaponDef,
+                     SpecialEquipmentDef specialEquipmentDef, MechWeapon mechWeapon,
                      float moraleImpact, boolean struckUnit,
                      BallisticResolver.StopKind stopKind) {
         this(fromX, fromY, fromZ, toX, toY, toZ, hit, shooterFaction, lifetime,
-                turretKind, marineWeapon, marineSecondary, mechWeapon,
+                turretKind, primaryWeaponDef, specialEquipmentDef, mechWeapon,
                 moraleImpact, struckUnit, stopKind, 0L);
     }
 
     public ShotEvent(float fromX, float fromY, float fromZ,
                      float toX, float toY, float toZ,
                      boolean hit, Faction shooterFaction, float lifetime,
-                     TurretKind turretKind, MarineWeapon marineWeapon,
-                     MarineSecondary marineSecondary, MechWeapon mechWeapon,
+                     TurretKind turretKind, WeaponDef primaryWeaponDef,
+                     SpecialEquipmentDef specialEquipmentDef, MechWeapon mechWeapon,
                      float moraleImpact, boolean struckUnit,
                      BallisticResolver.StopKind stopKind, long shooterId) {
-        this(fromX, fromY, fromZ, toX, toY, toZ, hit, shooterFaction, lifetime,
-                turretKind, marineWeapon,
-                marineWeapon != null ? marineWeapon.def() : null,
-                marineSecondary != null ? marineSecondary.specialDef() : null,
-                mechWeapon, moraleImpact, struckUnit, stopKind, shooterId);
-    }
-
-    /** Creates a primary shot from an arbitrary catalog definition. */
-    public static ShotEvent primary(float fromX, float fromY, float fromZ,
-                                    float toX, float toY, float toZ,
-                                    boolean hit, Faction shooterFaction, float lifetime,
-                                    WeaponDef weapon, float moraleImpact, boolean struckUnit,
-                                    BallisticResolver.StopKind stopKind, long shooterId) {
-        MarineWeapon compatibility;
-        try {
-            compatibility = weapon != null ? MarineWeapon.fromId(weapon.id) : null;
-        } catch (IllegalArgumentException ignored) {
-            compatibility = null;
-        }
-        return new ShotEvent(fromX, fromY, fromZ, toX, toY, toZ, hit,
-                shooterFaction, lifetime, null, compatibility, weapon, null, null,
-                moraleImpact, struckUnit, stopKind, shooterId);
-    }
-
-    /** Creates a shot from arbitrary data-authored special equipment. */
-    public static ShotEvent special(float fromX, float fromY, float fromZ,
-                                    float toX, float toY, float toZ,
-                                    boolean hit, Faction shooterFaction, float lifetime,
-                                    SpecialEquipmentDef equipment, float moraleImpact,
-                                    boolean struckUnit, BallisticResolver.StopKind stopKind,
-                                    long shooterId) {
-        return new ShotEvent(fromX, fromY, fromZ, toX, toY, toZ, hit,
-                shooterFaction, lifetime, null, null, null, equipment, null,
-                moraleImpact, struckUnit, stopKind, shooterId);
-    }
-
-    private ShotEvent(float fromX, float fromY, float fromZ,
-                      float toX, float toY, float toZ,
-                      boolean hit, Faction shooterFaction, float lifetime,
-                      TurretKind turretKind, MarineWeapon marineWeapon,
-                      WeaponDef primaryWeaponDef, SpecialEquipmentDef specialEquipmentDef,
-                      MechWeapon mechWeapon, float moraleImpact, boolean struckUnit,
-                      BallisticResolver.StopKind stopKind, long shooterId) {
         this.fromX = fromX;
         this.fromY = fromY;
         this.fromZ = fromZ;
@@ -226,15 +177,35 @@ public class ShotEvent {
         this.lifetime = lifetime;
         this.lifetimeMax = lifetime;
         this.turretKind = turretKind;
-        this.marineWeapon = marineWeapon;
         this.primaryWeaponDef = primaryWeaponDef;
         this.specialEquipmentDef = specialEquipmentDef;
-        this.marineSecondary = specialEquipmentDef != null
-                ? SpecialEquipmentRegistry.compatibilityHandle(specialEquipmentDef.id()) : null;
         this.mechWeapon = mechWeapon;
         this.moraleImpact = moraleImpact;
         this.struckUnit = struckUnit;
         this.stopKind = stopKind;
+    }
+
+    /** Creates a primary shot from an arbitrary catalog definition. */
+    public static ShotEvent primary(float fromX, float fromY, float fromZ,
+                                    float toX, float toY, float toZ,
+                                    boolean hit, Faction shooterFaction, float lifetime,
+                                    WeaponDef weapon, float moraleImpact, boolean struckUnit,
+                                    BallisticResolver.StopKind stopKind, long shooterId) {
+        return new ShotEvent(fromX, fromY, fromZ, toX, toY, toZ, hit,
+                shooterFaction, lifetime, null, weapon, null, null,
+                moraleImpact, struckUnit, stopKind, shooterId);
+    }
+
+    /** Creates a shot from arbitrary data-authored special equipment. */
+    public static ShotEvent special(float fromX, float fromY, float fromZ,
+                                    float toX, float toY, float toZ,
+                                    boolean hit, Faction shooterFaction, float lifetime,
+                                    SpecialEquipmentDef equipment, float moraleImpact,
+                                    boolean struckUnit, BallisticResolver.StopKind stopKind,
+                                    long shooterId) {
+        return new ShotEvent(fromX, fromY, fromZ, toX, toY, toZ, hit,
+                shooterFaction, lifetime, null, null, equipment, null,
+                moraleImpact, struckUnit, stopKind, shooterId);
     }
 
     /** Source link safe to expose to hearing; indirect launches stay anonymous. */

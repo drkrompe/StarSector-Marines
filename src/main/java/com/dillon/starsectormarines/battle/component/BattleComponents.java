@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.component;
 
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import com.dillon.starsectormarines.engine.ecs.FieldKind;
@@ -160,7 +161,7 @@ public final class BattleComponents {
     public static final int COMBAT_BURST_TARGET_ID = 7;
     /** {@link #COMBAT} field 8: per-unit primary-weapon cooldown reset value, sim-seconds — the value {@link #COMBAT_COOLDOWN_TIMER} is reset to on a fire (FLOAT). Seed-only stat like attack damage/range/accuracy. */
     public static final int COMBAT_ATTACK_COOLDOWN = 8;
-    /** {@link #COMBAT} field 9: the {@link com.dillon.starsectormarines.battle.infantry.MarineWeapon} primary-weapon flyweight (OBJECT); {@code null} = no per-weapon profile (militia/aliens/turrets fall back to the baked attack stats). Seed-only stat like the attack stats. */
+    /** {@link #COMBAT} field 9: the {@link WeaponDef} primary-weapon definition (OBJECT); {@code null} = no per-weapon profile (militia/aliens/turrets fall back to the baked attack stats). Seed-only stat like the attack stats. */
     public static final int COMBAT_PRIMARY_WEAPON = 9;
     /** {@link #COMBAT} field 10: consume-once fire-intent target entity id (LONG), {@code 0L} = no intent = hold fire. Written by a behavior that decided to shoot (e.g. {@code EngagePosture}) instead of firing inline; cleared every tick by {@code battle.combat.FiringSystem} whether or not the shot actually fired, so a stale intent can never re-fire. Distinct from {@link #COMBAT_TARGET_ID} ("who I'm engaging," which can stay live while fire is held). */
     public static final int COMBAT_FIRE_TARGET_ID = 10;
@@ -407,7 +408,7 @@ public final class BattleComponents {
     /**
      * Live-combat state — {@code float attackDamage, attackRange, accuracy,
      * cooldownTimer; long targetId; int burstRemaining; float burstTimer; long
-     * burstTargetId; float attackCooldown; MarineWeapon primaryWeapon}. The
+     * burstTargetId; float attackCooldown; WeaponDef primaryWeaponDef}. The
      * primary-weapon capability. The {@code primaryWeapon} flyweight is
      * <em>nullable</em> — militia / aliens / turrets carry no per-weapon profile and
      * fall back to the baked attack stats; a marine's deboard loadout seeds it.

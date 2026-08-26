@@ -1,8 +1,7 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,89 +25,97 @@ public final class SquadEquipmentDoctrines {
             weaponDoctrine(FIELD_SECURITY_WEAPONS, "Frontier Security Equipment",
                     "Reliable field rifles with one trained pulse-rifle lead in each team.",
                     team(
-                            weapon("Team Leader", MarineWeapon.PULSE_RIFLE),
-                            weapon("Security Rifleman", MarineWeapon.FIELD_RIFLE),
-                            weapon("Security Rifleman", MarineWeapon.FIELD_RIFLE),
-                            weapon("Security Rifleman", MarineWeapon.FIELD_RIFLE)),
+                            weapon("Team Leader", WeaponRegistry.PULSE_RIFLE_ID),
+                            weapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
+                            weapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
+                            weapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID)),
                     team(
-                            weapon("Team Leader", MarineWeapon.PULSE_RIFLE),
-                            weapon("Security Rifleman", MarineWeapon.FIELD_RIFLE),
-                            weapon("Security Rifleman", MarineWeapon.FIELD_RIFLE),
-                            weapon("Security Rifleman", MarineWeapon.FIELD_RIFLE)),
+                            weapon("Team Leader", WeaponRegistry.PULSE_RIFLE_ID),
+                            weapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
+                            weapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
+                            weapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID)),
                     team(
-                            weapon("Team Leader", MarineWeapon.PULSE_RIFLE),
-                            weapon("Security Rifleman", MarineWeapon.FIELD_RIFLE),
-                            weapon("Security Rifleman", MarineWeapon.FIELD_RIFLE),
-                            weapon("Security Rifleman", MarineWeapon.FIELD_RIFLE))),
+                            weapon("Team Leader", WeaponRegistry.PULSE_RIFLE_ID),
+                            weapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
+                            weapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
+                            weapon("Security Rifleman", WeaponRegistry.STARTER_PRIMARY_ID))),
             weaponDoctrine(LUDDIC_PATH_ASSAULT_WEAPONS, "Luddic Path Assault Equipment",
                     "Close-to-medium-range assault issue with demolition and screening gear.",
                     team(
-                            weapon("Assault Leader", MarineWeapon.PULSE_RIFLE),
-                            weapon("Breacher", MarineWeapon.SMG, MarineSecondary.SATCHEL_CHARGE),
-                            weapon("Rifleman", MarineWeapon.FIELD_RIFLE),
-                            weapon("Rifleman", MarineWeapon.FIELD_RIFLE)),
+                            weapon("Assault Leader", WeaponRegistry.PULSE_RIFLE_ID),
+                            weapon("Breacher", WeaponRegistry.SMG_ID,
+                                    SpecialEquipmentRegistry.SATCHEL_CHARGE_ID),
+                            weapon("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
+                            weapon("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID)),
                     team(
-                            weapon("Assault Leader", MarineWeapon.PULSE_RIFLE),
-                            weapon("Grenadier", MarineWeapon.SMG, MarineSecondary.SMOKE_GRENADE),
-                            weapon("Rifleman", MarineWeapon.FIELD_RIFLE),
-                            weapon("Rifleman", MarineWeapon.FIELD_RIFLE)),
+                            weapon("Assault Leader", WeaponRegistry.PULSE_RIFLE_ID),
+                            weapon("Grenadier", WeaponRegistry.SMG_ID,
+                                    SpecialEquipmentRegistry.SMOKE_GRENADE_ID),
+                            weapon("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
+                            weapon("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID)),
                     team(
-                            weapon("Assault Leader", MarineWeapon.PULSE_RIFLE),
-                            weapon("Anti-Armor", MarineWeapon.SMG, MarineSecondary.ROCKET_LAUNCHER),
-                            weapon("Rifleman", MarineWeapon.FIELD_RIFLE),
-                            weapon("Marksman", MarineWeapon.DMR))),
+                            weapon("Assault Leader", WeaponRegistry.PULSE_RIFLE_ID),
+                            weapon("Anti-Armor", WeaponRegistry.SMG_ID,
+                                    SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID),
+                            weapon("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID),
+                            weapon("Marksman", WeaponRegistry.DMR_ID))),
             weaponDoctrine(LINE_INFANTRY_WEAPONS, "Fleet Line Equipment",
                     "Pulse-rifle line issue with organic marksmen and smoke cover.",
                     team(
-                            weapon("Team Leader", MarineWeapon.PULSE_RIFLE),
-                            weapon("Rifleman", MarineWeapon.PULSE_RIFLE),
-                            weapon("Rifleman", MarineWeapon.PULSE_RIFLE),
-                            weapon("Marksman", MarineWeapon.DMR)),
+                            weapon("Team Leader", WeaponRegistry.PULSE_RIFLE_ID),
+                            weapon("Rifleman", WeaponRegistry.PULSE_RIFLE_ID),
+                            weapon("Rifleman", WeaponRegistry.PULSE_RIFLE_ID),
+                            weapon("Marksman", WeaponRegistry.DMR_ID)),
                     team(
-                            weapon("Team Leader", MarineWeapon.PULSE_RIFLE),
-                            weapon("Rifleman", MarineWeapon.PULSE_RIFLE),
-                            weapon("Grenadier", MarineWeapon.PULSE_RIFLE, MarineSecondary.SMOKE_GRENADE),
-                            weapon("Marksman", MarineWeapon.DMR)),
+                            weapon("Team Leader", WeaponRegistry.PULSE_RIFLE_ID),
+                            weapon("Rifleman", WeaponRegistry.PULSE_RIFLE_ID),
+                            weapon("Grenadier", WeaponRegistry.PULSE_RIFLE_ID,
+                                    SpecialEquipmentRegistry.SMOKE_GRENADE_ID),
+                            weapon("Marksman", WeaponRegistry.DMR_ID)),
                     team(
-                            weapon("Team Leader", MarineWeapon.PULSE_RIFLE),
-                            weapon("Rifleman", MarineWeapon.PULSE_RIFLE),
-                            weapon("Grenadier", MarineWeapon.PULSE_RIFLE, MarineSecondary.SMOKE_GRENADE),
-                            weapon("Marksman", MarineWeapon.DMR))),
+                            weapon("Team Leader", WeaponRegistry.PULSE_RIFLE_ID),
+                            weapon("Rifleman", WeaponRegistry.PULSE_RIFLE_ID),
+                            weapon("Grenadier", WeaponRegistry.PULSE_RIFLE_ID,
+                                    SpecialEquipmentRegistry.SMOKE_GRENADE_ID),
+                            weapon("Marksman", WeaponRegistry.DMR_ID))),
             weaponDoctrine(ASSAULT_WEAPONS, "Fleet Assault Equipment",
                     "Close-range assault issue with one fragmentation-grenade carrier for breaking soft clusters.",
                     team(
-                            weapon("Assault Leader", MarineWeapon.PULSE_RIFLE),
-                            weapon("Breacher", MarineWeapon.SMG),
-                            weapon("Rifleman", MarineWeapon.PULSE_RIFLE),
-                            weapon("Rifleman", MarineWeapon.PULSE_RIFLE)),
+                            weapon("Assault Leader", WeaponRegistry.PULSE_RIFLE_ID),
+                            weapon("Breacher", WeaponRegistry.SMG_ID),
+                            weapon("Rifleman", WeaponRegistry.PULSE_RIFLE_ID),
+                            weapon("Rifleman", WeaponRegistry.PULSE_RIFLE_ID)),
                     team(
-                            weapon("Assault Leader", MarineWeapon.PULSE_RIFLE),
-                            weapon("Grenadier", MarineWeapon.SMG, MarineSecondary.FRAG_GRENADE),
-                            weapon("Rifleman", MarineWeapon.PULSE_RIFLE),
-                            weapon("Rifleman", MarineWeapon.PULSE_RIFLE)),
+                            weapon("Assault Leader", WeaponRegistry.PULSE_RIFLE_ID),
+                            weapon("Grenadier", WeaponRegistry.SMG_ID,
+                                    SpecialEquipmentRegistry.FRAG_GRENADE_ID),
+                            weapon("Rifleman", WeaponRegistry.PULSE_RIFLE_ID),
+                            weapon("Rifleman", WeaponRegistry.PULSE_RIFLE_ID)),
                     team(
-                            weapon("Assault Leader", MarineWeapon.PULSE_RIFLE),
-                            weapon("Breacher", MarineWeapon.SMG),
-                            weapon("Rifleman", MarineWeapon.PULSE_RIFLE),
-                            weapon("Marksman", MarineWeapon.DMR))),
+                            weapon("Assault Leader", WeaponRegistry.PULSE_RIFLE_ID),
+                            weapon("Breacher", WeaponRegistry.SMG_ID),
+                            weapon("Rifleman", WeaponRegistry.PULSE_RIFLE_ID),
+                            weapon("Marksman", WeaponRegistry.DMR_ID))),
             weaponDoctrine(FIRE_SUPPORT_WEAPONS, "Fleet Fire Support Equipment",
                     "Marksmen and automatic weapons backed by scarce heavy issue.",
                     team(
-                            weapon("Team Leader", MarineWeapon.PULSE_RIFLE),
-                            weapon("Automatic Rifleman", MarineWeapon.SQUAD_AUTOMATIC),
-                            weapon("Marksman", MarineWeapon.DMR),
-                            weapon("Anti-Armor", MarineWeapon.PULSE_RIFLE, MarineSecondary.ROCKET_LAUNCHER)),
+                            weapon("Team Leader", WeaponRegistry.PULSE_RIFLE_ID),
+                            weapon("Automatic Rifleman", WeaponRegistry.SQUAD_AUTOMATIC_ID),
+                            weapon("Marksman", WeaponRegistry.DMR_ID),
+                            weapon("Anti-Armor", WeaponRegistry.PULSE_RIFLE_ID,
+                                    SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID)),
                     team(
-                            weapon("Team Leader", MarineWeapon.PULSE_RIFLE),
-                            weapon("Automatic Rifleman", MarineWeapon.SQUAD_AUTOMATIC),
-                            weapon("Marksman", MarineWeapon.DMR),
-                            weapon("Heavy Marksman", MarineWeapon.PULSE_RIFLE,
-                                    MarineSecondary.ANTI_MATERIEL_RIFLE)),
+                            weapon("Team Leader", WeaponRegistry.PULSE_RIFLE_ID),
+                            weapon("Automatic Rifleman", WeaponRegistry.SQUAD_AUTOMATIC_ID),
+                            weapon("Marksman", WeaponRegistry.DMR_ID),
+                            weapon("Heavy Marksman", WeaponRegistry.PULSE_RIFLE_ID,
+                                    SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID)),
                     team(
-                            weapon("Team Leader", MarineWeapon.PULSE_RIFLE),
-                            weapon("Automatic Rifleman", MarineWeapon.SQUAD_AUTOMATIC),
-                            weapon("Marksman", MarineWeapon.DMR),
-                            weapon("Anti-Armor", MarineWeapon.PULSE_RIFLE, MarineSecondary.ROCKET_LAUNCHER))));
+                            weapon("Team Leader", WeaponRegistry.PULSE_RIFLE_ID),
+                            weapon("Automatic Rifleman", WeaponRegistry.SQUAD_AUTOMATIC_ID),
+                            weapon("Marksman", WeaponRegistry.DMR_ID),
+                            weapon("Anti-Armor", WeaponRegistry.PULSE_RIFLE_ID,
+                                    SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID))));
 
     private static final List<SquadArmorDoctrine> ARMOR = List.of(
             armorDoctrine(FIELD_FATIGUES_ARMOR, "Frontier Patchwork Protection",
@@ -184,12 +191,13 @@ public final class SquadEquipmentDoctrines {
         return List.of(issues);
     }
 
-    private static SquadWeaponIssue weapon(String role, MarineWeapon weapon) {
-        return weapon(role, weapon, null);
+    private static SquadWeaponIssue weapon(String role, String weaponId) {
+        return weapon(role, weaponId, null);
     }
 
     private static SquadWeaponIssue weapon(
-            String role, MarineWeapon weapon, MarineSecondary special) {
-        return new SquadWeaponIssue(role, weapon, EquipmentGrade.SERVICE, special);
+            String role, String weaponId, String specialEquipmentId) {
+        return new SquadWeaponIssue(role, weaponId, EquipmentGrade.SERVICE,
+                specialEquipmentId);
     }
 }

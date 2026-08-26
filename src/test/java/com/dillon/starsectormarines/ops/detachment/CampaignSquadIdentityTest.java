@@ -23,15 +23,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class CampaignSquadIdentityTest {
 
     @Test
-    void everyLiftCarriesAWholeNumberOfFireTeams() {
+    void fleetLiftCarriesWholeFireTeamsAndAeroshuttleCarriesHalfSquad() {
         for (ShuttleType type : ShuttleType.values()) {
-            assertEquals(0, type.capacity % Squad.FIRE_TEAM_SIZE,
-                    type + " must not carry a partial fire team");
-            assertEquals(type.teams * Squad.FIRE_TEAM_SIZE, type.capacity, type.toString());
+            if (type != ShuttleType.AEROSHUTTLE) {
+                assertEquals(0, type.capacity % Squad.FIRE_TEAM_SIZE,
+                        type + " must not carry a partial fire team");
+                assertEquals(type.teams * Squad.FIRE_TEAM_SIZE,
+                        type.capacity, type.toString());
+            }
             assertTrue(type.teams >= 1, type + " must lift at least one team");
         }
         assertEquals(MarineSquad.CAPACITY, ShuttleType.VALKYRIE.capacity,
                 "the dedicated assault transport is the one that lands a squad intact");
+        assertEquals(MarineSquad.CAPACITY / 2, ShuttleType.AEROSHUTTLE.capacity,
+                "the Aeroshuttle lands one half-squad");
     }
 
     @Test

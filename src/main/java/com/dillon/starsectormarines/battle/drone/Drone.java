@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.AirHandling;
@@ -210,7 +210,7 @@ public final class Drone {
         body.teleport(cellX + 0.5f, cellY + 0.5f, 0f);
         return new EntitySpec(id, faction, UnitType.DRONE, cellX, cellY)
                 .health(DRONE_MAX_HP)
-                .primaryWeapon(MarineWeapon.DRONE_PULSE)   // sets range / damage / accuracy / cooldown
+                .primaryWeapon(WeaponRegistry.require(WeaponRegistry.DRONE_PULSE_ID))
                 .visionRange(44f)
                 .moveSpeed(0f)
                 .airLosRadius(DRONE_AIR_LOS_RADIUS)

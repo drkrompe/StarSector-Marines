@@ -3,15 +3,16 @@ package com.dillon.starsectormarines.battle.setup;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.ExperienceTier;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.SoldierAptitude;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 
 import java.util.Random;
 
@@ -30,14 +31,16 @@ public final class InfantryLoadoutRolls {
         MarineLoadout[] roster = new MarineLoadout[Math.max(0, capacity)];
         int rocketSlot = capacity > 1 ? capacity - 1 : -1;
         for (int i = 0; i < roster.length; i++) {
-            MarineWeapon primary = playerPrimary(rng);
+            WeaponDef primary = playerPrimary(rng);
             EquipmentGrade grade = playerEquipmentGrade(rng);
             SoldierProfile profile = playerProfile(rng);
-            MarineSecondary secondary = i == rocketSlot
-                    ? MarineSecondary.ROCKET_LAUNCHER : null;
+            SpecialEquipmentDef secondary = i == rocketSlot
+                    ? SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID)
+                    : null;
             int ammo = secondary != null ? secondary.startingAmmo() : 0;
             roster[i] = new MarineLoadout(UnitRole.COMBATANT, null,
-                    primary, grade, profile, secondary, ammo);
+                    primary.id, grade, profile,
+                    secondary != null ? secondary.id() : null, ammo);
         }
         return roster;
     }
@@ -52,14 +55,17 @@ public final class InfantryLoadoutRolls {
         int smokeSlot = resolvedRisk != RiskLevel.LOW && type != UnitType.MILITIA
                 && capacity >= 4 ? capacity - 2 : -1;
         for (int i = 0; i < roster.length; i++) {
-            MarineSecondary special = i == amrSlot
-                    ? MarineSecondary.ANTI_MATERIEL_RIFLE
-                    : i == smokeSlot ? MarineSecondary.SMOKE_GRENADE : null;
+            SpecialEquipmentDef special = i == amrSlot
+                    ? SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID)
+                    : i == smokeSlot
+                    ? SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID)
+                    : null;
             roster[i] = new MarineLoadout(UnitRole.COMBATANT, null,
-                    defenderPrimary(type, rng),
+                    defenderPrimary(type, rng).id,
                     defenderEquipmentGrade(type, resolvedRisk, rng),
                     defenderProfile(type, resolvedRisk, rng),
-                    special, special != null ? special.startingAmmo() : 0);
+                    special != null ? special.id() : null,
+                    special != null ? special.startingAmmo() : 0);
         }
         return roster;
     }
@@ -94,11 +100,11 @@ public final class InfantryLoadoutRolls {
     }
 
     /** Weighted player primary roll: pulse workhorse, evenly split specialist slots. */
-    public static MarineWeapon playerPrimary(Random rng) {
+    public static WeaponDef playerPrimary(Random rng) {
         int r = rng.nextInt(4);
-        if (r == 0) return MarineWeapon.SMG;
-        if (r == 1) return MarineWeapon.DMR;
-        return MarineWeapon.PULSE_RIFLE;
+        if (r == 0) return WeaponRegistry.require(WeaponRegistry.SMG_ID);
+        if (r == 1) return WeaponRegistry.require(WeaponRegistry.DMR_ID);
+        return WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID);
     }
 
     public static EquipmentGrade playerEquipmentGrade(Random rng) {
@@ -114,16 +120,16 @@ public final class InfantryLoadoutRolls {
         return profileAtTier(aptitude, experience, rng);
     }
 
-    public static MarineWeapon defenderPrimary(UnitType type, Random rng) {
+    public static WeaponDef defenderPrimary(UnitType type, Random rng) {
         int r = rng.nextInt(100);
         if (type == UnitType.MILITIA) {
-            if (r < 40) return MarineWeapon.SMG;
-            if (r < 50) return MarineWeapon.DMR;
-            return MarineWeapon.PULSE_RIFLE;
+            if (r < 40) return WeaponRegistry.require(WeaponRegistry.SMG_ID);
+            if (r < 50) return WeaponRegistry.require(WeaponRegistry.DMR_ID);
+            return WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID);
         }
-        if (r < 20) return MarineWeapon.SMG;
-        if (r < 45) return MarineWeapon.DMR;
-        return MarineWeapon.PULSE_RIFLE;
+        if (r < 20) return WeaponRegistry.require(WeaponRegistry.SMG_ID);
+        if (r < 45) return WeaponRegistry.require(WeaponRegistry.DMR_ID);
+        return WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID);
     }
 
     public static EquipmentGrade defenderEquipmentGrade(UnitType type, RiskLevel risk,

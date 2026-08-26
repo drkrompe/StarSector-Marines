@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.weapon;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredWeaponFamily;
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.weapon.fx.FxSlot;
 import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxDef;
 import org.json.JSONException;
@@ -184,6 +185,34 @@ public final class WeaponDef {
     public String catalogName(int tier) {
         return designation(tier) + " " + modelName;
     }
+
+    public String designation(EquipmentGrade grade) {
+        return designation(grade != null ? grade.tier : EquipmentGrade.SERVICE.tier);
+    }
+
+    public String catalogName(EquipmentGrade grade) {
+        return catalogName(grade != null ? grade.tier : EquipmentGrade.SERVICE.tier);
+    }
+
+    // Record-style accessors keep definition consumers terse without reintroducing
+    // carrier-specific enum handles.
+    public String displayName() { return displayName; }
+    public String modelName() { return modelName; }
+    public float range() { return range; }
+    public float damage() { return damage; }
+    public float accuracy() { return accuracy; }
+    public float cooldown() { return cooldown; }
+    public float penetration() { return penetration; }
+    public int burstCount() { return burstCount; }
+    public int projectilesPerShot() { return projectilesPerShot; }
+    public float burstSpacing() { return burstSpacing; }
+    public float accuracyFalloff() { return accuracyFalloff; }
+    public float hitSpread() { return hitSpread; }
+    public float roundVelocity() { return roundVelocity; }
+    public Color tracerColor() { return tracerColor; }
+    public String projectileSpritePath() { return projectileSpritePath; }
+    public float projectileVisualCells() { return projectileVisualCells; }
+    public String fireSoundId() { return fireSoundId; }
 
     /**
      * Parses one entry. Throws rather than defaulting on anything a weapon

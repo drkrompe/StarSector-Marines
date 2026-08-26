@@ -8,25 +8,12 @@ public final class InfantryCombatStats {
 
     private InfantryCombatStats() {}
 
-    public static float range(MarineWeapon family, EquipmentGrade grade) {
-        return range(family.def(), grade);
-    }
-
     public static float range(WeaponDef family, EquipmentGrade grade) {
         return family.range * grade.rangeMult;
     }
 
-    public static float damage(MarineWeapon family, EquipmentGrade grade) {
-        return damage(family.def(), grade);
-    }
-
     public static float damage(WeaponDef family, EquipmentGrade grade) {
         return family.damage * grade.damageMult;
-    }
-
-    public static float accuracy(MarineWeapon family, EquipmentGrade grade,
-                                 SoldierProfile profile) {
-        return accuracy(family.def(), grade, profile);
     }
 
     public static float accuracy(WeaponDef family, EquipmentGrade grade,
@@ -36,20 +23,10 @@ public final class InfantryCombatStats {
                 * profile.aptitude().accuracyMult * exp.accuracyMult);
     }
 
-    public static float cooldown(MarineWeapon family, EquipmentGrade grade,
-                                 SoldierProfile profile) {
-        return cooldown(family.def(), grade, profile);
-    }
-
     public static float cooldown(WeaponDef family, EquipmentGrade grade,
                                  SoldierProfile profile) {
         return family.cooldown * grade.cooldownMult
                 * profile.experienceTier().cooldownMult;
-    }
-
-    public static float spread(MarineWeapon family, EquipmentGrade grade,
-                               SoldierProfile profile) {
-        return spread(family.def(), grade, profile);
     }
 
     public static float spread(WeaponDef family, EquipmentGrade grade,
@@ -60,31 +37,22 @@ public final class InfantryCombatStats {
     }
 
     /** Total raw damage released by one trigger pull, before hit rolls. */
-    public static float volleyDamage(MarineWeapon family, EquipmentGrade grade) {
-        return damage(family, grade) * family.burstCount() * family.projectilesPerShot();
-    }
-
     public static float volleyDamage(WeaponDef family, EquipmentGrade grade) {
         return damage(family, grade) * family.burstCount * family.projectilesPerShot;
     }
 
     /** Sustained raw output based on the interval between trigger pulls. */
-    public static float estimatedDps(MarineWeapon family, EquipmentGrade grade,
-                                     SoldierProfile profile) {
-        return volleyDamage(family, grade) / Math.max(0.01f, cooldown(family, grade, profile));
-    }
-
     public static float estimatedDps(WeaponDef family, EquipmentGrade grade,
                                      SoldierProfile profile) {
         return volleyDamage(family, grade) / Math.max(0.01f, cooldown(family, grade, profile));
     }
 
     /** Standing hit chance at a fraction of this weapon's effective range. */
-    public static float accuracyAtRangeFraction(MarineWeapon family, EquipmentGrade grade,
+    public static float accuracyAtRangeFraction(WeaponDef family, EquipmentGrade grade,
                                                 SoldierProfile profile, float rangeFraction) {
         float effectiveRange = range(family, grade);
         return clamp01(RangeFalloff.accuracy(accuracy(family, grade, profile),
-                family.accuracyFalloff(), effectiveRange * clamp01(rangeFraction), effectiveRange));
+                family.accuracyFalloff, effectiveRange * clamp01(rangeFraction), effectiveRange));
     }
 
     /** Marksmanship portion shared by primary and secondary direct fire. */

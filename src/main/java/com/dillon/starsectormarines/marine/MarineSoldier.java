@@ -1,8 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.SoldierAptitude;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
@@ -27,12 +25,13 @@ public final class MarineSoldier implements Serializable {
     private int experienceXp;
     private MarineSoldierStatus status;
     private float unavailableUntilDay;
-    /** Legacy save input and built-in compatibility handle. */
-    private MarineWeapon primary;
+    /** Legacy enum name written by saves predating stable primary ids. */
+    private String primary;
     /** Authoritative persisted primary catalog identity. */
     private String primaryId;
     private EquipmentGrade primaryGrade;
-    private MarineSecondary secondary;
+    /** Legacy enum name written by saves predating stable special ids. */
+    private String secondary;
     /** Stable special-equipment identity; {@link #secondary} is legacy save input only. */
     private String specialEquipmentId;
     /** Legacy save input and built-in compatibility handle. */
@@ -57,7 +56,7 @@ public final class MarineSoldier implements Serializable {
         this.aptitude = aptitude != null ? aptitude : SoldierAptitude.STEADY;
         this.enlistedRank = EnlistedRank.MARINE;
         this.status = MarineSoldierStatus.ACTIVE;
-        this.primaryId = MarineWeapon.FIELD_RIFLE.id;
+        this.primaryId = WeaponRegistry.STARTER_PRIMARY_ID;
         this.primaryGrade = EquipmentGrade.SERVICE;
         this.armorId = MarineArmorPattern.ARMORLESS.id;
         this.career = new SoldierCareer();
@@ -71,17 +70,9 @@ public final class MarineSoldier implements Serializable {
     public SoldierProfile profile() { return new SoldierProfile(aptitude, experienceXp); }
     public MarineSoldierStatus status() { return status; }
     public float unavailableUntilDay() { return unavailableUntilDay; }
-    public MarineWeapon primary() {
-        MarineWeapon resolved = primaryHandle(primaryId);
-        return resolved != null ? resolved : primary;
-    }
     public String primaryId() { return primaryId; }
     public WeaponDef primaryDef() { return WeaponRegistry.require(primaryId); }
     public EquipmentGrade primaryGrade() { return primaryGrade; }
-    public MarineSecondary secondary() {
-        MarineSecondary resolved = SpecialEquipmentRegistry.compatibilityHandle(specialEquipmentId);
-        return resolved != null ? resolved : secondary;
-    }
     public String specialEquipmentId() { return specialEquipmentId; }
     public SpecialEquipmentDef specialEquipmentDef() {
         return SpecialEquipmentRegistry.get(specialEquipmentId);
@@ -100,13 +91,9 @@ public final class MarineSoldier implements Serializable {
         experienceXp = Math.max(0, experienceXp + amount);
     }
 
-    void setPrimary(MarineWeapon weapon, EquipmentGrade grade) {
-        setPrimary(weapon != null ? weapon.id : MarineWeapon.FIELD_RIFLE.id, grade);
-    }
-
     void setPrimary(String weaponId, EquipmentGrade grade) {
         WeaponDef def = WeaponRegistry.require(
-                weaponId != null ? weaponId : MarineWeapon.FIELD_RIFLE.id);
+                weaponId != null ? weaponId : WeaponRegistry.STARTER_PRIMARY_ID);
         if (def.mount != MountClass.MARINE_PRIMARY) {
             throw new IllegalArgumentException("Weapon '" + def.id
                     + "' is not a marine primary");
@@ -120,9 +107,6 @@ public final class MarineSoldier implements Serializable {
         enlistedRank = value != null ? value : EnlistedRank.MARINE;
     }
 
-    void setSecondary(MarineSecondary value) {
-        setSpecialEquipment(value != null ? value.specialEquipmentId : null);
-    }
     void setSpecialEquipment(String value) {
         specialEquipmentId = value != null ? SpecialEquipmentRegistry.require(value).id() : null;
         secondary = null;
@@ -149,13 +133,14 @@ public final class MarineSoldier implements Serializable {
         if (aptitude == null) aptitude = SoldierAptitude.STEADY;
         if (enlistedRank == null) enlistedRank = EnlistedRank.MARINE;
         if (status == null) status = MarineSoldierStatus.ACTIVE;
-        if (primaryId == null && primary != null) primaryId = primary.id;
+        String savedPrimaryId = primaryId != null ? primaryId : primary;
+        if (primaryId == null) primaryId = WeaponRegistry.legacyMarinePrimaryId(primary);
         WeaponDef savedPrimary = WeaponRegistry.installed() != null
                 ? WeaponRegistry.installed().get(primaryId) : null;
         if (savedPrimary == null || savedPrimary.mount != MountClass.MARINE_PRIMARY) {
-            LOG.warn("Repairing marine '" + id + "' unresolved primary '" + primaryId
-                    + "' to starter weapon '" + MarineWeapon.FIELD_RIFLE.id + "'");
-            primaryId = MarineWeapon.FIELD_RIFLE.id;
+            LOG.warn("Repairing marine '" + id + "' unresolved primary '" + savedPrimaryId
+                    + "' to starter weapon '" + WeaponRegistry.STARTER_PRIMARY_ID + "'");
+            primaryId = WeaponRegistry.STARTER_PRIMARY_ID;
         }
         primary = null;
         if (primaryGrade == null) primaryGrade = EquipmentGrade.SERVICE;
@@ -168,23 +153,18 @@ public final class MarineSoldier implements Serializable {
         }
         armor = null;
         if (career == null) career = new SoldierCareer();
-        if (specialEquipmentId == null && secondary != null) {
-            specialEquipmentId = secondary.specialEquipmentId;
-        }
-        if (specialEquipmentId != null && SpecialEquipmentRegistry.get(specialEquipmentId) == null) {
+        String savedSpecialEquipmentId = specialEquipmentId != null ? specialEquipmentId : secondary;
+        if (specialEquipmentId == null) specialEquipmentId = SpecialEquipmentRegistry.legacyId(secondary);
+        if (savedSpecialEquipmentId != null
+                && SpecialEquipmentRegistry.get(specialEquipmentId) == null) {
             LOG.warn("Clearing marine '" + id + "' unresolved special equipment '"
-                    + specialEquipmentId + "'");
+                    + savedSpecialEquipmentId + "'");
             specialEquipmentId = null;
         }
         secondary = null;
         experienceXp = Math.max(0, experienceXp);
         unavailableUntilDay = Math.max(0f, unavailableUntilDay);
         return this;
-    }
-
-    private static MarineWeapon primaryHandle(String id) {
-        try { return MarineWeapon.fromId(id); }
-        catch (IllegalArgumentException ignored) { return null; }
     }
 
     private static MarineArmorPattern armorHandle(String id) {

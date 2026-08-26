@@ -11,7 +11,7 @@
  *           {@code KitRetrieverBehavior}).
  *
  * <p>Infantry combat identity composes three orthogonal axes: {@code
- * MarineWeapon} is the behavior/art family, {@code EquipmentGrade} is the
+ * WeaponDef} is the behavior/art family, {@code EquipmentGrade} is the
  * issued hardware tier, and {@code SoldierProfile} combines innate aptitude
  * with earned experience. {@code InfantryCombatStats} is the single resolver;
  * adding a tier must not duplicate a weapon-family enum or directional asset.

@@ -2,8 +2,6 @@ package com.dillon.starsectormarines.battle.unit;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
@@ -13,7 +11,6 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
-import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 
 /**
  * Construction spec for a ground-roster unit — the mutable bag of "what to spawn"
@@ -50,13 +47,11 @@ public final class EntitySpec {
     public int squadId = Squad.NO_SQUAD;
     public int fireTeamIndex = Squad.NO_FIRE_TEAM;
     public UnitRole role = UnitRole.COMBATANT;
-    public MarineSecondary secondaryWeapon;
-    /** Authoritative special-equipment definition, including contributed items. */
+    /** Authoritative special-equipment definition. */
     public SpecialEquipmentDef specialEquipment;
     public int secondaryAmmo;
     public AirBody body;
-    public MarineWeapon primaryWeapon;
-    /** Authoritative definition; may have no built-in enum compatibility handle. */
+    /** Authoritative primary definition. */
     public WeaponDef primaryWeaponDef;
     public EquipmentGrade equipmentGrade = EquipmentGrade.SERVICE;
     public SoldierProfile soldierProfile = SoldierProfile.REGULAR;
@@ -109,16 +104,8 @@ public final class EntitySpec {
     public EntitySpec squad(int squadId) { this.squadId = squadId; return this; }
     public EntitySpec fireTeam(int fireTeamIndex) { this.fireTeamIndex = fireTeamIndex; return this; }
     public EntitySpec role(UnitRole role) { this.role = role; return this; }
-    public EntitySpec secondary(MarineSecondary weapon, int ammo) {
-        this.secondaryWeapon = weapon;
-        this.specialEquipment = weapon != null ? weapon.specialDef() : null;
-        this.secondaryAmmo = ammo;
-        return this;
-    }
     public EntitySpec specialEquipment(SpecialEquipmentDef equipment, int ammo) {
         this.specialEquipment = equipment;
-        this.secondaryWeapon = equipment != null
-                ? SpecialEquipmentRegistry.compatibilityHandle(equipment.id()) : null;
         this.secondaryAmmo = ammo;
         return this;
     }
@@ -195,27 +182,14 @@ public final class EntitySpec {
      * accuracy / cooldown) from the weapon — the shape the deboard loadout and the
      * {@code Drone} factory both use (a per-weapon profile drives the fire math).
      */
-    public EntitySpec primaryWeapon(MarineWeapon weapon) {
+    public EntitySpec primaryWeapon(WeaponDef weapon) {
         return primaryWeapon(weapon, EquipmentGrade.SERVICE, SoldierProfile.REGULAR);
     }
 
-    /** Resolves one tiered weapon family through this individual soldier. */
-    public EntitySpec primaryWeapon(MarineWeapon weapon, EquipmentGrade grade,
-                                    SoldierProfile profile) {
-        this.primaryWeapon = weapon;
-        this.primaryWeaponDef = weapon != null ? weapon.def() : null;
-        return primaryWeaponStats(this.primaryWeaponDef, grade, profile);
-    }
-
-    /** Equips an arbitrary contributed marine-primary definition. */
+    /** Equips a marine-primary definition. */
     public EntitySpec primaryWeapon(WeaponDef weapon, EquipmentGrade grade,
                                     SoldierProfile profile) {
         this.primaryWeaponDef = weapon;
-        try {
-            this.primaryWeapon = weapon != null ? MarineWeapon.fromId(weapon.id) : null;
-        } catch (IllegalArgumentException ignored) {
-            this.primaryWeapon = null;
-        }
         return primaryWeaponStats(weapon, grade, profile);
     }
 

@@ -477,7 +477,7 @@ public final class BattleSetup {
             // they're not lugging a rocket launcher to a charge plant.
             ChargeSiteObjective site = sites.get(dropIndex % sites.size());
             MarineLoadout prior = roster[0];
-            roster[0] = new MarineLoadout(UnitRole.PLANTER, site, prior.primary,
+            roster[0] = new MarineLoadout(UnitRole.PLANTER, site, prior.primaryWeaponId,
                     prior.equipmentGrade, prior.soldierProfile, null, 0);
         }
         return roster;
@@ -1061,6 +1061,8 @@ public final class BattleSetup {
 
         List<ConquestArrivalSlot> arrivalSlots = conquestArrivalSlots(
                 map, assignments, axis, rng, arrivalPlan);
+        ShuttleArrivalPlan resolvedArrivalPlan = arrivalPlan != null
+                ? arrivalPlan : ShuttleArrivalPlan.legacy();
         List<int[]> lzCells = arrivalSlots.stream()
                 .map(slot -> new int[]{slot.pad().centerX, slot.pad().centerY})
                 .toList();
@@ -1072,7 +1074,7 @@ public final class BattleSetup {
             float lzCenterY = slot.pad().centerY + 0.5f;
             float[] entry = shuttleEntryFor(lzCenterX, lzCenterY, gridW, gridH, axis);
             long shuttleId = sim.spawnShuttle(
-                    a.type, Faction.MARINE,
+                    resolvedArrivalPlan.deliveryCraft(a.type), Faction.MARINE,
                     lzCenterX, lzCenterY,
                     entry[0], entry[1],
                     entry[2], entry[3], slot.pendingDelay(),
