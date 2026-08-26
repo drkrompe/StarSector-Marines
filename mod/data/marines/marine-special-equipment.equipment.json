@@ -5,7 +5,7 @@
       "catalog": {
         "displayName": "Annihilator Rocket Launcher",
         "subtitle": "Limited-ammunition support weapon",
-        "description": "An Annihilator-pattern disposable tube cluster. Fire teams carry it for hardened emplacements and emergency wall breaching; the blast does not distinguish friend from foe."
+        "description": "The Hegemony cut an old Domain Annihilator cassette into a disposable shoulder cluster, then every low-tech arsenal copied it. It breaches walls and hardened emplacements without distinguishing friend from foe."
       },
       "activation": {
         "type": "direct-explosive",
@@ -57,7 +57,7 @@
       "catalog": {
         "displayName": "Breachlight Anti-Materiel Rifle",
         "subtitle": "Limited-ammunition support weapon",
-        "description": "The Breachlight braces a magnetic heavy round through armor seams without endangering friendlies nearby. It carries four shots and cannot breach walls."
+        "description": "Tri-Tachyon's Breachlight drives a magnetic heavy round through armor seams without endangering nearby friendlies. It carries four shots, depends on proprietary cells, and cannot breach walls."
       },
       "activation": {
         "type": "direct-precision",
@@ -108,7 +108,7 @@
       "catalog": {
         "displayName": "Wayfarer Smoke Grenades",
         "subtitle": "Limited-ammunition tactical utility",
-        "description": "Wayfarer canisters flood a crossing with dense multispectral smoke. The cloud harms no one, blocks both sides equally, and buys only a few seconds to move."
+        "description": "League quartermasters built Wayfarer smoke to defeat incompatible coalition optics. Its dense multispectral cloud harms no one, blocks both sides equally, and buys only seconds to move."
       },
       "activation": {
         "type": "utility-smoke",
@@ -167,7 +167,7 @@
       "catalog": {
         "displayName": "Shattercap Fragmentation Grenades",
         "subtitle": "Limited-ammunition anti-personnel ordnance",
-        "description": "A short-arc fragmentation grenade for breaking exposed infantry clusters and soft targets behind low cover. Its compact lethal footprint is dangerous to friend and foe and has negligible effect on walls or hardened emplacements."
+        "description": "Kazeron adopted the Shattercap; leaked specifications now feed Diktat, pirate, and Pather arsenals. Its compact blast breaks exposed infantry but barely troubles walls or hardened emplacements."
       },
       "activation": {
         "type": "arc-explosive",
@@ -218,9 +218,9 @@
     {
       "id": "special.satchel-charge",
       "catalog": {
-        "displayName": "Mag-Clamp Satchel Kit",
+        "displayName": "Breachhand Mag-Clamp Kit",
         "subtitle": "Reusable cooldown-gated demolition utility",
-        "description": "The Breachhand is a reusable mag-clamp demolition kit for targets already within arm's reach. A successful plant starts its recharge cycle; a failed attempt costs nothing."
+        "description": "Gilead voidwrights built the Breachhand for sealed machinery and hull work; Knights maintain originals while Pathers and pirates copy them. Successful planting starts its recharge cycle."
       },
       "activation": {
         "type": "utility-satchel",
