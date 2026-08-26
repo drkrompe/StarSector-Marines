@@ -4,7 +4,7 @@ Status: ACTIVE — the model is authored; no generator, facility, or adoption sl
 
 Written: 2026-08-26
 
-Updated: 2026-08-26 — added the hull-size and growth model (complement plus hold, more decks past the playable envelope) and hull silhouettes, retaining the task-point, fill-quality, in-plane articulation, and flat-plane material.
+Updated: 2026-08-26 — added the hull-size and growth model (complement plus hold, more decks past the playable envelope), hull silhouettes, and the law that a deck is only ever looked at through the battle renderer.
 
 Ship interiors is the model for navigable shipboard space: the decks a mercenary
 company lives and works on, the facilities it operates and grows, and the hostile
@@ -355,6 +355,16 @@ it is presentation-only by charter. The tactical articulation of a bay is a
     not as a pair: a hall widened only across its direction of travel pinches
     back to one cell at every corner, which puts a movement trap where the deck
     can least afford one. Two is a floor, not a ceiling.
+15. **A deck is seen through the battle renderer, never through a second
+    painter.** A generated deck is already a map, so authoring evidence, a
+    hosted deck view, and a boarding action are one renderer over one
+    simulation, differing only in camera, layer set, and whether the frame
+    drains to the screen or to an image. A tool that redraws the deck its own
+    way is measuring its own drawing: the copy drifts, and every drift reads as
+    a fill defect until someone goes looking. A diagram that shows what the
+    renderer has no concept of — room purpose, zone cuts, which opening is a
+    door — is a legitimate second view, but it annotates the render or
+    abandons the pretence of being one.
 
 ## Boundaries
 
