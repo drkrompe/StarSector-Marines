@@ -63,11 +63,17 @@ public final class DoodadRenderSystem implements RenderSystem {
 
     private static void emit(DrawList out, BattleCamera cam, SpriteAPI sheet,
                              Doodad d, float cellPx, float alphaMult) {
+        // Source rectangle is read at the sheet's own cell size, not the
+        // game's. A sheet drawn finer than the grid keeps its detail; one drawn
+        // at the grid behaves exactly as before. The quad then stretches that
+        // rectangle over the prop's footprint in cells, so what an authored
+        // footprint really says is how much deck the art is stretched across.
         TileManifest.TileFrame f = d.tile;
-        int srcX = f.col * TileManifest.TILE_SIZE;
-        int srcY = f.row * TileManifest.TILE_SIZE;
-        int sourceWidth = TileManifest.TILE_SIZE * d.footprintCellsX;
-        int sourceHeight = TileManifest.TILE_SIZE * d.footprintCellsY;
+        int cell = d.sourceCellPx;
+        int srcX = f.col * cell;
+        int srcY = f.row * cell;
+        int sourceWidth = cell * d.footprintCellsX;
+        int sourceHeight = cell * d.footprintCellsY;
         float cx = cam.cellToScreenX(d.cellX + d.footprintCellsX * 0.5f);
         float cy = cam.cellToScreenY(d.cellY + d.footprintCellsY * 0.5f);
         out.addSheetQuad(RenderLayer.DOODADS, sheet,

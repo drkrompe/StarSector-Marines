@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.SabotageSiteSnapshot;
+import com.dillon.starsectormarines.battle.command.SabotageDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -144,6 +145,39 @@ class CommandTraceRecorderTest {
         assertTrue(line.contains("\"stream\":\"referee\""));
         assertTrue(line.contains("\"event\":\"charge-site-state\""));
         assertTrue(line.contains("\"siteId\":\"SAB-01\""));
+    }
+
+    @Test
+    void defenderSabotageTracePublishesAlarmWithoutAttackerTaskFacts() {
+        SabotageDefenseSnapshot.SiteState site =
+                new SabotageDefenseSnapshot.SiteState(0, "SAB-01", "reactor",
+                        12, 7, 3, false, true, 70, 520,
+                        1, 1, 10, 4f, 3f);
+        SabotageDefenseSnapshot.SquadDirective action =
+                new SabotageDefenseSnapshot.SquadDirective(9, 0,
+                        SabotageDefenseSnapshot.Role.ALARM_RESPONDER,
+                        SabotageDefenseSnapshot.Reason.SITE_ALARM_RESPONSE,
+                        AssignmentKind.DEFEND_SITE, 12, 7);
+        SabotageDefenseSnapshot detail = new SabotageDefenseSnapshot(75, 60,
+                Faction.DEFENDER,
+                SabotageDefenseSnapshot.Phase.ALARM_RESPONSE,
+                4, 0, List.of(site), List.of(action));
+        CommanderSnapshot<SabotageDefenseSnapshot> snapshot =
+                new CommanderSnapshot<>(Faction.DEFENDER,
+                        "sabotage-defender", "ALARM_RESPONSE", 75, 60,
+                        4, 0, List.of("reactor=alarm"), List.of(), detail);
+        CommandTraceRecorder recorder = new CommandTraceRecorder(
+                "SABOTAGE", "SERIAL_DETERMINISTIC", 0);
+
+        recorder.recordPerspective(snapshot);
+
+        String line = recorder.canonicalJsonLines().lines().toList().get(1);
+        assertTrue(line.contains("\"sabotageDefense\":{"));
+        assertTrue(line.contains("\"alarmActive\":true"));
+        assertTrue(line.contains("\"role\":\"ALARM_RESPONDER\""));
+        assertTrue(!line.contains("\"progress\""));
+        assertTrue(!line.contains("\"planterOnSite\""));
+        assertTrue(!line.contains("\"activeKitDrops\""));
     }
 
     @Test

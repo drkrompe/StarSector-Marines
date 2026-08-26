@@ -419,7 +419,7 @@ public final class AssignmentArbiter {
                     return "assignment kind requires a target zone";
                 }
             }
-            case DEFEND_TRACK, ADVANCE_TRACK, SWEEP_SECTOR, ESCORT -> {
+            case DEFEND_TRACK, DEFEND_SITE, ADVANCE_TRACK, SWEEP_SECTOR, ESCORT -> {
                 if (assignment.targetCellX() < 0 || assignment.targetCellY() < 0) {
                     return "assignment kind requires a complete target cell";
                 }

@@ -102,7 +102,7 @@ public final class SheetTexture {
                 pxW = img.getWidth();
                 pxH = img.getHeight();
                 if (!sliced) {
-                    LOG.info("SheetTexture: loaded " + path + " (" + pxW + "x" + pxH + ")");
+                    LOG.debug("SheetTexture: loaded " + path + " (" + pxW + "x" + pxH + ")");
                     return;
                 }
                 frames = SpriteSheetSlicer.slice(img);
@@ -119,7 +119,7 @@ public final class SheetTexture {
                     frames = null;
                     return;
                 }
-                LOG.info("SheetTexture: loaded " + path + " (" + pxW + "x" + pxH + "), "
+                LOG.debug("SheetTexture: loaded " + path + " (" + pxW + "x" + pxH + "), "
                         + frames.frames.length + " frames sliced");
             }
         } catch (Exception e) {

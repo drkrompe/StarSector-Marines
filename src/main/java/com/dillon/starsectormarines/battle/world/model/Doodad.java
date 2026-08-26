@@ -59,6 +59,14 @@ public final class Doodad {
     public final int footprintCellsY;
     /** Optional authored edge intended to sit against a wall. */
     public final WallSide preferredWallSide;
+    /**
+     * Pixels per source cell on {@link #sheetPath} — the scale this prop's art
+     * is drawn at, which is not necessarily the scale the game's own grid uses.
+     * Rendering reads its source rectangle at this size, so a sheet drawn finer
+     * than {@link TileManifest#TILE_SIZE} keeps its detail instead of being
+     * flattened to the coarsest sheet in the mod.
+     */
+    public final int sourceCellPx;
 
     /**
      * Builds a doodad from its data-driven {@link DoodadDef} (moddable-tilesets
@@ -69,7 +77,8 @@ public final class Doodad {
     public Doodad(int cellX, int cellY, DoodadDef def) {
         this(cellX, cellY, new TileManifest.TileFrame(def.col, def.row),
                 def.sheetPath, def.cover.level(), def.ballisticHalfHeight,
-                def.footprintCellsX, def.footprintCellsY, def.preferredWallSide);
+                def.footprintCellsX, def.footprintCellsY, def.preferredWallSide,
+                def.sourceCellPx);
     }
 
     public Doodad(int cellX, int cellY, TileManifest.TileFrame tile, boolean fromRoadSheet, int cover) {
@@ -106,9 +115,22 @@ public final class Doodad {
                   String sheetPath, int cover, float ballisticHalfHeight,
                   int footprintCellsX, int footprintCellsY,
                   WallSide preferredWallSide) {
+        this(cellX, cellY, tile, sheetPath, cover, ballisticHalfHeight,
+                footprintCellsX, footprintCellsY, preferredWallSide, 0);
+    }
+
+    /**
+     * @param sourceCellPx pixels per source cell on {@code sheetPath}, or 0 to
+     *     read the sheet at the game's own {@link TileManifest#TILE_SIZE}
+     */
+    public Doodad(int cellX, int cellY, TileManifest.TileFrame tile,
+                  String sheetPath, int cover, float ballisticHalfHeight,
+                  int footprintCellsX, int footprintCellsY,
+                  WallSide preferredWallSide, int sourceCellPx) {
         if (footprintCellsX <= 0 || footprintCellsY <= 0) {
             throw new IllegalArgumentException("Doodad footprint must be positive");
         }
+        this.sourceCellPx = sourceCellPx > 0 ? sourceCellPx : TileManifest.TILE_SIZE;
         this.cellX = cellX;
         this.cellY = cellY;
         this.tile = tile;

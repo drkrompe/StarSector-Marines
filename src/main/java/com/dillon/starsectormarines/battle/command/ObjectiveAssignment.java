@@ -62,6 +62,12 @@ public record ObjectiveAssignment(
                 UNSCOPED, null, UNSCOPED, cellX, cellY);
     }
 
+    /** Named Sabotage installation defense; carries no hostile identity or position. */
+    public static ObjectiveAssignment defendSite(int squadId, int cellX, int cellY) {
+        return new ObjectiveAssignment(squadId, AssignmentKind.DEFEND_SITE,
+                UNSCOPED, null, UNSCOPED, cellX, cellY);
+    }
+
     /** Attacker-side Conquest staging point behind the believed lane front. */
     public static ObjectiveAssignment advanceTrack(int squadId, int cellX, int cellY) {
         return new ObjectiveAssignment(squadId, AssignmentKind.ADVANCE_TRACK,

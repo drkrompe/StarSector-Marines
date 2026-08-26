@@ -27,8 +27,9 @@ public final class DefendTrack implements Action {
 
     public DefendTrack(AssignmentKind assignmentKind, int targetX, int targetY) {
         if (assignmentKind != AssignmentKind.DEFEND_TRACK
-                && assignmentKind != AssignmentKind.ADVANCE_TRACK) {
-            throw new IllegalArgumentException("track rally kind required");
+                && assignmentKind != AssignmentKind.ADVANCE_TRACK
+                && assignmentKind != AssignmentKind.DEFEND_SITE) {
+            throw new IllegalArgumentException("defensive rally kind required");
         }
         this.assignmentKind = assignmentKind;
         this.targetX = targetX;
@@ -36,8 +37,11 @@ public final class DefendTrack implements Action {
     }
 
     @Override public String name() {
-        return assignmentKind == AssignmentKind.ADVANCE_TRACK
-                ? "AdvanceTrack" : "DefendTrack";
+        return switch (assignmentKind) {
+            case ADVANCE_TRACK -> "AdvanceTrack";
+            case DEFEND_SITE -> "DefendSite";
+            default -> "DefendTrack";
+        };
     }
     @Override public WorldState preconditions() { return WorldState.EMPTY; }
     @Override public WorldState effects() { return WorldState.EMPTY; }

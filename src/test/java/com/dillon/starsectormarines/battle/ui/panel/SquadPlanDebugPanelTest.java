@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.SabotageSiteSnapshot;
+import com.dillon.starsectormarines.battle.command.SabotageDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.AssignmentReason;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.Phase;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.SquadDirective;
@@ -173,6 +174,31 @@ class SquadPlanDebugPanelTest {
                 SquadPlanDebugPanel.sabotageOrderSummary(directive));
         assertEquals("Site SAB-01 2.0/8.0   PLANTER_ACTIVE   Security 2   Press 4.0/3.0",
                 SquadPlanDebugPanel.sabotageSiteSummary(snapshot, directive));
+    }
+
+    @Test
+    void selectedDefenderSummaryShowsAlarmCoverageWithoutPlantProgress() {
+        SabotageDefenseSnapshot.SiteState site =
+                new SabotageDefenseSnapshot.SiteState(0, "SAB-01", "reactor",
+                        12, 7, 3, false, true, 40, 490,
+                        1, 1, 10, 4f, 3f);
+        SabotageDefenseSnapshot.SquadDirective directive =
+                new SabotageDefenseSnapshot.SquadDirective(9, 0,
+                        SabotageDefenseSnapshot.Role.ALARM_RESPONDER,
+                        SabotageDefenseSnapshot.Reason.SITE_ALARM_RESPONSE,
+                        AssignmentKind.DEFEND_SITE, 15, 7);
+        SabotageDefenseSnapshot snapshot = new SabotageDefenseSnapshot(
+                44, 42, Faction.DEFENDER,
+                SabotageDefenseSnapshot.Phase.ALARM_RESPONSE,
+                4, 0, List.of(site), List.of(directive));
+
+        assertEquals("Defense site S1   ALARM_RESPONDER   Reason SITE_ALARM_RESPONSE",
+                SquadPlanDebugPanel.sabotageDefenseOrderSummary(directive));
+        String summary = SquadPlanDebugPanel.sabotageDefenseSiteSummary(
+                snapshot, directive);
+        assertEquals("Site SAB-01   Alarm ACTIVE   Cover 1+1   Press 4.0/3.0",
+                summary);
+        assertTrue(!summary.contains("/8.0"));
     }
 
     @Test

@@ -34,7 +34,8 @@ class CommanderServiceTest {
         assertFalse(MissionCommand.class.isAssignableFrom(
                 AutonomousMissionCommand.class));
         for (Class<?> type : List.of(AutonomousMissionCommand.class,
-                ConquestCommand.class, ConquestDefenderCommand.class)) {
+                ConquestCommand.class, ConquestDefenderCommand.class,
+                SabotageCommand.class, SabotageDefenderCommand.class)) {
             for (var method : type.getDeclaredMethods()) {
                 assertFalse(method.getReturnType() == BattleView.class
                                 || List.of(method.getParameterTypes())

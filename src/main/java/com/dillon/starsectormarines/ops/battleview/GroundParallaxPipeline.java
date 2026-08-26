@@ -574,7 +574,7 @@ public final class GroundParallaxPipeline {
         normalFbo = normal[0];
         normalTex = normal[1];
 
-        LOG.info("GroundParallaxPipeline FBOs (" + colorFbo + "/" + heightFbo + "/"
+        LOG.debug("GroundParallaxPipeline FBOs (" + colorFbo + "/" + heightFbo + "/"
                 + normalFbo + ") complete at " + fboPxW + "x" + fboPxH);
     }
 

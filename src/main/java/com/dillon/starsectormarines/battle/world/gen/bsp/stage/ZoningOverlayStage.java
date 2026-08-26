@@ -43,7 +43,7 @@ public final class ZoningOverlayStage implements GenStage {
         if (axis != null) {
             BiomeMap biomeMap = new BiomeMap(ctx.width, ctx.height, axis, ctx.rng, functions);
             ctx.put(BspKeys.BIOME_MAP, biomeMap);
-            LOG.info("BspCityGenerator: " + partition.leaves.size() + " leaves on "
+            LOG.debug("BspCityGenerator: " + partition.leaves.size() + " leaves on "
                     + ctx.width + "x" + ctx.height + " grid, "
                     + plan.trunks.size() + " trunk(s), biome axis=" + axis
                     + ", econ=" + functions);
@@ -73,7 +73,7 @@ public final class ZoningOverlayStage implements GenStage {
                 }
             }
             ctx.put(BspKeys.DISTRICT_MAP, districtMap);
-            LOG.info("BspCityGenerator: " + partition.leaves.size() + " leaves on "
+            LOG.debug("BspCityGenerator: " + partition.leaves.size() + " leaves on "
                     + ctx.width + "x" + ctx.height + " grid, "
                     + plan.trunks.size() + " trunk(s), "
                     + districtMap.districtsX() + "x" + districtMap.districtsY() + " districts");
