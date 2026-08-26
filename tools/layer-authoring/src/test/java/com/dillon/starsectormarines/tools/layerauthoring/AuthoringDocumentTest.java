@@ -41,6 +41,9 @@ class AuthoringDocumentTest {
                         "armor-master-foundry-breaker"),
                 document.units().stream().map(UnitComposition::id)
                         .filter(id -> id.startsWith("armor-master-")).toList());
+        assertTrue(document.units().stream()
+                .filter(unit -> unit.id().startsWith("armor-master-"))
+                .allMatch(unit -> "marine-line".equals(unit.animationSourceId())));
 
         UnitComposition marine = document.units().get(0);
         assertEquals(List.of("rifle", "rocket", "anti-materiel", "smoke", "satchel"),
@@ -144,6 +147,67 @@ class AuthoringDocumentTest {
     }
 
     @Test
+    void unitWideScaleAppliesToMatchingLayersAcrossEveryAuthoredFrame() throws Exception {
+        AuthoringDocument document = AuthoringDocument.load(Path.of("."));
+        UnitComposition marine = document.units().stream()
+                .filter(unit -> unit.id().equals("marine-line"))
+                .findFirst().orElseThrow();
+        int expectedMatches = marine.variants().stream()
+                .flatMap(variant -> variant.animations().stream())
+                .flatMap(animation -> animation.frames().stream())
+                .mapToInt(frame -> (int) frame.layers().stream()
+                        .filter(layer -> layer.id().equals("body")).count())
+                .sum();
+        double originalPrimaryScale = marine.variants().get(0).animations().get(0)
+                .frames().get(0).layers().stream()
+                .filter(layer -> layer.id().equals("primary"))
+                .findFirst().orElseThrow().scaleX();
+
+        int matches = marine.applyScaleToAllFrames("body", 1.37, 0.82);
+
+        assertEquals(expectedMatches, matches);
+        assertTrue(matches > 1);
+        assertTrue(marine.variants().stream()
+                .flatMap(variant -> variant.animations().stream())
+                .flatMap(animation -> animation.frames().stream())
+                .flatMap(frame -> frame.layers().stream())
+                .filter(layer -> layer.id().equals("body"))
+                .allMatch(layer -> Math.abs(layer.scaleX() - 1.37) < 0.000001
+                        && Math.abs(layer.scaleY() - 0.82) < 0.000001));
+        assertEquals(originalPrimaryScale, marine.variants().get(0).animations().get(0)
+                .frames().get(0).layers().stream()
+                .filter(layer -> layer.id().equals("primary"))
+                .findFirst().orElseThrow().scaleX(), 0.000001);
+    }
+
+    @Test
+    void armorMasterScaleDoesNotMutateInheritedPreviewFrames() throws Exception {
+        AuthoringDocument document = AuthoringDocument.load(Path.of("."));
+        UnitComposition marine = document.units().stream()
+                .filter(unit -> unit.id().equals("marine-line"))
+                .findFirst().orElseThrow();
+        UnitComposition aegis = document.units().stream()
+                .filter(unit -> unit.id().equals("armor-master-aegis"))
+                .findFirst().orElseThrow();
+        LayerDefinition inheritedHead = marine.variants().get(0).animations().get(0)
+                .frames().get(0).layers().stream()
+                .filter(layer -> layer.id().equals("head"))
+                .findFirst().orElseThrow();
+        double inheritedScaleX = inheritedHead.scaleX();
+        double inheritedScaleY = inheritedHead.scaleY();
+
+        int matches = aegis.applyScaleToAllFrames("head", 1.91, 1.63);
+
+        assertEquals(1, matches);
+        assertEquals(1.91, aegis.variants().get(0).animations().get(0)
+                .frames().get(0).layers().stream()
+                .filter(layer -> layer.id().equals("head"))
+                .findFirst().orElseThrow().scaleX(), 0.000001);
+        assertEquals(inheritedScaleX, inheritedHead.scaleX(), 0.000001);
+        assertEquals(inheritedScaleY, inheritedHead.scaleY(), 0.000001);
+    }
+
+    @Test
     void historyRestoresWholeDocumentChangesAndSupportsRedo() throws Exception {
         AuthoringDocument document = AuthoringDocument.load(Path.of("."));
         DocumentHistory history = new DocumentHistory();
@@ -200,6 +264,39 @@ class AuthoringDocumentTest {
 
         assertEquals(0.3365, leftThigh.scaleY(), 0.000001);
         assertEquals(118.25, leftThigh.angleDegrees(), 0.000001);
+    }
+
+    @Test
+    void armorMasterPreviewsInheritedMarineWalkingWithMasteredArt() throws Exception {
+        AuthoringDocument document = AuthoringDocument.load(Path.of("."));
+        UnitComposition aegis = document.units().stream()
+                .filter(unit -> unit.id().equals("armor-master-aegis"))
+                .findFirst().orElseThrow();
+        var rifle = aegis.previewVariants().stream()
+                .filter(variant -> variant.id().equals("rifle"))
+                .findFirst().orElseThrow();
+        AnimationDefinition walking = rifle.animations().stream()
+                .filter(animation -> animation.id().equals("walking"))
+                .findFirst().orElseThrow();
+        FrameDefinition source = walking.frames().get(0);
+
+        FrameDefinition preview = new CompositionRenderer(Path.of("."))
+                .composeAnimationPreview(aegis, source);
+        LayerDefinition sourceHead = layer(source, "head");
+        LayerDefinition previewHead = layer(preview, "head");
+        LayerDefinition sourceFoot = layer(source, "left-foot");
+        LayerDefinition previewFoot = layer(preview, "left-foot");
+
+        assertTrue(aegis.isInheritedPreview(rifle));
+        assertEquals("graphics/battle/marine-modular-topdown/variants/armor/aegis/head.png",
+                previewHead.spritePath());
+        assertEquals(0.8, sourceHead.scaleX(), 0.000001);
+        assertEquals(1.5, previewHead.scaleX(), 0.000001);
+        assertEquals(1.5, previewHead.scaleY(), 0.000001);
+        assertEquals(sourceHead.offsetY() + 0.061, previewHead.offsetY(), 0.000001);
+        assertEquals(sourceFoot.spritePath(), previewFoot.spritePath());
+        assertEquals(sourceFoot.offsetX(), previewFoot.offsetX(), 0.000001);
+        assertEquals(sourceFoot.offsetY(), previewFoot.offsetY(), 0.000001);
     }
 
     @Test
@@ -262,6 +359,11 @@ class AuthoringDocumentTest {
     private static FrameDefinition firstFrame(AuthoringDocument document) {
         return document.units().get(0).variants().get(0).animations().get(0)
                 .frames().get(0);
+    }
+
+    private static LayerDefinition layer(FrameDefinition frame, String id) {
+        return frame.layers().stream().filter(layer -> layer.id().equals(id))
+                .findFirst().orElseThrow();
     }
 
     private static void copyFixture(AuthoringDocument source, Path target) throws Exception {

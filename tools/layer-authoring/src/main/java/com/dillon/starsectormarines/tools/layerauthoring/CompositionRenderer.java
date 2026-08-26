@@ -33,6 +33,9 @@ public final class CompositionRenderer {
     private static final Color GRID = new Color(0x1B, 0x2A, 0x3A);
     private static final Color AXIS = new Color(0x3C, 0x5E, 0x78);
     private static final Color SELECTED = new Color(0xF1, 0xB8, 0x54);
+    private static final Map<String, double[]> MARINE_MASTER_NEUTRAL_OFFSETS = Map.of(
+            "body", new double[] {0.0, -0.12},
+            "head", new double[] {0.0, 0.08});
     private final Path modRoot;
     private final Map<String, BufferedImage> images = new LinkedHashMap<>();
 
@@ -87,10 +90,11 @@ public final class CompositionRenderer {
 
     public BufferedImage renderSheet(UnitComposition unit, int cellWidth, int cellHeight) {
         List<SheetFrame> frames = new ArrayList<>();
-        for (AppearanceVariant variant : unit.variants()) {
+        for (AppearanceVariant variant : unit.previewVariants()) {
+            boolean inherited = unit.isInheritedPreview(variant);
             for (AnimationDefinition animation : variant.animations()) {
                 for (FrameDefinition frame : animation.frames()) {
-                    frames.add(new SheetFrame(variant, animation, frame));
+                    frames.add(new SheetFrame(variant, animation, frame, inherited));
                 }
             }
         }
@@ -113,12 +117,63 @@ public final class CompositionRenderer {
             graphics.drawString(item.variant().label() + " / " + item.animation().label()
                             + " / " + frame.label() + "  ·  " + frame.durationMs() + " ms",
                     x + 10, y + 20);
-            BufferedImage cell = renderFrame(unit, frame, cellWidth, cellHeight,
+            FrameDefinition displayed = item.inherited()
+                    ? composeAnimationPreview(unit, frame) : frame;
+            BufferedImage cell = renderFrame(unit, displayed, cellWidth, cellHeight,
                     null, false);
             graphics.drawImage(cell, x, y + labelHeight, null);
         }
         graphics.dispose();
         return sheet;
+    }
+
+    /**
+     * Applies a like-unit's authored master layers over one frame from its
+     * animation source. Offsets and angles remain animated deltas, while each
+     * mastered layer owns one absolute scale so source-frame scale cannot leak
+     * into a like unit. All unmastered layers retain the source animation.
+     */
+    public FrameDefinition composeAnimationPreview(UnitComposition unit,
+                                                   FrameDefinition source) {
+        if (unit.animationSource() == null) return source;
+        FrameDefinition masterFrame = masterFrame(unit);
+        if (masterFrame == null) return source;
+        Map<String, LayerDefinition> masters = new LinkedHashMap<>();
+        for (LayerDefinition layer : masterFrame.layers()) {
+            if (MARINE_MASTER_NEUTRAL_OFFSETS.containsKey(layer.id())) {
+                masters.put(layer.id(), layer);
+            }
+        }
+        List<LayerDefinition> composed = new ArrayList<>();
+        for (LayerDefinition animated : source.layers()) {
+            LayerDefinition layer = animated.copy();
+            LayerDefinition master = masters.get(animated.id());
+            double[] neutral = MARINE_MASTER_NEUTRAL_OFFSETS.get(animated.id());
+            if (master != null && neutral != null) {
+                layer.spritePath(master.spritePath());
+                layer.offset(animated.offsetX() + master.offsetX() - neutral[0],
+                        animated.offsetY() + master.offsetY() - neutral[1]);
+                layer.scale(master.scaleX(), master.scaleY());
+                layer.angleDegrees(animated.angleDegrees() + master.angleDegrees());
+                layer.pivot(master.pivotX(), master.pivotY());
+                layer.visible(animated.visible() && master.visible());
+            }
+            composed.add(layer);
+        }
+        return FrameDefinition.preview(source, composed);
+    }
+
+    private static FrameDefinition masterFrame(UnitComposition unit) {
+        for (AppearanceVariant variant : unit.variants()) {
+            if (!variant.id().equals("field-loadout")) continue;
+            for (AnimationDefinition animation : variant.animations()) {
+                if (!animation.id().equals("idle")) continue;
+                for (FrameDefinition frame : animation.frames()) {
+                    if (frame.id().equals("mastered")) return frame;
+                }
+            }
+        }
+        return null;
     }
 
     /** Samples one keyframe transition using smooth transform interpolation. */
@@ -295,7 +350,7 @@ public final class CompositionRenderer {
     }
 
     private record SheetFrame(AppearanceVariant variant, AnimationDefinition animation,
-                              FrameDefinition frame) { }
+                              FrameDefinition frame, boolean inherited) { }
 
     public record RenderedLayer(LayerDefinition layer, Shape outline) {
         public boolean contains(Point point) { return outline.contains(point); }

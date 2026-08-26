@@ -68,8 +68,8 @@ public final class UnitLayerLayouts {
     /**
      * Applies workbench-authored registration for independently selected armor
      * body and helmet families without replacing the active movement/action pose.
-     * Master scale is multiplicative; offset and angle are deltas from the
-     * neutral marine pose shown by the workbench.
+     * Master scale is absolute per body/head part; offset and angle are deltas
+     * from the neutral marine pose shown by the workbench.
      */
     public LayerPose applyArmorMastering(LayerPose pose,
                                          LayeredArmorFamily bodyFamily,
@@ -265,8 +265,7 @@ public final class UnitLayerLayouts {
             target.put(layerId, new LayerTransform(animated.id, animated.spritePath,
                     animated.offsetX + master.offsetX - neutralOffsetX,
                     animated.offsetY + master.offsetY - neutralOffsetY,
-                    animated.scaleX * master.scaleX,
-                    animated.scaleY * master.scaleY,
+                    master.scaleX, master.scaleY,
                     animated.angleDegrees + master.angleDegrees,
                     master.pivotX, master.pivotY,
                     animated.z, animated.visible && master.visible));

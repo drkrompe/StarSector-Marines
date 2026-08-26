@@ -97,6 +97,8 @@ public final class LayerAuthoringWorkbench {
         private final JSpinner offsetY = number(0.0, -5.0, 5.0, 0.005);
         private final JSpinner scaleX = number(1.0, 0.01, 10.0, 0.01);
         private final JSpinner scaleY = number(1.0, 0.01, 10.0, 0.01);
+        private final JButton applyScaleToAllFrames = button(
+                "Apply scale to all frames", event -> applyScaleToAllFrames());
         private final JSpinner angle = number(0.0, -360.0, 360.0, 0.5);
         private final JSpinner pivotX = number(0.5, 0.0, 1.0, 0.01);
         private final JSpinner pivotY = number(0.5, 0.0, 1.0, 0.01);
@@ -296,6 +298,11 @@ public final class LayerAuthoringWorkbench {
             panel.add(row("Offset Y", offsetY));
             panel.add(row("Scale X", scaleX));
             panel.add(row("Scale Y", scaleY));
+            applyScaleToAllFrames.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+            applyScaleToAllFrames.setToolTipText(
+                    "Set this layer id's scale in every authored keyframe of the unit");
+            panel.add(applyScaleToAllFrames);
+            panel.add(Box.createVerticalStrut(5));
             panel.add(row("Angle", angle));
             panel.add(row("Pivot X", pivotX));
             panel.add(row("Pivot Y", pivotY));
@@ -316,7 +323,9 @@ public final class LayerAuthoringWorkbench {
                     + "<b>Canvas</b><br>Click to select<br>Drag layer to position<br>"
                     + "Drag gold handle to rotate<br>"
                     + "Wheel: scale<br>Shift-wheel: X only<br>Alt-wheel: Y only<br>"
-                    + "Ctrl-wheel: rotate<br><br><b>History</b><br>Ctrl+Z: undo<br>"
+                    + "Ctrl-wheel: rotate<br>Apply scale uses the selected part's scale "
+                    + "for every authored keyframe in this unit.<br><br>"
+                    + "<b>History</b><br>Ctrl+Z: undo<br>"
                     + "Ctrl+Shift+Z: redo<br><br><b>Save</b><br>Ctrl+S opens a confirmation "
                     + "before replacing the mod JSON.</html>");
             help.setForeground(new Color(0x55, 0x55, 0x55));
@@ -392,7 +401,7 @@ public final class LayerAuthoringWorkbench {
             AppearanceVariant selectedVariant = null;
             UnitComposition currentUnit = unit();
             if (currentUnit != null) {
-                for (AppearanceVariant candidate : currentUnit.variants()) {
+                for (AppearanceVariant candidate : currentUnit.previewVariants()) {
                     variantBox.addItem(candidate);
                     if (candidate.id().equals(variantId)) selectedVariant = candidate;
                 }
@@ -448,7 +457,7 @@ public final class LayerAuthoringWorkbench {
             variantBox.removeAllItems();
             AppearanceVariant preferred = null;
             if (unit != null) {
-                for (AppearanceVariant variant : unit.variants()) {
+                for (AppearanceVariant variant : unit.previewVariants()) {
                     variantBox.addItem(variant);
                     if (variant.id().equals(preferredVariant)) preferred = variant;
                 }
@@ -513,7 +522,7 @@ public final class LayerAuthoringWorkbench {
 
         private void refreshSelection() {
             if (refreshing) return;
-            canvas.selection(unit(), frame(), layer());
+            showSelectedFrame();
             refreshFields();
         }
 
@@ -534,11 +543,18 @@ public final class LayerAuthoringWorkbench {
                 driver.setSelectedItem(animation().driver());
                 previewPhase.setEnabled(animation().driver() != AnimationDriver.TIME);
             }
+            boolean editable = !inheritedPreview();
+            for (JComponent component : List.of(offsetX, offsetY, scaleX, scaleY,
+                    applyScaleToAllFrames, angle, pivotX, pivotY, z, duration, driver,
+                    visible, loop, sprite)) {
+                component.setEnabled(editable);
+            }
+            applyScaleToAllFrames.setEnabled(editable && layer != null);
             refreshing = false;
         }
 
         private void updateFromFields() {
-            if (refreshing) return;
+            if (refreshing || inheritedPreview()) return;
             LayerDefinition layer = layer();
             FrameDefinition frame = frame();
             if (layer == null || frame == null) return;
@@ -556,8 +572,41 @@ public final class LayerAuthoringWorkbench {
             sheet.repaint();
         }
 
+        private void applyScaleToAllFrames() {
+            stopPlayback();
+            if (rejectInheritedEdit()) return;
+            UnitComposition unit = unit();
+            LayerDefinition selected = layer();
+            if (unit == null || selected == null) return;
+            try {
+                refreshing = true;
+                scaleX.commitEdit();
+                scaleY.commitEdit();
+            } catch (java.text.ParseException failure) {
+                JOptionPane.showMessageDialog(this, failure.getMessage(),
+                        "Invalid scale value", JOptionPane.ERROR_MESSAGE);
+                return;
+            } finally {
+                refreshing = false;
+            }
+
+            double selectedScaleX = value(scaleX);
+            double selectedScaleY = value(scaleY);
+            beginHistoryChange();
+            int matches = unit.applyScaleToAllFrames(selected.id(),
+                    selectedScaleX, selectedScaleY);
+            finishHistoryChange();
+            refreshFields();
+            canvas.repaint();
+            sheet.repaint();
+            status.setText("Applied " + selected.id() + " scale "
+                    + selectedScaleX + " × " + selectedScaleY + " to " + matches
+                    + " authored frame" + (matches == 1 ? "" : "s") + " in "
+                    + unit.label());
+        }
+
         private void updateLoop() {
-            if (refreshing || animation() == null) return;
+            if (refreshing || inheritedPreview() || animation() == null) return;
             beginHistoryChange();
             animation().loop(loop.isSelected());
             finishHistoryChange();
@@ -565,7 +614,7 @@ public final class LayerAuthoringWorkbench {
         }
 
         private void updateDriver() {
-            if (refreshing || animation() == null) return;
+            if (refreshing || inheritedPreview() || animation() == null) return;
             beginHistoryChange();
             animation().driver((AnimationDriver) driver.getSelectedItem());
             finishHistoryChange();
@@ -576,7 +625,7 @@ public final class LayerAuthoringWorkbench {
             if (refreshing || animation() == null || !previewPhase.isEnabled()) return;
             if (play.isSelected()) stopPlayback();
             double phase = previewPhase.getValue() / 1000.0;
-            canvas.preview(unit(), renderer.samplePhase(animation(), phase));
+            canvas.preview(unit(), displayedFrame(renderer.samplePhase(animation(), phase)));
             status.setText(animation().driver() + " "
                     + String.format("%.3f", phase) + " · " + animation().label());
         }
@@ -610,7 +659,7 @@ public final class LayerAuthoringWorkbench {
             refreshing = true;
             previewPhase.setValue((int) Math.round(phase * 1000.0));
             refreshing = false;
-            canvas.preview(unit(), renderer.samplePhase(animation, phase));
+            canvas.preview(unit(), displayedFrame(renderer.samplePhase(animation, phase)));
             status.setText("Previewing " + animation.label() + " · keyframe "
                     + (playbackFrameIndex + 1) + "/" + animation.frames().size());
         }
@@ -631,7 +680,7 @@ public final class LayerAuthoringWorkbench {
             refreshing = true;
             previewPhase.setValue(0);
             refreshing = false;
-            canvas.preview(unit(), renderer.samplePhase(animation, 0.0));
+            canvas.preview(unit(), displayedFrame(renderer.samplePhase(animation, 0.0)));
             status.setText("Previewing " + animation.label());
         }
 
@@ -639,7 +688,7 @@ public final class LayerAuthoringWorkbench {
             play.setSelected(false);
             play.setText("▶ Play");
             frameElapsedMs = 0L;
-            if (canvas != null) canvas.selection(unit(), frame(), layer());
+            if (canvas != null) showSelectedFrame();
         }
 
         private void save() {
@@ -822,6 +871,7 @@ public final class LayerAuthoringWorkbench {
 
         private void duplicateAnimation() {
             stopPlayback();
+            if (rejectInheritedEdit()) return;
             AppearanceVariant variant = variant();
             AnimationDefinition animation = animation();
             if (variant == null || animation == null) return;
@@ -853,6 +903,7 @@ public final class LayerAuthoringWorkbench {
 
         private void deleteAnimation() {
             stopPlayback();
+            if (rejectInheritedEdit()) return;
             AppearanceVariant variant = variant();
             AnimationDefinition animation = animation();
             if (variant == null || animation == null) return;
@@ -884,6 +935,7 @@ public final class LayerAuthoringWorkbench {
 
         private void duplicateFrame() {
             stopPlayback();
+            if (rejectInheritedEdit()) return;
             AnimationDefinition animation = animation();
             FrameDefinition frame = frame();
             if (animation == null || frame == null) return;
@@ -912,6 +964,7 @@ public final class LayerAuthoringWorkbench {
 
         private void deleteFrame() {
             stopPlayback();
+            if (rejectInheritedEdit()) return;
             AnimationDefinition animation = animation();
             FrameDefinition frame = frame();
             if (animation == null || frame == null) return;
@@ -980,6 +1033,35 @@ public final class LayerAuthoringWorkbench {
         private String selectedLayerId() {
             LayerDefinition layer = layer();
             return layer != null ? layer.id() : null;
+        }
+
+        private boolean inheritedPreview() {
+            UnitComposition unit = unit();
+            return unit != null && unit.isInheritedPreview(variant());
+        }
+
+        private FrameDefinition displayedFrame(FrameDefinition source) {
+            return source != null && inheritedPreview()
+                    ? renderer.composeAnimationPreview(unit(), source) : source;
+        }
+
+        private void showSelectedFrame() {
+            FrameDefinition displayed = displayedFrame(frame());
+            if (inheritedPreview()) {
+                canvas.preview(unit(), displayed);
+                UnitComposition source = unit().animationSource();
+                status.setText("Previewing inherited animation from " + source.label()
+                        + " · select Field loadout to edit armor mastering");
+            } else {
+                canvas.selection(unit(), displayed, layer());
+            }
+        }
+
+        private boolean rejectInheritedEdit() {
+            if (!inheritedPreview()) return false;
+            status.setText("Inherited animation is preview-only; edit it on "
+                    + unit().animationSource().label());
+            return true;
         }
 
         private static JButton button(String label,
