@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.ops.detachment;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
-import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarineArmory;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldier;
@@ -143,8 +142,7 @@ public final class DebugCompany {
                 if (secondary != null) {
                     armory.unlockSecondary(secondary);
                 }
-                MarineArmorPattern pattern = armorDoctrine.issue(billet);
-                armory.unlockArmor(pattern);
+                armory.unlockArmor(armorDoctrine.issueId(billet));
             }
         }
     }
