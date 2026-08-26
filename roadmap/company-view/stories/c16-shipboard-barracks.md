@@ -22,6 +22,8 @@ mutation; deliberate billet inspection and loadout editing remain in Fleet Armor
 - Keep the room simulation presentation-only: no battle AI, combat, recovery clock,
   stationing, roster, or equipment mutation.
 - Produce deterministic headless evidence without requiring Starsector or OpenGL.
+- Put ready room actors in the bounded `BattleSimulation`, and collect the same
+  battle-renderer command passes for live and headless output.
 
 ## Acceptance
 
@@ -33,6 +35,8 @@ mutation; deliberate billet inspection and loadout editing remain in Fleet Armor
 - WIA marines remain named with RTD time but do not appear as ready room actors.
 - Stationed squads leave the room empty and say why.
 - The Barracks wide snapshot is deterministic and the existing UI suite remains green.
+- The snapshot contains the actual room simulation's tiles, props, camera projection,
+  and layered marine actors rather than a tooling-only reconstruction.
 
 ## Follow-up questions
 

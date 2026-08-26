@@ -61,10 +61,12 @@ final class StarsectorCanvasContext extends CanvasContext {
         float textureWidth = sprite.getTextureWidth();
         float textureHeight = sprite.getTextureHeight();
         try {
-            sprite.setTexX(region.x() * textureWidth);
-            sprite.setTexY(region.y() * textureHeight);
-            sprite.setTexWidth(region.width() * textureWidth);
-            sprite.setTexHeight(region.height() * textureHeight);
+            sprite.setTexX((region.x() + (region.flipX() ? region.width() : 0f))
+                    * textureWidth);
+            sprite.setTexY((region.y() + (region.flipY() ? region.height() : 0f))
+                    * textureHeight);
+            sprite.setTexWidth(region.width() * textureWidth * (region.flipX() ? -1f : 1f));
+            sprite.setTexHeight(region.height() * textureHeight * (region.flipY() ? -1f : 1f));
             sprite.setSize(width * metrics.scaleX() * viewport.documentScale(),
                     height * metrics.scaleY() * viewport.documentScale());
             sprite.setAngle(angleDegrees);

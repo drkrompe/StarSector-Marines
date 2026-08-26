@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef.LayerClips;
@@ -440,11 +441,11 @@ public final class UnitRenderService implements RenderSystem {
                     float cy = cam.cellToScreenY(ry[r]);
                     MarineSecondary secondary = secSpec != null
                             ? (MarineSecondary) secSpec[r] : null;
-                    LayerPose authoredPose = infantryPose(type.drawsLayeredWeapon(),
-                            secondary, layeredPose[r],
+                    LayerPose authoredPose = infantryPose(sprites.unitLayerLayouts(),
+                            type.drawsLayeredWeapon(), secondary, layeredPose[r],
                             layeredLocomotion[r], layeredWeaponPhase[r], layeredFlags[r]);
                     LayeredUnitComposer.emit(out, layeredAssets, layeredHeadAssets.head,
-                            primaryWeapon != null ? (MarineWeapon) primaryWeapon[r] : null,
+                            compatibilityPrimary(primaryWeapon != null ? primaryWeapon[r] : null),
                             type.drawsLayeredWeapon(),
                             secondary,
                             equipmentGrade != null ? (EquipmentGrade) equipmentGrade[r]
@@ -478,6 +479,24 @@ public final class UnitRenderService implements RenderSystem {
                         rx[r], ry[r], unitSize, unitAlpha);
             }
         }
+    }
+
+    /**
+     * Layered infantry art still uses the built-in weapon-family bridge. The
+     * authoritative COMBAT column now stores {@link WeaponDef}; contributed
+     * definitions without a built-in compatibility identity deliberately use
+     * the ordinary rifle silhouette until weapon defs own their render family.
+     */
+    private static MarineWeapon compatibilityPrimary(Object primary) {
+        if (primary instanceof MarineWeapon weapon) return weapon;
+        if (primary instanceof WeaponDef definition) {
+            try {
+                return MarineWeapon.fromId(definition.id);
+            } catch (IllegalArgumentException ignored) {
+                return null;
+            }
+        }
+        return null;
     }
 
     static LayerPose infantryPose(boolean drawsLayeredWeapon, MarineSecondary secondary,

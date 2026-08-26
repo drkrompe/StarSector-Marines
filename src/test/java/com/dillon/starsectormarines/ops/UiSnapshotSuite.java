@@ -11,7 +11,10 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.ops.battleview.ArmoryMarinePreviewCanvas;
 import com.dillon.starsectormarines.ops.battleview.BarracksCanvas;
+import com.dillon.starsectormarines.ops.battleview.BarracksBattleScene;
+import com.dillon.starsectormarines.ops.battleview.HeadlessBattleSceneRenderer;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
+import com.dillon.starsectormarines.ops.battleview.MechLabBattleScene;
 import com.dillon.starsectormarines.ops.battleview.MechLabDollCanvas;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
@@ -70,7 +73,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
-        HeadlessUiRenderer renderer = new HeadlessUiRenderer(
+        HeadlessBattleSceneRenderer battleScenes =
+                new HeadlessBattleSceneRenderer(context.modRoot());
+        HeadlessUiRenderer renderer = new HeadlessUiRenderer(battleScenes,
                 context.modRoot(), context.starsectorCore());
         return List.of(
                 new SnapshotArtifact("company-hq-bridge-wide.png",
@@ -165,17 +170,14 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), BARRACKS_COMPONENTS);
         loader.reload();
-        HeadlessArmoryPreviewRenderer preview =
-                new HeadlessArmoryPreviewRenderer(context.modRoot());
-
         try (MarkupInstance instance = loader.build(
                 reactor, "shipboard-barracks", props(viewModel))) {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
             document.canvases().set(instance.requireElement("barracks-canvas"),
-                    new BarracksCanvas(viewModel::sceneMarines, preview.assets(),
-                            null, null, () -> 0d));
+                    new BarracksCanvas(viewModel::sceneMarines,
+                            new BarracksBattleScene()));
             return renderRelative(renderer, document, width, height, 1f);
         }
     }
@@ -337,7 +339,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                             MechLabDollCanvas::headlessAssets,
                             () -> technicianPreview.assets().layered(
                                     MarineArmorPattern.ARMY_GREEN),
-                            () -> null, () -> null, null, () -> 0d));
+                            () -> null, () -> null, new MechLabBattleScene(), () -> 0d));
             return renderRelative(renderer, document, width, height, uiScale);
         }
     }

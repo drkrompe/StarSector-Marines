@@ -118,9 +118,20 @@ public final class MechLabDollCanvas implements CanvasProducer {
         if (selected == null || sprites == null) return;
 
         CanvasHostViewport[] liveViewport = new CanvasHostViewport[1];
-        boolean liveScene = battleScene != null && context.hostPass((viewport, alphaMult) -> {
-            liveViewport[0] = viewport;
-            battleScene.renderBackdrop(viewport, lance, gantryIndex, alphaMult);
+        BattleSceneHostPass backdrop = battleScene != null
+                ? battleScene.backdropPass(lance, gantryIndex) : null;
+        boolean liveScene = backdrop != null && context.hostPass(new BattleSceneHostPass() {
+            @Override
+            public BattleSceneFrame prepare(CanvasHostViewport viewport, float alphaMult) {
+                liveViewport[0] = viewport;
+                return backdrop.prepare(viewport, alphaMult);
+            }
+
+            @Override
+            public void draw(CanvasHostViewport viewport, float alphaMult) {
+                liveViewport[0] = viewport;
+                backdrop.draw(viewport, alphaMult);
+            }
         });
         SceneProjection projection;
         BattleCamera sceneCamera;
@@ -136,8 +147,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         }
 
         if (liveScene) {
-            context.hostPass((viewport, alphaMult) ->
-                    battleScene.renderActors(viewport, lance, gantryIndex, alphaMult));
+            context.hostPass(battleScene.actorPass(lance, gantryIndex));
         } else {
             drawLance(context, sceneCamera, height, sprites, lance);
             drawTechnicians(context, sceneCamera, height, projection.cellX(),
