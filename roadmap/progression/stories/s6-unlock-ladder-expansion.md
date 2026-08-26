@@ -274,8 +274,9 @@ Where a milestone gate is still the right tool, gate on more than a count:
 - Every authored weapon, grade, special item, and armor pattern is reachable,
   enforced by the stranded-asset test.
 - The shipped safety net targets 19 cards at victory 5, 23 at victory 15, 27 at
-  victory 30, and 28 at victory 40, leaving four current cards to active
-  collection after the post-30 rung.
+  victory 30, and 28 at victory 40. With the nine faction armor patterns added by
+  `powered-assault-armor-roles.md`, thirteen of the current forty-one cards remain
+  for active collection after the post-30 rung.
 - Advanced capability is not reachable by unrestricted money alone. Market
   cards may still require faction access, licensing, or operational discovery.
 - Every core faction has at least one reachable, recognizable template-provenance

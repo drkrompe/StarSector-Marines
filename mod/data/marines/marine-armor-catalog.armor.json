@@ -23,6 +23,50 @@
       "battle": { "appearanceFamily": "CHARCOAL", "armorPool": 9.0, "armorRating": 8.0, "moveSpeedMult": 0.96, "incomingAccuracyMult": 0.96 }
     },
     {
+      "id": "armor.aegis-composite",
+      "catalog": {
+        "displayName": "Aegis composite line suit",
+        "unitClass": "LINE",
+        "description": "Tri-Tachyon's Aegis exchanges thick conventional plate for laminated composites, predictive threat displays, and powered balance correction. It cannot absorb a slugging match like Legionary armor, but it moves quickly and presents a difficult firing solution.",
+        "tier": 3,
+        "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
+      },
+      "battle": { "appearanceFamily": "BLUE_SCOUT", "armorPool": 9.0, "armorRating": 7.0, "moveSpeedMult": 1.02, "incomingAccuracyMult": 0.91 }
+    },
+    {
+      "id": "armor.palatine",
+      "catalog": {
+        "displayName": "Palatine legacy line suit",
+        "unitClass": "LINE",
+        "description": "Church armorers rebuild Palatine suits from inherited pressure shells, hand-fitted ceramic, and carefully husbanded powered joints. The result is slow and laborious to maintain, but unusually resistant once a sanctioned guardian sets their feet.",
+        "tier": 3,
+        "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
+      },
+      "battle": { "appearanceFamily": "ARMY_GREEN", "armorPool": 8.0, "armorRating": 10.0, "moveSpeedMult": 0.91, "incomingAccuracyMult": 0.98 }
+    },
+    {
+      "id": "armor.furnace-line",
+      "catalog": {
+        "displayName": "Furnace state line suit",
+        "unitClass": "LINE",
+        "description": "Sindrian Furnace armor surrounds a conventional pressure frame with thick petrochemical laminate and conspicuous state fittings. It carries more sacrificial plate than its peers, while heat, weight, and an unsubtle silhouette punish prolonged maneuver.",
+        "tier": 3,
+        "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
+      },
+      "battle": { "appearanceFamily": "RED_ELITE", "armorPool": 12.0, "armorRating": 7.0, "moveSpeedMult": 0.93, "incomingAccuracyMult": 0.99 }
+    },
+    {
+      "id": "armor.reaver",
+      "catalog": {
+        "displayName": "Reaver reinforced rig",
+        "unitClass": "RAIDER",
+        "description": "A Reaver rig is a Blackforge frame that survived long enough to acquire powered bracing and another generation of ship plate. It is fast for its bulk and can soak punishment, but poor material matching gives penetrators few reasons to stop.",
+        "tier": 3,
+        "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
+      },
+      "battle": { "appearanceFamily": "OUTLAW", "armorPool": 13.0, "armorRating": 5.0, "moveSpeedMult": 0.97, "incomingAccuracyMult": 0.96 }
+    },
+    {
       "id": "armor.scout",
       "catalog": {
         "displayName": "Janus scout suit",
@@ -43,6 +87,61 @@
         "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
       },
       "battle": { "appearanceFamily": "RED_ELITE", "armorPool": 20.0, "armorRating": 12.0, "moveSpeedMult": 0.86, "incomingAccuracyMult": 0.98 }
+    },
+    {
+      "id": "armor.specter-heavy",
+      "catalog": {
+        "displayName": "Specter composite battlesuit",
+        "unitClass": "ASSAULT",
+        "description": "The Specter is a corporate breach shell built around high-output joints, composite armor, and continuous threat prediction. It gives up the XIV pattern's raw staying power to cross exposed ground faster and remain unexpectedly elusive for a walking tank.",
+        "tier": 4,
+        "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
+      },
+      "battle": { "appearanceFamily": "BLUE_SCOUT", "armorPool": 19.0, "armorRating": 10.0, "moveSpeedMult": 0.94, "incomingAccuracyMult": 0.90 }
+    },
+    {
+      "id": "armor.bulwark-heavy",
+      "catalog": {
+        "displayName": "Bulwark coalition battlesuit",
+        "unitClass": "ASSAULT",
+        "description": "The League's Bulwark program favors modular plate blocks, replaceable actuators, and control standards that member worlds can reproduce. It lacks any one spectacular advantage and instead preserves credible protection, handling, and coalition repairability together.",
+        "tier": 4,
+        "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
+      },
+      "battle": { "appearanceFamily": "CHARCOAL", "armorPool": 20.0, "armorRating": 11.0, "moveSpeedMult": 0.90, "incomingAccuracyMult": 0.95 }
+    },
+    {
+      "id": "armor.reliquary-heavy",
+      "catalog": {
+        "displayName": "Reliquary consecrated battlesuit",
+        "unitClass": "ASSAULT",
+        "description": "Each Reliquary shell is an artisan-restored legacy machine entrusted only to a Knight who has passed the Church's trials of custody. Dense fitted armor turns aside heavy fire, but conservative governors and immense mass make the wearer deliberate rather than swift.",
+        "tier": 4,
+        "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
+      },
+      "battle": { "appearanceFamily": "ARMY_GREEN", "armorPool": 16.0, "armorRating": 14.0, "moveSpeedMult": 0.82, "incomingAccuracyMult": 0.97 }
+    },
+    {
+      "id": "armor.lions-mantle",
+      "catalog": {
+        "displayName": "Lion's Mantle guard battlesuit",
+        "unitClass": "ASSAULT",
+        "description": "Lion's Mantle suits carry thick Sindrian laminates, oversized cooling loops, and enough polished state ornament to make concealment irrelevant. Privileged logistics buy an enormous armor reserve; weight and silhouette leave the operator dependent on a disciplined advance.",
+        "tier": 4,
+        "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
+      },
+      "battle": { "appearanceFamily": "RED_ELITE", "armorPool": 23.0, "armorRating": 10.0, "moveSpeedMult": 0.83, "incomingAccuracyMult": 1.01 }
+    },
+    {
+      "id": "armor.foundry-breaker",
+      "catalog": {
+        "displayName": "Foundry-breaker industrial rig",
+        "unitClass": "ASSAULT",
+        "description": "Foundry-breakers begin as cargo exoskeletons and end beneath welded ship plate, illicit servos, and whatever shock padding a raider cell can steal. The crude mass takes extraordinary punishment before coming apart, but offers poor resistance and nearly no tactical grace.",
+        "tier": 4,
+        "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
+      },
+      "battle": { "appearanceFamily": "OUTLAW", "armorPool": 27.0, "armorRating": 6.0, "moveSpeedMult": 0.80, "incomingAccuracyMult": 1.00 }
     },
     {
       "id": "armor.outlaw",

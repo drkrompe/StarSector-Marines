@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
+import com.dillon.starsectormarines.marine.SquadEquipmentResult;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import org.junit.jupiter.api.Test;
 
@@ -12,6 +14,24 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BarracksViewModelTest {
+
+    @Test
+    void additiveArmorPatternsRenderFromTheCatalogRatherThanAnEnumHandle() {
+        MarineRoster roster = new MarineRoster();
+        roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
+        roster.armory().unlockArmor("armor.aegis-composite");
+        MarineSquad squad = roster.squads().stream()
+                .filter(candidate -> !candidate.reserve()).findFirst().orElseThrow();
+        assertEquals(SquadEquipmentResult.APPLIED, roster.applySquadEquipment(
+                squad.id(), SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,
+                SquadEquipmentDoctrines.CORPORATE_LINE_ARMOR));
+
+        BarracksViewModel viewModel = new BarracksViewModel(
+                new Reactor(), roster, () -> 100d);
+
+        assertTrue(viewModel.musterRows().get().stream()
+                .allMatch(row -> row.detail().contains("Aegis composite line suit")));
+    }
 
     @Test
     void selectionBrowsesSquadsAndWoundedPersonnelLeaveTheRoomButKeepTheirBillet() {
