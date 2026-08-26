@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.combat.DurabilityModel;
+import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
@@ -47,6 +48,11 @@ class SquadEquipmentDoctrineTest {
                 MarineArmorCatalogRegistry.require("armor.furnace-line");
         MarineArmorCatalogDef outlawLine = MarineArmorCatalogRegistry.require("armor.reaver");
         assertEquals(3, corporateLine.tier());
+        assertEquals(LayeredArmorFamily.AEGIS_COMPOSITE,
+                corporateLine.appearanceFamily());
+        assertEquals(LayeredArmorFamily.PALATINE, churchLine.appearanceFamily());
+        assertEquals(LayeredArmorFamily.FURNACE_LINE, diktatLine.appearanceFamily());
+        assertEquals(LayeredArmorFamily.REAVER, outlawLine.appearanceFamily());
         assertTrue(corporateLine.moveSpeedMult() > hegemonyLine.moveSpeedMult());
         assertTrue(corporateLine.incomingAccuracyMult()
                 < hegemonyLine.incomingAccuracyMult());
@@ -65,6 +71,17 @@ class SquadEquipmentDoctrineTest {
         MarineArmorCatalogDef foundry =
                 MarineArmorCatalogRegistry.require("armor.foundry-breaker");
         assertEquals(4, specter.tier());
+        assertEquals(LayeredArmorFamily.SPECTER_HEAVY, specter.appearanceFamily());
+        assertEquals(LayeredArmorFamily.BULWARK_HEAVY,
+                MarineArmorCatalogRegistry.require("armor.bulwark-heavy")
+                        .appearanceFamily());
+        assertEquals(LayeredArmorFamily.RELIQUARY_HEAVY,
+                reliquary.appearanceFamily());
+        assertEquals(LayeredArmorFamily.LIONS_MANTLE,
+                MarineArmorCatalogRegistry.require("armor.lions-mantle")
+                        .appearanceFamily());
+        assertEquals(LayeredArmorFamily.FOUNDRY_BREAKER,
+                foundry.appearanceFamily());
         assertTrue(specter.moveSpeedMult() > xiv.moveSpeedMult());
         assertTrue(specter.armorPool() < xiv.armorPool());
         assertTrue(reliquary.armorRating() > xiv.armorRating());

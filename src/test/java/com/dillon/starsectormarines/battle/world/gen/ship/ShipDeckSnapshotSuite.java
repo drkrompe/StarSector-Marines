@@ -4,7 +4,10 @@ import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.ship.fit.RoomFit;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import com.dillon.starsectormarines.battle.world.tiles.FixedGridTileDrawer;
+import com.dillon.starsectormarines.battle.world.tiles.Graphics2DTileSink;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+import com.dillon.starsectormarines.battle.world.tiles.TileSink;
 import org.json.JSONObject;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
@@ -16,8 +19,13 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import javax.imageio.ImageIO;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -50,8 +58,15 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
     private static final Color FIXTURE = new Color(0x0d, 0x11, 0x17, 0xc4);
     private static final Color FIXTURE_EDGE = new Color(0xff, 0xff, 0xff, 0x2a);
 
+    /** Sheets the fill draws from, loaded once and shared across every plan. */
+    private static final Map<String, BufferedImage> SHEETS = new HashMap<>();
+
     /** The hull the refit comparison is drawn on: small enough to read three of side by side. */
     private static final String REFIT_HULL = "wolf";
+    /** The hull whose rooms are shown close up; it carries the widest spread of purposes. */
+    private static final String DETAIL_HULL = "valkyrie";
+    /** Cell size for the close-up sheet. Deck plans are for layout; this is for the fill. */
+    private static final int DETAIL_CELL = 22;
 
     /**
      * One colour per kind of room, because that is the question these plans are
@@ -106,6 +121,9 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
                         + hull.lift() + " lift, " + hull.cargo() + " cargo";
                 artifacts.add(plan(hull.id(), hull.silhouette(), deckPlan,
                         complement, RoomFit.STANDARD));
+                if (hull.id().equals(DETAIL_HULL)) {
+                    artifacts.add(roomDetail(hull.silhouette(), deckPlan));
+                }
                 if (hull.id().equals(REFIT_HULL)) {
                     // The same hull at three fittings, which is the upgrade
                     // chain: identical rooms, different capacity.
@@ -132,6 +150,99 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
         BufferedImage image = renderPlan(map, generator.getLastDeckProfile(),
                 generator.getLastDeckGraph(), name, deckPlan, complement, fit);
         return new SnapshotArtifact("ship-deck-" + name + ".png", image);
+    }
+
+    /**
+     * One compartment of each kind, drawn large enough to see what is in it.
+     *
+     * <p>A deck plan answers where the rooms are; it cannot answer whether a
+     * room looks like the thing it claims to be, because at deck scale a bunk
+     * and a crate are the same four pixels. This is the sheet the fill is
+     * actually judged on.
+     */
+    private static SnapshotArtifact roomDetail(HullSilhouette silhouette,
+                                               DeckSizing.DeckPlan deckPlan) {
+        ShipDeckGenerator generator = new ShipDeckGenerator();
+        MapResult map = generator.generateDeck(deckPlan, SEED, silhouette, RoomFit.STANDARD);
+        DeckGraph graph = generator.getLastDeckGraph();
+
+        // One example of each purpose, largest first so the example is a
+        // room of that kind rather than the smallest scrap of one.
+        Map<RoomPurpose, DeckGraph.Compartment> byPurpose = new LinkedHashMap<>();
+        List<DeckGraph.Compartment> ordered = new ArrayList<>(graph.compartments());
+        ordered.sort(Comparator.comparingInt(DeckGraph.Compartment::area).reversed());
+        for (DeckGraph.Compartment compartment : ordered) {
+            byPurpose.putIfAbsent(compartment.purpose(), compartment);
+        }
+
+        int margin = 10;
+        int caption = 20;
+        Font font = new Font(Font.SANS_SERIF, Font.PLAIN, 12);
+        int columns = 3;
+        int cellWidth = 0;
+        int cellHeight = 0;
+        for (DeckGraph.Compartment c : byPurpose.values()) {
+            cellWidth = Math.max(cellWidth, (c.width() + 2) * DETAIL_CELL);
+            cellHeight = Math.max(cellHeight, (c.depth() + 2) * DETAIL_CELL + caption);
+        }
+        int rows = (byPurpose.size() + columns - 1) / columns;
+        BufferedImage image = new BufferedImage(
+                margin * 2 + columns * (cellWidth + margin),
+                margin * 2 + rows * (cellHeight + margin),
+                BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = image.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        g.setColor(HULL);
+        g.fillRect(0, 0, image.getWidth(), image.getHeight());
+        g.setFont(font);
+
+        int index = 0;
+        for (Map.Entry<RoomPurpose, DeckGraph.Compartment> entry : byPurpose.entrySet()) {
+            DeckGraph.Compartment c = entry.getValue();
+            int ox = margin + (index % columns) * (cellWidth + margin);
+            int oy = margin + (index / columns) * (cellHeight + margin);
+            index++;
+
+            g.setColor(LABEL);
+            g.drawString(entry.getKey().name().toLowerCase().replace('_', ' ')
+                    + "  " + c.width() + "x" + c.depth(), ox, oy + 13);
+            int top = oy + caption;
+            for (int y = -1; y <= c.depth(); y++) {
+                for (int x = -1; x <= c.width(); x++) {
+                    boolean floor = c.contains(c.left() + x, c.top() + y);
+                    g.setColor(floor ? ROOM_COLORS.getOrDefault(entry.getKey(), UNKNOWN_ROOM)
+                            : STRUCTURE);
+                    g.fillRect(ox + (x + 1) * DETAIL_CELL, top + (y + 1) * DETAIL_CELL,
+                            DETAIL_CELL, DETAIL_CELL);
+                    g.setColor(GRID_LINE);
+                    g.drawRect(ox + (x + 1) * DETAIL_CELL, top + (y + 1) * DETAIL_CELL,
+                            DETAIL_CELL, DETAIL_CELL);
+                }
+            }
+            for (DeckGraph.Compartment.Door door : c.doors()) {
+                g.setColor(CORRIDOR);
+                g.fillRect(ox + (door.x() - c.left() + 1) * DETAIL_CELL,
+                        top + (door.y() - c.top() + 1) * DETAIL_CELL,
+                        DETAIL_CELL, DETAIL_CELL);
+            }
+            for (Doodad doodad : map.doodads) {
+                if (!c.contains(doodad.cellX, doodad.cellY)) continue;
+                int w = Math.max(1, doodad.footprintCellsX) * DETAIL_CELL;
+                int h = Math.max(1, doodad.footprintCellsY) * DETAIL_CELL;
+                int dx = ox + (doodad.cellX - c.left() + 1) * DETAIL_CELL;
+                int dy = top + (doodad.cellY - c.top() + 1) * DETAIL_CELL;
+                BufferedImage sheet = sheet(doodad.sheetPath);
+                if (sheet == null) continue;
+                new FixedGridTileDrawer(doodad.sourceCellPx).drawSpan(
+                        new Graphics2DTileSink(g, sheet), doodad.tile,
+                        doodad.footprintCellsX, doodad.footprintCellsY,
+                        dx + w / 2f, dy + h / 2f, w, h, 1f,
+                        FixedGridTileDrawer.OVERLAY_INSET_PX);
+            }
+        }
+        g.dispose();
+        return new SnapshotArtifact("ship-rooms-detail.png", image);
     }
 
     /**
@@ -192,7 +303,7 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
             }
         }
 
-        drawFixtures(g, map, margin);
+        drawFixtures(g, map, margin, CELL);
         drawZoneCuts(g, profile, font, margin, width, height);
         markSpawn(g, margin, map.marineSpawnX, map.marineSpawnY, new Color(0x66, 0xd9, 0xef));
         markSpawn(g, margin, map.defenderSpawnX, map.defenderSpawnY, new Color(0xef, 0x5f, 0x5f));
@@ -206,20 +317,47 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
     }
 
     /**
-     * Fixtures, drawn over the room colour rather than replacing it, so both the
-     * kind of room and how densely it is fitted read from the same picture.
+     * Fixtures, drawn as the sprites they actually are.
+     *
+     * <p>Blocks were enough to check that a room was furnished and useless for
+     * checking whether it looks like a room. Drawing the real art through the
+     * same {@link FixedGridTileDrawer} the game uses is what makes the fill
+     * judgeable — a bunk that reads as a bed, a rack that reads as a rack, and
+     * a prop borrowed from the wrong set that reads as exactly that.
+     *
+     * <p>Falls back to a block where a sheet is missing, so evidence still comes
+     * out on a machine without the art rather than failing the whole suite.
      */
-    private static void drawFixtures(Graphics2D g, MapResult map, int margin) {
+    private static void drawFixtures(Graphics2D g, MapResult map, int margin, int cellPx) {
         for (Doodad doodad : map.doodads) {
-            int w = Math.max(1, doodad.footprintCellsX) * CELL;
-            int h = Math.max(1, doodad.footprintCellsY) * CELL;
-            int x = margin + doodad.cellX * CELL;
-            int y = margin + doodad.cellY * CELL;
-            g.setColor(FIXTURE);
-            g.fillRect(x + 1, y + 1, w - 2, h - 2);
-            g.setColor(FIXTURE_EDGE);
-            g.drawRect(x + 1, y + 1, w - 2, h - 2);
+            int w = Math.max(1, doodad.footprintCellsX) * cellPx;
+            int h = Math.max(1, doodad.footprintCellsY) * cellPx;
+            int x = margin + doodad.cellX * cellPx;
+            int y = margin + doodad.cellY * cellPx;
+            BufferedImage sheet = sheet(doodad.sheetPath);
+            if (sheet == null) {
+                g.setColor(FIXTURE);
+                g.fillRect(x + 1, y + 1, w - 2, h - 2);
+                g.setColor(FIXTURE_EDGE);
+                g.drawRect(x + 1, y + 1, w - 2, h - 2);
+                continue;
+            }
+            TileSink sink = new Graphics2DTileSink(g, sheet);
+            new FixedGridTileDrawer(doodad.sourceCellPx).drawSpan(
+                    sink, doodad.tile, doodad.footprintCellsX, doodad.footprintCellsY,
+                    x + w / 2f, y + h / 2f, w, h, 1f, FixedGridTileDrawer.OVERLAY_INSET_PX);
         }
+    }
+
+    private static BufferedImage sheet(String sheetPath) {
+        return SHEETS.computeIfAbsent(sheetPath, path -> {
+            try {
+                Path file = Paths.get("mod").resolve(path);
+                return Files.isRegularFile(file) ? ImageIO.read(file.toFile()) : null;
+            } catch (Exception missing) {
+                return null;
+            }
+        });
     }
 
     /**

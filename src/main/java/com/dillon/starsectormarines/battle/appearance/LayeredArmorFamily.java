@@ -19,7 +19,17 @@ public enum LayeredArmorFamily {
     /** Worn field-lab clothing and a compact research headset. */
     SCIENTIST,
     /** Dark chitinous body, skull carapace, and digitigrade feet for alien actors. */
-    XENO;
+    XENO,
+    /** Additive faction patterns append after every persisted legacy ordinal. */
+    AEGIS_COMPOSITE,
+    PALATINE,
+    FURNACE_LINE,
+    REAVER,
+    SPECTER_HEAVY,
+    BULWARK_HEAVY,
+    RELIQUARY_HEAVY,
+    LIONS_MANTLE,
+    FOUNDRY_BREAKER;
 
     public static LayeredArmorFamily spawnDefault(UnitType type) {
         switch (type) {

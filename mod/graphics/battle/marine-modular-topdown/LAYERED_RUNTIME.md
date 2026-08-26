@@ -45,8 +45,9 @@ owns the shot.
 
 ## Armor families and spawn defaults
 
-The cache loads armorless fatigues/bare head, charcoal, field-blue scout, red elite,
-outlaw, army green, and militia families. Body and head selectors are separate, so a head can be mixed
+The cache loads armorless fatigues/bare head, the seven compatibility families, and nine
+concrete faction-pattern families: Aegis, Palatine, Furnace, Reaver, Specter, Bulwark,
+Reliquary, Lion's Mantle, and Foundry-breaker. Body and head selectors are separate, so a head can be mixed
 with any body at runtime. Unit type supplies only a default:
 
 - `MARINE`: charcoal armor.

@@ -12,6 +12,15 @@ Armor families:
 - `armor/outlaw/` — asymmetric repaired red/brown salvage armor.
 - `armor/army-green/` — standardized faded olive-drab campaign armor.
 - `armor/militia/` — civilian-industrial plates, carrier, and helmet.
+- `armor/aegis/` — sleek Tri-Tachyon composite line armor with an EW blister.
+- `armor/palatine/` — artisan-restored Church line armor in ivory ceramic and brass.
+- `armor/furnace-line/` — petro-industrial Sindrian line armor with cooling hardware.
+- `armor/reaver/` — coherent but asymmetric outlaw line armor rebuilt from ship plate.
+- `armor/specter-heavy/` — tapered Tri-Tachyon composite walking-tank armor.
+- `armor/bulwark-heavy/` — reproducible League modular heavy plate blocks.
+- `armor/reliquary-heavy/` — dense consecrated Church legacy battlesuit armor.
+- `armor/lions-mantle/` — conspicuous Lion's Guard prestige heavy armor.
+- `armor/foundry-breaker/` — cargo exoframe buried beneath crude welded heavy plate.
 
 Weapons:
 
@@ -66,3 +75,6 @@ background, and an existing accepted layer used only as geometry/style reference
 `build_variants.py` normalizes the retained alpha originals in `sources/` and rebuilds
 these runtime sprites plus ignored build-tree previews. Chroma-key intermediates are
 deliberately discarded.
+
+The exact source prompts and reference lineage for the additive faction patterns live in
+`sources/faction-armor/PROMPTS.md` beside their retained ImageGen source layers.
