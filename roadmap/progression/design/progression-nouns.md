@@ -432,11 +432,13 @@ attacker.
 Telemetry survives a combatant's death transition. At mission end,
 the gathered report is immutable and detached from battle entity handles.
 `MissionOutcome` freezes only campaign-marine rows for campaign use, while the
-full report remains a balance readout. `MarineRoster.applySoldierOutcome` uses
-the outcome manifest to count every deployed marine, then folds any available
-telemetry into `SoldierCareer`. Thus deployment is not inferred from having
-fired, and a fallen marine retains the record of their final mission. Career
-retention is deliberately lifetime totals rather than a per-mission journal.
+full report remains an opt-in balance readout at `MissionResolver` DEBUG log
+level; normal INFO logging does not emit its per-unit table.
+`MarineRoster.applySoldierOutcome` uses the outcome manifest to count every
+deployed marine, then folds any available telemetry into `SoldierCareer`. Thus
+deployment is not inferred from having fired, and a fallen marine retains the
+record of their final mission. Career retention is deliberately lifetime totals
+rather than a per-mission journal.
 
 The standing law is **outcome declares participation; telemetry supplies
 evidence**. Telemetry must never become the authority for campaign identity,
