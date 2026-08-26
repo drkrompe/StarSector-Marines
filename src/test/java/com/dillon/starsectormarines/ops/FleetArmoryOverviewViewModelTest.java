@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.marine.EquipmentAcquisitionEligibility;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
@@ -46,6 +47,33 @@ class FleetArmoryOverviewViewModelTest {
 
         card.open().run();
         assertEquals(1, opens.get());
+    }
+
+    @Test
+    void landingViewExplainsCollectionBandsAndNextAccessGates() {
+        MarineRoster roster = new MarineRoster();
+        FleetArmoryOverviewViewModel opening = new FleetArmoryOverviewViewModel(
+                new Reactor(), roster, () -> { }, () -> 0d,
+                () -> new EquipmentAcquisitionEligibility.Progress(4, 4));
+
+        assertTrue(opening.templateCollectionSummary().get().contains("14 / 32 known"));
+        assertTrue(opening.templateCollectionSummary().get().contains("Common"));
+        assertTrue(opening.templateCollectionSummary().get().contains("Advanced"));
+        assertTrue(opening.templateCollectionSummary().get().contains("Prestige"));
+        assertEquals("CURRENT ACCESS  ·  Licensed / patron Common at MRB +4"
+                        + "  ·  Recovery Common at 4 victories  ·  Open market Common only",
+                opening.accessStatusSummary().get());
+        assertEquals("NEXT ACCESS  ·  Advanced licensed / patron at MRB +5"
+                        + "  ·  Advanced recovery after 5 victories"
+                        + "  ·  Licensed stock requires Favorable faction standing",
+                opening.accessNextSummary().get());
+
+        FleetArmoryOverviewViewModel cleared = new FleetArmoryOverviewViewModel(
+                new Reactor(), roster, () -> { }, () -> 0d,
+                () -> new EquipmentAcquisitionEligibility.Progress(15, 20));
+        assertEquals("All reputation and operational access bands cleared."
+                        + "  ·  Licensed stock still requires Favorable faction standing.",
+                cleared.accessNextSummary().get());
     }
 
     @Test
@@ -96,6 +124,9 @@ class FleetArmoryOverviewViewModelTest {
     private static Map<String, Object> props(FleetArmoryOverviewViewModel viewModel) {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("fleetSummary", viewModel.fleetSummary());
+        props.put("templateCollectionSummary", viewModel.templateCollectionSummary());
+        props.put("accessStatusSummary", viewModel.accessStatusSummary());
+        props.put("accessNextSummary", viewModel.accessNextSummary());
         props.put("companyCards", viewModel.companyCards());
         putPageNavigation(props);
         return props;

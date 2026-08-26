@@ -2,7 +2,7 @@
 
 Status: ACTIVE — 12 open stories
 Written: 2026-08-23
-Updated: 2026-08-26 — shipped S6 shared access tiers; richer achievement gates and live pacing acceptance remain.
+Updated: 2026-08-26 — shipped S6 access-tier visibility and the faction armor side-grade catalog.
 
 Read `progression-nouns.md` before changing a progression story.
 
@@ -15,7 +15,7 @@ Read `progression-nouns.md` before changing a progression story.
 | `s2f-combat-stim-injectors.md` | Planned | Adds finite, temporary handling utility while keeping neural/HUD interfaces out of hidden stat and knowledge bonuses. |
 | `s2g-martyr-rigs-and-carried-ieds.md` | Planned | Adds rare Pather martyr rigs and visible carried improvised charges as explicit faction equipment with ordinary collateral and casualty authority. |
 | `powered-assault-armor-roles.md` | Partially shipped | Cross-faction line/heavy side-grades and nineteen tiered doctrines are live; explicit role/provenance fields, defender adoption, comparison UI, and concealment remain. |
-| `s6-unlock-ladder-expansion.md` | Planned | Faction sources, all four consumers, reachability audit, breadth floors, and Common/Advanced/Prestige channel gates are shipped. Richer achievement gates and live pacing acceptance remain; installation recovery coordinates with `intact-installation-recovery.md`. |
+| `s6-unlock-ladder-expansion.md` | Planned | Faction sources, all four consumers, reachability audit, breadth floors, Common/Advanced/Prestige gates, and Fleet Armory visibility are shipped. Richer achievement gates and live pacing acceptance remain; installation recovery coordinates with `intact-installation-recovery.md`. |
 | `s7-grade-visual-identity.md` | Planned | Depends on shipped S1. Presentation-only grade signal. |
 | `s8-roster-legibility.md` | Ready | Requires shipped telemetry. Establishes campaign quality readout and UI-scale prerequisite. |
 | `s9-in-battle-quality-conveyance.md` | Ready | Requires shipped telemetry; coordinate its person-driven signal with S7. |

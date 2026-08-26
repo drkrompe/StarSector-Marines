@@ -66,7 +66,8 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
             Map.entry(RoomPurpose.WASHROOM, new Color(0x53, 0x6a, 0x8c)),
             Map.entry(RoomPurpose.CONFERENCE_ROOM, new Color(0xb0, 0x8a, 0xd6)),
             Map.entry(RoomPurpose.PATIENT_WARD, new Color(0xe0, 0xe4, 0xea)),
-            Map.entry(RoomPurpose.LOADING_BAY, new Color(0x6b, 0x8c, 0x3f)));
+            Map.entry(RoomPurpose.LOADING_BAY, new Color(0x6b, 0x8c, 0x3f)),
+            Map.entry(RoomPurpose.ENGINE_ROOM, new Color(0x2f, 0x6f, 0x4e)));
 
     @Override
     public String id() {

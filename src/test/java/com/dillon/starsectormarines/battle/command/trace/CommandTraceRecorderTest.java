@@ -103,6 +103,7 @@ class CommandTraceRecorderTest {
         SabotageSiteSnapshot.SiteState site =
                 new SabotageSiteSnapshot.SiteState(0, "SAB-01", "reactor",
                         12, 7, 3, 2f, 8f, true, false,
+                        0, 0, SabotageSiteSnapshot.GroupReason.PLANTER_ACTIVE,
                         1, 0, 2, 12, 4f, 3f);
         SabotageSiteSnapshot.SquadDirective action =
                 new SabotageSiteSnapshot.SquadDirective(9, 0,
@@ -123,6 +124,7 @@ class CommandTraceRecorderTest {
         String line = recorder.canonicalJsonLines().lines().toList().get(1);
         assertTrue(line.contains("\"sabotage\":{"));
         assertTrue(line.contains("\"id\":\"SAB-01\""));
+        assertTrue(line.contains("\"groupReason\":\"PLANTER_ACTIVE\""));
         assertTrue(line.contains("\"groupRole\":\"SECURITY\""));
         assertTrue(line.contains("\"reason\":\"SITE_SECURITY_PRESERVED\""));
     }

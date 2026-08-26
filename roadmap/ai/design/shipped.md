@@ -33,3 +33,4 @@ Written: 2026-08-23
 | `29-sirocco-screened-overwatch.md` | 2026-08-22 | `98fcc3fb` | `ai-nouns.md` |
 | `30-mech-formation-discipline.md` | 2026-08-22 | `861a5bf1` | `ai-nouns.md` |
 | `31-adaptive-squad-formations.md` | 2026-08-22 | `4c0864d9` | `ai-nouns.md` |
+| `sabotage-site-task-groups.md` | 2026-08-26 | `3efd0c42`, `30da6637` | `ai-nouns.md` |

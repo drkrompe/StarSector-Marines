@@ -106,4 +106,9 @@ public enum RoomPurpose {
     FIRING_RANGE,
     /** Ship deck — heads and washroom serving a berthing block. */
     WASHROOM,
+    /**
+     * Ship deck — main engine room, against the transom. The drive itself,
+     * distinct from the auxiliary machinery spaces forward of it.
+     */
+    ENGINE_ROOM,
 }
