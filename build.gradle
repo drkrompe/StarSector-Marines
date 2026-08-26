@@ -105,50 +105,51 @@ test {
     systemProperty 'ecs.bench', System.getProperty('ecs.bench', 'false')
 }
 
-tasks.register('sabotageCommandEvidence', Test) {
+def commanderEvidenceMission = providers.gradleProperty('mission')
+        .orElse(providers.systemProperty('commander.evidence.mission'))
+        .getOrElse('').trim().toLowerCase()
+def commanderEvidenceTags = [
+        conquest: 'commander-balance',
+        sabotage: 'sabotage-command-evidence',
+]
+
+tasks.register('commanderEvidence', Test) {
     group = 'verification'
-    description = 'Run bounded forced-serial Sabotage site-command evidence.'
+    description = 'Run forced-serial commander evidence selected with -Pmission=<mission>.'
     testClassesDirs = sourceSets.test.output.classesDirs
     classpath = sourceSets.test.runtimeClasspath
     useJUnitPlatform {
-        includeTags 'sabotage-command-evidence'
+        includeTags commanderEvidenceTags.getOrDefault(
+                commanderEvidenceMission, 'invalid-commander-evidence-mission')
     }
     maxParallelForks = 1
     outputs.upToDateWhen { false }
     systemProperty 'starsectorDir', starsectorDir.absolutePath
     systemProperty 'battle.unitUpdate.minimumParallelUnits', Integer.MAX_VALUE.toString()
-    systemProperty 'sabotage.command.evidence.outputDir',
-            layout.buildDirectory.dir('reports/commander/sabotage').get().asFile.absolutePath
-    ['sabotage.command.evidence.fixture.path',
-     'sabotage.command.evidence.maxTicks'].each { propertyName ->
-        def propertyValue = System.getProperty(propertyName, '')
-        if (!propertyValue.isBlank()) {
-            systemProperty propertyName, propertyValue
+    if (commanderEvidenceTags.containsKey(commanderEvidenceMission)) {
+        def prefix = commanderEvidenceMission == 'conquest'
+                ? 'commander.balance' : 'sabotage.command.evidence'
+        systemProperty "${prefix}.outputDir",
+                layout.buildDirectory.dir(
+                        "reports/commander/${commanderEvidenceMission}")
+                        .get().asFile.absolutePath
+        def fixture = providers.gradleProperty('fixture')
+                .orElse(providers.systemProperty('commander.evidence.fixture.path'))
+                .getOrElse('').trim()
+        def maxTicks = providers.gradleProperty('maxTicks')
+                .orElse(providers.systemProperty('commander.evidence.maxTicks'))
+                .getOrElse('').trim()
+        if (!fixture.isBlank()) {
+            systemProperty "${prefix}.fixture.path", fixture
+        }
+        if (!maxTicks.isBlank()) {
+            systemProperty "${prefix}.maxTicks", maxTicks
         }
     }
-    testLogging {
-        showStandardStreams = true
-    }
-}
-
-tasks.register('conquestCommandBalance', Test) {
-    group = 'verification'
-    description = 'Run the canonical forced-serial Conquest command fixture matrix.'
-    testClassesDirs = sourceSets.test.output.classesDirs
-    classpath = sourceSets.test.runtimeClasspath
-    useJUnitPlatform {
-        includeTags 'commander-balance'
-    }
-    maxParallelForks = 1
-    outputs.upToDateWhen { false }
-    systemProperty 'starsectorDir', starsectorDir.absolutePath
-    systemProperty 'battle.unitUpdate.minimumParallelUnits', Integer.MAX_VALUE.toString()
-    systemProperty 'commander.balance.outputDir',
-            layout.buildDirectory.dir('reports/commander/conquest').get().asFile.absolutePath
-    ['commander.balance.fixture.path', 'commander.balance.maxTicks'].each { propertyName ->
-        def propertyValue = System.getProperty(propertyName, '')
-        if (!propertyValue.isBlank()) {
-            systemProperty propertyName, propertyValue
+    doFirst {
+        if (!commanderEvidenceTags.containsKey(commanderEvidenceMission)) {
+            throw new GradleException(
+                    'commanderEvidence requires -Pmission=conquest or -Pmission=sabotage')
         }
     }
     testLogging {

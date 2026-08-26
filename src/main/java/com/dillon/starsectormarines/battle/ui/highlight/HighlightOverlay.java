@@ -49,6 +49,10 @@ public final class HighlightOverlay {
     public static final String SRC_CONQUEST_ACTIONS = "conquest-actions";
     public static final String SRC_CONQUEST_SELECTED_TRACK = "conquest-selected-track";
     public static final String SRC_CONQUEST_SELECTED_ACTION = "conquest-selected-action";
+    public static final String SRC_ASSAULT_SECTORS = "assault-sectors";
+    public static final String SRC_ASSAULT_ACTIONS = "assault-actions";
+    public static final String SRC_ASSAULT_SELECTED_SECTOR = "assault-selected-sector";
+    public static final String SRC_ASSAULT_SELECTED_ACTION = "assault-selected-action";
     public static final String SRC_SABOTAGE_SITES = "sabotage-sites";
     public static final String SRC_SABOTAGE_SELECTED_SITE = "sabotage-selected-site";
 

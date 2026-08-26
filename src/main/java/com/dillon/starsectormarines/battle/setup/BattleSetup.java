@@ -39,6 +39,7 @@ import com.dillon.starsectormarines.battle.air.TurretMount;
 import com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.command.AssaultCommand;
+import com.dillon.starsectormarines.battle.command.AssaultCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ConquestCommand;
 import com.dillon.starsectormarines.battle.command.ConquestCommandDisclosure;
@@ -607,7 +608,8 @@ public final class BattleSetup {
         spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
         installReinforcementLayer(sim, map, null, groundRoster, risk, null);
         if (type == MissionType.ASSAULT) {
-            sim.setCommander(Faction.MARINE, new AssaultCommand());
+            sim.setAutonomousCommander(Faction.MARINE, new AssaultCommand(),
+                    AssaultCommandDisclosure.INSTANCE);
         }
         return sim;
     }

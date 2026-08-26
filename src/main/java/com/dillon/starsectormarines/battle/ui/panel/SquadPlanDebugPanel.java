@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
+import com.dillon.starsectormarines.battle.command.AssaultSearchSnapshot;
 import com.dillon.starsectormarines.battle.command.SabotageSiteSnapshot;
 import com.dillon.starsectormarines.battle.command.SabotageDefenseSnapshot;
 import com.dillon.starsectormarines.battle.combat.FireGate;
@@ -314,6 +315,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
         if (directive != null) lines += 3;
         if (activeDirective != null && !activeDirective.equals(directive)) lines += 1;
         if (commander != null && conquestSnapshot(commander) != null) lines += 3;
+        if (commander != null && assaultSnapshot(commander) != null) lines += 2;
         if (commander != null && sabotageSnapshot(commander) != null) lines += 2;
         dividers += 1;
         // Section 4: "Plan: …" line + per-step (action line + slot lines).
@@ -583,6 +585,17 @@ public final class SquadPlanDebugPanel implements HudPanel {
                                 conquestDirective), lineX, lineY,
                         DETAIL_VALUE_FG, alphaMult, vpBottomY, vpTopY);
             }
+            AssaultSearchSnapshot assault = assaultSnapshot(commander);
+            if (assault != null) {
+                AssaultSearchSnapshot.SquadDirective assaultDirective =
+                        assault.directiveFor(s.id);
+                lineY = drawLineIfVisible(font, assaultOrderSummary(
+                                assaultDirective), lineX, lineY,
+                        DETAIL_VALUE_FG, alphaMult, vpBottomY, vpTopY);
+                lineY = drawLineIfVisible(font, assaultSectorSummary(
+                                assault, assaultDirective), lineX, lineY,
+                        DETAIL_VALUE_FG, alphaMult, vpBottomY, vpTopY);
+            }
             SabotageSiteSnapshot sabotage = sabotageSnapshot(commander);
             if (sabotage != null) {
                 SabotageSiteSnapshot.SquadDirective sabotageDirective =
@@ -790,6 +803,12 @@ public final class SquadPlanDebugPanel implements HudPanel {
                 ? conquest : null;
     }
 
+    private static AssaultSearchSnapshot assaultSnapshot(
+            CommanderSnapshot<?> snapshot) {
+        return snapshot.detail() instanceof AssaultSearchSnapshot assault
+                ? assault : null;
+    }
+
     private static SabotageSiteSnapshot sabotageSnapshot(
             CommanderSnapshot<?> snapshot) {
         return snapshot.detail() instanceof SabotageSiteSnapshot sabotage
@@ -877,6 +896,29 @@ public final class SquadPlanDebugPanel implements HudPanel {
                                 ? "marker " + directive.markerCellX() + ","
                                     + directive.markerCellY() : "—";
         return String.format("Commander order %s   Target %s", action, target);
+    }
+
+    static String assaultOrderSummary(
+            AssaultSearchSnapshot.SquadDirective directive) {
+        if (directive == null) return "Search order —";
+        String action = directive.assignmentKind() != null
+                ? directive.assignmentKind().name() : "UNASSIGNED";
+        String target = directive.targetCellX() >= 0
+                ? directive.targetCellX() + "," + directive.targetCellY() : "—";
+        return String.format("Search order %s   Sector S%d   Target %s   Reason %s",
+                action, directive.sectorIndex() + 1, target, directive.reason());
+    }
+
+    static String assaultSectorSummary(
+            AssaultSearchSnapshot snapshot,
+            AssaultSearchSnapshot.SquadDirective directive) {
+        if (directive == null) return "Search sector —";
+        AssaultSearchSnapshot.SectorState sector = snapshot.sector(
+                directive.sectorIndex());
+        if (sector == null) return "Search sector —";
+        return String.format("Sector %s   Coverage %d/%d   Contacts %d   Squads %d",
+                sector.status(), sector.visitedLegs(), sector.totalLegs(),
+                sector.believedContacts(), sector.assignedSquads());
     }
 
     static String conquestReasonSummary(

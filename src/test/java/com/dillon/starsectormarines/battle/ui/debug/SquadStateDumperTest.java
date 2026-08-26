@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.ui.debug;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.command.ConquestCommand;
+import com.dillon.starsectormarines.battle.command.AssaultCommand;
+import com.dillon.starsectormarines.battle.command.AssaultCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.ConquestCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
@@ -197,6 +199,44 @@ class SquadStateDumperTest {
             assertFalse(contact.has("liveCellY"));
             assertTrue(contact.has("observedTick"));
             assertTrue(contact.has("reporterSquadId"));
+        }
+    }
+
+    @Test
+    void squadDumpPublishesAssaultSearchPicture() throws Exception {
+        BattleSimulation sim = openSim();
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        long member = sim.spawn(new EntitySpec("searcher", Faction.MARINE,
+                UnitType.MARINE, 3, 3).squad(squadId));
+        squad.leaderId = member;
+        for (int y = 0; y < sim.getGrid().getHeight(); y++) {
+            sim.getGrid().setWalkable(16, y, false);
+        }
+        sim.spawn(new EntitySpec("hidden defender", Faction.DEFENDER,
+                UnitType.MILITIA, 25, 20).health(10_000f));
+        sim.setAutonomousCommander(Faction.MARINE, new AssaultCommand(),
+                AssaultCommandDisclosure.INSTANCE);
+        sim.advance(CommanderService.COMMANDER_TICK_PERIOD
+                + BattleSimulation.TICK_DT);
+
+        JSONObject dump = SquadStateDumper.buildSquadJson(squad, sim);
+        assertFalse(dump.isNull("commander"));
+        JSONObject assault = dump.getJSONObject("assaultCommand");
+        JSONObject directive = assault.getJSONObject("squadDirective");
+        assertEquals("assault-attacker",
+                dump.getJSONObject("commander").getString("strategy"));
+        assertEquals("SEARCH", assault.getString("phase"));
+        assertEquals("SWEEP_SECTOR", directive.getString("assignmentKind"));
+        assertTrue(directive.getInt("sectorIndex") >= 0);
+        JSONArray sectors = assault.getJSONArray("sectors");
+        assertTrue(sectors.length() >= 4);
+        for (int i = 0; i < sectors.length(); i++) {
+            JSONObject sector = sectors.getJSONObject(i);
+            assertTrue(sector.has("visitedLegs"));
+            assertTrue(sector.has("believedContacts"));
+            assertFalse(sector.has("liveDefenders"));
+            assertFalse(sector.has("hostileCellX"));
         }
     }
 

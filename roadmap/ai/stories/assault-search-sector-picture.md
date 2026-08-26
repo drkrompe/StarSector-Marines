@@ -1,10 +1,12 @@
 # Assault search-sector picture
 
-Status: DRAFT — migrate the attacker to belief-honest search and pair it with `assault-area-defense-command.md`.
+Status: IN PROGRESS — migrate the attacker to belief-honest search and pair it with `assault-area-defense-command.md`.
 
 Written: 2026-08-24
 
-Updated: 2026-08-25 — scoped this story to the attacker half of an autonomous Assault command duel.
+Updated: 2026-08-26 — contracted persistent sector coverage, report-driven
+convergence, bounded rechecks, and common command diagnostics for the attacker
+slice.
 
 Read `ai-nouns.md`, `autonomous-mission-command-foundation.md`, and
 `commander-trace-and-balance-harness.md` before planning this story.
@@ -29,6 +31,35 @@ remaining contact without duplicating the same route or reading hidden units.
   frozen command frame and faction-local evidence.
 - Expose the picture through selected-squad presentation, the state dump, and
   the common commander trace.
+
+## Acceptance
+
+- [x] Production Assault installs a frame-only Marine commander; no strategy
+  decision reads live defender identity, occupancy, or position.
+- [x] Stable rectangular sectors publish bounds, visited/total sweep legs,
+  status, believed-contact count, assigned squads, and current sweep targets.
+- [x] Initial allocation covers reachable unfinished sectors before surplus
+  squads reinforce an active or suspected sector.
+- [x] Fresh direct reports make a sector active; older or indirect reports make
+  it suspected; missing belief is never published as positive clearance.
+- [x] Search progress survives tactical replans and sector affinity remains
+  stable until coverage, contact, reachability, ownership, or directive
+  stability legally changes it.
+- [x] A completed first pass becomes a bounded recheck rather than leaving live
+  squads command-idle while objective truth still has hidden defenders.
+- [x] Selected-squad presentation, the state dump, map overlay, and canonical
+  perspective trace show the same published sector and directive facts.
+- [x] Focused tests cover hidden-hostile non-disclosure, spread-before-
+  reinforcement, report convergence, external ownership, progress persistence,
+  deterministic serialization, and production installation.
+
+Paired headless evidence will extend the shared `commanderEvidence` task with
+`-Pmission=assault`; mission and fixture selection are arguments, not new
+mission-specific Gradle tasks.
+
+The attacker production slice is complete. Story exit remains paired no-input
+acceptance with `assault-area-defense-command.md`; do not retire this file until
+the defender side and shared Assault evidence argument ship.
 
 ## Constraints
 

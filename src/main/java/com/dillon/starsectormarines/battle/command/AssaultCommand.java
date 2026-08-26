@@ -1,407 +1,661 @@
 package com.dillon.starsectormarines.battle.command;
 
-import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
+import com.dillon.starsectormarines.battle.command.AssaultSearchSnapshot.AssignmentReason;
+import com.dillon.starsectormarines.battle.command.AssaultSearchSnapshot.Phase;
+import com.dillon.starsectormarines.battle.command.AssaultSearchSnapshot.SectorState;
+import com.dillon.starsectormarines.battle.command.AssaultSearchSnapshot.SectorStatus;
+import com.dillon.starsectormarines.battle.command.AssaultSearchSnapshot.SquadDirective;
+import com.dillon.starsectormarines.battle.command.influence.CommanderContact;
+import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
+import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceService;
 import com.dillon.starsectormarines.battle.infantry.PatrolMotion;
-import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
-import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
-import com.dillon.starsectormarines.battle.sim.BattleView;
+import com.dillon.starsectormarines.battle.squad.BeliefSource;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.squad.Squad;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
- * Marine-side strategic commander for ASSAULT — the search-and-destroy
- * pattern (sweep the map, eliminate all defenders). Partitions the map
- * into a rectangular grid of sectors at first tick, then per slow tick
- * assigns each marine squad to the nearest active sector and picks the
- * nearest defender-occupied zone within it.
- *
- * <p>Distinct partition strategy from {@link ConquestCommand}'s lateral
- * strips (axis-aligned, sticky) and {@link SabotageCommand}'s objective
- * clusters (centered on charge sites). ASSAULT has no traversal axis and
- * no named targets — the partition is purely spatial.
- *
- * <p>Non-sticky assignment: squads are re-evaluated each slow tick so
- * they naturally converge on remaining hotspots as sectors clear. When
- * squads outnumber active sectors, surplus squads double up on the
- * busiest sector — implicit convergence without an explicit mechanism.
- *
- * @see {@code ai-nouns.md}
+ * Belief-honest Marine commander for Assault's two-dimensional area search.
+ * Public topology defines stable sectors and sweep legs; only the Marine
+ * influence picture can turn a sector into suspected or active contact.
  */
-public final class AssaultCommand implements MissionCommand {
+public final class AssaultCommand implements
+        AutonomousMissionCommand<AssaultCommandFrame, AssaultSearchSnapshot> {
 
     private static final int MIN_SECTOR_DIM = 2;
     private static final int MAX_SECTOR_DIM = 3;
     private static final int TARGET_SECTOR_WIDTH = 30;
     private static final int TARGET_SECTOR_HEIGHT = 15;
+    private static final float EXTERIOR_DOMINANCE_RATIO = 2f;
+    private static final int FRESH_DIRECT_TICKS =
+            CommanderInfluenceService.UPDATE_INTERVAL_TICKS;
 
-    private boolean initialized = false;
+    private final Map<Integer, Integer> squadSector = new HashMap<>();
+    private final Map<Integer, Integer> squadLeg = new HashMap<>();
+    private volatile AssaultSearchSnapshot searchSnapshot =
+            AssaultSearchSnapshot.empty(Faction.MARINE);
+    private List<SearchSector> sectors = List.of();
+    private int topologyWidth = -1;
+    private int topologyHeight = -1;
     private int sectorCols;
     private int sectorRows;
-    private List<List<Integer>> sectorZones;
-    private float[] zoneCentroidX;
-    private float[] zoneCentroidY;
-    private float[] sectorCentroidX;
-    private float[] sectorCentroidY;
-    /** Deterministic serpentine search cells for each rectangular sector. */
-    private List<List<int[]>> sectorSweepWaypoints;
-    /** Commander-owned progress so tactical replans do not restart a search route. */
-    private final Map<Integer, Integer> sweepSectorBySquad = new HashMap<>();
-    private final Map<Integer, Integer> sweepCursorBySquad = new HashMap<>();
-    /**
-     * Zone id of the open exterior — the largest zone by cell count, cached at
-     * init. Never handed out as a {@code CLEAR_ZONE} target: the exterior
-     * flood spans the map, so a squad ordered to clear it chases individual
-     * defenders forever. Outdoor defenders instead activate their rectangular
-     * sector and receive a {@link AssignmentKind#SWEEP_SECTOR} route. Keyed
-     * on largest-by-cells rather than id 0
-     * because the flood-fill ids zones by scan order. Only set when the largest
-     * zone <em>dominates</em> (≥ {@link #EXTERIOR_DOMINANCE_RATIO}× the
-     * second-largest), so a map of comparably-sized rooms excludes nothing.
-     * {@code -1} until init / when nothing dominates.
-     */
-    private int exteriorZoneId = -1;
-    /** The largest zone is the open exterior only when at least this many times bigger than the next-largest. */
-    private static final float EXTERIOR_DOMINANCE_RATIO = 2.0f;
 
     @Override
-    public Faction faction() {
-        return Faction.MARINE;
-    }
+    public Faction faction() { return Faction.MARINE; }
 
     @Override
-    public void tick(BattleView sim) {
-        if (!initialized) {
-            initializeSectors(sim);
-            initialized = true;
-        }
+    public String strategyId() { return "assault-attacker"; }
 
-        int sectorCount = sectorCols * sectorRows;
-        boolean[] active = new boolean[sectorCount];
-        int[] defenderZoneCount = new int[sectorCount];
-        computeActiveSectors(sim, active, defenderZoneCount);
+    public AssaultSearchSnapshot searchSnapshot() { return searchSnapshot; }
 
-        int[] sectorAssignCount = new int[sectorCount];
+    @Override
+    public CommandPlan<AssaultSearchSnapshot> plan(AssaultCommandFrame frame) {
+        ensureSectors(frame.topology());
+        updateReachedLegs(frame);
+        SectorReports reports = reports(frame);
+        boolean initialSearchComplete = sectors.stream().allMatch(SearchSector::complete);
+        int[] loads = new int[sectors.size()];
+        Map<Integer, SquadDirective> directives = new HashMap<>();
+        List<CommandProposal> proposals = new ArrayList<>();
+        int commandPool = 0;
 
-        for (Squad squad : sim.getSquads()) {
-            if (squad.faction != Faction.MARINE) continue;
-            if (squad.aliveMembers <= 0) continue;
-
-            int sectorIdx = pickSector(squad, active, defenderZoneCount, sectorAssignCount);
-            if (sectorIdx < 0) {
-                squad.assignedObjective = null;
-                continue;
-            }
-            int sectorLane = sectorAssignCount[sectorIdx]++;
-
-            int targetZone = nearestDefenderZoneInSector(squad, sectorIdx, sim);
-            if (targetZone < 0) {
-                int[] target = sweepTarget(squad, sectorIdx, sectorLane);
-                if (target == null) {
-                    squad.assignedObjective = null;
-                    continue;
-                }
-                ObjectiveAssignment cur = squad.assignedObjective;
-                if (cur == null
-                        || cur.kind() != AssignmentKind.SWEEP_SECTOR
-                        || cur.targetCellX() != target[0]
-                        || cur.targetCellY() != target[1]) {
-                    squad.assignedObjective = ObjectiveAssignment.sweepSector(
-                            squad.id, target[0], target[1]);
-                }
+        for (CommandSquadState squad : frame.squads()) {
+            if (squad.aliveMembers() <= 0) continue;
+            commandPool++;
+            CommandDirective incumbent = squad.directive();
+            if (incumbent != null && !strategyId().equals(incumbent.issuer())
+                    && incumbent.authority().priority()
+                    >= CommandAuthority.MISSION_COMMAND.priority()) {
+                ObjectiveAssignment external = incumbent.assignment();
+                directives.put(squad.squadId(), new SquadDirective(squad.squadId(),
+                        -1, AssignmentReason.EXTERNAL_OWNERSHIP_PRESERVED,
+                        external != null ? external.kind() : null,
+                        external != null ? external.targetCellX() : -1,
+                        external != null ? external.targetCellY() : -1));
+                proposals.add(CommandProposal.retain(squad.squadId(),
+                        CommandAuthority.MISSION_COMMAND,
+                        AssignmentReason.EXTERNAL_OWNERSHIP_PRESERVED.name()));
                 continue;
             }
 
-            ObjectiveAssignment cur = squad.assignedObjective;
-            if (cur == null
-                    || cur.kind() != AssignmentKind.CLEAR_ZONE
-                    || cur.targetZoneId() != targetZone) {
-                squad.assignedObjective = ObjectiveAssignment.clearZone(squad.id, targetZone);
+            int sectorIndex = chooseSector(squad, loads, reports,
+                    initialSearchComplete, frame.topology());
+            if (sectorIndex < 0) {
+                squadSector.remove(squad.squadId());
+                squadLeg.remove(squad.squadId());
+                AssignmentReason reason = AssignmentReason.NO_REACHABLE_SECTOR;
+                directives.put(squad.squadId(), new SquadDirective(squad.squadId(),
+                        -1, reason, null, -1, -1));
+                proposals.add(squad.assignment() != null
+                        ? CommandProposal.release(squad.squadId(),
+                                CommandAuthority.MISSION_COMMAND, reason.name(),
+                                CommandStabilityBreak.TARGET_UNREACHABLE)
+                        : CommandProposal.retain(squad.squadId(),
+                                CommandAuthority.MISSION_COMMAND, reason.name()));
+                continue;
             }
+
+            int priorSector = squadSector.getOrDefault(squad.squadId(), -1);
+            int lane = loads[sectorIndex]++;
+            SearchTarget target = chooseTarget(squad, sectorIndex, lane, reports,
+                    initialSearchComplete, frame);
+            if (target == null) {
+                AssignmentReason reason = AssignmentReason.NO_REACHABLE_SECTOR;
+                directives.put(squad.squadId(), new SquadDirective(squad.squadId(),
+                        sectorIndex, reason, null, -1, -1));
+                proposals.add(CommandProposal.retain(squad.squadId(),
+                        CommandAuthority.MISSION_COMMAND, reason.name()));
+                continue;
+            }
+
+            squadSector.put(squad.squadId(), sectorIndex);
+            squadLeg.put(squad.squadId(), target.legIndex());
+            ObjectiveAssignment assignment = ObjectiveAssignment.sweepSector(
+                    squad.squadId(), target.cell().x(), target.cell().y());
+            AssignmentReason reason = assignmentReason(squad, sectorIndex,
+                    priorSector, loads[sectorIndex], reports, initialSearchComplete);
+            directives.put(squad.squadId(), new SquadDirective(squad.squadId(),
+                    sectorIndex, reason, assignment.kind(), target.cell().x(),
+                    target.cell().y()));
+            proposals.add(CommandProposal.assign(assignment,
+                    CommandAuthority.MISSION_COMMAND, reason.name(),
+                    stabilityBreak(squad, assignment, priorSector,
+                            sectorIndex, frame)));
         }
+
+        Phase phase = reports.hasActiveOrSuspected() ? Phase.CONVERGE
+                : initialSearchComplete ? Phase.RECHECK : Phase.SEARCH;
+        AssaultSearchSnapshot detail = buildSnapshot(frame, phase, reports,
+                loads, directives, initialSearchComplete);
+        List<String> objectives = detail.sectors().stream()
+                .map(sector -> "sector-" + sector.index() + "=" + sector.status()
+                        + ":" + sector.visitedLegs() + "/" + sector.totalLegs())
+                .toList();
+        return new CommandPlan<>(faction(), strategyId(), phase.name(), frame.tick(),
+                frame.influence() != null ? frame.influence().updatedTick() : -1,
+                commandPool, 0, objectives, proposals, detail);
     }
 
-    private void initializeSectors(BattleView sim) {
-        NavigationGrid grid = sim.getGrid();
-        ZoneGraph graph = sim.getZoneGraph();
-        int gridW = grid.getWidth();
-        int gridH = grid.getHeight();
+    @Override
+    public CommanderSnapshot<AssaultSearchSnapshot> reconcile(
+            CommanderSnapshot<AssaultSearchSnapshot> snapshot) {
+        return snapshot.withDetail(snapshot.detail().reconcileStableDirectives(
+                snapshot, searchSnapshot, strategyId()));
+    }
 
-        sectorCols = Math.max(MIN_SECTOR_DIM, Math.min(MAX_SECTOR_DIM, gridW / TARGET_SECTOR_WIDTH));
-        sectorRows = Math.max(MIN_SECTOR_DIM, Math.min(MAX_SECTOR_DIM, gridH / TARGET_SECTOR_HEIGHT));
-        int sectorCount = sectorCols * sectorRows;
+    @Override
+    public void publish(CommanderSnapshot<AssaultSearchSnapshot> snapshot) {
+        searchSnapshot = snapshot.detail();
+    }
 
-        sectorZones = new ArrayList<>(sectorCount);
-        for (int i = 0; i < sectorCount; i++) sectorZones.add(new ArrayList<>());
-
-        int zoneCount = graph.getZones().size();
-        zoneCentroidX = new float[zoneCount];
-        zoneCentroidY = new float[zoneCount];
-
-        int largestCells = -1, secondCells = -1, largestZone = -1;
-        for (NavigationZone zone : graph.getZones()) {
-            int[] cells = zone.getCellIndices();
-            if (cells.length == 0) continue;
-            if (cells.length > largestCells) {
-                secondCells = largestCells;
-                largestCells = cells.length;
-                largestZone = zone.getZoneId();
-            } else if (cells.length > secondCells) {
-                secondCells = cells.length;
-            }
-            float sumX = 0f, sumY = 0f;
-            for (int cellIdx : cells) {
-                sumX += (cellIdx % gridW);
-                sumY += (cellIdx / gridW);
-            }
-            // Center-based (cell centers averaged), so comparisons against
-            // squad centroids — true-position means — are convention-matched.
-            float cx = sumX / cells.length + 0.5f;
-            float cy = sumY / cells.length + 0.5f;
-            int id = zone.getZoneId();
-            if (id >= 0 && id < zoneCount) {
-                zoneCentroidX[id] = cx;
-                zoneCentroidY[id] = cy;
-            }
-
-            int col = Math.min((int) (cx / gridW * sectorCols), sectorCols - 1);
-            int row = Math.min((int) (cy / gridH * sectorRows), sectorRows - 1);
-            if (col < 0) col = 0;
-            if (row < 0) row = 0;
-            sectorZones.get(row * sectorCols + col).add(id);
-        }
-
-        if (largestZone >= 0
-                && (secondCells <= 0 || largestCells >= EXTERIOR_DOMINANCE_RATIO * secondCells)) {
-            exteriorZoneId = largestZone;
-        }
-
-        sectorCentroidX = new float[sectorCount];
-        sectorCentroidY = new float[sectorCount];
+    private void ensureSectors(CommandTopology topology) {
+        if (topology.width() == topologyWidth && topology.height() == topologyHeight
+                && !sectors.isEmpty()) return;
+        topologyWidth = topology.width();
+        topologyHeight = topology.height();
+        sectorCols = Math.max(MIN_SECTOR_DIM, Math.min(MAX_SECTOR_DIM,
+                topology.width() / TARGET_SECTOR_WIDTH));
+        sectorRows = Math.max(MIN_SECTOR_DIM, Math.min(MAX_SECTOR_DIM,
+                topology.height() / TARGET_SECTOR_HEIGHT));
+        int exteriorZone = exteriorZone(topology);
+        List<SearchSector> built = new ArrayList<>(sectorCols * sectorRows);
         for (int row = 0; row < sectorRows; row++) {
             for (int col = 0; col < sectorCols; col++) {
-                int sector = row * sectorCols + col;
-                sectorCentroidX[sector] = (col + 0.5f) * gridW / sectorCols;
-                sectorCentroidY[sector] = (row + 0.5f) * gridH / sectorRows;
+                int minX = col * topology.width() / sectorCols;
+                int maxX = (col + 1) * topology.width() / sectorCols - 1;
+                int minY = row * topology.height() / sectorRows;
+                int maxY = (row + 1) * topology.height() / sectorRows - 1;
+                List<Cell> legs = buildSweepLegs(topology, minX, maxX, minY,
+                        maxY, exteriorZone);
+                built.add(new SearchSector(row * sectorCols + col, minX, minY,
+                        maxX, maxY, legs));
             }
         }
-        sectorSweepWaypoints = buildSweepWaypoints(grid);
+        sectors = built;
+        squadSector.clear();
+        squadLeg.clear();
     }
 
-    private void computeActiveSectors(BattleView sim, boolean[] active, int[] defenderZoneCount) {
-        NavigationGrid grid = sim.getGrid();
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            long unit = sim.liveUnitAt(i);
-            if (sim.identity().faction(unit) != Faction.DEFENDER
-                    || !sim.identity().type(unit).combatant) continue;
-            int sector = sectorForCell(sim.world().cellX(unit),
-                    sim.world().cellY(unit), grid);
-            if (sector < 0) continue;
-            active[sector] = true;
-            defenderZoneCount[sector]++;
+    private void updateReachedLegs(AssaultCommandFrame frame) {
+        float arrivalSq = PatrolMotion.ARRIVAL_RADIUS * PatrolMotion.ARRIVAL_RADIUS;
+        for (CommandSquadState squad : frame.squads()) {
+            Integer sectorIndex = squadSector.get(squad.squadId());
+            Integer legIndex = squadLeg.get(squad.squadId());
+            if (sectorIndex == null || legIndex == null || legIndex < 0
+                    || sectorIndex < 0 || sectorIndex >= sectors.size()) continue;
+            SearchSector sector = sectors.get(sectorIndex);
+            if (legIndex >= sector.legs.size()) continue;
+            Cell leg = sector.legs.get(legIndex);
+            float dx = squad.centroidX() - (leg.x() + 0.5f);
+            float dy = squad.centroidY() - (leg.y() + 0.5f);
+            if (dx * dx + dy * dy <= arrivalSq) {
+                sector.visited[legIndex] = true;
+                sector.lastVisitedTick = frame.tick();
+            }
         }
     }
 
-    private int sectorForCell(int x, int y, NavigationGrid grid) {
-        if (!grid.inBounds(x, y)) return -1;
-        int col = Math.min(x * sectorCols / grid.getWidth(), sectorCols - 1);
-        int row = Math.min(y * sectorRows / grid.getHeight(), sectorRows - 1);
-        return row * sectorCols + col;
+    private int chooseSector(CommandSquadState squad, int[] loads,
+                             SectorReports reports, boolean allComplete,
+                             CommandTopology topology) {
+        Integer sticky = squadSector.get(squad.squadId());
+        if (sticky != null && sticky >= 0 && sticky < sectors.size()) {
+            SearchSector sector = sectors.get(sticky);
+            boolean stillUseful = reports.status(sticky) != SectorStatus.SEARCHED
+                    || !sector.complete()
+                    || allComplete && !arrivedAtAssignment(squad);
+            if (stillUseful && nearestReachableLeg(squad, sector, topology) >= 0) {
+                return sticky;
+            }
+        }
+        int best = chooseAmong(squad, loads, reports, topology, allComplete, true);
+        return best >= 0 ? best
+                : chooseAmong(squad, loads, reports, topology, allComplete, false);
     }
 
-    /**
-     * Pick the best sector for this squad. Nearest active sector by centroid
-     * distance, with a bias toward the squad's current sector to prevent
-     * flip-flop churn. When all squads have been assigned and surplus squads
-     * remain, they double up on the sector with the most defender-occupied
-     * zones.
-     */
-    private int pickSector(Squad squad, boolean[] active, int[] defenderZoneCount, int[] assignCount) {
-        int sectorCount = sectorCols * sectorRows;
-
-        // Identify current sector (the one the squad's existing assignment targets)
-        int currentSector = -1;
-        ObjectiveAssignment cur = squad.assignedObjective;
-        if (cur != null && cur.kind() == AssignmentKind.CLEAR_ZONE && cur.targetZoneId() >= 0) {
-            currentSector = sectorForZone(cur.targetZoneId());
-        } else if (cur != null && cur.kind() == AssignmentKind.SWEEP_SECTOR) {
-            currentSector = sweepSectorBySquad.getOrDefault(squad.id, -1);
-        }
-
-        int bestSector = -1;
-        float bestScore = Float.MAX_VALUE;
-
-        for (int s = 0; s < sectorCount; s++) {
-            if (!active[s]) continue;
-            float dx = squad.centroidX - sectorCentroidX[s];
-            float dy = squad.centroidY - sectorCentroidY[s];
-            float distSq = dx * dx + dy * dy;
-            // Bias toward current sector to reduce churn
-            if (s == currentSector) distSq *= 0.7f;
-            // Penalize sectors that already have a squad assigned (spread first)
-            float loadPenalty = assignCount[s] * 2000f;
-            float score = distSq + loadPenalty;
-            if (score < bestScore) {
+    private int chooseAmong(CommandSquadState squad, int[] loads,
+                            SectorReports reports, CommandTopology topology,
+                            boolean allComplete, boolean uncoveredOnly) {
+        int best = -1;
+        long bestScore = Long.MAX_VALUE;
+        for (SearchSector sector : sectors) {
+            SectorStatus status = reports.status(sector.index);
+            if (!allComplete && sector.complete() && status == SectorStatus.SEARCHED) continue;
+            if (uncoveredOnly && loads[sector.index] > 0) continue;
+            int leg = nearestReachableLeg(squad, sector, topology);
+            if (leg < 0) continue;
+            Cell cell = sector.legs.get(leg);
+            int route = topology.routeLength(squad.anchorCellX(), squad.anchorCellY(),
+                    cell.x(), cell.y());
+            long statusRank = switch (status) {
+                case ACTIVE -> 0;
+                case SUSPECTED -> 1;
+                case SEARCHING -> 2;
+                case SEARCHED -> 3;
+            };
+            long loadPenalty = uncoveredOnly ? 0L : loads[sector.index] * 1_000_000L;
+            long ageBias = allComplete
+                    ? (long) Math.max(0, sector.lastVisitedTick + 1) * 100_000L
+                    : 0;
+            long score = loadPenalty + statusRank * 100_000L
+                    + (long) route * 10L + ageBias;
+            if (score < bestScore || score == bestScore && sector.index < best) {
+                best = sector.index;
                 bestScore = score;
-                bestSector = s;
-            }
-        }
-        return bestSector;
-    }
-
-    private int sectorForZone(int zoneId) {
-        int sectorCount = sectorCols * sectorRows;
-        for (int s = 0; s < sectorCount; s++) {
-            if (sectorZones.get(s).contains(zoneId)) return s;
-        }
-        return -1;
-    }
-
-    private int nearestDefenderZoneInSector(Squad squad, int sectorIdx, BattleView sim) {
-        if (sectorIdx < 0 || sectorIdx >= sectorZones.size()) return -1;
-        int bestZone = -1;
-        float bestDistSq = Float.MAX_VALUE;
-        for (int zoneId : sectorZones.get(sectorIdx)) {
-            if (zoneId == exteriorZoneId) continue;
-            if (ZoneQueries.zoneClear(zoneId, Faction.DEFENDER, sim)) continue;
-            float dx = zoneCentroidX[zoneId] - squad.centroidX;
-            float dy = zoneCentroidY[zoneId] - squad.centroidY;
-            float d = dx * dx + dy * dy;
-            if (d < bestDistSq) {
-                bestDistSq = d;
-                bestZone = zoneId;
-            }
-        }
-        return bestZone;
-    }
-
-    /**
-     * Returns the current search cell, advancing around the sector's
-     * serpentine route after the squad centroid reaches a waypoint. The
-     * initial lane offset prevents multiple squads in the last live sector
-     * from tracing the same route shoulder-to-shoulder.
-     */
-    private int[] sweepTarget(Squad squad, int sectorIdx, int sectorLane) {
-        if (sectorSweepWaypoints == null || sectorIdx < 0
-                || sectorIdx >= sectorSweepWaypoints.size()) return null;
-        List<int[]> waypoints = sectorSweepWaypoints.get(sectorIdx);
-        if (waypoints.isEmpty()) return null;
-
-        Integer oldSector = sweepSectorBySquad.get(squad.id);
-        int cursor;
-        if (oldSector == null || oldSector != sectorIdx) {
-            cursor = (nearestWaypoint(squad, waypoints) + sectorLane) % waypoints.size();
-            sweepSectorBySquad.put(squad.id, sectorIdx);
-            sweepCursorBySquad.put(squad.id, cursor);
-        } else {
-            cursor = sweepCursorBySquad.getOrDefault(squad.id, 0) % waypoints.size();
-            int[] current = waypoints.get(cursor);
-            float dx = squad.centroidX - (current[0] + 0.5f);
-            float dy = squad.centroidY - (current[1] + 0.5f);
-            if (dx * dx + dy * dy
-                    <= PatrolMotion.ARRIVAL_RADIUS * PatrolMotion.ARRIVAL_RADIUS) {
-                cursor = (cursor + 1) % waypoints.size();
-                sweepCursorBySquad.put(squad.id, cursor);
-            }
-        }
-        return waypoints.get(cursor);
-    }
-
-    private static int nearestWaypoint(Squad squad, List<int[]> waypoints) {
-        int best = 0;
-        float bestDistance = Float.MAX_VALUE;
-        for (int i = 0; i < waypoints.size(); i++) {
-            int[] waypoint = waypoints.get(i);
-            float dx = squad.centroidX - (waypoint[0] + 0.5f);
-            float dy = squad.centroidY - (waypoint[1] + 0.5f);
-            float distance = dx * dx + dy * dy;
-            if (distance < bestDistance) {
-                bestDistance = distance;
-                best = i;
             }
         }
         return best;
     }
 
-    private List<List<int[]>> buildSweepWaypoints(NavigationGrid grid) {
-        List<List<int[]>> result = new ArrayList<>(sectorCols * sectorRows);
-        for (int row = 0; row < sectorRows; row++) {
-            for (int col = 0; col < sectorCols; col++) {
-                int minX = col * grid.getWidth() / sectorCols;
-                int maxX = (col + 1) * grid.getWidth() / sectorCols - 1;
-                int minY = row * grid.getHeight() / sectorRows;
-                int maxY = (row + 1) * grid.getHeight() / sectorRows - 1;
-                List<int[]> waypoints = new ArrayList<>();
-                int[][] samples = {
-                        {1, 4}, {3, 4}, {5, 4},
-                        {5, 6}, {3, 6}, {1, 6}
-                };
-                for (int[] sample : samples) {
-                    int x = minX + Math.max(0,
-                            Math.round((maxX - minX) * sample[0] / 6f));
-                    int y = minY + Math.max(0,
-                            Math.round((maxY - minY) * sample[1] / 10f));
-                    int[] waypoint = nearestWalkable(grid, x, y,
-                            minX, maxX, minY, maxY);
-                    if (waypoint != null && !containsCell(waypoints, waypoint)) {
-                        waypoints.add(waypoint);
-                    }
-                }
-                result.add(waypoints);
+    private SearchTarget chooseTarget(CommandSquadState squad, int sectorIndex,
+                                      int lane, SectorReports reports,
+                                      boolean allComplete,
+                                      AssaultCommandFrame frame) {
+        SearchSector sector = sectors.get(sectorIndex);
+        ObjectiveAssignment incumbent = squad.directive() != null
+                && strategyId().equals(squad.directive().issuer())
+                ? squad.directive().assignment() : null;
+        int incumbentLeg = incumbent != null
+                ? legAt(sector, incumbent.targetCellX(), incumbent.targetCellY())
+                : -1;
+        if (incumbent != null && incumbent.kind() == AssignmentKind.SWEEP_SECTOR
+                && incumbentLeg >= 0
+                && squad.directive().isStableAt(frame.tick())
+                && frame.topology().reachable(squad.anchorCellX(), squad.anchorCellY(),
+                        incumbent.targetCellX(), incumbent.targetCellY())
+                && !arrived(squad, incumbent.targetCellX(), incumbent.targetCellY())) {
+            return new SearchTarget(new Cell(incumbent.targetCellX(),
+                    incumbent.targetCellY()), incumbentLeg);
+        }
+        CommanderContact contact = reports.primaryContact(sectorIndex);
+        if (contact != null) {
+            int contactLeg = nearestLegTo(sector, contact.cellX(), contact.cellY(),
+                    squad, frame.topology(), lane);
+            if (contactLeg >= 0) {
+                return new SearchTarget(sector.legs.get(contactLeg), contactLeg);
             }
         }
-        return result;
+        int start = squadLeg.getOrDefault(squad.squadId(), -1) + 1 + lane;
+        int leg = nextReachableLeg(squad, sector, start, !allComplete,
+                frame.topology());
+        return leg >= 0 ? new SearchTarget(sector.legs.get(leg), leg) : null;
     }
 
-    private static int[] nearestWalkable(NavigationGrid grid, int targetX, int targetY,
-                                         int minX, int maxX, int minY, int maxY) {
-        int[] best = null;
+    private static AssignmentReason assignmentReason(CommandSquadState squad,
+                                                     int sectorIndex,
+                                                     int priorSector,
+                                                     int sectorLoad,
+                                                     SectorReports reports,
+                                                     boolean allComplete) {
+        if (reports.status(sectorIndex) == SectorStatus.ACTIVE && sectorLoad > 1) {
+            return AssignmentReason.ACTIVE_CONTACT_REINFORCEMENT;
+        }
+        if (reports.status(sectorIndex) == SectorStatus.SUSPECTED && sectorLoad > 1) {
+            return AssignmentReason.SUSPECTED_CONTACT_REINFORCEMENT;
+        }
+        if (allComplete) return AssignmentReason.SECTOR_RECHECK_ASSIGNED;
+        if (priorSector == sectorIndex && squad.assignment() != null
+                && squad.assignment().kind() == AssignmentKind.SWEEP_SECTOR) {
+            return AssignmentReason.SECTOR_SEARCH_PRESERVED;
+        }
+        return AssignmentReason.SECTOR_SEARCH_ASSIGNED;
+    }
+
+    private CommandStabilityBreak stabilityBreak(CommandSquadState squad,
+                                                  ObjectiveAssignment assignment,
+                                                  int priorSector,
+                                                  int sectorIndex,
+                                                  AssaultCommandFrame frame) {
+        CommandDirective incumbent = squad.directive();
+        if (incumbent == null || incumbent.assignment() == null
+                || !strategyId().equals(incumbent.issuer())
+                || Objects.equals(incumbent.assignment(), assignment)) {
+            return CommandStabilityBreak.NONE;
+        }
+        ObjectiveAssignment old = incumbent.assignment();
+        if (old.targetCellX() >= 0 && arrived(squad, old.targetCellX(),
+                old.targetCellY())) return CommandStabilityBreak.CONTEXT_INVALIDATED;
+        if (priorSector >= 0 && priorSector != sectorIndex
+                && sectors.get(priorSector).complete()) {
+            return CommandStabilityBreak.CONTEXT_INVALIDATED;
+        }
+        if (!frame.topology().reachable(squad.anchorCellX(), squad.anchorCellY(),
+                assignment.targetCellX(), assignment.targetCellY())) {
+            return CommandStabilityBreak.TARGET_UNREACHABLE;
+        }
+        return CommandStabilityBreak.NONE;
+    }
+
+    private AssaultSearchSnapshot buildSnapshot(
+            AssaultCommandFrame frame, Phase phase, SectorReports reports,
+            int[] loads, Map<Integer, SquadDirective> directives,
+            boolean initialSearchComplete) {
+        List<SquadDirective> directiveRows = new ArrayList<>(directives.values());
+        directiveRows.sort(Comparator.comparingInt(SquadDirective::squadId));
+        List<SectorState> sectorRows = new ArrayList<>(sectors.size());
+        for (SearchSector sector : sectors) {
+            int targetX = -1;
+            int targetY = -1;
+            for (SquadDirective directive : directiveRows) {
+                if (directive.sectorIndex() == sector.index) {
+                    targetX = directive.targetCellX();
+                    targetY = directive.targetCellY();
+                    break;
+                }
+            }
+            sectorRows.add(new SectorState(sector.index, sector.minX, sector.minY,
+                    sector.maxX - sector.minX + 1,
+                    sector.maxY - sector.minY + 1,
+                    reports.status(sector.index), sector.visitedCount(),
+                    sector.legs.size(), reports.contactCount[sector.index],
+                    reports.freshestTick[sector.index], loads[sector.index],
+                    targetX, targetY));
+        }
+        List<AssaultSearchSnapshot.SquadState> squadRows = frame.squads().stream()
+                .map(squad -> new AssaultSearchSnapshot.SquadState(squad.squadId(),
+                        squad.aliveMembers(), squad.centroidX(), squad.centroidY(),
+                        squad.currentZoneId(), squad.executionSuspension(),
+                        squad.localContact()))
+                .toList();
+        return new AssaultSearchSnapshot(frame.tick(),
+                frame.influence() != null ? frame.influence().updatedTick() : -1,
+                frame.perspective(), phase, initialSearchComplete ? 2 : 1,
+                sectorRows, squadRows, directiveRows);
+    }
+
+    private SectorReports reports(AssaultCommandFrame frame) {
+        int count = sectors.size();
+        int[] contacts = new int[count];
+        int[] freshest = new int[count];
+        java.util.Arrays.fill(freshest, -1);
+        boolean[] active = new boolean[count];
+        CommanderContact[] primary = new CommanderContact[count];
+        CommanderInfluenceSnapshot influence = frame.influence();
+        if (influence != null) {
+            for (CommanderContact contact : influence.contacts()) {
+                int sector = sectorForCell(contact.cellX(), contact.cellY());
+                if (sector < 0) continue;
+                contacts[sector]++;
+                freshest[sector] = Math.max(freshest[sector], contact.observedTick());
+                active[sector] |= contact.source() == BeliefSource.DIRECT
+                        && frame.tick() - contact.observedTick() <= FRESH_DIRECT_TICKS;
+                CommanderContact old = primary[sector];
+                if (old == null || prefer(contact, old)) primary[sector] = contact;
+            }
+        }
+        for (int i = 0; i < count; i++) {
+            boolean reported = contacts[i] > 0;
+            SearchSector sector = sectors.get(i);
+            if (reported && !sector.reportedLastPulse) {
+                java.util.Arrays.fill(sector.visited, false);
+            }
+            sector.reportedLastPulse = reported;
+        }
+        return new SectorReports(contacts, freshest, active, primary);
+    }
+
+    private static boolean prefer(CommanderContact candidate, CommanderContact old) {
+        if (candidate.observedTick() != old.observedTick()) {
+            return candidate.observedTick() > old.observedTick();
+        }
+        int confidence = Float.compare(candidate.confidence(), old.confidence());
+        if (confidence != 0) return confidence > 0;
+        return candidate.unitId() < old.unitId();
+    }
+
+    private int sectorForCell(int x, int y) {
+        if (x < 0 || y < 0 || x >= topologyWidth || y >= topologyHeight) return -1;
+        int col = Math.min(x * sectorCols / topologyWidth, sectorCols - 1);
+        int row = Math.min(y * sectorRows / topologyHeight, sectorRows - 1);
+        return row * sectorCols + col;
+    }
+
+    private int nearestReachableLeg(CommandSquadState squad, SearchSector sector,
+                                    CommandTopology topology) {
+        return nextReachableLeg(squad, sector, 0, false, topology);
+    }
+
+    private static int nextReachableLeg(CommandSquadState squad,
+                                        SearchSector sector, int start,
+                                        boolean unvisitedOnly,
+                                        CommandTopology topology) {
+        if (sector.legs.isEmpty()) return -1;
+        for (int i = 0; i < sector.legs.size(); i++) {
+            int index = Math.floorMod(start + i, sector.legs.size());
+            if (unvisitedOnly && sector.visited[index]) continue;
+            Cell cell = sector.legs.get(index);
+            if (topology.reachable(squad.anchorCellX(), squad.anchorCellY(),
+                    cell.x(), cell.y())) return index;
+        }
+        return -1;
+    }
+
+    private static int nearestLegTo(SearchSector sector, int x, int y,
+                                    CommandSquadState squad,
+                                    CommandTopology topology, int lane) {
+        List<Integer> candidates = new ArrayList<>();
+        for (int i = 0; i < sector.legs.size(); i++) {
+            Cell cell = sector.legs.get(i);
+            if (topology.reachable(squad.anchorCellX(), squad.anchorCellY(),
+                    cell.x(), cell.y())) candidates.add(i);
+        }
+        candidates.sort(Comparator.comparingInt((Integer index) -> {
+            Cell cell = sector.legs.get(index);
+            int dx = cell.x() - x;
+            int dy = cell.y() - y;
+            return dx * dx + dy * dy;
+        }).thenComparingInt(Integer::intValue));
+        return candidates.isEmpty() ? -1
+                : candidates.get(Math.min(lane, candidates.size() - 1));
+    }
+
+    private static boolean arrived(CommandSquadState squad, int x, int y) {
+        float dx = squad.centroidX() - (x + 0.5f);
+        float dy = squad.centroidY() - (y + 0.5f);
+        return dx * dx + dy * dy
+                <= PatrolMotion.ARRIVAL_RADIUS * PatrolMotion.ARRIVAL_RADIUS;
+    }
+
+    private static boolean arrivedAtAssignment(CommandSquadState squad) {
+        ObjectiveAssignment assignment = squad.assignment();
+        return assignment != null && assignment.kind() == AssignmentKind.SWEEP_SECTOR
+                && arrived(squad, assignment.targetCellX(),
+                        assignment.targetCellY());
+    }
+
+    private static int legAt(SearchSector sector, int x, int y) {
+        for (int i = 0; i < sector.legs.size(); i++) {
+            Cell cell = sector.legs.get(i);
+            if (cell.x() == x && cell.y() == y) return i;
+        }
+        return -1;
+    }
+
+    private static int exteriorZone(CommandTopology topology) {
+        int largestId = -1;
+        int largest = -1;
+        int second = -1;
+        for (CommandTopology.Zone zone : topology.zones()) {
+            int size = zone.cellCount();
+            if (size > largest) {
+                second = largest;
+                largest = size;
+                largestId = zone.id();
+            } else if (size > second) {
+                second = size;
+            }
+        }
+        return largestId >= 0 && (second <= 0
+                || largest >= EXTERIOR_DOMINANCE_RATIO * second)
+                ? largestId : -1;
+    }
+
+    private static List<Cell> buildSweepLegs(
+            CommandTopology topology, int minX, int maxX, int minY, int maxY,
+            int exteriorZone) {
+        List<Cell> result = new ArrayList<>();
+        int[][] samples = {
+                {1, 2}, {3, 2}, {5, 2},
+                {5, 5}, {3, 5}, {1, 5},
+                {1, 8}, {3, 8}, {5, 8}
+        };
+        for (int[] sample : samples) {
+            int x = minX + Math.max(0,
+                    Math.round((maxX - minX) * sample[0] / 6f));
+            int y = minY + Math.max(0,
+                    Math.round((maxY - minY) * sample[1] / 10f));
+            addDistinct(result, nearestWalkable(topology, x, y,
+                    minX, maxX, minY, maxY));
+        }
+        for (CommandTopology.Zone zone : topology.zones()) {
+            if (zone.id() == exteriorZone || zone.cellCount() == 0) continue;
+            long sumX = 0;
+            long sumY = 0;
+            int inSector = 0;
+            for (int cell : zone.cells()) {
+                int x = cell % topology.width();
+                int y = cell / topology.width();
+                if (x < minX || x > maxX || y < minY || y > maxY) continue;
+                sumX += x;
+                sumY += y;
+                inSector++;
+            }
+            if (inSector > 0) {
+                addDistinct(result, nearestZoneCell(topology, zone,
+                        Math.round((float) sumX / inSector),
+                        Math.round((float) sumY / inSector),
+                        minX, maxX, minY, maxY));
+            }
+        }
+        return List.copyOf(result);
+    }
+
+    private static Cell nearestWalkable(CommandTopology topology, int targetX,
+                                        int targetY, int minX, int maxX,
+                                        int minY, int maxY) {
+        Cell best = null;
         int bestDistance = Integer.MAX_VALUE;
         for (int y = minY; y <= maxY; y++) {
             for (int x = minX; x <= maxX; x++) {
-                if (!grid.isWalkable(x, y)) continue;
+                if (!topology.isWalkable(x, y)) continue;
                 int dx = x - targetX;
                 int dy = y - targetY;
                 int distance = dx * dx + dy * dy;
                 if (distance < bestDistance) {
                     bestDistance = distance;
-                    best = new int[]{x, y};
+                    best = new Cell(x, y);
                 }
             }
         }
         return best;
     }
 
-    private static boolean containsCell(List<int[]> cells, int[] candidate) {
-        for (int[] cell : cells) {
-            if (cell[0] == candidate[0] && cell[1] == candidate[1]) return true;
+    private static Cell nearestZoneCell(CommandTopology topology,
+                                        CommandTopology.Zone zone,
+                                        int targetX, int targetY,
+                                        int minX, int maxX,
+                                        int minY, int maxY) {
+        Cell best = null;
+        int bestDistance = Integer.MAX_VALUE;
+        for (int cell : zone.cells()) {
+            int x = cell % topology.width();
+            int y = cell / topology.width();
+            if (x < minX || x > maxX || y < minY || y > maxY) continue;
+            int dx = x - targetX;
+            int dy = y - targetY;
+            int distance = dx * dx + dy * dy;
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                best = new Cell(x, y);
+            }
         }
-        return false;
+        return best;
     }
 
-    // ---- Test/debug accessors ----
-
-    public int sectorCount() {
-        return sectorCols * sectorRows;
+    private static void addDistinct(List<Cell> cells, Cell candidate) {
+        if (candidate != null && !cells.contains(candidate)) cells.add(candidate);
     }
 
-    public int sectorCols() {
-        return sectorCols;
+    public int sectorCount() { return sectors.size(); }
+    public int sectorCols() { return sectorCols; }
+    public int sectorRows() { return sectorRows; }
+    public List<int[]> sweepLegsInSector(int sectorIndex) {
+        if (sectorIndex < 0 || sectorIndex >= sectors.size()) return List.of();
+        return sectors.get(sectorIndex).legs.stream()
+                .map(cell -> new int[]{cell.x(), cell.y()}).toList();
     }
 
-    public int sectorRows() {
-        return sectorRows;
-    }
+    private record Cell(int x, int y) { }
+    private record SearchTarget(Cell cell, int legIndex) { }
 
-    public List<Integer> zonesInSector(int sectorIdx) {
-        if (sectorZones == null || sectorIdx < 0 || sectorIdx >= sectorZones.size()) {
-            return List.of();
+    private static final class SearchSector {
+        private final int index;
+        private final int minX;
+        private final int minY;
+        private final int maxX;
+        private final int maxY;
+        private final List<Cell> legs;
+        private final boolean[] visited;
+        private int lastVisitedTick = -1;
+        private boolean reportedLastPulse;
+
+        private SearchSector(int index, int minX, int minY, int maxX, int maxY,
+                             List<Cell> legs) {
+            this.index = index;
+            this.minX = minX;
+            this.minY = minY;
+            this.maxX = maxX;
+            this.maxY = maxY;
+            this.legs = legs;
+            this.visited = new boolean[legs.size()];
         }
-        return List.copyOf(sectorZones.get(sectorIdx));
+
+        private boolean complete() {
+            if (visited.length == 0) return true;
+            for (boolean value : visited) if (!value) return false;
+            return true;
+        }
+
+        private int visitedCount() {
+            int count = 0;
+            for (boolean value : visited) if (value) count++;
+            return count;
+        }
+    }
+
+    private final class SectorReports {
+        private final int[] contactCount;
+        private final int[] freshestTick;
+        private final boolean[] active;
+        private final CommanderContact[] primary;
+
+        private SectorReports(int[] contactCount, int[] freshestTick,
+                              boolean[] active, CommanderContact[] primary) {
+            this.contactCount = contactCount;
+            this.freshestTick = freshestTick;
+            this.active = active;
+            this.primary = primary;
+        }
+
+        private SectorStatus status(int sector) {
+            if (active[sector]) return SectorStatus.ACTIVE;
+            if (contactCount[sector] > 0) return SectorStatus.SUSPECTED;
+            return sectors.get(sector).complete()
+                    ? SectorStatus.SEARCHED : SectorStatus.SEARCHING;
+        }
+
+        private CommanderContact primaryContact(int sector) { return primary[sector]; }
+
+        private boolean hasActiveOrSuspected() {
+            for (int i = 0; i < contactCount.length; i++) {
+                if (active[i] || contactCount[i] > 0) return true;
+            }
+            return false;
+        }
     }
 }

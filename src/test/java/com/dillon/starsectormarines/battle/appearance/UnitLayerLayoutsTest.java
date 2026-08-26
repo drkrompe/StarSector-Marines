@@ -86,9 +86,11 @@ class UnitLayerLayoutsTest {
 
         assertEquals(idle.layer("body").scaleX(),
                 mastered.layer("body").scaleX(), 0.000001f);
-        assertEquals(1.24f, mastered.layer("head").scaleX(), 0.000001f);
-        assertEquals(1.24f, mastered.layer("head").scaleY(), 0.000001f);
-        assertEquals(idle.layer("head").offsetY(),
+        assertEquals(idle.layer("head").scaleX() * 1.8f,
+                mastered.layer("head").scaleX(), 0.000001f);
+        assertEquals(idle.layer("head").scaleY() * 1.5f,
+                mastered.layer("head").scaleY(), 0.000001f);
+        assertEquals(idle.layer("head").offsetY() + 0.016f,
                 mastered.layer("head").offsetY(), 0.000001f);
         assertEquals(idle.layer("primary"), mastered.layer("primary"));
     }

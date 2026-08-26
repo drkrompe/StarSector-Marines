@@ -4,6 +4,9 @@ Status: DRAFT — pair belief-honest attacker search with defender strongpoint a
 
 Written: 2026-08-25
 
+Updated: 2026-08-26 — recorded the production ownership, reserve, and hidden-
+information seams exposed by the attacker migration audit.
+
 Read `ai-nouns.md`, `autonomous-mission-command-foundation.md`,
 `assault-search-sector-picture.md`, and
 `commander-trace-and-balance-harness.md` before planning this story.
@@ -45,6 +48,16 @@ attackers search and converge using their own coverage and beliefs.
 - Objective truth may know that defenders remain for victory; command search
   and targeting may not use their hidden live cells.
 - Strongpoint/garrison ownership must be explicit before reserve allocation.
+- Production setup must reserve at least one complete mobile patrol squad when
+  force size permits; the current zero-minimum allocation may consume the
+  entire roster as authored garrisons.
+- Existing reinforcement squads retain `REINFORCEMENT` authority until an
+  explicit handoff. The Assault defender command may own only its captured
+  starting mobile pool.
+- `GarrisonAmbush` may not use its current map-wide live-hostile scan as a
+  security alarm, and Assault may not install the occupancy-driven
+  `ObjectiveLostTrigger`. Both require belief/report-honest replacements in
+  this story; own-force `GarrisonDepletedTrigger` remains legal.
 
 ## Exit
 

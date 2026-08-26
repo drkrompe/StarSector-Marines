@@ -5,9 +5,8 @@ paired Sabotage named-site command is shipped and Assault follows.
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — retired the paired Sabotage site-command stories after
-landing legal defender alarms, authored-post/mobile-pool separation, bounded
-reserve response, diagnostics, and deterministic production evidence.
+Updated: 2026-08-26 — advanced Assault's belief-honest attacker search picture
+through production and kept paired defender/evidence acceptance explicit.
 
 | Story | State | Intent |
 |---|---|---|
@@ -15,7 +14,7 @@ reserve response, diagnostics, and deterministic production evidence.
 | `contact-reaction-doctrine.md` | IN PROGRESS | Close and validate the live contact-initiative gap, then finish doctrine, formation-tempo, and acquisition acceptance. |
 | `commander-trace-and-balance-harness.md` | IN PROGRESS | Use landed travel/zone-presence evidence to review attacker commitment against a launch-faithful baseline, then add bounded intervention comparison. |
 | `opening-operation-objective-command.md` | DRAFT | Prove the foundation outside Conquest with belief-honest paired preserve/assault and secure/defend small-force scenarios. |
-| `assault-search-sector-picture.md` | DRAFT | Publish the belief-honest attacker search-sector picture and converging sweep. |
+| `assault-search-sector-picture.md` | IN PROGRESS | Production attacker search and diagnostics are landed; paired defender and no-input evidence remain. |
 | `assault-area-defense-command.md` | DRAFT | Pair Assault search with defender strongpoints, reported-contact response, and a bounded reserve without imposing a front. |
 | `rescue-corridor-command-picture.md` | DRAFT | Publish the marine escort corridor and opposing swarm-pressure intent as an asymmetric autonomous battle. |
 | `silent-colony-expedition-branches.md` | DRAFT | Keep archive and survivor branches stable and inspectable before deciding the security network's opposing-command shape. |
