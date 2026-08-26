@@ -17,6 +17,7 @@ import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -65,11 +66,16 @@ class MechLabViewModelTest {
                 .filter(row -> row.id().endsWith("arms"))
                 .findFirst().orElseThrow().select().run();
 
+        assertTrue(viewModel.fittingFocused());
         assertTrue(viewModel.selectedSlotRule().get().contains("BALLISTIC SOCKET"));
         assertEquals(1, viewModel.catalogRows().get().size());
         assertTrue(viewModel.catalogRows().get().get(0).actionDisabled());
         assertEquals(originalReplenisher, mech.missileReplenisherId());
         assertTrue(viewModel.feedbackText().get().contains("Inspection only"));
+
+        viewModel.overviewAction().run();
+        assertFalse(viewModel.fittingFocused());
+        assertTrue(viewModel.feedbackText().get().contains("overview restored"));
     }
 
     @Test
@@ -136,6 +142,35 @@ class MechLabViewModelTest {
                     .hasClass("selected"));
             assertTrue(instance.requireElement("page-nav-mech-lab")
                     .hasClass("page-nav-current"));
+        }
+    }
+
+    @Test
+    void mechLabNavigationTextCenterBubblesToTheRouteAction() throws Exception {
+        Reactor reactor = new Reactor();
+        MechLabViewModel viewModel = new MechLabViewModel(reactor, new MechBay());
+        AtomicInteger clicks = new AtomicInteger();
+        Map<String, Object> props = props(viewModel);
+        props.put("mechLabAction", (Runnable) clicks::incrementAndGet);
+        MarkupLoader loader = new MarkupLoader(
+                path -> Files.readString(Path.of(path)), COMPONENTS);
+        loader.reload();
+
+        try (MarkupInstance instance = loader.build(reactor, "mech-lab", props)) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            document.layout(1744f, 938f);
+            UiElement route = instance.requireElement("page-nav-mech-lab");
+            float centerX = route.box().borderBox().x()
+                    + route.box().borderBox().width() * 0.5f;
+            float centerY = route.box().borderBox().y()
+                    + route.box().borderBox().height() * 0.5f;
+            document.pointerMoved(centerX, centerY);
+            assertTrue(route.hovered());
+            assertTrue(document.pointerDown(centerX, centerY));
+            assertTrue(document.pointerUp(centerX, centerY));
+            assertEquals(1, clicks.get());
         }
     }
 

@@ -19,7 +19,7 @@
     gap: 8px;
   }
 
-  #marine-ops-page-routes { flex-direction: row; width: 572px; gap: 6px; }
+  #marine-ops-page-routes { flex-direction: row; width: 662px; gap: 6px; }
   #marine-ops-page-routes button {
     width: 108px;
     padding: 3px 8px;
@@ -34,6 +34,11 @@
     border-color: #ffd464;
     color: #ffd464;
     opacity: 1;
+  }
+
+  #marine-ops-page-routes .page-nav-current:hover {
+    background-color: #21536f;
+    border-color: #ffe6a3;
   }
 
   #marine-ops-page-context {
