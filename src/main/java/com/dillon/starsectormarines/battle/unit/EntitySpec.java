@@ -8,7 +8,6 @@ import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 
@@ -63,7 +62,7 @@ public final class EntitySpec {
     public int homeCellX = -1;
     public int homeCellY = -1;
     public float hubSpawnCooldown = 0f;
-    public TurretKind turretKind;
+    public String turretStructureId;
     public long homeHubId = 0L;
 
     // ---- stat block (seeded from type, override via setters) ----
@@ -113,7 +112,7 @@ public final class EntitySpec {
     public EntitySpec assignedObjective(Objective objective) { this.assignedObjective = objective; return this; }
     public EntitySpec home(int cellX, int cellY) { this.homeCellX = cellX; this.homeCellY = cellY; return this; }
     public EntitySpec hubSpawnCooldown(float sec) { this.hubSpawnCooldown = sec; return this; }
-    public EntitySpec turretKind(TurretKind kind) { this.turretKind = kind; return this; }
+    public EntitySpec turretStructureId(String structureId) { this.turretStructureId = structureId; return this; }
     public EntitySpec homeHubId(long id) { this.homeHubId = id; return this; }
     public EntitySpec campaignSoldierId(String id) { this.campaignSoldierId = id; return this; }
     public EntitySpec mechVariant(MechVariant variant) {

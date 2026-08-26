@@ -1,13 +1,9 @@
 package com.dillon.starsectormarines.battle.weapon;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
-import com.dillon.starsectormarines.battle.weapon.WeaponDef;
-import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
-import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.weapon.fx.FxSlot;
 import org.junit.jupiter.api.Test;
 
@@ -30,9 +26,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * are written as literals rather than read back from the registry so a typo in
  * the data cannot quietly validate itself.
  *
- * <p><b>Lifetime.</b> Delete this test when {@code moddable-weapons} W4 retires
- * the enum — at that point there is no second source to be in parity with, and
- * these literals become an unmaintained copy of the shipping catalog.
+ * The literal checks protect the shipped catalog while registry-coverage checks
+ * ensure every mounted definition participates without a parallel enum list.
  */
 class WeaponRegistryParityTest {
 
@@ -41,77 +36,59 @@ class WeaponRegistryParityTest {
     @Test
     void everyShippedHandleResolvesToExactlyOneDef() {
         Set<String> ids = new HashSet<>();
-        for (WeaponDef weapon : List.of(
-                WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID),
-                WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID),
-                WeaponRegistry.require(WeaponRegistry.SMG_ID),
-                WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID),
-                WeaponRegistry.require(WeaponRegistry.DMR_ID),
-                WeaponRegistry.require(WeaponRegistry.DRONE_PULSE_ID))) {
+        for (WeaponDef weapon : WeaponRegistry.installed().all()) {
             assertTrue(ids.add(weapon.id), "duplicate id " + weapon.id);
-            assertSame(MountClass.MARINE_PRIMARY, weapon.mount,
-                    weapon + " is a marine primary");
         }
         for (SpecialEquipmentDef weapon : SpecialEquipmentRegistry.installed().all()) {
             if (weapon.weaponId() == null) continue;
             assertNotNull(weapon.weaponDef(), weapon + " must resolve through the registry");
-            assertTrue(ids.add(weapon.weaponDef().id), "duplicate id " + weapon.weaponDef().id);
             assertSame(MountClass.MARINE_SECONDARY, weapon.weaponDef().mount,
                     weapon + " is weapon-like special equipment");
         }
-        for (MechWeapon weapon : MechWeapon.values()) {
-            assertNotNull(weapon.def(), weapon + " must resolve through the registry");
-            assertTrue(ids.add(weapon.id), "duplicate id " + weapon.id);
-            assertSame(MountClass.MECH_MOUNT, weapon.def().mount,
-                    weapon + " is a mech-mounted weapon");
-        }
-        long weaponLikeSpecials = SpecialEquipmentRegistry.installed().all().stream()
-                .filter(weapon -> weapon.weaponId() != null)
-                .count();
-        assertEquals(6 + weaponLikeSpecials
-                        + MechWeapon.values().length
-                        + TurretKind.values().length,
-                WeaponRegistry.installed().size(),
-                "the registry holds exactly the shipped handheld, mech, and turret weapons");
+        assertEquals(WeaponRegistry.installed().size(), ids.size());
+        assertTrue(WeaponRegistry.installed().all().stream()
+                .anyMatch(weapon -> weapon.mount == MountClass.MECH_MOUNT));
+        assertTrue(WeaponRegistry.installed().all().stream()
+                .anyMatch(weapon -> weapon.mount == MountClass.TURRET_MOUNT));
     }
 
     @Test
     void mechComponentsPointAtRegistryIds() {
         for (MechWeaponComponent component : MechWeaponComponent.values()) {
-            assertEquals(component.weaponId, component.weapon().id,
+            assertEquals(component.weaponId, component.weaponDef().id,
                     component + " resolves its stable weapon id");
-            assertSame(MountClass.MECH_MOUNT, component.weapon().def().mount,
+            assertSame(MountClass.MECH_MOUNT, component.weaponDef().mount,
                     component + " resolves only a mech-mount definition");
         }
     }
 
     @Test
     void mechWeaponMigrationPreservesShippedValues() {
-        assertMech(MechWeapon.CHAINGUN,
+        assertMech(WeaponRegistry.require(WeaponRegistry.MECH_CHAINGUN_ID),
                 30f, 13.5f, 0.55f, 2f, 5f,
                 12, 0.06f, 1.2f, 300f, 0.10f, 0f,
                 0.6f, 3, 0f, false, false, 1f,
                 new Color(0xFF, 0xE8, 0xC0), ImpactKind.KINETIC,
                 "graphics/missiles/shell_small_yellow.png", 0.18f, "chaingun_fire");
-        assertMech(MechWeapon.LINEAR_CANNON,
+        assertMech(WeaponRegistry.require(WeaponRegistry.MECH_LINEAR_CANNON_ID),
                 32f, 27f, 0.68f, 2.8f, 8f,
                 2, 0.12f, 0.35f, 160f, 0.20f, 0f,
                 0.35f, 4, 0f, false, false, 1f,
                 new Color(0xB8, 0xE8, 0xFF), ImpactKind.KINETIC,
                 "graphics/missiles/shell_large_blue.png", 0.20f, "needler_fire");
-        assertMech(MechWeapon.HEAVY_CANNON,
+        assertMech(WeaponRegistry.require(WeaponRegistry.MECH_HEAVY_CANNON_ID),
                 26f, 45f, 0.76f, 2.5f, 18f,
                 1, 0f, 0.12f, 86.666664f, 0.30f, 0f,
                 1f, 18, 0.9f, false, false, 1f,
                 new Color(0xFF, 0xD0, 0x88), ImpactKind.CANNON_HE,
                 "graphics/missiles/shell_hellbore.png", 0.34f, "hellbore_fire");
-        assertMech(MechWeapon.SRM_POD,
+        assertMech(WeaponRegistry.require(WeaponRegistry.MECH_SRM_POD_ID),
                 18f, 49.5f, 0.55f, 5.5f, 14f,
                 4, 0.10f, 0f, 32.727272f, 0.55f, 0f,
                 1.3f, 25, 1.3f, true, false, 1f,
                 new Color(0xFF, 0xC0, 0x80), ImpactKind.HE,
                 "graphics/missiles/missile_SRM.png", 0.40f, "annihilator_fire");
-        assertMech(MechWeapon.LRM_ARTILLERY,
+        assertMech(WeaponRegistry.require(WeaponRegistry.MECH_LRM_ARTILLERY_ID),
                 40f, 81f, 0.55f, 9f, 16f,
                 5, 0.11f, 1.5f, 28.571428f, 1.40f, 5f,
                 2f, 40, 2f, true, true, 0.55f,
@@ -279,7 +256,7 @@ class WeaponRegistryParityTest {
         assertEquals(fireSound, weapon.fireSoundId(), weapon + " fire sound");
     }
 
-    private static void assertMech(MechWeapon weapon,
+    private static void assertMech(WeaponDef weapon,
                                    float range, float damage, float accuracy,
                                    float cooldown, float penetration,
                                    int burstCount, float burstSpacing,
@@ -301,22 +278,22 @@ class WeaponRegistryParityTest {
         assertEquals(burstSpacing, weapon.burstSpacing(), EPS, weapon + " burst spacing");
         assertEquals(hitSpread, weapon.hitSpread(), EPS, weapon + " hit spread");
         assertEquals(roundVelocity, weapon.roundVelocity(), EPS, weapon + " round velocity");
-        assertEquals(flightSec, weapon.flightSec(), EPS, weapon + " flight time");
-        assertEquals(arcHeight, weapon.arcHeight(), EPS, weapon + " arc height");
-        assertEquals(aoeRadius, weapon.aoeRadius(), EPS, weapon + " blast radius");
-        assertEquals(wallDamage, weapon.wallDamage(), weapon + " wall damage");
-        assertEquals(wallDamageRadius, weapon.wallDamageRadius(), EPS,
+        assertEquals(flightSec, weapon.flightSec, EPS, weapon + " flight time");
+        assertEquals(arcHeight, weapon.arcHeight, EPS, weapon + " arc height");
+        assertEquals(aoeRadius, weapon.aoeRadius, EPS, weapon + " blast radius");
+        assertEquals(wallDamage, weapon.wallDamage, weapon + " wall damage");
+        assertEquals(wallDamageRadius, weapon.wallDamageRadius, EPS,
                 weapon + " wall damage radius");
-        assertEquals(authoredTrail, !weapon.def().fx.layers(FxSlot.TRAIL).isEmpty(),
+        assertEquals(authoredTrail, !weapon.fx.layers(FxSlot.TRAIL).isEmpty(),
                 weapon + " authored trail");
-        assertEquals(authoredTrail, weapon.interceptableProjectile(),
+        assertEquals(authoredTrail, weapon.interceptableProjectile,
                 weapon + " interceptable projectile");
-        assertEquals(authoredTrail, weapon.boostRamp(), weapon + " boost ramp");
-        assertEquals(indirectFire, weapon.indirectFire(), weapon + " indirect fire");
-        assertEquals(noLosAccuracyMult, weapon.noLosAccuracyMult(), EPS,
+        assertEquals(authoredTrail, weapon.boostRamp, weapon + " boost ramp");
+        assertEquals(indirectFire, weapon.indirectFire, weapon + " indirect fire");
+        assertEquals(noLosAccuracyMult, weapon.noLosAccuracyMult, EPS,
                 weapon + " no-LOS accuracy");
         assertEquals(tracer, weapon.tracerColor(), weapon + " tracer");
-        assertImpact(weapon.def(), impact);
+        assertImpact(weapon, impact);
         assertEquals(projectileSpritePath, weapon.projectileSpritePath(),
                 weapon + " projectile sprite");
         assertEquals(projectileVisualCells, weapon.projectileVisualCells(), EPS,

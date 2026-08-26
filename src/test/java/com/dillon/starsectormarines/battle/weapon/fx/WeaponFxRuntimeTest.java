@@ -5,8 +5,8 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
-import com.dillon.starsectormarines.battle.mech.MechWeapon;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.turret.StructureDef;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import org.junit.jupiter.api.Test;
 
@@ -29,34 +29,39 @@ class WeaponFxRuntimeTest {
 
     @Test
     void everyCarrierFamilyResolvesItsRegistryComposition() {
+        WeaponDef srm = WeaponRegistry.require(WeaponRegistry.MECH_SRM_POD_ID);
+        StructureDef arbalest = TurretCatalogRegistry.requireStructure(
+                TurretCatalogRegistry.ARBALEST_STRUCTURE_ID);
         ShotEvent primary = new ShotEvent(1f, 2f, 3f, 4f, true,
                 Faction.MARINE, 0.1f, null, WeaponRegistry.require(WeaponRegistry.DMR_ID), null);
         ShotEvent special = new ShotEvent(1f, 2f, 3f, 4f, true,
                 Faction.MARINE, 0.1f, null, null, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID));
         ShotEvent mech = new ShotEvent(1f, 2f, 3f, 4f, true,
-                Faction.MARINE, 0.1f, null, null, null, MechWeapon.SRM_POD);
+                Faction.MARINE, 0.1f, null, null, null, srm);
         ShotEvent turret = new ShotEvent(1f, 2f, 3f, 4f, true,
-                Faction.DEFENDER, 0.1f, TurretKind.ARBALEST);
+                Faction.DEFENDER, 0.1f, arbalest);
 
         assertSame(WeaponRegistry.require(WeaponRegistry.DMR_ID).fx, WeaponFxRuntime.definition(primary));
         assertSame(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).weaponDef().fx,
                 WeaponFxRuntime.definition(special));
-        assertSame(MechWeapon.SRM_POD.def().fx, WeaponFxRuntime.definition(mech));
-        assertSame(TurretKind.ARBALEST.fx(), WeaponFxRuntime.definition(turret));
+        assertSame(srm.fx, WeaponFxRuntime.definition(mech));
+        assertSame(arbalest.mount.weapon.fx, WeaponFxRuntime.definition(turret));
     }
 
     private static void assertBackblast(float fromX, float fromY, float toX, float toY,
                                         float bearing, float expectedXSign,
                                         float expectedYSign) throws Exception {
+        StructureDef locust = TurretCatalogRegistry.requireStructure(
+                TurretCatalogRegistry.LOCUST_STRUCTURE_ID);
         ShotEvent shot = new ShotEvent(fromX, fromY, toX, toY, true,
-                Faction.DEFENDER, 0.15f, TurretKind.LOCUST);
+                Faction.DEFENDER, 0.15f, locust);
         FxCompositionContext context = WeaponFxRuntime.launchContext(shot);
         assertEquals(fromX, context.x(), EPS);
         assertEquals(fromY, context.y(), EPS);
         assertEquals(bearing, context.bearingDegrees(), EPS);
         FxParticleCommand command = WeaponFxComposer.compose(
-                TurretKind.LOCUST.fx(), FxSlot.LAUNCH, context).get(0);
-        assertFalse(TurretKind.LOCUST.fx().layers(FxSlot.MUZZLE).isEmpty());
+                locust.mount.weapon.fx, FxSlot.LAUNCH, context).get(0);
+        assertFalse(locust.mount.weapon.fx.layers(FxSlot.MUZZLE).isEmpty());
         if (expectedXSign != 0f) {
             assertEquals(expectedXSign, Math.signum(command.velocityX()), EPS);
         }

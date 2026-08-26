@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.PlacementGuards;
@@ -99,9 +99,9 @@ public final class OverwatchTowerStage implements GenStage {
      */
     private static final EnumSet<DepthBand> ALLOWED_BANDS = EnumSet.of(DepthBand.MID, DepthBand.DEEP);
 
-    /** Defense level (inclusive) at/above which towers upgrade from {@link TurretKind#VULCAN} to the mid {@link TurretKind#ARBALEST}. */
+    /** Defense level (inclusive) at/above which towers upgrade from Vulcan to Arbalest. */
     private static final int TIER_MID_DEFENSE = 2;
-    /** Defense level (inclusive) at/above which towers upgrade to the heavy {@link TurretKind#HEPHAESTUS}. */
+    /** Defense level (inclusive) at/above which towers upgrade to Hephaestus. */
     private static final int TIER_HEAVY_DEFENSE = 4;
 
     public OverwatchTowerStage() {}
@@ -126,7 +126,7 @@ public final class OverwatchTowerStage implements GenStage {
         float intensity = 1f + DEFENSE_INTENSITY_GAIN * profile.defenseLevel();
         int areaBudget = Math.round((float) (ctx.width * ctx.height) / CELLS_PER_TOWER);
         int budget = Math.max(MIN_TOWERS, Math.min(MAX_TOWERS, Math.round(areaBudget * intensity)));
-        TurretKind turret = turretForDefense(profile.defenseLevel());
+        String turretStructureId = turretForDefense(profile.defenseLevel());
 
         List<OverwatchSite> sites = OverwatchScorer.findSites(grid, regions, axis);
         List<DefensePost> posts = ctx.defensePosts;
@@ -151,7 +151,7 @@ public final class OverwatchTowerStage implements GenStage {
 
             stampTowerMount(grid, topology, x, y);
             List<DefensePost.TurretSpec> turrets = new ArrayList<>(1);
-            turrets.add(new DefensePost.TurretSpec(turret, x, y));
+            turrets.add(new DefensePost.TurretSpec(turretStructureId, x, y));
             // LIGHT tier = single turret; no GUARDPOST node is emitted (see class
             // doc), so the tier's garrison metadata is inert — the tower is unmanned.
             posts.add(new DefensePost(DefensePostKind.LIGHT, x, y, turrets));
@@ -218,10 +218,14 @@ public final class OverwatchTowerStage implements GenStage {
      * {@code VULCAN} (light, the baseline / NEUTRAL kind) → {@code ARBALEST}
      * (mid) → {@code HEPHAESTUS} (heavy) by defense band.
      */
-    private static TurretKind turretForDefense(int defenseLevel) {
-        if (defenseLevel >= TIER_HEAVY_DEFENSE) return TurretKind.HEPHAESTUS;
-        if (defenseLevel >= TIER_MID_DEFENSE) return TurretKind.ARBALEST;
-        return TurretKind.VULCAN;
+    private static String turretForDefense(int defenseLevel) {
+        if (defenseLevel >= TIER_HEAVY_DEFENSE) {
+            return TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID;
+        }
+        if (defenseLevel >= TIER_MID_DEFENSE) {
+            return TurretCatalogRegistry.ARBALEST_STRUCTURE_ID;
+        }
+        return TurretCatalogRegistry.VULCAN_STRUCTURE_ID;
     }
 
     /** 1 if the neighbor at {@code (x,y)} is in-bounds and non-walkable, 0 otherwise. */

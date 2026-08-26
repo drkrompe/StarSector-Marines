@@ -57,8 +57,8 @@ public final class BattleShotAudio {
     }
 
     static Cue cue(ShotEvent shot) {
-        if (shot.turretKind != null) {
-            return new Cue(shot.turretKind.fireSoundId(), 1f);
+        if (shot.turretStructureDef != null) {
+            return new Cue(shot.turretStructureDef.mount.weapon.fireSoundId, 1f);
         }
         if (shot.specialEquipmentDef != null) {
             return new Cue(shot.specialEquipmentDef.fireSoundId(), 1f);
@@ -66,8 +66,8 @@ public final class BattleShotAudio {
         if (shot.primaryWeaponDef != null) {
             return new Cue(shot.primaryWeaponDef.fireSoundId, 0.85f);
         }
-        if (shot.mechWeapon != null) {
-            return new Cue(shot.mechWeapon.fireSoundId(), 1f);
+        if (shot.mechWeaponDef != null) {
+            return new Cue(shot.mechWeaponDef.fireSoundId, 1f);
         }
         return new Cue(FALLBACK_RIFLE, 0.5f);
     }

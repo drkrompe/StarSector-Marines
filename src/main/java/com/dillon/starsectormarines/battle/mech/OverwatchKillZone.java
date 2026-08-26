@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 
 /**
  * LR Support doctrine: angle through medium/long-range firing lanes toward the
@@ -253,7 +254,7 @@ public final class OverwatchKillZone implements Action {
         }
         MechWeaponMount arms = loadout.mount(MechMountSlot.ARMS);
         if (arms == null || (!arms.hasAmmo() && arms.burstRemaining <= 0)) return null;
-        float maxDistance = arms.weapon().range();
+        float maxDistance = arms.weaponDef().range;
         float minDistance = Math.min(OVERWATCH_MIN_DIST,
                 Math.max(0f, maxDistance - DIRECT_FALLBACK_BAND_DEPTH));
         return new OverwatchBand(minDistance, maxDistance, false);
@@ -261,7 +262,8 @@ public final class OverwatchKillZone implements Action {
 
     private static boolean hasLrmPressure(MechLoadoutComponent loadout) {
         for (MechWeaponMount mount : loadout.mounts()) {
-            if (mount != null && mount.weapon() == MechWeapon.LRM_ARTILLERY
+            if (mount != null
+                    && WeaponRegistry.MECH_LRM_ARTILLERY_ID.equals(mount.weaponId())
                     && (mount.hasAmmo() || mount.burstRemaining > 0)) {
                 return true;
             }
@@ -272,7 +274,8 @@ public final class OverwatchKillZone implements Action {
     private static boolean lrmRacksFull(MechLoadoutComponent loadout) {
         boolean found = false;
         for (MechWeaponMount mount : loadout.mounts()) {
-            if (mount == null || mount.weapon() != MechWeapon.LRM_ARTILLERY) continue;
+            if (mount == null
+                    || !WeaponRegistry.MECH_LRM_ARTILLERY_ID.equals(mount.weaponId())) continue;
             found = true;
             if (!mount.full()) return false;
         }

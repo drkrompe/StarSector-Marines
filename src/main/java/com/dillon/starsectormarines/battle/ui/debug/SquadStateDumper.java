@@ -602,7 +602,7 @@ public final class SquadStateDumper {
             JSONObject o = new JSONObject();
             o.put("slot", mount.slot.name());
             o.put("component", mount.component.name());
-            o.put("weapon", mount.weapon().name());
+            o.put("weapon", mount.weaponId());
             o.put("ammo", mount.ammo);
             o.put("ammoCapacity", mount.component.ammoCapacity);
             o.put("hasAmmo", mount.hasAmmo());

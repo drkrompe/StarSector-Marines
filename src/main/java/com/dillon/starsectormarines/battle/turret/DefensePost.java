@@ -65,11 +65,6 @@ public final class DefensePost {
             this.cellY = cellY;
         }
 
-        /** Compatibility constructor for one-off Java-authored tower placements. */
-        public TurretSpec(TurretKind kind, int cellX, int cellY) {
-            this(kind.structureId, cellX, cellY);
-        }
-
         public StructureDef structure() {
             return TurretCatalogRegistry.requireStructure(structureId);
         }

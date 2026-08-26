@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,10 +19,10 @@ class MechMissileReplenishmentTest {
     void standardComponentOwnsSrmAndLrmCadence() {
         MissileReplenisherComponent standard = MissileReplenisherComponent.STANDARD;
 
-        assertEquals(12f, standard.replenishmentSeconds(MechWeapon.SRM_POD));
-        assertEquals(18f, standard.replenishmentSeconds(MechWeapon.LRM_ARTILLERY));
+        assertEquals(12f, standard.replenishmentSeconds(WeaponRegistry.MECH_SRM_POD_ID));
+        assertEquals(18f, standard.replenishmentSeconds(WeaponRegistry.MECH_LRM_ARTILLERY_ID));
         assertEquals(Float.POSITIVE_INFINITY,
-                standard.replenishmentSeconds(MechWeapon.CHAINGUN));
+                standard.replenishmentSeconds(WeaponRegistry.MECH_CHAINGUN_ID));
     }
 
     @Test

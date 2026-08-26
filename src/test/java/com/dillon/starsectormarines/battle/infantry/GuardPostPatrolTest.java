@@ -7,7 +7,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -41,7 +41,8 @@ public class GuardPostPatrolTest {
 
     private static Squad postedSquad(BattleSimulation sim, int anchorX, int anchorY, int radius) {
         DefensePost post = new DefensePost(DefensePostKind.LARGE, anchorX, anchorY,
-                List.of(new DefensePost.TurretSpec(TurretKind.VULCAN, anchorX, anchorY)));
+                List.of(new DefensePost.TurretSpec(
+                        TurretCatalogRegistry.VULCAN_STRUCTURE_ID, anchorX, anchorY)));
         Squad squad = new Squad(1, Faction.DEFENDER);
         squad.holdsFireUntilKillZone = true;
         squad.defensePost = post;
