@@ -4,8 +4,8 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — moved Barracks room actors into its bounded battle
-simulation and made live and headless views consume the same render commands.
+Updated: 2026-08-25 — made the Mech Lab room route restore a lance-wide workshop
+overview and made socket selection ease into the active fitting gantry.
 
 ## Purpose
 
@@ -232,6 +232,10 @@ gantry without changing lance composition.
 The fitting header also provides explicit previous/next controls over the lance's four
 numbered gantry pads. Those controls can focus a vacant station without hiding the
 physical room; the asset browser remains the direct way to jump across lances.
+Entering the room or selecting a lance presents the wider working bay first. Selecting
+a fitting socket eases the shared room camera into that asset without interrupting the
+technicians' presentation clock, and selecting the already-occupied `MECH LAB` room
+route returns to the lance overview rather than acting as a dead control.
 That workspace gives its three primary regions to the equipment catalog, a wide
 top-down fabrication bay, and the socket rack. Selecting a location scopes the
 equipment catalog. The catalog may inspect fixed
