@@ -83,6 +83,13 @@ Do not run builds or leave generated task files there.
   `gradlew.bat '-Dcommander.balance.maxTicks=9000' conquestCommandBalance` or
   select one fixture with
   `'-Dcommander.balance.fixture.path=C:\path\to\fixture.json'`.
+- `gradlew.bat sabotageCommandEvidence` → runs the production Sabotage
+  construction fixture twice in a forced-serial, zero-input simulation and
+  writes canonical traces plus `summary.json` / `summary.md` under
+  `build/reports/commander/sabotage/`. It is opt-in and excluded from ordinary
+  `test` / `build`. Use quoted PowerShell overrides such as
+  `'-Dsabotage.command.evidence.maxTicks=3000'` or
+  `'-Dsabotage.command.evidence.fixture.path=C:\path\to\fixture.json'`.
 - `gradlew.bat createSnapshots` → every deterministic visual-evidence suite under
   `build/snapshots/` without launching Starsector or creating an OpenGL context. Select
   suites with `-Psnapshot=armory,layers,turrets,ui` (default `all`) and redirect the

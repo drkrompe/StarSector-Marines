@@ -4,8 +4,8 @@ Status: ACTIVE — AI owns autonomous mission command, squad planning, belief-de
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — made ambient work destination-owned, physically navigated,
-and exclusive at battle-owned task points.
+Updated: 2026-08-26 — folded the shipped Marine Sabotage named-site command,
+special-task ownership, recovery-state, and evidence laws.
 
 AI turns mission context and what a side has learned into coordinated
 movement, posture, and fire intent. It is a decision system, not the authority
@@ -250,6 +250,48 @@ without executable front work depart first; at least one executable actionable
 squad remains when possible. The published directive keeps the reason for its
 actual order and separately exposes whether a distant capture was deferred for
 front resistance, so selected-squad UI, dumps, and traces explain both facts.
+
+## Named-site mission command
+
+A **named site** is a mission-authored objective whose stable identity survives
+construction, command frames, directives, snapshots, diagnostics, traces, and
+fixture replay. Marine Sabotage constructs exactly three distinct reachable
+charge sites. Site identity is not inferred from list position or a display
+label, and the command layer never authors the site's location, progress,
+completion, or victory effect.
+
+A **site task group** is the command context around one unfinished named site.
+It combines unit-owned planting capability with commander-owned security and
+reinforcement context. A planter or kit retriever keeps its individual task and
+its squad receives an assignmentless mission-command claim; that claim records
+provenance without inventing a competing tactical destination. Charge planting
+remains objective authority. Equipment recovery remains responsible for
+choosing an individual retriever and promoting a successful carrier back to
+planter.
+
+Marine Sabotage spreads available security across reachable unfinished sites
+before concentrating surplus squads and preserves useful site affinity across
+ordinary command pulses. Route cost, own-force state, and faction-local believed
+pressure may bias reinforcement. Missing hostile belief is not proof that a
+site is clear. Completion, loss, unreachable context, or a special-task handoff
+may break affinity, but redistribution releases only attacker-command-owned
+squads.
+
+Each site publishes why it currently has or lacks planting capability:
+an active planter, assigned kit recovery, unsupported dropped-kit recovery,
+awaiting a planter, or completion. An active unclaimed kit is therefore visible
+as a mission logistics problem rather than disappearing between planter loss
+and retriever selection. A squad cannot accumulate different-site planter or
+retriever duties.
+
+Exact charge progress and completion are legally disclosed Marine mission facts,
+not hostile beliefs. The Marine perspective snapshot labels them as objective
+state; an independent neutral referee stream records authoritative transitions
+for outcome analysis. The latter is evaluation evidence and is never fed back
+into command. Bounded forced-serial Sabotage evidence compares duplicate replay
+bytes and reports site coverage, role and recovery transitions, directive churn,
+progress, casualties, duration, and terminal or timeout outcome without treating
+a timeout as a defender victory or a single seed as a balance target.
 
 ## Doctrine and maneuver
 
