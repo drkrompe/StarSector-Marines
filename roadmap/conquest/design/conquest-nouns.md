@@ -29,9 +29,10 @@ briefing, carrier, or meta layer must provide proportionally more drops.
 
 ## Arrival doctrine
 
-Conquest owns a mission-configurable paired arrival policy. A Valkyrie's
-twelve-seat hull is loaded with six marines per sortie; two transports approach
-distinct berths in one map-authored BEACH arrival area on the same wave delay.
+Conquest owns a mission-configurable paired arrival policy. Committed campaign
+transports supply the operation's lift, while dedicated six-seat Aeroshuttles
+make the final descent. Two Aeroshuttles approach distinct berths in one
+map-authored BEACH arrival area on the same wave delay.
 Their passengers join one twelve-marine ground squad, form up before executing
 the commander's advance, and later cycles create new squads rather than
 silently enlarging the first. Employer and player craft never share an arrival
