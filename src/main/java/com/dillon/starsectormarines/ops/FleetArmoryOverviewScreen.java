@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
-import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ui.retained.UiAlign;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
@@ -54,8 +53,7 @@ public final class FleetArmoryOverviewScreen implements Screen {
             context.returnFromArmory();
             return;
         }
-        liveRoster.bootstrapInitialComplement(MarineSquad.CAPACITY);
-        liveRoster.reserveSquad();
+        script.ensureStartingCompany();
         if (viewModel == null || roster != liveRoster) {
             closeDocument();
             roster = liveRoster;

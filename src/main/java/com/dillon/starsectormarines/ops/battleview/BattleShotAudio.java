@@ -30,16 +30,30 @@ public final class BattleShotAudio {
     }
 
     /**
-     * Plays the same authored weapon clips as UI-local sounds for a bounded
-     * embedded scene, where the battle listener/camera is not installed.
+     * Plays the same authored weapon clips at the campaign listener anchor for
+     * a bounded embedded scene. Vanilla weapon clips are positional combat
+     * sounds rather than UI cues, so routing them through {@code playUISound}
+     * can silently drop them even though the simulation emitted the shot.
      */
-    public static void playUi(List<ShotEvent> shots, float volumeScale) {
+    public static void playCampaignLocal(List<ShotEvent> shots, float volumeScale) {
         float scale = Math.max(0f, volumeScale);
+        Vector2f anchor = campaignAnchor();
+        if (anchor == null) return;
+        Vector2f zeroVelocity = new Vector2f(0f, 0f);
         for (ShotEvent shot : shots) {
             Cue cue = cue(shot);
-            Global.getSoundPlayer().playUISound(
-                    cue.soundId(), pitch(), cue.volume() * scale);
+            Global.getSoundPlayer().playSound(
+                    cue.soundId(), pitch(), cue.volume() * scale,
+                    anchor, zeroVelocity);
         }
+    }
+
+    private static Vector2f campaignAnchor() {
+        if (Global.getSector() == null || Global.getSector().getPlayerFleet() == null
+                || Global.getSector().getPlayerFleet().getLocation() == null) {
+            return null;
+        }
+        return new Vector2f(Global.getSector().getPlayerFleet().getLocation());
     }
 
     static Cue cue(ShotEvent shot) {
