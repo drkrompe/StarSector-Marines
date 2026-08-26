@@ -317,6 +317,16 @@ it is presentation-only by charter. The tactical articulation of a bay is a
     whose rooms chain doorways into one another is an enfilade — the way
     outboard runs through somebody's berth and out the far side, there are no
     hallways, and a single held compartment severs the deck.
+13. **Only a door opens a compartment, and a door is a door-sized hole.** A
+    passage may cross structure but never cut a cell a room stands behind, and
+    never runs along a bulkhead. A room that loses part of its wall loses its
+    cover, its chokepoint, and any reason for a squad to clear it rather than
+    walk past — and the loss is invisible in aggregate, so it is measured as the
+    widest unbroken stretch open to a passage rather than as a share of cells.
+14. **Circulation is two abreast on both axes.** Width is judged as a square,
+    not as a pair: a hall widened only across its direction of travel pinches
+    back to one cell at every corner, which puts a movement trap where the deck
+    can least afford one. Two is a floor, not a ceiling.
 
 ## Boundaries
 

@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.gen.ship;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayDeque;
@@ -25,6 +26,8 @@ class ShipDeckGeneratorTest {
     private static final int WIDTH = 96;
     private static final int HEIGHT = 28;
     private static final long[] SEEDS = { 1L, 42L, 1337L };
+    /** Widest a door is ever cut; anything past this is a room missing part of a wall. */
+    private static final int MAX_DOOR_WIDTH = 2;
 
     @Test
     void recipeRunsAndPublishesItsStructure() {
@@ -64,6 +67,25 @@ class ShipDeckGeneratorTest {
         }
     }
 
+    /**
+     * A room may open onto a passage through a door and nowhere else.
+     *
+     * <p>Not an authoring dial — an invariant, and one that has broken twice
+     * without showing up as anything but a slightly odd picture. A passage that
+     * eats the bulkhead it runs alongside leaves the compartment standing open
+     * down its whole side, which costs the room its cover, its chokepoint, and
+     * any reason for a squad to clear it rather than walk past.
+     */
+    @Test
+    void roomsAreOpenToPassagesOnlyThroughDoors() {
+        for (long seed : SEEDS) {
+            MapResult map = new ShipDeckGenerator().generateDeck(WIDTH, HEIGHT, seed);
+            assertTrue(widestOpening(map) <= MAX_DOOR_WIDTH,
+                    "seed " + seed + ": a room stands open to a passage for "
+                            + widestOpening(map) + " cells, wider than a door");
+        }
+    }
+
     @Test
     void generationIsDeterministic() {
         for (long seed : SEEDS) {
@@ -81,6 +103,43 @@ class ShipDeckGeneratorTest {
             assertEquals(first.getLastDeckGraph().compartments(), second.getLastDeckGraph().compartments(),
                     "seed " + seed + ": compartment layout diverged between runs");
         }
+    }
+
+    /** Longest unbroken stretch along which a room stands open to a corridor. */
+    private static int widestOpening(MapResult map) {
+        int widest = 0;
+        for (int[] facing : new int[][]{ { 0, 1 }, { 0, -1 }, { 1, 0 }, { -1, 0 } }) {
+            boolean alongX = facing[0] == 0;
+            int lines = alongX ? HEIGHT : WIDTH;
+            int span = alongX ? WIDTH : HEIGHT;
+            for (int line = 0; line < lines; line++) {
+                int run = 0;
+                for (int i = 0; i < span; i++) {
+                    int x = alongX ? i : line;
+                    int y = alongX ? line : i;
+                    if (isCorridor(map, x, y) && isRoom(map, x + facing[0], y + facing[1])) {
+                        widest = Math.max(widest, ++run);
+                    } else {
+                        run = 0;
+                    }
+                }
+            }
+        }
+        return widest;
+    }
+
+    private static boolean isCorridor(MapResult map, int x, int y) {
+        return inside(x, y) && map.grid.isWalkable(x, y)
+                && map.topology.getRoomPurpose(x, y) == RoomPurpose.CORRIDOR;
+    }
+
+    private static boolean isRoom(MapResult map, int x, int y) {
+        return inside(x, y) && map.grid.isWalkable(x, y)
+                && map.topology.getRoomPurpose(x, y) != RoomPurpose.CORRIDOR;
+    }
+
+    private static boolean inside(int x, int y) {
+        return x >= 0 && y >= 0 && x < WIDTH && y < HEIGHT;
     }
 
     private static boolean[][] flood(NavigationGrid grid, int fromX, int fromY) {
