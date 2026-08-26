@@ -2,7 +2,9 @@ package com.dillon.starsectormarines.battle.world.gen.ship.fit;
 
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
+import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
@@ -113,6 +115,46 @@ public final class CompartmentFloor {
             doors.add(new DeckGraph.Compartment.Door(door.x() - left, door.y() - top));
         }
         return doors;
+    }
+
+    /**
+     * Mark a run of this compartment's deck as a different kind of ground.
+     *
+     * <p>Some arrangements are read from the floor rather than from what stands
+     * on it: a gantry bay is a marked-out rectangle whether or not a machine is
+     * in it, and without the marking a row of bays reads as scattered tools with
+     * gaps. This is the same signal the hand-authored Mech Lab painted, and it
+     * is real topology rather than a rendering trick, so consumers see it too.
+     */
+    public void markGround(int x, int y, int spanX, int spanY, GroundKind kind) {
+        for (int dx = 0; dx < spanX; dx++) {
+            for (int dy = 0; dy < spanY; dy++) {
+                int lx = x + dx;
+                int ly = y + dy;
+                if (lx < 0 || ly < 0 || lx >= width || ly >= height) continue;
+                if (!compartment.shape().contains(lx, ly)) continue;
+                ctx.topology.setGroundKind(left + lx, top + ly, kind);
+            }
+        }
+    }
+
+    /**
+     * Lay one tile of floor covering, without claiming the cell.
+     *
+     * <p>Paving is not furniture. A marked-out bay floor still has to take the
+     * gantry frame standing on it and the machine standing in it, so this
+     * deliberately leaves the cell free — unlike {@link #place}, which is for
+     * things that occupy the deck.
+     *
+     * <p>Pave before furnishing. Doodads draw in the order they are recorded, so
+     * covering laid after a fixture is covering laid over it.
+     */
+    public void pave(int x, int y, int tileColumn, int tileRow) {
+        if (x < 0 || y < 0 || x >= width || y >= height) return;
+        if (!compartment.shape().contains(x, y)) return;
+        ctx.doodads.add(new Doodad(left + x, top + y,
+                new TileManifest.TileFrame(tileColumn, tileRow),
+                TileManifest.SHEET, Doodad.COVER_NONE));
     }
 
     /**

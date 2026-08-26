@@ -84,11 +84,10 @@ class UnitLayerLayoutsTest {
         LayerPose mastered = layouts.applyArmorMastering(idle,
                 LayeredArmorFamily.PALATINE, LayeredArmorFamily.SPECTER_HEAVY);
 
-        assertEquals(idle.layer("body").scaleX(),
-                mastered.layer("body").scaleX(), 0.000001f);
-        assertEquals(1.24f, mastered.layer("head").scaleX(), 0.000001f);
-        assertEquals(1.24f, mastered.layer("head").scaleY(), 0.000001f);
-        assertEquals(idle.layer("head").offsetY(),
+        assertEquals(1.0f, mastered.layer("body").scaleX(), 0.000001f);
+        assertEquals(1.8f, mastered.layer("head").scaleX(), 0.000001f);
+        assertEquals(1.5f, mastered.layer("head").scaleY(), 0.000001f);
+        assertEquals(idle.layer("head").offsetY() + 0.016f,
                 mastered.layer("head").offsetY(), 0.000001f);
         assertEquals(idle.layer("primary"), mastered.layer("primary"));
     }
