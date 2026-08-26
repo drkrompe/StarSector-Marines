@@ -431,6 +431,8 @@ public final class SquadStateDumper {
             row.put("targetCellY", directive.targetCellY());
             row.put("markerCellX", directive.markerCellX());
             row.put("markerCellY", directive.markerCellY());
+            row.put("distantCaptureDeferred",
+                    directive.distantCaptureDeferred());
             out.put("squadDirective", row);
         }
 

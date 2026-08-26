@@ -588,6 +588,19 @@ public class ConquestCommandTest {
         return new BattleSimulation(grid, new CellTopology(W, H));
     }
 
+    /** Multi-room compound in track 0 plus a separate defended room in track 2. */
+    private static BattleSimulation threeRoomCompoundAndFrontSim() {
+        NavigationGrid grid = new NavigationGrid(W, H);
+        for (int y = 0; y < H; y++) {
+            for (int x = 0; x < W; x++) grid.setWalkableFloor(x, y);
+        }
+        carveRoom(grid, 5, 5);
+        carveRoom(grid, 9, 5);
+        carveRoom(grid, 13, 5);
+        carveRoom(grid, 24, 5);
+        return new BattleSimulation(grid, new CellTopology(W, H));
+    }
+
     /** Register a compound node (DEFENDER_HELD) without driving it to capture. */
     private static TacticalNode registerCompound(BattleSimulation sim, TacticalNode node) {
         sim.getCompoundService().register(node);
@@ -669,6 +682,90 @@ public class ConquestCommandTest {
     }
 
     @Test
+    public void noFrontResistanceStillFillsDistantCompoundQuota() {
+        BattleSimulation sim = threeRoomCompoundSim();
+        registerCompound(sim, new TacticalNode(
+                TacticalNode.Kind.ARMORY, 5, 5, 3, 3, 15, 7,
+                Faction.DEFENDER, 90, 4));
+        Squad left = addMarineSquad(sim, 5f, 1f);
+        Squad right = addMarineSquad(sim, 28f, 1f);
+
+        ConquestCommand cmd = new ConquestCommand(
+                TraversalAxis.SOUTH_TO_NORTH);
+        tick(cmd, sim);
+
+        assertTrue(isSecureCompound(left));
+        assertTrue(isSecureCompound(right),
+                "without actionable resistance, distant capture keeps the ordinary two-squad quota");
+    }
+
+    @Test
+    public void exteriorContactReservesOneActionableSquadAcrossReplans() {
+        BattleSimulation sim = threeRoomCompoundSim();
+        registerCompound(sim, new TacticalNode(
+                TacticalNode.Kind.ARMORY, 5, 5, 3, 3, 15, 7,
+                Faction.DEFENDER, 90, 4));
+        Squad contact = addMarineSquad(sim, 5f, 1f);
+        Squad free = addMarineSquad(sim, 28f, 1f);
+        long defender = addDefender(sim, 6, 1);
+        establishMarineContact(sim, contact, defender);
+
+        ConquestCommand cmd = new ConquestCommand(
+                TraversalAxis.SOUTH_TO_NORTH);
+        tick(cmd, sim);
+
+        int secure = (isSecureCompound(contact) ? 1 : 0)
+                + (isSecureCompound(free) ? 1 : 0);
+        assertEquals(1, secure,
+                "only one actionable squad may leave the live front for a distant capture");
+        Squad capturing = isSecureCompound(contact) ? contact : free;
+        Squad reservedSquad = isSecureCompound(contact) ? free : contact;
+        ConquestFrontSnapshot.SquadDirective reserved =
+                cmd.frontSnapshot().directiveFor(reservedSquad.id);
+        assertEquals(AssignmentReason.NO_ACTIONABLE_TRACK_TARGET,
+                reserved.reason(),
+                "exterior contact remains ambient rather than becoming a fabricated zone order");
+        assertTrue(reserved.distantCaptureDeferred(),
+                "the snapshot should expose why capture was withheld");
+
+        tick(cmd, sim);
+
+        assertTrue(isSecureCompound(capturing),
+                "the in-flight capture remains committed on the next pulse");
+        assertEquals(AssignmentReason.COMPOUND_CAPTURE_PRESERVED,
+                cmd.frontSnapshot().directiveFor(capturing.id).reason());
+        assertFalse(isSecureCompound(reservedSquad),
+                "replanning must not drip-feed the reserved squad into the remaining slot");
+        assertTrue(cmd.frontSnapshot().directiveFor(reservedSquad.id)
+                .distantCaptureDeferred());
+    }
+
+    @Test
+    public void reachableFrontOrderRetainsItsReasonWhenCaptureIsDeferred() {
+        BattleSimulation sim = threeRoomCompoundAndFrontSim();
+        registerCompound(sim, new TacticalNode(
+                TacticalNode.Kind.ARMORY, 5, 5, 3, 3, 15, 7,
+                Faction.DEFENDER, 90, 4));
+        Squad capture = addMarineSquad(sim, 5f, 1f);
+        Squad front = addMarineSquad(sim, 24f, 1f);
+        addDefender(sim, 24, 5);
+        establishDirectMarineContact(sim, front);
+
+        ConquestCommand cmd = new ConquestCommand(
+                TraversalAxis.SOUTH_TO_NORTH);
+        tick(cmd, sim);
+
+        assertTrue(isSecureCompound(capture));
+        assertEquals(AssignmentKind.CLEAR_ZONE,
+                front.assignedObjective.kind());
+        ConquestFrontSnapshot.SquadDirective directive =
+                cmd.frontSnapshot().directiveFor(front.id);
+        assertEquals(AssignmentReason.TRACK_ADVANCE, directive.reason(),
+                "capture policy must not overwrite the reason for actual front work");
+        assertTrue(directive.distantCaptureDeferred());
+    }
+
+    @Test
     public void defenderInOpenExteriorDoesNotMarkCompoundContested() {
         // The contested test runs over the AABB-gated garrison rooms, so a
         // defender loitering in the open street outside the building must NOT
@@ -730,6 +827,10 @@ public class ConquestCommandTest {
 
         assertTrue(isSecureCompound(squad), "a squad already in a contested compound commits to capturing it");
         assertEquals(node, squad.assignedObjective.targetNode());
+        assertEquals(AssignmentReason.COMPOUND_ASSAULT_ADJACENT,
+                cmd.frontSnapshot().directiveFor(squad.id).reason());
+        assertFalse(cmd.frontSnapshot().directiveFor(squad.id)
+                .distantCaptureDeferred());
     }
 
     @Test
