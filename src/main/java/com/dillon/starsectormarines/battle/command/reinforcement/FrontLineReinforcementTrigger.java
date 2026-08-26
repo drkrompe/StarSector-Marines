@@ -81,13 +81,15 @@ public final class FrontLineReinforcementTrigger implements ReinforcementTrigger
         RecaptureTarget target = selectDispatchTarget();
         if (target == null) return;
         int[] rally = rallyRearShift(target.node.anchorX, target.node.anchorY, axis, sim.getGrid());
+        ReinforcementDispatchReservation reservation =
+                targets.reserveDispatch(target);
         out.accept(new ReinforcementRequest(
                 Faction.DEFENDER,
                 ReinforcementRequest.Reason.GARRISON_DEPLETED,
                 ReinforcementRequest.Strength.SMALL,
                 rally[0], rally[1],
-                target.objectiveX(), target.objectiveY()));
-        targets.markDispatched(target);
+                target.objectiveX(), target.objectiveY())
+                .withDispatchReservation(reservation));
     }
 
     /**
