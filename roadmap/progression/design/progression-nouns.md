@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — made faction equipment availability an additive catalog over stable template-card ids.
+Updated: 2026-08-26 — connected additive faction equipment pools to rotating market and licensed stock.
 
 ## Purpose
 
@@ -157,9 +157,11 @@ Legacy recipes, printed counts, and fabrication materials remain save-migration
 input and compatibility state for retired fire-team APIs, not live Fleet Armory
 authority. Existing victory milestones grant template cards, including the
 Shattercap after two victories. Faction source pools now author which cards may
-enter through market, license, patron, and recovery channels; the campaign
-systems that actually populate those channels and the full asset reachability
-ladder remain planned.
+enter through market, license, patron, and recovery channels. Open markets now
+stock a faction-and-market-stable weighted selection that rotates monthly and
+scales with market size. Favorable-or-better standing adds licensed offers, and
+already-owned cards are omitted. Patron and operational-recovery consumers, plus
+the full asset reachability ladder, remain planned.
 
 A template card may exist in fleet cargo as one parameterized Starsector special
 item whose data is the stable equipment-template id. Right-click learning follows
@@ -168,8 +170,8 @@ capability to `MarineArmory`; duplicates, invalid data, and an unavailable Armor
 remain unconsumed. This interaction deliberately does not implement a vanilla
 blueprint provider or write player-faction hull, fighter, ship-weapon, or industry
 knowledge, so infantry equipment cannot leak into ship production or the ship
-editor. Reward and salvage systems create validated cargo payloads, while the S6
-acquisition ladder still owns where those payloads enter the world.
+editor. Market, reward, and salvage systems create the same validated cargo
+payload; the S6 acquisition ladder still owns the eligibility of each entrance.
 
 Collectible eligibility and issue cost are catalog data rather than a closed
 Java list. Each enabled catalog provider may add primary family-and-grade cards,

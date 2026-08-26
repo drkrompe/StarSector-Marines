@@ -7,7 +7,7 @@ Status: PLANNED — depends on the remaining S2E–S2G special-equipment stories
 armor expansion also depends on
 `powered-assault-armor-roles.md`.
 Written: 2026-08-22
-Updated: 2026-08-26 — landed additive faction source pools; acquisition consumers and provenance treatments remain.
+Updated: 2026-08-26 — landed rotating faction market stock and relationship-gated licenses; patron and recovery consumers remain.
 
 Read `progression-nouns.md`, `faction-lore-nouns.md`, and
 `powered-assault-armor-roles.md` before implementing this story.
@@ -90,16 +90,20 @@ Faction source pools now provide the shared data boundary for four of those
 channels: market, license, patron, and recovery. They resolve exact campaign
 faction ids, fall back to the Independent pool for unknown factions, and let
 submods add unique card/channel claims to either their own faction or an
-existing pool. The pool weights are not acquisition by themselves. Market
-population, reward selection, operational recovery, and access checks remain
-the work of this story.
+existing pool. The pool weights are not acquisition by themselves. The first
+live consumer now populates ordinary open markets with a deterministic monthly
+weighted selection: larger markets carry more cards, templates already owned
+by the player are omitted, and `license` offers join the same stock only at
+Favorable-or-better standing. Unknown faction ids consume the Independent
+fallback pool while explicit exclusions such as the Remnants remain empty.
+Patron reward selection and operational recovery remain the work of this story.
 
 The parameterized cargo item and its right-click learning transition are now
 shipped. A source can create its validated payload from any stable
 equipment-template id; successful learning moves the capability into
 `MarineArmory` without entering vanilla ship-production knowledge. The item is
-tagged out of automatic drops and the generic Codex until this story authors
-its factional recovery, reward, and market population rules.
+tagged out of automatic drops and the generic Codex while this story authors
+its factional recovery, reward, and provenance treatments.
 
 Installation recovery is specific: `intact-installation-recovery.md` may admit
 a faction-provenance template only when the matching site was secured in an
