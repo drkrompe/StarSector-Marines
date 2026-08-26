@@ -105,6 +105,10 @@ public class BriefingScreen implements Screen {
     private static final float SECTION_GAP = 16f;
     private static final float SQUAD_ROW_H = 32f;
     private static final float SQUAD_ROW_GAP = 4f;
+    private static final int DEBUG_MAX_CONQUEST_DROP_ZONES = 4;
+    private static final int DEBUG_MAX_CONQUEST_PAIRS_PER_ZONE = 4;
+    private static final float DEBUG_CONQUEST_JITTER_STEP_SEC = 0.25f;
+    private static final float DEBUG_MAX_CONQUEST_JITTER_SEC = 3f;
     /** Ship-sprite thumbnail box at the left of each fleet (transport / carrier) row. */
     private static final float THUMB = 24f;
 
@@ -143,6 +147,8 @@ public class BriefingScreen implements Screen {
      */
     private ShuttleType debugTransportType = ShuttleType.VALKYRIE;
     private int debugTransportCount = 1;
+    private ConquestArrivalConfig debugConquestArrivalConfig =
+            ConquestArrivalConfig.DEFAULT;
 
     /**
      * Debug mission Mech Support roster controls; stable across ordinary
@@ -216,6 +222,7 @@ public class BriefingScreen implements Screen {
             deselectedPowerSources.clear();
             selectedPowerIds.clear();
             commandDeckInitialized = false;
+            debugConquestArrivalConfig = m.conquestArrivalConfig();
         }
         // Snapshot the available transports + carriers once per build so toggle indices are stable.
         // Debug missions use an exact synthetic roster controlled by the picker;
@@ -423,8 +430,16 @@ public class BriefingScreen implements Screen {
             return;
         }
 
-        // Debug air picker (dev-gated) sits at the top so its toggles never
-        // truncate under a tall transport/carrier list below.
+        // Mission-shape controls sit first so the DEBUG Conquest fixture knobs
+        // cannot truncate under the general support pickers below.
+        if (m.source == MissionSource.DEBUG
+                && m.type == MissionType.CONQUEST) {
+            y = buildDebugConquestArrivalPicker(x, y, rowW, floor);
+            y -= SECTION_GAP;
+        }
+
+        // Debug air picker (dev-gated) follows the mission-shape controls and
+        // remains ahead of the potentially tall transport/carrier lists.
         if (DevConfig.DEBUG_AIRCRAFT_PICKER) {
             y = buildDebugAirPanel(x, y, rowW, floor);
             y -= SECTION_GAP;
@@ -1054,6 +1069,87 @@ public class BriefingScreen implements Screen {
         return roster;
     }
 
+    /** Debug-list Conquest controls for the mission-authored arrival shape. */
+    private float buildDebugConquestArrivalPicker(float x, float y,
+                                                   float rowW, float floor) {
+        if (y < floor) return y;
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20_BOLD,
+                "CONQUEST ARRIVALS", x, y, HEADER_COLOR));
+        y -= ROW_GAP;
+        y = buildDebugArrivalStepper("Drop zones",
+                Integer.toString(debugConquestArrivalConfig.dropZoneCount()),
+                debugConquestArrivalConfig.dropZoneCount() > 1
+                        ? () -> adjustDebugConquestDropZones(-1) : null,
+                debugConquestArrivalConfig.dropZoneCount()
+                        < DEBUG_MAX_CONQUEST_DROP_ZONES
+                        ? () -> adjustDebugConquestDropZones(1) : null,
+                x, y, rowW, floor);
+        y = buildDebugArrivalStepper("Pairs / zone",
+                Integer.toString(debugConquestArrivalConfig.shuttlePairsPerZone()),
+                debugConquestArrivalConfig.shuttlePairsPerZone() > 1
+                        ? () -> adjustDebugConquestPairsPerZone(-1) : null,
+                debugConquestArrivalConfig.shuttlePairsPerZone()
+                        < DEBUG_MAX_CONQUEST_PAIRS_PER_ZONE
+                        ? () -> adjustDebugConquestPairsPerZone(1) : null,
+                x, y, rowW, floor);
+        return buildDebugArrivalStepper("Timing jitter",
+                debugConquestArrivalConfig.timingJitterSec() + " s",
+                debugConquestArrivalConfig.timingJitterSec() > 0f
+                        ? () -> adjustDebugConquestJitter(
+                                -DEBUG_CONQUEST_JITTER_STEP_SEC) : null,
+                debugConquestArrivalConfig.timingJitterSec()
+                        < DEBUG_MAX_CONQUEST_JITTER_SEC
+                        ? () -> adjustDebugConquestJitter(
+                                DEBUG_CONQUEST_JITTER_STEP_SEC) : null,
+                x, y, rowW, floor);
+    }
+
+    private float buildDebugArrivalStepper(String label, String value,
+                                            Runnable decrease, Runnable increase,
+                                            float x, float y, float rowW,
+                                            float floor) {
+        if (y < floor) return y;
+        float labelW = 116f;
+        float arrowW = 34f;
+        float valueW = Math.min(74f, rowW - labelW - 2f * arrowW - 12f);
+        float controlX = x + labelW;
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, label, x, y, LABEL_COLOR));
+        addDebugTransportButton(controlX, y, arrowW, "-", decrease);
+        widgets.add(new ButtonWidget(controlX + arrowW + 4f,
+                y - BTN_H + 6f, valueW, BTN_H, null));
+        widgets.add(new LabelWidget(Fonts.ORBITRON_20, value,
+                controlX + arrowW + 12f, y, VALUE_COLOR));
+        addDebugTransportButton(controlX + arrowW + valueW + 8f,
+                y, arrowW, "+", increase);
+        return y - ROW_GAP;
+    }
+
+    private void adjustDebugConquestDropZones(int delta) {
+        int next = Math.max(1, Math.min(DEBUG_MAX_CONQUEST_DROP_ZONES,
+                debugConquestArrivalConfig.dropZoneCount() + delta));
+        debugConquestArrivalConfig =
+                debugConquestArrivalConfig.withDropZoneCount(next);
+        rebuild();
+    }
+
+    private void adjustDebugConquestPairsPerZone(int delta) {
+        int next = Math.max(1, Math.min(DEBUG_MAX_CONQUEST_PAIRS_PER_ZONE,
+                debugConquestArrivalConfig.shuttlePairsPerZone() + delta));
+        debugConquestArrivalConfig =
+                debugConquestArrivalConfig.withShuttlePairsPerZone(next);
+        rebuild();
+    }
+
+    private void adjustDebugConquestJitter(float delta) {
+        float next = Math.max(0f, Math.min(DEBUG_MAX_CONQUEST_JITTER_SEC,
+                debugConquestArrivalConfig.timingJitterSec() + delta));
+        next = Math.round(next / DEBUG_CONQUEST_JITTER_STEP_SEC)
+                * DEBUG_CONQUEST_JITTER_STEP_SEC;
+        debugConquestArrivalConfig =
+                debugConquestArrivalConfig.withTimingJitterSec(next);
+        rebuild();
+    }
+
     // ---- debug air picker (DevConfig.DEBUG_AIRCRAFT_PICKER) ----
 
     /**
@@ -1255,8 +1351,14 @@ public class BriefingScreen implements Screen {
         // Resolve the committed detachment (transports + marine fighter cover +
         // command powers) and build the battle. The deselected transports are
         // already filtered out of effectivePlayerShuttles().
+        Mission launchMission = m.source == MissionSource.DEBUG
+                && m.type == MissionType.CONQUEST
+                ? Mission.builder(m)
+                        .conquestArrivalConfig(debugConquestArrivalConfig)
+                        .build()
+                : m;
         MissionLaunch.PreparedBattle prepared = MissionLaunch.prepareSimulation(
-                ctx, m,
+                ctx, launchMission,
                 m.source == MissionSource.STATIONING
                         ? java.util.Collections.emptyList() : effectivePlayerShuttles(),
                 m.source == MissionSource.STATIONING ? FlybyRoster.EMPTY : committedWings(),

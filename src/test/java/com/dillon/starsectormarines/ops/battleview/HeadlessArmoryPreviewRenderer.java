@@ -119,19 +119,19 @@ public final class HeadlessArmoryPreviewRenderer {
 
     static List<PreviewCase> previewCases() {
         return List.of(
-                new PreviewCase("rocket-launcher", "Rocket launcher · Army-green line kit",
+                new PreviewCase("rocket-launcher", "Annihilator · Legionary line suit",
                         new FireTeamBillet("Rocketeer", WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID),
                                 EquipmentGrade.MILSPEC, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID),
                                 MarineArmorPattern.ARMY_GREEN)),
-                new PreviewCase("anti-materiel-rifle", "Anti-materiel rifle · Navy scout kit",
+                new PreviewCase("anti-materiel-rifle", "Breachlight · Janus scout suit",
                         new FireTeamBillet("Anti-armor", WeaponRegistry.require(WeaponRegistry.DMR_ID),
                                 EquipmentGrade.MASTERWORK, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID),
                                 MarineArmorPattern.BLUE_SCOUT)),
-                new PreviewCase("smoke-grenades", "Smoke grenades · Charcoal screen kit",
+                new PreviewCase("smoke-grenades", "Wayfarer smoke · Bastion line armor",
                         new FireTeamBillet("Screen", WeaponRegistry.require(WeaponRegistry.SMG_ID),
                                 EquipmentGrade.SERVICE, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID),
                                 MarineArmorPattern.CHARCOAL)),
-                new PreviewCase("satchel-charge", "Satchel charge · Outlaw breach kit",
+                new PreviewCase("satchel-charge", "Breachhand · Blackforge patchwork rig",
                         new FireTeamBillet("Breacher", WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID),
                                 EquipmentGrade.SURPLUS, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID),
                                 MarineArmorPattern.OUTLAW)));
