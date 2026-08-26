@@ -147,9 +147,8 @@ abstract class AbstractZoneAction implements Action {
         if (target != 0L) {
             float d = TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member),
                     sim.world().x(target), sim.world().y(target));
-            boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
-                    sim.world().cellX(target), sim.world().cellY(target));
-            inContact = d <= sim.world().attackRange(member) && visible;
+            boolean clearShot = sim.getTacticalScoring().hasClearShot(member, target);
+            inContact = d <= sim.world().attackRange(member) && clearShot;
         }
 
         if (inContact) {

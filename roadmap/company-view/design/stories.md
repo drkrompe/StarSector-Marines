@@ -1,8 +1,9 @@
 # Company view open work
 
-Status: ACTIVE — 12 open stories
+Status: ACTIVE — 11 open stories
 Written: 2026-08-23
-Updated: 2026-08-25 — C16 opens the read-only shipboard Barracks while C15 remains the Armory inspect/edit workflow.
+Updated: 2026-08-25 — C16 completed the furnished, ambient-task-driven
+shipboard Barracks while C15 remains the Armory inspect/edit workflow.
 
 Read `company-view-nouns.md` before changing a company-view story.
 
@@ -18,5 +19,5 @@ Read `company-view-nouns.md` before changing a company-view story.
 | `c12-the-debug-company.md` | Deferred | Slices 1–2 are folded; combined arms waits for player-side vehicle deployment. |
 | `c13-the-task-force.md` | Partial | Slice 1 is folded; per-officer outcomes and scalable assignment remain. |
 | `c15-retained-fleet-armory.md` | In progress | Owned-company grid, formation drill-down, recovery clocks, reinforcement, persistent Weapon/Armor authoring and migration, atomic twelve-billet issue, and the spatial Mech Lab are retained. |
-| `c16-shipboard-barracks.md` | In progress | Separates casual squad browsing from Armory authoring through a bounded, roster-backed quarters scene. |
+| `c16-shipboard-barracks.md` | Complete | Separates casual squad browsing from Armory authoring through a furnished, roster-backed quarters scene on the shared battle task/render seams. |
 | `squad-id-terminology-cleanup.md` | Proposed | Terra finding: squad IDs cross APIs and persisted payloads under legacy fire-team names; requires an explicit save-compatibility plan. |

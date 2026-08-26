@@ -81,8 +81,7 @@ public final class MechBreakContact implements Action {
         float dist = TacticalScoring.cellDistance(sim.world().x(u), sim.world().y(u),
                 sim.world().x(target), sim.world().y(target));
         if (dist > sim.world().attackRange(u)) return;
-        boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(u), sim.world().cellY(u),
-                sim.world().cellX(target), sim.world().cellY(target));
+        boolean visible = sim.getTacticalScoring().hasClearShot(u, target);
         MechLoadoutComponent m = sim.world().mechLoadout(u);
         MechCombatantBehavior.tryFireMechWeapons(u, m, target, dist, sim, visible);
     }

@@ -66,10 +66,10 @@ class DirectFireUnificationTest {
         ShotEvent shot = onlyShot(sim);
         assertSame(MarineSecondary.ROCKET_LAUNCHER, shot.marineSecondary);
         assertEquals(BallisticResolver.StopKind.WALL, shot.stopKind);
-        assertEquals(WALL_X + 0.5f, shot.toX, EPS);
+        assertEquals(WALL_X, shot.toX, EPS);
         assertEquals(1, sim.getActiveProjectiles().size());
         Projectile projectile = sim.getActiveProjectiles().get(0);
-        assertEquals(WALL_X + 0.5f, projectile.onArrival.endpointX, EPS);
+        assertEquals(WALL_X, projectile.onArrival.endpointX, EPS);
         assertTrue(projectile.totalFlightTime < MarineSecondary.ROCKET_LAUNCHER.flightSec(),
                 "a nearer wall arrives sooner than the old fixed maximum-range timing");
     }
@@ -86,7 +86,7 @@ class DirectFireUnificationTest {
         ShotEvent shot = onlyShot(sim);
         assertSame(MarineSecondary.ANTI_MATERIEL_RIFLE, shot.marineSecondary);
         assertEquals(BallisticResolver.StopKind.WALL, shot.stopKind);
-        assertEquals(WALL_X + 0.5f, shot.toX, EPS);
+        assertEquals(WALL_X, shot.toX, EPS);
         assertTrue(sim.getActiveProjectiles().isEmpty(),
                 "a precision heavy round is not a missile entity");
         assertTrue(sim.getInflightDetonations().isEmpty(),
@@ -125,7 +125,7 @@ class DirectFireUnificationTest {
         assertSame(MechWeapon.CHAINGUN, chaingun.mechWeapon);
         assertEquals(BallisticResolver.StopKind.WALL, chaingun.stopKind);
         assertEquals(1, chaingunSim.getInflightDetonations().size());
-        assertEquals(WALL_X + 0.5f,
+        assertEquals(WALL_X,
                 chaingunSim.getInflightDetonations().get(0).endpointX, EPS);
 
         BattleSimulation srmSim = arena(true);
@@ -135,7 +135,7 @@ class DirectFireUnificationTest {
         ShotEvent srm = onlyShot(srmSim);
         assertSame(MechWeapon.SRM_POD, srm.mechWeapon);
         assertEquals(BallisticResolver.StopKind.WALL, srm.stopKind);
-        assertEquals(WALL_X + 0.5f,
+        assertEquals(WALL_X,
                 srmSim.getActiveProjectiles().get(0).onArrival.endpointX, EPS);
 
         BattleSimulation lrmSim = arena(true);
@@ -159,7 +159,7 @@ class DirectFireUnificationTest {
         assertSame(MechWeapon.HEAVY_CANNON, cannon.mechWeapon);
         assertSame(ImpactProfile.CANNON_HE, cannon.impactProfile());
         assertEquals(BallisticResolver.StopKind.WALL, cannon.stopKind);
-        assertEquals(WALL_X + 0.5f, cannon.toX, EPS);
+        assertEquals(WALL_X, cannon.toX, EPS);
         assertTrue(mechSim.getActiveProjectiles().isEmpty(),
                 "a gun shell is a ballistic shot, not a boost-ramping missile entity");
         assertEquals(1, mechSim.getInflightDetonations().size());
@@ -229,7 +229,7 @@ class DirectFireUnificationTest {
         ShotEvent ground = onlyShot(sim);
         assertSame(TurretKind.VULCAN, ground.turretKind);
         assertEquals(BallisticResolver.StopKind.WALL, ground.stopKind);
-        assertEquals(WALL_X + 0.5f,
+        assertEquals(WALL_X,
                 sim.getInflightDetonations().get(0).endpointX, EPS);
 
         BattleSimulation aerialSim = arena(true);

@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
 import com.dillon.starsectormarines.ops.battleview.MechLabBattleScene;
+import com.dillon.starsectormarines.ops.battleview.MechLabCameraController;
 import com.dillon.starsectormarines.ops.battleview.MechLabDollCanvas;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
@@ -32,6 +33,7 @@ public final class MechLabScreen implements Screen {
     private final MarkupLoader markup = new MarkupLoader(
             path -> Global.getSettings().loadText(path), COMPONENT_PATHS);
     private final BattleSprites previewSprites = new BattleSprites();
+    private final MechLabCameraController cameraController = new MechLabCameraController();
 
     private MarineOpsContext context;
     private Runnable dismissDialog;
@@ -59,6 +61,8 @@ public final class MechLabScreen implements Screen {
             closeDocument();
             roster = liveRoster;
             viewModel = new MechLabViewModel(reactor, roster.mechBay());
+            cameraController.snap(false, viewModel.selectedGantryIndex(),
+                    viewModel.gantryVariants().size());
         } else {
             viewModel.refresh();
         }
@@ -92,6 +96,8 @@ public final class MechLabScreen implements Screen {
                             previewSprites::roadSheet,
                             previewSprites::mechLabWeldingTorch,
                             previewSprites::mechLabWeldingSparks,
+                            cameraController::pose,
+                            viewModel::fittingFocused,
                             battleScene,
                             () -> previewSeconds));
             if (viewport != null) {
@@ -140,7 +146,7 @@ public final class MechLabScreen implements Screen {
                 () -> context.goTo(ScreenId.COMPANY_HQ),
                 () -> context.goTo(ScreenId.BARRACKS),
                 () -> context.openCompanyArmoryFrom(ScreenId.MECH_LAB),
-                () -> { });
+                viewModel.overviewAction());
         return props;
     }
 
@@ -167,6 +173,11 @@ public final class MechLabScreen implements Screen {
     @Override
     public void advance(float dt) {
         previewSeconds += Math.max(0f, dt);
+        if (viewModel != null) {
+            cameraController.target(viewModel.fittingFocused(),
+                    viewModel.selectedGantryIndex(), viewModel.gantryVariants().size());
+            cameraController.advance(dt);
+        }
         if (markupInstance != null) markupInstance.flush();
         if (document != null) document.advance(dt);
     }

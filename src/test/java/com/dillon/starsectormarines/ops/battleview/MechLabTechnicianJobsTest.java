@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
+import com.dillon.starsectormarines.battle.ambient.AmbientActivity;
+import com.dillon.starsectormarines.battle.ambient.AmbientTaskPose;
+import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -18,16 +21,14 @@ class MechLabTechnicianJobsTest {
 
     @Test
     void authoredPhaseOffsetsShowDifferentJobsInTheSameFrame() {
-        MechLabTechnicianJobs.TechnicianPose welder =
-                MechLabTechnicianJobs.sample(0, 0f);
-        MechLabTechnicianJobs.TechnicianPose courier =
-                MechLabTechnicianJobs.sample(1, 0f);
+        AmbientTaskPose welder = AmbientTaskService.sample(
+                MechLabSceneLayout.TECHNICIAN_JOBS.get(0), 0f);
+        AmbientTaskPose courier = AmbientTaskService.sample(
+                MechLabSceneLayout.TECHNICIAN_JOBS.get(1), 0f);
 
-        assertEquals(MechLabTechnicianJobs.TechnicianActivity.WELDING,
-                welder.activity());
+        assertEquals(AmbientActivity.WORKING, welder.activity());
         assertFalse(welder.moving());
-        assertEquals(MechLabTechnicianJobs.TechnicianActivity.WALKING,
-                courier.activity());
+        assertEquals(AmbientActivity.WALKING, courier.activity());
         assertTrue(courier.moving());
         assertTrue(courier.locomotionPhase() > 0f);
     }
@@ -37,14 +38,14 @@ class MechLabTechnicianJobsTest {
         try (BattleSimulation simulation = MechLabBattleScene.buildSimulation(
                 List.of(MechVariant.BULWARK))) {
             long technician = firstEngineer(simulation);
-            MechLabTechnicianJobs.apply(simulation, 0f);
+            simulation.ambientTasks().seek(0f);
             float startX = simulation.world().x(technician);
             float startY = simulation.world().y(technician);
             int startFlags = simulation.getEntityWorld().getInt(technician,
                     simulation.getBattleComponents().LAYERED_ANIMATION,
                     BattleComponents.LAYERED_FLAGS);
 
-            MechLabTechnicianJobs.apply(simulation, 6f);
+            simulation.ambientTasks().seek(6f);
 
             assertEquals(0, startFlags);
             assertNotEquals(startX, simulation.world().x(technician));

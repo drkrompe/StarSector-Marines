@@ -1,8 +1,11 @@
 # C16 — Shipboard Barracks
 
-Status: IN PROGRESS
+Status: COMPLETE
 
 Written: 2026-08-25
+
+Updated: 2026-08-25 — completed the furnished habitation deck and shared
+battle-owned ambient task choreography for leisure, workshop work, and range use.
 
 ## Outcome
 
@@ -19,19 +22,24 @@ mutation; deliberate billet inspection and loadout editing remain in Fleet Armor
   real layered marine equipment appearances.
 - Show only ready personnel physically aboard ship as room actors. Preserve WIA,
   stationing, and vacancies as explicit roster-backed absence states.
-- Keep the room simulation presentation-only: no battle AI, combat, recovery clock,
-  stationing, roster, or equipment mutation.
+- Keep campaign state read-only. Room actors may use the battle-owned ambient task
+  seam, but create no combat, recovery, stationing, roster, or equipment mutation.
 - Produce deterministic headless evidence without requiring Starsector or OpenGL.
 - Put ready room actors in the bounded `BattleSimulation`, and collect the same
   battle-renderer command passes for live and headless output.
+- Furnish a recognizable sleeping deck, commons, lockers, and isolated practice range
+  from the same data-defined doodads used by generated buildings.
+- Cycle real marine entities through berths, leisure, inspection, and range stations;
+  practice-fire presentation uses each marine's issued primary weapon.
 
 ## Acceptance
 
 - Company HQ, Barracks, Armory, and Mech Lab route directly through the same shell.
 - Selecting a squad changes both the room population and muster without rebuilding
   campaign organization.
-- A full selected squad occupies three four-person bay areas with its actual issued
-  armor, primary weapon, grade, and carried special equipment.
+- A full selected squad inhabits twelve assigned berths and shared leisure/range
+  stations with its actual issued armor, primary weapon, grade, and carried special
+  equipment.
 - WIA marines remain named with RTD time but do not appear as ready room actors.
 - Stationed squads leave the room empty and say why.
 - The Barracks wide snapshot is deterministic and the existing UI suite remains green.
@@ -40,8 +48,6 @@ mutation; deliberate billet inspection and loadout editing remain in Fleet Armor
 
 ## Follow-up questions
 
-- Which low-stakes ambient routines—bunks, mess, lockers, maintenance, cards, or
-  exercise—best distinguish individual marines without turning the room into AI?
 - Should selecting a marine in the room open a read-only personnel dossier, or should
   all detailed inspection remain behind the Armory transition?
 - How should several owned companies map onto physical flagship habitation decks once

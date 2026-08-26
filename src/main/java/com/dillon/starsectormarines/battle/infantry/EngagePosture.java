@@ -85,11 +85,9 @@ public final class EngagePosture implements Action {
         float effectiveRange = sim.getTacticalScoring().effectiveAttackRange(member, target,
                 sim.world().attackRange(member));
         boolean inRange = dist <= effectiveRange;
-        boolean visible = TacticalScoring.canSeePair(sim.getGrid(),
-                sim.world().cellX(member), sim.world().cellY(member), sim.world().cellX(target), sim.world().cellY(target),
-                sim.vision().airLosRadius(member), sim.vision().airLosRadius(target));
+        boolean clearShot = sim.getTacticalScoring().hasClearShot(member, target);
 
-        if (inRange && visible) {
+        if (inRange && clearShot) {
             boolean startedSecondary = false;
             // Rocket eligibility broadened from MapTurret-only to any hardened
             // target (turrets, drone hubs, heavy mechs) — anything the rocket's

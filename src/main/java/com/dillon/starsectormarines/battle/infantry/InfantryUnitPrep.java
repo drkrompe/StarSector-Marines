@@ -168,7 +168,7 @@ public final class InfantryUnitPrep {
             float d2 = dx * dx + dy * dy;
             if (d2 > range * range) continue;
             if (d2 >= bestDistSq) continue;
-            if (!sim.getGrid().hasLineOfSight(sim.world().cellX(unit), sim.world().cellY(unit), sim.world().cellX(other), sim.world().cellY(other))) continue;
+            if (!sim.getTacticalScoring().hasClearShot(unit, other)) continue;
             if (!sim.getTacticalScoring().shouldCommitSpecial(unit, other)) continue;
             bestHardened = other;
             bestDistSq = d2;
@@ -199,9 +199,7 @@ public final class InfantryUnitPrep {
         float dx = sim.world().x(target) - sim.world().x(unit);
         float dy = sim.world().y(target) - sim.world().y(unit);
         if (dx * dx + dy * dy > special.range() * special.range()) return false;
-        return sim.getGrid().hasLineOfSight(
-                sim.world().cellX(unit), sim.world().cellY(unit),
-                sim.world().cellX(target), sim.world().cellY(target));
+        return sim.getTacticalScoring().hasClearShot(unit, target);
     }
 
     private static boolean tickSmokeThrow(long unit, SpecialEquipmentDef special,
@@ -304,8 +302,6 @@ public final class InfantryUnitPrep {
         float dy = sim.world().y(target) - sim.world().y(unit);
         float range = special.satchelChargeSpec().contactRange();
         return dx * dx + dy * dy <= range * range
-                && sim.getGrid().hasLineOfSight(sim.world().cellX(unit),
-                sim.world().cellY(unit), sim.world().cellX(target),
-                sim.world().cellY(target));
+                && sim.getTacticalScoring().hasClearShot(unit, target);
     }
 }

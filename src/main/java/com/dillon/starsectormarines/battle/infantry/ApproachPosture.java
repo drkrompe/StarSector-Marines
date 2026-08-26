@@ -61,9 +61,8 @@ public final class ApproachPosture implements Action {
         float dist = TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member),
                 sim.world().x(target), sim.world().y(target));
         boolean inRange = dist <= sim.world().attackRange(member);
-        boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
-                sim.world().cellX(target), sim.world().cellY(target));
-        if (inRange && visible) return ActionStatus.SUCCESS;
+        boolean clearShot = sim.getTacticalScoring().hasClearShot(member, target);
+        if (inRange && clearShot) return ActionStatus.SUCCESS;
 
         if (sim.movement().mayRepath(member)) {
             int[] dest = InfantryCohesion.cohesionOverride(member, sim);

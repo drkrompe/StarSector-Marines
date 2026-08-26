@@ -177,8 +177,7 @@ public final class OverwatchKillZone implements Action {
             float dist = TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member),
                     sim.world().x(target), sim.world().y(target));
             boolean inRange = dist <= sim.world().attackRange(member);
-            boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
-                    sim.world().cellX(target), sim.world().cellY(target));
+            boolean visible = sim.getTacticalScoring().hasClearShot(member, target);
             if (inRange) {
                 if (band.longRange()) {
                     MechCombatantBehavior.tryFireLrm(member, m, target, dist, sim, visible);
@@ -224,7 +223,8 @@ public final class OverwatchKillZone implements Action {
                 float distFromTarget = (float) Math.sqrt(dx * dx + dy * dy);
                 if (distFromTarget < band.minDistance()
                         || distFromTarget > band.maxDistance()) continue;
-                if (!grid.hasLineOfSight(cx, cy, tx, ty)) continue;
+                if (!grid.hasLineOfFire(cx + 0.5f, cy + 0.5f,
+                        tx + 0.5f, ty + 0.5f)) continue;
                 // Cover lookup is directional against the threat axis (Story G
                 // primitive). High-cover cells facing the threat win.
                 int fdx = tx - cx;

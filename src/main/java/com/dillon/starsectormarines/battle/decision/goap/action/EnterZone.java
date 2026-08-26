@@ -316,8 +316,7 @@ public final class EnterZone extends AbstractZoneAction {
         float distance = TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member),
                 sim.world().x(threat), sim.world().y(threat));
         return distance <= sim.world().attackRange(member)
-                && sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
-                sim.world().cellX(threat), sim.world().cellY(threat));
+                && sim.getTacticalScoring().hasClearShot(member, threat);
     }
 
     private static void holdOverwatch(long member, long threat, BattleControl sim) {
