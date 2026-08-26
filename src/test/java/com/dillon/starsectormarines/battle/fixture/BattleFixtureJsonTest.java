@@ -136,6 +136,54 @@ class BattleFixtureJsonTest {
     }
 
     @Test
+    void roundTripsEveryAssaultFactoryInputInAuthoredOrder() throws Exception {
+        AssaultBattleFixture fixture = new AssaultBattleFixture(
+                607_898L,
+                List.of(
+                        new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 3, 6),
+                        new ShuttleAssignment(ShuttleType.KITE, 2, 4)),
+                true,
+                OperationTier.ESTABLISHED,
+                RiskLevel.HIGH,
+                new TargetProfile(6, 7, 5, 2, "independent",
+                        EnumSet.of(EconomicFunction.HABITATION,
+                                EconomicFunction.SPACEPORT,
+                                EconomicFunction.MILITARY)),
+                List.of(new FighterWingCommitment(FighterProfile.BROADSWORD,
+                        Faction.MARINE, 2, 5f, 18f)),
+                List.of(new FighterWingCommitment(FighterProfile.TALON,
+                        Faction.DEFENDER, 3, 8f, 12f)));
+
+        JSONObject encoded = BattleFixtureJson.toJson(fixture);
+        BattleFixture decoded = BattleFixtureJson.fromJson(encoded);
+
+        assertEquals(fixture, decoded);
+        assertEquals(encoded.toString(),
+                BattleFixtureJson.toJson(decoded).toString());
+    }
+
+    @Test
+    void roundTripsAssaultLaunchOverlayAroundV2Construction() throws Exception {
+        AssaultBattleFixture construction = new AssaultBattleFixture(
+                91_441L,
+                List.of(new ShuttleAssignment(
+                        ShuttleType.AEROSHUTTLE, 2, 6)),
+                false, OperationTier.REINFORCED, RiskLevel.MEDIUM,
+                TargetProfile.NEUTRAL, List.of(), List.of());
+        BattleLaunchFixture fixture = new BattleLaunchFixture(construction,
+                new BattleLaunchOverlay(
+                        1, List.of(), List.of(), List.of(), List.of(), 12));
+
+        JSONObject encoded = BattleFixtureJson.toJson(fixture);
+        BattleFixture decoded = BattleFixtureJson.fromJson(encoded);
+
+        assertEquals(AssaultBattleFixture.KIND, encoded.getString("kind"));
+        assertEquals(fixture, decoded);
+        assertEquals(encoded.toString(),
+                BattleFixtureJson.toJson(decoded).toString());
+    }
+
+    @Test
     void roundTripsSabotageLaunchOverlayAroundV2Construction() throws Exception {
         SabotageBattleFixture construction = new SabotageBattleFixture(
                 48_151L,

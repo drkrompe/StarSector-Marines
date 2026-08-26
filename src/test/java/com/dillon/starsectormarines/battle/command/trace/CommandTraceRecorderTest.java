@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
 import com.dillon.starsectormarines.battle.command.AssaultSearchSnapshot;
+import com.dillon.starsectormarines.battle.command.AssaultDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.SabotageSiteSnapshot;
@@ -105,6 +106,44 @@ class CommandTraceRecorderTest {
         assertTrue(row.indexOf("\"index\":0") < row.indexOf("\"index\":2"));
         assertTrue(row.contains("\"reason\":\"ACTIVE_CONTACT_REINFORCEMENT\""));
         assertTrue(row.contains("\"believedContacts\":2"));
+    }
+
+    @Test
+    void assaultDefenderTracePublishesReportsStrongpointsAndActions() {
+        AssaultDefenseSnapshot.AreaState area =
+                new AssaultDefenseSnapshot.AreaState(1, 15, 0, 15, 15,
+                        80, 1, 1, 1, 1,
+                        AssaultDefenseSnapshot.ReportState.SUSPECTED,
+                        2, 40, 490, 4f, 3f, 20, 7);
+        AssaultDefenseSnapshot.StrongpointState point =
+                new AssaultDefenseSnapshot.StrongpointState(0, "GATE", 1,
+                        21, 7, 20, 7, 3, 80);
+        AssaultDefenseSnapshot.SquadDirective action =
+                new AssaultDefenseSnapshot.SquadDirective(9, 1,
+                        AssaultDefenseSnapshot.Role.RESPONDER,
+                        AssaultDefenseSnapshot.Reason
+                                .SUSPECTED_CONTACT_RESPONSE,
+                        AssignmentKind.DEFEND_AREA, 20, 7);
+        AssaultDefenseSnapshot detail = new AssaultDefenseSnapshot(75, 60,
+                Faction.DEFENDER,
+                AssaultDefenseSnapshot.Phase.REPORTED_CONTACT_RESPONSE,
+                4, 1, List.of(area), List.of(point), List.of(),
+                List.of(action));
+        CommanderSnapshot<AssaultDefenseSnapshot> snapshot =
+                new CommanderSnapshot<>(Faction.DEFENDER,
+                        "assault-defender", "REPORTED_CONTACT_RESPONSE",
+                        75, 60, 4, 1, List.of(), List.of(), detail);
+        CommandTraceRecorder recorder = new CommandTraceRecorder(
+                "ASSAULT", "SERIAL_DETERMINISTIC", 0);
+
+        recorder.recordPerspective(snapshot);
+
+        String line = recorder.canonicalJsonLines().lines().toList().get(1);
+        assertTrue(line.contains("\"assaultDefense\":{"));
+        assertTrue(line.contains("\"reportState\":\"SUSPECTED\""));
+        assertTrue(line.contains("\"reportExpiresTick\":490"));
+        assertTrue(line.contains("\"kind\":\"GATE\""));
+        assertTrue(line.contains("\"role\":\"RESPONDER\""));
     }
 
     @Test

@@ -28,7 +28,8 @@ public final class DefendTrack implements Action {
     public DefendTrack(AssignmentKind assignmentKind, int targetX, int targetY) {
         if (assignmentKind != AssignmentKind.DEFEND_TRACK
                 && assignmentKind != AssignmentKind.ADVANCE_TRACK
-                && assignmentKind != AssignmentKind.DEFEND_SITE) {
+                && assignmentKind != AssignmentKind.DEFEND_SITE
+                && assignmentKind != AssignmentKind.DEFEND_AREA) {
             throw new IllegalArgumentException("defensive rally kind required");
         }
         this.assignmentKind = assignmentKind;
@@ -40,6 +41,7 @@ public final class DefendTrack implements Action {
         return switch (assignmentKind) {
             case ADVANCE_TRACK -> "AdvanceTrack";
             case DEFEND_SITE -> "DefendSite";
+            case DEFEND_AREA -> "DefendArea";
             default -> "DefendTrack";
         };
     }

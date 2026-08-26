@@ -4,8 +4,8 @@ Status: ACTIVE — AI owns autonomous mission command, squad planning, belief-de
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — folded the shipped paired Sabotage named-site command,
-special-task ownership, defender alarm, reserve, and evidence laws.
+Updated: 2026-08-26 — added the production Assault search/area-defense command
+duel, belief-latched defender reports, and argument-driven evidence laws.
 
 AI turns mission context and what a side has learned into coordinated
 movement, posture, and fire intent. It is a decision system, not the authority
@@ -250,6 +250,52 @@ without executable front work depart first; at least one executable actionable
 squad remains when possible. The published directive keeps the reason for its
 actual order and separately exposes whether a distant capture was deferred for
 front resistance, so selected-squad UI, dumps, and traces explain both facts.
+
+## Assault area command
+
+Assault is a two-dimensional search and security problem, not a directional
+front. Both perspectives share one stable rectangular sector partition as
+public geometry, but their command pictures remain separate. Marines own search
+coverage, sweep legs, active or suspected contact sectors, and bounded rechecks.
+Defenders own authored strongpoints, coarse security areas, routine coverage,
+and a bounded mobile reserve. Neither perspective reads the other side's live
+hidden occupancy to make command decisions.
+
+Setup-authored Assault garrisons retain `GARRISON` authority. Production setup
+reserves at least one complete patrol squad when roster size permits, captures
+only starting `PATROL` squads for `assault-defender`, and leaves reinforcement
+ownership external. Routine mobile squads spread across reachable areas before
+doubling. Held reserves receive real `DEFEND_AREA` readiness orders rather than
+falling back into ambient patrol; a legal report can mobilize one responder per
+threatened area before known hostile strength exceeding known local friendly
+strength authorizes bounded counter-concentration. An engaged readiness squad
+may exchange roles with a free routine squad so the published reserve remains
+dispatchable without reducing the minimum routine-coverage floor.
+
+A defender **area report** is aggregated only from the defender influence
+snapshot. Fresh direct evidence marks the area active; older or indirect
+evidence marks it suspected. Report disappearance is not treated as hidden
+death knowledge: each identity remains latched through the expiry implied by
+its last disclosed confidence. Response orders use a snapped walkable
+strongpoint or area rally and never the contact's exact cell. When the report
+expires, the responder returns to its readiness area; routine security and
+externally owned garrisons are not stripped.
+An indirect relocation cannot transfer a still-fresh direct report's authority,
+freshness, or expiry into another area; only equally authoritative direct
+evidence may relocate that active report before its direct window closes.
+
+`DEFEND_AREA` is the Assault-specific cell assignment. It names defender-owned
+area geometry, composes with local contact doctrine once a squad acquires its
+own belief, and is distinct from Conquest `DEFEND_TRACK` and Sabotage
+`DEFEND_SITE`. Strongpoint anchors may be walls or mounts, so command facts
+publish both stable authored anchors and deterministic walkable rally cells.
+
+The selected-squad panel, map overlay, squad dump, and perspective trace expose
+the same Assault attacker or defender picture. The shared `commanderEvidence`
+runner selects the paired zero-input fixture with `-Pmission=assault`; fixture
+and maximum-tick overrides remain arguments rather than mission-specific Gradle
+tasks. Canonical evidence uses forced-serial duplicate replays and requires
+byte-identical traces from both perspectives.
 
 ## Named-site mission command
 
