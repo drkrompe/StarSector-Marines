@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
+import com.dillon.starsectormarines.battle.mech.MechFittingLayout.DollDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketType;
@@ -32,9 +33,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private static final String ROOT = "graphics/battle/mech-modular-topdown/";
     private static final int URBAN_COLUMNS = 10;
     private static final int URBAN_ROWS = 10;
-    private static final float GANTRY_FACING_DEGREES = 180f;
-    private static final float MIN_DROP_TARGET_WIDTH = 64f;
-    private static final float MIN_DROP_TARGET_HEIGHT = 38f;
+    private static final float MIN_DROP_TARGET_WIDTH = 128f;
+    private static final float MIN_DROP_TARGET_HEIGHT = 76f;
     private static final float CAPACITY_INSET = 4f;
     private static final float CAPACITY_GAP = 2f;
     private static final Color BACKGROUND = new Color(0x06, 0x0A, 0x10);
@@ -221,13 +221,14 @@ public final class MechLabDollCanvas implements CanvasProducer {
         int count = Math.min(variants.size(), MechLabSceneLayout.GANTRIES.size());
         for (int index = 0; index < count; index++) {
             MechVariant variant = variants.get(index);
+            MechFittingLayout layout = MechFittingLayout.forVariant(variant);
             MechLabSceneLayout.Gantry gantry = MechLabSceneLayout.GANTRIES.get(index);
             float hull = UnitRenderService.layeredMechHullWidth(
                     camera.cellPxSize(), variant.renderScale);
             LayeredMechComposer.emit(new CanvasSink(context, height), sprites,
                     camera.cellToScreenX(gantry.cellX() + 0.5f),
                     camera.cellToScreenY(gantry.cellY() + 0.5f), hull,
-                    GANTRY_FACING_DEGREES, GANTRY_FACING_DEGREES,
+                    layout.doll().facingDegrees(), layout.doll().facingDegrees(),
                     0f, 0f, 0f, 0f, 0,
                     variant.chassisAppearance, variant.arms.appearanceSelector,
                     appearance(variant.leftShoulder), appearance(variant.rightShoulder), 1f);
@@ -251,7 +252,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private static void drawSocketOverlays(CanvasContext c, MechFittingLayout layout,
                                            SocketId selectedSocket,
                                            SceneProjection projection) {
-        float radians = (float) Math.toRadians(GANTRY_FACING_DEGREES);
+        float radians = (float) Math.toRadians(layout.doll().facingDegrees());
         float cos = (float) Math.cos(radians);
         float sin = (float) Math.sin(radians);
         for (SocketDef socket : layout.sockets()) {
@@ -260,7 +261,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             boolean occupied = layout.occupied(socket.id());
             boolean selected = socket.id() == selectedSocket;
             Color base = socketColor(socket.type());
-            int fillAlpha = selected ? 92 : occupied ? 38 : 72;
+            int fillAlpha = selected ? 138 : occupied ? 72 : 112;
             int strokeAlpha = selected ? 240 : occupied ? 128 : 210;
             c.line(target.anchorX(), target.anchorY(), target.centerX(), target.centerY(),
                     withAlpha(base, selected ? 210 : occupied ? 90 : 165),
@@ -276,10 +277,10 @@ public final class MechLabDollCanvas implements CanvasProducer {
         }
     }
 
-    static SocketDropTarget socketDropTarget(SocketDef socket,
+    static SocketDropTarget socketDropTarget(DollDef doll, SocketDef socket,
                                              float actorX, float actorY,
                                              float hullWidth, float hullHeight) {
-        float radians = (float) Math.toRadians(GANTRY_FACING_DEGREES);
+        float radians = (float) Math.toRadians(doll.facingDegrees());
         return socketDropTarget(socket, actorX, actorY, hullWidth, hullHeight,
                 (float) Math.cos(radians), (float) Math.sin(radians));
     }
@@ -288,8 +289,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
                                                       float actorX, float actorY,
                                                       float hullWidth, float hullHeight,
                                                       float cos, float sin) {
-        float anchorLocalX = socket.localRight() * hullWidth;
-        float anchorLocalY = socket.localForward() * hullHeight;
+        float anchorLocalX = socket.anchorRight() * hullWidth;
+        float anchorLocalY = socket.anchorForward() * hullHeight;
         float anchorWorldX = anchorLocalX * cos - anchorLocalY * sin;
         float anchorWorldY = anchorLocalX * sin + anchorLocalY * cos;
         float dockLocalX = socket.dockRight() * hullWidth;
