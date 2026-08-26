@@ -428,8 +428,18 @@ public final class MarineArmory implements Serializable {
 
     /** Awards permanent template cards at stable operation milestones. */
     public void recordVictory(boolean highRisk) {
+        recordVictory(highRisk, Set.of());
+    }
+
+    /** Cargo-held cards count toward the breadth floor without being learned implicitly. */
+    public void recordVictory(boolean highRisk, Set<String> acquiredOrCarriedTemplateIds) {
         victories++;
         if (highRisk) highRiskVictories++;
+        repairFixedVictoryMilestones();
+        repairCollectionProgression(acquiredOrCarriedTemplateIds);
+    }
+
+    private void repairFixedVictoryMilestones() {
         if (victories >= 2) unlockPrimary(WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.MILSPEC);
         if (victories >= 2) unlockSecondary(SpecialEquipmentRegistry.FRAG_GRENADE_ID);
         if (victories >= 3) unlockPrimary(WeaponRegistry.SMG_ID, EquipmentGrade.MILSPEC);
@@ -439,6 +449,11 @@ public final class MarineArmory implements Serializable {
         if (victories >= 5 && highRiskVictories >= 1) {
             unlockPrimary(WeaponRegistry.DMR_ID, EquipmentGrade.MASTERWORK);
         }
+    }
+
+    /** Idempotent save-load and mission-resolution bridge for the collection safety net. */
+    public void repairCollectionProgression(Set<String> acquiredOrCarriedTemplateIds) {
+        EquipmentCollectionCurve.repair(this, victories, acquiredOrCarriedTemplateIds);
     }
 
     /** Fatigues remain counted stock; the FR-1 service rifle itself is unlimited fleet issue. */
@@ -635,10 +650,10 @@ public final class MarineArmory implements Serializable {
         putAtLeast(secondaryKey(SpecialEquipmentRegistry.SMOKE_GRENADE_ID), 2);
         unlockSecondary(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID);
         putAtLeast(secondaryKey(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID), 2);
-        if (victories >= 2) unlockSecondary(SpecialEquipmentRegistry.FRAG_GRENADE_ID);
         fabricationMaterials = Math.max(0, fabricationMaterials);
         victories = Math.max(0, victories);
         highRiskVictories = Math.max(0, highRiskVictories);
+        repairFixedVictoryMilestones();
         return this;
     }
 

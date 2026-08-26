@@ -87,7 +87,8 @@ public record ShuttleArrivalPlan(
                                  List<ShuttleAssignment> resolved) {
         if (from >= to || requiredSeats <= 0) return;
         int seatsPerSortie = policy.seatsPerSortie(ShuttleType.AEROSHUTTLE);
-        int sorties = (requiredSeats + seatsPerSortie - 1) / seatsPerSortie;
+        int sorties = (int) (((long) requiredSeats + seatsPerSortie - 1L)
+                / seatsPerSortie);
         int completePairCycles = sorties / 2;
         int activePairs = Math.min(Math.max(1, requestedPairs),
                 Math.max(1, completePairCycles));
@@ -110,14 +111,15 @@ public record ShuttleArrivalPlan(
 
     private static int seatCapacity(List<ShuttleAssignment> manifest,
                                     int from, int to) {
-        int seats = 0;
+        long seats = 0L;
         for (int i = Math.max(0, from); i < Math.min(to, manifest.size()); i++) {
             ShuttleAssignment assignment = manifest.get(i);
             if (assignment != null) {
-                seats += assignment.seatsPerSortie * assignment.cycles;
+                seats += (long) assignment.seatsPerSortie * assignment.cycles;
+                if (seats >= Integer.MAX_VALUE) return Integer.MAX_VALUE;
             }
         }
-        return seats;
+        return (int) seats;
     }
 
     /** The reusable descent manifest and its remapped ownership boundary. */

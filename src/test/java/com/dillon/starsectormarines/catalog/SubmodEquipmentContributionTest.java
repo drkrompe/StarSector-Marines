@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
 import com.dillon.starsectormarines.marine.FactionEquipmentCatalog;
 import com.dillon.starsectormarines.marine.FactionEquipmentSource;
+import com.dillon.starsectormarines.marine.MarineArmory;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSquad;
@@ -85,12 +86,15 @@ class SubmodEquipmentContributionTest {
             EquipmentTemplateCatalog templates = new EquipmentTemplateCatalog();
             templates.ingest(read("equipment-templates.template.json"), CORE);
             templates.ingest(externalTemplates(), OC);
+            templates.validateCompleteness();
             EquipmentTemplateCatalog.install(templates);
 
             FactionEquipmentCatalog factionEquipment = new FactionEquipmentCatalog();
             factionEquipment.ingest(read("faction-equipment.faction-equipment.json"), CORE);
             factionEquipment.ingest(externalFactionEquipment(), OC);
             factionEquipment.validateCompleteness();
+            factionEquipment.validateReachability(
+                    new MarineArmory().ownedEquipmentTemplateIds());
             FactionEquipmentCatalog.install(factionEquipment);
 
             GroundRosterRegistry rosters = new GroundRosterRegistry();
@@ -311,8 +315,14 @@ class SubmodEquipmentContributionTest {
     }
 
     private static JSONObject externalTemplates() throws Exception {
-        JSONObject grades = new JSONObject().put("service",
-                new JSONObject().put("supplies", 4).put("heavyArmaments", 1));
+        JSONObject grades = new JSONObject()
+                .put("surplus", new JSONObject().put("supplies", 2))
+                .put("service", new JSONObject().put("supplies", 4)
+                        .put("heavyArmaments", 1))
+                .put("milspec", new JSONObject().put("supplies", 5)
+                        .put("heavyArmaments", 2))
+                .put("masterwork", new JSONObject().put("supplies", 7)
+                        .put("heavyArmaments", 3));
         JSONObject primary = new JSONObject()
                 .put("equipmentId", "example.weapon-needle-rifle")
                 .put("grades", grades);
@@ -346,8 +356,14 @@ class SubmodEquipmentContributionTest {
 
     private static JSONObject externalFactionEquipment() throws Exception {
         JSONArray offers = new JSONArray()
+                .put(factionOffer("equipment-template:example.weapon-needle-rifle:surplus",
+                        "recovery", 5))
                 .put(factionOffer("equipment-template:example.weapon-needle-rifle:service",
                         "market", 8))
+                .put(factionOffer("equipment-template:example.weapon-needle-rifle:milspec",
+                        "license", 6))
+                .put(factionOffer("equipment-template:example.weapon-needle-rifle:masterwork",
+                        "patron", 2))
                 .put(factionOffer("equipment-template:example.armor-ceramic",
                         "license", 6))
                 .put(factionOffer("equipment-template:example.special-signal-smoke",

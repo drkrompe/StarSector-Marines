@@ -57,6 +57,21 @@ class LootRollerTest {
     }
 
     @Test
+    void parameterizedSpecialCandidatesParticipateInDeterministicRecovery() {
+        List<LootCandidate> catalog = new ArrayList<>();
+        catalog.add(new LootCandidate(LootKind.SPECIAL,
+                "equipment-template:weapon.dmr:masterwork", "Longbow Masterwork",
+                "template.png", 5_000, 1f, 100f, 1, 1));
+        catalog.addAll(uniformValueCatalog(4, 1_000));
+
+        LootManifest manifest = LootRoller.roll(request("template-mission", 100), catalog);
+
+        assertTrue(manifest.stacks.stream().anyMatch(stack ->
+                stack.kind == LootKind.SPECIAL
+                        && stack.itemId.equals("equipment-template:weapon.dmr:masterwork")));
+    }
+
+    @Test
     void recoveryBonusExpandsPoolTarget() {
         List<LootCandidate> catalog = uniformValueCatalog(20, 1_000);
         LootRollRequest base = new LootRollRequest("mission-a", MissionType.RAID, RiskLevel.LOW,

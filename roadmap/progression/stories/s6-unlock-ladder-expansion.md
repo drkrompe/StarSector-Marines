@@ -1,35 +1,32 @@
 # S6 — Unlock ladder expansion
 
-> The ladder is four rungs long and ends at mission five. Four armor
-> patterns are fully authored and unreachable.
+> Every current asset is reachable; the remaining problem is turning that
+> complete catalog into a paced 30-mission collection arc.
 
 Status: PLANNED — depends on the remaining S2E–S2G special-equipment stories;
 armor expansion also depends on
 `powered-assault-armor-roles.md`.
 Written: 2026-08-22
-Updated: 2026-08-26 — landed faction market, license, and completed-patron reward consumers; operational recovery remains.
+Updated: 2026-08-26 — shipped explicit 5/15/30/40-victory breadth floors; multi-axis gates and live pacing acceptance remain.
 
 Read `progression-nouns.md`, `faction-lore-nouns.md`, and
 `powered-assault-armor-roles.md` before implementing this story.
 
 ## Problem
 
-`MarineArmory.recordVictory` is the whole progression ladder:
+`MarineArmory.recordVictory` is still the whole guaranteed milestone ladder:
 
 - 2 victories: `PULSE_RIFLE` MILSPEC
 - 3: shredder-carbine (`SMG` compatibility handle) MILSPEC
 - 4: `DMR` and `SQUAD_AUTOMATIC` MILSPEC
 - 5 victories and at least one high-risk: `DMR` MASTERWORK
 
-Then flat, forever. Consequences:
-
-- **No additional armor pattern is ever unlocked.** The anti-materiel rifle is
-  now starter issue, while `BLUE_SCOUT`, `RED_ELITE`,
-  `OUTLAW`, and `MILITIA` have stats, icons, and sprite layers and cannot
-  be reached in a real campaign. `RED_ELITE` is the best armor in the game.
-- Masterwork exists for exactly one weapon.
-- A pure victory counter is the least interesting possible gate: it does
-  not care what you fought, where, for whom, or how.
+Market, license, patron, and operational-recovery sources now make every current
+template card reachable, including every armor and every grade of all five
+player primary families. A deterministic safety net also guarantees collection
+breadth through forty victories. What remains is richer multi-axis gating and a
+live pacing pass: the fallback protects an unlucky run, but a pure victory count
+still does not care what you fought, where, for whom, or how.
 
 ## Goal
 
@@ -41,26 +38,20 @@ long — a ladder that is **lateral as well as vertical**. Slice 3 makes
 faction the second axis, so progression is about *character* of kit, not
 only tier of kit.
 
-## Slice 1 — Close the stranded assets
+## Slice 1 — Close the stranded assets — SHIPPED
 
-The smallest correct fix, shippable on its own:
+The merged template and faction catalogs now enforce this at application load:
 
-- Every `MarineArmorPattern` gets a reachable unlock, laddered by its own role
-  and actual capability rather than blindly by its current `tier` field. The
-  initial mapping from `powered-assault-armor-roles.md` keeps tier 2 light
-  patterns (`BLUE_SCOUT`, `OUTLAW`, `MILITIA`) early, tier 3 line patterns
-  (`CHARCOAL`, `ARMY_GREEN`) mid — both currently starter issue, so decide
-  whether they stay starter — and the tier 4 `RED_ELITE` heavy battlesuit as a
-  genuine chase. Future high-end light suits remain eligible for late unlocks;
-  role is not tier.
-- Fill the grade matrix: MILSPEC and MASTERWORK for every primary family,
-  not just `DMR`. Special equipment remains an item family rather than a grade
-  matrix unless its own story explicitly authors grades.
-- Add a **ships-nothing-stranded check**: a test that asserts every
-  player primary x `EquipmentGrade`, every special-equipment id, and every
-  `MarineArmorPattern` is either starter issue or reachable through some unlock
-  path. This is the guard that stops the audit's finding from recurring the
-  next time an asset is authored.
+- all five player primary families have all four grade cards;
+- every armor and special-equipment identity has a card;
+- a marine primary, armor, or special item intended only for defenders or an
+  integrated platform requires an explicit non-player reason;
+- every collectible card is starter issue or appears in at least one faction
+  acquisition pool.
+
+The current integrated drone pulse weapon exercises the explicit exclusion.
+Provider contributions are audited only after the additive merge, so this same
+law covers OC factions without forcing one monolithic file.
 
 ## Slice 2 — Recover and collect equipment template cards
 
@@ -102,7 +93,17 @@ The delivery is exactly once across battle-resolved and time-resolved contracts,
 omits templates already learned or held in cargo, retries when fleet cargo is
 temporarily unavailable, and compensates existing saves from their unprocessed
 completion history. System-generated extraction work is not a patron reward.
-Operational recovery remains the work of this story.
+Victorious high-risk operations with salvage rights now contribute at most one
+deterministically selected target-faction card from the `recovery` pool to the
+ordinary weighted recovery roll. A rolled card is an ordinary choice in the
+frozen salvage manifest and existing value budget, and selection settles it
+through the same exactly-once cargo transaction as commodities and ship weapons.
+Learned and already-carried cards are excluded before rolling; lower-risk work,
+explicit faction exclusions, and operations without salvage rights yield none.
+Unknown faction ids use the Independent fallback while a submod's exact pool
+overrides that fallback without another Java integration point. Intact-installation
+recovery remains the narrower site-state channel owned by
+`intact-installation-recovery.md`, not a synonym for ordinary battle salvage.
 
 The parameterized cargo item and its right-click learning transition are now
 shipped. A source can create its validated payload from any stable
@@ -115,6 +116,22 @@ Installation recovery is specific: `intact-installation-recovery.md` may admit
 a faction-provenance template only when the matching site was secured in an
 eligible state and accepted terms grant recovery. Destroying the site or merely
 fighting on a market with that faction cannot produce the same pristine pool.
+
+### Collection breadth safety net — SHIPPED
+
+Learned and cargo-held cards share one breadth count. The successful-operation
+floors are 19 of 32 cards after victory 5, 23 after victory 15, 27 after victory
+30, and 28 after victory 40. Ordinary faction sources are expected to meet or
+beat those numbers. Only a company below its current floor receives the next
+deterministic core fallback, so purchases, licenses, patron rewards, and
+recovery replace milestone grants one-for-one rather than stacking with them.
+
+The fallback order supplies useful weapon upgrades and lateral armor choices,
+leaves four cards for active collection after victory 40, and treats the
+high-risk Longbow masterwork milestone as early progress toward the same curve.
+It grants permanent Armory capability directly, matching the existing milestone
+boundary; it does not create or consume cargo, implicitly learn a held card, or
+rewrite faction availability.
 
 ## Slice 3 — Factional equipment identity
 
@@ -208,6 +225,11 @@ and its own identity work in flight; do not front-run it.
 
 ## Slice 4 — Multi-axis gating
 
+The breadth safety net deliberately remains count-based because it is protection
+against bad luck, not the main acquisition fantasy. The remaining gates should
+shape which advanced cards become available without making the guaranteed floor
+depend on a specific faction relationship or random drop.
+
 Where a milestone gate is still the right tool, gate on more than a count:
 
 - Total and high-risk victories (existing).
@@ -239,8 +261,9 @@ Where a milestone gate is still the right tool, gate on more than a count:
 
 - Every authored weapon, grade, special item, and armor pattern is reachable,
   enforced by the stranded-asset test.
-- The ladder has meaningful rungs past mission 30, with target collection
-  breadth stated explicitly at missions 5, 15, and 30.
+- The shipped safety net targets 19 cards at victory 5, 23 at victory 15, 27 at
+  victory 30, and 28 at victory 40, leaving four current cards to active
+  collection after the post-30 rung.
 - Advanced capability is not reachable by unrestricted money alone. Market
   cards may still require faction access, licensing, or operational discovery.
 - Every core faction has at least one reachable, recognizable template-provenance
@@ -266,10 +289,9 @@ Where a milestone gate is still the right tool, gate on more than a count:
   player start armorless and *earn* their first real armor is a stronger
   opening beat, but it interacts with early-operations balance, which is
   currently tuned around a company that has them.
-- Do recovered cards fully replace milestone grants, or coexist? Leaning:
-  coexist, with milestones covering the guaranteed early ladder and
-  recovery/purchase channels covering everything above it — so no player is ever hard-stuck
-  behind a drop that did not come.
+- Recovered and purchased cards coexist with milestone protection: every card
+  already learned or held replaces one safety-net fallback, so a player is not
+  hard-stuck behind a missed drop and also does not receive duplicate progress.
 - Coherent faction kits remain an achievable collection/presentation goal, but
   the first implementation has no set bonus; the default company is a mongrel
   mercenary armory assembled from work and recovery across the Sector.

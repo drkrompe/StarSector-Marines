@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-25
 
-Updated: 2026-08-26 — documented additive faction equipment-source contributions.
+Updated: 2026-08-26 — documented fail-loud player-equipment reachability requirements.
 
 ## Provider entry point
 
@@ -129,10 +129,11 @@ from its declaring mod exactly.
 
 ## Equipment templates
 
-Template catalogs declare eligibility and ordinary cargo issue cost. Primary
-families list whichever grades are collectible; an omitted grade does not gain
-a card. Armor and special entries each name one equipment id and one cost.
-Missing cost resources mean zero.
+Template catalogs declare eligibility and ordinary cargo issue cost. A
+player-facing primary family declares all four grades; a partial grade matrix is
+an authoring error rather than an accidental progression hole. Armor and special
+entries each name one equipment id and one cost. Missing cost resources mean
+zero.
 
 ```json
 {
@@ -140,8 +141,10 @@ Missing cost resources mean zero.
     {
       "equipmentId": "my_faction.weapon-needle-rifle",
       "grades": {
+        "surplus": { "supplies": 2 },
         "service": { "supplies": 3, "heavyArmaments": 1 },
-        "milspec": { "supplies": 5, "heavyArmaments": 2 }
+        "milspec": { "supplies": 5, "heavyArmaments": 2 },
+        "masterwork": { "supplies": 7, "heavyArmaments": 3 }
       }
     }
   ],
@@ -156,9 +159,24 @@ Missing cost resources mean zero.
       "equipmentId": "my_faction.special-breacher",
       "issueCost": { "supplies": 2, "heavyArmaments": 1 }
     }
+  ],
+  "nonPlayerEquipment": [
+    {
+      "kind": "primary",
+      "equipmentId": "my_faction.weapon-integrated-drone-gun",
+      "reason": "Integrated drone armament cannot be issued to human infantry."
+    }
   ]
 }
 ```
+
+Every authored `marine-primary` weapon must therefore have all four cards or
+one non-empty `nonPlayerEquipment` reason. Every authored armor and special item
+must have its card or the same explicit exclusion using kind `armor` or
+`special`. An equipment identity cannot be both collectible and excluded.
+Application loading audits the merged catalogs after every provider has
+contributed, so a provider may keep its definitions and cards in separate
+listed files without depending on file adjacency.
 
 The derived card ids remain stable:
 
@@ -204,6 +222,13 @@ Repeating an existing claim is an error rather than a weight override. A faction
 with no human-compatible player templates may replace `offers` with one
 non-empty `noPlayerEquipmentReason`; an excluded faction cannot also receive
 offers.
+
+After every faction contribution has merged, each collectible card must be
+present in starter issue or in at least one faction offer through any channel.
+This is a global reachability rule, not a requirement that every faction offer
+every card. A provider that contributes a collectible therefore contributes a
+source claim too; otherwise application loading names the stranded card and
+stops.
 
 ## Runtime consumption
 

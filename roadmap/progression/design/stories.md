@@ -2,7 +2,7 @@
 
 Status: ACTIVE — 12 open stories
 Written: 2026-08-23
-Updated: 2026-08-26 — shipped market, license, and patron card acquisition; S6 still owns recovery and long-horizon reachability.
+Updated: 2026-08-26 — shipped S6 breadth floors through victory 40; multi-axis gates and live pacing acceptance remain.
 
 Read `progression-nouns.md` before changing a progression story.
 
@@ -15,7 +15,7 @@ Read `progression-nouns.md` before changing a progression story.
 | `s2f-combat-stim-injectors.md` | Planned | Adds finite, temporary handling utility while keeping neural/HUD interfaces out of hidden stat and knowledge bonuses. |
 | `s2g-martyr-rigs-and-carried-ieds.md` | Planned | Adds rare Pather martyr rigs and visible carried improvised charges as explicit faction equipment with ordinary collateral and casualty authority. |
 | `powered-assault-armor-roles.md` | Planned | Names light, line, and heavy suit roles; gives patterns faction provenance; preserves an explicit infantry/mech and concealment boundary. |
-| `s6-unlock-ladder-expansion.md` | Planned | Faction source data, cross-mod merge, rotating market/license stock, and completed-patron rewards are shipped. Operational recovery still depends on the remaining S2 catalogs and armor roles; installation recovery coordinates with `intact-installation-recovery.md`. |
+| `s6-unlock-ladder-expansion.md` | Planned | Faction sources, all four consumers, reachability audit, and 5/15/30/40-victory breadth floors are shipped. Multi-axis gates and live pacing acceptance remain; installation recovery coordinates with `intact-installation-recovery.md`. |
 | `s7-grade-visual-identity.md` | Planned | Depends on shipped S1. Presentation-only grade signal. |
 | `s8-roster-legibility.md` | Ready | Requires shipped telemetry. Establishes campaign quality readout and UI-scale prerequisite. |
 | `s9-in-battle-quality-conveyance.md` | Ready | Requires shipped telemetry; coordinate its person-driven signal with S7. |

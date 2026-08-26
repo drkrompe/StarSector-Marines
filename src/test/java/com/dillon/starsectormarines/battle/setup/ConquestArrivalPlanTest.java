@@ -77,21 +77,35 @@ class ConquestArrivalPlanTest {
     }
 
     @Test
-    void selectedConquestCompanyBalancesEverySquadAcrossTheConfiguredPairs() {
+    void selectedConquestCompanyBeyondFormerDebugCeilingBalancesEverySquad() {
         ShuttleArrivalPlan plan = new ShuttleArrivalPlan(
                 MarineArrivalPolicy.PAIRED_HALF_SQUAD, 0);
 
         ShuttleArrivalPlan.ResolvedManifest resolved = plan.resolveManifest(
                 List.of(new ShuttleAssignment(ShuttleType.VALKYRIE, 40, 6)),
-                34 * 12);
+                41 * 12);
 
         assertEquals(6, resolved.assignments().size());
-        assertEquals(List.of(12, 12, 11, 11, 11, 11), resolved.assignments().stream()
+        assertEquals(List.of(14, 14, 14, 14, 13, 13), resolved.assignments().stream()
                 .map(assignment -> assignment.cycles).toList());
-        assertEquals(34 * 12, resolved.assignments().stream()
+        assertEquals(41 * 12, resolved.assignments().stream()
                 .mapToInt(assignment -> assignment.cycles
                         * assignment.seatsPerSortie)
                 .sum());
+
+        try (BattleSimulation sim = BattleSetup.createConquest(
+                43L, resolved.assignments(), false, OperationTier.REINFORCED,
+                RiskLevel.LOW, TargetProfile.NEUTRAL, FlybyRoster.EMPTY,
+                FlybyRoster.EMPTY, plan)) {
+            List<ShuttleMission> launched = missions(sim);
+            assertEquals(6, launched.size());
+            assertEquals(List.of(14, 14, 14, 14, 13, 13), launched.stream()
+                    .map(mission -> mission.totalCycles).toList());
+            assertEquals(41 * 12, launched.stream()
+                    .mapToInt(mission -> mission.totalCycles
+                            * mission.seatsPerSortie)
+                    .sum());
+        }
     }
 
     @Test

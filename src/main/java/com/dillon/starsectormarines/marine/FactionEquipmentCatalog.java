@@ -9,7 +9,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -49,6 +51,7 @@ public final class FactionEquipmentCatalog {
             }
         }
         registry.validateCompleteness();
+        registry.validateReachability(new MarineArmory().ownedEquipmentTemplateIds());
         install(registry);
         LOG.info("Faction-equipment catalog installed with " + registry.size()
                 + " faction pools from " + catalogs.size() + " contributed catalogs");
@@ -86,6 +89,20 @@ public final class FactionEquipmentCatalog {
                 throw new IllegalStateException("Faction-equipment pool '" + pool.factionId
                         + "' requires offers or one explicit noPlayerEquipmentReason");
             }
+        }
+    }
+
+    /** Every collectible card must be granted at start or offered by some faction source. */
+    public void validateReachability(Collection<String> starterTemplateIds) {
+        Set<String> reachable = new HashSet<>(starterTemplateIds);
+        for (MutablePool pool : pools.values()) reachable.addAll(pool.offers.keySet());
+        List<String> stranded = EquipmentTemplateCatalog.all().stream()
+                .map(EquipmentTemplateCard::id)
+                .filter(id -> !reachable.contains(id))
+                .toList();
+        if (!stranded.isEmpty()) {
+            throw new IllegalStateException("Equipment templates have neither starter issue nor "
+                    + "a faction acquisition source: " + stranded);
         }
     }
 

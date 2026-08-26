@@ -4,8 +4,9 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — grounded built-in equipment provenance and distributed
-Conquest deployment across mission-configured Aeroshuttle pairs and drop zones.
+Updated: 2026-08-26 — grounded built-in equipment provenance, distributed
+Conquest deployment across mission-configured Aeroshuttle pairs and drop zones,
+and removed authored ceilings from debug force-size controls.
 
 ## Purpose
 
@@ -155,7 +156,10 @@ remain readable inside. A dossier's upper-right
 portrait sits beside identity and service history; compact class, weapon-tier, and
 armor-tier badges replace implementation terms with formation-readable language.
 Weapon, armor, and specialty descriptions come from their owning data catalogs, not
-from Fleet Armory markup. Health, armor, resistance, and actual movement speed share
+from Fleet Armory markup. Those descriptions appear as bounded dossier overlays when
+the corresponding equipment label is hovered; the normal card keeps identity,
+comparison meters, and exact values continuously visible instead of clipping lore into
+the comparison surface. Health, armor, resistance, and actual movement speed share
 the durability-and-mobility meter block; damage, range, accuracy, and sustained output
 share the weapon block. Catalog-wide ceilings keep every comparison stable across
 team selection and equipment changes.
@@ -524,7 +528,9 @@ and form-up behavior instead of maintaining a parallel fixture model.
 quality, and mech support; an explicit squad-count control may override size
 without changing quality. Stages may exceed one officer's command cap so large
 mission balance can be exercised, but debug command readiness does not redefine
-campaign deployment law. Player-side vehicle support remains deferred until a
+campaign deployment law. The debug squad control has no scenario-authored upper
+ceiling; requested scale is limited only by the host's practical runtime resources,
+and missions still apply their real arrival policy. Player-side vehicle support remains deferred until a
 production vehicle deployment seam exists.
 
 ## Invariants for future work

@@ -872,8 +872,8 @@ public class BriefingScreen implements Screen {
      * Squad dial for the debug company. The stage sets the default; this
      * overrides the size without touching the quality, because "how many
      * marines does this mission need" is the balance question a fixed stage
-     * ladder cannot answer. Capped at {@link DebugCompany#MAX_SQUADS}, which
-     * is the lift ceiling rather than an arbitrary number.
+     * ladder cannot answer. Debug scenarios impose no authored upper ceiling;
+     * Conquest expands its reusable arrival cycles to carry the selection.
      */
     private float buildDebugCompanyPicker(float x, float y, float rowW, float floor) {
         if (y < floor) return y;
@@ -894,9 +894,9 @@ public class BriefingScreen implements Screen {
         widgets.add(new LabelWidget(Fonts.ORBITRON_20, Integer.toString(squads),
                 controlX + 100f, y, squads > 0 ? ACCEPT_COLOR : BLOCKED_COLOR));
         addDebugTransportButton(controlX + 144f, y, arrowW, "+",
-                squads < DebugCompany.MAX_SQUADS ? () -> adjustDebugSquadCount(1) : null);
+                squads < Integer.MAX_VALUE ? () -> adjustDebugSquadCount(1) : null);
         addDebugTransportButton(controlX + 182f, y, 42f, "+10",
-                squads < DebugCompany.MAX_SQUADS ? () -> adjustDebugSquadCount(10) : null);
+                squads < Integer.MAX_VALUE ? () -> adjustDebugSquadCount(10) : null);
         addDebugTransportButton(controlX + 232f, y, 88f, "Stage",
                 () -> {
                     ctx.cycleDebugCompanyStage();
@@ -916,7 +916,8 @@ public class BriefingScreen implements Screen {
     }
 
     private void adjustDebugSquadCount(int delta) {
-        ctx.setDebugSquadCount(ctx.getDebugSquadCount() + delta);
+        ctx.setDebugSquadCount(adjustDebugCount(
+                ctx.getDebugSquadCount(), delta));
         rebuild();
     }
 
@@ -941,10 +942,10 @@ public class BriefingScreen implements Screen {
                 controlX + 100f, y,
                 debugMechCount > 0 ? ACCEPT_COLOR : BLOCKED_COLOR));
         addDebugTransportButton(controlX + 144f, y, arrowW, "+",
-                debugMechCount < DebugMechRoster.MAX_COUNT
+                debugMechCount < Integer.MAX_VALUE
                         ? () -> adjustDebugMechCount(1) : null);
         addDebugTransportButton(controlX + 182f, y, 42f, "+10",
-                debugMechCount < DebugMechRoster.MAX_COUNT
+                debugMechCount < Integer.MAX_VALUE
                         ? () -> adjustDebugMechCount(10) : null);
         float rerollX = controlX + 232f;
         addDebugTransportButton(rerollX, y, 88f, "Reroll", () -> {
@@ -963,9 +964,14 @@ public class BriefingScreen implements Screen {
     }
 
     private void adjustDebugMechCount(int delta) {
-        debugMechCount = Math.max(0,
-                Math.min(DebugMechRoster.MAX_COUNT, debugMechCount + delta));
+        debugMechCount = adjustDebugCount(debugMechCount, delta);
         rebuild();
+    }
+
+    /** Non-negative count arithmetic with only the Java representation as a ceiling. */
+    static int adjustDebugCount(int count, int delta) {
+        long adjusted = (long) count + delta;
+        return (int) Math.max(0L, Math.min(Integer.MAX_VALUE, adjusted));
     }
 
     private DebugMechRoster debugMechRoster(Mission mission) {
@@ -989,7 +995,7 @@ public class BriefingScreen implements Screen {
         if (bulwarks > 0) parts.add(bulwarks + "x Bulwark");
         if (hounds > 0) parts.add(hounds + "x Hound");
         if (siroccos > 0) parts.add(siroccos + "x Sirocco");
-        int drops = (roster.count() + MechSupport.LANCE_SIZE - 1)
+        long drops = ((long) roster.count() + MechSupport.LANCE_SIZE - 1L)
                 / MechSupport.LANCE_SIZE;
         return drops + (drops == 1 ? " lance · " : " lances · ")
                 + String.join(" · ", parts);

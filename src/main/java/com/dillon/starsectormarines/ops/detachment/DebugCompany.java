@@ -36,16 +36,6 @@ import java.util.List;
  */
 public final class DebugCompany {
 
-    /**
-     * Fabrication budget seeded before printing the stage's kit. Large enough
-     * that the print loop below is bounded by what the stage asks for rather
-     * than by materials — a fixture has no economy to respect.
-     */
-    private static final int FABRICATION_BUDGET = 1_000_000;
-
-    /** Performance-bounded ceiling on the debug squad dial (480 marines). */
-    public static final int MAX_SQUADS = 40;
-
     private DebugCompany() {}
 
     /** The company at {@code stage}, at that stage's own size. */
@@ -61,7 +51,7 @@ public final class DebugCompany {
      */
     public static MarineRoster roster(DebugCompanyStage stage, int squads) {
         DebugCompanyStage resolved = stage != null ? stage : DebugCompanyStage.FIRST_CONTRACT;
-        int count = clampSquads(squads);
+        int count = normalizeSquads(squads);
         MarineRoster roster = new MarineRoster();
         stockArmory(roster.armory(), resolved, count);
         for (int s = 0; s < count; s++) {
@@ -80,9 +70,9 @@ public final class DebugCompany {
         return roster;
     }
 
-    /** Squad counts outside {@code [0, MAX_SQUADS]} are clamped, never rejected. */
-    public static int clampSquads(int squads) {
-        return Math.max(0, Math.min(MAX_SQUADS, squads));
+    /** Debug size has no scenario ceiling; only negative input normalizes to zero. */
+    public static int normalizeSquads(int squads) {
+        return Math.max(0, squads);
     }
 
     /** Line squads in roster order — what the deployment selects, reserve excluded. */
@@ -118,7 +108,7 @@ public final class DebugCompany {
      * failure — hence printing against the plan rather than a guessed number.
      */
     private static void stockArmory(MarineArmory armory, DebugCompanyStage stage, int squads) {
-        armory.addFabricationMaterials(FABRICATION_BUDGET);
+        armory.addFabricationMaterials(fabricationBudget(stage, squads));
         DebugBilletPlan plan = stage.plan;
         for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
             String primary = plan.primaryId(billet);
@@ -141,6 +131,27 @@ public final class DebugCompany {
                         () -> armory.printArmor(armor), squads);
             }
         }
+    }
+
+    /** Funds the requested fixture scale, saturating only at armory's int storage limit. */
+    private static int fabricationBudget(DebugCompanyStage stage, int squads) {
+        long perSquad = 0L;
+        for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
+            EquipmentGrade grade = stage.plan.grade(billet);
+            if (stage.plan.primaryId(billet) != null && grade != null) {
+                perSquad += MarineArmory.primaryFabricationCost(grade);
+            }
+            String secondary = stage.plan.specialEquipmentId(billet);
+            if (secondary != null) {
+                perSquad += MarineArmory.secondaryFabricationCost(secondary);
+            }
+            MarineArmorPattern armor = stage.plan.armor(billet);
+            if (armor != null) {
+                perSquad += MarineArmory.armorFabricationCost(armor);
+            }
+        }
+        return (int) Math.min(Integer.MAX_VALUE,
+                perSquad * Math.max(0L, squads));
     }
 
     /**

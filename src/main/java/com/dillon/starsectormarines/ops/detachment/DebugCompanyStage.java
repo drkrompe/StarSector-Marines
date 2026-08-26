@@ -97,9 +97,10 @@ public enum DebugCompanyStage {
     /** One-line briefing summary at a given size: "Reinforced — 17 squads, 204 marines". */
     public String summary(int squadCount) {
         int count = Math.max(0, squadCount);
+        long marines = (long) count * MarineSquad.CAPACITY;
         StringBuilder out = new StringBuilder(displayName);
         out.append(" — ").append(count).append(count == 1 ? " squad, " : " squads, ")
-                .append(count * MarineSquad.CAPACITY).append(" marines");
+                .append(marines).append(" marines");
         if (mechs > 0) out.append(", ").append(mechs).append(" mechs");
         if (count > officerRank.squadCommandCap()) {
             out.append(" · over ").append(officerRank.displayName()).append("'s command");

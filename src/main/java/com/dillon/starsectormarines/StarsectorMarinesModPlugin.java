@@ -27,6 +27,7 @@ import com.dillon.starsectormarines.ops.event.PlayerEventPresenter;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
+import com.dillon.starsectormarines.marine.EquipmentTemplateCardInventory;
 import com.dillon.starsectormarines.marine.FactionEquipmentCatalog;
 import com.dillon.starsectormarines.marine.FactionEquipmentMarketStock;
 import com.dillon.starsectormarines.marine.SquadLoadoutPresentationRegistry;
@@ -41,6 +42,8 @@ import com.fs.starfarer.api.campaign.PersistentUIDataAPI.AbilitySlotsAPI;
 import com.fs.starfarer.api.campaign.SectorAPI;
 import com.fs.starfarer.api.campaign.comm.IntelManagerAPI;
 import org.apache.log4j.Logger;
+
+import java.util.Set;
 
 public class StarsectorMarinesModPlugin extends BaseModPlugin {
 
@@ -106,6 +109,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         // starter-captain creation stamps a day.
         ensureCampaignState();
         ensureMarineRoster();
+        repairEquipmentCollectionProgression();
         deliverPendingPatronEquipmentRewards();
         ensureCaptainDiscoverySalvageListener();
         ensureFactionEquipmentMarketStock();
@@ -188,6 +192,15 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         if (granted > 0) {
             LOG.info("Starsector Marines: delivered " + granted
                     + " pending patron equipment reward(s)");
+        }
+    }
+
+    private static void repairEquipmentCollectionProgression() {
+        MarineRosterScript script = MarineRosterScript.getInstance();
+        Set<String> acquiredOrCarried =
+                EquipmentTemplateCardInventory.playerUnavailableTemplateIds();
+        if (script != null && acquiredOrCarried != null) {
+            script.roster().armory().repairCollectionProgression(acquiredOrCarried);
         }
     }
 
