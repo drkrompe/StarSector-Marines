@@ -1,8 +1,7 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 
 import java.util.List;
 import java.util.Set;
@@ -27,71 +26,71 @@ public final class FireTeamTemplateCards {
     public static List<FireTeamTemplateCard> starterCards() {
         return List.of(
                 card(FIELD_ID, "Field",
-                        billet("Team Leader", MarineWeapon.FIELD_RIFLE, null,
+                        billet("Team Leader", WeaponRegistry.STARTER_PRIMARY_ID, null,
                                 MarineArmorPattern.ARMORLESS),
-                        billet("Rifleman", MarineWeapon.FIELD_RIFLE, null,
+                        billet("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID, null,
                                 MarineArmorPattern.ARMORLESS),
-                        billet("Rifleman", MarineWeapon.FIELD_RIFLE, null,
+                        billet("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID, null,
                                 MarineArmorPattern.ARMORLESS),
-                        billet("Rifleman", MarineWeapon.FIELD_RIFLE, null,
+                        billet("Rifleman", WeaponRegistry.STARTER_PRIMARY_ID, null,
                                 MarineArmorPattern.ARMORLESS)),
                 card(LINE_ID, "Line",
-                        billet("Team Leader", MarineWeapon.PULSE_RIFLE, null,
+                        billet("Team Leader", WeaponRegistry.PULSE_RIFLE_ID, null,
                                 MarineArmorPattern.CHARCOAL),
-                        billet("Rifleman", MarineWeapon.PULSE_RIFLE, null,
+                        billet("Rifleman", WeaponRegistry.PULSE_RIFLE_ID, null,
                                 MarineArmorPattern.CHARCOAL),
-                        billet("Rifleman", MarineWeapon.PULSE_RIFLE, null,
+                        billet("Rifleman", WeaponRegistry.PULSE_RIFLE_ID, null,
                                 MarineArmorPattern.CHARCOAL),
-                        billet("Rifleman", MarineWeapon.PULSE_RIFLE, null,
+                        billet("Rifleman", WeaponRegistry.PULSE_RIFLE_ID, null,
                                 MarineArmorPattern.CHARCOAL)),
                 card(RECON_ID, "Recon",
-                        billet("Team Leader", MarineWeapon.SMG, null,
+                        billet("Team Leader", WeaponRegistry.SMG_ID, null,
                                 MarineArmorPattern.ARMY_GREEN),
-                        billet("Scout", MarineWeapon.SMG, null,
+                        billet("Scout", WeaponRegistry.SMG_ID, null,
                                 MarineArmorPattern.ARMY_GREEN),
-                        billet("Marksman", MarineWeapon.DMR, null,
+                        billet("Marksman", WeaponRegistry.DMR_ID, null,
                                 MarineArmorPattern.ARMY_GREEN),
-                        billet("Marksman", MarineWeapon.DMR, null,
+                        billet("Marksman", WeaponRegistry.DMR_ID, null,
                                 MarineArmorPattern.ARMY_GREEN)),
                 card(FIRE_SUPPORT_ID, "Fire Support",
-                        billet("Team Leader", MarineWeapon.PULSE_RIFLE, null,
+                        billet("Team Leader", WeaponRegistry.PULSE_RIFLE_ID, null,
                                 MarineArmorPattern.ARMY_GREEN),
-                        billet("Automatic Rifleman", MarineWeapon.SQUAD_AUTOMATIC, null,
+                        billet("Automatic Rifleman", WeaponRegistry.SQUAD_AUTOMATIC_ID, null,
                                 MarineArmorPattern.ARMY_GREEN),
-                        billet("Marksman", MarineWeapon.DMR, null,
+                        billet("Marksman", WeaponRegistry.DMR_ID, null,
                                 MarineArmorPattern.ARMY_GREEN),
-                        billet("Anti-Armor", MarineWeapon.PULSE_RIFLE,
-                                MarineSecondary.ROCKET_LAUNCHER,
+                        billet("Anti-Armor", WeaponRegistry.PULSE_RIFLE_ID,
+                                SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID,
                                 MarineArmorPattern.ARMY_GREEN)),
                 card(ANTI_MATERIEL_ID, "Anti-Materiel",
-                        billet("Team Leader", MarineWeapon.PULSE_RIFLE, null,
+                        billet("Team Leader", WeaponRegistry.PULSE_RIFLE_ID, null,
                                 MarineArmorPattern.CHARCOAL),
-                        billet("Spotter", MarineWeapon.DMR, null,
+                        billet("Spotter", WeaponRegistry.DMR_ID, null,
                                 MarineArmorPattern.CHARCOAL),
-                        billet("Security", MarineWeapon.PULSE_RIFLE, null,
+                        billet("Security", WeaponRegistry.PULSE_RIFLE_ID, null,
                                 MarineArmorPattern.CHARCOAL),
-                        billet("Heavy Marksman", MarineWeapon.PULSE_RIFLE,
-                                MarineSecondary.ANTI_MATERIEL_RIFLE,
+                        billet("Heavy Marksman", WeaponRegistry.PULSE_RIFLE_ID,
+                                SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID,
                                 MarineArmorPattern.CHARCOAL)),
                 card(SCREEN_ID, "Screen",
-                        billet("Team Leader", MarineWeapon.PULSE_RIFLE, null,
+                        billet("Team Leader", WeaponRegistry.PULSE_RIFLE_ID, null,
                                 MarineArmorPattern.CHARCOAL),
-                        billet("Grenadier", MarineWeapon.SMG,
-                                MarineSecondary.SMOKE_GRENADE,
+                        billet("Grenadier", WeaponRegistry.SMG_ID,
+                                SpecialEquipmentRegistry.SMOKE_GRENADE_ID,
                                 MarineArmorPattern.CHARCOAL),
-                        billet("Rifleman", MarineWeapon.PULSE_RIFLE, null,
+                        billet("Rifleman", WeaponRegistry.PULSE_RIFLE_ID, null,
                                 MarineArmorPattern.CHARCOAL),
-                        billet("Marksman", MarineWeapon.DMR, null,
+                        billet("Marksman", WeaponRegistry.DMR_ID, null,
                                 MarineArmorPattern.CHARCOAL)),
                 card(BREACH_ID, "Breach",
-                        billet("Team Leader", MarineWeapon.PULSE_RIFLE, null,
+                        billet("Team Leader", WeaponRegistry.PULSE_RIFLE_ID, null,
                                 MarineArmorPattern.CHARCOAL),
-                        billet("Demolitions", MarineWeapon.SMG,
-                                MarineSecondary.SATCHEL_CHARGE,
+                        billet("Demolitions", WeaponRegistry.SMG_ID,
+                                SpecialEquipmentRegistry.SATCHEL_CHARGE_ID,
                                 MarineArmorPattern.CHARCOAL),
-                        billet("Rifleman", MarineWeapon.PULSE_RIFLE, null,
+                        billet("Rifleman", WeaponRegistry.PULSE_RIFLE_ID, null,
                                 MarineArmorPattern.CHARCOAL),
-                        billet("Marksman", MarineWeapon.DMR, null,
+                        billet("Marksman", WeaponRegistry.DMR_ID, null,
                                 MarineArmorPattern.CHARCOAL)));
     }
 
@@ -105,9 +104,10 @@ public final class FireTeamTemplateCards {
         return new FireTeamTemplateCard(id, name, List.of(billets));
     }
 
-    private static FireTeamBillet billet(String name, MarineWeapon primary,
-                                         MarineSecondary secondary,
+    private static FireTeamBillet billet(String name, String primaryId,
+                                         String specialEquipmentId,
                                          MarineArmorPattern armor) {
-        return new FireTeamBillet(name, primary, EquipmentGrade.SERVICE, secondary, armor);
+        return new FireTeamBillet(name, primaryId, EquipmentGrade.SERVICE,
+                specialEquipmentId, armor.id);
     }
 }

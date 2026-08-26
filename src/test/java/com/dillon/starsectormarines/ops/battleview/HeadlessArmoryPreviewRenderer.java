@@ -3,8 +3,10 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.marine.EquipmentLayerDef;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
@@ -118,20 +120,20 @@ public final class HeadlessArmoryPreviewRenderer {
     static List<PreviewCase> previewCases() {
         return List.of(
                 new PreviewCase("rocket-launcher", "Rocket launcher · Army-green line kit",
-                        new FireTeamBillet("Rocketeer", MarineWeapon.PULSE_RIFLE,
-                                EquipmentGrade.MILSPEC, MarineSecondary.ROCKET_LAUNCHER,
+                        new FireTeamBillet("Rocketeer", WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID),
+                                EquipmentGrade.MILSPEC, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID),
                                 MarineArmorPattern.ARMY_GREEN)),
                 new PreviewCase("anti-materiel-rifle", "Anti-materiel rifle · Navy scout kit",
-                        new FireTeamBillet("Anti-armor", MarineWeapon.DMR,
-                                EquipmentGrade.MASTERWORK, MarineSecondary.ANTI_MATERIEL_RIFLE,
+                        new FireTeamBillet("Anti-armor", WeaponRegistry.require(WeaponRegistry.DMR_ID),
+                                EquipmentGrade.MASTERWORK, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID),
                                 MarineArmorPattern.BLUE_SCOUT)),
                 new PreviewCase("smoke-grenades", "Smoke grenades · Charcoal screen kit",
-                        new FireTeamBillet("Screen", MarineWeapon.SMG,
-                                EquipmentGrade.SERVICE, MarineSecondary.SMOKE_GRENADE,
+                        new FireTeamBillet("Screen", WeaponRegistry.require(WeaponRegistry.SMG_ID),
+                                EquipmentGrade.SERVICE, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID),
                                 MarineArmorPattern.CHARCOAL)),
                 new PreviewCase("satchel-charge", "Satchel charge · Outlaw breach kit",
-                        new FireTeamBillet("Breacher", MarineWeapon.FIELD_RIFLE,
-                                EquipmentGrade.SURPLUS, MarineSecondary.SATCHEL_CHARGE,
+                        new FireTeamBillet("Breacher", WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID),
+                                EquipmentGrade.SURPLUS, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID),
                                 MarineArmorPattern.OUTLAW)));
     }
 

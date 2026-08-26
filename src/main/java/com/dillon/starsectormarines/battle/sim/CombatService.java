@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.sim;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.combat.FireGate;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
@@ -62,35 +61,23 @@ public final class CombatService {
     public float attackCooldown(long id) { return entityWorld.getFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_COOLDOWN); }
 
     /** The primary handheld weapon flyweight, or {@code null} for a combatant with no per-weapon profile (militia/aliens/turrets fire off the baked attack stats). Seeded at allocate; assigned at deboard via {@link #setPrimaryWeapon}. */
-    public MarineWeapon primaryWeapon(long id) {
-        Object value = entityWorld.getObject(id, components.COMBAT,
+    public WeaponDef primaryWeapon(long id) {
+        return (WeaponDef) entityWorld.getObject(id, components.COMBAT,
                 BattleComponents.COMBAT_PRIMARY_WEAPON);
-        if (value instanceof MarineWeapon weapon) return weapon;
-        if (value instanceof WeaponDef def) {
-            try {
-                return MarineWeapon.fromId(def.id);
-            } catch (IllegalArgumentException ignored) {
-                return null;
-            }
-        }
-        return null;
     }
 
     /** Authoritative definition for built-in and contributed primary weapons. */
     public WeaponDef primaryWeaponDef(long id) {
-        Object value = entityWorld.getObject(id, components.COMBAT,
-                BattleComponents.COMBAT_PRIMARY_WEAPON);
-        if (value instanceof WeaponDef def) return def;
-        return value instanceof MarineWeapon weapon ? weapon.def() : null;
+        return primaryWeapon(id);
     }
 
-    public void setPrimaryWeapon(long id, MarineWeapon weapon) {
-        setPrimaryWeaponDef(id, weapon != null ? weapon.def() : null);
+    public void setPrimaryWeapon(long id, WeaponDef weapon) {
+        entityWorld.setObject(id, components.COMBAT,
+                BattleComponents.COMBAT_PRIMARY_WEAPON, weapon);
     }
 
     public void setPrimaryWeaponDef(long id, WeaponDef weapon) {
-        entityWorld.setObject(id, components.COMBAT,
-                BattleComponents.COMBAT_PRIMARY_WEAPON, weapon);
+        setPrimaryWeapon(id, weapon);
     }
 
     public EquipmentGrade equipmentGrade(long id) {
@@ -116,19 +103,9 @@ public final class CombatService {
     }
 
     /** Replaces the whole family × grade × soldier combination at runtime. */
-    public void equipPrimaryWeapon(long id, MarineWeapon weapon, EquipmentGrade grade,
-                                   SoldierProfile profile) {
-        setPrimaryWeapon(id, weapon);
-        entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_EQUIPMENT_GRADE,
-                grade != null ? grade : EquipmentGrade.SERVICE);
-        entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_SOLDIER_PROFILE,
-                profile != null ? profile : SoldierProfile.REGULAR);
-        refreshTieredPrimaryStats(id);
-    }
-
     public void equipPrimaryWeapon(long id, WeaponDef weapon, EquipmentGrade grade,
                                    SoldierProfile profile) {
-        setPrimaryWeaponDef(id, weapon);
+        setPrimaryWeapon(id, weapon);
         entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_EQUIPMENT_GRADE,
                 grade != null ? grade : EquipmentGrade.SERVICE);
         entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_SOLDIER_PROFILE,

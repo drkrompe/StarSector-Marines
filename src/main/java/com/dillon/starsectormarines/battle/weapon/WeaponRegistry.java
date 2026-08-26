@@ -36,6 +36,14 @@ public final class WeaponRegistry {
 
     private static final Logger LOG = Global.getLogger(WeaponRegistry.class);
 
+    /** Safe repair target for missing persisted marine-primary ids. */
+    public static final String STARTER_PRIMARY_ID = "weapon.field-rifle";
+    public static final String PULSE_RIFLE_ID = "weapon.pulse-rifle";
+    public static final String SMG_ID = "weapon.smg";
+    public static final String SQUAD_AUTOMATIC_ID = "weapon.squad-automatic";
+    public static final String DMR_ID = "weapon.dmr";
+    public static final String DRONE_PULSE_ID = "weapon.drone-pulse";
+
     /**
      * Core resources retained for standalone tools and compatibility tests.
      * Production discovers the core manifest alongside every enabled provider.
@@ -142,5 +150,24 @@ public final class WeaponRegistry {
 
     public int size() {
         return byId.size();
+    }
+
+    /**
+     * Translates the names written by the retired {@code MarineWeapon} enum.
+     * Stable ids pass through unchanged so one string field can accept both
+     * historical and current save data during {@code readResolve}.
+     */
+    public static String legacyMarinePrimaryId(String savedValue) {
+        if (savedValue == null || savedValue.isBlank()) return null;
+        if (savedValue.startsWith("weapon.")) return savedValue;
+        return switch (savedValue) {
+            case "FIELD_RIFLE" -> STARTER_PRIMARY_ID;
+            case "PULSE_RIFLE" -> "weapon.pulse-rifle";
+            case "SMG" -> "weapon.smg";
+            case "SQUAD_AUTOMATIC" -> "weapon.squad-automatic";
+            case "DMR" -> "weapon.dmr";
+            case "DRONE_PULSE" -> "weapon.drone-pulse";
+            default -> null;
+        };
     }
 }

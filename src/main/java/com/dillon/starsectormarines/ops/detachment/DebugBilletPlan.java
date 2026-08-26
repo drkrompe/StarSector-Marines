@@ -1,10 +1,10 @@
 package com.dillon.starsectormarines.ops.detachment;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 
 /**
  * How one squad's twelve billets are manned and equipped — the quality axis
@@ -27,9 +27,9 @@ public enum DebugBilletPlan {
     /** A green squad in whatever a new campaign hands out. Nothing is overridden. */
     STARTER_ISSUE {
         @Override public int experienceXp(int billet) { return 0; }
-        @Override public MarineWeapon primary(int billet) { return null; }
+        @Override public String primaryId(int billet) { return null; }
         @Override public EquipmentGrade grade(int billet) { return null; }
-        @Override public MarineSecondary secondary(int billet) { return null; }
+        @Override public String specialEquipmentId(int billet) { return null; }
         @Override public MarineArmorPattern armor(int billet) { return null; }
     },
 
@@ -46,11 +46,11 @@ public enum DebugBilletPlan {
             if (billet >= REPLACEMENTS) return 40;       // recent replacements
             return 130;
         }
-        @Override public MarineWeapon primary(int billet) { return standardPrimary(billet); }
+        @Override public String primaryId(int billet) { return standardPrimaryId(billet); }
         @Override public EquipmentGrade grade(int billet) {
             return billet == MARKSMAN ? EquipmentGrade.MILSPEC : EquipmentGrade.SERVICE;
         }
-        @Override public MarineSecondary secondary(int billet) { return antiArmor(billet); }
+        @Override public String specialEquipmentId(int billet) { return antiArmorId(billet); }
         @Override public MarineArmorPattern armor(int billet) {
             return MarineArmorPattern.ARMY_GREEN;
         }
@@ -64,11 +64,11 @@ public enum DebugBilletPlan {
             if (billet >= REPLACEMENTS) return 200;
             return 400;
         }
-        @Override public MarineWeapon primary(int billet) { return standardPrimary(billet); }
+        @Override public String primaryId(int billet) { return standardPrimaryId(billet); }
         @Override public EquipmentGrade grade(int billet) {
             return billet == MARKSMAN ? EquipmentGrade.MASTERWORK : EquipmentGrade.MILSPEC;
         }
-        @Override public MarineSecondary secondary(int billet) { return antiArmor(billet); }
+        @Override public String specialEquipmentId(int billet) { return antiArmorId(billet); }
         @Override public MarineArmorPattern armor(int billet) {
             return MarineArmorPattern.RED_ELITE;
         }
@@ -83,27 +83,27 @@ public enum DebugBilletPlan {
     /** The squad's single anti-armor billet — one per squad, decided in C7. */
     private static final int ANTI_ARMOR = MarineSquad.CAPACITY - 1;
 
-    private static MarineWeapon standardPrimary(int billet) {
-        if (billet == 1) return MarineWeapon.SMG;
-        if (billet == MARKSMAN) return MarineWeapon.DMR;
-        return MarineWeapon.PULSE_RIFLE;
+    private static String standardPrimaryId(int billet) {
+        if (billet == 1) return WeaponRegistry.SMG_ID;
+        if (billet == MARKSMAN) return WeaponRegistry.DMR_ID;
+        return WeaponRegistry.PULSE_RIFLE_ID;
     }
 
-    private static MarineSecondary antiArmor(int billet) {
-        return billet == ANTI_ARMOR ? MarineSecondary.ROCKET_LAUNCHER : null;
+    private static String antiArmorId(int billet) {
+        return billet == ANTI_ARMOR ? SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID : null;
     }
 
     /** Experience for one billet, keyed on position within the squad (0-based). */
     public abstract int experienceXp(int billet);
 
     /** Primary weapon, or {@code null} to keep the campaign auto-issue. */
-    public abstract MarineWeapon primary(int billet);
+    public abstract String primaryId(int billet);
 
-    /** Grade for {@link #primary}, or {@code null} to keep the campaign auto-issue. */
+    /** Grade for {@link #primaryId}, or {@code null} to keep the campaign auto-issue. */
     public abstract EquipmentGrade grade(int billet);
 
     /** Secondary, or {@code null} for none. */
-    public abstract MarineSecondary secondary(int billet);
+    public abstract String specialEquipmentId(int billet);
 
     /** Armor, or {@code null} to keep the campaign auto-issue. */
     public abstract MarineArmorPattern armor(int billet);

@@ -3,7 +3,8 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.combat.BallisticResolver;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
@@ -50,7 +51,7 @@ class ShotRenderServiceTest {
     void boltPoseInterpolatesElevationForProjectedHighAndLowFlight() {
         ShotEvent shot = new ShotEvent(0f, 0f, 0f, 10f, 0f, 2f,
                 false, Faction.MARINE, 1f,
-                null, MarineWeapon.PULSE_RIFLE, null, null, 1f, false,
+                null, WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), null, null, 1f, false,
                 BallisticResolver.StopKind.OVERSHOOT);
         shot.lifetime = 0.5f;
 
@@ -89,8 +90,8 @@ class ShotRenderServiceTest {
         };
         ShotRenderService renderer = new ShotRenderService(sprites, new ImpactFx());
 
-        for (MarineWeapon weapon : List.of(
-                MarineWeapon.PULSE_RIFLE, MarineWeapon.DMR, MarineWeapon.DRONE_PULSE)) {
+        for (WeaponDef weapon : List.of(
+                WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), WeaponRegistry.require(WeaponRegistry.DMR_ID), WeaponRegistry.require(WeaponRegistry.DRONE_PULSE_ID))) {
             BattleSimulation sim = openArena(20, 20);
             ShotEvent shot = boltShot(5f, 5f, 15f, 5f, 1f, weapon);
             shot.lifetime = 0.5f;
@@ -108,11 +109,11 @@ class ShotRenderServiceTest {
 
     private static ShotEvent boltShot(float fromX, float fromY, float toX, float toY,
                                       float lifetime) {
-        return boltShot(fromX, fromY, toX, toY, lifetime, MarineWeapon.PULSE_RIFLE);
+        return boltShot(fromX, fromY, toX, toY, lifetime, WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID));
     }
 
     private static ShotEvent boltShot(float fromX, float fromY, float toX, float toY,
-                                      float lifetime, MarineWeapon weapon) {
+                                      float lifetime, WeaponDef weapon) {
         return new ShotEvent(fromX, fromY, toX, toY, true, Faction.MARINE,
                 lifetime, null, weapon, null, null);
     }

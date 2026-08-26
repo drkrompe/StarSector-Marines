@@ -473,7 +473,7 @@ public final class BattleSetup {
             // they're not lugging a rocket launcher to a charge plant.
             ChargeSiteObjective site = sites.get(dropIndex % sites.size());
             MarineLoadout prior = roster[0];
-            roster[0] = new MarineLoadout(UnitRole.PLANTER, site, prior.primary,
+            roster[0] = new MarineLoadout(UnitRole.PLANTER, site, prior.primaryWeaponId,
                     prior.equipmentGrade, prior.soldierProfile, null, 0);
         }
         return roster;
