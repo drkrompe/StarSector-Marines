@@ -14,7 +14,6 @@ import java.util.Random;
 public final class DebugMechRoster {
 
     public static final int DEFAULT_COUNT = MechSupport.LANCE_SIZE;
-    public static final int MAX_COUNT = 100;
 
     private static final MechVariant[] FAMILY = {
             MechVariant.BULWARK, MechVariant.HOUND, MechVariant.SIROCCO
@@ -27,10 +26,10 @@ public final class DebugMechRoster {
     }
 
     public static DebugMechRoster randomized(int count, long seed) {
-        int clamped = Math.max(0, Math.min(MAX_COUNT, count));
+        int resolved = Math.max(0, count);
         Random random = new Random(seed);
-        List<MechVariant> variants = new ArrayList<>(clamped);
-        for (int i = 0; i < clamped; i++) {
+        List<MechVariant> variants = new ArrayList<>(resolved);
+        for (int i = 0; i < resolved; i++) {
             variants.add(FAMILY[random.nextInt(FAMILY.length)]);
         }
         return new DebugMechRoster(variants);

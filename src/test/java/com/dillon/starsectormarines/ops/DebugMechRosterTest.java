@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.fixture.CommandPowerCommitment;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.power.ReconPing;
@@ -14,13 +15,20 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 public class DebugMechRosterTest {
 
     @Test
-    public void randomRosterIsStableAndClamped() {
-        DebugMechRoster first = DebugMechRoster.randomized(3, 42L);
-        DebugMechRoster second = DebugMechRoster.randomized(3, 42L);
+    public void randomRosterIsStableAndHasNoAuthoredCeiling() {
+        DebugMechRoster first = DebugMechRoster.randomized(101, 42L);
+        DebugMechRoster second = DebugMechRoster.randomized(101, 42L);
 
         assertEquals(first.variants(), second.variants());
-        assertEquals(DebugMechRoster.MAX_COUNT,
-                DebugMechRoster.randomized(999, 42L).count());
+        assertEquals(101, first.count());
+        MechSupport support = assertInstanceOf(MechSupport.class,
+                first.applyTo(List.of()).get(0));
+        assertEquals(26, support.maxCharges);
+        assertEquals(101, support.deployments().size());
+        MechSupport restored = assertInstanceOf(MechSupport.class,
+                CommandPowerCommitment.capture(support).toPower());
+        assertEquals(26, restored.maxCharges);
+        assertEquals(support.deployments(), restored.deployments());
         assertEquals(0, DebugMechRoster.randomized(-1, 42L).count());
     }
 
