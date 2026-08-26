@@ -85,6 +85,9 @@ class ConquestCommandBalanceReportTest {
         assertTrue(json.contains("\"fixtureSha256\":\"" + sha + "\""));
         assertTrue(markdown.contains("Evidence mode: ad hoc override"));
         assertTrue(markdown.contains("mobilization latencies: [75, 150]"));
+        assertTrue(markdown.contains("Marine physical progress:"));
+        assertTrue(markdown.contains("peak live members"));
+        assertTrue(markdown.contains("Capture-zone presence:"));
         assertTrue(markdown.contains("territorial progress: OBSERVED"));
         assertFalse(markdown.contains("response latencies"));
         assertEquals("fixture-0123456789ab",

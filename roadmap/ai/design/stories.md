@@ -4,13 +4,13 @@ Status: ACTIVE — the autonomous mission-command foundation is in progress; pai
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — recorded the first byte-stable full Conquest baseline and its zero-capture physical-progress gap.
+Updated: 2026-08-25 — physical evidence isolated belief-absence capture orders and construction-fixture force trickle as the next Conquest commander questions.
 
 | Story | State | Intent |
 |---|---|---|
 | `autonomous-mission-command-foundation.md` | IN PROGRESS | Finish assignment-writer ownership, disclosure hardening, stability/determinism coverage, and live acceptance on the landed paired Conquest frame/plan/commit reference. |
 | `contact-reaction-doctrine.md` | IN PROGRESS | Close and validate the live contact-initiative gap, then finish doctrine, formation-tempo, and acquisition acceptance. |
-| `commander-trace-and-balance-harness.md` | IN PROGRESS | Extend the reviewed zero-capture Conquest baseline with squad travel, assault-entry, and capture-zone presence measures, then add bounded intervention comparison. |
+| `commander-trace-and-balance-harness.md` | IN PROGRESS | Use landed travel/zone-presence evidence to review attacker commitment against a launch-faithful baseline, then add bounded intervention comparison. |
 | `opening-operation-objective-command.md` | DRAFT | Prove the foundation outside Conquest with belief-honest paired preserve/assault and secure/defend small-force scenarios. |
 | `assault-search-sector-picture.md` | DRAFT | Publish the belief-honest attacker search-sector picture and converging sweep. |
 | `assault-area-defense-command.md` | DRAFT | Pair Assault search with defender strongpoints, reported-contact response, and a bounded reserve without imposing a front. |

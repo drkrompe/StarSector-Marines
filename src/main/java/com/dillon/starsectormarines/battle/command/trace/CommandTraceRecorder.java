@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -28,9 +29,12 @@ public final class CommandTraceRecorder {
     private final Map<Faction, Integer> lastPerspectiveTick =
             new EnumMap<>(Faction.class);
     private final Map<String, String> lastCompoundState = new HashMap<>();
+    private final Map<String, String> lastCompoundPresence = new HashMap<>();
     private final StringBuilder canonical = new StringBuilder(16_384);
     private List<CompoundService.Record> compounds = List.of();
     private int compoundCount = -1;
+    private int[] marineZoneCounts = new int[0];
+    private int[] defenderZoneCounts = new int[0];
     private boolean terminalRecorded;
     private boolean sealed;
     private int eventCount;
@@ -38,7 +42,7 @@ public final class CommandTraceRecorder {
     public CommandTraceRecorder(String fixtureKind, String schedulerMode,
                                 int startTick) {
         StringBuilder header = begin("run", startTick);
-        numberField(header, "schemaVersion", 2);
+        numberField(header, "schemaVersion", 3);
         nullableField(header, "fixtureKind", fixtureKind);
         field(header, "schedulerMode", schedulerMode);
         appendLine(end(header));
@@ -90,6 +94,7 @@ public final class CommandTraceRecorder {
         if (sealed) return;
         lastPerspectiveTick.clear();
         lastCompoundState.clear();
+        lastCompoundPresence.clear();
         StringBuilder out = begin("control", tick);
         field(out, "event", "capture-resumed");
         appendLine(end(out));
@@ -147,20 +152,72 @@ public final class CommandTraceRecorder {
                     .thenComparing(record -> record.node.kind.name()));
             compounds = List.copyOf(sorted);
         }
+        int zoneCount = sim.getZoneGraph().getZones().size();
+        if (marineZoneCounts.length < zoneCount) {
+            marineZoneCounts = new int[zoneCount];
+            defenderZoneCounts = new int[zoneCount];
+        } else {
+            Arrays.fill(marineZoneCounts, 0, zoneCount, 0);
+            Arrays.fill(defenderZoneCounts, 0, zoneCount, 0);
+        }
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            long unit = sim.liveUnitAt(i);
+            int zone = sim.getZoneGraph().zoneIdAt(
+                    sim.world().cellX(unit), sim.world().cellY(unit));
+            if (zone < 0 || zone >= zoneCount) continue;
+            Faction faction = sim.identity().faction(unit);
+            if (faction == Faction.MARINE) marineZoneCounts[zone]++;
+            else if (faction == Faction.DEFENDER) defenderZoneCounts[zone]++;
+        }
         for (CompoundService.Record record : compounds) {
             TacticalNode node = record.node;
             String subject = node.kind.name() + "@" + node.anchorX + "," + node.anchorY;
             String state = record.state.name();
-            if (state.equals(lastCompoundState.put(subject, state))) continue;
-            StringBuilder out = begin("referee", sim.getSimTickIndex());
-            field(out, "event", "compound-state");
-            field(out, "subject", subject);
-            field(out, "compoundKind", node.kind.name());
-            numberField(out, "anchorX", node.anchorX);
-            numberField(out, "anchorY", node.anchorY);
-            field(out, "state", state);
-            appendLine(end(out));
+            if (!state.equals(lastCompoundState.put(subject, state))) {
+                StringBuilder out = begin("referee", sim.getSimTickIndex());
+                field(out, "event", "compound-state");
+                field(out, "subject", subject);
+                field(out, "compoundKind", node.kind.name());
+                numberField(out, "anchorX", node.anchorX);
+                numberField(out, "anchorY", node.anchorY);
+                field(out, "state", state);
+                appendLine(end(out));
+            }
+
+            int zoneId = sim.getZoneGraph().zoneIdAt(node.anchorX, node.anchorY);
+            int marines = zoneId >= 0 && zoneId < zoneCount
+                    ? marineZoneCounts[zoneId] : -1;
+            int defenders = zoneId >= 0 && zoneId < zoneCount
+                    ? defenderZoneCounts[zoneId] : -1;
+            String occupancy = occupancy(marines, defenders);
+            int progress = Math.max(0, Math.min(10_000,
+                    Math.round(record.captureProgress * 10_000f)));
+            String signature = zoneId + "|" + occupancy + "|" + marines
+                    + "|" + defenders + "|" + progress;
+            if (signature.equals(lastCompoundPresence.put(subject, signature))) {
+                continue;
+            }
+            StringBuilder presence = begin("referee", sim.getSimTickIndex());
+            field(presence, "event", "compound-presence");
+            field(presence, "subject", subject);
+            field(presence, "compoundKind", node.kind.name());
+            numberField(presence, "anchorX", node.anchorX);
+            numberField(presence, "anchorY", node.anchorY);
+            numberField(presence, "anchorZoneId", zoneId);
+            field(presence, "occupancy", occupancy);
+            numberField(presence, "marineUnits", marines);
+            numberField(presence, "defenderUnits", defenders);
+            numberField(presence, "captureProgressBasisPoints", progress);
+            appendLine(end(presence));
         }
+    }
+
+    private static String occupancy(int marines, int defenders) {
+        if (marines < 0 || defenders < 0) return "UNRESOLVED";
+        if (marines > 0 && defenders > 0) return "MIXED";
+        if (marines > 0) return "MARINE_ONLY";
+        if (defenders > 0) return "DEFENDER_ONLY";
+        return "EMPTY";
     }
 
     private void appendLine(String line) {
@@ -249,6 +306,17 @@ public final class CommandTraceRecorder {
         }
         out.append(']');
 
+        List<ConquestFrontSnapshot.SquadState> squads =
+                new ArrayList<>(snapshot.squads());
+        squads.sort(Comparator.comparingInt(
+                ConquestFrontSnapshot.SquadState::squadId));
+        out.append(",\"squads\":[");
+        for (int i = 0; i < squads.size(); i++) {
+            if (i > 0) out.append(',');
+            squad(out, squads.get(i));
+        }
+        out.append(']');
+
         List<ConquestFrontSnapshot.SquadDirective> actions =
                 new ArrayList<>(snapshot.directives());
         actions.sort(Comparator.comparingInt(
@@ -259,6 +327,19 @@ public final class CommandTraceRecorder {
             action(out, actions.get(i));
         }
         out.append("]}");
+    }
+
+    private static void squad(StringBuilder out,
+                              ConquestFrontSnapshot.SquadState squad) {
+        out.append('{');
+        rawNumberField(out, "squadId", squad.squadId());
+        numberField(out, "aliveMembers", squad.aliveMembers());
+        floatField(out, "centroidX", squad.centroidX());
+        floatField(out, "centroidY", squad.centroidY());
+        numberField(out, "currentZoneId", squad.currentZoneId());
+        nullableField(out, "executionSuspension", squad.executionSuspension());
+        booleanField(out, "localContact", squad.localContact());
+        out.append('}');
     }
 
     private static void track(StringBuilder out,
