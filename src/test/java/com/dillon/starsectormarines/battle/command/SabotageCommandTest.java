@@ -9,11 +9,13 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
+import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Coverage for {@link SabotageCommand}'s assignment policy. The map is a
@@ -32,6 +34,9 @@ public class SabotageCommandTest {
             for (int x = 0; x < W; x++) {
                 grid.setWalkableFloor(x, y);
             }
+        }
+        for (int[] cell : new int[][]{{4, 2}, {4, 4}, {10, 4}, {18, 4}, {18, 7}}) {
+            grid.setDoorway(cell[0], cell[1], true);
         }
         return new BattleSimulation(grid, new CellTopology(W, H));
     }
@@ -66,7 +71,7 @@ public class SabotageCommandTest {
 
         Squad squad = addSquad(sim, 2f, 4f);
 
-        new SabotageCommand().tick(sim);
+        tick(new SabotageCommand(), sim);
 
         ObjectiveAssignment a = squad.assignedObjective;
         assertNotNull(a, "non-planter squad should receive an assignment");
@@ -88,7 +93,7 @@ public class SabotageCommandTest {
                 .role(UnitRole.PLANTER)
                 .assignedObjective(site));
 
-        new SabotageCommand().tick(sim);
+        tick(new SabotageCommand(), sim);
 
         assertNull(squad.assignedObjective,
                 "squad with a live planter on an unfinished site should be left for SecureObjectiveZone");
@@ -105,7 +110,7 @@ public class SabotageCommandTest {
 
         Squad squad = addSquad(sim, 2f, 4f);
 
-        new SabotageCommand().tick(sim);
+        tick(new SabotageCommand(), sim);
 
         ObjectiveAssignment a = squad.assignedObjective;
         assertNotNull(a);
@@ -122,7 +127,7 @@ public class SabotageCommandTest {
         Squad squad = addSquad(sim, 2f, 4f);
         squad.assignedObjective = ObjectiveAssignment.clearZone(squad.id, 0);
 
-        new SabotageCommand().tick(sim);
+        tick(new SabotageCommand(), sim);
 
         assertNull(squad.assignedObjective,
                 "no unfinished sites → commander clears stale assignments");
@@ -136,9 +141,9 @@ public class SabotageCommandTest {
         Squad squad = addSquad(sim, 2f, 4f);
 
         SabotageCommand cmd = new SabotageCommand();
-        cmd.tick(sim);
+        tick(cmd, sim);
         ObjectiveAssignment first = squad.assignedObjective;
-        cmd.tick(sim);
+        tick(cmd, sim);
         ObjectiveAssignment second = squad.assignedObjective;
 
         assertNotNull(first);
@@ -147,6 +152,146 @@ public class SabotageCommandTest {
         // doesn't get invalidated by re-allocation churn.
         assertEquals(first, second,
                 "stable inputs should produce the same assignment record across ticks");
+    }
+
+    @Test
+    public void spreadsInitialSecurityAcrossEveryReachableSite() {
+        BattleSimulation sim = openSim();
+        sim.addObjective(new ChargeSiteObjective(4, 2, 5f, "SAB-01", "one"));
+        sim.addObjective(new ChargeSiteObjective(10, 4, 5f, "SAB-02", "two"));
+        sim.addObjective(new ChargeSiteObjective(18, 7, 5f, "SAB-03", "three"));
+        Squad first = addSquad(sim, 1f, 2f);
+        Squad second = addSquad(sim, 1f, 4f);
+        Squad third = addSquad(sim, 1f, 7f);
+
+        SabotageCommand command = new SabotageCommand();
+        tick(command, sim);
+
+        assertEquals(3, java.util.Set.of(
+                command.siteSnapshot().directiveFor(first.id).siteIndex(),
+                command.siteSnapshot().directiveFor(second.id).siteIndex(),
+                command.siteSnapshot().directiveFor(third.id).siteIndex()).size(),
+                "coverage should reach all three sites before surplus stacks");
+        assertEquals(java.util.List.of("SAB-01", "SAB-02", "SAB-03"),
+                command.siteSnapshot().sites().stream()
+                        .map(SabotageSiteSnapshot.SiteState::id).toList());
+    }
+
+    @Test
+    public void planterPublishesSiteContextWithoutCompetingSquadOrder() {
+        BattleSimulation sim = openSim();
+        ChargeSiteObjective site = new ChargeSiteObjective(
+                10, 4, 5f, "SAB-01", "site");
+        sim.addObjective(site);
+        Squad squad = addSquad(sim, 2f, 4f);
+        sim.spawn(new EntitySpec("planter", Faction.MARINE, UnitType.MARINE, 2, 4)
+                .squad(squad.id).role(UnitRole.PLANTER).assignedObjective(site));
+
+        SabotageCommand command = new SabotageCommand();
+        tick(command, sim);
+
+        SabotageSiteSnapshot.SquadDirective directive =
+                command.siteSnapshot().directiveFor(squad.id);
+        assertNotNull(directive);
+        assertEquals(0, directive.siteIndex());
+        assertEquals(SabotageSiteSnapshot.AssignmentReason.PLANTER_OBJECTIVE_PRESERVED,
+                directive.reason());
+        assertNull(directive.assignmentKind());
+        assertNull(squad.assignedObjective);
+        assertTrue(command.siteSnapshot().sites().get(0).planterSquads() > 0);
+    }
+
+    @Test
+    public void kitRetrieverStaysAffiliatedWithItsChargeSite() {
+        BattleSimulation sim = openSim();
+        ChargeSiteObjective site = new ChargeSiteObjective(
+                10, 4, 5f, "SAB-01", "site");
+        sim.addObjective(site);
+        Squad squad = addSquad(sim, 2f, 4f);
+        long retriever = sim.spawn(new EntitySpec("retriever", Faction.MARINE,
+                UnitType.MARINE, 2, 4).squad(squad.id)
+                .role(UnitRole.KIT_RETRIEVER));
+        sim.task().setEquipmentDropTarget(retriever,
+                new EquipmentDrop(5, 4, site));
+
+        SabotageCommand command = new SabotageCommand();
+        tick(command, sim);
+
+        SabotageSiteSnapshot.SquadDirective directive =
+                command.siteSnapshot().directiveFor(squad.id);
+        assertEquals(0, directive.siteIndex());
+        assertEquals(SabotageSiteSnapshot.AssignmentReason.KIT_RECOVERY_PRESERVED,
+                directive.reason());
+        assertNull(directive.assignmentKind());
+        assertEquals(SabotageSiteSnapshot.Phase.KIT_RECOVERY,
+                command.siteSnapshot().phase());
+    }
+
+    @Test
+    public void completingStickySiteReleasesStabilityAndRedistributesSecurity() {
+        BattleSimulation sim = openSim();
+        ChargeSiteObjective first = new ChargeSiteObjective(
+                4, 4, 0.0001f, "SAB-01", "first");
+        ChargeSiteObjective second = new ChargeSiteObjective(
+                18, 4, 5f, "SAB-02", "second");
+        sim.addObjective(first);
+        sim.addObjective(second);
+        Squad squad = addSquad(sim, 2f, 4f);
+        SabotageCommand command = new SabotageCommand();
+        tick(command, sim);
+        assertEquals(0, command.siteSnapshot().directiveFor(squad.id).siteIndex());
+
+        sim.spawn(new EntitySpec("finisher", Faction.MARINE, UnitType.MARINE, 4, 4)
+                .role(UnitRole.PLANTER).assignedObjective(first));
+        first.tick(sim);
+        tick(command, sim);
+
+        assertEquals(1, command.siteSnapshot().directiveFor(squad.id).siteIndex());
+        assertEquals(sim.getZoneGraph().zoneIdAt(18, 4),
+                squad.assignedObjective.targetZoneId());
+    }
+
+    @Test
+    public void strongerExternalAssignmentIsPreserved() {
+        BattleSimulation sim = openSim();
+        sim.addObjective(new ChargeSiteObjective(10, 4, 5f, "SAB-01", "site"));
+        Squad squad = addSquad(sim, 2f, 4f);
+        ObjectiveAssignment payload = ObjectiveAssignment.escort(squad.id, 3, 3);
+        sim.assignSquadCommand(payload, CommandAuthority.PAYLOAD,
+                "payload", "escort payload");
+        SabotageCommand command = new SabotageCommand();
+
+        tick(command, sim);
+
+        assertEquals(payload, squad.assignedObjective);
+        assertEquals(SabotageSiteSnapshot.AssignmentReason.EXTERNAL_OWNERSHIP_PRESERVED,
+                command.siteSnapshot().directiveFor(squad.id).reason());
+    }
+
+    @Test
+    public void kitRecruitmentDoesNotCreateTwoSpecialSiteDutiesInOneSquad() {
+        BattleSimulation sim = openSim();
+        ChargeSiteObjective first = new ChargeSiteObjective(
+                4, 4, 5f, "SAB-01", "first");
+        ChargeSiteObjective second = new ChargeSiteObjective(
+                18, 4, 5f, "SAB-02", "second");
+        sim.addObjective(first);
+        sim.addObjective(second);
+        Squad planterSquad = addSquad(sim, 2f, 4f);
+        sim.spawn(new EntitySpec("planter", Faction.MARINE, UnitType.MARINE, 2, 4)
+                .squad(planterSquad.id).role(UnitRole.PLANTER)
+                .assignedObjective(first));
+        Squad freeSquad = addSquad(sim, 15f, 4f);
+        EquipmentDrop drop = new EquipmentDrop(2, 4, second);
+        sim.getEquipmentDrops().add(drop);
+
+        sim.advance(BattleSimulation.TICK_DT);
+
+        long planterLeader = sim.resolveUnit(planterSquad.leaderId);
+        long freeLeader = sim.resolveUnit(freeSquad.leaderId);
+        assertEquals(UnitRole.COMBATANT, sim.role().role(planterLeader));
+        assertEquals(UnitRole.KIT_RETRIEVER, sim.role().role(freeLeader));
+        assertEquals(drop, sim.task().equipmentDropTarget(freeLeader));
     }
 
     private static ChargeSiteObjective completedSite(BattleSimulation sim, int x, int y, String name) {
@@ -160,5 +305,10 @@ public class SabotageCommandTest {
                 .assignedObjective(cs));
         cs.tick(sim);
         return cs;
+    }
+
+    private static void tick(SabotageCommand command, BattleSimulation sim) {
+        CommanderService.runSingle(command, SabotageCommandDisclosure.INSTANCE,
+                sim);
     }
 }

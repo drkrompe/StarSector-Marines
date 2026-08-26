@@ -35,10 +35,11 @@ import java.util.Random;
  * allocation rules, and led by the same
  * {@code MarineRoster.refreshLeadership}.
  *
- * <p>A consequence worth keeping: the armory is stocked <em>first</em> and
- * kit is issued through {@code allocatePrimary} / {@code allocateSecondary}
- * / {@code allocateArmor}, so a loadout the armory would refuse is a
- * loadout this cannot produce.
+ * <p>A consequence worth keeping: the armory templates are collected
+ * <em>first</em>, then each authored twelve-billet doctrine is issued as one
+ * atomic squad operation. A loadout the ordinary armory would refuse is a
+ * loadout this cannot produce; the fixture does not fabricate and reallocate
+ * 2,400 individual inventory records to express 200 squad loadouts.
  *
  * <p>See `c12-the-debug-company.md`.
  */
@@ -74,23 +75,21 @@ public final class DebugCompany {
             MarineSquad squad = roster.createSquad();
             SquadWeaponDoctrine weaponDoctrine = weapons.get(s);
             SquadArmorDoctrine armorDoctrine = armor.get(s);
+            List<Integer> experience = new ArrayList<>(MarineSquad.CAPACITY);
             for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
-                MarineSoldier recruit = roster.recruitToSquad(squad.id());
-                if (recruit == null) break;
-                recruit.addExperience(resolved.plan.experienceXp(billet));
+                experience.add(resolved.plan.experienceXp(billet));
             }
-            SquadEquipmentResult result = roster.applySquadEquipment(
-                    squad.id(), weaponDoctrine.id(), armorDoctrine.id());
+            List<MarineSoldier> recruits = roster.recruitToSquad(squad.id(), experience);
+            if (recruits.size() != MarineSquad.CAPACITY) {
+                throw new IllegalStateException("Debug squad complement was not filled");
+            }
+            SquadEquipmentResult result = roster.applySquadEquipmentVariant(
+                    squad.id(), weaponDoctrine.id(), armorDoctrine.id(),
+                    debugGrades(weaponDoctrine, resolved.plan));
             if (result != SquadEquipmentResult.APPLIED) {
                 throw new IllegalStateException("Debug squad loadout refused: " + result);
             }
-            upgradeWeaponGrades(roster, squad, resolved.plan);
         }
-        // Experience is what decides who leads, and the last recruit's arrives
-        // after that squad's final enlistment refresh. Re-derive once the whole
-        // company is outfitted — the campaign does the same after awarding
-        // post-mission XP.
-        roster.refreshLeadership();
         return roster;
     }
 
@@ -109,87 +108,45 @@ public final class DebugCompany {
         return ids;
     }
 
-    /** Preserves the rolled doctrine while moving its weapons up the experience ladder. */
-    private static void upgradeWeaponGrades(MarineRoster roster, MarineSquad squad,
-                                            DebugBilletPlan plan) {
+    /** Exact grade overlay applied with the doctrine's three ordered fire teams. */
+    private static List<EquipmentGrade> debugGrades(
+            SquadWeaponDoctrine doctrine, DebugBilletPlan plan) {
+        List<EquipmentGrade> grades = new ArrayList<>(MarineSquad.CAPACITY);
         boolean marksmanIssued = false;
-        for (MarineSoldier soldier : roster.squadMembers(squad)) {
+        for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
+            String primaryId = doctrine.issue(billet).primaryId();
             boolean designatedMarksman = !marksmanIssued
-                    && WeaponRegistry.DMR_ID.equals(soldier.primaryId());
-            EquipmentGrade grade = debugGrade(
-                    plan, soldier.primaryId(), designatedMarksman);
+                    && WeaponRegistry.DMR_ID.equals(primaryId);
+            grades.add(debugGrade(plan, primaryId, designatedMarksman));
             marksmanIssued |= designatedMarksman;
-            if (!roster.allocatePrimary(soldier.id(), soldier.primaryId(), grade)) {
-                throw new IllegalStateException("Debug weapon grade refused for "
-                        + soldier.primaryId() + " at " + grade);
-            }
         }
+        return List.copyOf(grades);
     }
 
     /**
-     * Unlocks and prints the exact randomized manifest. Allocation remains
-     * inventory-checked: this debug fixture cannot silently bypass campaign
-     * issue rules just because its squad doctrine was rolled in memory.
+     * Collects the templates referenced by the randomized doctrines. The
+     * detached fixture then uses the headless unlimited-cargo issue seam; it
+     * does not mint legacy printed-inventory entries per marine.
      */
     private static void stockArmory(MarineArmory armory, DebugCompanyStage stage,
                                     List<SquadWeaponDoctrine> weapons,
                                     List<SquadArmorDoctrine> armor) {
-        armory.addFabricationMaterials(fabricationBudget(stage, weapons, armor));
         for (int squad = 0; squad < weapons.size(); squad++) {
             SquadWeaponDoctrine weaponDoctrine = weapons.get(squad);
             SquadArmorDoctrine armorDoctrine = armor.get(squad);
-            boolean marksmanIssued = false;
+            List<EquipmentGrade> grades = debugGrades(weaponDoctrine, stage.plan);
             for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
                 SquadWeaponIssue issue = weaponDoctrine.issue(billet);
                 String primary = issue.primaryId();
-                boolean designatedMarksman = !marksmanIssued
-                        && WeaponRegistry.DMR_ID.equals(primary);
-                EquipmentGrade grade = debugGrade(
-                        stage.plan, primary, designatedMarksman);
-                marksmanIssued |= designatedMarksman;
-                armory.unlockPrimary(primary, grade);
-                printUpTo(() -> armory.ownedPrimary(primary, grade),
-                        () -> armory.printPrimary(primary, grade), 1);
+                armory.unlockPrimary(primary, grades.get(billet));
                 String secondary = issue.specialEquipmentId();
                 if (secondary != null) {
                     armory.unlockSecondary(secondary);
-                    printUpTo(() -> armory.ownedSecondary(secondary),
-                            () -> armory.printSecondary(secondary), 1);
                 }
                 MarineArmorPattern pattern = armorDoctrine.issue(billet);
                 armory.unlockArmor(pattern);
-                printUpTo(() -> armory.ownedArmor(pattern),
-                        () -> armory.printArmor(pattern), 1);
             }
         }
-    }
-
-    /** Funds the rolled fixture manifest, saturating only at armory's int storage limit. */
-    private static int fabricationBudget(DebugCompanyStage stage,
-                                         List<SquadWeaponDoctrine> weapons,
-                                         List<SquadArmorDoctrine> armor) {
-        long total = 0L;
-        for (int squad = 0; squad < weapons.size(); squad++) {
-            boolean marksmanIssued = false;
-            for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
-                SquadWeaponIssue issue = weapons.get(squad).issue(billet);
-                boolean designatedMarksman = !marksmanIssued
-                        && WeaponRegistry.DMR_ID.equals(issue.primaryId());
-                EquipmentGrade grade = debugGrade(
-                        stage.plan, issue.primaryId(), designatedMarksman);
-                marksmanIssued |= designatedMarksman;
-                if (!WeaponRegistry.STARTER_PRIMARY_ID.equals(issue.primaryId())) {
-                    total += MarineArmory.primaryFabricationCost(grade);
-                }
-                if (issue.specialEquipmentId() != null) {
-                    total += MarineArmory.secondaryFabricationCost(
-                            issue.specialEquipmentId());
-                }
-                total += MarineArmory.armorFabricationCost(
-                        armor.get(squad).issue(billet));
-            }
-        }
-        return (int) Math.min(Integer.MAX_VALUE, total);
     }
 
     private static EquipmentGrade debugGrade(DebugBilletPlan plan, String primaryId,
@@ -228,22 +185,4 @@ public final class DebugCompany {
         return result;
     }
 
-    /**
-     * Prints until the armory owns {@code additional} more than it did on
-     * entry. Bails on a refused print rather than spinning — a refusal means
-     * the recipe is locked or the budget is gone, both of which are bugs here
-     * and neither of which a loop can fix.
-     */
-    private static void printUpTo(Owned owned, Print print, int additional) {
-        int target = owned.count() + Math.max(0, additional);
-        while (owned.count() < target) {
-            if (!print.once()) return;
-        }
-    }
-
-    @FunctionalInterface
-    private interface Owned { int count(); }
-
-    @FunctionalInterface
-    private interface Print { boolean once(); }
 }

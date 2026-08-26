@@ -1,10 +1,13 @@
 # AI stories
 
-Status: ACTIVE — the autonomous mission-command foundation is in progress; paired Conquest migration, contact-reaction live acceptance, and later mission duels follow.
+Status: ACTIVE — the autonomous mission-command foundation and Marine Sabotage
+site-command vertical are in progress; paired mission duels follow.
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — the canonical rerun proved the Conquest capture reserve binds; launch-fidelity overlay is next before concentration tuning.
+Updated: 2026-08-26 — landed the Marine Sabotage named-site construction,
+autonomous allocator, fixture, and diagnostics checkpoint; headless metrics and
+the deeper kit-loss transition matrix remain in progress.
 
 | Story | State | Intent |
 |---|---|---|
@@ -14,7 +17,7 @@ Updated: 2026-08-25 — the canonical rerun proved the Conquest capture reserve 
 | `opening-operation-objective-command.md` | DRAFT | Prove the foundation outside Conquest with belief-honest paired preserve/assault and secure/defend small-force scenarios. |
 | `assault-search-sector-picture.md` | DRAFT | Publish the belief-honest attacker search-sector picture and converging sweep. |
 | `assault-area-defense-command.md` | DRAFT | Pair Assault search with defender strongpoints, reported-contact response, and a bounded reserve without imposing a front. |
-| `sabotage-site-task-groups.md` | DRAFT | Form stable attacker planter, security, and reinforcing groups around unfinished charge sites. |
+| `sabotage-site-task-groups.md` | IN PROGRESS | Migrate Marine Sabotage command and prove stable planter, security, kit-recovery, fixture, and named-site diagnostics end to end. |
 | `sabotage-site-defense-command.md` | DRAFT | Pair site task groups with defender guards, legal alarms, and a mobile reserve. |
 | `rescue-corridor-command-picture.md` | DRAFT | Publish the marine escort corridor and opposing swarm-pressure intent as an asymmetric autonomous battle. |
 | `silent-colony-expedition-branches.md` | DRAFT | Keep archive and survivor branches stable and inspectable before deciding the security network's opposing-command shape. |
