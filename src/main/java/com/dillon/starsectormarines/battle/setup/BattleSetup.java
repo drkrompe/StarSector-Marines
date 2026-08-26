@@ -48,6 +48,8 @@ import com.dillon.starsectormarines.battle.command.ConquestTrackLayout;
 import com.dillon.starsectormarines.battle.command.OpeningOperationCommand;
 import com.dillon.starsectormarines.battle.command.SabotageCommand;
 import com.dillon.starsectormarines.battle.command.SabotageCommandDisclosure;
+import com.dillon.starsectormarines.battle.command.SabotageDefenderCommand;
+import com.dillon.starsectormarines.battle.command.SabotageDefenderCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.SilentColonyCommand;
 import com.dillon.starsectormarines.battle.command.compound.CompoundGarrisonSystem;
 import com.dillon.starsectormarines.battle.vehicle.ConvoyPlanner;
@@ -388,11 +390,21 @@ public final class BattleSetup {
             equipDefaultTurrets(sim, shuttleId);
         }
 
-        allocateDefenders(sim, map, defenders.roster(), groundRoster, rng);
+        int sabotageMobileMembers = Math.min(
+                Math.max(0, defenders.roster().totalCount - 2),
+                objectives.size() * defenders.roster().patrolSquadSize + 1);
+        allocateDefenders(sim, map, defenders.roster(), groundRoster, rng,
+                sabotageMobileMembers);
+        Set<Integer> sabotageMobileSquads = captureSabotageMobileSquads(sim);
+        claimSabotageSetupGarrisons(sim);
+        claimSabotageMobileSquads(sim, sabotageMobileSquads);
         spawnAmbientCivilians(sim, map, rng);
         spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
         sim.setAutonomousCommander(Faction.MARINE, new SabotageCommand(),
                 SabotageCommandDisclosure.INSTANCE);
+        sim.setAutonomousCommander(Faction.DEFENDER,
+                new SabotageDefenderCommand(sabotageMobileSquads),
+                SabotageDefenderCommandDisclosure.INSTANCE);
         installReinforcementLayer(sim, map, null, groundRoster, risk, null);
         return sim;
     }
@@ -1200,6 +1212,36 @@ public final class BattleSetup {
         }
     }
 
+    private static Set<Integer> captureSabotageMobileSquads(BattleSimulation sim) {
+        Set<Integer> mobile = new java.util.TreeSet<>();
+        for (Squad squad : sim.getSquads()) {
+            if (squad.faction != Faction.DEFENDER
+                    || sim.squadMemberCount(squad.id) <= 0) continue;
+            long anchor = sim.squadMemberAt(squad.id, 0);
+            if (sim.role().role(anchor) == UnitRole.PATROL) mobile.add(squad.id);
+        }
+        return mobile;
+    }
+
+    private static void claimSabotageSetupGarrisons(BattleSimulation sim) {
+        for (Squad squad : sim.getSquads()) {
+            if (squad.faction != Faction.DEFENDER
+                    || sim.squadMemberCount(squad.id) <= 0
+                    || sim.role().role(sim.squadMemberAt(squad.id, 0))
+                    != UnitRole.GARRISON) continue;
+            sim.claimSquadCommand(squad.id, CommandAuthority.GARRISON,
+                    "sabotage-setup-garrison", "authored Sabotage garrison");
+        }
+    }
+
+    private static void claimSabotageMobileSquads(BattleSimulation sim,
+                                                   Set<Integer> mobileSquads) {
+        for (int squadId : mobileSquads) {
+            sim.claimSquadCommand(squadId, CommandAuthority.MISSION_COMMAND,
+                    "sabotage-defender", "initial Sabotage mobile security");
+        }
+    }
+
     private static DefenderForcePlan defenderForcePlan(
             MissionType type, OperationTier tier, RiskLevel risk,
             boolean enemyHasHeavyArmor, List<ShuttleAssignment> assignments,
@@ -1792,6 +1834,19 @@ public final class BattleSetup {
                                           DefenderRoster roster,
                                           GroundRosterProfile groundRoster,
                                           Random rng) {
+        allocateDefenders(sim, map, roster, groundRoster, rng, 0);
+    }
+
+    /**
+     * Variant for missions that author a mobile command pool. Pass 1 will not
+     * consume the final {@code minimumPatrolMembers} as garrisons; those members
+     * flow through the ordinary homogeneous patrol-squad pass below.
+     */
+    private static void allocateDefenders(BattleSimulation sim, MapResult map,
+                                          DefenderRoster roster,
+                                          GroundRosterProfile groundRoster,
+                                          Random rng,
+                                          int minimumPatrolMembers) {
         TacticalMap tactical = map.tacticalMap;
         List<TacticalNode> defenderNodes = (tactical != null)
                 ? new ArrayList<>(tactical.forFaction(Faction.DEFENDER))
@@ -1831,7 +1886,15 @@ public final class BattleSetup {
             boolean spawningMechs = !mechQueue.isEmpty();
             int sourceSize = spawningMechs ? mechQueue.size() : infQueue.size();
             if (sourceSize == 0) { patrolAnchors.add(node); continue; }
-            int want = Math.min(node.garrisonSize, sourceSize);
+            int remaining = mechQueue.size() + infQueue.size();
+            int garrisonBudget = Math.max(0, remaining
+                    - Math.max(0, minimumPatrolMembers));
+            if (garrisonBudget == 0) {
+                patrolAnchors.add(node);
+                continue;
+            }
+            int want = Math.min(node.garrisonSize,
+                    Math.min(sourceSize, garrisonBudget));
             List<int[]> cells = pickCellsForNode(map.grid, sim.getZoneGraph(),
                     node, GARRISON_SPAWN_RADIUS, want);
             if (cells.isEmpty()) { patrolAnchors.add(node); continue; }

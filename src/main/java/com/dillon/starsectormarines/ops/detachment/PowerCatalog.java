@@ -107,7 +107,7 @@ public final class PowerCatalog {
             byId.put(MechSupport.ID, MechSupport.configured(configuredMechs));
         }
 
-        LOG.info("PowerCatalog: resolved " + byId.size() + " power(s) " + byId.keySet()
+        LOG.debug("PowerCatalog: resolved " + byId.size() + " power(s) " + byId.keySet()
                 + " from " + (committedShips == null ? 0 : committedShips.size()) + " committed ship(s)");
         return new ArrayList<>(byId.values());
     }

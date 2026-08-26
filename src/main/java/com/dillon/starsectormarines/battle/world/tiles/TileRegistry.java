@@ -156,11 +156,14 @@ public final class TileRegistry {
         JSONArray cells = root.optJSONArray("cells");
         if (cells != null) ingestCells(cells, sheet, source);
         JSONArray doodads = root.optJSONArray("doodads");
-        if (doodads != null) ingestDoodads(doodads, sheet, source);
+        if (doodads != null) {
+            ingestDoodads(doodads, sheet, root.optInt("cellPx", 0), source);
+        }
     }
 
     /** Decorative-prop defs (id + source cell + intrinsic cover). See {@link #ingestSheet}. */
-    private void ingestDoodads(JSONArray doodads, String sheet, CatalogSource source) throws JSONException {
+    private void ingestDoodads(JSONArray doodads, String sheet, int cellPx,
+                               CatalogSource source) throws JSONException {
         for (int i = 0; i < doodads.length(); i++) {
             JSONObject o = doodads.getJSONObject(i);
             String id = o.getString("id");
@@ -201,7 +204,7 @@ public final class TileRegistry {
             }
             doodadsById.put(id, new DoodadDef(
                     id, sheet, col, row, cover, ballisticHalfHeight,
-                    footprintCellsX, footprintCellsY, preferredWallSide));
+                    footprintCellsX, footprintCellsY, preferredWallSide, cellPx));
             sourceById.put(id, source);
         }
     }

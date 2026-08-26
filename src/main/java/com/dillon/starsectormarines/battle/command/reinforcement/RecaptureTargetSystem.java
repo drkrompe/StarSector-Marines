@@ -159,7 +159,7 @@ public final class RecaptureTargetSystem {
                 if (t.dispatched && ++t.dispatchAgeTicks >= DISPATCH_TIMEOUT_TICKS) {
                     t.dispatched = false;
                     t.dispatchAgeTicks = 0;
-                    LOG.info("recapture: dispatch to " + t.node.kind
+                    LOG.debug("recapture: dispatch to " + t.node.kind
                             + " @(" + t.node.anchorX + "," + t.node.anchorY
                             + ") timed out with no arrival - re-opening");
                 }

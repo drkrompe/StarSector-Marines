@@ -4,8 +4,8 @@ Status: ACTIVE — AI owns autonomous mission command, squad planning, belief-de
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — folded the shipped Marine Sabotage named-site command,
-special-task ownership, recovery-state, and evidence laws.
+Updated: 2026-08-26 — folded the shipped paired Sabotage named-site command,
+special-task ownership, defender alarm, reserve, and evidence laws.
 
 AI turns mission context and what a side has learned into coordinated
 movement, posture, and fire intent. It is a decision system, not the authority
@@ -292,6 +292,32 @@ into command. Bounded forced-serial Sabotage evidence compares duplicate replay
 bytes and reports site coverage, role and recovery transitions, directive churn,
 progress, casualties, duration, and terminal or timeout outcome without treating
 a timeout as a defender victory or a single seed as a balance target.
+
+Defender Sabotage uses a separate disclosure and snapshot. Defenders legally
+know the stable identity, authored geometry, zone, and completion state of their
+own installations, but never receive Marine planter or retriever identity, kit
+state, exact plant progress, or an inferred hostile cell through that channel.
+The charge objective owns an identity-free installation alarm: a legal settled
+plant raises it, interruption leaves it latched for a deterministic bounded
+interval, and completion suppresses it. Defender beliefs remain a separate
+faction-local input and may bias response without becoming alarm evidence.
+
+Setup-authored garrisons retain `GARRISON` authority. Setup reserves enough of
+the Sabotage roster to form mobile patrol squads for routine named-site coverage
+and, when force size permits, a held reserve. Reinforcement, recapture, payload,
+scripted, and intervention ownership remains external until an explicit
+handoff. Routine security covers reachable unfinished sites before doubling;
+alarm and believed-threat response consumes only otherwise available reserve,
+offers one responder to each threatened site before adding a second, and never
+strips another site's routine guard. `DEFEND_SITE` orders use distinct reachable
+perimeter rallies, with the plant cell only as a final geometry fallback, so
+multiple squads do not collapse into one indoor brick.
+
+Completion and expired evidence release or retask only defender-site-command
+assignments. Defender phase, reserve, site alarm, coverage, pressure, role,
+reason, and rally are visible in selected-squad UI, map overlays, squad dumps,
+and the perspective trace. The defender trace block omits all attacker-only task
+facts; authoritative charge progress remains in the neutral referee stream.
 
 ## Doctrine and maneuver
 
