@@ -17,6 +17,9 @@ package com.dillon.starsectormarines.battle.command;
  *   <li>{@link #DEFEND_TRACK} — move to a coarse, commander-selected Conquest
  *       track rally and hold for contact. The assignment carries no hostile
  *       identity or reported position.</li>
+ *   <li>{@link #ADVANCE_TRACK} — move an attacking Conquest squad to a safe
+ *       staging cell behind its believed lane front. The assignment carries
+ *       an own-force destination, never a hostile identity.</li>
  *   <li>{@link #SECURE_COMPOUND} — push into a compound's zone, clear it, then
  *       hold until the compound's capture timer completes. Issued by
  *       {@code ConquestCommand} for zones containing uncaptured compounds
@@ -40,6 +43,7 @@ public enum AssignmentKind {
     CLEAR_ZONE,
     SWEEP_SECTOR,
     DEFEND_TRACK,
+    ADVANCE_TRACK,
     SECURE_COMPOUND,
     HOLD_NODE,
     RUSH_OBJECTIVE,

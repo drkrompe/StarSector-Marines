@@ -75,6 +75,34 @@ class DefendAssignedTrackGoalTest {
                 "fireteams should establish a footprint instead of one occupied rally cell");
     }
 
+    @Test
+    void attackerLaneAdvanceSharesRallyMotionAndYieldsToContact() {
+        BattleSimulation sim = openSim();
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        long member = sim.spawn(new EntitySpec("marine", Faction.MARINE,
+                UnitType.MARINE, 2, 2).squad(squadId));
+        Squad squad = sim.getSquad(squadId);
+        squad.centroidX = 2;
+        squad.centroidY = 2;
+        squad.assignedObjective = ObjectiveAssignment.advanceTrack(
+                squadId, 16, 7);
+
+        assertTrue(GoapInfantryBehavior.INFANTRY_GOALS.contains(
+                AdvanceAssignedTrackGoal.INSTANCE));
+        assertTrue(GoapMechBehavior.MECH_GOALS.contains(
+                AdvanceAssignedTrackGoal.INSTANCE));
+        assertTrue(AdvanceAssignedTrackGoal.INSTANCE.relevance(
+                WorldState.EMPTY, squad, sim) > 0f);
+        SquadPlan plan = AdvanceAssignedTrackGoal.INSTANCE.customPlan(squad, sim);
+        DefendTrack action = (DefendTrack) plan.currentStep().action;
+        assertEquals(AssignmentKind.ADVANCE_TRACK, action.assignmentKind());
+        assertEquals("AdvanceTrack", action.name());
+        assertEquals(ActionStatus.RUNNING, action.execute(member, squad, sim));
+
+        assertEquals(0f, AdvanceAssignedTrackGoal.INSTANCE.relevance(
+                WorldState.EMPTY.with(Predicate.HAS_TARGET, true), squad, sim));
+    }
+
     private static BattleSimulation openSim() {
         NavigationGrid grid = new NavigationGrid(20, 10);
         for (int y = 0; y < grid.getHeight(); y++) {
