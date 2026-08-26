@@ -4,7 +4,10 @@ import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.command.SabotageSiteSnapshot;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
+import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
+import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -30,6 +33,7 @@ public final class CommandTraceRecorder {
             new EnumMap<>(Faction.class);
     private final Map<String, String> lastCompoundState = new HashMap<>();
     private final Map<String, String> lastCompoundPresence = new HashMap<>();
+    private final Map<String, String> lastChargeSiteState = new HashMap<>();
     private final StringBuilder canonical = new StringBuilder(16_384);
     private List<CompoundService.Record> compounds = List.of();
     private int compoundCount = -1;
@@ -56,6 +60,7 @@ public final class CommandTraceRecorder {
             recordPerspective(snapshot, sim.getSimTickIndex());
         }
         sampleCompounds(sim);
+        sampleChargeSites(sim);
         if (sim.isComplete() && !terminalRecorded) {
             terminalRecorded = true;
             StringBuilder out = begin("referee", sim.getSimTickIndex());
@@ -95,6 +100,7 @@ public final class CommandTraceRecorder {
         lastPerspectiveTick.clear();
         lastCompoundState.clear();
         lastCompoundPresence.clear();
+        lastChargeSiteState.clear();
         StringBuilder out = begin("control", tick);
         field(out, "event", "capture-resumed");
         appendLine(end(out));
@@ -220,6 +226,34 @@ public final class CommandTraceRecorder {
         return "EMPTY";
     }
 
+    /** Authoritative objective progress is emitted only on the referee stream. */
+    private void sampleChargeSites(BattleSimulation sim) {
+        List<ChargeSiteObjective> sites = new ArrayList<>();
+        for (Objective objective : sim.getObjectives()) {
+            if (objective instanceof ChargeSiteObjective site) sites.add(site);
+        }
+        sites.sort(Comparator.comparing(ChargeSiteObjective::siteId));
+        for (ChargeSiteObjective site : sites) {
+            int progress = Math.max(0, Math.min(10_000, Math.round(
+                    site.progress() / Math.max(site.plantDuration(), 0.0001f)
+                            * 10_000f)));
+            String signature = progress + "|" + site.planterOnSite()
+                    + "|" + site.isComplete();
+            if (signature.equals(lastChargeSiteState.put(site.siteId(), signature))) {
+                continue;
+            }
+            StringBuilder out = begin("referee", sim.getSimTickIndex());
+            field(out, "event", "charge-site-state");
+            field(out, "siteId", site.siteId());
+            numberField(out, "cellX", site.cellX());
+            numberField(out, "cellY", site.cellY());
+            numberField(out, "progressBasisPoints", progress);
+            booleanField(out, "planterOnSite", site.planterOnSite());
+            booleanField(out, "complete", site.isComplete());
+            appendLine(end(out));
+        }
+    }
+
     private void appendLine(String line) {
         canonical.append(line).append('\n');
         eventCount++;
@@ -252,6 +286,8 @@ public final class CommandTraceRecorder {
         out.append(']');
         if (snapshot.detail() instanceof ConquestFrontSnapshot conquest) {
             conquest(out, conquest);
+        } else if (snapshot.detail() instanceof SabotageSiteSnapshot sabotage) {
+            sabotage(out, sabotage);
         }
         return end(out);
     }
@@ -378,6 +414,68 @@ public final class CommandTraceRecorder {
         numberField(out, "markerCellY", action.markerCellY());
         booleanField(out, "distantCaptureDeferred",
                 action.distantCaptureDeferred());
+        out.append('}');
+    }
+
+    private static void sabotage(StringBuilder out,
+                                 SabotageSiteSnapshot snapshot) {
+        out.append(",\"sabotage\":{");
+        rawField(out, "phase", snapshot.phase().name());
+        List<SabotageSiteSnapshot.SiteState> sites =
+                new ArrayList<>(snapshot.sites());
+        sites.sort(Comparator.comparingInt(SabotageSiteSnapshot.SiteState::index));
+        out.append(",\"sites\":[");
+        for (int i = 0; i < sites.size(); i++) {
+            if (i > 0) out.append(',');
+            sabotageSite(out, sites.get(i));
+        }
+        out.append(']');
+        List<SabotageSiteSnapshot.SquadDirective> actions =
+                new ArrayList<>(snapshot.directives());
+        actions.sort(Comparator.comparingInt(
+                SabotageSiteSnapshot.SquadDirective::squadId));
+        out.append(",\"actions\":[");
+        for (int i = 0; i < actions.size(); i++) {
+            if (i > 0) out.append(',');
+            sabotageAction(out, actions.get(i));
+        }
+        out.append("]}");
+    }
+
+    private static void sabotageSite(StringBuilder out,
+                                     SabotageSiteSnapshot.SiteState site) {
+        out.append('{');
+        rawNumberField(out, "index", site.index());
+        field(out, "id", site.id());
+        field(out, "name", site.name());
+        numberField(out, "cellX", site.cellX());
+        numberField(out, "cellY", site.cellY());
+        numberField(out, "zoneId", site.zoneId());
+        floatField(out, "progress", site.progress());
+        floatField(out, "plantDuration", site.plantDuration());
+        booleanField(out, "planterOnSite", site.planterOnSite());
+        booleanField(out, "complete", site.complete());
+        numberField(out, "planterSquads", site.planterSquads());
+        numberField(out, "retrieverSquads", site.retrieverSquads());
+        numberField(out, "securitySquads", site.securitySquads());
+        numberField(out, "liveMembers", site.liveMembers());
+        floatField(out, "friendlyPressure", site.friendlyPressure());
+        floatField(out, "knownHostilePressure", site.knownHostilePressure());
+        out.append('}');
+    }
+
+    private static void sabotageAction(StringBuilder out,
+                                       SabotageSiteSnapshot.SquadDirective action) {
+        out.append('{');
+        rawNumberField(out, "squadId", action.squadId());
+        numberField(out, "siteIndex", action.siteIndex());
+        field(out, "groupRole", action.groupRole().name());
+        field(out, "reason", action.reason().name());
+        nullableField(out, "assignmentKind", action.assignmentKind() != null
+                ? action.assignmentKind().name() : null);
+        numberField(out, "targetZoneId", action.targetZoneId());
+        numberField(out, "markerCellX", action.markerCellX());
+        numberField(out, "markerCellY", action.markerCellY());
         out.append('}');
     }
 

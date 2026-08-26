@@ -38,6 +38,8 @@ public class MarineRoster implements Serializable {
     // so the inline initializer doesn't run for old save streams).
     private Set<String> completedStoryIds = new HashSet<>();
     private List<MarineSoldier> soldiers = new ArrayList<>();
+    /** Derived lookup only; campaign saves continue to persist the ordered soldier list. */
+    private transient Map<String, MarineSoldier> soldierIndex;
     private List<MarineSquad> squads = new ArrayList<>();
     private List<CaptainCandidate> captainCandidates = new ArrayList<>();
     private MarineArmory armory = new MarineArmory();
@@ -533,14 +535,55 @@ public class MarineRoster implements Serializable {
 
     /** Hires one replacement into an open line-squad billet. */
     public MarineSoldier recruitToSquad(String squadId) {
+        List<MarineSoldier> recruits = recruitToSquad(squadId, 1);
+        return recruits.isEmpty() ? null : recruits.get(0);
+    }
+
+    /**
+     * Hires up to {@code count} replacements as one roster mutation.
+     *
+     * <p>The single-recruit path remains the ordinary campaign operation. This
+     * bulk form exists for formation bootstrap and detached fixtures, where a
+     * complete squad is authored together. Basic issue and derived leadership
+     * are repaired once after the batch instead of once per billet.
+     */
+    public List<MarineSoldier> recruitToSquad(String squadId, int count) {
+        return recruitToSquad(squadId, count, null);
+    }
+
+    /**
+     * Formation-bootstrap variant that establishes service experience before
+     * the one derived-leadership rebuild. Ordinary campaign enlistment uses
+     * the count overload and therefore starts every recruit at zero XP.
+     */
+    public List<MarineSoldier> recruitToSquad(
+            String squadId, List<Integer> initialExperienceXp) {
+        if (initialExperienceXp == null) return Collections.emptyList();
+        return recruitToSquad(squadId, initialExperienceXp.size(), initialExperienceXp);
+    }
+
+    private List<MarineSoldier> recruitToSquad(
+            String squadId, int count, List<Integer> initialExperienceXp) {
         MarineSquad squad = squadById(squadId);
-        if (squad == null || squad.stationed()
-                || (!squad.reserve() && vacancies(squad) <= 0)) return null;
-        MarineSoldier recruit = createRecruit();
-        squad.add(recruit.id());
+        if (squad == null || squad.stationed() || count <= 0) {
+            return Collections.emptyList();
+        }
+        int recruitCount = squad.reserve()
+                ? count : Math.min(count, vacancies(squad));
+        if (recruitCount <= 0) return Collections.emptyList();
+        List<MarineSoldier> recruits = new ArrayList<>(recruitCount);
+        for (int index = 0; index < recruitCount; index++) {
+            MarineSoldier recruit = createRecruit();
+            if (initialExperienceXp != null) {
+                Integer experience = initialExperienceXp.get(index);
+                recruit.addExperience(experience != null ? Math.max(0, experience) : 0);
+            }
+            squad.add(recruit.id());
+            recruits.add(recruit);
+        }
         armory.ensureBasicIssue(activeSoldierCount());
         refreshLeadership();
-        return recruit;
+        return Collections.unmodifiableList(recruits);
     }
 
     /** Materializes one cargo-backed replacement in the first available line billet. */
@@ -575,6 +618,7 @@ public class MarineRoster implements Serializable {
                 || squad == null || !squad.reserve()) return false;
         if (!squad.remove(soldierId)) return false;
         if (soldiers.remove(soldier)) {
+            if (soldierIndex != null) soldierIndex.remove(soldierId);
             refreshLeadership();
             return true;
         }
@@ -676,8 +720,13 @@ public class MarineRoster implements Serializable {
 
     public MarineSoldier soldierById(String id) {
         if (id == null) return null;
-        for (MarineSoldier soldier : soldiers) if (id.equals(soldier.id())) return soldier;
-        return null;
+        if (soldierIndex == null || soldierIndex.size() != soldiers.size()) {
+            soldierIndex = new HashMap<>(Math.max(16, soldiers.size() * 2));
+            for (MarineSoldier soldier : soldiers) {
+                if (soldier != null) soldierIndex.put(soldier.id(), soldier);
+            }
+        }
+        return soldierIndex.get(id);
     }
 
     /** Recruit enough persistent soldiers to fill the next frozen deployment. */
@@ -822,7 +871,19 @@ public class MarineRoster implements Serializable {
     public SquadEquipmentPreview previewSquadEquipment(
             String squadId, String weaponDoctrineId, String armorDoctrineId,
             EquipmentIssueResources resources) {
+        return previewSquadEquipment(squadId, weaponDoctrineId, armorDoctrineId,
+                resources, null);
+    }
+
+    private SquadEquipmentPreview previewSquadEquipment(
+            String squadId, String weaponDoctrineId, String armorDoctrineId,
+            EquipmentIssueResources resources, List<EquipmentGrade> primaryGrades) {
         if (resources == null) throw new IllegalArgumentException("resources are required");
+        if (primaryGrades != null && (primaryGrades.size() != MarineSquad.CAPACITY
+                || primaryGrades.stream().anyMatch(Objects::isNull))) {
+            throw new IllegalArgumentException(
+                    "A squad equipment variant requires one grade per billet");
+        }
         MarineSquad squad = squadById(squadId);
         if (squad == null || squad.reserve()) {
             return squadEquipmentFailure(SquadEquipmentResult.INVALID_SQUAD);
@@ -840,7 +901,8 @@ public class MarineRoster implements Serializable {
         for (int index = 0; index < MarineSquad.CAPACITY; index++) {
             SquadWeaponIssue weapon = weapons.issue(index);
             billets.add(new SquadEquipmentBillet(
-                    weapon.role(), weapon.primaryId(), weapon.grade(),
+                    weapon.role(), weapon.primaryId(), primaryGrades != null
+                            ? primaryGrades.get(index) : weapon.grade(),
                     weapon.specialEquipmentId(), armor.issueId(index)));
         }
         if (squad.stationed()) {
@@ -904,12 +966,32 @@ public class MarineRoster implements Serializable {
                 EquipmentIssueResources.UNLIMITED);
     }
 
+    /**
+     * Issues one doctrine to all twelve billets with an exact primary-grade
+     * variant. This remains one atomic squad transaction; fire-team order,
+     * special equipment, armor, and the assigned doctrine all come from the
+     * authored definitions.
+     */
+    public SquadEquipmentResult applySquadEquipmentVariant(
+            String squadId, String weaponDoctrineId, String armorDoctrineId,
+            List<EquipmentGrade> primaryGrades) {
+        return applySquadEquipment(squadId, weaponDoctrineId, armorDoctrineId,
+                EquipmentIssueResources.UNLIMITED, primaryGrades);
+    }
+
     /** Applies both definitions after the complete template and cargo transaction succeeds. */
     public SquadEquipmentResult applySquadEquipment(
             String squadId, String weaponDoctrineId, String armorDoctrineId,
             EquipmentIssueResources resources) {
+        return applySquadEquipment(squadId, weaponDoctrineId, armorDoctrineId,
+                resources, null);
+    }
+
+    private SquadEquipmentResult applySquadEquipment(
+            String squadId, String weaponDoctrineId, String armorDoctrineId,
+            EquipmentIssueResources resources, List<EquipmentGrade> primaryGrades) {
         SquadEquipmentPreview preview = previewSquadEquipment(
-                squadId, weaponDoctrineId, armorDoctrineId, resources);
+                squadId, weaponDoctrineId, armorDoctrineId, resources, primaryGrades);
         if (!preview.canApply()) return preview.result();
         if (!preview.issueCost().isZero() && !resources.spend(preview.issueCost())) {
             return SquadEquipmentResult.INSUFFICIENT_CARGO;
@@ -1475,6 +1557,7 @@ public class MarineRoster implements Serializable {
         MarineSoldier recruit = new MarineSoldier(
                 String.format("Marine %03d", number), aptitudeFor(number));
         soldiers.add(recruit);
+        if (soldierIndex != null) soldierIndex.put(recruit.id(), recruit);
         autoIssueRecruit(recruit, number);
         return recruit;
     }
@@ -1510,6 +1593,7 @@ public class MarineRoster implements Serializable {
     private Object readResolve() {
         if (completedStoryIds == null) completedStoryIds = new HashSet<>();
         if (soldiers == null) soldiers = new ArrayList<>();
+        soldierIndex = null;
         if (squads == null) squads = new ArrayList<>();
         if (captainCandidates == null) captainCandidates = new ArrayList<>();
         if (armory == null) armory = new MarineArmory();

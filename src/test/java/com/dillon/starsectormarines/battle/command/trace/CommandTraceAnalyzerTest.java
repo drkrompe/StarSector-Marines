@@ -475,6 +475,23 @@ class CommandTraceAnalyzerTest {
                 () -> CommandTraceAnalyzer.analyze(header() + "\n" + header()));
     }
 
+    @Test
+    void acceptsSabotageChargeSiteRefereeRows() throws Exception {
+        String trace = String.join("\n",
+                header().replace("CONQUEST", "SABOTAGE"),
+                "{\"stream\":\"referee\",\"tick\":1,"
+                        + "\"event\":\"charge-site-state\","
+                        + "\"siteId\":\"SAB-01\",\"cellX\":12,\"cellY\":7,"
+                        + "\"progressBasisPoints\":2500,"
+                        + "\"planterOnSite\":true,\"complete\":false}",
+                "{\"stream\":\"referee\",\"tick\":2,"
+                        + "\"event\":\"timeout\",\"maxTicks\":2}", "");
+
+        Analysis analysis = CommandTraceAnalyzer.analyze(trace);
+
+        assertEquals(Termination.TIMEOUT, analysis.run().termination());
+    }
+
     private static String header() {
         return "{\"stream\":\"run\",\"tick\":0,\"schemaVersion\":4,"
                 + "\"fixtureKind\":\"CONQUEST\","

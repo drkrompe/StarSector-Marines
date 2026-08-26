@@ -1035,6 +1035,16 @@ public final class CommandTraceAnalyzer {
                     trace.casualties.merge(faction, 1, Integer::sum);
                 }
             }
+            case "charge-site-state" -> {
+                if (trace.schemaVersion < 4) {
+                    throw new IllegalArgumentException(
+                            "charge-site-state requires command trace schemaVersion 4");
+                }
+                row.getString("siteId");
+                row.getInt("progressBasisPoints");
+                row.getBoolean("planterOnSite");
+                row.getBoolean("complete");
+            }
             case "terminal" -> {
                 ensureNoTermination(trace);
                 trace.termination = Termination.TERMINAL;

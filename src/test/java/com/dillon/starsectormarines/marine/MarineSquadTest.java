@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.marine;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -21,6 +22,21 @@ class MarineSquadTest {
         assertEquals(MarineSquad.CAPACITY, roster.squads().get(0).memberIds().size());
         assertEquals(MarineSquad.CAPACITY, roster.squads().get(1).memberIds().size());
         assertEquals(1, roster.squads().get(2).memberIds().size());
+    }
+
+    @Test
+    void bulkRecruitmentFillsOneSquadAsASingleFormationMutation() {
+        MarineRoster roster = new MarineRoster();
+        MarineSquad squad = roster.createSquad();
+
+        List<MarineSoldier> recruits = roster.recruitToSquad(
+                squad.id(), MarineSquad.CAPACITY * 2);
+
+        assertEquals(MarineSquad.CAPACITY, recruits.size());
+        assertEquals(MarineSquad.CAPACITY, roster.manningCount(squad));
+        assertNotNull(roster.squadLeader(squad));
+        assertEquals(recruits.get(0), roster.soldierById(recruits.get(0).id()));
+        assertTrue(roster.recruitToSquad(squad.id(), 1).isEmpty());
     }
 
     @Test

@@ -21,6 +21,7 @@ public final class ChargeSiteObjective implements Objective {
     private final int cellX;
     private final int cellY;
     private final float plantDuration;
+    private final String siteId;
     private final String displayName;
 
     private float progress = 0f;
@@ -28,9 +29,15 @@ public final class ChargeSiteObjective implements Objective {
     private boolean planterOnSiteThisTick = false;
 
     public ChargeSiteObjective(int cellX, int cellY, float plantDuration, String displayName) {
+        this(cellX, cellY, plantDuration, displayName, displayName);
+    }
+
+    public ChargeSiteObjective(int cellX, int cellY, float plantDuration,
+                               String siteId, String displayName) {
         this.cellX = cellX;
         this.cellY = cellY;
         this.plantDuration = plantDuration;
+        this.siteId = siteId;
         this.displayName = displayName;
     }
 
@@ -38,6 +45,7 @@ public final class ChargeSiteObjective implements Objective {
     public int cellY() { return cellY; }
     public float progress() { return progress; }
     public float plantDuration() { return plantDuration; }
+    public String siteId() { return siteId; }
     public boolean planterOnSite() { return planterOnSiteThisTick; }
 
     @Override

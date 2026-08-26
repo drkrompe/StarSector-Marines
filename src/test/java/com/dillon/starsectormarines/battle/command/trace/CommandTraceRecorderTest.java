@@ -6,7 +6,9 @@ import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.command.SabotageSiteSnapshot;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
+import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -94,6 +96,52 @@ class CommandTraceRecorderTest {
         String line = recorder.canonicalJsonLines().lines().toList().get(1);
         assertTrue(line.contains("\"reason\":\"TRACK_ADVANCE\""));
         assertTrue(line.contains("\"distantCaptureDeferred\":true"));
+    }
+
+    @Test
+    void sabotageTracePublishesStableSiteIdentityAndGroupReason() {
+        SabotageSiteSnapshot.SiteState site =
+                new SabotageSiteSnapshot.SiteState(0, "SAB-01", "reactor",
+                        12, 7, 3, 2f, 8f, true, false,
+                        1, 0, 2, 12, 4f, 3f);
+        SabotageSiteSnapshot.SquadDirective action =
+                new SabotageSiteSnapshot.SquadDirective(9, 0,
+                        SabotageSiteSnapshot.GroupRole.SECURITY,
+                        SabotageSiteSnapshot.AssignmentReason.SITE_SECURITY_PRESERVED,
+                        AssignmentKind.CLEAR_ZONE, 3, 12, 7);
+        SabotageSiteSnapshot detail = new SabotageSiteSnapshot(75, 60,
+                Faction.MARINE, SabotageSiteSnapshot.Phase.PLANTING,
+                List.of(site), List.of(), List.of(action));
+        CommanderSnapshot<SabotageSiteSnapshot> snapshot =
+                new CommanderSnapshot<>(Faction.MARINE, "sabotage-attacker",
+                        "PLANTING", 75, 60, 1, 0, List.of(), List.of(), detail);
+        CommandTraceRecorder recorder = new CommandTraceRecorder(
+                "SABOTAGE", "SERIAL_DETERMINISTIC", 0);
+
+        recorder.recordPerspective(snapshot);
+
+        String line = recorder.canonicalJsonLines().lines().toList().get(1);
+        assertTrue(line.contains("\"sabotage\":{"));
+        assertTrue(line.contains("\"id\":\"SAB-01\""));
+        assertTrue(line.contains("\"groupRole\":\"SECURITY\""));
+        assertTrue(line.contains("\"reason\":\"SITE_SECURITY_PRESERVED\""));
+    }
+
+    @Test
+    void authoritativeChargeProgressIsLabelledAsRefereeEvidence() {
+        BattleSimulation sim = new BattleSimulation(new NavigationGrid(8, 8),
+                new CellTopology(8, 8));
+        sim.addObjective(new ChargeSiteObjective(
+                4, 4, 8f, "SAB-01", "reactor"));
+        CommandTraceRecorder recorder = new CommandTraceRecorder(
+                "SABOTAGE", "SERIAL_DETERMINISTIC", 0);
+
+        recorder.sample(sim);
+
+        String line = recorder.canonicalJsonLines().lines().toList().get(1);
+        assertTrue(line.contains("\"stream\":\"referee\""));
+        assertTrue(line.contains("\"event\":\"charge-site-state\""));
+        assertTrue(line.contains("\"siteId\":\"SAB-01\""));
     }
 
     @Test

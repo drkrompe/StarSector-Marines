@@ -47,6 +47,7 @@ import com.dillon.starsectormarines.battle.command.ConquestDefenderStartingForce
 import com.dillon.starsectormarines.battle.command.ConquestTrackLayout;
 import com.dillon.starsectormarines.battle.command.OpeningOperationCommand;
 import com.dillon.starsectormarines.battle.command.SabotageCommand;
+import com.dillon.starsectormarines.battle.command.SabotageCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.SilentColonyCommand;
 import com.dillon.starsectormarines.battle.command.compound.CompoundGarrisonSystem;
 import com.dillon.starsectormarines.battle.vehicle.ConvoyPlanner;
@@ -167,7 +168,7 @@ public final class BattleSetup {
     private static final MapGenerator MAP_GEN = new BspCityGenerator();
 
     /** SABOTAGE: number of charge sites to plant. One per shuttle = one planter per drop. */
-    private static final int SABOTAGE_CHARGE_SITES = 3;
+    private static final int SABOTAGE_CHARGE_SITES = SabotageSiteLayout.REQUIRED_SITE_COUNT;
     /** SABOTAGE: sim-seconds a planter must dwell on a charge site to complete the plant. */
     private static final float SABOTAGE_PLANT_DURATION = 5.0f;
 
@@ -337,25 +338,19 @@ public final class BattleSetup {
                 enemyFighterSupport, groundRoster);
         List<LandingPad> lzCells = LandingPadSelector.select(
                 map, assignments.size(), LZ_MIN_SEPARATION);
+        SabotageSiteLayout siteLayout = SabotageSiteLayout.select(
+                map, lzCells, LZ_MIN_SEPARATION);
         List<ParkedAircraft> parkedAircraft = stampParkedAircraft(map, lzCells, rng);
         BattleSimulation sim = buildMap(
                 map, vehiclePlacements, defenders.defensePosts(), parkedAircraft, seed).sim();
         sim.setGroundRoster(groundRoster);
         sim.setFlybyRoster(defenders.enemyFighterSupport());
 
-        // Pick charge sites: prefer high-value POIs (lab/comms/depot) in the
-        // defender half of the map. Fall back to any POI if not enough qualify.
-        List<PointOfInterest> sites = pickChargeSites(map.pointsOfInterest, scale.width / 2, SABOTAGE_CHARGE_SITES);
-        List<ChargeSiteObjective> objectives = new ArrayList<>(sites.size());
-        for (PointOfInterest poi : sites) {
-            // Plant target is inside the building — the planter pathfinds in
-            // through a doorway, plants, exits. POIs back the interior anchor
-            // with a walkable INDOOR cell; legacy POIs (no carved interior)
-            // mirror the exterior anchor so this still produces a valid cell.
+        List<ChargeSiteObjective> objectives = new ArrayList<>(siteLayout.sites().size());
+        for (SabotageSiteLayout.Site site : siteLayout.sites()) {
             ChargeSiteObjective obj = new ChargeSiteObjective(
-                    poi.interiorAnchorX, poi.interiorAnchorY,
-                    SABOTAGE_PLANT_DURATION,
-                    "Plant charge: " + poi.kind.name().toLowerCase());
+                    site.cellX(), site.cellY(), SABOTAGE_PLANT_DURATION,
+                    site.id(), site.displayName());
             objectives.add(obj);
             sim.addObjective(obj);
         }
@@ -396,11 +391,8 @@ public final class BattleSetup {
         allocateDefenders(sim, map, defenders.roster(), groundRoster, rng);
         spawnAmbientCivilians(sim, map, rng);
         spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
-        // Marine commander: routes non-planter squads toward the closest
-        // unfinished charge site so cover-fire teams (or squads whose
-        // planter has died) spread across the multi-site map instead of
-        // dogpiling the nearest fight.
-        sim.setCommander(Faction.MARINE, new SabotageCommand());
+        sim.setAutonomousCommander(Faction.MARINE, new SabotageCommand(),
+                SabotageCommandDisclosure.INSTANCE);
         installReinforcementLayer(sim, map, null, groundRoster, risk, null);
         return sim;
     }
@@ -423,38 +415,6 @@ public final class BattleSetup {
         for (int[] lz : lzCells) {
             sim.addDoodad(new Doodad(lz[0], lz[1], TileManifest.LZ_PAD, true, Doodad.COVER_NONE));
         }
-    }
-
-    /**
-     * Filters POIs to the defender half (x >= halfX), prefers lab/comms/depot
-     * kinds over residential, and returns up to {@code count} of them spaced
-     * apart by at least {@link #LZ_MIN_SEPARATION}. Falls back to any POI in
-     * defender territory if not enough valuable ones exist.
-     */
-    private static List<PointOfInterest> pickChargeSites(List<PointOfInterest> all, int halfX, int count) {
-        List<PointOfInterest> highValue = new ArrayList<>();
-        List<PointOfInterest> anyDefender = new ArrayList<>();
-        for (PointOfInterest poi : all) {
-            if (poi.centerX() < halfX) continue;
-            anyDefender.add(poi);
-            if (poi.kind != PointOfInterest.Kind.RESIDENTIAL) highValue.add(poi);
-        }
-        List<PointOfInterest> picked = new ArrayList<>();
-        int minSepSq = LZ_MIN_SEPARATION * LZ_MIN_SEPARATION;
-        for (List<PointOfInterest> pool : List.of(highValue, anyDefender)) {
-            for (PointOfInterest poi : pool) {
-                if (picked.size() >= count) break;
-                boolean farEnough = true;
-                for (PointOfInterest prev : picked) {
-                    int dx = prev.anchorCellX - poi.anchorCellX;
-                    int dy = prev.anchorCellY - poi.anchorCellY;
-                    if (dx * dx + dy * dy < minSepSq) { farEnough = false; break; }
-                }
-                if (farEnough && !picked.contains(poi)) picked.add(poi);
-            }
-            if (picked.size() >= count) break;
-        }
-        return picked;
     }
 
     /**

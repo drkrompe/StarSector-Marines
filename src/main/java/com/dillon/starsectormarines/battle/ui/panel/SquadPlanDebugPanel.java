@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
+import com.dillon.starsectormarines.battle.command.SabotageSiteSnapshot;
 import com.dillon.starsectormarines.battle.combat.FireGate;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.Goal;
@@ -312,6 +313,7 @@ public final class SquadPlanDebugPanel implements HudPanel {
         if (directive != null) lines += 3;
         if (activeDirective != null && !activeDirective.equals(directive)) lines += 1;
         if (commander != null && conquestSnapshot(commander) != null) lines += 3;
+        if (commander != null && sabotageSnapshot(commander) != null) lines += 2;
         dividers += 1;
         // Section 4: "Plan: …" line + per-step (action line + slot lines).
         lines += 1;
@@ -580,6 +582,17 @@ public final class SquadPlanDebugPanel implements HudPanel {
                                 conquestDirective), lineX, lineY,
                         DETAIL_VALUE_FG, alphaMult, vpBottomY, vpTopY);
             }
+            SabotageSiteSnapshot sabotage = sabotageSnapshot(commander);
+            if (sabotage != null) {
+                SabotageSiteSnapshot.SquadDirective sabotageDirective =
+                        sabotage.directiveFor(s.id);
+                lineY = drawLineIfVisible(font, sabotageOrderSummary(
+                                sabotageDirective), lineX, lineY,
+                        DETAIL_VALUE_FG, alphaMult, vpBottomY, vpTopY);
+                lineY = drawLineIfVisible(font, sabotageSiteSummary(
+                                sabotage, sabotageDirective), lineX, lineY,
+                        DETAIL_VALUE_FG, alphaMult, vpBottomY, vpTopY);
+            }
         }
         lineY = dividerIfVisible(x0, bodyW, lineY, alphaMult, vpBottomY, vpTopY);
 
@@ -765,6 +778,12 @@ public final class SquadPlanDebugPanel implements HudPanel {
                 ? conquest : null;
     }
 
+    private static SabotageSiteSnapshot sabotageSnapshot(
+            CommanderSnapshot<?> snapshot) {
+        return snapshot.detail() instanceof SabotageSiteSnapshot sabotage
+                ? sabotage : null;
+    }
+
     static String commandSummary(CommanderSnapshot<?> snapshot) {
         return String.format("Command %s %s   Phase %s",
                 snapshot.perspective(), snapshot.strategy(), snapshot.phase());
@@ -848,6 +867,24 @@ public final class SquadPlanDebugPanel implements HudPanel {
         String capturePolicy = directive.distantCaptureDeferred()
                 ? "   Capture DEFERRED_FOR_FRONT_RESISTANCE" : "";
         return "Command reason " + directive.reason() + capturePolicy;
+    }
+
+    static String sabotageOrderSummary(
+            SabotageSiteSnapshot.SquadDirective directive) {
+        if (directive == null) return "Site group —";
+        return String.format("Site group S%d   %s   Reason %s",
+                directive.siteIndex() + 1, directive.groupRole(),
+                directive.reason());
+    }
+
+    static String sabotageSiteSummary(SabotageSiteSnapshot snapshot,
+                                      SabotageSiteSnapshot.SquadDirective directive) {
+        if (directive == null) return "Site state —";
+        SabotageSiteSnapshot.SiteState site = snapshot.site(directive.siteIndex());
+        if (site == null) return "Site state —";
+        return String.format("Site %s %.1f/%.1f   Security %d   Press %.1f/%.1f",
+                site.id(), site.progress(), site.plantDuration(), site.securitySquads(),
+                site.friendlyPressure(), site.knownHostilePressure());
     }
 
     private static String markerSuffix(
