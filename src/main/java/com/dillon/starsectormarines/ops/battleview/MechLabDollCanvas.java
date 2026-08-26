@@ -15,6 +15,8 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.retained.CanvasBlend;
@@ -42,6 +44,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
             "graphics/battle/mech-lab/welding-sparks-sheet.png";
     private static final int URBAN_COLUMNS = 10;
     private static final int URBAN_ROWS = 10;
+    private static final int DOODAD_COLUMNS = 8;
+    private static final int DOODAD_ROWS = 6;
     private static final float MIN_DROP_TARGET_WIDTH = 128f;
     private static final float MIN_DROP_TARGET_HEIGHT = 76f;
     private static final float CAPACITY_INSET = 4f;
@@ -220,7 +224,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
                 float centerY = height - camera.cellToScreenY(y + 0.5f);
                 if (MechLabSceneLayout.wall(x, y)) {
                     int column = x == 0 ? 3 : x == MechLabSceneLayout.WIDTH - 1 ? 5 : 4;
-                    int row = y == MechLabSceneLayout.HEIGHT - 1 ? 0 : y == 0 ? 2 : 1;
+                    boolean northFacing = y == MechLabSceneLayout.HEIGHT - 1
+                            || !MechLabSceneLayout.wall(x, y + 1);
+                    int row = northFacing ? 0 : y == 0 ? 2 : 1;
                     drawUrbanTile(c, urbanSheet, column, row, centerX, centerY, cell);
                     continue;
                 }
@@ -241,10 +247,23 @@ public final class MechLabDollCanvas implements CanvasProducer {
                     height - camera.cellToScreenY(overlay.cellY() + 0.5f), cell);
         }
         for (MechLabSceneLayout.PropPlacement prop : MechLabSceneLayout.PROPS) {
-            drawUrbanTile(c, urbanSheet, prop.tileColumn(), prop.tileRow(),
-                    camera.cellToScreenX(prop.cellX() + 0.5f),
-                    height - camera.cellToScreenY(prop.cellY() + 0.5f), cell);
+            drawDoodad(c, camera, height, cell, prop);
         }
+    }
+
+    private static void drawDoodad(CanvasContext c, BattleCamera camera, float height,
+                                    float cell, MechLabSceneLayout.PropPlacement prop) {
+        DoodadDef definition = TileRegistry.installed().doodad(prop.doodadId());
+        c.sprite(definition.sheetPath, null,
+                camera.cellToScreenX(prop.cellX() + definition.footprintCellsX * 0.5f),
+                height - camera.cellToScreenY(
+                        prop.cellY() + definition.footprintCellsY * 0.5f),
+                cell * definition.footprintCellsX,
+                cell * definition.footprintCellsY,
+                0f, WHITE, CanvasSpriteRegion.frame(
+                        DOODAD_COLUMNS, DOODAD_ROWS,
+                        definition.row * DOODAD_COLUMNS + definition.col),
+                CanvasBlend.NORMAL);
     }
 
     private static void drawUrbanTile(CanvasContext c, SpriteAPI liveSheet,
@@ -267,9 +286,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
         if (crew == null) return;
         float shoulder = UnitRenderService.layeredInfantryShoulderWidth(
                 cell, UnitType.ENGINEER.renderScale);
-        for (int index = 0; index < MechLabSceneLayout.TECHNICIAN_JOBS.size(); index++) {
+        for (int index = 0; index < MechLabSceneLayout.FACILITY_JOBS.size(); index++) {
             AmbientTaskPose pose = AmbientTaskService.sample(
-                    MechLabSceneLayout.TECHNICIAN_JOBS.get(index), time);
+                    MechLabSceneLayout.FACILITY_JOBS.get(index), time);
             drawTechnician(c, crew,
                     camera.cellToScreenX(pose.worldX()),
                     height - camera.cellToScreenY(pose.worldY()),
