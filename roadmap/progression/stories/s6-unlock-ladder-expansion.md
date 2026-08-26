@@ -7,7 +7,7 @@ Status: PLANNED — depends on the remaining S2E–S2G special-equipment stories
 armor expansion also depends on
 `powered-assault-armor-roles.md`.
 Written: 2026-08-22
-Updated: 2026-08-26 — shipped explicit 5/15/30/40-victory breadth floors; multi-axis gates and live pacing acceptance remain.
+Updated: 2026-08-26 — shipped shared card access tiers across all faction channels; richer achievement gates and live pacing acceptance remain.
 
 Read `progression-nouns.md`, `faction-lore-nouns.md`, and
 `powered-assault-armor-roles.md` before implementing this story.
@@ -223,16 +223,28 @@ Leaning: **mongrel by default, coherence as an achievable late aspiration**
 Faction-specific *mechs* and vehicles. The mech roster has its own track
 and its own identity work in flight; do not front-run it.
 
-## Slice 4 — Multi-axis gating
+## Slice 4 — Multi-axis gating — PARTIALLY SHIPPED
 
 The breadth safety net deliberately remains count-based because it is protection
 against bad luck, not the main acquisition fantasy. The remaining gates should
 shape which advanced cards become available without making the guaranteed floor
 depend on a specific faction relationship or random drop.
 
+Every card now explicitly authors a Common, Advanced, or Prestige access tier.
+The shared faction picker applies it before weighting candidates, so market,
+license, patron, and recovery cannot drift into four definitions of advanced.
+Open markets are Common-only. Licensed stock still requires Favorable faction
+standing and uses the existing MRB 5/20 bands; patron rewards use the same MRB
+bands. High-risk recovery is independent of MRB and opens Advanced after 5
+company victories and Prestige after 15. Starter cards and the deterministic
+breadth safety net remain direct Armory protection outside faction eligibility.
+
+This ships the first company-history and reputation axes while preserving the
+remaining work below for bespoke chase capability.
+
 Where a milestone gate is still the right tool, gate on more than a count:
 
-- Total and high-risk victories (existing).
+- High-risk victory counts beyond the channel's current total-victory bands.
 - Specific recovered template cards or faction licenses, so rare capability
   remains tied to operations and relationships rather than only fleet wealth.
 - MRB licensing tier, which is already computed

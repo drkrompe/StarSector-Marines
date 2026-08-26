@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-25
 
-Updated: 2026-08-26 — documented fail-loud player-equipment reachability requirements.
+Updated: 2026-08-26 — documented required card access tiers and shared channel gates.
 
 ## Provider entry point
 
@@ -129,11 +129,11 @@ from its declaring mod exactly.
 
 ## Equipment templates
 
-Template catalogs declare eligibility and ordinary cargo issue cost. A
+Template catalogs declare campaign access tier and ordinary cargo issue cost. A
 player-facing primary family declares all four grades; a partial grade matrix is
 an authoring error rather than an accidental progression hole. Armor and special
-entries each name one equipment id and one cost. Missing cost resources mean
-zero.
+entries each name one equipment id, access tier, and cost. Missing cost resources
+mean zero. The closed access tiers are `common`, `advanced`, and `prestige`.
 
 ```json
 {
@@ -141,22 +141,24 @@ zero.
     {
       "equipmentId": "my_faction.weapon-needle-rifle",
       "grades": {
-        "surplus": { "supplies": 2 },
-        "service": { "supplies": 3, "heavyArmaments": 1 },
-        "milspec": { "supplies": 5, "heavyArmaments": 2 },
-        "masterwork": { "supplies": 7, "heavyArmaments": 3 }
+        "surplus": { "accessTier": "common", "supplies": 2 },
+        "service": { "accessTier": "common", "supplies": 3, "heavyArmaments": 1 },
+        "milspec": { "accessTier": "advanced", "supplies": 5, "heavyArmaments": 2 },
+        "masterwork": { "accessTier": "prestige", "supplies": 7, "heavyArmaments": 3 }
       }
     }
   ],
   "armor": [
     {
       "equipmentId": "my_faction.armor-ceramic",
+      "accessTier": "advanced",
       "issueCost": { "supplies": 3, "heavyMachinery": 1 }
     }
   ],
   "specialEquipment": [
     {
       "equipmentId": "my_faction.special-breacher",
+      "accessTier": "advanced",
       "issueCost": { "supplies": 2, "heavyArmaments": 1 }
     }
   ],
@@ -187,13 +189,24 @@ The derived card ids remain stable:
 Learning one through the Starsector special-item interaction adds it only to
 the Marine Armory. It never enters vanilla ship-production knowledge.
 
+Access tier is explicit card data, not inferred from weapon grade, armor role,
+faction, issue price, or collectible presentation. This lets a provider author
+a rare low-tech curiosity or widely circulated advanced tool without changing
+Java. Every faction consumer applies the same tier vocabulary: unrestricted
+open markets admit only `common`; licensed and patron offers admit `advanced`
+at MRB 5 and `prestige` at MRB 20; high-risk recovery admits those bands after
+5 and 15 company victories respectively. Relationship standing remains an
+additional requirement for licensed market stock. Starter issue and the
+collection-breadth safety net are direct Armory grants and do not consult a
+faction channel.
+
 ## Faction equipment sources
 
 Faction equipment catalogs reference collectible template ids after those
 cards have loaded. Each offer assigns a positive relative weight to one or more
 closed campaign channels: `market`, `license`, `patron`, and `recovery`.
-Weights compare candidates within a channel; loading a catalog never creates
-cargo, bypasses relationship checks, or grants a card.
+Weights compare eligible candidates within a channel; loading a catalog never
+creates cargo, bypasses access-tier or relationship checks, or grants a card.
 
 ```json
 {
@@ -224,11 +237,12 @@ non-empty `noPlayerEquipmentReason`; an excluded faction cannot also receive
 offers.
 
 After every faction contribution has merged, each collectible card must be
-present in starter issue or in at least one faction offer through any channel.
-This is a global reachability rule, not a requirement that every faction offer
-every card. A provider that contributes a collectible therefore contributes a
-source claim too; otherwise application loading names the stranded card and
-stops.
+present in starter issue or in at least one faction offer through a channel that
+can eventually admit its access tier. In particular, an Advanced or Prestige
+card with only a `market` claim is still stranded. This is a global reachability
+rule, not a requirement that every faction offer every card. A provider that
+contributes a collectible therefore contributes a viable source claim too;
+otherwise application loading names the stranded card and stops.
 
 ## Runtime consumption
 

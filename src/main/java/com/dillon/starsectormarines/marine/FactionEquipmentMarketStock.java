@@ -42,7 +42,8 @@ public final class FactionEquipmentMarketStock implements SubmarketUpdateListene
                     ? script.roster().armory().ownedEquipmentTemplateIds() : Set.of();
         }
         replaceStock(submarket, market.getFactionId(), market.getId(), market.getSize(),
-                rotation, hasLicenseAccess, unavailable);
+                rotation, hasLicenseAccess, unavailable,
+                EquipmentAcquisitionEligibility.currentProgress());
     }
 
     /** Seeds existing saves immediately; later rotations follow vanilla submarket refreshes. */
@@ -59,7 +60,8 @@ public final class FactionEquipmentMarketStock implements SubmarketUpdateListene
 
     static void replaceStock(SubmarketAPI submarket, String factionId, String marketId,
                              int marketSize, long rotation, boolean hasLicenseAccess,
-                             Set<String> ownedTemplateIds) {
+                             Set<String> ownedTemplateIds,
+                             EquipmentAcquisitionEligibility.Progress progress) {
         CargoAPI cargo = submarket.getCargo();
         if (cargo == null) return;
         for (CargoStackAPI stack : cargo.getStacksCopy()) {
@@ -71,7 +73,7 @@ public final class FactionEquipmentMarketStock implements SubmarketUpdateListene
 
         FactionEquipmentMarketStockPlanner.StockPlan plan =
                 FactionEquipmentMarketStockPlanner.plan(factionId, marketId, marketSize,
-                        rotation, hasLicenseAccess, ownedTemplateIds);
+                        rotation, hasLicenseAccess, ownedTemplateIds, progress);
         for (String templateId : plan.allTemplateIds()) {
             cargo.addSpecial(EquipmentTemplateCardItemPlugin.itemData(templateId), 1f);
         }
