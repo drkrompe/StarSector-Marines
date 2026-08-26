@@ -270,6 +270,21 @@ public final class AuthoringDocument {
             preview.addAll(animationSource.variants());
             return List.copyOf(preview);
         }
+        public int applyScaleToAllFrames(String layerId, double scaleX, double scaleY) {
+            int matches = 0;
+            for (AppearanceVariant variant : variants) {
+                for (AnimationDefinition animation : variant.animations()) {
+                    for (FrameDefinition frame : animation.frames()) {
+                        for (LayerDefinition layer : frame.layers()) {
+                            if (!layer.id().equals(layerId)) continue;
+                            layer.scale(scaleX, scaleY);
+                            matches++;
+                        }
+                    }
+                }
+            }
+            return matches;
+        }
         public boolean isInheritedPreview(AppearanceVariant variant) {
             return animationSource != null && animationSource.variants().contains(variant);
         }
