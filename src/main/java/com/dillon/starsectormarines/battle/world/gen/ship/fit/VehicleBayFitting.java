@@ -160,20 +160,6 @@ public final class VehicleBayFitting implements RoomFitting {
         paveBay(floor, lengthwise, origin, band, depth);
         reserve(floor, lengthwise, origin + 1, band, BAY_WIDTH - 2, depth);
 
-        // Corners first: a placed cell refuses a second fixture, so laying the
-        // rail the whole length would leave no room for the ends of the frame.
-        int far = origin + BAY_WIDTH - 1;
-        place(floor, lengthwise, origin, band, FRAME_CORNERS[0]);
-        place(floor, lengthwise, origin, band + depth - 1, FRAME_CORNERS[1]);
-        place(floor, lengthwise, far, band, FRAME_CORNERS[2]);
-        place(floor, lengthwise, far, band + depth - 1, FRAME_CORNERS[3]);
-
-        String rail = lengthwise ? FRAME_ALONG_Y : FRAME_ALONG_X;
-        for (int step = 1; step < depth - 1; step++) {
-            place(floor, lengthwise, origin, band + step, rail);
-            place(floor, lengthwise, far, band + step, rail);
-        }
-
         // The station sits at the head of the bay, against the outer bulkhead,
         // so it never stands between the machine and the lane it leaves by.
         int head = headOutboard ? band : band + depth - 1;
@@ -185,13 +171,14 @@ public final class VehicleBayFitting implements RoomFitting {
     /** Paint the bay's deck, edged and then checkered, before anything stands on it. */
     private void paveBay(CompartmentFloor floor, boolean lengthwise,
                          int origin, int band, int depth) {
-        // The long sides are left unpaved: the gantry frame stands there, and a
-        // hazard tile under it only hides it. What gets painted is the deck the
-        // machine occupies, banded at each end where it is driven in and out.
+        // The whole bay is paved and its perimeter is striped, all four sides:
+        // a bay is a marked-out rectangle of deck, and marking three sides of it
+        // is not marking it.
         for (int step = 0; step < depth; step++) {
-            for (int side = 1; side < BAY_WIDTH - 1; side++) {
-                boolean threshold = step == 0 || step == depth - 1;
-                int column = threshold ? FLOOR_EDGE_COLUMN
+            for (int side = 0; side < BAY_WIDTH; side++) {
+                boolean perimeter = side == 0 || side == BAY_WIDTH - 1
+                        || step == 0 || step == depth - 1;
+                int column = perimeter ? FLOOR_EDGE_COLUMN
                         : FLOOR_FIELD_COLUMNS[((side + step) & 1)];
                 int x = lengthwise ? origin + side : band + step;
                 int y = lengthwise ? band + step : origin + side;
