@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.HouseSeeder;
 import com.dillon.starsectormarines.campaign.personnel.CaptainDiscoverySalvageListener;
+import com.dillon.starsectormarines.campaign.systems.PatronEquipmentRewardSystem;
 import com.dillon.starsectormarines.catalog.MarineCatalogManifest;
 import com.dillon.starsectormarines.combathybrid.probe.CombatHybridCampaignPlugin;
 import com.dillon.starsectormarines.combathybrid.probe.CombatHybridInputListener;
@@ -105,6 +106,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         // starter-captain creation stamps a day.
         ensureCampaignState();
         ensureMarineRoster();
+        deliverPendingPatronEquipmentRewards();
         ensureCaptainDiscoverySalvageListener();
         ensureFactionEquipmentMarketStock();
         ensurePlayerEventPresenter();
@@ -177,6 +179,16 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         sector.getListenerManager().addListener(
                 new CaptainDiscoverySalvageListener(), true);
         LOG.info("Starsector Marines: captain discovery salvage listener registered");
+    }
+
+    private static void deliverPendingPatronEquipmentRewards() {
+        CampaignStateScript script = CampaignStateScript.getInstance();
+        if (script == null) return;
+        int granted = PatronEquipmentRewardSystem.deliverPending(script.state());
+        if (granted > 0) {
+            LOG.info("Starsector Marines: delivered " + granted
+                    + " pending patron equipment reward(s)");
+        }
     }
 
     private static void ensureFactionEquipmentMarketStock() {
