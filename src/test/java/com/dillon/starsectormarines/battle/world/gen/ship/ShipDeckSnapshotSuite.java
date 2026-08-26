@@ -71,8 +71,16 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
     private static final String REFIT_HULL = "wolf";
     /** The hull whose rooms are shown close up; it carries the widest spread of purposes. */
     private static final String DETAIL_HULL = "valkyrie";
-    /** Cell size for the close-up sheet. Deck plans are for layout; this is for the fill. */
-    private static final int DETAIL_CELL = 22;
+    /**
+     * Cell size for the close-up sheet, matched to the source art.
+     *
+     * <p>Deliberately equal to the cell size of the sheets the fill draws from.
+     * Twenty-two was chosen to keep the sheet small and quietly resampled every
+     * thirty-two pixel sprite down by a third, so the evidence for a room
+     * authoring pass was softer than anything the game would ever show. Art is
+     * judged at its own resolution or it is not being judged.
+     */
+    private static final int DETAIL_CELL = 32;
 
     /**
      * One colour per kind of room, because that is the question these plans are
@@ -199,6 +207,12 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
         Graphics2D g = image.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
                 RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        // Java2D samples nearest-neighbour unless told otherwise, which drops
+        // pixels unevenly on any sheet that is not drawn 1:1 here.
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g.setRenderingHint(RenderingHints.KEY_RENDERING,
+                RenderingHints.VALUE_RENDER_QUALITY);
         g.setColor(HULL);
         g.fillRect(0, 0, image.getWidth(), image.getHeight());
         g.setFont(font);
@@ -351,6 +365,12 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
         Graphics2D g = image.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
                 RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        // Java2D samples nearest-neighbour unless told otherwise, which drops
+        // pixels unevenly on any sheet that is not drawn 1:1 here.
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g.setRenderingHint(RenderingHints.KEY_RENDERING,
+                RenderingHints.VALUE_RENDER_QUALITY);
         g.setColor(HULL);
         g.fillRect(0, 0, image.getWidth(), image.getHeight());
 
