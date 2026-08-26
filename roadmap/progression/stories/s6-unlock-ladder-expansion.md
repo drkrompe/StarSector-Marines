@@ -7,7 +7,7 @@ Status: PLANNED — depends on the remaining S2E–S2G special-equipment stories
 armor expansion also depends on
 `powered-assault-armor-roles.md`.
 Written: 2026-08-22
-Updated: 2026-08-26 — shipped access-tier visibility in the Fleet Armory and card tooltips; richer achievement gates and live pacing acceptance remain.
+Updated: 2026-08-26 — kept access visibility while removing every undiscovered-card hint; richer achievement gates and live pacing acceptance remain.
 
 Read `progression-nouns.md`, `faction-lore-nouns.md`, and
 `powered-assault-armor-roles.md` before implementing this story.
@@ -239,12 +239,15 @@ bands. High-risk recovery is independent of MRB and opens Advanced after 5
 company victories and Prestige after 15. Starter cards and the deterministic
 breadth safety net remain direct Armory protection outside faction eligibility.
 
-The Fleet Armory now exposes the resulting collection file instead of leaving
-the filters invisible: known/total counts are split by tier, current MRB and
-victory facts identify the highest licensed/patron and recovery bands, and the
-next thresholds remain visible until cleared. Template-card cargo tooltips name
-their tier and repeat the same route requirements. Both surfaces consume the
-shared policy thresholds, so presentation cannot silently drift from selection.
+The Fleet Armory exposes the acquired collection without turning the catalog
+into a checklist: it counts only cards the player owns and omits tiers with no
+acquired cards. Undiscovered cards have no placeholder, denominator, identity,
+source, or per-card requirement hint. Current MRB and victory facts still identify
+the company's highest generic licensed/patron and recovery bands, and the next
+band thresholds remain visible until cleared. A physical template-card cargo
+tooltip names that acquired item's tier and repeats the same route requirements.
+Both surfaces consume the shared policy thresholds, so presentation cannot
+silently drift from selection.
 
 This ships the first company-history and reputation axes while preserving the
 remaining work below for bespoke chase capability.
