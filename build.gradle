@@ -255,6 +255,51 @@ tasks.register('runStarsector', Exec) {
     commandLine 'cmd', '/c', 'starsector.bat'
 }
 
+def catalogSmokeMode = providers.gradleProperty('catalogSmokeMode').orElse('additive')
+def catalogSmokeRoot = layout.buildDirectory.dir('catalog-smoke')
+
+tasks.register('prepareCatalogSmoke', Sync) {
+    group = 'verification'
+    description = 'Stage isolated Starsector Marines catalog-provider smoke-test mods'
+    dependsOn tasks.named('shadowJar'), ':asset-pipeline:processAudio'
+    outputs.upToDateWhen { false }
+
+    doFirst {
+        if (!(catalogSmokeMode.get() in ['additive', 'collision'])) {
+            throw new GradleException("catalogSmokeMode must be 'additive' or 'collision'")
+        }
+    }
+
+    into catalogSmokeRoot.map { it.dir("${catalogSmokeMode.get()}/mods") }
+    from(modOutputDir) { into modName }
+    from('src/liveTest/catalog-smoke/provider-alpha') { into 'CatalogSmokeAlpha' }
+    from({ file("src/liveTest/catalog-smoke/provider-beta-${catalogSmokeMode.get()}") }) {
+        into 'CatalogSmokeBeta'
+    }
+
+    doLast {
+        File modsDir = catalogSmokeRoot.get().dir("${catalogSmokeMode.get()}/mods").asFile
+        new File(modsDir, 'enabled_mods.json').text =
+                '{"enabledMods":["starsector_marines","catalog_smoke_alpha","catalog_smoke_beta"]}\n'
+    }
+}
+
+tasks.register('catalogSmokeLive', Exec) {
+    group = 'verification'
+    description = 'Launch the installed Starsector game once against isolated two-provider catalog fixtures'
+    dependsOn tasks.named('prepareCatalogSmoke')
+    workingDir projectDir
+    standardOutput = System.out
+    errorOutput = System.err
+    doFirst {
+        commandLine 'pwsh', '-NoProfile', '-ExecutionPolicy', 'Bypass',
+                '-File', file('tools/catalog-smoke/run-catalog-smoke.ps1').absolutePath,
+                '-ProjectDir', projectDir.absolutePath,
+                '-StarsectorDir', starsectorDir.absolutePath,
+                '-Mode', catalogSmokeMode.get()
+    }
+}
+
 clean {
     delete modJarsDir
 }
