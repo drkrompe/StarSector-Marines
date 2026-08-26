@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.detachment;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
+import com.dillon.starsectormarines.ops.ConquestArrivalConfig;
 import com.dillon.starsectormarines.ops.Mission;
 import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.RiskLevel;
@@ -32,6 +33,8 @@ class ConquestArrivalPolicyTest {
 
         assertEquals(MarineArrivalPolicy.PAIRED_HALF_SQUAD,
                 paired.marineArrivalPolicy);
+        assertEquals(ConquestArrivalConfig.DEFAULT,
+                paired.conquestArrivalConfig());
         assertEquals(List.of(6, 6), pairedManifest.stream()
                 .map(assignment -> assignment.seatsPerSortie).toList());
         assertEquals(List.of(12, 12), independentManifest.stream()

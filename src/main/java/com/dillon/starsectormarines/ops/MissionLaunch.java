@@ -139,7 +139,8 @@ public final class MissionLaunch {
         int firstPlayerShuttle = m.source == MissionSource.STATIONING
                 ? 0 : DetachmentResolver.employerPhysicalShipCount(m);
         ShuttleArrivalPlan conquestArrivalPlan = new ShuttleArrivalPlan(
-                m.marineArrivalPolicy, firstPlayerShuttle);
+                m.marineArrivalPolicy, firstPlayerShuttle,
+                m.conquestArrivalConfig());
         if (m.type == MissionType.CONQUEST) {
             ShuttleArrivalPlan.ResolvedManifest resolved = conquestArrivalPlan
                     .resolveManifest(det.shuttleManifest,
@@ -147,7 +148,8 @@ public final class MissionLaunch {
             det = new Detachment(resolved.assignments(), det.marineWings, det.powers);
             firstPlayerShuttle = resolved.firstPlayerShuttle();
             conquestArrivalPlan = new ShuttleArrivalPlan(
-                    m.marineArrivalPolicy, firstPlayerShuttle);
+                    m.marineArrivalPolicy, firstPlayerShuttle,
+                    m.conquestArrivalConfig());
         }
         BattleSimulation sim;
         BattleFixture fixture = null;

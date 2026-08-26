@@ -4,8 +4,7 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — Barracks ambient actors now claim exclusive activity sites
-and traverse the room through ordinary battle navigation and collision.
+Updated: 2026-08-26 — Barracks actors claim exclusive activity sites; Conquest distributes every selected squad across mission-configured reusable Aeroshuttle pairs and drop zones.
 
 ## Purpose
 
@@ -347,11 +346,12 @@ while landed strength grows as each member deboards, so morale can distinguish a
 squad still assembling from one already mauled.
 
 Scenario-generated personnel normally retain the per-sortie fallback. A
-mission-authored paired arrival is the exception: its two craft share a stable
-arrival-group-and-wave identity, mint one generated battle squad, and assemble
-toward the combined embarked strength. Conquest extends the reusable pair's
-cycle plan until every selected named squad has a seat; selection beyond the
-mission's minimum demand is deployed rather than labelled as an orbital reserve.
+mission-authored paired arrival is the exception: each two-craft group shares a
+stable arrival-group-and-wave identity, mints one generated battle squad, and
+assembles toward the combined embarked strength. Conquest balances its cycle
+plan across the mission-configured reusable pairs and extends that plan until
+every selected named squad has a seat; selection beyond the mission's minimum
+demand is deployed rather than labelled as an orbital reserve.
 A debug company intentionally freezes a real detached roster and therefore
 carries campaign-shaped identity without touching campaign state.
 
@@ -403,9 +403,9 @@ billet identity remains unchanged.
 Hull capacity is a physical maximum, not a promise that every mission fills the
 hold. Small lifts have four seats, medium lifts eight, and the Valkyrie twelve.
 The mission arrival policy owns the embarked seats per sortie. Conquest uses two
-six-seat Valkyries in one authored arrival area to deliver a twelve-marine squad
-together; the transport boundary may cut across fire-team membership, while the
-ground squad and its three stable fire teams remain unchanged.
+six-seat Aeroshuttles in each paired arrival group to deliver a twelve-marine
+squad together; the transport boundary may cut across fire-team membership,
+while the ground squad and its three stable fire teams remain unchanged.
 
 A tagged or mission-grouped squad may assemble over several craft or passes. Until its frozen manifest is
 present, the form-up gate suspends execution of its advancing assignment while

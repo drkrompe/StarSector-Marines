@@ -33,14 +33,13 @@ import static org.junit.jupiter.api.Assertions.*;
 class CampaignMarineDeploymentTest {
 
     @Test
-    void pairedConquestLoadsBothCraftBeforeAdvancingToTheNextWave() {
+    void pairedConquestLoadsEveryConfiguredPairBeforeAdvancingToTheNextWave() {
         MarineRoster roster = new MarineRoster();
-        roster.ensureActiveSoldiers(24);
+        roster.ensureActiveSoldiers(48);
         List<ShuttleAssignment> manifest = List.of(
-                new ShuttleAssignment(ShuttleType.VALKYRIE, 2, 6),
-                new ShuttleAssignment(ShuttleType.VALKYRIE, 2, 6));
+                new ShuttleAssignment(ShuttleType.VALKYRIE, 8, 6));
         CampaignMarineDeployment deployment =
-                CampaignMarineDeployment.freeze(roster, 24);
+                CampaignMarineDeployment.freeze(roster, 48);
 
         try (BattleSimulation sim = BattleSetup.createConquest(
                 5_151L, manifest, false, RiskLevel.LOW,
@@ -51,10 +50,16 @@ class CampaignMarineDeploymentTest {
                     .map(commitment -> commitment.campaignSoldierId())
                     .toList();
 
-            assertEquals(expected.subList(0, 6), soldierIds(missions.get(0), 0));
-            assertEquals(expected.subList(6, 12), soldierIds(missions.get(1), 0));
-            assertEquals(expected.subList(12, 18), soldierIds(missions.get(0), 1));
-            assertEquals(expected.subList(18, 24), soldierIds(missions.get(1), 1));
+            assertEquals(6, missions.size());
+            for (int mission = 0; mission < missions.size(); mission++) {
+                int firstSeat = mission * 6;
+                assertEquals(expected.subList(firstSeat, firstSeat + 6),
+                        soldierIds(missions.get(mission), 0));
+            }
+            assertEquals(expected.subList(36, 42),
+                    soldierIds(missions.get(0), 1));
+            assertEquals(expected.subList(42, 48),
+                    soldierIds(missions.get(1), 1));
         }
     }
 

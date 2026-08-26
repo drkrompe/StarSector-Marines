@@ -148,7 +148,8 @@ public final class ShuttleMission {
     /** Total sorties across the battle. 1 = single drop; larger = repeat the state machine that many times. */
     public int totalCycles = 1;
     /** Sim-seconds of offstage re-arm between sorties when cycling. */
-    public float rearmDelay = 8f;
+    public static final float DEFAULT_REARM_DELAY_SEC = 8f;
+    public float rearmDelay = DEFAULT_REARM_DELAY_SEC;
 
     /**
      * Squad identity stamped on every marine deboarded this sortie. Lazily set
