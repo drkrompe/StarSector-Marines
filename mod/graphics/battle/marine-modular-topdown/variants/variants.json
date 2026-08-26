@@ -40,6 +40,42 @@
     "militia": {
       "body": "armor/militia/body.png",
       "head": "armor/militia/head.png"
+    },
+    "aegisComposite": {
+      "body": "armor/aegis/body.png",
+      "head": "armor/aegis/head.png"
+    },
+    "palatine": {
+      "body": "armor/palatine/body.png",
+      "head": "armor/palatine/head.png"
+    },
+    "furnaceLine": {
+      "body": "armor/furnace-line/body.png",
+      "head": "armor/furnace-line/head.png"
+    },
+    "reaver": {
+      "body": "armor/reaver/body.png",
+      "head": "armor/reaver/head.png"
+    },
+    "specterHeavy": {
+      "body": "armor/specter-heavy/body.png",
+      "head": "armor/specter-heavy/head.png"
+    },
+    "bulwarkHeavy": {
+      "body": "armor/bulwark-heavy/body.png",
+      "head": "armor/bulwark-heavy/head.png"
+    },
+    "reliquaryHeavy": {
+      "body": "armor/reliquary-heavy/body.png",
+      "head": "armor/reliquary-heavy/head.png"
+    },
+    "lionsMantle": {
+      "body": "armor/lions-mantle/body.png",
+      "head": "armor/lions-mantle/head.png"
+    },
+    "foundryBreaker": {
+      "body": "armor/foundry-breaker/body.png",
+      "head": "armor/foundry-breaker/head.png"
     }
   },
   "armorRegistration": {

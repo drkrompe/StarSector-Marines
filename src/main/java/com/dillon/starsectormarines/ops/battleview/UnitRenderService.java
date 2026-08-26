@@ -429,12 +429,14 @@ public final class UnitRenderService implements RenderSystem {
                             authoredPose);
                     continue;
                 }
+                LayeredArmorFamily bodyFamily = hasLayered
+                        ? LayeredArmorFamily.fromOrdinal(layeredBodyFamily[r]) : null;
+                LayeredArmorFamily headFamily = hasLayered
+                        ? LayeredArmorFamily.fromOrdinal(layeredHeadFamily[r]) : null;
                 LayeredUnitAssets layeredAssets = hasLayered
-                        ? sprites.layeredUnitSprites().get(
-                            LayeredArmorFamily.fromOrdinal(layeredBodyFamily[r])) : null;
+                        ? sprites.layeredUnitSprites().get(bodyFamily) : null;
                 LayeredUnitAssets layeredHeadAssets = hasLayered
-                        ? sprites.layeredUnitSprites().get(
-                            LayeredArmorFamily.fromOrdinal(layeredHeadFamily[r])) : null;
+                        ? sprites.layeredUnitSprites().get(headFamily) : null;
                 if (layeredAssets != null && layeredHeadAssets != null) {
                     float cx = cam.cellToScreenX(rx[r]);
                     float cy = cam.cellToScreenY(ry[r]);
@@ -444,6 +446,8 @@ public final class UnitRenderService implements RenderSystem {
                             type.drawsLayeredWeapon(),
                             secondary, layeredPose[r],
                             layeredLocomotion[r], layeredWeaponPhase[r], layeredFlags[r]);
+                    authoredPose = sprites.unitLayerLayouts().applyArmorMastering(
+                            authoredPose, bodyFamily, headFamily);
                     LayeredUnitComposer.emit(out, layeredAssets, layeredHeadAssets.head,
                             primaryDefinition(primaryWeapon != null ? primaryWeapon[r] : null),
                             type.drawsLayeredWeapon(),

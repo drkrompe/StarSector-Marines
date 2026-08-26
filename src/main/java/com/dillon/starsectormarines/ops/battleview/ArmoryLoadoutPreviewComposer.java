@@ -57,7 +57,8 @@ public final class ArmoryLoadoutPreviewComposer {
         float usable = Math.max(0f, height - socketSize - 20f);
         float[] socketY = {10f, 10f + usable * 0.5f, 10f + usable};
 
-        LayeredUnitAssets layered = assets.layered(billet.armorDef().appearanceFamily());
+        LayeredArmorFamily armorFamily = billet.armorDef().appearanceFamily();
+        LayeredUnitAssets layered = assets.layered(armorFamily);
         LayeredSpriteCache armor = assets.icon(billet.armorDef().iconPath());
         LayeredSpriteCache primary = layered != null
                 ? layered.weapon(LayeredWeaponFamily.fromPrimary(billet.primaryDef()), billet.grade())
@@ -182,7 +183,8 @@ public final class ArmoryLoadoutPreviewComposer {
     private static void drawSoldier(Sink sink, Assets assets, FireTeamBillet billet,
                                     float actorX, float actorY, float shoulderPx,
                                     float surfaceHeight, float idleSeconds) {
-        LayeredUnitAssets layered = assets.layered(billet.armorDef().appearanceFamily());
+        LayeredArmorFamily armorFamily = billet.armorDef().appearanceFamily();
+        LayeredUnitAssets layered = assets.layered(armorFamily);
         if (layered == null) return;
         SpecialEquipmentDef special = billet.specialDef();
         SpecialEquipmentPresentationDef.Preview preview = special != null
@@ -193,6 +195,8 @@ public final class ArmoryLoadoutPreviewComposer {
                 ? idlePose(assets.unitLayerLayouts(), idleSeconds)
                 : UnitRenderService.infantryPoseDef(
                 assets.unitLayerLayouts(), true, special, pose, 0f, phase, 0);
+        authoredPose = assets.unitLayerLayouts().applyArmorMastering(
+                authoredPose, armorFamily, armorFamily);
         LayeredUnitComposer.emit(
                 (layer, centerX, centerY, spriteWidth, spriteHeight, angle,
                  red, green, blue, alpha) -> sink.sprite(layer, centerX,
