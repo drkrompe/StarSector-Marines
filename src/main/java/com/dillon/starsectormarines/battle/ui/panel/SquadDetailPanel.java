@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.ui.panel;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
@@ -81,7 +81,7 @@ public final class SquadDetailPanel implements HudPanel {
      */
     private record MemberRow(float hp, float maxHp, MarineWeapon primary,
                              EquipmentGrade grade, SoldierProfile profile,
-                             MarineSecondary secondary, int secondaryAmmo,
+                             SpecialEquipmentDef secondary, int secondaryAmmo,
                              float secondaryCooldown, UnitRole role) {}
 
     public SquadDetailPanel(BattleUiContext ctx) {
@@ -138,7 +138,7 @@ public final class SquadDetailPanel implements HudPanel {
             boolean hasSec = sim.world().hasSecondaryWeapon(u);
             rows.add(new MemberRow(sim.world().hp(u), sim.world().maxHp(u), sim.combat().primaryWeapon(u),
                     sim.combat().equipmentGrade(u), sim.combat().soldierProfile(u),
-                    hasSec ? sim.world().secondaryWeapon(u) : null,
+                    hasSec ? sim.world().specialEquipment(u) : null,
                     hasSec ? sim.world().secondaryAmmo(u) : 0,
                     hasSec ? sim.world().secondaryCooldownTimer(u) : 0f,
                     sim.role().role(u)));
@@ -233,7 +233,7 @@ public final class SquadDetailPanel implements HudPanel {
                     WeaponSymbols.primaryColor(m.primary()), alphaMult);
 
             if (m.secondary() != null) {
-                String sec = WeaponSymbols.secondaryAbbrev(m.secondary());
+                String sec = WeaponSymbols.specialAbbrev(m.secondary());
                 if (sec != null) {
                     boolean reusable = !m.secondary().usesAmmunition();
                     boolean ready = m.secondaryCooldown() <= 0f

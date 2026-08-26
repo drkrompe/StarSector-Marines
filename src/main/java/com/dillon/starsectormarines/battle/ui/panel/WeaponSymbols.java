@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 
 import java.awt.Color;
 
@@ -43,13 +45,18 @@ public final class WeaponSymbols {
     }
 
     public static String secondaryAbbrev(MarineSecondary s) {
-        if (s == null) return null;
-        if (s == MarineSecondary.ROCKET_LAUNCHER) return "RKT";
-        if (s == MarineSecondary.ANTI_MATERIEL_RIFLE) return "AMR";
-        if (s == MarineSecondary.SMOKE_GRENADE) return "SMK";
-        if (s == MarineSecondary.SATCHEL_CHARGE) return "SAT";
-        if (s == MarineSecondary.FRAG_GRENADE) return "FRG";
-        return s.name().substring(0, 3);
+        return specialAbbrev(s != null ? s.specialDef() : null);
+    }
+
+    public static String specialAbbrev(SpecialEquipmentDef special) {
+        if (special == null) return null;
+        if (SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID.equals(special.id())) return "RKT";
+        if (SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID.equals(special.id())) return "AMR";
+        if (SpecialEquipmentRegistry.SMOKE_GRENADE_ID.equals(special.id())) return "SMK";
+        if (SpecialEquipmentRegistry.SATCHEL_CHARGE_ID.equals(special.id())) return "SAT";
+        if (SpecialEquipmentRegistry.FRAG_GRENADE_ID.equals(special.id())) return "FRG";
+        String compact = special.displayName().replaceAll("[^A-Za-z0-9]", "").toUpperCase();
+        return compact.substring(0, Math.min(3, compact.length()));
     }
 
     /** Returns null for COMBATANT (no badge) so callers can skip the draw cheaply. */

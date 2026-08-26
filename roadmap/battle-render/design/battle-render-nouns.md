@@ -4,9 +4,8 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — added the bounded embedded-scene host used by the Mech Lab
-without moving battle HUD, input, audio, or simulation-loop ownership into the
-renderer.
+Updated: 2026-08-25 — made bounded embedded scenes collect one ordinary battle
+draw list for both the live Starsector drain and deterministic headless evidence.
 
 ## Vocabulary
 
@@ -25,6 +24,9 @@ renderer.
 - An **embedded scene host** is a bounded consumer of the ordinary battle camera,
   simulation view, and selected render layers. It owns its viewport and framing,
   but it does not acquire the standalone battle's HUD, input, audio, or update loop.
+- A **headless scene drain** replays an embedded scene's ordinary draw list through
+  the retained Java2D canvas. It replaces only the host graphics backend; it does
+  not reconstruct tiles, props, actors, camera placement, or layer order.
 
 ## Ownership and flow
 
@@ -34,7 +36,7 @@ Systems pull fresh state every render frame, so camera motion, interpolation, vi
 
 Within a layer, producer submission order is paint order. Across layers, enum order is paint order. The drain may batch adjacent commands with the same compatible primitive and state, but it flushes whenever batching would invert that order. A foreign sprite render or a custom pass is treated as GL-state pollution until the engine has re-established the state required by the next batch.
 
-The standalone host normally renders every layer. A host can request a subset through the same pipeline, but it must supply the camera and context each selected producer needs; omitting a layer does not manufacture unavailable state. This is how the combat bridge presents ground content in vanilla combat without forking the ground renderer. The Mech Lab uses the same seam twice—`GROUND + DOODADS`, then `UNITS`—so retained socket overlays can sit between physical room content and the actual battle dolls. Its embedded camera frames one authored gantry target within a larger four-bay garage while preserving common cell scale, so changing vehicle selection can later interpolate the pan without rebuilding scene geometry. Its embedded frame profile suppresses HP bars and surface-relief FBO work; fog is absent because the host does not request the fog layer.
+The standalone host normally renders every layer. A host can request a subset through the same pipeline, but it must supply the camera and context each selected producer needs; omitting a layer does not manufacture unavailable state. This is how the combat bridge presents ground content in vanilla combat without forking the ground renderer. The Mech Lab and Barracks use the same seam twice—`GROUND + DOODADS`, then `UNITS`—so retained overlays can sit between physical room content and the actual battle dolls. The live host drains those commands through Starsector/OpenGL; headless UI evidence collects the same systems and replays their sprite, sheet-quad, fill, and line commands through Java2D. Its embedded frame profile suppresses HP bars and surface-relief FBO work; fog is absent because these hosts do not request the fog layer.
 
 The current world order is `GROUND → DECALS → VEHICLES → DOODADS → HIGHLIGHTS → FOG → UNITS → ROOFS → DRONES → OBJECTIVES → COMPOUND → CONVOY → SHUTTLES → SHOTS → IMPACT_FX → FLYBY`. The enum is the authority for this order; the sequence here makes the standing occlusion contract legible without replacing it.
 
@@ -52,6 +54,9 @@ Ground is a dense, cell-backed surface. Current camera culling range-loops the v
 8. A custom/FBO path is justified by a real target or stateful rendering need. Ordinary sprites, fills, lines, arcs, and ribbons belong in the auditable command vocabulary.
 9. Camera zoom changes framing, never world ratios. Every actor, prop, overlay,
    and tile in one hosted scene derives from the same cell projection.
+10. Headless evidence may substitute a graphics drain, never a scene model. A
+    snapshot of an embedded battle scene must collect the same simulation,
+    camera, selected render systems, command order, and authored assets as live.
 
 ## Boundaries and extension paths
 

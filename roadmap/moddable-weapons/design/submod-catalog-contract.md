@@ -104,19 +104,17 @@ The derived card ids remain stable:
 Learning one through the Starsector special-item interaction adds it only to
 the Marine Armory. It never enters vanilla ship-production knowledge.
 
-## Current runtime edge
+## Runtime consumption
 
-Contributed marine-primary weapons and armor are valid faction-roster and player
-issue. Once their cards are learned, they join the doctrine editor's choices in
-manifest order. Saved doctrines, squad billets, and marines retain the catalog
-equipment id; issuing changed kit charges the contributed card's authored cargo
-cost, and deployment resolves the same weapon and armor definitions without enum
-constants. Removing the provider repairs unresolved player primaries to
-`weapon.field-rifle` and armor to `armor.field-fatigues` with a warning rather
-than corrupting the roster.
+Contributed marine-primary weapons, armor, and special equipment are valid
+faction-roster and player issue. Once their cards are learned, they join the
+doctrine editor's choices in manifest order. Saved doctrines, squad billets,
+and marines retain the catalog equipment id; issuing changed kit charges the
+contributed card's authored cargo cost, and deployment resolves the same
+definitions without enum constants. A special's closed activation and AI
+policy select the built-in typed executor while its referenced weapon and
+presentation data supply ballistics, audio, sprites, and carrier layers.
 
-Special-equipment catalogs and cards are additive too, but generated and player
-battle execution still requires one of the current built-in special ids until
-the remaining `MarineSecondary` compatibility handle is removed in
-`w5-submod-merge.md`. Unsupported special issue is fail-loud and must not be
-silently omitted.
+Removing the provider repairs unresolved player primaries to
+`weapon.field-rifle`, armor to `armor.field-fatigues`, and unresolved special
+equipment to an empty slot, with a warning rather than a corrupt roster.

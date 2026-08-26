@@ -1,8 +1,12 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.awt.Color;
 import java.io.Serializable;
 
 /** Stable, data-authored loadout identity for one special-equipment item. */
@@ -121,6 +125,56 @@ public record SpecialEquipmentDef(
     public String armoryIconPath() {
         return presentation.armoryIconPath();
     }
+
+    /** Referenced weapon behavior for a weapon-like activation. */
+    public WeaponDef weaponDef() {
+        if (weaponId == null) {
+            throw new IllegalStateException(displayName + " is utility equipment, not a weapon");
+        }
+        return WeaponRegistry.require(weaponId);
+    }
+
+    public boolean usesAmmunition() {
+        return resourceMode == SpecialResourceMode.AMMUNITION;
+    }
+
+    public boolean hasAvailableUse(int ammo) {
+        return !usesAmmunition() || ammo > 0;
+    }
+
+    public boolean isDirectFireWeapon() {
+        return activation == SpecialActivation.DIRECT_EXPLOSIVE
+                || activation == SpecialActivation.DIRECT_PRECISION;
+    }
+
+    public float aimDuration() {
+        if (smokeGrenadeSpec != null) return smokeGrenadeSpec.throwDuration();
+        if (satchelChargeSpec != null) return satchelChargeSpec.plantDuration();
+        return weaponDef().aimDuration;
+    }
+
+    public String fireSoundId() { return weaponDef().fireSoundId; }
+    public String impactSoundId() { return weaponDef().impactSoundId; }
+    public String projectileSpritePath() {
+        return weaponId != null ? weaponDef().projectileSpritePath : null;
+    }
+    public float projectileVisualCells() {
+        return weaponId != null ? weaponDef().projectileVisualCells : 0f;
+    }
+    public Color tracerColor() { return weaponDef().tracerColor; }
+    public ImpactProfile impactProfile() { return weaponDef().impactProfile; }
+    public float range() { return weaponDef().range; }
+    public float damage() { return weaponDef().damage; }
+    public float accuracy() { return weaponDef().accuracy; }
+    public float cooldown() { return weaponDef().cooldown; }
+    public float penetration() { return weaponDef().penetration; }
+    public float flightSec() { return weaponDef().flightSec; }
+    public float arcHeight() { return weaponDef().arcHeight; }
+    public float hitSpread() { return weaponDef().hitSpread; }
+    public float aoeRadius() { return weaponDef().aoeRadius; }
+    public int wallDamage() { return weaponDef().wallDamage; }
+    public float wallDamageRadius() { return weaponDef().wallDamageRadius; }
+    public float roundVelocity() { return weaponDef().roundVelocity; }
 
     private static SmokeGrenadeSpec parseSmoke(JSONObject json, String id) throws JSONException {
         return new SmokeGrenadeSpec(

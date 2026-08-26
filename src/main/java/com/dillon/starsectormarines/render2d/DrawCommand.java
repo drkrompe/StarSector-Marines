@@ -68,6 +68,23 @@ public final class DrawCommand {
     PolyMesh poly;
     Runnable custom;
 
+    public Kind kind() { return kind; }
+    public SpriteAPI sprite() { return sprite; }
+    public int sourceX() { return srcX; }
+    public int sourceY() { return srcY; }
+    public int sourceWidth() { return srcW; }
+    public int sourceHeight() { return srcH; }
+    public float centerX() { return cx; }
+    public float centerY() { return cy; }
+    public float width() { return w; }
+    public float height() { return h; }
+    public float angleDegrees() { return angleDeg; }
+    public boolean flippedVertically() { return flipV; }
+    public float red() { return r; }
+    public float green() { return g; }
+    public float blue() { return b; }
+    public float alpha() { return a; }
+
     public void setSheetQuad(SpriteAPI sheet, int srcX, int srcY, int srcW, int srcH,
                              float cx, float cy, float w, float h,
                              float r, float g, float b, float a) {

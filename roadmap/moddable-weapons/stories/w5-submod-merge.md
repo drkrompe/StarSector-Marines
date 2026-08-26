@@ -4,7 +4,7 @@ Status: IN PROGRESS
 
 Written: 2026-08-22
 
-Updated: 2026-08-25 — completed learned-card player primary/armor authoring, persistence, issue, deployment, and provider-removal repair; special runtime and sibling tileset adoption remain.
+Updated: 2026-08-25 — completed contributed special-equipment player/faction issue and typed battle execution; sibling tileset adoption and live two-mod acceptance remain.
 
 Read `moddable-weapons-nouns.md` before implementing this story.
 
@@ -45,16 +45,15 @@ constants.
   editor, stable-id saves, cargo-backed squad issue, and campaign deployment;
 - warning-backed save repair to the starter rifle and field fatigues when a
   persisted equipment provider is removed;
+- contributed special cards through doctrine authoring, cargo-backed player
+  issue, faction roster generation, ECS deployment, typed AI/activation,
+  rendering, audio, persistence, and warning-backed empty-slot repair;
 - an external-provider acceptance fixture proving an OC faction can add its
   weapon, armor, roster, and collectible cards, then learn, author, issue,
   save/load, and deploy them without enum constants.
 
 ## Remaining
 
-- Replace the remaining `MarineSecondary` battle handle so a contributed
-  special-equipment id can execute in a generated faction roster. Contributed
-  special definitions and their collectible cards already load and validate;
-  assigning one to a roster remains fail-loud rather than silently dropping it.
 - Adopt the same manifest/provenance machinery for tilesets instead of growing
   a second discovery contract.
 - Run an in-game two-mod smoke test against real Starsector enabled-mod order

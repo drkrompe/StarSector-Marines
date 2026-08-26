@@ -232,7 +232,7 @@ public final class BattleComponents {
     /** {@link #TASK} field 1: the {@link com.dillon.starsectormarines.battle.infantry.EquipmentDrop} kit a KIT_RETRIEVER is heading to, or {@code null} (OBJECT). */
     public static final int TASK_EQUIPMENT_DROP = 1;
 
-    /** {@link #SECONDARY_WEAPON} field 0: the {@link com.dillon.starsectormarines.battle.infantry.MarineSecondary} flyweight (OBJECT). */
+    /** {@link #SECONDARY_WEAPON} field 0: the authoritative {@link com.dillon.starsectormarines.marine.SpecialEquipmentDef} (OBJECT). */
     public static final int SECONDARY_WEAPON_SPEC = 0;
     /** {@link #SECONDARY_WEAPON} field 1: rounds remaining on the secondary (INT). */
     public static final int SECONDARY_WEAPON_AMMO = 1;
@@ -570,7 +570,7 @@ public final class BattleComponents {
      */
     public final ComponentType TASK;
     /**
-     * Optional secondary weapon — {@code MarineSecondary spec; int ammo; float
+     * Optional special equipment — {@code SpecialEquipmentDef spec; int ammo; float
      * cooldownTimer, actionTimer; long aimTargetId; int fired}. The first
      * <em>optional</em> live capability modeled as archetype presence: added at
      * spawn only for units that carry a secondary (a rocket launcher today;

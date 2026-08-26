@@ -38,11 +38,11 @@ public final class MarineLoadout {
     public final EquipmentGrade equipmentGrade;
     /** Individual aptitude and earned field experience. */
     public final SoldierProfile soldierProfile;
-    /** Optional secondary weapon. Null = no secondary slot. */
+    /** Built-in compatibility handle; null for contributed special equipment. */
     public final MarineSecondary secondary;
     /** Authoritative special definition for data-authored faction issue; null means no special. */
     public final SpecialEquipmentDef specialDef;
-    /** Starting ammo for the secondary. Ignored when {@link #secondary} is null. */
+    /** Starting ammo for the special item. Ignored when {@link #specialDef} is null. */
     public final int secondaryAmmo;
     /** Stable campaign identity, null for generated defender/employer soldiers. */
     public final String campaignSoldierId;
@@ -111,7 +111,7 @@ public final class MarineLoadout {
         this.equipmentGrade = equipmentGrade != null ? equipmentGrade : EquipmentGrade.SERVICE;
         this.soldierProfile = soldierProfile != null ? soldierProfile : SoldierProfile.REGULAR;
         this.secondary = secondary;
-        this.specialDef = null;
+        this.specialDef = secondary != null ? secondary.specialDef() : null;
         this.secondaryAmmo = secondaryAmmo;
         this.campaignSoldierId = campaignSoldierId;
         this.armorFamily = armorFamily;
@@ -167,10 +167,6 @@ public final class MarineLoadout {
         this.specialDef = special;
         this.secondary = special != null
                 ? SpecialEquipmentRegistry.compatibilityHandle(special.id()) : null;
-        if (special != null && this.secondary == null) {
-            throw new IllegalArgumentException("Special equipment '" + special.id()
-                    + "' has no battle compatibility handle yet");
-        }
         this.secondaryAmmo = special != null ? special.startingAmmo() : 0;
         this.campaignSoldierId = campaignSoldierId;
         this.armorFamily = armorFamily;
@@ -199,8 +195,8 @@ public final class MarineLoadout {
         } else {
             marine.soldierProfile(soldierProfile);
         }
-        if (secondary != null && secondary.hasAvailableUse(secondaryAmmo)) {
-            marine.secondary(secondary, secondaryAmmo);
+        if (specialDef != null && specialDef.hasAvailableUse(secondaryAmmo)) {
+            marine.specialEquipment(specialDef, secondaryAmmo);
         }
         marine.campaignSoldierId(campaignSoldierId);
         if (armorFamily != null) {

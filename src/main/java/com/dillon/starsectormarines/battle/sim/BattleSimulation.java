@@ -2,11 +2,11 @@ package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.smoke.SmokeFieldService;
 import com.dillon.starsectormarines.battle.satchel.SatchelChargeService;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
 import com.dillon.starsectormarines.marine.SatchelChargeSpec;
 import com.dillon.starsectormarines.marine.SpecialActivation;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SmokeGrenadeSpec;
 
 import com.dillon.starsectormarines.battle.appearance.FacingSystem;
@@ -1786,7 +1786,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     @Override
     public void throwSmoke(long carrier, float targetX, float targetY) {
         if (!world.hasSecondaryWeapon(carrier)) return;
-        MarineSecondary secondary = world.secondaryWeapon(carrier);
+        SpecialEquipmentDef secondary = world.specialEquipment(carrier);
         if (secondary.activation() != SpecialActivation.UTILITY_SMOKE) return;
         int ammo = world.secondaryAmmo(carrier);
         if (ammo <= 0) return;
@@ -1811,7 +1811,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     @Override
     public boolean plantSatchel(long carrier, long target) {
         if (!world.hasSecondaryWeapon(carrier) || resolveUnit(target) == 0L) return false;
-        MarineSecondary secondary = world.secondaryWeapon(carrier);
+        SpecialEquipmentDef secondary = world.specialEquipment(carrier);
         if (secondary.activation() != SpecialActivation.UTILITY_SATCHEL
                 || !TacticalScoring.isHardened(identity().type(target))
                 || identity().faction(carrier) == identity().faction(target)) return false;
