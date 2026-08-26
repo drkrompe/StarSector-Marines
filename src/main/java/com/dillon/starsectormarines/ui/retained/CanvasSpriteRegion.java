@@ -5,9 +5,15 @@ package com.dillon.starsectormarines.ui.retained;
  * A region is independent of the source image's pixel dimensions, so the same
  * producer can address an atlas through either the live or headless backend.
  */
-public record CanvasSpriteRegion(float x, float y, float width, float height) {
+public record CanvasSpriteRegion(float x, float y, float width, float height,
+                                 boolean flipX, boolean flipY) {
 
-    public static final CanvasSpriteRegion FULL = new CanvasSpriteRegion(0f, 0f, 1f, 1f);
+    public static final CanvasSpriteRegion FULL =
+            new CanvasSpriteRegion(0f, 0f, 1f, 1f, false, false);
+
+    public CanvasSpriteRegion(float x, float y, float width, float height) {
+        this(x, y, width, height, false, false);
+    }
 
     public CanvasSpriteRegion {
         requireUnit(x, "x");
@@ -36,6 +42,10 @@ public record CanvasSpriteRegion(float x, float y, float width, float height) {
         float height = 1f / rows;
         return new CanvasSpriteRegion((frameIndex % columns) * width,
                 (frameIndex / columns) * height, width, height);
+    }
+
+    public CanvasSpriteRegion flippedVertically() {
+        return new CanvasSpriteRegion(x, y, width, height, flipX, !flipY);
     }
 
     private static void requireUnit(float value, String label) {

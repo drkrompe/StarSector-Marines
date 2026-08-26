@@ -4,9 +4,9 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — made the fitting doll an asset-authored definition whose
-maintenance facing, physical mount anchors, equipment docks, and socket footprints
-are owned per chassis rather than inferred by the Mech Lab renderer.
+Updated: 2026-08-25 — made the fitting doll an asset-authored per-chassis
+definition and made live and headless Mech Lab views collect the same bounded
+battle-simulation render commands.
 
 ## Purpose
 
@@ -187,8 +187,9 @@ determines the payload, not the entitlement to call it.
   inspects equipment, but it never decides refit duration, stock, or command success.
 - Live rendering and headless evidence consume one room layout: ground kind,
   perimeter walls, gantry overlays, props, workers, and every lance asset occupy authored
-  battle-grid cells. A preview may approximate the GL drain, but it may not invent
-  percentage-positioned scenery, off-grid props, or a second gantry illustration.
+  battle-grid cells. Headless evidence collects the ordinary battle renderer's command
+  list and substitutes only a Java2D drain; it may not invent percentage-positioned
+  scenery, off-grid props, actor approximations, or a second gantry illustration.
 - Vehicle selection changes the battle camera's gantry target without changing
   cell scale. A later eased camera move interpolates between those authored targets;
   it does not move or respawn the garage contents to fake a transition.

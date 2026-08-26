@@ -42,7 +42,7 @@ public final class CommandTraceRecorder {
     public CommandTraceRecorder(String fixtureKind, String schedulerMode,
                                 int startTick) {
         StringBuilder header = begin("run", startTick);
-        numberField(header, "schemaVersion", 3);
+        numberField(header, "schemaVersion", 4);
         nullableField(header, "fixtureKind", fixtureKind);
         field(header, "schedulerMode", schedulerMode);
         appendLine(end(header));
@@ -376,6 +376,8 @@ public final class CommandTraceRecorder {
         numberField(out, "targetCellY", action.targetCellY());
         numberField(out, "markerCellX", action.markerCellX());
         numberField(out, "markerCellY", action.markerCellY());
+        booleanField(out, "distantCaptureDeferred",
+                action.distantCaptureDeferred());
         out.append('}');
     }
 

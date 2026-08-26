@@ -146,6 +146,10 @@ class SquadPlanDebugPanelTest {
                 SquadPlanDebugPanel.conquestOrderSummary(directive));
         assertEquals("Command reason ADJACENT_TRACK_SUPPORT",
                 SquadPlanDebugPanel.conquestReasonSummary(directive));
+        assertEquals("Command reason ADJACENT_TRACK_SUPPORT"
+                        + "   Capture DEFERRED_FOR_FRONT_RESISTANCE",
+                SquadPlanDebugPanel.conquestReasonSummary(
+                        directive.withDistantCaptureDeferred()));
     }
 
     @Test

@@ -844,8 +844,10 @@ public final class SquadPlanDebugPanel implements HudPanel {
 
     static String conquestReasonSummary(
             ConquestFrontSnapshot.SquadDirective directive) {
-        return directive == null ? "Command reason —"
-                : "Command reason " + directive.reason();
+        if (directive == null) return "Command reason —";
+        String capturePolicy = directive.distantCaptureDeferred()
+                ? "   Capture DEFERRED_FOR_FRONT_RESISTANCE" : "";
+        return "Command reason " + directive.reason() + capturePolicy;
     }
 
     private static String markerSuffix(

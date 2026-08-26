@@ -50,14 +50,19 @@ public final class MechLabBattleScene implements AutoCloseable {
         renderer.buildTileBatches();
     }
 
-    public void renderBackdrop(CanvasHostViewport viewport, List<MechVariant> variants,
-                               int selectedGantry, float alphaMult) {
-        render(viewport, variants, selectedGantry, alphaMult, BACKDROP_LAYERS);
+    /** Headless scene model; a tooling drain supplies its own renderer and assets. */
+    public MechLabBattleScene() {
+        renderer = null;
     }
 
-    public void renderActors(CanvasHostViewport viewport, List<MechVariant> variants,
-                             int selectedGantry, float alphaMult) {
-        render(viewport, variants, selectedGantry, alphaMult, ACTOR_LAYERS);
+    public BattleSceneHostPass backdropPass(List<MechVariant> variants,
+                                            int selectedGantry) {
+        return pass(variants, selectedGantry, BACKDROP_LAYERS);
+    }
+
+    public BattleSceneHostPass actorPass(List<MechVariant> variants,
+                                         int selectedGantry) {
+        return pass(variants, selectedGantry, ACTOR_LAYERS);
     }
 
     static BattleCamera cameraForSurface(float width, float height, int selectedGantry) {
@@ -76,10 +81,33 @@ public final class MechLabBattleScene implements AutoCloseable {
         return gantry(gantryIndex).cellY() + 0.5f;
     }
 
-    private void render(CanvasHostViewport viewport, List<MechVariant> variants,
-                        int selectedGantry, float alphaMult, EnumSet<RenderLayer> layers) {
-        if (variants == null || variants.isEmpty()
-                || viewport.width() <= 0f || viewport.height() <= 0f) return;
+    private BattleSceneHostPass pass(List<MechVariant> variants, int selectedGantry,
+                                     EnumSet<RenderLayer> layers) {
+        List<MechVariant> snapshot = variants != null ? List.copyOf(variants) : List.of();
+        return new BattleSceneHostPass() {
+            @Override
+            public BattleSceneFrame prepare(CanvasHostViewport viewport, float alphaMult) {
+                return prepareFrame(viewport, snapshot, selectedGantry, alphaMult, layers);
+            }
+
+            @Override
+            public void draw(CanvasHostViewport viewport, float alphaMult) {
+                if (renderer == null) {
+                    throw new IllegalStateException("Live Mech Lab renderer is unavailable");
+                }
+                BattleSceneFrame frame = prepare(viewport, alphaMult);
+                renderer.renderWorld(frame.context(), frame.layers());
+            }
+        };
+    }
+
+    private BattleSceneFrame prepareFrame(CanvasHostViewport viewport,
+                                           List<MechVariant> variants,
+                                           int selectedGantry, float alphaMult,
+                                           EnumSet<RenderLayer> layers) {
+        if (variants.isEmpty() || viewport.width() <= 0f || viewport.height() <= 0f) {
+            throw new IllegalArgumentException("Mech Lab scene requires assets and a visible viewport");
+        }
         ensureSimulation(variants);
         configureCamera(camera, viewport.screenX(), viewport.screenY(),
                 viewport.width(), viewport.height());
@@ -93,7 +121,7 @@ public final class MechLabBattleScene implements AutoCloseable {
         RenderContext context = new RenderContext(simulation, camera, null,
                 alphaMult, 0f, false, highlights, selection,
                 BattleRenderHostProfile.EMBEDDED_SCENE);
-        renderer.renderWorld(context, layers);
+        return new BattleSceneFrame(context, layers);
     }
 
     private static void configureCamera(BattleCamera camera, float x, float y,
