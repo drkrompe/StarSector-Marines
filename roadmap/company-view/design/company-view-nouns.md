@@ -227,7 +227,11 @@ or combat rules.
 The Mech Lab is the focused squad-first surface over `MechBay`; it does not reuse
 personnel doctrine. Campaign mechs retain individual identity inside a selected
 support squad of up to four chassis. The retained room shows the whole squad and a
-separate asset-selection screen; choosing a chassis moves it onto the fitting gantry.
+separate asset-selection screen; choosing an assigned chassis opens its existing
+gantry without changing lance composition.
+The fitting header also provides explicit previous/next controls over the lance's four
+numbered gantry pads. Those controls can focus a vacant station without hiding the
+physical room; the asset browser remains the direct way to jump across lances.
 That workspace gives its three primary regions to the equipment catalog, a wide
 top-down fabrication bay, and the socket rack. Selecting a location scopes the
 equipment catalog. The catalog may inspect fixed

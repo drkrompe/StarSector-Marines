@@ -217,52 +217,65 @@ public final class HeadlessUiRenderer {
         private final Graphics2D graphics;
         private final ResourceStore resources;
         private final HeadlessHostPassRenderer hostPassRenderer;
+        private final float originX;
+        private final float originY;
+        private final float coordinateScaleX;
+        private final float coordinateScaleY;
 
         private RasterCanvasContext(Graphics2D graphics, ResourceStore resources,
                                     CanvasMetrics metrics, Rect visibleBounds,
                                     float alphaMult,
                                     HeadlessHostPassRenderer hostPassRenderer) {
+            this(graphics, resources, metrics, visibleBounds, alphaMult,
+                    hostPassRenderer, metrics.contentBox().x(), metrics.contentBox().y(),
+                    metrics.scaleX(), metrics.scaleY());
+        }
+
+        private RasterCanvasContext(Graphics2D graphics, ResourceStore resources,
+                                    CanvasMetrics metrics, Rect visibleBounds,
+                                    float alphaMult,
+                                    HeadlessHostPassRenderer hostPassRenderer,
+                                    float originX, float originY,
+                                    float coordinateScaleX, float coordinateScaleY) {
             super(metrics, visibleBounds, alphaMult);
             this.graphics = graphics;
             this.resources = resources;
             this.hostPassRenderer = hostPassRenderer;
+            this.originX = originX;
+            this.originY = originY;
+            this.coordinateScaleX = coordinateScaleX;
+            this.coordinateScaleY = coordinateScaleY;
         }
 
         @Override
         protected void drawFillRect(float x, float y, float width, float height, Color color) {
-            CanvasMetrics metrics = metrics();
             var previous = graphics.getComposite();
             graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
                     clampAlpha(color.getAlpha() / 255f * alphaMult())));
             graphics.setColor(opaque(color));
-            graphics.fill(new Rectangle2D.Float(metrics.toDocumentX(x),
-                    metrics.toDocumentY(y), width * metrics.scaleX(),
-                    height * metrics.scaleY()));
+            graphics.fill(new Rectangle2D.Float(documentX(x), documentY(y),
+                    width * coordinateScaleX, height * coordinateScaleY));
             graphics.setComposite(previous);
         }
 
         @Override
         protected void drawLine(float x1, float y1, float x2, float y2,
                                 Color color, float strokeWidth) {
-            CanvasMetrics metrics = metrics();
             var previous = graphics.getComposite();
             graphics.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER,
                     clampAlpha(color.getAlpha() / 255f * alphaMult())));
             graphics.setColor(opaque(color));
             graphics.setStroke(new BasicStroke(strokeWidth * strokeScale(
-                    metrics, x2 - x1, y2 - y1)));
-            graphics.drawLine(Math.round(metrics.toDocumentX(x1)),
-                    Math.round(metrics.toDocumentY(y1)),
-                    Math.round(metrics.toDocumentX(x2)),
-                    Math.round(metrics.toDocumentY(y2)));
+                    coordinateScaleX, coordinateScaleY, x2 - x1, y2 - y1)));
+            graphics.drawLine(Math.round(documentX(x1)), Math.round(documentY(y1)),
+                    Math.round(documentX(x2)), Math.round(documentY(y2)));
             graphics.setComposite(previous);
         }
 
         @Override
         protected void drawText(BitmapFont font, String text, float x, float y, Color color) {
-            CanvasMetrics metrics = metrics();
-            resources.drawText(graphics, font, text, metrics.toDocumentX(x),
-                    metrics.toDocumentY(y), metrics.scaleX(), metrics.scaleY(),
+            resources.drawText(graphics, font, text, documentX(x), documentY(y),
+                    coordinateScaleX, coordinateScaleY,
                     color, alphaMult());
         }
 
@@ -276,13 +289,12 @@ public final class HeadlessUiRenderer {
                         "Headless canvas sprites require their source path");
             }
             BufferedImage image = sourceRegion(resources.tintedSprite(sourcePath, tint), region);
-            CanvasMetrics metrics = metrics();
             AffineTransform transform = graphics.getTransform();
             var composite = graphics.getComposite();
-            graphics.translate(metrics.toDocumentX(centerX), metrics.toDocumentY(centerY));
+            graphics.translate(documentX(centerX), documentY(centerY));
             graphics.rotate(Math.toRadians(-angleDegrees));
-            graphics.scale(width * metrics.scaleX() / image.getWidth(),
-                    height * metrics.scaleY() / image.getHeight());
+            graphics.scale(width * coordinateScaleX / image.getWidth(),
+                    height * coordinateScaleY / image.getHeight());
             graphics.scale(region.flipX() ? -1d : 1d, region.flipY() ? -1d : 1d);
             float opacity = clampAlpha(tint.getAlpha() / 255f * alphaMult());
             graphics.setComposite(blend == CanvasBlend.ADDITIVE
@@ -297,10 +309,30 @@ public final class HeadlessUiRenderer {
         protected boolean drawHostPass(CanvasHostPass pass) {
             if (hostPassRenderer == null) return false;
             CanvasMetrics metrics = metrics();
+            Rect content = metrics.contentBox();
             CanvasHostViewport viewport = new CanvasHostViewport(
-                    0f, 0f, metrics.surfaceWidth(), metrics.surfaceHeight(),
+                    0f, 0f, content.width(), content.height(),
                     metrics.surfaceWidth(), metrics.surfaceHeight());
-            return hostPassRenderer.draw(pass, this, viewport, alphaMult());
+            // Native host passes resolve their camera directly in the physical content
+            // box. Replay those resolved coordinates without stretching them through the
+            // canvas's authored surface a second time.
+            CanvasContext direct = new RasterCanvasContext(graphics, resources, metrics,
+                    visibleBounds(), alphaMult(), hostPassRenderer,
+                    content.x(), content.y(), 1f, 1f);
+            return hostPassRenderer.draw(pass, direct, viewport, alphaMult());
+        }
+
+        private float documentX(float x) { return originX + x * coordinateScaleX; }
+
+        private float documentY(float y) { return originY + y * coordinateScaleY; }
+
+        private static float strokeScale(float scaleX, float scaleY,
+                                         float deltaX, float deltaY) {
+            float length = (float) Math.hypot(deltaX, deltaY);
+            if (!(length > 0f)) return (float) Math.sqrt(scaleX * scaleY);
+            float normalX = -deltaY / length;
+            float normalY = deltaX / length;
+            return (float) Math.hypot(normalX * scaleX, normalY * scaleY);
         }
 
         private static BufferedImage sourceRegion(BufferedImage source,

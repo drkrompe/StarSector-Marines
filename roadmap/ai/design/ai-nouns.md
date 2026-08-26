@@ -210,6 +210,15 @@ reports raise only a coarse threatened track/band and can mobilize a bounded
 starting patrol reserve. The briefing grants a rally context, not the source
 squad's hostile identity or exact reported position.
 
+Conquest attacker capture allocation distinguishes lack of a defender belief
+from positive clearance. It preserves legal capture orders already underway
+and commits squads that have reached a compound threshold, but globally bounds
+fresh distant departures while front resistance remains actionable. Squads
+without executable front work depart first; at least one executable actionable
+squad remains when possible. The published directive keeps the reason for its
+actual order and separately exposes whether a distant capture was deferred for
+front resistance, so selected-squad UI, dumps, and traces explain both facts.
+
 ## Doctrine and maneuver
 
 The contact picture selects a sticky local doctrine: **ADVANCE**, **HOLD**, or

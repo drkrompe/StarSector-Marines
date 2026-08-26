@@ -27,6 +27,7 @@ public final class MechLabViewModel {
     private final MutableSignal<Integer> revision;
     private final MutableSignal<String> selectedSquadId;
     private final MutableSignal<String> selectedMechId;
+    private final MutableSignal<Integer> selectedGantry;
     private final MutableSignal<SocketId> selectedSlot;
     private final MutableSignal<Boolean> assetPickerOpen;
     private final MutableSignal<String> feedbackText;
@@ -58,6 +59,7 @@ public final class MechLabViewModel {
         revision = reactor.signal(0);
         selectedSquadId = reactor.signal(initialSquad != null ? initialSquad.id() : null);
         selectedMechId = reactor.signal(initialMech != null ? initialMech.id() : null);
+        selectedGantry = reactor.signal(0);
         selectedSlot = reactor.signal(SocketId.MINI_FAB);
         assetPickerOpen = reactor.signal(false);
         feedbackText = reactor.signal(
@@ -66,9 +68,12 @@ public final class MechLabViewModel {
         labSummary = reactor.computed(this::buildLabSummary);
         squadRows = reactor.computed(this::buildSquadRows);
         mechRows = reactor.computed(this::buildMechRows);
-        activeGantryLabel = reactor.computed(() -> String.format(Locale.ROOT,
-                "ACTIVE GANTRY %02d / %02d", selectedGantryIndex() + 1,
-                CampaignMechSquad.CAPACITY));
+        activeGantryLabel = reactor.computed(() -> {
+            int index = selectedGantryIndex();
+            CampaignMech mech = mechAt(selectedSquad(), index);
+            return String.format(Locale.ROOT, "GANTRY %02d / %02d%s", index + 1,
+                    CampaignMechSquad.CAPACITY, mech != null ? "" : "  ·  VACANT");
+        });
         selectedMechName = reactor.computed(() -> {
             CampaignMech mech = selectedMech();
             return mech != null ? mech.displayName() : "NO ASSET SELECTED";
@@ -117,6 +122,8 @@ public final class MechLabViewModel {
     public Signal<String> workspaceClasses() { return workspaceClasses; }
     public Runnable openAssetPickerAction() { return this::openAssetPicker; }
     public Runnable closeAssetPickerAction() { return this::closeAssetPicker; }
+    public Runnable previousGantryAction() { return this::previousGantry; }
+    public Runnable nextGantryAction() { return this::nextGantry; }
     public Signal<String> feedbackText() { return feedbackText; }
     public Signal<String> feedbackClasses() { return feedbackClasses; }
 
@@ -140,13 +147,8 @@ public final class MechLabViewModel {
     /** Selected vehicle's stable camera target within the current lance. */
     public int selectedGantryIndex() {
         revision.get();
-        CampaignMechSquad squad = selectedSquad();
-        if (squad == null) return 0;
-        String selected = selectedMechId.get();
-        for (int index = 0; index < squad.mechs().size(); index++) {
-            if (squad.mechs().get(index).id().equals(selected)) return index;
-        }
-        return 0;
+        return Math.max(0, Math.min(CampaignMechSquad.CAPACITY - 1,
+                selectedGantry.get()));
     }
 
     /** Reprojects mutable campaign authority whenever the room is re-entered. */
@@ -156,10 +158,8 @@ public final class MechLabViewModel {
             squad = bay.activeSquad();
             selectedSquadId.set(squad != null ? squad.id() : null);
         }
-        if (squad == null || squad.mechById(selectedMechId.get()) == null) {
-            CampaignMech mech = firstMech(squad);
-            selectedMechId.set(mech != null ? mech.id() : null);
-        }
+        CampaignMech mech = mechAt(squad, selectedGantryIndex());
+        selectedMechId.set(mech != null ? mech.id() : null);
         revision.update(value -> value + 1);
     }
 
@@ -308,6 +308,7 @@ public final class MechLabViewModel {
         selectedSquadId.set(squadId);
         CampaignMech mech = firstMech(squad);
         selectedMechId.set(mech != null ? mech.id() : null);
+        selectedGantry.set(0);
         selectedSlot.set(SocketId.MINI_FAB);
         feedbackText.set(squad.displayName() + " is now the active Mech Support lance.");
         feedbackClasses.set("mech-lab-feedback tone-good surface-dark");
@@ -317,6 +318,12 @@ public final class MechLabViewModel {
     private void selectMech(String mechId) {
         CampaignMechSquad squad = selectedSquad();
         if (squad == null || squad.mechById(mechId) == null) return;
+        for (int index = 0; index < squad.mechs().size(); index++) {
+            if (squad.mechs().get(index).id().equals(mechId)) {
+                selectedGantry.set(index);
+                break;
+            }
+        }
         selectedMechId.set(mechId);
         selectedSlot.set(SocketId.MINI_FAB);
         assetPickerOpen.set(false);
@@ -325,9 +332,33 @@ public final class MechLabViewModel {
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
     }
 
+    private void previousGantry() {
+        selectGantry(selectedGantryIndex() - 1);
+    }
+
+    private void nextGantry() {
+        selectGantry(selectedGantryIndex() + 1);
+    }
+
+    private void selectGantry(int requested) {
+        int capacity = CampaignMechSquad.CAPACITY;
+        int index = Math.floorMod(requested, capacity);
+        CampaignMech mech = mechAt(selectedSquad(), index);
+        selectedGantry.set(index);
+        selectedMechId.set(mech != null ? mech.id() : null);
+        selectedSlot.set(SocketId.MINI_FAB);
+        assetPickerOpen.set(false);
+        feedbackText.set(mech != null
+                ? "Gantry " + String.format(Locale.ROOT, "%02d", index + 1)
+                        + " selected: " + mech.displayName() + ". No campaign hardware changed."
+                : "Gantry " + String.format(Locale.ROOT, "%02d", index + 1)
+                        + " is vacant. Browse the lance to inspect an assigned asset.");
+        feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
+    }
+
     private void openAssetPicker() {
         assetPickerOpen.set(true);
-        feedbackText.set("Choose a support lance and heavy asset for the fabrication gantry.");
+        feedbackText.set("Choose a support lance and assigned asset to open its gantry.");
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
     }
 
@@ -364,12 +395,16 @@ public final class MechLabViewModel {
     }
 
     private CampaignMech selectedMech() {
-        CampaignMechSquad squad = selectedSquad();
-        return squad != null ? squad.mechById(selectedMechId.get()) : null;
+        return mechAt(selectedSquad(), selectedGantryIndex());
     }
 
     private static CampaignMech firstMech(CampaignMechSquad squad) {
         return squad == null || squad.mechs().isEmpty() ? null : squad.mechs().get(0);
+    }
+
+    private static CampaignMech mechAt(CampaignMechSquad squad, int index) {
+        return squad != null && index >= 0 && index < squad.mechs().size()
+                ? squad.mechs().get(index) : null;
     }
 
     private static String slotComponent(CampaignMech mech, SocketId slot) {

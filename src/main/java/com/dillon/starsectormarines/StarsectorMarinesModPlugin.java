@@ -52,12 +52,11 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
     public void onApplicationLoad() throws Exception {
         LOG.info("Starsector Marines: jar loaded");
         MarineCatalogManifest marineCatalogs = MarineCatalogManifest.discoverEnabled();
-        // Tile catalog → id-addressed registry (moddable-tilesets Phase 1). Loaded
-        // once, before any save; self-defensive so a bad sheet never blocks startup.
-        TileRegistry.loadBuiltins();
-        // Generation mapping (moddable-tilesets Phase 2) — pools/dispatch as data.
-        // After TileRegistry so its doodad-id pools resolve against installed tiles.
-        GenMappingRegistry.loadBuiltins();
+        // Tile definitions and generation mappings use the same enabled-provider
+        // manifest as equipment. Mappings follow tiles so every referenced visual
+        // resolves against the complete additive catalog before installation.
+        TileRegistry.loadContributions(marineCatalogs.tilesets());
+        GenMappingRegistry.loadContributions(marineCatalogs.tileMappings());
         // Weapon catalog → id-addressed registry (moddable-weapons W1). Unlike the
         // tile registries this is NOT self-defensive: a weapon whose stats failed to
         // load would read zero range and zero damage, so a bad catalog must stop

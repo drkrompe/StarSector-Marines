@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.DistrictTheme;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+import com.dillon.starsectormarines.catalog.CatalogSource;
+import com.dillon.starsectormarines.catalog.MarineCatalogManifest.CatalogFile;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -36,7 +38,7 @@ public final class GenMappingRegistry {
 
     private static final Logger LOG = Global.getLogger(GenMappingRegistry.class);
 
-    /** Built-in mapping resources bundled with the mod. Phase 3 replaces this with discovery + merge. */
+    /** Core resources retained for standalone tools and compatibility tests. */
     public static final List<String> BUILTIN_MAPPINGS = List.of(
             "data/tilesets/urban.mapping.json");
 
@@ -44,10 +46,13 @@ public final class GenMappingRegistry {
 
     /** Pool id -> ordered doodad ids. Pool ids are arbitrary names (the {@link DistrictTheme} names, plus bespoke pools like {@code COMMERCIAL}). Resolved against the TileRegistry on access. */
     private final Map<String, List<String>> doodadPoolIds = new LinkedHashMap<>();
+    private final Map<String, CatalogSource> doodadPoolSources = new LinkedHashMap<>();
     /** {@link GroundKind} -> the tileset block/tile id its primary surface renders as. The render-dispatch data half ({@code GroundRenderSystem} reads it instead of hardcoding ids). */
     private final Map<GroundKind, String> groundRender = new EnumMap<>(GroundKind.class);
+    private final Map<GroundKind, CatalogSource> groundRenderSources = new EnumMap<>(GroundKind.class);
     /** {@link BlockKind} -> its code filler's tunables (pools/chances). The filler reads these instead of hardcoding them; the carve/scatter algorithm stays in the filler. */
     private final Map<BlockKind, FillerParams> fillerParams = new EnumMap<>(BlockKind.class);
+    private final Map<BlockKind, CatalogSource> fillerSources = new EnumMap<>(BlockKind.class);
     /**
      * Surface-relief (S2) per-{@link GroundKind} macro-height overrides, keyed by
      * the kind's {@code name()} plus the sentinel key {@code "WALL"} (walls aren't
@@ -57,6 +62,7 @@ public final class GenMappingRegistry {
      * unmapped tile is mid-height rather than unresolved.
      */
     private final Map<String, Float> macroHeightOverride = new LinkedHashMap<>();
+    private final Map<String, CatalogSource> macroHeightSources = new LinkedHashMap<>();
 
     /** The mapping installed at application load, or {@code null} if load failed / hasn't run. */
     public static GenMappingRegistry installed() { return installed; }
@@ -66,36 +72,62 @@ public final class GenMappingRegistry {
 
     /** Parses one mapping JSON document and merges its sections. */
     public void ingest(JSONObject root) throws JSONException {
+        ingest(root, CatalogSource.unspecified("<in-memory tile mapping>"));
+    }
+
+    public void ingest(JSONObject root, CatalogSource source) throws JSONException {
         JSONObject pools = root.optJSONObject("doodadPools");
         if (pools != null) {
             for (Iterator<String> it = pools.keys(); it.hasNext(); ) {
                 String poolId = it.next();
+                requireUnique("doodad pool", poolId, doodadPoolSources, source);
                 JSONArray arr = pools.getJSONArray(poolId);
                 List<String> ids = new ArrayList<>(arr.length());
                 for (int i = 0; i < arr.length(); i++) ids.add(arr.getString(i));
                 doodadPoolIds.put(poolId, ids);
+                doodadPoolSources.put(poolId, source);
             }
         }
         JSONObject ground = root.optJSONObject("groundRender");
         if (ground != null) {
             for (Iterator<String> it = ground.keys(); it.hasNext(); ) {
                 String kindName = it.next();
-                groundRender.put(GroundKind.valueOf(kindName), ground.getString(kindName));
+                GroundKind kind = GroundKind.valueOf(kindName);
+                requireUnique("ground render mapping", kind, groundRenderSources, source);
+                groundRender.put(kind, ground.getString(kindName));
+                groundRenderSources.put(kind, source);
             }
         }
         JSONObject fillers = root.optJSONObject("fillers");
         if (fillers != null) {
             for (Iterator<String> it = fillers.keys(); it.hasNext(); ) {
                 String blockKindName = it.next();
-                fillerParams.put(BlockKind.valueOf(blockKindName), parseFillerParams(fillers.getJSONObject(blockKindName)));
+                BlockKind kind = BlockKind.valueOf(blockKindName);
+                requireUnique("filler mapping", kind, fillerSources, source);
+                fillerParams.put(kind, parseFillerParams(fillers.getJSONObject(blockKindName)));
+                fillerSources.put(kind, source);
             }
         }
         JSONObject macroHeight = root.optJSONObject("macroHeight");
         if (macroHeight != null) {
             for (Iterator<String> it = macroHeight.keys(); it.hasNext(); ) {
                 String key = it.next();
+                if (!"WALL".equals(key)) GroundKind.valueOf(key);
+                requireUnique("macro-height mapping", key, macroHeightSources, source);
                 macroHeightOverride.put(key, (float) macroHeight.getDouble(key));
+                macroHeightSources.put(key, source);
             }
+        }
+    }
+
+    private static <K> void requireUnique(String kind, K id,
+                                          Map<K, CatalogSource> sources,
+                                          CatalogSource source) throws JSONException {
+        CatalogSource previous = sources.get(id);
+        if (previous != null) {
+            throw new JSONException("Duplicate " + kind + " '" + id
+                    + "': first declared by " + previous.describe()
+                    + ", then by " + source.describe());
         }
     }
 
@@ -174,6 +206,53 @@ public final class GenMappingRegistry {
         return doodadPoolIds.getOrDefault(poolId, List.of());
     }
 
+    public CatalogSource sourceOfDoodadPool(String poolId) {
+        return doodadPoolSources.get(poolId);
+    }
+
+    /** Validates every mapping reference against the complete installed tile catalog. */
+    public void validateReferences() {
+        TileRegistry tiles = TileRegistry.installed();
+        if (tiles == null) {
+            throw new IllegalStateException("GenMappingRegistry: TileRegistry not installed");
+        }
+        for (Map.Entry<String, List<String>> pool : doodadPoolIds.entrySet()) {
+            for (String id : pool.getValue()) {
+                if (!tiles.hasDoodad(id)) {
+                    throw new IllegalStateException("GenMappingRegistry: doodad pool '"
+                            + pool.getKey() + "' from "
+                            + doodadPoolSources.get(pool.getKey()).describe()
+                            + " references unknown doodad id '" + id + "'");
+                }
+            }
+        }
+        for (Map.Entry<GroundKind, String> entry : groundRender.entrySet()) {
+            String id = entry.getValue();
+            if (!tiles.has(id) && !tiles.hasBlock(id)) {
+                throw new IllegalStateException("GenMappingRegistry: ground render mapping '"
+                        + entry.getKey() + "' from "
+                        + groundRenderSources.get(entry.getKey()).describe()
+                        + " references unknown tile or block id '" + id + "'");
+            }
+        }
+        for (Map.Entry<BlockKind, FillerParams> entry : fillerParams.entrySet()) {
+            validateTilePool(entry.getKey(), "plantPool", entry.getValue().plantPool(), tiles);
+            validateTilePool(entry.getKey(), "rockPool", entry.getValue().rockPool(), tiles);
+        }
+    }
+
+    private void validateTilePool(BlockKind kind, String poolName, List<String> ids,
+                                  TileRegistry tiles) {
+        for (String id : ids) {
+            if (!tiles.has(id)) {
+                throw new IllegalStateException("GenMappingRegistry: filler mapping '"
+                        + kind + "' " + poolName + " from "
+                        + fillerSources.get(kind).describe()
+                        + " references unknown tile id '" + id + "'");
+            }
+        }
+    }
+
     /**
      * The resolved doodad pool for {@code poolId} — each id looked up in
      * {@link TileRegistry#installed()}. Throws if the registry isn't installed or
@@ -213,12 +292,30 @@ public final class GenMappingRegistry {
             GenMappingRegistry reg = new GenMappingRegistry();
             for (String path : BUILTIN_MAPPINGS) {
                 JSONObject root = Global.getSettings().loadJSON(path, true);
-                reg.ingest(root);
+                reg.ingest(root, CatalogSource.unspecified(path));
             }
+            reg.validateReferences();
             installed = reg;
             LOG.info("GenMappingRegistry: loaded " + BUILTIN_MAPPINGS.size() + " built-in mapping(s)");
         } catch (Exception e) {
             LOG.error("GenMappingRegistry: failed to load built-in mappings — registry not installed", e);
         }
+    }
+
+    /** Loads every enabled-mod mapping contribution in manifest order. */
+    public static void loadContributions(List<CatalogFile> catalogs) {
+        GenMappingRegistry registry = new GenMappingRegistry();
+        for (CatalogFile catalog : catalogs) {
+            try {
+                registry.ingest(catalog.loadJson(), catalog.source());
+            } catch (Exception failure) {
+                throw new IllegalStateException("Failed to ingest tile mapping "
+                        + catalog.source().describe(), failure);
+            }
+        }
+        registry.validateReferences();
+        installed = registry;
+        LOG.info("GenMappingRegistry: loaded " + catalogs.size()
+                + " contributed tile mapping(s)");
     }
 }
