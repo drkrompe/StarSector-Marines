@@ -67,6 +67,8 @@ public final class Mission {
      * {@code max(0, requiredDrops - employerShuttles)} drops.
      */
     public final int employerShuttles;
+    /** How this mission turns committed transports into physical ground arrivals. */
+    public final MarineArrivalPolicy marineArrivalPolicy;
     /** Planet name (campaign-unique) the mission targets; null for missions not tied to a place. */
     public final String targetPlanetName;
     /** Industry id (e.g. {@code "refining"}) the mission targets; null for non-industry ops. */
@@ -141,6 +143,8 @@ public final class Mission {
                 : Collections.emptyList();
         this.requiredDrops = Math.max(0, b.requiredDrops);
         this.employerShuttles = Math.max(0, Math.min(b.employerShuttles, this.requiredDrops));
+        this.marineArrivalPolicy = b.marineArrivalPolicy != null
+                ? b.marineArrivalPolicy : MarineArrivalPolicy.defaultFor(this.type);
         this.targetPlanetName = b.targetPlanetName;
         this.targetIndustryId = b.targetIndustryId;
         this.targetFactionId  = b.targetFactionId;
@@ -190,6 +194,7 @@ public final class Mission {
         private List<String> employerPowerIds = Collections.emptyList();
         private int requiredDrops;
         private int employerShuttles;
+        private MarineArrivalPolicy marineArrivalPolicy;
         private String targetPlanetName;
         private String targetIndustryId;
         private String targetFactionId;
@@ -226,6 +231,7 @@ public final class Mission {
             this.employerPowerIds = m.employerPowerIds;
             this.requiredDrops = m.requiredDrops;
             this.employerShuttles = m.employerShuttles;
+            this.marineArrivalPolicy = m.marineArrivalPolicy;
             this.targetPlanetName = m.targetPlanetName;
             this.targetIndustryId = m.targetIndustryId;
             this.targetFactionId = m.targetFactionId;
@@ -315,6 +321,11 @@ public final class Mission {
 
         public Builder employerShuttles(int employerShuttles) {
             this.employerShuttles = employerShuttles;
+            return this;
+        }
+
+        public Builder marineArrivalPolicy(MarineArrivalPolicy marineArrivalPolicy) {
+            this.marineArrivalPolicy = marineArrivalPolicy;
             return this;
         }
 

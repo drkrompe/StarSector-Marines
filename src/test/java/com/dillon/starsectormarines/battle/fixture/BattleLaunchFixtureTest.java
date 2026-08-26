@@ -47,8 +47,8 @@ class BattleLaunchFixtureTest {
                 .filter(shuttle -> shuttle.type == ShuttleType.VALKYRIE
                         && shuttle.cycles == 4)
                 .count());
-        assertEquals(384, construction.manifest().stream()
-                .mapToInt(shuttle -> shuttle.type.capacity * shuttle.cycles)
+        assertEquals(192, construction.manifest().stream()
+                .mapToInt(shuttle -> shuttle.seatsPerSortie * shuttle.cycles)
                 .sum());
 
         try (BattleSimulation simulation = fixture.build()) {

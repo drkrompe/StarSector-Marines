@@ -53,6 +53,11 @@ public final class ShuttleMission {
     /** Marines still aboard for the current sortie. */
     public int marinesRemaining;
     /**
+     * Marines embarked on each infantry sortie. This may be lower than the
+     * carrier's physical capacity and is restored unchanged after re-arm.
+     */
+    public final int seatsPerSortie;
+    /**
      * Marines that have already deboarded this sortie — the {@link #marineLoadout} index for the next
      * one to leave. Kept independent of {@link #marinesRemaining} so a <em>partial</em> sortie (fewer
      * than {@link ShuttleType#capacity} aboard, e.g. the last ship of a D5 wave) still indexes loadouts
@@ -97,6 +102,14 @@ public final class ShuttleMission {
 
     /** LZ touchdown point (cells). */
     public final float lzX, lzY;
+    /** Stable source-manifest position, or -1 when the spawning path has no manifest. */
+    public int manifestOrdinal = -1;
+    /** Mission-authored landing-area identity, or -1 for a legacy point landing. */
+    public int landingAreaId = -1;
+    /** Mission-authored multi-transport squad-delivery group, or -1 when ungrouped. */
+    public int arrivalGroupId = -1;
+    /** Ground strength this arrival group is assembling toward; 0 leaves legacy sizing in force. */
+    public int expectedArrivalStrength;
     /** Off-map entry point the sortie flies in from (cells). */
     public final float entryX, entryY;
     /**
@@ -158,6 +171,10 @@ public final class ShuttleMission {
      * a null role departs immediately after deboard.
      */
     public TurretRole assignedRole;
+
+    /** Post-unload behavior, independent of whether the craft is armed. */
+    public PostDeliveryDisposition postDeliveryDisposition =
+            PostDeliveryDisposition.LOITER_IF_ARMED;
 
     /**
      * Optional override of the {@link UnitType} stamped on each deboarded marine.
@@ -229,6 +246,7 @@ public final class ShuttleMission {
         this.exitY = exitY;
         this.pendingDelay = pendingDelay;
         this.marinesRemaining = marinesRemaining;
+        this.seatsPerSortie = marinesRemaining;
         this.hp = hp;
     }
 }

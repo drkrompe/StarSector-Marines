@@ -14,6 +14,7 @@ public final class LandingPad {
     public enum Purpose {
         CIVIC_LANDING_ZONE,
         CIVILIAN_SPACEPORT,
+        CONQUEST_ARRIVAL,
         FALLBACK
     }
 
@@ -66,6 +67,12 @@ public final class LandingPad {
     public static LandingPad spaceport(int centerX, int centerY, Approach approach) {
         return new LandingPad(centerX, centerY, 2, 2, approach,
                 Purpose.CIVILIAN_SPACEPORT);
+    }
+
+    /** One of the two clear berths within an authored Conquest arrival area. */
+    public static LandingPad conquest(int centerX, int centerY, Approach approach) {
+        return new LandingPad(centerX, centerY, 2, 2, approach,
+                Purpose.CONQUEST_ARRIVAL);
     }
 
     /** Backward-compatible one-cell berth for a dynamically selected LZ. */

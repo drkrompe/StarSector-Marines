@@ -42,13 +42,23 @@ public final class CampaignSquadIndex {
 
     /** The battle squad this campaign squad already has here, or {@link Squad#NO_SQUAD}. */
     public int landed(String campaignSquadId, int lzX, int lzY) {
-        Integer existing = byLanding.get(key(campaignSquadId, lzX, lzY));
+        return landed(campaignSquadId, coordinateKey(lzX, lzY));
+    }
+
+    /** Area-keyed sibling used when multiple berths belong to one logical arrival. */
+    public int landed(String campaignSquadId, String landingKey) {
+        Integer existing = byLanding.get(key(campaignSquadId, landingKey));
         return existing != null ? existing : Squad.NO_SQUAD;
     }
 
     /** Records a new landing and stamps campaign identity and label onto the battle squad. */
     public void register(CampaignSquadTag tag, int lzX, int lzY, int battleSquadId) {
-        byLanding.put(key(tag.squadId, lzX, lzY), battleSquadId);
+        register(tag, coordinateKey(lzX, lzY), battleSquadId);
+    }
+
+    /** Records a landing against a stable logical area rather than one berth cell. */
+    public void register(CampaignSquadTag tag, String landingKey, int battleSquadId) {
+        byLanding.put(key(tag.squadId, landingKey), battleSquadId);
         int landing = landingCount.merge(tag.squadId, 1, Integer::sum);
         if (landing == 1) {
             firstLanding.put(tag.squadId, battleSquadId);
@@ -71,7 +81,11 @@ public final class CampaignSquadIndex {
         if (squad != null) squad.campaignLabel = label;
     }
 
-    private static String key(String campaignSquadId, int lzX, int lzY) {
-        return campaignSquadId + '@' + lzX + ',' + lzY;
+    private static String coordinateKey(int lzX, int lzY) {
+        return lzX + "," + lzY;
+    }
+
+    private static String key(String campaignSquadId, String landingKey) {
+        return campaignSquadId + '@' + landingKey;
     }
 }

@@ -20,6 +20,8 @@ public final class BattleFixtureTestSupport {
     private static final String CONQUEST_RESOURCE =
             "/battle-fixtures/conquest-undercommitted-v1.json";
     private static final String CONQUEST_LAUNCH_RESOURCE =
+            "/battle-fixtures/conquest-launch-v3.json";
+    private static final String LEGACY_CONQUEST_LAUNCH_RESOURCE =
             "/battle-fixtures/conquest-launch-v2.json";
 
     private BattleFixtureTestSupport() {}
@@ -34,6 +36,10 @@ public final class BattleFixtureTestSupport {
 
     public static BattleLaunchFixture loadConquestLaunchFixture() throws Exception {
         return (BattleLaunchFixture) loadResource(CONQUEST_LAUNCH_RESOURCE);
+    }
+
+    public static BattleLaunchFixture loadLegacyConquestLaunchFixture() throws Exception {
+        return (BattleLaunchFixture) loadResource(LEGACY_CONQUEST_LAUNCH_RESOURCE);
     }
 
     private static BattleFixture loadResource(String resource) throws Exception {
@@ -103,9 +109,15 @@ public final class BattleFixtureTestSupport {
                     .append(Float.floatToIntBits(sim.world().hp(entity))).append(';');
         }
         for (long aircraft : sim.getAirEntityIds()) {
+            var mission = sim.world().mission(aircraft);
             fingerprint.append('a').append(aircraft).append(':')
                     .append(sim.world().airFaction(aircraft)).append(':')
-                    .append(sim.world().mission(aircraft).totalCycles).append(';');
+                    .append(mission.totalCycles).append(':')
+                    .append(mission.seatsPerSortie).append(':')
+                    .append(mission.manifestOrdinal).append(':')
+                    .append(mission.landingAreaId).append(':')
+                    .append(mission.arrivalGroupId).append(':')
+                    .append(mission.postDeliveryDisposition).append(';');
         }
         for (FighterWing wing : sim.getFlybyRoster().wings) {
             fingerprint.append('f').append(wing.profile).append(':')
