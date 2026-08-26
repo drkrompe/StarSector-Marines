@@ -1,7 +1,11 @@
 package com.dillon.starsectormarines.battle.world.gen.ship;
 
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.ship.fit.RoomFit;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+import org.json.JSONObject;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
@@ -11,6 +15,8 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -41,6 +47,11 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
     private static final Color GRID_LINE = new Color(0x00, 0x00, 0x00, 40);
     private static final Color LABEL = new Color(0xe4, 0xec, 0xf4);
     private static final Color ZONE_LINE = new Color(0xf2, 0xd0, 0x6b, 0xcc);
+    private static final Color FIXTURE = new Color(0x0d, 0x11, 0x17, 0xc4);
+    private static final Color FIXTURE_EDGE = new Color(0xff, 0xff, 0xff, 0x2a);
+
+    /** The hull the refit comparison is drawn on: small enough to read three of side by side. */
+    private static final String REFIT_HULL = "wolf";
 
     /**
      * One colour per kind of room, because that is the question these plans are
@@ -81,39 +92,66 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
+        installTileRegistry();
         VanillaHullSilhouettes vanilla = new VanillaHullSilhouettes(context.starsectorCore());
         List<SnapshotArtifact> artifacts = new ArrayList<>();
         if (vanilla.available()) {
             for (String hullId : HULLS) {
                 VanillaHullSilhouettes.Hull hull = vanilla.read(hullId);
                 if (hull == null || !hull.hullClass().boardable()) continue;
-                artifacts.add(plan(hull.id(), hull.silhouette(),
-                        DeckSizing.planFor(hull.hullClass(), hull.role(), hull.minCrew(),
-                                hull.maxCrew(), hull.cargo(), hull.silhouette().aspect()),
-                        hull.role().name().toLowerCase().replace('_', ' ')
-                                + ", " + hull.minCrew() + "/" + hull.maxCrew() + " crew, "
-                                + hull.lift() + " lift, " + hull.cargo() + " cargo"));
+                DeckSizing.DeckPlan deckPlan = DeckSizing.planFor(hull.hullClass(), hull.role(),
+                        hull.minCrew(), hull.maxCrew(), hull.cargo(), hull.silhouette().aspect());
+                String complement = hull.role().name().toLowerCase().replace('_', ' ')
+                        + ", " + hull.minCrew() + "/" + hull.maxCrew() + " crew, "
+                        + hull.lift() + " lift, " + hull.cargo() + " cargo";
+                artifacts.add(plan(hull.id(), hull.silhouette(), deckPlan,
+                        complement, RoomFit.STANDARD));
+                if (hull.id().equals(REFIT_HULL)) {
+                    // The same hull at three fittings, which is the upgrade
+                    // chain: identical rooms, different capacity.
+                    for (RoomFit refit : RoomFit.values()) {
+                        artifacts.add(plan(hull.id() + "-" + refit.name().toLowerCase(),
+                                hull.silhouette(), deckPlan, complement, refit));
+                    }
+                }
             }
         }
         if (artifacts.isEmpty()) {
             artifacts.add(plan("synthetic", null,
-                    new DeckSizing.DeckPlan(96, 28, List.of()), "no game install"));
+                    new DeckSizing.DeckPlan(96, 28, List.of()), "no game install",
+                    RoomFit.STANDARD));
         }
         return List.copyOf(artifacts);
     }
 
     private static SnapshotArtifact plan(String name, HullSilhouette silhouette,
-                                         DeckSizing.DeckPlan deckPlan, String complement) {
+                                         DeckSizing.DeckPlan deckPlan, String complement,
+                                         RoomFit fit) {
         ShipDeckGenerator generator = new ShipDeckGenerator();
-        MapResult map = generator.generateDeck(deckPlan, SEED, silhouette);
+        MapResult map = generator.generateDeck(deckPlan, SEED, silhouette, fit);
         BufferedImage image = renderPlan(map, generator.getLastDeckProfile(),
-                generator.getLastDeckGraph(), name, deckPlan, complement);
+                generator.getLastDeckGraph(), name, deckPlan, complement, fit);
         return new SnapshotArtifact("ship-deck-" + name + ".png", image);
+    }
+
+    /**
+     * The fill resolves fixtures through the tile registry, which nothing has
+     * installed in a headless snapshot run. Load it from the shipped tilesets so
+     * the rooms come out furnished rather than silently bare.
+     */
+    private static void installTileRegistry() throws Exception {
+        if (TileRegistry.installed() != null) return;
+        TileRegistry registry = new TileRegistry();
+        for (String path : TileRegistry.BUILTIN_TILESETS) {
+            registry.ingestSheet(new JSONObject(Files.readString(Paths.get("mod/" + path))));
+        }
+        registry.validateReferences();
+        TileRegistry.install(registry);
     }
 
     private static BufferedImage renderPlan(MapResult map, DeckProfile profile, DeckGraph graph,
                                             String name, DeckSizing.DeckPlan deckPlan,
-                                            String complement) {
+                                            String complement, RoomFit fit) {
         int width = deckPlan.frames();
         int height = deckPlan.height();
         int margin = 12;
@@ -124,7 +162,9 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
                 + "   program " + deckPlan.rooms().size()
                 + "   placed " + graph.compartmentCount()
                 + "   unplaced " + graph.unplaced().size()
-                + "   widest opening " + widestOpening(map, width, height);
+                + "   widest opening " + widestOpening(map, width, height)
+                + "   refit " + fit.name().toLowerCase()
+                + "   fixtures " + map.doodads.size();
 
         // A short deck is narrower than its own caption, so the canvas has to
         // fit whichever is wider or the legend silently truncates.
@@ -152,6 +192,7 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
             }
         }
 
+        drawFixtures(g, map, margin);
         drawZoneCuts(g, profile, font, margin, width, height);
         markSpawn(g, margin, map.marineSpawnX, map.marineSpawnY, new Color(0x66, 0xd9, 0xef));
         markSpawn(g, margin, map.defenderSpawnX, map.defenderSpawnY, new Color(0xef, 0x5f, 0x5f));
@@ -162,6 +203,23 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
         drawLegend(g, map, font, margin, margin + height * CELL + 34, width, height);
         g.dispose();
         return image;
+    }
+
+    /**
+     * Fixtures, drawn over the room colour rather than replacing it, so both the
+     * kind of room and how densely it is fitted read from the same picture.
+     */
+    private static void drawFixtures(Graphics2D g, MapResult map, int margin) {
+        for (Doodad doodad : map.doodads) {
+            int w = Math.max(1, doodad.footprintCellsX) * CELL;
+            int h = Math.max(1, doodad.footprintCellsY) * CELL;
+            int x = margin + doodad.cellX * CELL;
+            int y = margin + doodad.cellY * CELL;
+            g.setColor(FIXTURE);
+            g.fillRect(x + 1, y + 1, w - 2, h - 2);
+            g.setColor(FIXTURE_EDGE);
+            g.drawRect(x + 1, y + 1, w - 2, h - 2);
+        }
     }
 
     /**

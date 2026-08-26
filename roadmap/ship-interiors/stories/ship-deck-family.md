@@ -1,8 +1,14 @@
 # Ship deck family
 
-Status: PLANNED
+Status: IN PROGRESS — the deck, its rooms and its circulation are built and
+integrated. Transverse bulkheads and the breach point remain.
 
 Written: 2026-08-26
+
+Updated: 2026-08-26 — hull profile, spine, room packing, circulation and the
+deck graph have shipped; the standing model is folded into
+`ship-interiors-nouns.md`. What is left is the bulkhead chokepoint sequence and
+the breach point, which the end spawns still stand in for.
 
 Read `ship-interiors-nouns.md` before implementing this story. Read
 `mapgen-nouns.md` for the recipe, context, stage, and validation obligations this
@@ -21,8 +27,10 @@ story adds a spatial premise, not a second topology model.
   space.
 - A **spine** stage that runs the primary fore-aft corridor and assigns each
   frame a longitudinal zone.
-- A **compartment carve** stage that hangs purposed compartments off the spine,
-  choosing purpose by zone affinity rather than a coordinate table.
+- ~~A **compartment carve** stage that hangs purposed compartments off the
+  spine~~ — superseded. Rooms are packed at authored footprints and circulation
+  is cut from the space that packing leaves; hanging every compartment off the
+  spine turned out to be the defect, not the design.
 - A **transverse bulkhead** stage that divides the deck at chosen frames with
   authored hatches, producing an ordered chokepoint sequence.
 - A **breach point** stage that places the boarding entry on a flank at a chosen

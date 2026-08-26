@@ -25,31 +25,83 @@ import java.util.List;
  */
 public final class DeckGraph {
 
-    /** One placed room. Bounds are the inclusive walkable cell rect, excluding its bulkheads. */
-    public record Compartment(int id, int left, int top, int right, int bottom,
-                              DeckSide side, DeckZone zone, RoomPurpose purpose) {
+    /**
+     * One placed room: the shape actually laid down, where it was laid, and the
+     * doors cut into it.
+     *
+     * <p>The oriented {@link RoomShape} is carried rather than a bounding box
+     * because a fill needs the floor the room really owns — a bounding box
+     * includes the corners a diamond or an L does not have, and furnishing those
+     * would put bunks inside the bulkhead. The doors matter for the same reason:
+     * circulation inside a room is authored from its entries outward, so a fill
+     * that does not know where people come in cannot leave them a way through.
+     *
+     * @param originX cell the shape's local origin sits on
+     * @param originY cell the shape's local origin sits on
+     * @param doors cells cut through this room's bulkhead
+     */
+    public record Compartment(int id, RoomShape shape, int originX, int originY,
+                              DeckSide side, DeckZone zone, RoomPurpose purpose,
+                              List<Door> doors) {
+
+        public Compartment {
+            doors = List.copyOf(doors);
+        }
+
+        /**
+         * One cell of doorway.
+         *
+         * <p>A record rather than an {@code int[]} because a record's own
+         * equality compares its components, and an array component compares by
+         * identity — so a compartment carrying arrays never equalled an
+         * identical compartment, and the determinism check that was supposed to
+         * catch layout drift could only ever fail.
+         */
+        public record Door(int x, int y) {}
+
+        /** Whether this compartment's floor covers the given deck cell. */
+        public boolean contains(int x, int y) {
+            return shape.contains(x - originX, y - originY);
+        }
+
+        public int left() {
+            return originX;
+        }
+
+        public int top() {
+            return originY;
+        }
+
+        public int right() {
+            return originX + shape.width() - 1;
+        }
+
+        public int bottom() {
+            return originY + shape.height() - 1;
+        }
 
         /** First frame this compartment spans. */
         public int foreFrame() {
-            return left;
+            return left();
         }
 
         /** Last frame this compartment spans. */
         public int aftFrame() {
-            return right;
+            return right();
         }
 
         public int width() {
-            return right - left + 1;
+            return shape.width();
         }
 
         /** Extent across the beam, in cells. */
         public int depth() {
-            return bottom - top + 1;
+            return shape.height();
         }
 
+        /** Cells of floor this compartment owns, which is not its bounding box. */
         public int area() {
-            return width() * depth();
+            return shape.area();
         }
     }
 
