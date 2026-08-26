@@ -41,14 +41,35 @@ public final class VehicleBayFitting implements RoomFitting {
     /** Cells kept clear either side of a door, so a machine can be driven through it. */
     private static final int DOOR_CLEARANCE = 1;
 
-    /** Tools a technician works a machine from, on the columns flanking each bay. */
-    private static final String[] BAY_TOOLS = {
+    /**
+     * The gantry frame down each side of a bay, and the clutter that collects
+     * between bays.
+     *
+     * <p>A bay is framed, not decorated. Scattering single tools down its sides
+     * read as props left lying about; what a servicing bay actually has is
+     * continuous structure the machine stands inside, with the loose gear —
+     * drums, reels, spoil — pushed into the gaps between bays where it is out of
+     * the way. Fence runs are the closest thing in the registry to a gantry rail
+     * seen from above, and they read as one because they are unbroken.
+     */
+    private static final String FRAME_ALONG_X = "doodad.industrial-fence-straight-h";
+    private static final String FRAME_ALONG_Y = "doodad.industrial-fence-straight-v";
+    private static final String[] FRAME_CORNERS = {
+            "doodad.industrial-fence-corner-nw", "doodad.industrial-fence-corner-sw",
+            "doodad.industrial-fence-corner-ne", "doodad.industrial-fence-corner-se" };
+
+    /** The station at the head of a bay, where the work on that machine is run from. */
+    private static final String[] BAY_STATION = {
             "doodad.industrial-machine-tool",
-            "doodad.industrial-cable-reel",
-            "doodad.industrial-control-console",
+            "doodad.industrial-control-console" };
+
+    /** Loose gear, pushed into the gaps between bays. */
+    private static final String[] BAY_CLUTTER = {
             "doodad.industrial-drum-cluster",
+            "doodad.industrial-cable-reel",
+            "doodad.industrial-scrap-pile",
             "doodad.industrial-pipe-bundle",
-            "doodad.industrial-scrap-pile" };
+            "doodad.industrial-pallet-stack" };
 
     /** The fab shop: benches, stock, and the console that runs it. */
     private static final String[] SHOP = {
@@ -97,10 +118,11 @@ public final class VehicleBayFitting implements RoomFitting {
                 cursor = blockedUntil + 1;
                 continue;
             }
-            layBay(floor, lengthwise, cursor, 0, bayDepth);
+            layBay(floor, lengthwise, cursor, 0, bayDepth, true);
             if (facingRanks) {
-                layBay(floor, lengthwise, cursor, across - bayDepth, bayDepth);
+                layBay(floor, lengthwise, cursor, across - bayDepth, bayDepth, false);
             }
+            layClutter(floor, lengthwise, cursor + BAY_WIDTH, across, bayDepth, facingRanks);
             cursor += BAY_WIDTH + BAY_GAP;
         }
 
@@ -120,14 +142,45 @@ public final class VehicleBayFitting implements RoomFitting {
      * standing empty rather than as a gap between tools.
      */
     private void layBay(CompartmentFloor floor, boolean lengthwise,
-                        int origin, int band, int depth) {
+                        int origin, int band, int depth, boolean headOutboard) {
         mark(floor, lengthwise, origin, band, BAY_WIDTH, depth);
         reserve(floor, lengthwise, origin + 1, band, BAY_WIDTH - 2, depth);
-        for (int step = 0; step < depth; step += 2) {
-            place(floor, lengthwise, origin, band + step,
-                    BAY_TOOLS[(step / 2) % BAY_TOOLS.length]);
-            place(floor, lengthwise, origin + BAY_WIDTH - 1, band + step,
-                    BAY_TOOLS[(step / 2 + 3) % BAY_TOOLS.length]);
+
+        // Corners first: a placed cell refuses a second fixture, so laying the
+        // rail the whole length would leave no room for the ends of the frame.
+        int far = origin + BAY_WIDTH - 1;
+        place(floor, lengthwise, origin, band, FRAME_CORNERS[0]);
+        place(floor, lengthwise, origin, band + depth - 1, FRAME_CORNERS[1]);
+        place(floor, lengthwise, far, band, FRAME_CORNERS[2]);
+        place(floor, lengthwise, far, band + depth - 1, FRAME_CORNERS[3]);
+
+        String rail = lengthwise ? FRAME_ALONG_Y : FRAME_ALONG_X;
+        for (int step = 1; step < depth - 1; step++) {
+            place(floor, lengthwise, origin, band + step, rail);
+            place(floor, lengthwise, far, band + step, rail);
+        }
+
+        // The station sits at the head of the bay, against the outer bulkhead,
+        // so it never stands between the machine and the lane it leaves by.
+        int head = headOutboard ? band : band + depth - 1;
+        for (int i = 0; i < BAY_STATION.length; i++) {
+            place(floor, lengthwise, origin + 1 + i, head, BAY_STATION[i]);
+        }
+    }
+
+    /** Loose gear in the gap between one bay and the next, clear of the lane. */
+    private void layClutter(CompartmentFloor floor, boolean lengthwise,
+                            int from, int across, int bayDepth, boolean facingRanks) {
+        int index = from;
+        for (int offset = 0; offset < BAY_GAP; offset++) {
+            for (int step = 0; step < bayDepth; step += 3) {
+                place(floor, lengthwise, from + offset, step,
+                        BAY_CLUTTER[index++ % BAY_CLUTTER.length]);
+                if (facingRanks) {
+                    place(floor, lengthwise, from + offset, across - 1 - step,
+                            BAY_CLUTTER[index++ % BAY_CLUTTER.length]);
+                }
+            }
         }
     }
 
