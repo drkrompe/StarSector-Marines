@@ -4,7 +4,7 @@ Status: IN PROGRESS — implementation is complete; paired autonomous-command li
 
 Written: 2026-08-24
 
-Updated: 2026-08-25 — added paired attacker/defender command-duel acceptance without creating a duplicate Conquest model.
+Updated: 2026-08-26 — added explicit attacker lane-line staging when only open-ground resistance is actionable.
 
 Read `conquest-nouns.md`, `ai-nouns.md`, and
 `autonomous-mission-command-foundation.md` before implementing this story.
@@ -25,6 +25,10 @@ territorial objective, or on a sole contested recapture after the keep falls.
 - Retain a squad's sticky preferred track as an organizational default, but
   allow an uncommitted squad with no useful target in that track to support a
   neighboring track.
+- Give an idle rear squad an explicit, reachable advance-track marker when
+  commander belief sees resistance ahead but no discrete room can be assigned.
+  Keep it behind the hostile front, bounded by friendly lead and safe stride,
+  and yield to local contact without exposing a hostile identity.
 - Enter an explicit keep-convergence phase when the canonical command post is
   the only uncaptured compound. Give every available assault squad useful
   approach or room-clear work across track boundaries while preserving
@@ -45,6 +49,10 @@ territorial objective, or on a sole contested recapture after the keep falls.
   confirm it receives a mission assignment instead of ambient Overwatch.
 - [x] Leave useful resistance in a squad's preferred track and confirm the
   sticky track still wins rather than causing arbitrary lateral churn.
+- [x] Put a contact-free squad behind an open-ground believed front. Confirm it
+  receives a deterministic, reachable staging marker in its track, remains
+  behind the believed hostile line, never moves backward, and publishes the
+  order through the shared commander diagnostics.
 - [x] Capture every supply compound except the canonical keep. Confirm command
   enters keep convergence and every non-garrison assault squad receives useful
   approach, clear, or capture work even when all keep rooms fall in one track.

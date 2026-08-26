@@ -1,8 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
-import com.dillon.starsectormarines.battle.ambient.AmbientTaskPose;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskRoute;
-import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
+import com.dillon.starsectormarines.battle.task.TaskPoint;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -79,7 +78,11 @@ public final class BarracksBattleScene implements AutoCloseable {
             rebuilt = true;
         }
         if (rebuilt && targetSeconds > MAX_REPLAY_SECONDS) {
-            simulation.ambientTasks().seek(targetSeconds);
+            // A Barracks frame contains physical movement and live fire, so it
+            // must never use AmbientTaskService.seek(): that presentation-only
+            // seam intentionally bypasses collision. Warm the room through the
+            // ordinary fixed-step simulation instead, with a bounded catch-up.
+            simulation.advance(MAX_REPLAY_SECONDS);
             simulatedSeconds = targetSeconds;
             return;
         }
@@ -185,7 +188,11 @@ public final class BarracksBattleScene implements AutoCloseable {
             for (int x = 0; x < GRID_WIDTH; x++) grid.recomputeCoverAt(x, y);
         }
         BattleSimulation sim = new BattleSimulation(grid, topology, 0x4241525241434B53L);
+        sim.setMissionCompletionEnabled(false);
         for (Doodad prop : props) sim.addDoodad(prop);
+        for (TaskPoint point : BarracksSceneLayout.TASK_POINTS) {
+            sim.taskPoints().register(point);
+        }
         long[] rangeTargets = new long[3];
         for (int lane = 0; lane < rangeTargets.length; lane++) {
             int targetX = 25 + lane * 2;
@@ -197,10 +204,10 @@ public final class BarracksBattleScene implements AutoCloseable {
         for (int index = 0; index < count; index++) {
             MarineSoldier soldier = marines.get(index);
             AmbientTaskRoute route = BarracksSceneLayout.MARINE_TASKS.get(index);
-            AmbientTaskPose pose = AmbientTaskService.sample(route, 0f);
+            AmbientTaskRoute.Stop berth = route.stops().get(0);
             EntitySpec spec = new EntitySpec(soldier.name(), Faction.MARINE,
-                    UnitType.MARINE, (int) Math.floor(pose.worldX()),
-                    (int) Math.floor(pose.worldY()));
+                    UnitType.MARINE, (int) Math.floor(berth.worldX()),
+                    (int) Math.floor(berth.worldY()));
             MarineLoadout.fromCatalog(UnitRole.COMBATANT, null,
                     soldier.primaryDef(), soldier.primaryGrade(), soldier.profile(),
                     soldier.specialEquipmentDef(),

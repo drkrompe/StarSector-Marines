@@ -6,10 +6,10 @@ shared perception contract.
 
 Written: 2026-08-24
 
-Updated: 2026-08-24 — routed suit-integrated stims and neural/HUD language to explicit equipment stories rather than armor-wide bonuses.
+Updated: 2026-08-26 — routed armor provenance and faction treatment through the enduring lore guide catalog.
 
-Read `progression-nouns.md`, `combat-durability-nouns.md`, and `mechs-nouns.md`
-before implementing this story.
+Read `progression-nouns.md`, `combat-durability-nouns.md`, `mechs-nouns.md`,
+and `faction-lore-nouns.md` before implementing this story.
 
 ## Problem
 

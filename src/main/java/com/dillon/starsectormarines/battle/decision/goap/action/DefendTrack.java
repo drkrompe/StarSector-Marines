@@ -15,13 +15,30 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 
 import java.util.List;
 
-/** Moves a squad to its command-authored defensive rally and holds there. */
+/** Moves a squad to its command-authored track rally and holds there. */
 public final class DefendTrack implements Action {
+    private final AssignmentKind assignmentKind;
     private final int targetX;
     private final int targetY;
 
-    public DefendTrack(int targetX, int targetY) { this.targetX = targetX; this.targetY = targetY; }
-    @Override public String name() { return "DefendTrack"; }
+    public DefendTrack(int targetX, int targetY) {
+        this(AssignmentKind.DEFEND_TRACK, targetX, targetY);
+    }
+
+    public DefendTrack(AssignmentKind assignmentKind, int targetX, int targetY) {
+        if (assignmentKind != AssignmentKind.DEFEND_TRACK
+                && assignmentKind != AssignmentKind.ADVANCE_TRACK) {
+            throw new IllegalArgumentException("track rally kind required");
+        }
+        this.assignmentKind = assignmentKind;
+        this.targetX = targetX;
+        this.targetY = targetY;
+    }
+
+    @Override public String name() {
+        return assignmentKind == AssignmentKind.ADVANCE_TRACK
+                ? "AdvanceTrack" : "DefendTrack";
+    }
     @Override public WorldState preconditions() { return WorldState.EMPTY; }
     @Override public WorldState effects() { return WorldState.EMPTY; }
     @Override public float cost(WorldState state, Squad squad, BattleView sim) { return 1f; }
@@ -30,7 +47,7 @@ public final class DefendTrack implements Action {
     @Override
     public ActionStatus execute(long member, Squad squad, BattleControl sim) {
         ObjectiveAssignment assignment = squad.assignmentForExecution();
-        if (assignment == null || assignment.kind() != AssignmentKind.DEFEND_TRACK
+        if (assignment == null || assignment.kind() != assignmentKind
                 || assignment.targetCellX() != targetX || assignment.targetCellY() != targetY) {
             sim.clearPath(member);
             return ActionStatus.FAILURE;
@@ -76,6 +93,7 @@ public final class DefendTrack implements Action {
     @Override public List<int[]> highlightCells(Squad squad, BattleView sim) {
         return List.of(new int[]{targetX, targetY});
     }
+    public AssignmentKind assignmentKind() { return assignmentKind; }
     public int targetX() { return targetX; }
     public int targetY() { return targetY; }
 
