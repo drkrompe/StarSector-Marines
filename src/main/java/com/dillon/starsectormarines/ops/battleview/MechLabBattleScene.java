@@ -33,7 +33,6 @@ public final class MechLabBattleScene implements AutoCloseable {
 
     static final int GRID_WIDTH = MechLabSceneLayout.WIDTH;
     static final int GRID_HEIGHT = MechLabSceneLayout.HEIGHT;
-    private static final float CAMERA_ZOOM_NOTCHES = 5f;
     private static final EnumSet<RenderLayer> BACKDROP_LAYERS = EnumSet.of(
             RenderLayer.GROUND, RenderLayer.DOODADS);
     private static final EnumSet<RenderLayer> ACTOR_LAYERS = EnumSet.of(RenderLayer.UNITS);
@@ -41,11 +40,8 @@ public final class MechLabBattleScene implements AutoCloseable {
     private final BattleRenderer renderer;
     private final HighlightOverlay highlights = new HighlightOverlay();
     private final Selection selection = new Selection();
-    private final BattleCamera camera = new BattleCamera(GRID_WIDTH, GRID_HEIGHT);
-
     private BattleSimulation simulation;
     private List<MechVariant> renderedVariants = List.of();
-    private boolean cameraZoomApplied;
 
     public MechLabBattleScene(BattleSprites sprites) {
         if (sprites == null) throw new IllegalArgumentException("battle sprites are required");
@@ -59,22 +55,34 @@ public final class MechLabBattleScene implements AutoCloseable {
     }
 
     public BattleSceneHostPass backdropPass(List<MechVariant> variants,
-                                            int selectedGantry,
+                                            MechLabCameraController.CameraPose cameraPose,
                                             float elapsedSeconds) {
-        return pass(variants, selectedGantry, elapsedSeconds, BACKDROP_LAYERS);
+        return pass(variants, cameraPose, elapsedSeconds, BACKDROP_LAYERS);
     }
 
     public BattleSceneHostPass actorPass(List<MechVariant> variants,
-                                         int selectedGantry,
+                                         MechLabCameraController.CameraPose cameraPose,
                                          float elapsedSeconds) {
-        return pass(variants, selectedGantry, elapsedSeconds, ACTOR_LAYERS);
+        return pass(variants, cameraPose, elapsedSeconds, ACTOR_LAYERS);
     }
 
     static BattleCamera cameraForSurface(float width, float height, int selectedGantry) {
+        return cameraForSurface(width, height,
+                MechLabCameraController.fittingPose(selectedGantry));
+    }
+
+    static BattleCamera cameraForSurface(float width, float height,
+                                         MechLabCameraController.CameraPose cameraPose) {
+        return cameraForViewport(0f, 0f, width, height, cameraPose);
+    }
+
+    private static BattleCamera cameraForViewport(float x, float y, float width, float height,
+                                                  MechLabCameraController.CameraPose cameraPose) {
         BattleCamera result = new BattleCamera(GRID_WIDTH, GRID_HEIGHT);
-        configureCamera(result, 0f, 0f, width, height);
-        result.zoomAt(CAMERA_ZOOM_NOTCHES, width * 0.5f, height * 0.5f);
-        centerOnGantry(result, selectedGantry);
+        configureCamera(result, x, y, width, height);
+        result.zoomAt(cameraPose.zoomNotches(),
+                x + width * 0.5f, y + height * 0.5f);
+        result.centerOn(cameraPose.worldX(), cameraPose.worldY());
         return result;
     }
 
@@ -86,14 +94,16 @@ public final class MechLabBattleScene implements AutoCloseable {
         return gantry(gantryIndex).cellY() + 0.5f;
     }
 
-    private BattleSceneHostPass pass(List<MechVariant> variants, int selectedGantry,
+    private BattleSceneHostPass pass(List<MechVariant> variants,
+                                     MechLabCameraController.CameraPose cameraPose,
                                      float elapsedSeconds,
                                      EnumSet<RenderLayer> layers) {
         List<MechVariant> snapshot = variants != null ? List.copyOf(variants) : List.of();
+        if (cameraPose == null) throw new IllegalArgumentException("camera pose is required");
         return new BattleSceneHostPass() {
             @Override
             public BattleSceneFrame prepare(CanvasHostViewport viewport, float alphaMult) {
-                return prepareFrame(viewport, snapshot, selectedGantry,
+                return prepareFrame(viewport, snapshot, cameraPose,
                         elapsedSeconds, alphaMult, layers);
             }
 
@@ -110,7 +120,8 @@ public final class MechLabBattleScene implements AutoCloseable {
 
     private BattleSceneFrame prepareFrame(CanvasHostViewport viewport,
                                            List<MechVariant> variants,
-                                           int selectedGantry, float elapsedSeconds,
+                                           MechLabCameraController.CameraPose cameraPose,
+                                           float elapsedSeconds,
                                            float alphaMult,
                                            EnumSet<RenderLayer> layers) {
         if (viewport.width() <= 0f || viewport.height() <= 0f) {
@@ -118,15 +129,8 @@ public final class MechLabBattleScene implements AutoCloseable {
         }
         ensureSimulation(variants);
         simulation.ambientTasks().seek(elapsedSeconds);
-        configureCamera(camera, viewport.screenX(), viewport.screenY(),
-                viewport.width(), viewport.height());
-        if (!cameraZoomApplied) {
-            camera.zoomAt(CAMERA_ZOOM_NOTCHES,
-                    viewport.screenX() + viewport.width() * 0.5f,
-                    viewport.screenY() + viewport.height() * 0.5f);
-            cameraZoomApplied = true;
-        }
-        centerOnGantry(camera, selectedGantry);
+        BattleCamera camera = cameraForViewport(viewport.screenX(), viewport.screenY(),
+                viewport.width(), viewport.height(), cameraPose);
         RenderContext context = new RenderContext(simulation, camera, null,
                 alphaMult, 0f, false, highlights, selection,
                 BattleRenderHostProfile.EMBEDDED_SCENE);
@@ -137,11 +141,6 @@ public final class MechLabBattleScene implements AutoCloseable {
                                         float width, float height) {
         float fittedCell = Math.min(width / GRID_WIDTH, height / GRID_HEIGHT);
         camera.setViewport(x, y, width, height, fittedCell);
-    }
-
-    private static void centerOnGantry(BattleCamera camera, int selectedGantry) {
-        MechLabSceneLayout.Gantry gantry = gantry(selectedGantry);
-        camera.centerOn(gantry.cellX() + 0.5f, gantry.cellY() + 0.5f);
     }
 
     private static MechLabSceneLayout.Gantry gantry(int index) {
