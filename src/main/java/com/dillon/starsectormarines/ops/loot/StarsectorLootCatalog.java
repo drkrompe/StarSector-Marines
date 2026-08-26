@@ -1,8 +1,11 @@
 package com.dillon.starsectormarines.ops.loot;
 
+import com.dillon.starsectormarines.marine.EquipmentTemplateCardInventory;
+import com.dillon.starsectormarines.marine.EquipmentTemplateCardItemPlugin;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.SettingsAPI;
 import com.fs.starfarer.api.campaign.FactionAPI;
+import com.fs.starfarer.api.campaign.SpecialItemSpecAPI;
 import com.fs.starfarer.api.campaign.econ.CommoditySpecAPI;
 import com.fs.starfarer.api.combat.WeaponAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
@@ -33,7 +36,19 @@ public final class StarsectorLootCatalog {
         addCommodity(out, settings, request, Commodities.HEAVY_MACHINERY, 2f, 5, 35);
         addAiCores(out, settings, request);
         addWeapons(out, settings, request);
+        addEquipmentTemplate(out, settings, request);
         return out;
+    }
+
+    private static void addEquipmentTemplate(List<LootCandidate> out, SettingsAPI settings,
+                                             LootRollRequest request) {
+        SpecialItemSpecAPI spec = settings.getSpecialItemSpec(
+                EquipmentTemplateCardItemPlugin.ITEM_ID);
+        if (spec == null || spec.getBasePrice() <= 0f) return;
+        out.addAll(EquipmentTemplateRecoveryCatalog.candidates(request,
+                EquipmentTemplateCardInventory.playerUnavailableTemplateIds(),
+                Math.max(1, Math.round(spec.getBasePrice())),
+                Math.max(0f, spec.getCargoSpace()), spec.getIconName()));
     }
 
     private static void addAiCores(List<LootCandidate> out, SettingsAPI settings,

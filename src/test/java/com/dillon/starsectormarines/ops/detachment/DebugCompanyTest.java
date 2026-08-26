@@ -149,15 +149,19 @@ class DebugCompanyTest {
     }
 
     @Test
-    void theDialStopsWhereTheLiftDoes() {
-        assertEquals(DebugCompany.MAX_SQUADS, DebugCompany.clampSquads(9999));
-        assertEquals(0, DebugCompany.clampSquads(-5));
+    void theDialHasNoAuthoredSquadCeiling() {
+        assertEquals(9999, DebugCompany.normalizeSquads(9999));
+        assertEquals(0, DebugCompany.normalizeSquads(-5));
 
-        MarineRoster maxed = DebugCompany.roster(
-                DebugCompanyStage.FULL_STRENGTH, DebugCompany.MAX_SQUADS);
-        assertEquals(DebugCompany.MAX_SQUADS * MarineSquad.CAPACITY,
-                maxed.activeSoldiers().size(),
-                "480 marines is a CONQUEST-HIGH manifest — 40 drops at twelve seats");
+        int requested = 41;
+        MarineRoster expanded = DebugCompany.roster(
+                DebugCompanyStage.FULL_STRENGTH, requested);
+        assertEquals(requested * MarineSquad.CAPACITY,
+                expanded.activeSoldiers().size(),
+                "the detached fixture must cross the former forty-squad ceiling");
+        assertTrue(DebugCompanyStage.FULL_STRENGTH.summary(Integer.MAX_VALUE)
+                        .contains("25769803764 marines"),
+                "the uncapped control's readout must not overflow");
     }
 
     @Test

@@ -104,6 +104,7 @@ public final class HeadlessArmoryPreviewRenderer {
             EquipmentTemplateCatalog templates = new EquipmentTemplateCatalog();
             templates.ingest(new JSONObject(Files.readString(modRoot.resolve(
                     "data/marines/equipment-templates.template.json"))));
+            templates.validateCompleteness();
             EquipmentTemplateCatalog.install(templates);
         }
         if (SquadLoadoutPresentationRegistry.installed() == null) {

@@ -259,12 +259,15 @@ public final class CampaignMarineDeployment {
 
     public static int requiredSeats(List<ShuttleAssignment> manifest, int firstAssignment) {
         if (manifest == null) return 0;
-        int total = 0;
+        long total = 0L;
         for (int i = Math.max(0, firstAssignment); i < manifest.size(); i++) {
             ShuttleAssignment assignment = manifest.get(i);
-            if (assignment != null) total += assignment.seatsPerSortie * assignment.cycles;
+            if (assignment != null) {
+                total += (long) assignment.seatsPerSortie * assignment.cycles;
+                if (total >= Integer.MAX_VALUE) return Integer.MAX_VALUE;
+            }
         }
-        return total;
+        return (int) total;
     }
 
     private static int requiredSeats(List<ShuttleAssignment> manifest) {

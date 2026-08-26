@@ -52,6 +52,7 @@ public final class FleetArmoryScreen implements Screen {
     private UiViewport viewport;
     private UiDocument document;
     private MarkupInstance markupInstance;
+    private ArmoryEquipmentTooltips equipmentTooltips = ArmoryEquipmentTooltips.empty();
     private StarsectorUiInputAdapter input;
     private float previewAnimationSeconds;
     private int projectedCampaignHour = Integer.MIN_VALUE;
@@ -95,11 +96,14 @@ public final class FleetArmoryScreen implements Screen {
         MarkupInstance candidate = prepared == null
                 ? markup.build(reactor, componentName, props()) : prepared.instance();
         UiDocument built;
+        ArmoryEquipmentTooltips candidateTooltips = ArmoryEquipmentTooltips.empty();
         try {
             requireWiredElements(candidate);
             if (view == View.FIRETEAMS) {
                 candidate.requireElement("transaction-feedback")
                         .align(UiAlign.STRETCH, UiAlign.CENTER);
+                candidateTooltips = ArmoryEquipmentTooltips.bind(
+                        candidate, viewModel.marineCards().get());
             }
             built = new UiDocument(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
@@ -138,6 +142,7 @@ public final class FleetArmoryScreen implements Screen {
         if (prepared != null) prepared.commit();
         document = built;
         markupInstance = candidate;
+        equipmentTooltips = candidateTooltips;
         if (previousDocument != null) previousDocument.deactivateInput();
         if (previousInstance != null) previousInstance.close();
         if (viewport != null) input = new StarsectorUiInputAdapter(document, viewport);
@@ -277,6 +282,7 @@ public final class FleetArmoryScreen implements Screen {
             viewModel.refresh();
         }
         if (markupInstance != null) markupInstance.flush();
+        equipmentTooltips.update();
         if ((view == View.FIRETEAMS || view == View.DESIGNER)
                 && Float.isFinite(dt) && dt > 0f) {
             previewAnimationSeconds = (previewAnimationSeconds + dt) % 60f;
@@ -309,6 +315,7 @@ public final class FleetArmoryScreen implements Screen {
         if (markupInstance != null) markupInstance.close();
         document = null;
         markupInstance = null;
+        equipmentTooltips = ArmoryEquipmentTooltips.empty();
         input = null;
     }
 

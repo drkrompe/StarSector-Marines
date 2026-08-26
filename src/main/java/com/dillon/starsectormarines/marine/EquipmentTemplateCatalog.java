@@ -14,10 +14,12 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /** Additive, data-authored collectible templates and their base-game cargo issue costs. */
 public final class EquipmentTemplateCatalog {
@@ -27,6 +29,8 @@ public final class EquipmentTemplateCatalog {
 
     private final Map<String, EquipmentTemplateCard> byId = new LinkedHashMap<>();
     private final Map<String, CatalogSource> sourceById = new LinkedHashMap<>();
+    private final Map<EquipmentIdentity, String> nonPlayerReasons = new LinkedHashMap<>();
+    private final Map<EquipmentIdentity, CatalogSource> nonPlayerSources = new LinkedHashMap<>();
 
     public static EquipmentTemplateCatalog installed() {
         return installed;
@@ -46,6 +50,7 @@ public final class EquipmentTemplateCatalog {
                         + catalog.source().describe(), failure);
             }
         }
+        registry.validateCompleteness();
         install(registry);
         LOG.info("Equipment-template catalog installed with " + registry.size()
                 + " cards from " + catalogs.size() + " contributed catalogs");
@@ -59,6 +64,7 @@ public final class EquipmentTemplateCatalog {
         parsePrimaries(root.optJSONArray("primaries"), source);
         parseArmor(root.optJSONArray("armor"), source);
         parseSpecials(root.optJSONArray("specialEquipment"), source);
+        parseNonPlayerEquipment(root.optJSONArray("nonPlayerEquipment"), source);
     }
 
     public static List<String> playerPrimaryIds() {
@@ -151,6 +157,38 @@ public final class EquipmentTemplateCatalog {
         return byId.values();
     }
 
+    /**
+     * Verifies that authored player-equipment catalogs cannot silently strand content.
+     * Every marine primary is either a complete four-grade family or explicitly
+     * non-player equipment; every armor and special-equipment identity likewise has
+     * a card or an explicit exclusion.
+     */
+    public void validateCompleteness() {
+        validateExclusionReferences();
+        for (WeaponDef weapon : WeaponRegistry.installed().all()) {
+            if (weapon.mount != MountClass.MARINE_PRIMARY) continue;
+            EquipmentIdentity identity = new EquipmentIdentity(
+                    EquipmentTemplateCard.Kind.PRIMARY, weapon.id);
+            EnumSet<EquipmentGrade> present = EnumSet.noneOf(EquipmentGrade.class);
+            for (EquipmentGrade grade : EquipmentGrade.values()) {
+                if (byId.containsKey(primaryId(weapon.id, grade))) present.add(grade);
+            }
+            validatePrimaryIdentity(identity, present);
+        }
+        for (MarineArmorCatalogDef armor : MarineArmorCatalogRegistry.installed().all()) {
+            validateSingleIdentity(new EquipmentIdentity(
+                    EquipmentTemplateCard.Kind.ARMOR, armor.id()), armorId(armor.id()));
+        }
+        for (SpecialEquipmentDef special : SpecialEquipmentRegistry.installed().all()) {
+            validateSingleIdentity(new EquipmentIdentity(
+                    EquipmentTemplateCard.Kind.SPECIAL, special.id()), specialId(special.id()));
+        }
+    }
+
+    public String nonPlayerReason(EquipmentTemplateCard.Kind kind, String equipmentId) {
+        return nonPlayerReasons.get(new EquipmentIdentity(kind, equipmentId));
+    }
+
     public int size() {
         return byId.size();
     }
@@ -202,6 +240,91 @@ public final class EquipmentTemplateCatalog {
         }
     }
 
+    private void parseNonPlayerEquipment(JSONArray array, CatalogSource source)
+            throws JSONException {
+        if (array == null) return;
+        for (int index = 0; index < array.length(); index++) {
+            JSONObject entry = array.getJSONObject(index);
+            EquipmentTemplateCard.Kind kind = parseKind(requireText(entry, "kind"));
+            String equipmentId = requireText(entry, "equipmentId");
+            String reason = requireText(entry, "reason");
+            EquipmentIdentity identity = new EquipmentIdentity(kind, equipmentId);
+            CatalogSource prior = nonPlayerSources.putIfAbsent(identity, source);
+            if (prior != null) {
+                throw new JSONException("Duplicate non-player equipment claim for '"
+                        + equipmentId + "': first declared by " + prior.describe()
+                        + ", then by " + source.describe());
+            }
+            nonPlayerReasons.put(identity, reason);
+        }
+    }
+
+    private void validateExclusionReferences() {
+        for (EquipmentIdentity identity : nonPlayerReasons.keySet()) {
+            try {
+                switch (identity.kind) {
+                    case PRIMARY -> {
+                        WeaponDef weapon = WeaponRegistry.require(identity.equipmentId);
+                        if (weapon.mount != MountClass.MARINE_PRIMARY) {
+                            throw new IllegalStateException("Non-player primary exclusion '"
+                                    + identity.equipmentId + "' references a non-primary weapon");
+                        }
+                    }
+                    case ARMOR -> MarineArmorCatalogRegistry.require(identity.equipmentId);
+                    case SPECIAL -> SpecialEquipmentRegistry.require(identity.equipmentId);
+                }
+            } catch (IllegalArgumentException failure) {
+                throw new IllegalStateException("Non-player "
+                        + identity.kind.name().toLowerCase(Locale.ROOT) + " exclusion references unknown equipment '"
+                        + identity.equipmentId + "'", failure);
+            }
+        }
+    }
+
+    private void validatePrimaryIdentity(
+            EquipmentIdentity identity, Set<EquipmentGrade> present) {
+        boolean excluded = nonPlayerReasons.containsKey(identity);
+        if (excluded && !present.isEmpty()) {
+            throw mixedPlayerStatus(identity);
+        }
+        if (excluded) return;
+        if (present.size() != EquipmentGrade.values().length) {
+            EnumSet<EquipmentGrade> missing = EnumSet.allOf(EquipmentGrade.class);
+            missing.removeAll(present);
+            throw new IllegalStateException("Marine primary '" + identity.equipmentId
+                    + "' is missing player template grades " + missing
+                    + "; declare every grade or one explicit nonPlayerEquipment reason");
+        }
+    }
+
+    private void validateSingleIdentity(EquipmentIdentity identity, String templateId) {
+        boolean hasCard = byId.containsKey(templateId);
+        boolean excluded = nonPlayerReasons.containsKey(identity);
+        if (hasCard && excluded) throw mixedPlayerStatus(identity);
+        if (!hasCard && !excluded) {
+            throw new IllegalStateException("Authored "
+                    + identity.kind.name().toLowerCase(Locale.ROOT) + " equipment '"
+                    + identity.equipmentId
+                    + "' requires a player template or one explicit nonPlayerEquipment reason");
+        }
+    }
+
+    private IllegalStateException mixedPlayerStatus(EquipmentIdentity identity) {
+        CatalogSource exclusionSource = nonPlayerSources.get(identity);
+        return new IllegalStateException("Equipment '" + identity.equipmentId
+                + "' cannot have player templates and a non-player claim from "
+                + exclusionSource.describe());
+    }
+
+    private static EquipmentTemplateCard.Kind parseKind(String value) throws JSONException {
+        try {
+            return EquipmentTemplateCard.Kind.valueOf(value.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException failure) {
+            throw new JSONException("Unknown non-player equipment kind '" + value
+                    + "'; expected primary, armor, or special");
+        }
+    }
+
     private void register(EquipmentTemplateCard card, CatalogSource source) throws JSONException {
         if (byId.containsKey(card.id())) {
             throw new JSONException("Duplicate equipment template id '" + card.id()
@@ -235,4 +358,6 @@ public final class EquipmentTemplateCatalog {
         }
         return catalog;
     }
+
+    private record EquipmentIdentity(EquipmentTemplateCard.Kind kind, String equipmentId) {}
 }

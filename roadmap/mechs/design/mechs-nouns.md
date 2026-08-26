@@ -4,8 +4,9 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — expanded the overview to the whole four-bay facility and
-its battle-owned fabrication, logistics, and inspection activity.
+Updated: 2026-08-26 — expanded the overview to the whole four-bay facility and
+its battle-owned fabrication, logistics, and inspection activity, and removed
+the scenario-authored ceiling from debug mech rosters.
 
 ## Purpose
 
@@ -137,6 +138,9 @@ refit, lift, or campaign entitlement. Ordinary campaign state separately owns
 a starter support squad and its subsystem stock. Fleet or employer sourcing
 still determines whether Mech Support is available in an operation; ownership
 determines the payload, not the entitlement to call it.
+The debug roster count has no scenario-authored maximum; every requested chassis
+becomes part of the deterministic roster and therefore another four-chassis-or-less
+support sortie, subject only to practical runtime resources.
 
 ## Laws
 

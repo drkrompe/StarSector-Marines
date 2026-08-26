@@ -68,6 +68,22 @@ class FactionEquipmentCatalogTest {
         assertFalse(FactionEquipmentCatalog.installed().entries().stream()
                 .flatMap(pool -> pool.offers(FactionEquipmentSource.MARKET).stream())
                 .anyMatch(offer -> offer.template().grade() == EquipmentGrade.MASTERWORK));
+        FactionEquipmentCatalog.installed().validateReachability(
+                new MarineArmory().ownedEquipmentTemplateIds());
+    }
+
+    @Test
+    void collectibleWithoutStarterOrFactionSourceFailsReachabilityAudit() throws Exception {
+        FactionEquipmentCatalog catalog = new FactionEquipmentCatalog();
+        catalog.ingest(singleOffer("independent", "market"), CORE);
+        catalog.validateCompleteness();
+
+        IllegalStateException failure = assertThrows(IllegalStateException.class,
+                () -> catalog.validateReachability(
+                        new MarineArmory().ownedEquipmentTemplateIds()));
+
+        assertTrue(failure.getMessage().contains(
+                "equipment-template:weapon.field-rifle:surplus"));
     }
 
     @Test
