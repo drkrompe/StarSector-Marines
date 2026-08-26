@@ -1,11 +1,15 @@
 package com.dillon.starsectormarines.catalog;
 
+import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,10 +21,24 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class MarineCatalogManifestTest {
 
     @Test
+    void coreManifestDeclaresTileResourcesInCompatibilityOrder() throws Exception {
+        MarineCatalogManifest manifest = MarineCatalogManifest.parse(
+                "starsector_marines", new JSONObject(Files.readString(Path.of(
+                        "mod/data/marines/starsector-marines.catalog.json"))));
+
+        assertEquals(TileRegistry.BUILTIN_TILESETS, manifest.tilesets().stream()
+                .map(file -> file.source().path()).toList());
+        assertEquals(GenMappingRegistry.BUILTIN_MAPPINGS, manifest.tileMappings().stream()
+                .map(file -> file.source().path()).toList());
+    }
+
+    @Test
     void parsesExplicitCatalogsWithProviderProvenance() throws Exception {
         MarineCatalogManifest manifest = MarineCatalogManifest.parse("oc_faction", new JSONObject("""
                 {
                   "schemaVersion": 1,
+                  "tilesets": ["data/oc/terrain.tileset.json"],
+                  "tileMappings": ["data/oc/terrain.mapping.json"],
                   "weapons": ["data/oc/weapons.weapon.json"],
                   "armor": ["data/oc/armor.armor.json"],
                   "groundRosters": ["data/oc/roster.roster.json"],
@@ -28,6 +46,9 @@ class MarineCatalogManifestTest {
                 }
                 """));
 
+        assertEquals("oc_faction", manifest.tilesets().get(0).source().modId());
+        assertEquals("data/oc/terrain.mapping.json",
+                manifest.tileMappings().get(0).source().path());
         assertEquals("oc_faction", manifest.weapons().get(0).source().modId());
         assertEquals("data/oc/weapons.weapon.json",
                 manifest.weapons().get(0).source().path());

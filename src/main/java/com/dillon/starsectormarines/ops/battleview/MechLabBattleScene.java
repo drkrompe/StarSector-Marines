@@ -110,8 +110,8 @@ public final class MechLabBattleScene implements AutoCloseable {
                                            int selectedGantry, float elapsedSeconds,
                                            float alphaMult,
                                            EnumSet<RenderLayer> layers) {
-        if (variants.isEmpty() || viewport.width() <= 0f || viewport.height() <= 0f) {
-            throw new IllegalArgumentException("Mech Lab scene requires assets and a visible viewport");
+        if (viewport.width() <= 0f || viewport.height() <= 0f) {
+            throw new IllegalArgumentException("Mech Lab scene requires a visible viewport");
         }
         ensureSimulation(variants);
         MechLabTechnicianJobs.apply(simulation, elapsedSeconds);

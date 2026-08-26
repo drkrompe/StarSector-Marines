@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-25
 
-Updated: 2026-08-25 — clarified optional manifest discovery through the game resource API.
+Updated: 2026-08-25 — added additive tileset and tile-mapping contributions.
 
 ## Provider entry point
 
@@ -23,6 +23,8 @@ provider mod and explicitly ordered:
 ```json
 {
   "schemaVersion": 1,
+  "tilesets": ["data/my_faction/colony.tileset.json"],
+  "tileMappings": ["data/my_faction/colony.mapping.json"],
   "weapons": ["data/my_faction/infantry.weapon.json"],
   "specialEquipment": ["data/my_faction/specials.equipment.json"],
   "armor": ["data/my_faction/armor.armor.json"],
@@ -52,15 +54,30 @@ listed by a provider resolves to that provider's profile.
 
 The runtime resolves catalogs in this order:
 
-1. weapons;
-2. special equipment and armor;
-3. collectible equipment templates;
-4. faction ground rosters.
+1. tilesets;
+2. tile mappings;
+3. weapons;
+4. special equipment and armor;
+5. collectible equipment templates;
+6. faction ground rosters.
 
 References therefore resolve eagerly and fail at application load. A primary
 template must name a `marine-primary` weapon. A special must reference a
 `marine-secondary` weapon when its activation is weapon-like. Armor, template,
 and roster references must exist before their consumers are installed.
+
+## Tilesets and mappings
+
+`tilesets` files add stable tile, grid-block, and doodad definitions to one
+shared id namespace. `tileMappings` files add named doodad pools and unclaimed
+ground-render, filler, or macro-height keys. Every mapping reference must
+resolve after all tilesets load. A contributed mapping cannot replace a core
+pool or policy key; such a collision reports both providers and stops load.
+
+Definition ids and mapping names should use the provider's namespace. Sheet
+and auxiliary texture paths should also be namespaced because Starsector art
+resources inhabit a shared path namespace even though catalog JSON is read
+from its declaring mod exactly.
 
 ## Equipment templates
 

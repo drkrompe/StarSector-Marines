@@ -131,6 +131,8 @@ public final class MechLabScreen implements Screen {
         props.put("workspaceClasses", viewModel.workspaceClasses());
         props.put("openAssetPicker", viewModel.openAssetPickerAction());
         props.put("closeAssetPicker", viewModel.closeAssetPickerAction());
+        props.put("previousGantry", viewModel.previousGantryAction());
+        props.put("nextGantry", viewModel.nextGantryAction());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MECH_LAB,
@@ -149,6 +151,7 @@ public final class MechLabScreen implements Screen {
                 "page-nav-mech-lab",
                 "mech-lab-room-bar", "mech-lab-body", "mech-asset-picker",
                 "mech-squad-list", "mech-list", "mech-fitting-workspace",
+                "mech-previous-gantry", "mech-active-gantry", "mech-next-gantry",
                 "mech-performance-grid", "mech-garage-stage", "mech-doll-canvas",
                 "mech-slot-rack", "mech-component-catalog",
                 "mech-catalog-list",

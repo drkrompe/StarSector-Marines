@@ -34,8 +34,9 @@ import java.util.TreeMap;
  *       front line washing over a building. A <em>measured detachment</em>
  *       (one squad, two for a multi-room keep) is peeled off to
  *       {@link AssignmentKind#SECURE_COMPOUND} a compound the moment it is
- *       <em>uncontested</em> — nearest squads assigned, capped per compound
- *       so the whole force is never stripped off the enemy. A compound that
+ *       <em>uncontested</em> — squads without actionable front work go first,
+ *       and at least one executable actionable squad remains on the front.
+ *       The budget is global across compounds. A compound that
  *       still holds defenders is only assigned to a squad already in/adjacent
  *       to it (commit incidental presence; never feed a lone squad into a
  *       defended building). "Contested" is judged over the compound's
@@ -105,6 +106,9 @@ public final class ConquestCommand implements ConquestFrontCommand,
      * counter-drop mid-capture doesn't lose the take). Tunable.
      */
     public static final int LARGE_COMPOUND_ROOMS = 3;
+
+    /** Keep at least one executable, actionable squad on a live front. */
+    public static final int MIN_FRONT_RESERVE_SQUADS = 1;
 
     /**
      * Cells of slack added around a compound's footprint when resolving its
@@ -304,6 +308,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 : finalCompoundConvergence
                 ? Phase.FINAL_COMPOUND_CONVERGENCE : Phase.LANE_ADVANCE;
 
+        IntOpenHashSet deferredCaptures = new IntOpenHashSet();
         if (keepConvergence) {
             for (PlanningSquad squad : squads) {
                 if (reachableZone(squad, keep.anchorZoneId, frame)) {
@@ -319,7 +324,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
         } else {
             // Pass 1: deliberate compound capture. Pulls a capped detachment
             // off the front while preserving ordinary compound quotas.
-            assignCompoundCaptures(squads, committed, directives, frame);
+            assignCompoundCaptures(squads, committed, deferredCaptures,
+                    directives, frame);
         }
 
         if (!keepConvergence) {
@@ -334,9 +340,13 @@ public final class ConquestCommand implements ConquestFrontCommand,
                         : targetChoice(squad, preferredTrack, frame);
                 if (choice.targetZoneId < 0) {
                     squad.assignedObjective = null;
-                    directives.put(squad.id, directive(squad, preferredTrack,
+                    SquadDirective planned = directive(squad, preferredTrack,
                             preferredTrack,
-                            AssignmentReason.NO_ACTIONABLE_TRACK_TARGET));
+                            AssignmentReason.NO_ACTIONABLE_TRACK_TARGET);
+                    if (deferredCaptures.contains(squad.id)) {
+                        planned = planned.withDistantCaptureDeferred();
+                    }
+                    directives.put(squad.id, planned);
                     continue;
                 }
                 ObjectiveAssignment cur = squad.assignedObjective;
@@ -355,8 +365,12 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 } else if (reason == AssignmentReason.ADJACENT_TRACK_SUPPORT) {
                     phase = Phase.FRONT_ADJUST;
                 }
-                directives.put(squad.id, directive(squad, preferredTrack,
-                        choice.trackIndex, reason));
+                SquadDirective planned = directive(squad, preferredTrack,
+                        choice.trackIndex, reason);
+                if (deferredCaptures.contains(squad.id)) {
+                    planned = planned.withDistantCaptureDeferred();
+                }
+                directives.put(squad.id, planned);
             }
         }
 
@@ -393,19 +407,20 @@ public final class ConquestCommand implements ConquestFrontCommand,
      *       still-capturable compound keeps it (stability across replans) and
      *       fills one of that compound's slots — a squad mid-capture is by
      *       definition the "already adjacent" case.</li>
-     *   <li><b>Uncontested fill.</b> For compounds with no defender in any
-     *       garrison zone, greedily assign the nearest uncommitted squads up
-     *       to the per-compound quota. Greedy nearest-pair so several
-     *       compounds spread the squads rather than all piling on the closest
-     *       one.</li>
-     *   <li><b>Contested adjacent.</b> For compounds that still hold defenders,
-     *       commit only uncommitted squads already in/adjacent to a garrison
-     *       zone — convert incidental presence into a committed capture; never
-     *       pull a fresh squad into a defended building.</li>
+     *   <li><b>Adjacent commit.</b> Fill remaining slots with squads already
+     *       in/adjacent to the compound. They have reached the objective, so
+     *       they do not consume the distant-detachment allowance. This is the
+     *       only way a fresh assignment enters a contested compound.</li>
+     *   <li><b>Uncontested distant fill.</b> Greedily assign nearest pairs up
+     *       to the ordinary per-compound quotas. While an uncommitted squad
+     *       can act on front resistance, fresh distant departures are globally
+     *       bounded so at least one executable actionable squad remains on the
+     *       front. With no actionable resistance the ordinary quotas apply.</li>
      * </ol>
      */
     private void assignCompoundCaptures(List<PlanningSquad> squads,
                                         IntOpenHashSet committed,
+                                        IntOpenHashSet deferredCaptures,
                                         Map<Integer, SquadDirective> directives,
                                         ConquestCommandFrame frame) {
         if (compoundTargets.isEmpty() || squads.isEmpty()) return;
@@ -423,7 +438,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
             contested[i] = isContested(t, frame);
         }
 
-        // Phase 1: preserve in-flight captures.
+        // Phase 1: preserve in-flight captures even when today's front state
+        // would not authorize starting the same order again.
         for (PlanningSquad squad : squads) {
             ObjectiveAssignment a = squad.assignedObjective;
             if (a == null || a.kind() != AssignmentKind.SECURE_COMPOUND) continue;
@@ -438,35 +454,11 @@ public final class ConquestCommand implements ConquestFrontCommand,
                     AssignmentReason.COMPOUND_CAPTURE_PRESERVED);
         }
 
-        // Phase 2: greedy nearest-pair fill of uncontested compounds.
-        while (true) {
-            int bestSquad = -1, bestTarget = -1;
-            float bestDist = Float.MAX_VALUE;
-            for (PlanningSquad squad : squads) {
-                if (committed.contains(squad.id)) continue;
-                for (int i = 0; i < n; i++) {
-                    if (slots[i] <= 0 || contested[i]) continue;
-                    if (!reachableZone(squad, compoundTargets.get(i).anchorZoneId,
-                            frame)) continue;
-                    float d = distSq(squad, compoundTargets.get(i));
-                    if (d < bestDist || (d == bestDist
-                            && (bestSquad < 0 || squad.id < bestSquad))) {
-                        bestDist = d;
-                        bestSquad = squad.id;
-                        bestTarget = i;
-                    }
-                }
-            }
-            if (bestSquad < 0) break;
-            commitCapture(squadById(squads, bestSquad),
-                    compoundTargets.get(bestTarget), committed, directives,
-                    AssignmentReason.COMPOUND_CAPTURE_UNCONTESTED);
-            slots[bestTarget]--;
-        }
-
-        // Phase 3: commit already-adjacent squads to contested compounds.
+        // Phase 2: a squad that has physically reached a compound commits
+        // before distant allocation, whether or not current belief sees a
+        // defender there. Adjacent squads do not consume the distant cap.
         for (int i = 0; i < n; i++) {
-            if (slots[i] <= 0 || !contested[i]) continue;
+            if (slots[i] <= 0) continue;
             CompoundTarget t = compoundTargets.get(i);
             for (PlanningSquad squad : squads) {
                 if (slots[i] <= 0) break;
@@ -478,6 +470,89 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 slots[i]--;
             }
         }
+
+        IntOpenHashSet actionableFrontSquads = actionableFrontSquads(
+                squads, committed, frame);
+        int actionableRemaining = actionableFrontSquads.size();
+
+        // Phase 3: greedy nearest-pair fill of uncontested compounds.
+        // Non-actionable squads are preferred for capture. An actionable
+        // squad may depart only while another executable actionable squad
+        // remains, making the cap global across every compound and replan.
+        while (true) {
+            int bestSquad = -1, bestTarget = -1;
+            int bestActionableRank = Integer.MAX_VALUE;
+            float bestDist = Float.MAX_VALUE;
+            for (PlanningSquad squad : squads) {
+                if (committed.contains(squad.id)) continue;
+                boolean actionable = actionableFrontSquads.contains(squad.id);
+                if (actionable
+                        && actionableRemaining <= MIN_FRONT_RESERVE_SQUADS) {
+                    continue;
+                }
+                for (int i = 0; i < n; i++) {
+                    if (slots[i] <= 0 || contested[i]) continue;
+                    if (!reachableZone(squad, compoundTargets.get(i).anchorZoneId,
+                            frame)) continue;
+                    float d = distSq(squad, compoundTargets.get(i));
+                    int actionableRank = actionable ? 1 : 0;
+                    if (actionableRank < bestActionableRank
+                            || (actionableRank == bestActionableRank
+                            && (d < bestDist || (d == bestDist
+                            && (bestSquad < 0 || squad.id < bestSquad))))) {
+                        bestActionableRank = actionableRank;
+                        bestDist = d;
+                        bestSquad = squad.id;
+                        bestTarget = i;
+                    }
+                }
+            }
+            if (bestSquad < 0) break;
+            commitCapture(squadById(squads, bestSquad),
+                    compoundTargets.get(bestTarget), committed, directives,
+                    AssignmentReason.COMPOUND_CAPTURE_UNCONTESTED);
+            if (actionableFrontSquads.contains(bestSquad)) {
+                actionableRemaining--;
+            }
+            slots[bestTarget]--;
+        }
+
+        // Explain squads that could have filled a still-open distant capture
+        // slot but were retained because live front work exhausted the cap.
+        if (actionableRemaining > 0
+                && actionableRemaining <= MIN_FRONT_RESERVE_SQUADS) {
+            for (PlanningSquad squad : squads) {
+                if (committed.contains(squad.id)) continue;
+                if (!actionableFrontSquads.contains(squad.id)) continue;
+                for (int i = 0; i < n; i++) {
+                    if (slots[i] <= 0 || contested[i]) continue;
+                    CompoundTarget t = compoundTargets.get(i);
+                    if (squadAdjacentToCompound(squad, t, frame)) continue;
+                    if (!reachableZone(squad, t.anchorZoneId, frame)) continue;
+                    deferredCaptures.add(squad.id);
+                    break;
+                }
+            }
+        }
+    }
+
+    private IntOpenHashSet actionableFrontSquads(List<PlanningSquad> squads,
+                                                 IntOpenHashSet committed,
+                                                 ConquestCommandFrame frame) {
+        IntOpenHashSet actionable = new IntOpenHashSet();
+        for (PlanningSquad squad : squads) {
+            if (committed.contains(squad.id)) continue;
+            if (squad.executionSuspension != null) continue;
+            if (squad.localContact) {
+                actionable.add(squad.id);
+                continue;
+            }
+            int preferredTrack = stripFor(squad);
+            if (targetChoice(squad, preferredTrack, frame).targetZoneId >= 0) {
+                actionable.add(squad.id);
+            }
+        }
+        return actionable;
     }
 
     private void commitCapture(PlanningSquad squad, CompoundTarget t,

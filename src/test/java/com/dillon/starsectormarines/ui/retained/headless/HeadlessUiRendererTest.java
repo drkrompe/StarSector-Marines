@@ -133,6 +133,29 @@ class HeadlessUiRendererTest {
         assertEquals(Color.MAGENTA.getRGB(), result.getRGB(20, 10));
     }
 
+    @Test
+    void typedHostPassUsesThePhysicalContentBoxWithoutStretchingResolvedGeometry() {
+        UiElement canvas = new UiElement("canvas").tag(UiTag.CANVAS).canvasSize(40, 20);
+        UiDocument document = new UiDocument(canvas);
+        document.canvases().set(canvas, context -> context.hostPass((viewport, alpha) -> {
+            throw new AssertionError("native pass should not execute in headless rendering");
+        }));
+        HeadlessUiRenderer renderer = new HeadlessUiRenderer(
+                (pass, context, viewport, alpha) -> {
+                    assertEquals(80f, viewport.width());
+                    assertEquals(20f, viewport.height());
+                    assertEquals(2f, viewport.scaleX());
+                    assertEquals(1f, viewport.scaleY());
+                    context.fillRect(10f, 5f, 10f, 10f, Color.MAGENTA);
+                    return true;
+                }, Path.of("mod"));
+
+        BufferedImage result = renderer.render(document, 80, 20);
+
+        assertEquals(Color.MAGENTA.getRGB(), result.getRGB(15, 10));
+        assertEquals(0, result.getRGB(25, 10));
+    }
+
     private static HeadlessUiRenderer renderer() {
         Path starsectorCore = Path.of(System.getProperty("starsectorDir"))
                 .resolve("starsector-core");

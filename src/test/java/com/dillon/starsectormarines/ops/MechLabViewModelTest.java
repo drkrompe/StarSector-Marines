@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
+import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.MechBay;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
@@ -18,6 +20,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MechLabViewModelTest {
@@ -85,6 +88,35 @@ class MechLabViewModelTest {
     }
 
     @Test
+    void gantryNavigatorVisitsAssignedAssetsAndVacantStations() {
+        MechBay bay = new MechBay();
+        bay.addMech(MechBay.STARTER_SQUAD_ID, new CampaignMech(
+                "support_mech_02", "Hound 02", MechVariant.HOUND,
+                MechRole.ASSAULT, MissileReplenisherComponent.STANDARD.id()));
+        bay.addMech(MechBay.STARTER_SQUAD_ID, new CampaignMech(
+                "support_mech_03", "Sirocco 03", MechVariant.SIROCCO,
+                MechRole.LR_SUPPORT, MissileReplenisherComponent.STANDARD.id()));
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay);
+
+        viewModel.nextGantryAction().run();
+        assertEquals(1, viewModel.selectedGantryIndex());
+        assertEquals(MechVariant.HOUND, viewModel.selectedVariant());
+        assertTrue(viewModel.activeGantryLabel().get().contains("GANTRY 02 / 04"));
+        assertEquals("Hound 02", viewModel.selectedMechName().get());
+
+        viewModel.nextGantryAction().run();
+        viewModel.nextGantryAction().run();
+        assertEquals(3, viewModel.selectedGantryIndex());
+        assertNull(viewModel.selectedVariant());
+        assertTrue(viewModel.activeGantryLabel().get().contains("VACANT"));
+
+        viewModel.nextGantryAction().run();
+        assertEquals(0, viewModel.selectedGantryIndex());
+        viewModel.previousGantryAction().run();
+        assertEquals(3, viewModel.selectedGantryIndex());
+    }
+
+    @Test
     void shippedRoomBuildsWithinWideAndLowResolutionBounds() throws Exception {
         Reactor reactor = new Reactor();
         MechLabViewModel viewModel = new MechLabViewModel(reactor, new MechBay());
@@ -142,6 +174,8 @@ class MechLabViewModelTest {
         props.put("workspaceClasses", viewModel.workspaceClasses());
         props.put("openAssetPicker", viewModel.openAssetPickerAction());
         props.put("closeAssetPicker", viewModel.closeAssetPickerAction());
+        props.put("previousGantry", viewModel.previousGantryAction());
+        props.put("nextGantry", viewModel.nextGantryAction());
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MECH_LAB,

@@ -3,12 +3,16 @@ package com.dillon.starsectormarines.battle.command.trace;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
+import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
+import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -34,7 +38,7 @@ class CommandTraceRecorderTest {
 
         List<String> lines = recorder.canonicalJsonLines().lines().toList();
         assertEquals(2, lines.size());
-        assertEquals("{\"stream\":\"run\",\"tick\":0,\"schemaVersion\":3,"
+        assertEquals("{\"stream\":\"run\",\"tick\":0,\"schemaVersion\":4,"
                 + "\"fixtureKind\":\"CONQUEST\","
                 + "\"schedulerMode\":\"SERIAL_DETERMINISTIC\"}", lines.get(0));
         String line = lines.get(1);
@@ -64,6 +68,32 @@ class CommandTraceRecorderTest {
                 .contains("\"perspective\":\"DEFENDER\""));
         assertTrue(lines.get(2)
                 .contains("\"perspective\":\"MARINE\""));
+    }
+
+    @Test
+    void conquestTracePublishesDistantCaptureDeferralSeparatelyFromOrderReason() {
+        ConquestFrontSnapshot.SquadDirective action =
+                new ConquestFrontSnapshot.SquadDirective(9, 2, 1,
+                        ConquestFrontSnapshot.AssignmentReason.TRACK_ADVANCE,
+                        AssignmentKind.CLEAR_ZONE, 17)
+                        .withDistantCaptureDeferred();
+        ConquestFrontSnapshot detail = new ConquestFrontSnapshot(75, 60,
+                TraversalAxis.SOUTH_TO_NORTH,
+                ConquestFrontSnapshot.Phase.LANE_ADVANCE, 2, 25,
+                CompoundService.CompoundState.DEFENDER_HELD,
+                List.of(), List.of(action));
+        CommanderSnapshot<ConquestFrontSnapshot> snapshot =
+                new CommanderSnapshot<>(Faction.MARINE, "conquest",
+                        "LANE_ADVANCE", 75, 60, 2, 0,
+                        List.of("remaining compounds=2"), List.of(), detail);
+        CommandTraceRecorder recorder = new CommandTraceRecorder(
+                "CONQUEST", "SERIAL_DETERMINISTIC", 0);
+
+        recorder.recordPerspective(snapshot);
+
+        String line = recorder.canonicalJsonLines().lines().toList().get(1);
+        assertTrue(line.contains("\"reason\":\"TRACK_ADVANCE\""));
+        assertTrue(line.contains("\"distantCaptureDeferred\":true"));
     }
 
     @Test

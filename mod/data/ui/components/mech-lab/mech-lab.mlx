@@ -1,4 +1,4 @@
-<template props="labSummary,squadRows,mechRows,activeGantryLabel,selectedMechName,selectedMechIdentity,selectedMechDoctrine,performanceMeters,leftSlotRows,rightSlotRows,slotRows,selectedSlotTitle,selectedSlotCopy,selectedSlotRule,catalogRows,pickerClasses,workspaceClasses,openAssetPicker,closeAssetPicker,feedbackText,feedbackClasses,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses">
+<template props="labSummary,squadRows,mechRows,activeGantryLabel,selectedMechName,selectedMechIdentity,selectedMechDoctrine,performanceMeters,leftSlotRows,rightSlotRows,slotRows,selectedSlotTitle,selectedSlotCopy,selectedSlotRule,catalogRows,pickerClasses,workspaceClasses,openAssetPicker,closeAssetPicker,previousGantry,nextGantry,feedbackText,feedbackClasses,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses">
   <div id="mech-lab-root" class="mech-lab-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" contextLabel="FLAGSHIP / MECH BAY / FABRICATION GANTRY" />
 
@@ -12,7 +12,7 @@
         <div id="mech-picker-heading" class="picker-heading edge-surface">
           <div id="mech-picker-title-copy" class="picker-title-copy">
             <div id="mech-picker-title" class="label title-copy tone-accent">SELECT HEAVY ASSET</div>
-            <div id="mech-picker-copy" class="label tone-muted">Choose the support lance and chassis to move onto the active gantry.</div>
+            <div id="mech-picker-copy" class="label tone-muted">Choose a support lance and assigned chassis to open its gantry.</div>
           </div>
           <button id="mech-picker-close" class="compact-action" onclick="{closeAssetPicker}">BACK TO GANTRY</button>
         </div>
@@ -34,7 +34,7 @@
                 <div id="{mech.nameId}" class="label heading mech-card-name tone-accent">{mech.name}</div>
                 <div id="{mech.chassisId}" class="label tone-muted mech-card-line">{mech.chassis}</div>
                 <div id="{mech.subsystemId}" class="label tone-edge mech-card-line">{mech.subsystem}</div>
-                <div id="{mech.actionId}" class="label heading mech-card-action">MOVE TO GANTRY</div>
+                <div id="{mech.actionId}" class="label heading mech-card-action">OPEN GANTRY</div>
               </button>
             </div>
           </div>
@@ -47,8 +47,13 @@
             <div id="selected-mech-name" class="label asset-name tone-accent">{selectedMechName}</div>
             <div id="selected-mech-identity" class="label tone-muted asset-identity">{selectedMechIdentity}</div>
           </div>
+          <div id="mech-gantry-navigator" class="gantry-navigator">
+            <button id="mech-previous-gantry" class="gantry-step" onclick="{previousGantry}">‹ PREV</button>
+            <div id="mech-active-gantry" class="label heading tone-accent gantry-position">{activeGantryLabel}</div>
+            <button id="mech-next-gantry" class="gantry-step" onclick="{nextGantry}">NEXT ›</button>
+          </div>
           <div id="selected-mech-doctrine" class="label heading tone-edge doctrine">{selectedMechDoctrine}</div>
-          <button id="mech-change-asset" class="compact-action" onclick="{openAssetPicker}">CHANGE ASSET</button>
+          <button id="mech-change-asset" class="compact-action" onclick="{openAssetPicker}">BROWSE LANCE</button>
         </div>
 
         <div id="mech-performance-grid" class="performance-grid">
@@ -145,7 +150,10 @@
   .asset-strip-copy { flex-direction: row; width: 0px; flex-grow: 1; gap: 10px; }
   .asset-name { width: 210px; height: 27px; font-family: title; }
   .asset-identity { width: 0px; flex-grow: 1; padding-top: 5px; }
-  .doctrine { width: 170px; padding-top: 5px; text-align: right; }
+  .gantry-navigator { flex-direction: row; width: 380px; height: 38px; gap: 4px; }
+  .gantry-step { width: 74px; height: 38px; padding: 6px; }
+  .gantry-position { width: 0px; flex-grow: 1; height: 38px; padding: 8px 5px; text-align: center; background-color: #0c1620; border-width: 1px; }
+  .doctrine { width: 145px; padding-top: 5px; text-align: right; }
   .performance-grid { flex-direction: row; height: 50px; gap: 5px; }
   .performance-meter { flex-direction: row; width: 0px; flex-grow: 1; padding: 5px; gap: 5px; border-width: 1px; }
   .meter-label { width: 90px; padding-top: 3px; }
