@@ -4,6 +4,9 @@ import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * A mech bay as a row of gantry bays with a fab shop behind them.
  *
@@ -32,6 +35,8 @@ public final class VehicleBayFitting implements RoomFitting {
     private static final int BAY_GAP = 4;
     /** Clear deck between the gantry line and the shop strip behind it. */
     private static final int SERVICE_LANE = 2;
+    /** Cells kept clear either side of a door, so a machine can be driven through it. */
+    private static final int DOOR_CLEARANCE = 1;
 
     /** Tools a technician works a machine from, on the columns flanking each bay. */
     private static final String[] BAY_TOOLS = {
@@ -60,12 +65,30 @@ public final class VehicleBayFitting implements RoomFitting {
         int along = lengthwise ? floor.width() : floor.height();
         int across = lengthwise ? floor.height() : floor.width();
 
-        clearDoorApproaches(floor);
+        // The door decides the layout, not the corner of the bounding box. A
+        // bay parked across the only way in is a bay whose machine can never
+        // leave it, and the run of deck in front of a door is the one part of a
+        // vehicle bay that is never negotiable.
+        List<int[]> approaches = approaches(floor, lengthwise, along, across);
+        for (int[] approach : approaches) {
+            reserve(floor, lengthwise, approach[0], 0, approach[1] - approach[0] + 1, across);
+        }
+
         int bayDepth = Math.min(BAY_DEPTH, Math.max(3, across - SERVICE_LANE - 1));
         int pitch = BAY_WIDTH + BAY_GAP;
 
-        for (int bay = 0; bay + BAY_WIDTH <= along; bay += pitch) {
-            layBay(floor, lengthwise, bay, bayDepth);
+        // Bays pack around the approaches rather than being skipped at them, so
+        // a door in the middle of a long bay costs the room a gap and not half
+        // its capacity.
+        int cursor = 0;
+        while (cursor + BAY_WIDTH <= along) {
+            int blockedUntil = blockedUntil(approaches, cursor, cursor + BAY_WIDTH - 1);
+            if (blockedUntil >= 0) {
+                cursor = blockedUntil + 1;
+                continue;
+            }
+            layBay(floor, lengthwise, cursor, bayDepth);
+            cursor += pitch;
         }
 
         // Everything between the gantry line and the shop is the route a part
@@ -76,6 +99,44 @@ public final class VehicleBayFitting implements RoomFitting {
         if (shopStart < across) {
             layShop(floor, lengthwise, along, shopStart, across);
         }
+    }
+
+    /**
+     * The runs of deck that have to stay clear because a door opens onto them,
+     * as inclusive ranges along the compartment.
+     *
+     * <p>A door in a side bulkhead needs the deck in front of it clear all the
+     * way across, so a machine can be driven out rather than shuffled around a
+     * gantry. A door in an end bulkhead needs the end of the room instead.
+     */
+    private static List<int[]> approaches(CompartmentFloor floor, boolean lengthwise,
+                                          int along, int across) {
+        List<int[]> ranges = new ArrayList<>();
+        for (DeckGraph.Compartment.Door door : floor.localDoors()) {
+            int doorAlong = lengthwise ? door.x() : door.y();
+            int doorAcross = lengthwise ? door.y() : door.x();
+            if (doorAcross < 0 || doorAcross >= across) {
+                ranges.add(new int[]{
+                        Math.max(0, doorAlong - DOOR_CLEARANCE),
+                        Math.min(along - 1, doorAlong + DOOR_CLEARANCE) });
+            } else if (doorAlong < 0) {
+                ranges.add(new int[]{ 0, Math.min(along - 1, BAY_WIDTH - 1) });
+            } else if (doorAlong >= along) {
+                ranges.add(new int[]{ Math.max(0, along - BAY_WIDTH), along - 1 });
+            }
+        }
+        return ranges;
+    }
+
+    /** The far end of the first approach a bay here would block, or -1 if it blocks none. */
+    private static int blockedUntil(List<int[]> approaches, int from, int to) {
+        int furthest = -1;
+        for (int[] approach : approaches) {
+            if (from <= approach[1] && to >= approach[0]) {
+                furthest = Math.max(furthest, approach[1]);
+            }
+        }
+        return furthest;
     }
 
     /**
@@ -123,12 +184,5 @@ public final class VehicleBayFitting implements RoomFitting {
                 lengthwise ? across : along,
                 lengthwise ? alongSpan : acrossSpan,
                 lengthwise ? acrossSpan : alongSpan);
-    }
-
-    /** Doors keep their approach, so a machine can actually be driven out. */
-    private static void clearDoorApproaches(CompartmentFloor floor) {
-        for (DeckGraph.Compartment.Door door : floor.localDoors()) {
-            floor.reserveLane(door.x() - 1, door.y() - 1, 3, 3);
-        }
     }
 }
