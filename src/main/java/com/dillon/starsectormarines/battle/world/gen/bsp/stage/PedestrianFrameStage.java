@@ -104,7 +104,7 @@ public final class PedestrianFrameStage implements GenStage {
             }
         }
         if (converted > 0) {
-            LOG.info("BspCityGenerator: pedestrian-frame pass converted "
+            LOG.debug("BspCityGenerator: pedestrian-frame pass converted "
                     + converted + " STREET cell(s) to GRASS/SIDEWALK");
         }
     }
