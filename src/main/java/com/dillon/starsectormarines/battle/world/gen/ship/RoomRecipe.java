@@ -1,0 +1,108 @@
+package com.dillon.starsectormarines.battle.world.gen.ship;
+
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+
+import java.util.List;
+
+/**
+ * The authored recipe for one kind of shipboard room: what it is, what shape it
+ * takes, where along the hull it belongs, and what it provides.
+ *
+ * <p>Rooms are the unit that sizes a ship. A mech bay is large because servicing
+ * a walker needs a gantry and the clearance around it; a berth is as small as
+ * the bunks and the aisle between them. A deck is therefore as big as the rooms
+ * it must contain, rather than a figure chosen up front and then subdivided.
+ *
+ * <p>A cell reads as roughly a metre, which is what makes these numbers
+ * checkable against a real vessel rather than tuned until the picture looks
+ * busy. {@link #BERTHING} is twelve bunks in forty-eight square metres — four
+ * per hand, which is spartan on purpose.
+ *
+ * <p>The {@link RoomShape} is a mask, not a rectangle and not an orientation.
+ * {@link #COMMAND} is a diamond because a bridge is not a box; a range will be
+ * an L. The placer turns a shape freely, so a berth laid across the beam to fill
+ * a pocket is the same room as one laid along the hull.
+ *
+ * <p>{@link #zone} is the stretch of hull the room belongs in, or null for the
+ * small rooms that simply take whatever the packing left over.
+ *
+ * <p>{@link #provides} is the capacity one room of this kind supplies, in
+ * whatever unit its purpose implies — bunks for a berth, hold units for a
+ * stockroom, serviced hulls for a vehicle bay. Zero means the room earns its
+ * place by function rather than by capacity, like a command centre.
+ */
+public record RoomRecipe(RoomPurpose purpose, RoomShape shape, DeckZone zone, int provides) {
+
+    /**
+     * Bunks and living space for a watch of twelve. Two rows of stacked bunks
+     * either side of a single aisle, with a locker run at one end and nothing
+     * else — a ship berths its crew in many small compartments spread through
+     * the hull, not in one dormitory.
+     */
+    public static final RoomRecipe BERTHING = new RoomRecipe(
+            RoomPurpose.BARRACKS, RoomShape.rectangle(8, 6), DeckZone.MIDSHIPS, 12);
+
+    /** Gantry space for servicing heavy assets; the largest room a ship carries. */
+    public static final RoomRecipe VEHICLE_BAY = new RoomRecipe(
+            RoomPurpose.VEHICLE_BAY, RoomShape.rectangle(40, 16), DeckZone.MIDSHIPS, 4);
+
+    /**
+     * Racked weapons and an issue counter. A ship keeps one, or a second on a
+     * very large complement — never one per hundred hands.
+     */
+    public static final RoomRecipe ARMORY = new RoomRecipe(
+            RoomPurpose.ARMORY, RoomShape.rectangle(12, 8), DeckZone.MIDSHIPS, 400);
+
+    /**
+     * Bridge or combat information centre, forward, and one per deck at most.
+     * Cut as a chamfered diamond so the watch stands around a plot rather than
+     * along a wall — and, less romantically, as the standing proof that the
+     * packer handles a shape that is not a rectangle.
+     */
+    public static final RoomRecipe COMMAND = new RoomRecipe(
+            RoomPurpose.CONTROL_ROOM, RoomShape.of(
+                    ".....###.....",
+                    "...#######...",
+                    "..#########..",
+                    ".###########.",
+                    "#############",
+                    "#############",
+                    "#############",
+                    ".###########.",
+                    "..#########..",
+                    "...#######...",
+                    ".....###....."),
+            DeckZone.FORE, 0);
+
+    /** Bulk hold. Large and sparse inside. */
+    public static final RoomRecipe HOLD = new RoomRecipe(
+            RoomPurpose.STOCKROOM, RoomShape.rectangle(18, 12), DeckZone.MIDSHIPS, 250);
+
+    /** Power, drive, and life support machinery; aft, against the engines. */
+    public static final RoomRecipe ENGINEERING = new RoomRecipe(
+            RoomPurpose.PRODUCTION_FLOOR, RoomShape.rectangle(20, 14), DeckZone.AFT, 0);
+
+    /**
+     * The small rooms that exist because the packing left somewhere to put
+     * them: lockers, cable trunks, a pump room, a spares cage. They have no
+     * zone, are never owed by the program, and are fitted last into whatever
+     * pockets the authored rooms did not want — which is what stops a tightly
+     * packed deck from reading as rooms plus leftovers.
+     */
+    public static final List<RoomRecipe> UTILITY = List.of(
+            new RoomRecipe(RoomPurpose.PARTS_CAGE, RoomShape.rectangle(6, 4), null, 0),
+            new RoomRecipe(RoomPurpose.SERVER_ROOM, RoomShape.rectangle(5, 4), null, 0),
+            new RoomRecipe(RoomPurpose.STOCKROOM, RoomShape.rectangle(4, 4), null, 0),
+            new RoomRecipe(RoomPurpose.GENERIC, RoomShape.rectangle(3, 3), null, 0));
+
+    /** Cells of floor this room claims, excluding its bulkheads. */
+    public int area() {
+        return shape.area();
+    }
+
+    /** How many rooms of this kind are needed to supply {@code demand}. */
+    public int countFor(int demand) {
+        if (provides <= 0) return 1;
+        return Math.max(1, (int) Math.ceil((double) demand / provides));
+    }
+}

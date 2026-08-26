@@ -10,11 +10,10 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InitSolidStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.TacticalLinkStage;
-import com.dillon.starsectormarines.battle.world.gen.ship.stage.CompartmentCarveStage;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.DeckEndSpawnStage;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.HullProfileStage;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.SpineStage;
-import com.dillon.starsectormarines.battle.world.gen.ship.stage.TransverseCorridorStage;
+import com.dillon.starsectormarines.battle.world.gen.ship.stage.RoomPlacementStage;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
@@ -55,23 +54,30 @@ public final class ShipDeckGenerator {
                 new InitSolidStage(),                    // solid hull
                 new HullProfileStage(SPINE_WIDTH, silhouette),  // beam per frame + zones
                 new SpineStage(),                        // carve the fore-aft corridor
-                new TransverseCorridorStage(),           // athwartships cross-passages
-                new CompartmentCarveStage(),             // zone-purposed rooms + their doors
+                new RoomPlacementStage(),                // pack the room program; passages fall out
                 new DeckEndSpawnStage(),                 // bow / stern anchors
                 new TacticalLinkStage(),                 // (no nodes yet -> empty map)
                 new FinalizeStage()));                   // wall HP / cover / wall tags / buildings
     }
 
-    /** Generate one deck with the synthetic hull taper. Identical inputs produce an identical deck. */
+    /**
+     * Generate one deck at an explicit size with a mid-sized generic program —
+     * the entry the infrastructure tests drive, where the deck's dimensions are
+     * the input rather than something derived.
+     */
     public MapResult generateDeck(int width, int height, long seed) {
-        return generateDeck(width, height, seed, null);
+        return generateDeck(new DeckSizing.DeckPlan(width, height,
+                DeckSizing.programFor(HullClass.CRUISER, 120, 200)), seed, null);
     }
 
     /**
-     * Generate one deck, tracing {@code silhouette} when supplied so the deck
-     * inherits a real hull's proportions and asymmetry.
+     * Generate the deck a {@link DeckSizing.DeckPlan} describes, tracing
+     * {@code silhouette} when supplied so it inherits a real hull's proportions
+     * and asymmetry. Identical inputs produce an identical deck.
      */
-    public MapResult generateDeck(int width, int height, long seed, HullSilhouette silhouette) {
+    public MapResult generateDeck(DeckSizing.DeckPlan plan, long seed, HullSilhouette silhouette) {
+        int width = plan.frames();
+        int height = plan.height();
         GenRecipe deckRecipe = buildDeckRecipe(silhouette);
         Random rng = new Random(seed);
         NavigationGrid grid = new NavigationGrid(width, height);
@@ -79,6 +85,7 @@ public final class ShipDeckGenerator {
 
         GenContext ctx = new GenContext(grid, topology, rng, width, height, seed);
         ctx.put(BspKeys.MARKET_PROFILE, TargetProfile.NEUTRAL);
+        ctx.put(ShipKeys.ROOM_PROGRAM, plan.rooms());
 
         deckRecipe.run(ctx);
 
@@ -100,7 +107,7 @@ public final class ShipDeckGenerator {
         return lastDeckProfile;
     }
 
-    /** The compartments and corridors of the most recent {@link #generateDeck} run; null before the first. */
+    /** The rooms placed by the most recent {@link #generateDeck} run; null before the first. */
     public DeckGraph getLastDeckGraph() {
         return lastDeckGraph;
     }

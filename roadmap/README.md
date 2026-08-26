@@ -74,7 +74,9 @@ Faction identity has one enduring lore-reference catalog for use before authorin
 weapons, armor, units, facilities, contracts, or command behavior. It separates
 current 0.98a canon from conservative ground-war inference and explicit mod choices,
 then routes each core faction to a dedicated guide. Start with
-`faction-lore-nouns.md`; the owning feature nouns remain the authority for mechanics.
+`faction-lore-nouns.md`, then use `equipment-lore-catalog.md` for shipped weapon,
+armor, special-equipment, and loadout provenance; the owning feature nouns remain
+the authority for mechanics.
 
 Shipboard space is a new model rather than shipped work. The flagship rooms the
 player sees today are hand-authored constant layouts; `ship-interiors-nouns.md`

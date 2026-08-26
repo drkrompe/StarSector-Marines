@@ -1,37 +1,45 @@
 package com.dillon.starsectormarines.battle.world.gen.ship;
 
 /**
- * A hull's size class — the game's own classification, and the coarse signal for
- * how large a ship's decks are.
+ * A hull's size class — the game's own classification.
  *
- * <p>Class sets the deck's footprint band. Complement and hold then decide how
- * many decks of that footprint the ship needs, which is why a Superfreighter and
- * a Battlecruiser can share a class and still end up with very different
- * interiors.
+ * <p>Class does not set how large a deck is; the rooms a ship owes do that. What
+ * class says is <b>how many decks the hull has</b> to spread that program over,
+ * and whether it is big enough to service heavy assets at all. A frigate puts
+ * its handful of rooms on one deck; a capital spreads a much larger program
+ * across four, which is what keeps any single deck navigable without capping how
+ * long a deck may be.
  */
 public enum HullClass {
 
     /** No boardable interior of its own; carried, not entered. */
-    FIGHTER(0),
-    FRIGATE(56),
-    DESTROYER(84),
-    CRUISER(116),
-    CAPITAL(148);
+    FIGHTER(0, false),
+    FRIGATE(1, false),
+    DESTROYER(2, false),
+    CRUISER(3, true),
+    CAPITAL(4, true);
 
-    private final int frames;
+    private final int decks;
+    private final boolean heavyAssets;
 
-    HullClass(int frames) {
-        this.frames = frames;
+    HullClass(int decks, boolean heavyAssets) {
+        this.decks = decks;
+        this.heavyAssets = heavyAssets;
     }
 
-    /** Deck length, in frames, that this class of hull affords. */
-    public int deckFrames() {
-        return frames;
+    /** How many decks a hull of this class has to spread its room program over. */
+    public int decks() {
+        return decks;
+    }
+
+    /** Whether the hull is large enough to carry and service heavy assets. */
+    public boolean carriesHeavyAssets() {
+        return heavyAssets;
     }
 
     /** Whether a hull of this class has an interior worth generating at all. */
     public boolean boardable() {
-        return frames > 0;
+        return decks > 0;
     }
 
     /**

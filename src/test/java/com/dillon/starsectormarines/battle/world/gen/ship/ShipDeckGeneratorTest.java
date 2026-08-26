@@ -15,10 +15,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Infrastructure checks for the ship-deck pipeline: it runs, it produces a
  * playable map, and it is deterministic.
  *
- * <p>Deliberately minimal. Hull shape, zone progression, bay sizing, corridor
- * and door widths, and compartment purposes are authoring decisions reviewed
- * through the {@code ship-decks} snapshot suite — pinning them here would turn
- * every tuning pass into a wall of red.
+ * <p>Deliberately minimal. Hull shape, zone progression, room footprints, how
+ * densely the packing fills a deck, and where passages end up are authoring
+ * decisions reviewed through the {@code ship-decks} snapshot suite — pinning
+ * them here would turn every tuning pass into a wall of red.
  */
 class ShipDeckGeneratorTest {
 
@@ -34,7 +34,7 @@ class ShipDeckGeneratorTest {
             assertNotNull(generator.getLastDeckProfile(), "seed " + seed + ": no deck profile published");
             DeckGraph graph = generator.getLastDeckGraph();
             assertNotNull(graph, "seed " + seed + ": no deck graph published");
-            assertTrue(graph.compartmentCount() > 0, "seed " + seed + ": deck carved no compartments");
+            assertTrue(graph.compartmentCount() > 0, "seed " + seed + ": deck placed no rooms");
         }
     }
 
