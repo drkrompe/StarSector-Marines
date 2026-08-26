@@ -2,17 +2,23 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.marine.FireTeamBillet;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef;
 import org.junit.jupiter.api.Test;
 
+import java.awt.image.BufferedImage;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ArmoryLoadoutPreviewCanvasTest {
 
@@ -58,5 +64,24 @@ class ArmoryLoadoutPreviewCanvasTest {
         assertNotNull(breathing);
         assertNotEquals(settled.layer("head"), breathing.layer("head"));
         assertEquals(settled.layer("head"), looped.layer("head"));
+    }
+
+    @Test
+    void everyArmorCatalogEntryRendersThroughTheLiveLoadoutComposition() {
+        HeadlessArmoryPreviewRenderer renderer =
+                new HeadlessArmoryPreviewRenderer(Path.of("mod"));
+
+        MarineArmorCatalogRegistry.installed().all().forEach(armor -> {
+            BufferedImage image = renderer.render(new FireTeamBillet(
+                    "Catalog proof", WeaponRegistry.STARTER_PRIMARY_ID,
+                    EquipmentGrade.SERVICE, null, armor.id()));
+            int opaquePixels = 0;
+            for (int y = 0; y < image.getHeight(); y++) {
+                for (int x = 0; x < image.getWidth(); x++) {
+                    if ((image.getRGB(x, y) >>> 24) != 0) opaquePixels++;
+                }
+            }
+            assertTrue(opaquePixels > 1_000, armor.id());
+        });
     }
 }

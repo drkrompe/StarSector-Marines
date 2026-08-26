@@ -48,6 +48,8 @@
   ],
   "armor": [
     { "equipmentId": "armor.field-fatigues", "accessTier": "common", "issueCost": {} },
+    { "equipmentId": "armor.cordon-shell", "accessTier": "common", "issueCost": { "supplies": 1 } },
+    { "equipmentId": "armor.lashplate-harness", "accessTier": "common", "issueCost": { "supplies": 1 } },
     { "equipmentId": "armor.combat", "accessTier": "advanced", "issueCost": { "supplies": 2, "heavyMachinery": 1 } },
     { "equipmentId": "armor.aegis-composite", "accessTier": "advanced", "issueCost": { "supplies": 3, "heavyMachinery": 1 } },
     { "equipmentId": "armor.palatine", "accessTier": "advanced", "issueCost": { "supplies": 2, "heavyMachinery": 2 } },

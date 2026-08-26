@@ -14,8 +14,9 @@ import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import org.junit.jupiter.api.Test;
 
-import java.util.Random;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -50,7 +51,11 @@ public class GroundRosterRegistryTest {
         assertEquals(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID), heg.primaryDef());
         assertEquals(LayeredArmorFamily.MILITIA, heg.armorFamily);
         assertEquals(WeaponRegistry.require(WeaponRegistry.SMG_ID), pirate.primaryDef());
-        assertEquals(LayeredArmorFamily.ARMORLESS, pirate.armorFamily);
+        assertEquals(LayeredArmorFamily.OUTLAW, pirate.armorFamily);
+        assertEquals("armor.cordon-shell", hegemony.issue(GroundRosterProfile.ForceTier.BULK)
+                .pickArmorDef(RiskLevel.LOW, new ZeroRandom()).id());
+        assertEquals("armor.lashplate-harness", pirates.issue(GroundRosterProfile.ForceTier.BULK)
+                .pickArmorDef(RiskLevel.LOW, new ZeroRandom()).id());
         assertNotEquals(heg.primaryDef(), pirate.primaryDef());
         assertNotNull(heg.equipmentGrade);
         assertNotNull(pirate.soldierProfile);
@@ -99,6 +104,30 @@ public class GroundRosterRegistryTest {
     }
 
     @Test
+    public void factionRosterArmorTablesReachEveryAuthoredSuitFamily() {
+        assertTrue(sampleArmor("independent", GroundRosterProfile.ForceTier.BULK,
+                RiskLevel.LOW).containsAll(Set.of(
+                "armor.cordon-shell", "armor.lashplate-harness")));
+        assertTrue(sampleArmor("tritachyon", GroundRosterProfile.ForceTier.ELITE,
+                RiskLevel.HIGH).containsAll(Set.of(
+                "armor.aegis-composite", "armor.specter-heavy")));
+        assertTrue(sampleArmor("persean", GroundRosterProfile.ForceTier.ELITE,
+                RiskLevel.HIGH).contains("armor.bulwark-heavy"));
+        assertTrue(sampleArmor("luddic_church", GroundRosterProfile.ForceTier.ELITE,
+                RiskLevel.HIGH).containsAll(Set.of(
+                "armor.palatine", "armor.reliquary-heavy")));
+        assertTrue(sampleArmor("luddic_path", GroundRosterProfile.ForceTier.ELITE,
+                RiskLevel.HIGH).containsAll(Set.of(
+                "armor.reaver", "armor.foundry-breaker")));
+        assertTrue(sampleArmor("sindrian_diktat", GroundRosterProfile.ForceTier.ELITE,
+                RiskLevel.HIGH).containsAll(Set.of(
+                "armor.furnace-line", "armor.lions-mantle")));
+        assertTrue(sampleArmor("pirates", GroundRosterProfile.ForceTier.ELITE,
+                RiskLevel.HIGH).containsAll(Set.of(
+                "armor.reaver", "armor.foundry-breaker")));
+    }
+
+    @Test
     public void battleFreezesTargetFactionAndSeedsInitialDefendersFromIt() {
         TargetProfile target = new TargetProfile(4, 5, 1, 1, "pirates", Set.of());
         BattleSimulation sim = BattleSetup.createPlaceholder(
@@ -123,5 +152,17 @@ public class GroundRosterRegistryTest {
         public int nextInt(int bound) {
             return 0;
         }
+    }
+
+    private static Set<String> sampleArmor(String factionId,
+                                           GroundRosterProfile.ForceTier tier,
+                                           RiskLevel risk) {
+        GroundRosterProfile.Issue issue = GroundRosterRegistry.resolve(factionId).issue(tier);
+        Random random = new Random(51_991L);
+        Set<String> result = new HashSet<>();
+        for (int sample = 0; sample < 2_000; sample++) {
+            result.add(issue.pickArmorDef(risk, random).id());
+        }
+        return result;
     }
 }

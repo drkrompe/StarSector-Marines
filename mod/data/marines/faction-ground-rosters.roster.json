@@ -20,9 +20,9 @@
           "high": [{"id": "surplus", "weight": 25}, {"id": "service", "weight": 55}, {"id": "milspec", "weight": 18}, {"id": "masterwork", "weight": 2}]
         },
         "armorByRisk": {
-          "low": [{"id": "armor.field-fatigues", "weight": 25}, {"id": "armor.militia", "weight": 60}, {"id": "armor.combat", "weight": 15}],
-          "medium": [{"id": "armor.field-fatigues", "weight": 10}, {"id": "armor.militia", "weight": 60}, {"id": "armor.combat", "weight": 30}],
-          "high": [{"id": "armor.militia", "weight": 45}, {"id": "armor.combat", "weight": 45}, {"id": "armor.line", "weight": 10}]
+          "low": [{"id": "armor.field-fatigues", "weight": 15}, {"id": "armor.cordon-shell", "weight": 25}, {"id": "armor.lashplate-harness", "weight": 10}, {"id": "armor.militia", "weight": 40}, {"id": "armor.combat", "weight": 10}],
+          "medium": [{"id": "armor.field-fatigues", "weight": 5}, {"id": "armor.cordon-shell", "weight": 15}, {"id": "armor.lashplate-harness", "weight": 10}, {"id": "armor.militia", "weight": 45}, {"id": "armor.combat", "weight": 25}],
+          "high": [{"id": "armor.cordon-shell", "weight": 10}, {"id": "armor.lashplate-harness", "weight": 10}, {"id": "armor.militia", "weight": 35}, {"id": "armor.combat", "weight": 35}, {"id": "armor.line", "weight": 10}]
         },
         "specialsByRisk": {
           "low": [{"id": "none", "weight": 93}, {"id": "special.smoke-grenade", "weight": 4}, {"id": "special.frag-grenade", "weight": 3}],
@@ -44,8 +44,8 @@
           "high": [{"id": "service", "weight": 35}, {"id": "milspec", "weight": 55}, {"id": "masterwork", "weight": 10}]
         },
         "armorByRisk": {
-          "low": [{"id": "armor.militia", "weight": 35}, {"id": "armor.combat", "weight": 55}, {"id": "armor.line", "weight": 10}],
-          "medium": [{"id": "armor.militia", "weight": 15}, {"id": "armor.combat", "weight": 60}, {"id": "armor.line", "weight": 25}],
+          "low": [{"id": "armor.cordon-shell", "weight": 10}, {"id": "armor.militia", "weight": 30}, {"id": "armor.combat", "weight": 50}, {"id": "armor.line", "weight": 10}],
+          "medium": [{"id": "armor.cordon-shell", "weight": 5}, {"id": "armor.militia", "weight": 15}, {"id": "armor.combat", "weight": 55}, {"id": "armor.line", "weight": 25}],
           "high": [{"id": "armor.combat", "weight": 55}, {"id": "armor.line", "weight": 30}, {"id": "armor.heavy", "weight": 15}]
         },
         "specialsByRisk": {
@@ -68,9 +68,9 @@
           "high": [{"id": "surplus", "weight": 10}, {"id": "service", "weight": 55}, {"id": "milspec", "weight": 32}, {"id": "masterwork", "weight": 3}]
         },
         "armorByRisk": {
-          "low": [{"id": "armor.militia", "weight": 45}, {"id": "armor.line", "weight": 45}, {"id": "armor.combat", "weight": 10}],
-          "medium": [{"id": "armor.militia", "weight": 20}, {"id": "armor.line", "weight": 60}, {"id": "armor.combat", "weight": 20}],
-          "high": [{"id": "armor.line", "weight": 65}, {"id": "armor.combat", "weight": 25}, {"id": "armor.heavy", "weight": 10}]
+          "low": [{"id": "armor.cordon-shell", "weight": 20}, {"id": "armor.militia", "weight": 25}, {"id": "armor.line", "weight": 45}, {"id": "armor.combat", "weight": 10}],
+          "medium": [{"id": "armor.cordon-shell", "weight": 5}, {"id": "armor.militia", "weight": 15}, {"id": "armor.line", "weight": 60}, {"id": "armor.combat", "weight": 20}],
+          "high": [{"id": "armor.line", "weight": 90}, {"id": "armor.heavy", "weight": 10}]
         },
         "specialsByRisk": {
           "low": [{"id": "none", "weight": 92}, {"id": "special.rocket-launcher", "weight": 5}, {"id": "special.frag-grenade", "weight": 3}],
@@ -87,9 +87,9 @@
           "high": [{"id": "service", "weight": 20}, {"id": "milspec", "weight": 65}, {"id": "masterwork", "weight": 15}]
         },
         "armorByRisk": {
-          "low": [{"id": "armor.line", "weight": 55}, {"id": "armor.combat", "weight": 35}, {"id": "armor.heavy", "weight": 10}],
-          "medium": [{"id": "armor.line", "weight": 45}, {"id": "armor.combat", "weight": 30}, {"id": "armor.heavy", "weight": 25}],
-          "high": [{"id": "armor.line", "weight": 30}, {"id": "armor.combat", "weight": 25}, {"id": "armor.heavy", "weight": 45}]
+          "low": [{"id": "armor.line", "weight": 90}, {"id": "armor.heavy", "weight": 10}],
+          "medium": [{"id": "armor.line", "weight": 75}, {"id": "armor.heavy", "weight": 25}],
+          "high": [{"id": "armor.line", "weight": 55}, {"id": "armor.heavy", "weight": 45}]
         },
         "specialsByRisk": {
           "low": [{"id": "none", "weight": 80}, {"id": "special.rocket-launcher", "weight": 10}, {"id": "special.smoke-grenade", "weight": 5}, {"id": "special.frag-grenade", "weight": 5}],
@@ -111,9 +111,9 @@
           "high": [{"id": "service", "weight": 45}, {"id": "milspec", "weight": 48}, {"id": "masterwork", "weight": 7}]
         },
         "armorByRisk": {
-          "low": [{"id": "armor.scout", "weight": 55}, {"id": "armor.combat", "weight": 35}, {"id": "armor.militia", "weight": 10}],
-          "medium": [{"id": "armor.scout", "weight": 50}, {"id": "armor.combat", "weight": 45}, {"id": "armor.heavy", "weight": 5}],
-          "high": [{"id": "armor.scout", "weight": 40}, {"id": "armor.combat", "weight": 45}, {"id": "armor.heavy", "weight": 15}]
+          "low": [{"id": "armor.scout", "weight": 55}, {"id": "armor.aegis-composite", "weight": 35}, {"id": "armor.militia", "weight": 10}],
+          "medium": [{"id": "armor.scout", "weight": 50}, {"id": "armor.aegis-composite", "weight": 45}, {"id": "armor.specter-heavy", "weight": 5}],
+          "high": [{"id": "armor.scout", "weight": 40}, {"id": "armor.aegis-composite", "weight": 45}, {"id": "armor.specter-heavy", "weight": 15}]
         },
         "specialsByRisk": {
           "low": [{"id": "none", "weight": 90}, {"id": "special.smoke-grenade", "weight": 8}, {"id": "special.frag-grenade", "weight": 2}],
@@ -130,9 +130,9 @@
           "high": [{"id": "service", "weight": 10}, {"id": "milspec", "weight": 65}, {"id": "masterwork", "weight": 25}]
         },
         "armorByRisk": {
-          "low": [{"id": "armor.scout", "weight": 45}, {"id": "armor.combat", "weight": 45}, {"id": "armor.heavy", "weight": 10}],
-          "medium": [{"id": "armor.scout", "weight": 30}, {"id": "armor.combat", "weight": 45}, {"id": "armor.heavy", "weight": 25}],
-          "high": [{"id": "armor.scout", "weight": 20}, {"id": "armor.combat", "weight": 35}, {"id": "armor.heavy", "weight": 45}]
+          "low": [{"id": "armor.scout", "weight": 45}, {"id": "armor.aegis-composite", "weight": 45}, {"id": "armor.specter-heavy", "weight": 10}],
+          "medium": [{"id": "armor.scout", "weight": 30}, {"id": "armor.aegis-composite", "weight": 45}, {"id": "armor.specter-heavy", "weight": 25}],
+          "high": [{"id": "armor.scout", "weight": 20}, {"id": "armor.aegis-composite", "weight": 35}, {"id": "armor.specter-heavy", "weight": 45}]
         },
         "specialsByRisk": {
           "low": [{"id": "none", "weight": 79}, {"id": "special.smoke-grenade", "weight": 10}, {"id": "special.anti-materiel-rifle", "weight": 8}, {"id": "special.frag-grenade", "weight": 3}],
@@ -156,7 +156,7 @@
         "armorByRisk": {
           "low": [{"id": "armor.militia", "weight": 50}, {"id": "armor.scout", "weight": 30}, {"id": "armor.combat", "weight": 20}],
           "medium": [{"id": "armor.militia", "weight": 30}, {"id": "armor.scout", "weight": 35}, {"id": "armor.combat", "weight": 35}],
-          "high": [{"id": "armor.militia", "weight": 15}, {"id": "armor.scout", "weight": 35}, {"id": "armor.combat", "weight": 40}, {"id": "armor.line", "weight": 10}]
+          "high": [{"id": "armor.militia", "weight": 15}, {"id": "armor.scout", "weight": 35}, {"id": "armor.combat", "weight": 50}]
         },
         "specialsByRisk": {
           "low": [{"id": "none", "weight": 91}, {"id": "special.smoke-grenade", "weight": 6}, {"id": "special.frag-grenade", "weight": 3}],
@@ -173,9 +173,9 @@
           "high": [{"id": "service", "weight": 30}, {"id": "milspec", "weight": 58}, {"id": "masterwork", "weight": 12}]
         },
         "armorByRisk": {
-          "low": [{"id": "armor.scout", "weight": 35}, {"id": "armor.combat", "weight": 50}, {"id": "armor.line", "weight": 15}],
-          "medium": [{"id": "armor.scout", "weight": 25}, {"id": "armor.combat", "weight": 50}, {"id": "armor.line", "weight": 15}, {"id": "armor.heavy", "weight": 10}],
-          "high": [{"id": "armor.scout", "weight": 15}, {"id": "armor.combat", "weight": 40}, {"id": "armor.line", "weight": 20}, {"id": "armor.heavy", "weight": 25}]
+          "low": [{"id": "armor.scout", "weight": 35}, {"id": "armor.combat", "weight": 65}],
+          "medium": [{"id": "armor.scout", "weight": 25}, {"id": "armor.combat", "weight": 65}, {"id": "armor.bulwark-heavy", "weight": 10}],
+          "high": [{"id": "armor.scout", "weight": 15}, {"id": "armor.combat", "weight": 60}, {"id": "armor.bulwark-heavy", "weight": 25}]
         },
         "specialsByRisk": {
           "low": [{"id": "none", "weight": 82}, {"id": "special.smoke-grenade", "weight": 9}, {"id": "special.rocket-launcher", "weight": 5}, {"id": "special.frag-grenade", "weight": 4}],
@@ -197,9 +197,9 @@
           "high": [{"id": "surplus", "weight": 40}, {"id": "service", "weight": 50}, {"id": "milspec", "weight": 9}, {"id": "masterwork", "weight": 1}]
         },
         "armorByRisk": {
-          "low": [{"id": "armor.field-fatigues", "weight": 25}, {"id": "armor.militia", "weight": 60}, {"id": "armor.line", "weight": 15}],
-          "medium": [{"id": "armor.field-fatigues", "weight": 10}, {"id": "armor.militia", "weight": 65}, {"id": "armor.line", "weight": 25}],
-          "high": [{"id": "armor.militia", "weight": 55}, {"id": "armor.line", "weight": 35}, {"id": "armor.combat", "weight": 10}]
+          "low": [{"id": "armor.field-fatigues", "weight": 20}, {"id": "armor.cordon-shell", "weight": 20}, {"id": "armor.militia", "weight": 45}, {"id": "armor.palatine", "weight": 15}],
+          "medium": [{"id": "armor.field-fatigues", "weight": 5}, {"id": "armor.cordon-shell", "weight": 10}, {"id": "armor.militia", "weight": 60}, {"id": "armor.palatine", "weight": 25}],
+          "high": [{"id": "armor.militia", "weight": 55}, {"id": "armor.palatine", "weight": 45}]
         },
         "specialsByRisk": {
           "low": [{"id": "none", "weight": 94}, {"id": "special.satchel-charge", "weight": 4}, {"id": "special.frag-grenade", "weight": 2}],
@@ -216,9 +216,9 @@
           "high": [{"id": "service", "weight": 45}, {"id": "milspec", "weight": 45}, {"id": "masterwork", "weight": 10}]
         },
         "armorByRisk": {
-          "low": [{"id": "armor.militia", "weight": 35}, {"id": "armor.line", "weight": 50}, {"id": "armor.combat", "weight": 15}],
-          "medium": [{"id": "armor.militia", "weight": 20}, {"id": "armor.line", "weight": 55}, {"id": "armor.combat", "weight": 20}, {"id": "armor.heavy", "weight": 5}],
-          "high": [{"id": "armor.line", "weight": 45}, {"id": "armor.combat", "weight": 30}, {"id": "armor.heavy", "weight": 25}]
+          "low": [{"id": "armor.militia", "weight": 35}, {"id": "armor.palatine", "weight": 65}],
+          "medium": [{"id": "armor.militia", "weight": 20}, {"id": "armor.palatine", "weight": 70}, {"id": "armor.reliquary-heavy", "weight": 10}],
+          "high": [{"id": "armor.palatine", "weight": 70}, {"id": "armor.reliquary-heavy", "weight": 30}]
         },
         "specialsByRisk": {
           "low": [{"id": "none", "weight": 83}, {"id": "special.satchel-charge", "weight": 8}, {"id": "special.rocket-launcher", "weight": 6}, {"id": "special.frag-grenade", "weight": 3}],
@@ -240,9 +240,9 @@
           "high": [{"id": "surplus", "weight": 50}, {"id": "service", "weight": 42}, {"id": "milspec", "weight": 7}, {"id": "masterwork", "weight": 1}]
         },
         "armorByRisk": {
-          "low": [{"id": "armor.field-fatigues", "weight": 45}, {"id": "armor.outlaw", "weight": 40}, {"id": "armor.militia", "weight": 15}],
-          "medium": [{"id": "armor.field-fatigues", "weight": 25}, {"id": "armor.outlaw", "weight": 55}, {"id": "armor.militia", "weight": 20}],
-          "high": [{"id": "armor.field-fatigues", "weight": 10}, {"id": "armor.outlaw", "weight": 60}, {"id": "armor.militia", "weight": 25}, {"id": "armor.combat", "weight": 5}]
+          "low": [{"id": "armor.lashplate-harness", "weight": 45}, {"id": "armor.outlaw", "weight": 40}, {"id": "armor.militia", "weight": 15}],
+          "medium": [{"id": "armor.lashplate-harness", "weight": 25}, {"id": "armor.outlaw", "weight": 55}, {"id": "armor.militia", "weight": 20}],
+          "high": [{"id": "armor.lashplate-harness", "weight": 10}, {"id": "armor.outlaw", "weight": 55}, {"id": "armor.militia", "weight": 20}, {"id": "armor.reaver", "weight": 15}]
         },
         "specialsByRisk": {
           "low": [{"id": "none", "weight": 86}, {"id": "special.satchel-charge", "weight": 10}, {"id": "special.frag-grenade", "weight": 4}],
@@ -259,9 +259,9 @@
           "high": [{"id": "surplus", "weight": 20}, {"id": "service", "weight": 55}, {"id": "milspec", "weight": 22}, {"id": "masterwork", "weight": 3}]
         },
         "armorByRisk": {
-          "low": [{"id": "armor.outlaw", "weight": 65}, {"id": "armor.militia", "weight": 25}, {"id": "armor.combat", "weight": 10}],
-          "medium": [{"id": "armor.outlaw", "weight": 60}, {"id": "armor.militia", "weight": 20}, {"id": "armor.combat", "weight": 20}],
-          "high": [{"id": "armor.outlaw", "weight": 50}, {"id": "armor.combat", "weight": 30}, {"id": "armor.heavy", "weight": 20}]
+          "low": [{"id": "armor.outlaw", "weight": 65}, {"id": "armor.militia", "weight": 20}, {"id": "armor.reaver", "weight": 15}],
+          "medium": [{"id": "armor.outlaw", "weight": 55}, {"id": "armor.militia", "weight": 15}, {"id": "armor.reaver", "weight": 30}],
+          "high": [{"id": "armor.outlaw", "weight": 40}, {"id": "armor.reaver", "weight": 35}, {"id": "armor.foundry-breaker", "weight": 25}]
         },
         "specialsByRisk": {
           "low": [{"id": "none", "weight": 73}, {"id": "special.satchel-charge", "weight": 18}, {"id": "special.smoke-grenade", "weight": 4}, {"id": "special.frag-grenade", "weight": 5}],
@@ -283,9 +283,9 @@
           "high": [{"id": "surplus", "weight": 15}, {"id": "service", "weight": 55}, {"id": "milspec", "weight": 27}, {"id": "masterwork", "weight": 3}]
         },
         "armorByRisk": {
-          "low": [{"id": "armor.militia", "weight": 40}, {"id": "armor.line", "weight": 45}, {"id": "armor.combat", "weight": 15}],
-          "medium": [{"id": "armor.militia", "weight": 20}, {"id": "armor.line", "weight": 50}, {"id": "armor.combat", "weight": 25}, {"id": "armor.heavy", "weight": 5}],
-          "high": [{"id": "armor.line", "weight": 45}, {"id": "armor.combat", "weight": 30}, {"id": "armor.heavy", "weight": 25}]
+          "low": [{"id": "armor.cordon-shell", "weight": 20}, {"id": "armor.militia", "weight": 20}, {"id": "armor.furnace-line", "weight": 50}, {"id": "armor.combat", "weight": 10}],
+          "medium": [{"id": "armor.militia", "weight": 20}, {"id": "armor.furnace-line", "weight": 55}, {"id": "armor.combat", "weight": 20}, {"id": "armor.lions-mantle", "weight": 5}],
+          "high": [{"id": "armor.furnace-line", "weight": 60}, {"id": "armor.combat", "weight": 15}, {"id": "armor.lions-mantle", "weight": 25}]
         },
         "specialsByRisk": {
           "low": [{"id": "none", "weight": 91}, {"id": "special.rocket-launcher", "weight": 6}, {"id": "special.frag-grenade", "weight": 3}],
@@ -302,9 +302,9 @@
           "high": [{"id": "service", "weight": 20}, {"id": "milspec", "weight": 65}, {"id": "masterwork", "weight": 15}]
         },
         "armorByRisk": {
-          "low": [{"id": "armor.line", "weight": 45}, {"id": "armor.combat", "weight": 35}, {"id": "armor.heavy", "weight": 20}],
-          "medium": [{"id": "armor.line", "weight": 30}, {"id": "armor.combat", "weight": 30}, {"id": "armor.heavy", "weight": 40}],
-          "high": [{"id": "armor.line", "weight": 20}, {"id": "armor.combat", "weight": 20}, {"id": "armor.heavy", "weight": 60}]
+          "low": [{"id": "armor.furnace-line", "weight": 55}, {"id": "armor.combat", "weight": 25}, {"id": "armor.lions-mantle", "weight": 20}],
+          "medium": [{"id": "armor.furnace-line", "weight": 45}, {"id": "armor.combat", "weight": 15}, {"id": "armor.lions-mantle", "weight": 40}],
+          "high": [{"id": "armor.furnace-line", "weight": 30}, {"id": "armor.combat", "weight": 10}, {"id": "armor.lions-mantle", "weight": 60}]
         },
         "specialsByRisk": {
           "low": [{"id": "none", "weight": 80}, {"id": "special.rocket-launcher", "weight": 11}, {"id": "special.smoke-grenade", "weight": 5}, {"id": "special.frag-grenade", "weight": 4}],
@@ -326,9 +326,9 @@
           "high": [{"id": "surplus", "weight": 45}, {"id": "service", "weight": 45}, {"id": "milspec", "weight": 9}, {"id": "masterwork", "weight": 1}]
         },
         "armorByRisk": {
-          "low": [{"id": "armor.field-fatigues", "weight": 40}, {"id": "armor.outlaw", "weight": 45}, {"id": "armor.militia", "weight": 15}],
-          "medium": [{"id": "armor.field-fatigues", "weight": 20}, {"id": "armor.outlaw", "weight": 60}, {"id": "armor.militia", "weight": 20}],
-          "high": [{"id": "armor.field-fatigues", "weight": 10}, {"id": "armor.outlaw", "weight": 60}, {"id": "armor.militia", "weight": 20}, {"id": "armor.combat", "weight": 10}]
+          "low": [{"id": "armor.lashplate-harness", "weight": 40}, {"id": "armor.outlaw", "weight": 45}, {"id": "armor.cordon-shell", "weight": 15}],
+          "medium": [{"id": "armor.lashplate-harness", "weight": 20}, {"id": "armor.outlaw", "weight": 60}, {"id": "armor.cordon-shell", "weight": 20}],
+          "high": [{"id": "armor.lashplate-harness", "weight": 10}, {"id": "armor.outlaw", "weight": 55}, {"id": "armor.cordon-shell", "weight": 15}, {"id": "armor.reaver", "weight": 20}]
         },
         "specialsByRisk": {
           "low": [{"id": "none", "weight": 90}, {"id": "special.satchel-charge", "weight": 6}, {"id": "special.frag-grenade", "weight": 4}],
@@ -345,9 +345,9 @@
           "high": [{"id": "surplus", "weight": 10}, {"id": "service", "weight": 55}, {"id": "milspec", "weight": 31}, {"id": "masterwork", "weight": 4}]
         },
         "armorByRisk": {
-          "low": [{"id": "armor.outlaw", "weight": 65}, {"id": "armor.militia", "weight": 25}, {"id": "armor.combat", "weight": 10}],
-          "medium": [{"id": "armor.outlaw", "weight": 55}, {"id": "armor.militia", "weight": 15}, {"id": "armor.combat", "weight": 25}, {"id": "armor.heavy", "weight": 5}],
-          "high": [{"id": "armor.outlaw", "weight": 45}, {"id": "armor.combat", "weight": 30}, {"id": "armor.heavy", "weight": 25}]
+          "low": [{"id": "armor.outlaw", "weight": 65}, {"id": "armor.cordon-shell", "weight": 20}, {"id": "armor.reaver", "weight": 15}],
+          "medium": [{"id": "armor.outlaw", "weight": 50}, {"id": "armor.cordon-shell", "weight": 15}, {"id": "armor.reaver", "weight": 30}, {"id": "armor.foundry-breaker", "weight": 5}],
+          "high": [{"id": "armor.outlaw", "weight": 40}, {"id": "armor.reaver", "weight": 35}, {"id": "armor.foundry-breaker", "weight": 25}]
         },
         "specialsByRisk": {
           "low": [{"id": "none", "weight": 79}, {"id": "special.satchel-charge", "weight": 8}, {"id": "special.rocket-launcher", "weight": 8}, {"id": "special.frag-grenade", "weight": 5}],

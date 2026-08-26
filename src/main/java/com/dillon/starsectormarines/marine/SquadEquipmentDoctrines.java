@@ -37,6 +37,8 @@ public final class SquadEquipmentDoctrines {
     public static final String OUTLAW_HEAVY_ARMOR = "armor:outlaw-heavy";
 
     private static final String AEGIS_COMPOSITE = "armor.aegis-composite";
+    private static final String CORDON_SHELL = "armor.cordon-shell";
+    private static final String LASHPLATE_HARNESS = "armor.lashplate-harness";
     private static final String PALATINE = "armor.palatine";
     private static final String FURNACE_LINE = "armor.furnace-line";
     private static final String REAVER = "armor.reaver";
@@ -143,21 +145,18 @@ public final class SquadEquipmentDoctrines {
                                     SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID))));
 
     private static final List<SquadArmorDoctrine> ARMOR = List.of(
-            armorDoctrine(FIELD_FATIGUES_ARMOR, "Frontier Patchwork Protection",
-                    "Scarce militia plate protects each fire-team leader; line billets keep mobile fatigues.",
+            armorDoctrineIds(FIELD_FATIGUES_ARMOR, "Frontier Patchwork Protection",
+                    "Each team stretches one Ward kit over fatigues, a surplus shell, and a breaker harness.",
                     concat(
-                            List.of(MarineArmorPattern.MILITIA,
-                                    MarineArmorPattern.ARMORLESS,
-                                    MarineArmorPattern.ARMORLESS,
-                                    MarineArmorPattern.ARMORLESS),
-                            List.of(MarineArmorPattern.MILITIA,
-                                    MarineArmorPattern.ARMORLESS,
-                                    MarineArmorPattern.ARMORLESS,
-                                    MarineArmorPattern.ARMORLESS),
-                            List.of(MarineArmorPattern.MILITIA,
-                                    MarineArmorPattern.ARMORLESS,
-                                    MarineArmorPattern.ARMORLESS,
-                                    MarineArmorPattern.ARMORLESS))),
+                            List.of(MarineArmorPattern.MILITIA.id,
+                                    CORDON_SHELL, LASHPLATE_HARNESS,
+                                    MarineArmorPattern.ARMORLESS.id),
+                            List.of(MarineArmorPattern.MILITIA.id,
+                                    CORDON_SHELL, LASHPLATE_HARNESS,
+                                    MarineArmorPattern.ARMORLESS.id),
+                            List.of(MarineArmorPattern.MILITIA.id,
+                                    CORDON_SHELL, LASHPLATE_HARNESS,
+                                    MarineArmorPattern.ARMORLESS.id))),
             armorDoctrine(SINDRIAN_SECURITY_ARMOR, "Sindrian Civilian Security Equipment",
                     "Low-to-medium tier security protection mixed by billet.",
                     concat(repeat(MarineArmorPattern.ARMORLESS, 4),
