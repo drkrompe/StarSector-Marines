@@ -15,10 +15,13 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
 
 import java.util.EnumSet;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -169,12 +172,19 @@ public final class MechLabBattleScene implements AutoCloseable {
                 }
             }
         }
+        ArrayList<Doodad> fixtures = new ArrayList<>();
+        for (MechLabSceneLayout.PropPlacement placement : MechLabSceneLayout.PROPS) {
+            DoodadDef definition = TileRegistry.installed().doodad(placement.doodadId());
+            Doodad fixture = new Doodad(placement.cellX(), placement.cellY(), definition);
+            fixtures.add(fixture);
+            stampFixture(grid, topology, fixture);
+        }
         for (int y = 0; y < GRID_HEIGHT; y++) {
             for (int x = 0; x < GRID_WIDTH; x++) grid.recomputeCoverAt(x, y);
         }
 
         BattleSimulation sim = new BattleSimulation(grid, topology, 0x4D4543484C41424CL);
-        addWorkshopProps(sim);
+        addWorkshopProps(sim, fixtures);
         int count = Math.min(variants.size(), MechLabSceneLayout.GANTRIES.size());
         for (int index = 0; index < count; index++) {
             MechVariant variant = variants.get(index);
@@ -185,8 +195,8 @@ public final class MechLabBattleScene implements AutoCloseable {
             sim.world().attachMechLoadout(mech,
                     variant.createLoadout(variant.defaultRole));
         }
-        for (int index = 0; index < MechLabSceneLayout.TECHNICIAN_JOBS.size(); index++) {
-            AmbientTaskRoute job = MechLabSceneLayout.TECHNICIAN_JOBS.get(index);
+        for (int index = 0; index < MechLabSceneLayout.FACILITY_JOBS.size(); index++) {
+            AmbientTaskRoute job = MechLabSceneLayout.FACILITY_JOBS.get(index);
             AmbientTaskPose pose = AmbientTaskService.sample(job, 0f);
             long technician = spawnTechnician(sim, job.id(),
                     (int) Math.floor(pose.worldX()), (int) Math.floor(pose.worldY()));
@@ -202,21 +212,32 @@ public final class MechLabBattleScene implements AutoCloseable {
                 .layeredArmorFamily(LayeredArmorFamily.ARMY_GREEN));
     }
 
-    private static void addWorkshopProps(BattleSimulation sim) {
+    private static void addWorkshopProps(BattleSimulation sim, List<Doodad> fixtures) {
         for (MechLabSceneLayout.FloorOverlayPlacement placement
                 : MechLabSceneLayout.floorOverlays()) {
-            sim.addDoodad(prop(placement.cellX(), placement.cellY(),
+            sim.addDoodad(floorOverlay(placement.cellX(), placement.cellY(),
                     placement.tileColumn(), placement.tileRow()));
         }
-        for (MechLabSceneLayout.PropPlacement placement : MechLabSceneLayout.PROPS) {
-            sim.addDoodad(prop(placement.cellX(), placement.cellY(),
-                    placement.tileColumn(), placement.tileRow()));
-        }
+        for (Doodad fixture : fixtures) sim.addDoodad(fixture);
     }
 
-    private static Doodad prop(int x, int y, int column, int row) {
+    private static Doodad floorOverlay(int x, int y, int column, int row) {
         return new Doodad(x, y, new TileManifest.TileFrame(column, row),
                 TileManifest.SHEET, Doodad.COVER_NONE);
+    }
+
+    private static void stampFixture(
+            NavigationGrid grid, CellTopology topology, Doodad doodad) {
+        for (int dy = 0; dy < doodad.footprintCellsY; dy++) {
+            for (int dx = 0; dx < doodad.footprintCellsX; dx++) {
+                int x = doodad.cellX + dx;
+                int y = doodad.cellY + dy;
+                grid.setWalkable(x, y, false);
+                grid.setSeeThrough(x, y, true);
+                topology.setWall(x, y, false);
+                topology.setFixture(x, y, true);
+            }
+        }
     }
 
     @Override
