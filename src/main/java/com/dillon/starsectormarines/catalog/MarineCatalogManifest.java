@@ -2,13 +2,13 @@ package com.dillon.starsectormarines.catalog;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.ModSpecAPI;
+import com.fs.starfarer.api.SettingsAPI;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,20 +40,46 @@ public record MarineCatalogManifest(
 
     /** Discovers the fixed manifest in every enabled mod, preserving game load order. */
     public static MarineCatalogManifest discoverEnabled() {
+        SettingsAPI settings = Global.getSettings();
+        List<String> enabledModIds = new ArrayList<>();
+        for (ModSpecAPI mod : settings.getModManager().getEnabledModsCopy()) {
+            enabledModIds.add(mod.getId());
+        }
+        return discoverEnabled(enabledModIds, settings::loadJSON);
+    }
+
+    static MarineCatalogManifest discoverEnabled(List<String> enabledModIds,
+                                                  ManifestReader manifestReader) {
         Builder result = new Builder();
-        for (ModSpecAPI mod : Global.getSettings().getModManager().getEnabledModsCopy()) {
-            Path manifestOnDisk = Path.of(mod.getPath()).resolve(
-                    MANIFEST_PATH.replace('/', File.separatorChar));
-            if (!Files.isRegularFile(manifestOnDisk)) continue;
+        for (String modId : enabledModIds) {
             try {
-                result.add(parse(mod.getId(), Global.getSettings().loadJSON(
-                        MANIFEST_PATH, mod.getId())));
+                result.add(parse(modId, manifestReader.load(MANIFEST_PATH, modId)));
             } catch (Exception failure) {
+                if (isAbsentManifest(failure)) continue;
                 throw new IllegalStateException("Failed to load marine catalog manifest for mod '"
-                        + mod.getId() + "' at '" + MANIFEST_PATH + "'", failure);
+                        + modId + "' at '" + MANIFEST_PATH + "'", failure);
             }
         }
         return result.build();
+    }
+
+    private static boolean isAbsentManifest(Exception failure) {
+        if (failure instanceof FileNotFoundException) return true;
+        // Starsector 0.98a's provider-scoped SettingsAPI loader declares IOException,
+        // but its missing-resource path actually throws this untyped RuntimeException.
+        // Match the complete resource-specific shape so malformed JSON and unrelated
+        // runtime failures remain launch-blocking.
+        String message = failure.getMessage();
+        return failure.getClass() == RuntimeException.class
+                && message != null
+                && message.startsWith("Error loading [" + MANIFEST_PATH
+                        + "] resource, not found in [")
+                && message.endsWith("]");
+    }
+
+    @FunctionalInterface
+    interface ManifestReader {
+        JSONObject load(String path, String modId) throws IOException, JSONException;
     }
 
     /** Parses one manifest without touching game globals, for tests and authoring tools. */
