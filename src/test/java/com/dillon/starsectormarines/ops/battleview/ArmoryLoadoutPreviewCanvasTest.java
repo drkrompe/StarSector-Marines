@@ -2,7 +2,8 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef;
 import org.junit.jupiter.api.Test;
@@ -21,15 +22,15 @@ class ArmoryLoadoutPreviewCanvasTest {
     @Test
     void specialPreviewStateUsesTheBattlefieldPoseVocabulary() {
         assertEquals(LayeredAppearance.POSE_ROCKET_AIM,
-                ArmoryLoadoutPreviewComposer.poseFor(MarineSecondary.ROCKET_LAUNCHER, USING));
+                ArmoryLoadoutPreviewComposer.poseForDef(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), USING));
         assertEquals(LayeredAppearance.POSE_AMR_AIM,
-                ArmoryLoadoutPreviewComposer.poseFor(MarineSecondary.ANTI_MATERIEL_RIFLE, USING));
+                ArmoryLoadoutPreviewComposer.poseForDef(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID), USING));
         assertEquals(LayeredAppearance.POSE_SMOKE_THROW,
-                ArmoryLoadoutPreviewComposer.poseFor(MarineSecondary.SMOKE_GRENADE, USING));
+                ArmoryLoadoutPreviewComposer.poseForDef(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID), USING));
         assertEquals(LayeredAppearance.POSE_SATCHEL_PLANT,
-                ArmoryLoadoutPreviewComposer.poseFor(MarineSecondary.SATCHEL_CHARGE, USING));
+                ArmoryLoadoutPreviewComposer.poseForDef(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID), USING));
         assertEquals(LayeredAppearance.POSE_IDLE,
-                ArmoryLoadoutPreviewComposer.poseFor(MarineSecondary.SATCHEL_CHARGE,
+                ArmoryLoadoutPreviewComposer.poseForDef(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID),
                         new SpecialEquipmentPresentationDef.Preview("carried", 1f)));
     }
 

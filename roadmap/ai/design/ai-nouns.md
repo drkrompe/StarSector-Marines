@@ -4,8 +4,8 @@ Status: ACTIVE — AI owns autonomous mission command, squad planning, belief-de
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — constrained must-hold contact doctrine to a squad's
-current defensive authority rather than a future capture destination.
+Updated: 2026-08-26 — made ambient work destination-owned, physically navigated,
+and exclusive at battle-owned task points.
 
 AI turns mission context and what a side has learned into coordinated
 movement, posture, and fire intent. It is a decision system, not the authority
@@ -48,19 +48,32 @@ support that extension, but parallel behavior is not implied by their shape.
 An **ambient task assignment** is low-stakes authored world work for an existing
 battle actor: resting at a berth, inspecting a console, maintaining machinery,
 or using already-issued equipment at a practice station. The battle owns the
-assignment, deterministic route sampling, and temporary execution exclusion;
+assignment, deterministic route intent, and temporary execution exclusion;
 the actor retains its ordinary role and identity. Each route declares whether
 any armed presence or only a hostile combatant interrupts it. An interrupted
 actor leaves the route before ordinary unit dispatch and immediately resumes
 its existing flee, guard, worker, or combat behavior. Ambient work never authors
 damage, campaign recovery, inventory mutation, or mission authority.
 
+A **task point** is a battle-owned, single-occupant interaction site published by
+a fixture or mission: a firing lane, berth, console, workbench, or defensive
+post. Tasks claim a suitable point by group instead of assuming that an authored
+coordinate is vacant. A claim remains with its actor until another point is
+successfully acquired, the task leaves that kind of site, the assignment is
+released, or the actor dies. This prevents two independent tasks from converging
+on one station and gives ambient work, civilians, guards, and future mission
+interactions one reservation law.
+
 Bounded embedded scenes may seek the same route sampler at an exact presentation
-time without advancing combat. Live battle hosts advance it in the normal tick
-before occupancy and unit execution, then reassert its pose after ordinary
-appearance authoring. This shared mechanism makes shipboard leisure and workshop
-activity useful proving grounds for future civilians, technicians, guards, and
-other map-authored workers without creating presentation-only actor scripts.
+time without advancing combat; that pose-only operation is not physical
+simulation. Live hosts use a route only to choose the next claimed destination,
+then ordinary pathfinding, movement, occupancy, and separation determine the
+actor's position. Task activity and live fire begin only after physical arrival.
+Claims are resolved in deterministic roster order, and the task pose is
+reasserted after ordinary appearance authoring. This shared mechanism makes
+shipboard leisure and workshop activity useful proving grounds for civilians,
+technicians, guards, and other map-authored workers without creating
+presentation-only actor scripts.
 
 ## Autonomous command duel
 

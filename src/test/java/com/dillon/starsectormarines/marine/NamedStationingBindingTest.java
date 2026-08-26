@@ -83,15 +83,15 @@ class NamedStationingBindingTest {
         assertFalse(roster.removeById(captain.id()));
 
         MarineSoldier away = roster.squadMembers(stationed).get(0);
-        assertFalse(roster.allocatePrimary(away.id(), away.primary(), away.primaryGrade()));
-        assertFalse(roster.allocateSecondary(away.id(), null));
+        assertFalse(roster.allocatePrimary(away.id(), away.primaryDef(), away.primaryGrade()));
+        assertFalse(roster.allocateSecondary(away.id(), (String) null));
         assertFalse(roster.allocateArmor(away.id(), away.armor()));
         assertEquals(FireTeamTemplateResult.STATIONED,
                 roster.applyFireTeamTemplate(stationed.id(), 0,
                         FireTeamTemplateCards.LINE_ID));
 
         assertEquals(1, roster.releaseStationing(61L));
-        assertTrue(roster.allocateSecondary(away.id(), null));
+        assertTrue(roster.allocateSecondary(away.id(), (String) null));
         assertTrue(roster.clearSquadCaptain(stationed.id()));
     }
 

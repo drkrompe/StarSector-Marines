@@ -6,7 +6,8 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -182,10 +183,10 @@ class RescuePickupSupportSystemTest {
                 assertEquals(4, mission.marinesRemaining);
                 assertEquals(4, mission.marineLoadout.length);
                 for (MarineLoadout loadout : mission.marineLoadout) {
-                    assertNotNull(loadout.primary);
-                    assertTrue(loadout.primary == MarineWeapon.PULSE_RIFLE
-                            || loadout.primary == MarineWeapon.SMG
-                            || loadout.primary == MarineWeapon.DMR);
+                    assertNotNull(loadout.primaryDef());
+                    assertTrue(loadout.primaryDef() == WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID)
+                            || loadout.primaryDef() == WeaponRegistry.require(WeaponRegistry.SMG_ID)
+                            || loadout.primaryDef() == WeaponRegistry.require(WeaponRegistry.DMR_ID));
                 }
                 int point = formationPointIndex(placement,
                         mission.rescueGuardX, mission.rescueGuardY);

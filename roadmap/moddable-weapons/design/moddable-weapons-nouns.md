@@ -60,8 +60,8 @@ without turning a JSON typo into a silent zero-damage battle.
 - A **special-equipment item** is a progression/loadout identity with a typed
   activation. Weapon-like specials such as rockets, anti-materiel rifles, and
   fragmentation grenades reference a weapon definition; smoke and placed charges do not become
-  weapons merely because they occupy the same billet slot. The current
-  `MarineSecondary` enum conflates these concepts and is transitional.
+  weapons merely because they occupy the same billet slot. The retired
+  `MarineSecondary` enum conflated these concepts; this split is authoritative.
 - **Effects** are presentation descriptions. A shot's simulation result never
   depends on particles, tracer art, or fire audio.
 - A **catalog preview** is another consumer of authoritative definitions, not
@@ -205,9 +205,10 @@ The public manifest and authoring examples live in `submod-catalog-contract.md`.
 ## Transition boundaries
 
 Registry-owned handheld primary, weapon-like-secondary, mech-mount, and turret-mount
-definitions are the authoritative data boundary. `MarineWeapon`, `MarineSecondary`,
-`MechWeapon`, and `TurretKind` remain
-id-backed compatibility handles rather than parallel stat authorities; a
+definitions are the authoritative data boundary. `MarineWeapon` and
+`MarineSecondary` are retired; historical names survive only as serialized
+string input for save migration. `MechWeapon` and `TurretKind` remain id-backed
+compatibility handles rather than parallel stat authorities; a
 weapon-like special reaches its definition through the distinct
 progression-owned special-equipment identity. That identity now comes from a
 separate JSON catalog and validates that every weapon reference resolves
@@ -226,9 +227,10 @@ mutually exclusive contact-versus-area payload laws.
 Generated faction and player-authored primary, armor, and special-equipment
 issue consume contributed definitions directly. Player doctrine selection,
 persistence, cargo-backed materialization, deployment, special AI and typed
-activation, ballistics, rendering, and audio do not require `MarineWeapon`,
-`MarineArmorPattern`, or `MarineSecondary` constants. Those enums remain only
-at built-in compatibility APIs and legacy-save boundaries. Removing a provider
+activation, ballistics, rendering, and audio do not require `MarineWeapon` or
+`MarineSecondary` constants. `MarineArmorPattern` remains an id-backed armor
+compatibility handle while historical primary and special names are accepted
+only as serialized string input. Removing a provider
 repairs player primary and armor ids to their safe starters and clears an
 unresolved special slot with a warning.
 

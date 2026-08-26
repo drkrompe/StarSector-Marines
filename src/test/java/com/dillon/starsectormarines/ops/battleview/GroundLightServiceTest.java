@@ -1,8 +1,10 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.render2d.BattleCamera;
@@ -35,7 +37,7 @@ class GroundLightServiceTest {
     void selectionKeepsEightNearestVisibleLightsInDistanceOrder() {
         GroundLightService lights = new GroundLightService();
         for (int x = 1; x <= 10; x++) {
-            lights.spawnImpact(MarineWeapon.FIELD_RIFLE.def().fx, x, 10f);
+            lights.spawnImpact(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID).fx, x, 10f);
         }
 
         assertEquals(GroundLightService.MAX_SHADER_LIGHTS, lights.selectNearest(camera()));
@@ -47,7 +49,7 @@ class GroundLightServiceTest {
     @Test
     void cannonHeCarriesTheLargestImpactLight() {
         GroundLightService lights = new GroundLightService();
-        lights.spawnImpact(MarineSecondary.ROCKET_LAUNCHER.def().fx, 10f, 10f);
+        lights.spawnImpact(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).weaponDef().fx, 10f, 10f);
         lights.selectNearest(camera());
         GroundLightService.Light ordinaryHe = lights.selected(0);
 
@@ -64,8 +66,8 @@ class GroundLightServiceTest {
     @Test
     void travelingBoltLightsFollowTheRenderedBodiesUntilArrival() {
         GroundLightService lights = new GroundLightService();
-        ShotEvent pulse = boltShot(0f, 0f, 10f, 0f, MarineWeapon.PULSE_RIFLE);
-        ShotEvent dmr = boltShot(0f, 10f, 10f, 10f, MarineWeapon.DMR);
+        ShotEvent pulse = boltShot(0f, 0f, 10f, 0f, WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID));
+        ShotEvent dmr = boltShot(0f, 10f, 10f, 10f, WeaponRegistry.require(WeaponRegistry.DMR_ID));
         pulse.lifetime = 0.5f;
         dmr.lifetime = 0.5f;
 
@@ -76,8 +78,8 @@ class GroundLightServiceTest {
         GroundLightService.Light dmrLight = lights.boltLight(dmr);
         assertEquals(4.5f, pulseLight.x, 1e-6f);
         assertEquals(4.1f, dmrLight.x, 1e-6f);
-        assertEquals(MarineWeapon.PULSE_RIFLE.tracerColor(), pulseLight.color);
-        assertEquals(MarineWeapon.DMR.tracerColor(), dmrLight.color);
+        assertEquals(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID).tracerColor(), pulseLight.color);
+        assertEquals(WeaponRegistry.require(WeaponRegistry.DMR_ID).tracerColor(), dmrLight.color);
 
         pulse.lifetime = 0.25f;
         lights.syncBoltLights(List.of(pulse));
@@ -95,7 +97,7 @@ class GroundLightServiceTest {
         GroundLightService lights = new GroundLightService();
 
         lights.syncBoltLights(List.of(
-                boltShot(0f, 0f, 10f, 0f, MarineWeapon.FIELD_RIFLE)));
+                boltShot(0f, 0f, 10f, 0f, WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID))));
 
         assertEquals(0, lights.liveCount());
     }
@@ -103,7 +105,7 @@ class GroundLightServiceTest {
     @Test
     void movingBoltDoesNotAbsorbItsSeparateMuzzleFlash() {
         GroundLightService lights = new GroundLightService();
-        ShotEvent pulse = boltShot(0f, 0f, 10f, 0f, MarineWeapon.PULSE_RIFLE);
+        ShotEvent pulse = boltShot(0f, 0f, 10f, 0f, WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID));
         pulse.lifetime = 0.95f;
         lights.syncBoltLights(List.of(pulse));
 
@@ -113,7 +115,7 @@ class GroundLightServiceTest {
     }
 
     private static ShotEvent boltShot(float fromX, float fromY, float toX, float toY,
-                                      MarineWeapon weapon) {
+                                      WeaponDef weapon) {
         return new ShotEvent(fromX, fromY, toX, toY, true, Faction.MARINE,
                 1f, null, weapon, null, null);
     }

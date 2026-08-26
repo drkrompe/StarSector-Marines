@@ -2,13 +2,13 @@ package com.dillon.starsectormarines.battle.ui.panel;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.SquadMoraleSystem;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
@@ -79,7 +79,7 @@ public final class SquadDetailPanel implements HudPanel {
      * {@code secondary} are the loadout descriptors (immutable, not
      * registry-backed — safe to hold); hp/maxHp/ammo/role are copied by value.
      */
-    private record MemberRow(float hp, float maxHp, MarineWeapon primary,
+    private record MemberRow(float hp, float maxHp, WeaponDef primary,
                              EquipmentGrade grade, SoldierProfile profile,
                              SpecialEquipmentDef secondary, int secondaryAmmo,
                              float secondaryCooldown, UnitRole role) {}
@@ -136,7 +136,8 @@ public final class SquadDetailPanel implements HudPanel {
                 .thenComparingLong(u -> u));
         for (long u : live) {
             boolean hasSec = sim.world().hasSecondaryWeapon(u);
-            rows.add(new MemberRow(sim.world().hp(u), sim.world().maxHp(u), sim.combat().primaryWeapon(u),
+            rows.add(new MemberRow(sim.world().hp(u), sim.world().maxHp(u),
+                    sim.combat().primaryWeaponDef(u),
                     sim.combat().equipmentGrade(u), sim.combat().soldierProfile(u),
                     hasSec ? sim.world().specialEquipment(u) : null,
                     hasSec ? sim.world().secondaryAmmo(u) : 0,

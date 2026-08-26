@@ -1,4 +1,7 @@
 package com.dillon.starsectormarines.battle.infantry;
+
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -40,22 +43,22 @@ public class InfantryUnitPrepTest {
 
     private static long rocketeer(BattleSimulation sim, Faction f, int x, int y) {
         long u = sim.spawn(new EntitySpec("u" + sim.liveUnitCount(), f, UnitType.MARINE, x, y)
-                .secondary(MarineSecondary.ROCKET_LAUNCHER, MarineSecondary.ROCKET_LAUNCHER.startingAmmo()));
+                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).startingAmmo()));
         // Primary weapon ref only — .primaryWeapon() would derive the weapon's
         // damage/accuracy/range/cooldown; this test keeps the UnitType.MARINE
         // defaults and sets attackRange separately below, so set the ref by id.
-        sim.combat().setPrimaryWeapon(u, MarineWeapon.PULSE_RIFLE);
+        sim.combat().setPrimaryWeapon(u, WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID));
         // attackRange is a Group-S registry-backed stat — set after the unit is
         // registered (the accessor is fail-loud pre-allocate).
-        sim.world().setAttackRange(u, MarineWeapon.PULSE_RIFLE.range());
+        sim.world().setAttackRange(u, WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID).range());
         return u;
     }
 
     private static long heavyMarksman(BattleSimulation sim, Faction faction, int x, int y) {
         return sim.spawn(new EntitySpec("amr" + sim.liveUnitCount(), faction,
                 UnitType.MARINE, x, y)
-                .secondary(MarineSecondary.ANTI_MATERIEL_RIFLE,
-                        MarineSecondary.ANTI_MATERIEL_RIFLE.startingAmmo()));
+                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID),
+                        SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID).startingAmmo()));
     }
 
     private static long turret(BattleSimulation sim, Faction f, TurretKind kind, int x, int y) {
@@ -71,7 +74,7 @@ public class InfantryUnitPrepTest {
 
         boolean started = InfantryUnitPrep.tryOpportunityRocket(marine, sim);
         assertTrue(started, "marine in rocket range with LOS should start aim");
-        assertEquals(MarineSecondary.ROCKET_LAUNCHER.aimDuration(),
+        assertEquals(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).aimDuration(),
                 sim.world().secondaryActionTimer(marine), 0.001f);
         assertEquals(turret, sim.world().secondaryAimTargetId(marine));
     }
@@ -183,7 +186,7 @@ public class InfantryUnitPrepTest {
         long hardTarget = turret(hardSim, Faction.DEFENDER, TurretKind.VULCAN, 28, 5);
         assertTrue(InfantryUnitPrep.tryOpportunitySpecial(hardCarrier, hardSim));
         assertEquals(hardTarget, hardSim.world().secondaryAimTargetId(hardCarrier));
-        assertEquals(MarineSecondary.ANTI_MATERIEL_RIFLE.aimDuration(),
+        assertEquals(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID).aimDuration(),
                 hardSim.world().secondaryActionTimer(hardCarrier), 0.001f);
     }
 
@@ -196,10 +199,10 @@ public class InfantryUnitPrepTest {
 
         for (int y = 0; y < 10; y++) sim.getGrid().setWalkable(15, y, false);
         sim.world().setSecondaryActionTimer(carrier,
-                MarineSecondary.ANTI_MATERIEL_RIFLE.aimDuration() * 0.5f);
+                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID).aimDuration() * 0.5f);
 
         assertTrue(InfantryUnitPrep.tickAimAndShortCircuit(carrier, sim));
-        assertEquals(MarineSecondary.ANTI_MATERIEL_RIFLE.startingAmmo(),
+        assertEquals(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID).startingAmmo(),
                 sim.world().secondaryAmmo(carrier));
         assertEquals(0f, sim.world().secondaryCooldownTimer(carrier), 0.001f);
         assertTrue(sim.getShotsThisFrame().isEmpty(),

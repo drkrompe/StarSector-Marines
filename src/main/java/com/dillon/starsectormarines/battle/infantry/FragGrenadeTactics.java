@@ -30,12 +30,6 @@ public final class FragGrenadeTactics {
     private FragGrenadeTactics() {
     }
 
-    /** Built-in compatibility overload for focused behavior callers. */
-    public static boolean tryCommitThrow(long carrier, MarineSecondary grenade,
-                                         BattleControl sim) {
-        return tryCommitThrow(carrier, grenade.specialDef(), sim);
-    }
-
     /** Commits a carrier to the best useful, friendly-safe believed soft cluster. */
     public static boolean tryCommitThrow(long carrier, SpecialEquipmentDef grenade,
                                          BattleControl sim) {

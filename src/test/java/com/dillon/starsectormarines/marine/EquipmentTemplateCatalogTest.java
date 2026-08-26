@@ -1,8 +1,10 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
@@ -23,9 +25,9 @@ class EquipmentTemplateCatalogTest {
                 .map(EquipmentTemplateCard::id).toList()).size());
         assertTrue(cards.stream().allMatch(card -> card.id().startsWith("equipment-template:")));
         assertEquals(EquipmentTemplateCost.ZERO, EquipmentTemplateCatalog.primary(
-                MarineWeapon.FIELD_RIFLE, EquipmentGrade.SERVICE).issueCost());
+                WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID), EquipmentGrade.SERVICE).issueCost());
         assertEquals(new EquipmentTemplateCost(3, 2, 1, 0),
-                EquipmentTemplateCatalog.special(MarineSecondary.ROCKET_LAUNCHER).issueCost());
+                EquipmentTemplateCatalog.special(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID)).issueCost());
         assertFalse(cards.stream().anyMatch(card -> card.id().contains("drone-pulse")));
     }
 
@@ -34,13 +36,13 @@ class EquipmentTemplateCatalogTest {
         MarineArmory armory = new MarineArmory();
 
         assertTrue(armory.ownsPrimaryTemplate(
-                MarineWeapon.PULSE_RIFLE, EquipmentGrade.SERVICE));
+                WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), EquipmentGrade.SERVICE));
         assertTrue(armory.ownsArmorTemplate(MarineArmorPattern.CHARCOAL));
-        assertTrue(armory.ownsSpecialTemplate(MarineSecondary.SATCHEL_CHARGE));
+        assertTrue(armory.ownsSpecialTemplate(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID)));
         assertFalse(armory.ownsPrimaryTemplate(
-                MarineWeapon.DMR, EquipmentGrade.MASTERWORK));
+                WeaponRegistry.require(WeaponRegistry.DMR_ID), EquipmentGrade.MASTERWORK));
         assertFalse(armory.ownsArmorTemplate(MarineArmorPattern.RED_ELITE));
-        assertFalse(armory.ownsSpecialTemplate(MarineSecondary.FRAG_GRENADE));
+        assertFalse(armory.ownsSpecialTemplate(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID)));
     }
 
     @Test
@@ -51,7 +53,7 @@ class EquipmentTemplateCatalogTest {
 
         assertThrows(IllegalArgumentException.class,
                 () -> armory.createWeaponDoctrine("Premature Assault", assault));
-        armory.unlockSecondary(MarineSecondary.FRAG_GRENADE);
+        armory.unlockSecondary(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID));
         assertEquals("Collected Assault",
                 armory.createWeaponDoctrine("Collected Assault", assault).displayName());
     }
