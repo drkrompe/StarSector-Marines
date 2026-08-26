@@ -1,13 +1,13 @@
 # AI stories
 
 Status: ACTIVE — the autonomous mission-command foundation remains in progress;
-Marine Sabotage attacker site command is shipped and its paired defender follows.
+paired Sabotage named-site command is shipped and Assault follows.
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — retired the shipped Marine Sabotage attacker site-command
-story after landing assignmentless special-task ownership, recovery states,
-launch replay, and bounded deterministic evidence.
+Updated: 2026-08-26 — retired the paired Sabotage site-command stories after
+landing legal defender alarms, authored-post/mobile-pool separation, bounded
+reserve response, diagnostics, and deterministic production evidence.
 
 | Story | State | Intent |
 |---|---|---|
@@ -17,7 +17,6 @@ launch replay, and bounded deterministic evidence.
 | `opening-operation-objective-command.md` | DRAFT | Prove the foundation outside Conquest with belief-honest paired preserve/assault and secure/defend small-force scenarios. |
 | `assault-search-sector-picture.md` | DRAFT | Publish the belief-honest attacker search-sector picture and converging sweep. |
 | `assault-area-defense-command.md` | DRAFT | Pair Assault search with defender strongpoints, reported-contact response, and a bounded reserve without imposing a front. |
-| `sabotage-site-defense-command.md` | DRAFT | Pair site task groups with defender guards, legal alarms, and a mobile reserve. |
 | `rescue-corridor-command-picture.md` | DRAFT | Publish the marine escort corridor and opposing swarm-pressure intent as an asymmetric autonomous battle. |
 | `silent-colony-expedition-branches.md` | DRAFT | Keep archive and survivor branches stable and inspectable before deciding the security network's opposing-command shape. |
 | `player-command-interventions.md` | PLANNED | Add legal, bounded priority/rally/reserve/fallback leases only after a competent zero-input baseline is measurable. |

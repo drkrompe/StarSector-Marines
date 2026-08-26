@@ -34,3 +34,4 @@ Written: 2026-08-23
 | `30-mech-formation-discipline.md` | 2026-08-22 | `861a5bf1` | `ai-nouns.md` |
 | `31-adaptive-squad-formations.md` | 2026-08-22 | `4c0864d9` | `ai-nouns.md` |
 | `sabotage-site-task-groups.md` | 2026-08-26 | `3efd0c42`, `30da6637` | `ai-nouns.md` |
+| `sabotage-site-defense-command.md` | 2026-08-26 | `d598c1df` | `ai-nouns.md` |
