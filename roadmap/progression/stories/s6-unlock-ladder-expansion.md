@@ -7,7 +7,7 @@ Status: PLANNED — depends on the remaining S2E–S2G special-equipment stories
 armor expansion also depends on
 `powered-assault-armor-roles.md`.
 Written: 2026-08-22
-Updated: 2026-08-26 — routed factional equipment provenance and availability through the enduring lore guide catalog.
+Updated: 2026-08-26 — landed faction market, license, and completed-patron reward consumers; operational recovery remains.
 
 Read `progression-nouns.md`, `faction-lore-nouns.md`, and
 `powered-assault-armor-roles.md` before implementing this story.
@@ -86,12 +86,30 @@ story/special mission, market purchase, MRB licensing tier, and a modest set of
 early-campaign milestone grants so a green company is not gated behind luck
 in its first hours.
 
+Faction source pools now provide the shared data boundary for four of those
+channels: market, license, patron, and recovery. They resolve exact campaign
+faction ids, fall back to the Independent pool for unknown factions, and let
+submods add unique card/channel claims to either their own faction or an
+existing pool. The pool weights are not acquisition by themselves. The first
+live consumer now populates ordinary open markets with a deterministic monthly
+weighted selection: larger markets carry more cards, templates already owned
+by the player are omitted, and `license` offers join the same stock only at
+Favorable-or-better standing. Unknown faction ids consume the Independent
+fallback pool while explicit exclusions such as the Remnants remain empty.
+Completed patron contracts now consume the same ledger that records patron
+history and issue one weighted card from the patron faction's `patron` pool.
+The delivery is exactly once across battle-resolved and time-resolved contracts,
+omits templates already learned or held in cargo, retries when fleet cargo is
+temporarily unavailable, and compensates existing saves from their unprocessed
+completion history. System-generated extraction work is not a patron reward.
+Operational recovery remains the work of this story.
+
 The parameterized cargo item and its right-click learning transition are now
 shipped. A source can create its validated payload from any stable
 equipment-template id; successful learning moves the capability into
 `MarineArmory` without entering vanilla ship-production knowledge. The item is
-tagged out of automatic drops and the generic Codex until this story authors
-its factional recovery, reward, and market population rules.
+tagged out of automatic drops and the generic Codex while this story authors
+its factional recovery, reward, and provenance treatments.
 
 Installation recovery is specific: `intact-installation-recovery.md` may admit
 a faction-provenance template only when the matching site was secured in an
@@ -155,11 +173,12 @@ it in `InfantryCombatStats` rather than duplicating `MarineWeapon` entries.
 A small number of genuinely faction-exclusive families can then exist as
 real chase items without the catalog exploding.
 
-For the first implementation, faction identity attaches to template provenance
-and a thin grade-side treatment. It supplies availability, presentation, and a
-bounded stat skew composed with family/grade/profile. It does **not** grant set
-bonuses. Genuinely exclusive weapon families remain separately authored content
-rather than empty cells in a faction cross-product.
+The first implementation now supplies faction availability as template-card
+source data without changing combat stats. Provenance presentation and any
+thin grade-side treatment remain later work and must compose with
+family/grade/profile rather than entering the availability registry. It does
+**not** grant set bonuses. Genuinely exclusive weapon families remain
+separately authored content rather than empty cells in a faction cross-product.
 
 Armor uses the same provenance principle but not weapon grade. A recovered suit
 template names a concrete pattern whose light, line, or heavy role and faction

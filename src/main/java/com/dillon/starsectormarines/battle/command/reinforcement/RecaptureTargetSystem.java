@@ -161,7 +161,7 @@ public final class RecaptureTargetSystem {
                     t.dispatchAgeTicks = 0;
                     LOG.info("recapture: dispatch to " + t.node.kind
                             + " @(" + t.node.anchorX + "," + t.node.anchorY
-                            + ") timed out with no arrival — re-opening");
+                            + ") timed out with no arrival - re-opening");
                 }
             }
         }

@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-25
 
-Updated: 2026-08-26 — documented the shared layered weapon-effect contract.
+Updated: 2026-08-26 — documented additive faction equipment-source contributions.
 
 ## Provider entry point
 
@@ -29,7 +29,8 @@ provider mod and explicitly ordered:
   "specialEquipment": ["data/my_faction/specials.equipment.json"],
   "armor": ["data/my_faction/armor.armor.json"],
   "groundRosters": ["data/my_faction/ground.roster.json"],
-  "equipmentTemplates": ["data/my_faction/templates.template.json"]
+  "equipmentTemplates": ["data/my_faction/templates.template.json"],
+  "factionEquipment": ["data/my_faction/faction-equipment.json"]
 }
 ```
 
@@ -41,9 +42,12 @@ same-named file in another mod cannot replace it invisibly.
 
 Enabled-mod order determines ingestion and stable iteration order, but never
 override priority. Contributions are add-only: one stable definition id and one
-campaign faction id have one provider. A collision stops application load and
-reports the first and second provider mod ids and resource paths. Authors must
-namespace contributed ids; changing an established id is a compatibility break.
+ground-roster campaign faction id have one provider. Faction equipment pools
+are deliberately more open: several providers may add offers to one campaign
+faction, but one faction/template/channel claim has one provider. A collision
+stops application load and reports the first and second provider mod ids and
+resource paths. Authors must namespace contributed ids; changing an established
+id is a compatibility break.
 
 The core ground-roster catalog declares the global fallback. Provider roster
 files normally omit `fallbackProfile` and contribute only profiles. An unknown
@@ -59,7 +63,8 @@ The runtime resolves catalogs in this order:
 3. weapons;
 4. special equipment and armor;
 5. collectible equipment templates;
-6. faction ground rosters.
+6. faction equipment sources;
+7. faction ground rosters.
 
 References therefore resolve eagerly and fail at application load. A primary
 template must name a `marine-primary` weapon. A special must reference a
@@ -163,6 +168,42 @@ The derived card ids remain stable:
 
 Learning one through the Starsector special-item interaction adds it only to
 the Marine Armory. It never enters vanilla ship-production knowledge.
+
+## Faction equipment sources
+
+Faction equipment catalogs reference collectible template ids after those
+cards have loaded. Each offer assigns a positive relative weight to one or more
+closed campaign channels: `market`, `license`, `patron`, and `recovery`.
+Weights compare candidates within a channel; loading a catalog never creates
+cargo, bypasses relationship checks, or grants a card.
+
+```json
+{
+  "factions": [
+    {
+      "factionId": "my_faction",
+      "offers": [
+        {
+          "templateId": "equipment-template:my_faction.weapon-needle-rifle:service",
+          "sources": { "market": 8, "patron": 3 }
+        },
+        {
+          "templateId": "equipment-template:my_faction.armor-ceramic",
+          "sources": { "license": 6, "recovery": 2 }
+        }
+      ]
+    }
+  ]
+}
+```
+
+The core file alone declares `fallbackFactionId: "independent"`. An unknown
+campaign faction resolves to that pool. Providers normally contribute their OC
+faction, but may also append a new card/channel claim to an existing faction.
+Repeating an existing claim is an error rather than a weight override. A faction
+with no human-compatible player templates may replace `offers` with one
+non-empty `noPlayerEquipmentReason`; an excluded faction cannot also receive
+offers.
 
 ## Runtime consumption
 

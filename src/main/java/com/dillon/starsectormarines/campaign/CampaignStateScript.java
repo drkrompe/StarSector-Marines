@@ -24,6 +24,7 @@ import com.dillon.starsectormarines.campaign.systems.InternalFlipGarrisonSystem;
 import com.dillon.starsectormarines.campaign.systems.KingmakerTestamentSystem;
 import com.dillon.starsectormarines.campaign.systems.MoralCompassSystem;
 import com.dillon.starsectormarines.campaign.systems.NamedStationingRepairSystem;
+import com.dillon.starsectormarines.campaign.systems.PatronEquipmentRewardSystem;
 import com.dillon.starsectormarines.campaign.systems.RelationshipInteractionSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultExtractionSystem;
 import com.dillon.starsectormarines.campaign.systems.StationingDefaultSystem;
@@ -99,6 +100,7 @@ public class CampaignStateScript implements EveryFrameScript {
                 new StationingIncidentSystem(),
                 new StationingLapseSystem(),
                 new ContractLifecycleSystem(),
+                new PatronEquipmentRewardSystem(),
                 new CivilWarParticipationSystem(),
                 new CivilWarPlayerConsequenceSystem(),
                 new CivilianRescueSpawnSystem(),

@@ -1,8 +1,10 @@
 # Reinforcement Means Dispatch Transaction
 
-Status: PLANNED — concrete cohesion cleanup.
+Status: IN PROGRESS — implementation complete; live delivery-failure playtest remains.
 
 Written: 2026-08-23
+
+Updated: 2026-08-26 — activated from live route-failure evidence.
 
 Read `reinforcement-nouns.md` before implementing this story.
 

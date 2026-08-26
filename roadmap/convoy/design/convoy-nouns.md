@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery uses a shared convoy lifecycle, with the defe
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — folded route and recovery slice narration into durable convoy boundaries.
+Updated: 2026-08-26 — added transactional route proof and Conquest rear-front deployment policy.
 
 ## Purpose and boundary
 
@@ -30,11 +30,13 @@ obstacles, not convoy actors.
 
 `ConvoyMeans` is the reinforcement provider. Defender-side ARMORY supply gates
 it: when no defender ARMORY remains, convoy cannot fulfill and the
-reinforcement dispatcher may choose another means. It selects a defender-side
-perimeter approach and a viable interior rally drop-off, avoiding the player's
-entry edge and preferring separation from active convoy destinations. The road
-graph still supplies this map-aware selection vocabulary; it does not constrain
-the route between selected points.
+reinforcement dispatcher may choose another means. Outside Conquest it retains
+the legacy defender-side perimeter and rally policy. In Conquest, defender
+command supplies a dispatch-time deployment hint and minimum safe forward band;
+the convoy accepts only the strict defender rear edge and a drop junction behind
+that band. The policy is frozen once a route commits rather than retargeting a
+vehicle already in motion. The road graph still supplies this map-aware
+selection vocabulary; it does not constrain the route between selected points.
 
 A convoy mission moves through a single lifecycle:
 
@@ -45,8 +47,13 @@ point to the landing zone. `LANDED` releases passengers one at a time into a
 nearby free cell and assigns their new squad to the reinforcement objective.
 An armed APC then `OVERWATCH`s before `DEPARTING`; a variant that does not
 linger may go straight to departure. `GONE` is terminal and removes the world
-actor. An initial route failure suppresses that dispatch rather than creating
-a teleporting or stranded vehicle.
+actor. Dispatch proves inbound and outbound travel before creating the vehicle.
+Entries, junctions, and exits are tried in stable ranked order, so one bad route
+does not suppress a later valid candidate. A perimeter route stages far enough
+inside the map for the full body to fit while its visible path still begins and
+ends off-map. If no complete journey exists, the means rejects atomically and
+the reinforcement dispatcher may try its next provider; no ticket-consuming
+false success or stranded actor is created.
 
 The vehicle is a world-resident actor but not a normal grid combatant. Its
 identity, motion, mission, and optional turret authority are separate from its
@@ -135,6 +142,7 @@ Future variants belong behind vehicle capabilities rather than another parallel
 convoy model: payload/deboard effect, chassis/body, clearance/handling profile,
 armed or unarmed parked behavior, and authority to affect reinforcement supply.
 Tanks and player-controlled vehicles are broader combat features, not simple
-APC enum additions. A vehicle-spawned squad currently enters the normal free
-agent pool; explicit commander registration is deferred until the commander
-has a concrete need for a distinct convoy-arrival signal.
+APC enum additions. A vehicle-spawned squad normally enters the reinforcement
+assignment flow. Conquest is the explicit exception: its defender policy carries
+`conquest-defender` ownership through the vehicle mission, and the squad is born
+with the requested node-hold or zone-clear objective already under that commander.

@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — made learned contributed special cards authorable, issuable, deployable, and executable through stable catalog ids.
+Updated: 2026-08-26 — connected additive faction equipment pools to market, license, and patron rewards.
 
 ## Purpose
 
@@ -65,6 +65,10 @@ legibility.
 - **Equipment template card** — permanent collected capability for one primary
   family-and-grade, armor pattern, or special item. It gates authoring and issue,
   is never consumed, and is distinct from a reusable squad definition.
+- **Faction equipment source** — one campaign channel through which a faction
+  may make a template card available: ordinary market stock, licensed access,
+  patron reward, or operational recovery. A source declares eligibility and
+  relative selection weight; it does not itself grant, sell, or recover a card.
 - **Armory** — the persistent campaign authority for collected equipment
   templates and reusable squad definitions. Materialized marine kit persists on
   the marine; changed incoming issue is paid from ordinary fleet cargo.
@@ -152,8 +156,15 @@ Weapon or Armor issue, including any leader-specific and special-equipment place
 Legacy recipes, printed counts, and fabrication materials remain save-migration
 input and compatibility state for retired fire-team APIs, not live Fleet Armory
 authority. Existing victory milestones grant template cards, including the
-Shattercap after two victories; recovery, purchase, patron rewards, and the full
-asset reachability ladder remain planned.
+Shattercap after two victories. Faction source pools now author which cards may
+enter through market, license, patron, and recovery channels. Open markets now
+stock a faction-and-market-stable weighted selection that rotates monthly and
+scales with market size. Favorable-or-better standing adds licensed offers, and
+already-owned cards are omitted. Each completed patron contract also issues one
+weighted card from that patron faction's pool through the immutable engagement
+ledger. Delivery is exactly once, excludes learned or already-carried cards, and
+does not treat system-generated extraction as patron work. Operational recovery
+and the full asset reachability ladder remain planned.
 
 A template card may exist in fleet cargo as one parameterized Starsector special
 item whose data is the stable equipment-template id. Right-click learning follows
@@ -162,8 +173,8 @@ capability to `MarineArmory`; duplicates, invalid data, and an unavailable Armor
 remain unconsumed. This interaction deliberately does not implement a vanilla
 blueprint provider or write player-faction hull, fighter, ship-weapon, or industry
 knowledge, so infantry equipment cannot leak into ship production or the ship
-editor. Reward and salvage systems create validated cargo payloads, while the S6
-acquisition ladder still owns where those payloads enter the world.
+editor. Market, reward, and salvage systems create the same validated cargo
+payload; the S6 acquisition ladder still owns the eligibility of each entrance.
 
 Collectible eligibility and issue cost are catalog data rather than a closed
 Java list. Each enabled catalog provider may add primary family-and-grade cards,
@@ -181,6 +192,17 @@ then execute through their closed typed activation and AI policy. If that
 provider later disappears, save repair warns, returns unresolved primaries to
 the starter field rifle and unresolved armor to field fatigues, and clears an
 unresolved special slot.
+
+Faction availability is a second additive catalog over those card ids. Exact
+campaign faction ids merge offers from every enabled provider; a provider may
+therefore add its own card to an existing faction without replacing that
+faction's core pool. One faction/template/channel claim has one provider, and a
+duplicate reports both sources rather than silently changing its weight.
+Unknown factions resolve to the Independent pool. A faction with no
+human-compatible player equipment declares an explicit reason instead of
+quietly producing an empty or unreachable catalog. The four channel weights are
+inputs for later acquisition consumers, never loot rolls performed during
+application loading and never a hidden combat modifier.
 
 Armor patterns are authored player kit with distinct defensive and mobility
 tradeoffs. Some authored patterns are not presently reachable by the live

@@ -27,5 +27,8 @@
   ],
   "equipmentTemplates": [
     "data/marines/equipment-templates.template.json"
+  ],
+  "factionEquipment": [
+    "data/marines/faction-equipment.faction-equipment.json"
   ]
 }

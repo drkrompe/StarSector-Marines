@@ -7,6 +7,9 @@ import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot.TrackSt
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.influence.CommanderContact;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
+import com.dillon.starsectormarines.battle.command.reinforcement.ConvoyDeployment;
+import com.dillon.starsectormarines.battle.command.reinforcement.ConvoyDeploymentPolicy;
+import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementRequest;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
@@ -25,12 +28,15 @@ import java.util.TreeSet;
 
 /** Defender-side Conquest command: faction-honest first contact mobilizes a bounded patrol reserve. */
 public final class ConquestDefenderCommand implements ConquestFrontCommand,
-        AutonomousMissionCommand<ConquestCommandFrame, ConquestFrontSnapshot> {
+        AutonomousMissionCommand<ConquestCommandFrame, ConquestFrontSnapshot>,
+        ConvoyDeploymentPolicy {
 
     static final int MIN_MOBILE_RESERVE = 1;
     static final int MAX_RESPONDERS_PER_TRACK = 2;
     static final int COARSE_BAND_CELLS = 16;
     static final int RALLY_REAR_OFFSET_CELLS = 6;
+    static final int CONVOY_REAR_STANDOFF_CELLS = 12;
+    static final int CONVOY_DEPLOYMENT_BAND_CELLS = 4;
     private static final int RALLY_SNAP_RADIUS = 12;
 
     private final ConquestTrackLayout trackLayout;
@@ -143,8 +149,10 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             }
             if (squad.assignedObjective != null
                     && squad.assignedObjective.kind() != AssignmentKind.DEFEND_TRACK) {
-                directives.put(squad.id, directive(squad, home, home,
-                        AssignmentReason.DEFENDER_EXTERNAL_ASSIGNMENT_PRESERVED));
+                AssignmentReason reason = ownsReliefObjective(squad)
+                        ? AssignmentReason.DEFENDER_RELIEF_OBJECTIVE
+                        : AssignmentReason.DEFENDER_EXTERNAL_ASSIGNMENT_PRESERVED;
+                directives.put(squad.id, directive(squad, home, home, reason));
                 continue;
             }
             if (hasHigherAuthority(squad)) {
@@ -365,6 +373,60 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         return squad.originalDirective != null
                 && squad.originalDirective.authority() == CommandAuthority.MISSION_COMMAND
                 && strategyId().equals(squad.originalDirective.issuer());
+    }
+
+    private boolean ownsReliefObjective(PlanningSquad squad) {
+        return squad.assignedObjective != null
+                && (squad.assignedObjective.kind() == AssignmentKind.HOLD_NODE
+                || squad.assignedObjective.kind() == AssignmentKind.CLEAR_ZONE)
+                && squad.originalDirective != null
+                && squad.originalDirective.authority()
+                == CommandAuthority.MISSION_COMMAND
+                && strategyId().equals(squad.originalDirective.issuer());
+    }
+
+    @Override
+    public ConvoyDeployment deploymentFor(ReinforcementRequest request) {
+        int sourceX = request.hasObjective() ? request.objectiveX : request.rallyX;
+        int sourceY = request.hasObjective() ? request.objectiveY : request.rallyY;
+        int track = trackLayout.trackForCell(sourceX, sourceY);
+        if (track < 0 || track >= trackLayout.trackCount()) {
+            return ConvoyDeployment.legacy(request);
+        }
+
+        int requestedForward = Math.round(trackLayout.forwardCoordinate(
+                request.rallyX, request.rallyY));
+        int minimumForward = requestedForward;
+        if (request.hasObjective()) {
+            int objectiveForward = Math.round(trackLayout.forwardCoordinate(
+                    request.objectiveX, request.objectiveY));
+            minimumForward = Math.max(minimumForward,
+                    objectiveForward + CONVOY_REAR_STANDOFF_CELLS);
+        }
+        TrackState state = frontSnapshot != null ? frontSnapshot.track(track) : null;
+        if (state != null && state.knownHostileFrontProgress() >= 0f) {
+            int hostileForward = Math.round(state.knownHostileFrontProgress()
+                    * (trackLayout.forwardExtent() - 1));
+            minimumForward = Math.max(minimumForward,
+                    hostileForward + CONVOY_REAR_STANDOFF_CELLS);
+        }
+        minimumForward = Math.max(0, Math.min(
+                trackLayout.forwardExtent() - 1, minimumForward));
+        minimumForward = Math.min(trackLayout.forwardExtent() - 1,
+                ((minimumForward + CONVOY_DEPLOYMENT_BAND_CELLS - 1)
+                        / CONVOY_DEPLOYMENT_BAND_CELLS)
+                        * CONVOY_DEPLOYMENT_BAND_CELLS);
+
+        int lateral = Math.round(trackLayout.lateralCoordinate(
+                request.rallyX, request.rallyY));
+        lateral = Math.max(trackLayout.lateralStartInclusive(track),
+                Math.min(trackLayout.lateralEndInclusive(track), lateral));
+        int hintX = trackLayout.cellX(lateral, minimumForward);
+        int hintY = trackLayout.cellY(lateral, minimumForward);
+        return new ConvoyDeployment(hintX, hintY, minimumForward,
+                true, request.hasObjective(),
+                SquadCommandClaim.mission(strategyId(),
+                        "convoy relief " + request.reason.name()));
     }
 
     private void clearMissionRally(PlanningSquad squad) {

@@ -25,9 +25,10 @@ knowledge of the enemy.
 - A reported contact identifies a track and coarse forward band, not an enemy
   identity or exact reported cell. Mobilized squads receive only a defensive
   rally cell derived from that coarse picture.
-- Initial PATROL squads are the mobile command pool. Born GARRISON squads keep
-  their node assignments, and later reinforcement squads remain owned by the
-  reinforcement and counterattack systems.
+- Initial PATROL squads are the starting mobile command pool. Born GARRISON
+  squads keep their node assignments. Later squads remain owned by the
+  reinforcement and counterattack systems except for the explicit Conquest
+  convoy handoff in `defender-convoy-deployment-and-handoff.md`.
 - Mobilization is bounded: threatened tracks receive support before any track
   receives a second squad, and at least one mobile squad remains in reserve
   when the starting force is large enough to permit it.
@@ -47,5 +48,6 @@ knowledge of the enemy.
 
 This story reallocates defenders already present at battle start. It does not
 replace progressive reinforcement delivery, biome counterattacks, compound
-recapture, or garrison last-stand behavior; those systems retain their existing
-ownership and stories.
+recapture, or garrison last-stand behavior. Those systems retain their existing
+ownership and stories except where `defender-convoy-deployment-and-handoff.md`
+defines the explicit convoy-to-commander transfer.
