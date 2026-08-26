@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
@@ -135,6 +136,25 @@ public final class CompartmentFloor {
                 ctx.topology.setGroundKind(left + lx, top + ly, kind);
             }
         }
+    }
+
+    /**
+     * Lay one tile of floor covering, without claiming the cell.
+     *
+     * <p>Paving is not furniture. A marked-out bay floor still has to take the
+     * gantry frame standing on it and the machine standing in it, so this
+     * deliberately leaves the cell free — unlike {@link #place}, which is for
+     * things that occupy the deck.
+     *
+     * <p>Pave before furnishing. Doodads draw in the order they are recorded, so
+     * covering laid after a fixture is covering laid over it.
+     */
+    public void pave(int x, int y, int tileColumn, int tileRow) {
+        if (x < 0 || y < 0 || x >= width || y >= height) return;
+        if (!compartment.shape().contains(x, y)) return;
+        ctx.doodads.add(new Doodad(left + x, top + y,
+                new TileManifest.TileFrame(tileColumn, tileRow),
+                TileManifest.SHEET, Doodad.COVER_NONE));
     }
 
     /**
