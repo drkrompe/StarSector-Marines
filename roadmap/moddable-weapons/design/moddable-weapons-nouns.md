@@ -4,8 +4,8 @@ Status: ACTIVE — handheld, special-item and turret weapon data is owned; mech 
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — marine-primary definitions now own their explicit modular
-held-sprite family, including contributed equipment rendered in battle and previews.
+Updated: 2026-08-25 — accepted the shared provider boundary live and made
+marine-primary held-sprite families explicit through battle and previews.
 
 ## Purpose
 
@@ -226,9 +226,8 @@ repairs player primary and armor ids to their safe starters and clears an
 unresolved special slot with a warning.
 
 Catalog expansion and mount validation, layered effects, compatibility-enum
-completion, compatibility-enum retirement and persistence repair, and remaining
-catalog-provider adoption belong to the work lifecycle tracked only by
-`stories.md`.
+completion, and compatibility-enum retirement and persistence repair belong to
+the work lifecycle tracked only by `stories.md`.
 
 ## Boundaries
 

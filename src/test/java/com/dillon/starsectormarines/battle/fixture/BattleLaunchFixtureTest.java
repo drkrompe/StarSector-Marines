@@ -39,6 +39,17 @@ class BattleLaunchFixtureTest {
     void checkedInProductionShapedLaunchReplaysHeadlessly() throws Exception {
         BattleLaunchFixture fixture =
                 BattleFixtureTestSupport.loadConquestLaunchFixture();
+        ConquestBattleFixture construction = (ConquestBattleFixture)
+                fixture.construction();
+
+        assertEquals(8, construction.manifest().size());
+        assertEquals(8, construction.manifest().stream()
+                .filter(shuttle -> shuttle.type == ShuttleType.VALKYRIE
+                        && shuttle.cycles == 4)
+                .count());
+        assertEquals(384, construction.manifest().stream()
+                .mapToInt(shuttle -> shuttle.type.capacity * shuttle.cycles)
+                .sum());
 
         try (BattleSimulation simulation = fixture.build()) {
             assertEquals("fixture-marine-001",

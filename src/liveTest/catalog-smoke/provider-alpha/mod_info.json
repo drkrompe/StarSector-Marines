@@ -1,0 +1,14 @@
+{
+  "id": "catalog_smoke_alpha",
+  "name": "Catalog Smoke Alpha",
+  "author": "Starsector Marines acceptance fixture",
+  "version": "1.0.0",
+  "description": "Test-only additive catalog provider.",
+  "gameVersion": "0.98a-RC8",
+  "jars": [],
+  "dependencies": [
+    {"id": "starsector_marines", "name": "Starsector Marines"}
+  ],
+  "totalConversion": false,
+  "utility": true
+}

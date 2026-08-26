@@ -9,9 +9,14 @@
     "tier": "REINFORCED",
     "risk": "LOW",
     "shuttles": [
-      { "type": "KITE", "cycles": 10 },
-      { "type": "KITE", "cycles": 9 },
-      { "type": "KITE", "cycles": 9 }
+      { "type": "VALKYRIE", "cycles": 4 },
+      { "type": "VALKYRIE", "cycles": 4 },
+      { "type": "VALKYRIE", "cycles": 4 },
+      { "type": "VALKYRIE", "cycles": 4 },
+      { "type": "VALKYRIE", "cycles": 4 },
+      { "type": "VALKYRIE", "cycles": 4 },
+      { "type": "VALKYRIE", "cycles": 4 },
+      { "type": "VALKYRIE", "cycles": 4 }
     ],
     "targetProfile": {
       "marketSize": 5,
