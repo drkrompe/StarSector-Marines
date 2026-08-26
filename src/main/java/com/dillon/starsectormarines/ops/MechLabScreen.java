@@ -79,6 +79,7 @@ public final class MechLabScreen implements Screen {
             previewSprites.ensureLayeredUnitSprites();
             previewSprites.ensureTileSheet();
             previewSprites.ensureRoadSheet();
+            previewSprites.ensureMechLabFxSprites();
             if (battleScene == null) battleScene = new MechLabBattleScene(previewSprites);
             built.canvases().set(candidate.requireElement("mech-doll-canvas"),
                     new MechLabDollCanvas(viewModel::gantryVariants,
@@ -89,6 +90,8 @@ public final class MechLabScreen implements Screen {
                                     LayeredArmorFamily.ARMY_GREEN),
                             previewSprites::tileSheet,
                             previewSprites::roadSheet,
+                            previewSprites::mechLabWeldingTorch,
+                            previewSprites::mechLabWeldingSparks,
                             battleScene,
                             () -> previewSeconds));
             if (viewport != null) {

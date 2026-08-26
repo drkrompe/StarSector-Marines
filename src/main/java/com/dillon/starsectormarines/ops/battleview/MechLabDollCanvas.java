@@ -31,6 +31,10 @@ import java.util.function.Supplier;
 public final class MechLabDollCanvas implements CanvasProducer {
 
     private static final String ROOT = "graphics/battle/mech-modular-topdown/";
+    static final String WELDING_TORCH_PATH =
+            "graphics/battle/mech-lab/welding-torch.png";
+    static final String WELDING_SPARKS_PATH =
+            "graphics/battle/mech-lab/welding-sparks-sheet.png";
     private static final int URBAN_COLUMNS = 10;
     private static final int URBAN_ROWS = 10;
     private static final float MIN_DROP_TARGET_WIDTH = 128f;
@@ -38,7 +42,6 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private static final float CAPACITY_INSET = 4f;
     private static final float CAPACITY_GAP = 2f;
     private static final Color BACKGROUND = new Color(0x06, 0x0A, 0x10);
-    private static final Color WELD = new Color(0xA5, 0xE8, 0xFF);
     private static final Color WHITE = Color.WHITE;
 
     private final Supplier<List<MechVariant>> variants;
@@ -47,6 +50,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private final Supplier<LayeredMechAssets> assets;
     private final Supplier<LayeredUnitAssets> technicianAssets;
     private final Supplier<SpriteAPI> tileSheet;
+    private final Supplier<SpriteAPI> weldingTorch;
+    private final Supplier<SpriteAPI> weldingSparks;
     private final MechLabBattleScene battleScene;
     private final DoubleSupplier elapsedSeconds;
 
@@ -78,7 +83,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
                              MechLabBattleScene battleScene,
                              DoubleSupplier elapsedSeconds) {
         this(singletonVariants(variant), () -> 0, selectedSocket, assets,
-                technicianAssets, tileSheet, roadSheet, battleScene, elapsedSeconds);
+                technicianAssets, tileSheet, roadSheet,
+                () -> null, () -> null, battleScene, elapsedSeconds);
     }
 
     public MechLabDollCanvas(Supplier<List<MechVariant>> variants,
@@ -90,9 +96,27 @@ public final class MechLabDollCanvas implements CanvasProducer {
                              Supplier<SpriteAPI> roadSheet,
                              MechLabBattleScene battleScene,
                              DoubleSupplier elapsedSeconds) {
+        this(variants, selectedGantry, selectedSocket, assets, technicianAssets,
+                tileSheet, roadSheet, () -> null, () -> null,
+                battleScene, elapsedSeconds);
+    }
+
+    public MechLabDollCanvas(Supplier<List<MechVariant>> variants,
+                             IntSupplier selectedGantry,
+                             Supplier<SocketId> selectedSocket,
+                             Supplier<LayeredMechAssets> assets,
+                             Supplier<LayeredUnitAssets> technicianAssets,
+                             Supplier<SpriteAPI> tileSheet,
+                             Supplier<SpriteAPI> roadSheet,
+                             Supplier<SpriteAPI> weldingTorch,
+                             Supplier<SpriteAPI> weldingSparks,
+                             MechLabBattleScene battleScene,
+                             DoubleSupplier elapsedSeconds) {
         if (variants == null || selectedGantry == null || selectedSocket == null
                 || assets == null || technicianAssets == null
-                || tileSheet == null || roadSheet == null || elapsedSeconds == null) {
+                || tileSheet == null || roadSheet == null
+                || weldingTorch == null || weldingSparks == null
+                || elapsedSeconds == null) {
             throw new IllegalArgumentException(
                     "variants, gantry, socket, mech/technician/tile assets, and elapsed time are required");
         }
@@ -102,6 +126,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
         this.assets = assets;
         this.technicianAssets = technicianAssets;
         this.tileSheet = tileSheet;
+        this.weldingTorch = weldingTorch;
+        this.weldingSparks = weldingSparks;
         this.battleScene = battleScene;
         this.elapsedSeconds = elapsedSeconds;
     }
@@ -119,7 +145,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
         CanvasHostViewport[] liveViewport = new CanvasHostViewport[1];
         BattleSceneHostPass backdrop = battleScene != null
-                ? battleScene.backdropPass(lance, gantryIndex) : null;
+                ? battleScene.backdropPass(lance, gantryIndex, time) : null;
         boolean liveScene = backdrop != null && context.hostPass(new BattleSceneHostPass() {
             @Override
             public BattleSceneFrame prepare(CanvasHostViewport viewport, float alphaMult) {
@@ -147,15 +173,16 @@ public final class MechLabDollCanvas implements CanvasProducer {
         }
 
         if (liveScene) {
-            context.hostPass(battleScene.actorPass(lance, gantryIndex));
+            context.hostPass(battleScene.actorPass(lance, gantryIndex, time));
         } else {
             drawLance(context, sceneCamera, height, sprites, lance);
-            drawTechnicians(context, sceneCamera, height, projection.cellX(),
+            drawTechnicians(context, sceneCamera, height, projection.cellX(), time,
                     technicianAssets.get());
         }
-        drawWeld(context, projection, time);
         drawSocketOverlays(context, MechFittingLayout.forVariant(selected),
                 selectedSocket.get(), projection);
+        drawTechnicianFx(context, projection, gantryIndex, time,
+                weldingTorch.get(), weldingSparks.get());
     }
 
     private static void drawGarage(CanvasContext c, BattleCamera camera, float height,
@@ -211,18 +238,17 @@ public final class MechLabDollCanvas implements CanvasProducer {
     }
 
     private static void drawTechnicians(CanvasContext c, BattleCamera camera, float height,
-                                        float cell, LayeredUnitAssets crew) {
+                                        float cell, float time, LayeredUnitAssets crew) {
         if (crew == null) return;
         float shoulder = UnitRenderService.layeredInfantryShoulderWidth(
                 cell, UnitType.ENGINEER.renderScale);
-        float[] facings = {90f, 250f, 70f, 290f};
-        for (int index = 0; index < MechLabSceneLayout.TECHNICIANS.size(); index++) {
-            MechLabSceneLayout.TechnicianPlacement technician =
-                    MechLabSceneLayout.TECHNICIANS.get(index);
+        for (int index = 0; index < MechLabSceneLayout.TECHNICIAN_JOBS.size(); index++) {
+            MechLabTechnicianJobs.TechnicianPose pose =
+                    MechLabTechnicianJobs.sample(index, time);
             drawTechnician(c, crew,
-                    camera.cellToScreenX(technician.cellX() + 0.5f),
-                    height - camera.cellToScreenY(technician.cellY() + 0.5f),
-                    shoulder, facings[index], 0f, false);
+                    camera.cellToScreenX(pose.worldX()),
+                    height - camera.cellToScreenY(pose.worldY()),
+                    shoulder, pose.facingDegrees(), pose.locomotionPhase(), pose.moving());
         }
     }
 
@@ -387,16 +413,42 @@ public final class MechLabDollCanvas implements CanvasProducer {
                 LayeredAppearance.POSE_IDLE, flags, 1f);
     }
 
-    private static void drawWeld(CanvasContext c, SceneProjection projection, float time) {
-        // Deterministic welding flicker; headless snapshots hold time at zero.
-        if (((int) (time * 7f)) % 3 != 1) {
-            float x = projection.actorX() + projection.cellX() * 1.45f;
-            float y = projection.actorY() + projection.cellY() * 0.35f;
-            c.line(x, y, x - 14f, y - 8f, WELD, 2f);
-            c.line(x, y, x + 17f, y - 3f, WELD, 2f);
-            c.line(x, y, x + 9f, y + 13f, WELD, 2f);
-            c.fillRect(x - 3f, y - 3f, 6f, 6f, WHITE);
+    private static void drawTechnicianFx(CanvasContext c, SceneProjection projection,
+                                         int selectedGantry, float time,
+                                         SpriteAPI torch, SpriteAPI sparks) {
+        float originX = MechLabBattleScene.mechWorldX(selectedGantry);
+        float originY = MechLabBattleScene.mechWorldY(selectedGantry);
+        for (int index = 0; index < MechLabSceneLayout.TECHNICIAN_JOBS.size(); index++) {
+            MechLabTechnicianJobs.TechnicianPose pose =
+                    MechLabTechnicianJobs.sample(index, time);
+            if (pose.activity() != MechLabTechnicianJobs.TechnicianActivity.WELDING) {
+                continue;
+            }
+            float technicianX = projection.actorX()
+                    + (pose.worldX() - originX) * projection.cellX();
+            float technicianY = projection.actorY()
+                    - (pose.worldY() - originY) * projection.cellY();
+            float focusX = projection.actorX()
+                    + (pose.focusX() - originX) * projection.cellX();
+            float focusY = projection.actorY()
+                    - (pose.focusY() - originY) * projection.cellY();
+            float torchX = lerp(technicianX, focusX, 0.48f);
+            float torchY = lerp(technicianY, focusY, 0.48f);
+            c.sprite(WELDING_TORCH_PATH, torch,
+                    torchX, torchY,
+                    projection.cellX() * 0.42f, projection.cellY() * 0.72f,
+                    pose.facingDegrees(), WHITE);
+            int frame = Math.floorMod(
+                    (int) Math.floor(time * 12f + index * 1.7f) + 2, 8);
+            c.sprite(WELDING_SPARKS_PATH, sparks,
+                    focusX, focusY,
+                    projection.cellX() * 1.08f, projection.cellY() * 1.08f,
+                    0f, WHITE, CanvasSpriteRegion.frame(4, 2, frame), CanvasBlend.ADDITIVE);
         }
+    }
+
+    private static float lerp(float from, float to, float amount) {
+        return from + (to - from) * amount;
     }
 
     private static int appearance(MechWeaponComponent component) {
