@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import org.junit.jupiter.api.Test;
@@ -54,6 +55,56 @@ class BarracksBattleSceneTest {
             assertTrue(visible, "range rotation should leave a shot visible for rendering");
             assertNotNull(firstShot);
             assertEquals(soldiers.get(0).primaryDef(), firstShot.primaryWeaponDef);
+        }
+    }
+
+    @Test
+    void leisureRotationRemainsOnWalkableFloorWithoutDeepActorOverlap() {
+        List<MarineSoldier> soldiers = java.util.stream.IntStream.range(0, 12)
+                .mapToObj(index -> new MarineSoldier(
+                        "marine-" + index, "Marine " + index, null))
+                .toList();
+        try (BattleSimulation simulation = BarracksBattleScene.buildSimulation(soldiers)) {
+            long[] marineIds = new long[12];
+            int marineCount = 0;
+            for (int index = 0; index < simulation.getRoster().liveCount(); index++) {
+                long actor = simulation.getRoster().get(index);
+                if (simulation.identity().faction(actor) == Faction.MARINE) {
+                    marineIds[marineCount++] = actor;
+                }
+            }
+            assertEquals(12, marineCount);
+
+            for (int tick = 0; tick < 30 * 90; tick++) {
+                simulation.advance(1f / 30f);
+                for (int first = 0; first < marineCount; first++) {
+                    long actor = marineIds[first];
+                    assertTrue(simulation.getGrid().isWalkable(
+                                    simulation.world().cellX(actor),
+                                    simulation.world().cellY(actor)),
+                            "ambient routes must remain on walkable floor");
+                    for (int second = first + 1; second < marineCount; second++) {
+                        float dx = simulation.world().x(actor)
+                                - simulation.world().x(marineIds[second]);
+                        float dy = simulation.world().y(actor)
+                                - simulation.world().y(marineIds[second]);
+                        float distanceSq = dx * dx + dy * dy;
+                        assertTrue(distanceSq >= 0.04f,
+                                "ambient actors must not deeply overlap at tick " + tick
+                                        + ": " + actor + " @ " + simulation.world().x(actor)
+                                        + "," + simulation.world().y(actor) + " and "
+                                        + marineIds[second] + " @ "
+                                        + simulation.world().x(marineIds[second]) + ","
+                                        + simulation.world().y(marineIds[second])
+                                        + " distanceSq=" + distanceSq);
+                    }
+                }
+            }
+            assertEquals(BarracksSceneLayout.TASK_POINTS.size(),
+                    simulation.taskPoints().registeredCount());
+            assertTrue(simulation.taskPoints().claimCount()
+                            <= BarracksSceneLayout.TASK_POINTS.size(),
+                    "published activity sites bound concurrent station use");
         }
     }
 }

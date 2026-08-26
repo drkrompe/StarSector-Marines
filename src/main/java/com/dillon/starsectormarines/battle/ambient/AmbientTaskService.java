@@ -2,7 +2,13 @@ package com.dillon.starsectormarines.battle.ambient;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.NavigationService;
+import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.sim.MovementService;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.task.TaskPoint;
+import com.dillon.starsectormarines.battle.task.TaskPointService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
@@ -11,7 +17,6 @@ import com.dillon.starsectormarines.marine.SpecialUsePose;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.LongConsumer;
 
 /**
  * Battle-owned ambient work assignment and deterministic choreography.
@@ -21,9 +26,11 @@ import java.util.function.LongConsumer;
  * policy may release the assignment before the dispatch, after which the
  * actor's existing role immediately resumes normal battle behavior. Embedded
  * scenes may use {@link #seek(float)} for a pure pose or advance their bounded
- * simulation when an authored task has physical actions. The standalone battle
- * calls {@link #advance(float)} and {@link #applyAppearance()} from its normal
- * tick pipeline.</p>
+ * simulation when an authored task has physical actions. Live advancement owns
+ * destinations, never positions: task-point claims select an exclusive place,
+ * then ordinary navigation, movement, and separation move the actor there.
+ * The standalone battle calls {@link #advance(float)} and
+ * {@link #applyAppearance()} from its normal tick pipeline.</p>
  */
 public final class AmbientTaskService {
 
@@ -34,19 +41,27 @@ public final class AmbientTaskService {
     private final World world;
     private final EntityWorld entities;
     private final BattleComponents components;
-    private final LongConsumer clearPath;
+    private final NavigationService navigation;
+    private final MovementService movement;
+    private final TaskPointService taskPoints;
     private final Map<Long, AmbientTaskRoute> assignments = new ConcurrentHashMap<>();
     private final Map<Long, Long> liveFireTargets = new ConcurrentHashMap<>();
     private final Map<Long, Boolean> primaryFireWindows = new ConcurrentHashMap<>();
+    private final Map<Long, AmbientTaskPose> livePoses = new ConcurrentHashMap<>();
     private AmbientLiveFireSink liveFireSink = AmbientLiveFireSink.NONE;
     private float elapsedSeconds;
 
-    public AmbientTaskService(UnitRosterService roster, LongConsumer clearPath) {
+    public AmbientTaskService(
+            UnitRosterService roster,
+            NavigationService navigation,
+            TaskPointService taskPoints) {
         this.roster = roster;
         this.world = roster.world();
         this.entities = roster.entityWorld();
         this.components = roster.components();
-        this.clearPath = clearPath;
+        this.navigation = navigation;
+        this.movement = roster.movement();
+        this.taskPoints = taskPoints;
     }
 
     public void assign(long actorId, AmbientTaskRoute route) {
@@ -78,13 +93,14 @@ public final class AmbientTaskService {
         if (!world.hasLayeredAppearance(actorId)) {
             throw new IllegalArgumentException("ambient actor requires layered appearance");
         }
-        clearPath.accept(actorId);
+        navigation.clearPath(actorId);
+        taskPoints.release(actorId);
         assignments.put(actorId, route);
         if (targetId != 0L) liveFireTargets.put(actorId, targetId);
         else liveFireTargets.remove(actorId);
-        AmbientTaskPose pose = sample(route, elapsedSeconds);
+        AmbientTaskPose pose = stationaryPoseAtCurrentPosition(actorId, sample(route, elapsedSeconds));
         primaryFireWindows.put(actorId, isPrimaryFireWindow(actorId, pose));
-        applyPosition(actorId, pose);
+        livePoses.put(actorId, pose);
         applyAppearance(actorId, pose);
     }
 
@@ -92,6 +108,9 @@ public final class AmbientTaskService {
         assignments.remove(actorId);
         liveFireTargets.remove(actorId);
         primaryFireWindows.remove(actorId);
+        livePoses.remove(actorId);
+        taskPoints.release(actorId);
+        if (roster.isLive(actorId) && world.hasMovement(actorId)) navigation.clearPath(actorId);
     }
 
     public boolean isControlling(long actorId) {
@@ -102,52 +121,71 @@ public final class AmbientTaskService {
         return assignments.size();
     }
 
-    /** Advances live-battle time, releases interrupted work, and writes positions. */
+    /** Advances live-battle time through ordinary navigation and movement. */
     public void advance(float dt) {
         if (!Float.isFinite(dt)) throw new IllegalArgumentException("ambient dt must be finite");
         elapsedSeconds += Math.max(0f, dt);
-        assignments.forEach((actorId, route) -> {
+        for (int index = 0; index < roster.liveCount(); index++) {
+            long actorId = roster.get(index);
+            AmbientTaskRoute route = assignments.get(actorId);
+            if (route == null) continue;
             if (!roster.isLive(actorId) || isThreatened(actorId, route)) {
                 release(actorId);
-                return;
+                continue;
             }
-            AmbientTaskPose pose = sample(route, elapsedSeconds);
-            applyPosition(actorId, pose);
+            RouteSample authored = sampleState(route, elapsedSeconds);
+            AmbientTaskPose pose = advanceTowardDestination(actorId, route, authored, dt);
+            livePoses.put(actorId, pose);
             boolean firing = isPrimaryFireWindow(actorId, pose);
             boolean wasFiring = primaryFireWindows.put(actorId, firing) == Boolean.TRUE;
             Long targetId = liveFireTargets.get(actorId);
             if (firing && !wasFiring && targetId != null && roster.isLive(targetId)) {
                 liveFireSink.firePrimary(actorId, targetId);
             }
-        });
+        }
     }
 
-    /** Exact-time sampling for bounded scenes which deliberately do not tick combat. */
+    /**
+     * Exact-time pose sampling for bounded scenes which deliberately do not
+     * tick combat. This is a presentation-only teleport; any scene that needs
+     * physical interaction must use {@link #advance(float)}.
+     */
     public void seek(float elapsedSeconds) {
         if (!Float.isFinite(elapsedSeconds)) {
             throw new IllegalArgumentException("ambient seek time must be finite");
         }
         this.elapsedSeconds = Math.max(0f, elapsedSeconds);
-        assignments.forEach((actorId, route) -> {
+        for (int index = 0; index < roster.liveCount(); index++) {
+            long actorId = roster.get(index);
+            AmbientTaskRoute route = assignments.get(actorId);
+            if (route == null) continue;
             if (!roster.isLive(actorId)) {
                 release(actorId);
-                return;
+                continue;
             }
             AmbientTaskPose pose = sample(route, this.elapsedSeconds);
             primaryFireWindows.put(actorId, isPrimaryFireWindow(actorId, pose));
             applyPosition(actorId, pose);
+            livePoses.put(actorId, pose);
             applyAppearance(actorId, pose);
-        });
+        }
     }
 
     /** Reasserts task poses after the ordinary battle FacingSystem has run. */
     public void applyAppearance() {
-        assignments.forEach((actorId, route) -> {
-            if (roster.isLive(actorId)) applyAppearance(actorId, sample(route, elapsedSeconds));
-        });
+        for (int index = 0; index < roster.liveCount(); index++) {
+            long actorId = roster.get(index);
+            if (!assignments.containsKey(actorId) || !roster.isLive(actorId)) continue;
+            AmbientTaskPose pose = livePoses.get(actorId);
+            if (pose != null) applyAppearance(actorId, pose);
+        }
     }
 
     public static AmbientTaskPose sample(AmbientTaskRoute route, float elapsedSeconds) {
+        return sampleState(route, elapsedSeconds).pose();
+    }
+
+    private static RouteSample sampleState(AmbientTaskRoute route, float elapsedSeconds) {
         float loopSeconds = loopSeconds(route);
         float cursor = positiveModulo(elapsedSeconds + route.phaseOffsetSeconds(), loopSeconds);
         float walked = 0f;
@@ -157,9 +195,9 @@ public final class AmbientTaskService {
                 float actionPhase = cursor / stop.dwellSeconds();
                 float facing = facing(stop.worldX(), stop.worldY(), stop.focusX(), stop.focusY());
                 float headLook = headLook(stop.activity(), elapsedSeconds, route.phaseOffsetSeconds());
-                return new AmbientTaskPose(stop.worldX(), stop.worldY(), facing,
+                return new RouteSample(new AmbientTaskPose(stop.worldX(), stop.worldY(), facing,
                         0f, actionPhase, stop.focusX(), stop.focusY(),
-                        headLook, false, stop.activity());
+                        headLook, false, stop.activity()), index, true);
             }
             cursor -= stop.dwellSeconds();
             AmbientTaskRoute.Stop next = route.stops().get((index + 1) % route.stops().size());
@@ -170,17 +208,83 @@ public final class AmbientTaskService {
             if (cursor < travelSeconds) {
                 float progress = travelSeconds > 0f ? cursor / travelSeconds : 1f;
                 float gait = positiveModulo(walked + distance * progress, 1f);
-                return new AmbientTaskPose(
+                return new RouteSample(new AmbientTaskPose(
                         lerp(stop.worldX(), next.worldX(), progress),
                         lerp(stop.worldY(), next.worldY(), progress),
                         facing(stop.worldX(), stop.worldY(), next.worldX(), next.worldY()),
                         gait, progress, next.worldX(), next.worldY(),
-                        0f, true, AmbientActivity.WALKING);
+                        0f, true, AmbientActivity.WALKING),
+                        (index + 1) % route.stops().size(), false);
             }
             cursor -= travelSeconds;
             walked += distance;
         }
         throw new IllegalStateException("ambient route has no sampleable segment");
+    }
+
+    private AmbientTaskPose advanceTowardDestination(
+            long actorId, AmbientTaskRoute route, RouteSample authored, float dt) {
+        AmbientTaskRoute.Stop stop = route.stops().get(authored.destinationIndex());
+        TaskPoint point = null;
+        if (stop.pointGroup() != null) {
+            point = taskPoints.claimNearest(actorId, stop.pointGroup(), world.x(actorId), world.y(actorId));
+            if (point == null) {
+                if (!Paths.isEmpty(world.path(actorId))) navigation.clearPath(actorId);
+                return stationaryPoseAtCurrentPosition(actorId, authored.pose());
+            }
+        } else {
+            taskPoints.release(actorId);
+        }
+
+        float destinationX = point != null ? point.worldX() : stop.worldX();
+        float destinationY = point != null ? point.worldY() : stop.worldY();
+        float focusX = point != null ? point.focusX() : stop.focusX();
+        float focusY = point != null ? point.focusY() : stop.focusY();
+        int destinationCellX = (int) Math.floor(destinationX);
+        int destinationCellY = (int) Math.floor(destinationY);
+        if (!navigation.getGrid().inBounds(destinationCellX, destinationCellY)
+                || !navigation.getGrid().isWalkable(destinationCellX, destinationCellY)) {
+            if (!Paths.isEmpty(world.path(actorId))) navigation.clearPath(actorId);
+            return stationaryPoseAtCurrentPosition(actorId, authored.pose());
+        }
+
+        boolean arrived = movement.atCell(actorId, destinationCellX, destinationCellY)
+                && movement.settled(actorId);
+        int[] path = world.path(actorId);
+        boolean wrongDestination = Paths.destX(path) != destinationCellX
+                || Paths.destY(path) != destinationCellY;
+        if (!arrived && (wrongDestination || movement.mayRepath(actorId))) {
+            int[] replacement = GridPathfinder.findPath(
+                    navigation.getGrid(), world.cellX(actorId), world.cellY(actorId),
+                    destinationCellX, destinationCellY, navigation.getOccupancyMap());
+            if (!Paths.isEmpty(replacement)) navigation.setPath(actorId, replacement);
+            else if (!Paths.isEmpty(path)) navigation.clearPath(actorId);
+        }
+        movement.advanceAlongPath(world, actorId, dt);
+        arrived = movement.atCell(actorId, destinationCellX, destinationCellY)
+                && movement.settled(actorId);
+
+        float velocityX = movement.velX(actorId);
+        float velocityY = movement.velY(actorId);
+        boolean movingNow = velocityX * velocityX + velocityY * velocityY > 1e-5f;
+        float facing = movingNow
+                ? facing(0f, 0f, velocityX, velocityY)
+                : facing(world.x(actorId), world.y(actorId), focusX, focusY);
+        boolean performing = arrived && authored.dwelling();
+        AmbientTaskPose sampled = authored.pose();
+        return new AmbientTaskPose(
+                world.x(actorId), world.y(actorId), facing,
+                sampled.locomotionPhase(), performing ? sampled.actionPhase() : 0f,
+                focusX, focusY, performing ? sampled.headLookDegrees() : 0f,
+                movingNow, performing ? stop.activity()
+                        : movingNow ? AmbientActivity.WALKING : AmbientActivity.IDLE);
+    }
+
+    private AmbientTaskPose stationaryPoseAtCurrentPosition(long actorId, AmbientTaskPose authored) {
+        return new AmbientTaskPose(
+                world.x(actorId), world.y(actorId), authored.facingDegrees(),
+                0f, 0f, authored.focusX(), authored.focusY(),
+                0f, false, AmbientActivity.IDLE);
     }
 
     private void applyPosition(long actorId, AmbientTaskPose pose) {
@@ -321,4 +425,6 @@ public final class AmbientTaskService {
         float result = value % divisor;
         return result < 0f ? result + divisor : result;
     }
+
+    private record RouteSample(AmbientTaskPose pose, int destinationIndex, boolean dwelling) { }
 }

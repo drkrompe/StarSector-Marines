@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.sim;
 
+import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
+import com.dillon.starsectormarines.battle.task.TaskPointService;
 import com.dillon.starsectormarines.battle.smoke.SmokeFieldService;
 import com.dillon.starsectormarines.battle.satchel.SatchelChargeService;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
@@ -78,6 +80,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.command.objective.ObjectivesService;
+import com.dillon.starsectormarines.battle.command.objective.WinCheckSystem;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationTracker;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacement;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationSystem;
@@ -383,7 +386,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Owns the parallel UPDATE_UNITS dispatch + the worker {@code ForkJoinPool} + per-role behavior dispatch. This is the entity-for-loop seam — see the class doc for the ECS/SoA promotion plan. */
     private final com.dillon.starsectormarines.battle.decision.UnitUpdateSystem unitUpdate;
     /** Interruptible authored work shared by live battles and bounded scene hosts. */
-    private final com.dillon.starsectormarines.battle.ambient.AmbientTaskService ambientTasks;
+    private final AmbientTaskService ambientTasks;
+    /** Exclusive interaction-site claims shared by ambient work and ordinary battle tasks. */
+    private final TaskPointService taskPoints;
     /** Post-movement ground-unit separation and terrain-aware squad-formation relaxation. See {@link SeparationSystem} class doc; ticked right after the occupancy-delta drain, before the spawn flush. */
     private final SeparationSystem separation;
     /** Short-range allied-infantry steer away from hostile alien bodies. */
@@ -392,6 +397,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final com.dillon.starsectormarines.battle.mech.MechCollisionEscapeSystem mechCollisionEscape;
     private boolean complete = false;
     private Faction winner;
+    /** False for bounded non-mission hosts such as shipboard room previews. */
+    private boolean missionCompletionEnabled = true;
 
     /** Alias of {@link NavigationService#getZoneGraph()}. */
     private final ZoneGraph zoneGraph;
@@ -484,6 +491,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // world's component columns directly. Owned by the roster service (which
         // owns the world it reads); the sim aliases it for its world() getter.
         this.world = rosterService.world();
+        this.taskPoints = new TaskPointService(grid);
         this.turretDemolition = new com.dillon.starsectormarines.battle.turret.TurretDemolitionSystem(
                 mapEditor, effects, tactical, rosterService);
         deathDispatcher.subscribe(turretDemolition::onDeath);
@@ -495,6 +503,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         deathDispatcher.subscribe(droneCrashes::onDeath);
         this.deadBodySystem = new DeadBodySystem(entityWorld, battleComponents);
         deathDispatcher.subscribe(deadBodySystem::onDeath);
+        deathDispatcher.subscribe(event -> taskPoints.release(event.unitId()));
         // Registered rescue civilians report loss through the same once-only
         // death mailbox as every other post-death reaction. Non-cohort deaths
         // are harmless tracker no-ops.
@@ -521,8 +530,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 navigation, rosterService, attackerIndex, shots, doodadService);
         this.unitUpdate = new com.dillon.starsectormarines.battle.decision.UnitUpdateSystem(
                 rosterService, damageService, tickInnerProfile);
-        this.ambientTasks = new com.dillon.starsectormarines.battle.ambient.AmbientTaskService(
-                rosterService, this::clearPath);
+        this.ambientTasks = new AmbientTaskService(
+                rosterService, navigation, taskPoints);
+        deathDispatcher.subscribe(event -> ambientTasks.release(event.unitId()));
         this.swarmAvoidance = new SwarmAvoidanceSystem(
                 rosterService, unitIndex, grid);
         this.separation = new SeparationSystem(rosterService, unitIndex, grid);
@@ -634,8 +644,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public TaskService task() { return rosterService.task(); }
 
     /** Interruptible authored world-work assignments for civilians, workers, guards, and embedded scenes. */
-    public com.dillon.starsectormarines.battle.ambient.AmbientTaskService ambientTasks() {
+    public AmbientTaskService ambientTasks() {
         return ambientTasks;
+    }
+
+    /** Exclusive task-point registry for generated fixtures and mission-owned interaction sites. */
+    public TaskPointService taskPoints() {
+        return taskPoints;
     }
 
     /** The battle's archetype-table entity world — every unit as {@code {IDENTITY, HEALTH}}, corpses as the corpse archetype. Walk it via {@link #getBattleComponents()}' shared queries. */
@@ -834,6 +849,19 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public IntList getFriendlyFireSquadsThisFrame() { return friendlyFireSquadsThisFrame; }
     public boolean isComplete()            { return complete; }
     public Faction getWinner()             { return winner; }
+
+    /**
+     * Controls mission terminal evaluation without disabling the simulation.
+     * Embedded rooms use a real battle clock and physics but have no winner,
+     * so they opt out once during setup.
+     */
+    public void setMissionCompletionEnabled(boolean enabled) {
+        missionCompletionEnabled = enabled;
+        if (!enabled) {
+            complete = false;
+            winner = null;
+        }
+    }
     /** Per-cell unit count, indexed by {@link NavigationGrid#index(int, int)}. Exposed for AI scoring; do not mutate directly — go through {@link #setPath}. */
     public byte[] getOccupancyMap()        { return occupancyMap; }
     /** Bucketed spatial index over alive units. Rebuilt at the top of each tick by {@link #tick()}. */
@@ -1347,10 +1375,16 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // breach, then enables auto-init for the duration of the tick. Paired
         // with navigation.endTick() at the bottom.
         navigation.beginTick();
+        // Zero applied velocity before either ambient or ordinary movement.
+        // Ambient actors now use this same path follower instead of writing
+        // POSITION directly, so their movement remains visible to facing and
+        // separation exactly like every other ground actor.
+        movement().beginTick(TICK_DT);
         // Authored ambient work owns assigned actors only while its threat
-        // policy remains quiet. Position first so occupancy, spatial indices,
-        // and ordinary unit dispatch all observe the same task sample. A
-        // released actor falls through to its existing role this tick.
+        // policy remains quiet. It claims a destination, then advances through
+        // ordinary navigation. Position first so occupancy, spatial indices,
+        // and ordinary unit dispatch all observe the resulting physical pose.
+        // A released actor falls through to its existing role this tick.
         ambientTasks.advance(TICK_DT);
         // Smoke lands/expires before perception so stationary observers recast
         // against the same opacity state direct-fire AI sees this tick.
@@ -1363,7 +1397,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         tickProfile.lap(TickProfile.Phase.VISION);
         navigation.rebuildOccupancyMap(rosterService);
         tickProfile.lap(TickProfile.Phase.REBUILD_OCCUPANCY);
-        movement().beginTick(TICK_DT);
         // Rebuild the spatial index BEFORE the AI passes so per-tick scoring
         // (exposure, threat density, allies-near) reads a consistent
         // snapshot. Same single-pass-per-tick semantics as the attacker
@@ -1620,15 +1653,17 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // (e.g., a rocket shredding a wall section) collapse into one rebuild.
         navigation.flushZoneGraphIfDirty();
         tickProfile.lap(TickProfile.Phase.ZONE_GRAPH);
-        com.dillon.starsectormarines.battle.command.objective.WinCheckSystem.WinResult result =
-                winCheck.tick(objectivesService.getObjectives());
-        if (result.complete()) {
-            complete = true;
-            winner = result.winner();
-            // A terminal battle makes every registered civilian still outside
-            // the evacuation boundary unsaved. Incomplete setup cannot seal,
-            // preserving the no-report sentinel instead of scaling bad data.
-            civilianEvacuation.seal();
+        if (missionCompletionEnabled) {
+            WinCheckSystem.WinResult result =
+                    winCheck.tick(objectivesService.getObjectives());
+            if (result.complete()) {
+                complete = true;
+                winner = result.winner();
+                // A terminal battle makes every registered civilian still outside
+                // the evacuation boundary unsaved. Incomplete setup cannot seal,
+                // preserving the no-report sentinel instead of scaling bad data.
+                civilianEvacuation.seal();
+            }
         }
         tickProfile.lap(TickProfile.Phase.WIN_CHECK);
         // Authors every live sheet-drawn unit's SPRITE (facing/pose frame) from

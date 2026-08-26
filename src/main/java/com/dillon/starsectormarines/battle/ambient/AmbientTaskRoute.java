@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.ambient;
 
+import com.dillon.starsectormarines.battle.task.TaskPoint;
+
 import java.util.List;
 
 /**
@@ -33,9 +35,20 @@ public record AmbientTaskRoute(
         if (stops.isEmpty()) throw new IllegalArgumentException("ambient route requires stops");
     }
 
-    /** One place to dwell, its authored activity, and the point the actor faces. */
+    /**
+     * One destination to dwell at, its authored activity, and facing focus.
+     * A non-null {@code pointGroup} asks the battle to reserve one free
+     * {@link TaskPoint} from that group; the coordinates remain the deterministic
+     * static-sampling fallback used by headless pose-only hosts.
+     */
     public record Stop(float worldX, float worldY, float dwellSeconds,
-                       AmbientActivity activity, float focusX, float focusY) {
+                       AmbientActivity activity, float focusX, float focusY,
+                       String pointGroup) {
+        public Stop(float worldX, float worldY, float dwellSeconds,
+                    AmbientActivity activity, float focusX, float focusY) {
+            this(worldX, worldY, dwellSeconds, activity, focusX, focusY, null);
+        }
+
         public Stop {
             if (!Float.isFinite(worldX) || !Float.isFinite(worldY)
                     || !Float.isFinite(focusX) || !Float.isFinite(focusY)) {
@@ -46,6 +59,9 @@ public record AmbientTaskRoute(
             }
             if (activity == null || activity == AmbientActivity.WALKING) {
                 throw new IllegalArgumentException("ambient stop requires a stationary activity");
+            }
+            if (pointGroup != null && pointGroup.isBlank()) {
+                throw new IllegalArgumentException("ambient point group must be null or non-blank");
             }
         }
     }

@@ -4,7 +4,8 @@ Status: ACTIVE — the model is authored; no generator, facility, or adoption sl
 
 Written: 2026-08-26
 
-Updated: 2026-08-26 — added fill-quality standards and non-overlapping compartment levels; split within-deck elevation from deck stacking in law 1.
+Updated: 2026-08-26 — defined exclusive fixture task points and physically
+navigated ambient work as the execution contract for inhabited rooms.
 
 Ship interiors is the model for navigable shipboard space: the decks a mercenary
 company lives and works on, the facilities it operates and grows, and the hostile
@@ -148,10 +149,20 @@ author reads a compartment's placed fixtures and their affordances and emits the
 stops: berths become rest, gantries become work with a weld focus, lanes become
 practice, consoles become inspection.
 
+Each usable affordance publishes one exclusive **task point**. A route asks for
+an activity group rather than assuming that one coordinate belongs to it; the
+battle claim service assigns one free point, retains the old claim until a
+replacement succeeds, and releases it when the actor moves to unrestricted
+space, abandons the work, or dies. Fixture capacity therefore bounds concurrent
+activity honestly: three firing lanes admit three practicing actors, never four
+actors stacked onto a painted marker.
+
 This is the difference between a generated room and a dead one, and it is the
 standing reason fixtures must declare affordance rather than only appearance. The
-ambient service itself is already generic — it executes any route it is handed —
-so route authorship is the only missing half.
+ambient service executes route intent through ordinary battle pathfinding,
+movement, occupancy, and separation; it never interpolates an actor through a
+fixture or wall. Route authorship from generated fixture data remains the missing
+half.
 
 ## Fill quality
 
