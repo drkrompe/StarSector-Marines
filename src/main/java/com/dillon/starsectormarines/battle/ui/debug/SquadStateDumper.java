@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
 import com.dillon.starsectormarines.battle.command.AssaultSearchSnapshot;
+import com.dillon.starsectormarines.battle.command.AssaultDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.SabotageSiteSnapshot;
 import com.dillon.starsectormarines.battle.command.SabotageDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.influence.CommanderContact;
@@ -176,6 +177,8 @@ public final class SquadStateDumper {
                 squad, commander, commandDirective, sim));
         o.put("conquestCommand", buildConquestCommandJson(squad, commander, sim));
         o.put("assaultCommand", buildAssaultCommandJson(squad, commander, sim));
+        o.put("assaultDefenseCommand", buildAssaultDefenseCommandJson(
+                squad, commander, sim));
         o.put("sabotageCommand", buildSabotageCommandJson(squad, commander, sim));
         o.put("sabotageDefenseCommand", buildSabotageDefenseCommandJson(
                 squad, commander, sim));
@@ -628,6 +631,80 @@ public final class SquadStateDumper {
             sites.put(row);
         }
         out.put("sites", sites);
+        return out;
+    }
+
+    private static Object buildAssaultDefenseCommandJson(
+            Squad squad, CommanderSnapshot<?> commander, BattleSimulation sim)
+            throws Exception {
+        AssaultDefenseSnapshot snapshot = commander != null
+                && commander.detail() instanceof AssaultDefenseSnapshot defense
+                ? defense : null;
+        if (snapshot == null) return JSONObject.NULL;
+        JSONObject out = new JSONObject();
+        out.put("tick", snapshot.tick());
+        out.put("ageTicks", snapshot.tick() >= 0
+                ? Math.max(0, sim.simTickIndex - snapshot.tick()) : -1);
+        out.put("influenceTick", snapshot.influenceTick());
+        out.put("perspective", snapshot.perspective().name());
+        out.put("phase", snapshot.phase().name());
+        out.put("mobilePool", snapshot.mobilePool());
+        out.put("reserveCount", snapshot.reserveCount());
+        AssaultDefenseSnapshot.SquadDirective directive =
+                snapshot.directiveFor(squad.id);
+        if (directive == null) {
+            out.put("squadDirective", JSONObject.NULL);
+        } else {
+            JSONObject row = new JSONObject();
+            row.put("areaIndex", directive.areaIndex());
+            row.put("role", directive.role().name());
+            row.put("reason", directive.reason().name());
+            row.put("assignmentKind", directive.assignmentKind() != null
+                    ? directive.assignmentKind().name() : JSONObject.NULL);
+            row.put("markerCellX", directive.markerCellX());
+            row.put("markerCellY", directive.markerCellY());
+            out.put("squadDirective", row);
+        }
+        JSONArray areas = new JSONArray();
+        for (AssaultDefenseSnapshot.AreaState area : snapshot.areas()) {
+            JSONObject row = new JSONObject();
+            row.put("index", area.index());
+            row.put("minCellX", area.minCellX());
+            row.put("minCellY", area.minCellY());
+            row.put("width", area.width());
+            row.put("height", area.height());
+            row.put("priority", area.priority());
+            row.put("strongpoints", area.strongpoints());
+            row.put("garrisonSquads", area.garrisonSquads());
+            row.put("routineSquads", area.routineSquads());
+            row.put("respondingSquads", area.respondingSquads());
+            row.put("reportState", area.reportState().name());
+            row.put("believedContacts", area.believedContacts());
+            row.put("freshestContactTick", area.freshestContactTick());
+            row.put("reportExpiresTick", area.reportExpiresTick());
+            row.put("friendlyPressure", area.friendlyPressure());
+            row.put("knownHostilePressure", area.knownHostilePressure());
+            row.put("leadRallyCellX", area.leadRallyCellX());
+            row.put("leadRallyCellY", area.leadRallyCellY());
+            areas.put(row);
+        }
+        out.put("areas", areas);
+        JSONArray strongpoints = new JSONArray();
+        for (AssaultDefenseSnapshot.StrongpointState point
+                : snapshot.strongpoints()) {
+            JSONObject row = new JSONObject();
+            row.put("index", point.index());
+            row.put("kind", point.kind());
+            row.put("areaIndex", point.areaIndex());
+            row.put("anchorCellX", point.anchorCellX());
+            row.put("anchorCellY", point.anchorCellY());
+            row.put("rallyCellX", point.rallyCellX());
+            row.put("rallyCellY", point.rallyCellY());
+            row.put("zoneId", point.zoneId());
+            row.put("priority", point.priority());
+            strongpoints.put(row);
+        }
+        out.put("strongpoints", strongpoints);
         return out;
     }
 

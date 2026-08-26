@@ -27,10 +27,6 @@ import java.util.Objects;
 public final class AssaultCommand implements
         AutonomousMissionCommand<AssaultCommandFrame, AssaultSearchSnapshot> {
 
-    private static final int MIN_SECTOR_DIM = 2;
-    private static final int MAX_SECTOR_DIM = 3;
-    private static final int TARGET_SECTOR_WIDTH = 30;
-    private static final int TARGET_SECTOR_HEIGHT = 15;
     private static final float EXTERIOR_DOMINANCE_RATIO = 2f;
     private static final int FRESH_DIRECT_TICKS =
             CommanderInfluenceService.UPDATE_INTERVAL_TICKS;
@@ -42,6 +38,7 @@ public final class AssaultCommand implements
     private List<SearchSector> sectors = List.of();
     private int topologyWidth = -1;
     private int topologyHeight = -1;
+    private AssaultSectorLayout layout;
     private int sectorCols;
     private int sectorRows;
 
@@ -158,23 +155,16 @@ public final class AssaultCommand implements
                 && !sectors.isEmpty()) return;
         topologyWidth = topology.width();
         topologyHeight = topology.height();
-        sectorCols = Math.max(MIN_SECTOR_DIM, Math.min(MAX_SECTOR_DIM,
-                topology.width() / TARGET_SECTOR_WIDTH));
-        sectorRows = Math.max(MIN_SECTOR_DIM, Math.min(MAX_SECTOR_DIM,
-                topology.height() / TARGET_SECTOR_HEIGHT));
+        layout = AssaultSectorLayout.create(topology.width(), topology.height());
+        sectorCols = layout.columns();
+        sectorRows = layout.rows();
         int exteriorZone = exteriorZone(topology);
         List<SearchSector> built = new ArrayList<>(sectorCols * sectorRows);
-        for (int row = 0; row < sectorRows; row++) {
-            for (int col = 0; col < sectorCols; col++) {
-                int minX = col * topology.width() / sectorCols;
-                int maxX = (col + 1) * topology.width() / sectorCols - 1;
-                int minY = row * topology.height() / sectorRows;
-                int maxY = (row + 1) * topology.height() / sectorRows - 1;
-                List<Cell> legs = buildSweepLegs(topology, minX, maxX, minY,
-                        maxY, exteriorZone);
-                built.add(new SearchSector(row * sectorCols + col, minX, minY,
-                        maxX, maxY, legs));
-            }
+        for (AssaultSectorLayout.Sector sector : layout.sectors()) {
+            List<Cell> legs = buildSweepLegs(topology, sector.minX(),
+                    sector.maxX(), sector.minY(), sector.maxY(), exteriorZone);
+            built.add(new SearchSector(sector.index(), sector.minX(),
+                    sector.minY(), sector.maxX(), sector.maxY(), legs));
         }
         sectors = built;
         squadSector.clear();
@@ -324,8 +314,12 @@ public final class AssaultCommand implements
                 && sectors.get(priorSector).complete()) {
             return CommandStabilityBreak.CONTEXT_INVALIDATED;
         }
-        if (!frame.topology().reachable(squad.anchorCellX(), squad.anchorCellY(),
-                assignment.targetCellX(), assignment.targetCellY())) {
+        if (!frame.topology().inBounds(old.targetCellX(), old.targetCellY())
+                || !frame.topology().isWalkable(
+                old.targetCellX(), old.targetCellY())
+                || !frame.topology().reachable(
+                squad.anchorCellX(), squad.anchorCellY(),
+                old.targetCellX(), old.targetCellY())) {
             return CommandStabilityBreak.TARGET_UNREACHABLE;
         }
         return CommandStabilityBreak.NONE;
@@ -409,10 +403,7 @@ public final class AssaultCommand implements
     }
 
     private int sectorForCell(int x, int y) {
-        if (x < 0 || y < 0 || x >= topologyWidth || y >= topologyHeight) return -1;
-        int col = Math.min(x * sectorCols / topologyWidth, sectorCols - 1);
-        int row = Math.min(y * sectorRows / topologyHeight, sectorRows - 1);
-        return row * sectorCols + col;
+        return layout != null ? layout.sectorForCell(x, y) : -1;
     }
 
     private int nearestReachableLeg(CommandSquadState squad, SearchSector sector,

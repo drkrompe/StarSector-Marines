@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
 import com.dillon.starsectormarines.battle.command.AssaultSearchSnapshot;
+import com.dillon.starsectormarines.battle.command.AssaultDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.SabotageSiteSnapshot;
 import com.dillon.starsectormarines.battle.command.SabotageDefenseSnapshot;
@@ -290,6 +291,8 @@ public final class CommandTraceRecorder {
             conquest(out, conquest);
         } else if (snapshot.detail() instanceof AssaultSearchSnapshot assault) {
             assault(out, assault);
+        } else if (snapshot.detail() instanceof AssaultDefenseSnapshot defense) {
+            assaultDefense(out, defense);
         } else if (snapshot.detail() instanceof SabotageSiteSnapshot sabotage) {
             sabotage(out, sabotage);
         } else if (snapshot.detail() instanceof SabotageDefenseSnapshot defense) {
@@ -478,6 +481,26 @@ public final class CommandTraceRecorder {
             out.append('}');
         }
         out.append(']');
+        List<AssaultSearchSnapshot.SquadState> squads =
+                new ArrayList<>(snapshot.squads());
+        squads.sort(Comparator.comparingInt(
+                AssaultSearchSnapshot.SquadState::squadId));
+        out.append(",\"squads\":[");
+        for (int i = 0; i < squads.size(); i++) {
+            if (i > 0) out.append(',');
+            AssaultSearchSnapshot.SquadState squad = squads.get(i);
+            out.append('{');
+            rawNumberField(out, "squadId", squad.squadId());
+            numberField(out, "aliveMembers", squad.aliveMembers());
+            floatField(out, "centroidX", squad.centroidX());
+            floatField(out, "centroidY", squad.centroidY());
+            numberField(out, "currentZoneId", squad.currentZoneId());
+            nullableField(out, "executionSuspension",
+                    squad.executionSuspension());
+            booleanField(out, "localContact", squad.localContact());
+            out.append('}');
+        }
+        out.append(']');
         List<AssaultSearchSnapshot.SquadDirective> actions =
                 new ArrayList<>(snapshot.directives());
         actions.sort(Comparator.comparingInt(
@@ -494,6 +517,108 @@ public final class CommandTraceRecorder {
                     ? action.assignmentKind().name() : null);
             numberField(out, "targetCellX", action.targetCellX());
             numberField(out, "targetCellY", action.targetCellY());
+            out.append('}');
+        }
+        out.append("]}");
+    }
+
+    private static void assaultDefense(StringBuilder out,
+                                       AssaultDefenseSnapshot snapshot) {
+        out.append(",\"assaultDefense\":{");
+        rawField(out, "phase", snapshot.phase().name());
+        numberField(out, "mobilePool", snapshot.mobilePool());
+        numberField(out, "reserveCount", snapshot.reserveCount());
+        List<AssaultDefenseSnapshot.AreaState> areas =
+                new ArrayList<>(snapshot.areas());
+        areas.sort(Comparator.comparingInt(
+                AssaultDefenseSnapshot.AreaState::index));
+        out.append(",\"areas\":[");
+        for (int i = 0; i < areas.size(); i++) {
+            if (i > 0) out.append(',');
+            AssaultDefenseSnapshot.AreaState area = areas.get(i);
+            out.append('{');
+            rawNumberField(out, "index", area.index());
+            numberField(out, "minCellX", area.minCellX());
+            numberField(out, "minCellY", area.minCellY());
+            numberField(out, "width", area.width());
+            numberField(out, "height", area.height());
+            numberField(out, "priority", area.priority());
+            numberField(out, "strongpoints", area.strongpoints());
+            numberField(out, "garrisonSquads", area.garrisonSquads());
+            numberField(out, "routineSquads", area.routineSquads());
+            numberField(out, "respondingSquads", area.respondingSquads());
+            field(out, "reportState", area.reportState().name());
+            numberField(out, "believedContacts", area.believedContacts());
+            numberField(out, "freshestContactTick",
+                    area.freshestContactTick());
+            numberField(out, "reportExpiresTick", area.reportExpiresTick());
+            floatField(out, "friendlyPressure", area.friendlyPressure());
+            floatField(out, "knownHostilePressure",
+                    area.knownHostilePressure());
+            numberField(out, "leadRallyCellX", area.leadRallyCellX());
+            numberField(out, "leadRallyCellY", area.leadRallyCellY());
+            out.append('}');
+        }
+        out.append(']');
+        List<AssaultDefenseSnapshot.StrongpointState> strongpoints =
+                new ArrayList<>(snapshot.strongpoints());
+        strongpoints.sort(Comparator.comparingInt(
+                AssaultDefenseSnapshot.StrongpointState::index));
+        out.append(",\"strongpoints\":[");
+        for (int i = 0; i < strongpoints.size(); i++) {
+            if (i > 0) out.append(',');
+            AssaultDefenseSnapshot.StrongpointState point = strongpoints.get(i);
+            out.append('{');
+            rawNumberField(out, "index", point.index());
+            field(out, "kind", point.kind());
+            numberField(out, "areaIndex", point.areaIndex());
+            numberField(out, "anchorCellX", point.anchorCellX());
+            numberField(out, "anchorCellY", point.anchorCellY());
+            numberField(out, "rallyCellX", point.rallyCellX());
+            numberField(out, "rallyCellY", point.rallyCellY());
+            numberField(out, "zoneId", point.zoneId());
+            numberField(out, "priority", point.priority());
+            out.append('}');
+        }
+        out.append(']');
+        List<AssaultDefenseSnapshot.SquadState> squads =
+                new ArrayList<>(snapshot.squads());
+        squads.sort(Comparator.comparingInt(
+                AssaultDefenseSnapshot.SquadState::squadId));
+        out.append(",\"squads\":[");
+        for (int i = 0; i < squads.size(); i++) {
+            if (i > 0) out.append(',');
+            AssaultDefenseSnapshot.SquadState squad = squads.get(i);
+            out.append('{');
+            rawNumberField(out, "squadId", squad.squadId());
+            numberField(out, "aliveMembers", squad.aliveMembers());
+            floatField(out, "centroidX", squad.centroidX());
+            floatField(out, "centroidY", squad.centroidY());
+            numberField(out, "currentZoneId", squad.currentZoneId());
+            nullableField(out, "executionSuspension",
+                    squad.executionSuspension());
+            booleanField(out, "localContact", squad.localContact());
+            out.append('}');
+        }
+        out.append(']');
+        List<AssaultDefenseSnapshot.SquadDirective> actions =
+                new ArrayList<>(snapshot.directives());
+        actions.sort(Comparator.comparingInt(
+                AssaultDefenseSnapshot.SquadDirective::squadId));
+        out.append(",\"actions\":[");
+        for (int i = 0; i < actions.size(); i++) {
+            if (i > 0) out.append(',');
+            AssaultDefenseSnapshot.SquadDirective action = actions.get(i);
+            out.append('{');
+            rawNumberField(out, "squadId", action.squadId());
+            numberField(out, "areaIndex", action.areaIndex());
+            field(out, "role", action.role().name());
+            field(out, "reason", action.reason().name());
+            nullableField(out, "assignmentKind",
+                    action.assignmentKind() != null
+                            ? action.assignmentKind().name() : null);
+            numberField(out, "markerCellX", action.markerCellX());
+            numberField(out, "markerCellY", action.markerCellY());
             out.append('}');
         }
         out.append("]}");

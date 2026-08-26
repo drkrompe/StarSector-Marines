@@ -1,11 +1,18 @@
 # Assault area-defense command
 
-Status: DRAFT — pair belief-honest attacker search with defender strongpoint and reserve behavior.
+Status: IN PROGRESS — production implementation complete; awaiting live acceptance and canonical-duration evidence review.
 
 Written: 2026-08-25
 
 Updated: 2026-08-26 — recorded the production ownership, reserve, and hidden-
 information seams exposed by the attacker migration audit.
+
+The completed implementation review added immediate readiness-to-response
+supersession, dispatchable reserve exchange, casualty coverage repair,
+source-honest cross-area report relocation, and strength-based bounded
+counter-concentration. The 600-tick forced-serial smoke now gates attacker
+allocation, defender response, response bounds, unrelated coverage, and repeat
+trace/metric determinism; live and canonical-duration review remain deferred.
 
 Read `ai-nouns.md`, `autonomous-mission-command-foundation.md`,
 `assault-search-sector-picture.md`, and
@@ -32,14 +39,14 @@ attackers search and converge using their own coverage and beliefs.
 
 ## Acceptance
 
-- [ ] An unseen marine does not activate or retarget defender command.
-- [ ] First legal contact can mobilize bounded reserve support without emptying
+- [x] An unseen marine does not activate or retarget defender command.
+- [x] First legal contact can mobilize bounded reserve support without emptying
   every other defended area.
-- [ ] Defender assignments remain stable across small report fluctuations and
+- [x] Defender assignments remain stable across small report fluctuations and
   release when the report expires or the defended context ends.
-- [ ] The attacker can complete a whole search from coverage and beliefs rather
+- [x] The attacker can complete a whole search from coverage and beliefs rather
   than live hidden-defender occupancy.
-- [ ] Both command pictures remain distinguishable and deterministic in the
+- [x] Both command pictures remain distinguishable and deterministic in the
   selected-squad panel, dump, and headless trace.
 
 ## Constraints
@@ -63,3 +70,7 @@ attackers search and converge using their own coverage and beliefs.
 
 Fold durable Assault defense vocabulary into `ai-nouns.md`, add this story to
 the AI shipped ledger, and delete it when the paired command duel ships.
+
+The durable vocabulary is folded. Keep this story until the deferred live play
+pass and canonical-duration `commanderEvidence -Pmission=assault` review close
+the paired command duel.

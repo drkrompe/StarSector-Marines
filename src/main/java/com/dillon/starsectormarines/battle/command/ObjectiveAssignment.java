@@ -68,6 +68,12 @@ public record ObjectiveAssignment(
                 UNSCOPED, null, UNSCOPED, cellX, cellY);
     }
 
+    /** Coarse Assault security-area rally; carries no hostile identity or position. */
+    public static ObjectiveAssignment defendArea(int squadId, int cellX, int cellY) {
+        return new ObjectiveAssignment(squadId, AssignmentKind.DEFEND_AREA,
+                UNSCOPED, null, UNSCOPED, cellX, cellY);
+    }
+
     /** Attacker-side Conquest staging point behind the believed lane front. */
     public static ObjectiveAssignment advanceTrack(int squadId, int cellX, int cellY) {
         return new ObjectiveAssignment(squadId, AssignmentKind.ADVANCE_TRACK,
