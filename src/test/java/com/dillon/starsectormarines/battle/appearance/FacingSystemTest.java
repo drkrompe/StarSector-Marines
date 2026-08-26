@@ -78,7 +78,9 @@ public class FacingSystemTest {
     public void drawnAsSheetTruthTable() {
         for (UnitType t : UnitType.values()) {
             boolean expectSheetDrawn = t != UnitType.TURRET
-                    && t != UnitType.DRONE_HUB_STRUCTURE && t != UnitType.DRONE;
+                    && t != UnitType.DRONE_HUB_STRUCTURE
+                    && t != UnitType.RANGE_TARGET
+                    && t != UnitType.DRONE;
             assertEquals(expectSheetDrawn, t.drawnAsSheet(), t.name());
         }
     }

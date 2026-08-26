@@ -20,9 +20,10 @@ import java.util.function.LongConsumer;
  * appearance. The ordinary unit dispatcher skips that actor. A route's threat
  * policy may release the assignment before the dispatch, after which the
  * actor's existing role immediately resumes normal battle behavior. Embedded
- * scenes use {@link #seek(float)} to sample exact wall-clock time without
- * advancing combat; the standalone battle calls {@link #advance(float)} and
- * {@link #applyAppearance()} from its normal tick pipeline.</p>
+ * scenes may use {@link #seek(float)} for a pure pose or advance their bounded
+ * simulation when an authored task has physical actions. The standalone battle
+ * calls {@link #advance(float)} and {@link #applyAppearance()} from its normal
+ * tick pipeline.</p>
  */
 public final class AmbientTaskService {
 
@@ -35,6 +36,9 @@ public final class AmbientTaskService {
     private final BattleComponents components;
     private final LongConsumer clearPath;
     private final Map<Long, AmbientTaskRoute> assignments = new ConcurrentHashMap<>();
+    private final Map<Long, Long> liveFireTargets = new ConcurrentHashMap<>();
+    private final Map<Long, Boolean> primaryFireWindows = new ConcurrentHashMap<>();
+    private AmbientLiveFireSink liveFireSink = AmbientLiveFireSink.NONE;
     private float elapsedSeconds;
 
     public AmbientTaskService(UnitRosterService roster, LongConsumer clearPath) {
@@ -46,6 +50,28 @@ public final class AmbientTaskService {
     }
 
     public void assign(long actorId, AmbientTaskRoute route) {
+        assignInternal(actorId, route, 0L);
+    }
+
+    /**
+     * Assigns an ambient route whose primary-fire beats are real simulation
+     * actions against a simulation-owned target. The route remains generic;
+     * the battle host chooses the target and the owning simulation supplies
+     * the firing implementation.
+     */
+    public void assignLiveFire(long actorId, AmbientTaskRoute route, long targetId) {
+        if (!roster.isLive(targetId)) {
+            throw new IllegalArgumentException("ambient live-fire target must be live");
+        }
+        assignInternal(actorId, route, targetId);
+    }
+
+    /** Installs the battle-owned bridge to its ordinary primary firing service. */
+    public void setLiveFireSink(AmbientLiveFireSink sink) {
+        liveFireSink = sink != null ? sink : AmbientLiveFireSink.NONE;
+    }
+
+    private void assignInternal(long actorId, AmbientTaskRoute route, long targetId) {
         if (route == null) throw new IllegalArgumentException("ambient route is required");
         if (!roster.isLive(actorId)) throw new IllegalArgumentException("ambient actor must be live");
         if (!world.hasMovement(actorId)) throw new IllegalArgumentException("ambient actor must be mobile");
@@ -54,13 +80,18 @@ public final class AmbientTaskService {
         }
         clearPath.accept(actorId);
         assignments.put(actorId, route);
+        if (targetId != 0L) liveFireTargets.put(actorId, targetId);
+        else liveFireTargets.remove(actorId);
         AmbientTaskPose pose = sample(route, elapsedSeconds);
+        primaryFireWindows.put(actorId, isPrimaryFireWindow(actorId, pose));
         applyPosition(actorId, pose);
         applyAppearance(actorId, pose);
     }
 
     public void release(long actorId) {
         assignments.remove(actorId);
+        liveFireTargets.remove(actorId);
+        primaryFireWindows.remove(actorId);
     }
 
     public boolean isControlling(long actorId) {
@@ -77,10 +108,17 @@ public final class AmbientTaskService {
         elapsedSeconds += Math.max(0f, dt);
         assignments.forEach((actorId, route) -> {
             if (!roster.isLive(actorId) || isThreatened(actorId, route)) {
-                assignments.remove(actorId, route);
+                release(actorId);
                 return;
             }
-            applyPosition(actorId, sample(route, elapsedSeconds));
+            AmbientTaskPose pose = sample(route, elapsedSeconds);
+            applyPosition(actorId, pose);
+            boolean firing = isPrimaryFireWindow(actorId, pose);
+            boolean wasFiring = primaryFireWindows.put(actorId, firing) == Boolean.TRUE;
+            Long targetId = liveFireTargets.get(actorId);
+            if (firing && !wasFiring && targetId != null && roster.isLive(targetId)) {
+                liveFireSink.firePrimary(actorId, targetId);
+            }
         });
     }
 
@@ -92,10 +130,11 @@ public final class AmbientTaskService {
         this.elapsedSeconds = Math.max(0f, elapsedSeconds);
         assignments.forEach((actorId, route) -> {
             if (!roster.isLive(actorId)) {
-                assignments.remove(actorId, route);
+                release(actorId);
                 return;
             }
             AmbientTaskPose pose = sample(route, this.elapsedSeconds);
+            primaryFireWindows.put(actorId, isPrimaryFireWindow(actorId, pose));
             applyPosition(actorId, pose);
             applyAppearance(actorId, pose);
         });
@@ -180,8 +219,7 @@ public final class AmbientTaskService {
                 flags |= LayeredAppearance.FLAG_MUZZLE_FLASH;
             }
         } else if (pose.activity() == AmbientActivity.FIRING_PRIMARY || practiceEquipment) {
-            float repeats = carriedSpecial != null ? 8f : 4f;
-            float cycle = positiveModulo(pose.actionPhase() * repeats, 1f);
+            float cycle = primaryCycle(carriedSpecial != null, pose);
             if (cycle >= FIRE_BEGIN && cycle < FIRE_END) {
                 authoredPose = LayeredAppearance.POSE_FIRING;
                 weaponPhase = (cycle - FIRE_BEGIN) / (FIRE_END - FIRE_BEGIN);
@@ -203,6 +241,26 @@ public final class AmbientTaskService {
                 BattleComponents.LAYERED_WEAPON_POSE, authoredPose);
         entities.setInt(actorId, components.LAYERED_ANIMATION,
                 BattleComponents.LAYERED_FLAGS, flags);
+    }
+
+    private boolean isPrimaryFireWindow(long actorId, AmbientTaskPose pose) {
+        if (pose.activity() != AmbientActivity.FIRING_PRIMARY
+                && pose.activity() != AmbientActivity.PRACTICING_EQUIPMENT) {
+            return false;
+        }
+        boolean carriesSpecial = world.hasSecondaryWeapon(actorId);
+        if (pose.activity() == AmbientActivity.PRACTICING_EQUIPMENT
+                && carriesSpecial && pose.actionPhase() >= 0.5f) {
+            return false;
+        }
+        float cycle = primaryCycle(carriesSpecial, pose);
+        return cycle >= FIRE_BEGIN && cycle < FIRE_END;
+    }
+
+    private static float primaryCycle(boolean carriesSpecial, AmbientTaskPose pose) {
+        float repeats = carriesSpecial
+                && pose.activity() == AmbientActivity.PRACTICING_EQUIPMENT ? 8f : 4f;
+        return positiveModulo(pose.actionPhase() * repeats, 1f);
     }
 
     private boolean isThreatened(long actorId, AmbientTaskRoute route) {

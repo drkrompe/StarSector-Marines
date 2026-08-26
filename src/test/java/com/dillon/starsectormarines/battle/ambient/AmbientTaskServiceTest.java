@@ -92,6 +92,25 @@ class AmbientTaskServiceTest {
     }
 
     @Test
+    void liveFireAssignmentUsesTheOwningSimulationsShotPipeline() {
+        try (BattleSimulation simulation = simulation()) {
+            long actor = simulation.spawn(new EntitySpec(
+                    "range marine", Faction.MARINE, UnitType.MARINE, 4, 5));
+            long target = simulation.spawn(new EntitySpec(
+                    "range target", Faction.DEFENDER, UnitType.RANGE_TARGET, 4, 9)
+                    .role(UnitRole.STRUCTURE));
+            simulation.ambientTasks().assignLiveFire(actor, oneStop(
+                    AmbientActivity.FIRING_PRIMARY,
+                    AmbientThreatPolicy.NONE, 0f), target);
+
+            simulation.advance(0.2f);
+
+            assertFalse(simulation.getShotsThisFrame().isEmpty());
+            assertEquals(actor, simulation.getShotsThisFrame().get(0).shooterId);
+        }
+    }
+
+    @Test
     void phaseOffsetsReuseOneRouteShapeWithoutActorOverlap() {
         AmbientTaskRoute first = twoStops(0f);
         AmbientTaskRoute second = twoStops(4f);

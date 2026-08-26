@@ -34,11 +34,12 @@ public class RenderAppearanceTest {
             // Footprint pads are exactly the whole-sprite structures (turret + hub).
             assertEquals(app.spriteKind == SpriteKind.WHOLE_SPRITE, app.drawsFootprint,
                     "drawsFootprint should track WHOLE_SPRITE for " + t);
-            // Everything outside the three structural/aerial types is sheet-drawn
+            // Everything outside the structural/aerial/simulation-fixture types is sheet-drawn
             // infantry/civilians — guards against a future type misrouted into a
             // WHOLE_SPRITE/NONE arm.
             boolean structural = t == UnitType.TURRET
                     || t == UnitType.DRONE_HUB_STRUCTURE
+                    || t == UnitType.RANGE_TARGET
                     || t == UnitType.DRONE;
             if (!structural) {
                 assertEquals(SpriteKind.SHEET, app.spriteKind, "non-structural type should be SHEET: " + t);
@@ -48,9 +49,10 @@ public class RenderAppearanceTest {
     }
 
     @Test
-    public void hpBarFollowsCombatantExceptDrones() {
+    public void hpBarFollowsVisibleCombatants() {
         for (UnitType t : UnitType.values()) {
-            boolean expected = t.combatant && t != UnitType.DRONE;
+            boolean expected = t.combatant && t != UnitType.DRONE
+                    && t != UnitType.RANGE_TARGET;
             assertEquals(expected, RenderAppearance.of(t).drawsHpBar, "drawsHpBar for " + t);
         }
     }
@@ -80,6 +82,15 @@ public class RenderAppearanceTest {
         assertEquals(SpriteKind.NONE, app.spriteKind);
         assertFalse(app.drawsHpBar, "drones bar themselves in the DRONES layer");
         assertFalse(app.drawsFootprint);
+    }
+
+    @Test
+    public void rangeTargetsRemainInvisibleSimulationFixtures() {
+        RenderAppearance app = RenderAppearance.of(UnitType.RANGE_TARGET);
+        assertEquals(SpriteKind.NONE, app.spriteKind);
+        assertFalse(app.drawsHpBar);
+        assertFalse(app.drawsFootprint);
+        assertFalse(app.hasDeathPose);
     }
 
     @Test
