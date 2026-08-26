@@ -2,8 +2,11 @@ package com.dillon.starsectormarines.battle.world.gen.ship;
 
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.ship.fit.RoomFit;
+import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.tiles.FixedGridTileDrawer;
 import com.dillon.starsectormarines.battle.world.tiles.Graphics2DTileSink;
@@ -56,6 +59,8 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
     private static final Color GRID_LINE = new Color(0x00, 0x00, 0x00, 40);
     private static final Color LABEL = new Color(0xe4, 0xec, 0xf4);
     private static final Color ZONE_LINE = new Color(0xf2, 0xd0, 0x6b, 0xcc);
+    /** Doors on the close-up sheet, drawn over the deck rather than instead of it. */
+    private static final Color DOOR_MARK = new Color(0x6b, 0xe0, 0xff, 0x9a);
     private static final Color FIXTURE = new Color(0x0d, 0x11, 0x17, 0xc4);
     private static final Color FIXTURE_EDGE = new Color(0xff, 0xff, 0xff, 0x2a);
 
@@ -211,20 +216,23 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
             int top = oy + caption;
             for (int y = -1; y <= c.depth(); y++) {
                 for (int x = -1; x <= c.width(); x++) {
-                    boolean floor = c.contains(c.left() + x, c.top() + y);
-                    Color base = ROOM_COLORS.getOrDefault(entry.getKey(), UNKNOWN_ROOM);
-                    boolean marked = floor && map.topology.getGroundKind(
-                            c.left() + x, c.top() + y) == CellTopology.GroundKind.STRIPED;
-                    g.setColor(floor ? (marked ? marked(base) : base) : STRUCTURE);
-                    g.fillRect(ox + (x + 1) * DETAIL_CELL, top + (y + 1) * DETAIL_CELL,
-                            DETAIL_CELL, DETAIL_CELL);
+                    int cx = c.left() + x;
+                    int cy = c.top() + y;
+                    boolean walkable = map.grid.inBounds(cx, cy) && map.grid.isWalkable(cx, cy);
+                    int px = ox + (x + 1) * DETAIL_CELL;
+                    int py = top + (y + 1) * DETAIL_CELL;
+                    if (!walkable || !drawFloorTile(g, map, cx, cy, px, py, DETAIL_CELL)) {
+                        g.setColor(walkable
+                                ? ROOM_COLORS.getOrDefault(entry.getKey(), UNKNOWN_ROOM)
+                                : STRUCTURE);
+                        g.fillRect(px, py, DETAIL_CELL, DETAIL_CELL);
+                    }
                     g.setColor(GRID_LINE);
-                    g.drawRect(ox + (x + 1) * DETAIL_CELL, top + (y + 1) * DETAIL_CELL,
-                            DETAIL_CELL, DETAIL_CELL);
+                    g.drawRect(px, py, DETAIL_CELL, DETAIL_CELL);
                 }
             }
             for (DeckGraph.Compartment.Door door : c.doors()) {
-                g.setColor(CORRIDOR);
+                g.setColor(DOOR_MARK);
                 g.fillRect(ox + (door.x() - c.left() + 1) * DETAIL_CELL,
                         top + (door.y() - c.top() + 1) * DETAIL_CELL,
                         DETAIL_CELL, DETAIL_CELL);
@@ -254,13 +262,64 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
      * the rooms come out furnished rather than silently bare.
      */
     private static void installTileRegistry() throws Exception {
-        if (TileRegistry.installed() != null) return;
-        TileRegistry registry = new TileRegistry();
-        for (String path : TileRegistry.BUILTIN_TILESETS) {
-            registry.ingestSheet(new JSONObject(Files.readString(Paths.get("mod/" + path))));
+        if (TileRegistry.installed() == null) {
+            TileRegistry registry = new TileRegistry();
+            for (String path : TileRegistry.BUILTIN_TILESETS) {
+                registry.ingestSheet(new JSONObject(Files.readString(Paths.get("mod/" + path))));
+            }
+            registry.validateReferences();
+            TileRegistry.install(registry);
         }
-        registry.validateReferences();
-        TileRegistry.install(registry);
+        // The floor a cell shows is a mapping decision, not a render one, so the
+        // preview reads the same mapping the game does rather than inventing a
+        // second answer.
+        if (GenMappingRegistry.installed() == null) {
+            GenMappingRegistry mapping = new GenMappingRegistry();
+            for (String path : GenMappingRegistry.BUILTIN_MAPPINGS) {
+                mapping.ingest(new JSONObject(Files.readString(Paths.get("mod/" + path))));
+            }
+            mapping.validateReferences();
+            GenMappingRegistry.install(mapping);
+        }
+    }
+
+    /**
+     * Draw one cell of deck from the tileset, the way the game draws it.
+     *
+     * <p>A room-authoring pass is judged on what the room looks like, and a flat
+     * colour per purpose cannot answer that. The colour map stays for the deck
+     * plans, where the question is which room is where; here the floor is the
+     * floor. Ground kind resolves through the same mapping and the same block
+     * resolver the ground pass uses, so a cell that is grating in game is
+     * grating here.
+     *
+     * @return whether a tile was drawn; false means fall back to a flat colour
+     */
+    private static boolean drawFloorTile(Graphics2D g, MapResult map,
+                                         int x, int y, int px, int py, int cellPx) {
+        GenMappingRegistry mapping = GenMappingRegistry.installed();
+        TileRegistry tiles = TileRegistry.installed();
+        if (mapping == null || tiles == null) return false;
+        CellTopology.GroundKind kind = map.topology.getGroundKind(x, y);
+        if (kind == null) return false;
+        String blockId = mapping.groundBlockId(kind);
+        GridBlockDef block = blockId == null ? null : tiles.block(blockId);
+        if (block == null) return false;
+        BufferedImage sheet = sheet(block.sheetPath);
+        if (sheet == null) return false;
+        int[] cell = block.resolve(
+                isWall(map, x, y - 1), isWall(map, x, y + 1),
+                isWall(map, x + 1, y), isWall(map, x - 1, y), x, y);
+        if (cell == null) return false;
+        new FixedGridTileDrawer(block.cellPx).draw(
+                new Graphics2DTileSink(g, sheet), new TileManifest.TileFrame(cell[0], cell[1]),
+                px + cellPx / 2f, py + cellPx / 2f, cellPx, cellPx, 1f,
+                FixedGridTileDrawer.OVERLAY_INSET_PX);
+        return true;
+    }
+
+    private static boolean isWall(MapResult map, int x, int y) {
+        return !map.grid.inBounds(x, y) || !map.grid.isWalkable(x, y);
     }
 
     private static BufferedImage renderPlan(MapResult map, DeckProfile profile, DeckGraph graph,
