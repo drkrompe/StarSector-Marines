@@ -40,6 +40,8 @@ import com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.command.AssaultCommand;
 import com.dillon.starsectormarines.battle.command.AssaultCommandDisclosure;
+import com.dillon.starsectormarines.battle.command.AssaultDefenderCommand;
+import com.dillon.starsectormarines.battle.command.AssaultDefenderCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ConquestCommand;
 import com.dillon.starsectormarines.battle.command.ConquestCommandDisclosure;
@@ -396,9 +398,11 @@ public final class BattleSetup {
                 objectives.size() * defenders.roster().patrolSquadSize + 1);
         allocateDefenders(sim, map, defenders.roster(), groundRoster, rng,
                 sabotageMobileMembers);
-        Set<Integer> sabotageMobileSquads = captureSabotageMobileSquads(sim);
-        claimSabotageSetupGarrisons(sim);
-        claimSabotageMobileSquads(sim, sabotageMobileSquads);
+        Set<Integer> sabotageMobileSquads = captureDefenderMobileSquads(sim);
+        claimSetupGarrisons(sim, "sabotage-setup-garrison",
+                "authored Sabotage garrison");
+        claimMissionMobileSquads(sim, sabotageMobileSquads,
+                "sabotage-defender", "initial Sabotage mobile security");
         spawnAmbientCivilians(sim, map, rng);
         spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
         sim.setAutonomousCommander(Faction.MARINE, new SabotageCommand(),
@@ -406,7 +410,8 @@ public final class BattleSetup {
         sim.setAutonomousCommander(Faction.DEFENDER,
                 new SabotageDefenderCommand(sabotageMobileSquads),
                 SabotageDefenderCommandDisclosure.INSTANCE);
-        installReinforcementLayer(sim, map, null, groundRoster, risk, null);
+        installReinforcementLayer(sim, map, MissionType.SABOTAGE, null,
+                groundRoster, risk, null);
         return sim;
     }
 
@@ -603,13 +608,30 @@ public final class BattleSetup {
         // pegged to the highest-priority posts; leftovers form patrol squads).
         // Legacy maps with no tactical layer fall back to the single-cluster
         // spawn around the defender anchor.
-        allocateDefenders(sim, map, defenders.roster(), groundRoster, rng);
+        int assaultMobileMembers = type == MissionType.ASSAULT
+                ? Math.min(Math.max(0, defenders.roster().totalCount - 2),
+                        defenders.roster().patrolSquadSize)
+                : 0;
+        allocateDefenders(sim, map, defenders.roster(), groundRoster, rng,
+                assaultMobileMembers);
+        Set<Integer> assaultMobileSquads = type == MissionType.ASSAULT
+                ? captureDefenderMobileSquads(sim) : Set.of();
+        if (type == MissionType.ASSAULT) {
+            claimSetupGarrisons(sim, "assault-setup-garrison",
+                    "authored Assault strongpoint garrison");
+            claimMissionMobileSquads(sim, assaultMobileSquads,
+                    "assault-defender", "initial Assault mobile security");
+        }
         spawnAmbientCivilians(sim, map, rng);
         spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
-        installReinforcementLayer(sim, map, null, groundRoster, risk, null);
+        installReinforcementLayer(sim, map, type, null, groundRoster, risk,
+                null);
         if (type == MissionType.ASSAULT) {
             sim.setAutonomousCommander(Faction.MARINE, new AssaultCommand(),
                     AssaultCommandDisclosure.INSTANCE);
+            sim.setAutonomousCommander(Faction.DEFENDER,
+                    new AssaultDefenderCommand(assaultMobileSquads),
+                    AssaultDefenderCommandDisclosure.INSTANCE);
         }
         return sim;
     }
@@ -1101,8 +1123,8 @@ public final class BattleSetup {
         sim.setAutonomousCommander(Faction.DEFENDER, defenderCommand,
                 ConquestCommandDisclosure.INSTANCE);
         sim.setGarrisonSystem(new CompoundGarrisonSystem(axis));
-        installReinforcementLayer(sim, map, axis, groundRoster, risk,
-                defenderCommand);
+        installReinforcementLayer(sim, map, MissionType.CONQUEST, axis,
+                groundRoster, risk, defenderCommand);
         return new MapBuild(sim, build.structures());
     }
 
@@ -1214,7 +1236,7 @@ public final class BattleSetup {
         }
     }
 
-    private static Set<Integer> captureSabotageMobileSquads(BattleSimulation sim) {
+    private static Set<Integer> captureDefenderMobileSquads(BattleSimulation sim) {
         Set<Integer> mobile = new java.util.TreeSet<>();
         for (Squad squad : sim.getSquads()) {
             if (squad.faction != Faction.DEFENDER
@@ -1225,22 +1247,25 @@ public final class BattleSetup {
         return mobile;
     }
 
-    private static void claimSabotageSetupGarrisons(BattleSimulation sim) {
+    private static void claimSetupGarrisons(BattleSimulation sim,
+                                             String issuer, String reason) {
         for (Squad squad : sim.getSquads()) {
             if (squad.faction != Faction.DEFENDER
                     || sim.squadMemberCount(squad.id) <= 0
                     || sim.role().role(sim.squadMemberAt(squad.id, 0))
                     != UnitRole.GARRISON) continue;
             sim.claimSquadCommand(squad.id, CommandAuthority.GARRISON,
-                    "sabotage-setup-garrison", "authored Sabotage garrison");
+                    issuer, reason);
         }
     }
 
-    private static void claimSabotageMobileSquads(BattleSimulation sim,
-                                                   Set<Integer> mobileSquads) {
+    private static void claimMissionMobileSquads(BattleSimulation sim,
+                                                  Set<Integer> mobileSquads,
+                                                  String issuer,
+                                                  String reason) {
         for (int squadId : mobileSquads) {
             sim.claimSquadCommand(squadId, CommandAuthority.MISSION_COMMAND,
-                    "sabotage-defender", "initial Sabotage mobile security");
+                    issuer, reason);
         }
     }
 
@@ -1312,9 +1337,9 @@ public final class BattleSetup {
 
     /**
      * Install the reinforcement layer on the sim. The trigger set depends on
-     * whether the map carries a biome layer ({@code map.biomeMap != null}) and
-     * a non-empty {@link TacticalMap} — conquest maps get the front-line
-     * dispatcher, everything else keeps the legacy compound-only trigger:
+     * mission semantics. Conquest with a biome layer and non-empty
+     * {@link TacticalMap} gets the front-line dispatcher; every other mission
+     * keeps the legacy compound-only trigger:
      * <ul>
      *   <li><b>Conquest (biome layer present):</b> {@link RecaptureTargetService}
      *       tracks every defender tactical node's garrison state, driven each
@@ -1332,8 +1357,10 @@ public final class BattleSetup {
      *       compound strength drops below threshold. Only reacts to
      *       COMMAND_POST/BARRACKS/ARMORY, not the wider defender node set.</li>
      * </ul>
-     * Both configurations also register {@link ObjectiveLostTrigger} — a
-     * previously defender-held zone has been taken by marines — unconditionally.
+     * Non-Assault configurations also register {@link ObjectiveLostTrigger} —
+     * a previously defender-held zone has been taken by marines. Assault omits
+     * that exact-occupancy trigger; its defender commander reacts only to
+     * faction-local reports while own-force garrison depletion remains legal.
      * <p>Means (priority = insertion order; first {@code canFulfill = true}
      * wins):
      * <ul>
@@ -1358,12 +1385,14 @@ public final class BattleSetup {
      *             falls back to a stable default edge.
      */
     private static void installReinforcementLayer(BattleSimulation sim, MapResult map,
+                                                  MissionType missionType,
                                                   TraversalAxis axis,
                                                   GroundRosterProfile groundRoster,
                                                   RiskLevel risk,
                                                   ConvoyDeploymentPolicy convoyPolicy) {
         ReinforcementService rs = sim.getReinforcementService();
-        if (map.biomeMap != null && map.tacticalMap != null && map.tacticalMap.size() > 0) {
+        if (missionType == MissionType.CONQUEST && map.biomeMap != null
+                && map.tacticalMap != null && map.tacticalMap.size() > 0) {
             RecaptureTargetService recaptureTargets = new RecaptureTargetService(map.tacticalMap, map.biomeMap);
             sim.setRecaptureSystem(new RecaptureTargetSystem(recaptureTargets, map.biomeMap));
             rs.addTrigger(new FrontLineReinforcementTrigger(recaptureTargets, axis));
@@ -1372,7 +1401,9 @@ public final class BattleSetup {
         } else {
             rs.addTrigger(new GarrisonDepletedTrigger());
         }
-        rs.addTrigger(new ObjectiveLostTrigger());
+        if (missionType != MissionType.ASSAULT) {
+            rs.addTrigger(new ObjectiveLostTrigger());
+        }
         rs.addMeans(new ConvoyMeans(map.roadGraph, axis, groundRoster, risk,
                 convoyPolicy));
         rs.addMeans(new ShuttleMeans(axis, groundRoster, risk));

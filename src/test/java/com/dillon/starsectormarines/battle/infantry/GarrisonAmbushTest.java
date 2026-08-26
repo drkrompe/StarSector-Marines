@@ -101,7 +101,7 @@ public class GarrisonAmbushTest {
         squad.centroidY = 6f;
         // holdsFireUntilKillZone left false — marine-deboard / patrol shape.
 
-        // Add an attacker so enemyKnown() would otherwise be true.
+        // Add an attacker that is not part of this detached squad's beliefs.
         sim.spawn(new EntitySpec("a1", Faction.MARINE, UnitType.MARINE, 1, 1));
 
         assertEquals(0f, GarrisonAmbush.INSTANCE.relevance(WorldState.EMPTY, squad, sim),
@@ -120,25 +120,20 @@ public class GarrisonAmbushTest {
     @Test
     public void relevancePositiveForGarrisonInPortalZoneWithEnemy() {
         BattleSimulation sim = singlePortalRoom();
-        Squad squad = garrisonSquadAt(1, 6f, 6f, 2);
-        // Put a defender member inside the room too, so the live roster reflects
-        // a realistic squad layout (the relevance check itself only consults
-        // squad.holdsFireUntilKillZone + the live units for "enemy known").
-        long defender = sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 5, 6)
-                .squad(squad.id));
-        sim.spawn(new EntitySpec("a1", Faction.MARINE, UnitType.MARINE, 1, 1));
+        Squad squad = liveGarrisonAt(sim, 5, 6);
+        sim.spawn(new EntitySpec("a1", Faction.MARINE, UnitType.MARINE, 7, 6));
+        sim.advance(BattleSimulation.TICK_DT);
 
         assertTrue(GarrisonAmbush.INSTANCE.relevance(WorldState.EMPTY, squad, sim) > 0f,
-                "garrison-routed squad in a zone with portals + visible enemy → goal fires");
+                "garrison-routed squad with a published local belief → goal fires");
     }
 
     @Test
     public void relevanceZeroWhenMoraleBreaks() {
         BattleSimulation sim = singlePortalRoom();
-        Squad squad = garrisonSquadAt(1, 6f, 6f, 2);
-        sim.spawn(new EntitySpec("d1", Faction.DEFENDER, UnitType.MARINE, 5, 6)
-                .squad(squad.id));
-        sim.spawn(new EntitySpec("a1", Faction.MARINE, UnitType.MARINE, 1, 1));
+        Squad squad = liveGarrisonAt(sim, 5, 6);
+        sim.spawn(new EntitySpec("a1", Faction.MARINE, UnitType.MARINE, 7, 6));
+        sim.advance(BattleSimulation.TICK_DT);
         WorldState broken = WorldState.EMPTY.with(Predicate.MORALE_BROKEN, true);
 
         assertEquals(0f, GarrisonAmbush.INSTANCE.relevance(broken, squad, sim),
@@ -197,5 +192,18 @@ public class GarrisonAmbushTest {
             int gz = sim.getZoneGraph().zoneIdAt(post.cellX, post.cellY);
             assertEquals(roomZone, gz, "guard cell should be inside the squad's zone");
         }
+    }
+
+    private static Squad liveGarrisonAt(BattleSimulation sim, int x, int y) {
+        long defender = sim.spawn(new EntitySpec("live-garrison",
+                Faction.DEFENDER, UnitType.MARINE, x, y));
+        int squadId = sim.mintSquad(Faction.DEFENDER, defender);
+        sim.squad().assignSquad(defender, squadId);
+        Squad squad = sim.getSquad(squadId);
+        squad.aliveMembers = 1;
+        squad.centroidX = x + 0.5f;
+        squad.centroidY = y + 0.5f;
+        squad.holdsFireUntilKillZone = true;
+        return squad;
     }
 }

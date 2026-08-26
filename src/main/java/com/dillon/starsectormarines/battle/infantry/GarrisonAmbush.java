@@ -18,7 +18,8 @@ import java.util.List;
 /**
  * Story L — Choke-point ambush. Fires for defender squads anchored to a
  * tactical node (GARRISON-routed) whose zone has at least one portal and at
- * least one known/visible enemy on the map. Synthesizes a single squad-plan
+ * least one hostile in that squad's local belief picture. Synthesizes a
+ * single squad-plan
  * step via {@link #customPlan}:
  * <ul>
  *   <li><b>One portal</b> → {@link ChokePointHold}: every member binds to a
@@ -87,25 +88,8 @@ public final class GarrisonAmbush implements Goal {
         // squad from camping a doorway instead of engaging the threat in
         // front of it.
         if (state.get(Predicate.ENEMY_IN_KILL_ZONE)) return 0f;
-        if (!enemyKnown(squad, sim)) return 0f;
+        if (!squad.hasBelievedContacts()) return 0f;
         return 1.0f;
-    }
-
-    /**
-     * True iff at least one alive enemy combatant is on the map. Stage 2
-     * shape — Story L doesn't yet need "visible to a squadmate" (the goal
-     * fires as soon as ENGAGED bumps the squad), and the trigger that
-     * <em>does</em> require LOS — ENEMY_IN_PORTAL_CELL — lives on the action,
-     * not the goal. If a future story wants the goal to gate on visibility,
-     * swap in {@code state.get(Predicate.HAS_LOS_TO_TARGET)} here.
-     */
-    private static boolean enemyKnown(Squad squad, BattleView sim) {
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) { long u = sim.liveUnitAt(i);
-            if (!sim.identity().type(u).combatant) continue;
-            if (sim.identity().faction(u) == squad.faction) continue;
-            return true;
-        }
-        return false;
     }
 
     @Override

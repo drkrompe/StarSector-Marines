@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
 import com.dillon.starsectormarines.battle.command.AssaultSearchSnapshot;
+import com.dillon.starsectormarines.battle.command.AssaultDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.SabotageSiteSnapshot;
 import com.dillon.starsectormarines.battle.command.SabotageDefenseSnapshot;
 import com.dillon.starsectormarines.battle.combat.FireGate;
@@ -316,7 +317,9 @@ public final class SquadPlanDebugPanel implements HudPanel {
         if (activeDirective != null && !activeDirective.equals(directive)) lines += 1;
         if (commander != null && conquestSnapshot(commander) != null) lines += 3;
         if (commander != null && assaultSnapshot(commander) != null) lines += 2;
+        if (commander != null && assaultDefenseSnapshot(commander) != null) lines += 2;
         if (commander != null && sabotageSnapshot(commander) != null) lines += 2;
+        if (commander != null && sabotageDefenseSnapshot(commander) != null) lines += 2;
         dividers += 1;
         // Section 4: "Plan: …" line + per-step (action line + slot lines).
         lines += 1;
@@ -596,6 +599,18 @@ public final class SquadPlanDebugPanel implements HudPanel {
                                 assault, assaultDirective), lineX, lineY,
                         DETAIL_VALUE_FG, alphaMult, vpBottomY, vpTopY);
             }
+            AssaultDefenseSnapshot assaultDefense =
+                    assaultDefenseSnapshot(commander);
+            if (assaultDefense != null) {
+                AssaultDefenseSnapshot.SquadDirective defenseDirective =
+                        assaultDefense.directiveFor(s.id);
+                lineY = drawLineIfVisible(font, assaultDefenseOrderSummary(
+                                defenseDirective), lineX, lineY,
+                        DETAIL_VALUE_FG, alphaMult, vpBottomY, vpTopY);
+                lineY = drawLineIfVisible(font, assaultDefenseAreaSummary(
+                                assaultDefense, defenseDirective), lineX, lineY,
+                        DETAIL_VALUE_FG, alphaMult, vpBottomY, vpTopY);
+            }
             SabotageSiteSnapshot sabotage = sabotageSnapshot(commander);
             if (sabotage != null) {
                 SabotageSiteSnapshot.SquadDirective sabotageDirective =
@@ -809,6 +824,12 @@ public final class SquadPlanDebugPanel implements HudPanel {
                 ? assault : null;
     }
 
+    private static AssaultDefenseSnapshot assaultDefenseSnapshot(
+            CommanderSnapshot<?> snapshot) {
+        return snapshot.detail() instanceof AssaultDefenseSnapshot defense
+                ? defense : null;
+    }
+
     private static SabotageSiteSnapshot sabotageSnapshot(
             CommanderSnapshot<?> snapshot) {
         return snapshot.detail() instanceof SabotageSiteSnapshot sabotage
@@ -919,6 +940,36 @@ public final class SquadPlanDebugPanel implements HudPanel {
         return String.format("Sector %s   Coverage %d/%d   Contacts %d   Squads %d",
                 sector.status(), sector.visitedLegs(), sector.totalLegs(),
                 sector.believedContacts(), sector.assignedSquads());
+    }
+
+    static String assaultDefenseOrderSummary(
+            AssaultDefenseSnapshot.SquadDirective directive) {
+        if (directive == null) return "Defense area —";
+        String action = directive.assignmentKind() != null
+                ? directive.assignmentKind().name() : "UNASSIGNED";
+        String target = directive.markerCellX() >= 0
+                ? directive.markerCellX() + "," + directive.markerCellY() : "—";
+        String area = directive.areaIndex() >= 0
+                ? "A" + (directive.areaIndex() + 1) : "—";
+        return String.format(
+                "Defense area %s   %s   Role %s   Target %s   Reason %s",
+                area, action, directive.role(), target,
+                directive.reason());
+    }
+
+    static String assaultDefenseAreaSummary(
+            AssaultDefenseSnapshot snapshot,
+            AssaultDefenseSnapshot.SquadDirective directive) {
+        if (directive == null) return "Defense report —";
+        AssaultDefenseSnapshot.AreaState area = snapshot.area(
+                directive.areaIndex());
+        if (area == null) return "Defense report —";
+        return String.format(
+                "Report %s %d contacts exp %d   Cover %d+%d   Press %.1f/%.1f",
+                area.reportState(), area.believedContacts(),
+                area.reportExpiresTick(), area.routineSquads(),
+                area.respondingSquads(), area.friendlyPressure(),
+                area.knownHostilePressure());
     }
 
     static String conquestReasonSummary(

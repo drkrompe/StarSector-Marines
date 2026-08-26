@@ -70,7 +70,7 @@ public final class CommanderInfluenceService {
         List<InfluenceSource> hostileSources = new ArrayList<>(contacts.size());
         for (CommanderContact contact : contacts) {
             hostileSources.add(new InfluenceSource(contact.cellX(), contact.cellY(),
-                    contact.confidence()));
+                    contact.confidence() * contact.strength()));
         }
         return new CommanderInfluenceSnapshot(faction, simTick, BLOCK_SIZE,
                 topology.blockWidth(), topology.blockHeight(),
@@ -105,7 +105,9 @@ public final class CommanderInfluenceService {
                 }
                 CommanderContact candidate = new CommanderContact(
                         belief.unitId(), belief.lastSeenCellX(), belief.lastSeenCellY(),
-                        belief.lastSeenTick(), belief.confidence(), belief.source(), squad.id);
+                        belief.lastSeenTick(), belief.confidence(),
+                        commandStrength(identity.type(belief.unitId())),
+                        belief.source(), squad.id);
                 CommanderContact old = merged.get(candidate.unitId());
                 if (old == null || prefer(candidate, old)) {
                     merged.put(candidate.unitId(), candidate);
@@ -115,6 +117,13 @@ public final class CommanderInfluenceService {
         List<CommanderContact> contacts = new ArrayList<>(merged.values());
         contacts.sort(Comparator.comparingLong(CommanderContact::unitId));
         return contacts;
+    }
+
+    private static float commandStrength(
+            com.dillon.starsectormarines.battle.unit.UnitType type) {
+        if (type.isMech()) return 8f;
+        if (type.isTurret() || type.isDroneHub()) return 4f;
+        return 1f;
     }
 
     private static boolean prefer(CommanderContact candidate, CommanderContact old) {

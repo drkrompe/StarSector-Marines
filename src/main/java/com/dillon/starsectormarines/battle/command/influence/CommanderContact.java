@@ -8,6 +8,7 @@ public record CommanderContact(long unitId,
                                int cellY,
                                int observedTick,
                                float confidence,
+                               float strength,
                                BeliefSource source,
                                int reporterSquadId) {
 }

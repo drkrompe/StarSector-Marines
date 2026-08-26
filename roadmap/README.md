@@ -47,7 +47,11 @@ player micromanagement; foundation migration and paired live acceptance remain.
 Marine Sabotage is the second production attacker migration: exactly three named
 sites organize stable planter, kit-recovery, security, and reinforcement groups
 with deterministic headless evidence. Its defender site-security commander is
-the explicit paired follow-on.
+the explicit paired follow-on. Assault now supplies the next paired production
+duel: Marines search persistent two-dimensional sectors while defenders preserve
+authored strongpoints, spread routine area security, and mobilize a belief-driven
+bounded reserve. Its live acceptance and canonical-duration evidence review are
+still pending.
 Each later mission keeps its own strategy geometry. See `conquest-nouns.md`,
 `ai-nouns.md`, `reinforcement-nouns.md`, and `convoy-nouns.md`.
 
@@ -111,9 +115,11 @@ distant-capture reserve binds. The current canonical rows still delivered only
 one to four simultaneous marine squads and neither produced capture-zone
 entry. Keep exact capture-zone presence as neutral outcome evidence, never
 commander input. Then close the remaining assignment-writer and live-acceptance edges
-in `autonomous-mission-command-foundation.md`. Assault's production attacker now
-searches from persistent sector coverage and faction-local reports; its authored
-strongpoint/mobile-reserve defender is the next paired mission-command proof.
+in `autonomous-mission-command-foundation.md`. Assault's paired production
+commanders now share stable area geometry while retaining separate beliefs,
+ownership, directives, panel/dump/overlay views, and forced-serial trace evidence.
+Review a canonical-duration `commanderEvidence -Pmission=assault` run and the
+deferred live play pass before retiring its two implementation stories.
 Opening Operations remains the smallest later command-duel proof. Each mission
 adapts the same knowledge, ownership, cadence, and diagnostic contracts through
 its own geometry.
