@@ -34,10 +34,12 @@ of one flagship, and the breadcrumbs describe something real.
 
 ## Acceptance
 
-- Barracks and Mech Lab UI snapshots remain at least as legible as the current
-  `barracks-wide.png` and `mech-lab-wide.png`: comparable framing, readable
-  fixture density, no empty dead space and no clutter that obscures the actors.
-  A merely connected room is a regression.
+- Barracks and Mech Lab UI snapshots show compartments that are *better filled*
+  than the current `barracks-wide.png` and `mech-lab-wide.png`, not merely as
+  good: fixtures grouped rather than sprinkled, no unargued expanse of open deck,
+  and legible circulation. Framing stays readable and clutter never obscures the
+  actors. A merely connected room is a regression, and so is a faithful
+  reproduction of the current fill.
 - Both screens read compartments of the same deck set, and their breadcrumbs
   derive from deck and compartment facts rather than literal strings.
 - The practice range still fires live rounds; the Mech Lab still hosts its
