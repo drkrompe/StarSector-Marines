@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.appearance.LayeredWeaponFamily;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerPose;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarineSquad;
@@ -210,11 +209,6 @@ public final class ArmoryLoadoutPreviewComposer {
         if (clip == null) return null;
         float phase = Math.max(0f, elapsedSeconds) * 1000f / clip.totalDurationMs();
         return clip.sample(phase);
-    }
-
-    public static int poseFor(MarineSecondary special,
-                              SpecialEquipmentPresentationDef.Preview preview) {
-        return poseForDef(special != null ? special.specialDef() : null, preview);
     }
 
     public static int poseForDef(SpecialEquipmentDef special,

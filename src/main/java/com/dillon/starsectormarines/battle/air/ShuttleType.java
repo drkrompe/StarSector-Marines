@@ -16,12 +16,13 @@ import java.util.List;
  * entry's sprite resolves against the vanilla install, so we don't ship any
  * of these textures.
  *
- * <p>{@link #capacity} is the hull's physical maximum, expressed by its
- * nominal count of four-marine fire teams. A mission may embark fewer seats
+ * <p>{@link #capacity} is the hull's physical maximum. Most fleet transports
+ * express that maximum as whole four-marine fire teams, while the purpose-built
+ * Aeroshuttle carries a six-marine half-squad. A mission may embark fewer seats
  * through {@link ShuttleAssignment#seatsPerSortie}; Conquest deliberately
- * puts six marines in each of two Valkyries so one twelve-marine squad arrives
- * as a synchronized pair. Fire-team identity survives that transport split
- * and becomes authoritative again after deboard.
+ * delivers one twelve-marine squad from a synchronized pair of Aeroshuttles.
+ * Fire-team identity survives that transport split and becomes authoritative
+ * again after deboard.
  *
  * <p>Also acts as the per-type {@link AirHandling} profile. Three rough
  * handling tiers:
@@ -53,7 +54,7 @@ public enum ShuttleType implements AirHandling {
     // {@link #KITE} so the player's roster shows the right name.
     AEROSHUTTLE(
             "graphics/ships/aeroshuttle/aeroshuttle_base.png",
-            1, 10f, 0.6f,
+            1, 6, 10f, 0.6f,
             Profiles.NIMBLE, 1, 25f, 60f),
 
     KITE(
@@ -120,7 +121,7 @@ public enum ShuttleType implements AirHandling {
             "valkyrie");
 
     public final String spritePath;
-    /** Nominal whole fire teams at the hull's physical maximum. */
+    /** Nominal whole fire teams represented by the transport. */
     public final int teams;
     /** Physical maximum seats; a mission assignment may embark fewer. */
     public final int capacity;
@@ -142,9 +143,19 @@ public enum ShuttleType implements AirHandling {
                 HandlingProfile handling,
                 int hardpoints, float fireSupportSec, float maxHp,
                 String... matchingHullIds) {
+        this(spritePath, teams, teams * Squad.FIRE_TEAM_SIZE,
+                maxSpeed, deboardInterval, handling,
+                hardpoints, fireSupportSec, maxHp, matchingHullIds);
+    }
+
+    ShuttleType(String spritePath, int teams, int capacity,
+                float maxSpeed, float deboardInterval,
+                HandlingProfile handling,
+                int hardpoints, float fireSupportSec, float maxHp,
+                String... matchingHullIds) {
         this.spritePath = spritePath;
         this.teams = teams;
-        this.capacity = teams * Squad.FIRE_TEAM_SIZE;
+        this.capacity = capacity;
         this.maxSpeed = maxSpeed;
         this.deboardInterval = deboardInterval;
         this.handling = handling;

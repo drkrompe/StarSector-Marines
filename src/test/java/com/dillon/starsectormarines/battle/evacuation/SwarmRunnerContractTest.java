@@ -2,7 +2,8 @@ package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import org.junit.jupiter.api.Test;
@@ -43,18 +44,18 @@ class SwarmRunnerContractTest {
 
     @Test
     void serviceGradeMarineWeaponsHaveDeliberateSwarmBreakpoints() {
-        assertEquals(2, hitsToKill(UnitType.ALIEN, MarineWeapon.PULSE_RIFLE));
-        assertEquals(5, hitsToKill(UnitType.ALIEN, MarineWeapon.SMG));
-        assertEquals(1, hitsToKill(UnitType.ALIEN, MarineWeapon.DMR));
+        assertEquals(2, hitsToKill(UnitType.ALIEN, WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID)));
+        assertEquals(5, hitsToKill(UnitType.ALIEN, WeaponRegistry.require(WeaponRegistry.SMG_ID)));
+        assertEquals(1, hitsToKill(UnitType.ALIEN, WeaponRegistry.require(WeaponRegistry.DMR_ID)));
 
-        assertEquals(3, hitsToKill(UnitType.SWARM_RUNNER, MarineWeapon.PULSE_RIFLE));
-        assertEquals(7, hitsToKill(UnitType.SWARM_RUNNER, MarineWeapon.SMG));
-        assertEquals(2, hitsToKill(UnitType.SWARM_RUNNER, MarineWeapon.DMR));
-        assertEquals(6, MarineWeapon.SMG.projectilesPerShot(),
+        assertEquals(3, hitsToKill(UnitType.SWARM_RUNNER, WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID)));
+        assertEquals(7, hitsToKill(UnitType.SWARM_RUNNER, WeaponRegistry.require(WeaponRegistry.SMG_ID)));
+        assertEquals(2, hitsToKill(UnitType.SWARM_RUNNER, WeaponRegistry.require(WeaponRegistry.DMR_ID)));
+        assertEquals(6, WeaponRegistry.require(WeaponRegistry.SMG_ID).projectilesPerShot(),
                 "a full close-range cloud can drop an alien but a runner needs spillover");
     }
 
-    private static int hitsToKill(UnitType target, MarineWeapon weapon) {
+    private static int hitsToKill(UnitType target, WeaponDef weapon) {
         float damage = InfantryCombatStats.damage(
                 weapon, EquipmentGrade.SERVICE);
         return (int) Math.ceil(target.maxHp / damage);

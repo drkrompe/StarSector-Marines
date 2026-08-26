@@ -1,7 +1,8 @@
 package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.combat.FireStance;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -135,7 +136,7 @@ public class CombatTelemetryServiceTest {
         BattleSimulation sim = openArena(40, 20);
         long shooter = unit(sim, "shooter", Faction.MARINE, UnitType.MARINE, 5, 5);
         long target = unit(sim, "target", Faction.DEFENDER, UnitType.MILITIA, 9, 5);
-        sim.combat().setPrimaryWeapon(shooter, MarineWeapon.PULSE_RIFLE);
+        sim.combat().setPrimaryWeapon(shooter, WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID));
         // Overshoot the roll, and a pool the target cannot burn through. fireShot feeds
         // accuracy through RangeFalloff and the grade/profile multipliers, so a nominal
         // 1.0 lands just under certain and roughly one round in twenty misses.

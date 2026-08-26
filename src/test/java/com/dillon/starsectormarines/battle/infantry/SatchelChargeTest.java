@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.battle.infantry;
 
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
@@ -36,7 +39,7 @@ class SatchelChargeTest {
     private static long carrier(BattleSimulation sim, int x, int y) {
         return sim.spawn(new EntitySpec("satchel-" + sim.liveUnitCount(),
                 Faction.MARINE, UnitType.MARINE, x, y)
-                .secondary(MarineSecondary.SATCHEL_CHARGE, 0));
+                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID), 0));
     }
 
     private static long turret(BattleSimulation sim, int x, int y) {
@@ -52,7 +55,7 @@ class SatchelChargeTest {
 
         assertTrue(sim.world().hasSecondaryWeapon(marine));
         assertEquals(0, sim.world().secondaryAmmo(marine));
-        assertTrue(MarineSecondary.SATCHEL_CHARGE.hasAvailableUse(0));
+        assertTrue(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID).hasAvailableUse(0));
         assertFalse(InfantryUnitPrep.tryOpportunitySpecial(marine, sim));
         assertEquals(0, sim.world().path(marine).length,
                 "an out-of-contact satchel target must not create a pursuit path");
@@ -63,13 +66,13 @@ class SatchelChargeTest {
         BattleSimulation sim = openArena(12, 12);
         EntitySpec spec = new EntitySpec("deployed", Faction.MARINE,
                 UnitType.MARINE, 4, 4);
-        new MarineLoadout(UnitRole.COMBATANT, null, MarineWeapon.PULSE_RIFLE,
-                MarineSecondary.SATCHEL_CHARGE, 0).seedInto(spec);
+        new MarineLoadout(UnitRole.COMBATANT, null, WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID),
+                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID), 0).seedInto(spec);
 
         long marine = sim.spawn(spec);
         assertTrue(sim.world().hasSecondaryWeapon(marine));
-        assertEquals(MarineSecondary.SATCHEL_CHARGE,
-                sim.world().secondaryWeapon(marine));
+        assertEquals(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID),
+                sim.world().specialEquipment(marine));
         assertEquals(0, sim.world().secondaryAmmo(marine));
     }
 
@@ -90,7 +93,7 @@ class SatchelChargeTest {
         assertTrue(InfantryUnitPrep.tryOpportunitySpecial(marine, sim));
 
         sim.world().setCellPos(target, 12, 5);
-        int ticks = (int) Math.ceil(MarineSecondary.SATCHEL_CHARGE.aimDuration()
+        int ticks = (int) Math.ceil(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID).aimDuration()
                 / BattleSimulation.TICK_DT) + 1;
         for (int i = 0; i < ticks; i++) {
             InfantryUnitPrep.tickAimAndShortCircuit(marine, sim);
@@ -122,7 +125,7 @@ class SatchelChargeTest {
         long target = turret(sim, 5, 5);
         assertTrue(InfantryUnitPrep.tryOpportunitySpecial(marine, sim));
 
-        int ticks = (int) Math.ceil(MarineSecondary.SATCHEL_CHARGE.aimDuration()
+        int ticks = (int) Math.ceil(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID).aimDuration()
                 / BattleSimulation.TICK_DT) + 1;
         for (int i = 0; i < ticks; i++) {
             InfantryUnitPrep.tickAimAndShortCircuit(marine, sim);
@@ -130,7 +133,7 @@ class SatchelChargeTest {
 
         assertEquals(1, sim.satchelCharges().activeCharges().size());
         assertEquals(0, sim.world().secondaryAmmo(marine));
-        SatchelChargeSpec spec = MarineSecondary.SATCHEL_CHARGE.satchelChargeSpec();
+        SatchelChargeSpec spec = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID).satchelChargeSpec();
         assertEquals(spec.cooldownSeconds(),
                 sim.world().secondaryCooldownTimer(marine), EPS);
 
@@ -166,7 +169,7 @@ class SatchelChargeTest {
         long target = turret(sim, 9, 8);
         long friendly = sim.spawn(new EntitySpec("friendly", Faction.MARINE,
                 UnitType.MARINE, 8, 9));
-        SatchelChargeSpec spec = MarineSecondary.SATCHEL_CHARGE.satchelChargeSpec();
+        SatchelChargeSpec spec = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID).satchelChargeSpec();
         assertTrue(sim.satchelCharges().tryReserve(planter, target));
         assertTrue(sim.satchelCharges().plant(planter, target, Faction.MARINE,
                 sim.world().x(target), sim.world().y(target), spec));

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
 
 import java.util.Objects;
@@ -20,5 +21,9 @@ public record ShuttleArrivalPlan(
 
     public boolean paired() {
         return policy == MarineArrivalPolicy.PAIRED_HALF_SQUAD;
+    }
+
+    public ShuttleType deliveryCraft(ShuttleType committedLift) {
+        return policy.deliveryCraft(committedLift);
     }
 }

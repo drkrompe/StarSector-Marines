@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.logistics;
 
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
@@ -28,7 +29,7 @@ public class ResupplySystemTest {
     public void finiteCacheRestocksRealInfantryAndMechAmmoPools() {
         BattleSimulation sim = openSim();
         long marine = sim.spawn(new EntitySpec("marine", Faction.MARINE, UnitType.MARINE, 10, 10)
-                .secondary(MarineSecondary.ROCKET_LAUNCHER, 0));
+                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), 0));
         long mech = sim.spawn(new EntitySpec("mech", Faction.MARINE, UnitType.HEAVY_MECH, 11, 10));
         MechLoadoutComponent loadout = MechLoadoutComponent.defaultLoadout(MechRole.ARMORED_SUPPORT);
         for (MechWeaponMount mount : loadout.mounts()) {
@@ -45,7 +46,7 @@ public class ResupplySystemTest {
             system.tick(ResupplySystem.TRANSFER_INTERVAL_SECONDS);
         }
 
-        assertEquals(MarineSecondary.ROCKET_LAUNCHER.startingAmmo(),
+        assertEquals(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).startingAmmo(),
                 sim.world().secondaryAmmo(marine));
         for (MechWeaponMount mount : loadout.mounts()) {
             assertEquals(mount.component.ammoCapacity, mount.ammo);
@@ -57,7 +58,7 @@ public class ResupplySystemTest {
     public void nearbyEnemyContestsAndPausesTransfers() {
         BattleSimulation sim = openSim();
         long marine = sim.spawn(new EntitySpec("marine", Faction.MARINE, UnitType.MARINE, 10, 10)
-                .secondary(MarineSecondary.ROCKET_LAUNCHER, 0));
+                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), 0));
         long enemy = sim.spawn(new EntitySpec("enemy", Faction.DEFENDER, UnitType.MILITIA, 11, 10));
         ResupplyService service = new ResupplyService();
         ResupplyCache cache = new ResupplyCache(10, 10, Faction.MARINE, 3);

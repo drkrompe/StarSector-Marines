@@ -95,6 +95,10 @@ is the actual manifest and is restored on every cycle. Arrangement, shared
 arrival area, squad grouping, and departure behavior belong to the mission's
 arrival policy rather than to the hull type.
 
+The Aeroshuttle is a purpose-built six-seat half-squad craft. Conquest keeps
+the committed campaign hull as its lift source but resolves the visible final
+descent to paired Aeroshuttles.
+
 ### Fighters and drones
 
 Fighters are recurrent atmospheric passes. Their hull-derived handling already

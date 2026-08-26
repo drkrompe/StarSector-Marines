@@ -3,7 +3,8 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerPose;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
@@ -21,13 +22,13 @@ class UnitRenderServiceLayerPoseTest {
         UnitLayerLayouts layouts = UnitLayerLayouts.parse(new JSONObject(Files.readString(
                 Path.of("mod/data/appearance/unit-layer-layouts.appearance.json"))));
 
-        assertSpecial(layouts, MarineSecondary.ROCKET_LAUNCHER,
+        assertSpecial(layouts, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID),
                 LayeredAppearance.POSE_ROCKET_AIM, "rocket-launcher");
-        assertSpecial(layouts, MarineSecondary.ANTI_MATERIEL_RIFLE,
+        assertSpecial(layouts, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID),
                 LayeredAppearance.POSE_AMR_FIRE, "special");
-        assertSpecial(layouts, MarineSecondary.SMOKE_GRENADE,
+        assertSpecial(layouts, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID),
                 LayeredAppearance.POSE_SMOKE_THROW, "special");
-        assertSpecial(layouts, MarineSecondary.SATCHEL_CHARGE,
+        assertSpecial(layouts, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID),
                 LayeredAppearance.POSE_SATCHEL_PLANT, "special");
     }
 
@@ -39,11 +40,11 @@ class UnitRenderServiceLayerPoseTest {
         LayerPose stride = layouts.clip("marine-line", "rifle", "walking")
                 .sample(locomotionPhase);
 
-        LayerPose entry = UnitRenderService.infantryPose(layouts, true,
-                MarineSecondary.ANTI_MATERIEL_RIFLE, LayeredAppearance.POSE_AMR_AIM,
+        LayerPose entry = UnitRenderService.infantryPoseDef(layouts, true,
+                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID), LayeredAppearance.POSE_AMR_AIM,
                 locomotionPhase, 0f, LayeredAppearance.FLAG_ACTION_FROM_MOVING);
-        LayerPose settled = UnitRenderService.infantryPose(layouts, true,
-                MarineSecondary.ANTI_MATERIEL_RIFLE, LayeredAppearance.POSE_AMR_AIM,
+        LayerPose settled = UnitRenderService.infantryPoseDef(layouts, true,
+                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID), LayeredAppearance.POSE_AMR_AIM,
                 locomotionPhase, LayeredAppearance.ACTION_ENTRY_BLEND_PHASE,
                 LayeredAppearance.FLAG_ACTION_FROM_MOVING);
 
@@ -70,7 +71,7 @@ class UnitRenderServiceLayerPoseTest {
         LayerPose aimed = layouts.clip("marine-line", "rifle", "aiming")
                 .sample(actionPhase);
 
-        LayerPose movingAim = UnitRenderService.infantryPose(layouts, true, null,
+        LayerPose movingAim = UnitRenderService.infantryPoseDef(layouts, true, null,
                 LayeredAppearance.POSE_AIMED, locomotionPhase, actionPhase,
                 LayeredAppearance.FLAG_MOVING);
 
@@ -84,12 +85,12 @@ class UnitRenderServiceLayerPoseTest {
     }
 
     private static void assertSpecial(UnitLayerLayouts layouts,
-                                      MarineSecondary secondary, int pose,
+                                      SpecialEquipmentDef secondary, int pose,
                                       String layerId) {
-        LayerPose sampled = UnitRenderService.infantryPose(layouts, true, secondary,
+        LayerPose sampled = UnitRenderService.infantryPoseDef(layouts, true, secondary,
                 pose, 0f, 0.5f, 0);
 
-        assertNotNull(sampled, secondary.name());
-        assertNotNull(sampled.layer(layerId), secondary.name());
+        assertNotNull(sampled, secondary.id());
+        assertNotNull(sampled.layer(layerId), secondary.id());
     }
 }

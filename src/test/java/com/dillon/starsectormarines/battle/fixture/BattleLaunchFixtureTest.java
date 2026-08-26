@@ -9,7 +9,8 @@ import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.flyby.FighterWing;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.infantry.SoldierAptitude;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
@@ -69,7 +70,7 @@ class BattleLaunchFixtureTest {
              BattleSimulation second = fixture.build()) {
             MarineLoadout firstSeat = firstMission(first).cycleLoadouts[0][0];
             assertEquals("marine-17", firstSeat.campaignSoldierId);
-            assertEquals(MarineWeapon.PULSE_RIFLE.id, firstSeat.primaryDef.id);
+            assertEquals(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID).id, firstSeat.primaryDef().id);
             assertEquals(EquipmentGrade.MILSPEC, firstSeat.equipmentGrade);
             assertEquals(new SoldierProfile(SoldierAptitude.GIFTED, 321),
                     firstSeat.soldierProfile);
@@ -118,7 +119,7 @@ class BattleLaunchFixtureTest {
         BattleLaunchOverlay launch = new BattleLaunchOverlay(
                 0,
                 List.of(new MarineSeatCommitment(
-                        "marine-17", MarineWeapon.PULSE_RIFLE.id,
+                        "marine-17", WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID).id,
                         EquipmentGrade.MILSPEC,
                         new SoldierProfile(SoldierAptitude.GIFTED, 321),
                         null, LayeredArmorFamily.CHARCOAL,

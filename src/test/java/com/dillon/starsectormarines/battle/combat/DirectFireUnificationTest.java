@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.combat;
 
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -58,18 +59,18 @@ class DirectFireUnificationTest {
         BattleSimulation sim = arena(true);
         long shooter = sim.spawn(new EntitySpec("rocketeer", Faction.MARINE,
                 UnitType.MARINE, 2, ROW)
-                .secondary(MarineSecondary.ROCKET_LAUNCHER, 1));
+                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), 1));
 
         sim.fireSecondary(shooter, target(sim));
 
         ShotEvent shot = onlyShot(sim);
-        assertSame(MarineSecondary.ROCKET_LAUNCHER, shot.marineSecondary);
+        assertSame(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), shot.specialEquipmentDef);
         assertEquals(BallisticResolver.StopKind.WALL, shot.stopKind);
         assertEquals(WALL_X, shot.toX, EPS);
         assertEquals(1, sim.getActiveProjectiles().size());
         Projectile projectile = sim.getActiveProjectiles().get(0);
         assertEquals(WALL_X, projectile.onArrival.endpointX, EPS);
-        assertTrue(projectile.totalFlightTime < MarineSecondary.ROCKET_LAUNCHER.flightSec(),
+        assertTrue(projectile.totalFlightTime < SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).flightSec(),
                 "a nearer wall arrives sooner than the old fixed maximum-range timing");
     }
 
@@ -78,12 +79,12 @@ class DirectFireUnificationTest {
         BattleSimulation sim = arena(true);
         long shooter = sim.spawn(new EntitySpec("heavy marksman", Faction.MARINE,
                 UnitType.MARINE, 2, ROW)
-                .secondary(MarineSecondary.ANTI_MATERIEL_RIFLE, 1));
+                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID), 1));
 
         sim.fireSecondary(shooter, target(sim));
 
         ShotEvent shot = onlyShot(sim);
-        assertSame(MarineSecondary.ANTI_MATERIEL_RIFLE, shot.marineSecondary);
+        assertSame(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID), shot.specialEquipmentDef);
         assertEquals(BallisticResolver.StopKind.WALL, shot.stopKind);
         assertEquals(WALL_X, shot.toX, EPS);
         assertTrue(sim.getActiveProjectiles().isEmpty(),
@@ -98,7 +99,7 @@ class DirectFireUnificationTest {
         BattleSimulation sim = arena(false);
         long shooter = sim.spawn(new EntitySpec("rocketeer", Faction.MARINE,
                 UnitType.MARINE, 2, ROW)
-                .secondary(MarineSecondary.ROCKET_LAUNCHER, 1));
+                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), 1));
         long evasive = sim.spawn(new EntitySpec("evasive", Faction.DEFENDER,
                 UnitType.MARINE, 10, ROW).armor(0f, 0f, 1f, 0f));
 

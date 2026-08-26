@@ -20,4 +20,10 @@ public enum MarineArrivalPolicy {
         }
         return type.capacity;
     }
+
+    /** Resolves the ground-battle craft from the committed campaign lift. */
+    public ShuttleType deliveryCraft(ShuttleType committedLift) {
+        return this == PAIRED_HALF_SQUAD
+                ? ShuttleType.AEROSHUTTLE : committedLift;
+    }
 }

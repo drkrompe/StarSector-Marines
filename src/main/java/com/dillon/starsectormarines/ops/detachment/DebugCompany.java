@@ -1,8 +1,6 @@
 package com.dillon.starsectormarines.ops.detachment;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarineArmory;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -108,12 +106,12 @@ public final class DebugCompany {
                                MarineSoldier soldier, int billet) {
         DebugBilletPlan plan = stage.plan;
         soldier.addExperience(plan.experienceXp(billet));
-        MarineWeapon primary = plan.primary(billet);
+        String primary = plan.primaryId(billet);
         EquipmentGrade grade = plan.grade(billet);
         if (primary != null && grade != null) {
             roster.allocatePrimary(soldier.id(), primary, grade);
         }
-        MarineSecondary secondary = plan.secondary(billet);
+        String secondary = plan.specialEquipmentId(billet);
         if (secondary != null) roster.allocateSecondary(soldier.id(), secondary);
         MarineArmorPattern armor = plan.armor(billet);
         if (armor != null) roster.allocateArmor(soldier.id(), armor);
@@ -129,14 +127,14 @@ public final class DebugCompany {
         armory.addFabricationMaterials(FABRICATION_BUDGET);
         DebugBilletPlan plan = stage.plan;
         for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
-            MarineWeapon primary = plan.primary(billet);
+            String primary = plan.primaryId(billet);
             EquipmentGrade grade = plan.grade(billet);
             if (primary != null && grade != null) {
                 armory.unlockPrimary(primary, grade);
                 printUpTo(() -> armory.ownedPrimary(primary, grade),
                         () -> armory.printPrimary(primary, grade), squads);
             }
-            MarineSecondary secondary = plan.secondary(billet);
+            String secondary = plan.specialEquipmentId(billet);
             if (secondary != null) {
                 armory.unlockSecondary(secondary);
                 printUpTo(() -> armory.ownedSecondary(secondary),

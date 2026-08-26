@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.command.reinforcement;
 
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
+import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
@@ -88,9 +89,10 @@ public class ShuttleMeansTest {
         ShuttleMission mission = sim.world().mission(sim.getAirEntityIds()[0]);
         assertEquals(roster.unitType(GroundRosterProfile.ForceTier.ELITE),
                 mission.deboardUnitType);
-        assertEquals(4, mission.marineLoadout.length);
+        assertEquals(ShuttleType.AEROSHUTTLE.capacity,
+                mission.marineLoadout.length);
         for (int i = 0; i < mission.marineLoadout.length; i++) {
-            assertTrue(mission.marineLoadout[i].primary != null);
+            assertTrue(mission.marineLoadout[i].primaryDef() != null);
             assertTrue(mission.marineLoadout[i].armorFamily != null);
         }
     }
