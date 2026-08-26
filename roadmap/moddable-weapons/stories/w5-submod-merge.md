@@ -4,7 +4,7 @@ Status: IN PROGRESS
 
 Written: 2026-08-22
 
-Updated: 2026-08-25 — completed contributed special-equipment player/faction issue and typed battle execution; sibling tileset adoption and live two-mod acceptance remain.
+Updated: 2026-08-25 — adopted the shared manifest/provenance contract for tilesets and mappings; live two-mod acceptance remains.
 
 Read `moddable-weapons-nouns.md` before implementing this story.
 
@@ -50,11 +50,12 @@ constants.
   rendering, audio, persistence, and warning-backed empty-slot repair;
 - an external-provider acceptance fixture proving an OC faction can add its
   weapon, armor, roster, and collectible cards, then learn, author, issue,
-  save/load, and deploy them without enum constants.
+  save/load, and deploy them without enum constants;
+- contributed tileset definitions and tile mappings through exact-provider
+  loading, additive merge, cross-reference preflight, and provenance-aware
+  collision diagnostics, with an OC sheet/pool acceptance fixture.
 
 ## Remaining
 
-- Adopt the same manifest/provenance machinery for tilesets instead of growing
-  a second discovery contract.
 - Run an in-game two-mod smoke test against real Starsector enabled-mod order
   and capture the actionable collision message.

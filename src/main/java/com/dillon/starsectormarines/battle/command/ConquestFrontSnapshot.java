@@ -83,7 +83,18 @@ public record ConquestFrontSnapshot(
             int targetCellX,
             int targetCellY,
             int markerCellX,
-            int markerCellY) {
+            int markerCellY,
+            boolean distantCaptureDeferred) {
+
+        public SquadDirective(int squadId, int preferredTrack,
+                              int effectiveTrack, AssignmentReason reason,
+                              AssignmentKind assignmentKind, int targetZoneId,
+                              int targetCellX, int targetCellY,
+                              int markerCellX, int markerCellY) {
+            this(squadId, preferredTrack, effectiveTrack, reason,
+                    assignmentKind, targetZoneId, targetCellX, targetCellY,
+                    markerCellX, markerCellY, false);
+        }
 
         public SquadDirective(int squadId, int preferredTrack,
                               int effectiveTrack, AssignmentReason reason,
@@ -99,6 +110,12 @@ public record ConquestFrontSnapshot(
             this(squadId, preferredTrack, effectiveTrack, reason,
                     assignmentKind, targetZoneId, targetCellX, targetCellY,
                     targetCellX, targetCellY);
+        }
+
+        public SquadDirective withDistantCaptureDeferred() {
+            return new SquadDirective(squadId, preferredTrack, effectiveTrack,
+                    reason, assignmentKind, targetZoneId, targetCellX,
+                    targetCellY, markerCellX, markerCellY, true);
         }
     }
 
@@ -201,7 +218,8 @@ public record ConquestFrontSnapshot(
                     effective, effectiveReason,
                     assignment != null ? assignment.kind() : null,
                     assignment != null ? assignment.targetZoneId() : -1,
-                    targetCellX, targetCellY, markerCellX, markerCellY));
+                    targetCellX, targetCellY, markerCellX, markerCellY,
+                    planned.distantCaptureDeferred()));
         }
         return new ConquestFrontSnapshot(tick, influenceTick, perspective,
                 axis, phase, remainingCompounds, keepZoneId, keepState,

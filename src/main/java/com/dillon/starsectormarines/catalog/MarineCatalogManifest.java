@@ -21,6 +21,8 @@ import java.util.List;
  * iteration; duplicate stable ids remain errors rather than overrides.
  */
 public record MarineCatalogManifest(
+        List<CatalogFile> tilesets,
+        List<CatalogFile> tileMappings,
         List<CatalogFile> weapons,
         List<CatalogFile> specialEquipment,
         List<CatalogFile> armor,
@@ -31,6 +33,8 @@ public record MarineCatalogManifest(
     public static final String MANIFEST_PATH = "data/marines/starsector-marines.catalog.json";
 
     public MarineCatalogManifest {
+        tilesets = List.copyOf(tilesets);
+        tileMappings = List.copyOf(tileMappings);
         weapons = List.copyOf(weapons);
         specialEquipment = List.copyOf(specialEquipment);
         armor = List.copyOf(armor);
@@ -90,6 +94,8 @@ public record MarineCatalogManifest(
                     + " in mod '" + modId + "'; expected " + SCHEMA_VERSION);
         }
         return new MarineCatalogManifest(
+                paths(modId, root.optJSONArray("tilesets")),
+                paths(modId, root.optJSONArray("tileMappings")),
                 paths(modId, root.optJSONArray("weapons")),
                 paths(modId, root.optJSONArray("specialEquipment")),
                 paths(modId, root.optJSONArray("armor")),
@@ -131,6 +137,8 @@ public record MarineCatalogManifest(
     }
 
     private static final class Builder {
+        private final List<CatalogFile> tilesets = new ArrayList<>();
+        private final List<CatalogFile> tileMappings = new ArrayList<>();
         private final List<CatalogFile> weapons = new ArrayList<>();
         private final List<CatalogFile> specialEquipment = new ArrayList<>();
         private final List<CatalogFile> armor = new ArrayList<>();
@@ -138,6 +146,8 @@ public record MarineCatalogManifest(
         private final List<CatalogFile> equipmentTemplates = new ArrayList<>();
 
         void add(MarineCatalogManifest manifest) {
+            tilesets.addAll(manifest.tilesets);
+            tileMappings.addAll(manifest.tileMappings);
             weapons.addAll(manifest.weapons);
             specialEquipment.addAll(manifest.specialEquipment);
             armor.addAll(manifest.armor);
@@ -146,7 +156,8 @@ public record MarineCatalogManifest(
         }
 
         MarineCatalogManifest build() {
-            return new MarineCatalogManifest(weapons, specialEquipment, armor,
+            return new MarineCatalogManifest(tilesets, tileMappings,
+                    weapons, specialEquipment, armor,
                     groundRosters, equipmentTemplates);
         }
     }

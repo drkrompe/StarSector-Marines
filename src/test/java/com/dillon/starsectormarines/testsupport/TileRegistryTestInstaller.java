@@ -51,6 +51,7 @@ public final class TileRegistryTestInstaller implements BeforeAllCallback {
             for (String path : GenMappingRegistry.BUILTIN_MAPPINGS) {
                 mapping.ingest(new JSONObject(Files.readString(Paths.get("mod", path.split("/")))));
             }
+            mapping.validateReferences();
             GenMappingRegistry.install(mapping);
         }
         if (WeaponRegistry.installed() == null) {
