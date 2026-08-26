@@ -4,10 +4,10 @@ Status: PLANNED — follows the autonomous foundation and at least one paired no
 
 Written: 2026-08-24
 
-Updated: 2026-08-25 — moved faction weighting behind the shared command foundation and measurable mission baselines.
+Updated: 2026-08-26 — routed faction command-profile authors through the enduring lore guide catalog.
 
-Read `ai-nouns.md` and `campaign-battle-bridge-nouns.md` before implementing
-this story.
+Read `ai-nouns.md`, `campaign-battle-bridge-nouns.md`, and
+`faction-lore-nouns.md` before implementing this story.
 
 ## Problem
 
