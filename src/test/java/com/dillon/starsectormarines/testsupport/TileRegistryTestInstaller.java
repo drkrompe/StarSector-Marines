@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
 import com.dillon.starsectormarines.marine.FactionEquipmentCatalog;
+import com.dillon.starsectormarines.marine.MarineArmory;
 import com.dillon.starsectormarines.marine.SquadLoadoutPresentationRegistry;
 import com.dillon.starsectormarines.battle.setup.GroundRosterRegistry;
 import org.json.JSONObject;
@@ -101,6 +102,7 @@ public final class TileRegistryTestInstaller implements BeforeAllCallback {
             EquipmentTemplateCatalog templates = new EquipmentTemplateCatalog();
             templates.ingest(new JSONObject(Files.readString(Paths.get("mod", "data",
                     "marines", "equipment-templates.template.json"))));
+            templates.validateCompleteness();
             EquipmentTemplateCatalog.install(templates);
         }
         if (FactionEquipmentCatalog.installed() == null) {
@@ -108,6 +110,8 @@ public final class TileRegistryTestInstaller implements BeforeAllCallback {
             factionEquipment.ingest(new JSONObject(Files.readString(Paths.get("mod", "data",
                     "marines", "faction-equipment.faction-equipment.json"))));
             factionEquipment.validateCompleteness();
+            factionEquipment.validateReachability(
+                    new MarineArmory().ownedEquipmentTemplateIds());
             FactionEquipmentCatalog.install(factionEquipment);
         }
         if (SquadLoadoutPresentationRegistry.installed() == null) {

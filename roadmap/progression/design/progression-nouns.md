@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — grounded shipped equipment provenance and connected all four additive faction-equipment acquisition channels.
+Updated: 2026-08-26 — made complete player-equipment reachability a fail-loud additive-catalog law.
 
 ## Purpose
 
@@ -187,12 +187,15 @@ editor. Market, reward, and salvage systems create the same validated cargo
 payload; the S6 acquisition ladder still owns the eligibility of each entrance.
 
 Collectible eligibility and issue cost are catalog data rather than a closed
-Java list. Each enabled catalog provider may add primary family-and-grade cards,
-armor cards, and special-equipment cards after the referenced equipment has
-loaded. Card ids are derived from the stable equipment id, duplicate claims fail
-with provider provenance, and learning keeps the same Marine-Armory-only
-boundary. A provider adding a weapon or armor does not automatically make it
-player collectible; it must deliberately contribute the corresponding template.
+Java list. Each enabled catalog provider may add complete four-grade primary
+families, armor cards, and special-equipment cards after the referenced
+equipment has loaded. Card ids are derived from the stable equipment id,
+duplicate claims fail with provider provenance, and learning keeps the same
+Marine-Armory-only boundary. A provider adding a marine primary, armor, or
+special item must either contribute its complete player-template treatment or
+declare a non-empty reason that the identity is not player equipment. A partial
+primary grade matrix and a collectible-plus-exclusion contradiction both stop
+application loading.
 The doctrine editor derives primary family/grade, armor, and special-equipment
 choices from the owned cards in that additive catalog. Persisted doctrines,
 resolved billets, and materialized marines retain the contributed equipment ids
@@ -214,9 +217,17 @@ quietly producing an empty or unreachable catalog. The four channel weights are
 inputs for later acquisition consumers, never loot rolls performed during
 application loading and never a hidden combat modifier.
 
+The merged catalogs enforce the standing reachability law at application load:
+every collectible card must be starter-owned or appear in at least one faction
+pool through market, license, patron, or recovery. This is global reachability,
+not universal faction availability. It lets add-ons keep faction identity while
+ensuring that a newly collectible family, grade, suit, or special item cannot be
+stranded by an omitted source file.
+
 Armor patterns are authored player kit with distinct defensive and mobility
-tradeoffs. Some authored patterns are not presently reachable by the live
-unlock ladder; their existence is not evidence of a shipped acquisition path.
+tradeoffs. Every currently authored pattern has a collectible card and faction
+acquisition source, and the catalog audit preserves that coverage as content is
+added.
 The pattern owns the deployed armor pool, rating, movement modifier, and
 incoming-accuracy tradeoff; `combat-durability-nouns.md` owns how battle damage
 removes that armor and exposed structure. Structure remains the platform's base
