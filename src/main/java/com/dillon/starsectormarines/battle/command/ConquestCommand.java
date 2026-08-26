@@ -44,11 +44,12 @@ import java.util.TreeMap;
  *       defender merely loitering in the open street nearby never blocks a
  *       capture order, and the unbounded outdoor flood never counts as "in"
  *       the compound. See {@code conquest-nouns.md}.</li>
- *   <li><b>Track clear-zone push.</b> Every squad not pulled for capture
+ *   <li><b>Track front push.</b> Every squad not pulled for capture
  *       keeps a sticky preferred track, but may support one neighboring track
  *       when its own has no actionable target. Tracks coordinate the front;
- *       they are not ownership fences. Target selection still advances one
- *       known hostile-contact zone at a time.</li>
+ *       they are not ownership fences. A discrete hostile-contact zone wins;
+ *       otherwise open-ground belief may produce a bounded own-force staging
+ *       marker behind the hostile line.</li>
  *   <li><b>Keep convergence.</b> Once the canonical command post is the only
  *       uncaptured compound, every mobile assault squad converges on its
  *       {@link AssignmentKind#SECURE_COMPOUND} objective. Born-holding
@@ -77,8 +78,10 @@ import java.util.TreeMap;
  * pressure/progress picture that explains the order.
  *
  * <p>When the preferred and adjacent tracks have no actionable defender
- * zone, the squad's assignment is cleared (set to {@code null}); the squad
- * falls through to {@code EliminateEnemiesGoal}. The
+ * zone, open-ground resistance ahead may yield an {@code ADVANCE_TRACK}
+ * staging order. Without that faction-local belief the assignment is cleared
+ * (set to {@code null}) and the squad falls through to
+ * {@code EliminateEnemiesGoal}. The
  * mission's {@code ConquestObjective} closes the battle when every
  * defender supply compound (COMMAND_POST / BARRACKS / ARMORY) is
  * MARINE_HELD — not "last defender drops"; reinforcement keeps
@@ -109,6 +112,18 @@ public final class ConquestCommand implements ConquestFrontCommand,
 
     /** Keep at least one executable, actionable squad on a live front. */
     public static final int MIN_FRONT_RESERVE_SQUADS = 1;
+
+    /** Stand this many cells behind the nearest believed hostile in a track. */
+    static final int TRACK_LINE_STANDOFF_CELLS = 8;
+    /** A staging marker may lead the current friendly line by at most this much. */
+    static final int TRACK_LINE_LEAD_CELLS = 8;
+    /** One published staging order cannot pull a rear squad farther than this. */
+    static final int TRACK_LINE_MAX_STRIDE_CELLS = 24;
+    /** Ignore marker changes too small to produce meaningful forward motion. */
+    static final int TRACK_LINE_MIN_ADVANCE_CELLS = 3;
+    /** Quantization keeps small belief jitter from rewriting a stable order. */
+    static final int TRACK_LINE_BAND_CELLS = 4;
+    private static final int TRACK_LINE_SNAP_RADIUS = 12;
 
     /**
      * Cells of slack added around a compound's footprint when resolving its
@@ -159,8 +174,9 @@ public final class ConquestCommand implements ConquestFrontCommand,
      * init. Never handed out as a {@code CLEAR_ZONE} target: the exterior flood
      * spans the whole map, always holds a stray defender, and so reads as
      * "never clear" — a squad ordered to clear it charges the map forever
-     * instead of doing focused area control. Outdoor defenders are still
-     * engaged ambiently via {@code EliminateEnemiesGoal} when in LoS. We key on
+     * instead of doing focused area control. Outdoor defenders are engaged
+     * ambiently via {@code EliminateEnemiesGoal} when in LoS; farther commander
+     * belief may move an idle squad toward a safe lane staging line. We key on
      * largest-by-cells rather than id 0 because the flood-fill ids zones by
      * scan order, so id 0 can land on an indoor region. Only set when the
      * largest zone <em>dominates</em> — at least {@link #EXTERIOR_DOMINANCE_RATIO}×
@@ -339,6 +355,27 @@ public final class ConquestCommand implements ConquestFrontCommand,
                         ? finalCompoundSupportChoice(squad, soleRemaining, frame)
                         : targetChoice(squad, preferredTrack, frame);
                 if (choice.targetZoneId < 0) {
+                    TrackStage stage = !finalCompoundConvergence
+                            ? laneStageChoice(squad, preferredTrack, frame)
+                            : null;
+                    if (stage != null) {
+                        ObjectiveAssignment cur = squad.assignedObjective;
+                        if (cur == null
+                                || cur.kind() != AssignmentKind.ADVANCE_TRACK
+                                || cur.targetCellX() != stage.cellX()
+                                || cur.targetCellY() != stage.cellY()) {
+                            squad.assignedObjective = ObjectiveAssignment.advanceTrack(
+                                    squad.id, stage.cellX(), stage.cellY());
+                        }
+                        SquadDirective planned = directive(squad,
+                                preferredTrack, stage.trackIndex(),
+                                AssignmentReason.TRACK_LINE_ADVANCE);
+                        if (deferredCaptures.contains(squad.id)) {
+                            planned = planned.withDistantCaptureDeferred();
+                        }
+                        directives.put(squad.id, planned);
+                        continue;
+                    }
                     squad.assignedObjective = null;
                     SquadDirective planned = directive(squad, preferredTrack,
                             preferredTrack,
@@ -548,7 +585,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 continue;
             }
             int preferredTrack = stripFor(squad);
-            if (targetChoice(squad, preferredTrack, frame).targetZoneId >= 0) {
+            if (targetChoice(squad, preferredTrack, frame).targetZoneId >= 0
+                    || laneStageChoice(squad, preferredTrack, frame) != null) {
                 actionable.add(squad.id);
             }
         }
@@ -831,6 +869,108 @@ public final class ConquestCommand implements ConquestFrontCommand,
     }
 
     private record TargetChoice(int trackIndex, int targetZoneId) { }
+    private record TrackStage(int trackIndex, int cellX, int cellY) { }
+
+    /**
+     * Gives a contact-free rear squad an own-force destination behind its
+     * preferred track's believed hostile frontier. Specific zone work is
+     * selected before this fallback; local contact also suppresses it so the
+     * tactical engagement planner owns the squad without a competing marker.
+     */
+    private TrackStage laneStageChoice(PlanningSquad squad, int track,
+                                       ConquestCommandFrame frame) {
+        if (squad.localContact || track < 0 || track >= STRIP_COUNT) return null;
+        CommanderInfluenceSnapshot influence = frame.influence();
+        if (influence == null) return null;
+
+        int nearestHostileForward = Integer.MAX_VALUE;
+        for (CommanderContact contact : influence.contacts()) {
+            if (trackLayout.trackForCell(contact.cellX(), contact.cellY()) != track) {
+                continue;
+            }
+            int forward = Math.round(trackLayout.forwardCoordinate(
+                    contact.cellX(), contact.cellY()));
+            nearestHostileForward = Math.min(nearestHostileForward, forward);
+        }
+        if (nearestHostileForward == Integer.MAX_VALUE) return null;
+
+        int squadForward = Math.round(trackLayout.forwardCoordinate(
+                squad.centroidX, squad.centroidY));
+        int friendlyLead = friendlyLeadForward(track, squadForward, frame);
+        int safeFront = nearestHostileForward - TRACK_LINE_STANDOFF_CELLS;
+        int supportedFront = friendlyLead + TRACK_LINE_LEAD_CELLS;
+        int strideFront = squadForward + TRACK_LINE_MAX_STRIDE_CELLS;
+        int desiredForward = Math.min(safeFront,
+                Math.min(supportedFront, strideFront));
+        desiredForward = Math.max(0, Math.min(trackLayout.forwardExtent() - 1,
+                desiredForward));
+        desiredForward = desiredForward / TRACK_LINE_BAND_CELLS
+                * TRACK_LINE_BAND_CELLS;
+        if (desiredForward < squadForward + TRACK_LINE_MIN_ADVANCE_CELLS) {
+            return null;
+        }
+
+        int lateral = Math.round(trackLayout.lateralCoordinate(
+                squad.centroidX, squad.centroidY));
+        lateral = Math.max(trackLayout.lateralStartInclusive(track),
+                Math.min(trackLayout.lateralEndInclusive(track), lateral));
+        return reachableTrackStage(squad, track, lateral, desiredForward, frame);
+    }
+
+    private int friendlyLeadForward(int track, int fallback,
+                                    ConquestCommandFrame frame) {
+        int lead = fallback;
+        for (CommandSquadState other : frame.squads()) {
+            if (other.aliveMembers() <= 0 || other.role() == UnitRole.GARRISON) continue;
+            int physicalTrack = trackLayout.trackForLateral(
+                    trackLayout.lateralCoordinate(other.centroidX(), other.centroidY()));
+            if (physicalTrack != track) continue;
+            lead = Math.max(lead, Math.round(trackLayout.forwardCoordinate(
+                    other.centroidX(), other.centroidY())));
+        }
+        return lead;
+    }
+
+    /** Searches only at or behind the safe line and fails closed. */
+    private TrackStage reachableTrackStage(PlanningSquad squad, int track,
+                                           int desiredLateral, int desiredForward,
+                                           ConquestCommandFrame frame) {
+        CommandTopology topology = frame.topology();
+        for (int radius = 0; radius <= TRACK_LINE_SNAP_RADIUS; radius++) {
+            for (int rear = 0; rear <= radius; rear++) {
+                int lateralDelta = radius - rear;
+                int forward = desiredForward - rear;
+                TrackStage left = validTrackStage(squad, track,
+                        desiredLateral - lateralDelta, forward, topology);
+                if (left != null) return left;
+                if (lateralDelta != 0) {
+                    TrackStage right = validTrackStage(squad, track,
+                            desiredLateral + lateralDelta, forward, topology);
+                    if (right != null) return right;
+                }
+            }
+        }
+        return null;
+    }
+
+    private TrackStage validTrackStage(PlanningSquad squad, int track,
+                                       int lateral, int forward,
+                                       CommandTopology topology) {
+        if (!topology.inBounds(squad.anchorCellX, squad.anchorCellY)
+                || !topology.isWalkable(
+                squad.anchorCellX, squad.anchorCellY)) return null;
+        int squadForward = Math.round(trackLayout.forwardCoordinate(
+                squad.centroidX, squad.centroidY));
+        if (forward < squadForward + TRACK_LINE_MIN_ADVANCE_CELLS) return null;
+        int x = trackLayout.cellX(lateral, forward);
+        int y = trackLayout.cellY(lateral, forward);
+        if (!topology.inBounds(x, y) || !topology.isWalkable(x, y)
+                || trackLayout.trackForCell(x, y) != track) return null;
+        boolean atTarget = squad.anchorCellX == x && squad.anchorCellY == y;
+        if (!atTarget && !topology.reachable(
+                squad.anchorCellX, squad.anchorCellY, x, y)) return null;
+        return new TrackStage(track, x, y);
+    }
 
     /**
      * When a recaptured non-keep compound is the sole territorial objective,
@@ -907,7 +1047,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
      * returns relevance 0 anyway via its {@code currentZone == targetZone}
      * gate, so callers see consistent "no plan to execute" behavior and
      * the squad falls through to {@code EliminateEnemiesGoal} for in-zone
-     * engagement).
+     * engagement, or receives a later lane-stage fallback when the believed
+     * contact is farther ahead in the open exterior).
      */
     private int nearestDefenderZoneInStrip(PlanningSquad squad, int stripIdx,
                                            ConquestCommandFrame frame) {
@@ -1147,6 +1288,22 @@ public final class ConquestCommand implements ConquestFrontCommand,
             if (!hasKnownHostileInZone(old.targetZoneId(), frame)
                     || reason == AssignmentReason.NO_ACTIONABLE_TRACK_TARGET) {
                 return CommandStabilityBreak.CONTEXT_INVALIDATED;
+            }
+        } else if (old.kind() == AssignmentKind.ADVANCE_TRACK) {
+            if (reason != AssignmentReason.TRACK_LINE_ADVANCE) {
+                return CommandStabilityBreak.CONTEXT_INVALIDATED;
+            }
+            if (!frame.topology().inBounds(old.targetCellX(), old.targetCellY())
+                    || !frame.topology().isWalkable(
+                    old.targetCellX(), old.targetCellY())) {
+                return CommandStabilityBreak.TARGET_UNREACHABLE;
+            }
+            boolean atTarget = squad.anchorCellX == old.targetCellX()
+                    && squad.anchorCellY == old.targetCellY();
+            if (!atTarget && !frame.topology().reachable(
+                    squad.anchorCellX, squad.anchorCellY,
+                    old.targetCellX(), old.targetCellY())) {
+                return CommandStabilityBreak.TARGET_UNREACHABLE;
             }
         }
         if (reason == AssignmentReason.NO_REACHABLE_COMPOUND_TARGET) {

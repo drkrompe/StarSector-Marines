@@ -290,6 +290,7 @@ class CommanderServiceTest {
                 ObjectiveAssignment.clearZone(squad.id, -1),
                 ObjectiveAssignment.secureCompound(squad.id, -1, null),
                 ObjectiveAssignment.defendTrack(squad.id, -1, -1),
+                ObjectiveAssignment.advanceTrack(squad.id, -1, -1),
                 ObjectiveAssignment.sweepSector(squad.id, -1, -1),
                 ObjectiveAssignment.escort(squad.id, -1, -1),
                 ObjectiveAssignment.rushObjective(squad.id, -1, -1),

@@ -112,6 +112,15 @@ public class ConquestCommandTest {
         return new BattleSimulation(grid, new CellTopology(W, H));
     }
 
+    /** One dominant open zone, tall enough to exercise cautious line staging. */
+    private static BattleSimulation tallExteriorSim(int height) {
+        NavigationGrid grid = new NavigationGrid(W, height);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < W; x++) grid.setWalkableFloor(x, y);
+        }
+        return new BattleSimulation(grid, new CellTopology(W, height));
+    }
+
     private static Squad addMarineSquad(BattleSimulation sim, float centroidX, float centroidY) {
         long leader = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE,
                 Math.round(centroidX), Math.round(centroidY)));
@@ -404,6 +413,81 @@ public class ConquestCommandTest {
 
         assertNull(squad.assignedObjective,
                 "exterior-only defender → no CLEAR_ZONE; squad engages ambiently");
+    }
+
+    @Test
+    public void globalExteriorContactStagesIdleRearSquadAlongItsTrack() {
+        BattleSimulation sim = tallExteriorSim(100);
+        ConquestCommand cmd = new ConquestCommand(
+                TraversalAxis.SOUTH_TO_NORTH);
+        Squad rear = addMarineSquad(sim, 5f, 2f);
+        Squad reporter = addMarineSquad(sim, 5f, 80f);
+        long defender = addDefender(sim, 5, 82);
+        establishDirectMarineContact(sim, reporter);
+        assertFalse(rear.hasBelievedContacts(),
+                "rear squad must rely on commander belief, not local sensing");
+
+        tick(cmd, sim);
+
+        ObjectiveAssignment stage = rear.assignedObjective;
+        assertNotNull(stage);
+        assertEquals(AssignmentKind.ADVANCE_TRACK, stage.kind());
+        assertEquals(-1, stage.targetZoneId(),
+                "lane staging is an own-force cell, not a fabricated exterior zone");
+        int forward = stage.targetCellY();
+        assertTrue(forward >= 2 + ConquestCommand.TRACK_LINE_MIN_ADVANCE_CELLS);
+        assertTrue(forward <= 82 - ConquestCommand.TRACK_LINE_STANDOFF_CELLS,
+                "staging marker must remain behind the believed hostile front");
+        assertTrue(forward <= 2 + ConquestCommand.TRACK_LINE_MAX_STRIDE_CELLS,
+                "a rear squad must not cross the whole lane in one order");
+        assertEquals(0, new ConquestTrackLayout(
+                TraversalAxis.SOUTH_TO_NORTH, W, 100)
+                .trackForCell(stage.targetCellX(), stage.targetCellY()));
+        assertTrue(sim.getGrid().isWalkable(
+                stage.targetCellX(), stage.targetCellY()));
+
+        ConquestFrontSnapshot.SquadDirective directive =
+                cmd.frontSnapshot().directiveFor(rear.id);
+        assertEquals(AssignmentReason.TRACK_LINE_ADVANCE, directive.reason());
+        assertEquals(AssignmentKind.ADVANCE_TRACK, directive.assignmentKind());
+        assertEquals(stage.targetCellX(), directive.markerCellX());
+        assertEquals(stage.targetCellY(), directive.markerCellY());
+        assertFalse(cmd.frontSnapshot().squadFor(rear.id).localContact());
+        assertTrue(cmd.frontSnapshot().track(0).knownHostileContacts() > 0);
+
+        tick(cmd, sim);
+        assertEquals(stage, rear.assignedObjective,
+                "unchanged belief must preserve a deterministic staging marker");
+    }
+
+    @Test
+    public void localContactAndHostileFrontBehindSquadDoNotCreateLaneStage() {
+        BattleSimulation localSim = tallExteriorSim(40);
+        Squad engaged = addMarineSquad(localSim, 5f, 20f);
+        addDefender(localSim, 5, 22);
+        establishDirectMarineContact(localSim, engaged);
+        ConquestCommand localCommand = new ConquestCommand(
+                TraversalAxis.SOUTH_TO_NORTH);
+
+        tick(localCommand, localSim);
+
+        assertNull(engaged.assignedObjective,
+                "local engagement owns the squad without a competing lane marker");
+        assertTrue(localCommand.frontSnapshot().squadFor(engaged.id).localContact());
+
+        BattleSimulation passedSim = tallExteriorSim(120);
+        Squad ahead = addMarineSquad(passedSim, 8f, 100f);
+        Squad reporter = addMarineSquad(passedSim, 1f, 18f);
+        addDefender(passedSim, 1, 20);
+        establishDirectMarineContact(passedSim, reporter);
+        assertFalse(ahead.hasBelievedContacts());
+        ConquestCommand passedCommand = new ConquestCommand(
+                TraversalAxis.SOUTH_TO_NORTH);
+
+        tick(passedCommand, passedSim);
+
+        assertNull(ahead.assignedObjective,
+                "a believed front behind the squad must never pull it backward");
     }
 
     /**
