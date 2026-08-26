@@ -127,6 +127,7 @@ The discovered suite ids and default output directories are:
 |-------|----------|--------|
 | `armory` | Loadout previews and their contact sheet | `build/snapshots/armory/` |
 | `layers` | One combined composition sheet per authored unit | `build/snapshots/layers/` |
+| `ship-decks` | Generated ship-deck plan views, tinted by longitudinal zone | `build/snapshots/ship-decks/` |
 | `turrets` | Authored mount-state strips, including projectile and impact effects | `build/snapshots/turrets/` |
 | `ui` | Retained Marine Ops screens at authored viewport sizes | `build/snapshots/ui/` |
 
