@@ -87,7 +87,7 @@ dependencies {
 
 test {
     useJUnitPlatform {
-        excludeTags 'battle-profile', 'commander-balance'
+        excludeTags 'battle-profile', 'commander-balance', 'sabotage-command-evidence'
     }
     testLogging {
         // Audit-style tests print their report to stdout — stream it to the
@@ -103,6 +103,32 @@ test {
     // (EcsAccessBenchTest). Off by default so the normal suite stays fast for
     // concurrent sessions; run on demand with `-Decs.bench=true`.
     systemProperty 'ecs.bench', System.getProperty('ecs.bench', 'false')
+}
+
+tasks.register('sabotageCommandEvidence', Test) {
+    group = 'verification'
+    description = 'Run bounded forced-serial Sabotage site-command evidence.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeTags 'sabotage-command-evidence'
+    }
+    maxParallelForks = 1
+    outputs.upToDateWhen { false }
+    systemProperty 'starsectorDir', starsectorDir.absolutePath
+    systemProperty 'battle.unitUpdate.minimumParallelUnits', Integer.MAX_VALUE.toString()
+    systemProperty 'sabotage.command.evidence.outputDir',
+            layout.buildDirectory.dir('reports/commander/sabotage').get().asFile.absolutePath
+    ['sabotage.command.evidence.fixture.path',
+     'sabotage.command.evidence.maxTicks'].each { propertyName ->
+        def propertyValue = System.getProperty(propertyName, '')
+        if (!propertyValue.isBlank()) {
+            systemProperty propertyName, propertyValue
+        }
+    }
+    testLogging {
+        showStandardStreams = true
+    }
 }
 
 tasks.register('conquestCommandBalance', Test) {

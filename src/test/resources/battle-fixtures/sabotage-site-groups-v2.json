@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 2,
+  "kind": "SABOTAGE",
+  "seed": 48151,
+  "enemyHasHeavyArmor": true,
+  "tier": "ESTABLISHED",
+  "risk": "MEDIUM",
+  "shuttles": [
+    { "type": "KITE", "cycles": 2, "seatsPerSortie": 4 },
+    { "type": "AEROSHUTTLE", "cycles": 1, "seatsPerSortie": 6 }
+  ],
+  "targetProfile": {
+    "marketSize": 5,
+    "stability": 6,
+    "defenseLevel": 4,
+    "spaceportTier": 2,
+    "factionId": "independent",
+    "functions": [ "HABITATION", "SPACEPORT" ]
+  },
+  "marineFighterSupport": [],
+  "enemyFighterSupport": []
+}

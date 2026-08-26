@@ -12,7 +12,7 @@ public record CommandProposal(
         int leaseUntilTick,
         CommandStabilityBreak stabilityBreak) {
 
-    public enum Action { ASSIGN, RETAIN, RELEASE }
+    public enum Action { ASSIGN, CLAIM, RETAIN, RELEASE }
 
     public CommandProposal {
         Objects.requireNonNull(action, "action");
@@ -49,6 +49,14 @@ public record CommandProposal(
                                          String reason) {
         return new CommandProposal(squadId, Action.RETAIN, null,
                 authority, reason, -1, CommandStabilityBreak.NONE);
+    }
+
+    /** Claims command-pool ownership without imposing a tactical assignment. */
+    public static CommandProposal claim(int squadId, CommandAuthority authority,
+                                        String reason,
+                                        CommandStabilityBreak stabilityBreak) {
+        return new CommandProposal(squadId, Action.CLAIM, null,
+                authority, reason, -1, stabilityBreak);
     }
 
     public static CommandProposal release(int squadId, CommandAuthority authority,

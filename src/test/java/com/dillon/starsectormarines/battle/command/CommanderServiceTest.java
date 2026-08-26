@@ -222,6 +222,30 @@ class CommanderServiceTest {
     }
 
     @Test
+    void missionClaimRecordsAssignmentlessOwnershipWithoutRenewingIt() {
+        BattleSimulation sim = openSim();
+        Squad squad = addSquad(sim, Faction.MARINE, 2, 2);
+        AssignmentArbiter arbiter = new AssignmentArbiter();
+
+        CommandDirective first = commit(arbiter, sim, CommandProposal.claim(
+                squad.id, CommandAuthority.MISSION_COMMAND,
+                "unit task context", CommandStabilityBreak.NONE));
+        advanceTicks(sim, 5);
+        CommandDirective repeated = commit(arbiter, sim, CommandProposal.claim(
+                squad.id, CommandAuthority.MISSION_COMMAND,
+                "unit task context", CommandStabilityBreak.NONE));
+
+        assertEquals(CommandDirective.Status.ACTIVE, first.status());
+        assertEquals(first.issuedTick(), repeated.issuedTick());
+        assertTrue(repeated.ownsSquad());
+        assertFalse(repeated.ownsAssignment());
+        assertNull(repeated.assignment());
+        assertNull(squad.assignedObjective);
+        assertEquals("test-command",
+                arbiter.activeDirective(squad.id).issuer());
+    }
+
+    @Test
     void handoffRequiresTheIncumbentIssuerAndTransfersAtomically() {
         BattleSimulation sim = openSim();
         Squad squad = addSquad(sim, Faction.MARINE, 2, 2);
