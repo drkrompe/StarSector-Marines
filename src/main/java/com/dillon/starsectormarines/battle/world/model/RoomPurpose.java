@@ -89,4 +89,11 @@ public enum RoomPurpose {
     PATIENT_WARD,
     /** Medical campus — secured drug and consumable storage room. */
     PHARMACY,
+    /**
+     * Ship deck — shuttle bay opening on the hull. The deck's own connection
+     * to outside: how troops reach the surface, how they come back, and the
+     * obvious place for boarders to arrive. Appended rather than inserted
+     * because the storage layer packs {@link #ordinal()} into a byte.
+     */
+    HANGAR,
 }

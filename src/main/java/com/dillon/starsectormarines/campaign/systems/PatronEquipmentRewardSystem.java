@@ -6,12 +6,14 @@ import com.dillon.starsectormarines.campaign.CampaignTable;
 import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.PatronEngagementOutcome;
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.marine.EquipmentAcquisitionEligibility;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCard;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCardInventory;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCardItemPlugin;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
 import com.dillon.starsectormarines.marine.FactionEquipmentPicker;
 import com.dillon.starsectormarines.marine.FactionEquipmentSource;
+import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.CargoAPI;
@@ -28,6 +30,7 @@ public final class PatronEquipmentRewardSystem implements CampaignSystem {
     interface RewardAccess {
         /** Null means cargo is temporarily unavailable and processing must retry. */
         Set<String> unavailableTemplateIds();
+        int victories();
         boolean grant(String templateId);
         void announce(String patronName, EquipmentTemplateCard template);
     }
@@ -77,7 +80,8 @@ public final class PatronEquipmentRewardSystem implements CampaignSystem {
         state.patronEquipmentRewardCursor = cursor;
         int granted = 0;
         while (cursor < state.patronEngagementCount) {
-            String templateId = rewardFor(state, cursor, workingUnavailable);
+            String templateId = rewardFor(state, cursor, workingUnavailable,
+                    access.victories());
             if (templateId != null && !access.grant(templateId)) break;
             if (templateId != null) {
                 workingUnavailable.add(templateId);
@@ -102,7 +106,7 @@ public final class PatronEquipmentRewardSystem implements CampaignSystem {
     }
 
     private static String rewardFor(CampaignState state, int row,
-                                    Set<String> unavailable) {
+                                    Set<String> unavailable, int victories) {
         ContractType contractType = safeContractType(
                 state.patronEngagementContractType[row]);
         if (state.patronEngagementId[row] <= 0L
@@ -121,7 +125,9 @@ public final class PatronEquipmentRewardSystem implements CampaignSystem {
                 state.patronEngagementSourceContractId[row],
                 state.patronEngagementHouseId[row]);
         List<String> selected = FactionEquipmentPicker.pick(factionId,
-                FactionEquipmentSource.PATRON, 1, seed, unavailable);
+                FactionEquipmentSource.PATRON, 1, seed, unavailable,
+                new EquipmentAcquisitionEligibility.Progress(
+                        victories, state.playerMrbRep));
         return selected.isEmpty() ? null : selected.get(0);
     }
 
@@ -160,6 +166,12 @@ public final class PatronEquipmentRewardSystem implements CampaignSystem {
         @Override
         public Set<String> unavailableTemplateIds() {
             return EquipmentTemplateCardInventory.playerUnavailableTemplateIds();
+        }
+
+        @Override
+        public int victories() {
+            MarineRosterScript script = MarineRosterScript.getInstance();
+            return script != null ? script.roster().armory().victories() : 0;
         }
 
         @Override

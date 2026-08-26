@@ -7,7 +7,7 @@ Status: PLANNED — depends on the remaining S2E–S2G special-equipment stories
 armor expansion also depends on
 `powered-assault-armor-roles.md`.
 Written: 2026-08-22
-Updated: 2026-08-26 — shipped the fail-loud asset-reachability audit; long-horizon pacing remains.
+Updated: 2026-08-26 — shipped shared card access tiers across all faction channels; richer achievement gates and live pacing acceptance remain.
 
 Read `progression-nouns.md`, `faction-lore-nouns.md`, and
 `powered-assault-armor-roles.md` before implementing this story.
@@ -21,12 +21,12 @@ Read `progression-nouns.md`, `faction-lore-nouns.md`, and
 - 4: `DMR` and `SQUAD_AUTOMATIC` MILSPEC
 - 5 victories and at least one high-risk: `DMR` MASTERWORK
 
-Then flat, forever. Market, license, patron, and operational-recovery sources
-now make every current template card reachable, including every armor and every
-grade of all five player primary families. What remains is pacing and guarantee:
-the player can collect broadly, but there is not yet a deliberate breadth curve
-at missions 5, 15, and 30, and a pure victory counter still does not care what
-you fought, where, for whom, or how.
+Market, license, patron, and operational-recovery sources now make every current
+template card reachable, including every armor and every grade of all five
+player primary families. A deterministic safety net also guarantees collection
+breadth through forty victories. What remains is richer multi-axis gating and a
+live pacing pass: the fallback protects an unlucky run, but a pure victory count
+still does not care what you fought, where, for whom, or how.
 
 ## Goal
 
@@ -116,6 +116,22 @@ Installation recovery is specific: `intact-installation-recovery.md` may admit
 a faction-provenance template only when the matching site was secured in an
 eligible state and accepted terms grant recovery. Destroying the site or merely
 fighting on a market with that faction cannot produce the same pristine pool.
+
+### Collection breadth safety net — SHIPPED
+
+Learned and cargo-held cards share one breadth count. The successful-operation
+floors are 19 of 32 cards after victory 5, 23 after victory 15, 27 after victory
+30, and 28 after victory 40. Ordinary faction sources are expected to meet or
+beat those numbers. Only a company below its current floor receives the next
+deterministic core fallback, so purchases, licenses, patron rewards, and
+recovery replace milestone grants one-for-one rather than stacking with them.
+
+The fallback order supplies useful weapon upgrades and lateral armor choices,
+leaves four cards for active collection after victory 40, and treats the
+high-risk Longbow masterwork milestone as early progress toward the same curve.
+It grants permanent Armory capability directly, matching the existing milestone
+boundary; it does not create or consume cargo, implicitly learn a held card, or
+rewrite faction availability.
 
 ## Slice 3 — Factional equipment identity
 
@@ -207,11 +223,28 @@ Leaning: **mongrel by default, coherence as an achievable late aspiration**
 Faction-specific *mechs* and vehicles. The mech roster has its own track
 and its own identity work in flight; do not front-run it.
 
-## Slice 4 — Multi-axis gating
+## Slice 4 — Multi-axis gating — PARTIALLY SHIPPED
+
+The breadth safety net deliberately remains count-based because it is protection
+against bad luck, not the main acquisition fantasy. The remaining gates should
+shape which advanced cards become available without making the guaranteed floor
+depend on a specific faction relationship or random drop.
+
+Every card now explicitly authors a Common, Advanced, or Prestige access tier.
+The shared faction picker applies it before weighting candidates, so market,
+license, patron, and recovery cannot drift into four definitions of advanced.
+Open markets are Common-only. Licensed stock still requires Favorable faction
+standing and uses the existing MRB 5/20 bands; patron rewards use the same MRB
+bands. High-risk recovery is independent of MRB and opens Advanced after 5
+company victories and Prestige after 15. Starter cards and the deterministic
+breadth safety net remain direct Armory protection outside faction eligibility.
+
+This ships the first company-history and reputation axes while preserving the
+remaining work below for bespoke chase capability.
 
 Where a milestone gate is still the right tool, gate on more than a count:
 
-- Total and high-risk victories (existing).
+- High-risk victory counts beyond the channel's current total-victory bands.
 - Specific recovered template cards or faction licenses, so rare capability
   remains tied to operations and relationships rather than only fleet wealth.
 - MRB licensing tier, which is already computed
@@ -240,8 +273,9 @@ Where a milestone gate is still the right tool, gate on more than a count:
 
 - Every authored weapon, grade, special item, and armor pattern is reachable,
   enforced by the stranded-asset test.
-- The ladder has meaningful rungs past mission 30, with target collection
-  breadth stated explicitly at missions 5, 15, and 30.
+- The shipped safety net targets 19 cards at victory 5, 23 at victory 15, 27 at
+  victory 30, and 28 at victory 40, leaving four current cards to active
+  collection after the post-30 rung.
 - Advanced capability is not reachable by unrestricted money alone. Market
   cards may still require faction access, licensing, or operational discovery.
 - Every core faction has at least one reachable, recognizable template-provenance
@@ -267,10 +301,9 @@ Where a milestone gate is still the right tool, gate on more than a count:
   player start armorless and *earn* their first real armor is a stronger
   opening beat, but it interacts with early-operations balance, which is
   currently tuned around a company that has them.
-- Do recovered cards fully replace milestone grants, or coexist? Leaning:
-  coexist, with milestones covering the guaranteed early ladder and
-  recovery/purchase channels covering everything above it — so no player is ever hard-stuck
-  behind a drop that did not come.
+- Recovered and purchased cards coexist with milestone protection: every card
+  already learned or held replaces one safety-net fallback, so a player is not
+  hard-stuck behind a missed drop and also does not receive duplicate progress.
 - Coherent faction kits remain an achievable collection/presentation goal, but
   the first implementation has no set bonus; the default company is a mongrel
   mercenary armory assembled from work and recovery across the Sector.

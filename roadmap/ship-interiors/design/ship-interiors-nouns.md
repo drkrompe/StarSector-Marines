@@ -84,8 +84,21 @@ authored content.
   size its function calls for rather than the size the leftover space happened to
   be.
 - A **room program** is the list of recipes one deck owes, derived from the
-  ship's complement, hold, and class. The program sizes the deck; the deck does
-  not size the program.
+  ship's role, complement, hold, and class. The program sizes the deck; the
+  deck does not size the program.
+- A **hull role** is what a ship is for, as opposed to how big it is. Class and
+  role are close to independent: a troop transport and a gun destroyer are the
+  same tonnage and share almost no interior. Role decides which rooms a hull
+  owes at all, and it is read from the game's own per-hull designation rather
+  than inferred from size.
+- **Lift** is everyone aboard who is not needed to work the ship — the gap
+  between a hull's minimum and maximum crew. It is the number that separates a
+  ship carrying people from a ship employing them, and it is what sizes the
+  boat bays. Reading maximum crew alone makes those two ships the same ship.
+- A **shuttle bay** is the deck's own way in and out: where troops embark for
+  the surface, where they return, and the natural place for boarders to arrive.
+  Alone among rooms it must reach the side of the ship, which is the first
+  placement constraint that is about the hull rather than about fit.
 - A **facility** is a compartment the company operates: a barracks, a mech bay,
   an armory, a medical bay. A facility owns fixture counts, extent, and the
   capacity those imply. It is the thing an upgrade acts on.
@@ -317,6 +330,16 @@ it is presentation-only by charter. The tactical articulation of a bay is a
     whose rooms chain doorways into one another is an enfilade — the way
     outboard runs through somebody's berth and out the far side, there are no
     hallways, and a single held compartment severs the deck.
+13. **Only a door opens a compartment, and a door is a door-sized hole.** A
+    passage may cross structure but never cut a cell a room stands behind, and
+    never runs along a bulkhead. A room that loses part of its wall loses its
+    cover, its chokepoint, and any reason for a squad to clear it rather than
+    walk past — and the loss is invisible in aggregate, so it is measured as the
+    widest unbroken stretch open to a passage rather than as a share of cells.
+14. **Circulation is two abreast on both axes.** Width is judged as a square,
+    not as a pair: a hall widened only across its direction of travel pinches
+    back to one cell at every corner, which puts a movement trap where the deck
+    can least afford one. Two is a floor, not a ceiling.
 
 ## Boundaries
 

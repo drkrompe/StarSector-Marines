@@ -31,10 +31,29 @@ class EquipmentTemplateCatalogTest {
                 WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID), EquipmentGrade.SERVICE).issueCost());
         assertEquals(new EquipmentTemplateCost(3, 2, 1, 0),
                 EquipmentTemplateCatalog.special(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID)).issueCost());
+        assertEquals(EquipmentAccessTier.COMMON, EquipmentTemplateCatalog.primary(
+                WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.SERVICE).accessTier());
+        assertEquals(EquipmentAccessTier.PRESTIGE, EquipmentTemplateCatalog.primary(
+                WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.MASTERWORK).accessTier());
         assertFalse(cards.stream().anyMatch(card -> card.id().contains("drone-pulse")));
         assertEquals("Integrated drone armament is not compatible with human infantry issue.",
                 EquipmentTemplateCatalog.installed().nonPlayerReason(
                         EquipmentTemplateCard.Kind.PRIMARY, WeaponRegistry.DRONE_PULSE_ID));
+    }
+
+    @Test
+    void everyCollectibleRequiresAValidAuthoredAccessTier() throws Exception {
+        JSONObject missing = new JSONObject(Files.readString(Path.of(
+                "mod", "data", "marines", "equipment-templates.template.json")));
+        missing.getJSONArray("armor").getJSONObject(0).remove("accessTier");
+        assertThrows(Exception.class, () -> new EquipmentTemplateCatalog().ingest(missing));
+
+        JSONObject invalid = new JSONObject(Files.readString(Path.of(
+                "mod", "data", "marines", "equipment-templates.template.json")));
+        invalid.getJSONArray("primaries").getJSONObject(0)
+                .getJSONObject("grades").getJSONObject("service")
+                .put("accessTier", "legendary");
+        assertThrows(Exception.class, () -> new EquipmentTemplateCatalog().ingest(invalid));
     }
 
     @Test

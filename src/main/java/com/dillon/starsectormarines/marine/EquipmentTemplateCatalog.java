@@ -207,10 +207,11 @@ public final class EquipmentTemplateCatalog {
             for (EquipmentGrade grade : EquipmentGrade.values()) {
                 String gradeKey = grade.name().toLowerCase(Locale.ROOT);
                 if (!grades.has(gradeKey)) continue;
+                JSONObject gradeEntry = grades.getJSONObject(gradeKey);
                 register(new EquipmentTemplateCard(primaryId(weaponId, grade),
                         weapon.catalogName(grade.tier), EquipmentTemplateCard.Kind.PRIMARY,
-                        weaponId, grade,
-                        parseCost(grades.getJSONObject(gradeKey))), source);
+                        weaponId, grade, parseAccessTier(gradeEntry),
+                        parseCost(gradeEntry)), source);
             }
         }
     }
@@ -223,6 +224,7 @@ public final class EquipmentTemplateCatalog {
             MarineArmorCatalogDef armor = MarineArmorCatalogRegistry.require(armorId);
             register(new EquipmentTemplateCard(armorId(armorId), armor.displayName(),
                     EquipmentTemplateCard.Kind.ARMOR, armorId, null,
+                    parseAccessTier(entry),
                     parseCost(entry.getJSONObject("issueCost"))),
                     source);
         }
@@ -236,6 +238,7 @@ public final class EquipmentTemplateCatalog {
             SpecialEquipmentDef special = SpecialEquipmentRegistry.require(specialId);
             register(new EquipmentTemplateCard(specialId(specialId), special.displayName(),
                     EquipmentTemplateCard.Kind.SPECIAL, specialId, null,
+                    parseAccessTier(entry),
                     parseCost(entry.getJSONObject("issueCost"))), source);
         }
     }
@@ -341,6 +344,10 @@ public final class EquipmentTemplateCatalog {
                 json.optInt("heavyArmaments", 0),
                 json.optInt("heavyMachinery", 0),
                 json.optInt("food", 0));
+    }
+
+    private static EquipmentAccessTier parseAccessTier(JSONObject json) throws JSONException {
+        return EquipmentAccessTier.parse(json.optString("accessTier", null));
     }
 
     private static String requireText(JSONObject json, String key) throws JSONException {

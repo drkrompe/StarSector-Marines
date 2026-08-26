@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — made complete player-equipment reachability a fail-loud additive-catalog law.
+Updated: 2026-08-26 — added shared data-authored access tiers across all faction acquisition channels.
 
 ## Purpose
 
@@ -69,6 +69,10 @@ legibility.
   may make a template card available: ordinary market stock, licensed access,
   patron reward, or operational recovery. A source declares eligibility and
   relative selection weight; it does not itself grant, sell, or recover a card.
+- **Equipment access tier** — a card's authored Common, Advanced, or Prestige
+  campaign band. It is independent of grade, armor role, provenance, issue
+  cost, and loadout collectible rarity; acquisition channels interpret it
+  through shared company-history and reputation gates.
 - **Armory** — the persistent campaign authority for collected equipment
   templates and reusable squad definitions. Materialized marine kit persists on
   the marine; changed incoming issue is paid from ordinary fleet cargo.
@@ -159,11 +163,26 @@ Weapon or Armor issue, including any leader-specific and special-equipment place
 Legacy recipes, printed counts, and fabrication materials remain save-migration
 input and compatibility state for retired fire-team APIs, not live Fleet Armory
 authority. Existing victory milestones grant template cards, including the
-Shattercap after two victories. Faction source pools now author which cards may
-enter through market, license, patron, and recovery channels. Open markets now
-stock a faction-and-market-stable weighted selection that rotates monthly and
-scales with market size. Favorable-or-better standing adds licensed offers, and
-already-owned or carried cards are omitted. Each completed patron contract also issues one
+Shattercap after two victories. A deterministic safety net now keeps permanent
+collection breadth at or above 19 cards after five victories, 23 after fifteen,
+27 after thirty, and 28 after forty. Cards already learned or still carried in
+cargo count toward that floor, so faction-shaped acquisition advances the same
+curve instead of being duplicated by it. When a company falls below a floor,
+the Armory grants the next bounded core fallback; the curve never revokes cards,
+never learns a carried card implicitly, and leaves at least four of the current
+32-card catalog to faction sources and active collection.
+
+Faction source pools author which cards may enter through market, license,
+patron, and recovery channels. Every card also authors an access tier. Open
+markets admit Common cards only, so unrestricted credits cannot buy Advanced
+or Prestige capability. Their faction-and-market-stable weighted selection
+rotates monthly and scales with market size. Favorable-or-better standing adds
+licensed offers; MRB reputation admits Advanced at 5 and Prestige at 20, using
+the same bands as patron contract access. Patron rewards apply those MRB bands
+as well. High-risk recovery instead uses operational history, admitting Advanced
+after 5 company victories and Prestige after 15, so field discovery does not
+require bureaucratic standing. Already-owned or carried cards are omitted.
+Each completed patron contract also issues one
 weighted card from that patron faction's pool through the immutable engagement
 ledger. Delivery is exactly once, excludes learned or already-carried cards, and
 does not treat system-generated extraction as patron work. A victorious high-risk
@@ -173,8 +192,8 @@ card enters the frozen manifest and competes inside the player's existing salvag
 budget; settlement creates the same parameterized cargo item exactly once. Learned
 and already-carried cards are excluded before the manifest freezes, low-risk work
 does not roll this channel, unknown faction ids use the Independent fallback, and
-explicitly excluded factions remain empty. The full asset reachability ladder
-remains planned.
+explicitly excluded factions remain empty. The safety net guarantees breadth,
+while source channels still decide most collection identity and pace.
 
 A template card may exist in fleet cargo as one parameterized Starsector special
 item whose data is the stable equipment-template id. Right-click learning follows
@@ -186,12 +205,13 @@ knowledge, so infantry equipment cannot leak into ship production or the ship
 editor. Market, reward, and salvage systems create the same validated cargo
 payload; the S6 acquisition ladder still owns the eligibility of each entrance.
 
-Collectible eligibility and issue cost are catalog data rather than a closed
+Collectible access tier and issue cost are catalog data rather than a closed
 Java list. Each enabled catalog provider may add complete four-grade primary
 families, armor cards, and special-equipment cards after the referenced
 equipment has loaded. Card ids are derived from the stable equipment id,
 duplicate claims fail with provider provenance, and learning keeps the same
-Marine-Armory-only boundary. A provider adding a marine primary, armor, or
+Marine-Armory-only boundary. Missing or unknown access tiers fail catalog load
+rather than silently entering the opening pool. A provider adding a marine primary, armor, or
 special item must either contribute its complete player-template treatment or
 declare a non-empty reason that the identity is not player equipment. A partial
 primary grade matrix and a collectible-plus-exclusion contradiction both stop
@@ -219,10 +239,12 @@ application loading and never a hidden combat modifier.
 
 The merged catalogs enforce the standing reachability law at application load:
 every collectible card must be starter-owned or appear in at least one faction
-pool through market, license, patron, or recovery. This is global reachability,
-not universal faction availability. It lets add-ons keep faction identity while
-ensuring that a newly collectible family, grade, suit, or special item cannot be
-stranded by an omitted source file.
+pool through a channel that can eventually admit its access tier. An Advanced
+or Prestige card authored only for the Common-only open market is therefore
+still stranded. This is global reachability, not universal faction availability.
+It lets add-ons keep faction identity while ensuring that a newly collectible
+family, grade, suit, or special item cannot be stranded by an omitted or
+permanently ineligible source.
 
 Armor patterns are authored player kit with distinct defensive and mobility
 tradeoffs. Every currently authored pattern has a collectible card and faction
@@ -449,12 +471,12 @@ The following are direction, not current behavior:
 - Replace flat survivor XP with deterministic, bounded performance-derived
   awards from frozen outcomes, while preserving meaningful participation and
   learning from losses.
-- Expand primary families and special-equipment options, and extend the unlock
-  ladder so every authored player asset has either starter status or a
-  reachable path. `stories.md` owns the concrete primary, contact-tool, stim,
-  grenade, and faction-demolition additions and their ordering.
-- Add world-reactive template-card acquisition through operations, patrons,
-  salvage, and markets while keeping advanced progression operation-gated.
+- Expand primary families and special-equipment options while preserving the
+  complete-template, explicit-exclusion, faction-source, and collection-floor
+  laws. `stories.md` owns the concrete contact-tool, stim, grenade, and
+  faction-demolition additions and their ordering.
+- Extend the shipped world-reactive sources with MRB, relationship, and named
+  operational gates while keeping advanced progression operation-shaped.
 - Make grade, aptitude, experience, career, and captain traits legible in
   campaign and battle surfaces without changing simulation authority.
 - Give only traits with an observable, domain-appropriate consequence a
