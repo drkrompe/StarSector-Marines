@@ -505,6 +505,9 @@ public final class SquadStateDumper {
             row.put("plantDuration", site.plantDuration());
             row.put("planterOnSite", site.planterOnSite());
             row.put("complete", site.complete());
+            row.put("activeKitDrops", site.activeKitDrops());
+            row.put("unclaimedKitDrops", site.unclaimedKitDrops());
+            row.put("groupReason", site.groupReason().name());
             row.put("planterSquads", site.planterSquads());
             row.put("retrieverSquads", site.retrieverSquads());
             row.put("securitySquads", site.securitySquads());
