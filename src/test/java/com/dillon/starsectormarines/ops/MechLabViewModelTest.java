@@ -17,6 +17,7 @@ import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -35,6 +36,7 @@ class MechLabViewModelTest {
         MechBay bay = new MechBay();
         MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay);
         CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
+        viewModel.gantryRows().get().get(0).select().run();
 
         MechLabViewModel.CatalogRow accelerated = viewModel.catalogRows().get()
                 .stream()
@@ -60,16 +62,22 @@ class MechLabViewModelTest {
         MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay);
         CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
         String originalReplenisher = mech.missileReplenisherId();
+        viewModel.gantryRows().get().get(0).select().run();
 
         viewModel.leftSlotRows().get().stream()
                 .filter(row -> row.id().endsWith("arms"))
                 .findFirst().orElseThrow().select().run();
 
+        assertTrue(viewModel.fittingFocused());
         assertTrue(viewModel.selectedSlotRule().get().contains("BALLISTIC SOCKET"));
         assertEquals(1, viewModel.catalogRows().get().size());
         assertTrue(viewModel.catalogRows().get().get(0).actionDisabled());
         assertEquals(originalReplenisher, mech.missileReplenisherId());
         assertTrue(viewModel.feedbackText().get().contains("Inspection only"));
+
+        viewModel.overviewAction().run();
+        assertFalse(viewModel.fittingFocused());
+        assertTrue(viewModel.feedbackText().get().contains("overview restored"));
     }
 
     @Test
@@ -85,6 +93,31 @@ class MechLabViewModelTest {
         viewModel.mechRows().get().get(0).select().run();
         assertTrue(viewModel.pickerClasses().get().contains("hidden"));
         assertFalse(viewModel.workspaceClasses().get().contains("hidden"));
+        assertTrue(viewModel.fittingFocused());
+        assertFalse(viewModel.catalogClasses().get().contains("hidden"));
+        assertTrue(viewModel.overviewRailClasses().get().contains("hidden"));
+    }
+
+    @Test
+    void lanceOverviewHasNoSelectedChassisOrFittingColumns() {
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), new MechBay());
+
+        assertFalse(viewModel.fittingFocused());
+        assertNull(viewModel.selectedVariant());
+        assertTrue(viewModel.catalogClasses().get().contains("hidden"));
+        assertTrue(viewModel.slotRackClasses().get().contains("hidden"));
+        assertTrue(viewModel.performanceClasses().get().contains("hidden"));
+        assertTrue(viewModel.fittingHeaderClasses().get().contains("hidden"));
+        assertFalse(viewModel.overviewRailClasses().get().contains("hidden"));
+        assertEquals(4, viewModel.gantryRows().get().size());
+        assertFalse(viewModel.gantryRows().get().get(0).disabled());
+        assertTrue(viewModel.gantryRows().get().get(1).disabled());
+
+        viewModel.gantryRows().get().get(0).select().run();
+        assertTrue(viewModel.fittingFocused());
+        assertEquals(MechVariant.BULWARK, viewModel.selectedVariant());
+        assertFalse(viewModel.catalogClasses().get().contains("hidden"));
+        assertFalse(viewModel.slotRackClasses().get().contains("hidden"));
     }
 
     @Test
@@ -101,6 +134,7 @@ class MechLabViewModelTest {
         viewModel.nextGantryAction().run();
         assertEquals(1, viewModel.selectedGantryIndex());
         assertEquals(MechVariant.HOUND, viewModel.selectedVariant());
+        assertTrue(viewModel.fittingFocused());
         assertTrue(viewModel.activeGantryLabel().get().contains("GANTRY 02 / 04"));
         assertEquals("Hound 02", viewModel.selectedMechName().get());
 
@@ -108,6 +142,8 @@ class MechLabViewModelTest {
         viewModel.nextGantryAction().run();
         assertEquals(3, viewModel.selectedGantryIndex());
         assertNull(viewModel.selectedVariant());
+        assertFalse(viewModel.fittingFocused());
+        assertTrue(viewModel.catalogClasses().get().contains("hidden"));
         assertTrue(viewModel.activeGantryLabel().get().contains("VACANT"));
 
         viewModel.nextGantryAction().run();
@@ -139,6 +175,35 @@ class MechLabViewModelTest {
         }
     }
 
+    @Test
+    void mechLabNavigationTextCenterBubblesToTheRouteAction() throws Exception {
+        Reactor reactor = new Reactor();
+        MechLabViewModel viewModel = new MechLabViewModel(reactor, new MechBay());
+        AtomicInteger clicks = new AtomicInteger();
+        Map<String, Object> props = props(viewModel);
+        props.put("mechLabAction", (Runnable) clicks::incrementAndGet);
+        MarkupLoader loader = new MarkupLoader(
+                path -> Files.readString(Path.of(path)), COMPONENTS);
+        loader.reload();
+
+        try (MarkupInstance instance = loader.build(reactor, "mech-lab", props)) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            document.layout(1744f, 938f);
+            UiElement route = instance.requireElement("page-nav-mech-lab");
+            float centerX = route.box().borderBox().x()
+                    + route.box().borderBox().width() * 0.5f;
+            float centerY = route.box().borderBox().y()
+                    + route.box().borderBox().height() * 0.5f;
+            document.pointerMoved(centerX, centerY);
+            assertTrue(route.hovered());
+            assertTrue(document.pointerDown(centerX, centerY));
+            assertTrue(document.pointerUp(centerX, centerY));
+            assertEquals(1, clicks.get());
+        }
+    }
+
     private static void assertWithinRoot(UiDocument document, MarkupInstance instance,
                                          float width, float height) {
         document.layout(width, height);
@@ -158,7 +223,9 @@ class MechLabViewModelTest {
         props.put("labSummary", viewModel.labSummary());
         props.put("squadRows", viewModel.squadRows());
         props.put("mechRows", viewModel.mechRows());
+        props.put("gantryRows", viewModel.gantryRows());
         props.put("activeGantryLabel", viewModel.activeGantryLabel());
+        props.put("garageTitle", viewModel.garageTitle());
         props.put("selectedMechName", viewModel.selectedMechName());
         props.put("selectedMechIdentity", viewModel.selectedMechIdentity());
         props.put("selectedMechDoctrine", viewModel.selectedMechDoctrine());
@@ -172,6 +239,11 @@ class MechLabViewModelTest {
         props.put("catalogRows", viewModel.catalogRows());
         props.put("pickerClasses", viewModel.pickerClasses());
         props.put("workspaceClasses", viewModel.workspaceClasses());
+        props.put("fittingHeaderClasses", viewModel.fittingHeaderClasses());
+        props.put("performanceClasses", viewModel.performanceClasses());
+        props.put("catalogClasses", viewModel.catalogClasses());
+        props.put("slotRackClasses", viewModel.slotRackClasses());
+        props.put("overviewRailClasses", viewModel.overviewRailClasses());
         props.put("openAssetPicker", viewModel.openAssetPickerAction());
         props.put("closeAssetPicker", viewModel.closeAssetPickerAction());
         props.put("previousGantry", viewModel.previousGantryAction());

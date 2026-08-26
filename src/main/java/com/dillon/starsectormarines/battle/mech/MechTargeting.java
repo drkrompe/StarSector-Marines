@@ -93,9 +93,7 @@ public final class MechTargeting {
         float dy = sim.world().y(target) - sim.world().y(mech);
         float distance = (float) Math.sqrt(dx * dx + dy * dy);
         if (distance > range || !withinTraverse(hipFacing, dx, dy)) return false;
-        return sim.getGrid().hasLineOfSight(
-                sim.world().cellX(mech), sim.world().cellY(mech),
-                sim.world().cellX(target), sim.world().cellY(target));
+        return sim.getTacticalScoring().hasClearShot(mech, target);
     }
 
     static boolean withinTraverse(float hipFacing, float dx, float dy) {

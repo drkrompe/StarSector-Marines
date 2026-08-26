@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.detachment;
 
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
+import com.dillon.starsectormarines.battle.fixture.MarineSeatCommitment;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.squad.CampaignSquadTag;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
@@ -20,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /** Campaign-side allocation snapshot consumed sequentially by battle shuttle seats. */
@@ -31,7 +33,19 @@ public final class CampaignMarineDeployment {
     private final List<MarineLoadout> seats;
 
     private CampaignMarineDeployment(List<MarineLoadout> seats) {
-        this.seats = Collections.unmodifiableList(seats);
+        this.seats = List.copyOf(seats);
+    }
+
+    /** Rebuilds an ordered deployment from immutable fixture-facing seat values. */
+    public static CampaignMarineDeployment fromCommitments(
+            List<MarineSeatCommitment> commitments) {
+        Objects.requireNonNull(commitments, "commitments");
+        if (commitments.isEmpty()) return EMPTY;
+        List<MarineLoadout> seats = new ArrayList<>(commitments.size());
+        for (MarineSeatCommitment commitment : commitments) {
+            seats.add(Objects.requireNonNull(commitment, "commitment").toLoadout());
+        }
+        return new CampaignMarineDeployment(seats);
     }
 
     public static CampaignMarineDeployment freeze(List<ShuttleAssignment> manifest) {
@@ -116,6 +130,16 @@ public final class CampaignMarineDeployment {
     }
 
     public int size() { return seats.size(); }
+
+    /** Immutable ordered values suitable for a launch fixture. */
+    public List<MarineSeatCommitment> commitments() {
+        if (seats.isEmpty()) return List.of();
+        List<MarineSeatCommitment> commitments = new ArrayList<>(seats.size());
+        for (MarineLoadout seat : seats) {
+            commitments.add(MarineSeatCommitment.capture(seat));
+        }
+        return List.copyOf(commitments);
+    }
 
     /** Replace generated seat stats with this frozen campaign allocation. */
     public void applyTo(BattleSimulation sim) {

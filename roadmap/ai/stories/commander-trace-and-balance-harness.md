@@ -4,7 +4,7 @@ Status: IN PROGRESS — live diagnostics, deterministic Conquest evidence, and p
 
 Written: 2026-08-25
 
-Updated: 2026-08-25 — landed the belief-honest distant-capture reserve rule and exposed binding deferrals in schema-4 live and headless diagnostics; canonical rerun remains.
+Updated: 2026-08-25 — schema-4 canonical evidence proves the distant-capture reserve binds; launch-fidelity concentration evidence remains.
 
 Read `ai-nouns.md` and `battle-fixtures-nouns.md` before implementing this
 story.
@@ -90,7 +90,7 @@ early terminal results—and may take several minutes. A max-tick or external-
 fixture override is labelled ad hoc in the report; `summary.json` is the full
 machine-readable evidence and `summary.md` is its human overview.
 
-## First canonical baseline
+## Canonical baselines
 
 The 2026-08-25 forced-serial run reached the bound on both fixtures, with both
 replays byte-identical. A mission-rule defect initially declared defender
@@ -103,7 +103,7 @@ rather than fabricated losses.
 | `undercommitted-south` | TIMEOUT at 18,000 | 111 / 52 | 0 captures; STALLED |
 | `expected-west` | TIMEOUT at 18,000 | 252 / 30 | 0 captures; STALLED |
 
-The schema-3 rerun adds the physical distinction the first baseline lacked:
+The schema-3 baseline added the physical distinction the first baseline lacked:
 
 | Fixture | Peak observed live force | Marker closure | Exact capture-zone presence |
 |---|---:|---:|---:|
@@ -118,12 +118,13 @@ of a faction-local defender belief read as an uncontested compound. The
 attacker therefore bypassed broader-front work and met contact on a long
 capture route.
 
-This remains evidence, not a balance verdict. Construction fixtures replay the
-production scenario factory but do not apply the campaign deployment overlay;
-their generated sortie squads therefore do not exercise campaign identity or
-form-up suspension. `launch-fixture-fidelity.md` must bring that overlay into a
-representative commander workload before concentration or reinforcement timing
-is tuned. The independently valid policy correction is now implemented:
+This remains evidence, not a balance verdict. The historical construction
+fixtures replay the production scenario factory but do not apply the campaign
+deployment overlay; their generated sortie squads therefore do not exercise
+campaign identity or form-up suspension. V2 launch fixtures can now bring that
+overlay into a representative commander workload, but the canonical matrix
+must still be populated with captured full-company launches before
+concentration or reinforcement timing is tuned. The independently valid policy correction is now implemented:
 unknown occupancy permits a measured probe but is not positive knowledge that
 a distant compound is clear. Fresh distant capture allocation leaves at least
 one executable actionable squad on the front, prefers squads without useful
@@ -132,6 +133,32 @@ commitment path. Neutral referee occupancy never becomes commander input. A
 canonical rerun must now establish whether and where that cap binds in the two
 construction fixtures; the prior baseline remains historical evidence rather
 than validation of the correction.
+
+The schema-4 forced-serial rerun exercised the correction and remained
+byte-stable across both replays:
+
+| Fixture | Result | Marine / defender losses | Peak live force | Capture travel | Deferred capture pulses |
+|---|---|---:|---:|---:|---:|
+| `undercommitted-south` | DEFENDER at 6,361 | 111 / 38 | 9 members / 4 squads | 5 / 18 episodes closed; 0 arrived | 36 |
+| `expected-west` | TIMEOUT at 18,000 | 252 / 31 | 4 members / 1 squad | no travel episodes | 61 |
+
+Both fixtures again produced zero capture-zone presence, adjacent commitments,
+or territorial captures. `undercommitted-south` published 15 fresh distant
+capture actions and 75 preserved capture actions while repeatedly retaining an
+actionable squad; preserved orders and deferrals coexist across replans rather
+than drip-feeding the last front squad. Three deferred actions retained real
+track work, while 33 retained ambient local-contact handling with no legal
+zone order. `expected-west` exposed the limiting one-squad case: all 61
+observed marine actions were local-contact, command-unassigned deferrals, so it
+proves the reserve bound but cannot demonstrate a multi-squad broader front.
+
+The earlier terminal/outcome delta is descriptive only. Combat and rendering
+work also advanced between these baselines, so the defender terminal in
+`undercommitted-south` cannot be attributed solely to capture allocation. The
+commander conclusion is narrower and supported directly by perspective data:
+the reserve binds, in-flight captures remain stable, and the current canonical
+fixtures still lack launch-faithful simultaneous force. Neither fixture
+exercised the adjacent exception, which remains covered by focused unit tests.
 
 ## Constraints
 

@@ -214,6 +214,10 @@ public final class UnitUpdateSystem implements AutoCloseable {
      * static {@code INSTANCE} singletons.
      */
     private void updateUnit(long u, BattleSimulation sim) {
+        // Ambient work is exclusive while active. The battle-owned service
+        // releases interrupted actors before this phase, so their existing
+        // role resumes here without a role swap or a second actor model.
+        if (sim.ambientTasks().isControlling(u)) return;
         long t0 = System.nanoTime();
         UnitBehavior behavior;
         TickInnerProfile.Bucket bucket;

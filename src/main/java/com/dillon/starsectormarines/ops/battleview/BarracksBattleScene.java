@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.ambient.AmbientTaskPose;
+import com.dillon.starsectormarines.battle.ambient.AmbientTaskRoute;
+import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -11,7 +14,8 @@ import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
-import com.dillon.starsectormarines.battle.world.model.TileManifest;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
@@ -46,21 +50,22 @@ public final class BarracksBattleScene implements AutoCloseable {
         renderer = null;
     }
 
-    public BattleSceneHostPass backdropPass(List<MarineSoldier> marines) {
-        return pass(marines, BACKDROP_LAYERS);
+    public BattleSceneHostPass backdropPass(List<MarineSoldier> marines, float elapsedSeconds) {
+        return pass(marines, elapsedSeconds, BACKDROP_LAYERS);
     }
 
-    public BattleSceneHostPass actorPass(List<MarineSoldier> marines) {
-        return pass(marines, ACTOR_LAYERS);
+    public BattleSceneHostPass actorPass(List<MarineSoldier> marines, float elapsedSeconds) {
+        return pass(marines, elapsedSeconds, ACTOR_LAYERS);
     }
 
     private BattleSceneHostPass pass(List<MarineSoldier> marines,
+                                     float elapsedSeconds,
                                      EnumSet<RenderLayer> layers) {
         List<MarineSoldier> snapshot = marines != null ? List.copyOf(marines) : List.of();
         return new BattleSceneHostPass() {
             @Override
             public BattleSceneFrame prepare(CanvasHostViewport viewport, float alphaMult) {
-                return prepareFrame(viewport, snapshot, alphaMult, layers);
+                return prepareFrame(viewport, snapshot, elapsedSeconds, alphaMult, layers);
             }
 
             @Override
@@ -76,12 +81,14 @@ public final class BarracksBattleScene implements AutoCloseable {
 
     private BattleSceneFrame prepareFrame(CanvasHostViewport viewport,
                                            List<MarineSoldier> marines,
+                                           float elapsedSeconds,
                                            float alphaMult,
                                            EnumSet<RenderLayer> layers) {
         if (viewport.width() <= 0f || viewport.height() <= 0f) {
             throw new IllegalArgumentException("Barracks viewport must be visible");
         }
         ensureSimulation(marines);
+        simulation.ambientTasks().seek(elapsedSeconds);
         configureCamera(camera, viewport.screenX(), viewport.screenY(),
                 viewport.width(), viewport.height());
         RenderContext context = new RenderContext(simulation, camera, null,
@@ -125,26 +132,26 @@ public final class BarracksBattleScene implements AutoCloseable {
                 else grid.setWalkableFloor(x, y);
             }
         }
+        java.util.ArrayList<Doodad> props = new java.util.ArrayList<>();
+        for (BarracksSceneLayout.PropPlacement placement : BarracksSceneLayout.PROPS) {
+            DoodadDef definition = TileRegistry.installed().doodad(placement.doodadId());
+            Doodad doodad = new Doodad(placement.cellX(), placement.cellY(), definition);
+            props.add(doodad);
+            stampFixture(grid, topology, doodad);
+        }
         for (int y = 0; y < GRID_HEIGHT; y++) {
             for (int x = 0; x < GRID_WIDTH; x++) grid.recomputeCoverAt(x, y);
         }
         BattleSimulation sim = new BattleSimulation(grid, topology, 0x4241525241434B53L);
-        for (BarracksSceneLayout.FloorOverlayPlacement placement
-                : BarracksSceneLayout.floorOverlays()) {
-            sim.addDoodad(prop(placement.cellX(), placement.cellY(),
-                    placement.tileColumn(), placement.tileRow()));
-        }
-        for (BarracksSceneLayout.PropPlacement placement : BarracksSceneLayout.PROPS) {
-            sim.addDoodad(prop(placement.cellX(), placement.cellY(),
-                    placement.tileColumn(), placement.tileRow()));
-        }
-        int count = Math.min(marines.size(), BarracksSceneLayout.MARINES.size());
+        for (Doodad prop : props) sim.addDoodad(prop);
+        int count = Math.min(marines.size(), BarracksSceneLayout.MARINE_TASKS.size());
         for (int index = 0; index < count; index++) {
             MarineSoldier soldier = marines.get(index);
-            BarracksSceneLayout.MarinePlacement placement =
-                    BarracksSceneLayout.MARINES.get(index);
+            AmbientTaskRoute route = BarracksSceneLayout.MARINE_TASKS.get(index);
+            AmbientTaskPose pose = AmbientTaskService.sample(route, 0f);
             EntitySpec spec = new EntitySpec(soldier.name(), Faction.MARINE,
-                    UnitType.MARINE, placement.cellX(), placement.cellY());
+                    UnitType.MARINE, (int) Math.floor(pose.worldX()),
+                    (int) Math.floor(pose.worldY()));
             MarineLoadout.fromCatalog(UnitRole.COMBATANT, null,
                     soldier.primaryDef(), soldier.primaryGrade(), soldier.profile(),
                     soldier.secondary() != null ? soldier.secondary().specialDef() : null,
@@ -152,15 +159,26 @@ public final class BarracksBattleScene implements AutoCloseable {
                     soldier.armorDef().armorPool(), soldier.armorDef().armorRating(),
                     soldier.armorDef().moveSpeedMult(),
                     soldier.armorDef().incomingAccuracyMult(), null).seedInto(spec);
-            sim.spawn(spec);
+            long actor = sim.spawn(spec);
+            sim.ambientTasks().assign(actor, route);
         }
+        sim.ambientTasks().seek(0f);
         sim.getFogOfWar().tick(0, sim.getRoster());
         return sim;
     }
 
-    private static Doodad prop(int x, int y, int column, int row) {
-        return new Doodad(x, y, new TileManifest.TileFrame(column, row),
-                TileManifest.SHEET, Doodad.COVER_NONE);
+    private static void stampFixture(
+            NavigationGrid grid, CellTopology topology, Doodad doodad) {
+        for (int dy = 0; dy < doodad.footprintCellsY; dy++) {
+            for (int dx = 0; dx < doodad.footprintCellsX; dx++) {
+                int x = doodad.cellX + dx;
+                int y = doodad.cellY + dy;
+                grid.setWalkable(x, y, false);
+                grid.setSeeThrough(x, y, true);
+                topology.setWall(x, y, false);
+                topology.setFixture(x, y, true);
+            }
+        }
     }
 
     @Override

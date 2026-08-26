@@ -29,12 +29,14 @@ public final class MechLabViewModel {
     private final MutableSignal<String> selectedMechId;
     private final MutableSignal<Integer> selectedGantry;
     private final MutableSignal<SocketId> selectedSlot;
+    private final MutableSignal<Boolean> fittingFocused;
     private final MutableSignal<Boolean> assetPickerOpen;
     private final MutableSignal<String> feedbackText;
     private final MutableSignal<String> feedbackClasses;
     private final ComputedSignal<String> labSummary;
     private final ComputedSignal<List<SquadRow>> squadRows;
     private final ComputedSignal<List<MechRow>> mechRows;
+    private final ComputedSignal<List<GantryRow>> gantryRows;
     private final ComputedSignal<String> activeGantryLabel;
     private final ComputedSignal<String> selectedMechName;
     private final ComputedSignal<String> selectedMechIdentity;
@@ -49,25 +51,32 @@ public final class MechLabViewModel {
     private final ComputedSignal<List<CatalogRow>> catalogRows;
     private final ComputedSignal<String> pickerClasses;
     private final ComputedSignal<String> workspaceClasses;
+    private final ComputedSignal<String> fittingHeaderClasses;
+    private final ComputedSignal<String> performanceClasses;
+    private final ComputedSignal<String> catalogClasses;
+    private final ComputedSignal<String> slotRackClasses;
+    private final ComputedSignal<String> overviewRailClasses;
+    private final ComputedSignal<String> garageTitle;
 
     public MechLabViewModel(Reactor reactor, MechBay bay) {
         if (reactor == null) throw new IllegalArgumentException("reactor is required");
         if (bay == null) throw new IllegalArgumentException("mech bay is required");
         this.bay = bay;
         CampaignMechSquad initialSquad = bay.activeSquad();
-        CampaignMech initialMech = firstMech(initialSquad);
         revision = reactor.signal(0);
         selectedSquadId = reactor.signal(initialSquad != null ? initialSquad.id() : null);
-        selectedMechId = reactor.signal(initialMech != null ? initialMech.id() : null);
+        selectedMechId = reactor.signal(null);
         selectedGantry = reactor.signal(0);
         selectedSlot = reactor.signal(SocketId.MINI_FAB);
+        fittingFocused = reactor.signal(false);
         assetPickerOpen = reactor.signal(false);
         feedbackText = reactor.signal(
-                "Select a location on the doll. Only stocked bay hardware can be committed.");
+                "Select an occupied gantry to begin fitting. No chassis is selected in overview.");
         feedbackClasses = reactor.signal("mech-lab-feedback tone-muted surface-dark");
         labSummary = reactor.computed(this::buildLabSummary);
         squadRows = reactor.computed(this::buildSquadRows);
         mechRows = reactor.computed(this::buildMechRows);
+        gantryRows = reactor.computed(this::buildGantryRows);
         activeGantryLabel = reactor.computed(() -> {
             int index = selectedGantryIndex();
             CampaignMech mech = mechAt(selectedSquad(), index);
@@ -101,11 +110,24 @@ public final class MechLabViewModel {
                 ? "asset-picker panel" : "asset-picker panel hidden");
         workspaceClasses = reactor.computed(() -> assetPickerOpen.get()
                 ? "fitting-workspace hidden" : "fitting-workspace");
+        fittingHeaderClasses = reactor.computed(() -> fittingFocused.get()
+                ? "asset-strip edge-surface" : "asset-strip edge-surface hidden");
+        performanceClasses = reactor.computed(() -> fittingFocused.get()
+                ? "performance-grid" : "performance-grid hidden");
+        catalogClasses = reactor.computed(() -> fittingFocused.get()
+                ? "panel catalog-panel" : "panel catalog-panel hidden");
+        slotRackClasses = reactor.computed(() -> fittingFocused.get()
+                ? "panel slot-panel" : "panel slot-panel hidden");
+        overviewRailClasses = reactor.computed(() -> fittingFocused.get()
+                ? "overview-rail hidden" : "overview-rail");
+        garageTitle = reactor.computed(() -> fittingFocused.get()
+                ? activeGantryLabel.get() : "ACTIVE LANCE  //  ALL GANTRIES");
     }
 
     public Signal<String> labSummary() { return labSummary; }
     public Signal<List<SquadRow>> squadRows() { return squadRows; }
     public Signal<List<MechRow>> mechRows() { return mechRows; }
+    public Signal<List<GantryRow>> gantryRows() { return gantryRows; }
     public Signal<String> activeGantryLabel() { return activeGantryLabel; }
     public Signal<String> selectedMechName() { return selectedMechName; }
     public Signal<String> selectedMechIdentity() { return selectedMechIdentity; }
@@ -120,15 +142,25 @@ public final class MechLabViewModel {
     public Signal<List<CatalogRow>> catalogRows() { return catalogRows; }
     public Signal<String> pickerClasses() { return pickerClasses; }
     public Signal<String> workspaceClasses() { return workspaceClasses; }
+    public Signal<String> fittingHeaderClasses() { return fittingHeaderClasses; }
+    public Signal<String> performanceClasses() { return performanceClasses; }
+    public Signal<String> catalogClasses() { return catalogClasses; }
+    public Signal<String> slotRackClasses() { return slotRackClasses; }
+    public Signal<String> overviewRailClasses() { return overviewRailClasses; }
+    public Signal<String> garageTitle() { return garageTitle; }
     public Runnable openAssetPickerAction() { return this::openAssetPicker; }
     public Runnable closeAssetPickerAction() { return this::closeAssetPicker; }
     public Runnable previousGantryAction() { return this::previousGantry; }
     public Runnable nextGantryAction() { return this::nextGantry; }
+    public Runnable overviewAction() { return this::showLanceOverview; }
     public Signal<String> feedbackText() { return feedbackText; }
     public Signal<String> feedbackClasses() { return feedbackClasses; }
 
     /** Current authored fitting socket; shared with the physical room overlay. */
     public SocketId selectedSocket() { return selectedSlot.get(); }
+
+    /** Whether the garage camera should frame the selected asset for fitting. */
+    public boolean fittingFocused() { return fittingFocused.get(); }
 
     /** Current preview identity; the canvas deliberately reads no mutable battle state. */
     public MechVariant selectedVariant() {
@@ -158,8 +190,9 @@ public final class MechLabViewModel {
             squad = bay.activeSquad();
             selectedSquadId.set(squad != null ? squad.id() : null);
         }
-        CampaignMech mech = mechAt(squad, selectedGantryIndex());
-        selectedMechId.set(mech != null ? mech.id() : null);
+        selectedMechId.set(null);
+        fittingFocused.set(false);
+        assetPickerOpen.set(false);
         revision.update(value -> value + 1);
     }
 
@@ -203,6 +236,26 @@ public final class MechLabViewModel {
                     mech.id().equals(selected) ? "mech-row selected" : "mech-row",
                     mech.displayName(), mech.variant().displayName + "  ·  " + roleLabel(mech.role()),
                     mech.missileReplenisher().displayName(), () -> selectMech(mech.id())));
+        }
+        return List.copyOf(rows);
+    }
+
+    private List<GantryRow> buildGantryRows() {
+        revision.get();
+        CampaignMechSquad squad = selectedSquad();
+        List<GantryRow> rows = new ArrayList<>();
+        for (int index = 0; index < CampaignMechSquad.CAPACITY; index++) {
+            CampaignMech mech = mechAt(squad, index);
+            String base = "overview-gantry:" + index;
+            int gantry = index;
+            rows.add(new GantryRow(base, base + ":station", base + ":name",
+                    base + ":detail", mech != null ? "overview-gantry occupied"
+                            : "overview-gantry vacant",
+                    String.format(Locale.ROOT, "GANTRY %02d", index + 1),
+                    mech != null ? mech.displayName() : "VACANT",
+                    mech != null ? mech.variant().displayName + "  ·  " + roleLabel(mech.role())
+                            : "NO HEAVY ASSET ASSIGNED",
+                    mech == null, () -> selectGantry(gantry)));
         }
         return List.copyOf(rows);
     }
@@ -306,10 +359,10 @@ public final class MechLabViewModel {
         if (!bay.selectActiveSquad(squadId)) return;
         CampaignMechSquad squad = bay.squadById(squadId);
         selectedSquadId.set(squadId);
-        CampaignMech mech = firstMech(squad);
-        selectedMechId.set(mech != null ? mech.id() : null);
+        selectedMechId.set(null);
         selectedGantry.set(0);
         selectedSlot.set(SocketId.MINI_FAB);
+        fittingFocused.set(false);
         feedbackText.set(squad.displayName() + " is now the active Mech Support lance.");
         feedbackClasses.set("mech-lab-feedback tone-good surface-dark");
         revision.update(value -> value + 1);
@@ -326,6 +379,7 @@ public final class MechLabViewModel {
         }
         selectedMechId.set(mechId);
         selectedSlot.set(SocketId.MINI_FAB);
+        fittingFocused.set(true);
         assetPickerOpen.set(false);
         feedbackText.set("Inspecting " + squad.mechById(mechId).displayName()
                 + ". No campaign hardware changed.");
@@ -347,6 +401,7 @@ public final class MechLabViewModel {
         selectedGantry.set(index);
         selectedMechId.set(mech != null ? mech.id() : null);
         selectedSlot.set(SocketId.MINI_FAB);
+        fittingFocused.set(mech != null);
         assetPickerOpen.set(false);
         feedbackText.set(mech != null
                 ? "Gantry " + String.format(Locale.ROOT, "%02d", index + 1)
@@ -358,21 +413,35 @@ public final class MechLabViewModel {
 
     private void openAssetPicker() {
         assetPickerOpen.set(true);
+        fittingFocused.set(false);
+        selectedMechId.set(null);
         feedbackText.set("Choose a support lance and assigned asset to open its gantry.");
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
     }
 
     private void closeAssetPicker() {
         assetPickerOpen.set(false);
-        feedbackText.set("Returned to the fitting gantry. No campaign hardware changed.");
+        fittingFocused.set(false);
+        selectedMechId.set(null);
+        feedbackText.set("Returned to the lance overview. No campaign hardware changed.");
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
     }
 
     private void selectSlot(SocketId slot) {
+        if (selectedMech() == null) return;
         selectedSlot.set(slot);
+        fittingFocused.set(true);
         feedbackText.set(slot.label() + " selected. " + (slot == SocketId.MINI_FAB
                 ? "Compatible fleet stock is ready for refit."
                 : "Inspection only; this hardware has no campaign refit authority yet."));
+        feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
+    }
+
+    private void showLanceOverview() {
+        assetPickerOpen.set(false);
+        fittingFocused.set(false);
+        selectedMechId.set(null);
+        feedbackText.set("Lance overview restored. Select an occupied gantry to begin fitting.");
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
     }
 
@@ -395,11 +464,10 @@ public final class MechLabViewModel {
     }
 
     private CampaignMech selectedMech() {
-        return mechAt(selectedSquad(), selectedGantryIndex());
-    }
-
-    private static CampaignMech firstMech(CampaignMechSquad squad) {
-        return squad == null || squad.mechs().isEmpty() ? null : squad.mechs().get(0);
+        if (!fittingFocused.get()) return null;
+        CampaignMechSquad squad = selectedSquad();
+        String mechId = selectedMechId.get();
+        return squad != null && mechId != null ? squad.mechById(mechId) : null;
     }
 
     private static CampaignMech mechAt(CampaignMechSquad squad, int index) {
@@ -500,6 +568,17 @@ public final class MechLabViewModel {
             case "classes" -> classes; case "name" -> name;
             case "chassis" -> chassis; case "subsystem" -> subsystem; case "select" -> select;
             default -> throw unknown("mech", p); }; }
+    }
+
+    public record GantryRow(String id, String stationId, String nameId, String detailId,
+                            String classes, String station, String name, String detail,
+                            boolean disabled, Runnable select) implements MarkupPropertySource {
+        @Override public Object markupProperty(String p) { return switch (p) {
+            case "id" -> id; case "stationId" -> stationId; case "nameId" -> nameId;
+            case "detailId" -> detailId; case "classes" -> classes;
+            case "station" -> station; case "name" -> name; case "detail" -> detail;
+            case "disabled" -> disabled; case "select" -> select;
+            default -> throw unknown("mech-gantry", p); }; }
     }
 
     public record PerformanceMeter(String id, String labelId, String valueId, String trackId,

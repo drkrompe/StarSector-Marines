@@ -100,6 +100,34 @@ class SquadStateDumperTest {
         assertEquals(FireGate.FIRED.name(), row.getString("lastFireGate"));
         assertEquals(sim.getSimTickIndex(), row.getInt("lastFireGateTick"));
         assertEquals(0, row.getInt("lastFireGateAgeTicks"));
+        assertEquals(5.5, row.getDouble("x"), 1e-6);
+        assertEquals(5.5, row.getDouble("y"), 1e-6);
+        assertTrue(row.getBoolean("targetCellVisible"));
+        assertTrue(row.getBoolean("targetClearShot"));
+    }
+
+    @Test
+    void memberDumpExposesProjectedVisibilityVersusPhysicalShotMismatch()
+            throws Exception {
+        BattleSimulation sim = openSim();
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        long member = sim.spawn(new EntitySpec("Marine", Faction.MARINE,
+                UnitType.MARINE, 5, 5).squad(squadId));
+        long enemy = sim.spawn(new EntitySpec("Raider", Faction.DEFENDER,
+                UnitType.MARINE, 7, 6));
+        sim.world().setPos(member, 5.1f, 5.9f);
+        sim.world().setPos(enemy, 7.9f, 6.9f);
+        sim.getGrid().setWalkable(6, 6, false);
+        sim.world().setTargetId(member, enemy);
+
+        JSONObject row = SquadStateDumper.buildMembersJson(
+                squad, sim, member).getJSONObject(0);
+
+        assertEquals(5.1, row.getDouble("x"), 1e-6);
+        assertEquals(5.9, row.getDouble("y"), 1e-6);
+        assertTrue(row.getBoolean("targetCellVisible"));
+        assertFalse(row.getBoolean("targetClearShot"));
     }
 
     @Test

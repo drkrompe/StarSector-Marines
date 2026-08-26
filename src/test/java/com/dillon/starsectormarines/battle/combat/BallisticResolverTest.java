@@ -162,9 +162,9 @@ class BallisticResolverTest {
 
         assertEquals(BallisticResolver.StopKind.WALL, res.kind());
         assertEquals(0L, res.victimId());
-        assertEquals(cellCenter(6), res.endX(), EPS, "wall stop point is the wall cell's center");
+        assertEquals(6f, res.endX(), EPS, "wall stop point is the wall cell's near boundary");
         assertEquals(rowCenter(), res.endY(), EPS);
-        assertEquals((cellCenter(6) - cellCenter(2)) / VEL, res.flightTime(), EPS);
+        assertEquals((6f - cellCenter(2)) / VEL, res.flightTime(), EPS);
 
         BallisticResolver.Resolution elevated = resolver.resolve(
                 shooter, target, 0f, 0f, VEL,
@@ -172,6 +172,28 @@ class BallisticResolverTest {
         assertEquals(BallisticResolver.StopKind.WALL, elevated.kind(),
                 "structural walls remain full-height hard stops");
         assertTrue(elevated.endZ() > 0f);
+    }
+
+    @Test
+    void wallEndpointProjectsIntoBlockerFromEitherDirection() {
+        BattleSimulation sim = openArena();
+        NavigationGrid grid = sim.getGrid();
+        grid.setWalkable(6, ROW, false);
+        DoodadService doodads = new DoodadService(grid);
+        long shooter = spawn(sim, Faction.MARINE, 10);
+        long target = spawn(sim, Faction.DEFENDER, 2);
+        BallisticResolver resolver = new BallisticResolver(
+                grid, doodads, sim.getUnitIndex(), sim.getRoster());
+
+        BallisticResolver.Resolution res = resolver.resolve(
+                shooter, target, 1f, 0f, VEL,
+                new QueueRandom(0f, 0.5f, 0.5f));
+
+        assertEquals(BallisticResolver.StopKind.WALL, res.kind());
+        assertEquals(7f, res.endX(), EPS,
+                "westbound fire stops at the wall's east boundary");
+        assertEquals(6, (int) Math.floor(res.endX()),
+                "payload projection must still name the blocking wall cell");
     }
 
     @Test
@@ -203,6 +225,31 @@ class BallisticResolverTest {
         assertEquals(BallisticResolver.StopKind.DOODAD_BLOCK, caught.kind());
         assertTrue(caught.endZ() > 0.20f);
         assertTrue(caught.endZ() < 0.30f);
+    }
+
+    @Test
+    void continuousRayHitsWallMissedByProjectedCellBresenham() {
+        BattleSimulation sim = openArena();
+        NavigationGrid grid = sim.getGrid();
+        grid.setWalkable(6, 6, false);
+        DoodadService doodads = new DoodadService(grid);
+        long shooter = spawn(sim, Faction.MARINE, 5);
+        long target = spawn(sim, Faction.DEFENDER, 7);
+        sim.world().setPos(shooter, 5.1f, 5.9f);
+        sim.world().setPos(target, 7.9f, 6.9f);
+        BallisticResolver resolver = new BallisticResolver(
+                grid, doodads, sim.getUnitIndex(), sim.getRoster());
+
+        assertTrue(grid.hasLineOfSight(5, 5, 7, 6),
+                "projected-cell Bresenham takes the diagonal neighbor");
+        BallisticResolver.Resolution res = resolver.resolve(
+                shooter, target, 1f, 0f, VEL,
+                new QueueRandom(0f, 0.5f, 0.5f));
+
+        assertEquals(BallisticResolver.StopKind.WALL, res.kind());
+        assertEquals(6f, res.endX(), EPS);
+        assertEquals(6.2214284f, res.endY(), EPS);
+        assertEquals(0L, res.victimId());
     }
 
     @Test
@@ -995,8 +1042,8 @@ class BallisticResolverTest {
 
         assertEquals(BallisticResolver.StopKind.WALL, res.kind());
         assertEquals(0L, res.victimId());
-        assertEquals(cellCenter(6), res.endX(), EPS);
+        assertEquals(6f, res.endX(), EPS);
         assertEquals(rowCenter(), res.endY(), EPS);
-        assertEquals((cellCenter(6) - cellCenter(2)) / VEL, res.flightTime(), EPS);
+        assertEquals((6f - cellCenter(2)) / VEL, res.flightTime(), EPS);
     }
 }

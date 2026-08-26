@@ -156,6 +156,12 @@ class TacticalScoringContactPictureTest {
                         Posture.ADVANCING, ForceBalance.FAVORABLE,
                         Motion.LATERAL, false, true,
                         1, 12, 1, 3));
+        assertEquals(ContactInitiative.RECEIVE,
+                TacticalScoring.selectContactInitiative(Doctrine.HOLD,
+                        Posture.ADVANCING, ForceBalance.FAVORABLE,
+                        Motion.LATERAL, true, true,
+                        1, 12, 1, 3),
+                "an actual must-hold order keeps authority over a partial line");
         assertEquals(ContactInitiative.NONE,
                 TacticalScoring.selectContactInitiative(Doctrine.HOLD,
                         Posture.ADVANCING, ForceBalance.FAVORABLE,
@@ -165,7 +171,7 @@ class TacticalScoringContactPictureTest {
     }
 
     @Test
-    void publishedPictureCountsMembersAndTeamsOnPrimaryFiringLine() {
+    void captureTargetMustHoldFlagDoesNotFreezeAdvancingSquad() {
         BattleSimulation sim = openSim();
         int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
         Squad squad = sim.getSquad(squadId);
@@ -178,7 +184,10 @@ class TacticalScoringContactPictureTest {
         }
         long enemy = sim.spawn(new EntitySpec("lateral", Faction.DEFENDER,
                 UnitType.MARINE, 10, 32).visionRange(40f));
-        squad.assignedObjective = ObjectiveAssignment.escort(squadId, 55, 18);
+        TacticalNode commandPost = new TacticalNode(TacticalNode.Kind.COMMAND_POST,
+                55, 18, 54, 17, 56, 19, Faction.DEFENDER, 95, 4, true);
+        squad.assignedObjective = ObjectiveAssignment.secureCompound(
+                squadId, 7, commandPost);
 
         sim.advance(BattleSimulation.TICK_DT);
         sim.world().setCellPos(enemy, 11, 32);
@@ -191,7 +200,32 @@ class TacticalScoringContactPictureTest {
         assertEquals(3, picture.liveFireTeams());
         assertEquals(ContactInitiative.PROSECUTE, picture.contactInitiative());
         assertFalse(TacticalScoring.shouldHardHoldAdvance(squad, picture,
-                sim.getSimTickIndex()));
+                sim.getSimTickIndex()),
+                "a must-hold destination is not the attackers' current defensive post");
+    }
+
+    @Test
+    void publishedFiringLineRejectsCellVisiblePointOcclusion() {
+        BattleSimulation sim = openSim();
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        long member = sim.spawn(new EntitySpec("edge-marine", Faction.MARINE,
+                UnitType.MARINE, 5, 5).squad(squadId).fireTeam(0)
+                .visionRange(20f).attackRange(20f));
+        squad.leaderId = member;
+        squad.assignedObjective = ObjectiveAssignment.escort(squadId, 30, 5);
+        long enemy = sim.spawn(new EntitySpec("edge-enemy", Faction.DEFENDER,
+                UnitType.MARINE, 7, 6).visionRange(20f));
+        sim.world().setPos(member, 5.1f, 5.9f);
+        sim.world().setPos(enemy, 7.9f, 6.9f);
+        sim.getGrid().setWalkable(6, 6, false);
+
+        sim.advance(BattleSimulation.TICK_DT);
+
+        assertEquals(1, squad.contactPicture.directContactCount(),
+                "cell-projected perception still observes the enemy");
+        assertEquals(0, squad.contactPicture.primaryEngageableMembers(),
+                "the contact picture must not publish a physically blocked firing line");
     }
 
     @Test

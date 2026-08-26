@@ -4,7 +4,7 @@ Status: ACTIVE — Conquest owns reversible compound territory, deliberate captu
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — distinguished own-squad approach observations from neutral capture-zone presence in Conquest command evidence.
+Updated: 2026-08-25 — bounded fresh distant capture allocation while preserving actionable front force and existing commitments.
 
 Conquest is a territorial assault: marines establish a beachhead, take the
 defender's supply hubs through the city, and finish at the keep. It is not a

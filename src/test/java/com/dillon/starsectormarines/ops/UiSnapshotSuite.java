@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.ops.battleview.BarracksBattleScene;
 import com.dillon.starsectormarines.ops.battleview.HeadlessBattleSceneRenderer;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
 import com.dillon.starsectormarines.ops.battleview.MechLabBattleScene;
+import com.dillon.starsectormarines.ops.battleview.MechLabCameraController;
 import com.dillon.starsectormarines.ops.battleview.MechLabDollCanvas;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
@@ -177,7 +178,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             document.theme(MarineOpsThemes.standard());
             document.canvases().set(instance.requireElement("barracks-canvas"),
                     new BarracksCanvas(viewModel::sceneMarines,
-                            new BarracksBattleScene()));
+                            new BarracksBattleScene(), () -> 18d));
             return renderRelative(renderer, document, width, height, 1f);
         }
     }
@@ -321,6 +322,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     .findFirst().orElseThrow().select().run();
         }
         if (pickerOpen) viewModel.openAssetPickerAction().run();
+        MechLabCameraController camera = new MechLabCameraController();
+        camera.snap(viewModel.fittingFocused(), viewModel.selectedGantryIndex(),
+                viewModel.gantryVariants().size());
         HeadlessArmoryPreviewRenderer technicianPreview =
                 new HeadlessArmoryPreviewRenderer(context.modRoot());
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
@@ -339,7 +343,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                             MechLabDollCanvas::headlessAssets,
                             () -> technicianPreview.assets().layered(
                                     MarineArmorPattern.ARMY_GREEN),
-                            () -> null, () -> null, new MechLabBattleScene(), () -> 0d));
+                            () -> null, () -> null, () -> null, () -> null,
+                            camera::pose, viewModel::fittingFocused,
+                            new MechLabBattleScene(), () -> 0d));
             return renderRelative(renderer, document, width, height, uiScale);
         }
     }
@@ -446,7 +452,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("labSummary", viewModel.labSummary());
         props.put("squadRows", viewModel.squadRows());
         props.put("mechRows", viewModel.mechRows());
+        props.put("gantryRows", viewModel.gantryRows());
         props.put("activeGantryLabel", viewModel.activeGantryLabel());
+        props.put("garageTitle", viewModel.garageTitle());
         props.put("selectedMechName", viewModel.selectedMechName());
         props.put("selectedMechIdentity", viewModel.selectedMechIdentity());
         props.put("selectedMechDoctrine", viewModel.selectedMechDoctrine());
@@ -460,6 +468,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("catalogRows", viewModel.catalogRows());
         props.put("pickerClasses", viewModel.pickerClasses());
         props.put("workspaceClasses", viewModel.workspaceClasses());
+        props.put("fittingHeaderClasses", viewModel.fittingHeaderClasses());
+        props.put("performanceClasses", viewModel.performanceClasses());
+        props.put("catalogClasses", viewModel.catalogClasses());
+        props.put("slotRackClasses", viewModel.slotRackClasses());
+        props.put("overviewRailClasses", viewModel.overviewRailClasses());
         props.put("openAssetPicker", viewModel.openAssetPickerAction());
         props.put("closeAssetPicker", viewModel.closeAssetPickerAction());
         props.put("previousGantry", viewModel.previousGantryAction());

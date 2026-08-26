@@ -1,10 +1,12 @@
 # Battle fixtures
 
-Status: ACTIVE — civilian-rescue and Conquest tick-zero construction capture, headless replay, and opt-in forced-serial Conquest command evidence are shipped; full post-briefing launch fidelity remains proposed.
+Status: ACTIVE — V1 scenario construction and V2 post-briefing launch capture,
+headless replay, and opt-in forced-serial Conquest command evidence are shipped.
 
 Written: 2026-08-24
 
-Updated: 2026-08-25 — added the Conquest construction fixture and canonical forced-serial command-evidence boundary.
+Updated: 2026-08-25 — added the V2 launch overlay around the unchanged V1
+construction layer.
 
 ## Vocabulary
 
@@ -38,12 +40,12 @@ spawns, loadouts, objectives, and commanders.
 
 For supported scenarios, the flow is:
 
-`MissionLaunch` facts → versioned construction fixture → production
-`BattleSetup` factory → fresh `BattleSimulation` → ordinary fixed ticks.
+`MissionLaunch` facts → V1 construction fixture → production `BattleSetup`
+factory → V2 launch overlay → fresh `BattleSimulation` → ordinary fixed ticks.
 
-The active battle context retains its construction fixture as cold diagnostic
-metadata. The existing tick-profile capture may embed it without making the
-simulation or fixture codec depend on Starsector file APIs.
+The active battle context retains the highest-fidelity available fixture as
+cold diagnostic metadata. The existing tick-profile capture may embed it
+without making the simulation or fixture codec depend on Starsector file APIs.
 
 ## Laws
 
@@ -61,7 +63,7 @@ simulation or fixture codec depend on Starsector file APIs.
 - Simulation-owned executors are resources. Hosts and headless runners release
   them when the battle leaves service.
 
-## V1 fidelity boundary
+## Fidelity layers
 
 Civilian-rescue V1 captures the seven inputs of its production scenario
 factory. It therefore reproduces the generated map, rescue payload, default
@@ -86,17 +88,27 @@ a winner.
 
 The campaign launch path applies persistent marine identities, equipment,
 fighter cover, command powers, and their resources after that factory returns.
-Those overlays are deliberately outside V1. Exact post-briefing reproduction
-requires a higher-level frozen launch fixture that invokes those same overlay
-seams; partially copying their results into the construction fixture would
-create two authorities.
+Those overlays remain outside V1. A V2 `BattleLaunchFixture` wraps the unchanged
+construction document with ordered stable-value commitments for marine seats,
+marine/debug fighter additions, command powers, configured mech deployments,
+the employer-shuttle offset, and launch-time supplies. `MissionLaunch` and
+headless replay both invoke `BattleLaunchOverlay`; production retains the live
+campaign cargo adapter while replay receives an independent finite supply
+account. Stable catalog ids resolve equipment and powers fail-loud, and
+scenario-authored roles/objectives remain owned by the V1 factory.
+
+The checked-in V2 Conquest launch proves post-overlay headless reconstruction,
+and the command harness can consume either V1 or V2. The canonical command
+matrix remains on its historical V1 fixtures until representative live
+full-company launches are captured and deliberately rebaselined.
 
 ## Extension boundary
 
 Additional scenario kinds join the same versioned construction envelope only
-when their production factory has a stable plain-data input boundary. Exact
-launch replay is the next fidelity layer. Deterministic player-command logs can
-later drive a reconstructed battle forward; a true mid-battle checkpoint is a
+when their production factory has a stable plain-data input boundary.
+Representative launch capture is now a workload-selection concern, not a new
+fixture layer. Deterministic player-command logs can later drive a reconstructed
+battle forward; a true mid-battle checkpoint is a
 separate persistence problem and should not be smuggled into construction
 capture.
 

@@ -93,9 +93,8 @@ public final class ClearZone extends AbstractZoneAction {
         float dist = TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member),
                 sim.world().x(target), sim.world().y(target));
         boolean inRange = dist <= sim.world().attackRange(member);
-        boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
-                sim.world().cellX(target), sim.world().cellY(target));
-        if (inRange && visible) {
+        boolean clearShot = sim.getTacticalScoring().hasClearShot(member, target);
+        if (inRange && clearShot) {
             sim.combat().setFireIntent(member, target, FireStance.STANCED, false);
             // Movement gate, not a fire gate — FiringSystem owns the cooldown
             // check for the shot itself. This read only preserves the old

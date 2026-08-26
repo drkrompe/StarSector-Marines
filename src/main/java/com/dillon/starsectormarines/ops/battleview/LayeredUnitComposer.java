@@ -5,8 +5,8 @@ import com.dillon.starsectormarines.battle.appearance.LayeredWeaponFamily;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerPose;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerTransform;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.marine.EquipmentLayerDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialUsePose;
@@ -28,7 +28,7 @@ final class LayeredUnitComposer {
     private LayeredUnitComposer() {}
 
     static void emit(DrawList out, LayeredUnitAssets assets, LayeredSpriteCache head,
-                     MarineWeapon primary, boolean drawWeaponLayers,
+                     WeaponDef primary, boolean drawWeaponLayers,
                      MarineSecondary special,
                      EquipmentGrade equipmentGrade,
                      float actorX, float actorY, float shoulderPx,
@@ -40,7 +40,7 @@ final class LayeredUnitComposer {
     }
 
     static void emit(DrawList out, LayeredUnitAssets assets, LayeredSpriteCache head,
-                     MarineWeapon primary, boolean drawWeaponLayers,
+                     WeaponDef primary, boolean drawWeaponLayers,
                      MarineSecondary special, EquipmentGrade equipmentGrade,
                      float actorX, float actorY, float shoulderPx,
                      float facingDeg, float headLookDeg, float locomotionPhase,
@@ -53,7 +53,7 @@ final class LayeredUnitComposer {
     }
 
     static void emit(DrawList out, LayeredUnitAssets assets, LayeredSpriteCache head,
-                     MarineWeapon primary, boolean drawWeaponLayers,
+                     WeaponDef primary, boolean drawWeaponLayers,
                      SpecialEquipmentDef special, EquipmentGrade equipmentGrade,
                      float actorX, float actorY, float shoulderPx,
                      float facingDeg, float headLookDeg, float locomotionPhase,
@@ -68,7 +68,7 @@ final class LayeredUnitComposer {
     }
 
     static void emit(SpriteEmitter out, LayeredUnitAssets assets, LayeredSpriteCache head,
-                     MarineWeapon primary, boolean drawWeaponLayers,
+                     WeaponDef primary, boolean drawWeaponLayers,
                      MarineSecondary special,
                      EquipmentGrade equipmentGrade,
                      float actorX, float actorY, float shoulderPx,
@@ -80,7 +80,7 @@ final class LayeredUnitComposer {
     }
 
     static void emit(SpriteEmitter out, LayeredUnitAssets assets, LayeredSpriteCache head,
-                     MarineWeapon primary, boolean drawWeaponLayers,
+                     WeaponDef primary, boolean drawWeaponLayers,
                      MarineSecondary special, EquipmentGrade equipmentGrade,
                      float actorX, float actorY, float shoulderPx,
                      float facingDeg, float headLookDeg, float locomotionPhase,
@@ -93,7 +93,7 @@ final class LayeredUnitComposer {
     }
 
     static void emit(SpriteEmitter out, LayeredUnitAssets assets, LayeredSpriteCache head,
-                     MarineWeapon primary, boolean drawWeaponLayers,
+                     WeaponDef primary, boolean drawWeaponLayers,
                      SpecialEquipmentDef special, EquipmentGrade equipmentGrade,
                      float actorX, float actorY, float shoulderPx,
                      float facingDeg, float headLookDeg, float locomotionPhase,
