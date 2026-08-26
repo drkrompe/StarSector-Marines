@@ -122,9 +122,9 @@ public final class GroundSimPresentation {
             boolean isWall = isWallAt(grid, s.toX, s.toY);
             WeaponFxDef weaponFx = WeaponFxRuntime.definition(s);
             WeaponFxRuntime.spawnImpactAndAftermath(fx, s, isWall);
-            if (s.turretKind != null) {
+            if (s.turretStructureDef != null) {
                 TurretImpactAudio.Cue cue = TurretImpactAudio.resolve(
-                        s.turretKind, SFX_NEAR_EXPLOSION);
+                        s.turretStructureDef, SFX_NEAR_EXPLOSION);
                 if (cue != null) {
                     float pitch = 0.9f + rng.nextFloat() * 0.2f;
                     playAtCell(cue.soundId(), pitch, cue.volume(), s.toX, s.toY);
@@ -134,7 +134,7 @@ public final class GroundSimPresentation {
                     playAtCell(s.specialEquipmentDef.impactSoundId(),
                             0.9f + rng.nextFloat() * 0.2f, 0.70f, s.toX, s.toY);
                 }
-            } else if (s.mechWeapon != null) {
+            } else if (s.mechWeaponDef != null) {
                 if (weaponFx.hasExplosiveImpact()) {
                     playExplosion(s.toX, s.toY,
                             weaponFx.hasHeavyImpact() ? 0.86f : 0.65f, rng);
@@ -148,14 +148,15 @@ public final class GroundSimPresentation {
     private void playFireSounds(BattleSimulation sim, Random rng) {
         for (ShotEvent s : sim.getShotsThisFrame()) {
             float pitch = 1f + (rng.nextFloat() * 2f - 1f) * RIFLE_PITCH_JITTER;
-            if (s.turretKind != null) {
-                playAtCell(s.turretKind.fireSoundId(), pitch, 1.0f, s.fromX, s.fromY);
+            if (s.turretStructureDef != null) {
+                playAtCell(s.turretStructureDef.mount.weapon.fireSoundId,
+                        pitch, 1.0f, s.fromX, s.fromY);
             } else if (s.specialEquipmentDef != null) {
                 playAtCell(s.specialEquipmentDef.fireSoundId(), pitch, 1.0f, s.fromX, s.fromY);
             } else if (s.primaryWeaponDef != null) {
                 playAtCell(s.primaryWeaponDef.fireSoundId, pitch, 0.85f, s.fromX, s.fromY);
-            } else if (s.mechWeapon != null) {
-                playAtCell(s.mechWeapon.fireSoundId(), pitch, 1.0f, s.fromX, s.fromY);
+            } else if (s.mechWeaponDef != null) {
+                playAtCell(s.mechWeaponDef.fireSoundId, pitch, 1.0f, s.fromX, s.fromY);
             } else {
                 playAtCell(SFX_RIFLE, pitch, RIFLE_VOLUME, s.fromX, s.fromY);
             }

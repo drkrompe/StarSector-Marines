@@ -842,7 +842,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             renderer.getGroundLights().spawnMuzzle(s);
             // Every shooting marine / militia / alien ejects a casing where
             // they're standing (skip rockets — tube-launched, no brass).
-            if (s.specialEquipmentDef == null && s.turretKind == null) {
+            if (s.specialEquipmentDef == null && s.turretStructureDef == null) {
                 ImpactDecals.spawnShellCasing(sim, rng, s.fromX, s.fromY);
             }
             WeaponFxRuntime.spawnMuzzle(renderer.getImpactFx(), s);
@@ -862,9 +862,9 @@ public class BattleScreen implements Screen, BattleUiContext {
             boolean isWall = isWallAt(grid, s.toX, s.toY);
             WeaponFxDef fx = WeaponFxRuntime.definition(s);
             WeaponFxRuntime.spawnImpactAndAftermath(renderer.getImpactFx(), s, isWall);
-            if (s.turretKind != null) {
+            if (s.turretStructureDef != null) {
                 TurretImpactAudio.Cue cue = TurretImpactAudio.resolve(
-                        s.turretKind, SFX_NEAR_EXPLOSION);
+                        s.turretStructureDef, SFX_NEAR_EXPLOSION);
                 if (cue != null) {
                     float pitch = 0.9f + rng.nextFloat() * 0.2f;
                     Vector2f loc = new Vector2f(
@@ -882,7 +882,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                     Global.getSoundPlayer().playSound(s.specialEquipmentDef.impactSoundId(),
                             pitch, 0.70f, loc, zeroVel);
                 }
-            } else if (s.mechWeapon != null) {
+            } else if (s.mechWeaponDef != null) {
                 if (fx.hasExplosiveImpact()) {
                     float pitch = 0.9f + rng.nextFloat() * 0.2f;
                     Vector2f loc = new Vector2f(

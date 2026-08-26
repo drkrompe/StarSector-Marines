@@ -8,7 +8,8 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.FireTeamGroups;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.turret.StructureDef;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
@@ -373,9 +374,9 @@ public final class SeparationSystem {
                     ? table.objects(components.MECH_LOADOUT,
                     BattleComponents.MECH_LOADOUT_STATE).array() : null;
             boolean hasTurretState = table.has(components.TURRET_STATE);
-            Object[] turretKinds = hasTurretState
+            Object[] turretStructureIds = hasTurretState
                     ? table.objects(components.TURRET_STATE,
-                    BattleComponents.TURRET_STATE_KIND).array() : null;
+                    BattleComponents.TURRET_STATE_STRUCTURE_ID).array() : null;
 
             for (int row = 0, rows = table.rowCount(); row < rows; row++) {
                 long id = table.entityAt(row);
@@ -384,10 +385,12 @@ public final class SeparationSystem {
 
                 UnitType type = (UnitType) types[row];
                 MechVariant variant = (MechVariant) variants[row];
-                TurretKind turretKind = hasTurretState
-                        ? (TurretKind) turretKinds[row] : null;
-                float radius = turretKind != null
-                        ? turretKind.structure().radius
+                String turretStructureId = hasTurretState
+                        ? (String) turretStructureIds[row] : null;
+                StructureDef turretStructure = turretStructureId != null
+                        ? TurretCatalogRegistry.requireStructure(turretStructureId) : null;
+                float radius = turretStructure != null
+                        ? turretStructure.radius
                         : variant != null ? variant.radius : type.radius;
                 byte flags = POPULATED;
                 if (hasHealth && hp[row] > 0f

@@ -6,7 +6,7 @@
  *           goals ({@code Mech*Goal}, {@code BackstopAssignedSquad*},
  *           {@code OverwatchKillZone*}), {@code MechCombatantBehavior} +
  *           {@code MechBreakContact}, and mech weapon config
- *           ({@code MechWeapon}, {@code MechRole}). The mech's optional
+ *           ({@code WeaponDef}, {@code MechRole}). The mech's optional
  *           loadout capability is a component, {@code MechLoadoutComponent},
  *           in the {@code components/} subpackage (per the ECS-migration
  *           component convention).

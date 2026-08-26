@@ -3,7 +3,7 @@
  *
  * <p>Category: actor domain (static entity + behavior + lifecycle).
  * <br>Charter:  turrets and defense posts ({@code MapTurret},
- *           {@code DefensePost}, {@code TurretKind}, {@code TurretRole},
+ *           {@code DefensePost}, {@code StructureDef}, {@code TurretRole},
  *           {@code DefensePostKind}), their fire path
  *           ({@code TurretFireSystem}, {@code TurretFireSink},
  *           {@code TurretAim}), demolition

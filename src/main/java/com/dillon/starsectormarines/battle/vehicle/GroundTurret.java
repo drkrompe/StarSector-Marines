@@ -6,8 +6,8 @@ package com.dillon.starsectormarines.battle.vehicle;
  * {@code GROUND_TURRET} OBJECT component (presence == "armed"): only a vehicle whose
  * {@link VehicleType#hasTurretWeapon()} carries one; an unarmed truck has no
  * {@code GROUND_TURRET}. The immutable weapon config (turn rate, range, cooldown,
- * burst) stays on {@link com.dillon.starsectormarines.battle.turret.TurretKind} via
- * {@link VehicleType#turretKind}; this bag is the live aim/fire state
+ * burst) stays on the structure definition resolved by
+ * {@link VehicleType#turretStructureId}; this bag is the live aim/fire state
  * {@code GroundSystem.tickVehicleTurrets} drives each tick.
  *
  * <p>Extracted from {@code Vehicle}'s former inline {@code turret*} fields in the
@@ -24,7 +24,7 @@ public final class GroundTurret {
     public float cooldownTimer;
     /** Entity id of the currently locked target, or {@code 0L} when idle. */
     public long targetId;
-    /** Rounds remaining in the magazine. Seeded from {@link com.dillon.starsectormarines.battle.turret.TurretKind#startingAmmo}. */
+    /** Rounds remaining in the magazine. Seeded from the authored mount capacity. */
     public int ammo;
     /** Rounds left in the current burst (excluding the trigger-pull round). */
     public int burstRemaining;

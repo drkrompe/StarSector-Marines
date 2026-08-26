@@ -3,11 +3,11 @@ package com.dillon.starsectormarines.battle.appearance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
-import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import com.dillon.starsectormarines.marine.SpecialActivation;
@@ -295,11 +295,11 @@ public final class FacingSystem {
                 : LayeredAppearance.locomotionPhase(moving ? gaitPhase[row] : 0f);
 
         MechWeaponMount arms = loadout.mount(MechMountSlot.ARMS);
-        MechWeaponMount srm = representativeMount(loadout, MechWeapon.SRM_POD);
-        MechWeaponMount lrm = representativeMount(loadout, MechWeapon.LRM_ARTILLERY);
+        MechWeaponMount srm = representativeMount(loadout, WeaponRegistry.MECH_SRM_POD_ID);
+        MechWeaponMount lrm = representativeMount(loadout, WeaponRegistry.MECH_LRM_ARTILLERY_ID);
         boolean chaingunActive = arms != null && arms.burstRemaining > 0;
-        boolean srmActive = activeMount(loadout, MechWeapon.SRM_POD) != null;
-        boolean lrmActive = activeMount(loadout, MechWeapon.LRM_ARTILLERY) != null;
+        boolean srmActive = activeMount(loadout, WeaponRegistry.MECH_SRM_POD_ID) != null;
+        boolean lrmActive = activeMount(loadout, WeaponRegistry.MECH_LRM_ARTILLERY_ID) != null;
         chaingunPhase[row] = trackPhase(arms);
         srmPhase[row] = trackPhase(srm);
         lrmPhase[row] = trackPhase(lrm);
@@ -312,29 +312,30 @@ public final class FacingSystem {
         if (trackFlash(arms)) {
             authoredFlags |= LayeredMechAppearance.FLAG_CHAINGUN_FLASH;
         }
-        if (anyTrackFlash(loadout, MechWeapon.SRM_POD)) {
+        if (anyTrackFlash(loadout, WeaponRegistry.MECH_SRM_POD_ID)) {
             authoredFlags |= LayeredMechAppearance.FLAG_SRM_FLASH;
         }
-        if (anyTrackFlash(loadout, MechWeapon.LRM_ARTILLERY)) {
+        if (anyTrackFlash(loadout, WeaponRegistry.MECH_LRM_ARTILLERY_ID)) {
             authoredFlags |= LayeredMechAppearance.FLAG_LRM_FLASH;
         }
         flags[row] = authoredFlags;
     }
 
     private static MechWeaponMount representativeMount(MechLoadoutComponent loadout,
-                                                        MechWeapon weapon) {
-        MechWeaponMount active = activeMount(loadout, weapon);
+                                                        String weaponId) {
+        MechWeaponMount active = activeMount(loadout, weaponId);
         if (active != null) return active;
         for (MechWeaponMount mount : loadout.mounts()) {
-            if (mount != null && mount.weapon() == weapon) return mount;
+            if (mount != null && mount.weaponId().equals(weaponId)) return mount;
         }
         return null;
     }
 
     private static MechWeaponMount activeMount(MechLoadoutComponent loadout,
-                                                MechWeapon weapon) {
+                                                String weaponId) {
         for (MechWeaponMount mount : loadout.mounts()) {
-            if (mount != null && mount.weapon() == weapon && mount.burstRemaining > 0) {
+            if (mount != null && mount.weaponId().equals(weaponId)
+                    && mount.burstRemaining > 0) {
                 return mount;
             }
         }
@@ -343,19 +344,19 @@ public final class FacingSystem {
 
     private static float trackPhase(MechWeaponMount mount) {
         return mount != null
-                ? LayeredMechAppearance.trackPhase(mount.burstTimer, mount.weapon().burstSpacing())
+                ? LayeredMechAppearance.trackPhase(mount.burstTimer, mount.weaponDef().burstSpacing)
                 : 0f;
     }
 
     private static boolean trackFlash(MechWeaponMount mount) {
         return mount != null && LayeredMechAppearance.trackFlash(
-                mount.cooldown, mount.weapon().cooldown(), mount.burstRemaining,
-                mount.burstTimer, mount.weapon().burstSpacing());
+                mount.cooldown, mount.weaponDef().cooldown, mount.burstRemaining,
+                mount.burstTimer, mount.weaponDef().burstSpacing);
     }
 
-    private static boolean anyTrackFlash(MechLoadoutComponent loadout, MechWeapon weapon) {
+    private static boolean anyTrackFlash(MechLoadoutComponent loadout, String weaponId) {
         for (MechWeaponMount mount : loadout.mounts()) {
-            if (mount != null && mount.weapon() == weapon && trackFlash(mount)) return true;
+            if (mount != null && mount.weaponId().equals(weaponId) && trackFlash(mount)) return true;
         }
         return false;
     }

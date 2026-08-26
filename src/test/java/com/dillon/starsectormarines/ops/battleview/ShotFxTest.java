@@ -6,8 +6,8 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.weapon.MountClass;
-import com.dillon.starsectormarines.battle.mech.MechWeapon;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.turret.StructureDef;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.weapon.fx.FxSlot;
 import com.dillon.starsectormarines.marine.SpecialActivation;
@@ -33,26 +33,28 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Pins the {@link ShotFx} composition against the four sim weapon-source enums it
- * derives from — the table replaces the per-carrier {@code if turretKind … else if
- * marineWeapon …} cascade in the old {@code collectShots}/{@code drawTracers}, so
+ * Pins the {@link ShotFx} composition against the installed weapon sources it
+ * derives from, replacing the old per-carrier cascade, so
  * these assert the derivation stays faithful (and carrier-agnostic) as weapons are
  * added. The visible-round S3 assertions additionally pin traveling-bolt
  * derivation and the generated white-base asset contract.
  */
 public class ShotFxTest {
 
-    private static ShotEvent turretShot(TurretKind k) {
-        return new ShotEvent(0, 0, 1, 1, true, Faction.DEFENDER, 0.15f, k);
+    private static ShotEvent turretShot(StructureDef structure) {
+        return new ShotEvent(0, 0, 1, 1, true, Faction.DEFENDER, 0.15f, structure);
     }
 
-    private static ShotEvent shot(TurretKind t, WeaponDef mw, SpecialEquipmentDef ms, MechWeapon mech) {
+    private static ShotEvent shot(StructureDef t, WeaponDef mw,
+                                  SpecialEquipmentDef ms, WeaponDef mech) {
         return new ShotEvent(0, 0, 1, 1, true, Faction.MARINE, 0.15f, t, mw, ms, mech);
     }
 
     @Test
     public void everySourceResolvesToANonNullComposition() {
-        for (TurretKind k : TurretKind.values())      assertNotNull(ShotFx.of(turretShot(k)), "turret " + k);
+        for (StructureDef structure : TurretCatalogRegistry.installed().structures()) {
+            assertNotNull(ShotFx.of(turretShot(structure)), "turret " + structure.id);
+        }
         for (WeaponDef w : WeaponRegistry.installed().all()) {
             if (w.mount == MountClass.MARINE_PRIMARY) {
                 assertNotNull(ShotFx.of(shot(null, w, null, null)), "primary " + w);
@@ -63,7 +65,11 @@ public class ShotFxTest {
                 assertNotNull(ShotFx.of(shot(null, null, w, null)), "secondary " + w);
             }
         }
-        for (MechWeapon w : MechWeapon.values())      assertNotNull(ShotFx.of(shot(null, null, null, w)), "mech " + w);
+        for (WeaponDef w : WeaponRegistry.installed().all()) {
+            if (w.mount == MountClass.MECH_MOUNT) {
+                assertNotNull(ShotFx.of(shot(null, null, null, w)), "mech " + w.id);
+            }
+        }
         // No weapon source (detonations / legacy callers) → faction-default tracer.
         ShotEvent bare = new ShotEvent(0, 0, 1, 1, true, Faction.MARINE, 0.15f);
         ShotFx fx = ShotFx.of(bare);
@@ -75,34 +81,37 @@ public class ShotFxTest {
 
     @Test
     public void turretBodiesKeepBallisticsWhileParticlesComeFromAuthoredFx() {
-        for (TurretKind k : TurretKind.values()) {
-            ShotFx fx = ShotFx.of(turretShot(k));
-            Sprite body = assertSprite(fx, "turret " + k);
-            assertEquals(k.projectileSpritePath(), body.spritePath(), "sprite path for " + k);
-            assertEquals(k.projectileVisualCells(), body.visualCells(), 0f, "visualCells for " + k);
-            assertEquals(k.arcHeight(), fx.arcHeight(), 0f, "arcHeight for " + k);
-            assertEquals(k.hasBoostRamp(), fx.boostRamp(), "boostRamp for " + k);
-            assertTrue(fx.travels(), "turret body travels: " + k);
-            assertFalse(k.fx().layers(FxSlot.IMPACT).isEmpty(),
-                    "turret impact particles are authored: " + k);
+        for (StructureDef structure : TurretCatalogRegistry.installed().structures()) {
+            WeaponDef weapon = structure.mount.weapon;
+            ShotFx fx = ShotFx.of(turretShot(structure));
+            Sprite body = assertSprite(fx, "turret " + structure.id);
+            assertEquals(weapon.projectileSpritePath, body.spritePath(), "sprite path for " + structure.id);
+            assertEquals(weapon.projectileVisualCells, body.visualCells(), 0f, "visualCells for " + structure.id);
+            assertEquals(weapon.arcHeight, fx.arcHeight(), 0f, "arcHeight for " + structure.id);
+            assertEquals(weapon.boostRamp, fx.boostRamp(), "boostRamp for " + structure.id);
+            assertTrue(fx.travels(), "turret body travels: " + structure.id);
+            assertFalse(weapon.fx.layers(FxSlot.IMPACT).isEmpty(),
+                    "turret impact particles are authored: " + structure.id);
 
-            if (k == TurretKind.LOCUST) {
+            if (TurretCatalogRegistry.LOCUST_STRUCTURE_ID.equals(structure.id)) {
                 assertSame(ContrailStyle.MISSILE_SMOKE, fx.contrail());
             } else {
-                assertNull(fx.contrail(), "non-missile turret contrail: " + k);
+                assertNull(fx.contrail(), "non-missile turret contrail: " + structure.id);
             }
         }
     }
 
     @Test
     public void locustBoostsAndCarriesAnAuthoredTrail() {
-        ShotFx fx = ShotFx.of(turretShot(TurretKind.LOCUST));
+        StructureDef locust = TurretCatalogRegistry.requireStructure(
+                TurretCatalogRegistry.LOCUST_STRUCTURE_ID);
+        ShotFx fx = ShotFx.of(turretShot(locust));
         assertTrue(fx.boostRamp(), "Locust boosts");
         assertSame(ContrailStyle.MISSILE_SMOKE, fx.contrail(),
                 "Locust weapon data selects its widening missile ribbon");
-        assertFalse(TurretKind.LOCUST.fx().layers(FxSlot.LAUNCH).isEmpty(),
+        assertFalse(locust.mount.weapon.fx.layers(FxSlot.LAUNCH).isEmpty(),
                 "Locust authored data owns its directional launch backblast");
-        assertFalse(TurretKind.LOCUST.fx().layers(FxSlot.TRAIL).isEmpty(),
+        assertFalse(locust.mount.weapon.fx.layers(FxSlot.TRAIL).isEmpty(),
                 "Locust authored data owns the engine-flame trail composition");
     }
 
@@ -206,14 +215,16 @@ public class ShotFxTest {
 
     @Test
     public void mechWeaponsAreSpritesCarryingArcAndAuthoredTrails() {
-        for (MechWeapon w : MechWeapon.values()) {
+        for (WeaponDef w : WeaponRegistry.installed().all()) {
+            if (w.mount != MountClass.MECH_MOUNT) continue;
             ShotFx fx = ShotFx.of(shot(null, null, null, w));
             Sprite body = assertSprite(fx, "mech " + w);
             assertEquals(w.projectileSpritePath(), body.spritePath(), "sprite path for " + w);
             assertEquals(w.projectileVisualCells(), body.visualCells(), 0f, "visualCells for " + w);
-            assertEquals(w.arcHeight(), fx.arcHeight(), 0f, "arcHeight for " + w);
-            boolean expectedTrail = w == MechWeapon.SRM_POD || w == MechWeapon.LRM_ARTILLERY;
-            assertEquals(expectedTrail, !w.def().fx.layers(FxSlot.TRAIL).isEmpty(),
+            assertEquals(w.arcHeight, fx.arcHeight(), 0f, "arcHeight for " + w);
+            boolean expectedTrail = WeaponRegistry.MECH_SRM_POD_ID.equals(w.id)
+                    || WeaponRegistry.MECH_LRM_ARTILLERY_ID.equals(w.id);
+            assertEquals(expectedTrail, !w.fx.layers(FxSlot.TRAIL).isEmpty(),
                     "authored trail for " + w);
             assertTrue(fx.travels(), "mech body travels: " + w);
             assertFalse(fx.boostRamp(), "mech weapons don't boost-ramp: " + w);

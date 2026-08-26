@@ -27,55 +27,55 @@ class TurretCatalogRegistryTest {
         assertEquals(8, registry.mountCount());
         assertEquals(8, registry.structureCount());
 
-        assertKind(TurretKind.VULCAN, "Vulcan Cannon", 22f, 10.8f, 3f, .45f, 1.4f,
+        assertKind(structure(TurretCatalogRegistry.VULCAN_STRUCTURE_ID), "Vulcan Cannon", 22f, 10.8f, 3f, .45f, 1.4f,
                 60f, 80f, 8f, 120f, 1.6f, .22f, 120,
                 6, .08f, .6f, 3, 0f, 0f, 0f, 1.3f, 0f,
                 false, false, 1f, 0f, 0f, 0f, false, false, ImpactKind.RIFLE,
                 "graphics/weapons/vulcan_cannon_turret_base.png",
                 "graphics/weapons/vulcan_cannon_turret_recoil.png",
                 "graphics/missiles/shell_small_yellow.png", "vulcan_cannon_fire");
-        assertKind(TurretKind.ARBALEST, "Arbalest Autocannon", 30f, 45f, 8f, .5f, 1.5f,
+        assertKind(structure(TurretCatalogRegistry.ARBALEST_STRUCTURE_ID), "Arbalest Autocannon", 30f, 45f, 8f, .5f, 1.5f,
                 70f, 110f, 10f, 90f, 1.8f, .3f, 60,
                 1, 0f, 0f, 0, 0f, 0f, 0f, 0f, 0f,
                 false, false, 1f, 0f, 0f, 0f, false, false, ImpactKind.KINETIC,
                 "graphics/weapons/arbalest_turret_base.png",
                 "graphics/weapons/arbalest_turret_recoil.png",
                 "graphics/missiles/shell_large_green.png", "autocannon_fire");
-        assertKind(TurretKind.HEAVY_MORTAR, "Heavy Mortar", 36f, 81f, 10f, .55f, 2.5f,
+        assertKind(structure(TurretCatalogRegistry.HEAVY_MORTAR_STRUCTURE_ID), "Heavy Mortar", 36f, 81f, 10f, .55f, 2.5f,
                 80f, 130f, 12f, 60f, 1.8f, .32f, 15,
                 1, 0f, 1.35f, 24, 1.15f, 0f, .6f, .18f, 0f,
                 true, false, 1f, 0f, 0f, 0f, false, false, ImpactKind.CANNON_HE,
                 "graphics/weapons/heavy_mortar_turret.png",
                 "graphics/weapons/heavy_mortar_turret_recoil.png",
                 "graphics/missiles/shell_round_lrg.png", "heavy_mortar_fire");
-        assertKind(TurretKind.DUAL_FLAK, "Dual Flak Cannon", 26f, 36f, 5f, .4f, .8f,
+        assertKind(structure(TurretCatalogRegistry.DUAL_FLAK_STRUCTURE_ID), "Dual Flak Cannon", 26f, 36f, 5f, .4f, .8f,
                 75f, 120f, 10f, 100f, 2f, .28f, 80,
                 1, 0f, 0f, 0, 0f, 0f, 0f, 0f, 0f,
                 false, false, 1f, 0f, 0f, 0f, false, false, ImpactKind.KINETIC,
                 "graphics/weapons/double_flak_cannon_turret_base.png",
                 "graphics/weapons/double_flak_cannon_turret_recoil.png",
                 "graphics/missiles/shell_large_blue.png", "flak_fire");
-        assertKind(TurretKind.HEPHAESTUS, "Hephaestus Heavy Cannon", 32f, 45f, 4f, .65f, 4.5f,
+        assertKind(structure(TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID), "Hephaestus Heavy Cannon", 32f, 45f, 4f, .65f, 4.5f,
                 90f, 145f, 14f, 75f, 2.2f, .35f, 50,
                 1, 0f, 1.6f, 30, 1.25f, 0f, .55f, .14f, 0f,
                 false, false, 1f, 0f, 117f, 24f, false, false, ImpactKind.CANNON_HE,
                 "graphics/weapons/hephaestus_turret_base.png",
                 "graphics/weapons/hephaestus_turret_recoil.png",
                 "graphics/missiles/shell_hephag.png", "hephaestus_fire");
-        assertKind(TurretKind.GRENADE_LAUNCHER, "Grenade Launcher", 28f, 36f, 6f, .55f, 4f,
+        assertKind(structure(TurretCatalogRegistry.GRENADE_LAUNCHER_STRUCTURE_ID), "Grenade Launcher", 28f, 36f, 6f, .55f, 4f,
                 75f, 120f, 10f, 80f, 1.7f, .55f, 60,
                 4, .18f, 1.5f, 30, 1.5f, 2.5f, .65f, .6f, 5f,
                 true, false, 1f, 45f, 0f, 0f, false, false, ImpactKind.HE,
                 "graphics/weapons/light_mortar_turret_base.png",
                 "graphics/weapons/light_mortar_turret_recoil.png",
                 "graphics/missiles/mortar_round.png", "light_mortar_fire");
-        assertKind(TurretKind.LOCUST, "Locust Rocket Battery", 100f, 45f, 14f, .25f, 10f,
+        assertKind(structure(TurretCatalogRegistry.LOCUST_STRUCTURE_ID), "Locust Rocket Battery", 100f, 45f, 14f, .25f, 10f,
                 85f, 135f, 12f, 50f, 2f, .45f, 30,
                 8, .08f, 1.4f, 20, 1.4f, 3.5f, 1.5f, 8f, 30f,
                 true, true, .55f, 70f, 0f, 0f, true, true, ImpactKind.HE,
                 "graphics/weapons/locust_turret.png", null,
                 "graphics/missiles/missile_locust.png", "swarmer_fire");
-        assertKind(TurretKind.HEAVY_MG, "Heavy MG", 24f, 22.5f, 4f, .5f, 2.2f,
+        assertKind(structure(TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID), "Heavy MG", 24f, 22.5f, 4f, .5f, 2.2f,
                 70f, 110f, 10f, 110f, 1.6f, .22f, 200,
                 10, .07f, .8f, 5, 0f, 0f, .18f, 2f, 3f,
                 false, false, 1f, 0f, 0f, 0f, false, false, ImpactKind.KINETIC,
@@ -86,7 +86,8 @@ class TurretCatalogRegistryTest {
 
     @Test
     void contactPayloadAndAreaPayloadRemainDistinct() {
-        WeaponDef hephaestus = TurretKind.HEPHAESTUS.weapon();
+        WeaponDef hephaestus = structure(
+                TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID).mount.weapon;
         assertEquals(45f, hephaestus.damage, EPS);
         assertEquals(4f, hephaestus.penetration, EPS);
         assertEquals(1.6f, hephaestus.aoeRadius, EPS);
@@ -96,23 +97,29 @@ class TurretCatalogRegistryTest {
 
     @Test
     void onlyAuthoredTravelingRoundsBecomeInterceptableProjectiles() {
-        assertTrue(TurretKind.LOCUST.weapon().interceptableProjectile);
-        assertEquals(70f, TurretKind.LOCUST.cellsPerSec(), EPS);
-        assertTrue(TurretKind.GRENADE_LAUNCHER.weapon().interceptableProjectile);
-        assertEquals(45f, TurretKind.GRENADE_LAUNCHER.cellsPerSec(), EPS);
+        WeaponDef locust = structure(TurretCatalogRegistry.LOCUST_STRUCTURE_ID).mount.weapon;
+        WeaponDef grenade = structure(
+                TurretCatalogRegistry.GRENADE_LAUNCHER_STRUCTURE_ID).mount.weapon;
+        WeaponDef mortar = structure(
+                TurretCatalogRegistry.HEAVY_MORTAR_STRUCTURE_ID).mount.weapon;
+        assertTrue(locust.interceptableProjectile);
+        assertEquals(70f, locust.projectileCellsPerSec(), EPS);
+        assertTrue(grenade.interceptableProjectile);
+        assertEquals(45f, grenade.projectileCellsPerSec(), EPS);
 
-        assertFalse(TurretKind.HEAVY_MORTAR.weapon().interceptableProjectile);
-        assertEquals(0f, TurretKind.HEAVY_MORTAR.cellsPerSec(), EPS,
+        assertFalse(mortar.interceptableProjectile);
+        assertEquals(0f, mortar.projectileCellsPerSec(), EPS,
                 "authored flight timing must not turn a resolved shell into a projectile entity");
-        assertEquals(60f, TurretKind.HEAVY_MORTAR.directRoundVelocity(), EPS);
+        assertEquals(60f, mortar.directRoundVelocity(), EPS);
     }
 
     @Test
     void locustPresentationRemainsMissileArtillery() {
-        assertSame(ContrailProfile.MISSILE_SMOKE, TurretKind.LOCUST.contrailProfile());
-        assertEquals("marines_missile_impact", TurretKind.LOCUST.impactSoundId());
-        assertTrue(TurretKind.LOCUST.hasLaunchBackblast());
-        assertFalse(TurretKind.LOCUST.fx().layers(FxSlot.LAUNCH).isEmpty());
+        WeaponDef locust = structure(TurretCatalogRegistry.LOCUST_STRUCTURE_ID).mount.weapon;
+        assertSame(ContrailProfile.MISSILE_SMOKE, locust.contrailProfile);
+        assertEquals("marines_missile_impact", locust.impactSoundId);
+        assertTrue(locust.launchBackblast);
+        assertFalse(locust.fx.layers(FxSlot.LAUNCH).isEmpty());
     }
 
     @Test
@@ -154,15 +161,14 @@ class TurretCatalogRegistryTest {
     }
 
     @Test
-    void compatibilityHandleResolvesTheRegistryOwnedObjects() {
-        StructureDef structure = TurretCatalogRegistry.requireStructure(TurretKind.VULCAN.structureId);
-        assertSame(structure, TurretKind.VULCAN.structure());
-        assertSame(structure.mount, TurretKind.VULCAN.mount());
-        assertSame(structure.mount.weapon, TurretKind.VULCAN.weapon());
+    void stableIdResolvesTheRegistryOwnedObjectGraph() {
+        StructureDef structure = structure(TurretCatalogRegistry.VULCAN_STRUCTURE_ID);
+        assertSame(structure.mount, TurretCatalogRegistry.requireMount(structure.mountId));
+        assertSame(structure.mount.weapon, WeaponRegistry.require(structure.mount.weaponId));
     }
 
     private static void assertKind(
-            TurretKind kind, String displayName,
+            StructureDef structure, String displayName,
             float range, float damage, float penetration, float accuracy, float cooldown,
             float maxStructure, float armorPool, float armorRating,
             float turnRate, float visualCells, float projectileVisualCells, int ammo,
@@ -172,41 +178,47 @@ class TurretCatalogRegistryTest {
             float cellsPerSec, float contactDamage, float contactPenetration,
             boolean boostRamp, boolean launchBackblast, ImpactKind impact,
             String sprite, String recoilSprite, String projectileSprite, String fireSound) {
-        assertEquals(displayName, kind.displayName());
-        assertEquals(range, kind.range(), EPS);
-        assertEquals(damage, kind.damage(), EPS);
-        assertEquals(penetration, kind.penetration(), EPS);
-        assertEquals(accuracy, kind.accuracy(), EPS);
-        assertEquals(cooldown, kind.cooldown(), EPS);
-        assertEquals(maxStructure, kind.maxStructure(), EPS);
-        assertEquals(armorPool, kind.armorPool(), EPS);
-        assertEquals(armorRating, kind.armorRating(), EPS);
-        assertEquals(turnRate, kind.turnRateDegPerSec(), EPS);
-        assertEquals(visualCells, kind.visualCells(), EPS);
-        assertEquals(projectileVisualCells, kind.projectileVisualCells(), EPS);
-        assertEquals(ammo, kind.startingAmmo());
-        assertEquals(burstCount, kind.burstCount());
-        assertEquals(burstSpacing, kind.burstSpacing(), EPS);
-        assertEquals(aoeRadius, kind.aoeRadius(), EPS);
-        assertEquals(wallDamage, kind.wallDamage());
-        assertEquals(wallDamageRadius, kind.wallDamageRadius(), EPS);
-        assertEquals(arcHeight, kind.arcHeight(), EPS);
-        assertEquals(flightSec, kind.flightSec(), EPS);
-        assertEquals(hitSpread, kind.hitSpread(), EPS);
-        assertEquals(minRange, kind.minRange(), EPS);
-        assertEquals(authoredTrail, !kind.fx().layers(FxSlot.TRAIL).isEmpty());
-        assertEquals(indirectFire, kind.indirectFire());
-        assertEquals(noLosAccuracyMult, kind.noLosAccuracyMult(), EPS);
-        assertEquals(cellsPerSec, kind.cellsPerSec(), EPS);
-        assertEquals(contactDamage, kind.contactDamage(), EPS);
-        assertEquals(contactPenetration, kind.contactPenetration(), EPS);
-        assertEquals(boostRamp, kind.hasBoostRamp());
-        assertEquals(launchBackblast, kind.hasLaunchBackblast());
-        assertImpact(kind.weapon(), impact);
-        assertEquals(sprite, kind.spritePath());
-        assertEquals(recoilSprite, kind.recoilSpritePath());
-        assertEquals(projectileSprite, kind.projectileSpritePath());
-        assertEquals(fireSound, kind.fireSoundId());
+        TurretMountDef mount = structure.mount;
+        WeaponDef weapon = mount.weapon;
+        assertEquals(displayName, weapon.displayName);
+        assertEquals(range, weapon.range, EPS);
+        assertEquals(damage, weapon.damage, EPS);
+        assertEquals(penetration, weapon.penetration, EPS);
+        assertEquals(accuracy, weapon.accuracy, EPS);
+        assertEquals(cooldown, weapon.cooldown, EPS);
+        assertEquals(maxStructure, structure.maxStructure, EPS);
+        assertEquals(armorPool, structure.armorPool, EPS);
+        assertEquals(armorRating, structure.armorRating, EPS);
+        assertEquals(turnRate, mount.turnRateDegPerSec, EPS);
+        assertEquals(visualCells, mount.visualCells, EPS);
+        assertEquals(projectileVisualCells, weapon.projectileVisualCells, EPS);
+        assertEquals(ammo, mount.ammoCapacity);
+        assertEquals(burstCount, weapon.burstCount);
+        assertEquals(burstSpacing, weapon.burstSpacing, EPS);
+        assertEquals(aoeRadius, weapon.aoeRadius, EPS);
+        assertEquals(wallDamage, weapon.wallDamage);
+        assertEquals(wallDamageRadius, weapon.wallDamageRadius, EPS);
+        assertEquals(arcHeight, weapon.arcHeight, EPS);
+        assertEquals(flightSec, weapon.flightSec, EPS);
+        assertEquals(hitSpread, weapon.hitSpread, EPS);
+        assertEquals(minRange, weapon.minRange, EPS);
+        assertEquals(authoredTrail, !weapon.fx.layers(FxSlot.TRAIL).isEmpty());
+        assertEquals(indirectFire, weapon.indirectFire);
+        assertEquals(noLosAccuracyMult, weapon.noLosAccuracyMult, EPS);
+        assertEquals(cellsPerSec, weapon.projectileCellsPerSec(), EPS);
+        assertEquals(contactDamage, weapon.contactDamage, EPS);
+        assertEquals(contactPenetration, weapon.contactPenetration, EPS);
+        assertEquals(boostRamp, weapon.boostRamp);
+        assertEquals(launchBackblast, weapon.launchBackblast);
+        assertImpact(weapon, impact);
+        assertEquals(sprite, mount.spritePath);
+        assertEquals(recoilSprite, mount.recoilSpritePath);
+        assertEquals(projectileSprite, weapon.projectileSpritePath);
+        assertEquals(fireSound, weapon.fireSoundId);
+    }
+
+    private static StructureDef structure(String id) {
+        return TurretCatalogRegistry.requireStructure(id);
     }
 
     private static void assertImpact(WeaponDef weapon, ImpactKind impact) {

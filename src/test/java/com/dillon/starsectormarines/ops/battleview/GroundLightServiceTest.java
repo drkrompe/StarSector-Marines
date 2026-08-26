@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
-import com.dillon.starsectormarines.battle.mech.MechWeapon;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import org.junit.jupiter.api.Test;
@@ -54,7 +54,8 @@ class GroundLightServiceTest {
         GroundLightService.Light ordinaryHe = lights.selected(0);
 
         lights.clear();
-        lights.spawnImpact(MechWeapon.HEAVY_CANNON.def().fx, 10f, 10f);
+        lights.spawnImpact(WeaponRegistry.require(WeaponRegistry.MECH_HEAVY_CANNON_ID).fx,
+                10f, 10f);
         lights.selectNearest(camera());
         GroundLightService.Light cannonHe = lights.selected(0);
 

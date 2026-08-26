@@ -36,11 +36,11 @@ public final class FootprintCircleShape implements ProxyShape {
 
     /**
      * Ground footprint (long-axis cells) of a proxied structure. New proxied target kinds register
-     * their size here; both current kinds already publish it ({@code TurretKind.visualCells},
+     * their size here; current structure definitions already publish it ({@code visualCells},
      * {@link DroneHub#VISUAL_CELLS}). Falls back to {@link #DEFAULT_FOOTPRINT_CELLS} for anything
      * unrecognized so a new target type is hittable (just not perfectly sized) before it's wired in.
      *
-     * <p><b>Turret degradation:</b> a turret's real {@code TurretKind.visualCells} now
+     * <p><b>Turret degradation:</b> a turret's real mount {@code visualCells} now
      * lives in the world {@code TURRET_STATE} component (read via
      * {@code battle.sim.TurretStateService}), unreachable from here — this method is a
      * bare static helper ({@link #applyTo}'s signature carries only the {@code Entity}
