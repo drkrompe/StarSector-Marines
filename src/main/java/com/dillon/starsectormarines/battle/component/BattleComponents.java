@@ -302,8 +302,8 @@ public final class BattleComponents {
     public static final int TURRET_STATE_FACING_DEGREES = 0;
     /** {@link #TURRET_STATE} field 1: sim-seconds since the last fired round (FLOAT) — drives the renderer's per-round barrel recoil slide. */
     public static final int TURRET_STATE_RECOIL_TIMER = 1;
-    /** {@link #TURRET_STATE} field 2: the {@link com.dillon.starsectormarines.battle.turret.TurretKind} baked at construction (OBJECT). */
-    public static final int TURRET_STATE_KIND = 2;
+    /** {@link #TURRET_STATE} field 2: stable structure definition id baked at construction (OBJECT String). */
+    public static final int TURRET_STATE_STRUCTURE_ID = 2;
     /** {@link #TURRET_STATE} field 3: rounds left in the current burst, excluding the trigger-pull round; {@code 0} = idle/single-shot kind (INT). */
     public static final int TURRET_STATE_BURST_REMAINING = 3;
     /** {@link #TURRET_STATE} field 4: sim-seconds until the next burst round fires; counts down while field 3 &gt; 0 (FLOAT). */
@@ -730,14 +730,14 @@ public final class BattleComponents {
     public final ComponentType HUB_STATE;
     /**
      * Optional turret live state — {@code float facingDegrees; float
-     * recoilTimer; TurretKind kind; int burstRemaining; float burstTimer; long
+     * recoilTimer; String structureId; int burstRemaining; float burstTimer; long
      * burstTargetId}. Presence <em>IS</em> "is a live turret" — added at spawn
      * only for {@code UnitType.TURRET}
      * ({@link com.dillon.starsectormarines.battle.unit.UnitType#isTurret()}),
      * absent on every other unit. {@code facingDegrees}/{@code recoilTimer} are
      * read every tick by {@code battle.turret.TurretBehavior} (the aim/fire
      * loop) and the renderer (barrel rotation + recoil slide); {@code kind} is
-     * the {@code TurretKind} config (stats/sprite/firing profile) baked at
+     * the stable structure id whose installed definition owns stats, sprite, and firing profile
      * construction by the {@code MapTurret} factory.
      *
      * <p>{@code burstRemaining}/{@code burstTimer}/{@code burstTargetId} are a

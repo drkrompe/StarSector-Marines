@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
@@ -45,7 +45,8 @@ public class StaticEmplacementMembershipTest {
     public void mobileUnitsAreMoversAndThinkersStaticEmplacementsAreNeither() {
         BattleSimulation sim = openSim();
         long marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 2, 2));
-        long turret = sim.spawn(MapTurret.create("t", Faction.DEFENDER, TurretKind.VULCAN, 21, 21));
+        long turret = sim.spawn(MapTurret.create("t", Faction.DEFENDER,
+                TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 21, 21));
         long hub = sim.spawn(DroneHub.create("h", Faction.DEFENDER, 21, 2));
 
         assertTrue(sim.world().hasMovement(marine));
@@ -64,12 +65,13 @@ public class StaticEmplacementMembershipTest {
         assertEquals(-1, sim.hubState().droneSquadId(hub));
 
         // The turret carries TURRET_STATE (presence IS "is a live turret"),
-        // seeded with its TurretKind and a recoilTimer past the renderer's
+        // seeded with its structure id and a recoilTimer past the renderer's
         // recoil window; the hub and marine — neither a turret — don't.
         assertTrue(sim.turretState().isTurret(turret));
         assertFalse(sim.turretState().isTurret(hub));
         assertFalse(sim.turretState().isTurret(marine));
-        assertEquals(TurretKind.VULCAN, sim.turretState().kind(turret));
+        assertEquals(TurretCatalogRegistry.VULCAN_STRUCTURE_ID,
+                sim.turretState().structureId(turret));
         assertEquals(1f, sim.turretState().recoilTimer(turret), 1e-4f);
     }
 
@@ -78,7 +80,8 @@ public class StaticEmplacementMembershipTest {
         BattleSimulation sim = openSim();
         int sid = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
         long marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 2, 2).squad(sid));
-        long turret = sim.spawn(MapTurret.create("t", Faction.DEFENDER, TurretKind.VULCAN, 21, 21));
+        long turret = sim.spawn(MapTurret.create("t", Faction.DEFENDER,
+                TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 21, 21));
         long hub = sim.spawn(DroneHub.create("h", Faction.DEFENDER, 21, 2));
 
         // Each advance() drives rebuildOccupancyMap + the destination-index
@@ -101,7 +104,8 @@ public class StaticEmplacementMembershipTest {
         long hub = sim.spawn(DroneHub.create("h", Faction.DEFENDER, 5, 5));
         long drone = sim.spawn(Drone.create("d", Faction.DEFENDER, 10, 10, hub));
         long marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 2, 2));
-        long turret = sim.spawn(MapTurret.create("t", Faction.DEFENDER, TurretKind.VULCAN, 21, 21));
+        long turret = sim.spawn(MapTurret.create("t", Faction.DEFENDER,
+                TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 21, 21));
 
         // The drone carries DRONE_STATE (presence IS "is a live drone"); the hub,
         // marine, and turret — none a drone — don't.
@@ -125,7 +129,8 @@ public class StaticEmplacementMembershipTest {
     public void rollFallbackOnHitSkipsStaticEmplacements() {
         BattleSimulation sim = openSim();
         HitResponseSystem hitResponse = sim.getHitResponseSystem();
-        long turret = sim.spawn(MapTurret.create("t", Faction.DEFENDER, TurretKind.VULCAN, 8, 8));
+        long turret = sim.spawn(MapTurret.create("t", Faction.DEFENDER,
+                TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 8, 8));
         long hub = sim.spawn(DroneHub.create("h", Faction.DEFENDER, 9, 9));
         sim.spawn(new EntitySpec("opp", Faction.MARINE, UnitType.MARINE, 2, 2));
 

@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
 
@@ -114,7 +116,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
     /** Fires every installed SRM component; used by doctrines that permit close missiles. */
     public static void tryFireSrm(long u, MechLoadoutComponent m, long target, float dist, BattleControl sim, boolean hasLos) {
         for (MechWeaponMount mount : m.mounts()) {
-            if (mount != null && mount.weapon() == MechWeapon.SRM_POD) {
+            if (mount != null && WeaponRegistry.MECH_SRM_POD_ID.equals(mount.weaponId())) {
                 tryFireMount(u, m, mount, target, dist, sim, hasLos);
             }
         }
@@ -128,7 +130,8 @@ public final class MechCombatantBehavior implements UnitBehavior {
      */
     public static void tryFireLrm(long u, MechLoadoutComponent m, long target, float dist, BattleControl sim, boolean hasLos) {
         for (MechWeaponMount mount : m.mounts()) {
-            if (mount != null && mount.weapon() == MechWeapon.LRM_ARTILLERY) {
+            if (mount != null
+                    && WeaponRegistry.MECH_LRM_ARTILLERY_ID.equals(mount.weaponId())) {
                 tryFireMount(u, m, mount, target, dist, sim, hasLos);
             }
         }
@@ -139,21 +142,21 @@ public final class MechCombatantBehavior implements UnitBehavior {
                                      BattleControl sim, boolean hasLos) {
         if (mount == null || !loadout.isAimedAt(target) || mount.cooldown > 0f
                 || mount.burstRemaining > 0 || !mount.hasAmmo()) return;
-        MechWeapon weapon = mount.weapon();
-        if (dist > weapon.range()) return;
-        boolean indirect = weapon.indirectFire();
+        WeaponDef weapon = mount.weaponDef();
+        if (dist > weapon.range) return;
+        boolean indirect = weapon.indirectFire;
         if (!indirect && !hasLos) return;
         MechWeaponMount arms = loadout.mount(MechMountSlot.ARMS);
-        float minimumIndirectRange = arms != null ? arms.weapon().range() : 0f;
+        float minimumIndirectRange = arms != null ? arms.weaponDef().range : 0f;
         if (indirect && dist <= minimumIndirectRange) return;
 
-        float accuracyMult = indirect && !hasLos ? weapon.noLosAccuracyMult() : 1f;
+        float accuracyMult = indirect && !hasLos ? weapon.noLosAccuracyMult : 1f;
         sim.fireMechWeapon(u, target, weapon, accuracyMult);
         mount.consumeTrigger();
-        mount.cooldown = weapon.cooldown();
+        mount.cooldown = weapon.cooldown;
         if (mount.component.projectilesPerTrigger > 1) {
             mount.burstRemaining = mount.component.projectilesPerTrigger - 1;
-            mount.burstTimer = weapon.burstSpacing();
+            mount.burstTimer = weapon.burstSpacing;
             mount.burstTargetId = target;
         }
     }

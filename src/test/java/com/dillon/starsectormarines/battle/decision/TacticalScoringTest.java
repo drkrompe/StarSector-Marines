@@ -17,7 +17,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.TestUnits;
 import org.junit.jupiter.api.Test;
 
@@ -572,7 +572,8 @@ public class TacticalScoringTest {
     public void hephaestusTurretPrefersMechOverNearerInfantry() {
         BattleSimulation sim = openArena(30, 10);
         long cannon = sim.spawn(MapTurret.create(
-                "hephaestus", Faction.MARINE, TurretKind.HEPHAESTUS, 5, 5));
+                "hephaestus", Faction.MARINE,
+                TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID, 5, 5));
         unit(sim, Faction.DEFENDER, 10, 5);
         long mech = unit(sim, Faction.DEFENDER, UnitType.HEAVY_MECH, 20, 5);
 
@@ -716,8 +717,8 @@ public class TacticalScoringTest {
     // Part 7 — rocket-vs-turret range gates and squad coordination
     // ---------------------------------------------------------------------
 
-    private static long turret(BattleSimulation sim, Faction f, TurretKind kind, int x, int y) {
-        return sim.spawn(MapTurret.create("t" + sim.liveUnitCount(), f, kind, x, y));
+    private static long turret(BattleSimulation sim, Faction f, String structureId, int x, int y) {
+        return sim.spawn(MapTurret.create("t" + sim.liveUnitCount(), f, structureId, x, y));
     }
 
     private static long rocketeer(BattleSimulation sim, Faction f, int x, int y) {
@@ -733,7 +734,7 @@ public class TacticalScoringTest {
     public void effectiveAttackRangeWidensForRocketeerVsTurret() {
         BattleSimulation sim = openArena(40, 10);
         long rocketeer = rocketeer(sim, Faction.MARINE, 5, 5);
-        long turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 25, 5);
+        long turret = turret(sim, Faction.DEFENDER, TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 25, 5);
         long infantry = unit(sim, Faction.DEFENDER, 25, 5);
 
         assertEquals(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).range(),
@@ -756,7 +757,7 @@ public class TacticalScoringTest {
                 UnitType.MARINE, 5, 5)
                 .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID),
                         SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID).startingAmmo()));
-        long turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 15, 5);
+        long turret = turret(sim, Faction.DEFENDER, TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 15, 5);
         float primaryRange = sim.world().attackRange(smokeCarrier);
 
         assertFalse(sim.getTacticalScoring().canSpecialTarget(smokeCarrier, turret));
@@ -779,7 +780,7 @@ public class TacticalScoringTest {
         // turret sits past pulse range but inside rocket range.
         float primary = sim.world().attackRange(rocketeer);
         int turretX = (int) Math.ceil(primary) + 8;
-        long turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, turretX, 5);
+        long turret = turret(sim, Faction.DEFENDER, TurretCatalogRegistry.VULCAN_STRUCTURE_ID, turretX, 5);
 
         int[] pick = sim.getTacticalScoring().findFiringPosition(rocketeer, turret);
         assertNotNull(pick);
@@ -827,7 +828,7 @@ public class TacticalScoringTest {
     public void shouldCommitRocketAllowsFirstShot() {
         BattleSimulation sim = openArena(20, 20);
         long rocketeer = rocketeer(sim, Faction.MARINE, 5, 5);
-        long turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
+        long turret = turret(sim, Faction.DEFENDER, TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 10, 5);
 
         assertTrue(sim.getTacticalScoring().shouldCommitRocket(rocketeer, turret),
                 "first marine on a healthy turret with no inflight must commit");
@@ -848,7 +849,7 @@ public class TacticalScoringTest {
         long m2 = rocketeer(sim, Faction.MARINE, 5, 7);
         sim.squad().assignSquad(m2, squadId);
 
-        long turret = turret(sim, Faction.DEFENDER, TurretKind.HEPHAESTUS, 10, 5);
+        long turret = turret(sim, Faction.DEFENDER, TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID, 10, 5);
         float oneRocket = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).damage();
         assertTrue(oneRocket < sim.world().maxHp(turret) + sim.world().armor(turret),
                 "test invariant: Hephaestus needs >1 rocket — adjust if balance changed");
@@ -877,7 +878,7 @@ public class TacticalScoringTest {
         sim.squad().assignSquad(m0, squadId);
         long m1 = rocketeer(sim, Faction.MARINE, 5, 6);
         sim.squad().assignSquad(m1, squadId);
-        long turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
+        long turret = turret(sim, Faction.DEFENDER, TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 10, 5);
 
         sim.world().setSecondaryActionTimer(m0, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).aimDuration());
         sim.world().setSecondaryAimTargetId(m0, turret);
@@ -890,7 +891,7 @@ public class TacticalScoringTest {
     public void shouldCommitRocketBlocksOnInflightProjectile() {
         BattleSimulation sim = openArena(20, 20);
         long rocketeer = rocketeer(sim, Faction.MARINE, 5, 5);
-        long turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
+        long turret = turret(sim, Faction.DEFENDER, TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 10, 5);
 
         // Stuff enough damage into the inflight projectile list to kill the
         // turret. One rocket isn't enough for a Vulcan (test above), so two.
@@ -923,7 +924,7 @@ public class TacticalScoringTest {
         // bug, but the gate is per-shooter-faction either way).
         BattleSimulation sim = openArena(20, 20);
         long rocketeer = rocketeer(sim, Faction.MARINE, 5, 5);
-        long turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
+        long turret = turret(sim, Faction.DEFENDER, TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 10, 5);
 
         float bigDamage = sim.world().maxHp(turret) * 2f;
         float endX = sim.world().cellX(turret) + 0.5f;
@@ -957,7 +958,7 @@ public class TacticalScoringTest {
         long mB = rocketeer(sim, Faction.MARINE, 5, 6);
         sim.squad().assignSquad(mB, squadB);
 
-        long turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 10, 5);
+        long turret = turret(sim, Faction.DEFENDER, TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 10, 5);
 
         sim.world().setSecondaryActionTimer(mA, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).aimDuration());
         sim.world().setSecondaryAimTargetId(mA, turret);
@@ -978,7 +979,7 @@ public class TacticalScoringTest {
         unit(sim, Faction.DEFENDER, 20, 20);
         unit(sim, Faction.DEFENDER, 21, 20);
         unit(sim, Faction.DEFENDER, 20, 21);
-        turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 22, 20);
+        turret(sim, Faction.DEFENDER, TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 22, 20);
         // A civilian defender must NOT count — non-combatant.
         unit(sim, Faction.DEFENDER, UnitType.CIVILIAN, 19, 20);
         // Attackers: two inside the radius, one far outside it.

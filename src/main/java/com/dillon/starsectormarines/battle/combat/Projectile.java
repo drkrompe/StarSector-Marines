@@ -11,14 +11,14 @@ import com.dillon.starsectormarines.battle.unit.Faction;
  * {@code cellsPerSec > 0}) and direct rockets (marine launcher and mech SRM).
  * Carries only the primitive visual params it needs
  * ({@link #hasBoostRamp}, {@link #arcHeight}) so the spawner can be
- * either weapon family without coupling Projectile to TurretKind.
+ * any weapon family without coupling Projectile to a carrier catalog.
  *
  * <h2>Why a separate entity</h2>
  * The legacy renderer-side lerp computed projectile position as
  * {@code lerp(from, to, lifetime/lifetimeMax)} with {@code lifetimeMax = kind.flightSec}
  * — which made velocity scale with distance (a 10-cell close shot and a
  * 100-cell long shot both took the same time, so the long one read as 10×
- * faster). With a real entity the velocity is per-kind ({@link TurretKind#cellsPerSec})
+ * faster). With a real entity the velocity is authored by the weapon definition
  * and flight time = {@code dist / cellsPerSec}, so closer shots arrive
  * sooner. Sets the foundation for point defense — a turret aiming at an
  * incoming projectile can flip {@link #intercepted} and the sim removes the

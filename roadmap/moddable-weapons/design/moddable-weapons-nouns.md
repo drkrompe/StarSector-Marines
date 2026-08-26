@@ -1,11 +1,11 @@
 # Moddable Weapons
 
-Status: ACTIVE — weapon definitions and presentation are data-owned; compatibility retirement remains
+Status: SHIPPED — weapon identity, behavior, and presentation are data-owned
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — made authored layered effects authoritative for every
-weapon family and removed named impact and trail recipes.
+Updated: 2026-08-26 — retired the remaining weapon enums; mech and turret
+carriers now persist stable ids and resolve installed definitions directly.
 
 ## Purpose
 
@@ -25,9 +25,8 @@ without turning a JSON typo into a silent zero-damage battle.
   physically struck and a separate **area payload** for nearby actors. The
   contacted actor receives only the contact payload; neither payload identifies
   a target category or changes its damage after armor breaks.
-- A **weapon id** is the durable reference to a definition. It is the future
-  persistence and cross-catalog handle; Java enums are transitional handles,
-  not a second source of weapon values.
+- A **weapon id** is the durable persistence and cross-catalog reference to a
+  definition. Java types do not enumerate weapon identities.
 - A **delivery mechanism** describes how the definition reaches its payload:
   direct chemical or electromagnetic kinetic fire, flechette sub-munitions,
   pulse/laser energy, rocket or arcing grenade, or a close-contact implement.
@@ -46,7 +45,8 @@ without turning a JSON typo into a silent zero-damage battle.
   mounting positions. A **mount** owns the hardware that fits a platform:
   installed weapon, capacity or rack behavior, and mount appearance. The
   weapon owns projectile behavior. This three-way distinction is especially
-  important for emplacements, whose current enum conflates all three.
+  important for emplacements, whose structure, mount, and weapon catalogs keep
+  all three authorities distinct.
 - The **weapon registry** owns parsed definitions from enabled catalog providers and resolves ids.
   It is an asset store, not a combat system. `WeaponRegistry` is the present
   boundary.
@@ -84,11 +84,9 @@ without turning a JSON typo into a silent zero-damage battle.
 At application load, the fixed marine-catalog manifest is discovered in each
 enabled mod in game load order. Its explicit paths are loaded from that exact
 provider, then weapon catalogs are parsed into the registry
-before catalog-walking presentation consumers initialize. A loadout or legacy
-handle supplies an id; firing, UI, audio, and rendering resolve the same
-definition and use only the portion they own. The currently shipped
-marine-primary handle delegates to that registry, so gameplay and catalog
-presentation do not retain a duplicate Java stat table. Mech loadout components
+before catalog-walking presentation consumers initialize. A loadout or
+save-migration input supplies an id; firing, UI, audio, and rendering resolve
+the same definition and use only the portion they own. Mech loadout components
 likewise carry stable weapon ids; simulation and presentation resolve the same
 mech-mount definition while the component retains rack, ammunition, geometry,
 and appearance policy.
@@ -104,8 +102,9 @@ references immediately. A static emplacement takes durability, collision
 geometry and force value from its structure; carriers such as shuttles and
 vehicles keep their own durability and geometry. Mount capacity, traverse and
 optional layered appearance remain mount policy, while the shared weapon owns
-ballistics, contact and area payloads, audio and composed effects. The retained
-`TurretKind` is only a stable-id compatibility handle over those definitions.
+ballistics, contact and area payloads, audio and composed effects. Static-turret
+ECS state, shuttle mounts, vehicles, map generation, and sprite caches carry
+stable structure ids; runtime resolves the installed `StructureDef` graph.
 Runtime and the deterministic six-state catalog preview consume the same pose
 and seeded effect commands. The preview mounts those commands into the retained
 document canvas seam, so its sprite layers, atlas frames, tint, and blend intent
@@ -133,9 +132,8 @@ The public manifest and authoring examples live in `submod-catalog-contract.md`.
 
 ## Standing laws
 
-- One weapon behavior has one authoritative authored value. Transitional
-  parity evidence may compare the old enum values with data, but it is not a
-  permanent second catalogue.
+- One weapon behavior has one authoritative authored value. Tests assert the
+  installed definitions directly rather than maintaining a second catalogue.
 - Mechanism does not justify a clone. A chemical slug rifle and a gauss carbine
   become separate definitions only when their engagement behavior, payload, or
   readable shot treatment creates a real choice; a renamed tracer is not a new
@@ -204,11 +202,11 @@ The public manifest and authoring examples live in `submod-catalog-contract.md`.
 
 ## Transition boundaries
 
-Registry-owned handheld primary, weapon-like-secondary, mech-mount, and turret-mount
-definitions are the authoritative data boundary. `MarineWeapon` and
-`MarineSecondary` are retired; historical names survive only as serialized
-string input for save migration. `MechWeapon` and `TurretKind` remain id-backed
-compatibility handles rather than parallel stat authorities; a
+Registry-owned handheld-primary, weapon-like-secondary, mech-mount, and
+turret-mount definitions are the authoritative data boundary. Historical
+`MarineWeapon` and `MarineSecondary` names survive only as serialized string
+input for save migration. Mech components store weapon ids, and turret
+carriers store structure ids; neither family has a Java weapon enum. A
 weapon-like special reaches its definition through the distinct
 progression-owned special-equipment identity. That identity now comes from a
 separate JSON catalog and validates that every weapon reference resolves
@@ -220,8 +218,7 @@ Mech weapon components store stable ids and remain the authority for mount
 family, rack size, ammunition, geometry, and appearance. Mech weapon behavior
 and presentation resolve through the registry, including the separate
 simulation decision to create an interceptable projectile and presentation
-decision to compose an authored trail. Compatibility handles own no duplicate
-authored values. Mech and turret families still obey the same penetration and
+decision to compose an authored trail. Mech and turret families still obey the same penetration and
 mutually exclusive contact-versus-area payload laws.
 
 Generated faction and player-authored primary, armor, and special-equipment
@@ -233,9 +230,6 @@ compatibility handle while historical primary and special names are accepted
 only as serialized string input. Removing a provider
 repairs player primary and armor ids to their safe starters and clears an
 unresolved special slot with a warning.
-
-Compatibility-enum retirement and persistence repair belong to
-the work lifecycle tracked only by `stories.md`.
 
 ## Boundaries
 
