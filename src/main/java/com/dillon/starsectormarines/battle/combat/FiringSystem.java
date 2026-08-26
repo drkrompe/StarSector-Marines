@@ -164,15 +164,12 @@ public final class FiringSystem {
                     lastFireGate[r] = FireGate.COOLDOWN.ordinal();
                     continue;
                 }
-                int sx = w.cellX(shooterId);
-                int sy = w.cellY(shooterId);
-                int tx = w.cellX(ft);
-                int ty = w.cellY(ft);
                 if (TacticalScoring.cellDistance(w.x(shooterId), w.y(shooterId), w.x(ft), w.y(ft)) > attackRange[r]) {
                     lastFireGate[r] = FireGate.OUT_OF_RANGE.ordinal();
                     continue;
                 }
-                if (!grid.hasLineOfSight(sx, sy, tx, ty)) {
+                if (!grid.hasLineOfFire(w.x(shooterId), w.y(shooterId),
+                        w.x(ft), w.y(ft))) {
                     lastFireGate[r] = FireGate.NO_LOS.ordinal();
                     continue;
                 }

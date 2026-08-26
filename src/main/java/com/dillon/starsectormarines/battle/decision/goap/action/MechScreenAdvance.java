@@ -273,9 +273,7 @@ final class MechScreenAdvance {
         float dy = sim.world().y(target) - sim.world().y(member);
         if (dx * dx + dy * dy > sim.world().attackRange(member)
                 * sim.world().attackRange(member)) return;
-        if (!sim.getGrid().hasLineOfSight(
-                sim.world().cellX(member), sim.world().cellY(member),
-                sim.world().cellX(target), sim.world().cellY(target))) return;
+        if (!sim.getTacticalScoring().hasClearShot(member, target)) return;
         sim.world().setTargetId(member, target);
         sim.combat().setFireIntent(member, target, FireStance.STANCED, false);
     }
@@ -314,9 +312,7 @@ final class MechScreenAdvance {
         float dy = sim.world().y(target) - sim.world().y(mech);
         float range = sim.world().attackRange(mech);
         return dx * dx + dy * dy <= range * range
-                && sim.getGrid().hasLineOfSight(
-                sim.world().cellX(mech), sim.world().cellY(mech),
-                sim.world().cellX(target), sim.world().cellY(target));
+                && sim.getTacticalScoring().hasClearShot(mech, target);
     }
 
     private static float followLateral(int index) {

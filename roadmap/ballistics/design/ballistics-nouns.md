@@ -4,6 +4,8 @@ Status: ACTIVE — modeled ground direct fire is shipped; one manual feel pass r
 
 Written: 2026-08-23
 
+Updated: 2026-08-25 — made wall contact and direct-fire legality continuous-point traces.
+
 Ballistics makes a direct shot a committed physical event instead of an
 accuracy result applied at the muzzle. It owns contact along the predicted
 ground-flight path; it does not turn every weapon into a simulated per-tick
@@ -47,6 +49,13 @@ body, and a body contact may each stop the round only according to their own
 rules. A failed probabilistic catch lets the round continue, so a miss can
 strike a later physical body. Nothing may apply damage or presentation as if a
 later contact won over an earlier stop.
+
+Structural tracing follows the round's true source-to-aim segment through every
+grid-cell square it intersects and stops at the near wall boundary. The direct-
+fire gate uses the same exact source-to-intended-target geometry. Cached
+cell-to-cell visibility remains valid for perception, but it cannot authorize
+a shot or a firing position when the bodies' within-cell offsets put a wall on
+the physical segment.
 
 ## Cover and safety
 

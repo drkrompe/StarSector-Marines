@@ -195,6 +195,30 @@ class TacticalScoringContactPictureTest {
     }
 
     @Test
+    void publishedFiringLineRejectsCellVisiblePointOcclusion() {
+        BattleSimulation sim = openSim();
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        long member = sim.spawn(new EntitySpec("edge-marine", Faction.MARINE,
+                UnitType.MARINE, 5, 5).squad(squadId).fireTeam(0)
+                .visionRange(20f).attackRange(20f));
+        squad.leaderId = member;
+        squad.assignedObjective = ObjectiveAssignment.escort(squadId, 30, 5);
+        long enemy = sim.spawn(new EntitySpec("edge-enemy", Faction.DEFENDER,
+                UnitType.MARINE, 7, 6).visionRange(20f));
+        sim.world().setPos(member, 5.1f, 5.9f);
+        sim.world().setPos(enemy, 7.9f, 6.9f);
+        sim.getGrid().setWalkable(6, 6, false);
+
+        sim.advance(BattleSimulation.TICK_DT);
+
+        assertEquals(1, squad.contactPicture.directContactCount(),
+                "cell-projected perception still observes the enemy");
+        assertEquals(0, squad.contactPicture.primaryEngageableMembers(),
+                "the contact picture must not publish a physically blocked firing line");
+    }
+
+    @Test
     void hiddenUnrememberedHostileNeverEntersPicture() {
         BattleSimulation sim = openSim();
         Squad squad = marineSquad(sim, 4);
