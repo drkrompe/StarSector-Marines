@@ -16,6 +16,10 @@ public final class SabotageCommandDisclosure
     public SabotageCommandFrame freeze(BattleView sim, Faction perspective,
                                        CommandTopology topology,
                                        CommandAssignmentSnapshot assignments) {
+        if (perspective != Faction.MARINE) {
+            throw new IllegalArgumentException(
+                    "attacker Sabotage disclosure requires MARINE perspective");
+        }
         return SabotageCommandFrame.disclose(sim, perspective, topology,
                 assignments);
     }

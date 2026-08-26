@@ -8,6 +8,8 @@ import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.CommanderService;
 import com.dillon.starsectormarines.battle.command.SabotageCommand;
 import com.dillon.starsectormarines.battle.command.SabotageCommandDisclosure;
+import com.dillon.starsectormarines.battle.command.SabotageDefenderCommand;
+import com.dillon.starsectormarines.battle.command.SabotageDefenderCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.combat.FireGate;
 import com.dillon.starsectormarines.battle.combat.FireStance;
@@ -18,6 +20,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import org.json.JSONObject;
@@ -293,6 +296,40 @@ class SquadStateDumperTest {
         assertEquals("SECURITY", directive.getString("groupRole"));
         assertEquals("CLEAR_ZONE", directive.getString("assignmentKind"));
         assertEquals("sabotage-attacker",
+                dump.getJSONObject("commander").getString("strategy"));
+    }
+
+    @Test
+    void defenderDumpPublishesAlarmCoverageWithoutAttackerTaskFacts()
+            throws Exception {
+        BattleSimulation sim = openSim();
+        sim.addObjective(new ChargeSiteObjective(
+                20, 12, 8f, "SAB-01", "reactor"));
+        int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.MILITIA);
+        Squad squad = sim.getSquad(squadId);
+        long member = sim.spawn(new EntitySpec("security", Faction.DEFENDER,
+                UnitType.MILITIA, 3, 12).squad(squadId).role(UnitRole.PATROL));
+        squad.leaderId = member;
+        sim.setAutonomousCommander(Faction.DEFENDER,
+                new SabotageDefenderCommand(java.util.Set.of(squadId)),
+                SabotageDefenderCommandDisclosure.INSTANCE);
+        sim.advance(CommanderService.COMMANDER_TICK_PERIOD
+                + BattleSimulation.TICK_DT);
+
+        JSONObject dump = SquadStateDumper.buildSquadJson(squad, sim);
+        JSONObject defense = dump.getJSONObject("sabotageDefenseCommand");
+        JSONObject directive = defense.getJSONObject("squadDirective");
+        JSONObject site = defense.getJSONArray("sites").getJSONObject(0);
+        assertEquals("SAB-01", site.getString("id"));
+        assertEquals("QUIET", site.getBoolean("alarmActive")
+                ? "ACTIVE" : "QUIET");
+        assertEquals("ROUTINE_SECURITY", directive.getString("role"));
+        assertEquals("DEFEND_SITE", directive.getString("assignmentKind"));
+        assertFalse(site.has("progress"));
+        assertFalse(site.has("plantDuration"));
+        assertFalse(site.has("planterOnSite"));
+        assertFalse(site.has("activeKitDrops"));
+        assertEquals("sabotage-defender",
                 dump.getJSONObject("commander").getString("strategy"));
     }
 

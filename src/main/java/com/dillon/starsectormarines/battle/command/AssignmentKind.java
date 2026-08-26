@@ -17,6 +17,9 @@ package com.dillon.starsectormarines.battle.command;
  *   <li>{@link #DEFEND_TRACK} — move to a coarse, commander-selected Conquest
  *       track rally and hold for contact. The assignment carries no hostile
  *       identity or reported position.</li>
+ *   <li>{@link #DEFEND_SITE} — move to an authored Sabotage installation and
+ *       hold routine security or alarm response. The assignment names only
+ *       defender-owned geometry, never a hostile identity or position.</li>
  *   <li>{@link #ADVANCE_TRACK} — move an attacking Conquest squad to a safe
  *       staging cell behind its believed lane front. The assignment carries
  *       an own-force destination, never a hostile identity.</li>
@@ -43,6 +46,8 @@ public enum AssignmentKind {
     CLEAR_ZONE,
     SWEEP_SECTOR,
     DEFEND_TRACK,
+    /** Hold an authored Sabotage installation cell for routine security or alarm response. */
+    DEFEND_SITE,
     ADVANCE_TRACK,
     SECURE_COMPOUND,
     HOLD_NODE,
