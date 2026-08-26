@@ -298,8 +298,15 @@ class SubmodEquipmentContributionTest {
 
     private static JSONObject externalArmor() throws Exception {
         JSONObject source = read("marine-armor-catalog.armor.json");
-        JSONObject armor = new JSONObject(source.getJSONArray("armor")
-                .getJSONObject(5).toString());
+        JSONObject armor = null;
+        for (int index = 0; index < source.getJSONArray("armor").length(); index++) {
+            JSONObject candidate = source.getJSONArray("armor").getJSONObject(index);
+            if ("armor.line".equals(candidate.getString("id"))) {
+                armor = new JSONObject(candidate.toString());
+                break;
+            }
+        }
+        if (armor == null) throw new IllegalStateException("Missing core armor.line fixture");
         armor.put("id", "example.armor-ceramic");
         armor.getJSONObject("catalog").put("displayName", "Example ceramic armor");
         return new JSONObject().put("armor", new JSONArray().put(armor));

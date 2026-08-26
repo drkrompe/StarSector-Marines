@@ -1,12 +1,15 @@
 # Powered assault-armor roles
 
-Status: PLANNED — coordinates with `s6-unlock-ladder-expansion.md` and
-`target-faction-ground-rosters.md`; concealment behavior requires an explicit
-shared perception contract.
+Status: PARTIALLY SHIPPED — the cross-faction line/heavy pattern catalog, bounded
+stat side-grades, acquisition sources, and tiered built-in doctrine matrix are live.
+Explicit role/provenance fields, comparison presentation, defender adoption, and
+concealment still coordinate with `s6-unlock-ladder-expansion.md` and
+`target-faction-ground-rosters.md`; concealment behavior requires an explicit shared
+perception contract.
 
 Written: 2026-08-24
 
-Updated: 2026-08-26 — routed armor provenance and faction treatment through the enduring lore guide catalog.
+Updated: 2026-08-26 — shipped the faction side-grade catalog and nineteen-card doctrine ladder.
 
 Read `progression-nouns.md`, `combat-durability-nouns.md`, `mechs-nouns.md`,
 and `faction-lore-nouns.md` before implementing this story.
@@ -43,11 +46,12 @@ experience.
 | Standard line combat | Pressurized powered armor for hazardous worlds, hard-vacuum actions, and sustained infantry fighting | Middle protection and mobility baseline; recoil assistance, tactical relay, and jump-assist language do not create free weapon, command, or traversal bonuses |
 | Heavy mechanized battlesuit | A one-person walking tank for breach and frontline assault | Highest infantry armor pool/rating and clearest movement/handling cost; remains infantry rather than a light mech |
 
-`ARMORLESS` is an unpowered field kit, not a fourth powered role. For the first
-migration, `BLUE_SCOUT`, `MILITIA`, and `OUTLAW` are light patterns;
-`CHARCOAL` and `ARMY_GREEN` are line patterns; and `RED_ELITE` is a heavy
-battlesuit. The mapping is explicit saved-data interpretation, not permission
-to infer role forever from tier or enum ordinal.
+`ARMORLESS` is an unpowered field kit, not a fourth powered role. The compatibility
+patterns `BLUE_SCOUT`, `MILITIA`, and `OUTLAW` are light; `CHARCOAL` and
+`ARMY_GREEN` are line; and `RED_ELITE` is heavy. Additive line patterns are Aegis,
+Palatine, Furnace, and Reaver; additive heavy patterns are Specter, Bulwark,
+Reliquary, Lion's Mantle, and Foundry-breaker. The mapping is explicit catalog
+interpretation, not permission to infer role forever from tier or enum ordinal.
 
 Role is deliberately not quality. Future masterwork recon armor can remain
 light, and a welded industrial exosuit can remain heavy while being unreliable
@@ -77,6 +81,23 @@ when a typed capability and its owning battle system implement it. Finite stim
 utility belongs to `s2f-combat-stim-injectors.md`; neural/HUD integration is
 provenance and presentation until a dedicated interface story names a
 non-duplicative mechanic.
+
+## Shipped doctrine matrix
+
+The first live breadth pass contains nineteen deterministic twelve-billet armor
+cards: one tier-I unpowered baseline and six faction-authored alternatives in each
+of tiers II, III, and IV. A doctrine tier is expected squad capability, not the
+maximum catalog tier of any single leader's suit; this permits auxiliary schedules
+to mix a few institutional shells into common security protection without pretending
+the whole formation is line infantry.
+
+Within a peer band, mechanics follow provenance through concrete pattern stats.
+Hegemony favors pool/rating and accepts slower, easier targets. Tri-Tachyon gives up
+raw plate for speed and reduced incoming accuracy. League patterns occupy the
+balanced center. Church and Knight suits emphasize rating with a mobility penalty.
+Diktat and Lion's Guard suits emphasize pool while remaining conspicuous. Outlaw
+patterns use very high crude pool, weak rating, and worsening handling as weight
+rises. No doctrine applies a faction-wide multiplier after issue.
 
 ## Data and authority
 
