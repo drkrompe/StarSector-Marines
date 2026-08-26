@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
-import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -78,7 +77,7 @@ class MechVariantTest {
         assertEquals(45f, MechWeapon.HEAVY_CANNON.damage(), 0.001f);
         assertEquals(18f, MechWeapon.HEAVY_CANNON.penetration(), 0.001f);
         assertEquals(26f, MechWeapon.HEAVY_CANNON.range(), 0.001f);
-        assertSame(ImpactProfile.CANNON_HE, MechWeapon.HEAVY_CANNON.impactProfile());
+        assertTrue(MechWeapon.HEAVY_CANNON.def().fx.hasHeavyImpact());
         assertEquals(1f, MechWeapon.HEAVY_CANNON.aoeRadius(), 0.001f);
         assertEquals(18, MechWeapon.HEAVY_CANNON.wallDamage());
         assertEquals("graphics/missiles/shell_hellbore.png",

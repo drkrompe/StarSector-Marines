@@ -1,9 +1,13 @@
 package com.dillon.starsectormarines.battle.weapon.fx;
 
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -85,6 +89,47 @@ class WeaponFxDefTest {
     }
 
     @Test
+    void installedCatalogsAuthorEveryImpactAndPreserveCanonicalLayerOrder() throws Exception {
+        WeaponRegistry registry = new WeaponRegistry();
+        for (String path : WeaponRegistry.BUILTIN_CATALOGS) {
+            registry.ingest(new JSONObject(Files.readString(Path.of("mod", path))));
+        }
+
+        assertEquals(22, registry.size());
+        FxCompositionContext context = new FxCompositionContext(3f, 5f, 0f, false, 7f);
+        for (WeaponDef weapon : registry.all()) {
+            assertFalse(weapon.fx.layers(FxSlot.IMPACT).isEmpty(), weapon.id);
+            assertEquals(WeaponFxComposer.compose(weapon.fx, FxSlot.IMPACT, context),
+                    WeaponFxComposer.compose(weapon.fx, FxSlot.IMPACT, context), weapon.id);
+        }
+
+        assertKinds(registry.get("weapon.field-rifle").fx,
+                FxLayerKind.GLOW, FxLayerKind.DUST);
+        assertKinds(registry.get("weapon.dmr").fx,
+                FxLayerKind.GLOW, FxLayerKind.DUST, FxLayerKind.SMOKE);
+        assertKinds(registry.get("weapon.frag-grenade").fx,
+                FxLayerKind.GLOW, FxLayerKind.FIRE, FxLayerKind.SMOKE, FxLayerKind.DUST);
+        assertKinds(registry.get("weapon.mech-heavy-cannon").fx,
+                FxLayerKind.GLOW, FxLayerKind.EXPLOSION, FxLayerKind.RING,
+                FxLayerKind.FIRE, FxLayerKind.SMOKE, FxLayerKind.DUST);
+
+        FxLayerDef rifleGlow = registry.get("weapon.field-rifle").fx
+                .layers(FxSlot.IMPACT).get(0);
+        assertEquals(new FxFloatRange(.28f, .28f), rifleGlow.radius());
+        assertEquals(new FxFloatRange(.10f, .10f), rifleGlow.lifetime());
+        FxLayerDef kineticSmoke = registry.get("weapon.dmr").fx
+                .layers(FxSlot.IMPACT).get(2);
+        assertEquals(new FxFloatRange(.35f, .35f), kineticSmoke.radius());
+        assertEquals(new FxFloatRange(.70f, .70f), kineticSmoke.lifetime());
+        FxLayerDef heSmoke = registry.get("weapon.frag-grenade").fx
+                .layers(FxSlot.IMPACT).get(2);
+        assertEquals(new FxFloatRange(.55f, .80f), heSmoke.radius());
+        assertEquals(new FxFloatRange(1.10f, 1.50f), heSmoke.lifetime());
+        assertEquals(new FxIntRange(2, 3), heSmoke.count());
+        assertEquals(.45f, heSmoke.jitter(), .0001f);
+    }
+
+    @Test
     void dustResolvesSurfaceTintBeforeReachingABackend() throws Exception {
         WeaponFxDef fx = WeaponFxDef.parse("fx.dust", new JSONObject("""
                 {"impact":[{"kind":"dust", "radius":0.4, "lifetime":0.2}]}
@@ -121,5 +166,11 @@ class WeaponFxDefTest {
         JSONException error = assertThrows(JSONException.class,
                 () -> WeaponFxDef.parse("fx.bad", new JSONObject(json)));
         assertTrue(error.getMessage().contains(messageFragment), error.getMessage());
+    }
+
+    private static void assertKinds(WeaponFxDef fx, FxLayerKind... expected) {
+        assertEquals(List.of(expected), fx.layers(FxSlot.IMPACT).stream()
+                .map(FxLayerDef::kind)
+                .toList());
     }
 }

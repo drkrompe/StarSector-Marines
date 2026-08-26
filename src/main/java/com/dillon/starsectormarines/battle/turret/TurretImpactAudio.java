@@ -1,7 +1,5 @@
 package com.dillon.starsectormarines.battle.turret;
 
-import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
-
 /** Shared authored-sound selection for turret projectile arrivals. */
 public final class TurretImpactAudio {
 
@@ -12,10 +10,10 @@ public final class TurretImpactAudio {
         if (turret == null) return null;
         String soundId = turret.impactSoundId();
         if (soundId == null) {
-            if (!turret.impactProfile().explosive()) return null;
+            if (!turret.fx().hasExplosiveImpact()) return null;
             soundId = explosiveFallback;
         }
-        float volume = turret.impactProfile() == ImpactProfile.CANNON_HE ? 0.82f : 0.55f;
+        float volume = turret.fx().hasHeavyImpact() ? 0.82f : 0.55f;
         return new Cue(soundId, volume);
     }
 

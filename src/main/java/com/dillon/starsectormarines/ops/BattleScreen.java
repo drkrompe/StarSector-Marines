@@ -39,11 +39,10 @@ import com.dillon.starsectormarines.battle.ui.highlight.SelectionHighlightPublis
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.ui.picking.WorldPicker;
 import com.dillon.starsectormarines.battle.mech.MechFamilyDebugSpawner;
-import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactDecals;
-import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 import com.dillon.starsectormarines.battle.turret.TurretImpactAudio;
-import com.dillon.starsectormarines.battle.weapon.fx.TurretFxRuntime;
+import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxDef;
+import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxRuntime;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.i18n.Strings;
@@ -846,47 +845,24 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (s.specialEquipmentDef == null && s.turretKind == null) {
                 ImpactDecals.spawnShellCasing(sim, rng, s.fromX, s.fromY);
             }
-            // Mech chaingun particle muzzle flash — bright additive pop at
-            // the shooter's cell, sized to read over the mech sprite. Only
-            // the chaingun gets one; rockets are tube-launched and the
-            // launch animation is already the projectile sprite leaving
-            // the mount.
-            if (s.mechWeapon == MechWeapon.CHAINGUN) {
-                renderer.getImpactFx().spawnMuzzleFlash(s.fromX, s.fromY, 0.55f, 0.08f);
-            }
-            if (s.turretKind != null) {
-                TurretFxRuntime.spawnMuzzle(renderer.getImpactFx(), s);
-            } else if (s.impactProfile() == ImpactProfile.CANNON_HE) {
-                renderer.getImpactFx().spawnCannonMuzzleBlast(
-                        s.fromX, s.fromY, bearingDeg(s.fromX, s.fromY, s.toX, s.toY));
-            }
+            WeaponFxRuntime.spawnMuzzle(renderer.getImpactFx(), s);
             // Line tracers (no projectile sprite) land their impact instantly;
             // projectile-sprite shots defer it to arrival (handled below).
             if (ShotFx.of(s).travels()) continue;
             if (!s.impacts()) continue;
             boolean isWall = isWallAt(grid, s.toX, s.toY);
-            ImpactProfile profile = s.impactProfile();
-            if (s.turretKind != null) {
-                TurretFxRuntime.spawnImpactAndAftermath(renderer.getImpactFx(), s, isWall);
-            } else {
-                renderer.getImpactFx().spawnImpact(profile, s.toX, s.visualToY(), isWall);
-            }
-            renderer.getGroundLights().spawnImpact(profile, s.toX, s.visualToY());
-            ImpactDecals.spawnImpact(sim, rng, profile, s.toX, s.toY, isWall);
+            WeaponFxDef fx = WeaponFxRuntime.definition(s);
+            WeaponFxRuntime.spawnImpactAndAftermath(renderer.getImpactFx(), s, isWall);
+            renderer.getGroundLights().spawnImpact(fx, s.toX, s.visualToY());
+            ImpactDecals.spawnWeaponImpact(sim, rng, fx, s.toX, s.toY, isWall);
         }
         for (ShotEvent s : sim.getShotsExpiredThisFrame()) {
             if (!ShotFx.of(s).travels()) continue;
             if (!s.impacts()) continue;
             boolean isWall = isWallAt(grid, s.toX, s.toY);
-            ImpactProfile profile;
+            WeaponFxDef fx = WeaponFxRuntime.definition(s);
+            WeaponFxRuntime.spawnImpactAndAftermath(renderer.getImpactFx(), s, isWall);
             if (s.turretKind != null) {
-                profile = s.turretKind.impactProfile();
-                TurretFxRuntime.spawnImpactAndAftermath(renderer.getImpactFx(), s, isWall);
-                // Any HE-profile turret round (mortar, grenade launcher,
-                // LOCUST artillery) pairs the flame plume with the explosion
-                // clip — matches the mech HE branch below. Previously gated
-                // on HEAVY_MORTAR only, so LOCUST salvos landed silently
-                // despite spawning a full HE detonation visual.
                 TurretImpactAudio.Cue cue = TurretImpactAudio.resolve(
                         s.turretKind, SFX_NEAR_EXPLOSION);
                 if (cue != null) {
@@ -898,8 +874,6 @@ public class BattleScreen implements Screen, BattleUiContext {
                             cue.soundId(), pitch, cue.volume(), loc, zeroVel);
                 }
             } else if (s.specialEquipmentDef != null) {
-                profile = s.specialEquipmentDef.impactProfile();
-                renderer.getImpactFx().spawnImpact(profile, s.toX, s.visualToY(), isWall);
                 float pitch = 0.9f + rng.nextFloat() * 0.2f;
                 Vector2f loc = new Vector2f(
                         s.toX * AUDIO_WORLD_UNITS_PER_CELL,
@@ -908,28 +882,18 @@ public class BattleScreen implements Screen, BattleUiContext {
                     Global.getSoundPlayer().playSound(s.specialEquipmentDef.impactSoundId(),
                             pitch, 0.70f, loc, zeroVel);
                 }
-            } else if (s.primaryWeaponDef != null) {
-                profile = s.primaryWeaponDef.impactProfile;
-                renderer.getImpactFx().spawnImpact(profile, s.toX, s.visualToY(), isWall);
             } else if (s.mechWeapon != null) {
-                // Mech rounds — HE entries (SRM, LRM) also play the explosion
-                // clip on arrival; chainguns are kinetic, no extra audio (the
-                // burst itself is loud enough at fire time).
-                profile = s.mechWeapon.impactProfile();
-                renderer.getImpactFx().spawnImpact(profile, s.toX, s.visualToY(), isWall);
-                if (profile.explosive()) {
+                if (fx.hasExplosiveImpact()) {
                     float pitch = 0.9f + rng.nextFloat() * 0.2f;
                     Vector2f loc = new Vector2f(
                             s.toX * AUDIO_WORLD_UNITS_PER_CELL,
                             s.toY * AUDIO_WORLD_UNITS_PER_CELL);
-                    float volume = profile == ImpactProfile.CANNON_HE ? 0.86f : 0.65f;
+                    float volume = fx.hasHeavyImpact() ? 0.86f : 0.65f;
                     Global.getSoundPlayer().playSound(SFX_NEAR_EXPLOSION, pitch, volume, loc, zeroVel);
                 }
-            } else {
-                profile = ImpactProfile.RIFLE;
             }
-            ImpactDecals.spawnImpact(sim, rng, profile, s.toX, s.toY, isWall);
-            renderer.getGroundLights().spawnImpact(profile, s.toX, s.visualToY());
+            ImpactDecals.spawnWeaponImpact(sim, rng, fx, s.toX, s.toY, isWall);
+            renderer.getGroundLights().spawnImpact(fx, s.toX, s.visualToY());
         }
     }
 
@@ -1187,14 +1151,6 @@ public class BattleScreen implements Screen, BattleUiContext {
     }
 
     // ---- rendering (world-layer methods moved to BattleRenderer) -----------
-
-    /** Starsector sprite-angle convention: 0° = +Y (north), positive clockwise. Used by spawnImpactFx. */
-    private static float bearingDeg(float fromX, float fromY, float toX, float toY) {
-        float dx = toX - fromX;
-        float dy = toY - fromY;
-        if (dx == 0f && dy == 0f) return 0f;
-        return (float) Math.toDegrees(Math.atan2(dy, dx)) - 90f;
-    }
 
     /**
      * Lerps each building's {@code currentAlpha → targetAlpha} on real dt so

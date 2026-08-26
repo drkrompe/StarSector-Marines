@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.turret;
 
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
-import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -13,6 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Coverage for {@link TurretBehavior}'s ferry between a turret's
@@ -90,7 +90,7 @@ public class TurretBehaviorTest {
         assertEquals(1.6f, cannon.aoeRadius(), 0f);
         assertEquals(30, cannon.wallDamage());
         assertEquals(1.25f, cannon.wallDamageRadius(), 0f);
-        assertSame(ImpactProfile.CANNON_HE, cannon.impactProfile());
+        assertTrue(cannon.fx().hasHeavyImpact());
         assertEquals(1, cannon.burstCount());
     }
 
@@ -109,7 +109,7 @@ public class TurretBehaviorTest {
         assertEquals(1, sim.getShotsThisFrame().size());
         ShotEvent shot = sim.getShotsThisFrame().get(0);
         assertSame(TurretKind.HEPHAESTUS, shot.turretKind);
-        assertSame(ImpactProfile.CANNON_HE, shot.impactProfile());
+        assertTrue(shot.weaponDef().fx.hasHeavyImpact());
         assertEquals(1, sim.getInflightDetonations().size(),
                 "single-shot cannon must queue its timed area payload through the turret fire path");
         PendingDetonation blast = sim.getInflightDetonations().get(0);

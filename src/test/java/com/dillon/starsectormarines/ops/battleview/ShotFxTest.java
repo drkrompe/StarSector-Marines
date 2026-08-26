@@ -75,16 +75,15 @@ public class ShotFxTest {
             assertEquals(k.projectileVisualCells(), body.visualCells(), 0f, "visualCells for " + k);
             assertEquals(k.arcHeight(), fx.arcHeight(), 0f, "arcHeight for " + k);
             assertEquals(k.hasBoostRamp(), fx.boostRamp(), "boostRamp for " + k);
-            assertFalse(fx.engineTrail(), "turrets carry no engine trail: " + k);
             assertTrue(fx.travels(), "turret body travels: " + k);
+            assertFalse(k.fx().layers(FxSlot.IMPACT).isEmpty(),
+                    "turret impact particles are authored: " + k);
 
             if (k == TurretKind.LOCUST) {
                 assertSame(ContrailStyle.MISSILE_SMOKE, fx.contrail());
             } else {
                 assertNull(fx.contrail(), "non-missile turret contrail: " + k);
             }
-            assertEquals(k.smokeTrail(), fx.smokeTrail(),
-                    "compatibility smoke-puff flag for " + k);
         }
     }
 
@@ -94,7 +93,6 @@ public class ShotFxTest {
         assertTrue(fx.boostRamp(), "Locust boosts");
         assertSame(ContrailStyle.MISSILE_SMOKE, fx.contrail(),
                 "Locust weapon data selects its widening missile ribbon");
-        assertFalse(fx.smokeTrail(), "Locust trail is not the compatibility puff");
         assertFalse(TurretKind.LOCUST.fx().layers(FxSlot.LAUNCH).isEmpty(),
                 "Locust authored data owns its directional launch backblast");
         assertFalse(TurretKind.LOCUST.fx().layers(FxSlot.TRAIL).isEmpty(),
@@ -193,23 +191,24 @@ public class ShotFxTest {
             assertTrue(fx.travels(), "secondary body travels: " + w);
             assertEquals(w.arcHeight(), fx.arcHeight(), 0f, "arcHeight for " + w);
             assertEquals(w.def().boostRamp, fx.boostRamp(), "boostRamp for " + w);
-            assertFalse(fx.engineTrail());
-            assertFalse(fx.smokeTrail(), "ribbon replaces discrete smoke puffs");
+            assertTrue(w.def().fx.layers(FxSlot.TRAIL).isEmpty(),
+                    "secondary trail remains represented by its contrail ribbon");
         }
     }
 
     @Test
-    public void mechWeaponsAreSpritesCarryingArcAndEngineTrail() {
+    public void mechWeaponsAreSpritesCarryingArcAndAuthoredTrails() {
         for (MechWeapon w : MechWeapon.values()) {
             ShotFx fx = ShotFx.of(shot(null, null, null, w));
             Sprite body = assertSprite(fx, "mech " + w);
             assertEquals(w.projectileSpritePath(), body.spritePath(), "sprite path for " + w);
             assertEquals(w.projectileVisualCells(), body.visualCells(), 0f, "visualCells for " + w);
             assertEquals(w.arcHeight(), fx.arcHeight(), 0f, "arcHeight for " + w);
-            assertEquals(w.engineTrail(), fx.engineTrail(), "engineTrail for " + w);
+            boolean expectedTrail = w == MechWeapon.SRM_POD || w == MechWeapon.LRM_ARTILLERY;
+            assertEquals(expectedTrail, !w.def().fx.layers(FxSlot.TRAIL).isEmpty(),
+                    "authored trail for " + w);
             assertTrue(fx.travels(), "mech body travels: " + w);
             assertFalse(fx.boostRamp(), "mech weapons don't boost-ramp: " + w);
-            assertFalse(fx.smokeTrail(), "mech weapons carry no smoke puff: " + w);
             assertNull(fx.contrail(), "mech weapons carry no contrail ribbon: " + w);
         }
     }
@@ -224,8 +223,6 @@ public class ShotFxTest {
     private static void assertNoTrailsArcOrContrail(ShotFx fx) {
         assertEquals(0f, fx.arcHeight(), 0f);
         assertFalse(fx.boostRamp());
-        assertFalse(fx.engineTrail());
-        assertFalse(fx.smokeTrail());
         assertNull(fx.contrail());
     }
 }

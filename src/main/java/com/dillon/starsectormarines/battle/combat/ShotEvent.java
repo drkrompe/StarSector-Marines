@@ -6,7 +6,6 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.mech.MechWeapon;
-import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.marine.SpecialActivation;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
@@ -259,10 +258,17 @@ public class ShotEvent {
         if (specialEquipmentDef != null) return 2.5f;
         if (mechWeapon != null) return Math.min(4f, 2f + mechWeapon.aoeRadius());
         if (turretKind != null) return Math.min(4f, 1.5f + turretKind.aoeRadius());
-        if (primaryWeaponDef != null && primaryWeaponDef.impactProfile == ImpactProfile.KINETIC) {
-            return 1.4f;
-        }
+        if (primaryWeaponDef != null) return primaryWeaponDef.noiseMagnitude;
         return 1f;
+    }
+
+    /** Authoritative weapon definition independent of the carrier compatibility handle. */
+    public WeaponDef weaponDef() {
+        if (turretKind != null) return turretKind.weapon();
+        if (specialEquipmentDef != null) return specialEquipmentDef.weaponDef();
+        if (primaryWeaponDef != null) return primaryWeaponDef;
+        if (mechWeapon != null) return mechWeapon.def();
+        return null;
     }
 
     /** Screen-space map Y after applying the lightweight elevation offset. */
@@ -280,12 +286,4 @@ public class ShotEvent {
         return stopKind != BallisticResolver.StopKind.OVERSHOOT;
     }
 
-    /** Carrier-agnostic presentation class for muzzle, impact, light, decal, and audio recipes. */
-    public ImpactProfile impactProfile() {
-        if (turretKind != null) return turretKind.impactProfile();
-        if (specialEquipmentDef != null) return specialEquipmentDef.impactProfile();
-        if (primaryWeaponDef != null) return primaryWeaponDef.impactProfile;
-        if (mechWeapon != null) return mechWeapon.impactProfile();
-        return ImpactProfile.RIFLE;
-    }
 }

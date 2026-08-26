@@ -26,9 +26,14 @@
       "render": {
         "heldSpriteFamily": "RIFLE",
         "tracerColor": "FFD088",
-        "impact": "rifle",
         "projectileSprite": "graphics/missiles/shell_small_yellow.png",
         "projectileVisualCells": 0.18
+      },
+      "fx": {
+        "impact": [
+          { "kind": "glow", "radius": 0.28, "lifetime": 0.10, "color": "FFE080" },
+          { "kind": "dust", "radius": 0.22, "lifetime": 0.18 }
+        ]
       },
       "audio": { "fireSound": "light_autocannon_fire" }
     },
@@ -58,9 +63,14 @@
       "render": {
         "heldSpriteFamily": "LASER_GUN",
         "tracerColor": "80FF80",
-        "impact": "rifle",
         "projectileSprite": null,
         "projectileVisualCells": 0.0
+      },
+      "fx": {
+        "impact": [
+          { "kind": "glow", "radius": 0.28, "lifetime": 0.10, "color": "FFE080" },
+          { "kind": "dust", "radius": 0.22, "lifetime": 0.18 }
+        ]
       },
       "audio": { "fireSound": "pulse_laser_fire" }
     },
@@ -91,9 +101,14 @@
       "render": {
         "heldSpriteFamily": "SMG",
         "tracerColor": "FFE8C0",
-        "impact": "rifle",
         "projectileSprite": "graphics/missiles/shell_small_yellow.png",
         "projectileVisualCells": 0.15
+      },
+      "fx": {
+        "impact": [
+          { "kind": "glow", "radius": 0.28, "lifetime": 0.10, "color": "FFE080" },
+          { "kind": "dust", "radius": 0.22, "lifetime": 0.18 }
+        ]
       },
       "audio": { "fireSound": "light_machinegun_fire" }
     },
@@ -124,9 +139,14 @@
       "render": {
         "heldSpriteFamily": "RIFLE",
         "tracerColor": "FFD6A0",
-        "impact": "rifle",
         "projectileSprite": "graphics/missiles/shell_small_yellow.png",
         "projectileVisualCells": 0.16
+      },
+      "fx": {
+        "impact": [
+          { "kind": "glow", "radius": 0.28, "lifetime": 0.10, "color": "FFE080" },
+          { "kind": "dust", "radius": 0.22, "lifetime": 0.18 }
+        ]
       },
       "audio": { "fireSound": "light_machinegun_fire" }
     },
@@ -151,14 +171,21 @@
         "burstSpacing": 0.0,
         "accuracyFalloff": 0.10,
         "hitSpread": 0.15,
-        "roundVelocity": 110.0
+        "roundVelocity": 110.0,
+        "noiseMagnitude": 1.4
       },
       "render": {
         "heldSpriteFamily": "DMR",
         "tracerColor": "E0F0FF",
-        "impact": "kinetic",
         "projectileSprite": null,
         "projectileVisualCells": 0.0
+      },
+      "fx": {
+        "impact": [
+          { "kind": "glow", "radius": 0.42, "lifetime": 0.14, "color": "FFC860" },
+          { "kind": "dust", "radius": 0.32, "lifetime": 0.28 },
+          { "kind": "smoke", "radius": 0.35, "lifetime": 0.70 }
+        ]
       },
       "audio": { "fireSound": "railgun_fire" }
     },
@@ -188,9 +215,14 @@
       "render": {
         "heldSpriteFamily": "LASER_GUN",
         "tracerColor": "60CFFF",
-        "impact": "rifle",
         "projectileSprite": null,
         "projectileVisualCells": 0.0
+      },
+      "fx": {
+        "impact": [
+          { "kind": "glow", "radius": 0.28, "lifetime": 0.10, "color": "FFE080" },
+          { "kind": "dust", "radius": 0.22, "lifetime": 0.18 }
+        ]
       },
       "audio": { "fireSound": "pulse_laser_fire" }
     },
@@ -219,9 +251,18 @@
       },
       "render": {
         "tracerColor": "FFE8C0",
-        "impact": "kinetic",
         "projectileSprite": "graphics/missiles/shell_small_yellow.png",
         "projectileVisualCells": 0.18
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.55, "lifetime": 0.08, "color": "FFE080" }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.42, "lifetime": 0.14, "color": "FFC860" },
+          { "kind": "dust", "radius": 0.32, "lifetime": 0.28 },
+          { "kind": "smoke", "radius": 0.35, "lifetime": 0.70 }
+        ]
       },
       "audio": { "fireSound": "chaingun_fire" }
     },
@@ -250,9 +291,15 @@
       },
       "render": {
         "tracerColor": "B8E8FF",
-        "impact": "kinetic",
         "projectileSprite": "graphics/missiles/shell_large_blue.png",
         "projectileVisualCells": 0.20
+      },
+      "fx": {
+        "impact": [
+          { "kind": "glow", "radius": 0.42, "lifetime": 0.14, "color": "FFC860" },
+          { "kind": "dust", "radius": 0.32, "lifetime": 0.28 },
+          { "kind": "smoke", "radius": 0.35, "lifetime": 0.70 }
+        ]
       },
       "audio": { "fireSound": "needler_fire" }
     },
@@ -280,9 +327,23 @@
       },
       "render": {
         "tracerColor": "FFD088",
-        "impact": "cannon-he",
         "projectileSprite": "graphics/missiles/shell_hellbore.png",
         "projectileVisualCells": 0.34
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.82, "lifetime": 0.11, "color": "FFE080" },
+          { "kind": "fire", "radius": 0.42, "lifetime": 0.28 },
+          { "kind": "smoke", "radius": [0.30, 0.42], "lifetime": [0.65, 0.95], "count": 2, "jitter": 0.18 }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 1.05, "lifetime": 0.18, "color": "FFE080" },
+          { "kind": "explosion", "radius": 0.72, "lifetime": 0.42 },
+          { "kind": "ring", "radius": 0.48, "lifetime": 0.34 },
+          { "kind": "fire", "radius": 0.80, "lifetime": 0.62 },
+          { "kind": "smoke", "radius": [0.65, 1.00], "lifetime": [1.25, 1.80], "count": [4, 6], "jitter": 0.75 },
+          { "kind": "dust", "radius": 0.90, "lifetime": 0.46 }
+        ]
       },
       "audio": { "fireSound": "hellbore_fire" }
     },
@@ -313,10 +374,19 @@
       },
       "render": {
         "tracerColor": "FFC080",
-        "impact": "he",
         "projectileSprite": "graphics/missiles/missile_SRM.png",
-        "projectileVisualCells": 0.40,
-        "engineTrail": true
+        "projectileVisualCells": 0.40
+      },
+      "fx": {
+        "trail": [
+          { "kind": "glow", "radius": 0.18, "lifetime": 0.25, "color": "FF9040" }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.70, "lifetime": 0.16, "color": "FFE080" },
+          { "kind": "fire", "radius": 0.55, "lifetime": 0.45 },
+          { "kind": "smoke", "radius": [0.55, 0.80], "lifetime": [1.10, 1.50], "count": [2, 3], "jitter": 0.45 },
+          { "kind": "dust", "radius": 0.55, "lifetime": 0.32 }
+        ]
       },
       "audio": { "fireSound": "annihilator_fire" }
     },
@@ -351,10 +421,19 @@
       },
       "render": {
         "tracerColor": "C8D8FF",
-        "impact": "he",
         "projectileSprite": "graphics/missiles/missile_LRM.png",
-        "projectileVisualCells": 0.65,
-        "engineTrail": true
+        "projectileVisualCells": 0.65
+      },
+      "fx": {
+        "trail": [
+          { "kind": "glow", "radius": 0.18, "lifetime": 0.25, "color": "FF9040" }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.70, "lifetime": 0.16, "color": "FFE080" },
+          { "kind": "fire", "radius": 0.55, "lifetime": 0.45 },
+          { "kind": "smoke", "radius": [0.55, 0.80], "lifetime": [1.10, 1.50], "count": [2, 3], "jitter": 0.45 },
+          { "kind": "dust", "radius": 0.55, "lifetime": 0.32 }
+        ]
       },
       "audio": { "fireSound": "pilum_lrm_fire" }
     },
@@ -382,9 +461,16 @@
       },
       "render": {
         "tracerColor": "FFC080",
-        "impact": "he",
         "projectileSprite": "graphics/missiles/missile_annihilator.png",
         "projectileVisualCells": 0.5
+      },
+      "fx": {
+        "impact": [
+          { "kind": "glow", "radius": 0.70, "lifetime": 0.16, "color": "FFE080" },
+          { "kind": "fire", "radius": 0.55, "lifetime": 0.45 },
+          { "kind": "smoke", "radius": [0.55, 0.80], "lifetime": [1.10, 1.50], "count": [2, 3], "jitter": 0.45 },
+          { "kind": "dust", "radius": 0.55, "lifetime": 0.32 }
+        ]
       },
       "audio": {
         "fireSound": "annihilator_fire",
@@ -418,9 +504,16 @@
       },
       "render": {
         "tracerColor": "D8A66A",
-        "impact": "he",
         "projectileSprite": "graphics/ui/armory/special-frag-grenade.png",
         "projectileVisualCells": 0.34
+      },
+      "fx": {
+        "impact": [
+          { "kind": "glow", "radius": 0.70, "lifetime": 0.16, "color": "FFE080" },
+          { "kind": "fire", "radius": 0.55, "lifetime": 0.45 },
+          { "kind": "smoke", "radius": [0.55, 0.80], "lifetime": [1.10, 1.50], "count": [2, 3], "jitter": 0.45 },
+          { "kind": "dust", "radius": 0.55, "lifetime": 0.32 }
+        ]
       },
       "audio": {
         "impactSound": "marines_explosion"
@@ -449,9 +542,15 @@
       },
       "render": {
         "tracerColor": "D8F4FF",
-        "impact": "kinetic",
         "projectileSprite": null,
         "projectileVisualCells": 0.0
+      },
+      "fx": {
+        "impact": [
+          { "kind": "glow", "radius": 0.42, "lifetime": 0.14, "color": "FFC860" },
+          { "kind": "dust", "radius": 0.32, "lifetime": 0.28 },
+          { "kind": "smoke", "radius": 0.35, "lifetime": 0.70 }
+        ]
       },
       "audio": {
         "fireSound": "gauss_cannon_fire"

@@ -4,10 +4,9 @@ import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.battle.audio.BattleRadioChatter;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.fx.ImpactFx;
-import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 import com.dillon.starsectormarines.battle.turret.TurretImpactAudio;
-import com.dillon.starsectormarines.battle.weapon.fx.TurretFxRuntime;
-import com.dillon.starsectormarines.battle.mech.MechWeapon;
+import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxDef;
+import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxRuntime;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import it.unimi.dsi.fastutil.longs.LongList;
@@ -106,25 +105,11 @@ public final class GroundSimPresentation {
      *  muzzle/backblast flourishes. Traveling bodies defer their impact to arrival. */
     private void spawnFireFx(ImpactFx fx, BattleSimulation sim, NavigationGrid grid) {
         for (ShotEvent s : sim.getShotsThisFrame()) {
-            if (s.mechWeapon == MechWeapon.CHAINGUN) {
-                fx.spawnMuzzleFlash(s.fromX, s.fromY, 0.55f, 0.08f);
-            }
-            if (s.turretKind != null) {
-                TurretFxRuntime.spawnMuzzle(fx, s);
-            } else if (s.impactProfile() == ImpactProfile.CANNON_HE) {
-                fx.spawnCannonMuzzleBlast(
-                        s.fromX, s.fromY, bearingDeg(s.fromX, s.fromY, s.toX, s.toY));
-            }
+            WeaponFxRuntime.spawnMuzzle(fx, s);
             if (ShotFx.of(s).travels()) continue;
             if (!s.impacts()) continue;
-            if (s.turretKind != null) {
-                TurretFxRuntime.spawnImpactAndAftermath(
-                        fx, s, isWallAt(grid, s.toX, s.toY));
-            } else {
-                ImpactProfile profile = s.primaryWeaponDef != null
-                        ? s.primaryWeaponDef.impactProfile : ImpactProfile.RIFLE;
-                fx.spawnImpact(profile, s.toX, s.visualToY(), isWallAt(grid, s.toX, s.toY));
-            }
+            WeaponFxRuntime.spawnImpactAndAftermath(
+                    fx, s, isWallAt(grid, s.toX, s.toY));
         }
     }
 
@@ -135,9 +120,9 @@ public final class GroundSimPresentation {
             if (!ShotFx.of(s).travels()) continue;
             if (!s.impacts()) continue;
             boolean isWall = isWallAt(grid, s.toX, s.toY);
+            WeaponFxDef weaponFx = WeaponFxRuntime.definition(s);
+            WeaponFxRuntime.spawnImpactAndAftermath(fx, s, isWall);
             if (s.turretKind != null) {
-                ImpactProfile profile = s.turretKind.impactProfile();
-                TurretFxRuntime.spawnImpactAndAftermath(fx, s, isWall);
                 TurretImpactAudio.Cue cue = TurretImpactAudio.resolve(
                         s.turretKind, SFX_NEAR_EXPLOSION);
                 if (cue != null) {
@@ -145,19 +130,14 @@ public final class GroundSimPresentation {
                     playAtCell(cue.soundId(), pitch, cue.volume(), s.toX, s.toY);
                 }
             } else if (s.specialEquipmentDef != null) {
-                fx.spawnImpact(s.specialEquipmentDef.impactProfile(), s.toX, s.visualToY(), isWall);
                 if (s.specialEquipmentDef.impactSoundId() != null) {
                     playAtCell(s.specialEquipmentDef.impactSoundId(),
                             0.9f + rng.nextFloat() * 0.2f, 0.70f, s.toX, s.toY);
                 }
-            } else if (s.primaryWeaponDef != null) {
-                fx.spawnImpact(s.primaryWeaponDef.impactProfile, s.toX, s.visualToY(), isWall);
             } else if (s.mechWeapon != null) {
-                ImpactProfile profile = s.mechWeapon.impactProfile();
-                fx.spawnImpact(profile, s.toX, s.visualToY(), isWall);
-                if (profile.explosive()) {
+                if (weaponFx.hasExplosiveImpact()) {
                     playExplosion(s.toX, s.toY,
-                            profile == ImpactProfile.CANNON_HE ? 0.86f : 0.65f, rng);
+                            weaponFx.hasHeavyImpact() ? 0.86f : 0.65f, rng);
                 }
             }
         }
@@ -243,10 +223,4 @@ public final class GroundSimPresentation {
     }
 
     /** Starsector sprite-angle convention: 0° = +Y (north), positive clockwise. */
-    private static float bearingDeg(float fromX, float fromY, float toX, float toY) {
-        float dx = toX - fromX;
-        float dy = toY - fromY;
-        if (dx == 0f && dy == 0f) return 0f;
-        return (float) Math.toDegrees(Math.atan2(dy, dx)) - 90f;
-    }
 }
