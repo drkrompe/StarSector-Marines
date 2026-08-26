@@ -20,6 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -109,6 +110,31 @@ public final class PowerCatalog {
         LOG.info("PowerCatalog: resolved " + byId.size() + " power(s) " + byId.keySet()
                 + " from " + (committedShips == null ? 0 : committedShips.size()) + " committed ship(s)");
         return new ArrayList<>(byId.values());
+    }
+
+    /**
+     * Rebuilds one frozen battle commitment through the same constructors that
+     * own production power tuning. Mech Support is the sole power with a
+     * launch-specific payload; attaching one to another power is invalid.
+     */
+    public static CommandPower restore(String id,
+                                       List<MechDeploymentSpec> mechDeployments) {
+        Objects.requireNonNull(id, "id");
+        List<MechDeploymentSpec> deployments = mechDeployments == null
+                ? List.of() : List.copyOf(mechDeployments);
+        if (MechSupport.ID.equals(id)) {
+            return deployments.isEmpty()
+                    ? new MechSupport() : MechSupport.configured(deployments);
+        }
+        if (!deployments.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Power '" + id + "' cannot carry mech deployments");
+        }
+        CommandPower power = forId(id);
+        if (power == null) {
+            throw new IllegalArgumentException("Unknown command power id '" + id + "'");
+        }
+        return power;
     }
 
     /**

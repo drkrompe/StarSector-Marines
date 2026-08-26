@@ -4,7 +4,7 @@ Status: ACTIVE — the autonomous mission-command foundation is in progress; pai
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — landed the Conquest distant-capture front reserve and its diagnostics; canonical policy rerun and launch-fidelity overlay are next.
+Updated: 2026-08-25 — the canonical rerun proved the Conquest capture reserve binds; launch-fidelity overlay is next before concentration tuning.
 
 | Story | State | Intent |
 |---|---|---|

@@ -32,6 +32,11 @@ public final class MechSupport extends AirDeliveryPower {
         return new MechSupport(deployments, true);
     }
 
+    /** Frozen, ordered mech payload installed by this power. */
+    public List<MechDeploymentSpec> deployments() {
+        return deployments;
+    }
+
     private MechSupport(List<MechDeploymentSpec> deployments, boolean frozenValues) {
         super(ID, displayName(validDeployments(deployments).size()), 4f,
                 lanceCount(validDeployments(deployments).size()), 0, 3,
