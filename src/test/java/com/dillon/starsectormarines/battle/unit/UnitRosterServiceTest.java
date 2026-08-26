@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.unit;
 
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -56,7 +57,7 @@ public class UnitRosterServiceTest {
 
     /** A marine pre-seeded with a secondary weapon, so spawn gives it the optional SECONDARY_WEAPON component. */
     private static EntitySpec secondaryUnit(String label) {
-        return unit(label).secondary(MarineSecondary.ROCKET_LAUNCHER, MarineSecondary.ROCKET_LAUNCHER.startingAmmo());
+        return unit(label).specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).startingAmmo());
     }
 
     private static UnitRosterService roster() {
@@ -680,8 +681,8 @@ public class UnitRosterServiceTest {
         long u = r.spawn(secondaryUnit("u"));
 
         assertTrue(w.hasSecondaryWeapon(u));
-        assertSame(MarineSecondary.ROCKET_LAUNCHER, w.secondaryWeapon(u));
-        assertEquals(MarineSecondary.ROCKET_LAUNCHER.startingAmmo(), w.secondaryAmmo(u));
+        assertSame(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), w.specialEquipment(u));
+        assertEquals(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).startingAmmo(), w.secondaryAmmo(u));
         // Mid-combat scalars start zeroed by the world's row append.
         assertEquals(0f, w.secondaryCooldownTimer(u), 1e-6f);
         assertEquals(0f, w.secondaryActionTimer(u), 1e-6f);

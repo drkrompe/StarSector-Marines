@@ -453,8 +453,8 @@ public final class EquipmentDoctrineDesignerViewModel {
     }
 
     private static String weaponFlavor(SquadWeaponIssue issue) {
-        if (issue.special() != null) {
-            return "Specialist billet · " + issue.special().displayName() + ".";
+        if (issue.specialDef() != null) {
+            return "Specialist billet · " + issue.specialDef().displayName() + ".";
         }
         if (issue.role().contains("Leader")) {
             return "Fire-team lead · priority command issue.";

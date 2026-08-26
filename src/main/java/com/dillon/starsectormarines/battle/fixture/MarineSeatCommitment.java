@@ -60,18 +60,14 @@ public record MarineSeatCommitment(
     /** Captures only campaign-owned identity and equipment, not scenario orders. */
     public static MarineSeatCommitment capture(MarineLoadout loadout) {
         Objects.requireNonNull(loadout, "loadout");
-        String primaryWeaponId = loadout.primaryDef != null
-                ? loadout.primaryDef.id
-                : loadout.primary != null ? loadout.primary.id : null;
+        String primaryWeaponId = loadout.primaryWeaponId;
         if (primaryWeaponId == null) {
             throw new IllegalArgumentException(
                     "A committed marine seat requires a catalog primary weapon id");
         }
         WeaponRegistry.require(primaryWeaponId);
 
-        String specialEquipmentId = loadout.specialDef != null
-                ? loadout.specialDef.id()
-                : loadout.secondary != null ? loadout.secondary.specialEquipmentId : null;
+        String specialEquipmentId = loadout.specialEquipmentId;
         if (specialEquipmentId != null) {
             SpecialEquipmentRegistry.require(specialEquipmentId);
         }

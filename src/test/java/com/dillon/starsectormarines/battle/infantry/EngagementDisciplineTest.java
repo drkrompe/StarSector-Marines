@@ -10,6 +10,13 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture.ContactInitiative;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Doctrine;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture.ForceBalance;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Motion;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Posture;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture.Sector;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -189,6 +196,27 @@ class EngagementDisciplineTest {
         assertTrue(Paths.isEmpty(f.sim.world().path(f.member)),
                 "member already behind threat-facing doodad cover plants");
         assertTrue(InfantryUnitPrep.tryOpportunityPrimary(f.member, f.sim));
+    }
+
+    @Test
+    void unassignedProsecutionFallsThroughToActiveEngagement() {
+        BattleSimulation sim = openSim();
+        Squad squad = new Squad(160, Faction.MARINE);
+        squad.contactPicture = new SquadContactPicture(sim.getSimTickIndex(),
+                Posture.UNCOMMITTED, 0f, -1f, 1, 1, 1f, 2,
+                ForceBalance.FAVORABLE, Sector.REAR, Motion.LATERAL,
+                36L, 1, 47, 1f, Doctrine.HOLD,
+                0, 12, 0, 3, ContactInitiative.PROSECUTE);
+        WorldState state = WorldState.EMPTY
+                .with(Predicate.HAS_TARGET, true)
+                .with(Predicate.THREAT_DENSITY_HIGH_AT_TARGET, false);
+
+        Goal picked = Goal.pickMostRelevant(
+                List.of(EliminateEnemiesGoal.INSTANCE,
+                        HoldEngagementLineGoal.INSTANCE), state, squad, sim);
+
+        assertSame(EliminateEnemiesGoal.INSTANCE, picked,
+                "an unassigned squad prosecuting a partial contact must close to engage instead of overwatching without a shot");
     }
 
     @Test

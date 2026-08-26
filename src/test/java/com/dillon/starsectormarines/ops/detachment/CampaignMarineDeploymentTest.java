@@ -7,7 +7,8 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
@@ -63,7 +64,7 @@ class CampaignMarineDeploymentTest {
         roster.ensureActiveSoldiers(1);
         MarineSoldier soldier = roster.activeSoldiers().get(0);
         assertTrue(roster.allocateArmor(soldier.id(), MarineArmorPattern.CHARCOAL));
-        assertTrue(roster.allocatePrimary(soldier.id(), MarineWeapon.DMR,
+        assertTrue(roster.allocatePrimary(soldier.id(), WeaponRegistry.require(WeaponRegistry.DMR_ID),
                 EquipmentGrade.SERVICE));
         soldier.addExperience(123);
 
@@ -72,7 +73,7 @@ class CampaignMarineDeploymentTest {
 
         assertNotNull(seat);
         assertEquals(soldier.id(), seat.campaignSoldierId);
-        assertEquals(MarineWeapon.DMR, seat.primary);
+        assertEquals(WeaponRegistry.require(WeaponRegistry.DMR_ID), seat.primaryDef());
         assertEquals(123, seat.soldierProfile.experienceXp());
         assertEquals(LayeredArmorFamily.CHARCOAL, seat.armorFamily);
         assertEquals(MarineArmorPattern.CHARCOAL.armorPool, seat.armorPool, 1e-6f);

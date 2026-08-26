@@ -4,7 +4,8 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.SquadMoraleSystem;
 import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
@@ -96,15 +97,12 @@ public final class SquadOverviewPanel implements HudPanel {
             long u = sim.liveUnitAt(i);
             if (sim.identity().faction(u) != Faction.MARINE || !sim.squad().hasSquad(u)) continue;
             int[] counts = weaponCounts.computeIfAbsent(sim.squad().squadId(u), k -> new int[5]);
-            MarineWeapon weapon = sim.combat().primaryWeapon(u);
+            WeaponDef weapon = sim.combat().primaryWeaponDef(u);
             if (weapon != null) {
-                switch (weapon) {
-                    case FIELD_RIFLE:
-                    case PULSE_RIFLE: counts[0]++; break;
-                    case SMG:         counts[1]++; break;
-                    case SQUAD_AUTOMATIC: counts[2]++; break;
-                    case DMR:         counts[3]++; break;
-                }
+                if (WeaponRegistry.SMG_ID.equals(weapon.id)) counts[1]++;
+                else if (WeaponRegistry.SQUAD_AUTOMATIC_ID.equals(weapon.id)) counts[2]++;
+                else if (WeaponRegistry.DMR_ID.equals(weapon.id)) counts[3]++;
+                else counts[0]++;
             } else {
                 counts[0]++;
             }

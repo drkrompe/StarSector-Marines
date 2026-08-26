@@ -1,8 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
-import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.weapon.MountClass;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
@@ -14,6 +12,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -24,13 +23,6 @@ import java.util.Map;
 public final class EquipmentTemplateCatalog {
 
     private static final Logger LOG = Global.getLogger(EquipmentTemplateCatalog.class);
-    private static final List<MarineWeapon> PLAYER_PRIMARIES = List.of(
-            MarineWeapon.FIELD_RIFLE,
-            MarineWeapon.PULSE_RIFLE,
-            MarineWeapon.SMG,
-            MarineWeapon.SQUAD_AUTOMATIC,
-            MarineWeapon.DMR);
-
     private static volatile EquipmentTemplateCatalog installed;
 
     private final Map<String, EquipmentTemplateCard> byId = new LinkedHashMap<>();
@@ -69,19 +61,26 @@ public final class EquipmentTemplateCatalog {
         parseSpecials(root.optJSONArray("specialEquipment"), source);
     }
 
-    public static List<MarineWeapon> playerPrimaries() {
-        return PLAYER_PRIMARIES;
-    }
-
-    public static String primaryId(MarineWeapon weapon, EquipmentGrade grade) {
-        if (weapon == null) throw new IllegalArgumentException("Primary template weapon is required");
-        return primaryId(weapon.id, grade);
+    public static List<String> playerPrimaryIds() {
+        List<String> result = new ArrayList<>();
+        for (EquipmentTemplateCard card : requireInstalled().byId.values()) {
+            if (card.kind() == EquipmentTemplateCard.Kind.PRIMARY
+                    && !result.contains(card.equipmentId())) {
+                result.add(card.equipmentId());
+            }
+        }
+        return List.copyOf(result);
     }
 
     public static String primaryId(String weaponId, EquipmentGrade grade) {
         if (grade == null) throw new IllegalArgumentException("Primary template grade is required");
         return "equipment-template:" + weaponId + ":"
                 + grade.name().toLowerCase(Locale.ROOT);
+    }
+
+    public static String primaryId(WeaponDef weapon, EquipmentGrade grade) {
+        if (weapon == null) throw new IllegalArgumentException("Primary template weapon is required");
+        return primaryId(weapon.id, grade);
     }
 
     public static String armorId(MarineArmorPattern armor) {
@@ -93,21 +92,21 @@ public final class EquipmentTemplateCatalog {
         return "equipment-template:" + armorId;
     }
 
-    public static String specialId(MarineSecondary special) {
-        if (special == null) throw new IllegalArgumentException("Special template is required");
-        return specialId(special.specialEquipmentId);
-    }
-
     public static String specialId(String specialId) {
         return "equipment-template:" + specialId;
     }
 
-    public static EquipmentTemplateCard primary(MarineWeapon weapon, EquipmentGrade grade) {
-        return require(primaryId(weapon, grade));
+    public static String specialId(SpecialEquipmentDef special) {
+        if (special == null) throw new IllegalArgumentException("Special template is required");
+        return specialId(special.id());
     }
 
     public static EquipmentTemplateCard primary(String weaponId, EquipmentGrade grade) {
         return require(primaryId(weaponId, grade));
+    }
+
+    public static EquipmentTemplateCard primary(WeaponDef weapon, EquipmentGrade grade) {
+        return require(primaryId(weapon, grade));
     }
 
     public static EquipmentTemplateCard armor(MarineArmorPattern armor) {
@@ -118,12 +117,12 @@ public final class EquipmentTemplateCatalog {
         return require(armorId(armorId));
     }
 
-    public static EquipmentTemplateCard special(MarineSecondary special) {
-        return require(specialId(special));
-    }
-
     public static EquipmentTemplateCard special(String specialId) {
         return require(specialId(specialId));
+    }
+
+    public static EquipmentTemplateCard special(SpecialEquipmentDef special) {
+        return require(specialId(special));
     }
 
     public static EquipmentTemplateCard require(String id) {

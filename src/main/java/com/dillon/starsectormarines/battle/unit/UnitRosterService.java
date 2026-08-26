@@ -418,7 +418,7 @@ public final class UnitRosterService {
         boolean mobile = !spec.type.isStatic();
         boolean combatant = spec.type.combatant;
         boolean hasArmor = spec.maxArmor > 0f;
-        boolean hasSecondary = spec.specialEquipment != null || spec.secondaryWeapon != null;
+        boolean hasSecondary = spec.specialEquipment != null;
         // SPRITE iff sheet-drawn (UnitType.drawnAsSheet) — see the bullet above.
         boolean sheetDrawn = spec.type.drawnAsSheet();
         boolean layerDrawn = spec.type.drawnAsLayers();
@@ -576,11 +576,9 @@ public final class UnitRosterService {
             entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_RANGE, spec.attackRange);
             entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ACCURACY, spec.accuracy);
             entityWorld.setFloat(id, components.COMBAT, BattleComponents.COMBAT_ATTACK_COOLDOWN, spec.attackCooldown);
-            // primaryWeapon is the OBJECT stat — null for a combatant with no
-            // per-weapon profile (militia/aliens/turrets); a fresh row appends null,
-            // so this seed is what makes a marine's deboard loadout canonical.
+            // The definition is null for combatants using archetype attack stats.
             entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_PRIMARY_WEAPON,
-                    spec.primaryWeaponDef != null ? spec.primaryWeaponDef : spec.primaryWeapon);
+                    spec.primaryWeaponDef);
             entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_EQUIPMENT_GRADE,
                     spec.equipmentGrade);
             entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_SOLDIER_PROFILE,
@@ -588,9 +586,7 @@ public final class UnitRosterService {
         }
         if (hasSecondary) {
             entityWorld.setObject(id, components.SECONDARY_WEAPON,
-                    BattleComponents.SECONDARY_WEAPON_SPEC,
-                    spec.specialEquipment != null
-                            ? spec.specialEquipment : spec.secondaryWeapon.specialDef());
+                    BattleComponents.SECONDARY_WEAPON_SPEC, spec.specialEquipment);
             entityWorld.setInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_AMMO, spec.secondaryAmmo);
         }
         // Seed the flier's KINEMATICS body — the SAME AirBody instance the unit's

@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
