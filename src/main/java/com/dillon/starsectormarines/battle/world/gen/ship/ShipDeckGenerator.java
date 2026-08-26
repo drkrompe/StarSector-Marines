@@ -10,9 +10,11 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InitSolidStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.TacticalLinkStage;
+import com.dillon.starsectormarines.battle.world.gen.ship.stage.CompartmentCarveStage;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.DeckEndSpawnStage;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.HullProfileStage;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.SpineStage;
+import com.dillon.starsectormarines.battle.world.gen.ship.stage.TransverseCorridorStage;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
@@ -40,6 +42,7 @@ public final class ShipDeckGenerator {
 
     private final GenRecipe deckRecipe = buildDeckRecipe();
     private DeckProfile lastDeckProfile;
+    private DeckGraph lastDeckGraph;
 
     /**
      * The ship-deck recipe. It shares the station's solid-default inversion and
@@ -51,6 +54,8 @@ public final class ShipDeckGenerator {
                 new InitSolidStage(),                    // solid hull
                 new HullProfileStage(SPINE_WIDTH),       // beam per frame + zones; publishes the profile
                 new SpineStage(),                        // carve the fore-aft corridor
+                new TransverseCorridorStage(),           // athwartships cross-passages
+                new CompartmentCarveStage(),             // zone-purposed rooms + their doors
                 new DeckEndSpawnStage(),                 // bow / stern anchors
                 new TacticalLinkStage(),                 // (no nodes yet -> empty map)
                 new FinalizeStage()));                   // wall HP / cover / wall tags / buildings
@@ -68,6 +73,7 @@ public final class ShipDeckGenerator {
         deckRecipe.run(ctx);
 
         this.lastDeckProfile = ctx.get(ShipKeys.DECK_PROFILE);
+        this.lastDeckGraph = ctx.get(ShipKeys.DECK_GRAPH);
 
         Buildings buildings = ctx.get(BspKeys.BUILDINGS);
         TacticalMap tacticalMap = ctx.get(BspKeys.TACTICAL_MAP);
@@ -82,5 +88,10 @@ public final class ShipDeckGenerator {
     /** The profile behind the most recent {@link #generateDeck} run; null before the first. */
     public DeckProfile getLastDeckProfile() {
         return lastDeckProfile;
+    }
+
+    /** The compartments and corridors of the most recent {@link #generateDeck} run; null before the first. */
+    public DeckGraph getLastDeckGraph() {
+        return lastDeckGraph;
     }
 }
