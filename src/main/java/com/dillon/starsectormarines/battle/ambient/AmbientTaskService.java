@@ -6,6 +6,8 @@ import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialUsePose;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -150,8 +152,36 @@ public final class AmbientTaskService {
         int authoredPose = LayeredAppearance.POSE_IDLE;
         float weaponPhase = 0f;
         int flags = pose.moving() ? LayeredAppearance.FLAG_MOVING : 0;
-        if (pose.activity() == AmbientActivity.FIRING_PRIMARY) {
-            float cycle = positiveModulo(pose.actionPhase() * 4f, 1f);
+        boolean practiceEquipment = pose.activity() == AmbientActivity.PRACTICING_EQUIPMENT;
+        SpecialEquipmentDef carriedSpecial = practiceEquipment && world.hasSecondaryWeapon(actorId)
+                ? world.specialEquipment(actorId) : null;
+        boolean usingSpecial = carriedSpecial != null && pose.actionPhase() >= 0.5f;
+        if (usingSpecial) {
+            float cycle = positiveModulo((pose.actionPhase() - 0.5f) * 2f, 1f);
+            SpecialUsePose usePose = carriedSpecial.presentation().usePose();
+            boolean direct = usePose == SpecialUsePose.SHOULDER_LAUNCHER
+                    || usePose == SpecialUsePose.BRACED_RIFLE;
+            boolean fired = direct && cycle >= FIRE_BEGIN && cycle < FIRE_END;
+            authoredPose = switch (usePose) {
+                case THROW -> LayeredAppearance.POSE_SMOKE_THROW;
+                case PLANT -> LayeredAppearance.POSE_SATCHEL_PLANT;
+                case BRACED_RIFLE -> fired ? LayeredAppearance.POSE_AMR_FIRE
+                        : LayeredAppearance.POSE_AMR_AIM;
+                case SHOULDER_LAUNCHER -> fired ? LayeredAppearance.POSE_ROCKET_FIRE
+                        : LayeredAppearance.POSE_ROCKET_AIM;
+            };
+            weaponPhase = fired
+                    ? (cycle - FIRE_BEGIN) / (FIRE_END - FIRE_BEGIN)
+                    : direct ? cycle < FIRE_BEGIN ? cycle / FIRE_BEGIN : 1f : cycle;
+            if (fired && usePose == SpecialUsePose.SHOULDER_LAUNCHER) {
+                flags |= LayeredAppearance.FLAG_WEAPON_OVER_SHOULDER;
+            }
+            if (fired && cycle < FIRE_BEGIN + 0.055f) {
+                flags |= LayeredAppearance.FLAG_MUZZLE_FLASH;
+            }
+        } else if (pose.activity() == AmbientActivity.FIRING_PRIMARY || practiceEquipment) {
+            float repeats = carriedSpecial != null ? 8f : 4f;
+            float cycle = positiveModulo(pose.actionPhase() * repeats, 1f);
             if (cycle >= FIRE_BEGIN && cycle < FIRE_END) {
                 authoredPose = LayeredAppearance.POSE_FIRING;
                 weaponPhase = (cycle - FIRE_BEGIN) / (FIRE_END - FIRE_BEGIN);

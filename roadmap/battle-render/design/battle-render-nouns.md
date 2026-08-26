@@ -4,8 +4,8 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — made bounded scenes render battle-owned ambient task poses
-through the same live and deterministic headless command path.
+Updated: 2026-08-25 — bounded scenes render exact data-defined primary families
+and carried special-equipment practice through the battle-owned ambient-task path.
 
 ## Vocabulary
 
@@ -41,9 +41,10 @@ The standalone host normally renders every layer. A host can request a subset th
 An embedded scene may seek a battle-owned ambient task route before collecting
 the frame. The renderer still reads only the resulting entity position and
 layered appearance, including the actor's real issued weapon during a cosmetic
-practice-fire pose. Route ownership, interruption, and whether an action has
-physical consequences remain simulation concerns; the render pipeline neither
-replays task logic nor manufactures shots.
+practice pose. An ambient route may also present the actor's carried special-equipment
+pose without activating that item. Route ownership, interruption, and whether an
+action has physical consequences remain simulation concerns; the render pipeline
+neither replays task logic nor manufactures shots.
 
 The current world order is `GROUND → DECALS → VEHICLES → DOODADS → HIGHLIGHTS → FOG → UNITS → ROOFS → DRONES → OBJECTIVES → COMPOUND → CONVOY → SHUTTLES → SHOTS → IMPACT_FX → FLYBY`. The enum is the authority for this order; the sequence here makes the standing occlusion contract legible without replacing it.
 
