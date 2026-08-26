@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — made emplacement geometry and infantry stand positions authored tactical facts and named target-faction facility treatment as a bounded consumer.
+Updated: 2026-08-26 — named the longitudinal ship-deck family as a sibling interior premise owned by `ship-interiors-nouns.md`.
 
 Map generation turns a deterministic request into a validated tactical world. It
 owns authored spatial intent; runtime systems own subsequent mutation and play.
@@ -66,7 +66,7 @@ overwriting roads or neighboring fills after dispatch. Cross-leaf structures
 therefore require an explicit planning stage that publishes the claimed
 footprint and its circulation obligations.
 
-## City and station families
+## City, station, and ship families
 
 City recipes compose a trunk, parcels, circulation, zoning, purpose-specific
 fillers, tactical linking, and final validation. The conquest recipe also
@@ -79,6 +79,15 @@ The concentric, diamond, and partitioned interior layouts are alternative
 spatial premises, not separate game modes. Stations must preserve a legible
 entry-to-objective structure while allowing deliberately chosen loops and
 hardpoints.
+
+Ship recipes are a third interior premise. Where a station organizes space
+around a core — radial depth, mirrored geometry, converging ports — a ship deck
+organizes it around a longitudinal axis: an elongated, deliberately asymmetric
+hull whose beam varies along its length, a fore-aft spine, ordered transverse
+bulkheads, and an assault gradient that runs along the axis from a breach point
+rather than inward from a perimeter. The layout-neutral topology tier is shared
+with stations; the ring, core, and port annotations are not. `ship-interiors-nouns.md`
+owns that family's model, its facility compartments, and its boundaries.
 
 ## Defense-post layouts
 
