@@ -225,8 +225,8 @@ public final class GroundLightService {
         if (shot.primaryWeaponDef != null && shot.primaryWeaponDef.tracerColor != null) {
             return shot.primaryWeaponDef.tracerColor;
         }
-        if (shot.mechWeapon != null && shot.mechWeapon.tracerColor != null) {
-            return shot.mechWeapon.tracerColor;
+        if (shot.mechWeapon != null && shot.mechWeapon.tracerColor() != null) {
+            return shot.mechWeapon.tracerColor();
         }
         return WARM_MUZZLE;
     }

@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
+import com.dillon.starsectormarines.battle.mech.MechWeapon;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import org.junit.jupiter.api.Test;
 
@@ -50,13 +52,64 @@ class WeaponRegistryParityTest {
             assertSame(MountClass.MARINE_SECONDARY, weapon.def().mount,
                     weapon + " is weapon-like special equipment");
         }
+        for (MechWeapon weapon : MechWeapon.values()) {
+            assertNotNull(weapon.def(), weapon + " must resolve through the registry");
+            assertTrue(ids.add(weapon.id), "duplicate id " + weapon.id);
+            assertSame(MountClass.MECH_MOUNT, weapon.def().mount,
+                    weapon + " is a mech-mounted weapon");
+        }
         long weaponLikeSpecials = Arrays.stream(MarineSecondary.values())
                 .filter(weapon -> weapon.specialDef().weaponId() != null)
                 .count();
         assertEquals(MarineWeapon.values().length + weaponLikeSpecials
+                        + MechWeapon.values().length
                         + TurretKind.values().length,
                 WeaponRegistry.installed().size(),
-                "the registry holds exactly the shipped handheld and turret weapons");
+                "the registry holds exactly the shipped handheld, mech, and turret weapons");
+    }
+
+    @Test
+    void mechComponentsPointAtRegistryIds() {
+        for (MechWeaponComponent component : MechWeaponComponent.values()) {
+            assertEquals(component.weaponId, component.weapon().id,
+                    component + " resolves its stable weapon id");
+            assertSame(MountClass.MECH_MOUNT, component.weapon().def().mount,
+                    component + " resolves only a mech-mount definition");
+        }
+    }
+
+    @Test
+    void mechWeaponMigrationPreservesShippedValues() {
+        assertMech(MechWeapon.CHAINGUN,
+                30f, 13.5f, 0.55f, 2f, 5f,
+                12, 0.06f, 1.2f, 300f, 0.10f, 0f,
+                0.6f, 3, 0f, false, false, 1f,
+                new Color(0xFF, 0xE8, 0xC0), ImpactProfile.KINETIC,
+                "graphics/missiles/shell_small_yellow.png", 0.18f, "chaingun_fire");
+        assertMech(MechWeapon.LINEAR_CANNON,
+                32f, 27f, 0.68f, 2.8f, 8f,
+                2, 0.12f, 0.35f, 160f, 0.20f, 0f,
+                0.35f, 4, 0f, false, false, 1f,
+                new Color(0xB8, 0xE8, 0xFF), ImpactProfile.KINETIC,
+                "graphics/missiles/shell_large_blue.png", 0.20f, "needler_fire");
+        assertMech(MechWeapon.HEAVY_CANNON,
+                26f, 45f, 0.76f, 2.5f, 18f,
+                1, 0f, 0.12f, 86.666664f, 0.30f, 0f,
+                1f, 18, 0.9f, false, false, 1f,
+                new Color(0xFF, 0xD0, 0x88), ImpactProfile.CANNON_HE,
+                "graphics/missiles/shell_hellbore.png", 0.34f, "hellbore_fire");
+        assertMech(MechWeapon.SRM_POD,
+                18f, 49.5f, 0.55f, 5.5f, 14f,
+                4, 0.10f, 0f, 32.727272f, 0.55f, 0f,
+                1.3f, 25, 1.3f, true, false, 1f,
+                new Color(0xFF, 0xC0, 0x80), ImpactProfile.HE,
+                "graphics/missiles/missile_SRM.png", 0.40f, "annihilator_fire");
+        assertMech(MechWeapon.LRM_ARTILLERY,
+                40f, 81f, 0.55f, 9f, 16f,
+                5, 0.11f, 1.5f, 28.571428f, 1.40f, 5f,
+                2f, 40, 2f, true, true, 0.55f,
+                new Color(0xC8, 0xD8, 0xFF), ImpactProfile.HE,
+                "graphics/missiles/missile_LRM.png", 0.65f, "pilum_lrm_fire");
     }
 
     @Test
@@ -217,5 +270,49 @@ class WeaponRegistryParityTest {
         }
         assertEquals(visualCells, weapon.projectileVisualCells(), EPS, weapon + " projectile visual size");
         assertEquals(fireSound, weapon.fireSoundId(), weapon + " fire sound");
+    }
+
+    private static void assertMech(MechWeapon weapon,
+                                   float range, float damage, float accuracy,
+                                   float cooldown, float penetration,
+                                   int burstCount, float burstSpacing,
+                                   float hitSpread, float roundVelocity,
+                                   float flightSec, float arcHeight,
+                                   float aoeRadius, int wallDamage,
+                                   float wallDamageRadius, boolean engineTrail,
+                                   boolean indirectFire, float noLosAccuracyMult,
+                                   Color tracer, ImpactProfile impact,
+                                   String projectileSpritePath,
+                                   float projectileVisualCells,
+                                   String fireSoundId) {
+        assertEquals(range, weapon.range(), EPS, weapon + " range");
+        assertEquals(damage, weapon.damage(), EPS, weapon + " damage");
+        assertEquals(accuracy, weapon.accuracy(), EPS, weapon + " accuracy");
+        assertEquals(cooldown, weapon.cooldown(), EPS, weapon + " cooldown");
+        assertEquals(penetration, weapon.penetration(), EPS, weapon + " penetration");
+        assertEquals(burstCount, weapon.burstCount(), weapon + " burst count");
+        assertEquals(burstSpacing, weapon.burstSpacing(), EPS, weapon + " burst spacing");
+        assertEquals(hitSpread, weapon.hitSpread(), EPS, weapon + " hit spread");
+        assertEquals(roundVelocity, weapon.roundVelocity(), EPS, weapon + " round velocity");
+        assertEquals(flightSec, weapon.flightSec(), EPS, weapon + " flight time");
+        assertEquals(arcHeight, weapon.arcHeight(), EPS, weapon + " arc height");
+        assertEquals(aoeRadius, weapon.aoeRadius(), EPS, weapon + " blast radius");
+        assertEquals(wallDamage, weapon.wallDamage(), weapon + " wall damage");
+        assertEquals(wallDamageRadius, weapon.wallDamageRadius(), EPS,
+                weapon + " wall damage radius");
+        assertEquals(engineTrail, weapon.engineTrail(), weapon + " engine trail");
+        assertEquals(engineTrail, weapon.interceptableProjectile(),
+                weapon + " interceptable projectile");
+        assertEquals(engineTrail, weapon.boostRamp(), weapon + " boost ramp");
+        assertEquals(indirectFire, weapon.indirectFire(), weapon + " indirect fire");
+        assertEquals(noLosAccuracyMult, weapon.noLosAccuracyMult(), EPS,
+                weapon + " no-LOS accuracy");
+        assertEquals(tracer, weapon.tracerColor(), weapon + " tracer");
+        assertSame(impact, weapon.impactProfile(), weapon + " impact profile");
+        assertEquals(projectileSpritePath, weapon.projectileSpritePath(),
+                weapon + " projectile sprite");
+        assertEquals(projectileVisualCells, weapon.projectileVisualCells(), EPS,
+                weapon + " projectile visual size");
+        assertEquals(fireSoundId, weapon.fireSoundId(), weapon + " fire sound");
     }
 }

@@ -92,11 +92,11 @@ public class HeavyWeapons {
      *
      * <p>{@code accuracyMult} scales the weapon's base accuracy at the hit
      * roll. Set to 1.0 for line-of-sight fire; the LRM indirect-fire path
-     * passes {@link MechWeapon#LRM_NO_LOS_ACC_MULT}.
+     * passes the installed definition's no-LOS accuracy multiplier.
      */
     public void fireMechWeapon(long shooter, long target, MechWeapon weapon, float accuracyMult) {
         roster.telemetry().recordRoundFired(shooter);
-        if (weapon.arcHeight <= 0f) {
+        if (weapon.arcHeight() <= 0f) {
             fireDirectRound(shooter, target, weapon, accuracyMult);
             return;
         }
@@ -108,45 +108,46 @@ public class HeavyWeapons {
     private void fireDirectRound(long shooter, long target, MechWeapon weapon,
                                  float accuracyMult) {
         World world = roster.world();
-        float effectiveAccuracy = weapon.accuracy * accuracyMult;
+        float effectiveAccuracy = weapon.accuracy() * accuracyMult;
         Faction shooterFaction = roster.identity().faction(shooter);
         float moraleImpact = roster.moraleImpact(shooter);
         float fromX = world.renderX(shooter);
         float fromY = world.renderY(shooter);
         float distToTarget = RangeFalloff.dist(world.x(shooter), world.y(shooter),
                 world.x(target), world.y(target));
-        float effectiveSpread = RangeFalloff.spread(weapon.hitSpread, distToTarget, weapon.range);
+        float effectiveSpread = RangeFalloff.spread(
+                weapon.hitSpread(), distToTarget, weapon.range());
         BallisticResolver.Resolution res = resolver.resolve(shooter, target,
                 effectiveAccuracy, effectiveSpread, weapon.roundVelocity(),
                 rng);
 
-        if (weapon.aoeRadius <= 0f && res.victimId() != 0L) {
+        if (weapon.aoeRadius() <= 0f && res.victimId() != 0L) {
             float appliedDamage = res.friendlyHit()
-                    ? weapon.damage * BallisticResolver.FRIENDLY_FIRE_DAMAGE_MULT
-                    : weapon.damage;
+                    ? weapon.damage() * BallisticResolver.FRIENDLY_FIRE_DAMAGE_MULT
+                    : weapon.damage();
             shots.queueImpact(new ShotService.PendingImpact(
                     res.victimId(), shooter, res.flightTime(), appliedDamage,
-                    weapon.penetration, moraleImpact, res.friendlyHit()));
+                    weapon.penetration(), moraleImpact, res.friendlyHit()));
         }
 
-        if (weapon.aoeRadius > 0f) {
+        if (weapon.aoeRadius() > 0f) {
             PendingDetonation onArrival = res.impacts()
                     ? new PendingDetonation(
                             shooter,
                             res.endX(), res.endY(), res.flightTime(),
-                            weapon.aoeRadius, weapon.damage, weapon.penetration,
-                            weapon.wallDamage, shooterFaction, /*aerialDelivery*/ false,
-                            weapon.wallDamageRadius, /*spawnDustOnWallBreak*/ true,
+                            weapon.aoeRadius(), weapon.damage(), weapon.penetration(),
+                            weapon.wallDamage(), shooterFaction, /*aerialDelivery*/ false,
+                            weapon.wallDamageRadius(), /*spawnDustOnWallBreak*/ true,
                             /*friendlyFireImmune*/ false)
                     : null;
             // Rocket-class rounds own a Projectile so future point defense can
             // intercept the payload. Gun-launched HE remains a ballistic
             // ShotEvent paired with a timed detonation; it must not inherit a
             // rocket's boost curve merely because both are explosive.
-            if (weapon.engineTrail) {
+            if (weapon.interceptableProjectile()) {
                 shots.queueProjectile(new Projectile(
                         fromX, fromY, res.endX(), res.endY(),
-                        /*hasBoostRamp*/ true, /*arcHeight*/ 0f,
+                        weapon.boostRamp(), /*arcHeight*/ 0f,
                         shooterFaction, /*aerialDelivery*/ false,
                         res.flightTime(), onArrival));
             } else if (onArrival != null) {
@@ -171,25 +172,26 @@ public class HeavyWeapons {
         float fromY = world.renderY(shooter);
         float distToTarget = RangeFalloff.dist(world.x(shooter), world.y(shooter),
                 world.x(target), world.y(target));
-        float effectiveSpread = RangeFalloff.spread(weapon.hitSpread, distToTarget, weapon.range);
-        boolean hit = rng.nextFloat() < weapon.accuracy * accuracyMult;
+        float effectiveSpread = RangeFalloff.spread(
+                weapon.hitSpread(), distToTarget, weapon.range());
+        boolean hit = rng.nextFloat() < weapon.accuracy() * accuracyMult;
         ShotEndpoint.Endpoint ep = ShotEndpoint.resolve(
                 world.renderX(target), world.renderY(target),
                 hit, effectiveSpread, rng);
 
         PendingDetonation onArrival = new PendingDetonation(
                 shooter,
-                ep.x(), ep.y(), weapon.flightSec,
-                weapon.aoeRadius, weapon.damage, weapon.penetration,
-                weapon.wallDamage, shooterFaction, /*aerialDelivery*/ true,
-                weapon.wallDamageRadius, /*spawnDustOnWallBreak*/ true,
+                ep.x(), ep.y(), weapon.flightSec(),
+                weapon.aoeRadius(), weapon.damage(), weapon.penetration(),
+                weapon.wallDamage(), shooterFaction, /*aerialDelivery*/ true,
+                weapon.wallDamageRadius(), /*spawnDustOnWallBreak*/ true,
                 /*friendlyFireImmune*/ false);
         shots.queueProjectile(new Projectile(
                 fromX, fromY, ep.x(), ep.y(),
-                /*hasBoostRamp*/ true, weapon.arcHeight,
+                weapon.boostRamp(), weapon.arcHeight(),
                 shooterFaction, /*aerialDelivery*/ true,
-                weapon.flightSec, onArrival));
-        float lifetime = weapon.flightSec > 0f ? weapon.flightSec : SHOT_LIFETIME;
+                weapon.flightSec(), onArrival));
+        float lifetime = weapon.flightSec() > 0f ? weapon.flightSec() : SHOT_LIFETIME;
         shots.postShot(new ShotEvent(shooter, fromX, fromY, ep.x(), ep.y(), hit,
                 shooterFaction, lifetime, null, null, null, weapon, moraleImpact));
     }
@@ -253,11 +255,11 @@ public class HeavyWeapons {
                     boolean hasLos = grid.hasLineOfFire(
                             world.x(u), world.y(u),
                             world.x(target), world.y(target));
-                    accuracyMult = hasLos ? 1f : MechWeapon.LRM_NO_LOS_ACC_MULT;
+                    accuracyMult = hasLos ? 1f : weapon.noLosAccuracyMult();
                 }
                 fireMechWeapon(u, target, weapon, accuracyMult);
                 mount.burstRemaining--;
-                mount.burstTimer = weapon.burstSpacing;
+                mount.burstTimer = weapon.burstSpacing();
                 if (mount.burstRemaining == 0) mount.burstTargetId = 0L;
             }
         }

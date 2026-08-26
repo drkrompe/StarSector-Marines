@@ -176,10 +176,10 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
         // Every mech weapon ships a projectile sprite today; the tracer arm is the
         // faithful fallback (faction default, matching the old renderer — mech
         // tracerColor was load-failure-only and unused in the shot pass).
-        Body body = w.projectileSpritePath != null
-                ? new Sprite(w.projectileSpritePath, w.projectileVisualCells)
+        Body body = w.projectileSpritePath() != null
+                ? new Sprite(w.projectileSpritePath(), w.projectileVisualCells())
                 : new Tracer(null);
-        return new ShotFx(body, w.arcHeight, false, w.engineTrail, false, null);
+        return new ShotFx(body, w.arcHeight(), false, w.engineTrail(), false, null);
     }
 
     private static <E extends Enum<E>> EnumMap<E, ShotFx> build(Class<E> cls, Function<E, ShotFx> derive) {

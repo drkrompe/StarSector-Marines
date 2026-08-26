@@ -99,9 +99,13 @@ public enum MechVariant {
     }
 
     public float maxWeaponRange() {
-        float max = arms.weapon.range;
-        if (leftShoulder != null) max = Math.max(max, leftShoulder.weapon.range);
-        if (rightShoulder != null) max = Math.max(max, rightShoulder.weapon.range);
+        float max = arms.weapon().range();
+        if (leftShoulder != null) {
+            max = Math.max(max, leftShoulder.weapon().range());
+        }
+        if (rightShoulder != null) {
+            max = Math.max(max, rightShoulder.weapon().range());
+        }
         return max;
     }
 }

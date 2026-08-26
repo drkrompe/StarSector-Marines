@@ -164,8 +164,8 @@ class DirectFireUnificationTest {
                 "a gun shell is a ballistic shot, not a boost-ramping missile entity");
         assertEquals(1, mechSim.getInflightDetonations().size());
         PendingDetonation cannonBlast = mechSim.getInflightDetonations().get(0);
-        assertEquals(MechWeapon.HEAVY_CANNON.aoeRadius, cannonBlast.aoeRadius, EPS);
-        assertEquals(MechWeapon.HEAVY_CANNON.wallDamage, cannonBlast.wallDamage);
+        assertEquals(MechWeapon.HEAVY_CANNON.aoeRadius(), cannonBlast.aoeRadius, EPS);
+        assertEquals(MechWeapon.HEAVY_CANNON.wallDamage(), cannonBlast.wallDamage);
 
         BattleSimulation turretSim = arena(true);
         long mortar = turretSim.spawn(MapTurret.create(

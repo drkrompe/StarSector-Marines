@@ -164,7 +164,7 @@ public enum MarineWeapon {
      * the intended target is not automatically damaged, and the resulting
      * ray may contact another body or miss its silhouette. The same physical
      * endpoint drives the visible round. Mirrors
-     * {@link com.dillon.starsectormarines.battle.mech.MechWeapon#hitSpread}.
+     * {@link com.dillon.starsectormarines.battle.mech.MechWeapon#hitSpread()}.
      */
     public float hitSpread() { return def().hitSpread; }
     /**

@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.appearance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
+import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -38,8 +39,8 @@ public class LayeredMechAppearanceTest {
         assertEquals(550f, sim.world().maxHp(mech), 0.001f);
         assertEquals(950f, sim.world().armor(mech), 0.001f);
         assertEquals(18f, sim.world().armorRating(mech), 0.001f);
-        assertEquals(12, com.dillon.starsectormarines.battle.mech.MechWeapon.CHAINGUN.burstCount);
-        assertEquals(30f, com.dillon.starsectormarines.battle.mech.MechWeapon.CHAINGUN.range,
+        assertEquals(12, MechWeapon.CHAINGUN.burstCount());
+        assertEquals(30f, MechWeapon.CHAINGUN.range(),
                 0.001f);
         assertFalse(sim.getEntityWorld().has(marine, c.MECH_LAYERED_ANIMATION));
         assertFalse(sim.getEntityWorld().has(marine, c.MECH_LOCOMOTION));
@@ -61,9 +62,9 @@ public class LayeredMechAppearanceTest {
         MechWeaponMount arms = loadout.mount(MechMountSlot.ARMS);
         MechWeaponMount srm = loadout.mount(MechMountSlot.LEFT_SHOULDER);
         arms.burstRemaining = 4;
-        arms.burstTimer = arms.weapon().burstSpacing * 0.5f;
+        arms.burstTimer = arms.weapon().burstSpacing() * 0.5f;
         srm.burstRemaining = 2;
-        srm.burstTimer = srm.weapon().burstSpacing * 0.25f;
+        srm.burstTimer = srm.weapon().burstSpacing() * 0.25f;
         sim.world().attachMechLoadout(mech, loadout);
         sim.setPath(mech, new int[]{5, 5, 5, 6});
         // The moving flag comes from the velocity the mover applied this tick,
