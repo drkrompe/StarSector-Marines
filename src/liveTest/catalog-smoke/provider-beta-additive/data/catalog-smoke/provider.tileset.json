@@ -1,0 +1,6 @@
+{
+  "sheet": "graphics/catalog-smoke/beta.png",
+  "tiles": [
+    {"id": "catalog-smoke.beta-ground", "frame": 0, "layer": "ground"}
+  ]
+}
