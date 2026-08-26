@@ -82,11 +82,18 @@ turning fails to express a role.
 ### Transports
 
 Shuttles are the shipped proof of the air model. A transport owns a sortie:
-it waits or re-arms off-map, enters toward a landing zone, delivers its payload,
-may provide a bounded armed loiter, then departs or is destroyed. It is an air
+it waits or re-arms off-map, enters toward a landing berth, delivers the
+mission-authored passenger count, then follows an explicit post-delivery
+disposition. `LOITER_IF_ARMED` preserves bounded fire support;
+`DEPART` takes off immediately even when the hull has weapons. It is an air
 entity throughout that lifecycle, not a temporary handle or a parallel id
 space. Transport survival, payload delivery, and optional mounted fire support
 are role capabilities; they do not make the craft a normal grid combat unit.
+
+`ShuttleType.capacity` is the hull maximum. `ShuttleAssignment.seatsPerSortie`
+is the actual manifest and is restored on every cycle. Arrangement, shared
+arrival area, squad grouping, and departure behavior belong to the mission's
+arrival policy rather than to the hull type.
 
 ### Fighters and drones
 

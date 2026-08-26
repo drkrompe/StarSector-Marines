@@ -250,6 +250,9 @@ public final class Squad {
      */
     public int expectedSize = 0;
 
+    /** True when a mission-authored multi-craft arrival is still assembling this squad. */
+    public boolean arrivalAssembly;
+
     /**
      * Sim-seconds this squad has spent waiting at its LZ for the rest of
      * itself. Accumulated by {@link SquadFormUpSystem}, which stops holding

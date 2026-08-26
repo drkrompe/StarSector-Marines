@@ -16,15 +16,12 @@ import java.util.List;
  * entry's sprite resolves against the vanilla install, so we don't ship any
  * of these textures.
  *
- * <p><b>Capacity is denominated in whole four-marine fire teams</b>, never in
- * loose seats: 1 team for the small hulls, 2 for the freighters, 3 for the
- * Valkyrie. The old table (3, 4, 5, 6, 7, 8) divided into no organizational
- * unit at all, so every lift split a squad by arithmetic and the group the
- * player selected never existed on the ground. Only the dedicated assault
- * transport now lands a whole twelve-marine squad in one pass; everything else
- * trickles, and the squad assembles at its LZ. Differentiation between the
- * small hulls lives in handling, hardpoints, HP and loiter time — not in a
- * seat count nobody was reading.
+ * <p>{@link #capacity} is the hull's physical maximum, expressed by its
+ * nominal count of four-marine fire teams. A mission may embark fewer seats
+ * through {@link ShuttleAssignment#seatsPerSortie}; Conquest deliberately
+ * puts six marines in each of two Valkyries so one twelve-marine squad arrives
+ * as a synchronized pair. Fire-team identity survives that transport split
+ * and becomes authoritative again after deboard.
  *
  * <p>Also acts as the per-type {@link AirHandling} profile. Three rough
  * handling tiers:
@@ -123,9 +120,9 @@ public enum ShuttleType implements AirHandling {
             "valkyrie");
 
     public final String spritePath;
-    /** Whole four-marine fire teams this hull lifts per sortie. */
+    /** Nominal whole fire teams at the hull's physical maximum. */
     public final int teams;
-    /** Marine seats per sortie. Always a whole number of {@link Squad#FIRE_TEAM_SIZE} teams. */
+    /** Physical maximum seats; a mission assignment may embark fewer. */
     public final int capacity;
     /** Cruise / max forward velocity, cells/sec. Used as the AirHandling#maxSpeed cap. */
     public final float maxSpeed;

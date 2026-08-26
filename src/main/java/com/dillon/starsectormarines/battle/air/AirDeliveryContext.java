@@ -99,8 +99,18 @@ public final class AirDeliveryContext {
 
     /** Mint-or-join the battle squad for a tagged campaign marine at this mission's LZ. */
     public int squadForCampaign(UnitType type, CampaignSquadTag tag) {
+        if (mission.landingAreaId >= 0) {
+            return roster.squadForCampaign(faction, type, tag,
+                    mission.landingAreaId);
+        }
         return roster.squadForCampaign(faction, type, tag,
                 (int) Math.floor(mission.lzX), (int) Math.floor(mission.lzY));
+    }
+
+    public int squadForArrivalGroup(UnitType type) {
+        return roster.squadForArrivalGroup(faction, type,
+                mission.arrivalGroupId, mission.currentCycle,
+                mission.expectedArrivalStrength);
     }
 
     public String nextUnitName() {

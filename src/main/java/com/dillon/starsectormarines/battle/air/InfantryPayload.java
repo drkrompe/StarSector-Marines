@@ -44,7 +44,9 @@ public enum InfantryPayload implements AirDeliveryPayload {
                 context.claimSquadCommand(mission.squadId, mission.commandClaim);
             }
         } else if (mission.squadId == Squad.NO_SQUAD) {
-            mission.squadId = context.mintSquad(type);
+            mission.squadId = mission.arrivalGroupId >= 0
+                    ? context.squadForArrivalGroup(type)
+                    : context.mintSquad(type);
             context.claimSquadCommand(mission.squadId, mission.commandClaim);
             if (mission.rescueMilitiaTransport) {
                 Squad guard = context.squad(mission.squadId);

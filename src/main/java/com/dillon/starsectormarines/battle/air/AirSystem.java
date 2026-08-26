@@ -161,10 +161,23 @@ public class AirSystem {
     public long spawn(ShuttleType type, Faction faction,
                       float lzX, float lzY, float entryX, float entryY,
                       float exitX, float exitY, float pendingDelay) {
+        return spawn(type, faction, lzX, lzY, entryX, entryY,
+                exitX, exitY, pendingDelay, type.capacity);
+    }
+
+    /** Spawns an infantry shuttle carrying a validated subset of its physical seats. */
+    public long spawn(ShuttleType type, Faction faction,
+                      float lzX, float lzY, float entryX, float entryY,
+                      float exitX, float exitY, float pendingDelay,
+                      int seatsPerSortie) {
+        if (seatsPerSortie < 1 || seatsPerSortie > type.capacity) {
+            throw new IllegalArgumentException("seatsPerSortie must be between 1 and "
+                    + type.capacity + " for " + type + ": " + seatsPerSortie);
+        }
         AirBody body = new AirBody();
         body.teleport(entryX, entryY, AirBody.facingToward(lzX - entryX, lzY - entryY));
         ShuttleMission mission = new ShuttleMission(lzX, lzY, entryX, entryY, exitX, exitY,
-                pendingDelay, type.capacity, type.maxHp);
+                pendingDelay, seatsPerSortie, type.maxHp);
         long id = roster.allocateAir(shuttleArchetype);
         world.setAirIdentity(id, type, faction);
         world.setKinematics(id, body);
@@ -235,7 +248,8 @@ public class AirSystem {
      * "armed."
      */
     private boolean shouldHoverLoiter(long id, ShuttleMission mission) {
-        return mission.assignedRole != null && world.hasAirTurrets(id);
+        return mission.postDeliveryDisposition == PostDeliveryDisposition.LOITER_IF_ARMED
+                && mission.assignedRole != null && world.hasAirTurrets(id);
     }
 
     /** True when every mounted turret has fired dry (or the craft is unarmed) — a HOVER_STATION exit trigger. */
@@ -459,7 +473,9 @@ public class AirSystem {
                             }
                             AirDeliveryPayload payload = mission.payload != null
                                     ? mission.payload : InfantryPayload.INSTANCE;
-                            mission.marinesRemaining = payload.unitsPerSortie(type);
+                            mission.marinesRemaining = payload == InfantryPayload.INSTANCE
+                                    ? mission.seatsPerSortie
+                                    : payload.unitsPerSortie(type);
                             mission.deboardedThisSortie = 0;   // fresh sortie → loadout index restarts at 0
                             mission.pendingDelay = mission.rearmDelay;
                             // The re-arm is a full refit at the carrier, so repair the hull too —

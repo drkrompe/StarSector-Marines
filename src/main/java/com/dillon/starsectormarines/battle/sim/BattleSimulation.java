@@ -978,6 +978,15 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         return airSystem.spawn(type, faction, lzX, lzY, entryX, entryY, exitX, exitY, pendingDelay);
     }
 
+    public long spawnShuttle(ShuttleType type, Faction faction,
+                             float lzX, float lzY, float entryX, float entryY,
+                             float exitX, float exitY, float pendingDelay,
+                             int seatsPerSortie) {
+        requireInternalAir("spawnShuttle");
+        return airSystem.spawn(type, faction, lzX, lzY, entryX, entryY,
+                exitX, exitY, pendingDelay, seatsPerSortie);
+    }
+
     public void addConvoyVehicle(VehicleType type, Faction faction, VehicleMission mission) {
         groundSystem.add(type, faction, mission);
     }
