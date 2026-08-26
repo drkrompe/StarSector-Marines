@@ -87,6 +87,17 @@ resistance, a mobile squad may support either neighboring track without being
 permanently re-homed. Useful resistance in the preferred track wins, preventing
 routine lateral churn.
 
+A known track front does not require a defender to occupy a discrete room.
+When a mobile squad has no actionable zone or local contact but faction-local
+belief places resistance farther up its preferred track, command gives it an
+**advance-track staging order**. The marker is an own-force destination behind
+the nearest believed hostile, cannot leap far beyond the friendly lead or pull
+the squad backward, and is snapped to a reachable walkable cell in that track.
+The marker is quantized and directive-stable so small belief changes do not
+produce visible command jitter. Local contact immediately yields to squad
+engagement doctrine. This closes open-ground front gaps without turning the
+exterior flood into a fictitious clear-zone objective.
+
 Conquest command publishes an immutable **front snapshot** after each command
 tick. It explains the current phase, every mobile squad's preferred and
 effective track, the reason and target behind its order, and each track's

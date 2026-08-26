@@ -221,14 +221,59 @@ class SquadStateDumperTest {
         assertTrue(execution.isNull("assignment"));
     }
 
+    @Test
+    void dumpPublishesConquestLaneStageOrderAndMarker() throws Exception {
+        BattleSimulation sim = openSim(32, 100);
+        int rearId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad rear = sim.getSquad(rearId);
+        long rearMember = sim.spawn(new EntitySpec("rear", Faction.MARINE,
+                UnitType.MARINE, 5, 2).squad(rearId));
+        rear.leaderId = rearMember;
+
+        int reporterId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad reporter = sim.getSquad(reporterId);
+        long reporterMember = sim.spawn(new EntitySpec("reporter", Faction.MARINE,
+                UnitType.MARINE, 5, 80).squad(reporterId));
+        reporter.leaderId = reporterMember;
+        sim.spawn(new EntitySpec("defender", Faction.DEFENDER,
+                UnitType.MILITIA, 5, 82));
+
+        ConquestCommand command = new ConquestCommand(
+                TraversalAxis.SOUTH_TO_NORTH);
+        sim.setAutonomousCommander(Faction.MARINE, command,
+                ConquestCommandDisclosure.INSTANCE);
+        sim.advance(BattleSimulation.TICK_DT);
+        sim.advance(CommanderService.COMMANDER_TICK_PERIOD
+                + BattleSimulation.TICK_DT);
+
+        JSONObject dump = SquadStateDumper.buildSquadJson(rear, sim);
+        JSONObject assigned = dump.getJSONObject("assignedObjective");
+        assertEquals("ADVANCE_TRACK", assigned.getString("kind"));
+        JSONObject common = dump.getJSONObject("commander")
+                .getJSONObject("squadDirective");
+        assertEquals("ADVANCE_TRACK", common.getJSONObject("assignment")
+                .getString("kind"));
+        JSONObject conquest = dump.getJSONObject("conquestCommand")
+                .getJSONObject("squadDirective");
+        assertEquals("TRACK_LINE_ADVANCE", conquest.getString("reason"));
+        assertEquals("ADVANCE_TRACK", conquest.getString("assignmentKind"));
+        assertEquals(assigned.getInt("targetCellX"),
+                conquest.getInt("markerCellX"));
+        assertEquals(assigned.getInt("targetCellY"),
+                conquest.getInt("markerCellY"));
+    }
+
     private static BattleSimulation openSim() {
-        NavigationGrid grid = new NavigationGrid(32, 24);
+        return openSim(32, 24);
+    }
+
+    private static BattleSimulation openSim(int width, int height) {
+        NavigationGrid grid = new NavigationGrid(width, height);
         for (int y = 0; y < grid.getHeight(); y++) {
             for (int x = 0; x < grid.getWidth(); x++) {
                 grid.setWalkableFloor(x, y);
             }
         }
-        return new BattleSimulation(grid,
-                new CellTopology(grid.getWidth(), grid.getHeight()));
+        return new BattleSimulation(grid, new CellTopology(width, height));
     }
 }
