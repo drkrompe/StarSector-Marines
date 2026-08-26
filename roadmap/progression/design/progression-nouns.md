@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — connected additive faction equipment pools to market, license, and patron rewards.
+Updated: 2026-08-26 — connected all four additive faction-equipment acquisition channels.
 
 ## Purpose
 
@@ -160,11 +160,18 @@ Shattercap after two victories. Faction source pools now author which cards may
 enter through market, license, patron, and recovery channels. Open markets now
 stock a faction-and-market-stable weighted selection that rotates monthly and
 scales with market size. Favorable-or-better standing adds licensed offers, and
-already-owned cards are omitted. Each completed patron contract also issues one
+already-owned or carried cards are omitted. Each completed patron contract also issues one
 weighted card from that patron faction's pool through the immutable engagement
 ledger. Delivery is exactly once, excludes learned or already-carried cards, and
-does not treat system-generated extraction as patron work. Operational recovery
-and the full asset reachability ladder remain planned.
+does not treat system-generated extraction as patron work. A victorious high-risk
+operation with salvage rights contributes at most one deterministic target-faction
+card from the `recovery` pool to the ordinary weighted loot roll. If rolled, the
+card enters the frozen manifest and competes inside the player's existing salvage
+budget; settlement creates the same parameterized cargo item exactly once. Learned
+and already-carried cards are excluded before the manifest freezes, low-risk work
+does not roll this channel, unknown faction ids use the Independent fallback, and
+explicitly excluded factions remain empty. The full asset reachability ladder
+remains planned.
 
 A template card may exist in fleet cargo as one parameterized Starsector special
 item whose data is the stable equipment-template id. Right-click learning follows

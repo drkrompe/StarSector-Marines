@@ -7,7 +7,7 @@ Status: PLANNED — depends on the remaining S2E–S2G special-equipment stories
 armor expansion also depends on
 `powered-assault-armor-roles.md`.
 Written: 2026-08-22
-Updated: 2026-08-26 — landed faction market, license, and completed-patron reward consumers; operational recovery remains.
+Updated: 2026-08-26 — landed all four faction-pool consumers; asset reachability and the long-horizon ladder remain.
 
 Read `progression-nouns.md`, `faction-lore-nouns.md`, and
 `powered-assault-armor-roles.md` before implementing this story.
@@ -102,7 +102,17 @@ The delivery is exactly once across battle-resolved and time-resolved contracts,
 omits templates already learned or held in cargo, retries when fleet cargo is
 temporarily unavailable, and compensates existing saves from their unprocessed
 completion history. System-generated extraction work is not a patron reward.
-Operational recovery remains the work of this story.
+Victorious high-risk operations with salvage rights now contribute at most one
+deterministically selected target-faction card from the `recovery` pool to the
+ordinary weighted recovery roll. A rolled card is an ordinary choice in the
+frozen salvage manifest and existing value budget, and selection settles it
+through the same exactly-once cargo transaction as commodities and ship weapons.
+Learned and already-carried cards are excluded before rolling; lower-risk work,
+explicit faction exclusions, and operations without salvage rights yield none.
+Unknown faction ids use the Independent fallback while a submod's exact pool
+overrides that fallback without another Java integration point. Intact-installation
+recovery remains the narrower site-state channel owned by
+`intact-installation-recovery.md`, not a synonym for ordinary battle salvage.
 
 The parameterized cargo item and its right-click learning transition are now
 shipped. A source can create its validated payload from any stable
