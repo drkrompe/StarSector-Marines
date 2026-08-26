@@ -205,6 +205,7 @@ public final class FleetArmoryScreen implements Screen {
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.ARMORY,
                 dismissDialog,
                 () -> context.goTo(ScreenId.COMPANY_HQ),
+                () -> context.goTo(ScreenId.BARRACKS),
                 () -> { },
                 () -> context.goTo(ScreenId.MECH_LAB));
     }
@@ -212,8 +213,8 @@ public final class FleetArmoryScreen implements Screen {
     private void requireWiredElements(MarkupInstance component) {
         List<String> required = view == View.FIRETEAMS
                 ? List.of("fleet-armory-fireteam-root", "marine-ops-page-nav",
-                "page-nav-return", "page-nav-hq", "page-nav-armory",
-                "page-nav-mech-lab",
+                "page-nav-return", "page-nav-hq", "page-nav-barracks",
+                "page-nav-armory", "page-nav-mech-lab",
                 "fireteam-breadcrumb", "back-to-squads", "fireteam-body",
                 "squad-doctrine-strip", "equipment-picker-tabs", "show-weapon-picker",
                 "show-armor-picker", "weapon-doctrine-list", "armor-doctrine-list",
@@ -225,7 +226,8 @@ public final class FleetArmoryScreen implements Screen {
                 "marine-preview:2", "marine-preview:3")
                 : view == View.DESIGNER
                 ? List.of("equipment-designer-root", "marine-ops-page-nav",
-                "page-nav-return", "page-nav-hq", "page-nav-armory", "page-nav-mech-lab",
+                "page-nav-return", "page-nav-hq", "page-nav-barracks",
+                "page-nav-armory", "page-nav-mech-lab",
                 "designer-breadcrumb", "back-to-fireteams", "designer-mode-row",
                 "show-weapon-definitions", "show-armor-definitions",
                 "designer-definition-library", "designer-definition-list",
@@ -234,8 +236,8 @@ public final class FleetArmoryScreen implements Screen {
                 "designer-marine-preview:0", "designer-marine-preview:1",
                 "designer-marine-preview:2", "designer-marine-preview:3")
                 : List.of("fleet-armory-root", "marine-ops-page-nav",
-                "page-nav-return", "page-nav-hq", "page-nav-armory",
-                "page-nav-mech-lab",
+                "page-nav-return", "page-nav-hq", "page-nav-barracks",
+                "page-nav-armory", "page-nav-mech-lab",
                 "squad-breadcrumb", "squad-overview-intro", "squad-card-list");
         for (String id : required) {
             component.requireElement(id);

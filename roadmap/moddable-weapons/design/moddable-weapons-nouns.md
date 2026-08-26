@@ -206,13 +206,13 @@ stable-id compatibility handle whose accessors resolve shipped catalog
 definitions; it owns no duplicate authored values. Both families still obey
 the same penetration and mutually exclusive contact-versus-area payload laws.
 
-Generated faction primary and armor issue now consumes contributed definitions
-directly, including primary ballistics and presentation without a
-`MarineWeapon` constant. Contributed special definitions and cards load, but
-generated battle issue still crosses the `MarineSecondary` compatibility handle;
-player doctrine materialization also still crosses enum-backed billet identity.
-Those remaining edges are tracked by `w5-submod-merge.md` and the broader W4
-persistence migration.
+Generated faction and player-authored primary and armor issue now consume
+contributed definitions directly, including player doctrine selection,
+persistence, cargo-backed materialization, deployment, primary ballistics, and
+presentation without `MarineWeapon` or `MarineArmorPattern` constants.
+Contributed special definitions and cards load, but generated and player battle
+issue still crosses the `MarineSecondary` compatibility handle. That remaining
+edge is tracked by `w5-submod-merge.md` and the broader W4 persistence migration.
 
 Catalog expansion and mount validation, layered effects, compatibility-enum
 completion, compatibility-enum retirement and persistence repair, and remaining

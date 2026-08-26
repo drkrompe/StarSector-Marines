@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.catalog;
 
-import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
@@ -14,10 +13,19 @@ import com.dillon.starsectormarines.battle.combat.BallisticResolver;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
+import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.MarineSoldier;
+import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
+import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
+import com.dillon.starsectormarines.marine.SquadEquipmentResult;
+import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
+import com.dillon.starsectormarines.ops.EquipmentDoctrineDesignerViewModel;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.ops.battleview.ShotFx;
+import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
+import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -25,6 +33,10 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -101,12 +113,112 @@ class SubmodEquipmentContributionTest {
             assertNull(shot.marineWeapon);
             assertEquals(loadout.primaryDef, shot.primaryWeaponDef);
             assertTrue(ShotFx.of(shot).body() instanceof ShotFx.Sprite);
+
+            MarineRoster playerRoster = playerCanLearnAuthorIssueAndDeployContributedKit();
+            MarineRoster persisted = roundTrip(playerRoster);
+            assertEquals("example.weapon-needle-rifle",
+                    persisted.activeSoldiers().get(0).primaryId());
+            assertEquals("example.armor-ceramic",
+                    persisted.activeSoldiers().get(0).armorId());
+
+            byte[] providerSave = serialize(playerRoster);
+            WeaponRegistry.install(oldWeapons);
+            MarineArmorCatalogRegistry.install(oldArmor);
+            SpecialEquipmentRegistry.install(oldSpecials);
+            EquipmentTemplateCatalog.install(oldTemplates);
+            MarineRoster repaired = deserialize(providerSave);
+            assertEquals("weapon.field-rifle", repaired.activeSoldiers().get(0).primaryId());
+            assertEquals("armor.field-fatigues", repaired.activeSoldiers().get(0).armorId());
+
+            WeaponRegistry.install(weapons);
+            MarineArmorCatalogRegistry.install(armor);
+            SpecialEquipmentRegistry.install(specials);
+            EquipmentTemplateCatalog.install(templates);
         } finally {
             WeaponRegistry.install(oldWeapons);
             MarineArmorCatalogRegistry.install(oldArmor);
             SpecialEquipmentRegistry.install(oldSpecials);
             GroundRosterRegistry.install(oldRosters);
             EquipmentTemplateCatalog.install(oldTemplates);
+        }
+    }
+
+    private static MarineRoster playerCanLearnAuthorIssueAndDeployContributedKit() {
+        String primaryTemplate = "equipment-template:example.weapon-needle-rifle:service";
+        String armorTemplate = "equipment-template:example.armor-ceramic";
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
+        assertTrue(roster.armory().acquireEquipmentTemplate(primaryTemplate));
+        assertTrue(roster.armory().acquireEquipmentTemplate(armorTemplate));
+
+        EquipmentDoctrineDesignerViewModel designer = new EquipmentDoctrineDesignerViewModel(
+                new Reactor(), roster, null, null, null);
+        for (int attempt = 0; attempt < 20
+                && !"example.weapon-needle-rifle".equals(
+                designer.viewerBilletAt(0).primaryId()); attempt++) {
+            designer.billets().get().get(0).cyclePrimary().run();
+        }
+        assertEquals("example.weapon-needle-rifle", designer.viewerBilletAt(0).primaryId(),
+                "a learned contributed primary must appear in the doctrine picker");
+        designer.newDraft().run();
+        designer.editName().accept("OC Needle Issue");
+        designer.saveAsNew().run();
+        SquadWeaponDoctrine weapons = roster.armory().weaponDoctrines().stream()
+                .filter(doctrine -> "OC Needle Issue".equals(doctrine.displayName()))
+                .findFirst().orElseThrow();
+
+        designer.showArmor().run();
+        for (int attempt = 0; attempt < 20
+                && !"example.armor-ceramic".equals(
+                designer.viewerBilletAt(0).armorId()); attempt++) {
+            designer.billets().get().get(0).cyclePrimary().run();
+        }
+        assertEquals("example.armor-ceramic", designer.viewerBilletAt(0).armorId(),
+                "a learned contributed armor must appear in the doctrine picker");
+        designer.newDraft().run();
+        designer.editName().accept("OC Ceramic Issue");
+        designer.saveAsNew().run();
+        SquadArmorDoctrine armor = roster.armory().armorDoctrines().stream()
+                .filter(doctrine -> "OC Ceramic Issue".equals(doctrine.displayName()))
+                .findFirst().orElseThrow();
+        MarineSquad squad = roster.squads().stream()
+                .filter(candidate -> !candidate.reserve()).findFirst().orElseThrow();
+
+        var issueCost = roster.previewSquadEquipment(
+                squad.id(), weapons.id(), armor.id()).issueCost();
+        assertEquals(1, issueCost.heavyArmaments(),
+                "the contributed primary's authored heavy-armament cost must be charged");
+        assertTrue(issueCost.supplies() >= 7,
+                "the contributed primary and armor supply costs must be included");
+        assertEquals(SquadEquipmentResult.APPLIED, roster.applySquadEquipment(
+                squad.id(), weapons.id(), armor.id()));
+        MarineSoldier issued = roster.squadMembers(squad).get(0);
+        assertEquals("example.weapon-needle-rifle", issued.primaryId());
+        assertNull(issued.primary(), "custom player issue must not require an enum constant");
+        assertEquals("example.armor-ceramic", issued.armorId());
+        assertNull(issued.armor(), "custom player armor must not require an enum constant");
+
+        MarineLoadout deployed = CampaignMarineDeployment.freeze(roster, 1).seat(0);
+        assertEquals("example.weapon-needle-rifle", deployed.primaryDef.id);
+        assertEquals("ARMY_GREEN", deployed.armorFamily.name());
+        return roster;
+    }
+
+    private static MarineRoster roundTrip(MarineRoster roster) throws Exception {
+        return deserialize(serialize(roster));
+    }
+
+    private static byte[] serialize(MarineRoster roster) throws Exception {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        try (ObjectOutputStream output = new ObjectOutputStream(bytes)) {
+            output.writeObject(roster);
+        }
+        return bytes.toByteArray();
+    }
+
+    private static MarineRoster deserialize(byte[] bytes) throws Exception {
+        try (ObjectInputStream input = new ObjectInputStream(new ByteArrayInputStream(bytes))) {
+            return (MarineRoster) input.readObject();
         }
     }
 

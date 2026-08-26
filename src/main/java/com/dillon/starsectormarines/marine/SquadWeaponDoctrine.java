@@ -16,7 +16,8 @@ public final class SquadWeaponDoctrine implements Serializable {
     public SquadWeaponDoctrine(String id, String displayName, String description,
                                List<SquadWeaponIssue> issues) {
         if (id == null || id.isBlank()) throw new IllegalArgumentException("Doctrine id is required");
-        if (issues == null || issues.size() != MarineSquad.CAPACITY || issues.contains(null)) {
+        if (issues == null || issues.size() != MarineSquad.CAPACITY
+                || issues.stream().anyMatch(java.util.Objects::isNull)) {
             throw new IllegalArgumentException(
                     "A squad weapon doctrine requires exactly " + MarineSquad.CAPACITY + " issues");
         }

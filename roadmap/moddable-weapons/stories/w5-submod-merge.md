@@ -4,7 +4,7 @@ Status: IN PROGRESS
 
 Written: 2026-08-22
 
-Updated: 2026-08-25 — promoted around an external OC-faction provider; additive discovery and primary/armor/template flow are implemented, while special runtime and the sibling tileset adoption remain.
+Updated: 2026-08-25 — completed learned-card player primary/armor authoring, persistence, issue, deployment, and provider-removal repair; special runtime and sibling tileset adoption remain.
 
 Read `moddable-weapons-nouns.md` before implementing this story.
 
@@ -41,8 +41,13 @@ constants.
   behavior, ballistics, shot FX, lighting, and audio;
 - contributed armor definitions through faction selection, appearance-family
   selection, durability, mobility, and hit-profile modifiers;
+- contributed learned primary and armor cards through the player doctrine
+  editor, stable-id saves, cargo-backed squad issue, and campaign deployment;
+- warning-backed save repair to the starter rifle and field fatigues when a
+  persisted equipment provider is removed;
 - an external-provider acceptance fixture proving an OC faction can add its
-  weapon, armor, roster, and collectible cards without enum constants.
+  weapon, armor, roster, and collectible cards, then learn, author, issue,
+  save/load, and deploy them without enum constants.
 
 ## Remaining
 
@@ -50,10 +55,6 @@ constants.
   special-equipment id can execute in a generated faction roster. Contributed
   special definitions and their collectible cards already load and validate;
   assigning one to a roster remains fail-loud rather than silently dropping it.
-- Move persisted player doctrine/billet equipment identity off the remaining
-  enums so a learned contributed card can be selected and materialized, not
-  merely discovered, validated, carried, and learned. This is the W5 consumer
-  that advances the W4 persistence migration rather than duplicating it.
 - Adopt the same manifest/provenance machinery for tilesets instead of growing
   a second discovery contract.
 - Run an in-game two-mod smoke test against real Starsector enabled-mod order
