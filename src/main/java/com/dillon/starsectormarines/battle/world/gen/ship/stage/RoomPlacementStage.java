@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckProfile;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckSide;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckZone;
+import com.dillon.starsectormarines.battle.world.gen.ship.HullContact;
 import com.dillon.starsectormarines.battle.world.gen.ship.RoomRecipe;
 import com.dillon.starsectormarines.battle.world.gen.ship.RoomShape;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipKeys;
@@ -232,7 +233,7 @@ public final class RoomPlacementStage implements GenStage {
                     if (!floorFits(shape, x, y)) continue;
                     int contact = wallContact(shape, x, y);
                     if (contact < 0) continue;
-                    if (recipe.hullAccess() && !reachesHull(shape, x, y)) continue;
+                    if (!meetsHull(recipe.contact(), shape, x, y)) continue;
                     found.add(new Candidate(shape, x, y,
                             zoneBonus + contact + ctx.rng.nextInt(3)));
                 }
@@ -259,15 +260,20 @@ public final class RoomPlacementStage implements GenStage {
     }
 
     /**
-     * Whether any of this room's bulkhead is the side of the ship.
+     * Whether this placement puts the room against the part of the ship's
+     * outside it needs.
      *
-     * <p>A boat bay amidships opens onto the compartment next door. Requiring
-     * part of the ring to fall outside the hull is what makes the placer find a
-     * bay somewhere it could actually launch from, and it is the same test a
+     * <p>A boat bay amidships opens onto the compartment next door, and an
+     * engine room a third of the way up the hull is not driving anything.
+     * Requiring part of the bulkhead to fall outside the hull — on any side for
+     * a bay, on the after side for the drive — is what makes the placer find
+     * those rooms somewhere they could do their job. It is also the test a
      * breach point will want when boarding entry is authored.
      */
-    private boolean reachesHull(RoomShape shape, int ox, int oy) {
+    private boolean meetsHull(HullContact contact, RoomShape shape, int ox, int oy) {
+        if (contact == HullContact.NONE) return true;
         for (int[] cell : shape.wall()) {
+            if (contact == HullContact.STERN && cell[0] != shape.width()) continue;
             int x = ox + cell[0];
             int y = oy + cell[1];
             if (!inBounds(x, y) || !hull[x + 1][y + 1]) return true;

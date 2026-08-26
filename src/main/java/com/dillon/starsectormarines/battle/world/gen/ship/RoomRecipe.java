@@ -32,11 +32,11 @@ import java.util.List;
  * place by function rather than by capacity, like a command centre.
  */
 public record RoomRecipe(RoomPurpose purpose, RoomShape shape, DeckZone zone,
-                        int provides, boolean hullAccess) {
+                        int provides, HullContact contact) {
 
     /** A room that only needs to be somewhere on the deck. */
     public RoomRecipe(RoomPurpose purpose, RoomShape shape, DeckZone zone, int provides) {
-        this(purpose, shape, zone, provides, false);
+        this(purpose, shape, zone, provides, HullContact.NONE);
     }
 
     /**
@@ -94,7 +94,8 @@ public record RoomRecipe(RoomPurpose purpose, RoomShape shape, DeckZone zone,
      * placer has to find it a wall of the ship, not merely a wall.
      */
     public static final RoomRecipe SHUTTLE_BAY = new RoomRecipe(
-            RoomPurpose.HANGAR, RoomShape.rectangle(28, 16), DeckZone.MIDSHIPS, 120, true);
+            RoomPurpose.HANGAR, RoomShape.rectangle(28, 16), DeckZone.MIDSHIPS, 120,
+            HullContact.FLANK);
 
     /**
      * The single boat a small hull carries, and its bay. A frigate has a gig,
@@ -102,7 +103,8 @@ public record RoomRecipe(RoomPurpose purpose, RoomShape shape, DeckZone zone,
      * machinery spaces amidships and left no ship around it.
      */
     public static final RoomRecipe BOAT_BAY = new RoomRecipe(
-            RoomPurpose.HANGAR, RoomShape.rectangle(16, 10), DeckZone.MIDSHIPS, 40, true);
+            RoomPurpose.HANGAR, RoomShape.rectangle(16, 10), DeckZone.MIDSHIPS, 40,
+            HullContact.FLANK);
 
     /** Bulk hold. Large and sparse inside. */
     public static final RoomRecipe HOLD = new RoomRecipe(
@@ -161,6 +163,16 @@ public record RoomRecipe(RoomPurpose purpose, RoomShape shape, DeckZone zone,
      */
     public static final RoomRecipe ENGINEERING = new RoomRecipe(
             RoomPurpose.PRODUCTION_FLOOR, RoomShape.rectangle(20, 14), DeckZone.AFT, 150);
+
+    /**
+     * The drive itself, hard against the transom. Distinct from the auxiliary
+     * machinery forward of it: {@link #ENGINEERING} is the plant that keeps a
+     * ship alive, this is the plant that moves her, and it is the one room whose
+     * position is fixed by what it does rather than chosen by what fits.
+     */
+    public static final RoomRecipe ENGINE_ROOM = new RoomRecipe(
+            RoomPurpose.ENGINE_ROOM, RoomShape.rectangle(24, 22), DeckZone.AFT, 0,
+            HullContact.STERN);
 
     /**
      * Provisions and consumable stores, struck down aft by the machinery they
