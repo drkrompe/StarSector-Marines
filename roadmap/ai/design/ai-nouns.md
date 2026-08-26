@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns autonomous mission command, squad planning, belief-de
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — added perspective-safe squad approach evidence and neutral capture-zone occupancy over the canonical Conquest trace split.
+Updated: 2026-08-25 — added schema-4 capture-deferral evidence while preserving the perspective/neutral trace split.
 
 AI turns mission context and what a side has learned into coordinated
 movement, posture, and fire intent. It is a decision system, not the authority
@@ -125,8 +125,9 @@ The first Conquest evidence metrics are descriptive rather than balance gates.
 They report accepted assignment retargets and reissues, command-unassigned and
 explicitly unreachable squad intervals, reserve squad-time, published defender
 contact-to-reserve-mobilization latency, published track concentration,
-compound captures and losses, combatant casualties, duration, and terminal or
-timeout outcome. They name only what the trace proves: command-unassigned is
+compound captures and losses, capture allocations deferred for actionable
+front resistance, combatant casualties, duration, and terminal or timeout
+outcome. They name only what the trace proves: command-unassigned is
 not synonymous with physical inactivity. A bounded run with compounds but no
 observed ownership gain is labelled territorial progress stalled; a long
 capture gap remains evidence to inspect rather than an automatic tuning order.
