@@ -191,9 +191,9 @@ public final class MechLoadoutComponent {
         float range = 0f;
         for (MechWeaponMount mount : mounts) {
             if (mount != null && mount.hasAmmo() && mount.weapon() != MechWeapon.LRM_ARTILLERY) {
-                range = Math.max(range, mount.weapon().range);
+                range = Math.max(range, mount.weapon().range());
                 if (mount.weapon() == MechWeapon.SRM_POD) {
-                    missileRange = Math.max(missileRange, mount.weapon().range);
+                    missileRange = Math.max(missileRange, mount.weapon().range());
                 }
             }
         }

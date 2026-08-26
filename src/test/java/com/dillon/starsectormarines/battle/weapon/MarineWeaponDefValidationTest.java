@@ -16,6 +16,14 @@ class MarineWeaponDefValidationTest {
         assertThrows(JSONException.class, () -> WeaponDef.parse(json));
     }
 
+    @Test
+    void marinePrimaryRejectsMechBlastFields() throws Exception {
+        JSONObject json = primaryWeapon();
+        json.getJSONObject("sim").put("aoeRadius", 1.0);
+
+        assertThrows(JSONException.class, () -> WeaponDef.parse(json));
+    }
+
     private static JSONObject primaryWeapon() throws Exception {
         return new JSONObject("""
                 {

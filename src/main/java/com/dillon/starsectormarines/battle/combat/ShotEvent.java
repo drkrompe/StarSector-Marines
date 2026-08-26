@@ -249,7 +249,7 @@ public class ShotEvent {
     public boolean isIndirectFire() {
         if (specialEquipmentDef != null && (specialEquipmentDef.weaponDef().indirectFire
                 || specialEquipmentDef.arcHeight() > 0f)) return true;
-        if (mechWeapon != null && mechWeapon.arcHeight > 0f) return true;
+        if (mechWeapon != null && mechWeapon.arcHeight() > 0f) return true;
         return turretKind != null
                 && (turretKind.indirectFire() || turretKind.arcHeight() > 0f);
     }
@@ -257,7 +257,7 @@ public class ShotEvent {
     /** Coarse ground-combat loudness used by the squad hearing model. */
     public float noiseMagnitude() {
         if (specialEquipmentDef != null) return 2.5f;
-        if (mechWeapon != null) return Math.min(4f, 2f + mechWeapon.aoeRadius);
+        if (mechWeapon != null) return Math.min(4f, 2f + mechWeapon.aoeRadius());
         if (turretKind != null) return Math.min(4f, 1.5f + turretKind.aoeRadius());
         if (primaryWeaponDef != null && primaryWeaponDef.impactProfile == ImpactProfile.KINETIC) {
             return 1.4f;
@@ -285,7 +285,7 @@ public class ShotEvent {
         if (turretKind != null) return turretKind.impactProfile();
         if (specialEquipmentDef != null) return specialEquipmentDef.impactProfile();
         if (primaryWeaponDef != null) return primaryWeaponDef.impactProfile;
-        if (mechWeapon != null) return mechWeapon.impactProfile;
+        if (mechWeapon != null) return mechWeapon.impactProfile();
         return ImpactProfile.RIFLE;
     }
 }

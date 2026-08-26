@@ -1,257 +1,72 @@
 package com.dillon.starsectormarines.battle.mech;
 
-import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
-import com.dillon.starsectormarines.battle.unit.UnitType;
-
 import com.dillon.starsectormarines.battle.combat.fx.ImpactProfile;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+
 import java.awt.Color;
 
 /**
- * Chassis-mounted heavy weapons carried by mech-class units (currently just
- * {@link UnitType#HEAVY_MECH}). Distinct from {@link com.dillon.starsectormarines.battle.infantry.MarineWeapon} +
- * {@link com.dillon.starsectormarines.battle.infantry.MarineSecondary} because the lore concept is different — these are
- * armored-vehicle hardpoints, not handheld squad gear — and the firing model
- * differs too: a mech runs every installed hardpoint concurrently, each on its
- * own cooldown and engagement band. Rack size and ammunition live in
- * {@link MechWeaponComponent}; this enum describes the projectile/firing
- * family shared by those components.
+ * Id-only compatibility handles for the shipped mech weapon families.
+ * Projectile behavior and presentation live in the installed weapon catalog;
+ * {@link MechWeaponComponent} retains rack size, ammunition, hardpoint family,
+ * and mount appearance.
  *
- * <p>The catalog is intentionally small and opinionated:
- * <ul>
- *   <li>{@link #CHAINGUN} — close-band brawler. Heavy 12-round burst at high
- *       cycle rate. Reads as the mech walking forward "brrt"-ing.</li>
- *   <li>{@link #HEAVY_CANNON} — precise short/mid anti-hardened fallback.
- *       Low infantry throughput, but a large hardened-target multiplier.</li>
- *   <li>{@link #SRM_POD} — mid-close burst-damage salvo. Wave of 4 dumb
- *       rockets per launch, ammo-limited, big anti-anything punch.</li>
- *   <li>{@link #LRM_ARTILLERY} — long-band artillery. Slow arc, single
- *       heavy rocket, used to lob shots across the grid before targets close
- *       to chaingun range.</li>
- * </ul>
- *
- * <p>{@link MechLoadoutComponent} installs component entries into physical arm
- * and shoulder slots, so authored variants and future refit UI share the same
- * construction model.
+ * <p>The constants survive temporarily while mech tactics and shot events use
+ * enum identity. W4 replaces those compatibility boundaries with stable ids.
  */
 public enum MechWeapon {
 
-    /**
-     * Dual chaingun arms — close-band saturation. Each trigger pull rips a
-     * 12-round burst at 60ms spacing for a ~0.7s sustained brrt across both
-     * arms, then a 2-second cooldown. Rounds scatter across a 1.2-cell
-     * pattern and each detonates with a small AoE on landing, so a clustered
-     * squad eats multiple rounds via splash — anti-cluster suppression, not
-     * single-target precision. Ground-mounted, so high/low/wide rounds resolve
-     * against walls and cover rather than peppering marines through obstacles.
-     * The chip wallDamage means a sustained chaingun lock-on grinds through
-     * building walls over a few bursts. KINETIC impact for the punchier
-     * visual flash that fits a heavy auto-cannon.
-     *
-     * <p>Tuning intent — the chaingun is the "ammo never runs out" hitter
-     * the mech leans on once SRM/LRM salvos are spent. Per-round damage
-     * (1.5) sits below the rocket pods so they're still the headline punch,
-     * but an 18-damage burst × 0.55 accuracy × the AoE saturation pattern
-     * adds up to ~5 DPS sustained to a locked target. Combined with the
-     * 0.6-cell AoE catching clustered squadmates, that swings the
-     * post-rocket-empty fight from "marines outlast the mech" to "even
-     * trade if the marines don't break LOS" — the design target is
-     * MechWarrior-style mech-vs-infantry threat, not infantry-trivially-
-     * wins-once-ammo-is-out.
-     */
-    CHAINGUN("Chaingun",
-             "chaingun_fire",
-             new Color(0xFF, 0xE8, 0xC0),
-             30f, 13.5f, 0.55f, 2.00f, 5f,
-             ImpactProfile.KINETIC,
-             12, 0.06f,
-             "graphics/missiles/shell_small_yellow.png", 0.18f, 0.10f,
-             0f, 1.2f, false,
-             0.6f, 3, /*wallDmgRadius*/ 0f),
+    /** Close-band sustained saturation weapon. */
+    CHAINGUN("weapon.mech-chaingun"),
+    /** Direct-fire support cannon. */
+    LINEAR_CANNON("weapon.mech-linear-cannon"),
+    /** Precise anti-armor cannon with a compact blast. */
+    HEAVY_CANNON("weapon.mech-heavy-cannon"),
+    /** Mid-close finite rocket salvo. */
+    SRM_POD("weapon.mech-srm-pod"),
+    /** Long-range indirect artillery salvo. */
+    LRM_ARTILLERY("weapon.mech-lrm-artillery");
 
-    /**
-     * Twin light linear cannons. A short two-round pulse gives a support or
-     * scout chassis a credible direct-fire fallback without reproducing the
-     * chaingun's close-range saturation.
-     */
-    LINEAR_CANNON("Linear Cannon",
-                  "needler_fire",
-                  new Color(0xB8, 0xE8, 0xFF),
-                  32f, 27.0f, 0.68f, 2.80f, 8f,
-                  ImpactProfile.KINETIC,
-                  2, 0.12f,
-                  "graphics/missiles/shell_large_blue.png", 0.20f, 0.14f,
-                  0f, 0.35f, false,
-                  0.35f, 4, /*wallDmgRadius*/ 0f),
+    /** Stable registry id carried by mount definitions and future saves. */
+    public final String id;
 
-    /**
-     * Single centerline anti-armor cannon. One accurate gun-launched HE round
-     * carries modest splash and structural bite, while the hardened-target
-     * multiplier makes it a credible answer to turrets, mechs, hubs, and other
-     * armored bodies. The small blast is deliberately well below missile-pod
-     * saturation so this remains a backup weapon rather than Sirocco's primary
-     * infantry answer.
-     * Its 26-cell direct band leaves Sirocco's LRMs as the primary standoff
-     * weapon rather than turning the backup gun into a second long-range role.
-     */
-    HEAVY_CANNON("Heavy Cannon",
-                 "hellbore_fire",
-                 new Color(0xFF, 0xD0, 0x88),
-                 26f, 45.0f, 0.76f, 2.50f, 18f,
-                 ImpactProfile.CANNON_HE,
-                 1, 0f,
-                 "graphics/missiles/shell_hellbore.png", 0.34f, 0.30f,
-                 0f, 0.12f, false,
-                 1.0f, 18, /*wallDmgRadius*/ 0.9f),
-
-    /**
-     * Shoulder SRM pod — wave of 4 dumb rockets per launch. Annihilator-pattern
-     * for the audio + projectile. Salvos are intentionally infrequent (5.5s
-     * cooldown) so a single mech doesn't permanently deny mid-close approach.
-     * HE impact still shreds clustered infantry per salvo.
-     */
-    SRM_POD("SRM Pod",
-            "annihilator_fire",
-            new Color(0xFF, 0xC0, 0x80),
-            18f, 49.5f, 0.55f, 5.50f, 14f,
-            ImpactProfile.HE,
-            4, 0.10f,
-            "graphics/missiles/missile_SRM.png", 0.40f, 0.55f,
-            0f, 0f, true,
-            1.3f, 25, /*wallDmgRadius*/ 1.3f),
-
-    /**
-     * Long-range indirect-fire artillery. Per trigger pull, lobs a wave of 5
-     * Pilum-pattern LRMs (110ms apart). Rockets arc visibly over buildings and
-     * scatter on a 1.5-cell radius around the locked target — the artillery
-     * "rain" read. Per-rocket damage stepped down so a salvo is potent but
-     * doesn't one-shot a fireteam. Ammo-capped at 3 salvos so doctrine is
-     * "one opening barrage, two for emergencies."
-     *
-     * <p>Unlike chainguns + SRMs, LRMs can fire WITHOUT direct line of sight
-     * at a {@link #LRM_NO_LOS_ACC_MULT}× accuracy penalty (the AI gates this
-     * in {@code MechCombatantBehavior.tryFireMechWeapons}, not the weapon itself).
-     */
-    LRM_ARTILLERY("LRM Artillery",
-                  "pilum_lrm_fire",
-                  new Color(0xC8, 0xD8, 0xFF),
-                  40f, 81.0f, 0.55f, 9.00f, 16f,
-                  ImpactProfile.HE,
-                  5, 0.11f,
-                  "graphics/missiles/missile_LRM.png", 0.65f, 1.40f,
-                  5.0f, 1.5f, true,
-                  2.0f, 40, /*wallDmgRadius*/ 2.0f);
-
-    /**
-     * Accuracy multiplier applied to LRM shots fired without direct line of
-     * sight to the target. Reads as "ranged-in indirect fire": the salvo
-     * still lands in the target area but each individual rocket is less
-     * likely to connect — the mech is guessing from data link / sensor
-     * feed rather than seeing the target with its own optics.
-     */
-    public static final float LRM_NO_LOS_ACC_MULT = 0.55f;
-
-    public final String displayName;
-    /** Vanilla fire sound id ({@code fireSoundTwo} from a vanilla .wpn); mono, pre-registered. */
-    public final String fireSoundId;
-    /** Tracer color — only used as a renderer fallback when {@link #projectileSpritePath} fails to load. Every entry has a real projectile sprite in practice. */
-    public final Color tracerColor;
-    public final float range;
-    /** Damage PER PROJECTILE — for salvo / burst weapons this is per-round, and the salvo's full impact is {@code damage × burstCount}. */
-    public final float damage;
-    public final float accuracy;
-    /** Sim-seconds between trigger pulls. For CHAINGUN this is between bursts; for SRM between salvos; for LRM between shots. */
-    public final float cooldown;
-    /** Efficiency input against actor armor. */
-    public final float penetration;
-    public final ImpactProfile impactProfile;
-    /** Projectiles per trigger pull. CHAINGUN burst (12), SRM salvo (4), LRM salvo (5). */
-    public final int burstCount;
-    /** Sim-seconds between rounds within a burst / salvo. Zero for single-shot LRM. */
-    public final float burstSpacing;
-    /** Projectile sprite path — vanilla {@code graphics/missiles/...} for free art. */
-    public final String projectileSpritePath;
-    /** Projectile visual size in cells (long axis). Aspect from the loaded PNG. */
-    public final float projectileVisualCells;
-    /** Sim-seconds the projectile is visible in flight. Sets the per-shot lifetime used to compute travel progress in the renderer. */
-    public final float flightSec;
-    /**
-     * Visual arc height in cells. When &gt; 0, the renderer draws the projectile
-     * following a parabolic path that peaks {@code arcHeight} cells above the
-     * straight-line lerp at mid-flight. Purely visual — the sim's hit/miss
-     * resolution is unchanged. LRMs use this to read as artillery raining over
-     * buildings; chaingun + SRM keep the linear trajectory (arcHeight = 0).
-     */
-    public final float arcHeight;
-    /**
-     * Endpoint scatter on a hit, in cells. When &gt; 0, the visual impact point
-     * is randomly offset from the target cell by up to this radius — applied
-     * AFTER the hit/miss roll, so a hit still does full damage to the locked
-     * target; the spread is the "burst pattern" read of an indirect-fire
-     * salvo. LRM uses this; precision weapons leave it at 0.
-     */
-    public final float hitSpread;
-    /** True when projectiles in flight should leave a glowing engine trail (any rocket-class weapon). Chaingun shells are kinetic and skip it. */
-    public final boolean engineTrail;
-    /**
-     * Splash radius in cells on detonation, 0 for non-AoE weapons (chaingun).
-     * When &gt; 0, the weapon resolves damage at the projectile's impact
-     * endpoint via a {@code PendingDetonation}: every unit within radius with
-     * line of sight to the endpoint takes {@link #damage} (modified by cover).
-     * Friendly fire ON.
-     */
-    public final float aoeRadius;
-    /**
-     * Wall HP knocked off per wall cell touched by the detonation — the
-     * weapon's "penetration" knob against walls (which are hardened
-     * structural targets with their own HP). 0 for kinetic / non-AoE
-     * weapons. Whether a wall is touched is governed by {@link #wallDamageRadius}.
-     */
-    public final int wallDamage;
-    /**
-     * Radius (in cells) over which {@link #wallDamage} is applied around the
-     * detonation endpoint. Set non-zero on HE rocket-class weapons (SRM_POD,
-     * LRM_ARTILLERY) so the blast wave reaches walls the rocket landed near —
-     * a rocket exploding in the street between two buildings damages both
-     * walls, not just the dirt at the impact point. CHAINGUN stays at 0
-     * (kinetic burst, not a crater).
-     */
-    public final float wallDamageRadius;
-    MechWeapon(String displayName, String fireSoundId, Color tracerColor,
-               float range, float damage, float accuracy, float cooldown, float penetration,
-               ImpactProfile impactProfile,
-               int burstCount, float burstSpacing,
-               String projectileSpritePath, float projectileVisualCells, float flightSec,
-               float arcHeight, float hitSpread, boolean engineTrail,
-               float aoeRadius, int wallDamage, float wallDamageRadius) {
-        this.displayName = displayName;
-        this.fireSoundId = fireSoundId;
-        this.tracerColor = tracerColor;
-        this.range = range;
-        this.damage = damage;
-        this.accuracy = accuracy;
-        this.cooldown = cooldown;
-        this.penetration = penetration;
-        this.impactProfile = impactProfile;
-        this.burstCount = burstCount;
-        this.burstSpacing = burstSpacing;
-        this.projectileSpritePath = projectileSpritePath;
-        this.projectileVisualCells = projectileVisualCells;
-        this.flightSec = flightSec;
-        this.arcHeight = arcHeight;
-        this.hitSpread = hitSpread;
-        this.engineTrail = engineTrail;
-        this.aoeRadius = aoeRadius;
-        this.wallDamage = wallDamage;
-        this.wallDamageRadius = wallDamageRadius;
+    MechWeapon(String id) {
+        this.id = id;
     }
 
-    /**
-     * Modeled direct-fire velocity in cells/sec. Derived from the pre-S4
-     * maximum-range visual timing. Meaningful only for level-flight weapons;
-     * indirect LRM artillery retains its legacy projectile timing.
-     */
-    public float roundVelocity() {
-        if (!(flightSec > 0f)) return 60f;
-        return range / flightSec;
+    public static MechWeapon fromId(String id) {
+        for (MechWeapon weapon : values()) {
+            if (weapon.id.equals(id)) return weapon;
+        }
+        throw new IllegalArgumentException("Unknown mech weapon id '" + id + "'");
     }
+
+    public WeaponDef def() { return WeaponRegistry.require(id); }
+
+    public String displayName() { return def().displayName; }
+    public String fireSoundId() { return def().fireSoundId; }
+    public Color tracerColor() { return def().tracerColor; }
+    public float range() { return def().range; }
+    public float damage() { return def().damage; }
+    public float accuracy() { return def().accuracy; }
+    public float cooldown() { return def().cooldown; }
+    public float penetration() { return def().penetration; }
+    public ImpactProfile impactProfile() { return def().impactProfile; }
+    public int burstCount() { return def().burstCount; }
+    public float burstSpacing() { return def().burstSpacing; }
+    public String projectileSpritePath() { return def().projectileSpritePath; }
+    public float projectileVisualCells() { return def().projectileVisualCells; }
+    public float flightSec() { return def().flightSec; }
+    public float arcHeight() { return def().arcHeight; }
+    public float hitSpread() { return def().hitSpread; }
+    public boolean engineTrail() { return def().engineTrail; }
+    public float aoeRadius() { return def().aoeRadius; }
+    public int wallDamage() { return def().wallDamage; }
+    public float wallDamageRadius() { return def().wallDamageRadius; }
+    public float roundVelocity() { return def().roundVelocity; }
+    public boolean indirectFire() { return def().indirectFire; }
+    public float noLosAccuracyMult() { return def().noLosAccuracyMult; }
+    public boolean interceptableProjectile() { return def().interceptableProjectile; }
+    public boolean boostRamp() { return def().boostRamp; }
 }

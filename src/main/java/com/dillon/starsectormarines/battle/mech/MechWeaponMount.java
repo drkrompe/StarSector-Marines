@@ -23,7 +23,7 @@ public final class MechWeaponMount {
     }
 
     public MechWeapon weapon() {
-        return component.weapon;
+        return component.weapon();
     }
 
     public boolean hasAmmo() {

@@ -257,9 +257,9 @@ class SiroccoScreenedOverwatchTest {
         float dx = cellX - THREAT_X;
         float dy = cellY - THREAT_Y;
         float distance = (float) Math.sqrt(dx * dx + dy * dy);
-        assertTrue(distance >= MechWeapon.HEAVY_CANNON.range
+        assertTrue(distance >= MechWeapon.HEAVY_CANNON.range()
                 - OverwatchKillZone.DIRECT_FALLBACK_BAND_DEPTH);
-        assertTrue(distance <= MechWeapon.HEAVY_CANNON.range,
+        assertTrue(distance <= MechWeapon.HEAVY_CANNON.range(),
                 "fallback perch must let the unlimited heavy cannon fire");
     }
 

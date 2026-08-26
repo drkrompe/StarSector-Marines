@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
 import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
+import com.dillon.starsectormarines.battle.mech.MechWeapon;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKind;
@@ -479,25 +480,25 @@ public class BattleSprites {
         // Mech chassis projectile sprites — every entry has one (chaingun
         // shell / SRM / LRM). Same load + aspect-capture pattern as the marine
         // primaries above.
-        for (com.dillon.starsectormarines.battle.mech.MechWeapon w
-                : com.dillon.starsectormarines.battle.mech.MechWeapon.values()) {
-            if (w.projectileSpritePath == null) continue;
+        for (MechWeapon w : MechWeapon.values()) {
+            String projectileSpritePath = w.projectileSpritePath();
+            if (projectileSpritePath == null) continue;
             try {
-                Global.getSettings().loadTexture(w.projectileSpritePath);
-                SpriteAPI sprite = Global.getSettings().getSprite(w.projectileSpritePath);
+                Global.getSettings().loadTexture(projectileSpritePath);
+                SpriteAPI sprite = Global.getSettings().getSprite(projectileSpritePath);
                 if (sprite == null) {
-                    LOG.warn("BattleSprites: getSprite returned null for " + w.projectileSpritePath);
+                    LOG.warn("BattleSprites: getSprite returned null for " + projectileSpritePath);
                     continue;
                 }
                 float pw = sprite.getWidth();
                 float ph = sprite.getHeight();
                 float aspect = (ph > 0f) ? pw / ph : 1f;
                 ShuttleSpriteCache cache = new ShuttleSpriteCache(sprite, aspect);
-                projectileSpriteByPath.put(w.projectileSpritePath, cache);
-                LOG.info("BattleSprites: loaded mech projectile " + w.projectileSpritePath
+                projectileSpriteByPath.put(projectileSpritePath, cache);
+                LOG.info("BattleSprites: loaded mech projectile " + projectileSpritePath
                         + " (" + pw + "x" + ph + ", aspect=" + aspect + ")");
             } catch (Exception e) {
-                LOG.error("BattleSprites: failed to load mech projectile " + w.projectileSpritePath, e);
+                LOG.error("BattleSprites: failed to load mech projectile " + projectileSpritePath, e);
             }
         }
     }

@@ -13,9 +13,9 @@ import java.awt.Color;
  * One weapon, parsed from a {@code *.weapon.json} entry. Immutable and
  * id-addressed; the authoring surface is the JSON, not this class.
  *
- * <p>The field set is the shared baseline populated by handheld and turret
- * weapons (see {@code moddable-weapons-nouns.md}). Carrier-specific durability,
- * magazines and mount art remain outside this definition.
+ * <p>The field set is the shared baseline populated by handheld, mech, and
+ * turret weapons (see {@code moddable-weapons-nouns.md}). Carrier-specific
+ * durability, magazines and mount art remain outside this definition.
  *
  * <p>Grouped by who reads it: the {@code sim} block feeds
  * {@link com.dillon.starsectormarines.battle.infantry.InfantryCombatStats}
@@ -106,6 +106,8 @@ public final class WeaponDef {
     public final float projectileVisualCells;
     /** Whether the traveling body emits the compatibility smoke-puff trail. W2 replaces this with authored layers. */
     public final boolean smokeTrail;
+    /** Whether the traveling body emits the compatibility glowing rocket-engine trail. */
+    public final boolean engineTrail;
     /** Optional persistent projectile-ribbon profile, resolved by render consumers. */
     public final ContrailProfile contrailProfile;
     /** Whether the authored FX declares a launch composition at the mount center. */
@@ -133,7 +135,8 @@ public final class WeaponDef {
                       LayeredWeaponFamily heldSpriteFamily,
                       Color tracerColor, ImpactProfile impactProfile,
                       String projectileSpritePath, float projectileVisualCells,
-                      boolean smokeTrail, ContrailProfile contrailProfile,
+                      boolean smokeTrail, boolean engineTrail,
+                      ContrailProfile contrailProfile,
                       WeaponFxDef fx,
                       String fireSoundId, String impactSoundId) {
         this.id = id;
@@ -174,6 +177,7 @@ public final class WeaponDef {
         this.projectileSpritePath = projectileSpritePath;
         this.projectileVisualCells = projectileVisualCells;
         this.smokeTrail = smokeTrail;
+        this.engineTrail = engineTrail;
         this.contrailProfile = contrailProfile;
         this.launchBackblast = fx != null && !fx.layers(FxSlot.LAUNCH).isEmpty();
         this.fx = fx;
@@ -245,6 +249,7 @@ public final class WeaponDef {
                 render != null ? emptyToNull(render.optString("projectileSprite", null)) : null,
                 render != null ? (float) render.optDouble("projectileVisualCells", 0.0) : 0f,
                 render != null && render.optBoolean("smokeTrail", false),
+                render != null && render.optBoolean("engineTrail", false),
                 ContrailProfile.fromKey(
                         render != null ? render.optString("contrail", null) : null, id),
                 fx,
@@ -256,7 +261,14 @@ public final class WeaponDef {
 
     private static LayeredWeaponFamily parseHeldSpriteFamily(
             JSONObject render, MountClass mount, String weaponId) throws JSONException {
-        if (mount != MountClass.MARINE_PRIMARY) return null;
+        if (mount != MountClass.MARINE_PRIMARY) {
+            if (render != null && render.has("heldSpriteFamily")
+                    && !render.isNull("heldSpriteFamily")) {
+                throw new JSONException("Weapon '" + weaponId
+                        + "' declares heldSpriteFamily outside the marine-primary mount class");
+            }
+            return null;
+        }
         if (render == null) {
             throw new JSONException("Marine primary '" + weaponId
                     + "' requires render.heldSpriteFamily");

@@ -75,14 +75,14 @@ class MechVariantTest {
                 sirocco.mount(MechMountSlot.LEFT_SHOULDER).component);
         assertSame(MechWeaponComponent.LRM_5,
                 sirocco.mount(MechMountSlot.RIGHT_SHOULDER).component);
-        assertEquals(45f, MechWeapon.HEAVY_CANNON.damage, 0.001f);
-        assertEquals(18f, MechWeapon.HEAVY_CANNON.penetration, 0.001f);
-        assertEquals(26f, MechWeapon.HEAVY_CANNON.range, 0.001f);
-        assertSame(ImpactProfile.CANNON_HE, MechWeapon.HEAVY_CANNON.impactProfile);
-        assertEquals(1f, MechWeapon.HEAVY_CANNON.aoeRadius, 0.001f);
-        assertEquals(18, MechWeapon.HEAVY_CANNON.wallDamage);
+        assertEquals(45f, MechWeapon.HEAVY_CANNON.damage(), 0.001f);
+        assertEquals(18f, MechWeapon.HEAVY_CANNON.penetration(), 0.001f);
+        assertEquals(26f, MechWeapon.HEAVY_CANNON.range(), 0.001f);
+        assertSame(ImpactProfile.CANNON_HE, MechWeapon.HEAVY_CANNON.impactProfile());
+        assertEquals(1f, MechWeapon.HEAVY_CANNON.aoeRadius(), 0.001f);
+        assertEquals(18, MechWeapon.HEAVY_CANNON.wallDamage());
         assertEquals("graphics/missiles/shell_hellbore.png",
-                MechWeapon.HEAVY_CANNON.projectileSpritePath);
+                MechWeapon.HEAVY_CANNON.projectileSpritePath());
 
         MechLoadoutComponent custom = new MechLoadoutComponent(MechVariant.HOUND,
                 MechWeaponComponent.DUAL_LINEAR_CANNONS,

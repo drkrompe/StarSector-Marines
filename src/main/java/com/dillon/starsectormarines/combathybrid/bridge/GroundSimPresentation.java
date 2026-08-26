@@ -153,7 +153,7 @@ public final class GroundSimPresentation {
             } else if (s.primaryWeaponDef != null) {
                 fx.spawnImpact(s.primaryWeaponDef.impactProfile, s.toX, s.visualToY(), isWall);
             } else if (s.mechWeapon != null) {
-                ImpactProfile profile = s.mechWeapon.impactProfile;
+                ImpactProfile profile = s.mechWeapon.impactProfile();
                 fx.spawnImpact(profile, s.toX, s.visualToY(), isWall);
                 if (profile.explosive()) {
                     playExplosion(s.toX, s.toY,
@@ -175,7 +175,7 @@ public final class GroundSimPresentation {
             } else if (s.primaryWeaponDef != null) {
                 playAtCell(s.primaryWeaponDef.fireSoundId, pitch, 0.85f, s.fromX, s.fromY);
             } else if (s.mechWeapon != null) {
-                playAtCell(s.mechWeapon.fireSoundId, pitch, 1.0f, s.fromX, s.fromY);
+                playAtCell(s.mechWeapon.fireSoundId(), pitch, 1.0f, s.fromX, s.fromY);
             } else {
                 playAtCell(SFX_RIFLE, pitch, RIFLE_VOLUME, s.fromX, s.fromY);
             }

@@ -203,10 +203,10 @@ public class ShotFxTest {
         for (MechWeapon w : MechWeapon.values()) {
             ShotFx fx = ShotFx.of(shot(null, null, null, w));
             Sprite body = assertSprite(fx, "mech " + w);
-            assertEquals(w.projectileSpritePath, body.spritePath(), "sprite path for " + w);
-            assertEquals(w.projectileVisualCells, body.visualCells(), 0f, "visualCells for " + w);
-            assertEquals(w.arcHeight, fx.arcHeight(), 0f, "arcHeight for " + w);
-            assertEquals(w.engineTrail, fx.engineTrail(), "engineTrail for " + w);
+            assertEquals(w.projectileSpritePath(), body.spritePath(), "sprite path for " + w);
+            assertEquals(w.projectileVisualCells(), body.visualCells(), 0f, "visualCells for " + w);
+            assertEquals(w.arcHeight(), fx.arcHeight(), 0f, "arcHeight for " + w);
+            assertEquals(w.engineTrail(), fx.engineTrail(), "engineTrail for " + w);
             assertTrue(fx.travels(), "mech body travels: " + w);
             assertFalse(fx.boostRamp(), "mech weapons don't boost-ramp: " + w);
             assertFalse(fx.smokeTrail(), "mech weapons carry no smoke puff: " + w);

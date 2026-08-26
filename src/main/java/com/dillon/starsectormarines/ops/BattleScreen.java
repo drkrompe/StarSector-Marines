@@ -918,7 +918,7 @@ public class BattleScreen implements Screen, BattleUiContext {
                 // Mech rounds — HE entries (SRM, LRM) also play the explosion
                 // clip on arrival; chainguns are kinetic, no extra audio (the
                 // burst itself is loud enough at fire time).
-                profile = s.mechWeapon.impactProfile;
+                profile = s.mechWeapon.impactProfile();
                 renderer.getImpactFx().spawnImpact(profile, s.toX, s.visualToY(), isWall);
                 if (profile.explosive()) {
                     float pitch = 0.9f + rng.nextFloat() * 0.2f;
@@ -968,7 +968,8 @@ public class BattleScreen implements Screen, BattleUiContext {
                 // Mech chassis weapons — chaingun_fire / annihilator_fire /
                 // pilum_lrm_fire. All play at full volume; the chaingun burst
                 // cadence is the *point*, so the brrt should dominate.
-                Global.getSoundPlayer().playSound(s.mechWeapon.fireSoundId, pitch, 1.0f, loc, zeroVel);
+                Global.getSoundPlayer().playSound(
+                        s.mechWeapon.fireSoundId(), pitch, 1.0f, loc, zeroVel);
             } else {
                 Global.getSoundPlayer().playSound(SFX_RIFLE, pitch, RIFLE_VOLUME, loc, zeroVel);
             }

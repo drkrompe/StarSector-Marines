@@ -343,14 +343,14 @@ public final class FacingSystem {
 
     private static float trackPhase(MechWeaponMount mount) {
         return mount != null
-                ? LayeredMechAppearance.trackPhase(mount.burstTimer, mount.weapon().burstSpacing)
+                ? LayeredMechAppearance.trackPhase(mount.burstTimer, mount.weapon().burstSpacing())
                 : 0f;
     }
 
     private static boolean trackFlash(MechWeaponMount mount) {
         return mount != null && LayeredMechAppearance.trackFlash(
-                mount.cooldown, mount.weapon().cooldown, mount.burstRemaining,
-                mount.burstTimer, mount.weapon().burstSpacing);
+                mount.cooldown, mount.weapon().cooldown(), mount.burstRemaining,
+                mount.burstTimer, mount.weapon().burstSpacing());
     }
 
     private static boolean anyTrackFlash(MechLoadoutComponent loadout, MechWeapon weapon) {

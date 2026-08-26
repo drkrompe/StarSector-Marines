@@ -88,7 +88,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
      *       target is in LRM range, off cooldown, ammo &gt; 0, AND outside
      *       chaingun range (the "we're not currently engaged at short range"
      *       gate the user spec'd). When {@code hasLos} is false, the rocket's
-     *       hit roll is scaled by {@link com.dillon.starsectormarines.battle.mech.MechWeapon#LRM_NO_LOS_ACC_MULT}
+     *       hit roll is scaled by the installed LRM definition's no-LOS multiplier
      *       — "we know roughly where they are, but we can't see them, so a
      *       chunk of the salvo flies wide."</li>
      * </ul>
@@ -124,7 +124,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
      * Fires every installed LRM component. Gated to outside the arms range
      * (no point lobbing artillery at point-blank targets) and
      * only fires when not actively in close engagement. No-LOS shots get the
-     * indirect-fire accuracy penalty {@link MechWeapon#LRM_NO_LOS_ACC_MULT}.
+     * indirect-fire accuracy penalty authored on the installed weapon.
      */
     public static void tryFireLrm(long u, MechLoadoutComponent m, long target, float dist, BattleControl sim, boolean hasLos) {
         for (MechWeaponMount mount : m.mounts()) {
@@ -140,20 +140,20 @@ public final class MechCombatantBehavior implements UnitBehavior {
         if (mount == null || !loadout.isAimedAt(target) || mount.cooldown > 0f
                 || mount.burstRemaining > 0 || !mount.hasAmmo()) return;
         MechWeapon weapon = mount.weapon();
-        if (dist > weapon.range) return;
-        boolean indirect = weapon == MechWeapon.LRM_ARTILLERY;
+        if (dist > weapon.range()) return;
+        boolean indirect = weapon.indirectFire();
         if (!indirect && !hasLos) return;
         MechWeaponMount arms = loadout.mount(MechMountSlot.ARMS);
-        float minimumIndirectRange = arms != null ? arms.weapon().range : 0f;
+        float minimumIndirectRange = arms != null ? arms.weapon().range() : 0f;
         if (indirect && dist <= minimumIndirectRange) return;
 
-        float accuracyMult = indirect && !hasLos ? MechWeapon.LRM_NO_LOS_ACC_MULT : 1f;
+        float accuracyMult = indirect && !hasLos ? weapon.noLosAccuracyMult() : 1f;
         sim.fireMechWeapon(u, target, weapon, accuracyMult);
         mount.consumeTrigger();
-        mount.cooldown = weapon.cooldown;
+        mount.cooldown = weapon.cooldown();
         if (mount.component.projectilesPerTrigger > 1) {
             mount.burstRemaining = mount.component.projectilesPerTrigger - 1;
-            mount.burstTimer = weapon.burstSpacing;
+            mount.burstTimer = weapon.burstSpacing();
             mount.burstTargetId = target;
         }
     }
