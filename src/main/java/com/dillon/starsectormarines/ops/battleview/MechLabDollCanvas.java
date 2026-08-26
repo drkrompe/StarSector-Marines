@@ -20,6 +20,7 @@ import com.dillon.starsectormarines.ui.retained.CanvasSpriteRegion;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntSupplier;
@@ -32,6 +33,10 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private static final int URBAN_COLUMNS = 10;
     private static final int URBAN_ROWS = 10;
     private static final float GANTRY_FACING_DEGREES = 180f;
+    private static final float MIN_DROP_TARGET_WIDTH = 64f;
+    private static final float MIN_DROP_TARGET_HEIGHT = 38f;
+    private static final float CAPACITY_INSET = 4f;
+    private static final float CAPACITY_GAP = 2f;
     private static final Color BACKGROUND = new Color(0x06, 0x0A, 0x10);
     private static final Color WELD = new Color(0xA5, 0xE8, 0xFF);
     private static final Color WHITE = Color.WHITE;
@@ -130,8 +135,6 @@ public final class MechLabDollCanvas implements CanvasProducer {
             drawGarage(context, sceneCamera, height, tileSheet.get());
         }
 
-        drawSocketOverlays(context, MechFittingLayout.forVariant(selected),
-                selectedSocket.get(), projection);
         if (liveScene) {
             context.hostPass((viewport, alphaMult) ->
                     battleScene.renderActors(viewport, lance, gantryIndex, alphaMult));
@@ -141,6 +144,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
                     technicianAssets.get());
         }
         drawWeld(context, projection, time);
+        drawSocketOverlays(context, MechFittingLayout.forVariant(selected),
+                selectedSocket.get(), projection);
     }
 
     private static void drawGarage(CanvasContext c, BattleCamera camera, float height,
@@ -250,44 +255,95 @@ public final class MechLabDollCanvas implements CanvasProducer {
         float cos = (float) Math.cos(radians);
         float sin = (float) Math.sin(radians);
         for (SocketDef socket : layout.sockets()) {
-            float localX = socket.localRight() * projection.hullX();
-            float localY = socket.localForward() * projection.hullY();
-            float worldX = localX * cos - localY * sin;
-            float worldY = localX * sin + localY * cos;
-            float centerX = projection.actorX() + worldX;
-            float centerY = projection.actorY() - worldY;
-            float socketWidth = socket.footprintWidthCells() * projection.cellX();
-            float socketHeight = socket.footprintHeightCells() * projection.cellY();
+            SocketDropTarget target = socketDropTarget(socket, projection.actorX(),
+                    projection.actorY(), projection.hullX(), projection.hullY(), cos, sin);
             boolean occupied = layout.occupied(socket.id());
             boolean selected = socket.id() == selectedSocket;
             Color base = socketColor(socket.type());
-            int fillAlpha = selected ? 78 : occupied ? 24 : 58;
-            int strokeAlpha = selected ? 230 : occupied ? 92 : 188;
-            c.fillRect(centerX - socketWidth * 0.5f, centerY - socketHeight * 0.5f,
-                    socketWidth, socketHeight, withAlpha(base, fillAlpha));
-            c.strokeRect(centerX - socketWidth * 0.5f, centerY - socketHeight * 0.5f,
-                    socketWidth, socketHeight, withAlpha(base, strokeAlpha),
+            int fillAlpha = selected ? 92 : occupied ? 38 : 72;
+            int strokeAlpha = selected ? 240 : occupied ? 128 : 210;
+            c.line(target.anchorX(), target.anchorY(), target.centerX(), target.centerY(),
+                    withAlpha(base, selected ? 210 : occupied ? 90 : 165),
                     selected ? 2f : 1f);
-            drawCapacityPips(c, socket, centerX, centerY, socketWidth, socketHeight,
-                    base, selected || !occupied);
+            c.fillRect(target.anchorX() - 3f, target.anchorY() - 3f, 6f, 6f,
+                    withAlpha(base, selected ? 245 : 180));
+            c.fillRect(target.left(), target.top(), target.width(), target.height(),
+                    withAlpha(base, fillAlpha));
+            c.strokeRect(target.left(), target.top(), target.width(), target.height(),
+                    withAlpha(base, strokeAlpha),
+                    selected ? 2f : 1f);
+            drawCapacityCells(c, target, base, selected, occupied);
         }
     }
 
-    private static void drawCapacityPips(CanvasContext c, SocketDef socket,
-                                         float centerX, float centerY,
-                                         float socketWidth, float socketHeight,
-                                         Color base, boolean prominent) {
-        float gap = 3f;
-        float pip = Math.max(3f, Math.min(6f,
-                (socketWidth - gap * (socket.capacity() + 1)) / socket.capacity()));
-        float run = socket.capacity() * pip + (socket.capacity() - 1) * gap;
-        float x = centerX - run * 0.5f;
-        float y = centerY + socketHeight * 0.5f - pip - 3f;
-        for (int index = 0; index < socket.capacity(); index++) {
-            c.fillRect(x + index * (pip + gap), y, pip, pip,
-                    withAlpha(base, prominent ? 220 : 110));
+    static SocketDropTarget socketDropTarget(SocketDef socket,
+                                             float actorX, float actorY,
+                                             float hullWidth, float hullHeight) {
+        float radians = (float) Math.toRadians(GANTRY_FACING_DEGREES);
+        return socketDropTarget(socket, actorX, actorY, hullWidth, hullHeight,
+                (float) Math.cos(radians), (float) Math.sin(radians));
+    }
+
+    private static SocketDropTarget socketDropTarget(SocketDef socket,
+                                                      float actorX, float actorY,
+                                                      float hullWidth, float hullHeight,
+                                                      float cos, float sin) {
+        float anchorLocalX = socket.localRight() * hullWidth;
+        float anchorLocalY = socket.localForward() * hullHeight;
+        float anchorWorldX = anchorLocalX * cos - anchorLocalY * sin;
+        float anchorWorldY = anchorLocalX * sin + anchorLocalY * cos;
+        float dockLocalX = socket.dockRight() * hullWidth;
+        float dockLocalY = socket.dockForward() * hullHeight;
+        float dockWorldX = dockLocalX * cos - dockLocalY * sin;
+        float dockWorldY = dockLocalX * sin + dockLocalY * cos;
+        float width = Math.max(MIN_DROP_TARGET_WIDTH,
+                socket.footprintWidthHull() * hullWidth);
+        float height = Math.max(MIN_DROP_TARGET_HEIGHT,
+                socket.footprintHeightHull() * hullHeight);
+        return new SocketDropTarget(socket.id(), socket.capacity(),
+                actorX + anchorWorldX, actorY - anchorWorldY,
+                actorX + dockWorldX, actorY - dockWorldY, width, height);
+    }
+
+    static List<CapacityCell> capacityCells(SocketDropTarget target) {
+        float bandHeight = Math.max(6f, Math.min(10f, target.height() * 0.22f));
+        float availableWidth = target.width() - CAPACITY_INSET * 2f
+                - CAPACITY_GAP * (target.capacity() - 1);
+        float cellWidth = availableWidth / target.capacity();
+        float x = target.left() + CAPACITY_INSET;
+        float y = target.bottom() - CAPACITY_INSET - bandHeight;
+        List<CapacityCell> cells = new ArrayList<>(target.capacity());
+        for (int index = 0; index < target.capacity(); index++) {
+            cells.add(new CapacityCell(index, x + index * (cellWidth + CAPACITY_GAP),
+                    y, cellWidth, bandHeight));
+        }
+        return List.copyOf(cells);
+    }
+
+    private static void drawCapacityCells(CanvasContext c, SocketDropTarget target,
+                                          Color base, boolean selected, boolean occupied) {
+        int alpha = selected ? 235 : occupied ? 125 : 210;
+        for (CapacityCell cell : capacityCells(target)) {
+            c.fillRect(cell.x(), cell.y(), cell.width(), cell.height(),
+                    withAlpha(base, alpha));
         }
     }
+
+    record SocketDropTarget(SocketId id, int capacity,
+                            float anchorX, float anchorY,
+                            float centerX, float centerY,
+                            float width, float height) {
+        float left() { return centerX - width * 0.5f; }
+        float top() { return centerY - height * 0.5f; }
+        float right() { return centerX + width * 0.5f; }
+        float bottom() { return centerY + height * 0.5f; }
+
+        boolean contains(float x, float y) {
+            return x >= left() && x <= right() && y >= top() && y <= bottom();
+        }
+    }
+
+    record CapacityCell(int index, float x, float y, float width, float height) { }
 
     private static Color socketColor(SocketType type) {
         return switch (type) {

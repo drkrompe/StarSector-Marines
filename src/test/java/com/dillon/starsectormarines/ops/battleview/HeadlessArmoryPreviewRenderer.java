@@ -165,9 +165,8 @@ public final class HeadlessArmoryPreviewRenderer {
         }
 
         @Override
-        public LayeredUnitAssets layered(MarineArmorPattern armor) {
-            LayeredArmorFamily family = ArmoryLoadoutPreviewComposer.armorFamily(armor);
-            return families.computeIfAbsent(family, this::loadFamily);
+        public LayeredUnitAssets layered(LayeredArmorFamily armor) {
+            return families.computeIfAbsent(armor, this::loadFamily);
         }
 
         @Override

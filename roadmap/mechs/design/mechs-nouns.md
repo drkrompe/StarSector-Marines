@@ -4,9 +4,8 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — made the fabrication gantry a bounded, non-interactive
-battle-renderer scene so tiles, props, mech dolls, and worker dolls share the
-same camera and cell-relative scale.
+Updated: 2026-08-25 — separated each fitting socket's physical mount anchor
+from its large, doll-relative equipment dock in the surrounding gantry workspace.
 
 ## Purpose
 
@@ -55,8 +54,12 @@ increasing an encounter's total armored threat.
 - A **socket** is one spatial equipment location on a heavy asset. Custom-refit
   sockets will declare a compatibility type—ballistic, energy, missile, or
   omni—and a sized capacity. A component will declare compatible types and a
-  slot cost. Each asset-class layout owns the socket's asset-relative center and
-  room footprint as well as its compatibility and capacity. An empty translucent
+  slot cost. Each asset-class layout owns the socket's physical mount anchor,
+  its equipment-dock center around the doll, and its doll-relative interaction
+  footprint as well as compatibility and capacity. A leader preserves the
+  relationship between a remote dock and the mount it configures.
+  Presentation may enforce a minimum pointer hit area for usability without
+  changing that capacity or making the asset physically larger. An empty translucent
   footprint means an authored socket is unoccupied; an omitted socket is still
   genuinely absent. The drag gesture is presentation; the validated resulting
   placement is domain intent.
@@ -160,8 +163,12 @@ determines the payload, not the entitlement to call it.
   selected asset or distort its physical size relative to technicians, tiles,
   props, or another chassis.
 - Socket overlays consume the selected asset's authored fitting layout. Their
-  translucent type color, sized footprint, and capacity pips appear in physical
-  room space beneath installed equipment; an authored empty socket stays visible
+  translucent type color, hull-relative drop footprint, and segmented capacity
+  cells occupy the gantry around the physical doll, with a light leader returning
+  to the authored mount anchor. The doll remains readable instead of becoming a
+  pile of UI rectangles, and the rendered room becomes useful fitting space.
+  The whole footprint is the pointer target; capacity cells are the ordered placement units
+  a future multi-slot drag preview occupies. An authored empty socket stays visible
   while an absent socket produces no footprint.
 - The garage is a flat top-down, non-advancing room simulation assembled from the
   battle renderer's indoor tileset cells and props. Its mech and workers are real

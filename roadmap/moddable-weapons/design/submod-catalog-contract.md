@@ -100,15 +100,17 @@ the Marine Armory. It never enters vanilla ship-production knowledge.
 
 ## Current runtime edge
 
-Contributed marine-primary weapons and armor are valid faction-roster issue and
-reach simulation and presentation through their definitions without enum
-constants. Special-equipment catalogs and cards are additive too, but generated
-roster execution still requires one of the current built-in special ids until
+Contributed marine-primary weapons and armor are valid faction-roster and player
+issue. Once their cards are learned, they join the doctrine editor's choices in
+manifest order. Saved doctrines, squad billets, and marines retain the catalog
+equipment id; issuing changed kit charges the contributed card's authored cargo
+cost, and deployment resolves the same weapon and armor definitions without enum
+constants. Removing the provider repairs unresolved player primaries to
+`weapon.field-rifle` and armor to `armor.field-fatigues` with a warning rather
+than corrupting the roster.
+
+Special-equipment catalogs and cards are additive too, but generated and player
+battle execution still requires one of the current built-in special ids until
 the remaining `MarineSecondary` compatibility handle is removed in
-`w5-submod-merge.md`. Template cards for contributed ids are discoverable,
-valid cargo payloads, and learnable by the Marine Armory, but the current player
-doctrine editor still exposes enum-backed built-in equipment; persisted billet
-identity must move to stable ids before those learned contributed cards can be
-materialized onto player marines. These boundaries remain explicit work in
-`w5-submod-merge.md`; unsupported faction issue is fail-loud and must not be
+`w5-submod-merge.md`. Unsupported special issue is fail-loud and must not be
 silently omitted.

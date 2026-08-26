@@ -58,8 +58,8 @@ public final class ArmoryLoadoutPreviewComposer {
         float usable = Math.max(0f, height - socketSize - 20f);
         float[] socketY = {10f, 10f + usable * 0.5f, 10f + usable};
 
-        LayeredUnitAssets layered = assets.layered(billet.armor());
-        LayeredSpriteCache armor = assets.icon(billet.armor().iconPath);
+        LayeredUnitAssets layered = assets.layered(billet.armorDef().appearanceFamily());
+        LayeredSpriteCache armor = assets.icon(billet.armorDef().iconPath());
         LayeredSpriteCache primary = layered != null
                 ? layered.weapon(LayeredWeaponFamily.fromPrimary(billet.primary()), billet.grade())
                 : null;
@@ -133,8 +133,8 @@ public final class ArmoryLoadoutPreviewComposer {
         float socketWidth = (divider - margin * 2f - gap * 2f) / 3f;
         float socketHeight = Math.max(36f, height - margin * 2f);
 
-        LayeredUnitAssets layered = assets.layered(billet.armor());
-        LayeredSpriteCache armor = assets.icon(billet.armor().iconPath);
+        LayeredUnitAssets layered = assets.layered(billet.armorDef().appearanceFamily());
+        LayeredSpriteCache armor = assets.icon(billet.armorDef().iconPath());
         LayeredSpriteCache primary = layered != null
                 ? layered.weapon(LayeredWeaponFamily.fromPrimary(billet.primary()), billet.grade())
                 : null;
@@ -185,7 +185,7 @@ public final class ArmoryLoadoutPreviewComposer {
     private static void drawSoldier(Sink sink, Assets assets, FireTeamBillet billet,
                                     float actorX, float actorY, float shoulderPx,
                                     float surfaceHeight, float idleSeconds) {
-        LayeredUnitAssets layered = assets.layered(billet.armor());
+        LayeredUnitAssets layered = assets.layered(billet.armorDef().appearanceFamily());
         if (layered == null) return;
         MarineSecondary special = billet.secondary();
         SpecialEquipmentPresentationDef.Preview preview = special != null
@@ -228,17 +228,9 @@ public final class ArmoryLoadoutPreviewComposer {
         };
     }
 
+    /** Compatibility bridge for built-in armor callers and older preview tests. */
     public static LayeredArmorFamily armorFamily(MarineArmorPattern armor) {
-        if (armor == null) return LayeredArmorFamily.ARMORLESS;
-        return switch (armor) {
-            case ARMORLESS -> LayeredArmorFamily.ARMORLESS;
-            case CHARCOAL -> LayeredArmorFamily.CHARCOAL;
-            case BLUE_SCOUT -> LayeredArmorFamily.BLUE_SCOUT;
-            case RED_ELITE -> LayeredArmorFamily.RED_ELITE;
-            case OUTLAW -> LayeredArmorFamily.OUTLAW;
-            case ARMY_GREEN -> LayeredArmorFamily.ARMY_GREEN;
-            case MILITIA -> LayeredArmorFamily.MILITIA;
-        };
+        return armor != null ? armor.layeredFamily() : LayeredArmorFamily.ARMORLESS;
     }
 
     private static Color color(float red, float green, float blue, float alpha) {
@@ -250,7 +242,10 @@ public final class ArmoryLoadoutPreviewComposer {
     }
 
     public interface Assets {
-        LayeredUnitAssets layered(MarineArmorPattern armor);
+        LayeredUnitAssets layered(LayeredArmorFamily armor);
+        default LayeredUnitAssets layered(MarineArmorPattern armor) {
+            return layered(armorFamily(armor));
+        }
         LayeredSpriteCache icon(String path);
 
         default UnitLayerLayouts unitLayerLayouts() {

@@ -216,6 +216,10 @@ class ConquestCommandBalanceTest {
                     analysis.factions().get(Faction.MARINE);
             CommandTraceAnalyzer.FactionMetrics defender =
                     analysis.factions().get(Faction.DEFENDER);
+            CommandTraceAnalyzer.PhysicalProgressMetrics movement =
+                    marine.physicalProgress();
+            CommandTraceAnalyzer.CompoundPresenceMetrics presence =
+                    analysis.conquest().physicalPresence();
             out.append("\n### ").append(row.id).append("\n\n")
                     .append("Fixture SHA-256: `").append(row.sha256).append("`\n\n")
                     .append("- Marine command-unassigned: ")
@@ -226,6 +230,42 @@ class ConquestCommandBalanceTest {
                     .append("- Marine stability holds: ").append(marine.stabilityHolds())
                     .append("; peak published track share: ")
                     .append(marine.peakPublishedTrackShareBasisPoints())
+                    .append(" bp.\n")
+                    .append("- Marine physical progress: ")
+                    .append(movement.maximumConcurrentAliveMembers())
+                    .append(" peak live members in ")
+                    .append(movement.maximumConcurrentAliveSquads())
+                    .append(movement.maximumConcurrentAliveSquads() == 1
+                            ? " squad; " : " squads; ")
+                    .append(movement.episodesWithMarkerClosure()).append('/')
+                    .append(movement.movementEpisodes())
+                    .append(" assignment episodes closed marker range; ")
+                    .append(movement.secureCompoundEpisodesObservedInTargetZone())
+                    .append('/').append(movement.secureCompoundEpisodes())
+                    .append(" secure-compound episodes were observed in their capture zone; ")
+                    .append(movement.compoundAssaultThresholdCommitments())
+                    .append(" adjacent assault commitments.\n")
+                    .append("- Marine command-pulse movement intervals: ")
+                    .append(movement.markerClosingSquadTicks())
+                    .append(" closing squad-ticks; ")
+                    .append(movement.nonClosingWithContactSquadTicks())
+                    .append(" non-closing with contact; ")
+                    .append(movement.quietNonClosingSquadTicks())
+                    .append(" quiet non-closing; ")
+                    .append(movement.suspendedAssignmentSquadTicks())
+                    .append(" execution-suspended; target-zone latencies: ")
+                    .append(movement.targetZoneEntryLatenciesTicks())
+                    .append(".\n")
+                    .append("- Capture-zone presence: ")
+                    .append(presence.compoundsWithMarinePresence())
+                    .append(" compounds observed with marine presence; ")
+                    .append(presence.marineOnlyCompoundTicks())
+                    .append(" marine-only compound-ticks, ")
+                    .append(presence.mixedCompoundTicks())
+                    .append(" mixed; longest marine-only run ")
+                    .append(presence.longestMarineOnlyPresenceRunTicks())
+                    .append(" ticks; peak capture progress ")
+                    .append(presence.maximumCaptureProgressBasisPoints())
                     .append(" bp.\n")
                     .append("- Defender reserve: ").append(defender.reserveSquadTicks())
                     .append(" squad-ticks; mobilization latencies: ")

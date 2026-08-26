@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns autonomous mission command, squad planning, belief-de
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — added forced-serial Conquest fixture evidence and canonical command metrics over the perspective/referee trace split.
+Updated: 2026-08-25 — added perspective-safe squad approach evidence and neutral capture-zone occupancy over the canonical Conquest trace split.
 
 AI turns mission context and what a side has learned into coordinated
 movement, posture, and fire intent. It is a decision system, not the authority
@@ -130,6 +130,20 @@ timeout outcome. They name only what the trace proves: command-unassigned is
 not synonymous with physical inactivity. A bounded run with compounds but no
 observed ownership gain is labelled territorial progress stalled; a long
 capture gap remains evidence to inspect rather than an automatic tuning order.
+
+Physical progress preserves the same knowledge split. A Conquest perspective
+snapshot may publish frozen positions, current zones, local-contact state, and
+execution suspension for its own squads, then compare those facts with the
+commander's published target marker and target zone. Marker-distance closure is
+command-pulse-inferred approach evidence because a representative zone marker
+is not a route or exact destination. Target-zone observation is a stronger
+sampled arrival fact, but it is not exact dwell between command pulses. Exact
+marine and defender presence in a compound's capture zone is
+authoritative objective evidence and therefore belongs only to the neutral
+referee stream. Reports keep adjacent assault commitment, capture-zone entry,
+mixed presence, and sustained marine-only presence distinct. Form-up, dead
+squads, retargets, and trace gaps censor travel intervals rather than becoming
+fabricated inactivity or entry latency.
 
 The player is an **intervention authority**, not a replacement for a competent
 baseline commander. Existing force selection and command powers are the first

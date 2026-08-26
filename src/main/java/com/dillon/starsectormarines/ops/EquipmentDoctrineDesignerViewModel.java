@@ -3,10 +3,15 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.InfantryCombatStats;
 import com.dillon.starsectormarines.battle.infantry.MarineSecondary;
-import com.dillon.starsectormarines.battle.infantry.MarineWeapon;
 import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.battle.weapon.MountClass;
+import com.dillon.starsectormarines.marine.EquipmentTemplateCard;
 import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
@@ -30,9 +35,6 @@ public final class EquipmentDoctrineDesignerViewModel {
     private static final List<String> ROLES = List.of(
             "Team Leader", "Rifleman", "Assault Leader", "Breacher", "Grenadier",
             "Automatic Rifleman", "Marksman", "Anti-Armor", "Security Rifleman", "Scout");
-    private static final List<MarineWeapon> WEAPONS = List.of(
-            MarineWeapon.FIELD_RIFLE, MarineWeapon.PULSE_RIFLE, MarineWeapon.SMG,
-            MarineWeapon.SQUAD_AUTOMATIC, MarineWeapon.DMR);
     private static final List<String> TEAM_NAMES = List.of("Alpha", "Bravo", "Charlie");
 
     private final MarineRoster roster;
@@ -48,7 +50,7 @@ public final class EquipmentDoctrineDesignerViewModel {
     private String weaponDraftName;
     private String armorDraftName;
     private final List<SquadWeaponIssue> weaponIssues = new ArrayList<>();
-    private final List<MarineArmorPattern> armorIssues = new ArrayList<>();
+    private final List<String> armorIssues = new ArrayList<>();
     private final ComputedSignal<List<DefinitionTile>> definitions;
     private final ComputedSignal<List<TeamTab>> teamTabs;
     private final ComputedSignal<List<BilletCard>> billets;
@@ -118,8 +120,8 @@ public final class EquipmentDoctrineDesignerViewModel {
                 || weaponIssues.size() != MarineSquad.CAPACITY
                 || armorIssues.size() != MarineSquad.CAPACITY) return null;
         SquadWeaponIssue weapon = weaponIssues.get(index);
-        return new FireTeamBillet(weapon.role(), weapon.primary(), weapon.grade(),
-                weapon.special(), armorIssues.get(index));
+        return new FireTeamBillet(weapon.role(), weapon.primaryId(), weapon.grade(),
+                weapon.specialEquipmentId(), armorIssues.get(index));
     }
 
     private void switchKind(Kind next) {
@@ -155,7 +157,7 @@ public final class EquipmentDoctrineDesignerViewModel {
         armorSourceId = doctrine.id();
         armorDraftName = doctrine.displayName();
         armorIssues.clear();
-        armorIssues.addAll(doctrine.issues());
+        armorIssues.addAll(doctrine.issueIds());
         touch();
     }
 
@@ -228,13 +230,14 @@ public final class EquipmentDoctrineDesignerViewModel {
                         weaponFlavor(issue), weaponStats(prefix, issue),
                         "designer-stat-fill weapon-stat-fill",
                         "Role  ·  " + issue.role(),
-                        "Primary  ·  " + issue.primary().catalogName(issue.grade()),
+                        "Primary  ·  " + issue.primaryDef().catalogName(issue.grade().tier),
                         "Grade  ·  " + title(issue.grade().name()),
                         "Special  ·  " + specialName(issue.special()),
                         () -> cycleRole(billet), () -> cycleWeapon(billet),
                         () -> cycleGrade(billet), () -> cycleSpecial(billet)));
             } else {
-                MarineArmorPattern armor = armorIssues.get(billet);
+                MarineArmorCatalogDef armor = MarineArmorCatalogRegistry.require(
+                        armorIssues.get(billet));
                 result.add(new BilletCard(prefix, prefix + ":top",
                         "designer-marine-preview:" + local,
                         prefix + ":title", prefix + ":flavor", prefix + ":stats",
@@ -243,11 +246,11 @@ public final class EquipmentDoctrineDesignerViewModel {
                         TEAM_NAMES.get(team) + "  /  " + (local + 1),
                         armorFlavor(armor), armorStats(prefix, armor),
                         "designer-stat-fill armor-stat-fill",
-                        "Armor  ·  " + armor.displayName,
-                        "Protection  ·  " + Math.round(armor.armorPool) + " / "
-                                + Math.round(armor.armorRating),
-                        "Evasion  ·  " + signedPercent(1f - armor.incomingAccuracyMult),
-                        "Move  ·  " + signedPercent(armor.moveSpeedMult - 1f),
+                        "Armor  ·  " + armor.displayName(),
+                        "Protection  ·  " + Math.round(armor.armorPool()) + " / "
+                                + Math.round(armor.armorRating()),
+                        "Evasion  ·  " + signedPercent(1f - armor.incomingAccuracyMult()),
+                        "Move  ·  " + signedPercent(armor.moveSpeedMult() - 1f),
                         () -> cycleArmor(billet), () -> cycleArmor(billet),
                         () -> cycleArmor(billet), () -> cycleArmor(billet)));
             }
@@ -259,33 +262,28 @@ public final class EquipmentDoctrineDesignerViewModel {
         SquadWeaponIssue issue = weaponIssues.get(index);
         String role = next(ROLES, issue.role());
         weaponIssues.set(index, new SquadWeaponIssue(
-                role, issue.primary(), issue.grade(), issue.specialEquipmentId()));
+                role, issue.primaryId(), issue.grade(), issue.specialEquipmentId()));
         changed("Role changed to " + role + ".");
     }
 
     private void cycleWeapon(int index) {
         SquadWeaponIssue issue = weaponIssues.get(index);
-        MarineWeapon weapon = issue.primary();
+        List<EquipmentTemplateCard> cards = ownedCards(EquipmentTemplateCard.Kind.PRIMARY);
+        String weaponId = issue.primaryId();
         EquipmentGrade grade = issue.grade();
-        int start = WEAPONS.indexOf(issue.primary());
-        for (int offset = 1; offset <= WEAPONS.size(); offset++) {
-            MarineWeapon candidate = WEAPONS.get((Math.max(0, start) + offset) % WEAPONS.size());
-            if (roster.armory().ownsPrimaryTemplate(candidate, grade)) {
-                weapon = candidate;
+        int start = indexOfEquipment(cards, weaponId, grade);
+        for (int offset = 1; offset <= cards.size(); offset++) {
+            EquipmentTemplateCard candidate = cards.get((Math.max(0, start) + offset) % cards.size());
+            if (!candidate.equipmentId().equals(weaponId)) {
+                weaponId = candidate.equipmentId();
+                grade = candidate.grade();
                 break;
             }
-            for (EquipmentGrade candidateGrade : EquipmentGrade.values()) {
-                if (roster.armory().ownsPrimaryTemplate(candidate, candidateGrade)) {
-                    weapon = candidate;
-                    grade = candidateGrade;
-                    break;
-                }
-            }
-            if (weapon == candidate) break;
         }
         weaponIssues.set(index, new SquadWeaponIssue(
-                issue.role(), weapon, grade, issue.specialEquipmentId()));
-        changed("Primary changed to " + weapon.catalogName(grade) + ".");
+                issue.role(), weaponId, grade, issue.specialEquipmentId()));
+        changed("Primary changed to "
+                + WeaponRegistry.require(weaponId).catalogName(grade.tier) + ".");
     }
 
     private void cycleGrade(int index) {
@@ -294,13 +292,13 @@ public final class EquipmentDoctrineDesignerViewModel {
         EquipmentGrade grade = issue.grade();
         for (int offset = 1; offset <= values.length; offset++) {
             EquipmentGrade candidate = values[(issue.grade().ordinal() + offset) % values.length];
-            if (roster.armory().ownsPrimaryTemplate(issue.primary(), candidate)) {
+            if (roster.armory().ownsPrimaryTemplate(issue.primaryId(), candidate)) {
                 grade = candidate;
                 break;
             }
         }
         weaponIssues.set(index, new SquadWeaponIssue(
-                issue.role(), issue.primary(), grade, issue.specialEquipmentId()));
+                issue.role(), issue.primaryId(), grade, issue.specialEquipmentId()));
         changed("Equipment grade changed to " + title(grade.name()) + ".");
     }
 
@@ -316,23 +314,20 @@ public final class EquipmentDoctrineDesignerViewModel {
                 ? owned.isEmpty() ? null : owned.get(0)
                 : currentIndex == owned.size() - 1 ? null : owned.get(currentIndex + 1);
         weaponIssues.set(index, new SquadWeaponIssue(
-                issue.role(), issue.primary(), issue.grade(), next));
+                issue.role(), issue.primaryId(), issue.grade(),
+                next != null ? next.specialEquipmentId : null));
         changed("Special equipment changed to " + specialName(next) + ".");
     }
 
     private void cycleArmor(int index) {
-        MarineArmorPattern current = armorIssues.get(index);
-        MarineArmorPattern[] values = MarineArmorPattern.values();
-        MarineArmorPattern next = current;
-        for (int offset = 1; offset <= values.length; offset++) {
-            MarineArmorPattern candidate = values[(current.ordinal() + offset) % values.length];
-            if (roster.armory().ownsArmorTemplate(candidate)) {
-                next = candidate;
-                break;
-            }
-        }
+        String current = armorIssues.get(index);
+        List<EquipmentTemplateCard> cards = ownedCards(EquipmentTemplateCard.Kind.ARMOR);
+        int currentIndex = indexOfEquipment(cards, current, null);
+        String next = cards.isEmpty() ? current
+                : cards.get((currentIndex + 1 + cards.size()) % cards.size()).equipmentId();
         armorIssues.set(index, next);
-        changed("Armor changed to " + next.displayName + ".");
+        changed("Armor changed to "
+                + MarineArmorCatalogRegistry.require(next).displayName() + ".");
     }
 
     private void startNewDraft() {
@@ -365,11 +360,11 @@ public final class EquipmentDoctrineDesignerViewModel {
                     draftName.peek(), List.copyOf(weaponIssues));
             sourceId.set(saved.id());
         } else {
-            if (!roster.armory().canAuthorArmorDoctrine(armorIssues)) {
+            if (!roster.armory().canAuthorArmorDoctrineIds(armorIssues)) {
                 feedback.set("Collect every referenced armor template card before saving.");
                 return;
             }
-            SquadArmorDoctrine saved = roster.armory().createArmorDoctrine(
+            SquadArmorDoctrine saved = roster.armory().createArmorDoctrineIds(
                     draftName.peek(), List.copyOf(armorIssues));
             sourceId.set(saved.id());
         }
@@ -457,22 +452,21 @@ public final class EquipmentDoctrineDesignerViewModel {
         if (issue.role().contains("Leader")) {
             return "Fire-team lead · priority command issue.";
         }
-        return switch (issue.primary()) {
-            case SMG -> "Assault billet · fast handling in close terrain.";
-            case SQUAD_AUTOMATIC -> "Support billet · sustained covering fire.";
-            case DMR -> "Precision billet · reach over volume.";
-            default -> "Line billet · reliable general-purpose issue.";
-        };
+        String role = issue.primaryDef().catalogRole;
+        return role != null && !role.isBlank()
+                ? title(role) + " billet · " + issue.primaryDef().displayName + "."
+                : "Line billet · reliable general-purpose issue.";
     }
 
-    private static String armorFlavor(MarineArmorPattern armor) {
-        if (armor == MarineArmorPattern.ARMORLESS) {
+    private static String armorFlavor(MarineArmorCatalogDef armor) {
+        if (armor.id().equals(MarineArmorPattern.ARMORLESS.id)) {
             return "Unplated fatigues · mobility over protection.";
         }
-        if (armor == MarineArmorPattern.MILITIA || armor == MarineArmorPattern.OUTLAW) {
+        if (armor.id().equals(MarineArmorPattern.MILITIA.id)
+                || armor.id().equals(MarineArmorPattern.OUTLAW.id)) {
             return "Patchwork protection · light plate, low burden.";
         }
-        if (armor.moveSpeedMult >= 1f) {
+        if (armor.moveSpeedMult() >= 1f) {
             return "Mobile protection · speed under fire.";
         }
         return "Combat protection · plate traded for mobility.";
@@ -480,10 +474,10 @@ public final class EquipmentDoctrineDesignerViewModel {
 
     private static List<StatMeter> weaponStats(String cardId, SquadWeaponIssue issue) {
         SoldierProfile profile = SoldierProfile.REGULAR;
-        float damage = InfantryCombatStats.damage(issue.primary(), issue.grade());
-        float range = InfantryCombatStats.range(issue.primary(), issue.grade());
-        float accuracy = InfantryCombatStats.accuracy(issue.primary(), issue.grade(), profile);
-        float dps = InfantryCombatStats.estimatedDps(issue.primary(), issue.grade(), profile);
+        float damage = InfantryCombatStats.damage(issue.primaryDef(), issue.grade());
+        float range = InfantryCombatStats.range(issue.primaryDef(), issue.grade());
+        float accuracy = InfantryCombatStats.accuracy(issue.primaryDef(), issue.grade(), profile);
+        float dps = InfantryCombatStats.estimatedDps(issue.primaryDef(), issue.grade(), profile);
         return List.of(
                 statMeter(cardId + ":damage", "DMG", formatOneDecimal(damage),
                         damage, maximumWeaponDamage()),
@@ -495,20 +489,20 @@ public final class EquipmentDoctrineDesignerViewModel {
                         dps, maximumWeaponDps(profile)));
     }
 
-    private static List<StatMeter> armorStats(String cardId, MarineArmorPattern armor) {
-        float evasion = 1f - armor.incomingAccuracyMult;
+    private static List<StatMeter> armorStats(String cardId, MarineArmorCatalogDef armor) {
+        float evasion = 1f - armor.incomingAccuracyMult();
         return List.of(
                 statMeter(cardId + ":pool", "POOL",
-                        String.format(Locale.ROOT, "%.0f", armor.armorPool),
-                        armor.armorPool, maximumArmorPool()),
+                        String.format(Locale.ROOT, "%.0f", armor.armorPool()),
+                        armor.armorPool(), maximumArmorPool()),
                 statMeter(cardId + ":rating", "RATING",
-                        String.format(Locale.ROOT, "%.0f", armor.armorRating),
-                        armor.armorRating, maximumArmorRating()),
+                        String.format(Locale.ROOT, "%.0f", armor.armorRating()),
+                        armor.armorRating(), maximumArmorRating()),
                 statMeter(cardId + ":move", "MOVE",
-                        String.format(Locale.ROOT, "%.0f%%", armor.moveSpeedMult * 100f),
-                        armor.moveSpeedMult, maximumMoveSpeed()),
+                        String.format(Locale.ROOT, "%.0f%%", armor.moveSpeedMult() * 100f),
+                        armor.moveSpeedMult(), maximumMoveSpeed()),
                 statMeter(cardId + ":evasion", "EVA",
-                        signedPercent(1f - armor.incomingAccuracyMult),
+                        signedPercent(1f - armor.incomingAccuracyMult()),
                         evasion, maximumEvasion()));
     }
 
@@ -526,7 +520,8 @@ public final class EquipmentDoctrineDesignerViewModel {
 
     private static float maximumWeaponDamage() {
         float maximum = 1f;
-        for (MarineWeapon weapon : MarineWeapon.values()) {
+        for (WeaponDef weapon : WeaponRegistry.installed().all()) {
+            if (weapon.mount != MountClass.MARINE_PRIMARY) continue;
             for (EquipmentGrade grade : EquipmentGrade.values()) {
                 maximum = Math.max(maximum, InfantryCombatStats.damage(weapon, grade));
             }
@@ -536,7 +531,8 @@ public final class EquipmentDoctrineDesignerViewModel {
 
     private static float maximumWeaponRange() {
         float maximum = 1f;
-        for (MarineWeapon weapon : MarineWeapon.values()) {
+        for (WeaponDef weapon : WeaponRegistry.installed().all()) {
+            if (weapon.mount != MountClass.MARINE_PRIMARY) continue;
             for (EquipmentGrade grade : EquipmentGrade.values()) {
                 maximum = Math.max(maximum, InfantryCombatStats.range(weapon, grade));
             }
@@ -546,7 +542,8 @@ public final class EquipmentDoctrineDesignerViewModel {
 
     private static float maximumWeaponDps(SoldierProfile profile) {
         float maximum = 1f;
-        for (MarineWeapon weapon : MarineWeapon.values()) {
+        for (WeaponDef weapon : WeaponRegistry.installed().all()) {
+            if (weapon.mount != MountClass.MARINE_PRIMARY) continue;
             for (EquipmentGrade grade : EquipmentGrade.values()) {
                 maximum = Math.max(maximum,
                         InfantryCombatStats.estimatedDps(weapon, grade, profile));
@@ -557,32 +554,32 @@ public final class EquipmentDoctrineDesignerViewModel {
 
     private static float maximumArmorPool() {
         float maximum = 1f;
-        for (MarineArmorPattern armor : MarineArmorPattern.values()) {
-            maximum = Math.max(maximum, armor.armorPool);
+        for (MarineArmorCatalogDef armor : MarineArmorCatalogRegistry.installed().all()) {
+            maximum = Math.max(maximum, armor.armorPool());
         }
         return maximum;
     }
 
     private static float maximumArmorRating() {
         float maximum = 1f;
-        for (MarineArmorPattern armor : MarineArmorPattern.values()) {
-            maximum = Math.max(maximum, armor.armorRating);
+        for (MarineArmorCatalogDef armor : MarineArmorCatalogRegistry.installed().all()) {
+            maximum = Math.max(maximum, armor.armorRating());
         }
         return maximum;
     }
 
     private static float maximumMoveSpeed() {
         float maximum = 1f;
-        for (MarineArmorPattern armor : MarineArmorPattern.values()) {
-            maximum = Math.max(maximum, armor.moveSpeedMult);
+        for (MarineArmorCatalogDef armor : MarineArmorCatalogRegistry.installed().all()) {
+            maximum = Math.max(maximum, armor.moveSpeedMult());
         }
         return maximum;
     }
 
     private static float maximumEvasion() {
         float maximum = 0.01f;
-        for (MarineArmorPattern armor : MarineArmorPattern.values()) {
-            maximum = Math.max(maximum, 1f - armor.incomingAccuracyMult);
+        for (MarineArmorCatalogDef armor : MarineArmorCatalogRegistry.installed().all()) {
+            maximum = Math.max(maximum, 1f - armor.incomingAccuracyMult());
         }
         return maximum;
     }
@@ -590,6 +587,22 @@ public final class EquipmentDoctrineDesignerViewModel {
     private static String title(String value) {
         String lower = value.toLowerCase().replace('_', ' ');
         return Character.toUpperCase(lower.charAt(0)) + lower.substring(1);
+    }
+
+    private List<EquipmentTemplateCard> ownedCards(EquipmentTemplateCard.Kind wanted) {
+        return roster.armory().equipmentTemplateCards().stream()
+                .filter(card -> card.kind() == wanted)
+                .toList();
+    }
+
+    private static int indexOfEquipment(
+            List<EquipmentTemplateCard> cards, String equipmentId, EquipmentGrade grade) {
+        for (int index = 0; index < cards.size(); index++) {
+            EquipmentTemplateCard card = cards.get(index);
+            if (card.equipmentId().equals(equipmentId)
+                    && (grade == null || card.grade() == grade)) return index;
+        }
+        return -1;
     }
     private static <T> T next(List<T> values, T current) {
         int index = values.indexOf(current);

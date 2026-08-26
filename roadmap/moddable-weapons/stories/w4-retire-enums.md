@@ -2,11 +2,11 @@
 
 > The id is the handle.
 
-Status: PLANNED
+Status: IN PROGRESS
 
 Written: 2026-08-22
 
-Updated: 2026-08-23 — also follows progression S2A so persisted special-equipment identity is distinct from weapon identity.
+Updated: 2026-08-25 — player primary and armor doctrine, billet, and marine persistence now use stable ids with legacy enum input and provider-removal repair; special and broader battle handles remain.
 
 Read `moddable-weapons-nouns.md` before implementing this story.
 
