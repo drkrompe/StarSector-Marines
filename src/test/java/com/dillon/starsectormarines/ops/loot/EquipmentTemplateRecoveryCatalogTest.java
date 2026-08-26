@@ -32,7 +32,7 @@ class EquipmentTemplateRecoveryCatalogTest {
     @Test
     void lowRiskOperationsAndExplicitFactionExclusionsHaveNoCard() {
         assertTrue(candidates(request("hegemony", RiskLevel.LOW), Set.of()).isEmpty());
-        assertTrue(candidates(request("remnants", RiskLevel.HIGH), Set.of()).isEmpty());
+        assertTrue(candidates(request("remnant", RiskLevel.HIGH), Set.of()).isEmpty());
         assertTrue(candidates(new LootRollRequest("no-rights", MissionType.RAID,
                 RiskLevel.HIGH, "hegemony", "militarybase", 50_000, 0),
                 Set.of()).isEmpty());

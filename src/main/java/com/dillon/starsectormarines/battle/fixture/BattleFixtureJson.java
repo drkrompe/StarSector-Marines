@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.ops.OperationTier;
+import com.dillon.starsectormarines.ops.ConquestArrivalConfig;
 import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import org.json.JSONArray;
@@ -229,14 +230,30 @@ public final class BattleFixtureJson {
         JSONObject encoded = new JSONObject();
         encoded.put("policy", plan.policy().name());
         encoded.put("firstPlayerShuttle", plan.firstPlayerShuttle());
+        encoded.put("dropZoneCount", plan.arrivalConfig().dropZoneCount());
+        encoded.put("shuttlePairsPerZone",
+                plan.arrivalConfig().shuttlePairsPerZone());
+        encoded.put("timingJitterSec",
+                plan.arrivalConfig().timingJitterSec());
         return encoded;
     }
 
     private static ShuttleArrivalPlan arrivalPlanFromJson(JSONObject encoded) throws Exception {
+        MarineArrivalPolicy policy = enumValue(MarineArrivalPolicy.class,
+                encoded.getString("policy"), "marine arrival policy");
+        ConquestArrivalConfig defaults = policy == MarineArrivalPolicy.PAIRED_HALF_SQUAD
+                ? ConquestArrivalConfig.DEFAULT : ConquestArrivalConfig.LEGACY;
+        ConquestArrivalConfig config = new ConquestArrivalConfig(
+                encoded.has("dropZoneCount")
+                        ? encoded.getInt("dropZoneCount") : defaults.dropZoneCount(),
+                encoded.has("shuttlePairsPerZone")
+                        ? encoded.getInt("shuttlePairsPerZone")
+                        : defaults.shuttlePairsPerZone(),
+                encoded.has("timingJitterSec")
+                        ? (float) encoded.getDouble("timingJitterSec")
+                        : defaults.timingJitterSec());
         return new ShuttleArrivalPlan(
-                enumValue(MarineArrivalPolicy.class,
-                        encoded.getString("policy"), "marine arrival policy"),
-                encoded.getInt("firstPlayerShuttle"));
+                policy, encoded.getInt("firstPlayerShuttle"), config);
     }
 
     private static JSONArray wingsToJson(

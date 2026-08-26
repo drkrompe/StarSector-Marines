@@ -18,6 +18,7 @@ import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.power.ReconPing;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
+import com.dillon.starsectormarines.battle.setup.ShuttleArrivalPlan;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -26,6 +27,8 @@ import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.ops.OperationTier;
+import com.dillon.starsectormarines.ops.ConquestArrivalConfig;
+import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
@@ -46,7 +49,7 @@ class BattleFixtureJsonTest {
                 (ConquestBattleFixture) launch.construction();
 
         assertEquals(12, conquest.manifest().get(0).seatsPerSortie);
-        assertEquals(com.dillon.starsectormarines.ops.MarineArrivalPolicy.INDEPENDENT_FULL_LOAD,
+        assertEquals(MarineArrivalPolicy.INDEPENDENT_FULL_LOAD,
                 conquest.arrivalPlan().policy());
     }
 
@@ -91,7 +94,9 @@ class BattleFixtureJsonTest {
                         new FighterWingCommitment(FighterProfile.DAGGER,
                                 Faction.DEFENDER, 1, 20f, 45f),
                         new FighterWingCommitment(FighterProfile.TALON,
-                                Faction.DEFENDER, 3, 10f, 15f)));
+                                Faction.DEFENDER, 3, 10f, 15f)),
+                new ShuttleArrivalPlan(MarineArrivalPolicy.PAIRED_HALF_SQUAD,
+                        1, new ConquestArrivalConfig(4, 2, 1.75f)));
 
         BattleFixture decoded = BattleFixtureJson.fromJson(
                 BattleFixtureJson.toJson(fixture));

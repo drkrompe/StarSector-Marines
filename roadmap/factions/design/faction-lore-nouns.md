@@ -4,7 +4,7 @@ Status: ACTIVE — canonical reference for translating Starsector faction identi
 
 Written: 2026-08-26
 
-Updated: 2026-08-26 — established evidence tiers, shared setting laws, and the first core-faction guide catalog.
+Updated: 2026-08-26 — linked shipped equipment provenance and faction availability to the faction guide catalog.
 
 ## Purpose
 
@@ -12,6 +12,9 @@ Use this guide before authoring faction-shaped weapons, armor, units, facilities
 missions, dialogue, or command behavior. It is an interpretation boundary, not a
 parallel rules system: faction identity selects authored content and bounded
 preferences, while the owning feature documents still define mechanics.
+
+`equipment-lore-catalog.md` records the shipped in-universe models, their mod-authored
+origins, credible circulation, and deliberate faction absences.
 
 The guide catalog covers the human factions most likely to own a market, hire the
 player, or field ground forces, plus Remnants as a distinct non-human adversary.

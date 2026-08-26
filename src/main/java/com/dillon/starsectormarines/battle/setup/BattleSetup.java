@@ -1036,7 +1036,8 @@ public final class BattleSetup {
                 requestedArrivalPlan.resolveManifest(resolveManifest(manifest));
         List<ShuttleAssignment> assignments = resolvedManifest.assignments();
         ShuttleArrivalPlan resolvedArrivalPlan = new ShuttleArrivalPlan(
-                requestedArrivalPlan.policy(), resolvedManifest.firstPlayerShuttle());
+                requestedArrivalPlan.policy(), resolvedManifest.firstPlayerShuttle(),
+                requestedArrivalPlan.arrivalConfig());
         DefenderForcePlan defenders = defenderForcePlan(
                 MissionType.CONQUEST, tier, risk, enemyHasHeavyArmor,
                 assignments, map.defensePosts, marineFighterSupport,
@@ -1085,6 +1086,7 @@ public final class BattleSetup {
                     a.seatsPerSortie);
             ShuttleMission mission = sim.world().mission(shuttleId);
             mission.totalCycles = a.cycles;
+            mission.rearmDelay = slot.rearmDelay();
             mission.manifestOrdinal = i < resolvedManifest.firstPlayerShuttle()
                     ? i
                     : requestedArrivalPlan.firstPlayerShuttle()
@@ -1132,7 +1134,7 @@ public final class BattleSetup {
 
     private record ConquestArrivalSlot(
             LandingPad pad, int landingAreaId, int arrivalGroupId,
-            int expectedStrength, float pendingDelay,
+            int expectedStrength, float pendingDelay, float rearmDelay,
             boolean departAfterDelivery) {}
 
     private static List<ConquestArrivalSlot> conquestArrivalSlots(
@@ -1147,27 +1149,32 @@ public final class BattleSetup {
                 int[] cell = cells.get(i);
                 legacy.add(new ConquestArrivalSlot(
                         LandingPad.fallback(cell[0], cell[1]), -1, -1, 0,
-                        i * SHUTTLE_DROP_STAGGER_SEC, false));
+                        i * SHUTTLE_DROP_STAGGER_SEC,
+                        ShuttleMission.DEFAULT_REARM_DELAY_SEC, false));
             }
             return legacy;
         }
 
         int employerEnd = Math.min(resolved.firstPlayerShuttle(), assignments.size());
-        int areaCount = pairCount(employerEnd) + pairCount(assignments.size() - employerEnd);
+        int areaCount = Math.min(resolved.arrivalConfig().dropZoneCount(),
+                Math.max(pairCount(employerEnd),
+                        pairCount(assignments.size() - employerEnd)));
         List<Integer> selectedAreas = evenlySpacedAreaIndexes(
                 map.landingAreas.size(), areaCount);
         if (selectedAreas.size() < areaCount) {
             throw new IllegalStateException("Conquest map authored "
                     + map.landingAreas.size() + " arrival areas but " + areaCount
-                    + " paired transport groups are required");
+                    + " drop zones are requested by the mission");
         }
 
         List<ConquestArrivalSlot> slots = new ArrayList<>(assignments.size());
-        int[] areaCursor = {0};
+        int[] groupCursor = {0};
         addPairedArrivalSlots(slots, assignments, map.landingAreas,
-                selectedAreas, 0, employerEnd, areaCursor);
+                selectedAreas, 0, employerEnd, groupCursor, rng,
+                resolved.arrivalConfig().timingJitterSec());
         addPairedArrivalSlots(slots, assignments, map.landingAreas,
-                selectedAreas, employerEnd, assignments.size(), areaCursor);
+                selectedAreas, employerEnd, assignments.size(), groupCursor, rng,
+                resolved.arrivalConfig().timingJitterSec());
         return slots;
     }
 
@@ -1175,10 +1182,12 @@ public final class BattleSetup {
             List<ConquestArrivalSlot> slots,
             List<ShuttleAssignment> assignments,
             List<LandingArea> areas, List<Integer> selectedAreas,
-            int from, int to, int[] areaCursor) {
+            int from, int to, int[] groupCursor, Random rng,
+            float timingJitterSec) {
+        int segmentGroup = 0;
         for (int i = from; i < to; i += LandingArea.BERTH_COUNT) {
-            int group = areaCursor[0];
-            int areaIndex = selectedAreas.get(group);
+            int group = groupCursor[0]++;
+            int areaIndex = selectedAreas.get(segmentGroup % selectedAreas.size());
             LandingArea area = areas.get(areaIndex);
             int groupEnd = Math.min(to, i + LandingArea.BERTH_COUNT);
             int expected = 0;
@@ -1186,12 +1195,21 @@ public final class BattleSetup {
                 expected += assignments.get(member).seatsPerSortie;
             }
             for (int member = i; member < groupEnd; member++) {
+                float pendingJitter = timingJitter(rng, timingJitterSec);
+                float rearmJitter = timingJitter(rng, timingJitterSec);
                 slots.add(new ConquestArrivalSlot(
                         area.berth(member - i), areaIndex, group, expected,
-                        group * SHUTTLE_DROP_STAGGER_SEC, true));
+                        group * SHUTTLE_DROP_STAGGER_SEC + pendingJitter,
+                        ShuttleMission.DEFAULT_REARM_DELAY_SEC + rearmJitter,
+                        true));
             }
-            areaCursor[0]++;
+            segmentGroup++;
         }
+    }
+
+    private static float timingJitter(Random rng, float maximumSeconds) {
+        if (maximumSeconds <= 0f) return 0f;
+        return rng.nextFloat() * maximumSeconds;
     }
 
     private static int pairCount(int count) {
