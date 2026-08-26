@@ -1,0 +1,61 @@
+package com.dillon.starsectormarines.battle.world.gen.ship.fit;
+
+import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+
+/**
+ * Gear around the walls, floor kept clear.
+ *
+ * <p>The arrangement for rooms whose whole purpose is the empty space in the
+ * middle: a bay servicing a walker, a hangar a shuttle has to be moved through,
+ * a range with a firing lane down it. Ranking fixtures across those the way a
+ * berth is ranked would fill in the one thing they exist to provide, so they
+ * were left bare instead — which read as unfinished rather than as deliberate.
+ *
+ * <p>Working the perimeter gives them what they should have had: benches,
+ * lockers and drums against the bulkheads, and clear deck for the machine.
+ */
+public final class PerimeterFitting implements RoomFitting {
+
+    private final RoomPurpose purpose;
+    private final AisleFitting.FixtureGroup group;
+
+    public PerimeterFitting(RoomPurpose purpose, AisleFitting.FixtureGroup group) {
+        this.purpose = purpose;
+        this.group = group;
+    }
+
+    @Override
+    public RoomPurpose purpose() {
+        return purpose;
+    }
+
+    @Override
+    public void fit(CompartmentFloor floor) {
+        // Everything that is not the wall band is lane, so nothing later can
+        // encroach on the clearance this room exists to keep.
+        int band = group.depth();
+        floor.reserveLane(band, band,
+                Math.max(0, floor.width() - 2 * band), Math.max(0, floor.height() - 2 * band));
+        for (DeckGraph.Compartment.Door door : floor.localDoors()) {
+            floor.reserveLane(door.x() - 1, door.y() - 1, 3, 3);
+        }
+
+        int pitch = group.width() + floor.fit().gap() + 1;
+        for (int x = 0; x + group.width() <= floor.width(); x += pitch) {
+            place(floor, x, 0);
+            place(floor, x, floor.height() - group.depth());
+        }
+        for (int y = band; y + group.depth() <= floor.height() - band; y += pitch) {
+            place(floor, 0, y);
+            place(floor, floor.width() - group.width(), y);
+        }
+    }
+
+    private void place(CompartmentFloor floor, int x, int y) {
+        if (!floor.place(group.anchor(), x, y)) return;
+        for (AisleFitting.FixtureGroup.Satellite satellite : group.satellites()) {
+            floor.place(satellite.id(), x + satellite.along(), y + satellite.across());
+        }
+    }
+}
