@@ -1,8 +1,14 @@
 package com.dillon.starsectormarines.ops.detachment;
 
+import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
+import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.ExperienceTier;
-import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.setup.BattleSetup;
+import com.dillon.starsectormarines.battle.setup.ShuttleArrivalPlan;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.marine.EnlistedRank;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -11,18 +17,23 @@ import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
 import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
+import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
+import com.dillon.starsectormarines.ops.OperationTier;
+import com.dillon.starsectormarines.ops.RiskLevel;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.Random;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTimeout;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -192,6 +203,37 @@ class DebugCompanyTest {
         assertTrue(DebugCompanyStage.FULL_STRENGTH.summary(Integer.MAX_VALUE)
                         .contains("25769803764 marines"),
                 "the uncapped control's readout must not overflow");
+    }
+
+    @Test
+    void twoHundredSquadLaunchSnapshotStaysWithinABoundedSetupBudget() {
+        assertTimeout(Duration.ofSeconds(5), () -> {
+            int requested = 200;
+            MarineRoster roster = DebugCompany.roster(
+                    DebugCompanyStage.FULL_STRENGTH, requested,
+                    new Random(8_262_026L));
+            Set<String> selected = new LinkedHashSet<>(
+                    DebugCompany.lineSquadIds(roster));
+
+            CampaignMarineDeployment frozen = CampaignMarineDeployment.freezeSelection(
+                    roster, selected, requested * MarineSquad.CAPACITY);
+
+            ShuttleArrivalPlan plan = new ShuttleArrivalPlan(
+                    MarineArrivalPolicy.PAIRED_HALF_SQUAD, 0);
+            ShuttleArrivalPlan.ResolvedManifest manifest = plan.resolveManifest(
+                    List.of(new ShuttleAssignment(ShuttleType.VALKYRIE, 40, 6)),
+                    frozen.size());
+            try (BattleSimulation sim = BattleSetup.createConquest(
+                    8_262_026L, manifest.assignments(), false,
+                    OperationTier.REINFORCED, RiskLevel.LOW,
+                    TargetProfile.NEUTRAL, FlybyRoster.EMPTY, FlybyRoster.EMPTY,
+                    plan)) {
+                frozen.applyTo(sim);
+            }
+
+            assertEquals(requested * MarineSquad.CAPACITY, frozen.size());
+            assertEquals(requested, selected.size());
+        });
     }
 
     @Test
