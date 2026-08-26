@@ -285,6 +285,30 @@ public class FiringSystemTest {
     }
 
     @Test
+    public void cellVisibleButPointOccludedIntentDoesNotFire() {
+        BattleSimulation sim = openArena(20, 15);
+        NavigationGrid grid = sim.getGrid();
+        grid.setWalkable(6, 6, false);
+        long shooter = combatant(sim, Faction.MARINE, 5, 5);
+        long target = combatant(sim, Faction.DEFENDER, 7, 6);
+        sim.world().setPos(shooter, 5.1f, 5.9f);
+        sim.world().setPos(target, 7.9f, 6.9f);
+        sim.world().setAttackRange(shooter, 10f);
+
+        assertTrue(grid.hasLineOfSight(5, 5, 7, 6),
+                "the cheap projected-cell Bresenham lane misses the wall");
+        assertFalse(grid.hasLineOfFire(5.1f, 5.9f, 7.9f, 6.9f),
+                "the real point segment crosses the wall cell");
+
+        readyFireIntent(sim, shooter, target, FireStance.STANCED, false);
+        systemFor(sim).tick(sim);
+
+        assertEquals(0f, sim.world().cooldownTimer(shooter), 1e-6f,
+                "an occluded continuous firing segment must not consume a shot");
+        assertEquals(FireGate.NO_LOS, sim.combat().lastFireGate(shooter));
+    }
+
+    @Test
     public void intentAtDeadTargetDoesNotFireNoCrash() {
         BattleSimulation sim = openArena(30, 10);
         long shooter = combatant(sim, Faction.MARINE, 5, 5);

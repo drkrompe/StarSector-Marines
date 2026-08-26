@@ -98,10 +98,9 @@ public final class HoldPost implements Action {
         float dist = TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member),
                 sim.world().x(target), sim.world().y(target));
         boolean inRange = dist <= sim.world().attackRange(member);
-        boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(member), sim.world().cellY(member),
-                sim.world().cellX(target), sim.world().cellY(target));
+        boolean clearShot = sim.getTacticalScoring().hasClearShot(member, target);
 
-        if (inRange && visible) {
+        if (inRange && clearShot) {
             sim.combat().setFireIntent(member, target, FireStance.STANCED, false);
             hold(member, sim);
             return ActionStatus.RUNNING;

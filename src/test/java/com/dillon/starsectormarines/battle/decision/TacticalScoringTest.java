@@ -1123,6 +1123,21 @@ public class TacticalScoringTest {
     }
 
     @Test
+    public void closestEnemyInAttackRangeRejectsPointSegmentHiddenByWall() {
+        BattleSimulation sim = openArena(20, 12);
+        long marine = unit(sim, Faction.MARINE, 5, 5);
+        long enemy = unit(sim, Faction.DEFENDER, 7, 6);
+        sim.world().setPos(marine, 5.1f, 5.9f);
+        sim.world().setPos(enemy, 7.9f, 6.9f);
+        sim.getGrid().setWalkable(6, 6, false);
+
+        assertTrue(sim.getGrid().hasLineOfSight(5, 5, 7, 6),
+                "projected-cell visibility remains available to perception");
+        assertEquals(0L, sim.getTacticalScoring().closestEnemyInAttackRange(marine),
+                "opportunity acquisition must reject the wall-crossing point segment");
+    }
+
+    @Test
     public void closestEnemyInAttackRangeSkipsKilledSpatialCandidate() {
         BattleSimulation sim = openArena(20, 10);
         long marine = unit(sim, Faction.MARINE, 5, 5);
