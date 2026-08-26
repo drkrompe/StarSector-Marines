@@ -31,8 +31,16 @@ class AuthoringDocumentTest {
     @Test
     void seededDocumentValidatesAndRendersDeterministically() throws Exception {
         AuthoringDocument document = AuthoringDocument.load(Path.of("."));
-        assertEquals(4, document.units().size());
+        assertEquals(13, document.units().size());
         assertTrue(document.validate().isEmpty());
+        assertEquals(List.of(
+                        "armor-master-aegis", "armor-master-palatine",
+                        "armor-master-furnace-line", "armor-master-reaver",
+                        "armor-master-specter-heavy", "armor-master-bulwark-heavy",
+                        "armor-master-reliquary-heavy", "armor-master-lions-mantle",
+                        "armor-master-foundry-breaker"),
+                document.units().stream().map(UnitComposition::id)
+                        .filter(id -> id.startsWith("armor-master-")).toList());
 
         UnitComposition marine = document.units().get(0);
         assertEquals(List.of("rifle", "rocket", "anti-materiel", "smoke", "satchel"),
@@ -115,6 +123,10 @@ class AuthoringDocumentTest {
                 List.of(new LayerSnapshotSuite()), temporary, false);
         Path layers = temporary.resolve("layers");
         assertTrue(Files.size(layers.resolve("marine-line-sheet.png")) > 10_000L);
+        assertTrue(Files.size(layers.resolve("armor-master-specter-heavy-sheet.png"))
+                > 10_000L);
+        assertTrue(Files.size(layers.resolve("armor-master-foundry-breaker-sheet.png"))
+                > 10_000L);
         assertTrue(Files.size(layers.resolve("mech-bulwark-sheet.png")) > 10_000L);
         assertTrue(Files.size(layers.resolve("mech-hound-sheet.png")) > 10_000L);
         assertTrue(Files.size(layers.resolve("mech-sirocco-sheet.png")) > 10_000L);

@@ -338,10 +338,10 @@ public class CommsConsolePanel extends OpsPanel {
         Mission current = ctx.getSelectedMission();
         if (current != null && current.id.equals(mission.id)) {
             // Toggle off — clicking the expanded card collapses it.
-            LOG.info("MarineOps: dossier collapsed id=" + mission.id);
+            LOG.debug("MarineOps: dossier collapsed id=" + mission.id);
             ctx.setSelectedMission(null);
         } else {
-            LOG.info("MarineOps: dossier expanded id=" + mission.id + " name='" + mission.name + "'");
+            LOG.debug("MarineOps: dossier expanded id=" + mission.id + " name='" + mission.name + "'");
             ctx.setSelectedMission(mission);
         }
     }
@@ -359,7 +359,7 @@ public class CommsConsolePanel extends OpsPanel {
      */
     private void onBriefAndDeploy(Mission m) {
         if (m == null) return;
-        LOG.info("MarineOps: brief & deploy mission id=" + m.id + " name='" + m.name
+        LOG.debug("MarineOps: brief & deploy mission id=" + m.id + " name='" + m.name
                 + "' type=" + m.type);
         ctx.setSelectedMission(m);
         ctx.goTo(ScreenId.BRIEFING);

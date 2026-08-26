@@ -33,6 +33,15 @@ Select a unit, equipment variant, animation, keyframe, and layer, then:
 - use Ctrl+Z to undo and Ctrl+Shift+Z to redo the last edit; and
 - use Save JSON or Ctrl+S to validate, confirm, and atomically replace the mod data file.
 
+The unit selector also exposes one **Armor master — ...** composition for each
+faction armor family. Select its `body` or `head` layer to master that family's
+scale, registration, angle, and pivot against a neutral rifle stance. The saved
+body and helmet settings are runtime authority in both the Armory and battle:
+scale multiplies the active animation, while offset and angle are applied as
+deltas from the neutral mastering pose. Body and helmet mastering are resolved
+independently, so mixed equipment appearances retain the correct settings for
+each source family.
+
 Playback smoothsteps matching layers between adjacent keyframes, including offsets,
 independent scale, angle, and pivot. This makes articulated mech linkages directly
 authorable: a walk keyframe can move a foot while changing the connected thigh's

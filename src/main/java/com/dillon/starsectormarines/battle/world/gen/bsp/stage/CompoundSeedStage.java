@@ -26,7 +26,7 @@ public final class CompoundSeedStage implements GenStage {
         BiomeMap biomeMap = ctx.get(BspKeys.BIOME_MAP);
         int reservedSeeds = BiomeCompoundSeeder.seed(partition.leaves, biomeMap);
         if (reservedSeeds > 0) {
-            LOG.info("BspCityGenerator: reserved " + reservedSeeds
+            LOG.debug("BspCityGenerator: reserved " + reservedSeeds
                     + " military-base compound seed(s) across biomes");
         }
     }

@@ -218,7 +218,7 @@ public final class ConvoyMeans implements ReinforcementMeans {
                     risk, sim.random());
         }
         sim.addConvoyVehicle(VehicleType.HEAVY_APC, Faction.DEFENDER, mission);
-        LOG.info("ConvoyMeans: dispatched HEAVY_APC entry=(" + entry.cellX + "," + entry.cellY
+        LOG.debug("ConvoyMeans: dispatched HEAVY_APC entry=(" + entry.cellX + "," + entry.cellY
                 + ") exit=(" + exitNode.cellX + "," + exitNode.cellY
                 + ") drop=(" + (int) lzX + "," + (int) lzY + ") hint=("
                 + rx + "," + ry + ") minForward="

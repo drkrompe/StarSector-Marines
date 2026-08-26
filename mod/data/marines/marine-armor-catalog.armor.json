@@ -31,7 +31,7 @@
         "tier": 3,
         "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
       },
-      "battle": { "appearanceFamily": "BLUE_SCOUT", "armorPool": 9.0, "armorRating": 7.0, "moveSpeedMult": 1.02, "incomingAccuracyMult": 0.91 }
+      "battle": { "appearanceFamily": "AEGIS_COMPOSITE", "armorPool": 9.0, "armorRating": 7.0, "moveSpeedMult": 1.02, "incomingAccuracyMult": 0.91 }
     },
     {
       "id": "armor.palatine",
@@ -42,7 +42,7 @@
         "tier": 3,
         "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
       },
-      "battle": { "appearanceFamily": "ARMY_GREEN", "armorPool": 8.0, "armorRating": 10.0, "moveSpeedMult": 0.91, "incomingAccuracyMult": 0.98 }
+      "battle": { "appearanceFamily": "PALATINE", "armorPool": 8.0, "armorRating": 10.0, "moveSpeedMult": 0.91, "incomingAccuracyMult": 0.98 }
     },
     {
       "id": "armor.furnace-line",
@@ -53,7 +53,7 @@
         "tier": 3,
         "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
       },
-      "battle": { "appearanceFamily": "RED_ELITE", "armorPool": 12.0, "armorRating": 7.0, "moveSpeedMult": 0.93, "incomingAccuracyMult": 0.99 }
+      "battle": { "appearanceFamily": "FURNACE_LINE", "armorPool": 12.0, "armorRating": 7.0, "moveSpeedMult": 0.93, "incomingAccuracyMult": 0.99 }
     },
     {
       "id": "armor.reaver",
@@ -64,7 +64,7 @@
         "tier": 3,
         "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
       },
-      "battle": { "appearanceFamily": "OUTLAW", "armorPool": 13.0, "armorRating": 5.0, "moveSpeedMult": 0.97, "incomingAccuracyMult": 0.96 }
+      "battle": { "appearanceFamily": "REAVER", "armorPool": 13.0, "armorRating": 5.0, "moveSpeedMult": 0.97, "incomingAccuracyMult": 0.96 }
     },
     {
       "id": "armor.scout",
@@ -97,7 +97,7 @@
         "tier": 4,
         "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
       },
-      "battle": { "appearanceFamily": "BLUE_SCOUT", "armorPool": 19.0, "armorRating": 10.0, "moveSpeedMult": 0.94, "incomingAccuracyMult": 0.90 }
+      "battle": { "appearanceFamily": "SPECTER_HEAVY", "armorPool": 19.0, "armorRating": 10.0, "moveSpeedMult": 0.94, "incomingAccuracyMult": 0.90 }
     },
     {
       "id": "armor.bulwark-heavy",
@@ -108,7 +108,7 @@
         "tier": 4,
         "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
       },
-      "battle": { "appearanceFamily": "CHARCOAL", "armorPool": 20.0, "armorRating": 11.0, "moveSpeedMult": 0.90, "incomingAccuracyMult": 0.95 }
+      "battle": { "appearanceFamily": "BULWARK_HEAVY", "armorPool": 20.0, "armorRating": 11.0, "moveSpeedMult": 0.90, "incomingAccuracyMult": 0.95 }
     },
     {
       "id": "armor.reliquary-heavy",
@@ -119,7 +119,7 @@
         "tier": 4,
         "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
       },
-      "battle": { "appearanceFamily": "ARMY_GREEN", "armorPool": 16.0, "armorRating": 14.0, "moveSpeedMult": 0.82, "incomingAccuracyMult": 0.97 }
+      "battle": { "appearanceFamily": "RELIQUARY_HEAVY", "armorPool": 16.0, "armorRating": 14.0, "moveSpeedMult": 0.82, "incomingAccuracyMult": 0.97 }
     },
     {
       "id": "armor.lions-mantle",
@@ -130,7 +130,7 @@
         "tier": 4,
         "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
       },
-      "battle": { "appearanceFamily": "RED_ELITE", "armorPool": 23.0, "armorRating": 10.0, "moveSpeedMult": 0.83, "incomingAccuracyMult": 1.01 }
+      "battle": { "appearanceFamily": "LIONS_MANTLE", "armorPool": 23.0, "armorRating": 10.0, "moveSpeedMult": 0.83, "incomingAccuracyMult": 1.01 }
     },
     {
       "id": "armor.foundry-breaker",
@@ -141,7 +141,7 @@
         "tier": 4,
         "iconPath": "graphics/ui/armory/armor-tier-4-heavy.png"
       },
-      "battle": { "appearanceFamily": "OUTLAW", "armorPool": 27.0, "armorRating": 6.0, "moveSpeedMult": 0.80, "incomingAccuracyMult": 1.00 }
+      "battle": { "appearanceFamily": "FOUNDRY_BREAKER", "armorPool": 27.0, "armorRating": 6.0, "moveSpeedMult": 0.80, "incomingAccuracyMult": 1.00 }
     },
     {
       "id": "armor.outlaw",

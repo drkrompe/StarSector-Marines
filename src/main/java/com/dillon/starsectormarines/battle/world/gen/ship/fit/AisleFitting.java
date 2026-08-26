@@ -27,6 +27,9 @@ public final class AisleFitting implements RoomFitting {
     private final RoomPurpose purpose;
     private final FixtureGroup group;
 
+    /** Cells nobody may furnish, however tight the room. Two abreast, as everywhere else. */
+    private static final int MIN_CLEAR = 2;
+
     public AisleFitting(RoomPurpose purpose, FixtureGroup group) {
         this.purpose = purpose;
         this.group = group;
@@ -49,12 +52,18 @@ public final class AisleFitting implements RoomFitting {
         // which is the fill defect this exists to avoid: a room reads as used
         // because its gear is against the sides and its middle is clear, not
         // because props are spread evenly over it.
-        // The clear floor a compartment keeps is a share of its depth, not a
-        // fixed aisle. Without that a deep room simply took more ranks until it
-        // was furniture wall to wall, which is the lattice again in a larger
-        // room.
-        int clear = Math.max(fit.aisleWidth(), across / 3);
-        int ranks = Math.max(0, Math.min(fit.ranks(), (across - clear) / (2 * group.depth())));
+        // Clear floor scales with the room rather than being a fixed aisle,
+        // or a deep room just takes more ranks until it is furniture wall to
+        // wall. But the floor is what people walk in, not a third of the room:
+        // demanding a third left an eight-by-six berth with room for no ranks
+        // at all, so the most numerous compartment on every deck came out
+        // empty. A berth is small because bunks fill it.
+        int clear = Math.max(MIN_CLEAR, across / 4);
+        int affordable = (across - clear) / (2 * group.depth());
+        int ranks = Math.min(fit.ranks(), affordable);
+        if (ranks <= 0 && across >= group.depth() + MIN_CLEAR) {
+            ranks = 1;      // one rank against one bulkhead still beats nothing
+        }
         int banded = ranks * group.depth();
 
         int aisleStart = banded;
@@ -66,7 +75,12 @@ public final class AisleFitting implements RoomFitting {
 
         for (int rank = 0; rank < ranks; rank++) {
             rankRow(floor, lengthwise, rank * group.depth(), along);
-            rankRow(floor, lengthwise, across - (rank + 1) * group.depth(), along);
+            int opposite = across - (rank + 1) * group.depth();
+            // A room only deep enough for one rank gets one, not the same rank
+            // laid twice on top of itself.
+            if (opposite >= (rank + 1) * group.depth() + MIN_CLEAR) {
+                rankRow(floor, lengthwise, opposite, along);
+            }
         }
     }
 

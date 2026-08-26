@@ -238,6 +238,24 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
                     foot, null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
             loadFamily(LayeredArmorFamily.MILITIA, INFANTRY_ROOT + "armor/militia/",
                     foot, null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
+            loadFamily(LayeredArmorFamily.AEGIS_COMPOSITE, INFANTRY_ROOT + "armor/aegis/",
+                    foot, null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
+            loadFamily(LayeredArmorFamily.PALATINE, INFANTRY_ROOT + "armor/palatine/",
+                    foot, null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
+            loadFamily(LayeredArmorFamily.FURNACE_LINE, INFANTRY_ROOT + "armor/furnace-line/",
+                    foot, null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
+            loadFamily(LayeredArmorFamily.REAVER, INFANTRY_ROOT + "armor/reaver/",
+                    foot, null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
+            loadFamily(LayeredArmorFamily.SPECTER_HEAVY, INFANTRY_ROOT + "armor/specter-heavy/",
+                    foot, null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
+            loadFamily(LayeredArmorFamily.BULWARK_HEAVY, INFANTRY_ROOT + "armor/bulwark-heavy/",
+                    foot, null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
+            loadFamily(LayeredArmorFamily.RELIQUARY_HEAVY, INFANTRY_ROOT + "armor/reliquary-heavy/",
+                    foot, null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
+            loadFamily(LayeredArmorFamily.LIONS_MANTLE, INFANTRY_ROOT + "armor/lions-mantle/",
+                    foot, null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
+            loadFamily(LayeredArmorFamily.FOUNDRY_BREAKER, INFANTRY_ROOT + "armor/foundry-breaker/",
+                    foot, null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);
             loadFamily(LayeredArmorFamily.ENGINEER,
                     "graphics/battle/colonist-modular-topdown/engineer/",
                     foot, null, rifle, laser, smg, dmr, rocket, amr, flash, surplus, masterwork);

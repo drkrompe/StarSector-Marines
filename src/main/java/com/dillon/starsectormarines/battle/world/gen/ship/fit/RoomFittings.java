@@ -88,10 +88,19 @@ public final class RoomFittings {
                 new Satellite("doodad.chair-south-green", 0, 1),
                 new Satellite("doodad.chair-south-yellow", 2, 1))));
 
-        // A hangar and a mech bay are deliberately absent. Both are defined by
-        // the clear floor a machine needs, so ranking furniture down them would
-        // be exactly wrong; they want their own arrangement and get it when one
-        // is authored.
+        // Rooms whose point is the empty middle. Gear against the bulkheads,
+        // deck clear for the machine or the lane.
+        register(new PerimeterFitting(RoomPurpose.VEHICLE_BAY, FixtureGroup.of(
+                "doodad.industrial-machine-tool", 2, 2,
+                new Satellite("doodad.industrial-drum-cluster", 1, 1))));
+
+        register(new PerimeterFitting(RoomPurpose.HANGAR, FixtureGroup.of(
+                "doodad.industrial-crate-stack", 2, 2,
+                new Satellite("doodad.industrial-cable-reel", 1, 1))));
+
+        register(new PerimeterFitting(RoomPurpose.FIRING_RANGE, FixtureGroup.of(
+                "doodad.sandbag-straight-n", 2, 2,
+                new Satellite("doodad.crate", 1, 1))));
     }
 
     private static void register(RoomFitting fitting) {
