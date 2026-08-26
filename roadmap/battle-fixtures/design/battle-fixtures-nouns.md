@@ -69,7 +69,7 @@ Civilian-rescue V1 captures the seven inputs of its production scenario
 factory. It therefore reproduces the generated map, rescue payload, default
 forces, aircraft, objectives, and deterministic setup rolls.
 
-Conquest V1 captures the requested seed, ordered shuttle manifest, heavy-armor
+Conquest V1 captures the requested seed, ordered full-capacity shuttle manifest, heavy-armor
 availability, operation tier, risk, target-world profile, and both ordered
 fighter commitments accepted by its production factory. It therefore rebuilds
 the canonical 240×160 map, compounds and keep, authored defenders, both
@@ -86,19 +86,23 @@ production-scheduler run is informational. Battle-long evidence is opt-in and
 bounded. Reaching the bound publishes a neutral timeout instead of fabricating
 a winner.
 
-The campaign launch path applies persistent marine identities, equipment,
+Construction V2 adds each assignment's actual seats per sortie and the resolved
+arrival policy plus employer/player shuttle boundary. Historical V1 documents
+continue to decode as independent full-load point arrivals. The campaign launch path applies persistent marine identities, equipment,
 fighter cover, command powers, and their resources after that factory returns.
-Those overlays remain outside V1. A V2 `BattleLaunchFixture` wraps the unchanged
+Those overlays remain outside construction. A V3 `BattleLaunchFixture` wraps the V2
 construction document with ordered stable-value commitments for marine seats,
 marine/debug fighter additions, command powers, configured mech deployments,
-the employer-shuttle offset, and launch-time supplies. `MissionLaunch` and
+the employer-shuttle offset, and launch-time supplies. Legacy V2 launch
+documents with nested V1 construction remain readable. `MissionLaunch` and
 headless replay both invoke `BattleLaunchOverlay`; production retains the live
 campaign cargo adapter while replay receives an independent finite supply
 account. Stable catalog ids resolve equipment and powers fail-loud, and
 scenario-authored roles/objectives remain owned by the V1 factory.
 
-The checked-in V2 Conquest launch proves post-overlay headless reconstruction,
-and the command harness can consume either V1 or V2. The canonical command
+The checked-in production-shaped Conquest launch proves post-overlay headless
+reconstruction with eight four-cycle Valkyries at six seats per sortie (192
+seats), and the command harness can consume legacy and current schemas. The canonical command
 matrix remains on its historical V1 fixtures until representative live
 full-company launches are captured and deliberately rebaselined.
 

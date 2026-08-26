@@ -52,7 +52,7 @@ public final class SquadFormUpSystem {
     /** True while this squad is still expecting marines and still willing to wait. */
     public static boolean formingUp(Squad squad) {
         return squad != null
-                && squad.campaignSquadId != null
+                && (squad.campaignSquadId != null || squad.arrivalAssembly)
                 && squad.expectedSize > 0
                 && squad.originalSize < squad.expectedSize
                 && squad.formUpElapsed < FORM_UP_TIMEOUT;

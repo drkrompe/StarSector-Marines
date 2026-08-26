@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -150,14 +151,31 @@ public final class CampaignMarineDeployment {
     public void applyTo(BattleSimulation sim, int shuttleMissionsToSkip) {
         if (sim == null || seats.isEmpty()) return;
         BattleComponents components = sim.getBattleComponents();
-        int seatIndex = 0;
-        int missionIndex = 0;
+        List<ShuttleMission> missions = new ArrayList<>();
         for (ArchetypeTable table : sim.getEntityWorld().matched(components.airCraft)) {
-            Object[] missions = table.objects(components.SHUTTLE_MISSION,
+            Object[] encoded = table.objects(components.SHUTTLE_MISSION,
                     BattleComponents.SHUTTLE_MISSION_STATE).array();
             for (int row = 0; row < table.rowCount(); row++) {
-                ShuttleMission mission = (ShuttleMission) missions[row];
-                if (mission == null) continue;
+                ShuttleMission mission = (ShuttleMission) encoded[row];
+                if (mission != null) missions.add(mission);
+            }
+        }
+
+        boolean manifestOrdered = !missions.isEmpty()
+                && missions.stream().allMatch(mission -> mission.manifestOrdinal >= 0);
+        if (manifestOrdered) {
+            missions.sort(Comparator.comparingInt(mission -> mission.manifestOrdinal));
+            List<ShuttleMission> playerMissions = missions.stream()
+                    .filter(mission -> mission.manifestOrdinal
+                            >= Math.max(0, shuttleMissionsToSkip))
+                    .toList();
+            applyPairedWaveOrder(playerMissions);
+            return;
+        }
+
+        int seatIndex = 0;
+        int missionIndex = 0;
+        for (ShuttleMission mission : missions) {
                 if (missionIndex++ < Math.max(0, shuttleMissionsToSkip)) continue;
                 MarineLoadout[][] cycles = mission.cycleLoadouts;
                 if (cycles == null || cycles.length == 0) {
@@ -177,6 +195,38 @@ public final class CampaignMarineDeployment {
                 }
                 mission.cycleLoadouts = cycles;
                 mission.marineLoadout = cycles[0];
+        }
+    }
+
+    /**
+     * Conquest seats are filled wave-major: both six-seat craft receive one
+     * complete twelve-marine squad before either craft is loaded for its next
+     * sortie. Explicit manifest ordinals keep this stable across ECS tables.
+     */
+    private void applyPairedWaveOrder(List<ShuttleMission> missions) {
+        int seatIndex = 0;
+        int maxCycles = missions.stream().mapToInt(mission -> {
+            MarineLoadout[][] cycles = mission.cycleLoadouts;
+            return cycles != null && cycles.length > 0 ? cycles.length : 1;
+        }).max().orElse(0);
+        for (int cycle = 0; cycle < maxCycles; cycle++) {
+            for (ShuttleMission mission : missions) {
+                MarineLoadout[][] cycles = mission.cycleLoadouts;
+                if (cycles == null || cycles.length == 0) {
+                    cycles = new MarineLoadout[][]{mission.marineLoadout};
+                }
+                if (cycle >= cycles.length || cycles[cycle] == null) continue;
+                MarineLoadout[] generated = cycles[cycle];
+                MarineLoadout[] applied = new MarineLoadout[generated.length];
+                for (int slot = 0; slot < generated.length; slot++) {
+                    MarineLoadout prior = generated[slot] != null
+                            ? generated[slot] : MarineLoadout.COMBATANT;
+                    MarineLoadout allocated = seat(seatIndex++);
+                    applied[slot] = allocated != null ? merge(prior, allocated) : prior;
+                }
+                cycles[cycle] = applied;
+                mission.cycleLoadouts = cycles;
+                if (cycle == 0) mission.marineLoadout = cycles[0];
             }
         }
     }
@@ -212,7 +262,7 @@ public final class CampaignMarineDeployment {
         int total = 0;
         for (int i = Math.max(0, firstAssignment); i < manifest.size(); i++) {
             ShuttleAssignment assignment = manifest.get(i);
-            if (assignment != null) total += assignment.type.capacity * assignment.cycles;
+            if (assignment != null) total += assignment.seatsPerSortie * assignment.cycles;
         }
         return total;
     }

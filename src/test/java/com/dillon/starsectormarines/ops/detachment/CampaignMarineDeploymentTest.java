@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
+import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -22,11 +23,40 @@ import com.dillon.starsectormarines.ops.RiskLevel;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class CampaignMarineDeploymentTest {
+
+    @Test
+    void pairedConquestLoadsBothCraftBeforeAdvancingToTheNextWave() {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(24);
+        List<ShuttleAssignment> manifest = List.of(
+                new ShuttleAssignment(ShuttleType.VALKYRIE, 2, 6),
+                new ShuttleAssignment(ShuttleType.VALKYRIE, 2, 6));
+        CampaignMarineDeployment deployment =
+                CampaignMarineDeployment.freeze(roster, 24);
+
+        try (BattleSimulation sim = BattleSetup.createConquest(
+                5_151L, manifest, false, RiskLevel.LOW,
+                TargetProfile.NEUTRAL)) {
+            deployment.applyTo(sim);
+            List<ShuttleMission> missions = manifestMissions(sim);
+            List<String> expected = deployment.commitments().stream()
+                    .map(commitment -> commitment.campaignSoldierId())
+                    .toList();
+
+            assertEquals(expected.subList(0, 6), soldierIds(missions.get(0), 0));
+            assertEquals(expected.subList(6, 12), soldierIds(missions.get(1), 0));
+            assertEquals(expected.subList(12, 18), soldierIds(missions.get(0), 1));
+            assertEquals(expected.subList(18, 24), soldierIds(missions.get(1), 1));
+        }
+    }
 
     @Test
     void freezesPersistentIdentityProgressionAndAllocatedVisuals() {
@@ -172,6 +202,27 @@ class CampaignMarineDeploymentTest {
             }
         }
         throw new AssertionError("No " + shuttleType + " mission");
+    }
+
+    private static List<ShuttleMission> manifestMissions(BattleSimulation sim) {
+        List<ShuttleMission> missions = new ArrayList<>();
+        BattleComponents components = sim.getBattleComponents();
+        for (ArchetypeTable table : sim.getEntityWorld().matched(components.airCraft)) {
+            Object[] encoded = table.objects(components.SHUTTLE_MISSION,
+                    BattleComponents.SHUTTLE_MISSION_STATE).array();
+            for (int row = 0; row < table.rowCount(); row++) {
+                ShuttleMission mission = (ShuttleMission) encoded[row];
+                if (mission != null && mission.manifestOrdinal >= 0) missions.add(mission);
+            }
+        }
+        missions.sort(Comparator.comparingInt(mission -> mission.manifestOrdinal));
+        return missions;
+    }
+
+    private static List<String> soldierIds(ShuttleMission mission, int cycle) {
+        return Arrays.stream(mission.cycleLoadouts[cycle])
+                .map(loadout -> loadout.campaignSoldierId)
+                .toList();
     }
 
     private static int assignedPersonnel(BattleSimulation sim, ShuttleType shuttleType,

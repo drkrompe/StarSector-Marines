@@ -130,7 +130,9 @@ public final class DetachmentResolver {
             // source their complete roster from the briefing picker instead.
             for (int i = 0; i < employerPhysical; i++) {
                 int cycles = eBase + (i < eExtra ? 1 : 0);
-                out.add(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, cycles));
+                ShuttleType type = ShuttleType.AEROSHUTTLE;
+                out.add(new ShuttleAssignment(type, cycles,
+                        m.marineArrivalPolicy.seatsPerSortie(type)));
             }
         }
         // Debug briefings own the complete manifest through their type/count
@@ -144,7 +146,9 @@ public final class DetachmentResolver {
             // Gated normally, but if somehow we get here pad with employer-style
             // aeroshuttles so the battle still functions.
             for (int i = 0; i < playerDrops; i++) {
-                out.add(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1));
+                ShuttleType type = ShuttleType.AEROSHUTTLE;
+                out.add(new ShuttleAssignment(type, 1,
+                        m.marineArrivalPolicy.seatsPerSortie(type)));
             }
             return out;
         }
@@ -152,7 +156,9 @@ public final class DetachmentResolver {
         int extraCycles = playerDrops % transportsUsed;
         for (int i = 0; i < transportsUsed; i++) {
             int cycles = baseCycles + (i < extraCycles ? 1 : 0);
-            out.add(new ShuttleAssignment(playerShuttles.get(i), cycles));
+            ShuttleType type = playerShuttles.get(i);
+            out.add(new ShuttleAssignment(type, cycles,
+                    m.marineArrivalPolicy.seatsPerSortie(type)));
         }
         return out;
     }

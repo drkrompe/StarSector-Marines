@@ -198,6 +198,8 @@ public final class UnitRosterService {
 
     /** Groups deploying campaign personnel by (campaign squad, LZ) instead of by sortie. */
     private final CampaignSquadIndex campaignSquads = new CampaignSquadIndex(this::getSquad);
+    /** Mission-authored (arrival group, sortie cycle) → generated battle squad. */
+    private final Long2IntOpenHashMap arrivalSquads = new Long2IntOpenHashMap();
     /** Counter for IDs of marines deboarded from shuttles. Bumped via {@link #nextMarineId()} when {@code AirSystem} deboards. Format: "m0", "m1", ... matches the pre-shuttle setup convention. */
     private int deboardedMarineCount = 0;
 
@@ -205,6 +207,7 @@ public final class UnitRosterService {
         this.unitIndex = unitIndex;
         this.damageService = damageService;
         factionIndexById.defaultReturnValue(INVALID_INDEX);
+        arrivalSquads.defaultReturnValue(Squad.NO_SQUAD);
     }
 
     /** Bind the damage service after construction — used by the sim ctor to break
@@ -1002,6 +1005,38 @@ public final class UnitRosterService {
             if (existing != Squad.NO_SQUAD) return existing;
             int minted = mintSquad(faction, type);
             campaignSquads.register(tag, lzX, lzY, minted);
+            return minted;
+        }
+    }
+
+    /** Area-keyed campaign grouping for two craft sharing one logical arrival. */
+    public int squadForCampaign(Faction faction, UnitType type,
+                                CampaignSquadTag tag, int landingAreaId) {
+        String landingKey = "area:" + landingAreaId;
+        synchronized (squads) {
+            int existing = campaignSquads.landed(tag.squadId, landingKey);
+            if (existing != Squad.NO_SQUAD) return existing;
+            int minted = mintSquad(faction, type);
+            campaignSquads.register(tag, landingKey, minted);
+            return minted;
+        }
+    }
+
+    /** Mint-or-join one generated squad delivered by a coordinated arrival wave. */
+    public int squadForArrivalGroup(Faction faction, UnitType type,
+                                    int groupId, int cycle,
+                                    int expectedStrength) {
+        long key = ((long) groupId << 32) | (cycle & 0xFFFFFFFFL);
+        synchronized (squads) {
+            int existing = arrivalSquads.get(key);
+            if (existing != Squad.NO_SQUAD) return existing;
+            int minted = mintSquad(faction, type);
+            Squad squad = squads.get(minted);
+            if (squad != null) {
+                squad.arrivalAssembly = true;
+                squad.expectedSize = Math.max(1, expectedStrength);
+            }
+            arrivalSquads.put(key, minted);
             return minted;
         }
     }

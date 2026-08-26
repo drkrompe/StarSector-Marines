@@ -16,15 +16,13 @@ import java.util.List;
  * entry's sprite resolves against the vanilla install, so we don't ship any
  * of these textures.
  *
- * <p><b>Capacity is denominated in whole four-marine fire teams</b>, never in
- * loose seats: 1 team for the small hulls, 2 for the freighters, 3 for the
- * Valkyrie. The old table (3, 4, 5, 6, 7, 8) divided into no organizational
- * unit at all, so every lift split a squad by arithmetic and the group the
- * player selected never existed on the ground. Only the dedicated assault
- * transport now lands a whole twelve-marine squad in one pass; everything else
- * trickles, and the squad assembles at its LZ. Differentiation between the
- * small hulls lives in handling, hardpoints, HP and loiter time — not in a
- * seat count nobody was reading.
+ * <p>{@link #capacity} is the hull's physical maximum. Most fleet transports
+ * express that maximum as whole four-marine fire teams, while the purpose-built
+ * Aeroshuttle carries a six-marine half-squad. A mission may embark fewer seats
+ * through {@link ShuttleAssignment#seatsPerSortie}; Conquest deliberately
+ * delivers one twelve-marine squad from a synchronized pair of Aeroshuttles.
+ * Fire-team identity survives that transport split and becomes authoritative
+ * again after deboard.
  *
  * <p>Also acts as the per-type {@link AirHandling} profile. Three rough
  * handling tiers:
@@ -56,7 +54,7 @@ public enum ShuttleType implements AirHandling {
     // {@link #KITE} so the player's roster shows the right name.
     AEROSHUTTLE(
             "graphics/ships/aeroshuttle/aeroshuttle_base.png",
-            1, 10f, 0.6f,
+            1, 6, 10f, 0.6f,
             Profiles.NIMBLE, 1, 25f, 60f),
 
     KITE(
@@ -123,9 +121,9 @@ public enum ShuttleType implements AirHandling {
             "valkyrie");
 
     public final String spritePath;
-    /** Whole four-marine fire teams this hull lifts per sortie. */
+    /** Nominal whole fire teams represented by the transport. */
     public final int teams;
-    /** Marine seats per sortie. Always a whole number of {@link Squad#FIRE_TEAM_SIZE} teams. */
+    /** Physical maximum seats; a mission assignment may embark fewer. */
     public final int capacity;
     /** Cruise / max forward velocity, cells/sec. Used as the AirHandling#maxSpeed cap. */
     public final float maxSpeed;
@@ -145,9 +143,19 @@ public enum ShuttleType implements AirHandling {
                 HandlingProfile handling,
                 int hardpoints, float fireSupportSec, float maxHp,
                 String... matchingHullIds) {
+        this(spritePath, teams, teams * Squad.FIRE_TEAM_SIZE,
+                maxSpeed, deboardInterval, handling,
+                hardpoints, fireSupportSec, maxHp, matchingHullIds);
+    }
+
+    ShuttleType(String spritePath, int teams, int capacity,
+                float maxSpeed, float deboardInterval,
+                HandlingProfile handling,
+                int hardpoints, float fireSupportSec, float maxHp,
+                String... matchingHullIds) {
         this.spritePath = spritePath;
         this.teams = teams;
-        this.capacity = teams * Squad.FIRE_TEAM_SIZE;
+        this.capacity = capacity;
         this.maxSpeed = maxSpeed;
         this.deboardInterval = deboardInterval;
         this.handling = handling;

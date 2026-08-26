@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.squad.SquadFormUpSystem;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import org.junit.jupiter.api.Test;
@@ -26,6 +28,28 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * facade.
  */
 public class UnitRosterServiceTest {
+
+    @Test
+    public void pairedArrivalCraftJoinOneSquadPerWaveAndFormUpToExpectedStrength() {
+        UnitRosterService r = roster();
+
+        int firstCraft = r.squadForArrivalGroup(
+                Faction.MARINE, UnitType.MARINE_BLUE, 7, 0, 12);
+        int secondCraft = r.squadForArrivalGroup(
+                Faction.MARINE, UnitType.MARINE_BLUE, 7, 0, 12);
+        int nextWave = r.squadForArrivalGroup(
+                Faction.MARINE, UnitType.MARINE_BLUE, 7, 1, 12);
+
+        assertEquals(firstCraft, secondCraft);
+        assertTrue(firstCraft != nextWave);
+        Squad squad = r.getSquad(firstCraft);
+        assertTrue(squad.arrivalAssembly);
+        assertEquals(12, squad.expectedSize);
+        squad.originalSize = 6;
+        assertTrue(SquadFormUpSystem.formingUp(squad));
+        squad.originalSize = 12;
+        assertFalse(SquadFormUpSystem.formingUp(squad));
+    }
 
     private static EntitySpec unit(String label) {
         return new EntitySpec(label, Faction.MARINE, UnitType.MARINE_BLUE, 0, 0);

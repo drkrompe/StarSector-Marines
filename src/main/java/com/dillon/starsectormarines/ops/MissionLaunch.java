@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
+import com.dillon.starsectormarines.battle.setup.ShuttleArrivalPlan;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.evacuation.SwarmDefenseRoster;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
@@ -134,6 +135,8 @@ public final class MissionLaunch {
         TargetProfile profile = TargetProfileResolver.resolve(m.targetPlanetName);
 
         long seed = System.currentTimeMillis();
+        int firstPlayerShuttle = m.source == MissionSource.STATIONING
+                ? 0 : DetachmentResolver.employerPhysicalShipCount(m);
         BattleSimulation sim;
         BattleFixture fixture = null;
         OpeningOperationKind openingOperation = OpeningOperationKind.fromMission(m);
@@ -173,7 +176,9 @@ public final class MissionLaunch {
                         ConquestBattleFixture.fromFactoryInputs(seed,
                                 det.shuttleManifest, enemyHasHeavyArmor,
                                 m.tier, m.risk, profile, det.marineWings,
-                                m.enemyFighterSupport);
+                                m.enemyFighterSupport,
+                                new ShuttleArrivalPlan(m.marineArrivalPolicy,
+                                        firstPlayerShuttle));
                 sim = conquestFixture.build();
                 fixture = conquestFixture;
                 break;
@@ -189,8 +194,6 @@ public final class MissionLaunch {
         try {
             // Scenario factories author seat roles/objectives first; the persistent
             // roster then overlays each seat's identity, progression, armor and gear.
-            int firstPlayerShuttle = m.source == MissionSource.STATIONING
-                    ? 0 : DetachmentResolver.employerPhysicalShipCount(m);
             int playerSeats = CampaignMarineDeployment.requiredSeats(
                     det.shuttleManifest, firstPlayerShuttle);
             ctx.setMarineDeploymentCapacity(playerSeats);
@@ -262,7 +265,7 @@ public final class MissionLaunch {
         if (manifest == null) return 0;
         int seats = 0;
         for (ShuttleAssignment assignment : manifest) {
-            if (assignment != null) seats += assignment.type.capacity;
+            if (assignment != null) seats += assignment.seatsPerSortie;
         }
         return seats;
     }

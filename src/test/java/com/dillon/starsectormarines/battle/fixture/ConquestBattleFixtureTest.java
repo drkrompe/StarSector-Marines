@@ -32,7 +32,7 @@ class ConquestBattleFixtureTest {
                      fixture.seed(), fixture.manifest(),
                      fixture.enemyHasHeavyArmor(), fixture.tier(), fixture.risk(),
                      fixture.targetProfile(), roster(fixture.marineFighterSupport()),
-                     roster(fixture.enemyFighterSupport()))) {
+                     roster(fixture.enemyFighterSupport()), fixture.arrivalPlan())) {
             assertEquals(BattleFixtureTestSupport.initialFingerprint(direct),
                     BattleFixtureTestSupport.initialFingerprint(replay));
             assertEquals(BattleSetup.CONQUEST_GRID_W, replay.getGrid().getWidth());

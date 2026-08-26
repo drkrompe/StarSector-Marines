@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.fixture;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
+import com.dillon.starsectormarines.battle.setup.ShuttleArrivalPlan;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.ops.OperationTier;
@@ -20,7 +21,8 @@ public record ConquestBattleFixture(
         RiskLevel risk,
         TargetProfile targetProfile,
         List<FighterWingCommitment> marineFighterSupport,
-        List<FighterWingCommitment> enemyFighterSupport) implements BattleFixture {
+        List<FighterWingCommitment> enemyFighterSupport,
+        ShuttleArrivalPlan arrivalPlan) implements BattleFixture {
 
     public static final String KIND = "CONQUEST";
 
@@ -33,6 +35,33 @@ public record ConquestBattleFixture(
                 marineFighterSupport, "marineFighterSupport"));
         enemyFighterSupport = List.copyOf(Objects.requireNonNull(
                 enemyFighterSupport, "enemyFighterSupport"));
+        arrivalPlan = Objects.requireNonNull(arrivalPlan, "arrivalPlan");
+    }
+
+    /** V1 fixture compatibility: historical Conquest arrivals were independent. */
+    public ConquestBattleFixture(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
+            TargetProfile targetProfile,
+            List<FighterWingCommitment> marineFighterSupport,
+            List<FighterWingCommitment> enemyFighterSupport) {
+        this(seed, manifest, enemyHasHeavyArmor, tier, risk, targetProfile,
+                marineFighterSupport, enemyFighterSupport,
+                ShuttleArrivalPlan.legacy());
+    }
+
+    public static ConquestBattleFixture fromFactoryInputs(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
+            TargetProfile targetProfile, FlybyRoster marineFighterSupport,
+            FlybyRoster enemyFighterSupport,
+            ShuttleArrivalPlan arrivalPlan) {
+        return new ConquestBattleFixture(seed,
+                manifest == null ? List.of() : List.copyOf(manifest),
+                enemyHasHeavyArmor, tier, risk, targetProfile,
+                FighterWingCommitment.captureRoster(marineFighterSupport),
+                FighterWingCommitment.captureRoster(enemyFighterSupport),
+                arrivalPlan);
     }
 
     public static ConquestBattleFixture fromFactoryInputs(
@@ -40,11 +69,9 @@ public record ConquestBattleFixture(
             boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
             TargetProfile targetProfile, FlybyRoster marineFighterSupport,
             FlybyRoster enemyFighterSupport) {
-        return new ConquestBattleFixture(seed,
-                manifest == null ? List.of() : List.copyOf(manifest),
-                enemyHasHeavyArmor, tier, risk, targetProfile,
-                FighterWingCommitment.captureRoster(marineFighterSupport),
-                FighterWingCommitment.captureRoster(enemyFighterSupport));
+        return fromFactoryInputs(seed, manifest, enemyHasHeavyArmor, tier, risk,
+                targetProfile, marineFighterSupport, enemyFighterSupport,
+                ShuttleArrivalPlan.legacy());
     }
 
     @Override
@@ -57,6 +84,6 @@ public record ConquestBattleFixture(
         return BattleSetup.createConquest(seed, manifest, enemyHasHeavyArmor,
                 tier, risk, targetProfile,
                 FighterWingCommitment.toRoster(marineFighterSupport),
-                FighterWingCommitment.toRoster(enemyFighterSupport));
+                FighterWingCommitment.toRoster(enemyFighterSupport), arrivalPlan);
     }
 }
