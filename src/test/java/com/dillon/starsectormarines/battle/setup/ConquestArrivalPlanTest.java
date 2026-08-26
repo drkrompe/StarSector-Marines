@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 class ConquestArrivalPlanTest {
 
     @Test
-    void eightValkyriesResolveIntoFourSynchronizedTwoBerthGroups() {
+    void eightCommittedValkyriesDeliverThroughFourSynchronizedAeroshuttlePairs() {
         List<ShuttleAssignment> manifest = new ArrayList<>();
         for (int i = 0; i < 8; i++) {
             manifest.add(new ShuttleAssignment(ShuttleType.VALKYRIE, 4, 6));
@@ -34,6 +34,10 @@ class ConquestArrivalPlanTest {
                 new ShuttleArrivalPlan(MarineArrivalPolicy.PAIRED_HALF_SQUAD, 0))) {
             List<ShuttleMission> missions = missions(sim);
             assertEquals(8, missions.size());
+            for (long aircraft : sim.getAirEntityIds()) {
+                assertEquals(ShuttleType.AEROSHUTTLE,
+                        sim.world().airType(aircraft));
+            }
             for (int i = 0; i < missions.size(); i += 2) {
                 ShuttleMission first = missions.get(i);
                 ShuttleMission second = missions.get(i + 1);
