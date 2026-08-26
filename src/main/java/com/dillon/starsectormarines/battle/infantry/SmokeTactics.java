@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.squad.BelievedContact;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.marine.SpecialAiPolicy;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SmokeGrenadeSpec;
 
 /** Squad-level reservation and utility scoring for smoke-assisted maneuvers. */
@@ -76,8 +77,8 @@ public final class SmokeTactics {
             long candidate = sim.liveUnitAt(i);
             if (!sim.squad().hasSquad(candidate) || sim.squad().squadId(candidate) != squad.id) continue;
             if (!sim.world().hasSecondaryWeapon(candidate)) continue;
-            MarineSecondary special = sim.world().secondaryWeapon(candidate);
-            if (special.specialDef().aiPolicy() != SpecialAiPolicy.SQUAD_SMOKE_SCREEN
+            SpecialEquipmentDef special = sim.world().specialEquipment(candidate);
+            if (special.aiPolicy() != SpecialAiPolicy.SQUAD_SMOKE_SCREEN
                     || sim.world().secondaryAmmo(candidate) <= 0
                     || sim.world().secondaryActionTimer(candidate) > 0f
                     || sim.world().secondaryCooldownTimer(candidate) > 0f) continue;
@@ -99,7 +100,7 @@ public final class SmokeTactics {
         squad.smokeThreatId = threat;
         squad.smokeTargetX = tx;
         squad.smokeTargetY = ty;
-        MarineSecondary special = sim.world().secondaryWeapon(carrier);
+        SpecialEquipmentDef special = sim.world().specialEquipment(carrier);
         sim.world().setSecondaryActionTimer(carrier, special.smokeGrenadeSpec().throwDuration());
         sim.world().setSecondaryFired(carrier, false);
         sim.world().setSecondaryAimTargetId(carrier, 0L);

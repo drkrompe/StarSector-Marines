@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
 import com.dillon.starsectormarines.battle.setup.GroundRosterRegistry;
 import com.dillon.starsectormarines.battle.setup.InfantryLoadoutRolls;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
@@ -12,6 +14,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.combat.BallisticResolver;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldier;
@@ -93,6 +96,9 @@ class SubmodEquipmentContributionTest {
             assertEquals("roster.example-oc", profile.id());
             assertEquals("example.weapon-needle-rifle", loadout.primaryDef.id);
             assertNull(loadout.primary, "external definitions must not require an enum constant");
+            assertEquals("example.special-signal-smoke", loadout.specialDef.id());
+            assertNull(loadout.secondary,
+                    "external special equipment must not require an enum constant");
             assertEquals("ARMY_GREEN", loadout.armorFamily.name());
             assertTrue(EquipmentTemplateCatalog.contains(
                     "equipment-template:example.weapon-needle-rifle:service"));
@@ -105,7 +111,17 @@ class SubmodEquipmentContributionTest {
                     UnitType.MARINE, 1, 1);
             loadout.seedInto(entity);
             assertEquals("example.weapon-needle-rifle", entity.primaryWeaponDef.id);
+            assertEquals("example.special-signal-smoke", entity.specialEquipment.id());
             assertEquals(loadout.primaryDef.range, entity.attackRange);
+
+            BattleSimulation sim = openArena(12, 8);
+            long carrier = sim.spawn(entity);
+            assertEquals("example.special-signal-smoke",
+                    sim.world().specialEquipment(carrier).id());
+            sim.throwSmoke(carrier, 4.5f, 1.5f);
+            assertEquals(1, sim.world().secondaryAmmo(carrier));
+            assertEquals(1, sim.smokeFields().throwsInFlight().size(),
+                    "the contributed utility must execute through its typed activation");
 
             ShotEvent shot = ShotEvent.primary(0f, 0f, 0f, 4f, 0f, 0f,
                     true, Faction.DEFENDER, 0.2f, loadout.primaryDef,
@@ -120,6 +136,8 @@ class SubmodEquipmentContributionTest {
                     persisted.activeSoldiers().get(0).primaryId());
             assertEquals("example.armor-ceramic",
                     persisted.activeSoldiers().get(0).armorId());
+            assertEquals("example.special-signal-smoke",
+                    persisted.activeSoldiers().get(0).specialEquipmentId());
 
             byte[] providerSave = serialize(playerRoster);
             WeaponRegistry.install(oldWeapons);
@@ -129,6 +147,7 @@ class SubmodEquipmentContributionTest {
             MarineRoster repaired = deserialize(providerSave);
             assertEquals("weapon.field-rifle", repaired.activeSoldiers().get(0).primaryId());
             assertEquals("armor.field-fatigues", repaired.activeSoldiers().get(0).armorId());
+            assertNull(repaired.activeSoldiers().get(0).specialEquipmentId());
 
             WeaponRegistry.install(weapons);
             MarineArmorCatalogRegistry.install(armor);
@@ -146,10 +165,12 @@ class SubmodEquipmentContributionTest {
     private static MarineRoster playerCanLearnAuthorIssueAndDeployContributedKit() {
         String primaryTemplate = "equipment-template:example.weapon-needle-rifle:service";
         String armorTemplate = "equipment-template:example.armor-ceramic";
+        String specialTemplate = "equipment-template:example.special-signal-smoke";
         MarineRoster roster = new MarineRoster();
         roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
         assertTrue(roster.armory().acquireEquipmentTemplate(primaryTemplate));
         assertTrue(roster.armory().acquireEquipmentTemplate(armorTemplate));
+        assertTrue(roster.armory().acquireEquipmentTemplate(specialTemplate));
 
         EquipmentDoctrineDesignerViewModel designer = new EquipmentDoctrineDesignerViewModel(
                 new Reactor(), roster, null, null, null);
@@ -160,6 +181,14 @@ class SubmodEquipmentContributionTest {
         }
         assertEquals("example.weapon-needle-rifle", designer.viewerBilletAt(0).primaryId(),
                 "a learned contributed primary must appear in the doctrine picker");
+        for (int attempt = 0; attempt < 20
+                && !"example.special-signal-smoke".equals(
+                designer.viewerBilletAt(0).specialEquipmentId()); attempt++) {
+            designer.billets().get().get(0).cycleSpecial().run();
+        }
+        assertEquals("example.special-signal-smoke",
+                designer.viewerBilletAt(0).specialEquipmentId(),
+                "a learned contributed special must appear in the doctrine picker");
         designer.newDraft().run();
         designer.editName().accept("OC Needle Issue");
         designer.saveAsNew().run();
@@ -188,8 +217,8 @@ class SubmodEquipmentContributionTest {
                 squad.id(), weapons.id(), armor.id()).issueCost();
         assertEquals(1, issueCost.heavyArmaments(),
                 "the contributed primary's authored heavy-armament cost must be charged");
-        assertTrue(issueCost.supplies() >= 7,
-                "the contributed primary and armor supply costs must be included");
+        assertTrue(issueCost.supplies() >= 8,
+                "the contributed primary, armor, and special supply costs must be included");
         assertEquals(SquadEquipmentResult.APPLIED, roster.applySquadEquipment(
                 squad.id(), weapons.id(), armor.id()));
         MarineSoldier issued = roster.squadMembers(squad).get(0);
@@ -197,9 +226,13 @@ class SubmodEquipmentContributionTest {
         assertNull(issued.primary(), "custom player issue must not require an enum constant");
         assertEquals("example.armor-ceramic", issued.armorId());
         assertNull(issued.armor(), "custom player armor must not require an enum constant");
+        assertEquals("example.special-signal-smoke", issued.specialEquipmentId());
+        assertNull(issued.secondary(), "custom player special must not require an enum constant");
 
         MarineLoadout deployed = CampaignMarineDeployment.freeze(roster, 1).seat(0);
         assertEquals("example.weapon-needle-rifle", deployed.primaryDef.id);
+        assertEquals("example.special-signal-smoke", deployed.specialDef.id());
+        assertNull(deployed.secondary);
         assertEquals("ARMY_GREEN", deployed.armorFamily.name());
         return roster;
     }
@@ -285,7 +318,7 @@ class SubmodEquipmentContributionTest {
                 .put("primaries", weighted("example.weapon-needle-rifle"))
                 .put("gradesByRisk", risks("service"))
                 .put("armorByRisk", risks("example.armor-ceramic"))
-                .put("specialsByRisk", risks("none"));
+                .put("specialsByRisk", risks("example.special-signal-smoke"));
         JSONObject profile = new JSONObject()
                 .put("id", "roster.example-oc")
                 .put("factionIds", new JSONArray().put("example_oc_faction"))
@@ -313,6 +346,14 @@ class SubmodEquipmentContributionTest {
     private static void ingestFiles(WeaponRegistry registry, String... filenames)
             throws Exception {
         for (String filename : filenames) registry.ingest(read(filename), CORE);
+    }
+
+    private static BattleSimulation openArena(int width, int height) {
+        NavigationGrid grid = new NavigationGrid(width, height);
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) grid.setWalkableFloor(x, y);
+        }
+        return new BattleSimulation(grid, new CellTopology(width, height));
     }
 
     private static final class ZeroRandom extends Random {

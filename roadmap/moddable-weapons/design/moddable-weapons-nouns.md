@@ -4,7 +4,7 @@ Status: ACTIVE — handheld, special-item and turret weapon data is owned; mech 
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — added additive enabled-mod catalog contributions with provenance and definition-owned faction primary/armor issue.
+Updated: 2026-08-25 — carried contributed special-equipment definitions through player/faction issue and typed battle execution.
 
 ## Purpose
 
@@ -206,13 +206,14 @@ stable-id compatibility handle whose accessors resolve shipped catalog
 definitions; it owns no duplicate authored values. Both families still obey
 the same penetration and mutually exclusive contact-versus-area payload laws.
 
-Generated faction and player-authored primary and armor issue now consume
-contributed definitions directly, including player doctrine selection,
-persistence, cargo-backed materialization, deployment, primary ballistics, and
-presentation without `MarineWeapon` or `MarineArmorPattern` constants.
-Contributed special definitions and cards load, but generated and player battle
-issue still crosses the `MarineSecondary` compatibility handle. That remaining
-edge is tracked by `w5-submod-merge.md` and the broader W4 persistence migration.
+Generated faction and player-authored primary, armor, and special-equipment
+issue consume contributed definitions directly. Player doctrine selection,
+persistence, cargo-backed materialization, deployment, special AI and typed
+activation, ballistics, rendering, and audio do not require `MarineWeapon`,
+`MarineArmorPattern`, or `MarineSecondary` constants. Those enums remain only
+at built-in compatibility APIs and legacy-save boundaries. Removing a provider
+repairs player primary and armor ids to their safe starters and clears an
+unresolved special slot with a warning.
 
 Catalog expansion and mount validation, layered effects, compatibility-enum
 completion, compatibility-enum retirement and persistence repair, and remaining

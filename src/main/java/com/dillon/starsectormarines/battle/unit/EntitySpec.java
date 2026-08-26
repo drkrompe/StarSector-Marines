@@ -12,6 +12,8 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 
 /**
  * Construction spec for a ground-roster unit — the mutable bag of "what to spawn"
@@ -49,6 +51,8 @@ public final class EntitySpec {
     public int fireTeamIndex = Squad.NO_FIRE_TEAM;
     public UnitRole role = UnitRole.COMBATANT;
     public MarineSecondary secondaryWeapon;
+    /** Authoritative special-equipment definition, including contributed items. */
+    public SpecialEquipmentDef specialEquipment;
     public int secondaryAmmo;
     public AirBody body;
     public MarineWeapon primaryWeapon;
@@ -105,7 +109,19 @@ public final class EntitySpec {
     public EntitySpec squad(int squadId) { this.squadId = squadId; return this; }
     public EntitySpec fireTeam(int fireTeamIndex) { this.fireTeamIndex = fireTeamIndex; return this; }
     public EntitySpec role(UnitRole role) { this.role = role; return this; }
-    public EntitySpec secondary(MarineSecondary weapon, int ammo) { this.secondaryWeapon = weapon; this.secondaryAmmo = ammo; return this; }
+    public EntitySpec secondary(MarineSecondary weapon, int ammo) {
+        this.secondaryWeapon = weapon;
+        this.specialEquipment = weapon != null ? weapon.specialDef() : null;
+        this.secondaryAmmo = ammo;
+        return this;
+    }
+    public EntitySpec specialEquipment(SpecialEquipmentDef equipment, int ammo) {
+        this.specialEquipment = equipment;
+        this.secondaryWeapon = equipment != null
+                ? SpecialEquipmentRegistry.compatibilityHandle(equipment.id()) : null;
+        this.secondaryAmmo = ammo;
+        return this;
+    }
     public EntitySpec body(AirBody body) { this.body = body; return this; }
     public EntitySpec assignedObjective(Objective objective) { this.assignedObjective = objective; return this; }
     public EntitySpec home(int cellX, int cellY) { this.homeCellX = cellX; this.homeCellY = cellY; return this; }

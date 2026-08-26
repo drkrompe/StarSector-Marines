@@ -37,4 +37,8 @@ public record SquadEquipmentBillet(
     public MarineSecondary special() {
         return SpecialEquipmentRegistry.compatibilityHandle(specialEquipmentId);
     }
+
+    public SpecialEquipmentDef specialDef() {
+        return SpecialEquipmentRegistry.get(specialEquipmentId);
+    }
 }

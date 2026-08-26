@@ -65,6 +65,9 @@ public final class FireTeamBillet implements Serializable {
         return resolved != null ? resolved : secondary;
     }
     public String specialEquipmentId() { return specialEquipmentId; }
+    public SpecialEquipmentDef specialDef() {
+        return SpecialEquipmentRegistry.get(specialEquipmentId);
+    }
     public MarineArmorPattern armor() {
         MarineArmorPattern resolved = armorHandle(armorId);
         return resolved != null ? resolved : armor;
