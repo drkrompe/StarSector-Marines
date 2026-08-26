@@ -6,6 +6,7 @@ Written: 2026-08-23
 
 | Story | Shipped | Commit | Folded into |
 | --- | --- | --- | --- |
+| `w5-submod-merge.md` | 2026-08-25 | `50846136`, `b576c595`, `cea351c1`, `b9d13639`, `4ed228cf` | `moddable-weapons-nouns.md` — enabled-provider authority and executable contributed loadouts; `submod-catalog-contract.md` — public manifest, additive ownership, load order, runtime consumption, and live compatibility acceptance. |
 | `w7-turret-authoring.md` | 2026-08-24 | `0ae60887`, `2240ac1c`, `510e2d76` | `moddable-weapons-nouns.md` — linked turret authoring authority; `mapgen-nouns.md` — data-authored multi-turret layouts; `ui-nouns.md` — discoverable desktop authoring pages. |
 | `w6-emplacements-and-structures.md` | 2026-08-24 | `e14f769f`, `b042da2d`, `bb97271c`, `33d5e639` | `moddable-weapons-nouns.md` — structure, mount and weapon authority; authored turret FX; deterministic catalog previews. |
 | `hephaestus-cannon-role-and-impact.md` | 2026-08-23 | `835d1f66` | `moddable-weapons-nouns.md` — physical contact and area payloads, slow anti-armor Hephaestus role, and smoke/fire impact weight. |

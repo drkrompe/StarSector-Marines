@@ -83,6 +83,7 @@ public final class MechLabScreen implements Screen {
             previewSprites.ensureLayeredUnitSprites();
             previewSprites.ensureTileSheet();
             previewSprites.ensureRoadSheet();
+            previewSprites.ensureDoodadSheet();
             previewSprites.ensureMechLabFxSprites();
             if (battleScene == null) battleScene = new MechLabBattleScene(previewSprites);
             built.canvases().set(candidate.requireElement("mech-doll-canvas"),
