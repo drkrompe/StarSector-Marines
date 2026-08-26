@@ -61,6 +61,8 @@ public final class GenContext {
     public final List<Doodad> doodads = new ArrayList<>();
     /** Authored shuttle berths emitted by landing-zone / spaceport fillers. */
     public final List<LandingPad> landingPads = new ArrayList<>();
+    /** Pair-capable mission arrival areas emitted by map-family stages. */
+    public final List<LandingArea> landingAreas = new ArrayList<>();
     /** AI garrison anchors emitted by compound fillers + stampers; linked once at the end. */
     public final List<TacticalNode> tactical = new ArrayList<>();
     /**

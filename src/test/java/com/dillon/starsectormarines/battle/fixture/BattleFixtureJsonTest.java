@@ -39,6 +39,18 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class BattleFixtureJsonTest {
 
     @Test
+    void readsLegacyV2LaunchWithFullCapacityIndependentConstruction() throws Exception {
+        BattleLaunchFixture launch =
+                BattleFixtureTestSupport.loadLegacyConquestLaunchFixture();
+        ConquestBattleFixture conquest =
+                (ConquestBattleFixture) launch.construction();
+
+        assertEquals(12, conquest.manifest().get(0).seatsPerSortie);
+        assertEquals(com.dillon.starsectormarines.ops.MarineArrivalPolicy.INDEPENDENT_FULL_LOAD,
+                conquest.arrivalPlan().policy());
+    }
+
+    @Test
     void roundTripsEveryCivilianRescueFactoryInput() throws Exception {
         CivilianRescueBattleFixture fixture = new CivilianRescueBattleFixture(
                 -7_113_009_551L,
@@ -88,7 +100,7 @@ class BattleFixtureJsonTest {
     }
 
     @Test
-    void roundTripsV2LaunchOverlayWhileLeavingConstructionAtV1() throws Exception {
+    void roundTripsV3LaunchOverlayWithV2Construction() throws Exception {
         ConquestBattleFixture construction = new ConquestBattleFixture(
                 8_192L,
                 List.of(new ShuttleAssignment(ShuttleType.VALKYRIE, 1)),
@@ -125,8 +137,8 @@ class BattleFixtureJsonTest {
         JSONObject encoded = BattleFixtureJson.toJson(fixture);
         BattleFixture decoded = BattleFixtureJson.fromJson(encoded);
 
-        assertEquals(2, encoded.getInt("schemaVersion"));
-        assertEquals(1, encoded.getJSONObject("construction")
+        assertEquals(3, encoded.getInt("schemaVersion"));
+        assertEquals(2, encoded.getJSONObject("construction")
                 .getInt("schemaVersion"));
         assertEquals(fixture, decoded);
         assertEquals(encoded.toString(), BattleFixtureJson.toJson(decoded).toString());

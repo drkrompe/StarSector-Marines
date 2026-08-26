@@ -36,6 +36,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.BiomeGroundOverri
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.BspPartitionStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.CompoundClaimStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.CompoundSeedStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.ConquestLandingAreaStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.ConcentricLayoutStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.CoreSpawnStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.DiamondLayoutStage;
@@ -180,7 +181,8 @@ public final class BspCityGenerator implements MapGenerator {
                 new FinalizeStage(),                        // Step 4 + 4b
                 new TacticalRegionStage(),                  // structural taxonomy (post-finalize)
                 new OverwatchTowerStage(),                  // taxonomy consumer — corner-tower guns
-                new SpawnAnchorStage()));                   // spawn anchors
+                new SpawnAnchorStage(),                     // spawn anchors
+                new ConquestLandingAreaStage()));           // paired BEACH arrival geometry
     }
 
     /**
@@ -445,6 +447,7 @@ public final class BspCityGenerator implements MapGenerator {
                 marine[0], marine[1], defender[0], defender[1],
                 ctx.pois, ctx.doodads, this.lastTacticalMap, buildings,
                 ctx.defensePosts, this.lastRoadGraph, ctx.landingPads,
+                ctx.landingAreas,
                 ctx.get(BspKeys.BIOME_MAP));
     }
 

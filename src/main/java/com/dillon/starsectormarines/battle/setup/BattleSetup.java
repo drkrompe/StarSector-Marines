@@ -34,6 +34,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.ParkedAircraft;
+import com.dillon.starsectormarines.battle.air.PostDeliveryDisposition;
 import com.dillon.starsectormarines.battle.air.TurretMount;
 import com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -69,6 +70,7 @@ import com.dillon.starsectormarines.battle.ui.debug.ConvoySpawnDumper;
 import org.apache.log4j.Logger;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
+import com.dillon.starsectormarines.battle.world.gen.LandingArea;
 import com.dillon.starsectormarines.battle.world.gen.MapGenerator;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.PlacementGuards;
@@ -88,6 +90,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.turret.TurretRole;
 import com.dillon.starsectormarines.ops.MissionType;
+import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
@@ -376,12 +379,13 @@ public final class BattleSetup {
                     lzCenterX, lzCenterY,
                     entry[0], entry[1],
                     entry[2], entry[3],
-                    i * SHUTTLE_DROP_STAGGER_SEC);
+                    i * SHUTTLE_DROP_STAGGER_SEC,
+                    a.seatsPerSortie);
             ShuttleMission mission = sim.world().mission(shuttleId);
             mission.totalCycles = a.cycles;
             MarineLoadout[][] cycleLoadouts = new MarineLoadout[a.cycles][];
             for (int c = 0; c < a.cycles; c++) {
-                cycleLoadouts[c] = buildSabotageLoadout(a.type.capacity, objectives, globalDropIdx, rng);
+                cycleLoadouts[c] = buildSabotageLoadout(a.seatsPerSortie, objectives, globalDropIdx, rng);
                 globalDropIdx++;
             }
             mission.cycleLoadouts = cycleLoadouts;
@@ -607,14 +611,15 @@ public final class BattleSetup {
                     lzCenterX, lzCenterY,
                     entry[0], entry[1],
                     entry[2], entry[3],
-                    i * SHUTTLE_DROP_STAGGER_SEC);
+                    i * SHUTTLE_DROP_STAGGER_SEC,
+                    a.seatsPerSortie);
             ShuttleMission mission = sim.world().mission(shuttleId);
             mission.totalCycles = a.cycles;
             // Per-cycle weapon loadouts — re-rolled each sortie so a cycling
             // shuttle doesn't deboard the same exact fireteam composition twice.
             MarineLoadout[][] cycleLoadouts = new MarineLoadout[a.cycles][];
             for (int c = 0; c < a.cycles; c++) {
-                cycleLoadouts[c] = InfantryLoadoutRolls.playerSquad(a.type.capacity, rng);
+                cycleLoadouts[c] = InfantryLoadoutRolls.playerSquad(a.seatsPerSortie, rng);
             }
             mission.cycleLoadouts = cycleLoadouts;
             mission.marineLoadout = cycleLoadouts[0];
@@ -677,7 +682,8 @@ public final class BattleSetup {
                     assignment.type, Faction.MARINE,
                     lzCenterX, lzCenterY,
                     entry[0], entry[1], entry[2], entry[3],
-                    i * SHUTTLE_DROP_STAGGER_SEC);
+                    i * SHUTTLE_DROP_STAGGER_SEC,
+                    assignment.seatsPerSortie);
             ShuttleMission shuttleMission = sim.world().mission(shuttleId);
             shuttleMission.totalCycles = assignment.cycles;
             MarineLoadout[][] cycleLoadouts =
@@ -686,10 +692,10 @@ public final class BattleSetup {
             for (int cycle = 0; cycle < assignment.cycles; cycle++) {
                 cycleLoadouts[cycle] = localMilitia
                         ? InfantryLoadoutRolls.defenderSquad(
-                                assignment.type.capacity, UnitType.MILITIA,
+                                assignment.seatsPerSortie, UnitType.MILITIA,
                                 RiskLevel.LOW, rng)
                         : InfantryLoadoutRolls.playerSquad(
-                                assignment.type.capacity, rng);
+                                assignment.seatsPerSortie, rng);
             }
             shuttleMission.cycleLoadouts = cycleLoadouts;
             shuttleMission.marineLoadout = cycleLoadouts[0];
@@ -789,14 +795,15 @@ public final class BattleSetup {
                         assignment.type, Faction.MARINE,
                         lzCenterX, lzCenterY,
                         entry[0], entry[1], entry[2], entry[3],
-                        i * SHUTTLE_DROP_STAGGER_SEC);
+                        i * SHUTTLE_DROP_STAGGER_SEC,
+                        assignment.seatsPerSortie);
                 ShuttleMission shuttleMission = sim.world().mission(shuttleId);
                 shuttleMission.totalCycles = assignment.cycles;
                 MarineLoadout[][] cycleLoadouts =
                         new MarineLoadout[assignment.cycles][];
                 for (int cycle = 0; cycle < assignment.cycles; cycle++) {
                     cycleLoadouts[cycle] = InfantryLoadoutRolls.playerSquad(
-                            assignment.type.capacity, rng);
+                            assignment.seatsPerSortie, rng);
                 }
                 shuttleMission.cycleLoadouts = cycleLoadouts;
                 shuttleMission.marineLoadout = cycleLoadouts[0];
@@ -907,14 +914,15 @@ public final class BattleSetup {
                         assignment.type, Faction.MARINE,
                         lzCenterX, lzCenterY,
                         entry[0], entry[1], entry[2], entry[3],
-                        i * SHUTTLE_DROP_STAGGER_SEC);
+                        i * SHUTTLE_DROP_STAGGER_SEC,
+                        assignment.seatsPerSortie);
                 ShuttleMission shuttleMission = sim.world().mission(shuttleId);
                 shuttleMission.totalCycles = assignment.cycles;
                 MarineLoadout[][] cycleLoadouts =
                         new MarineLoadout[assignment.cycles][];
                 for (int cycle = 0; cycle < assignment.cycles; cycle++) {
                     cycleLoadouts[cycle] = InfantryLoadoutRolls.playerSquad(
-                            assignment.type.capacity, marineRng);
+                            assignment.seatsPerSortie, marineRng);
                 }
                 shuttleMission.cycleLoadouts = cycleLoadouts;
                 shuttleMission.marineLoadout = cycleLoadouts[0];
@@ -993,6 +1001,21 @@ public final class BattleSetup {
                                                TargetProfile profile,
                                                FlybyRoster marineFighterSupport,
                                                FlybyRoster enemyFighterSupport) {
+        return createConquestBuild(seed, manifest, enemyHasHeavyArmor, tier, risk,
+                profile, marineFighterSupport, enemyFighterSupport,
+                new ShuttleArrivalPlan(
+                        MarineArrivalPolicy.PAIRED_HALF_SQUAD,
+                        0));
+    }
+
+    /** Conquest build with a fixture-captured mission arrival plan. */
+    public static MapBuild createConquestBuild(long seed, List<ShuttleAssignment> manifest,
+                                               boolean enemyHasHeavyArmor,
+                                               OperationTier tier, RiskLevel risk,
+                                               TargetProfile profile,
+                                               FlybyRoster marineFighterSupport,
+                                               FlybyRoster enemyFighterSupport,
+                                               ShuttleArrivalPlan arrivalPlan) {
         GroundRosterProfile groundRoster = GroundRosterRegistry.resolve(
                 profile != null ? profile.factionId() : "");
         int gridW = CONQUEST_GRID_W;
@@ -1036,29 +1059,38 @@ public final class BattleSetup {
         sim.addObjective(new ConquestObjective(sim.getCompoundService()));
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
 
-        // Conquest = beach landing — spread LZs along the attacker frontage
-        // rather than clustered around a single anchor. Other mission types
-        // use the BFS picker until they get their own tuned strategies.
-        List<int[]> lzCells = pickConquestLandingZones(map.grid,
-                map.marineSpawnX, map.marineSpawnY, assignments.size(), axis, rng);
+        List<ConquestArrivalSlot> arrivalSlots = conquestArrivalSlots(
+                map, assignments, axis, rng, arrivalPlan);
+        ShuttleArrivalPlan resolvedArrivalPlan = arrivalPlan != null
+                ? arrivalPlan : ShuttleArrivalPlan.legacy();
+        List<int[]> lzCells = arrivalSlots.stream()
+                .map(slot -> new int[]{slot.pad().centerX, slot.pad().centerY})
+                .toList();
         stampLzCellMarkers(sim, lzCells);
-        for (int i = 0; i < lzCells.size(); i++) {
+        for (int i = 0; i < arrivalSlots.size(); i++) {
             ShuttleAssignment a = assignments.get(i % assignments.size());
-            int[] lz = lzCells.get(i);
-            float lzCenterX = lz[0] + 0.5f;
-            float lzCenterY = lz[1] + 0.5f;
+            ConquestArrivalSlot slot = arrivalSlots.get(i);
+            float lzCenterX = slot.pad().centerX + 0.5f;
+            float lzCenterY = slot.pad().centerY + 0.5f;
             float[] entry = shuttleEntryFor(lzCenterX, lzCenterY, gridW, gridH, axis);
             long shuttleId = sim.spawnShuttle(
-                    a.type, Faction.MARINE,
+                    resolvedArrivalPlan.deliveryCraft(a.type), Faction.MARINE,
                     lzCenterX, lzCenterY,
                     entry[0], entry[1],
-                    entry[2], entry[3],
-                    i * SHUTTLE_DROP_STAGGER_SEC);
+                    entry[2], entry[3], slot.pendingDelay(),
+                    a.seatsPerSortie);
             ShuttleMission mission = sim.world().mission(shuttleId);
             mission.totalCycles = a.cycles;
+            mission.manifestOrdinal = i;
+            mission.landingAreaId = slot.landingAreaId();
+            mission.arrivalGroupId = slot.arrivalGroupId();
+            mission.expectedArrivalStrength = slot.expectedStrength();
+            mission.postDeliveryDisposition = slot.departAfterDelivery()
+                    ? PostDeliveryDisposition.DEPART
+                    : PostDeliveryDisposition.LOITER_IF_ARMED;
             MarineLoadout[][] cycleLoadouts = new MarineLoadout[a.cycles][];
             for (int c = 0; c < a.cycles; c++) {
-                cycleLoadouts[c] = InfantryLoadoutRolls.playerSquad(a.type.capacity, rng);
+                cycleLoadouts[c] = InfantryLoadoutRolls.playerSquad(a.seatsPerSortie, rng);
             }
             mission.cycleLoadouts = cycleLoadouts;
             mission.marineLoadout = cycleLoadouts[0];
@@ -1088,6 +1120,85 @@ public final class BattleSetup {
         sim.setGarrisonSystem(new CompoundGarrisonSystem(axis));
         installReinforcementLayer(sim, map, axis, groundRoster, risk);
         return new MapBuild(sim, build.structures());
+    }
+
+    private record ConquestArrivalSlot(
+            LandingPad pad, int landingAreaId, int arrivalGroupId,
+            int expectedStrength, float pendingDelay,
+            boolean departAfterDelivery) {}
+
+    private static List<ConquestArrivalSlot> conquestArrivalSlots(
+            MapResult map, List<ShuttleAssignment> assignments,
+            TraversalAxis axis, Random rng, ShuttleArrivalPlan plan) {
+        ShuttleArrivalPlan resolved = plan != null ? plan : ShuttleArrivalPlan.legacy();
+        if (!resolved.paired()) {
+            List<int[]> cells = pickConquestLandingZones(map.grid,
+                    map.marineSpawnX, map.marineSpawnY, assignments.size(), axis, rng);
+            List<ConquestArrivalSlot> legacy = new ArrayList<>(cells.size());
+            for (int i = 0; i < cells.size(); i++) {
+                int[] cell = cells.get(i);
+                legacy.add(new ConquestArrivalSlot(
+                        LandingPad.fallback(cell[0], cell[1]), -1, -1, 0,
+                        i * SHUTTLE_DROP_STAGGER_SEC, false));
+            }
+            return legacy;
+        }
+
+        int employerEnd = Math.min(resolved.firstPlayerShuttle(), assignments.size());
+        int areaCount = pairCount(employerEnd) + pairCount(assignments.size() - employerEnd);
+        List<Integer> selectedAreas = evenlySpacedAreaIndexes(
+                map.landingAreas.size(), areaCount);
+        if (selectedAreas.size() < areaCount) {
+            throw new IllegalStateException("Conquest map authored "
+                    + map.landingAreas.size() + " arrival areas but " + areaCount
+                    + " paired transport groups are required");
+        }
+
+        List<ConquestArrivalSlot> slots = new ArrayList<>(assignments.size());
+        int[] areaCursor = {0};
+        addPairedArrivalSlots(slots, assignments, map.landingAreas,
+                selectedAreas, 0, employerEnd, areaCursor);
+        addPairedArrivalSlots(slots, assignments, map.landingAreas,
+                selectedAreas, employerEnd, assignments.size(), areaCursor);
+        return slots;
+    }
+
+    private static void addPairedArrivalSlots(
+            List<ConquestArrivalSlot> slots,
+            List<ShuttleAssignment> assignments,
+            List<LandingArea> areas, List<Integer> selectedAreas,
+            int from, int to, int[] areaCursor) {
+        for (int i = from; i < to; i += LandingArea.BERTH_COUNT) {
+            int group = areaCursor[0];
+            int areaIndex = selectedAreas.get(group);
+            LandingArea area = areas.get(areaIndex);
+            int groupEnd = Math.min(to, i + LandingArea.BERTH_COUNT);
+            int expected = 0;
+            for (int member = i; member < groupEnd; member++) {
+                expected += assignments.get(member).seatsPerSortie;
+            }
+            for (int member = i; member < groupEnd; member++) {
+                slots.add(new ConquestArrivalSlot(
+                        area.berth(member - i), areaIndex, group, expected,
+                        group * SHUTTLE_DROP_STAGGER_SEC, true));
+            }
+            areaCursor[0]++;
+        }
+    }
+
+    private static int pairCount(int count) {
+        return (Math.max(0, count) + LandingArea.BERTH_COUNT - 1)
+                / LandingArea.BERTH_COUNT;
+    }
+
+    private static List<Integer> evenlySpacedAreaIndexes(int available, int needed) {
+        if (needed <= 0 || available <= 0 || needed > available) return List.of();
+        if (needed == 1) return List.of(available / 2);
+        List<Integer> selected = new ArrayList<>(needed);
+        for (int i = 0; i < needed; i++) {
+            selected.add(Math.round(i * (available - 1f) / (needed - 1f)));
+        }
+        return selected;
     }
 
     private static void claimConquestSetupGarrisons(BattleSimulation sim) {
@@ -1154,6 +1265,19 @@ public final class BattleSetup {
         return createConquestBuild(seed, manifest, enemyHasHeavyArmor,
                 tier, risk, profile, marineFighterSupport,
                 enemyFighterSupport).sim();
+    }
+
+    /** Tier-aware Conquest with a fixture-captured mission arrival plan. */
+    public static BattleSimulation createConquest(long seed, List<ShuttleAssignment> manifest,
+                                                  boolean enemyHasHeavyArmor,
+                                                  OperationTier tier, RiskLevel risk,
+                                                  TargetProfile profile,
+                                                  FlybyRoster marineFighterSupport,
+                                                  FlybyRoster enemyFighterSupport,
+                                                  ShuttleArrivalPlan arrivalPlan) {
+        return createConquestBuild(seed, manifest, enemyHasHeavyArmor,
+                tier, risk, profile, marineFighterSupport,
+                enemyFighterSupport, arrivalPlan).sim();
     }
 
     /**

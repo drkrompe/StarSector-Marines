@@ -366,7 +366,7 @@ class ConquestCommandBalanceTest {
     private static int seats(ConquestBattleFixture fixture) {
         int seats = 0;
         for (ShuttleAssignment shuttle : fixture.manifest()) {
-            seats += shuttle.type.capacity * shuttle.cycles;
+            seats += shuttle.seatsPerSortie * shuttle.cycles;
         }
         return seats;
     }

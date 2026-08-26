@@ -335,17 +335,20 @@ remain contiguous. Each campaign seat carries its marine identity plus a
 index, and the strength that selected squad is assembling toward. A later
 roster rename or transfer cannot rewrite the battle.
 
-At landing, tagged personnel group by **campaign squad and landing zone**.
-Repeated lifts to the same zone join one battle squad; a campaign squad split
-across zones deliberately becomes separate labelled fragments. The frozen NCO
+At landing, tagged personnel group by **campaign squad and logical arrival
+area**. Legacy point landings use their exact landing cell as that area.
+Repeated lifts to the same area join one battle squad; a campaign squad split
+across areas deliberately becomes separate labelled fragments. The frozen NCO
 seeds the battle leader. Expected strength comes from the selected manifest,
 while landed strength grows as each member deboards, so morale can distinguish a
 squad still assembling from one already mauled.
 
-Scenario-generated personnel—defenders, militia, employer troops, and generic
-reinforcements—carry no campaign tag and retain the per-sortie fallback. A debug
-company is different: it intentionally freezes a real detached roster and
-therefore carries campaign-shaped identity without touching campaign state.
+Scenario-generated personnel normally retain the per-sortie fallback. A
+mission-authored paired arrival is the exception: its two craft share a stable
+arrival-group-and-wave identity, mint one generated battle squad, and assemble
+toward the combined embarked strength. A debug company intentionally freezes a
+real detached roster and therefore carries campaign-shaped identity without
+touching campaign state.
 
 The standing law is **values cross the campaign-to-battle seam; campaign
 objects do not**. Labels remain stable, battle code never resolves the roster,
@@ -392,12 +395,14 @@ billet identity remains unchanged.
 
 ## Lift and arrival
 
-Transport capacity is denominated in whole four-marine fire teams. Small lifts
-carry one team, medium lifts two, and the dedicated Valkyrie carries all three
-teams of a twelve-marine squad. This keeps transport arithmetic aligned with the
-organization the player selected.
+Hull capacity is a physical maximum, not a promise that every mission fills the
+hold. Small lifts have four seats, medium lifts eight, and the Valkyrie twelve.
+The mission arrival policy owns the embarked seats per sortie. Conquest uses two
+six-seat Valkyries in one authored arrival area to deliver a twelve-marine squad
+together; the transport boundary may cut across fire-team membership, while the
+ground squad and its three stable fire teams remain unchanged.
 
-A tagged squad may assemble over several passes. Until its frozen manifest is
+A tagged or mission-grouped squad may assemble over several craft or passes. Until its frozen manifest is
 present, the form-up gate suspends execution of its advancing assignment while
 retaining the authoritative command directive and still allowing self-defense.
 A timeout prevents a lost lift or split landing from deadlocking the mission.

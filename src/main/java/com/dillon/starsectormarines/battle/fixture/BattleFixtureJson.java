@@ -11,10 +11,12 @@ import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
+import com.dillon.starsectormarines.battle.setup.ShuttleArrivalPlan;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.ops.OperationTier;
+import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -27,8 +29,10 @@ import java.util.Set;
 /** Headless JSON codec for versioned battle-construction fixtures. */
 public final class BattleFixtureJson {
 
-    public static final int SCHEMA_VERSION = 1;
-    public static final int LAUNCH_SCHEMA_VERSION = 2;
+    public static final int LEGACY_SCHEMA_VERSION = 1;
+    public static final int SCHEMA_VERSION = 2;
+    public static final int LEGACY_LAUNCH_SCHEMA_VERSION = 2;
+    public static final int LAUNCH_SCHEMA_VERSION = 3;
 
     private BattleFixtureJson() {}
 
@@ -60,6 +64,7 @@ public final class BattleFixtureJson {
                     wingsToJson(conquest.marineFighterSupport()));
             root.put("enemyFighterSupport",
                     wingsToJson(conquest.enemyFighterSupport()));
+            root.put("arrivalPlan", arrivalPlanToJson(conquest.arrivalPlan()));
             return root;
         }
         throw new IllegalArgumentException("Unsupported battle fixture: " + fixture);
@@ -75,15 +80,17 @@ public final class BattleFixtureJson {
         int version = root.getInt("schemaVersion");
         return switch (version) {
             case 1 -> decodeV1(root);
-            case 2 -> decodeV2(root);
+            case LEGACY_LAUNCH_SCHEMA_VERSION -> root.has("construction")
+                    ? decodeLegacyLaunchV2(root) : decodeConstructionV2(root);
+            case 3 -> decodeLaunchV3(root);
             default -> throw new IllegalArgumentException(
                     "Unsupported battle fixture schemaVersion: " + version);
         };
     }
 
-    private static BattleLaunchFixture decodeV2(JSONObject root) throws Exception {
+    private static BattleLaunchFixture decodeLegacyLaunchV2(JSONObject root) throws Exception {
         JSONObject encodedConstruction = root.getJSONObject("construction");
-        if (encodedConstruction.getInt("schemaVersion") != SCHEMA_VERSION) {
+        if (encodedConstruction.getInt("schemaVersion") != LEGACY_SCHEMA_VERSION) {
             throw new IllegalArgumentException(
                     "A launch fixture must contain a V1 construction fixture");
         }
@@ -95,6 +102,38 @@ public final class BattleFixtureJson {
         }
         return new BattleLaunchFixture(construction,
                 launchFromJson(root.getJSONObject("launch")));
+    }
+
+    private static BattleLaunchFixture decodeLaunchV3(JSONObject root) throws Exception {
+        JSONObject encodedConstruction = root.getJSONObject("construction");
+        BattleFixture construction = decodeConstruction(encodedConstruction);
+        String outerKind = root.getString("kind");
+        if (!outerKind.equals(construction.kind())) {
+            throw new IllegalArgumentException("Launch kind '" + outerKind
+                    + "' does not match construction kind '" + construction.kind() + "'");
+        }
+        return new BattleLaunchFixture(construction,
+                launchFromJson(root.getJSONObject("launch")));
+    }
+
+    private static BattleFixture decodeConstruction(JSONObject root) throws Exception {
+        return switch (root.getInt("schemaVersion")) {
+            case LEGACY_SCHEMA_VERSION -> decodeV1(root);
+            case SCHEMA_VERSION -> decodeConstructionV2(root);
+            default -> throw new IllegalArgumentException(
+                    "Unsupported construction fixture schemaVersion: "
+                            + root.getInt("schemaVersion"));
+        };
+    }
+
+    private static BattleFixture decodeConstructionV2(JSONObject root) throws Exception {
+        String kind = root.getString("kind");
+        return switch (kind) {
+            case CivilianRescueBattleFixture.KIND -> decodeCivilianRescue(root);
+            case ConquestBattleFixture.KIND -> decodeConquestV2(root);
+            default -> throw new IllegalArgumentException(
+                    "Unsupported battle fixture kind: " + kind);
+        };
     }
 
     /** Retained decoder branch so future schema bumps can keep loading V1. */
@@ -133,6 +172,20 @@ public final class BattleFixtureJson {
                 wingsFromJson(root.getJSONArray("enemyFighterSupport")));
     }
 
+    private static ConquestBattleFixture decodeConquestV2(
+            JSONObject root) throws Exception {
+        return new ConquestBattleFixture(
+                root.getLong("seed"),
+                shuttlesFromJson(root.getJSONArray("shuttles")),
+                root.getBoolean("enemyHasHeavyArmor"),
+                enumValue(OperationTier.class, root.getString("tier"), "tier"),
+                enumValue(RiskLevel.class, root.getString("risk"), "risk"),
+                targetProfileFromJson(root.getJSONObject("targetProfile")),
+                wingsFromJson(root.getJSONArray("marineFighterSupport")),
+                wingsFromJson(root.getJSONArray("enemyFighterSupport")),
+                arrivalPlanFromJson(root.getJSONObject("arrivalPlan")));
+    }
+
     private static void encodeCommon(
             JSONObject root, String kind, long seed,
             List<ShuttleAssignment> manifest, boolean enemyHasHeavyArmor,
@@ -152,6 +205,7 @@ public final class BattleFixtureJson {
             JSONObject encoded = new JSONObject();
             encoded.put("type", shuttle.type.name());
             encoded.put("cycles", shuttle.cycles);
+            encoded.put("seatsPerSortie", shuttle.seatsPerSortie);
             shuttles.put(encoded);
         }
         return shuttles;
@@ -162,12 +216,27 @@ public final class BattleFixtureJson {
         List<ShuttleAssignment> shuttles = new ArrayList<>();
         for (int i = 0; i < encodedShuttles.length(); i++) {
             JSONObject encoded = encodedShuttles.getJSONObject(i);
-            shuttles.add(new ShuttleAssignment(
-                    enumValue(ShuttleType.class,
-                            encoded.getString("type"), "shuttle type"),
-                    encoded.getInt("cycles")));
+            ShuttleType type = enumValue(ShuttleType.class,
+                    encoded.getString("type"), "shuttle type");
+            shuttles.add(new ShuttleAssignment(type, encoded.getInt("cycles"),
+                    encoded.has("seatsPerSortie")
+                            ? encoded.getInt("seatsPerSortie") : type.capacity));
         }
         return shuttles;
+    }
+
+    private static JSONObject arrivalPlanToJson(ShuttleArrivalPlan plan) throws Exception {
+        JSONObject encoded = new JSONObject();
+        encoded.put("policy", plan.policy().name());
+        encoded.put("firstPlayerShuttle", plan.firstPlayerShuttle());
+        return encoded;
+    }
+
+    private static ShuttleArrivalPlan arrivalPlanFromJson(JSONObject encoded) throws Exception {
+        return new ShuttleArrivalPlan(
+                enumValue(MarineArrivalPolicy.class,
+                        encoded.getString("policy"), "marine arrival policy"),
+                encoded.getInt("firstPlayerShuttle"));
     }
 
     private static JSONArray wingsToJson(

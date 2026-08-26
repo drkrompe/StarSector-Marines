@@ -60,6 +60,19 @@ class CampaignSquadIndexTest {
         assertEquals("Squad 02", squads.get(second).campaignLabel);
     }
 
+    @Test
+    void distinctBerthsInOneLogicalAreaDoNotSplitTheCampaignSquad() {
+        CampaignSquadIndex index = new CampaignSquadIndex(squads::get);
+        CampaignSquadTag tag = new CampaignSquadTag(
+                "cs-1", "Squad 01", false, 12);
+
+        int firstBerth = resolve(index, tag, "area:4");
+        int secondBerth = resolve(index, tag, "area:4");
+
+        assertEquals(firstBerth, secondBerth);
+        assertEquals("Squad 01", squads.get(firstBerth).campaignLabel);
+    }
+
     /** Mirrors {@code UnitRosterService.squadForCampaign}: look up, mint on miss, register. */
     private int resolve(CampaignSquadIndex index, CampaignSquadTag tag, int lzX, int lzY) {
         int existing = index.landed(tag.squadId, lzX, lzY);
@@ -67,6 +80,16 @@ class CampaignSquadIndexTest {
         int minted = nextId++;
         squads.put(minted, new Squad(minted, Faction.MARINE));
         index.register(tag, lzX, lzY, minted);
+        return minted;
+    }
+
+    private int resolve(CampaignSquadIndex index, CampaignSquadTag tag,
+                        String landingKey) {
+        int existing = index.landed(tag.squadId, landingKey);
+        if (existing != Squad.NO_SQUAD) return existing;
+        int minted = nextId++;
+        squads.put(minted, new Squad(minted, Faction.MARINE));
+        index.register(tag, landingKey, minted);
         return minted;
     }
 }
