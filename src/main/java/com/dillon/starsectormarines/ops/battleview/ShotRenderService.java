@@ -14,7 +14,7 @@ import java.util.List;
  * Emits the {@link RenderLayer#SHOTS} body strata — hitscan tracers ({@code LINE}),
  * traveling tinted bolts, and projectile sprites ({@code SPRITE}) — driven by
  * the {@link ShotFx} effect composition rather than the old per-carrier {@code if
- * turretKind … else if marineWeapon …} cascade. The sweeps key on the shot's
+ * carrier-type cascade. The sweeps key on the shot's
  * effects, never on who fired it: a future arc-and-trail marine grenade
  * launcher flows through here with no new branch.
  *

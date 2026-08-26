@@ -119,7 +119,7 @@ public final class ShuttleRenderSystem implements RenderSystem {
         float c = (float) Math.cos(rad);
         float si = (float) Math.sin(rad);
         for (MountedTurret mt : mounts) {
-            ShuttleSpriteCache base = sprites.turretSprites().get(mt.mount.kind);
+            ShuttleSpriteCache base = sprites.turretSprites().get(mt.mount.structureId);
             if (base == null) continue;
             // Same world-position helper the sim uses (so a round fires from
             // where the turret is drawn), with the render-only altitude zoom
@@ -131,13 +131,13 @@ public final class ShuttleRenderSystem implements RenderSystem {
             // physical size on every hull, exactly like a ground MapTurret
             // (UnitRenderService draws it at visualCells flat). Only the altitude
             // visual zoom applies; the hull never scales turret size.
-            float layerVisualCells = mt.mount.kind.visualCells() * scaleMult;
+            float layerVisualCells = mt.mount.mountDef().visualCells * scaleMult;
             TurretLayerPose pose = TurretLayerPose.resolve(
                     screenX, screenY, mt.facingDegrees, layerVisualCells, cellPx,
                     mt.recoilTimer, BattleRenderer.RECOIL_DURATION,
                     BattleRenderer.RECOIL_DISTANCE_FRAC);
 
-            ShuttleSpriteCache barrel = sprites.turretRecoilSprites().get(mt.mount.kind);
+            ShuttleSpriteCache barrel = sprites.turretRecoilSprites().get(mt.mount.structureId);
             if (barrel != null) {
                 emitTurretLayer(out, barrel, pose.facingDegrees(), pose.spriteHeightPx(),
                         pose.recoilCenterX(), pose.recoilCenterY(), alphaMult);

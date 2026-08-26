@@ -17,7 +17,7 @@ import java.util.EnumMap;
  * <p><b>Scope.</b> This carries only what is genuinely type-flyweight. Dynamic
  * inputs (hp, renderX/Y, facing, recoil) live in the SoA registry / on the
  * subclass; per-<em>kind</em> geometry that varies within a type (a map turret's
- * {@code visualCells} + which weapon sprite, keyed by {@code TurretKind}) is
+ * {@code visualCells} plus weapon sprite, keyed by stable structure id) is
  * resolved at sweep time from the instance, not stored here. The footprint pad
  * color (ROAD_FILL) is identical for every footprint-drawer, so it lives with the
  * footprint emit helper rather than per-descriptor.

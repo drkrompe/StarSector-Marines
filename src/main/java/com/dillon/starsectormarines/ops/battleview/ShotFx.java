@@ -3,8 +3,6 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.marine.SpecialActivation;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
-import com.dillon.starsectormarines.battle.mech.MechWeapon;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.MountClass;
@@ -12,10 +10,8 @@ import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.render2d.ContrailStyle;
 
 import java.awt.Color;
-import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Function;
 
 /**
  * Render-side flyweight: a shot's FX as a <em>carrier-agnostic effect
@@ -90,17 +86,15 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
         return faction == Faction.MARINE ? MARINE_TRACER : DEFENDER_TRACER;
     }
 
-    private static final EnumMap<TurretKind, ShotFx>      TURRET    = build(TurretKind.class,      ShotFx::deriveTurret);
-    private static final EnumMap<MechWeapon, ShotFx>      MECH      = build(MechWeapon.class,      ShotFx::deriveMech);
     /** No weapon source (detonations / legacy callers) → a faction-default tracer. */
     private static final ShotFx NO_SOURCE = new ShotFx(new Tracer(null), 0f, false, null);
 
     /** The composition for a shot — never null; dispatches on the single non-null weapon source. */
     public static ShotFx of(ShotEvent s) {
-        if (s.turretKind != null)      return TURRET.get(s.turretKind);
+        if (s.turretStructureDef != null) return deriveTurret(s.turretStructureDef.mount.weapon);
         if (s.specialEquipmentDef != null) return deriveSecondary(s.specialEquipmentDef);
         if (s.primaryWeaponDef != null) return derivePrimary(s.primaryWeaponDef);
-        if (s.mechWeapon != null)      return MECH.get(s.mechWeapon);
+        if (s.mechWeaponDef != null)   return deriveMech(s.mechWeaponDef);
         return NO_SOURCE;
     }
 
@@ -109,15 +103,15 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
         return body instanceof Sprite || body instanceof Bolt;
     }
 
-    private static ShotFx deriveTurret(TurretKind k) {
-        ContrailStyle contrail = switch (k.contrailProfile()) {
+    private static ShotFx deriveTurret(WeaponDef weapon) {
+        ContrailStyle contrail = switch (weapon.contrailProfile) {
             case NONE -> null;
             case MISSILE_SMOKE -> ContrailStyle.MISSILE_SMOKE;
         };
         return new ShotFx(
-                new Sprite(k.projectileSpritePath(), k.projectileVisualCells()),
-                k.arcHeight(),
-                k.hasBoostRamp(),
+                new Sprite(weapon.projectileSpritePath, weapon.projectileVisualCells),
+                weapon.arcHeight,
+                weapon.boostRamp,
                 contrail);
     }
 
@@ -161,19 +155,14 @@ public record ShotFx(Body body, float arcHeight, boolean boostRamp,
                         ? ContrailStyle.MISSILE_SMOKE : null);
     }
 
-    private static ShotFx deriveMech(MechWeapon w) {
+    private static ShotFx deriveMech(WeaponDef weapon) {
         // Every mech weapon ships a projectile sprite today; the tracer arm is the
         // faithful fallback (faction default, matching the old renderer — mech
         // tracerColor was load-failure-only and unused in the shot pass).
-        Body body = w.projectileSpritePath() != null
-                ? new Sprite(w.projectileSpritePath(), w.projectileVisualCells())
+        Body body = weapon.projectileSpritePath != null
+                ? new Sprite(weapon.projectileSpritePath, weapon.projectileVisualCells)
                 : new Tracer(null);
-        return new ShotFx(body, w.arcHeight(), false, null);
+        return new ShotFx(body, weapon.arcHeight, false, null);
     }
 
-    private static <E extends Enum<E>> EnumMap<E, ShotFx> build(Class<E> cls, Function<E, ShotFx> derive) {
-        EnumMap<E, ShotFx> m = new EnumMap<>(cls);
-        for (E e : cls.getEnumConstants()) m.put(e, derive.apply(e));
-        return m;
-    }
 }

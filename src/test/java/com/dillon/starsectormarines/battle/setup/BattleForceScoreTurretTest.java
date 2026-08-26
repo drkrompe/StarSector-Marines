@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.turret.DefensePostKind;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.OperationTier;
@@ -41,9 +41,9 @@ class BattleForceScoreTurretTest {
                 candidates(), roster, BattleForceScore.attackers(attackers));
 
         assertEquals(2, selected.size());
-        assertEquals(TurretKind.VULCAN.structureId,
+        assertEquals(TurretCatalogRegistry.VULCAN_STRUCTURE_ID,
                 selected.get(0).turrets.get(0).structureId);
-        assertEquals(TurretKind.ARBALEST.structureId,
+        assertEquals(TurretCatalogRegistry.ARBALEST_STRUCTURE_ID,
                 selected.get(1).turrets.get(0).structureId);
     }
 
@@ -57,7 +57,7 @@ class BattleForceScoreTurretTest {
 
         assertEquals(List.of(MechVariant.BULWARK), roster.mechVariants);
         assertEquals(1, selected.size());
-        assertEquals(TurretKind.VULCAN.structureId,
+        assertEquals(TurretCatalogRegistry.VULCAN_STRUCTURE_ID,
                 selected.get(0).turrets.get(0).structureId);
     }
 
@@ -81,9 +81,9 @@ class BattleForceScoreTurretTest {
         DefenderRoster roster = rosterFor(attackers);
         DefensePost large = new DefensePost(
                 DefensePostKind.LARGE, 6, 7, List.of(
-                new DefensePost.TurretSpec(TurretKind.VULCAN, 5, 7),
-                new DefensePost.TurretSpec(TurretKind.ARBALEST, 7, 7),
-                new DefensePost.TurretSpec(TurretKind.HEPHAESTUS, 6, 6)));
+                new DefensePost.TurretSpec(TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 5, 7),
+                new DefensePost.TurretSpec(TurretCatalogRegistry.ARBALEST_STRUCTURE_ID, 7, 7),
+                new DefensePost.TurretSpec(TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID, 6, 6)));
 
         List<DefensePost> selected = BattleForceScore.affordableDefensePosts(
                 List.of(large), roster, BattleForceScore.attackers(attackers));
@@ -91,9 +91,10 @@ class BattleForceScoreTurretTest {
         assertEquals(1, selected.size());
         assertEquals(6, selected.get(0).anchorX);
         assertEquals(7, selected.get(0).anchorY);
-        assertEquals(List.of(TurretKind.VULCAN, TurretKind.ARBALEST),
+        assertEquals(List.of(TurretCatalogRegistry.VULCAN_STRUCTURE_ID,
+                        TurretCatalogRegistry.ARBALEST_STRUCTURE_ID),
                 selected.get(0).turrets.stream()
-                        .map(spec -> TurretKind.fromStructureId(spec.structureId)).toList());
+                        .map(spec -> spec.structureId).toList());
         assertEquals(3, large.turrets.size(), "map-authored candidates stay untouched");
     }
 
@@ -129,14 +130,14 @@ class BattleForceScoreTurretTest {
 
     private static List<DefensePost> candidates() {
         return List.of(
-                post(DefensePostKind.LIGHT, TurretKind.VULCAN, 1),
-                post(DefensePostKind.MEDIUM, TurretKind.ARBALEST, 2),
-                post(DefensePostKind.LARGE, TurretKind.HEPHAESTUS, 3));
+                post(DefensePostKind.LIGHT, TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 1),
+                post(DefensePostKind.MEDIUM, TurretCatalogRegistry.ARBALEST_STRUCTURE_ID, 2),
+                post(DefensePostKind.LARGE, TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID, 3));
     }
 
-    private static DefensePost post(DefensePostKind tier, TurretKind kind, int x) {
+    private static DefensePost post(DefensePostKind tier, String structureId, int x) {
         return new DefensePost(tier, x, 1,
-                List.of(new DefensePost.TurretSpec(kind, x, 1)));
+                List.of(new DefensePost.TurretSpec(structureId, x, 1)));
     }
 
     private static int turretCount(BattleSimulation sim) {

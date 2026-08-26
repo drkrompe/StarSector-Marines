@@ -12,7 +12,7 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import org.junit.jupiter.api.Test;
@@ -61,8 +61,8 @@ public class InfantryUnitPrepTest {
                         SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID).startingAmmo()));
     }
 
-    private static long turret(BattleSimulation sim, Faction f, TurretKind kind, int x, int y) {
-        return sim.spawn(MapTurret.create("t" + sim.liveUnitCount(), f, kind, x, y));
+    private static long turret(BattleSimulation sim, Faction f, String structureId, int x, int y) {
+        return sim.spawn(MapTurret.create("t" + sim.liveUnitCount(), f, structureId, x, y));
     }
 
     @Test
@@ -70,7 +70,7 @@ public class InfantryUnitPrepTest {
         BattleSimulation sim = openArena(50, 10);
         long marine = rocketeer(sim, Faction.MARINE, 5, 5);
         // Past pulse-rifle range (24), well inside rocket range (32).
-        long turret = turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 28, 5);
+        long turret = turret(sim, Faction.DEFENDER, TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 28, 5);
 
         boolean started = InfantryUnitPrep.tryOpportunityRocket(marine, sim);
         assertTrue(started, "marine in rocket range with LOS should start aim");
@@ -84,7 +84,7 @@ public class InfantryUnitPrepTest {
         BattleSimulation sim = openArena(50, 10);
         long marine = rocketeer(sim, Faction.MARINE, 5, 5);
         sim.world().setSecondaryAmmo(marine, 0);
-        turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 28, 5);
+        turret(sim, Faction.DEFENDER, TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 28, 5);
 
         assertFalse(InfantryUnitPrep.tryOpportunityRocket(marine, sim));
         assertEquals(0f, sim.world().secondaryActionTimer(marine), 0.001f);
@@ -95,7 +95,7 @@ public class InfantryUnitPrepTest {
         BattleSimulation sim = openArena(50, 10);
         long marine = rocketeer(sim, Faction.MARINE, 5, 5);
         sim.world().setSecondaryCooldownTimer(marine, 1.0f);
-        turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 28, 5);
+        turret(sim, Faction.DEFENDER, TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 28, 5);
 
         assertFalse(InfantryUnitPrep.tryOpportunityRocket(marine, sim));
     }
@@ -105,7 +105,7 @@ public class InfantryUnitPrepTest {
         BattleSimulation sim = openArena(80, 10);
         long marine = rocketeer(sim, Faction.MARINE, 5, 5);
         // 50 cells away — well past rocket range (32).
-        turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 55, 5);
+        turret(sim, Faction.DEFENDER, TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 55, 5);
 
         assertFalse(InfantryUnitPrep.tryOpportunityRocket(marine, sim));
     }
@@ -117,7 +117,7 @@ public class InfantryUnitPrepTest {
         // Wall column between marine and turret.
         for (int y = 0; y < 10; y++) grid.setWalkable(15, y, false);
         long marine = rocketeer(sim, Faction.MARINE, 5, 5);
-        turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 28, 5);
+        turret(sim, Faction.DEFENDER, TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 28, 5);
 
         assertFalse(InfantryUnitPrep.tryOpportunityRocket(marine, sim),
                 "LOS-blocked turret must not trigger opportunity fire");
@@ -134,7 +134,7 @@ public class InfantryUnitPrepTest {
         sim.squad().assignSquad(marineB, squadId);
         long marineC = rocketeer(sim, Faction.MARINE, 5, 4);
         sim.squad().assignSquad(marineC, squadId);
-        turret(sim, Faction.DEFENDER, TurretKind.HEPHAESTUS, 28, 5);
+        turret(sim, Faction.DEFENDER, TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID, 28, 5);
 
         assertTrue(InfantryUnitPrep.tryOpportunityRocket(marineA, sim));
         assertTrue(InfantryUnitPrep.tryOpportunityRocket(marineB, sim),
@@ -153,7 +153,7 @@ public class InfantryUnitPrepTest {
         sim.squad().assignSquad(marineA, squadId);
         long marineB = rocketeer(sim, Faction.MARINE, 5, 6);
         sim.squad().assignSquad(marineB, squadId);
-        turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 28, 5);
+        turret(sim, Faction.DEFENDER, TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 28, 5);
 
         assertTrue(InfantryUnitPrep.tryOpportunityRocket(marineA, sim));
         assertFalse(InfantryUnitPrep.tryOpportunityRocket(marineB, sim),
@@ -166,7 +166,7 @@ public class InfantryUnitPrepTest {
         // Sanity: the scan filters by enemy faction, not just "is a turret."
         BattleSimulation sim = openArena(50, 10);
         long defenderRocketeer = rocketeer(sim, Faction.DEFENDER, 5, 5);
-        turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 28, 5);
+        turret(sim, Faction.DEFENDER, TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 28, 5);
 
         assertFalse(InfantryUnitPrep.tryOpportunityRocket(defenderRocketeer, sim),
                 "friendly turret must not be a rocket target");
@@ -183,7 +183,8 @@ public class InfantryUnitPrepTest {
 
         BattleSimulation hardSim = openArena(50, 10);
         long hardCarrier = heavyMarksman(hardSim, Faction.MARINE, 5, 5);
-        long hardTarget = turret(hardSim, Faction.DEFENDER, TurretKind.VULCAN, 28, 5);
+        long hardTarget = turret(hardSim, Faction.DEFENDER,
+                TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 28, 5);
         assertTrue(InfantryUnitPrep.tryOpportunitySpecial(hardCarrier, hardSim));
         assertEquals(hardTarget, hardSim.world().secondaryAimTargetId(hardCarrier));
         assertEquals(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID).aimDuration(),
@@ -194,7 +195,7 @@ public class InfantryUnitPrepTest {
     public void antiMaterielAimCancelsWithoutAmmoOrCooldownWhenLosIsLost() {
         BattleSimulation sim = openArena(50, 10);
         long carrier = heavyMarksman(sim, Faction.MARINE, 5, 5);
-        turret(sim, Faction.DEFENDER, TurretKind.VULCAN, 28, 5);
+        turret(sim, Faction.DEFENDER, TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 28, 5);
         assertTrue(InfantryUnitPrep.tryOpportunitySpecial(carrier, sim));
 
         for (int y = 0; y < 10; y++) sim.getGrid().setWalkable(15, y, false);

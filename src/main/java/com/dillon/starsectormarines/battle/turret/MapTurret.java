@@ -8,7 +8,8 @@ import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 
 /**
- * Config + factory for a bolted-down static defense — a {@link TurretKind}
+ * Config + factory for a bolted-down static defense described by a
+ * {@link StructureDef}
  * mounted on a single non-walkable map cell. {@link #create} returns a plain
  * {@code Entity} of type {@link UnitType#TURRET} so it slots into existing
  * code paths for free: target acquisition, line-of-sight, the firing pipeline,
@@ -18,7 +19,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
  * {@code UnitType.isTurret()} classification gate in the renderer/scoring
  * type-tag sites.
  *
- * <p>Stats come from {@link TurretKind} at construction; the mount cell is
+ * <p>Stats come from the installed structure definition at construction; the mount cell is
  * flagged non-walkable on the {@link com.dillon.starsectormarines.battle.nav.NavigationGrid}
  * by {@link BattleSetup} before the sim is built (same pattern vehicles use).
  * On death, {@link BattleSimulation} flips the cell to walkable + rubble so
@@ -29,7 +30,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
  * {@code kind}/{@code burstRemaining}/{@code burstTimer}/{@code burstTargetId})
  * lives in the world {@code TURRET_STATE} component (data owner
  * {@code battle.sim.TurretStateService}); {@link #create} seeds it via
- * {@link EntitySpec#turretKind}. See
+ * {@link EntitySpec#turretStructureId}. See
  * {@code ecs-nouns.md}.
  */
 public final class MapTurret {
@@ -37,26 +38,26 @@ public final class MapTurret {
     private MapTurret() {}
 
     /**
-     * Builds a fresh turret {@code Entity} of {@code kind} at
+     * Builds a fresh turret {@code Entity} of {@code structureId} at
      * {@code (cellX, cellY)}. Seeds the {@code Entity}'s Group-S stats from
-     * {@code kind} (rather than baking them into {@link UnitType#TURRET},
-     * which stays a zero-base placeholder) plus {@link EntitySpec#turretKind}
+     * its installed definition (rather than baking them into {@link UnitType#TURRET},
+     * which stays a zero-base placeholder) plus {@link EntitySpec#turretStructureId}
      * (consumed by {@code UnitRosterService.adopt} into the
      * {@code TURRET_STATE} component iff {@code type.isTurret()}); the caller
      * still owns handing the result to {@code sim.spawn}/{@code queueSpawn}.
      */
-    public static EntitySpec create(String id, Faction faction, TurretKind kind, int cellX, int cellY) {
-        // TurretKind stats override the UnitType.TURRET zero-base. Doing it here
-        // (rather than in UnitType) keeps the per-kind balance in one place.
+    public static EntitySpec create(String id, Faction faction, String structureId, int cellX, int cellY) {
+        StructureDef structure = TurretCatalogRegistry.requireStructure(structureId);
+        var weapon = structure.mount.weapon;
         return new EntitySpec(id, faction, UnitType.TURRET, cellX, cellY)
-                .health(kind.maxStructure())
-                .armor(kind.armorPool(), kind.armorRating())
-                .attackDamage(kind.damage())
-                .attackRange(kind.range())
-                .attackCooldown(kind.cooldown())
-                .accuracy(kind.accuracy())
+                .health(structure.maxStructure)
+                .armor(structure.armorPool, structure.armorRating)
+                .attackDamage(weapon.damage)
+                .attackRange(weapon.range)
+                .attackCooldown(weapon.cooldown)
+                .accuracy(weapon.accuracy)
                 .moveSpeed(0f)
                 .role(UnitRole.TURRET)
-                .turretKind(kind);
+                .turretStructureId(structure.id);
     }
 }

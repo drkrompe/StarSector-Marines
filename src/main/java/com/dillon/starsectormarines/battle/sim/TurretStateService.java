@@ -1,7 +1,10 @@
 package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.component.BattleComponents;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.turret.StructureDef;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+import com.dillon.starsectormarines.battle.turret.TurretMountDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 
 /**
@@ -60,8 +63,22 @@ public final class TurretStateService {
     /** Sets {@code id}'s sim-seconds since its last fired round. */
     public void setRecoilTimer(long id, float v) { entityWorld.setFloat(id, components.TURRET_STATE, BattleComponents.TURRET_STATE_RECOIL_TIMER, v); }
 
-    /** The {@link TurretKind} baked into {@code id} at construction (stats/sprite/firing profile). */
-    public TurretKind kind(long id) { return (TurretKind) entityWorld.getObject(id, components.TURRET_STATE, BattleComponents.TURRET_STATE_KIND); }
+    /** Stable structure id baked into {@code id} at construction. */
+    public String structureId(long id) {
+        return (String) entityWorld.getObject(id, components.TURRET_STATE,
+                BattleComponents.TURRET_STATE_STRUCTURE_ID);
+    }
+
+    /** Installed structure definition for {@code id}. */
+    public StructureDef structure(long id) {
+        return TurretCatalogRegistry.requireStructure(structureId(id));
+    }
+
+    /** Installed mount definition for {@code id}. */
+    public TurretMountDef mount(long id) { return structure(id).mount; }
+
+    /** Installed weapon definition for {@code id}. */
+    public WeaponDef weapon(long id) { return mount(id).weapon; }
 
     /** Rounds left in {@code id}'s current burst, excluding the trigger-pull round; {@code 0} = idle/single-shot. */
     public int burstRemaining(long id) { return entityWorld.getInt(id, components.TURRET_STATE, BattleComponents.TURRET_STATE_BURST_REMAINING); }

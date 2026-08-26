@@ -6,14 +6,15 @@ public final class TurretImpactAudio {
     private TurretImpactAudio() {}
 
     /** Authored audio wins; explosive turrets without it retain the generic fallback. */
-    public static Cue resolve(TurretKind turret, String explosiveFallback) {
+    public static Cue resolve(StructureDef turret, String explosiveFallback) {
         if (turret == null) return null;
-        String soundId = turret.impactSoundId();
+        var weapon = turret.mount.weapon;
+        String soundId = weapon.impactSoundId;
         if (soundId == null) {
-            if (!turret.fx().hasExplosiveImpact()) return null;
+            if (!weapon.fx.hasExplosiveImpact()) return null;
             soundId = explosiveFallback;
         }
-        float volume = turret.fx().hasHeavyImpact() ? 0.82f : 0.55f;
+        float volume = weapon.fx.hasHeavyImpact() ? 0.82f : 0.55f;
         return new Cue(soundId, volume);
     }
 

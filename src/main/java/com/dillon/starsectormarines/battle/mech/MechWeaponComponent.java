@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 
 /**
  * Immutable hardware installed in one mech hardpoint. The underlying
@@ -33,7 +35,7 @@ public enum MechWeaponComponent {
 
     public final String displayName;
     public final MountFamily mountFamily;
-    /** Stable catalog id; enum identity is derived only at compatibility boundaries. */
+    /** Stable catalog id for the installed gun or launcher. */
     public final String weaponId;
     /** Representative projectiles emitted per trigger, not literal launcher tubes. */
     public final int projectilesPerTrigger;
@@ -53,10 +55,7 @@ public enum MechWeaponComponent {
         this.appearanceSelector = appearanceSelector;
     }
 
-    /** Compatibility handle for tactical code that still branches on shipped families. */
-    public MechWeapon weapon() {
-        return MechWeapon.fromId(weaponId);
-    }
+    public WeaponDef weaponDef() { return WeaponRegistry.require(weaponId); }
 
     public boolean accepts(MechMountSlot slot) {
         return mountFamily == MountFamily.ARMS

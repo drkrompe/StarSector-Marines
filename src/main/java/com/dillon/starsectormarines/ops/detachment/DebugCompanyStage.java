@@ -16,11 +16,11 @@ import com.dillon.starsectormarines.marine.Rank;
  * ladder cannot answer — a stage is the convenient default, not a cage.
  *
  * <p><b>The top two stages exceed their officer's command cap on purpose.</b>
- * A CONQUEST at HIGH risk is a 40-drop mission — 480 seats of lift — and
- * play says it wants hundreds of marines, while {@code Rank.COLONEL} tops out
- * at 24 squads. {@link #exceedsCommandCap()} reports that rather than hiding
- * it: the mission ladder has outgrown the command ladder, and the fixture is
- * where that shows up first. Debug missions bypass the cap
+ * Conquest cycles every selected squad through its reusable descent pair, so
+ * the fixture can exercise hundreds of marines while {@code Rank.COLONEL}
+ * tops out at 24 squads. {@link #exceedsCommandCap()} reports that rather than
+ * hiding it: the mission ladder has outgrown the command ladder, and the
+ * fixture is where that shows up first. Debug missions bypass the cap
  * ({@code captainCommandReady} returns true for them), so the stage still
  * deploys.
  *
@@ -53,8 +53,7 @@ public enum DebugCompanyStage {
 
     /**
      * Everything the company has — thirty-four squads, four hundred and eight
-     * marines, filling a CONQUEST-HIGH manifest almost exactly (40 Valkyrie
-     * drops is 480 seats). The upper end of what one battle can be handed.
+     * marines. Conquest extends its shuttle cycles to carry the entire force.
      */
     FULL_STRENGTH("Full Strength", 34, 6 * MechSupport.LANCE_SIZE,
             Rank.COLONEL, DebugBilletPlan.HARDENED);

@@ -13,7 +13,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -237,7 +237,7 @@ public class BoundingOverwatchTest {
         sim.world().attachSpecialEquipment(marine, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID),
                 SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).startingAmmo());
         sim.spawn(MapTurret.create("turret", Faction.DEFENDER,
-                TurretKind.VULCAN, 20, 15));
+                TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 20, 15));
 
         assertTrue(GoapInfantryBehavior.prepareForAction(marine, sim, false),
                 "move-only preparation continues into the action body");

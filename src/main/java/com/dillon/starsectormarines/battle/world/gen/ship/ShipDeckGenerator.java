@@ -10,9 +10,11 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InitSolidStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.TacticalLinkStage;
+import com.dillon.starsectormarines.battle.world.gen.ship.stage.CompartmentCarveStage;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.DeckEndSpawnStage;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.HullProfileStage;
 import com.dillon.starsectormarines.battle.world.gen.ship.stage.SpineStage;
+import com.dillon.starsectormarines.battle.world.gen.ship.stage.TransverseCorridorStage;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
@@ -38,26 +40,39 @@ public final class ShipDeckGenerator {
     /** Walkable width of the spine corridor. Four cells lets a squad pass a stalled one without the corridor becoming a room. */
     public static final int SPINE_WIDTH = 4;
 
-    private final GenRecipe deckRecipe = buildDeckRecipe();
     private DeckProfile lastDeckProfile;
+    private DeckGraph lastDeckGraph;
 
     /**
      * The ship-deck recipe. It shares the station's solid-default inversion and
      * its generic tail, and replaces the core-organized middle with the
      * axis-organized one.
+     *
+     * @param silhouette hull outline to trace, or null for the synthetic taper
      */
-    private GenRecipe buildDeckRecipe() {
+    private GenRecipe buildDeckRecipe(HullSilhouette silhouette) {
         return new GenRecipe("ShipDeck", List.of(
                 new InitSolidStage(),                    // solid hull
-                new HullProfileStage(SPINE_WIDTH),       // beam per frame + zones; publishes the profile
+                new HullProfileStage(SPINE_WIDTH, silhouette),  // beam per frame + zones
                 new SpineStage(),                        // carve the fore-aft corridor
+                new TransverseCorridorStage(),           // athwartships cross-passages
+                new CompartmentCarveStage(),             // zone-purposed rooms + their doors
                 new DeckEndSpawnStage(),                 // bow / stern anchors
                 new TacticalLinkStage(),                 // (no nodes yet -> empty map)
                 new FinalizeStage()));                   // wall HP / cover / wall tags / buildings
     }
 
-    /** Generate one deck. Identical inputs produce an identical deck. */
+    /** Generate one deck with the synthetic hull taper. Identical inputs produce an identical deck. */
     public MapResult generateDeck(int width, int height, long seed) {
+        return generateDeck(width, height, seed, null);
+    }
+
+    /**
+     * Generate one deck, tracing {@code silhouette} when supplied so the deck
+     * inherits a real hull's proportions and asymmetry.
+     */
+    public MapResult generateDeck(int width, int height, long seed, HullSilhouette silhouette) {
+        GenRecipe deckRecipe = buildDeckRecipe(silhouette);
         Random rng = new Random(seed);
         NavigationGrid grid = new NavigationGrid(width, height);
         CellTopology topology = new CellTopology(width, height);
@@ -68,6 +83,7 @@ public final class ShipDeckGenerator {
         deckRecipe.run(ctx);
 
         this.lastDeckProfile = ctx.get(ShipKeys.DECK_PROFILE);
+        this.lastDeckGraph = ctx.get(ShipKeys.DECK_GRAPH);
 
         Buildings buildings = ctx.get(BspKeys.BUILDINGS);
         TacticalMap tacticalMap = ctx.get(BspKeys.TACTICAL_MAP);
@@ -82,5 +98,10 @@ public final class ShipDeckGenerator {
     /** The profile behind the most recent {@link #generateDeck} run; null before the first. */
     public DeckProfile getLastDeckProfile() {
         return lastDeckProfile;
+    }
+
+    /** The compartments and corridors of the most recent {@link #generateDeck} run; null before the first. */
+    public DeckGraph getLastDeckGraph() {
+        return lastDeckGraph;
     }
 }

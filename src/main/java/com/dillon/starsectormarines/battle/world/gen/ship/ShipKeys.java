@@ -14,4 +14,10 @@ public final class ShipKeys {
 
     /** The deck's longitudinal shape, spine rows, and per-frame zones. Produced by {@code HullProfileStage}; read by every later ship stage. */
     public static final GenKey<DeckProfile> DECK_PROFILE = GenKey.of("deckProfile");
+
+    /** Fore-most column of each athwartships corridor, ascending. Produced by {@code TransverseCorridorStage}; read by the compartment carve. */
+    public static final GenKey<int[]> CORRIDOR_FRAMES = GenKey.of("corridorFrames");
+
+    /** Carved compartments and the corridors dividing them. Produced by {@code CompartmentCarveStage}. */
+    public static final GenKey<DeckGraph> DECK_GRAPH = GenKey.of("deckGraph");
 }

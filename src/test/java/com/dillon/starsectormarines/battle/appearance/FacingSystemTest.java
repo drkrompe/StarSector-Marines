@@ -8,7 +8,7 @@ import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.MapTurret;
-import com.dillon.starsectormarines.battle.turret.TurretKind;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -103,7 +103,8 @@ public class FacingSystemTest {
 
         // Negative membership: a live non-sheet unit (whole-sprite turret)
         // carries no SPRITE — it gains one only at the corpse transmute.
-        long turret = sim.spawn(MapTurret.create("t0", Faction.DEFENDER, TurretKind.VULCAN, 20, 20));
+        long turret = sim.spawn(MapTurret.create("t0", Faction.DEFENDER,
+                TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 20, 20));
         assertFalse(world.has(turret, c.SPRITE), "live turret carries no SPRITE");
     }
 

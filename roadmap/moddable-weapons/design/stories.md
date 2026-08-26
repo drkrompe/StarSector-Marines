@@ -1,11 +1,9 @@
 # Moddable Weapons — Open Stories
 
-Status: ACTIVE — 1 story in progress
+Status: SHIPPED — no moddable-weapons story is open.
 
 Written: 2026-08-23
 
-Read `moddable-weapons-nouns.md` before changing any of these stories.
-
-| Story | State | Scope |
-| --- | --- | --- |
-| `w4-retire-enums.md` | In progress | Retire the remaining id-backed compatibility handles and complete persistence migration. |
+The registry, cross-mod merge, authoring, structure/mount split, effects, and
+stable-id persistence contracts are shipped. Contract a new story before
+changing this model.

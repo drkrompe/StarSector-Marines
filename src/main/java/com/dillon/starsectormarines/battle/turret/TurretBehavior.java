@@ -55,7 +55,9 @@ public final class TurretBehavior implements UnitBehavior {
             sim.world().setTargetId(id, turretState.burstTargetId(id));
         }
 
-        TurretKind kind = turretState.kind(id);
+        StructureDef structure = turretState.structure(id);
+        TurretMountDef mount = structure.mount;
+        var weapon = mount.weapon;
         TurretAim.State s = new TurretAim.State();
         s.originCellX = sim.world().cellX(id);
         s.originCellY = sim.world().cellY(id);
@@ -65,13 +67,13 @@ public final class TurretBehavior implements UnitBehavior {
         s.squadId = sim.squad().hasSquad(id) ? sim.squad().squadId(id) : Squad.NO_SQUAD;
         s.excludeFromCrowding = u;
         s.facingDegrees = turretState.facingDegrees(id);
-        s.turnRateDegPerSec = kind.turnRateDegPerSec();
+        s.turnRateDegPerSec = mount.turnRateDegPerSec;
         s.attackRange = sim.world().attackRange(id);
-        s.minRange = kind.minRange();
+        s.minRange = weapon.minRange;
         s.cooldownTimer = sim.world().cooldownTimer(id);
         s.attackCooldown = sim.combat().attackCooldown(id);
         s.target = sim.targetOf(u);
-        s.indirectFire = kind.indirectFire();
+        s.indirectFire = weapon.indirectFire;
 
         TurretAim.tick(s, sim.getTacticalScoring(), sim.getGrid(), sim.world(), sim.vision(), BattleSimulation.TICK_DT);
 
@@ -94,12 +96,12 @@ public final class TurretBehavior implements UnitBehavior {
                         sim.world().x(id), sim.world().y(id),
                         sim.world().x(currentBurstTarget), sim.world().y(currentBurstTarget),
                         0f, sim.vision().airLosRadius(currentBurstTarget));
-                sim.fireShotFrom(id, sim.world().x(id), sim.world().y(id), sim.identity().faction(u), kind, currentBurstTarget,
+                sim.fireShotFrom(id, sim.world().x(id), sim.world().y(id), sim.identity().faction(u), structure, currentBurstTarget,
                         /*aerialShooter*/ false, hasLos);
                 turretState.setRecoilTimer(id, 0f);
                 burstRemaining--;
                 turretState.setBurstRemaining(id, burstRemaining);
-                turretState.setBurstTimer(id, kind.burstSpacing());
+                turretState.setBurstTimer(id, weapon.burstSpacing);
                 if (burstRemaining == 0) turretState.setBurstTargetId(id, 0L);
             } else {
                 turretState.setBurstTimer(id, burstTimer);
@@ -108,16 +110,16 @@ public final class TurretBehavior implements UnitBehavior {
         }
 
         if (s.fireThisTick) {
-            if (kind.burstCount() > 1) {
+            if (weapon.burstCount > 1) {
                 // Burst kinds route through fireShotFrom so their modeled
                 // round / AoE procedure applies. Latch the remaining rounds
                 // for the pump to drain.
-                sim.fireShotFrom(id, sim.world().x(id), sim.world().y(id), sim.identity().faction(u), kind, s.target,
+                sim.fireShotFrom(id, sim.world().x(id), sim.world().y(id), sim.identity().faction(u), structure, s.target,
                         /*aerialShooter*/ false, s.lastFireHadLos);
                 turretState.setRecoilTimer(id, 0f);
                 if (s.target != 0L) {
-                    turretState.setBurstRemaining(id, kind.burstCount() - 1);
-                    turretState.setBurstTimer(id, kind.burstSpacing());
+                    turretState.setBurstRemaining(id, weapon.burstCount - 1);
+                    turretState.setBurstTimer(id, weapon.burstSpacing);
                     turretState.setBurstTargetId(id, s.target);
                 }
             } else {
@@ -126,7 +128,7 @@ public final class TurretBehavior implements UnitBehavior {
                 // infantry path retained only their velocity and visual tag,
                 // silently discarding every other authored turret payload.
                 sim.fireShotFrom(id, sim.world().x(id), sim.world().y(id),
-                        sim.identity().faction(u), kind, s.target,
+                        sim.identity().faction(u), structure, s.target,
                         /*aerialShooter*/ false, s.lastFireHadLos);
                 turretState.setRecoilTimer(id, 0f);
             }
