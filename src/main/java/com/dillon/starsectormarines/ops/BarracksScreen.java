@@ -3,13 +3,14 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
-import com.dillon.starsectormarines.marine.MarineSquad;
-import com.dillon.starsectormarines.ui.retained.UiAlign;
+import com.dillon.starsectormarines.ops.battleview.ArmoryPreviewAssets;
+import com.dillon.starsectormarines.ops.battleview.BarracksBattleScene;
+import com.dillon.starsectormarines.ops.battleview.BarracksCanvas;
+import com.dillon.starsectormarines.ops.battleview.BattleSprites;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
-import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader.PreparedReload;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.starsector.StarsectorUiInputAdapter;
 import com.fs.starfarer.api.Global;
@@ -20,27 +21,30 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Owned-company landing view between Company HQ and one company's Armory. */
-public final class FleetArmoryOverviewScreen implements Screen {
+/** Planet-free, read-only shipboard room for casually browsing line squads. */
+public final class BarracksScreen implements Screen {
 
-    private static final String ROOT_COMPONENT = "fleet-armory-overview";
+    private static final String ROOT_COMPONENT = "shipboard-barracks";
     private static final List<String> COMPONENT_PATHS = List.of(
             "data/ui/components/marine-ops-page-nav.mlx",
-            "data/ui/components/armory/fleet-armory-overview.mlx",
-            "data/ui/components/armory/armory-company-list.mlx");
+            "data/ui/components/company/shipboard-barracks.mlx");
 
     private final Reactor reactor = new Reactor();
     private final MarkupLoader markup = new MarkupLoader(
             path -> Global.getSettings().loadText(path), COMPONENT_PATHS);
+    private final BattleSprites battleSprites = new BattleSprites();
+    private final ArmoryPreviewAssets marineAssets = new ArmoryPreviewAssets();
 
     private MarineOpsContext context;
     private Runnable dismissDialog;
     private MarineRoster roster;
-    private FleetArmoryOverviewViewModel viewModel;
+    private BarracksViewModel viewModel;
     private UiViewport viewport;
     private UiDocument document;
     private MarkupInstance markupInstance;
     private StarsectorUiInputAdapter input;
+    private BarracksBattleScene battleScene;
+    private double previewSeconds;
     private int projectedCampaignHour = Integer.MIN_VALUE;
 
     @Override
@@ -51,40 +55,38 @@ public final class FleetArmoryOverviewScreen implements Screen {
         MarineRosterScript script = MarineRosterScript.getInstance();
         MarineRoster liveRoster = script != null ? script.roster() : null;
         if (liveRoster == null) {
-            context.returnFromArmory();
+            context.goTo(ScreenId.COMPANY_HQ);
             return;
         }
-        liveRoster.bootstrapInitialComplement(MarineSquad.CAPACITY);
-        liveRoster.reserveSquad();
         if (viewModel == null || roster != liveRoster) {
             closeDocument();
             roster = liveRoster;
-            viewModel = new FleetArmoryOverviewViewModel(reactor, roster,
-                    () -> context.openFleetArmoryWorkspaceFrom(
-                            ScreenId.FLEET_ARMORY_OVERVIEW), CampaignClock::dayFloat);
+            viewModel = new BarracksViewModel(reactor, roster, CampaignClock::dayFloat);
         } else {
             viewModel.refresh();
         }
         projectedCampaignHour = campaignHour();
-        if (document == null) installDocument(true);
+        if (document == null) installDocument();
         document.layout(viewport.documentWidth(), viewport.documentHeight());
         input = new StarsectorUiInputAdapter(document, viewport);
     }
 
-    private void installDocument(boolean reloadSource) {
-        PreparedReload prepared = reloadSource
-                ? markup.prepareReload(reactor, ROOT_COMPONENT, props()) : null;
-        MarkupInstance candidate = prepared == null
-                ? markup.build(reactor, ROOT_COMPONENT, props()) : prepared.instance();
+    private void installDocument() {
+        MarkupInstance candidate = markup.reloadAndBuild(reactor, ROOT_COMPONENT, props());
         UiDocument built;
         try {
             requireWiredElements(candidate);
-            candidate.requireElement("company-overview-summary")
-                    .align(UiAlign.STRETCH, UiAlign.CENTER);
             built = new UiDocument(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
-            built.theme(MarineOpsThemes.standard())
-                    .onCancel(() -> context.returnFromArmory());
+            built.theme(MarineOpsThemes.standard()).onCancel(this::close);
+            battleSprites.ensureLayeredUnitSprites();
+            battleSprites.ensureTileSheet();
+            battleSprites.ensureRoadSheet();
+            if (battleScene == null) battleScene = new BarracksBattleScene(battleSprites);
+            built.canvases().set(candidate.requireElement("barracks-canvas"),
+                    new BarracksCanvas(viewModel::sceneMarines, marineAssets,
+                            battleSprites::tileSheet, battleScene,
+                            () -> previewSeconds));
             if (viewport != null) {
                 built.layout(viewport.documentWidth(), viewport.documentHeight());
             }
@@ -95,46 +97,48 @@ public final class FleetArmoryOverviewScreen implements Screen {
 
         UiDocument previousDocument = document;
         MarkupInstance previousInstance = markupInstance;
-        if (prepared != null) prepared.commit();
         document = built;
         markupInstance = candidate;
         if (previousDocument != null) previousDocument.deactivateInput();
         if (previousInstance != null) previousInstance.close();
-        if (viewport != null) input = new StarsectorUiInputAdapter(document, viewport);
     }
 
     private Map<String, Object> props() {
         Map<String, Object> props = new LinkedHashMap<>();
-        props.put("fleetSummary", viewModel.fleetSummary());
-        props.put("companyCards", viewModel.companyCards());
-        putPageNavigation(props);
-        return props;
-    }
-
-    private void putPageNavigation(Map<String, Object> props) {
-        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.ARMORY,
-                dismissDialog,
+        props.put("squadRows", viewModel.squadRows());
+        props.put("musterRows", viewModel.musterRows());
+        props.put("selectedSquadName", viewModel.selectedSquadName());
+        props.put("selectedSquadSummary", viewModel.selectedSquadSummary());
+        props.put("quartersStatus", viewModel.quartersStatus());
+        MarineOpsPageNav.put(props, MarineOpsPageNav.Page.BARRACKS,
+                this::close,
                 () -> context.goTo(ScreenId.COMPANY_HQ),
-                () -> context.goTo(ScreenId.BARRACKS),
                 () -> { },
+                () -> context.openCompanyArmoryFrom(ScreenId.BARRACKS),
                 () -> context.goTo(ScreenId.MECH_LAB));
+        return props;
     }
 
     private static void requireWiredElements(MarkupInstance component) {
         for (String id : List.of(
-                "fleet-armory-overview-root", "marine-ops-page-nav",
-                "page-nav-return", "page-nav-hq", "page-nav-barracks",
-                "page-nav-armory", "page-nav-mech-lab",
-                "company-overview-intro", "company-overview-summary",
-                "company-list")) {
+                "barracks-root", "marine-ops-page-nav", "page-nav-return",
+                "page-nav-hq", "page-nav-barracks", "page-nav-armory",
+                "page-nav-mech-lab", "barracks-room-bar", "barracks-body",
+                "barracks-squad-list", "barracks-stage", "barracks-canvas",
+                "barracks-muster-list")) {
             component.requireElement(id);
         }
     }
 
+    private void close() {
+        if (dismissDialog != null) dismissDialog.run();
+    }
+
     @Override
     public void advance(float dt) {
+        previewSeconds += Math.max(0f, dt);
         int currentHour = campaignHour();
-        if (currentHour != projectedCampaignHour) {
+        if (viewModel != null && currentHour != projectedCampaignHour) {
             projectedCampaignHour = currentHour;
             viewModel.refresh();
         }
@@ -159,14 +163,17 @@ public final class FleetArmoryOverviewScreen implements Screen {
     @Override
     public void detach() {
         if (document != null) document.deactivateInput();
+        if (battleScene != null) battleScene.close();
         input = null;
     }
 
     private void closeDocument() {
         if (document != null) document.deactivateInput();
         if (markupInstance != null) markupInstance.close();
+        if (battleScene != null) battleScene.close();
         document = null;
         markupInstance = null;
         input = null;
+        battleScene = null;
     }
 }

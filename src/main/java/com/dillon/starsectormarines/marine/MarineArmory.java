@@ -66,21 +66,33 @@ public final class MarineArmory implements Serializable {
         return ownedEquipmentTemplateIds.add(id);
     }
     public boolean ownsPrimaryTemplate(MarineWeapon weapon, EquipmentGrade grade) {
-        return weapon != null && grade != null
-                && ownsEquipmentTemplate(EquipmentTemplateCatalog.primaryId(weapon, grade));
+        return weapon != null && ownsPrimaryTemplate(weapon.id, grade);
+    }
+    public boolean ownsPrimaryTemplate(String weaponId, EquipmentGrade grade) {
+        return weaponId != null && grade != null
+                && ownsEquipmentTemplate(EquipmentTemplateCatalog.primaryId(weaponId, grade));
     }
     public boolean ownsArmorTemplate(MarineArmorPattern armor) {
-        return armor != null && ownsEquipmentTemplate(EquipmentTemplateCatalog.armorId(armor));
+        return armor != null && ownsArmorTemplate(armor.id);
+    }
+    public boolean ownsArmorTemplate(String armorId) {
+        return armorId != null
+                && ownsEquipmentTemplate(EquipmentTemplateCatalog.armorId(armorId));
     }
     public boolean ownsSpecialTemplate(MarineSecondary special) {
-        return special != null
-                && ownsEquipmentTemplate(EquipmentTemplateCatalog.specialId(special));
+        return special != null && ownsSpecialTemplate(special.specialEquipmentId);
+    }
+    public boolean ownsSpecialTemplate(String specialId) {
+        return specialId != null
+                && ownsEquipmentTemplate(EquipmentTemplateCatalog.specialId(specialId));
     }
     public boolean canAuthorWeaponDoctrine(List<SquadWeaponIssue> issues) {
         if (issues == null || issues.size() != MarineSquad.CAPACITY) return false;
         for (SquadWeaponIssue issue : issues) {
-            if (issue == null || !ownsPrimaryTemplate(issue.primary(), issue.grade())
-                    || (issue.special() != null && !ownsSpecialTemplate(issue.special()))) {
+            if (issue == null || !ownsPrimaryTemplate(issue.primaryId(), issue.grade())
+                    || (issue.specialEquipmentId() != null
+                    && (issue.special() == null
+                    || !ownsSpecialTemplate(issue.specialEquipmentId())))) {
                 return false;
             }
         }
@@ -90,6 +102,13 @@ public final class MarineArmory implements Serializable {
         if (issues == null || issues.size() != MarineSquad.CAPACITY) return false;
         for (MarineArmorPattern armor : issues) {
             if (!ownsArmorTemplate(armor)) return false;
+        }
+        return true;
+    }
+    public boolean canAuthorArmorDoctrineIds(List<String> issueIds) {
+        if (issueIds == null || issueIds.size() != MarineSquad.CAPACITY) return false;
+        for (String armorId : issueIds) {
+            if (!ownsArmorTemplate(armorId)) return false;
         }
         return true;
     }
@@ -142,6 +161,12 @@ public final class MarineArmory implements Serializable {
                 displayName, issues, true);
     }
 
+    public SquadArmorDoctrine createArmorDoctrineIds(
+            String displayName, List<String> issueIds) {
+        return createArmorDoctrineIds("custom:armor:" + UUID.randomUUID(),
+                displayName, issueIds, true);
+    }
+
     public SquadWeaponDoctrine cloneWeaponDoctrine(String sourceId) {
         SquadWeaponDoctrine source = weaponDoctrineById(sourceId);
         return source != null
@@ -151,7 +176,7 @@ public final class MarineArmory implements Serializable {
     public SquadArmorDoctrine cloneArmorDoctrine(String sourceId) {
         SquadArmorDoctrine source = armorDoctrineById(sourceId);
         return source != null
-                ? createArmorDoctrine(source.displayName() + " Copy", source.issues()) : null;
+                ? createArmorDoctrineIds(source.displayName() + " Copy", source.issueIds()) : null;
     }
 
     public boolean renameWeaponDoctrine(String id, String displayName) {
@@ -167,8 +192,8 @@ public final class MarineArmory implements Serializable {
         int index = customArmorDoctrineIndex(id);
         if (index < 0 || displayName == null || displayName.isBlank()) return false;
         SquadArmorDoctrine existing = customArmorDoctrines.get(index);
-        customArmorDoctrines.set(index, new SquadArmorDoctrine(
-                existing.id(), displayName, existing.description(), existing.issues()));
+        customArmorDoctrines.set(index, SquadArmorDoctrine.fromIds(
+                existing.id(), displayName, existing.description(), existing.issueIds()));
         return true;
     }
 
@@ -472,6 +497,22 @@ public final class MarineArmory implements Serializable {
         }
         SquadArmorDoctrine doctrine = new SquadArmorDoctrine(
                 id, displayName, "Player-authored squad armour definition.", issues);
+        customArmorDoctrines.add(doctrine);
+        return doctrine;
+    }
+
+    private SquadArmorDoctrine createArmorDoctrineIds(
+            String id, String displayName, List<String> issueIds,
+            boolean requireOwnedTemplates) {
+        if (armorDoctrineById(id) != null) {
+            throw new IllegalArgumentException("Armor doctrine id already exists: " + id);
+        }
+        if (requireOwnedTemplates && !canAuthorArmorDoctrineIds(issueIds)) {
+            throw new IllegalArgumentException(
+                    "Armor definition requires an unowned equipment template");
+        }
+        SquadArmorDoctrine doctrine = SquadArmorDoctrine.fromIds(
+                id, displayName, "Player-authored squad armour definition.", issueIds);
         customArmorDoctrines.add(doctrine);
         return doctrine;
     }
