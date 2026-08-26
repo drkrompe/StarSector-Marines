@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.command.trace;
 import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
+import com.dillon.starsectormarines.battle.command.AssaultSearchSnapshot;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.SabotageSiteSnapshot;
 import com.dillon.starsectormarines.battle.command.SabotageDefenseSnapshot;
@@ -287,6 +288,8 @@ public final class CommandTraceRecorder {
         out.append(']');
         if (snapshot.detail() instanceof ConquestFrontSnapshot conquest) {
             conquest(out, conquest);
+        } else if (snapshot.detail() instanceof AssaultSearchSnapshot assault) {
+            assault(out, assault);
         } else if (snapshot.detail() instanceof SabotageSiteSnapshot sabotage) {
             sabotage(out, sabotage);
         } else if (snapshot.detail() instanceof SabotageDefenseSnapshot defense) {
@@ -441,6 +444,57 @@ public final class CommandTraceRecorder {
         for (int i = 0; i < actions.size(); i++) {
             if (i > 0) out.append(',');
             sabotageAction(out, actions.get(i));
+        }
+        out.append("]}");
+    }
+
+    private static void assault(StringBuilder out,
+                                AssaultSearchSnapshot snapshot) {
+        out.append(",\"assault\":{");
+        rawField(out, "phase", snapshot.phase().name());
+        numberField(out, "searchPass", snapshot.searchPass());
+        List<AssaultSearchSnapshot.SectorState> sectors =
+                new ArrayList<>(snapshot.sectors());
+        sectors.sort(Comparator.comparingInt(
+                AssaultSearchSnapshot.SectorState::index));
+        out.append(",\"sectors\":[");
+        for (int i = 0; i < sectors.size(); i++) {
+            if (i > 0) out.append(',');
+            AssaultSearchSnapshot.SectorState sector = sectors.get(i);
+            out.append('{');
+            rawNumberField(out, "index", sector.index());
+            numberField(out, "minCellX", sector.minCellX());
+            numberField(out, "minCellY", sector.minCellY());
+            numberField(out, "width", sector.width());
+            numberField(out, "height", sector.height());
+            field(out, "status", sector.status().name());
+            numberField(out, "visitedLegs", sector.visitedLegs());
+            numberField(out, "totalLegs", sector.totalLegs());
+            numberField(out, "believedContacts", sector.believedContacts());
+            numberField(out, "freshestContactTick", sector.freshestContactTick());
+            numberField(out, "assignedSquads", sector.assignedSquads());
+            numberField(out, "leadTargetCellX", sector.leadTargetCellX());
+            numberField(out, "leadTargetCellY", sector.leadTargetCellY());
+            out.append('}');
+        }
+        out.append(']');
+        List<AssaultSearchSnapshot.SquadDirective> actions =
+                new ArrayList<>(snapshot.directives());
+        actions.sort(Comparator.comparingInt(
+                AssaultSearchSnapshot.SquadDirective::squadId));
+        out.append(",\"actions\":[");
+        for (int i = 0; i < actions.size(); i++) {
+            if (i > 0) out.append(',');
+            AssaultSearchSnapshot.SquadDirective action = actions.get(i);
+            out.append('{');
+            rawNumberField(out, "squadId", action.squadId());
+            numberField(out, "sectorIndex", action.sectorIndex());
+            field(out, "reason", action.reason().name());
+            nullableField(out, "assignmentKind", action.assignmentKind() != null
+                    ? action.assignmentKind().name() : null);
+            numberField(out, "targetCellX", action.targetCellX());
+            numberField(out, "targetCellY", action.targetCellY());
+            out.append('}');
         }
         out.append("]}");
     }

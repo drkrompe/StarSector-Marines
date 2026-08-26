@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
+import com.dillon.starsectormarines.battle.command.AssaultSearchSnapshot;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.SabotageSiteSnapshot;
 import com.dillon.starsectormarines.battle.command.SabotageDefenseSnapshot;
@@ -174,6 +175,28 @@ class SquadPlanDebugPanelTest {
                 SquadPlanDebugPanel.sabotageOrderSummary(directive));
         assertEquals("Site SAB-01 2.0/8.0   PLANTER_ACTIVE   Security 2   Press 4.0/3.0",
                 SquadPlanDebugPanel.sabotageSiteSummary(snapshot, directive));
+    }
+
+    @Test
+    void selectedSquadSummariesExplainAssaultSearchCoverage() {
+        AssaultSearchSnapshot.SectorState sector =
+                new AssaultSearchSnapshot.SectorState(2, 20, 10, 10, 8,
+                        AssaultSearchSnapshot.SectorStatus.SUSPECTED,
+                        3, 9, 1, 40, 2, 24, 13);
+        AssaultSearchSnapshot.SquadDirective directive =
+                new AssaultSearchSnapshot.SquadDirective(9, 2,
+                        AssaultSearchSnapshot.AssignmentReason
+                                .SUSPECTED_CONTACT_REINFORCEMENT,
+                        AssignmentKind.SWEEP_SECTOR, 24, 13);
+        AssaultSearchSnapshot snapshot = new AssaultSearchSnapshot(44, 42,
+                Faction.MARINE, AssaultSearchSnapshot.Phase.CONVERGE, 1,
+                List.of(sector), List.of(), List.of(directive));
+
+        assertEquals("Search order SWEEP_SECTOR   Sector S3   Target 24,13"
+                        + "   Reason SUSPECTED_CONTACT_REINFORCEMENT",
+                SquadPlanDebugPanel.assaultOrderSummary(directive));
+        assertEquals("Sector SUSPECTED   Coverage 3/9   Contacts 1   Squads 2",
+                SquadPlanDebugPanel.assaultSectorSummary(snapshot, directive));
     }
 
     @Test

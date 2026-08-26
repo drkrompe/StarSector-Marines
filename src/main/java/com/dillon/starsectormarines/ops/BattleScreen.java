@@ -35,6 +35,7 @@ import com.dillon.starsectormarines.battle.ui.panel.TickProfileDebugPanel;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.highlight.CommanderInfluenceOverlayPublisher;
 import com.dillon.starsectormarines.battle.ui.highlight.ConquestCommanderOverlayPublisher;
+import com.dillon.starsectormarines.battle.ui.highlight.AssaultCommanderOverlayPublisher;
 import com.dillon.starsectormarines.battle.ui.highlight.SabotageCommanderOverlayPublisher;
 import com.dillon.starsectormarines.battle.ui.highlight.SelectionHighlightPublisher;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
@@ -488,11 +489,15 @@ public class BattleScreen implements Screen, BattleUiContext {
                     sim.getCommanderSnapshot(debugConquestPerspective),
                     sim.getGrid().getWidth(), sim.getGrid().getHeight(),
                     selection.getSelectedSquadId());
+            AssaultCommanderOverlayPublisher.publish(highlights,
+                    sim.getCommanderSnapshot(debugConquestPerspective),
+                    selection.getSelectedSquadId());
             SabotageCommanderOverlayPublisher.publish(highlights,
                     sim.getCommanderSnapshot(debugConquestPerspective),
                     selection.getSelectedSquadId());
         } else {
             ConquestCommanderOverlayPublisher.clear(highlights);
+            AssaultCommanderOverlayPublisher.clear(highlights);
             SabotageCommanderOverlayPublisher.clear(highlights);
         }
         // Roof alpha lerp runs on real dt (not sim-scaled) so the fog-of-war
