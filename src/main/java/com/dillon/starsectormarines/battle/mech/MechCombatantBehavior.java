@@ -39,7 +39,7 @@ public final class MechCombatantBehavior implements UnitBehavior {
 
         float dist = TacticalScoring.cellDistance(sim.world().x(u), sim.world().y(u), sim.world().x(target), sim.world().y(target));
         boolean inRange = dist <= sim.world().attackRange(u);
-        boolean visible = sim.getGrid().hasLineOfSight(sim.world().cellX(u), sim.world().cellY(u), sim.world().cellX(target), sim.world().cellY(target));
+        boolean visible = sim.getTacticalScoring().hasClearShot(u, target);
 
         // The fire pass runs OUTSIDE the marine's `inRange && visible` gate
         // because LRMs are indirect-fire-capable: a mech with line of sight

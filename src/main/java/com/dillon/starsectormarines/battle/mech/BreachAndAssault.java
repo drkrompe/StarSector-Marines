@@ -187,9 +187,7 @@ public final class BreachAndAssault implements Action {
                 sim.world().x(member), sim.world().y(member),
                 sim.world().x(target), sim.world().y(target));
         if (distance > sim.world().attackRange(member)) return;
-        boolean visible = sim.getGrid().hasLineOfSight(
-                sim.world().cellX(member), sim.world().cellY(member),
-                sim.world().cellX(target), sim.world().cellY(target));
+        boolean visible = sim.getTacticalScoring().hasClearShot(member, target);
         MechCombatantBehavior.tryFireMechWeapons(
                 member, loadout, target, distance, sim, visible);
     }

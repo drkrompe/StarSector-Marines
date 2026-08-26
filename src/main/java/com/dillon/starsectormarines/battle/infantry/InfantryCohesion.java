@@ -57,8 +57,7 @@ public final class InfantryCohesion {
                     (float) (sim.world().x(target) - sim.world().x(self)) * (sim.world().x(target) - sim.world().x(self))
                   + (float) (sim.world().y(target) - sim.world().y(self)) * (sim.world().y(target) - sim.world().y(self)));
             if (td <= sim.world().attackRange(self)
-                    && sim.getGrid().hasLineOfSight(sim.world().cellX(self), sim.world().cellY(self),
-                            sim.world().cellX(target), sim.world().cellY(target))) {
+                    && sim.getTacticalScoring().hasClearShot(self, target)) {
                 return null;
             }
         }
