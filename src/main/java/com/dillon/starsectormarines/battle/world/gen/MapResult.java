@@ -59,6 +59,16 @@ public final class MapResult {
      */
     public final List<Gantry> gantries;
     /**
+     * Authored work points inside fitted compartments, ordered deterministically
+     * by the fittings that emitted them. Empty for generators whose rooms are
+     * not fitted out.
+     *
+     * <p>Read by ambient life to decide where idle crew have business, and by a
+     * facility to count what it can still do — a task point is the capacity, so
+     * the room and the number cannot disagree. See {@link TaskPoint}.
+     */
+    public final List<TaskPoint> taskPoints;
+    /**
      * Authored tactical hint graph the battle AI uses for squad allocation and
      * fallback routing. Never null — generators with no tactical layer return
      * an empty {@link TacticalMap}. See {@link TacticalMap} for the queries
@@ -203,7 +213,8 @@ public final class MapResult {
                      BiomeMap biomeMap) {
         this(grid, topology, marineSpawnX, marineSpawnY, defenderSpawnX, defenderSpawnY,
                 pointsOfInterest, doodads, tacticalMap, buildings, defensePosts, roadGraph,
-                landingPads, landingAreas, biomeMap, Collections.emptyList());
+                landingPads, landingAreas, biomeMap, Collections.emptyList(),
+                Collections.emptyList());
     }
 
     public MapResult(NavigationGrid grid, CellTopology topology,
@@ -218,7 +229,8 @@ public final class MapResult {
                      List<LandingPad> landingPads,
                      List<LandingArea> landingAreas,
                      BiomeMap biomeMap,
-                     List<Gantry> gantries) {
+                     List<Gantry> gantries,
+                     List<TaskPoint> taskPoints) {
         this.grid = grid;
         this.topology = topology;
         this.marineSpawnX = marineSpawnX;
@@ -236,5 +248,7 @@ public final class MapResult {
         this.roadGraph = roadGraph;
         this.biomeMap = biomeMap;
         this.gantries = gantries == null ? Collections.emptyList() : List.copyOf(gantries);
+        this.taskPoints = taskPoints == null
+                ? Collections.emptyList() : List.copyOf(taskPoints);
     }
 }

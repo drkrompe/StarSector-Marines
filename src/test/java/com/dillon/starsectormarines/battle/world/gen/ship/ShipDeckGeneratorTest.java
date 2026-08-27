@@ -1,14 +1,19 @@
 package com.dillon.starsectormarines.battle.world.gen.ship;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.TaskPoint;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -85,6 +90,74 @@ class ShipDeckGeneratorTest {
                 }
             }
         }
+    }
+
+    /**
+     * A furnished bay, and somewhere in it to work.
+     *
+     * <p>Both halves are here because the bay once passed every structural test
+     * while containing nothing whatsoever: its berth reserved the full depth of
+     * the module, so the station placed inside that reservation was refused and
+     * the frame runs were never placed at all. Marked-out floor and clear berths
+     * are exactly what that failure looks like from the outside, which is why
+     * this asserts fixtures and work rather than shape.
+     */
+    @Test
+    void vehicleBayIsFurnishedAndOffersWork() {
+        for (long seed : SEEDS) {
+            ShipDeckGenerator generator = new ShipDeckGenerator();
+            MapResult map = generator.generateDeck(
+                    DeckSizing.planFor(HullClass.CRUISER, HullRole.TROOP_TRANSPORT,
+                            10, 250, 50, 0.28f),
+                    seed, null);
+
+            DeckGraph.Compartment bay = generator.getLastDeckGraph().compartments().stream()
+                    .filter(c -> c.purpose() == RoomPurpose.VEHICLE_BAY)
+                    .findFirst().orElse(null);
+            assertNotNull(bay, "seed " + seed + ": a transport deck placed no vehicle bay");
+
+            int fixtures = 0;
+            for (Doodad doodad : map.doodads) {
+                if (within(bay, doodad.cellX, doodad.cellY) && doodad.cover != Doodad.COVER_NONE) {
+                    fixtures++;
+                }
+            }
+            assertTrue(fixtures > 0, "seed " + seed + ": the vehicle bay is painted floor and "
+                    + "nothing else");
+
+            // Every berth is worked from both shoulders of its bay, so a bay
+            // with a machine in it has somebody at it and an empty one does not.
+            Set<Integer> served = new HashSet<>();
+            Set<Affordance> offered = EnumSet.noneOf(Affordance.class);
+            Set<Long> cells = new HashSet<>();
+            for (TaskPoint point : map.taskPoints) {
+                offered.add(point.affordance());
+                assertTrue(cells.add(((long) point.cellX() << 32) ^ (point.cellY() & 0xffffffffL)),
+                        "seed " + seed + ": two task points share cell "
+                                + point.cellX() + "," + point.cellY());
+                assertTrue(map.grid.isWalkable(point.cellX(), point.cellY()),
+                        "seed " + seed + ": task point " + point.cellX() + ","
+                                + point.cellY() + " is somewhere nobody can stand");
+                if (point.berth() == TaskPoint.NO_BERTH) continue;
+                assertTrue(point.berth() >= 0 && point.berth() < map.gantries.size(),
+                        "seed " + seed + ": task point serves berth " + point.berth()
+                                + " of " + map.gantries.size());
+                assertEquals(Affordance.SERVICE, point.affordance(),
+                        "seed " + seed + ": only servicing is done on a berthed machine");
+                served.add(point.berth());
+            }
+            assertEquals(map.gantries.size(), served.size(),
+                    "seed " + seed + ": some berth has nowhere to be worked on from");
+            assertTrue(offered.contains(Affordance.READOUT),
+                    "seed " + seed + ": no bay published a terminal to read a machine off");
+            assertTrue(offered.contains(Affordance.STOW),
+                    "seed " + seed + ": no bay published stores anyone has business at");
+        }
+    }
+
+    /** Whether a cell falls inside a compartment's own footprint. */
+    private static boolean within(DeckGraph.Compartment compartment, int x, int y) {
+        return compartment.shape().contains(x - compartment.left(), y - compartment.top());
     }
 
     /** The map has to be somewhere a battle can actually run: connected, in-bounds, with usable spawns. */

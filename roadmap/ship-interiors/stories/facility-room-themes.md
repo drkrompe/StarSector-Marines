@@ -4,9 +4,9 @@ Status: IN PROGRESS
 
 Written: 2026-08-26
 
-Updated: 2026-08-26 — rooms now arrive packed at authored footprints with real
-doors, so the fill has a compartment and its entries to work from. Capacity is
-now a property of the **refit**, not of the room's size.
+Updated: 2026-08-27 — the mech bay is furnished and publishes affordances and
+task points. Berths, lounge extent and firing lanes in the barracks, and the
+density and empty-region sweeps, remain.
 
 Read `ship-interiors-nouns.md` before implementing this story, especially the
 Fill quality section and law 9. Depends on `ship-deck-family.md`.
