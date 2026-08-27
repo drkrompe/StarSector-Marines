@@ -4,7 +4,7 @@ Status: ACTIVE — the model is authored; no generator, facility, or adoption sl
 
 Written: 2026-08-26
 
-Updated: 2026-08-26 — added the hull-size and growth model (complement plus hold, more decks past the playable envelope), hull silhouettes, the law that a deck is only ever looked at through the battle renderer, gantries as authored berths that make the home deck's vehicle bay the Mech Lab, and room views as the way operations screens address parts of the ship.
+Updated: 2026-08-26 — added the hull-size and growth model (complement plus hold, more decks past the playable envelope), hull silhouettes, the law that a deck is only ever looked at through the battle renderer, gantries as authored berths that make the home deck's vehicle bay the Mech Lab, room views as the way operations screens address parts of the ship, and the company ship as a hull the player chooses out of their own fleet.
 
 Ship interiors is the model for navigable shipboard space: the decks a mercenary
 company lives and works on, the facilities it operates and grows, and the hostile
@@ -62,6 +62,12 @@ authored content.
   same division a landing pad has with a shuttle, and it is what lets one
   generated bay be the player's own lab on the home deck, a half-empty bay on a
   prize hull, and a contested objective in a boarding action.
+- The **company ship** is the hull out of the player's own fleet that the
+  company lives aboard. It is chosen at founding and can be transferred to
+  another ship later, which makes it a decision rather than a fact about the
+  save. Its deck is generated from the ship as it is presently fitted and
+  presently damaged, so acquiring a better hull and refitting the one you have
+  are two independent ways to change the interior. See `company-ship.md`.
 - A **room view** is an operations screen's camera framed on one compartment of
   a deck. The Mech Lab is a room view of the vehicle bay; a berthing screen
   would be a room view of the barracks. A room view names a purpose and the deck
@@ -159,17 +165,17 @@ authored content.
 
 ## Home decks and prize decks
 
-The company's flagship and a boarding target are the **same product of the same
+The company ship and a boarding target are the **same product of the same
 generator**, differing in parameters rather than pipeline:
 
 | | Home deck | Prize deck |
 |---|---|---|
 | Faction and threat | friendly; ambient threat policy admits no combatants | hostile garrison |
-| Who chooses the rooms | the company's owned facilities and their upgrade level | the campaign-resolved target's class and role |
+| Who chooses the rooms | the company ship as it is presently fitted and damaged | the campaign-resolved target's class and role |
 | How it is entered | a room view, continuously | a mission, with a breach point |
 | What changes it | an upgrade transaction | battle damage, for the duration |
 
-This is less of a leap than it looks. The flagship spaces already run a real
+This is less of a leap than it looks. The shipboard rooms already run a real
 bounded battle simulation with real fixtures, real navigation, and a threat
 policy set to admit nobody; the marine practice range already fires live rounds
 through it. A home deck is already a battle map that happens to have no enemies
@@ -258,7 +264,7 @@ half.
 
 ## Fill quality
 
-The flagship rooms that exist today are the reference for *structure* and the
+The shipboard rooms that exist today are the reference for *structure* and the
 counter-example for *fill*. Four gantries with service access, berths along the
 hull, a practice range behind a blast wall — those arrangements are sound. What
 they contain is not, and a generated compartment that reproduced them would
@@ -388,6 +394,19 @@ it is presentation-only by charter. The tactical articulation of a bay is a
     renderer has no concept of — room purpose, zone cuts, which opening is a
     door — is a legitimate second view, but it annotates the render or
     abandons the pretence of being one.
+17. **A deck is generated from the ship as it is, not from the hull it was.**
+    Crew, cargo and lift are read from the ship in the fleet, where the game
+    already reports them with every refit and every point of battle damage
+    folded in. So a hull mod that adds berthing adds berths, and battle damage
+    that costs a ship its life support costs the company its bunks, without
+    either being modelled a second time here. A deck sized from the hull
+    specification is a deck of a ship the player does not own.
+18. **A facility the ship cannot hold is absent, not empty.** The program
+    already gates rooms the hull has no room for, and the deck already reports
+    what it could not place. A screen for a facility the ship cannot host says
+    so; it does not open onto a bare compartment. An empty room and a missing
+    one are different facts, and only one of them is a reason to go and find a
+    better ship — which is the whole argument for the next hull.
 
 ## Boundaries
 

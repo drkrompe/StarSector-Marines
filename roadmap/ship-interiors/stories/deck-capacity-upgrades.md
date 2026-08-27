@@ -5,7 +5,7 @@ Status: PROPOSED — gated on a named economic owner.
 Written: 2026-08-26
 
 Read `ship-interiors-nouns.md` before implementing this story. Depends on
-`flagship-deck-adoption.md`.
+`company-ship-deck-adoption.md`.
 
 Make facility capacity spatial, then let a bounded upgrade transaction change the
 room. This is the story the whole model exists for: buying bay space adds a
@@ -18,7 +18,7 @@ Ship interiors is not an economic authority. This story cannot start until an
 owner is named for what an upgrade costs, where the money comes from, and how a
 purchase is transacted — progression and campaign are the candidates. The
 `backlog.md` entry *Personnel scale* anticipates exactly this: it defers a
-capacity model until company growth has a concrete campaign pressure. A flagship
+capacity model until company growth has a concrete campaign pressure. A company ship
 with a countable number of berths is that pressure. Resolve the ownership
 question before contracting the work, and record the answer in the owning noun
 doc rather than here.
