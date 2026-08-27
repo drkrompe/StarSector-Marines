@@ -20,7 +20,7 @@ import org.json.JSONObject;
 
 /**
  * Diagnostic dumper for a selected convoy vehicle. Writes a JSON snapshot
- * to {@code saves/common/starsector_marines/debug/vehicle_state.json},
+ * to {@code saves/common/starsector_marines/debug/vehicle_state.json.data},
  * overwritten each time. Includes current state, path waypoints, tick
  * history ring buffer, and a local walkability grid sample around the
  * vehicle for offline analysis of stuck-in-wall scenarios.
@@ -80,11 +80,21 @@ public final class VehicleStateDumper {
             root.put("history", historyJson(v));
             root.put("localGrid", localGridJson(body, grid));
 
-            Global.getSettings().writeJSONToCommon(PATH, root, true);
-            LOG.info("VehicleStateDumper: wrote saves/common/" + PATH);
+            writeSnapshot(root);
+            LOG.info("VehicleStateDumper: wrote saves/common/" + PATH + ".data");
         } catch (Exception ex) {
             LOG.warn("VehicleStateDumper: dump failed", ex);
         }
+    }
+
+    /**
+     * Write synchronously so the success log means the snapshot reached disk.
+     * Starsector's {@code onlyIfChanged=true} path delegates to a shared
+     * background writer; if that worker has stopped, the API still returns
+     * successfully after merely queueing the write.
+     */
+    static void writeSnapshot(JSONObject root) throws Exception {
+        Global.getSettings().writeJSONToCommon(PATH, root, false);
     }
 
     private static JSONArray waypointsJson(float[] xs, float[] ys) throws Exception {
