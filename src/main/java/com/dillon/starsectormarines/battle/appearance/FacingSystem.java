@@ -53,6 +53,27 @@ public final class FacingSystem {
      * above it. The only genuine motion below it is the final sub-step of an
      * arrival pin, where idling one tick early is invisible.
      */
+    /**
+     * Point a mech that is not going anywhere, and leave it pointed.
+     *
+     * <p>For scenes that hold a still deck rather than run one: a berthed
+     * machine has no velocity and no target, so the per-tick derivation below
+     * has nothing to derive a heading from, and a scene that never ticks would
+     * not run it anyway. Writing the steering heading alone is not enough
+     * — the render reads the layered columns, and the tick that would normally
+     * carry one to the other is exactly what is missing here.
+     */
+    public static void faceStanding(EntityWorld world, BattleComponents components,
+                                    long id, float degrees) {
+        float heading = LayeredAppearance.wrapDegrees(degrees);
+        world.setFloat(id, components.MECH_LOCOMOTION,
+                BattleComponents.MECH_LOCOMOTION_FACING_DEGREES, heading);
+        world.setFloat(id, components.MECH_LAYERED_ANIMATION,
+                BattleComponents.MECH_LAYERED_FACING_DEGREES, heading);
+        world.setFloat(id, components.MECH_LAYERED_ANIMATION,
+                BattleComponents.MECH_LAYERED_HIP_FACING_DEGREES, heading);
+    }
+
     public static final float MIN_TRAVEL_SPEED = 0.5f;
     /** Civilian body/look rotation is visual state, smoothed across path changes. */
     public static final float CIVILIAN_TURN_RATE_DEGREES_PER_SECOND = 180f;

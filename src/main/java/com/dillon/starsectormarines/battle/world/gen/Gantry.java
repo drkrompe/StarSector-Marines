@@ -23,6 +23,18 @@ public final class Gantry {
         public final int dx;
         public final int dy;
 
+        /**
+         * This heading in the battle facing convention, where a unit spawns at
+         * 180 looking south.
+         *
+         * <p>Stated as a rotation of a direction vector rather than written out
+         * per constant, so it stays correct if the convention moves:
+         * {@code atan2(dy, dx) - 90}, the same expression aiming and flight use.
+         */
+        public float degrees() {
+            return (float) Math.toDegrees(Math.atan2(dy, dx)) - 90f;
+        }
+
         Facing(int dx, int dy) {
             this.dx = dx;
             this.dy = dy;

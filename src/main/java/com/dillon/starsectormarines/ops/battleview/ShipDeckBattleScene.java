@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.appearance.FacingSystem;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -147,7 +148,8 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     }
 
     /**
-     * Stand a lance in the deck's berths, in order, and report how many fit.
+     * Stand a lance in the deck's berths, in order, and return the machine in
+     * each, aligned with {@link #gantries()}.
      *
      * <p>Occupancy is the host's call, not the map's, which is why this is a
      * separate step rather than something the constructor does. On the home
@@ -159,10 +161,16 @@ public final class ShipDeckBattleScene implements AutoCloseable {
      * <p>Machines are units, not scenery. They arrive from a roster with their
      * real variant and loadout, so what stands in the bay is the same entity
      * that would walk out of it.
+     *
+     * <p>The ids come back because a screen framed on a berth needs the machine
+     * standing in it — selecting a gantry and selecting the mech being worked on
+     * are the same act, and rediscovering that by searching the roster for
+     * whatever is nearest the berth would be inventing a link that is known here.
      */
-    public int occupyGantries(List<MechVariant> lance) {
-        if (lance == null || lance.isEmpty()) return 0;
+    public long[] occupyGantries(List<MechVariant> lance) {
+        if (lance == null || lance.isEmpty()) return new long[0];
         int berthed = Math.min(lance.size(), gantries.size());
+        long[] machines = new long[berthed];
         for (int index = 0; index < berthed; index++) {
             MechVariant variant = lance.get(index);
             if (variant == null) continue;
@@ -172,9 +180,13 @@ public final class ShipDeckBattleScene implements AutoCloseable {
                     gantry.centerX, gantry.centerY).mechVariant(variant));
             simulation.world().attachMechLoadout(mech,
                     variant.createLoadout(variant.defaultRole));
+            // A berth records the way out, and a machine parked in one faces it.
+            FacingSystem.faceStanding(simulation.getEntityWorld(),
+                    simulation.getBattleComponents(), mech, gantry.facing.degrees());
+            machines[index] = mech;
         }
         simulation.getFogOfWar().tick(0, simulation.getRoster());
-        return berthed;
+        return machines;
     }
 
     public BattleSceneHostPass pass(DeckView view) {

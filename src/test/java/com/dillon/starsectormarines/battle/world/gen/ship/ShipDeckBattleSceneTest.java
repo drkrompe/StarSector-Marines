@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
 import com.dillon.starsectormarines.marine.MechBay;
@@ -16,7 +18,10 @@ import org.junit.jupiter.api.Test;
 import java.awt.image.BufferedImage;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -89,7 +94,7 @@ final class ShipDeckBattleSceneTest {
         try (ShipDeckBattleScene scene = new ShipDeckBattleScene(deck(), SEED)) {
             assertTrue(!scene.gantries().isEmpty(), "the deck authored no berths");
             assertEquals(Math.min(lance.size(), scene.gantries().size()),
-                    scene.occupyGantries(lance),
+                    scene.occupyGantries(lance).length,
                     "the bay berthed a different number of machines than the company owns");
         }
     }
@@ -118,6 +123,44 @@ final class ShipDeckBattleSceneTest {
                 assertTrue(bay.contains(berth.centerX, berth.centerY),
                         "a berth outside the bay was reported as one of its own");
             }
+        }
+    }
+
+    /**
+     * A berthed machine faces the way its berth says it leaves.
+     *
+     * <p>Every berth is filled here rather than only the ones the company owns,
+     * because the berths on one rank of a bay face out one way and those on the
+     * other rank face out the other. Checking the first berth alone would pass
+     * on a machine that had simply kept the heading every unit spawns with.
+     */
+    @Test
+    void berthedMachinesFaceTheWayOut() {
+        ShipDeckGenerator generator = new ShipDeckGenerator();
+        MapResult deck = generator.generateDeck(transportPlan(), SEED, null);
+        try (ShipDeckBattleScene scene = new ShipDeckBattleScene(
+                deck, generator.getLastDeckGraph(), SEED, null)) {
+            List<Gantry> berths = scene.gantries();
+            List<MechVariant> lance = new ArrayList<>();
+            for (int index = 0; index < berths.size(); index++) lance.add(MechVariant.BULWARK);
+
+            long[] machines = scene.occupyGantries(lance);
+            assertEquals(berths.size(), machines.length, "not every berth was filled");
+
+            EntityWorld world = scene.simulation().getEntityWorld();
+            BattleComponents components = scene.simulation().getBattleComponents();
+            Set<Float> headings = new HashSet<>();
+            for (int index = 0; index < machines.length; index++) {
+                float expected = berths.get(index).facing.degrees();
+                float actual = world.getFloat(machines[index],
+                        components.MECH_LAYERED_ANIMATION,
+                        BattleComponents.MECH_LAYERED_FACING_DEGREES);
+                assertEquals(expected, actual, 0.01f,
+                        "the machine in berth " + (index + 1) + " is not facing its way out");
+                headings.add(actual);
+            }
+            assertTrue(headings.size() > 1,
+                    "every berth faced the same way, so this proves nothing about facing");
         }
     }
 
