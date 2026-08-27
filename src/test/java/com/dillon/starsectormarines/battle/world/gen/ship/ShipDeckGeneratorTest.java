@@ -206,6 +206,36 @@ class ShipDeckGeneratorTest {
                 "no deck served the bay's drive-through, so nothing proves two doorways work");
     }
 
+    /**
+     * A bay of a given size berths the same number of machines wherever it is
+     * put.
+     *
+     * <p>Capacity is a facility's fixture count and a player reads it off the
+     * room, so it cannot quietly depend on which hull the company happens to
+     * have bought. It used to: a door landing partway along the bay had a band
+     * cleared the full depth of the room in front of it and every bay
+     * overlapping that band was skipped, so two otherwise identical decks
+     * berthed six machines and eight. The doors are authored now, and the deck
+     * they open onto is part of the arrangement.
+     */
+    @Test
+    void bayCapacityDoesNotDependOnWhereTheDeckPutIt() {
+        int berths = -1;
+        for (long seed : SEEDS) {
+            MapResult map = new ShipDeckGenerator().generateDeck(
+                    DeckSizing.planFor(HullClass.CRUISER, HullRole.TROOP_TRANSPORT,
+                            10, 250, 50, 0.28f),
+                    seed, null);
+            assertTrue(!map.gantries.isEmpty(), "seed " + seed + ": no berths at all");
+            if (berths < 0) {
+                berths = map.gantries.size();
+                continue;
+            }
+            assertEquals(berths, map.gantries.size(),
+                    "seed " + seed + ": the same bay berthed a different number of machines");
+        }
+    }
+
     /** Whether a cell falls inside a compartment's own footprint. */
     private static boolean within(DeckGraph.Compartment compartment, int x, int y) {
         return compartment.shape().contains(x - compartment.left(), y - compartment.top());
