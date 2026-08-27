@@ -125,6 +125,25 @@ public final class DeckGraph {
         return compartments.size();
     }
 
+    /**
+     * The compartment a screen means when it names a purpose, or {@code null}
+     * if the deck has none.
+     *
+     * <p>Largest rather than first placed. A deck may hold more than one room
+     * of a purpose — a second stockroom, a forward parts cage — and a view
+     * asking for the vehicle bay means the one the ship is organized around,
+     * not whichever scrap of that purpose the packer happened to lay down
+     * first.
+     */
+    public Compartment largest(RoomPurpose purpose) {
+        Compartment best = null;
+        for (Compartment candidate : compartments) {
+            if (candidate.purpose() != purpose) continue;
+            if (best == null || candidate.area() > best.area()) best = candidate;
+        }
+        return best;
+    }
+
     /** Rooms the program owed that would not fit. Empty on a correctly sized deck. */
     public List<RoomRecipe> unplaced() {
         return unplaced;

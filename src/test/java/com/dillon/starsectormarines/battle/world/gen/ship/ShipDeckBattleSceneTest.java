@@ -1,7 +1,9 @@
 package com.dillon.starsectormarines.battle.world.gen.ship;
 
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
 import com.dillon.starsectormarines.marine.MechBay;
@@ -93,6 +95,33 @@ final class ShipDeckBattleSceneTest {
     }
 
     /**
+     * A screen names a room; the deck says where it is.
+     *
+     * <p>This is what lets the Mech Lab be a view of the ship rather than a
+     * second garage kept in step with it by hand. The berths it reports have to
+     * be the bay's own — a berth list gathered by index would still look right
+     * on a deck with one bay and quietly frame the wrong machines on a deck
+     * with two.
+     */
+    @Test
+    void theDeckSaysWhereItsVehicleBayIs() {
+        ShipDeckGenerator generator = new ShipDeckGenerator();
+        MapResult deck = generator.generateDeck(transportPlan(), SEED, null);
+        try (ShipDeckBattleScene scene = new ShipDeckBattleScene(
+                deck, generator.getLastDeckGraph(), SEED, null)) {
+            DeckGraph.Compartment bay = scene.room(RoomPurpose.VEHICLE_BAY);
+            assertEquals(RoomPurpose.VEHICLE_BAY, bay.purpose());
+
+            List<Gantry> berths = scene.berthsIn(bay);
+            assertTrue(!berths.isEmpty(), "the vehicle bay reported no berths");
+            for (Gantry berth : berths) {
+                assertTrue(bay.contains(berth.centerX, berth.centerY),
+                        "a berth outside the bay was reported as one of its own");
+            }
+        }
+    }
+
+    /**
      * A troop transport's deck, sized to its own program.
      *
      * <p>Deliberately not a fixed width and height. A vehicle bay is a large
@@ -101,10 +130,12 @@ final class ShipDeckBattleSceneTest {
      * the deck from the program is also what the game does.
      */
     private static MapResult deck() {
-        return new ShipDeckGenerator().generateDeck(
-                DeckSizing.planFor(HullClass.CRUISER, HullRole.TROOP_TRANSPORT,
-                        10, 250, 50, TRANSPORT_ASPECT),
-                SEED, null);
+        return new ShipDeckGenerator().generateDeck(transportPlan(), SEED, null);
+    }
+
+    private static DeckSizing.DeckPlan transportPlan() {
+        return DeckSizing.planFor(HullClass.CRUISER, HullRole.TROOP_TRANSPORT,
+                10, 250, 50, TRANSPORT_ASPECT);
     }
 
     /** Fraction of pixels the renderer actually put something opaque into. */

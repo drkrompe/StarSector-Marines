@@ -4,7 +4,7 @@ Status: ACTIVE — the model is authored; no generator, facility, or adoption sl
 
 Written: 2026-08-26
 
-Updated: 2026-08-26 — added the hull-size and growth model (complement plus hold, more decks past the playable envelope), hull silhouettes, the law that a deck is only ever looked at through the battle renderer, and gantries as authored berths that make the home deck's vehicle bay the Mech Lab.
+Updated: 2026-08-26 — added the hull-size and growth model (complement plus hold, more decks past the playable envelope), hull silhouettes, the law that a deck is only ever looked at through the battle renderer, gantries as authored berths that make the home deck's vehicle bay the Mech Lab, and room views as the way operations screens address parts of the ship.
 
 Ship interiors is the model for navigable shipboard space: the decks a mercenary
 company lives and works on, the facilities it operates and grows, and the hostile
@@ -62,6 +62,12 @@ authored content.
   same division a landing pad has with a shuttle, and it is what lets one
   generated bay be the player's own lab on the home deck, a half-empty bay on a
   prize hull, and a contested objective in a boarding action.
+- A **room view** is an operations screen's camera framed on one compartment of
+  a deck. The Mech Lab is a room view of the vehicle bay; a berthing screen
+  would be a room view of the barracks. A room view names a purpose and the deck
+  answers with a compartment, so two screens onto the same ship see the same
+  fixtures, the same machines, and the same damage — there is one ship, and the
+  screens are places to stand in it.
 - A **berthed machine** is a unit, never scenery. It arrives from a roster with
   its real variant and loadout, so what stands in a bay is the same entity that
   would walk out of it. Berth cells therefore stay clear in the map — a berth
@@ -160,7 +166,7 @@ generator**, differing in parameters rather than pipeline:
 |---|---|---|
 | Faction and threat | friendly; ambient threat policy admits no combatants | hostile garrison |
 | Who chooses the rooms | the company's owned facilities and their upgrade level | the campaign-resolved target's class and role |
-| How it is entered | an operations screen, continuously | a mission, with a breach point |
+| How it is entered | a room view, continuously | a mission, with a breach point |
 | What changes it | an upgrade transaction | battle damage, for the duration |
 
 This is less of a leap than it looks. The flagship spaces already run a real

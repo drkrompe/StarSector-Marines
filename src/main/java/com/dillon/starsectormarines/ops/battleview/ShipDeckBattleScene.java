@@ -10,9 +10,12 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
@@ -27,6 +30,13 @@ import java.util.List;
  * and they differ only in the camera, the layer set, and which drain collects
  * the frame. Authoring evidence, an in-game deck view, and a boarding action all
  * arrive here.
+ *
+ * <p>Rooms are addressable. A deck is one scene, and the screens that look at
+ * parts of the ship — the Mech Lab at its vehicle bay, a berthing screen at its
+ * barracks — are cameras framing a compartment of it rather than separate rooms
+ * built beside it. That is why the compartment graph is carried here and not
+ * left behind with the generator: without it a host can draw the deck but cannot
+ * say which part of it is the room it is a screen for.
  *
  * <p>This owns no HUD, input, audio, or simulation advance. It is a still deck
  * and a camera over it.
@@ -60,16 +70,27 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     private final BattleRenderer renderer;
     private final BattleSimulation simulation;
     private final List<Gantry> gantries;
+    private final DeckGraph rooms;
     private final HighlightOverlay highlights = new HighlightOverlay();
     private final Selection selection = new Selection();
 
     /** Scene model only; a tooling drain brings its own renderer and assets. */
     public ShipDeckBattleScene(MapResult deck, long seed) {
-        this(deck, seed, null);
+        this(deck, null, seed, null);
     }
 
     public ShipDeckBattleScene(MapResult deck, long seed, BattleSprites sprites) {
+        this(deck, null, seed, sprites);
+    }
+
+    /**
+     * @param rooms the deck's compartment graph, or {@code null} for a scene
+     *              nothing will address rooms on
+     */
+    public ShipDeckBattleScene(MapResult deck, DeckGraph rooms, long seed,
+                               BattleSprites sprites) {
         if (deck == null) throw new IllegalArgumentException("a generated deck is required");
+        this.rooms = rooms;
         gantries = deck.gantries;
         simulation = BattleSetup.buildMap(deck, Collections.emptyList(),
                 Collections.emptyList(), seed).sim();
@@ -89,6 +110,40 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     /** The berths this deck authored, in generation order. */
     public List<Gantry> gantries() {
         return gantries;
+    }
+
+    /**
+     * The compartment this deck means by a purpose.
+     *
+     * @throws IllegalStateException if the scene was built without a room graph
+     * @throws IllegalArgumentException if the deck placed no such room
+     */
+    public DeckGraph.Compartment room(RoomPurpose purpose) {
+        if (rooms == null) {
+            throw new IllegalStateException("this deck scene carries no room graph");
+        }
+        DeckGraph.Compartment found = rooms.largest(purpose);
+        if (found == null) {
+            throw new IllegalArgumentException("this deck has no " + purpose);
+        }
+        return found;
+    }
+
+    /**
+     * The berths standing inside one compartment, in generation order.
+     *
+     * <p>A screen framed on a room asks about that room's machines, and a deck
+     * may carry berths in more than one place. Filtering by the compartment's
+     * own floor rather than by index keeps the two facts — which berths exist
+     * and which room they are in — from having to be kept in step by hand.
+     */
+    public List<Gantry> berthsIn(DeckGraph.Compartment compartment) {
+        if (compartment == null) throw new IllegalArgumentException("a compartment is required");
+        List<Gantry> found = new ArrayList<>();
+        for (Gantry gantry : gantries) {
+            if (compartment.contains(gantry.centerX, gantry.centerY)) found.add(gantry);
+        }
+        return List.copyOf(found);
     }
 
     /**
@@ -186,6 +241,31 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         /** Frame a cell rect at a chosen scale. The image is then {@code cells * cellPx}. */
         public static DeckView over(int left, int top, int width, int height, float cellPx) {
             return new DeckView(left + width * 0.5f, top + height * 0.5f, cellPx);
+        }
+
+        /**
+         * Frame a whole compartment, with a margin of the hull around it.
+         *
+         * <p>The surround is not decoration. A room drawn to its own bounds has
+         * its doors clipped off at the frame edge, so a doorway and a gap in the
+         * bulkhead look identical — and which one it is happens to be the thing
+         * a room view is most often opened to check.
+         */
+        public static DeckView over(DeckGraph.Compartment room, int surroundCells,
+                                    float cellPx) {
+            if (room == null) throw new IllegalArgumentException("a compartment is required");
+            int margin = Math.max(0, surroundCells);
+            return over(room.left() - margin, room.top() - margin,
+                    room.width() + margin * 2, room.depth() + margin * 2, cellPx);
+        }
+
+        /** Frame one berth and the working space around it. */
+        public static DeckView on(Gantry berth, int surroundCells, float cellPx) {
+            if (berth == null) throw new IllegalArgumentException("a berth is required");
+            int margin = Math.max(0, surroundCells);
+            return over(berth.left() - margin, berth.bottom() - margin,
+                    berth.right() - berth.left() + 1 + margin * 2,
+                    berth.top() - berth.bottom() + 1 + margin * 2, cellPx);
         }
 
         /** Frame a cell rect into a fixed image, taking whatever scale that implies. */
