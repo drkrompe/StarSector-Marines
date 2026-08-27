@@ -46,7 +46,7 @@ public final class CompartmentFillStage implements GenStage {
 
             int doodads = ctx.doodads.size();
             int berths = ctx.gantries.size();
-            int work = ctx.taskPoints.size();
+            int work = ctx.fixtureTasks.size();
             CompartmentFloor floor = new CompartmentFloor(ctx, compartment, fit);
             fitting.fit(floor);
             if (!floor.circulationSurvives()) {
@@ -59,7 +59,7 @@ public final class CompartmentFillStage implements GenStage {
                 // wrong from the outside.
                 ctx.doodads.subList(doodads, ctx.doodads.size()).clear();
                 ctx.gantries.subList(berths, ctx.gantries.size()).clear();
-                ctx.taskPoints.subList(work, ctx.taskPoints.size()).clear();
+                ctx.fixtureTasks.subList(work, ctx.fixtureTasks.size()).clear();
             }
         }
     }

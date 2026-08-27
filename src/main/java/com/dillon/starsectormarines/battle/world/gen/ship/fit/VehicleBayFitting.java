@@ -315,7 +315,7 @@ public final class VehicleBayFitting implements RoomFitting {
         for (int column : new int[]{ origin, origin + BAY_WIDTH - 1 }) {
             int[] stand = floor.toLocal(column, mouth);
             int[] frame = floor.toLocal(column, inboard);
-            floor.berthTaskPoint(stand[0], stand[1], berth, frame[0], frame[1]);
+            floor.berthFixtureTask(stand[0], stand[1], berth, frame[0], frame[1]);
         }
     }
 

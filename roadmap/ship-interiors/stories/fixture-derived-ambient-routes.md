@@ -1,8 +1,12 @@
 # Fixture-derived ambient routes
 
-Status: PLANNED
+Status: IN PROGRESS
 
 Written: 2026-08-26
+
+Updated: 2026-08-27 — roles, jobs and shifts are built and the vehicle bay is
+staffed from its own fixtures. What remains is the barracks rotation, the
+live-fire window on a generated range, and the seed sweep.
 
 Read `ship-interiors-nouns.md` before implementing this story. Depends on
 `facility-room-themes.md`.

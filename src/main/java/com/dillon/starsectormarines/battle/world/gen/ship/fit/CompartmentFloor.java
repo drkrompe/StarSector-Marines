@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.world.gen.ship.fit;
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
-import com.dillon.starsectormarines.battle.world.gen.TaskPoint;
+import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.gen.ship.RoomPose;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -264,7 +264,7 @@ public final class CompartmentFloor {
         if (!place(doodadId, x, y)) return false;
         DoodadDef def = TileRegistry.installed().doodad(doodadId);
         int[] standing = standingCell(x, y, def.footprintCellsX, def.footprintCellsY);
-        if (standing != null) taskPoint(standing[0], standing[1], affordance, x, y);
+        if (standing != null) fixtureTask(standing[0], standing[1], affordance, x, y);
         return true;
     }
 
@@ -278,23 +278,23 @@ public final class CompartmentFloor {
      *
      * @return whether the point was taken; a refusal is a cell already furnished
      */
-    public boolean taskPoint(int cellX, int cellY, Affordance affordance,
+    public boolean fixtureTask(int cellX, int cellY, Affordance affordance,
                              int fixtureX, int fixtureY) {
         if (!standable(cellX, cellY) || claimed[cellX][cellY]) return false;
         claimed[cellX][cellY] = true;
         reserveLane(cellX, cellY, 1, 1);
-        ctx.taskPoints.add(TaskPoint.at(left + cellX, top + cellY, affordance,
+        ctx.fixtureTasks.add(FixtureTask.at(left + cellX, top + cellY, affordance,
                 left + fixtureX, top + fixtureY));
         return true;
     }
 
     /** Record work done on whatever the host parks in {@code berth}. */
-    public boolean berthTaskPoint(int cellX, int cellY, int berth,
+    public boolean berthFixtureTask(int cellX, int cellY, int berth,
                                   int fixtureX, int fixtureY) {
         if (!standable(cellX, cellY) || claimed[cellX][cellY]) return false;
         claimed[cellX][cellY] = true;
         reserveLane(cellX, cellY, 1, 1);
-        ctx.taskPoints.add(TaskPoint.servingBerth(left + cellX, top + cellY, berth,
+        ctx.fixtureTasks.add(FixtureTask.servingBerth(left + cellX, top + cellY, berth,
                 left + fixtureX, top + fixtureY));
         return true;
     }

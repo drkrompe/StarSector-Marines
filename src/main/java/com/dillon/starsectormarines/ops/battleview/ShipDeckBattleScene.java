@@ -1,5 +1,11 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.ambient.AmbientTaskPose;
+import com.dillon.starsectormarines.battle.ambient.AmbientTaskRoute;
+import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
+import com.dillon.starsectormarines.battle.ambient.AmbientThreatPolicy;
+import com.dillon.starsectormarines.battle.ambient.CompartmentCrew;
+import com.dillon.starsectormarines.battle.ambient.CrewRole;
 import com.dillon.starsectormarines.battle.appearance.FacingSystem;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
@@ -9,6 +15,7 @@ import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
@@ -71,6 +78,8 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     private final BattleRenderer renderer;
     private final BattleSimulation simulation;
     private final List<Gantry> gantries;
+    private final List<FixtureTask> fixtureTasks;
+    private final boolean[] occupiedBerths;
     private final DeckGraph rooms;
     private final HighlightOverlay highlights = new HighlightOverlay();
     private final Selection selection = new Selection();
@@ -93,6 +102,8 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         if (deck == null) throw new IllegalArgumentException("a generated deck is required");
         this.rooms = rooms;
         gantries = deck.gantries;
+        fixtureTasks = deck.fixtureTasks;
+        occupiedBerths = new boolean[gantries.size()];
         simulation = BattleSetup.buildMap(deck, Collections.emptyList(),
                 Collections.emptyList(), seed).sim();
         simulation.getFogOfWar().tick(0, simulation.getRoster());
@@ -111,6 +122,11 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     /** The berths this deck authored, in generation order. */
     public List<Gantry> gantries() {
         return gantries;
+    }
+
+    /** The jobs this deck's fixtures afford, in generation order. */
+    public List<FixtureTask> fixtureTasks() {
+        return fixtureTasks;
     }
 
     /**
@@ -184,9 +200,58 @@ public final class ShipDeckBattleScene implements AutoCloseable {
             FacingSystem.faceStanding(simulation.getEntityWorld(),
                     simulation.getBattleComponents(), mech, gantry.facing.degrees());
             machines[index] = mech;
+            occupiedBerths[index] = true;
         }
         simulation.getFogOfWar().tick(0, simulation.getRoster());
         return machines;
+    }
+
+    /**
+     * Put a watch of one role to work in a compartment, cycling its jobs.
+     *
+     * <p>Staffing follows berthing rather than preceding it, because half the
+     * work in a vehicle bay is work on a machine and there is none to do in an
+     * empty one. Call {@link #occupyGantries} first and a technician has
+     * something to weld; call this on an empty bay and they fetch parts and read
+     * terminals, which is what a technician in an empty bay would in fact be
+     * doing.
+     *
+     * <p>The count is capped by what the room can actually sustain — see
+     * {@link CompartmentCrew#capacity} — so a bay is never given more people
+     * than it has jobs to hand out. Nobody is spawned to stand in a queue.
+     *
+     * @return the actors put to work, which may be fewer than asked for
+     */
+    public long[] staff(DeckGraph.Compartment compartment, CrewRole role, int watch) {
+        if (compartment == null) throw new IllegalArgumentException("a compartment is required");
+        if (role == null) throw new IllegalArgumentException("a role is required");
+        if (watch <= 0) return new long[0];
+
+        CompartmentCrew.publish(simulation.taskPoints(), fixtureTasks,
+                compartment, occupiedBerths);
+        int hands = Math.min(watch,
+                CompartmentCrew.capacity(role, compartment, fixtureTasks, occupiedBerths));
+        List<Long> hired = new ArrayList<>(hands);
+        for (int index = 0; index < hands; index++) {
+            // Hostiles only. A technician works on armed machines by definition,
+            // and yielding to any combatant means yielding to the mech they are
+            // welding - so the crew of a home deck would flee their own bay and
+            // stand around the edges of it forever.
+            AmbientTaskRoute shift = CompartmentCrew.shift(role, compartment, fixtureTasks,
+                    occupiedBerths, index, AmbientThreatPolicy.HOSTILE_COMBATANT);
+            if (shift == null) break;
+            AmbientTaskPose start = AmbientTaskService.sample(shift, 0f);
+            long hand = simulation.spawn(new EntitySpec(shift.id(), Faction.MARINE,
+                    UnitType.ENGINEER,
+                    (int) Math.floor(start.worldX()), (int) Math.floor(start.worldY())));
+            simulation.ambientTasks().assign(hand, shift);
+            hired.add(hand);
+        }
+        simulation.ambientTasks().seek(0f);
+        simulation.getFogOfWar().tick(0, simulation.getRoster());
+        long[] actors = new long[hired.size()];
+        for (int index = 0; index < actors.length; index++) actors[index] = hired.get(index);
+        return actors;
     }
 
     public BattleSceneHostPass pass(DeckView view) {

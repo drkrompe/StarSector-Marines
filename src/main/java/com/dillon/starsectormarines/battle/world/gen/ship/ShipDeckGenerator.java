@@ -112,7 +112,7 @@ public final class ShipDeckGenerator {
                 marine[0], marine[1], defender[0], defender[1],
                 ctx.pois, ctx.doodads, tacticalMap, buildings,
                 List.of(), RoadGraph.EMPTY, List.of(), List.of(), null, ctx.gantries,
-                ctx.taskPoints);
+                ctx.fixtureTasks);
     }
 
     /** The profile behind the most recent {@link #generateDeck} run; null before the first. */

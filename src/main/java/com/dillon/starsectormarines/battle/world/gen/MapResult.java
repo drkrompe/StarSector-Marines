@@ -65,9 +65,9 @@ public final class MapResult {
      *
      * <p>Read by ambient life to decide where idle crew have business, and by a
      * facility to count what it can still do — a task point is the capacity, so
-     * the room and the number cannot disagree. See {@link TaskPoint}.
+     * the room and the number cannot disagree. See {@link FixtureTask}.
      */
-    public final List<TaskPoint> taskPoints;
+    public final List<FixtureTask> fixtureTasks;
     /**
      * Authored tactical hint graph the battle AI uses for squad allocation and
      * fallback routing. Never null — generators with no tactical layer return
@@ -230,7 +230,7 @@ public final class MapResult {
                      List<LandingArea> landingAreas,
                      BiomeMap biomeMap,
                      List<Gantry> gantries,
-                     List<TaskPoint> taskPoints) {
+                     List<FixtureTask> fixtureTasks) {
         this.grid = grid;
         this.topology = topology;
         this.marineSpawnX = marineSpawnX;
@@ -248,7 +248,7 @@ public final class MapResult {
         this.roadGraph = roadGraph;
         this.biomeMap = biomeMap;
         this.gantries = gantries == null ? Collections.emptyList() : List.copyOf(gantries);
-        this.taskPoints = taskPoints == null
-                ? Collections.emptyList() : List.copyOf(taskPoints);
+        this.fixtureTasks = fixtureTasks == null
+                ? Collections.emptyList() : List.copyOf(fixtureTasks);
     }
 }
