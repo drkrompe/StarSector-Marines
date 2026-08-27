@@ -1,7 +1,9 @@
 package com.dillon.starsectormarines.battle.world.gen.ship.fit;
 
+import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
+import com.dillon.starsectormarines.battle.world.gen.TaskPoint;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
@@ -35,6 +37,7 @@ public final class CompartmentFloor {
     private final RoomFit fit;
     private final boolean[][] free;
     private final boolean[][] lane;
+    private final boolean[][] claimed;
     private final int left;
     private final int top;
     private final int width;
@@ -51,6 +54,7 @@ public final class CompartmentFloor {
         this.height = compartment.shape().height();
         this.free = new boolean[width][height];
         this.lane = new boolean[width][height];
+        this.claimed = new boolean[width][height];
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 free[x][y] = compartment.shape().contains(x, y);
@@ -166,10 +170,16 @@ public final class CompartmentFloor {
      * not a fixture the map owns. A berth that got furnished would be a bay a
      * machine cannot be put into.
      */
-    public void berth(int x, int y, int spanX, int spanY, Gantry.Facing facing) {
+    public int berth(int x, int y, int spanX, int spanY, Gantry.Facing facing) {
         reserveLane(x, y, spanX, spanY);
-        ctx.gantries.add(new Gantry(left + x + spanX / 2, top + y + spanY / 2,
-                spanX / 2, spanY / 2, facing));
+        // Half-extents cover an odd number of cells, so an even span has to round
+        // down: a berth that claimed one cell more than was reserved would put
+        // the machine through the frame beside it.
+        int halfX = (spanX - 1) / 2;
+        int halfY = (spanY - 1) / 2;
+        ctx.gantries.add(new Gantry(left + x + halfX, top + y + halfY,
+                halfX, halfY, facing));
+        return ctx.gantries.size() - 1;
     }
 
     /**
@@ -190,6 +200,87 @@ public final class CompartmentFloor {
         ctx.doodads.add(new Doodad(left + x, top + y, def));
         placed++;
         return true;
+    }
+
+    /**
+     * Place one fixture and record that there is work to be done at it.
+     *
+     * <p>The standing cell is found beside the fixture and reserved, because a
+     * task point nothing can stand on is a task point nobody can use. Where
+     * nothing adjacent is standable the fixture still goes down — it is furniture
+     * either way — and simply affords nothing.
+     */
+    public boolean place(String doodadId, int x, int y, Affordance affordance) {
+        if (!place(doodadId, x, y)) return false;
+        DoodadDef def = TileRegistry.installed().doodad(doodadId);
+        int[] standing = standingCell(x, y, def.footprintCellsX, def.footprintCellsY);
+        if (standing != null) taskPoint(standing[0], standing[1], affordance, x, y);
+        return true;
+    }
+
+    /**
+     * Record work at a cell the fitting has chosen itself.
+     *
+     * <p>For the cases where the room's own geometry decides where somebody
+     * stands and a search beside the fixture would get it wrong — a technician
+     * works on a berthed machine from the mouth of the bay, not from inside the
+     * frame run down its side.
+     *
+     * @return whether the point was taken; a refusal is a cell already furnished
+     */
+    public boolean taskPoint(int cellX, int cellY, Affordance affordance,
+                             int fixtureX, int fixtureY) {
+        if (!standable(cellX, cellY) || claimed[cellX][cellY]) return false;
+        claimed[cellX][cellY] = true;
+        reserveLane(cellX, cellY, 1, 1);
+        ctx.taskPoints.add(TaskPoint.at(left + cellX, top + cellY, affordance,
+                left + fixtureX, top + fixtureY));
+        return true;
+    }
+
+    /** Record work done on whatever the host parks in {@code berth}. */
+    public boolean berthTaskPoint(int cellX, int cellY, int berth,
+                                  int fixtureX, int fixtureY) {
+        if (!standable(cellX, cellY) || claimed[cellX][cellY]) return false;
+        claimed[cellX][cellY] = true;
+        reserveLane(cellX, cellY, 1, 1);
+        ctx.taskPoints.add(TaskPoint.servingBerth(left + cellX, top + cellY, berth,
+                left + fixtureX, top + fixtureY));
+        return true;
+    }
+
+    /** Whether somebody can stand here: inside the room and not furnished. Lanes count. */
+    private boolean standable(int x, int y) {
+        return x >= 0 && y >= 0 && x < width && y < height
+                && compartment.shape().contains(x, y) && free[x][y];
+    }
+
+    /**
+     * A cell beside a footprint to work from, preferring one already reserved as
+     * circulation. Standing in the lane is what a technician actually does, and
+     * a lane cell can never be furnished out from under the point later.
+     *
+     * <p>Cells already spoken for are skipped. Preferring the lane without this
+     * quietly hands one cell to every fixture around it, because the first point
+     * reserves it as lane and thereby makes it the preferred answer for all its
+     * neighbours — three benches sharing one spot, and a capacity of three where
+     * only one person can stand.
+     */
+    private int[] standingCell(int x, int y, int spanX, int spanY) {
+        int[] fallback = null;
+        for (int dx = -1; dx <= spanX; dx++) {
+            for (int dy = -1; dy <= spanY; dy++) {
+                boolean beside = dx == -1 || dy == -1 || dx == spanX || dy == spanY;
+                boolean diagonal = (dx == -1 || dx == spanX) && (dy == -1 || dy == spanY);
+                if (!beside || diagonal) continue;
+                int cx = x + dx;
+                int cy = y + dy;
+                if (!standable(cx, cy) || claimed[cx][cy]) continue;
+                if (lane[cx][cy]) return new int[]{ cx, cy };
+                if (fallback == null) fallback = new int[]{ cx, cy };
+            }
+        }
+        return fallback;
     }
 
     /**

@@ -255,13 +255,29 @@ author reads a compartment's placed fixtures and their affordances and emits the
 stops: berths become rest, gantries become work with a weld focus, lanes become
 practice, consoles become inspection.
 
-Each usable affordance publishes one exclusive **task point**. A route asks for
-an activity group rather than assuming that one coordinate belongs to it; the
-battle claim service assigns one free point, retains the old claim until a
-replacement succeeds, and releases it when the actor moves to unrestricted
-space, abandons the work, or dies. Fixture capacity therefore bounds concurrent
-activity honestly: three firing lanes admit three practicing actors, never four
-actors stacked onto a painted marker.
+Affordance is a property of the **placement**, not of the art. The same crate is
+stores in a hold and spoil in the gap between two bays, and only one of those is
+somewhere anybody has business. A fitting decides which; the tile registry only
+knows what a crate looks like. Making every prop a work point is its own failure
+— a technician solemnly tending a scrap pile reads as purpose, which is worse
+than reading as scenery.
+
+Each usable affordance publishes one exclusive **task point**: a cell *beside*
+the fixture, since nobody stands inside a workbench, reserved as circulation so
+later furniture cannot take it back. Exclusive means one point per cell, not one
+per fixture — a lane cell shared by everything adjacent to it is three benches
+claiming one place to stand, and a capacity of three where one person fits. A
+route asks for an activity group rather than assuming that one coordinate
+belongs to it; the battle claim service assigns one free point, retains the old
+claim until a replacement succeeds, and releases it when the actor moves to
+unrestricted space, abandons the work, or dies. Fixture capacity therefore bounds
+concurrent activity honestly: three firing lanes admit three practicing actors,
+never four actors stacked onto a painted marker.
+
+Work bound to a berth is bound to the **berth**, not to the cell, because it only
+exists while something is parked there. Generation authors the link and cannot
+know what the host parks; occupancy is a runtime fact about a deck, so an empty
+bay is somewhere to walk through rather than somewhere to weld.
 
 This is the difference between a generated room and a dead one, and it is the
 standing reason fixtures must declare affordance rather than only appearance. The
@@ -269,6 +285,12 @@ ambient service executes route intent through ordinary battle pathfinding,
 movement, occupancy, and separation; it never interpolates an actor through a
 fixture or wall. Route authorship from generated fixture data remains the missing
 half.
+
+A fill that would seal its compartment is refused, and a refused fill publishes
+**nothing** — not its fixtures, not its berths, not its work. Rolling back only
+what can be seen is how a bay came to advertise berths standing on bare painted
+deck: the room looked deliberate from every angle except the one that counted,
+and nothing about the result said it had been thrown away.
 
 ## Fill quality
 

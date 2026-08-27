@@ -44,13 +44,22 @@ public final class CompartmentFillStage implements GenStage {
             RoomFitting fitting = RoomFittings.forPurpose(compartment.purpose());
             if (fitting == null) continue;
 
-            int before = ctx.doodads.size();
+            int doodads = ctx.doodads.size();
+            int berths = ctx.gantries.size();
+            int work = ctx.taskPoints.size();
             CompartmentFloor floor = new CompartmentFloor(ctx, compartment, fit);
             fitting.fit(floor);
             if (!floor.circulationSurvives()) {
                 // Roll the room back to bare deck rather than ship one that
-                // cannot be walked through.
-                ctx.doodads.subList(before, ctx.doodads.size()).clear();
+                // cannot be walked through — and roll back everything the
+                // fitting published, not merely what it can be seen to have
+                // placed. A rolled-back bay that kept its berths was a bay
+                // offering to service machines on empty painted floor, and it
+                // stayed that way precisely because nothing about it looked
+                // wrong from the outside.
+                ctx.doodads.subList(doodads, ctx.doodads.size()).clear();
+                ctx.gantries.subList(berths, ctx.gantries.size()).clear();
+                ctx.taskPoints.subList(work, ctx.taskPoints.size()).clear();
             }
         }
     }

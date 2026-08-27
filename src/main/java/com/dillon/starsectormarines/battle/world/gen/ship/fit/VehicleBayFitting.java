@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.ship.fit;
 
+import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -82,6 +83,14 @@ public final class VehicleBayFitting implements RoomFitting {
             "doodad.industrial-machine-tool",
             "doodad.industrial-control-console" };
 
+    /**
+     * What the head of a bay is good for: a tool to make a part at, and the
+     * terminal a machine's condition is read off rather than felt for.
+     */
+    private static final Affordance[] BAY_STATION_WORK = {
+            Affordance.FABRICATE,
+            Affordance.READOUT };
+
     /** Loose gear, pushed into the gaps between bays. */
     private static final String[] BAY_CLUTTER = {
             "doodad.industrial-drum-cluster",
@@ -100,6 +109,17 @@ public final class VehicleBayFitting implements RoomFitting {
             "doodad.industrial-crate-stack",
             "doodad.office-server-rack",
             "doodad.industrial-generator" };
+
+    /** What each of those is for, in the same order. Plant is not a workplace. */
+    private static final Affordance[] SHOP_WORK = {
+            Affordance.READOUT,
+            Affordance.FABRICATE,
+            Affordance.READOUT,
+            Affordance.STOW,
+            null,
+            Affordance.STOW,
+            null,
+            null };
 
     @Override
     public RoomPurpose purpose() {
@@ -156,21 +176,90 @@ public final class VehicleBayFitting implements RoomFitting {
     }
 
     /**
-     * One gantry bay: clearance down the middle for the machine, tools on the
-     * columns either side of it, and the deck marked so the bay reads as a bay
-     * standing empty rather than as a gap between tools.
+     * One gantry bay: clearance down the middle for the machine, framing down
+     * the columns either side of it, its station across the head, and the deck
+     * marked so the bay reads as a bay standing empty rather than as a gap
+     * between tools.
+     *
+     * <p>The head row belongs to the station and the berth is everything abaft
+     * of it. Berthing the full depth and then placing the station inside that
+     * reservation is how a bay came to contain nothing at all: a berth keeps its
+     * cells clear for the machine, so every station placement was refused and
+     * the bay was left as painted floor.
      */
     private void layBay(CompartmentFloor floor, boolean lengthwise,
                         int origin, int band, int depth, boolean headOutboard) {
         mark(floor, lengthwise, origin, band, BAY_WIDTH, depth);
         paveBay(floor, lengthwise, origin, band, depth);
-        berth(floor, lengthwise, origin + 1, band, BAY_WIDTH - 2, depth, headOutboard);
+
+        int head = headOutboard ? band : band + depth - 1;
+        int mouth = headOutboard ? band + depth - 1 : band;
+        int berthFrom = headOutboard ? band + 1 : band;
+        int berth = berth(floor, lengthwise, origin + 1, berthFrom,
+                BAY_WIDTH - 2, depth - 1, headOutboard);
 
         // The station sits at the head of the bay, against the outer bulkhead,
         // so it never stands between the machine and the lane it leaves by.
-        int head = headOutboard ? band : band + depth - 1;
         for (int i = 0; i < BAY_STATION.length; i++) {
-            place(floor, lengthwise, origin + 1 + i, head, BAY_STATION[i]);
+            place(floor, lengthwise, origin + 1 + i, head, BAY_STATION[i],
+                    BAY_STATION_WORK[i]);
+        }
+
+        layFrame(floor, lengthwise, origin, band, depth, head, mouth, true);
+        layFrame(floor, lengthwise, origin + BAY_WIDTH - 1, band, depth, head, mouth, false);
+        layService(floor, lengthwise, origin, mouth, head, berth);
+    }
+
+    /**
+     * The gantry frame down one working column of a bay, stopping a cell short
+     * of the mouth.
+     *
+     * <p>Unbroken is the whole point. A run of separate tools down the side of a
+     * bay reads as clutter; a continuous rail reads as structure the machine is
+     * standing inside. The cell left open at the mouth is the shoulder a
+     * technician comes in at, which is the one thing an unbroken run would take
+     * away.
+     */
+    private void layFrame(CompartmentFloor floor, boolean lengthwise, int column,
+                          int band, int depth, int head, int mouth, boolean nearSide) {
+        String straight = lengthwise ? FRAME_ALONG_Y : FRAME_ALONG_X;
+        for (int step = 0; step < depth; step++) {
+            int across = band + step;
+            if (across == mouth) continue;
+            place(floor, lengthwise, column, across,
+                    across == head ? corner(lengthwise, nearSide, head < mouth) : straight);
+        }
+    }
+
+    /**
+     * The corner piece closing the head of one frame run, chosen by how the run
+     * and the bulkhead actually meet on the deck rather than by which rank this
+     * happens to be.
+     */
+    private static String corner(boolean lengthwise, boolean nearSide, boolean headLow) {
+        boolean east = lengthwise ? !nearSide : !headLow;
+        boolean south = lengthwise ? headLow : nearSide;
+        return FRAME_CORNERS[(east ? 2 : 0) + (south ? 1 : 0)];
+    }
+
+    /**
+     * Where a technician stands to work on the machine in this bay: the two
+     * shoulders at the mouth, either side of it.
+     *
+     * <p>Bound to the berth rather than to the cell, because the work only
+     * exists while something is parked there. An empty bay is somewhere to walk
+     * through, not somewhere to weld.
+     */
+    private void layService(CompartmentFloor floor, boolean lengthwise,
+                            int origin, int mouth, int head, int berth) {
+        int inboard = mouth < head ? mouth + 1 : mouth - 1;
+        for (int column : new int[]{ origin, origin + BAY_WIDTH - 1 }) {
+            floor.berthTaskPoint(
+                    lengthwise ? column : mouth,
+                    lengthwise ? mouth : column,
+                    berth,
+                    lengthwise ? column : inboard,
+                    lengthwise ? inboard : column);
         }
     }
 
@@ -181,16 +270,16 @@ public final class VehicleBayFitting implements RoomFitting {
      * pointing at its own workstation would have the machine backing into the
      * lane every time it left.
      */
-    private void berth(CompartmentFloor floor, boolean lengthwise,
-                       int along, int across, int alongSpan, int acrossSpan,
-                       boolean headOutboard) {
+    private int berth(CompartmentFloor floor, boolean lengthwise,
+                      int along, int across, int alongSpan, int acrossSpan,
+                      boolean headOutboard) {
         Gantry.Facing facing;
         if (lengthwise) {
             facing = headOutboard ? Gantry.Facing.NORTH : Gantry.Facing.SOUTH;
         } else {
             facing = headOutboard ? Gantry.Facing.EAST : Gantry.Facing.WEST;
         }
-        floor.berth(
+        return floor.berth(
                 lengthwise ? along : across,
                 lengthwise ? across : along,
                 lengthwise ? alongSpan : acrossSpan,
@@ -217,7 +306,14 @@ public final class VehicleBayFitting implements RoomFitting {
         }
     }
 
-    /** Loose gear in the gap between one bay and the next, clear of the lane. */
+    /**
+     * Loose gear in the gap between one bay and the next, clear of the lane.
+     *
+     * <p>Scenery, deliberately: the gap is where what nobody has dealt with yet
+     * gets pushed, and it is packed tightly enough that somewhere to stand in it
+     * would be walled in by the next drum. Stores worth handling live in the
+     * shop, where there is room to carry a part from one stack to another.
+     */
     private void layClutter(CompartmentFloor floor, boolean lengthwise,
                             int from, int across, int bayDepth, boolean facingRanks) {
         int index = from;
@@ -239,7 +335,8 @@ public final class VehicleBayFitting implements RoomFitting {
         int index = 0;
         for (int offset = from; offset < along; offset += 2) {
             for (int depth = 0; depth < across; depth += 2) {
-                place(floor, lengthwise, offset, depth, SHOP[index++ % SHOP.length]);
+                int pick = index++ % SHOP.length;
+                place(floor, lengthwise, offset, depth, SHOP[pick], SHOP_WORK[pick]);
             }
         }
     }
@@ -281,6 +378,16 @@ public final class VehicleBayFitting implements RoomFitting {
     private void place(CompartmentFloor floor, boolean lengthwise,
                        int along, int across, String id) {
         floor.place(id, lengthwise ? along : across, lengthwise ? across : along);
+    }
+
+    /** Place a fixture that is also somewhere with work at it. */
+    private void place(CompartmentFloor floor, boolean lengthwise,
+                       int along, int across, String id, Affordance affordance) {
+        if (affordance == null) {
+            place(floor, lengthwise, along, across, id);
+            return;
+        }
+        floor.place(id, lengthwise ? along : across, lengthwise ? across : along, affordance);
     }
 
     private void reserve(CompartmentFloor floor, boolean lengthwise,
