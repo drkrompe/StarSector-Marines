@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.ship;
 
+import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.ship.fit.RoomFit;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
@@ -85,6 +86,8 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
      * judged at its own resolution or it is not being judged.
      */
     private static final int DETAIL_CELL = 32;
+    /** Working space kept around a berth in the fitting view, in cells. */
+    private static final int FITTING_SURROUND = 3;
 
     /**
      * One colour per kind of room, because that is the question these plans are
@@ -141,6 +144,7 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
                         complement, RoomFit.STANDARD));
                 if (hull.id().equals(DETAIL_HULL)) {
                     artifacts.add(roomDetail(context, hull.silhouette(), deckPlan));
+                    artifacts.add(mechLab(context, hull.silhouette(), deckPlan));
                 }
                 if (hull.id().equals(REFIT_HULL)) {
                     // The same hull at three fittings, which is the upgrade
@@ -270,6 +274,86 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
         }
         g.dispose();
         return new SnapshotArtifact("ship-rooms-detail.png", image);
+    }
+
+    /**
+     * The home deck's vehicle bay, framed the two ways the Mech Lab looks at it.
+     *
+     * <p>The lab is not a room built beside the ship; it is a camera on the
+     * ship's own vehicle bay. So this evidence asks the deck where its bay is
+     * and frames that compartment, rather than drawing a garage of its own —
+     * which is the only way the screen and the deck can be held to the same
+     * room as both keep changing.
+     *
+     * <p>Two panels because the screen has two poses: the whole bay, and one
+     * berth close enough to fit a machine in. The close panel is drawn at
+     * double the cell size rather than by resampling the wide one, so the
+     * sprites stay on their own pixel grid.
+     */
+    private static SnapshotArtifact mechLab(SnapshotContext context,
+                                            HullSilhouette silhouette,
+                                            DeckSizing.DeckPlan deckPlan) {
+        ShipDeckGenerator generator = new ShipDeckGenerator();
+        MapResult map = generator.generateDeck(deckPlan, SEED, silhouette, RoomFit.STANDARD);
+
+        int margin = 10;
+        int caption = 20;
+        BufferedImage image;
+        try (ShipDeckBattleScene scene = new ShipDeckBattleScene(
+                map, generator.getLastDeckGraph(), SEED, null)) {
+            scene.occupyGantries(startingLance());
+            DeckGraph.Compartment bay = scene.room(RoomPurpose.VEHICLE_BAY);
+            List<Gantry> berths = scene.berthsIn(bay);
+
+            HeadlessBattleSceneRenderer scenes =
+                    new HeadlessBattleSceneRenderer(context.modRoot());
+            HeadlessUiRenderer drain = new HeadlessUiRenderer(scenes, context.modRoot());
+
+            int wideAcross = bay.width() + 2;
+            int wideDown = bay.depth() + 2;
+            BufferedImage wide = drain.renderHostPass(
+                    scene.pass(ShipDeckBattleScene.DeckView.over(bay, 1, DETAIL_CELL)),
+                    wideAcross * DETAIL_CELL, wideDown * DETAIL_CELL);
+
+            int fittingCell = DETAIL_CELL * 2;
+            BufferedImage fitting = null;
+            if (!berths.isEmpty()) {
+                Gantry berth = berths.get(0);
+                int across = berth.right() - berth.left() + 1 + FITTING_SURROUND * 2;
+                int down = berth.top() - berth.bottom() + 1 + FITTING_SURROUND * 2;
+                fitting = drain.renderHostPass(
+                        scene.pass(ShipDeckBattleScene.DeckView.on(
+                                berth, FITTING_SURROUND, fittingCell)),
+                        across * fittingCell, down * fittingCell);
+            }
+
+            int fittingWidth = fitting == null ? 0 : fitting.getWidth();
+            int fittingHeight = fitting == null ? 0 : fitting.getHeight();
+            image = new BufferedImage(
+                    margin * 2 + Math.max(wide.getWidth(), fittingWidth),
+                    margin * 3 + caption * 2 + wide.getHeight() + fittingHeight,
+                    BufferedImage.TYPE_INT_RGB);
+            Graphics2D g = image.createGraphics();
+            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                    RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            g.setColor(HULL);
+            g.fillRect(0, 0, image.getWidth(), image.getHeight());
+            g.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+
+            g.setColor(LABEL);
+            g.drawString("vehicle bay as the Mech Lab sees it  " + bay.width()
+                    + "x" + bay.depth() + "  " + berths.size() + " berths, "
+                    + startingLance().size() + " owned", margin, margin + 13);
+            g.drawImage(wide, margin, margin + caption, null);
+
+            int fittingTop = margin * 2 + caption + wide.getHeight();
+            g.setColor(LABEL);
+            g.drawString(fitting == null ? "no berths in this bay"
+                    : "berth 1, fitting view", margin, fittingTop + 13);
+            if (fitting != null) g.drawImage(fitting, margin, fittingTop + caption, null);
+            g.dispose();
+        }
+        return new SnapshotArtifact("ship-deck-mech-lab.png", image);
     }
 
     /**
