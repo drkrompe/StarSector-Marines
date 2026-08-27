@@ -5,10 +5,11 @@ integrated. Transverse bulkheads and the breach point remain.
 
 Written: 2026-08-26
 
-Updated: 2026-08-26 — hull profile, spine, room packing, circulation and the
-deck graph have shipped; the standing model is folded into
-`ship-interiors-nouns.md`. What is left is the bulkhead chokepoint sequence and
-the breach point, which the end spawns still stand in for.
+Updated: 2026-08-27 — packing now lays a room in a recorded pose and cuts its
+doors where the room's fitting asks for them, so a compartment can be entered
+from either end without a second arrangement being authored. What is left is the
+bulkhead chokepoint sequence and the breach point, which the end spawns still
+stand in for.
 
 Read `ship-interiors-nouns.md` before implementing this story. Read
 `mapgen-nouns.md` for the recipe, context, stage, and validation obligations this

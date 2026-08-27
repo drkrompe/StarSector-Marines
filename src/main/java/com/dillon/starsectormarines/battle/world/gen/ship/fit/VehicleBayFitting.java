@@ -3,6 +3,9 @@ package com.dillon.starsectormarines.battle.world.gen.ship.fit;
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
+import com.dillon.starsectormarines.battle.world.gen.ship.Hookup;
+import com.dillon.starsectormarines.battle.world.gen.ship.RoomRecipe;
+import com.dillon.starsectormarines.battle.world.gen.ship.RoomShape;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
@@ -47,6 +50,8 @@ public final class VehicleBayFitting implements RoomFitting {
     private static final int SHOP_WIDTH = 7;
     /** Cells kept clear either side of a door, so a machine can be driven through it. */
     private static final int DOOR_CLEARANCE = 1;
+    /** Cells of bulkhead a doorway may take, which is what a machine needs to pass. */
+    private static final int DOORWAY = 2;
 
     /**
      * The bay floor, taken from the hand-authored Mech Lab rather than invented.
@@ -121,24 +126,55 @@ public final class VehicleBayFitting implements RoomFitting {
             null,
             null };
 
+    /**
+     * The bay as it is authored: horizontal, shop aft, and machines leaving
+     * forward. Every posed bay on every deck is this one turned or flipped, so
+     * the hookups below are written once against these extents.
+     */
+    private static final RoomShape CANONICAL = RoomRecipe.VEHICLE_BAY.shape();
+
     @Override
     public RoomPurpose purpose() {
         return RoomPurpose.VEHICLE_BAY;
     }
 
+    /**
+     * Two ways a bay meets the deck, in order of preference.
+     *
+     * <p>The first is a drive-through: a door at the forward end of each long
+     * side, so a machine has a way in and a way out that is not the way it came.
+     * That is what a vehicle bay is for, and it puts both doors clear of the
+     * gantry ranks rather than through them.
+     *
+     * <p>The second is a single door on the forward bulkhead, amidships, for the
+     * hull that simply has no passage down either side of the bay. It is a
+     * worse bay and it is offered second, but it is a bay rather than a hold
+     * with gantries in it.
+     */
+    @Override
+    public List<Hookup> hookups() {
+        int length = CANONICAL.width();
+        int depth = CANONICAL.height();
+        return List.of(
+                Hookup.of(
+                        Hookup.DoorSlot.run(0, -1, DOORWAY, 1),
+                        Hookup.DoorSlot.run(0, depth, DOORWAY, 1)),
+                Hookup.of(Hookup.DoorSlot.run(-1, depth / 2 - 1, 1, DOORWAY)),
+                Hookup.of(Hookup.DoorSlot.run(length - DOORWAY, -1, DOORWAY, 1)));
+    }
+
     @Override
     public void fit(CompartmentFloor floor) {
-        boolean lengthwise = floor.width() >= floor.height();
-        int along = lengthwise ? floor.width() : floor.height();
-        int across = lengthwise ? floor.height() : floor.width();
+        int along = floor.canonicalWidth();
+        int across = floor.canonicalHeight();
 
         // The door decides the layout, not the corner of the bounding box. A
         // bay parked across the only way in is a bay whose machine can never
         // leave it, and the deck in front of a door is the one run of floor in
         // a vehicle bay that is never negotiable.
-        List<int[]> approaches = approaches(floor, lengthwise, along, across);
+        List<int[]> approaches = approaches(floor, along, across);
         for (int[] approach : approaches) {
-            reserve(floor, lengthwise, approach[0], 0, approach[1] - approach[0] + 1, across);
+            reserve(floor, approach[0], 0, approach[1] - approach[0] + 1, across);
         }
 
         int bayDepth = Math.min(BAY_DEPTH, (across - SERVICE_LANE) / 2);
@@ -157,21 +193,21 @@ public final class VehicleBayFitting implements RoomFitting {
                 cursor = blockedUntil + 1;
                 continue;
             }
-            layBay(floor, lengthwise, cursor, 0, bayDepth, true);
+            layBay(floor, cursor, 0, bayDepth, true);
             if (facingRanks) {
-                layBay(floor, lengthwise, cursor, across - bayDepth, bayDepth, false);
+                layBay(floor, cursor, across - bayDepth, bayDepth, false);
             }
-            layClutter(floor, lengthwise, cursor + BAY_WIDTH, across, bayDepth, facingRanks);
+            layClutter(floor, cursor + BAY_WIDTH, across, bayDepth, facingRanks);
             cursor += BAY_WIDTH + BAY_GAP;
         }
 
         // The lane between the ranks is the route a machine and its parts
         // travel, reserved before anything is placed rather than being whatever
         // happens to be left over.
-        reserve(floor, lengthwise, 0, bayDepth, bayLimit,
+        reserve(floor, 0, bayDepth, bayLimit,
                 Math.max(1, across - (facingRanks ? 2 * bayDepth : bayDepth)));
         if (shopWidth > 0) {
-            layShop(floor, lengthwise, bayLimit, along, across);
+            layShop(floor, bayLimit, along, across);
         }
     }
 
@@ -187,27 +223,27 @@ public final class VehicleBayFitting implements RoomFitting {
      * cells clear for the machine, so every station placement was refused and
      * the bay was left as painted floor.
      */
-    private void layBay(CompartmentFloor floor, boolean lengthwise,
+    private void layBay(CompartmentFloor floor,
                         int origin, int band, int depth, boolean headOutboard) {
-        mark(floor, lengthwise, origin, band, BAY_WIDTH, depth);
-        paveBay(floor, lengthwise, origin, band, depth);
+        mark(floor, origin, band, BAY_WIDTH, depth);
+        paveBay(floor, origin, band, depth);
 
         int head = headOutboard ? band : band + depth - 1;
         int mouth = headOutboard ? band + depth - 1 : band;
         int berthFrom = headOutboard ? band + 1 : band;
-        int berth = berth(floor, lengthwise, origin + 1, berthFrom,
+        int berth = berth(floor, origin + 1, berthFrom,
                 BAY_WIDTH - 2, depth - 1, headOutboard);
 
         // The station sits at the head of the bay, against the outer bulkhead,
         // so it never stands between the machine and the lane it leaves by.
         for (int i = 0; i < BAY_STATION.length; i++) {
-            place(floor, lengthwise, origin + 1 + i, head, BAY_STATION[i],
+            place(floor, origin + 1 + i, head, BAY_STATION[i],
                     BAY_STATION_WORK[i]);
         }
 
-        layFrame(floor, lengthwise, origin, band, depth, head, mouth, true);
-        layFrame(floor, lengthwise, origin + BAY_WIDTH - 1, band, depth, head, mouth, false);
-        layService(floor, lengthwise, origin, mouth, head, berth);
+        layFrame(floor, origin, band, depth, head, mouth, true);
+        layFrame(floor, origin + BAY_WIDTH - 1, band, depth, head, mouth, false);
+        layService(floor, origin, mouth, head, berth);
     }
 
     /**
@@ -220,14 +256,18 @@ public final class VehicleBayFitting implements RoomFitting {
      * technician comes in at, which is the one thing an unbroken run would take
      * away.
      */
-    private void layFrame(CompartmentFloor floor, boolean lengthwise, int column,
+    private void layFrame(CompartmentFloor floor, int column,
                           int band, int depth, int head, int mouth, boolean nearSide) {
-        String straight = lengthwise ? FRAME_ALONG_Y : FRAME_ALONG_X;
+        // The run is drawn in deck space, so the sprite has to be chosen there
+        // too: a rail authored running fore-and-aft is athwartships once the
+        // room is turned, and a compass-named piece cannot be turned with it.
+        int[] run = floor.pose().mapDirection(0, 1);
+        String straight = run[0] != 0 ? FRAME_ALONG_X : FRAME_ALONG_Y;
         for (int step = 0; step < depth; step++) {
             int across = band + step;
             if (across == mouth) continue;
-            place(floor, lengthwise, column, across,
-                    across == head ? corner(lengthwise, nearSide, head < mouth) : straight);
+            place(floor, column, across,
+                    across == head ? corner(floor, nearSide, head < mouth) : straight);
         }
     }
 
@@ -236,10 +276,10 @@ public final class VehicleBayFitting implements RoomFitting {
      * and the bulkhead actually meet on the deck rather than by which rank this
      * happens to be.
      */
-    private static String corner(boolean lengthwise, boolean nearSide, boolean headLow) {
-        boolean east = lengthwise ? !nearSide : !headLow;
-        boolean south = lengthwise ? headLow : nearSide;
-        return FRAME_CORNERS[(east ? 2 : 0) + (south ? 1 : 0)];
+    private static String corner(CompartmentFloor floor, boolean nearSide, boolean headLow) {
+        int[] toColumn = floor.pose().mapDirection(nearSide ? -1 : 1, 0);
+        int[] toHead = floor.pose().mapDirection(0, headLow ? -1 : 1);
+        return FRAME_CORNERS[(toColumn[0] > 0 ? 2 : 0) + (toHead[1] < 0 ? 1 : 0)];
     }
 
     /**
@@ -250,16 +290,13 @@ public final class VehicleBayFitting implements RoomFitting {
      * exists while something is parked there. An empty bay is somewhere to walk
      * through, not somewhere to weld.
      */
-    private void layService(CompartmentFloor floor, boolean lengthwise,
+    private void layService(CompartmentFloor floor,
                             int origin, int mouth, int head, int berth) {
         int inboard = mouth < head ? mouth + 1 : mouth - 1;
         for (int column : new int[]{ origin, origin + BAY_WIDTH - 1 }) {
-            floor.berthTaskPoint(
-                    lengthwise ? column : mouth,
-                    lengthwise ? mouth : column,
-                    berth,
-                    lengthwise ? column : inboard,
-                    lengthwise ? inboard : column);
+            int[] stand = floor.toLocal(column, mouth);
+            int[] frame = floor.toLocal(column, inboard);
+            floor.berthTaskPoint(stand[0], stand[1], berth, frame[0], frame[1]);
         }
     }
 
@@ -270,25 +307,20 @@ public final class VehicleBayFitting implements RoomFitting {
      * pointing at its own workstation would have the machine backing into the
      * lane every time it left.
      */
-    private int berth(CompartmentFloor floor, boolean lengthwise,
+    private int berth(CompartmentFloor floor,
                       int along, int across, int alongSpan, int acrossSpan,
                       boolean headOutboard) {
-        Gantry.Facing facing;
-        if (lengthwise) {
-            facing = headOutboard ? Gantry.Facing.NORTH : Gantry.Facing.SOUTH;
-        } else {
-            facing = headOutboard ? Gantry.Facing.EAST : Gantry.Facing.WEST;
-        }
-        return floor.berth(
-                lengthwise ? along : across,
-                lengthwise ? across : along,
-                lengthwise ? alongSpan : acrossSpan,
-                lengthwise ? acrossSpan : alongSpan,
-                facing);
+        // Canonically the head of a bay is at low y, so a machine leaves toward
+        // high y. The pose carries that heading onto the deck, which is why a
+        // flipped bay faces its machines the other way without being told to.
+        int[] out = floor.pose().mapDirection(0, headOutboard ? 1 : -1);
+        int[] rect = floor.toLocalRect(along, across, alongSpan, acrossSpan);
+        return floor.berth(rect[0], rect[1], rect[2], rect[3],
+                Gantry.Facing.of(out[0], out[1]));
     }
 
     /** Paint the bay's deck, edged and then checkered, before anything stands on it. */
-    private void paveBay(CompartmentFloor floor, boolean lengthwise,
+    private void paveBay(CompartmentFloor floor,
                          int origin, int band, int depth) {
         // The whole bay is paved and its perimeter is striped, all four sides:
         // a bay is a marked-out rectangle of deck, and marking three sides of it
@@ -299,9 +331,8 @@ public final class VehicleBayFitting implements RoomFitting {
                         || step == 0 || step == depth - 1;
                 int column = perimeter ? FLOOR_EDGE_COLUMN
                         : FLOOR_FIELD_COLUMNS[((side + step) & 1)];
-                int x = lengthwise ? origin + side : band + step;
-                int y = lengthwise ? band + step : origin + side;
-                floor.pave(x, y, column, FLOOR_ROW);
+                int[] cell = floor.toLocal(origin + side, band + step);
+                floor.pave(cell[0], cell[1], column, FLOOR_ROW);
             }
         }
     }
@@ -314,15 +345,15 @@ public final class VehicleBayFitting implements RoomFitting {
      * would be walled in by the next drum. Stores worth handling live in the
      * shop, where there is room to carry a part from one stack to another.
      */
-    private void layClutter(CompartmentFloor floor, boolean lengthwise,
+    private void layClutter(CompartmentFloor floor,
                             int from, int across, int bayDepth, boolean facingRanks) {
         int index = from;
         for (int offset = 0; offset < BAY_GAP; offset++) {
             for (int step = 0; step < bayDepth; step += 3) {
-                place(floor, lengthwise, from + offset, step,
+                place(floor, from + offset, step,
                         BAY_CLUTTER[index++ % BAY_CLUTTER.length]);
                 if (facingRanks) {
-                    place(floor, lengthwise, from + offset, across - 1 - step,
+                    place(floor, from + offset, across - 1 - step,
                             BAY_CLUTTER[index++ % BAY_CLUTTER.length]);
                 }
             }
@@ -330,13 +361,13 @@ public final class VehicleBayFitting implements RoomFitting {
     }
 
     /** The workshop at one end, worked densely because it is where the work happens. */
-    private void layShop(CompartmentFloor floor, boolean lengthwise,
+    private void layShop(CompartmentFloor floor,
                          int from, int along, int across) {
         int index = 0;
         for (int offset = from; offset < along; offset += 2) {
             for (int depth = 0; depth < across; depth += 2) {
                 int pick = index++ % SHOP.length;
-                place(floor, lengthwise, offset, depth, SHOP[pick], SHOP_WORK[pick]);
+                place(floor, offset, depth, SHOP[pick], SHOP_WORK[pick]);
             }
         }
     }
@@ -345,12 +376,13 @@ public final class VehicleBayFitting implements RoomFitting {
      * The runs of deck that have to stay clear because a door opens onto them,
      * as inclusive ranges along the compartment.
      */
-    private static List<int[]> approaches(CompartmentFloor floor, boolean lengthwise,
+    private static List<int[]> approaches(CompartmentFloor floor,
                                           int along, int across) {
         List<int[]> ranges = new ArrayList<>();
         for (DeckGraph.Compartment.Door door : floor.localDoors()) {
-            int doorAlong = lengthwise ? door.x() : door.y();
-            int doorAcross = lengthwise ? door.y() : door.x();
+            int[] canonical = floor.toCanonical(door.x(), door.y());
+            int doorAlong = canonical[0];
+            int doorAcross = canonical[1];
             if (doorAcross < 0 || doorAcross >= across) {
                 ranges.add(new int[]{
                         Math.max(0, doorAlong - DOOR_CLEARANCE),
@@ -375,37 +407,32 @@ public final class VehicleBayFitting implements RoomFitting {
         return furthest;
     }
 
-    private void place(CompartmentFloor floor, boolean lengthwise,
+    private void place(CompartmentFloor floor,
                        int along, int across, String id) {
-        floor.place(id, lengthwise ? along : across, lengthwise ? across : along);
+        int[] cell = floor.toLocal(along, across);
+        floor.place(id, cell[0], cell[1]);
     }
 
     /** Place a fixture that is also somewhere with work at it. */
-    private void place(CompartmentFloor floor, boolean lengthwise,
+    private void place(CompartmentFloor floor,
                        int along, int across, String id, Affordance affordance) {
         if (affordance == null) {
-            place(floor, lengthwise, along, across, id);
+            place(floor, along, across, id);
             return;
         }
-        floor.place(id, lengthwise ? along : across, lengthwise ? across : along, affordance);
+        int[] cell = floor.toLocal(along, across);
+        floor.place(id, cell[0], cell[1], affordance);
     }
 
-    private void reserve(CompartmentFloor floor, boolean lengthwise,
+    private void reserve(CompartmentFloor floor,
                          int along, int across, int alongSpan, int acrossSpan) {
-        floor.reserveLane(
-                lengthwise ? along : across,
-                lengthwise ? across : along,
-                lengthwise ? alongSpan : acrossSpan,
-                lengthwise ? acrossSpan : alongSpan);
+        int[] rect = floor.toLocalRect(along, across, alongSpan, acrossSpan);
+        floor.reserveLane(rect[0], rect[1], rect[2], rect[3]);
     }
 
-    private void mark(CompartmentFloor floor, boolean lengthwise,
+    private void mark(CompartmentFloor floor,
                       int along, int across, int alongSpan, int acrossSpan) {
-        floor.markGround(
-                lengthwise ? along : across,
-                lengthwise ? across : along,
-                lengthwise ? alongSpan : acrossSpan,
-                lengthwise ? acrossSpan : alongSpan,
-                GroundKind.STRIPED);
+        int[] rect = floor.toLocalRect(along, across, alongSpan, acrossSpan);
+        floor.markGround(rect[0], rect[1], rect[2], rect[3], GroundKind.STRIPED);
     }
 }

@@ -36,13 +36,21 @@ public final class DeckGraph {
      * circulation inside a room is authored from its entries outward, so a fill
      * that does not know where people come in cannot leave them a way through.
      *
+     * <p>The {@link RoomPose} is carried for the half of the story the mask
+     * cannot tell. A flipped rectangle has the same mask as an unflipped one, so
+     * a fitting that recovered its bearings from the footprint would lay its
+     * shop and its doors at the wrong ends of half the rooms it was given. A
+     * fitting authors facing one way and reads the pose to find out where that
+     * ended up.
+     *
      * @param originX cell the shape's local origin sits on
      * @param originY cell the shape's local origin sits on
+     * @param pose how the shape was turned and flipped to get here
      * @param doors cells cut through this room's bulkhead
      */
     public record Compartment(int id, RoomShape shape, int originX, int originY,
-                              DeckSide side, DeckZone zone, RoomPurpose purpose,
-                              List<Door> doors) {
+                              RoomPose pose, DeckSide side, DeckZone zone,
+                              RoomPurpose purpose, List<Door> doors) {
 
         public Compartment {
             doors = List.copyOf(doors);

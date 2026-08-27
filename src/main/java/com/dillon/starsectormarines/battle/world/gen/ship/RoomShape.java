@@ -19,6 +19,12 @@ import java.util.Set;
  * distinct ways it can be laid down — four rotations, deduplicated, so a square
  * yields one and a rectangle two — and the placer is free to choose among them.
  *
+ * <p>Deduplication is by mask, which is right for packing and wrong for
+ * anything that cares which way round a room ended up: flipping a rectangle
+ * produces an identical mask and is discarded here, while the arrangement
+ * inside it is reversed. {@link #posed(RoomPose)} is the honest form, and
+ * {@link RoomPose} is what a placed compartment records.
+ *
  * <p>Two derived sets matter as much as the mask itself. {@link #wall()} is the
  * eight-neighbour ring the room reserves as bulkhead, which is what keeps rooms
  * from opening into each other along a shared edge or leaking diagonally.
@@ -159,6 +165,31 @@ public final class RoomShape {
      */
     public int[][] doorways() {
         return doorways;
+    }
+
+    /**
+     * This shape laid down in the given pose: flipped if the pose is, then
+     * turned. The order matters and matches {@link RoomPose#map}, which is what
+     * lets a fitting author a cell in the canonical frame and find it in the
+     * same place the mask put it.
+     */
+    public RoomShape posed(RoomPose pose) {
+        RoomShape shape = pose.mirrored() ? mirrored() : this;
+        for (int turn = 0; turn < pose.quarterTurns(); turn++) {
+            shape = shape.rotated();
+        }
+        return shape;
+    }
+
+    /** This shape flipped about its vertical axis. */
+    private RoomShape mirrored() {
+        boolean[][] flipped = new boolean[width][height];
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                flipped[width - 1 - x][y] = cells[x][y];
+            }
+        }
+        return new RoomShape(flipped);
     }
 
     /** The distinct ways this shape can be laid down: up to four rotations, deduplicated. */

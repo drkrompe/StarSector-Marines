@@ -39,6 +39,14 @@ public final class Gantry {
             this.dx = dx;
             this.dy = dy;
         }
+
+        /** The cardinal matching this direction. */
+        public static Facing of(int dx, int dy) {
+            for (Facing facing : values()) {
+                if (facing.dx == dx && facing.dy == dy) return facing;
+            }
+            throw new IllegalArgumentException("not a cardinal direction: " + dx + "," + dy);
+        }
     }
 
     /** Cell the machine stands on; the footprint extends from here. */

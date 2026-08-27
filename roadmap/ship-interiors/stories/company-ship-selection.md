@@ -25,10 +25,10 @@ fleet.
 ## Constraints
 
 - A candidate's form comes from what that hull can do when whole, and its
-  damage is read separately, per law 17. The preview must be generated the same
+  damage is read separately, per law 18. The preview must be generated the same
   way the deck will be, or the screen is advertising a ship the player will not
   get.
-- A hull that cannot hold a facility reports that it cannot, per law 18. The
+- A hull that cannot hold a facility reports that it cannot, per law 19. The
   comparison's value is in what a candidate *loses*, and a screen that only
   shows gains is a worse screen than none.
 - Candidates are compared on working capacity, not nominal, per law 4. A

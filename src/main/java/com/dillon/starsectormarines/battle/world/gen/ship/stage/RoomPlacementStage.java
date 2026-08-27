@@ -6,18 +6,24 @@ import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckProfile;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckSide;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckZone;
+import com.dillon.starsectormarines.battle.world.gen.ship.Hookup;
 import com.dillon.starsectormarines.battle.world.gen.ship.HullContact;
+import com.dillon.starsectormarines.battle.world.gen.ship.RoomPose;
 import com.dillon.starsectormarines.battle.world.gen.ship.RoomRecipe;
 import com.dillon.starsectormarines.battle.world.gen.ship.RoomShape;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipKeys;
+import com.dillon.starsectormarines.battle.world.gen.ship.fit.RoomFitting;
+import com.dillon.starsectormarines.battle.world.gen.ship.fit.RoomFittings;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.PriorityQueue;
+import java.util.Set;
 
 /**
  * Step 3 (ship) — pack the deck's room program into the hull, then cut each
@@ -56,6 +62,13 @@ public final class RoomPlacementStage implements GenStage {
     private static final int ZONE_BONUS = 1_000_000;
     /** How many of the best-scoring placements to try before giving a room up as unfittable. */
     private static final int PLACEMENT_ATTEMPTS = 8;
+    /**
+     * How many to try when the room states where it hooks up. Deeper than the
+     * ordinary search because it is looking for something specific — a position
+     * whose doors the surrounding deck can actually serve — and the best-packed
+     * few are unlikely to be the ones a passage happens to run past.
+     */
+    private static final int HOOKUP_ATTEMPTS = 40;
     private static final int[][] STEPS = { { 0, -1 }, { 0, 1 }, { -1, 0 }, { 1, 0 } };
 
     /** Cost of running a passage through deck nobody claimed. */
@@ -188,21 +201,137 @@ public final class RoomPlacementStage implements GenStage {
      */
     private DeckGraph.Compartment place(GenContext ctx, DeckProfile profile, RoomRecipe recipe,
                                         List<DeckGraph.Compartment> placed, boolean mayTunnel) {
-        List<Candidate> candidates = candidates(ctx, profile, recipe);
+        RoomFitting fitting = RoomFittings.forPurpose(recipe.purpose());
+        List<Hookup> hookups = fitting == null ? List.of() : fitting.hookups();
+        List<Candidate> candidates =
+                candidates(ctx, profile, recipe, posesFor(recipe.shape(), !hookups.isEmpty()));
+
+        if (!hookups.isEmpty()) {
+            DeckGraph.Compartment hooked =
+                    placeHooked(ctx, profile, recipe, placed, hookups, candidates, mayTunnel);
+            if (hooked != null) return hooked;
+        }
+
+        // A room that states its hookups still has to go somewhere. Falling back
+        // to an ordinary door is a worse bay; refusing to place it is no bay at
+        // all, and the deck would be short a facility over the position of a
+        // hatch.
         int attempts = Math.min(PLACEMENT_ATTEMPTS, candidates.size());
         for (int i = 0; i < attempts; i++) {
             Candidate candidate = candidates.get(i);
-            Access access = findAccess(candidate, mayTunnel);
+            Access access = findAccess(candidate, mayTunnel, null);
             if (access == null) continue;
             List<DeckGraph.Compartment.Door> doors =
-                    commit(ctx, candidate, recipe.purpose(), access);
+                    commit(ctx, candidate, recipe.purpose(), List.of(access));
             return describe(profile, candidate, recipe.purpose(), placed.size(), doors);
         }
         return null;
     }
 
-    /** One way of laying a room down: an orientation of its shape at an origin, and its score. */
-    private record Candidate(RoomShape shape, int x, int y, int score) {}
+    /**
+     * Place a room where the deck can serve the doors it asked for, preferring
+     * the position that serves the most of them.
+     *
+     * <p>Alternatives are tried in the order the fitting wrote them, so a bay
+     * takes its drive-through arrangement wherever one is available and its
+     * single-door arrangement only where one is not.
+     */
+    private DeckGraph.Compartment placeHooked(GenContext ctx, DeckProfile profile,
+                                              RoomRecipe recipe,
+                                              List<DeckGraph.Compartment> placed,
+                                              List<Hookup> hookups, List<Candidate> candidates,
+                                              boolean mayTunnel) {
+        int attempts = Math.min(HOOKUP_ATTEMPTS, candidates.size());
+        int wanted = 0;
+        for (Hookup hookup : hookups) wanted = Math.max(wanted, hookup.slots().size());
+
+        Candidate best = null;
+        List<Access> bestAccesses = null;
+        for (int i = 0; i < attempts; i++) {
+            Candidate candidate = candidates.get(i);
+            for (Hookup hookup : hookups) {
+                List<Access> accesses = serve(candidate, recipe.shape(), hookup, mayTunnel);
+                if (accesses == null) continue;
+                if (bestAccesses == null || accesses.size() > bestAccesses.size()) {
+                    best = candidate;
+                    bestAccesses = accesses;
+                }
+                break;
+            }
+            if (bestAccesses != null && bestAccesses.size() >= wanted) break;
+        }
+        if (best == null) return null;
+        List<DeckGraph.Compartment.Door> doors =
+                commit(ctx, best, recipe.purpose(), bestAccesses);
+        return describe(profile, best, recipe.purpose(), placed.size(), doors);
+    }
+
+    /**
+     * The accesses this candidate can offer one hookup, or null if it cannot
+     * serve the first doorway at all.
+     *
+     * <p>Only the first doorway is worth cutting a passage to. The rest are
+     * taken where the deck already runs past them: a bay is better with two
+     * doors than one, but not at the price of tunnelling a corridor around the
+     * outside of it to reach its far side.
+     */
+    private List<Access> serve(Candidate candidate, RoomShape canonical,
+                               Hookup hookup, boolean mayTunnel) {
+        List<Access> accesses = new ArrayList<>();
+        for (int slot = 0; slot < hookup.slots().size(); slot++) {
+            Set<Long> allowed = allowedDoors(candidate, canonical, hookup.slots().get(slot));
+            Access access = findAccess(candidate, slot == 0 && mayTunnel, allowed);
+            if (access == null) {
+                if (slot == 0) return null;
+                continue;
+            }
+            accesses.add(access);
+        }
+        return accesses;
+    }
+
+    /** One doorway's authored cells, carried into this candidate's pose and position. */
+    private Set<Long> allowedDoors(Candidate candidate, RoomShape canonical,
+                                   Hookup.DoorSlot slot) {
+        Set<Long> keys = new HashSet<>();
+        for (int[] cell : slot.cells()) {
+            int[] posed = candidate.pose()
+                    .map(cell[0], cell[1], canonical.width(), canonical.height());
+            keys.add(cellKey(candidate.x() + posed[0], candidate.y() + posed[1]));
+        }
+        return keys;
+    }
+
+    private static long cellKey(int x, int y) {
+        return ((long) x << 32) ^ (y & 0xffffffffL);
+    }
+
+    private static boolean permits(Set<Long> allowed, int x, int y) {
+        return allowed == null || allowed.contains(cellKey(x, y));
+    }
+
+    /** One way of laying a room down: a posed shape at an origin, and its score. */
+    private record Candidate(RoomShape shape, RoomPose pose, int x, int y, int score) {}
+
+    /**
+     * The poses a room may be laid down in.
+     *
+     * <p>Rotations only, deduplicated by mask, unless the room states where it
+     * hooks up — flips cost four times the candidates to consider and buy
+     * nothing at all for an arrangement with no front and no back. A room that
+     * does care gets all eight, which is what lets one authored bay serve a
+     * deck whose circulation runs down either side of it.
+     */
+    private static List<RoomPose> posesFor(RoomShape shape, boolean flippable) {
+        if (flippable) return RoomPose.all();
+        List<RoomPose> distinct = new ArrayList<>();
+        Set<RoomShape> seen = new HashSet<>();
+        for (RoomPose pose : RoomPose.all()) {
+            if (pose.mirrored()) continue;
+            if (seen.add(shape.posed(pose))) distinct.add(pose);
+        }
+        return distinct;
+    }
 
     /**
      * Every position and orientation this room could legally take, best first.
@@ -217,9 +346,11 @@ public final class RoomPlacementStage implements GenStage {
      * floating in open deck, so rooms gather into blocks and the space they
      * leave collects into passages instead of scattering as slivers.
      */
-    private List<Candidate> candidates(GenContext ctx, DeckProfile profile, RoomRecipe recipe) {
+    private List<Candidate> candidates(GenContext ctx, DeckProfile profile, RoomRecipe recipe,
+                                       List<RoomPose> poses) {
         List<Candidate> found = new ArrayList<>();
-        for (RoomShape shape : recipe.shape().orientations()) {
+        for (RoomPose pose : poses) {
+            RoomShape shape = recipe.shape().posed(pose);
             int w = shape.width();
             int h = shape.height();
             int slack = w * h - shape.area();
@@ -235,7 +366,7 @@ public final class RoomPlacementStage implements GenStage {
                     int contact = wallContact(shape, x, y);
                     if (contact < 0) continue;
                     if (!meetsHull(recipe.contact(), shape, x, y)) continue;
-                    found.add(new Candidate(shape, x, y,
+                    found.add(new Candidate(shape, pose, x, y,
                             zoneBonus + contact + ctx.rng.nextInt(3)));
                 }
             }
@@ -322,16 +453,22 @@ public final class RoomPlacementStage implements GenStage {
      * far side is an enfilade, not a ship: no hallways, no way past a held
      * compartment, and every room on the route a through-route.
      */
-    private Access findAccess(Candidate candidate, boolean mayTunnel) {
+    private Access findAccess(Candidate candidate, boolean mayTunnel, Set<Long> allowed) {
         for (int[] doorway : candidate.shape().doorways()) {
+            int doorX = candidate.x() + doorway[0];
+            int doorY = candidate.y() + doorway[1];
+            if (!permits(allowed, doorX, doorY)) continue;
             int outsideX = candidate.x() + doorway[2];
             int outsideY = candidate.y() + doorway[3];
             if (!inBounds(outsideX, outsideY) || !passage[outsideX + 1][outsideY + 1]) continue;
-            if (backsOntoRoom(candidate.x() + doorway[0], candidate.y() + doorway[1])) continue;
-            return new Access(candidate.x() + doorway[0], candidate.y() + doorway[1],
+            // The room being placed is not yet carved on the first door and is
+            // carved by the second, so this asks whether somebody *else* is
+            // behind the bulkhead — which is the actual objection.
+            if (backsOntoOtherRoom(candidate, doorX, doorY)) continue;
+            return new Access(doorX, doorY,
                     doorway[2] - doorway[0], doorway[3] - doorway[1], List.of());
         }
-        return mayTunnel ? cutPassage(candidate) : null;
+        return mayTunnel ? cutPassage(candidate, allowed) : null;
     }
 
     /**
@@ -341,7 +478,7 @@ public final class RoomPlacementStage implements GenStage {
      * is why passages thread between blocks already placed rather than wandering
      * or tearing through them.
      */
-    private Access cutPassage(Candidate candidate) {
+    private Access cutPassage(Candidate candidate, Set<Long> allowed) {
         int[][] routable = routableGrid(candidate);
         boolean[][] wide = wideGrid(routable);
         int[][] cost = new int[width][height];
@@ -355,12 +492,16 @@ public final class RoomPlacementStage implements GenStage {
         PriorityQueue<int[]> frontier =
                 new PriorityQueue<>(Comparator.comparingInt(entry -> entry[2]));
         for (int[] doorway : candidate.shape().doorways()) {
+            if (!permits(allowed, candidate.x() + doorway[0], candidate.y() + doorway[1])) continue;
             int outsideX = candidate.x() + doorway[2];
             int outsideY = candidate.y() + doorway[3];
             if (!inBounds(outsideX, outsideY)) continue;
             // A bulkhead a second compartment also stands behind is a shared
             // wall; a door there opens both rooms and joins them into one.
-            if (backsOntoRoom(candidate.x() + doorway[0], candidate.y() + doorway[1])) continue;
+            if (backsOntoOtherRoom(candidate, candidate.x() + doorway[0],
+                    candidate.y() + doorway[1])) {
+                continue;
+            }
             int step = routeCost(routable, wide, outsideX, outsideY);
             if (step < 0 || step >= cost[outsideX][outsideY]) continue;
             if (!crossesCleanly(routable, outsideX, outsideY,
@@ -584,7 +725,18 @@ public final class RoomPlacementStage implements GenStage {
      * @return the door cells, which the fill needs to know where people enter
      */
     private List<DeckGraph.Compartment.Door> commit(GenContext ctx, Candidate candidate,
-                                                   RoomPurpose purpose, Access access) {
+                                                   RoomPurpose purpose, List<Access> accesses) {
+        carveRoom(ctx, candidate, purpose);
+        List<DeckGraph.Compartment.Door> doors = new ArrayList<>();
+        for (Access access : accesses) {
+            doors.addAll(cutDoor(ctx, candidate, access));
+        }
+        rebuildSums();
+        return List.copyOf(doors);
+    }
+
+    /** Cut the room and its bulkheads into the deck, without its access. */
+    private void carveRoom(GenContext ctx, Candidate candidate, RoomPurpose purpose) {
         RoomShape shape = candidate.shape();
         for (int[] cell : shape.filled()) {
             int x = candidate.x() + cell[0];
@@ -597,6 +749,11 @@ public final class RoomPlacementStage implements GenStage {
             int y = candidate.y() + cell[1];
             if (inBounds(x, y)) claimed[x + 1][y + 1] = true;
         }
+    }
+
+    /** Cut one doorway and whatever passage was needed to reach it. */
+    private List<DeckGraph.Compartment.Door> cutDoor(GenContext ctx, Candidate candidate,
+                                                     Access access) {
         int[] anchor = null;
         for (int[] cell : access.passage()) {
             boolean crossing = claimed[cell[0] + 1][cell[1] + 1];
@@ -610,8 +767,7 @@ public final class RoomPlacementStage implements GenStage {
         doors.add(new DeckGraph.Compartment.Door(access.doorX(), access.doorY()));
         DeckGraph.Compartment.Door widened = widenDoorway(ctx, candidate, access);
         if (widened != null) doors.add(widened);
-        rebuildSums();
-        return List.copyOf(doors);
+        return doors;
     }
 
     /**
@@ -707,7 +863,7 @@ public final class RoomPlacementStage implements GenStage {
         DeckSide side = (top + bottom) / 2 < spineCentre ? DeckSide.PORT : DeckSide.STARBOARD;
         DeckZone zone = profile.zone(clampFrame(profile, (left + right) / 2));
         return new DeckGraph.Compartment(id, candidate.shape(), left, top,
-                side, zone, purpose, doors);
+                candidate.pose(), side, zone, purpose, doors);
     }
 
     private void rebuildSums() {
