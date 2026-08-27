@@ -4,7 +4,7 @@ Status: IN PROGRESS — live battle found and implementation closes the contact-
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — automated coverage now protects dispersed contact locality, actionable belief validity, fixing movement, and flank handoff.
+Updated: 2026-08-26 — automated coverage now protects dispersed contact locality, actionable belief validity, movement resumption after a cleared contact, fixing movement, and flank handoff.
 
 Read `ai-nouns.md` before running this acceptance.
 

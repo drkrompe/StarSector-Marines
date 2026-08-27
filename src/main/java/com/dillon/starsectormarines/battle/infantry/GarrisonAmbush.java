@@ -88,7 +88,7 @@ public final class GarrisonAmbush implements Goal {
         // squad from camping a doorway instead of engaging the threat in
         // front of it.
         if (state.get(Predicate.ENEMY_IN_KILL_ZONE)) return 0f;
-        if (!squad.hasBelievedContacts()) return 0f;
+        if (!state.get(Predicate.HAS_TARGET)) return 0f;
         return 1.0f;
     }
 
