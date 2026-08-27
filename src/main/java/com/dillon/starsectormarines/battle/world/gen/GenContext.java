@@ -71,7 +71,7 @@ public final class GenContext {
      * emit them. What makes a generated room somewhere people have business
      * rather than somewhere they merely fit.
      */
-    public final List<TaskPoint> taskPoints = new ArrayList<>();
+    public final List<FixtureTask> fixtureTasks = new ArrayList<>();
     /** AI garrison anchors emitted by compound fillers + stampers; linked once at the end. */
     public final List<TacticalNode> tactical = new ArrayList<>();
     /**

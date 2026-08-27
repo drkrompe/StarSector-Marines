@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
-import com.dillon.starsectormarines.battle.world.gen.TaskPoint;
+import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 import com.dillon.starsectormarines.battle.world.gen.ship.fit.RoomFittings;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
@@ -131,7 +131,7 @@ class ShipDeckGeneratorTest {
             Set<Integer> served = new HashSet<>();
             Set<Affordance> offered = EnumSet.noneOf(Affordance.class);
             Set<Long> cells = new HashSet<>();
-            for (TaskPoint point : map.taskPoints) {
+            for (FixtureTask point : map.fixtureTasks) {
                 offered.add(point.affordance());
                 assertTrue(cells.add(((long) point.cellX() << 32) ^ (point.cellY() & 0xffffffffL)),
                         "seed " + seed + ": two task points share cell "
@@ -139,7 +139,7 @@ class ShipDeckGeneratorTest {
                 assertTrue(map.grid.isWalkable(point.cellX(), point.cellY()),
                         "seed " + seed + ": task point " + point.cellX() + ","
                                 + point.cellY() + " is somewhere nobody can stand");
-                if (point.berth() == TaskPoint.NO_BERTH) continue;
+                if (point.berth() == FixtureTask.NO_BERTH) continue;
                 assertTrue(point.berth() >= 0 && point.berth() < map.gantries.size(),
                         "seed " + seed + ": task point serves berth " + point.berth()
                                 + " of " + map.gantries.size());

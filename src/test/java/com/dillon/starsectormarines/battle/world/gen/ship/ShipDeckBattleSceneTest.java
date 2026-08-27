@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.battle.world.gen.ship;
 
+import com.dillon.starsectormarines.battle.ambient.CrewRole;
+import com.dillon.starsectormarines.battle.task.TaskPoint;
+import com.dillon.starsectormarines.battle.task.TaskPointService;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
@@ -96,6 +99,56 @@ final class ShipDeckBattleSceneTest {
             assertEquals(Math.min(lance.size(), scene.gantries().size()),
                     scene.occupyGantries(lance).length,
                     "the bay berthed a different number of machines than the company owns");
+        }
+    }
+
+    /**
+     * A staffed bay is inhabited: technicians take jobs the room affords and
+     * come round to a different one, without a single authored waypoint.
+     *
+     * <p>Advancing the clock is the whole test. A route that never moves anybody
+     * off its first stop is indistinguishable from a static pose at the moment
+     * of spawn, and that is precisely the failure a generated room is prone to —
+     * so this watches a technician's claim change rather than checking that one
+     * was handed out.
+     */
+    @Test
+    void staffedTechniciansCycleTheBaysJobs() {
+        CampaignMechSquad squad = new MechBay().activeSquad();
+        List<MechVariant> lance = squad.mechs().stream().map(CampaignMech::variant).toList();
+
+        ShipDeckGenerator generator = new ShipDeckGenerator();
+        MapResult deck = generator.generateDeck(transportPlan(), SEED, null);
+        try (ShipDeckBattleScene scene = new ShipDeckBattleScene(
+                deck, generator.getLastDeckGraph(), SEED, null)) {
+            scene.occupyGantries(lance);
+            DeckGraph.Compartment bay = scene.room(RoomPurpose.VEHICLE_BAY);
+            long[] hands = scene.staff(bay, CrewRole.MECH_TECH, 3);
+            assertTrue(hands.length > 0, "the bay took on nobody at all");
+
+            TaskPointService points = scene.simulation().taskPoints();
+            Set<String> visitedByFirst = new HashSet<>();
+            Set<Long> everWorking = new HashSet<>();
+            for (int step = 0; step < 600; step++) {
+                scene.simulation().ambientTasks().advance(0.1f);
+
+                // Nobody may be standing where somebody else is standing, at any
+                // instant. Claims are exclusive or the capacity is a fiction.
+                Set<String> heldNow = new HashSet<>();
+                for (long hand : hands) {
+                    TaskPoint claim = points.claimedPoint(hand);
+                    if (claim == null) continue;
+                    everWorking.add(hand);
+                    assertTrue(heldNow.add(claim.id()),
+                            "two technicians claimed " + claim.id() + " at once");
+                }
+                TaskPoint first = points.claimedPoint(hands[0]);
+                if (first != null) visitedByFirst.add(first.id());
+            }
+            assertEquals(hands.length, everWorking.size(),
+                    "a technician was taken on and never given anything to do");
+            assertTrue(visitedByFirst.size() > 1,
+                    "a technician never left the station they started at, so nothing cycles");
         }
     }
 

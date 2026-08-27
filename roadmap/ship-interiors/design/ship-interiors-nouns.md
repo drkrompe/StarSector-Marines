@@ -146,6 +146,19 @@ authored content.
   tactical effect — cover, blocking, sightline — and its **ambient affordance**,
   the activity an idle crew member performs at it. A berth affords rest; a gantry
   affords work; a firing lane affords practice.
+- A **job** is one thing a fixture affords, sited at the cell it is done from.
+  It is the authored half: generation knows which berth a job belongs to and
+  whether its fixture is in service, and both are spent when the deck is staffed
+  rather than carried into the battle. What survives is the task point.
+- A **role** is what a crew member is aboard to do, as the jobs they will work.
+  It is the join between a person and a room: a compartment publishes what its
+  fixtures afford, and a role says which of those are this person's and in what
+  order they come round to them. A mech technician in a vehicle bay welds,
+  fetches, and reads terminals; the same technician in a barracks has nothing to
+  do, which is the right answer rather than a gap. Roles are never derived from
+  what a room contains — a room full of bunks affords rest to everybody and is
+  somebody's *job* only if they are off watch, and folding opportunity into work
+  is how every actor on a deck ends up doing whatever is nearest.
 - A **fixture group** is the placement unit: an anchor fixture, its satellites,
   and a shared orientation. A workspace is a bench with its stool, its parts bin,
   and its clutter, all facing the same way. Fixtures are placed as groups, never
@@ -311,8 +324,21 @@ This is the difference between a generated room and a dead one, and it is the
 standing reason fixtures must declare affordance rather than only appearance. The
 ambient service executes route intent through ordinary battle pathfinding,
 movement, occupancy, and separation; it never interpolates an actor through a
-fixture or wall. Route authorship from generated fixture data remains the missing
-half.
+fixture or wall.
+
+A **shift** is one crew member's loop through their role's jobs in one
+compartment, and it is derived, never listed. The order is the role's, not a
+priority: a route that always ran to the nearest free job would bunch every
+technician at one end of a bay. Members of a watch start on different jobs and
+different phases so a shift coming on spreads across the room instead of
+queueing, and a compartment takes on only as many of a role as its *scarcest*
+job can sustain — a bay with eight berths and one terminal cannot occupy eight
+technicians on a rotation that includes the terminal.
+
+Threat policy is a parameter of the route and a home deck's crew yield only to
+**hostiles**. Yielding to any combatant sounds safer and is wrong here: the
+machines a technician services are armed, so the crew of a bay would flee the
+mechs they are welding and stand around the edges of the room permanently.
 
 A fill that would seal its compartment is refused, and a refused fill publishes
 **nothing** — not its fixtures, not its berths, not its work. Rolling back only
