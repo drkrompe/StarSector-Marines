@@ -1,7 +1,9 @@
 package com.dillon.starsectormarines.battle.world.gen.ship;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import org.junit.jupiter.api.Test;
 
@@ -38,6 +40,50 @@ class ShipDeckGeneratorTest {
             DeckGraph graph = generator.getLastDeckGraph();
             assertNotNull(graph, "seed " + seed + ": no deck graph published");
             assertTrue(graph.compartmentCount() > 0, "seed " + seed + ": deck placed no rooms");
+        }
+    }
+
+    /**
+     * A vehicle bay authors berths, and a berth is empty floor.
+     *
+     * <p>What stands in a berth is a unit the host spawns from a roster, so the
+     * map has to leave the space for it. A berth with a crate in it, or one cut
+     * out of the bulkhead, is a bay the player's mech cannot be put into — and
+     * that failure is invisible until someone opens the Mech Lab and finds a
+     * machine standing inside a wall.
+     */
+    @Test
+    void vehicleBayBerthsAreClearFloor() {
+        for (long seed : SEEDS) {
+            // Sized from a transport's own program: a vehicle bay is too large
+            // to reliably place on an arbitrary deck, and a berth test that
+            // skips whenever the bay did not fit is a test that never runs.
+            ShipDeckGenerator generator = new ShipDeckGenerator();
+            MapResult map = generator.generateDeck(
+                    DeckSizing.planFor(HullClass.CRUISER, HullRole.TROOP_TRANSPORT,
+                            10, 250, 50, 0.28f),
+                    seed, null);
+            assertTrue(generator.getLastDeckGraph().compartments().stream()
+                            .anyMatch(c -> c.purpose() == RoomPurpose.VEHICLE_BAY),
+                    "seed " + seed + ": a transport deck placed no vehicle bay");
+            assertTrue(!map.gantries.isEmpty(),
+                    "seed " + seed + ": a vehicle bay published no berths");
+            for (Gantry gantry : map.gantries) {
+                for (int y = gantry.bottom(); y <= gantry.top(); y++) {
+                    for (int x = gantry.left(); x <= gantry.right(); x++) {
+                        assertTrue(map.grid.inBounds(x, y) && map.grid.isWalkable(x, y),
+                                "seed " + seed + ": berth cell " + x + "," + y
+                                        + " is not open floor");
+                    }
+                }
+                for (Doodad doodad : map.doodads) {
+                    boolean inside = doodad.cellX >= gantry.left() && doodad.cellX <= gantry.right()
+                            && doodad.cellY >= gantry.bottom() && doodad.cellY <= gantry.top();
+                    assertTrue(!inside || doodad.cover == Doodad.COVER_NONE,
+                            "seed " + seed + ": a fixture stands in a berth at "
+                                    + doodad.cellX + "," + doodad.cellY);
+                }
+            }
         }
     }
 

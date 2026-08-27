@@ -4,7 +4,7 @@ Status: ACTIVE — the model is authored; no generator, facility, or adoption sl
 
 Written: 2026-08-26
 
-Updated: 2026-08-26 — added the hull-size and growth model (complement plus hold, more decks past the playable envelope), hull silhouettes, and the law that a deck is only ever looked at through the battle renderer.
+Updated: 2026-08-26 — added the hull-size and growth model (complement plus hold, more decks past the playable envelope), hull silhouettes, the law that a deck is only ever looked at through the battle renderer, and gantries as authored berths that make the home deck's vehicle bay the Mech Lab.
 
 Ship interiors is the model for navigable shipboard space: the decks a mercenary
 company lives and works on, the facilities it operates and grows, and the hostile
@@ -56,6 +56,16 @@ authored content.
 - The **hull profile** is the deck's beam as a function of frame: narrow at the
   bow, broadest amidships, tapering aft, and not required to be equal to port and
   starboard. The profile is the family's visual and tactical identity.
+- A **gantry** is one authored machine berth inside a vehicle bay: the clear
+  footprint a mech or a vehicle stands in, and the direction it faces to leave.
+  Generation authors the berth; a host decides what occupies it. This is the
+  same division a landing pad has with a shuttle, and it is what lets one
+  generated bay be the player's own lab on the home deck, a half-empty bay on a
+  prize hull, and a contested objective in a boarding action.
+- A **berthed machine** is a unit, never scenery. It arrives from a roster with
+  its real variant and loadout, so what stands in a bay is the same entity that
+  would walk out of it. Berth cells therefore stay clear in the map — a berth
+  with a fixture in it is a bay nothing can be put into.
 - The **spine** is the primary fore-aft circulation corridor. It is the deck's
   authored main line, not whichever corridor turns out longest. Compartments do
   not all hang off it: a deck where every room opens on the spine is a comb, and
@@ -355,7 +365,14 @@ it is presentation-only by charter. The tactical articulation of a bay is a
     not as a pair: a hall widened only across its direction of travel pinches
     back to one cell at every corner, which puts a movement trap where the deck
     can least afford one. Two is a floor, not a ceiling.
-15. **A deck is seen through the battle renderer, never through a second
+15. **The home deck's vehicle bay is the Mech Lab.** Not a room that resembles
+    it, and not a second layout maintained beside it. The machines it holds are
+    the ones the company owns, so a bay with one mech in it and the rest of its
+    berths empty is the correct picture of a company just starting out. Filling
+    berths to make the room look busy would show the player equipment they do
+    not have, and would make the one screen where they inspect their own
+    machines disagree with the fleet it is drawn from.
+16. **A deck is seen through the battle renderer, never through a second
     painter.** A generated deck is already a map, so authoring evidence, a
     hosted deck view, and a boarding action are one renderer over one
     simulation, differing only in camera, layer set, and whether the frame

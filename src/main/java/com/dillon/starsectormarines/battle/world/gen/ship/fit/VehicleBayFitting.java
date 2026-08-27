@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.ship.fit;
 
+import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
@@ -25,6 +26,11 @@ import java.util.List;
  *
  * <p>Capacity is the bay count, so a longer compartment services more machines.
  * Nothing records that separately.
+ *
+ * <p>Each bay publishes a {@link Gantry} — the berth a machine stands in — and
+ * leaves those cells clear. The machines themselves are units, not scenery, so
+ * whoever hosts the deck fills the berths from a roster: the player's own lance
+ * when this bay is their lab, somebody else's when the deck is a prize.
  */
 public final class VehicleBayFitting implements RoomFitting {
 
@@ -158,7 +164,7 @@ public final class VehicleBayFitting implements RoomFitting {
                         int origin, int band, int depth, boolean headOutboard) {
         mark(floor, lengthwise, origin, band, BAY_WIDTH, depth);
         paveBay(floor, lengthwise, origin, band, depth);
-        reserve(floor, lengthwise, origin + 1, band, BAY_WIDTH - 2, depth);
+        berth(floor, lengthwise, origin + 1, band, BAY_WIDTH - 2, depth, headOutboard);
 
         // The station sits at the head of the bay, against the outer bulkhead,
         // so it never stands between the machine and the lane it leaves by.
@@ -166,6 +172,30 @@ public final class VehicleBayFitting implements RoomFitting {
         for (int i = 0; i < BAY_STATION.length; i++) {
             place(floor, lengthwise, origin + 1 + i, head, BAY_STATION[i]);
         }
+    }
+
+    /**
+     * Publish the bay's berth: the clear middle a machine stands in.
+     *
+     * <p>Faces away from the head of the bay, which is the way out. A berth
+     * pointing at its own workstation would have the machine backing into the
+     * lane every time it left.
+     */
+    private void berth(CompartmentFloor floor, boolean lengthwise,
+                       int along, int across, int alongSpan, int acrossSpan,
+                       boolean headOutboard) {
+        Gantry.Facing facing;
+        if (lengthwise) {
+            facing = headOutboard ? Gantry.Facing.NORTH : Gantry.Facing.SOUTH;
+        } else {
+            facing = headOutboard ? Gantry.Facing.EAST : Gantry.Facing.WEST;
+        }
+        floor.berth(
+                lengthwise ? along : across,
+                lengthwise ? across : along,
+                lengthwise ? alongSpan : acrossSpan,
+                lengthwise ? acrossSpan : alongSpan,
+                facing);
     }
 
     /** Paint the bay's deck, edged and then checkered, before anything stands on it. */

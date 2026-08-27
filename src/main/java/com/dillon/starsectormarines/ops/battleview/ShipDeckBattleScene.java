@@ -1,15 +1,21 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
+import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
 
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.List;
 
 /**
  * Battle-renderer host for a generated ship deck.
@@ -53,6 +59,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
 
     private final BattleRenderer renderer;
     private final BattleSimulation simulation;
+    private final List<Gantry> gantries;
     private final HighlightOverlay highlights = new HighlightOverlay();
     private final Selection selection = new Selection();
 
@@ -63,6 +70,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
 
     public ShipDeckBattleScene(MapResult deck, long seed, BattleSprites sprites) {
         if (deck == null) throw new IllegalArgumentException("a generated deck is required");
+        gantries = deck.gantries;
         simulation = BattleSetup.buildMap(deck, Collections.emptyList(),
                 Collections.emptyList(), seed).sim();
         simulation.getFogOfWar().tick(0, simulation.getRoster());
@@ -76,6 +84,42 @@ public final class ShipDeckBattleScene implements AutoCloseable {
 
     public BattleSimulation simulation() {
         return simulation;
+    }
+
+    /** The berths this deck authored, in generation order. */
+    public List<Gantry> gantries() {
+        return gantries;
+    }
+
+    /**
+     * Stand a lance in the deck's berths, in order, and report how many fit.
+     *
+     * <p>Occupancy is the host's call, not the map's, which is why this is a
+     * separate step rather than something the constructor does. On the home
+     * deck the lance is the player's own and this vehicle bay <em>is</em> their
+     * lab — the machines shown are the machines they own, so a bay with one
+     * mech in it and seven berths empty is the honest picture of a company just
+     * starting out, not a rendering gap.
+     *
+     * <p>Machines are units, not scenery. They arrive from a roster with their
+     * real variant and loadout, so what stands in the bay is the same entity
+     * that would walk out of it.
+     */
+    public int occupyGantries(List<MechVariant> lance) {
+        if (lance == null || lance.isEmpty()) return 0;
+        int berthed = Math.min(lance.size(), gantries.size());
+        for (int index = 0; index < berthed; index++) {
+            MechVariant variant = lance.get(index);
+            if (variant == null) continue;
+            Gantry gantry = gantries.get(index);
+            long mech = simulation.spawn(new EntitySpec(
+                    "berthed mech " + (index + 1), Faction.MARINE, UnitType.HEAVY_MECH,
+                    gantry.centerX, gantry.centerY).mechVariant(variant));
+            simulation.world().attachMechLoadout(mech,
+                    variant.createLoadout(variant.defaultRole));
+        }
+        simulation.getFogOfWar().tick(0, simulation.getRoster());
+        return berthed;
     }
 
     public BattleSceneHostPass pass(DeckView view) {
