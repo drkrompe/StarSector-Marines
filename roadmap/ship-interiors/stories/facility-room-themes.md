@@ -4,9 +4,11 @@ Status: IN PROGRESS
 
 Written: 2026-08-26
 
-Updated: 2026-08-27 — the mech bay is furnished and publishes affordances and
-task points. Berths, lounge extent and firing lanes in the barracks, and the
-density and empty-region sweeps, remain.
+Updated: 2026-08-27 — the mech bay and berthing are both furnished and publish
+affordances and task points. Berthing came out with no room for a lounge at its
+authored size, so that part of the scope is now a question about the recipe
+rather than about the fill. Firing lanes, and the density and empty-region
+sweeps, remain.
 
 Read `ship-interiors-nouns.md` before implementing this story, especially the
 Fill quality section and law 9. Depends on `ship-deck-family.md`.
@@ -37,6 +39,9 @@ which is presentation only.
 - A themed fill per facility purpose, selected from the compartment's semantic
   purpose, that places fixtures from parameters: gantry count and spacing for a
   mech bay; berth count, lounge extent, and firing lane count for a barracks.
+  Berthing is done and holds no lounge: at eight by six, two ranks of racks and
+  the passage between them use the compartment up. A lounge is a bigger room or
+  a separate one, which is a `DeckSizing` decision rather than a fill defect.
 - Fixtures are placed as **fixture groups** — an anchor, its satellites, and a
   shared orientation — not as independent points. A berth is a bunk with its
   footlocker and personal clutter; a fabrication station is a bench with its

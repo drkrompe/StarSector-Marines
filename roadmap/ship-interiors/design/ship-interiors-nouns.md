@@ -133,6 +133,13 @@ authored content.
   same compartment in form and differ only in who sleeps there — which is the
   entire point, because a berth is an assignment and the other crew spaces are
   amenities.
+- A **rack** is one bunk, and a **rank** is a row of them laid athwart the
+  compartment's passage, head to the hull and feet to the deck people walk on.
+  Laid the other way — along the bulkhead — a rack takes two cells of hull to
+  berth one hand instead of one, and the compartment holds half as many people
+  in the same floor. That is why real berthing looks like this, and it is the
+  only arrangement in which the recipe's few square metres a hand is reachable
+  at all.
 - A **room program is gated by size as well as role.** Room footprints do not
   shrink, so a hull below destroyer size cannot hold a range, a briefing room,
   or a proper sick bay without those rooms becoming the ship. A frigate keeps a
@@ -334,6 +341,20 @@ ambient service executes route intent through ordinary battle pathfinding,
 movement, occupancy, and separation; it never interpolates an actor through a
 fixture or wall.
 
+An affordance is not yet a **job**. The same affordance means different work in
+different rooms: stowage in a vehicle bay is the parts run and belongs to whoever
+works the bay, while stowage in a berth is somebody's own locker and belongs to
+whoever sleeps there. So a role names its jobs twice — the ones it works **on
+watch**, in any compartment that is somebody's workplace, and the ones it has
+**off watch**, only in its own berthing. Collapsing the two into one list is not
+a simplification but a leak: the marines were duly offered a shift running the
+mech bay's stores, which is nobody's idea of shore leave.
+
+Berthing is therefore fenced in both directions. A role has only its off-watch
+jobs there, and only in its own quarters — so a marine cannot turn in in the
+ratings' bunkroom, and a technician has no business in the marines' berthing at
+all, however much of it stows things.
+
 A **shift** is one crew member's loop through their role's jobs in one
 compartment, and it is derived, never listed. The order is the role's, not a
 priority: a route that always ran to the nearest free job would bunch every
@@ -476,6 +497,17 @@ it is presentation-only by charter. The tactical articulation of a bay is a
     berths to a door that could have been at the end. A room that cannot be
     served where it asks is placed with an ordinary door rather than left off
     the deck: a worse bay beats no bay.
+
+    Authoring a hookup is not free and does not always pay. Measured against an
+    arbitrary door, a berth's authored pair of hatches *costs* it racks: an
+    arbitrary hatch often lands on a short end bulkhead, where it takes one rack
+    slot, while the authored pair sits on the long side by design and takes two
+    slots each. The berth keeps them anyway, because what is bought is the
+    arrangement — both hatches on one bulkhead, so the far rank stands against
+    unbroken hull and nobody asleep is walked past all watch — and because a
+    budgeted cost in a known place is what lets the fill plan around it. Author a
+    hookup for an arrangement the room needs, not for tidiness, and measure
+    rather than assume which one you have.
 15. **Circulation is two abreast on both axes.** Width is judged as a square,
     not as a pair: a hall widened only across its direction of travel pinches
     back to one cell at every corner, which puts a movement trap where the deck
@@ -527,6 +559,15 @@ it is presentation-only by charter. The tactical articulation of a bay is a
     mod that raises minimum crew finally costs the company real space — the ship
     takes more berths for herself and the ground force gets fewer — where before
     it moved every figure derived from lift except the largest one.
+
+21. **A doorway is only ever the cells the room named.** A door is widened to
+    two cells wherever the deck allows, because a compartment berthing a watch
+    behind a one-cell threshold bottlenecks everything that happens at it. Where
+    the room authored its doorway, the widening stays inside the slot: a berth
+    budgets one rack for each hatch, and a hatch free to spread into the
+    neighbouring slot took a second rack the fitting had already laid a bunk in
+    — in a different place on every deck, which is the failure authored doors
+    exist to end.
 
 ## Boundaries
 

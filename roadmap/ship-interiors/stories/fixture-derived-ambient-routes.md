@@ -4,9 +4,11 @@ Status: IN PROGRESS
 
 Written: 2026-08-26
 
-Updated: 2026-08-27 — roles, jobs and shifts are built and the vehicle bay is
-staffed from its own fixtures. What remains is the barracks rotation, the
-live-fire window on a generated range, and the seed sweep.
+Updated: 2026-08-27 — roles, jobs and shifts are built, and both the vehicle bay
+and berthing are staffed from their own fixtures. A generated barracks yields the
+rest-and-inspect half of the authored rotation; socialize and practice are in
+other compartments, so completing that loop needs a shift that spans rooms rather
+than more fixtures. The live-fire window and the seed sweep also remain.
 
 Read `ship-interiors-nouns.md` before implementing this story. Depends on
 `facility-room-themes.md`.
@@ -42,7 +44,11 @@ generated room and a dead one.
 ## Acceptance
 
 - A generated barracks produces the rest, socialize, inspect, practice rotation
-  currently seen in `barracks-wide.png` without any authored waypoint.
+  currently seen in `barracks-wide.png` without any authored waypoint. Rest and
+  inspect are met from the berth's own racks and lockers. The other two are not
+  in a berth at all — a marine eats in the mess and shoots on the range — so this
+  criterion now turns on whether a shift may span compartments, which is a
+  decision about the shift and not about the fill.
 - A generated mech bay produces fabrication, parts-running, and inspection
   activity around its gantries, scaling with gantry count.
 - The live-fire window still resolves on a generated firing range: rounds are

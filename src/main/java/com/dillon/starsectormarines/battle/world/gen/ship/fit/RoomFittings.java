@@ -26,17 +26,14 @@ public final class RoomFittings {
     private static final Map<RoomPurpose, RoomFitting> BY_PURPOSE = new EnumMap<>(RoomPurpose.class);
 
     static {
-        // Bunks ranked either side of the aisle, each with the locker that turns
-        // a bed into somebody's billet.
-        register(new AisleFitting(RoomPurpose.BARRACKS, FixtureGroup.of(
-                "doodad.military-bunk", 2, 2,
-                new Satellite("doodad.chest-1", 1, 0))));
+        // Racks athwart a fore-and-aft passage, entered from one side: see
+        // BerthingFitting. Ranked along the bulkhead instead, a berth held half
+        // as many hands in the same floor.
+        register(new BerthingFitting(RoomPurpose.BARRACKS, "doodad.chest-1"));
 
         // The ship's own hands berth the same way her passengers do. Same
         // arrangement, different room, because a bunk belongs to somebody.
-        register(new AisleFitting(RoomPurpose.CREW_QUARTERS, FixtureGroup.of(
-                "doodad.military-bunk", 2, 2,
-                new Satellite("doodad.chest-2", 1, 0))));
+        register(new BerthingFitting(RoomPurpose.CREW_QUARTERS, "doodad.chest-2"));
 
         // Tables with their seating. A mess is chairs or it is a hall.
         register(new AisleFitting(RoomPurpose.MESS_HALL, FixtureGroup.of(
