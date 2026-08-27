@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.battle.world.gen.ship.fit;
 
+import com.dillon.starsectormarines.battle.world.gen.ship.Hookup;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+
+import java.util.List;
 
 /**
  * How one kind of compartment is furnished.
@@ -25,4 +28,18 @@ public interface RoomFitting {
      * place fixtures in groups rather than as isolated points.
      */
     void fit(CompartmentFloor floor);
+
+    /**
+     * Where this arrangement can meet the deck, in the canonical frame — or
+     * nothing, for a room that takes a door wherever the deck offers one.
+     *
+     * <p>Read before placement, not during the fill: a door is a constraint on
+     * where a room may go, and a fitting that only found out afterwards had to
+     * make room for it by throwing away part of its own arrangement. Alternatives
+     * are tried in order, and a room whose hookups cannot be served anywhere is
+     * placed with an ordinary door rather than left off the deck.
+     */
+    default List<Hookup> hookups() {
+        return List.of();
+    }
 }

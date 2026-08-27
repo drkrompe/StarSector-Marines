@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.TaskPoint;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
+import com.dillon.starsectormarines.battle.world.gen.ship.RoomPose;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
@@ -76,6 +77,55 @@ public final class CompartmentFloor {
 
     public int height() {
         return height;
+    }
+
+    /** How this compartment was turned and flipped out of its fitting's canonical frame. */
+    public RoomPose pose() {
+        return compartment.pose();
+    }
+
+    /** Extent along the canonical frame's x axis — the room's length as it was authored. */
+    public int canonicalWidth() {
+        return pose().upright() ? width : height;
+    }
+
+    /** Extent along the canonical frame's y axis — the room's depth as it was authored. */
+    public int canonicalHeight() {
+        return pose().upright() ? height : width;
+    }
+
+    /**
+     * Carry a cell from the fitting's canonical frame into this compartment's
+     * own coordinates.
+     *
+     * <p>This is what a fitting uses instead of working out which way round it
+     * is. Authoring once, facing one way, and mapping on the way down is the
+     * difference between a room that mirrors correctly and a room that mirrors
+     * its footprint while leaving its contents where they were.
+     */
+    public int[] toLocal(int x, int y) {
+        return pose().map(x, y, canonicalWidth(), canonicalHeight());
+    }
+
+    /** Carry a cell back out of this compartment into the fitting's canonical frame. */
+    public int[] toCanonical(int x, int y) {
+        return pose().unmap(x, y, canonicalWidth(), canonicalHeight());
+    }
+
+    /**
+     * Carry a canonical rectangle into this compartment, as
+     * {@code {x, y, spanX, spanY}}.
+     *
+     * <p>A turn moves which corner is the origin, so both corners are carried
+     * across and the result normalised. Mapping only the origin and keeping the
+     * spans lays every reservation in a quarter-turned room off the room.
+     */
+    public int[] toLocalRect(int x, int y, int spanX, int spanY) {
+        int[] near = toLocal(x, y);
+        int[] far = toLocal(x + spanX - 1, y + spanY - 1);
+        return new int[]{
+                Math.min(near[0], far[0]), Math.min(near[1], far[1]),
+                Math.abs(near[0] - far[0]) + 1, Math.abs(near[1] - far[1]) + 1 };
     }
 
     /** How many fixtures this fitting has placed, which is the compartment's capacity. */

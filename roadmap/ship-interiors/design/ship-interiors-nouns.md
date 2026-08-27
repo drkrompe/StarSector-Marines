@@ -4,7 +4,9 @@ Status: ACTIVE — the model is authored; no generator, facility, or adoption sl
 
 Written: 2026-08-26
 
-Updated: 2026-08-26 — added the hull-size and growth model (complement plus hold, more decks past the playable envelope), hull silhouettes, the law that a deck is only ever looked at through the battle renderer, gantries as authored berths that make the home deck's vehicle bay the Mech Lab, room views as the way operations screens address parts of the ship, the company ship as a hull the player chooses out of their own fleet, and the split between a deck's form and its damage state, where a wrecked fixture is out of service and the facility is that much smaller until it is repaired.
+Updated: 2026-08-27 - rooms now state where they hook up and are laid down in a
+recorded pose, so a door is a constraint on placement rather than an outcome of
+it, and one authored arrangement serves a deck from either side. Earlier: added the hull-size and growth model (complement plus hold, more decks past the playable envelope), hull silhouettes, the law that a deck is only ever looked at through the battle renderer, gantries as authored berths that make the home deck's vehicle bay the Mech Lab, room views as the way operations screens address parts of the ship, the company ship as a hull the player chooses out of their own fleet, and the split between a deck's form and its damage state, where a wrecked fixture is out of service and the facility is that much smaller until it is repaired.
 
 Ship interiors is the model for navigable shipboard space: the decks a mercenary
 company lives and works on, the facilities it operates and grows, and the hostile
@@ -148,6 +150,16 @@ authored content.
   and a shared orientation. A workspace is a bench with its stool, its parts bin,
   and its clutter, all facing the same way. Fixtures are placed as groups, never
   as independent points on a grid.
+- A **hookup** is where a room meets the deck's circulation: the bulkhead cells
+  its doors may be cut through, authored by the fitting in its canonical frame.
+  A fitting may offer several as alternatives — a bay entered from both ends and
+  a bay entered amidships are different rooms, not a room and a defect — and the
+  placer takes whichever one the surrounding deck can serve.
+- A **pose** is how a room was laid down: a quarter-turn count and whether it was
+  flipped. It is recorded rather than recovered, because a flipped rectangle has
+  the same footprint as an unflipped one while its contents run the other way.
+  One authored arrangement therefore yields eight rooms, and a fitting authors
+  facing one way and reads the pose to find out where that ended up.
 - A **circulation lane** is authored walkable space connecting a compartment's
   entries to its fixture groups. It is a placement obligation: a fill may not
   encroach on it, and it is why a room reads as somewhere people move through
@@ -406,18 +418,26 @@ it is presentation-only by charter. The tactical articulation of a bay is a
     cover, its chokepoint, and any reason for a squad to clear it rather than
     walk past — and the loss is invisible in aggregate, so it is measured as the
     widest unbroken stretch open to a passage rather than as a share of cells.
-14. **Circulation is two abreast on both axes.** Width is judged as a square,
+14. **A room's doors are authored, not discovered.** Where a room hooks up is a
+    constraint on where it may go, not a result of how the passage search
+    happened to reach it. A fill handed an arbitrary door has to make room for
+    it out of its own arrangement — a bay whose hatch landed halfway down its
+    side cleared a band straight through both ranks of gantries, giving up two
+    berths to a door that could have been at the end. A room that cannot be
+    served where it asks is placed with an ordinary door rather than left off
+    the deck: a worse bay beats no bay.
+15. **Circulation is two abreast on both axes.** Width is judged as a square,
     not as a pair: a hall widened only across its direction of travel pinches
     back to one cell at every corner, which puts a movement trap where the deck
     can least afford one. Two is a floor, not a ceiling.
-15. **The home deck's vehicle bay is the Mech Lab.** Not a room that resembles
+16. **The home deck's vehicle bay is the Mech Lab.** Not a room that resembles
     it, and not a second layout maintained beside it. The machines it holds are
     the ones the company owns, so a bay with one mech in it and the rest of its
     berths empty is the correct picture of a company just starting out. Filling
     berths to make the room look busy would show the player equipment they do
     not have, and would make the one screen where they inspect their own
     machines disagree with the fleet it is drawn from.
-16. **A deck is seen through the battle renderer, never through a second
+17. **A deck is seen through the battle renderer, never through a second
     painter.** A generated deck is already a map, so authoring evidence, a
     hosted deck view, and a boarding action are one renderer over one
     simulation, differing only in camera, layer set, and whether the frame
@@ -427,7 +447,7 @@ it is presentation-only by charter. The tactical articulation of a bay is a
     renderer has no concept of — room purpose, zone cuts, which opening is a
     door — is a legitimate second view, but it annotates the render or
     abandons the pretence of being one.
-17. **A deck's form is what the ship can do when whole; damage is state laid
+18. **A deck's form is what the ship can do when whole; damage is state laid
     over that form.** Refits change the form in both directions — a hull fitted
     with more berthing has more berths, and one whose bays were converted to
     holds has lost them — because the owner really did change the ship. Battle
@@ -440,7 +460,7 @@ it is presentation-only by charter. The tactical articulation of a bay is a
     state. A deck sized from the hull specification is a deck of a ship the
     player does not own; a deck sized from the damage is a deck of a ship they
     no longer have.
-18. **A facility the ship cannot hold is absent, not empty.** The program
+19. **A facility the ship cannot hold is absent, not empty.** The program
     already gates rooms the hull has no room for, and the deck already reports
     what it could not place. A screen for a facility the ship cannot host says
     so; it does not open onto a bare compartment. An empty room and a missing

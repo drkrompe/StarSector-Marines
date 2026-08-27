@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.TaskPoint;
+import com.dillon.starsectormarines.battle.world.gen.ship.fit.RoomFittings;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import org.junit.jupiter.api.Test;
@@ -153,6 +154,56 @@ class ShipDeckGeneratorTest {
             assertTrue(offered.contains(Affordance.STOW),
                     "seed " + seed + ": no bay published stores anyone has business at");
         }
+    }
+
+    /**
+     * A bay's doors land where the bay asked for them.
+     *
+     * <p>Doors used to be wherever the passage search happened to arrive, and a
+     * bay dealt with one halfway down its side by clearing a band through both
+     * ranks of gantries — two bays given up to a hatch that could have been at
+     * the end. The room now states where it hooks up and the placer satisfies
+     * it, so this checks the doors against what was authored rather than
+     * against a coordinate that would have to be updated whenever the deck
+     * changed.
+     */
+    @Test
+    void vehicleBayDoorsLandWhereItAsksForThem() {
+        RoomShape canonical = RoomRecipe.VEHICLE_BAY.shape();
+        Set<Long> authored = new HashSet<>();
+        for (Hookup hookup : RoomFittings.forPurpose(RoomPurpose.VEHICLE_BAY).hookups()) {
+            for (Hookup.DoorSlot slot : hookup.slots()) {
+                for (int[] cell : slot.cells()) {
+                    authored.add(((long) cell[0] << 32) ^ (cell[1] & 0xffffffffL));
+                }
+            }
+        }
+        assertTrue(!authored.isEmpty(), "the bay authored no hookups to check against");
+
+        int driveThrough = 0;
+        for (long seed : SEEDS) {
+            ShipDeckGenerator generator = new ShipDeckGenerator();
+            generator.generateDeck(
+                    DeckSizing.planFor(HullClass.CRUISER, HullRole.TROOP_TRANSPORT,
+                            10, 250, 50, 0.28f),
+                    seed, null);
+            for (DeckGraph.Compartment bay : generator.getLastDeckGraph().compartments()) {
+                if (bay.purpose() != RoomPurpose.VEHICLE_BAY) continue;
+                Set<Integer> sides = new HashSet<>();
+                for (DeckGraph.Compartment.Door door : bay.doors()) {
+                    int[] cell = bay.pose().unmap(door.x() - bay.left(), door.y() - bay.top(),
+                            canonical.width(), canonical.height());
+                    assertTrue(authored.contains(
+                                    ((long) cell[0] << 32) ^ (cell[1] & 0xffffffffL)),
+                            "seed " + seed + ": a bay door sits at " + cell[0] + "," + cell[1]
+                                    + ", which is not a cell the bay hooks up on");
+                    sides.add(cell[1]);
+                }
+                if (sides.size() > 1) driveThrough++;
+            }
+        }
+        assertTrue(driveThrough > 0,
+                "no deck served the bay's drive-through, so nothing proves two doorways work");
     }
 
     /** Whether a cell falls inside a compartment's own footprint. */
