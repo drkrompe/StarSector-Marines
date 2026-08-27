@@ -128,6 +128,28 @@ class DefendAssignedTrackGoalTest {
         assertEquals(6, Paths.destY(sim.world().path(member)));
     }
 
+    @Test
+    void rememberedDeadContactDoesNotBlockRallyMovement() {
+        BattleSimulation sim = openSim();
+        int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.MILITIA);
+        long member = sim.spawn(new EntitySpec("reserve", Faction.DEFENDER,
+                UnitType.MILITIA, 2, 2).squad(squadId));
+        Squad squad = sim.getSquad(squadId);
+        squad.aliveMembers = 1;
+        squad.assignedObjective = ObjectiveAssignment.defendTrack(squadId, 16, 7);
+        long enemy = sim.spawn(new EntitySpec("enemy", Faction.MARINE,
+                UnitType.MARINE, 3, 2));
+        sim.advance(BattleSimulation.TICK_DT);
+        sim.getRoster().release(enemy);
+
+        assertTrue(squad.hasBelievedContacts(),
+                "the observation should remain as non-actionable memory");
+        DefendTrack action = new DefendTrack(16, 7);
+        assertEquals(ActionStatus.RUNNING, action.execute(member, squad, sim));
+        assertEquals(16, Paths.destX(sim.world().path(member)));
+        assertEquals(7, Paths.destY(sim.world().path(member)));
+    }
+
     private static BattleSimulation openSim() {
         NavigationGrid grid = new NavigationGrid(20, 10);
         for (int y = 0; y < grid.getHeight(); y++) {

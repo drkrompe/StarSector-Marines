@@ -91,6 +91,11 @@ public final class WorldStateBuilder {
     // --- Stage 1 evaluators ---------------------------------------------
 
     private static boolean evalHasTarget(Squad squad, BattleView sim) {
+        return hasActionableContact(squad, sim);
+    }
+
+    /** True when remembered contact identity still resolves to a live hostile combatant. */
+    public static boolean hasActionableContact(Squad squad, BattleView sim) {
         for (BelievedContact contact : squad.believedContacts()) {
             if (isActionableContact(squad, contact, sim)) return true;
         }
