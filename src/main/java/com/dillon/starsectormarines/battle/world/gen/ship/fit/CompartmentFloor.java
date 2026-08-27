@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.ship.fit;
 
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
+import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
@@ -155,6 +156,20 @@ public final class CompartmentFloor {
         ctx.doodads.add(new Doodad(left + x, top + y,
                 new TileManifest.TileFrame(tileColumn, tileRow),
                 TileManifest.SHEET, Doodad.COVER_NONE));
+    }
+
+    /**
+     * Record a machine berth over a run of this compartment's deck.
+     *
+     * <p>Reserves the footprint as circulation rather than claiming it, because
+     * a berth has to stay clear: what stands there is a unit the host spawns,
+     * not a fixture the map owns. A berth that got furnished would be a bay a
+     * machine cannot be put into.
+     */
+    public void berth(int x, int y, int spanX, int spanY, Gantry.Facing facing) {
+        reserveLane(x, y, spanX, spanY);
+        ctx.gantries.add(new Gantry(left + x + spanX / 2, top + y + spanY / 2,
+                spanX / 2, spanY / 2, facing));
     }
 
     /**

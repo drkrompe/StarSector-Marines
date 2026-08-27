@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenRecipe;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InitSolidStage;
@@ -109,7 +110,8 @@ public final class ShipDeckGenerator {
 
         return new MapResult(grid, topology,
                 marine[0], marine[1], defender[0], defender[1],
-                ctx.pois, ctx.doodads, tacticalMap, buildings);
+                ctx.pois, ctx.doodads, tacticalMap, buildings,
+                List.of(), RoadGraph.EMPTY, List.of(), List.of(), null, ctx.gantries);
     }
 
     /** The profile behind the most recent {@link #generateDeck} run; null before the first. */

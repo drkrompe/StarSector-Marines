@@ -63,6 +63,9 @@ public final class GenContext {
     public final List<LandingPad> landingPads = new ArrayList<>();
     /** Pair-capable mission arrival areas emitted by map-family stages. */
     public final List<LandingArea> landingAreas = new ArrayList<>();
+
+    /** Authored machine berths inside vehicle bays, in the order fittings emit them. */
+    public final List<Gantry> gantries = new ArrayList<>();
     /** AI garrison anchors emitted by compound fillers + stampers; linked once at the end. */
     public final List<TacticalNode> tactical = new ArrayList<>();
     /**

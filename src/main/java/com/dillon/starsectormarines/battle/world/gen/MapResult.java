@@ -51,6 +51,14 @@ public final class MapResult {
     /** Authored pair-capable arrival areas, ordered deterministically by map generation. */
     public final List<LandingArea> landingAreas;
     /**
+     * Authored machine berths inside vehicle bays, ordered deterministically by
+     * the fitting that cut them. Empty for generators with no vehicle bay.
+     *
+     * <p>Generation authors the berth; the host decides what stands in it, so
+     * these cells are left clear rather than stamped. See {@link Gantry}.
+     */
+    public final List<Gantry> gantries;
+    /**
      * Authored tactical hint graph the battle AI uses for squad allocation and
      * fallback routing. Never null — generators with no tactical layer return
      * an empty {@link TacticalMap}. See {@link TacticalMap} for the queries
@@ -193,6 +201,24 @@ public final class MapResult {
                      List<LandingPad> landingPads,
                      List<LandingArea> landingAreas,
                      BiomeMap biomeMap) {
+        this(grid, topology, marineSpawnX, marineSpawnY, defenderSpawnX, defenderSpawnY,
+                pointsOfInterest, doodads, tacticalMap, buildings, defensePosts, roadGraph,
+                landingPads, landingAreas, biomeMap, Collections.emptyList());
+    }
+
+    public MapResult(NavigationGrid grid, CellTopology topology,
+                     int marineSpawnX, int marineSpawnY,
+                     int defenderSpawnX, int defenderSpawnY,
+                     List<PointOfInterest> pointsOfInterest,
+                     List<Doodad> doodads,
+                     TacticalMap tacticalMap,
+                     Buildings buildings,
+                     List<DefensePost> defensePosts,
+                     RoadGraph roadGraph,
+                     List<LandingPad> landingPads,
+                     List<LandingArea> landingAreas,
+                     BiomeMap biomeMap,
+                     List<Gantry> gantries) {
         this.grid = grid;
         this.topology = topology;
         this.marineSpawnX = marineSpawnX;
@@ -209,5 +235,6 @@ public final class MapResult {
         this.defensePosts = defensePosts;
         this.roadGraph = roadGraph;
         this.biomeMap = biomeMap;
+        this.gantries = gantries == null ? Collections.emptyList() : List.copyOf(gantries);
     }
 }

@@ -9,6 +9,10 @@ import com.dillon.starsectormarines.battle.world.tiles.FixedGridTileDrawer;
 import com.dillon.starsectormarines.battle.world.tiles.Graphics2DTileSink;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.battle.world.tiles.TileSink;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.marine.CampaignMech;
+import com.dillon.starsectormarines.marine.CampaignMechSquad;
+import com.dillon.starsectormarines.marine.MechBay;
 import com.dillon.starsectormarines.ops.battleview.HeadlessBattleSceneRenderer;
 import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
 import com.dillon.starsectormarines.ui.retained.headless.HeadlessUiRenderer;
@@ -228,6 +232,11 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
 
         int index = 0;
         try (ShipDeckBattleScene scene = new ShipDeckBattleScene(map, SEED)) {
+            // The vehicle bay on a home deck is the Mech Lab, so the machines
+            // standing in it are the ones the company owns rather than props
+            // chosen to fill the frame. A new company owns one, which is why
+            // most berths in this evidence are empty.
+            scene.occupyGantries(startingLance());
             for (Map.Entry<RoomPurpose, DeckGraph.Compartment> entry : byPurpose.entrySet()) {
                 DeckGraph.Compartment c = entry.getValue();
                 int ox = margin + (index % columns) * (cellWidth + margin);
@@ -261,6 +270,20 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
         }
         g.dispose();
         return new SnapshotArtifact("ship-rooms-detail.png", image);
+    }
+
+    /**
+     * The lance a new company starts with, straight from the campaign authority
+     * that the Mech Lab screen reads.
+     *
+     * <p>Deliberately not a hand-written variant list. The point of showing
+     * machines in the bay is to see the player's own, so the evidence takes them
+     * from {@link MechBay} and inherits whatever the starter squad becomes.
+     */
+    private static List<MechVariant> startingLance() {
+        CampaignMechSquad squad = new MechBay().activeSquad();
+        if (squad == null) return List.of();
+        return squad.mechs().stream().map(CampaignMech::variant).toList();
     }
 
     /**
