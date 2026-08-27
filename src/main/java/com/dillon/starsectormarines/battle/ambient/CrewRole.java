@@ -3,7 +3,10 @@ package com.dillon.starsectormarines.battle.ambient;
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
+import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * What a crew member is aboard to do, as the jobs they will work.
@@ -20,6 +23,12 @@ import java.util.List;
  * somebody is off watch; work is not the same fact as opportunity, and folding
  * them together is how every actor on a deck ends up doing whatever is nearest.
  *
+ * <p>A role's jobs come in two lists, because the same affordance is a different
+ * job in a different room. Stowage in a vehicle bay is the parts run and belongs
+ * to whoever works the bay; stowage in a berth is somebody's own locker and
+ * belongs to whoever sleeps there. A single list cannot tell those apart, and
+ * with one the marines were offered a shift running the bay's stores.
+ *
  * <p>The order of {@link #jobs()} is the order the shift comes round in, not a
  * priority. A technician welds, then fetches a part, then checks a readout, then
  * welds again — a rotation, because that is what a shift looks like from
@@ -33,21 +42,34 @@ public enum CrewRole {
      * is the work; the parts run and the readout are what the work needs.
      */
     MECH_TECH(RoomPurpose.CREW_QUARTERS,
-            Affordance.SERVICE, Affordance.STOW, Affordance.READOUT),
+            List.of(Affordance.SERVICE, Affordance.STOW, Affordance.READOUT),
+            List.of(Affordance.REST)),
 
     /** Makes and repairs the parts a bay consumes, at the bench rather than the machine. */
-    MACHINIST(RoomPurpose.CREW_QUARTERS, Affordance.FABRICATE, Affordance.STOW),
+    MACHINIST(RoomPurpose.CREW_QUARTERS,
+            List.of(Affordance.FABRICATE, Affordance.STOW),
+            List.of(Affordance.REST)),
 
-    /** Off watch: sleeping, eating, and keeping their shooting in. */
+    /**
+     * Off watch: eating and keeping their shooting in around the ship, sleeping
+     * and squaring their kit away in their own berthing.
+     */
     MARINE(RoomPurpose.BARRACKS,
-            Affordance.REST, Affordance.MESS, Affordance.PRACTICE);
+            List.of(Affordance.MESS, Affordance.PRACTICE),
+            List.of(Affordance.REST, Affordance.STOW));
 
     private final RoomPurpose quarters;
+    private final List<Affordance> onWatch;
+    private final List<Affordance> offWatch;
     private final List<Affordance> jobs;
 
-    CrewRole(RoomPurpose quarters, Affordance... jobs) {
+    CrewRole(RoomPurpose quarters, List<Affordance> onWatch, List<Affordance> offWatch) {
         this.quarters = quarters;
-        this.jobs = List.of(jobs);
+        this.onWatch = List.copyOf(onWatch);
+        this.offWatch = List.copyOf(offWatch);
+        List<Affordance> all = new ArrayList<>(this.onWatch);
+        all.addAll(this.offWatch);
+        this.jobs = List.copyOf(all);
     }
 
     /**
@@ -64,14 +86,39 @@ public enum CrewRole {
         return quarters;
     }
 
-    /** The jobs this role works, in the order a shift comes round to them. */
+    /** The jobs this role works in a compartment that is somebody's workplace. */
+    public List<Affordance> onWatch() {
+        return onWatch;
+    }
+
+    /** The jobs this role has in its own berthing, and nowhere else. */
+    public List<Affordance> offWatch() {
+        return offWatch;
+    }
+
+    /** Every job this role has anywhere, in the order a shift comes round to them. */
     public List<Affordance> jobs() {
         return jobs;
     }
 
-    /** Whether this role has any business at a job of this kind. */
-    public boolean works(Affordance affordance) {
-        return jobs.contains(affordance);
+    /**
+     * Whether a compartment of this purpose is somebody's berthing rather than
+     * somewhere they work.
+     *
+     * <p>Read off the roles themselves so one place decides it. A purpose is
+     * berthing exactly when some role calls it their quarters, which is what the
+     * distinction means.
+     */
+    public static boolean isBerthing(RoomPurpose purpose) {
+        return BERTHING.contains(purpose);
+    }
+
+    private static final Set<RoomPurpose> BERTHING = berthing();
+
+    private static Set<RoomPurpose> berthing() {
+        EnumSet<RoomPurpose> purposes = EnumSet.noneOf(RoomPurpose.class);
+        for (CrewRole role : values()) purposes.add(role.quarters);
+        return purposes;
     }
 
     /**

@@ -15,8 +15,15 @@ import java.util.List;
  *
  * <p>A cell reads as roughly a metre, which is what makes these numbers
  * checkable against a real vessel rather than tuned until the picture looks
- * busy. {@link #TROOP_BERTHING} is twelve bunks in forty-eight square metres —
- * four per hand, which is spartan on purpose.
+ * busy. {@link #TROOP_BERTHING} is forty-eight square metres and berths nine,
+ * which is spartan on purpose.
+ *
+ * <p>{@link #provides} is what the room's own arrangement holds, counted rather
+ * than asserted. A berth was programmed at twelve for as long as nothing was
+ * laid out inside one; the racks, the two hatches they make room for, and the
+ * stowage by the door come to nine, so nine is the figure the program plans
+ * against. A capacity nobody could point at on the deck is how a ship comes to
+ * berth more people than she has bunks.
  *
  * <p>The {@link RoomShape} is a mask, not a rectangle and not an orientation.
  * {@link #COMMAND} is a diamond because a bridge is not a box; a range will be
@@ -40,10 +47,10 @@ public record RoomRecipe(RoomPurpose purpose, RoomShape shape, DeckZone zone,
     }
 
     /**
-     * Bunks and living space for a watch of twelve. Two rows of stacked bunks
-     * either side of a single aisle, with a locker run at one end and nothing
-     * else — a ship berths her people in many small compartments spread through
-     * the hull, not in one dormitory.
+     * Bunks and living space for a watch of nine. Two ranks of racks facing
+     * each other across a fore-and-aft passage, entered from one side, with
+     * stowage by the hatches and nothing else — a ship berths her people in many
+     * small compartments spread through the hull, not in one dormitory.
      *
      * <p>Berthed forward, which is both the traditional arrangement and the
      * practical one here: berths are the smallest rooms and the most numerous,
@@ -54,7 +61,7 @@ public record RoomRecipe(RoomPurpose purpose, RoomShape shape, DeckZone zone,
      * off has to hold their own people and nobody else's.
      */
     public static final RoomRecipe TROOP_BERTHING = new RoomRecipe(
-            RoomPurpose.BARRACKS, RoomShape.rectangle(8, 6), DeckZone.FORE, 12);
+            RoomPurpose.BARRACKS, RoomShape.rectangle(8, 6), DeckZone.FORE, 9);
 
     /**
      * The same compartment for the hands who work the ship, sized from minimum
@@ -68,7 +75,7 @@ public record RoomRecipe(RoomPurpose purpose, RoomShape shape, DeckZone zone,
      * untouched while every other figure moved.
      */
     public static final RoomRecipe CREW_BERTHING = new RoomRecipe(
-            RoomPurpose.CREW_QUARTERS, RoomShape.rectangle(8, 6), DeckZone.FORE, 12);
+            RoomPurpose.CREW_QUARTERS, RoomShape.rectangle(8, 6), DeckZone.FORE, 9);
 
     /** Gantry space for servicing heavy assets; the largest room a ship carries. */
     public static final RoomRecipe VEHICLE_BAY = new RoomRecipe(

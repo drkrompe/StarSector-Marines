@@ -177,4 +177,77 @@ class CompartmentCrewTest {
         assertTrue(!first.id().equals(second.id()),
                 "two technicians claimed the same place to stand");
     }
+
+    /** The compartment of a given purpose on a generated deck, for the berthing cases. */
+    private static Bay generateRoom(long seed, RoomPurpose purpose) {
+        ShipDeckGenerator generator = new ShipDeckGenerator();
+        MapResult map = generator.generateDeck(
+                DeckSizing.planFor(HullClass.CRUISER, HullRole.TROOP_TRANSPORT,
+                        10, 250, 50, 0.28f),
+                seed, null);
+        DeckGraph.Compartment room = generator.getLastDeckGraph().compartments().stream()
+                .filter(c -> c.purpose() == purpose)
+                .findFirst().orElseThrow();
+        return new Bay(map, room);
+    }
+
+    /**
+     * A marine off watch, in their own berthing: turn in, and square their kit
+     * away. Both stops come from fixtures the fill placed, not from a waypoint
+     * anybody typed.
+     */
+    @Test
+    void aMarineRestsAndSquaresKitAwayInTheirOwnBerthing() {
+        Bay barracks = generateRoom(1L, RoomPurpose.BARRACKS);
+        AmbientTaskRoute shift = CompartmentCrew.shift(CrewRole.MARINE, barracks.compartment(),
+                barracks.map().fixtureTasks, allBerthed(barracks.map()), 0,
+                AmbientThreatPolicy.HOSTILE_COMBATANT);
+        assertNotNull(shift, "a furnished barracks gave a marine nothing to do");
+
+        Set<String> groups = new HashSet<>();
+        for (AmbientTaskRoute.Stop stop : shift.stops()) {
+            assertNotNull(stop.pointGroup(),
+                    "a generated stop must claim a group, not sit on a coordinate");
+            assertTrue(groups.add(stop.pointGroup()),
+                    "the shift comes back round to " + stop.pointGroup() + " twice in one loop");
+        }
+        assertTrue(groups.contains(CompartmentCrew.group(barracks.compartment().id(),
+                        Affordance.REST)),
+                "a berth the marine never sleeps in");
+        assertTrue(groups.contains(CompartmentCrew.group(barracks.compartment().id(),
+                        Affordance.STOW)),
+                "nowhere for the marine to keep their kit");
+        assertTrue(shift.stops().size() > 1,
+                "a single stop is a post, not a shift: nothing cycles");
+    }
+
+    /**
+     * Berthing belongs to whoever sleeps in it, and to nobody else.
+     *
+     * <p>Both halves matter. A technician has no job in the marines' barracks
+     * even though it stows things, because stowage there is somebody's own
+     * locker rather than the parts run; and a marine has no job in the ratings'
+     * quarters at all. Without the second half a ship carrying two populations
+     * berths them in one another's compartments.
+     */
+    @Test
+    void berthingBelongsToWhoeverSleepsInIt() {
+        Bay barracks = generateRoom(1L, RoomPurpose.BARRACKS);
+        assertNull(CompartmentCrew.shift(CrewRole.MECH_TECH, barracks.compartment(),
+                        barracks.map().fixtureTasks, allBerthed(barracks.map()), 0,
+                        AmbientThreatPolicy.HOSTILE_COMBATANT),
+                "a technician was given a shift in the marines' berthing");
+        assertEquals(0, CompartmentCrew.capacity(CrewRole.MECH_TECH, barracks.compartment(),
+                        barracks.map().fixtureTasks, allBerthed(barracks.map())),
+                "the marines' berthing counted itself as somewhere a technician works");
+
+        Bay quarters = generateRoom(1L, RoomPurpose.CREW_QUARTERS);
+        assertNull(CompartmentCrew.shift(CrewRole.MARINE, quarters.compartment(),
+                        quarters.map().fixtureTasks, allBerthed(quarters.map()), 0,
+                        AmbientThreatPolicy.HOSTILE_COMBATANT),
+                "a marine turned in in the ship's own berthing");
+        assertTrue(CompartmentCrew.capacity(CrewRole.MECH_TECH, quarters.compartment(),
+                        quarters.map().fixtureTasks, allBerthed(quarters.map())) > 0,
+                "the ship's own hands have nowhere of their own to sleep");
+    }
 }

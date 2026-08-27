@@ -286,7 +286,7 @@ public final class RoomPlacementStage implements GenStage {
                 if (slot == 0) return null;
                 continue;
             }
-            accesses.add(access);
+            accesses.add(access.within(allowed));
         }
         return accesses;
     }
@@ -441,7 +441,28 @@ public final class RoomPlacementStage implements GenStage {
      * @param dirY outward step from the door to the cell it opens onto
      * @param passage cells cut to reach circulation, nearest circulation first
      */
-    private record Access(int doorX, int doorY, int dirX, int dirY, List<int[]> passage) {}
+    /**
+     * One way into a candidate: the bulkhead cell to cut, which way it faces,
+     * and the passage that had to be opened to reach it.
+     *
+     * @param doorway the cells this doorway may occupy, or null where the room
+     *     did not author one. A doorway is widened to two cells wherever it can
+     *     be, and widening it out of the slot the room named would undo the
+     *     authoring: a berth budgets a rack for each hatch, and a hatch that
+     *     spread into the neighbouring slot took a second rack the fitting had
+     *     already laid a bunk in.
+     */
+    private record Access(int doorX, int doorY, int dirX, int dirY, List<int[]> passage,
+                          Set<Long> doorway) {
+
+        Access(int doorX, int doorY, int dirX, int dirY, List<int[]> passage) {
+            this(doorX, doorY, dirX, dirY, passage, null);
+        }
+
+        Access within(Set<Long> doorway) {
+            return new Access(doorX, doorY, dirX, dirY, passage, doorway);
+        }
+    }
 
     /**
      * How this room joins the rest of the deck. A room whose bulkhead already
@@ -820,7 +841,9 @@ public final class RoomPlacementStage implements GenStage {
      * A compartment berthing a watch behind a one-cell threshold bottlenecks
      * everything that happens at it. The second cell has to be this room's own
      * bulkhead and has to open onto the same circulation, so this widens the
-     * door rather than punching a second one somewhere else in the wall.
+     * door rather than punching a second one somewhere else in the wall — and
+     * where the room authored its doorway, the second cell has to be one the
+     * room named.
      */
     private DeckGraph.Compartment.Door widenDoorway(GenContext ctx, Candidate candidate,
                                                     Access access) {
@@ -830,6 +853,7 @@ public final class RoomPlacementStage implements GenStage {
             int nx = access.doorX() + perpX * side;
             int ny = access.doorY() + perpY * side;
             if (!inBounds(nx, ny) || floor[nx + 1][ny + 1]) continue;
+            if (!permits(access.doorway(), nx, ny)) continue;
             if (backsOntoOtherRoom(candidate, nx, ny)) continue;
             int localX = nx - candidate.x();
             int localY = ny - candidate.y();

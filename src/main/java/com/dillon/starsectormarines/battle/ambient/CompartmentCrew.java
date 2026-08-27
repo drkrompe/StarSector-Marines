@@ -114,8 +114,7 @@ public final class CompartmentCrew {
                                          int index, AmbientThreatPolicy threatPolicy) {
         Map<Affordance, List<FixtureTask>> byJob = new LinkedHashMap<>();
         for (FixtureTask task : live(tasks, compartment, occupiedBerths)) {
-            if (!role.works(task.affordance())) continue;
-            if (!sleepsHere(role, compartment, task.affordance())) continue;
+            if (!belongsHere(role, compartment, task.affordance())) continue;
             byJob.computeIfAbsent(task.affordance(), key -> new ArrayList<>()).add(task);
         }
         if (byJob.isEmpty()) return null;
@@ -146,17 +145,28 @@ public final class CompartmentCrew {
     }
 
     /**
-     * Whether a bunk in this compartment is this role's to sleep in.
+     * Whether a job in this compartment is this role's to do.
      *
-     * <p>Only rest is assigned. A marine eats in the same mess as the ratings
-     * and washes in the same heads, so nothing is gained by fencing those off —
-     * but a ship carrying two populations berths them separately, and a marine
-     * turning in wherever the nearest bunkroom happened to be would be sleeping
-     * in the crew's.
+     * <p>Berthing is somebody's, and everywhere else is somebody's workplace.
+     * In a berth a role has only what it does in its own quarters, and only in
+     * its own: a ship carrying two populations berths them separately, so a
+     * marine turning in wherever the nearest bunkroom happened to be would be
+     * sleeping in the crew's, and a technician has no business in the marines'
+     * berthing at all.
+     *
+     * <p>Everywhere else, only the jobs the role works on watch. That second
+     * half matters as much as the first, because an affordance is not a job on
+     * its own: stowage means the parts run in a vehicle bay and somebody's own
+     * locker in a berth, and a role that simply worked stowage was offered a
+     * shift running a bay it has nothing to do with.
      */
-    private static boolean sleepsHere(CrewRole role, DeckGraph.Compartment compartment,
-                                      Affordance affordance) {
-        return affordance != Affordance.REST || compartment.purpose() == role.quarters();
+    private static boolean belongsHere(CrewRole role, DeckGraph.Compartment compartment,
+                                       Affordance affordance) {
+        if (CrewRole.isBerthing(compartment.purpose())) {
+            return compartment.purpose() == role.quarters()
+                    && role.offWatch().contains(affordance);
+        }
+        return role.onWatch().contains(affordance);
     }
 
     /**
@@ -172,8 +182,7 @@ public final class CompartmentCrew {
                                List<FixtureTask> tasks, boolean[] occupiedBerths) {
         Map<Affordance, Integer> counts = new EnumMap<>(Affordance.class);
         for (FixtureTask task : live(tasks, compartment, occupiedBerths)) {
-            if (!role.works(task.affordance())) continue;
-            if (!sleepsHere(role, compartment, task.affordance())) continue;
+            if (!belongsHere(role, compartment, task.affordance())) continue;
             counts.merge(task.affordance(), 1, Integer::sum);
         }
         if (counts.isEmpty()) return 0;
