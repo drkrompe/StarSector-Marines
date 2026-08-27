@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.world.gen.ship.fit;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
-
 import java.util.List;
 
 /**
@@ -42,9 +41,8 @@ public final class AisleFitting implements RoomFitting {
 
     @Override
     public void fit(CompartmentFloor floor) {
-        boolean lengthwise = floor.width() >= floor.height();
-        int across = lengthwise ? floor.height() : floor.width();
-        int along = lengthwise ? floor.width() : floor.height();
+        int along = floor.canonicalWidth();
+        int across = floor.canonicalHeight();
         RoomFit fit = floor.fit();
 
         // Rank inboard from each bulkhead, then leave the rest as working floor.
@@ -68,71 +66,65 @@ public final class AisleFitting implements RoomFitting {
 
         int aisleStart = banded;
         int aisle = Math.max(0, across - 2 * banded);
-        reserve(floor, lengthwise, 0, aisleStart, along, aisle);
+        reserve(floor, 0, aisleStart, along, aisle);
         for (DeckGraph.Compartment.Door door : floor.localDoors()) {
-            stubFromDoor(floor, lengthwise, door, aisleStart, Math.max(1, aisle));
+            stubFromDoor(floor, door, aisleStart, Math.max(1, aisle), along, across);
         }
 
         for (int rank = 0; rank < ranks; rank++) {
-            rankRow(floor, lengthwise, rank * group.depth(), along);
+            rankRow(floor, rank * group.depth(), along);
             int opposite = across - (rank + 1) * group.depth();
             // A room only deep enough for one rank gets one, not the same rank
             // laid twice on top of itself.
             if (opposite >= (rank + 1) * group.depth() + MIN_CLEAR) {
-                rankRow(floor, lengthwise, opposite, along);
+                rankRow(floor, opposite, along);
             }
         }
     }
 
     /** One row of groups running the length of the compartment. */
-    private void rankRow(CompartmentFloor floor, boolean lengthwise, int across, int along) {
+    private void rankRow(CompartmentFloor floor, int across, int along) {
         int pitch = group.width() + floor.fit().gap();
         for (int offset = 0; offset + group.width() <= along; offset += pitch) {
-            place(floor, lengthwise, offset, across);
+            place(floor, offset, across);
         }
     }
 
     /** Lay one group down, anchor first, then whatever the anchor is used with. */
-    private void place(CompartmentFloor floor, boolean lengthwise, int along, int across) {
-        if (!floor.place(group.anchor(), x(lengthwise, along, across), y(lengthwise, along, across))) {
-            return;
-        }
+    private void place(CompartmentFloor floor, int along, int across) {
+        int[] anchor = floor.toLocal(along, across);
+        if (!floor.place(group.anchor(), anchor[0], anchor[1])) return;
         for (FixtureGroup.Satellite satellite : group.satellites()) {
-            floor.place(satellite.id(),
-                    x(lengthwise, along + satellite.along(), across + satellite.across()),
-                    y(lengthwise, along + satellite.along(), across + satellite.across()));
+            int[] cell = floor.toLocal(along + satellite.along(), across + satellite.across());
+            floor.place(satellite.id(), cell[0], cell[1]);
         }
     }
 
-    private void stubFromDoor(CompartmentFloor floor, boolean lengthwise,
-                              DeckGraph.Compartment.Door door, int aisleStart, int aisle) {
-        int doorAlong = lengthwise ? door.x() : door.y();
-        int doorAcross = lengthwise ? door.y() : door.x();
-        int from = Math.min(doorAcross, aisleStart);
-        int span = Math.abs(doorAcross - aisleStart) + aisle;
-        reserve(floor, lengthwise, clamp(doorAlong, 0, lengthwise ? floor.width() : floor.height()),
-                from, 1, span);
+    /**
+     * Join a door to the aisle, where the aisle does not already reach it.
+     *
+     * <p>A door on an end bulkhead opens onto the aisle already, so nothing is
+     * spent on it. This is for the doors a hull could not serve where the room
+     * asked, and it costs a single column of one rank.
+     */
+    private void stubFromDoor(CompartmentFloor floor, DeckGraph.Compartment.Door door,
+                              int aisleStart, int aisle, int along, int across) {
+        int[] canonical = floor.toCanonical(door.x(), door.y());
+        int doorAcross = canonical[1];
+        if (doorAcross >= aisleStart && doorAcross < aisleStart + aisle) return;
+        int from = Math.min(Math.max(0, doorAcross), aisleStart);
+        int to = Math.max(Math.min(across - 1, doorAcross), aisleStart + aisle - 1);
+        reserve(floor, clamp(canonical[0], 0, along), from, 1, to - from + 1);
     }
 
     private static int clamp(int value, int min, int max) {
         return Math.max(min, Math.min(max - 1, value));
     }
 
-    private void reserve(CompartmentFloor floor, boolean lengthwise,
+    private void reserve(CompartmentFloor floor,
                          int along, int across, int alongSpan, int acrossSpan) {
-        floor.reserveLane(
-                lengthwise ? along : across,
-                lengthwise ? across : along,
-                lengthwise ? alongSpan : acrossSpan,
-                lengthwise ? acrossSpan : alongSpan);
-    }
-
-    private static int x(boolean lengthwise, int along, int across) {
-        return lengthwise ? along : across;
-    }
-
-    private static int y(boolean lengthwise, int along, int across) {
-        return lengthwise ? across : along;
+        int[] rect = floor.toLocalRect(along, across, alongSpan, acrossSpan);
+        floor.reserveLane(rect[0], rect[1], rect[2], rect[3]);
     }
 
     /**

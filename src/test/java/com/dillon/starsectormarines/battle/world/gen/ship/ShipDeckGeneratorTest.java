@@ -171,7 +171,7 @@ class ShipDeckGeneratorTest {
     void vehicleBayDoorsLandWhereItAsksForThem() {
         RoomShape canonical = RoomRecipe.VEHICLE_BAY.shape();
         Set<Long> authored = new HashSet<>();
-        for (Hookup hookup : RoomFittings.forPurpose(RoomPurpose.VEHICLE_BAY).hookups()) {
+        for (Hookup hookup : RoomFittings.forPurpose(RoomPurpose.VEHICLE_BAY).hookups(canonical)) {
             for (Hookup.DoorSlot slot : hookup.slots()) {
                 for (int[] cell : slot.cells()) {
                     authored.add(((long) cell[0] << 32) ^ (cell[1] & 0xffffffffL));
