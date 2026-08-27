@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.ship.fit;
 
 import com.dillon.starsectormarines.battle.world.gen.ship.Hookup;
+import com.dillon.starsectormarines.battle.world.gen.ship.RoomShape;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 import java.util.List;
@@ -39,7 +40,22 @@ public interface RoomFitting {
      * are tried in order, and a room whose hookups cannot be served anywhere is
      * placed with an ordinary door rather than left off the deck.
      */
-    default List<Hookup> hookups() {
+    default List<Hookup> hookups(RoomShape canonical) {
         return List.of();
+    }
+
+    /**
+     * Whether this arrangement has a handedness — a front and a back that a
+     * mirror image would reverse.
+     *
+     * <p>Separate from {@link #hookups} because they answer different
+     * questions. A bay is handed: its shop is at one end and its doors at the
+     * other, so flipping it is a different room and worth the four extra poses
+     * to consider. Ranks either side of a centred aisle are not handed at all,
+     * and enumerating their mirrors would quadruple the search for the most
+     * numerous compartment on the deck in exchange for nothing.
+     */
+    default boolean handed() {
+        return false;
     }
 }

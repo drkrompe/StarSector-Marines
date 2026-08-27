@@ -202,9 +202,10 @@ public final class RoomPlacementStage implements GenStage {
     private DeckGraph.Compartment place(GenContext ctx, DeckProfile profile, RoomRecipe recipe,
                                         List<DeckGraph.Compartment> placed, boolean mayTunnel) {
         RoomFitting fitting = RoomFittings.forPurpose(recipe.purpose());
-        List<Hookup> hookups = fitting == null ? List.of() : fitting.hookups();
+        List<Hookup> hookups = fitting == null ? List.of() : fitting.hookups(recipe.shape());
+        boolean handed = fitting != null && fitting.handed();
         List<Candidate> candidates =
-                candidates(ctx, profile, recipe, posesFor(recipe.shape(), !hookups.isEmpty()));
+                candidates(ctx, profile, recipe, posesFor(recipe.shape(), handed));
 
         if (!hookups.isEmpty()) {
             DeckGraph.Compartment hooked =
@@ -316,14 +317,14 @@ public final class RoomPlacementStage implements GenStage {
     /**
      * The poses a room may be laid down in.
      *
-     * <p>Rotations only, deduplicated by mask, unless the room states where it
-     * hooks up — flips cost four times the candidates to consider and buy
-     * nothing at all for an arrangement with no front and no back. A room that
-     * does care gets all eight, which is what lets one authored bay serve a
-     * deck whose circulation runs down either side of it.
+     * <p>Rotations only, deduplicated by mask, unless the arrangement is handed
+     * — flips cost four times the candidates to consider and buy nothing at all
+     * for a room with no front and no back. A room that does have one gets all
+     * eight, which is what lets a single authored bay serve a deck whose
+     * circulation runs down either side of it.
      */
-    private static List<RoomPose> posesFor(RoomShape shape, boolean flippable) {
-        if (flippable) return RoomPose.all();
+    private static List<RoomPose> posesFor(RoomShape shape, boolean handed) {
+        if (handed) return RoomPose.all();
         List<RoomPose> distinct = new ArrayList<>();
         Set<RoomShape> seen = new HashSet<>();
         for (RoomPose pose : RoomPose.all()) {

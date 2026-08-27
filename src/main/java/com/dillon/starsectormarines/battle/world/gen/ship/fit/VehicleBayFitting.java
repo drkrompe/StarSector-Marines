@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.gen.ship.Hookup;
-import com.dillon.starsectormarines.battle.world.gen.ship.RoomRecipe;
 import com.dillon.starsectormarines.battle.world.gen.ship.RoomShape;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
@@ -134,13 +133,6 @@ public final class VehicleBayFitting implements RoomFitting {
             null,
             null };
 
-    /**
-     * The bay as it is authored: horizontal, shop aft, and machines leaving
-     * forward. Every posed bay on every deck is this one turned or flipped, so
-     * the hookups below are written once against these extents.
-     */
-    private static final RoomShape CANONICAL = RoomRecipe.VEHICLE_BAY.shape();
-
     @Override
     public RoomPurpose purpose() {
         return RoomPurpose.VEHICLE_BAY;
@@ -160,9 +152,14 @@ public final class VehicleBayFitting implements RoomFitting {
      * with gantries in it.
      */
     @Override
-    public List<Hookup> hookups() {
-        int length = CANONICAL.width();
-        int depth = CANONICAL.height();
+    public boolean handed() {
+        return true;
+    }
+
+    @Override
+    public List<Hookup> hookups(RoomShape canonical) {
+        int length = canonical.width();
+        int depth = canonical.height();
         return List.of(
                 Hookup.of(
                         Hookup.DoorSlot.run(0, -1, DOORWAY, 1),

@@ -155,6 +155,15 @@ authored content.
   A fitting may offer several as alternatives — a bay entered from both ends and
   a bay entered amidships are different rooms, not a room and a defect — and the
   placer takes whichever one the surrounding deck can serve.
+  A hookup is worth authoring only where an arbitrary door would cost the room
+  *capacity*, not merely tidiness. Constraining a door constrains placement, and
+  a room that has to be somewhere its end bulkhead meets a passage packs into
+  the deck less well — measured on a frigate deck, giving berth compartments an
+  end-bulkhead door cost six compartments to gain ten fixtures, because the
+  program rooms took more awkward positions and left worse pockets behind. The
+  bay earns it: a hatch partway down its side used to cost two of its eight
+  berths, a quarter of the facility. A berth compartment does not: a stub across
+  one rank costs it a single bunk of twelve.
 - A **pose** is how a room was laid down: a quarter-turn count and whether it was
   flipped. It is recorded rather than recovered, because a flipped rectangle has
   the same footprint as an unflipped one while its contents run the other way.
