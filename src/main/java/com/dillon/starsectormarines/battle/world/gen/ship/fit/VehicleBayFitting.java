@@ -9,7 +9,6 @@ import com.dillon.starsectormarines.battle.world.gen.ship.RoomShape;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -48,10 +47,19 @@ public final class VehicleBayFitting implements RoomFitting {
     private static final int SERVICE_LANE = 2;
     /** Cells at one end given over to the fab shop. */
     private static final int SHOP_WIDTH = 7;
-    /** Cells kept clear either side of a door, so a machine can be driven through it. */
-    private static final int DOOR_CLEARANCE = 1;
     /** Cells of bulkhead a doorway may take, which is what a machine needs to pass. */
     private static final int DOORWAY = 2;
+    /**
+     * Cells at the forward end kept as the vestibule: the athwartships run that
+     * joins the bay's two doors to each other and to the service lane.
+     *
+     * <p>Authored, not reacted to. The bay used to clear a band the full depth
+     * of the room wherever a door turned out to be, and then skip any bay that
+     * overlapped it — which cost berths, and cost them in a different place on
+     * every deck. Now the room says where its doors are, so the deck they open
+     * onto can be part of the arrangement instead of an apology for it.
+     */
+    private static final int VESTIBULE = DOORWAY + 1;
 
     /**
      * The bay floor, taken from the hand-authored Mech Lab rather than invented.
@@ -168,31 +176,26 @@ public final class VehicleBayFitting implements RoomFitting {
         int along = floor.canonicalWidth();
         int across = floor.canonicalHeight();
 
-        // The door decides the layout, not the corner of the bounding box. A
-        // bay parked across the only way in is a bay whose machine can never
-        // leave it, and the deck in front of a door is the one run of floor in
-        // a vehicle bay that is never negotiable.
-        List<int[]> approaches = approaches(floor, along, across);
-        for (int[] approach : approaches) {
-            reserve(floor, approach[0], 0, approach[1] - approach[0] + 1, across);
-        }
-
         int bayDepth = Math.min(BAY_DEPTH, (across - SERVICE_LANE) / 2);
         boolean facingRanks = bayDepth >= 3;
         if (!facingRanks) {
             bayDepth = Math.max(3, across - SERVICE_LANE);
         }
 
-        int shopWidth = Math.min(SHOP_WIDTH, Math.max(0, along - BAY_WIDTH - 1));
+        int vestibule = Math.min(VESTIBULE, Math.max(0, along - BAY_WIDTH));
+        int shopWidth = Math.min(SHOP_WIDTH, Math.max(0, along - vestibule - BAY_WIDTH - 1));
         int bayLimit = along - shopWidth;
+        int laneFrom = bayDepth;
+        int laneSpan = Math.max(1, across - (facingRanks ? 2 * bayDepth : bayDepth));
 
-        int cursor = 0;
+        // Circulation first, both runs of it: the vestibule the doors open into
+        // and the service lane the ranks face across. Everything placed after
+        // this has to work around them, which is the point.
+        reserve(floor, 0, 0, vestibule, across);
+        reserve(floor, vestibule, laneFrom, bayLimit - vestibule, laneSpan);
+
+        int cursor = vestibule;
         while (cursor + BAY_WIDTH <= bayLimit) {
-            int blockedUntil = blockedUntil(approaches, cursor, cursor + BAY_WIDTH - 1);
-            if (blockedUntil >= 0) {
-                cursor = blockedUntil + 1;
-                continue;
-            }
             layBay(floor, cursor, 0, bayDepth, true);
             if (facingRanks) {
                 layBay(floor, cursor, across - bayDepth, bayDepth, false);
@@ -201,13 +204,32 @@ public final class VehicleBayFitting implements RoomFitting {
             cursor += BAY_WIDTH + BAY_GAP;
         }
 
-        // The lane between the ranks is the route a machine and its parts
-        // travel, reserved before anything is placed rather than being whatever
-        // happens to be left over.
-        reserve(floor, 0, bayDepth, bayLimit,
-                Math.max(1, across - (facingRanks ? 2 * bayDepth : bayDepth)));
+        stubStrandedDoors(floor, along, across, laneFrom, laneSpan, vestibule);
         if (shopWidth > 0) {
             layShop(floor, bayLimit, along, across);
+        }
+    }
+
+    /**
+     * Join any door the vestibule does not already serve to the service lane,
+     * one cell wide.
+     *
+     * <p>A room states where it hooks up, and is placed with an ordinary door
+     * where no hull could serve that. This is the cost of that promise, kept as
+     * small as it can be: a single file stub across one rank, rather than the
+     * full-depth band that used to be cleared for every door and took a bay
+     * with it.
+     */
+    private void stubStrandedDoors(CompartmentFloor floor, int along, int across,
+                                   int laneFrom, int laneSpan, int vestibule) {
+        for (DeckGraph.Compartment.Door door : floor.localDoors()) {
+            int[] canonical = floor.toCanonical(door.x(), door.y());
+            int doorAlong = Math.max(0, Math.min(along - 1, canonical[0]));
+            if (doorAlong < vestibule) continue;
+            int doorAcross = Math.max(0, Math.min(across - 1, canonical[1]));
+            int from = Math.min(doorAcross, laneFrom);
+            int to = Math.max(doorAcross, laneFrom + laneSpan - 1);
+            reserve(floor, doorAlong, from, 1, to - from + 1);
         }
     }
 
@@ -370,41 +392,6 @@ public final class VehicleBayFitting implements RoomFitting {
                 place(floor, offset, depth, SHOP[pick], SHOP_WORK[pick]);
             }
         }
-    }
-
-    /**
-     * The runs of deck that have to stay clear because a door opens onto them,
-     * as inclusive ranges along the compartment.
-     */
-    private static List<int[]> approaches(CompartmentFloor floor,
-                                          int along, int across) {
-        List<int[]> ranges = new ArrayList<>();
-        for (DeckGraph.Compartment.Door door : floor.localDoors()) {
-            int[] canonical = floor.toCanonical(door.x(), door.y());
-            int doorAlong = canonical[0];
-            int doorAcross = canonical[1];
-            if (doorAcross < 0 || doorAcross >= across) {
-                ranges.add(new int[]{
-                        Math.max(0, doorAlong - DOOR_CLEARANCE),
-                        Math.min(along - 1, doorAlong + DOOR_CLEARANCE) });
-            } else if (doorAlong < 0) {
-                ranges.add(new int[]{ 0, Math.min(along - 1, BAY_WIDTH - 1) });
-            } else if (doorAlong >= along) {
-                ranges.add(new int[]{ Math.max(0, along - BAY_WIDTH), along - 1 });
-            }
-        }
-        return ranges;
-    }
-
-    /** The far end of the first approach a bay here would block, or -1 if it blocks none. */
-    private static int blockedUntil(List<int[]> approaches, int from, int to) {
-        int furthest = -1;
-        for (int[] approach : approaches) {
-            if (from <= approach[1] && to >= approach[0]) {
-                furthest = Math.max(furthest, approach[1]);
-            }
-        }
-        return furthest;
     }
 
     private void place(CompartmentFloor floor,

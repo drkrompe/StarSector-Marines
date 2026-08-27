@@ -213,6 +213,13 @@ ship is repaired, and the room is visibly the reason. It also means every count
 that reads a facility has to ask for working fixtures rather than fixtures,
 which is the price of the rule and is worth paying.
 
+Capacity follows from the room, never from where the deck happened to put it.
+Two hulls of the same class berth the same number of machines, and a player who
+reads a facility's size off the room is reading something true. This is why a
+room states where it hooks up rather than coping with a door wherever one
+arrived: a bay that lost berths to a hatch landing partway down its side made
+capacity a fact about the passage outside it.
+
 Ship interiors publishes capacity. It does not own what consumes it: personnel
 authority still owns the roster, and progression still owns quality and kit.
 
