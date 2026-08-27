@@ -6,7 +6,7 @@ Written: 2026-08-26
 
 Read `ship-interiors-nouns.md` before implementing this story. Depends on
 `ship-deck-family.md` and `facility-room-themes.md`; it does not depend on the
-flagship adoption or upgrade stories.
+company ship adoption or upgrade stories.
 
 Generate hostile prize decks for boarding. By law 8 this is the same generator
 producing the same family with different parameters — hostile faction, a garrison,
@@ -39,7 +39,7 @@ map half only.
 ## Open questions
 
 - Does a taken ship become a campaign asset, and if so does it enter the same
-  facility model as the flagship? If yes, the home and prize distinction is a
+  facility model as the company ship? If yes, the home and prize distinction is a
   state rather than a kind, and the noun model should say so.
 - Does inter-deck movement ever become a mission structure, given law 1 keeps it
   out of map topology?

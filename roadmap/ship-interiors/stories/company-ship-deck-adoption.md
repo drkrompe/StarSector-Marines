@@ -1,22 +1,27 @@
-# Flagship deck adoption
+# Company ship deck adoption
 
 Status: PROPOSED
 
 Written: 2026-08-26
 
+Updated: 2026-08-27 — renamed off the flagship framing. The company lives on a
+ship the player designates, which need not be the ship they fly. Read
+`company-ship.md` for where the deck's parameters come from.
+
 Read `ship-interiors-nouns.md` before implementing this story. Depends on
 `fixture-derived-ambient-routes.md`.
 
-Retire the two constant scene layouts and host Barracks and Mech Lab on generated
-flagship decks. Today each screen owns a private grid with its own origin, its
-own wall predicate, and no relationship to the other; the ship exists only as a
-breadcrumb string. After this story the two screens are views onto compartments
-of one flagship, and the breadcrumbs describe something real.
+Retire the two constant scene layouts and host Barracks and Mech Lab on the
+company ship's generated deck. Today each screen owns a private grid with its
+own origin, its own wall predicate, and no relationship to the other; the ship
+exists only as a breadcrumb string. After this story the two screens are room
+views onto compartments of one ship, and the breadcrumbs describe something
+real.
 
 ## Scope
 
-- A flagship deck set generated from the company's owned facilities, held for the
-  campaign's duration rather than rebuilt per screen entry.
+- A company ship deck generated from that ship's effective crew, cargo and hull
+  class, held rather than rebuilt per screen entry.
 - Barracks and Mech Lab screens frame their compartment on that deck instead of
   constructing a private scene.
 - Delete `BarracksSceneLayout` and `MechLabSceneLayout` and the constant tables
@@ -40,8 +45,8 @@ of one flagship, and the breadcrumbs describe something real.
   and legible circulation. Framing stays readable and clutter never obscures the
   actors. A merely connected room is a regression, and so is a faithful
   reproduction of the current fill.
-- Both screens read compartments of the same deck set, and their breadcrumbs
-  derive from deck and compartment facts rather than literal strings.
+- Both screens read compartments of the same deck, and their breadcrumbs derive
+  from deck and compartment facts rather than literal strings.
 - The practice range still fires live rounds; the Mech Lab still hosts its
   gantries and fitting interaction unchanged.
 - Low-resolution and 150% UI-scale snapshot variants still frame correctly.
@@ -50,5 +55,5 @@ of one flagship, and the breadcrumbs describe something real.
 ## Out of scope
 
 Upgrades, capacity consumption, and any facility beyond the two rooms that exist
-today. Adding armory or medical compartments to the flagship is separate work
+today. Adding armory or medical compartments to the company ship is separate work
 once those themes exist.
