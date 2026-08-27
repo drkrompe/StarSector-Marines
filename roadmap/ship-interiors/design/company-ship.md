@@ -6,7 +6,8 @@ Written: 2026-08-27
 
 Updated: 2026-08-27 — separated form from state: refits change the deck, battle
 damage marks it. An earlier draft let d-mods resize the program, which quietly
-rebuilt the ship around its injuries.
+rebuilt the ship around its injuries. Damaged fixtures are out of service, so
+damage costs capacity.
 
 The company's interior is not a fixed set. It is **one ship the player picks out
 of their own fleet**, and picking it is a decision they make at founding and
@@ -126,11 +127,29 @@ narrowed, overheating conduits panelled over, flush-set panels awkward to reach
 Modifications** is the same idea without the politics: a hull modified off-spec
 by nobody qualified.
 
-The open question is no longer whether damage is visible but how far it goes.
-A wrecked room that still works is scenery; a wrecked room that has actually
-lost capacity until it is repaired is a reason to put into port. The second is
-better and costs more, because it means a facility's capacity is its *working*
-fixtures rather than its fixtures.
+**A wrecked fixture is out of service, and the facility is that much smaller
+until the ship is repaired.** A bay that comes home with two of its four
+gantries wrecked services two machines. This is law 4: capacity counts working
+fixtures, and damage is how a fixture stops working.
+
+That costs something real — every count that reads a facility has to ask for
+working fixtures rather than fixtures — and it buys the thing that makes ship
+collection interesting. A hull is no longer rated by its class. A pristine
+example of a hull is genuinely better than a battered one, so two of the same
+ship are worth different amounts and worth looking for; and a mauled capital may
+still out-berth and out-service a pristine frigate, so the player is
+continually weighing a big damaged shell against a small sound one and moving
+between them as they find better. The interior is what makes that judgement
+concrete instead of a number comparison, because the player can see which
+gantries are out.
+
+**How badly a room is damaged should be read, not tuned.** The form is generated
+from whole-ship capability and the game reports the damaged capability, so the
+ratio between them is a severity the base game already decided — per stat, and
+therefore per room, since cargo names the holds and max crew names the berthing.
+Taking that fraction of a room's fixtures out of service keeps the interior and
+the game's own numbers agreeing by construction rather than by a tuning table
+that will drift out of step the first time the base game rebalances a d-mod.
 
 ## Capability is spatial, and absence has to read as a fact
 

@@ -4,7 +4,7 @@ Status: ACTIVE — the model is authored; no generator, facility, or adoption sl
 
 Written: 2026-08-26
 
-Updated: 2026-08-26 — added the hull-size and growth model (complement plus hold, more decks past the playable envelope), hull silhouettes, the law that a deck is only ever looked at through the battle renderer, gantries as authored berths that make the home deck's vehicle bay the Mech Lab, room views as the way operations screens address parts of the ship, the company ship as a hull the player chooses out of their own fleet, and the split between a deck's form and its damage state.
+Updated: 2026-08-26 — added the hull-size and growth model (complement plus hold, more decks past the playable envelope), hull silhouettes, the law that a deck is only ever looked at through the battle renderer, gantries as authored berths that make the home deck's vehicle bay the Mech Lab, room views as the way operations screens address parts of the ship, the company ship as a hull the player chooses out of their own fleet, and the split between a deck's form and its damage state, where a wrecked fixture is out of service and the facility is that much smaller until it is repaired.
 
 Ship interiors is the model for navigable shipboard space: the decks a mercenary
 company lives and works on, the facilities it operates and grows, and the hostile
@@ -189,10 +189,17 @@ from the one that has to stay tactically honest.
 
 ## Facilities, capacity, and growth
 
-A facility's **capacity is its fixtures**. The number of berths in the barracks
-is the number of billets; the number of gantries in the mech bay is the number of
-heavy assets it can service. These are one fact with one owner, not a room
-drawing and a separate number that can disagree.
+A facility's **capacity is its working fixtures**. The number of berths in the
+barracks is the number of billets; the number of gantries in the mech bay is the
+number of heavy assets it can service. These are one fact with one owner, not a
+room drawing and a separate number that can disagree.
+
+A fixture is therefore in service or out of it, and battle damage is what puts
+it out. This is what makes damage cost something rather than merely show: a
+mech bay with two of its four gantries wrecked services two machines until the
+ship is repaired, and the room is visibly the reason. It also means every count
+that reads a facility has to ask for working fixtures rather than fixtures,
+which is the price of the rule and is worth paying.
 
 Ship interiors publishes capacity. It does not own what consumes it: personnel
 authority still owns the roster, and progression still owns quality and kit.
@@ -347,7 +354,10 @@ it is presentation-only by charter. The tactical articulation of a bay is a
 3. **Beam varies with frame.** A deck is never a rectangle and never mirrored end
    to end. A recipe that emits a symmetric box has failed the family, whatever
    else validates.
-4. **Capacity is spatial.** A facility's capacity is a count of its fixtures.
+4. **Capacity is spatial, and it counts only fixtures in service.** A facility's
+    capacity is a count of its working fixtures. A wrecked gantry is not a
+    gantry, so a bay that comes home damaged services fewer machines without
+    changing shape, and it does so until the ship is repaired.
 5. **An upgrade changes the room**, or it is not an upgrade in this model.
 6. **The hull is finite.** Facility growth trades against other facilities.
 7. **Ambient routes are derived**, never authored per deck.
