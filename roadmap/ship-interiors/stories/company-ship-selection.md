@@ -24,13 +24,17 @@ fleet.
 
 ## Constraints
 
-- The deck's parameters come from the fleet member's effective stats, never the
-  hull specification, per law 17. A candidate's preview must be generated the
-  same way its deck will be, or the screen is advertising a ship the player will
-  not get.
+- A candidate's form comes from what that hull can do when whole, and its
+  damage is read separately, per law 17. The preview must be generated the same
+  way the deck will be, or the screen is advertising a ship the player will not
+  get.
 - A hull that cannot hold a facility reports that it cannot, per law 18. The
   comparison's value is in what a candidate *loses*, and a screen that only
   shows gains is a worse screen than none.
+- Candidates are compared on working capacity, not nominal, per law 4. A
+  battered capital and a sound frigate is the interesting comparison and the
+  one the player is actually making; a screen that rates hulls by class cannot
+  show it.
 - Selection is a campaign decision recorded on campaign state; ship interiors
   publishes what a candidate would hold and owns nothing about the transaction.
 - No new persistence shape for the deck itself. The deck is derived from the
@@ -42,7 +46,8 @@ fleet.
   and the designation survives save and load.
 - The transfer screen lists every candidate in the fleet and, for each, the
   facilities it would hold, the ones it would lose, and the ones it has no room
-  for at all.
+  for at all — counted in fixtures actually in service, so a damaged hull reads
+  as the smaller ship it currently is.
 - Transferring changes what the Barracks and Mech Lab screens show, without
   either screen learning that a transfer happened.
 - A ship that leaves the fleet while designated is handled explicitly rather

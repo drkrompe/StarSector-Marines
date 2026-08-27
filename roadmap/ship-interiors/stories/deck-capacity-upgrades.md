@@ -25,9 +25,10 @@ doc rather than here.
 
 ## Scope
 
-- Facility capacity published as a fact derived from fixture counts, with
-  personnel and mech authorities consuming it instead of their current fixed
-  limits.
+- Facility capacity published as a fact derived from counts of fixtures in
+  service, per law 4, with personnel and mech authorities consuming it instead
+  of their current fixed limits. A damaged ship therefore publishes less
+  capacity without the compartment changing.
 - An upgrade transaction that changes a facility's parameters, regenerates its
   compartment, and validates the resulting deck before committing.
 - Hull-bounded growth: a deck has finite area, so expanding one facility must be
