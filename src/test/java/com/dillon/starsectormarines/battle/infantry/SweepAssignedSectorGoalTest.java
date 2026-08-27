@@ -76,6 +76,29 @@ class SweepAssignedSectorGoalTest {
                 "one member's handoff clears stale search paths squad-wide");
     }
 
+    @Test
+    void rememberedDeadContactDoesNotBlockSweepResumption() {
+        BattleSimulation sim = openSim();
+        long marine = sim.spawn(new EntitySpec(
+                "marine", Faction.MARINE, UnitType.MARINE, 2, 2));
+        int squadId = sim.mintSquad(Faction.MARINE, marine);
+        sim.squad().assignSquad(marine, squadId);
+        Squad squad = sim.getSquad(squadId);
+        squad.aliveMembers = 1;
+        squad.assignedObjective = ObjectiveAssignment.sweepSector(squadId, 16, 7);
+        long enemy = sim.spawn(new EntitySpec(
+                "enemy", Faction.DEFENDER, UnitType.MILITIA, 3, 2));
+        sim.advance(BattleSimulation.TICK_DT);
+        sim.getRoster().release(enemy);
+
+        assertTrue(squad.hasBelievedContacts(),
+                "the observation should remain as non-actionable memory");
+        SweepSector action = new SweepSector(16, 7);
+        assertEquals(ActionStatus.RUNNING, action.execute(marine, squad, sim));
+        assertEquals(16, Paths.destX(sim.world().path(marine)));
+        assertEquals(7, Paths.destY(sim.world().path(marine)));
+    }
+
     private static BattleSimulation openSim() {
         NavigationGrid grid = new NavigationGrid(20, 10);
         for (int y = 0; y < grid.getHeight(); y++) {
