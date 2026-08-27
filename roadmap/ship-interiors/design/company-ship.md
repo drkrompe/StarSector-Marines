@@ -143,6 +143,17 @@ between them as they find better. The interior is what makes that judgement
 concrete instead of a number comparison, because the player can see which
 gantries are out.
 
+**Which fixtures are out must be stable.** Severity says how many; something has
+to say which, and it has to give the same answer every time the player opens the
+room. Derived from the ship and the set of d-mods on it, a damaged bay has the
+same two gantries out on every visit until something about the ship changes. Any
+other answer makes the room shimmer, and a room that reshuffles its own damage
+is one the player stops reading as a fact about their ship.
+
+**Repair is the base game's, not ours.** D-mods come off at a spaceport, through
+restoration the player already knows how to buy. So the interior needs no repair
+transaction of its own: the fixtures come back into service because the ship did.
+
 **How badly a room is damaged should be read, not tuned.** The form is generated
 from whole-ship capability and the game reports the damaged capability, so the
 ratio between them is a severity the base game already decided — per stat, and
