@@ -4,6 +4,10 @@ Status: ACTIVE — direction. No part of this is implemented; `ship-interiors-no
 
 Written: 2026-08-27
 
+Updated: 2026-08-27 — separated form from state: refits change the deck, battle
+damage marks it. An earlier draft let d-mods resize the program, which quietly
+rebuilt the ship around its injuries.
+
 The company's interior is not a fixed set. It is **one ship the player picks out
 of their own fleet**, and picking it is a decision they make at founding and
 re-make whenever a better hull comes along. That single choice is what turns the
@@ -25,22 +29,48 @@ badly, and a hull that structurally cannot hold a mech bay does not acquire one
 by being refitted. That is the tension worth having: the player who wants a
 proper lab has to go and get a ship that can have one.
 
+## Form and state are different questions
+
+A ship's interior has two independent inputs, and conflating them produces a
+ship that has been rebuilt around its own injuries.
+
+**Form** is what the ship can do when whole: how much interior there is, and
+which facilities it holds. Refits change form, in both directions. A hull
+carrying Additional Berthing really does have more berthing and should generate
+more of it; a hull whose fighter bays were converted to holds really has lost
+those bays. Both are deliberate acts by the owner, and the deck should come out
+different.
+
+**State** is what has happened to that form since. Battle damage is state. A
+ship that comes home with Compromised Storage has not been rebuilt with a
+smaller hold — it has the hold it was built with, wrecked, with part of it
+unusable. Generating a smaller room in its place would erase the damage by
+absorbing it into the architecture, and the player would see a tidy small room
+where they should see their own bad afternoon.
+
+So the deck is generated from **capability when whole**, and damage is laid over
+that form afterwards.
+
 ## Where the numbers come from
 
-**The deck is generated from the ship as it is, never from the hull it was.**
+`DeckSizing.programFor` already derives the room program from four numbers —
+hull class, role, min crew, max crew, cargo — and the base game reports every one
+of them, stat-derived, on `FleetMemberAPI`. Those effective values fold in
+refits and damage alike, so they are the right input for form only once the
+damage is taken back out.
 
-This is the whole trick, and it is nearly free. `DeckSizing.programFor` already
-derives the room program from four numbers — hull class, role, min crew, max
-crew, cargo — and the base game's own `FleetMemberAPI` reports every one of them
-as an *effective* value: `getMinCrew`, `getMaxCrew`, `getCargoCapacity`,
-`getFuelCapacity` are stat-derived, so every hull mod and every point of battle
-damage is already folded into them before we read them.
+That separation is cheap rather than clever, because the game will do the
+arithmetic. Hull mods stamp their own id as the source of every stat bonus they
+apply, and a d-mod is identified by its `dmod` tag, so the whole-ship reading is
+the variant cloned, its d-mods removed, and a throwaway fleet member built from
+the clone — `ShipVariantAPI.clone`, `DModManager.removeDMod`,
+`FactoryAPI.createFleetMember`. Nothing about how stats compose has to be
+reimplemented, which matters because reimplementing it is exactly the kind of
+thing that stays subtly wrong for a year.
 
-The consequence is worth stating plainly, because it removes a large body of
-work that looks necessary and is not: **we do not model hull mods.** We read the
-ship. A ship carrying Additional Berthing reports more max crew and therefore
-generates more berthing; a ship carrying Compromised Storage reports less of
-everything and generates a smaller deck. Neither needs a rule of its own.
+The consequence is still that **we do not model hull mods**. We read the ship
+twice: once as it was built and fitted, for the form, and once for the list of
+injuries.
 
 The one number already derived rather than read is the interesting one. The
 program treats `maxCrew - minCrew` as **lift** — the people aboard who are not
@@ -66,31 +96,41 @@ the cases worth reading the mod list for:
 | Salvage Gantry, Surveying Equipment, Shielded Cargo Holds | specialised working rooms a general hull would not have |
 | Ground Support Package | the one mod that is already about our subject matter — marines, and putting them ashore |
 
-## Damage is already modelled — as d-mods
+## Damage names a room and wrecks it
 
-The base game persists battle damage on a ship as **d-mods**, added by
-`DModManager` after combat and readable from the variant. Several of them reach
-the interior directly through the same effective stats:
+The base game persists battle damage as **d-mods**, added by `DModManager` after
+combat and readable from the variant. Read as damage rather than as sizing, most
+of them point at a room:
 
-| D-mod | Effect on the deck |
+| D-mod | The room it damages |
 |---|---|
-| Compromised Storage | crew, cargo *and* fuel capacity all down — the deck shrinks on every axis at once |
-| Degraded Life Support | max crew down, so lift falls: fewer berths, less ground force, smaller armory |
-| Increased Maintenance, Faulty Automated Systems | min crew up, so lift falls without the ship getting any smaller |
-| Damaged Flight Deck, Defective Manufactory | name a specific room as the damaged one |
-| Structural Damage, Special Modifications, Ill-Advised Modifications | flavour for how a deck was cut about, not capacity |
+| Compromised Storage | the holds, and the stores generally — the broadest of them, since it costs crew, cargo and fuel capacity at once |
+| Degraded Life Support | berthing and the spaces that keep people alive |
+| Damaged Flight Deck | the bay: the deck the ground force launches from |
+| Defective Manufactory | the production floor and the machine shop |
+| Increased Maintenance, Faulty Automated Systems | engineering, and the machinery aft |
+| Structural Damage | the hull itself: bulkheads, frames, the fabric of the deck rather than what is in it |
+| Erratic Fuel Injector | the fuel spaces |
 
-Two of these are worth reading for their own sake. **Special Modifications** is a
-description of ship architecture — passages narrowed, overheating conduits
-panelled over, flush-set panels awkward to reach — which is a corridor and wall
-treatment we could generate. **Ill-Advised Modifications** is the same idea
-without the politics: a hull modified off-spec by nobody qualified.
+A damaged room is the same room with its fixtures wrecked, its floor strewn, and
+some of what it held no longer usable. The vocabulary for drawing that already
+exists in the tile registry — damaged crates, damaged shelving, damaged desks,
+and four rubble decals — which is the same vocabulary a bay that is mid-service
+wants. Damage state and room variation are one problem approached from two
+sides, and they should be built as one.
 
-So the answer to *how does battle damage show up in my ship* is that it already
-does, the moment the deck is generated from the fleet member rather than the hull
-spec. What remains is deciding how much of it the player should be able to *see*
-— whether a damaged deck is merely a smaller deck, or whether the specific rooms
-a d-mod names are visibly wrecked.
+Two d-mods are worth reading for their own sake rather than for their effect.
+**Special Modifications** is a description of ship architecture — passages
+narrowed, overheating conduits panelled over, flush-set panels awkward to reach
+— which is a corridor and wall treatment we could generate. **Ill-Advised
+Modifications** is the same idea without the politics: a hull modified off-spec
+by nobody qualified.
+
+The open question is no longer whether damage is visible but how far it goes.
+A wrecked room that still works is scenery; a wrecked room that has actually
+lost capacity until it is repaired is a reason to put into port. The second is
+better and costs more, because it means a facility's capacity is its *working*
+fixtures rather than its fixtures.
 
 ## Capability is spatial, and absence has to read as a fact
 
@@ -113,9 +153,9 @@ being an argument for the next ship.
 2. **Transfer.** A screen for moving the company to a different ship in the
    fleet, with the consequences legible before committing: what is gained, what
    is lost, and what does not fit.
-3. **Damage.** A ship mauled in ordinary combat comes back smaller inside. No
-   separate damage model; the d-mods the base game already applied are the
-   input.
+3. **Damage.** A ship mauled in ordinary combat comes back with the same rooms
+   in a worse state. No separate damage model; the d-mods the base game already
+   applied name which rooms, and repairing the ship clears them.
 4. **Refit.** Installing Additional Berthing changes the barracks. This is
    law 5 — an upgrade changes the room or it is not an upgrade — reached through
    the base game's own refit screen rather than through an economy we would have
@@ -123,8 +163,11 @@ being an argument for the next ship.
 
 ## What this does not decide
 
-- Whether the deck regenerates or is held once a ship is chosen, and what
-  happens to a deck when its ship takes damage mid-campaign.
+- Whether the deck regenerates or is held once a ship is chosen. Form and state
+  now answer differently: a refit changes the form and warrants regenerating,
+  while damage arriving mid-campaign should reach the deck without rebuilding
+  it.
+- Whether damaged rooms lose capacity or only look wrecked.
 - Whether transfer costs anything, and whether a facility's contents move with
   the company or are lost with the hull.
 - What happens to the company when its ship is destroyed rather than damaged.

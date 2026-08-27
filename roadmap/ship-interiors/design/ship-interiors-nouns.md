@@ -4,7 +4,7 @@ Status: ACTIVE — the model is authored; no generator, facility, or adoption sl
 
 Written: 2026-08-26
 
-Updated: 2026-08-26 — added the hull-size and growth model (complement plus hold, more decks past the playable envelope), hull silhouettes, the law that a deck is only ever looked at through the battle renderer, gantries as authored berths that make the home deck's vehicle bay the Mech Lab, room views as the way operations screens address parts of the ship, and the company ship as a hull the player chooses out of their own fleet.
+Updated: 2026-08-26 — added the hull-size and growth model (complement plus hold, more decks past the playable envelope), hull silhouettes, the law that a deck is only ever looked at through the battle renderer, gantries as authored berths that make the home deck's vehicle bay the Mech Lab, room views as the way operations screens address parts of the ship, the company ship as a hull the player chooses out of their own fleet, and the split between a deck's form and its damage state.
 
 Ship interiors is the model for navigable shipboard space: the decks a mercenary
 company lives and works on, the facilities it operates and grows, and the hostile
@@ -65,9 +65,10 @@ authored content.
 - The **company ship** is the hull out of the player's own fleet that the
   company lives aboard. It is chosen at founding and can be transferred to
   another ship later, which makes it a decision rather than a fact about the
-  save. Its deck is generated from the ship as it is presently fitted and
-  presently damaged, so acquiring a better hull and refitting the one you have
-  are two independent ways to change the interior. See `company-ship.md`.
+  save. Its deck is generated from the ship as fitted, so acquiring a better
+  hull and refitting the one you have are two independent ways to change the
+  interior; what the ship has since suffered is drawn on that deck rather than
+  built into it. See `company-ship.md`.
 - A **room view** is an operations screen's camera framed on one compartment of
   a deck. The Mech Lab is a room view of the vehicle bay; a berthing screen
   would be a room view of the barracks. A room view names a purpose and the deck
@@ -171,7 +172,7 @@ generator**, differing in parameters rather than pipeline:
 | | Home deck | Prize deck |
 |---|---|---|
 | Faction and threat | friendly; ambient threat policy admits no combatants | hostile garrison |
-| Who chooses the rooms | the company ship as it is presently fitted and damaged | the campaign-resolved target's class and role |
+| Who chooses the rooms | the company ship as presently fitted | the campaign-resolved target's class and role |
 | How it is entered | a room view, continuously | a mission, with a breach point |
 | What changes it | an upgrade transaction | battle damage, for the duration |
 
@@ -394,13 +395,19 @@ it is presentation-only by charter. The tactical articulation of a bay is a
     renderer has no concept of — room purpose, zone cuts, which opening is a
     door — is a legitimate second view, but it annotates the render or
     abandons the pretence of being one.
-17. **A deck is generated from the ship as it is, not from the hull it was.**
-    Crew, cargo and lift are read from the ship in the fleet, where the game
-    already reports them with every refit and every point of battle damage
-    folded in. So a hull mod that adds berthing adds berths, and battle damage
-    that costs a ship its life support costs the company its bunks, without
-    either being modelled a second time here. A deck sized from the hull
-    specification is a deck of a ship the player does not own.
+17. **A deck's form is what the ship can do when whole; damage is state laid
+    over that form.** Refits change the form in both directions — a hull fitted
+    with more berthing has more berths, and one whose bays were converted to
+    holds has lost them — because the owner really did change the ship. Battle
+    damage does not. A ship that comes home with its storage compromised still
+    has the hold it was built with, wrecked and part of it unusable, and
+    generating a smaller hold instead would rebuild the ship around its
+    injuries and leave the player looking at a tidy little room where their bad
+    afternoon should be. So capability is read with the damage taken back out,
+    and the damage is read again separately to say which rooms are in what
+    state. A deck sized from the hull specification is a deck of a ship the
+    player does not own; a deck sized from the damage is a deck of a ship they
+    no longer have.
 18. **A facility the ship cannot hold is absent, not empty.** The program
     already gates rooms the hull has no room for, and the deck already reports
     what it could not place. A screen for a facility the ship cannot host says
