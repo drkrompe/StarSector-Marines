@@ -131,7 +131,7 @@ public final class DeckSizing {
         RoomRecipe boats = substantial ? RoomRecipe.SHUTTLE_BAY : RoomRecipe.BOAT_BAY;
         add(rooms, boats, boats.countFor(lift));
         if (cargo > 0) add(rooms, RoomRecipe.HOLD, RoomRecipe.HOLD.countFor(cargo));
-        addCrewSpaces(rooms, maxCrew, substantial);
+        addCrewSpaces(rooms, minCrew, lift, maxCrew, substantial);
         rooms.add(RoomRecipe.MACHINE_SHOP);
 
         switch (role) {
@@ -170,13 +170,28 @@ public final class DeckSizing {
 
     /**
      * What everyone aboard needs regardless of why they are aboard: somewhere to
-     * sleep, wash, eat, and be treated. These scale with the whole complement
-     * rather than with the crew, because a passenger eats too — and together
-     * they are most of the rooms on a ship, which is what fills a hull that the
-     * working spaces alone leave hollow.
+     * sleep, wash, eat, and be treated. Together they are most of the rooms on a
+     * ship, which is what fills a hull that the working spaces alone leave
+     * hollow.
+     *
+     * <p>Heads, mess and sick bay scale with the whole complement, because a
+     * passenger eats too. <b>Berths do not.</b> A berth is an assignment rather
+     * than an amenity — nobody sleeps in somebody else's bunk — so the ship
+     * berths her own hands from minimum crew and the ground force from lift.
+     *
+     * <p>Sizing both from maximum crew, as this did, produced the right total
+     * and the wrong rooms: a hull mod that raised minimum crew left berthing
+     * exactly as it was while shrinking every other figure derived from lift, so
+     * the company lost boats and armories but never a bunk. Now the ship takes
+     * more berths for herself and the company gets fewer, which is the trade the
+     * model claimed to be making all along.
      */
-    private static void addCrewSpaces(List<RoomRecipe> rooms, int maxCrew, boolean substantial) {
-        add(rooms, RoomRecipe.BERTHING, RoomRecipe.BERTHING.countFor(maxCrew));
+    private static void addCrewSpaces(List<RoomRecipe> rooms, int minCrew, int lift,
+                                      int maxCrew, boolean substantial) {
+        add(rooms, RoomRecipe.CREW_BERTHING, RoomRecipe.CREW_BERTHING.countFor(minCrew));
+        if (lift > 0) {
+            add(rooms, RoomRecipe.TROOP_BERTHING, RoomRecipe.TROOP_BERTHING.countFor(lift));
+        }
         add(rooms, RoomRecipe.WASHROOM, RoomRecipe.WASHROOM.countFor(maxCrew));
         add(rooms, RoomRecipe.MESS, RoomRecipe.MESS.countFor(maxCrew));
         if (substantial) {

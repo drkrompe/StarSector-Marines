@@ -45,6 +45,17 @@ public enum RoomPurpose {
     STOCKROOM,
     /** Military compound — open sleeping quarters with paired bunk rows. */
     BARRACKS,
+    /**
+     * Shipboard — where the hands who work the ship sleep, as opposed to the
+     * ground force she carries.
+     *
+     * <p>Distinct from {@link #BARRACKS} because a berth is an assignment rather
+     * than an amenity. Everyone aboard eats and washes in the same rooms; nobody
+     * sleeps in somebody else's bunk. Keeping them apart is also what makes the
+     * company's billet count its own, rather than a figure inflated by the
+     * ship's ratings.
+     */
+    CREW_QUARTERS,
     /** Military compound — secured weapons and supply storage. */
     ARMORY,
     /** Military compound — open service floor for vehicles and field equipment. */

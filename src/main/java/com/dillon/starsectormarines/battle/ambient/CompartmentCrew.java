@@ -115,6 +115,7 @@ public final class CompartmentCrew {
         Map<Affordance, List<FixtureTask>> byJob = new LinkedHashMap<>();
         for (FixtureTask task : live(tasks, compartment, occupiedBerths)) {
             if (!role.works(task.affordance())) continue;
+            if (!sleepsHere(role, compartment, task.affordance())) continue;
             byJob.computeIfAbsent(task.affordance(), key -> new ArrayList<>()).add(task);
         }
         if (byJob.isEmpty()) return null;
@@ -145,6 +146,20 @@ public final class CompartmentCrew {
     }
 
     /**
+     * Whether a bunk in this compartment is this role's to sleep in.
+     *
+     * <p>Only rest is assigned. A marine eats in the same mess as the ratings
+     * and washes in the same heads, so nothing is gained by fencing those off —
+     * but a ship carrying two populations berths them separately, and a marine
+     * turning in wherever the nearest bunkroom happened to be would be sleeping
+     * in the crew's.
+     */
+    private static boolean sleepsHere(CrewRole role, DeckGraph.Compartment compartment,
+                                      Affordance affordance) {
+        return affordance != Affordance.REST || compartment.purpose() == role.quarters();
+    }
+
+    /**
      * How many of a role a compartment can keep busy at once.
      *
      * <p>Bounded by the scarcest job the role works, not the most plentiful. A
@@ -158,6 +173,7 @@ public final class CompartmentCrew {
         Map<Affordance, Integer> counts = new EnumMap<>(Affordance.class);
         for (FixtureTask task : live(tasks, compartment, occupiedBerths)) {
             if (!role.works(task.affordance())) continue;
+            if (!sleepsHere(role, compartment, task.affordance())) continue;
             counts.merge(task.affordance(), 1, Integer::sum);
         }
         if (counts.isEmpty()) return 0;

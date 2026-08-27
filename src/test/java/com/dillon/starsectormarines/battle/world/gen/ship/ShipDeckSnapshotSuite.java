@@ -100,6 +100,7 @@ public final class ShipDeckSnapshotSuite implements SnapshotSuite {
     private static final Map<RoomPurpose, Color> ROOM_COLORS = Map.ofEntries(
             Map.entry(RoomPurpose.CONTROL_ROOM, new Color(0x8d, 0x6f, 0xc9)),
             Map.entry(RoomPurpose.BARRACKS, new Color(0x3f, 0x7f, 0xc4)),
+            Map.entry(RoomPurpose.CREW_QUARTERS, new Color(0x2f, 0x5a, 0x8c)),
             Map.entry(RoomPurpose.ARMORY, new Color(0xc4, 0x4b, 0x4b)),
             Map.entry(RoomPurpose.VEHICLE_BAY, new Color(0xd8, 0x8b, 0x2f)),
             Map.entry(RoomPurpose.STOCKROOM, new Color(0x9a, 0x7a, 0x45)),

@@ -32,6 +32,12 @@ public final class RoomFittings {
                 "doodad.military-bunk", 2, 2,
                 new Satellite("doodad.chest-1", 1, 0))));
 
+        // The ship's own hands berth the same way her passengers do. Same
+        // arrangement, different room, because a bunk belongs to somebody.
+        register(new AisleFitting(RoomPurpose.CREW_QUARTERS, FixtureGroup.of(
+                "doodad.military-bunk", 2, 2,
+                new Satellite("doodad.chest-2", 1, 0))));
+
         // Tables with their seating. A mess is chairs or it is a hall.
         register(new AisleFitting(RoomPurpose.MESS_HALL, FixtureGroup.of(
                 "doodad.office-conference-table", 3, 2,

@@ -82,6 +82,13 @@ difference out of the company's own space. The ship spends more of itself
 running itself. That is a real trade and it falls out of the existing model
 without being authored.
 
+It only became real once berthing was split, though. Boats, armories and ranges
+all derive from lift and moved when minimum crew rose; berths were sized from the
+whole complement and did not, so the largest crew space on the ship was exempt
+from the trade this section describes. Crew quarters now come from minimum crew
+and the barracks from lift, and a mod that takes hands out of the company's
+column takes their bunks with them.
+
 ## What hull mods change that the stats do not
 
 Stats cover *how much*. Hull mods additionally change *what kind*, and those are

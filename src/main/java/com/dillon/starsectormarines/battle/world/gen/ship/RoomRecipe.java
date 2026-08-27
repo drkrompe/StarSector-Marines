@@ -15,8 +15,8 @@ import java.util.List;
  *
  * <p>A cell reads as roughly a metre, which is what makes these numbers
  * checkable against a real vessel rather than tuned until the picture looks
- * busy. {@link #BERTHING} is twelve bunks in forty-eight square metres — four
- * per hand, which is spartan on purpose.
+ * busy. {@link #TROOP_BERTHING} is twelve bunks in forty-eight square metres —
+ * four per hand, which is spartan on purpose.
  *
  * <p>The {@link RoomShape} is a mask, not a rectangle and not an orientation.
  * {@link #COMMAND} is a diamond because a bridge is not a box; a range will be
@@ -42,15 +42,33 @@ public record RoomRecipe(RoomPurpose purpose, RoomShape shape, DeckZone zone,
     /**
      * Bunks and living space for a watch of twelve. Two rows of stacked bunks
      * either side of a single aisle, with a locker run at one end and nothing
-     * else — a ship berths its crew in many small compartments spread through
+     * else — a ship berths her people in many small compartments spread through
      * the hull, not in one dormitory.
      *
      * <p>Berthed forward, which is both the traditional arrangement and the
      * practical one here: berths are the smallest rooms and the most numerous,
      * so they are what can fill a tapering bow that no bay or hold would fit.
+     *
+     * <p>This is the <b>company's</b> berthing, and it is sized from lift rather
+     * than from the whole complement. The barracks a player reads a billet count
+     * off has to hold their own people and nobody else's.
      */
-    public static final RoomRecipe BERTHING = new RoomRecipe(
+    public static final RoomRecipe TROOP_BERTHING = new RoomRecipe(
             RoomPurpose.BARRACKS, RoomShape.rectangle(8, 6), DeckZone.FORE, 12);
+
+    /**
+     * The same compartment for the hands who work the ship, sized from minimum
+     * crew.
+     *
+     * <p>Identical in form and different in occupant, which is the whole of the
+     * distinction: a rating and a marine need the same four square metres and do
+     * not share them. Splitting the two is what makes a hull mod that raises
+     * minimum crew cost the company real space — the ship takes more berths for
+     * herself and the ground force gets fewer — instead of leaving berthing
+     * untouched while every other figure moved.
+     */
+    public static final RoomRecipe CREW_BERTHING = new RoomRecipe(
+            RoomPurpose.CREW_QUARTERS, RoomShape.rectangle(8, 6), DeckZone.FORE, 12);
 
     /** Gantry space for servicing heavy assets; the largest room a ship carries. */
     public static final RoomRecipe VEHICLE_BAY = new RoomRecipe(
