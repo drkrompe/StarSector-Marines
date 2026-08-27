@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.decision.goap.Action;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
+import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder;
 import com.dillon.starsectormarines.battle.infantry.PatrolMotion;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
@@ -40,7 +41,7 @@ public final class SweepSector implements Action {
             clearSquadPaths(squad, sim);
             return ActionStatus.FAILURE;
         }
-        if (squad.hasBelievedContacts()) {
+        if (WorldStateBuilder.hasActionableContact(squad, sim)) {
             clearSquadPaths(squad, sim);
             return ActionStatus.FAILURE;
         }

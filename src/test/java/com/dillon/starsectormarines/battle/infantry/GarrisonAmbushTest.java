@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.decision.goap.Goal;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.decision.goap.Predicate;
+import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import org.junit.jupiter.api.Test;
@@ -124,8 +125,25 @@ public class GarrisonAmbushTest {
         sim.spawn(new EntitySpec("a1", Faction.MARINE, UnitType.MARINE, 7, 6));
         sim.advance(BattleSimulation.TICK_DT);
 
-        assertTrue(GarrisonAmbush.INSTANCE.relevance(WorldState.EMPTY, squad, sim) > 0f,
+        assertTrue(GarrisonAmbush.INSTANCE.relevance(
+                        WorldStateBuilder.build(squad, sim), squad, sim) > 0f,
                 "garrison-routed squad with a published local belief → goal fires");
+    }
+
+    @Test
+    public void rememberedDeadContactDoesNotKeepAmbushRelevant() {
+        BattleSimulation sim = singlePortalRoom();
+        Squad squad = liveGarrisonAt(sim, 5, 6);
+        long enemy = sim.spawn(new EntitySpec(
+                "a1", Faction.MARINE, UnitType.MARINE, 7, 6));
+        sim.advance(BattleSimulation.TICK_DT);
+        sim.getRoster().release(enemy);
+
+        assertTrue(squad.hasBelievedContacts(),
+                "the observation should remain as non-actionable memory");
+        assertEquals(0f, GarrisonAmbush.INSTANCE.relevance(
+                        WorldStateBuilder.build(squad, sim), squad, sim),
+                "a cleared contact must not pin the garrison in an ambush plan");
     }
 
     @Test

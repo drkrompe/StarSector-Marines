@@ -128,6 +128,23 @@ class CommanderServiceTest {
     }
 
     @Test
+    void frameDoesNotPublishRememberedDeadContactAsLocalResistance() {
+        BattleSimulation sim = openSim();
+        Squad marine = addSquad(sim, Faction.MARINE, 2, 2);
+        Squad defender = addSquad(sim, Faction.DEFENDER, 3, 2);
+        sim.advance(BattleSimulation.TICK_DT);
+        sim.getRoster().release(defender.leaderId);
+
+        assertTrue(marine.hasBelievedContacts(),
+                "the observation should remain as non-actionable memory");
+        CommandFrame frame = CommandFrame.freeze(sim, Faction.MARINE,
+                CommandTopology.freeze(sim), new AssignmentArbiter().snapshot());
+
+        assertFalse(frame.squad(marine.id).localContact(),
+                "commander decisions must not treat a cleared contact as resistance");
+    }
+
+    @Test
     void frameDeepCopiesNodeBearingAssignments() {
         BattleSimulation sim = openSim();
         Squad squad = addSquad(sim, Faction.MARINE, 2, 2);
