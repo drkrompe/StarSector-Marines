@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.ambient;
 
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 import java.util.List;
 
@@ -31,18 +32,36 @@ public enum CrewRole {
      * Services the machines a vehicle bay berths. Welding on whatever is parked
      * is the work; the parts run and the readout are what the work needs.
      */
-    MECH_TECH(Affordance.SERVICE, Affordance.STOW, Affordance.READOUT),
+    MECH_TECH(RoomPurpose.CREW_QUARTERS,
+            Affordance.SERVICE, Affordance.STOW, Affordance.READOUT),
 
     /** Makes and repairs the parts a bay consumes, at the bench rather than the machine. */
-    MACHINIST(Affordance.FABRICATE, Affordance.STOW),
+    MACHINIST(RoomPurpose.CREW_QUARTERS, Affordance.FABRICATE, Affordance.STOW),
 
     /** Off watch: sleeping, eating, and keeping their shooting in. */
-    MARINE(Affordance.REST, Affordance.MESS, Affordance.PRACTICE);
+    MARINE(RoomPurpose.BARRACKS,
+            Affordance.REST, Affordance.MESS, Affordance.PRACTICE);
 
+    private final RoomPurpose quarters;
     private final List<Affordance> jobs;
 
-    CrewRole(Affordance... jobs) {
+    CrewRole(RoomPurpose quarters, Affordance... jobs) {
+        this.quarters = quarters;
         this.jobs = List.of(jobs);
+    }
+
+    /**
+     * The compartment this role's bunk is in.
+     *
+     * <p>A berth is an assignment rather than an amenity: everyone aboard eats
+     * in the same mess and washes in the same heads, and nobody sleeps in
+     * somebody else's bunk. Without this a marine would turn in wherever the
+     * nearest bunkroom happened to be, which on a ship carrying two populations
+     * is the ratings' — and the barracks the player reads a billet count off
+     * would be a room the ship's crew were also sleeping in.
+     */
+    public RoomPurpose quarters() {
+        return quarters;
     }
 
     /** The jobs this role works, in the order a shift comes round to them. */

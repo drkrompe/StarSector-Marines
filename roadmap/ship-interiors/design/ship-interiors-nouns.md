@@ -4,7 +4,9 @@ Status: ACTIVE — the model is authored; no generator, facility, or adoption sl
 
 Written: 2026-08-26
 
-Updated: 2026-08-27 - rooms now state where they hook up and are laid down in a
+Updated: 2026-08-27 - berthing is split between the ship's own hands and the
+ground force she carries, so a berth is an assignment rather than an amenity;
+rooms now state where they hook up and are laid down in a
 recorded pose, so a door is a constraint on placement rather than an outcome of
 it, and one authored arrangement serves a deck from either side. Earlier: added the hull-size and growth model (complement plus hold, more decks past the playable envelope), hull silhouettes, the law that a deck is only ever looked at through the battle renderer, gantries as authored berths that make the home deck's vehicle bay the Mech Lab, room views as the way operations screens address parts of the ship, the company ship as a hull the player chooses out of their own fleet, and the split between a deck's form and its damage state, where a wrecked fixture is out of service and the facility is that much smaller until it is repaired.
 
@@ -121,10 +123,16 @@ authored content.
   ship carrying people from a ship employing them, and it is what sizes the
   boat bays. Reading maximum crew alone makes those two ships the same ship.
 - **Crew spaces** are the rooms everyone aboard needs regardless of why they
-  are aboard: berths, heads, a mess, a sick bay. They scale with the whole
-  complement rather than with the crew, because a passenger eats too, and
-  together they are most of the rooms on a ship. A hull programmed only with
-  its working spaces comes out hollow.
+  are aboard: heads, a mess, a sick bay. They scale with the whole complement
+  rather than with the crew, because a passenger eats too, and together they are
+  most of the rooms on a ship. A hull programmed only with its working spaces
+  comes out hollow.
+- **Berthing** is the exception, and is two rooms rather than one. **Crew
+  quarters** hold the hands who work the ship and are sized from minimum crew;
+  the **barracks** holds the ground force and is sized from lift. They are the
+  same compartment in form and differ only in who sleeps there — which is the
+  entire point, because a berth is an assignment and the other crew spaces are
+  amenities.
 - A **room program is gated by size as well as role.** Room footprints do not
   shrink, so a hull below destroyer size cannot hold a range, a briefing room,
   or a proper sick bay without those rooms becoming the ship. A frigate keeps a
@@ -508,6 +516,17 @@ it is presentation-only by charter. The tactical articulation of a bay is a
     so; it does not open onto a bare compartment. An empty room and a missing
     one are different facts, and only one of them is a reason to go and find a
     better ship — which is the whole argument for the next hull.
+
+20. **A berth is an assignment, not an amenity.** Everyone aboard eats in the
+    same mess and washes in the same heads; nobody sleeps in somebody else's
+    bunk. So berthing is programmed per population while the other crew spaces
+    are programmed per complement, and a role turns in only in its own quarters.
+    Two things fall out of that and neither is decorative. The barracks a player
+    reads a billet count off holds their own people and nobody else's, so the
+    facility stops overstating itself by the size of the ship's crew. And a hull
+    mod that raises minimum crew finally costs the company real space — the ship
+    takes more berths for herself and the ground force gets fewer — where before
+    it moved every figure derived from lift except the largest one.
 
 ## Boundaries
 
