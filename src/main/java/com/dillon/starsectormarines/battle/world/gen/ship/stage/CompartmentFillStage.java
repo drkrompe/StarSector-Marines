@@ -4,10 +4,10 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipKeys;
-import com.dillon.starsectormarines.battle.world.gen.ship.fit.CompartmentFloor;
-import com.dillon.starsectormarines.battle.world.gen.ship.fit.RoomFit;
-import com.dillon.starsectormarines.battle.world.gen.ship.fit.RoomFitting;
-import com.dillon.starsectormarines.battle.world.gen.ship.fit.RoomFittings;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomFloor;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomFit;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomFitting;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomFittings;
 
 /**
  * Step 5 (ship) — furnish the compartments.
@@ -47,7 +47,7 @@ public final class CompartmentFillStage implements GenStage {
             int doodads = ctx.doodads.size();
             int berths = ctx.gantries.size();
             int work = ctx.fixtureTasks.size();
-            CompartmentFloor floor = new CompartmentFloor(ctx, compartment, fit);
+            RoomFloor floor = new RoomFloor(ctx, compartment, fit);
             fitting.fit(floor);
             if (floor.circulationSurvives()) {
                 // Deck the fill wants shut is closed only now, because a fill

@@ -1,11 +1,9 @@
-package com.dillon.starsectormarines.battle.world.gen.ship.fit;
+package com.dillon.starsectormarines.battle.world.gen.fit;
 
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
-import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
-import com.dillon.starsectormarines.battle.world.gen.ship.RoomPose;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
@@ -18,7 +16,7 @@ import java.util.Deque;
 import java.util.List;
 
 /**
- * One compartment's floor while it is being fitted out: what is free, what is
+ * One room's floor while it is being fitted out: what is free, what is
  * lane, and what has been furnished.
  *
  * <p>Themes work through this rather than touching cells directly, so the two
@@ -31,10 +29,10 @@ import java.util.List;
  * <p>Nothing here decides where a room's furniture goes. That is the theme's
  * job; this only holds the floor and refuses the placements that would ruin it.
  */
-public final class CompartmentFloor {
+public final class RoomFloor {
 
     private final GenContext ctx;
-    private final DeckGraph.Compartment compartment;
+    private final FurnishableRoom room;
     private final RoomFit fit;
     private final boolean[][] free;
     private final boolean[][] lane;
@@ -47,21 +45,21 @@ public final class CompartmentFloor {
     private final int height;
     private int placed;
 
-    public CompartmentFloor(GenContext ctx, DeckGraph.Compartment compartment, RoomFit fit) {
+    public RoomFloor(GenContext ctx, FurnishableRoom room, RoomFit fit) {
         this.ctx = ctx;
-        this.compartment = compartment;
+        this.room = room;
         this.fit = fit;
-        this.left = compartment.left();
-        this.top = compartment.top();
-        this.width = compartment.shape().width();
-        this.height = compartment.shape().height();
+        this.left = room.originX();
+        this.top = room.originY();
+        this.width = room.shape().width();
+        this.height = room.shape().height();
         this.free = new boolean[width][height];
         this.lane = new boolean[width][height];
         this.claimed = new boolean[width][height];
         this.shut = new boolean[width][height];
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                free[x][y] = compartment.shape().contains(x, y);
+                free[x][y] = room.shape().contains(x, y);
             }
         }
     }
@@ -70,8 +68,8 @@ public final class CompartmentFloor {
         return fit;
     }
 
-    public DeckGraph.Compartment compartment() {
-        return compartment;
+    public FurnishableRoom room() {
+        return room;
     }
 
     public int width() {
@@ -82,9 +80,9 @@ public final class CompartmentFloor {
         return height;
     }
 
-    /** How this compartment was turned and flipped out of its fitting's canonical frame. */
+    /** How this room was turned and flipped out of its fitting's canonical frame. */
     public RoomPose pose() {
-        return compartment.pose();
+        return room.pose();
     }
 
     /** Extent along the canonical frame's x axis — the room's length as it was authored. */
@@ -98,7 +96,7 @@ public final class CompartmentFloor {
     }
 
     /**
-     * Carry a cell from the fitting's canonical frame into this compartment's
+     * Carry a cell from the fitting's canonical frame into this room's
      * own coordinates.
      *
      * <p>This is what a fitting uses instead of working out which way round it
@@ -110,13 +108,13 @@ public final class CompartmentFloor {
         return pose().map(x, y, canonicalWidth(), canonicalHeight());
     }
 
-    /** Carry a cell back out of this compartment into the fitting's canonical frame. */
+    /** Carry a cell back out of this room into the fitting's canonical frame. */
     public int[] toCanonical(int x, int y) {
         return pose().unmap(x, y, canonicalWidth(), canonicalHeight());
     }
 
     /**
-     * Carry a canonical rectangle into this compartment, as
+     * Carry a canonical rectangle into this room, as
      * {@code {x, y, spanX, spanY}}.
      *
      * <p>A turn moves which corner is the origin, so both corners are carried
@@ -132,7 +130,7 @@ public final class CompartmentFloor {
     }
 
     /**
-     * Whether the compartment covers this cell of the fitting's canonical frame.
+     * Whether the room covers this cell of the fitting's canonical frame.
      *
      * <p>For the arrangements that are decided by the room's own outline rather
      * than by its bounding box. A firing range is an L because the ready end is
@@ -146,10 +144,10 @@ public final class CompartmentFloor {
             return false;
         }
         int[] cell = toLocal(along, across);
-        return compartment.shape().contains(cell[0], cell[1]);
+        return room.shape().contains(cell[0], cell[1]);
     }
 
-    /** How many fixtures this fitting has placed, which is the compartment's capacity. */
+    /** How many fixtures this fitting has placed, which is the room's capacity. */
     public int placedFixtures() {
         return placed;
     }
@@ -201,7 +199,7 @@ public final class CompartmentFloor {
      * treatment water gets, and for the same reason: navigation is blocked by
      * something that is not a wall.
      *
-     * <p>Recorded rather than applied. A fill that seals its compartment is
+     * <p>Recorded rather than applied. A fill that seals its room is
      * thrown away entire, and deck closed off by a discarded fill would stay
      * closed — a room with a strip through it that nothing can cross and
      * nothing explains.
@@ -213,7 +211,7 @@ public final class CompartmentFloor {
                 int lx = x + dx;
                 int ly = y + dy;
                 if (lx < 0 || ly < 0 || lx >= width || ly >= height) continue;
-                if (!compartment.shape().contains(lx, ly) || shut[lx][ly]) continue;
+                if (!room.shape().contains(lx, ly) || shut[lx][ly]) continue;
                 shut[lx][ly] = true;
                 closed.add(new int[]{ lx, ly });
             }
@@ -235,17 +233,17 @@ public final class CompartmentFloor {
         }
     }
 
-    /** Every door into this compartment, in the compartment's own coordinates. */
-    public List<DeckGraph.Compartment.Door> localDoors() {
-        List<DeckGraph.Compartment.Door> doors = new ArrayList<>();
-        for (DeckGraph.Compartment.Door door : compartment.doors()) {
-            doors.add(new DeckGraph.Compartment.Door(door.x() - left, door.y() - top));
+    /** Every door into this room, in the room's own coordinates. */
+    public List<Doorway> localDoors() {
+        List<Doorway> doors = new ArrayList<>();
+        for (Doorway door : room.doors()) {
+            doors.add(new Doorway(door.x() - left, door.y() - top));
         }
         return doors;
     }
 
     /**
-     * Mark a run of this compartment's deck as a different kind of ground.
+     * Mark a run of this room's floor as a different kind of ground.
      *
      * <p>Some arrangements are read from the floor rather than from what stands
      * on it: a gantry bay is a marked-out rectangle whether or not a machine is
@@ -259,7 +257,7 @@ public final class CompartmentFloor {
                 int lx = x + dx;
                 int ly = y + dy;
                 if (lx < 0 || ly < 0 || lx >= width || ly >= height) continue;
-                if (!compartment.shape().contains(lx, ly)) continue;
+                if (!room.shape().contains(lx, ly)) continue;
                 ctx.topology.setGroundKind(left + lx, top + ly, kind);
             }
         }
@@ -278,14 +276,14 @@ public final class CompartmentFloor {
      */
     public void pave(int x, int y, int tileColumn, int tileRow) {
         if (x < 0 || y < 0 || x >= width || y >= height) return;
-        if (!compartment.shape().contains(x, y)) return;
+        if (!room.shape().contains(x, y)) return;
         ctx.doodads.add(new Doodad(left + x, top + y,
                 new TileManifest.TileFrame(tileColumn, tileRow),
                 TileManifest.SHEET, Doodad.COVER_NONE));
     }
 
     /**
-     * Record a machine berth over a run of this compartment's deck.
+     * Record a machine berth over a run of this room's floor.
      *
      * <p>Reserves the footprint as circulation rather than claiming it, because
      * a berth has to stay clear: what stands there is a unit the host spawns,
@@ -374,7 +372,7 @@ public final class CompartmentFloor {
     /** Whether somebody can stand here: inside the room and not furnished. Lanes count. */
     private boolean standable(int x, int y) {
         return x >= 0 && y >= 0 && x < width && y < height
-                && compartment.shape().contains(x, y) && free[x][y];
+                && room.shape().contains(x, y) && free[x][y];
     }
 
     /**
@@ -409,12 +407,12 @@ public final class CompartmentFloor {
      * Whether the doors still reach every reserved lane.
      *
      * <p>Run after a theme finishes. A fill that seals a room is worse than no
-     * fill: the compartment still counts toward the deck, still shows a door,
-     * and cannot be entered.
+     * fill: the room still counts toward its deck or its compound, still shows
+     * a door, and cannot be entered.
      *
      * <p>Deliberately checks the lanes rather than every open cell. Furniture
      * always strands the odd sliver behind itself — the corner past the end of a
-     * bunk row, the gap between a rack and the bulkhead — and treating those as
+     * bunk row, the gap between a rack and the wall — and treating those as
      * failures rolled most of the deck back to bare floor for defects nobody
      * could walk into anyway. What has to hold is that the authored circulation
      * is intact.
@@ -426,7 +424,7 @@ public final class CompartmentFloor {
      */
     public boolean circulationSurvives() {
         int[] start = null;
-        for (DeckGraph.Compartment.Door door : localDoors()) {
+        for (Doorway door : localDoors()) {
             for (int[] step : STEPS) {
                 int x = door.x() + step[0];
                 int y = door.y() + step[1];
@@ -438,7 +436,7 @@ public final class CompartmentFloor {
             }
             if (start != null) break;
         }
-        if (start == null) return compartment.doors().isEmpty();
+        if (start == null) return room.doors().isEmpty();
 
         boolean[][] seen = new boolean[width][height];
         Deque<int[]> queue = new ArrayDeque<>();
