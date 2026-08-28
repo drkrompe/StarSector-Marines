@@ -10,8 +10,9 @@ import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.ops.battleview.ArmoryMarinePreviewCanvas;
+import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
 import com.dillon.starsectormarines.ops.battleview.BarracksCanvas;
-import com.dillon.starsectormarines.ops.battleview.BarracksBattleScene;
+import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.ops.battleview.HeadlessBattleSceneRenderer;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
 import com.dillon.starsectormarines.ops.battleview.MechLabBattleScene;
@@ -161,6 +162,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 context, renderer, width, height, fireteam, pickerOpen, false, false);
     }
 
+    /** Fixes the photographed ship's layout so the snapshot is comparable run to run. */
+    private static final long BARRACKS_SHIP_SEED = 0x5AFE_DECEL;
+
     private static BufferedImage renderBarracks(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height) throws Exception {
@@ -182,9 +186,15 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
+            CompanyDeck ship = new CompanyDeck(CompanyShip.founding(),
+                    BARRACKS_SHIP_SEED, null, List::of,
+                    () -> MarineOpsContext.companyMarines(roster));
+            // Run her a little before the shutter: a berthing photographed at
+            // zero has everybody standing on their spawn cell, which is the one
+            // arrangement the crew is never actually in.
+            ship.advance(18f);
             document.canvases().set(instance.requireElement("barracks-canvas"),
-                    new BarracksCanvas(viewModel::sceneMarines,
-                            new BarracksBattleScene(), () -> 18d));
+                    new BarracksCanvas(ship, viewModel::sceneMarines));
             return renderRelative(renderer, document, width, height, 1f);
         }
     }

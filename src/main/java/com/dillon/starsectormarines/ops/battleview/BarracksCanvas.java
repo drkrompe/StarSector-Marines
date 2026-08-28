@@ -1,5 +1,9 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
@@ -7,51 +11,89 @@ import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
 import com.dillon.starsectormarines.ui.retained.CanvasProducer;
 
 import java.awt.Color;
+import java.util.EnumSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
-import java.util.function.DoubleSupplier;
 
-/** One selected squad rendered from its bounded shipboard battle scene. */
+/**
+ * The selected squad's own berthing aboard the company ship.
+ *
+ * <p>Theirs, not the ship's biggest bunkroom. A company is billeted across
+ * however many berthings the deck laid down, so a fixed framing would show the
+ * player a squad list beside a room that squad does not sleep in, and selecting
+ * a different formation would change nothing on screen.
+ *
+ * <p>The room is not the squad, either. Everybody quartered there is drawn,
+ * and selecting a squad marks its members rather than emptying the room of
+ * their bunkmates - and half of them will be out at the mess or on the range,
+ * because that is where marines off watch are.
+ *
+ * <p>Marks rather than a highlight layer: the deck's render passes are the
+ * ordinary world layers, and a selection cue is a fact about this screen rather
+ * than about the ship.
+ */
 public final class BarracksCanvas implements CanvasProducer {
 
     private static final Color BACKGROUND = new Color(0x08, 0x0E, 0x15);
-    private static final Color TEAM_FILL = new Color(0x48, 0x94, 0xB3, 18);
-    private static final Color TEAM_EDGE = new Color(0x76, 0xB9, 0xD4, 105);
+    private static final Color MARK = new Color(0x80, 0xFF, 0xA0, 190);
+    /** Half-width of a selection bracket, in cells. */
+    private static final float MARK_REACH = 0.62f;
+    /** How far along each side of the bracket a corner runs, in cells. */
+    private static final float MARK_CORNER = 0.26f;
+    /** Hull kept around the room, so a doorway is not clipped into a gap. */
+    private static final int SURROUND_CELLS = 2;
 
-    private final Supplier<List<MarineSoldier>> marines;
-    private final BarracksBattleScene battleScene;
-    private final DoubleSupplier elapsedSeconds;
+    private static final EnumSet<RenderLayer> BACKDROP_LAYERS = EnumSet.of(
+            RenderLayer.GROUND, RenderLayer.DOODADS);
+    private static final EnumSet<RenderLayer> ACTOR_LAYERS = EnumSet.of(
+            RenderLayer.UNITS, RenderLayer.SHOTS);
 
-    public BarracksCanvas(Supplier<List<MarineSoldier>> marines,
-                          BarracksBattleScene battleScene,
-                          DoubleSupplier elapsedSeconds) {
-        if (marines == null || battleScene == null || elapsedSeconds == null) {
-            throw new IllegalArgumentException("marines and battle scene are required");
+    private final CompanyDeck ship;
+    private final Supplier<List<MarineSoldier>> selected;
+
+    /**
+     * @param ship the company ship; drawn only once she is running, so a canvas
+     *     that outlives the dialog cannot bring her back
+     * @param selected the squad the list has selected, which decides both the
+     *     room framed and who is marked in it
+     */
+    public BarracksCanvas(CompanyDeck ship, Supplier<List<MarineSoldier>> selected) {
+        if (ship == null || selected == null) {
+            throw new IllegalArgumentException("a ship and a selected squad are required");
         }
-        this.marines = marines;
-        this.battleScene = battleScene;
-        this.elapsedSeconds = elapsedSeconds;
+        this.ship = ship;
+        this.selected = selected;
     }
 
     @Override
     public void draw(CanvasContext context) {
         float width = context.metrics().surfaceWidth();
         float height = context.metrics().surfaceHeight();
-        List<MarineSoldier> visible = marines.get();
-        float elapsed = (float) elapsedSeconds.getAsDouble();
-        CanvasHostViewport[] viewport = new CanvasHostViewport[1];
-        BattleSceneHostPass backdrop = battleScene.backdropPass(visible, elapsed);
+        List<MarineSoldier> squad = selected.get();
+        ShipDeckBattleScene aboard = ship.live() ? ship.scene() : null;
+        DeckGraph.Compartment berthing = aboard != null ? framedRoom(squad) : null;
+        if (berthing == null) {
+            context.fillRect(0f, 0f, width, height, BACKGROUND);
+            return;
+        }
+        ShipDeckBattleScene.RoomView view =
+                ShipDeckBattleScene.RoomView.of(berthing, SURROUND_CELLS);
+
+        CanvasHostViewport[] host = new CanvasHostViewport[1];
+        BattleSceneHostPass backdrop = aboard.pass(view, BACKDROP_LAYERS);
         boolean rendered = context.hostPass(new BattleSceneHostPass() {
             @Override
-            public BattleSceneFrame prepare(CanvasHostViewport value, float alphaMult) {
-                viewport[0] = value;
-                return backdrop.prepare(value, alphaMult);
+            public BattleSceneFrame prepare(CanvasHostViewport viewport, float alphaMult) {
+                host[0] = viewport;
+                return backdrop.prepare(viewport, alphaMult);
             }
 
             @Override
-            public void draw(CanvasHostViewport value, float alphaMult) {
-                viewport[0] = value;
-                backdrop.draw(value, alphaMult);
+            public void draw(CanvasHostViewport viewport, float alphaMult) {
+                host[0] = viewport;
+                backdrop.draw(viewport, alphaMult);
             }
         });
         if (!rendered) {
@@ -59,37 +101,82 @@ public final class BarracksCanvas implements CanvasProducer {
             return;
         }
 
-        Projection projection = viewport[0] != null
-                ? Projection.forHost(viewport[0])
-                : Projection.forCanvas(width, height);
-        drawRangeGuides(context, projection);
-        context.hostPass(battleScene.actorPass(visible, elapsed));
+        if (host[0] != null) {
+            markSelected(context, aboard, squad,
+                    Projection.forHost(aboard, view, host[0]));
+        }
+        context.hostPass(aboard.pass(view, ACTOR_LAYERS));
     }
 
-    private static void drawRangeGuides(CanvasContext context, Projection projection) {
-        float left = projection.x(24.3f);
-        float right = projection.x(30.7f);
-        float top = projection.y(13.8f);
-        float bottom = projection.y(4.3f);
-        context.fillRect(left, top, right - left, bottom - top, TEAM_FILL);
-        context.strokeRect(left, top, right - left, bottom - top, TEAM_EDGE, 1f);
-        for (float laneX : new float[]{26.5f, 28.5f}) {
-            float x = projection.x(laneX);
-            context.fillRect(x, top, 1f, bottom - top, TEAM_EDGE);
+    /**
+     * The compartment most of the selected squad bunks in.
+     *
+     * <p>Most rather than first: a squad straddles two bunkrooms when the muster
+     * runs out of racks part way through it, and the room worth showing is the
+     * one holding more of them. A squad away on a stationing has nobody aboard
+     * at all, and then the ship's principal berthing stands in - the panel still
+     * has to draw something, and an empty frame reads as a broken screen rather
+     * than as a squad being elsewhere.
+     */
+    private DeckGraph.Compartment framedRoom(List<MarineSoldier> squad) {
+        Map<DeckGraph.Compartment, Integer> tally = new LinkedHashMap<>();
+        for (MarineSoldier soldier : squad) {
+            DeckGraph.Compartment berthing = ship.quartersOf(soldier.id());
+            if (berthing != null) tally.merge(berthing, 1, Integer::sum);
+        }
+        DeckGraph.Compartment best = null;
+        int most = 0;
+        for (Map.Entry<DeckGraph.Compartment, Integer> entry : tally.entrySet()) {
+            if (entry.getValue() <= most) continue;
+            most = entry.getValue();
+            best = entry.getKey();
+        }
+        return best != null ? best : ship.room(RoomPurpose.BARRACKS);
+    }
+
+    /**
+     * Bracket each selected marine where they are standing right now.
+     *
+     * <p>Read off the simulation rather than off a remembered bunk: the watch is
+     * walking to the mess and the range while the player reads the list, and a
+     * mark on where somebody was billeted would sit on an empty rack.
+     */
+    private void markSelected(CanvasContext context, ShipDeckBattleScene aboard,
+                              List<MarineSoldier> squad, Projection projection) {
+        World world = aboard.simulation().world();
+        UnitRosterService roster = aboard.simulation().getRoster();
+        for (MarineSoldier soldier : squad) {
+            long marine = ship.marineFor(soldier.id());
+            if (marine == 0L || !roster.isLive(marine)) continue;
+            bracket(context, projection, world.x(marine), world.y(marine));
+        }
+    }
+
+    private static void bracket(CanvasContext context, Projection projection,
+                                float worldX, float worldY) {
+        float left = projection.x(worldX - MARK_REACH);
+        float right = projection.x(worldX + MARK_REACH);
+        float top = projection.y(worldY + MARK_REACH);
+        float bottom = projection.y(worldY - MARK_REACH);
+        float run = Math.abs(projection.x(MARK_CORNER) - projection.x(0f));
+        for (float[] corner : new float[][]{
+                {left, top, 1f, 1f}, {right, top, -1f, 1f},
+                {left, bottom, 1f, -1f}, {right, bottom, -1f, -1f}}) {
+            float x = corner[0];
+            float y = corner[1];
+            context.line(x, y, x + run * corner[2], y, MARK, 1f);
+            context.line(x, y, x, y + run * corner[3], MARK, 1f);
         }
     }
 
     private record Projection(float surfaceHeight, float scaleX, float scaleY,
                               BattleCamera camera) {
 
-        static Projection forCanvas(float width, float height) {
-            BattleCamera camera = BarracksBattleScene.cameraForSurface(width, height);
-            return new Projection(height, 1f, 1f, camera);
-        }
-
-        static Projection forHost(CanvasHostViewport viewport) {
-            BattleCamera camera = BarracksBattleScene.cameraForSurface(
-                    viewport.width(), viewport.height());
+        static Projection forHost(ShipDeckBattleScene aboard,
+                                  ShipDeckBattleScene.RoomView view,
+                                  CanvasHostViewport viewport) {
+            BattleCamera camera = aboard.cameraFor(
+                    view, 0f, 0f, viewport.width(), viewport.height());
             return new Projection(viewport.surfaceHeight(),
                     1f / viewport.scaleX(), 1f / viewport.scaleY(), camera);
         }

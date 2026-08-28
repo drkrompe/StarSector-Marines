@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.ambient.JobBoard;
 import com.dillon.starsectormarines.battle.ambient.JobSite;
 import com.dillon.starsectormarines.battle.ambient.Shift;
 import com.dillon.starsectormarines.battle.appearance.FacingSystem;
+import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -23,6 +24,8 @@ import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import com.dillon.starsectormarines.marine.MarineSoldier;
+import com.dillon.starsectormarines.marine.SquadExperienceStandard;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
 
@@ -113,6 +116,15 @@ public final class ShipDeckBattleScene implements AutoCloseable {
      * whoever has claimed its firing point, and there is only ever one of them.
      */
     private final Map<Long, Long> butts = new HashMap<>();
+    /**
+     * Billets already filled, keyed by compartment and role.
+     *
+     * <p>A posting is filled once. Without this, mustering the company's own
+     * marines into their berthing and then crewing the ship would put a second
+     * marine watch in the same racks — anonymous hands sleeping alongside the
+     * named ones, in a room whose whole population is on the roster.
+     */
+    private final Map<String, Integer> billets = new HashMap<>();
     private final HighlightOverlay highlights = new HighlightOverlay();
     private final Selection selection = new Selection();
     /** How far the deck has been run; see {@link #advanceTo}. */
@@ -267,32 +279,121 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     public long[] staff(DeckGraph.Compartment compartment, CrewRole role, int watch) {
         if (compartment == null) throw new IllegalArgumentException("a compartment is required");
         if (role == null) throw new IllegalArgumentException("a role is required");
-        if (watch <= 0) return new long[0];
-
         // Hostiles only. A technician works on armed machines by definition, and
         // yielding to any combatant means yielding to the mech they are welding
         // - so the crew of a home deck would flee their own bay and stand around
         // the edges of it forever.
+        return hire(compartment, role, watch,
+                (billet, shift, cellX, cellY) -> new EntitySpec(
+                        shift.id(), Faction.MARINE, role.unit(), cellX, cellY));
+    }
+
+    /**
+     * Put the company marines in their berthing, by name.
+     *
+     * <p>The difference between this and {@link #staff} is who turns up. A ship
+     * needs a marine watch in her barracks either way; on the company ship those
+     * marines are a roster the player has been reading all game, with their own
+     * weapons and armour issued to them. Spawning anonymous hands beside a list
+     * of names would make the berthing screen a picture of somebody other than
+     * the company.
+     *
+     * <p>They work the ordinary berthing shift - turning in, squaring kit away,
+     * eating, keeping their shooting in - so a marine on the roster is a marine
+     * the player can watch walk to the mess. Nothing about being named changes
+     * what they do aboard.
+     *
+     * <p>Berths are finite and the roster is not. A company with more marines
+     * than the hull has racks musters as many as she can billet and no more,
+     * which is a fact about the ship the player should be able to see rather
+     * than a rendering limit - the returned array is zero for anyone left
+     * without a billet, in roster order.
+     *
+     * <p>The posting is then closed, even for a company too small to fill it or
+     * for no company at all. However few came aboard, these are the ship's
+     * marines; a rack the roster cannot fill stays empty rather than acquiring
+     * somebody who is on no muster roll, so {@link #manDeck} must find nothing
+     * left to hire here.
+     *
+     * @return the entity mustered for each soldier, aligned with the list
+     */
+    public long[] muster(DeckGraph.Compartment berthing, List<MarineSoldier> company) {
+        if (berthing == null) throw new IllegalArgumentException("a compartment is required");
+        List<MarineSoldier> roll = company == null ? List.of() : company;
+        long[] mustered = hire(berthing, CrewRole.MARINE, roll.size(),
+                (billet, shift, cellX, cellY) -> specFor(roll.get(billet), cellX, cellY));
+        billets.put(billet(berthing, CrewRole.MARINE), Integer.MAX_VALUE);
+        long[] bySoldier = new long[roll.size()];
+        System.arraycopy(mustered, 0, bySoldier, 0, mustered.length);
+        return bySoldier;
+    }
+
+    /**
+     * Fill up to {@code watch} of a compartment's billets for a role, taking the
+     * next free ones.
+     *
+     * <p>Indexing from the billets already filled rather than from zero is what
+     * keeps two postings to one room apart: a shift member's index is their
+     * phase and their starting job, so hiring twice from zero would produce
+     * pairs of people walking the same loop in step.
+     */
+    private long[] hire(DeckGraph.Compartment compartment, CrewRole role,
+                        int watch, Hand hand) {
+        if (watch <= 0) return new long[0];
+        String billet = billet(compartment, role);
+        int filled = billets.getOrDefault(billet, 0);
         Shift watchBill = watchBill(compartment, role);
-        int hands = Math.min(watch, watchBill.capacity());
+        int hands = Math.max(0, Math.min(watch, watchBill.capacity() - filled));
         List<Long> hired = new ArrayList<>(hands);
         for (int index = 0; index < hands; index++) {
-            AmbientTaskRoute shift = watchBill.member(index);
+            AmbientTaskRoute shift = watchBill.member(filled + index);
             if (shift == null) break;
             AmbientTaskRoute.Stop start = AmbientTaskService.standingPlace(shift, 0f);
-            long hand = simulation.spawn(new EntitySpec(shift.id(), Faction.MARINE,
-                    role.unit(),
+            long actor = simulation.spawn(hand.reportingFor(index, shift,
                     (int) Math.floor(start.worldX()), (int) Math.floor(start.worldY())));
             long butt = liveFireTarget(shift);
-            if (butt != 0L) simulation.ambientTasks().assignLiveFire(hand, shift, butt);
-            else simulation.ambientTasks().assign(hand, shift);
-            hired.add(hand);
+            if (butt != 0L) simulation.ambientTasks().assignLiveFire(actor, shift, butt);
+            else simulation.ambientTasks().assign(actor, shift);
+            hired.add(actor);
         }
+        billets.put(billet, filled + hired.size());
         simulation.ambientTasks().settle();
         simulation.getFogOfWar().tick(0, simulation.getRoster());
         long[] actors = new long[hired.size()];
         for (int index = 0; index < actors.length; index++) actors[index] = hired.get(index);
         return actors;
+    }
+
+    private static String billet(DeckGraph.Compartment compartment, CrewRole role) {
+        return compartment.id() + "/" + role.name();
+    }
+
+    /** Who fills one billet of a shift, standing at the cell it starts on. */
+    @FunctionalInterface
+    private interface Hand {
+        EntitySpec reportingFor(int billet, AmbientTaskRoute shift, int cellX, int cellY);
+    }
+
+    /**
+     * A soldier as they would come aboard: their own name, their own kit.
+     *
+     * <p>Issued armour and weapon rather than a generic marine, because the
+     * berthing is where the player reads what their people are carrying - and
+     * because a marine at the range should be shooting the weapon the armoury
+     * gave them.
+     */
+    private static EntitySpec specFor(MarineSoldier soldier, int cellX, int cellY) {
+        EntitySpec spec = new EntitySpec(soldier.name(), Faction.MARINE,
+                UnitType.MARINE, cellX, cellY);
+        MarineLoadout.fromCatalog(UnitRole.COMBATANT, null,
+                soldier.primaryDef(), soldier.primaryGrade(),
+                SquadExperienceStandard.profileFor(soldier),
+                soldier.specialEquipmentDef(),
+                soldier.id(), soldier.armorDef().appearanceFamily(),
+                soldier.armorDef().armorCapacity(), soldier.armorDef().armorRating(),
+                soldier.armorDef().moveSpeedMult(),
+                soldier.armorDef().incomingAccuracyMult(), null).seedInto(spec);
+        return spec;
     }
 
     /**
@@ -308,9 +409,12 @@ public final class ShipDeckBattleScene implements AutoCloseable {
      * working, and a deck that mans one room has an empty corridor.
      *
      * <p>Posting is per compartment and per role because that is what a shift
-     * is posted to. What each watch then <em>reaches</em> is the shift's
-     * business — a barracks watch walks to the mess and the range on its own,
-     * and manning the mess does not mean stationing anybody there.
+     * is posted to, and only where that role is actually based — see
+     * {@link Shift#basedAt}. What each watch then <em>reaches</em> is the
+     * shift's business: a barracks watch walks to the mess and the range on its
+     * own, and manning the mess does not mean stationing anybody there. Crewing
+     * every room that merely offers a role something to do is how a ship ends
+     * up with a watch of marines quartered in the galley.
      *
      * @param watch most of each role to post to any one compartment; each
      *     posting is still capped by what that compartment can keep busy
@@ -339,6 +443,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         List<Long> aboard = new ArrayList<>();
         for (DeckGraph.Compartment room : rooms.compartments()) {
             for (CrewRole role : CrewRole.values()) {
+                if (!Shift.basedAt(role, room, fixtureTasks, occupiedBerths)) continue;
                 for (long hand : staff(room, role, watch)) aboard.add(hand);
             }
         }

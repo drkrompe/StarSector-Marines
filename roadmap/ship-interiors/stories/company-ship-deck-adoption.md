@@ -1,11 +1,13 @@
 # Company ship deck adoption
 
-Status: PROPOSED
+Status: IN PROGRESS
 
 Written: 2026-08-26
 
-Updated: 2026-08-27 — renamed off the flagship framing. The company lives on a
-ship the player designates, which need not be the ship they fly. Read
+Updated: 2026-08-27 — both screens are now room views on the company ship and
+`BarracksSceneLayout` is gone. What remains is retiring `MechLabSceneLayout`
+with the Mech Lab canvas's no-host-pass fallback, and deriving the room
+breadcrumbs from deck and compartment facts instead of literal strings. Read
 `company-ship.md` for where the deck's parameters come from.
 
 Read `ship-interiors-nouns.md` before implementing this story. The crew model it
