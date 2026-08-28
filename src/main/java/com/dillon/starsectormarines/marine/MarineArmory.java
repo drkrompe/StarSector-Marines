@@ -392,6 +392,26 @@ public final class MarineArmory implements Serializable {
         return printedGear.getOrDefault(armorKey(armor), 0);
     }
 
+    /**
+     * Everything counted goes down with the ship. The designs do not.
+     *
+     * <p>The armory is a compartment aboard the company ship, so the kit in it
+     * sinks with her while the templates, doctrines and arrangements that say
+     * how to equip a squad are the company's own and survive. Wiping the stock
+     * is also what keeps a sinking from reading as a windfall: a marine who
+     * stops being {@code ACTIVE} releases their allocation, so killing the
+     * people without destroying the kit would hand the player back a rack of
+     * rifles for a ship that just burned.
+     *
+     * @return how many pieces of kit were destroyed
+     */
+    public int loseStock() {
+        int destroyed = 0;
+        for (int quantity : printedGear.values()) destroyed += Math.max(0, quantity);
+        printedGear.clear();
+        return destroyed;
+    }
+
     public boolean printPrimary(String weaponId, EquipmentGrade grade) {
         if (WeaponRegistry.STARTER_PRIMARY_ID.equals(weaponId)) return false;
         String key = primaryKey(weaponId, grade);
