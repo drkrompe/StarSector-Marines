@@ -115,6 +115,11 @@ public final class LayeredMechAppearance {
         return (leftStep - rightStep) * amplitude;
     }
 
+    /** Battle-world width occupied by one rendered chassis-width unit. */
+    public static float hullWidthCells(float renderScale) {
+        return Math.max(0f, renderScale) * 0.82f * 1.40f;
+    }
+
     private static boolean isLightChassis(int chassis) {
         return chassis == CHASSIS_HOUND || chassis == CHASSIS_SIROCCO;
     }

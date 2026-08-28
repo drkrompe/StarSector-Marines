@@ -35,6 +35,7 @@ public class LayeredMechAppearanceTest {
         long marine = sim.spawn(new EntitySpec("marine", Faction.MARINE, UnitType.MARINE, 7, 5));
         assertTrue(sim.getEntityWorld().has(mech, c.MECH_LAYERED_ANIMATION));
         assertTrue(sim.getEntityWorld().has(mech, c.MECH_LOCOMOTION));
+        assertTrue(sim.getEntityWorld().has(mech, c.MECH_GAIT_STATE));
         assertEquals(550f, sim.world().hp(mech), 0.001f);
         assertEquals(550f, sim.world().maxHp(mech), 0.001f);
         assertEquals(950f, sim.world().armor(mech), 0.001f);
@@ -44,6 +45,7 @@ public class LayeredMechAppearanceTest {
                 0.001f);
         assertFalse(sim.getEntityWorld().has(marine, c.MECH_LAYERED_ANIMATION));
         assertFalse(sim.getEntityWorld().has(marine, c.MECH_LOCOMOTION));
+        assertFalse(sim.getEntityWorld().has(marine, c.MECH_GAIT_STATE));
         assertEquals(LayeredMechAppearance.POD_HEAVY_SRM,
                 sim.getEntityWorld().getInt(mech, c.MECH_LAYERED_ANIMATION,
                         BattleComponents.MECH_LAYERED_LEFT_SHOULDER));
@@ -102,6 +104,7 @@ public class LayeredMechAppearanceTest {
         sim.advance(BattleSimulation.TICK_DT);
         assertFalse(sim.getEntityWorld().has(mech, c.MECH_LAYERED_ANIMATION));
         assertFalse(sim.getEntityWorld().has(mech, c.MECH_LOCOMOTION));
+        assertFalse(sim.getEntityWorld().has(mech, c.MECH_GAIT_STATE));
         assertTrue(sim.getEntityWorld().has(mech, c.SPRITE));
     }
 
