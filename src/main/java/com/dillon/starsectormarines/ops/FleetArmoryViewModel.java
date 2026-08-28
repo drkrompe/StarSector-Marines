@@ -927,7 +927,7 @@ public final class FleetArmoryViewModel {
         if (soldier == null) return "No marine assigned";
         return soldier.profile().experienceTier().displayName + "  ·  "
                 + soldier.aptitude().displayName + " aptitude  ·  "
-                + soldier.experienceXp() + " XP";
+                + soldier.armorDef().displayName() + " issue";
     }
 
     private static String personnelSummary(MarineSoldier soldier) {

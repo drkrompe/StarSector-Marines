@@ -92,18 +92,24 @@ public class CombatServiceTest {
         assertThrows(IllegalArgumentException.class, () -> combat.primaryWeapon(999L));  // never allocated
     }
 
+    /**
+     * Re-equipping is the only way a shooter's band changes; the sim has no
+     * award path of its own ({@code progression-nouns.md}).
+     */
     @Test
-    public void equipAndExperienceRefreshDerivedCombatStats() {
+    public void reEquippingABetterProfileRefreshesDerivedCombatStats() {
         UnitRosterService r = roster();
         long id = r.spawn(unit("u"));
         CombatService combat = r.combat();
-        SoldierProfile green = new SoldierProfile(SoldierAptitude.STEADY, 0);
-        combat.equipPrimaryWeapon(id, WeaponRegistry.require(WeaponRegistry.DMR_ID), EquipmentGrade.SURPLUS, green);
+        WeaponDef dmr = WeaponRegistry.require(WeaponRegistry.DMR_ID);
+        combat.equipPrimaryWeapon(id, dmr, EquipmentGrade.SURPLUS,
+                new SoldierProfile(SoldierAptitude.STEADY, 0));
         float greenAccuracy = combat.accuracy(id);
         float greenCooldown = combat.attackCooldown(id);
 
-        SoldierProfile veteran = combat.addExperience(id,
-                ExperienceTier.VETERAN.minimumXp);
+        SoldierProfile veteran = new SoldierProfile(
+                SoldierAptitude.STEADY, ExperienceTier.VETERAN.minimumXp);
+        combat.equipPrimaryWeapon(id, dmr, EquipmentGrade.SURPLUS, veteran);
 
         assertEquals(ExperienceTier.VETERAN, veteran.experienceTier());
         assertTrue(combat.accuracy(id) > greenAccuracy);

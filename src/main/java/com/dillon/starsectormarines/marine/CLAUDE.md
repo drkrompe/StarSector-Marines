@@ -11,8 +11,10 @@ instance by scanning `sector.getScripts()`.
 
 The same persisted graph owns `MarineArmory` and `MarineSoldier`. Permanent
 equipment-template ownership, custom squad definitions, soldier
-identity/aptitude/XP/status/enlisted rank, materialized equipment, and the
+identity/aptitude/status/enlisted rank, materialized equipment, and the
 per-soldier `SoldierCareer` service record must remain plain serializable data.
+A marine persists no experience number: their band is resolved from the armour
+they are wearing (`SquadExperienceStandard`), so there is nothing to migrate.
 Legacy recipe, printed-inventory, and fabrication fields are migration input
 only. `readResolve` backfills new collections/objects and maps legacy recipes to
 stable equipment-template ids without stripping capabilities from old saves.

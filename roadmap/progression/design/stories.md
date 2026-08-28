@@ -9,7 +9,6 @@ Read `progression-nouns.md` before changing a progression story.
 | Story | Status | Dependencies / freshness |
 | --- | --- | --- |
 | `s1-lethality-feel-pass.md` | Ready | Verify the shipped lethality and grade pass through the TTK harness and mission evidence. Its original play-acceptance wording is stale: tuning is settled from measured output, not from a described play impression. |
-| `xp-authority-cleanup.md` | Ready | Unblocked now that bands are issued; also owns the disposal of the now-inert per-marine XP field. |
 | `s2e-close-contact-boarding-tools.md` | Planned | Adds typed thermal/arc breachers and vibro/monofilament contact weapons without a universal melee system. |
 | `s2f-combat-stim-injectors.md` | Planned | Adds finite, temporary handling utility while keeping neural/HUD interfaces out of hidden stat and knowledge bonuses. |
 | `s2g-martyr-rigs-and-carried-ieds.md` | Planned | Adds rare Pather martyr rigs and visible carried improvised charges as explicit faction equipment with ordinary collateral and casualty authority. |

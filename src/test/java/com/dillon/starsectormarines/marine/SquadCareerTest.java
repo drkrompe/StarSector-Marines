@@ -69,7 +69,7 @@ class SquadCareerTest {
         telemetry.put(a, row(a, squad.id(), true, 40, 14, 260f, 5f, 31f, 3));
         telemetry.put(b, row(b, squad.id(), true, 20, 6, 100f, 0f, 12f, 1));
 
-        roster.applySoldierOutcome(outcomes, 50, 100f, 10f, telemetry, true);
+        roster.applySoldierOutcome(outcomes, 100f, 10f, telemetry, true);
 
         SquadCareer career = squad.career();
         assertEquals(1, career.missionsDeployed(), "one mission, however many billets filled");
@@ -98,7 +98,7 @@ class SquadCareerTest {
         telemetry.put(a, row(a, squad.id(), true, 33, 11, 210f, 7f, 19f, 2));
         telemetry.put(b, row(b, squad.id(), true, 17, 5, 60f, 3f, 40f, 1));
 
-        roster.applySoldierOutcome(outcomes, 50, 100f, 10f, telemetry, true);
+        roster.applySoldierOutcome(outcomes, 100f, 10f, telemetry, true);
 
         int marineRounds = roster.soldierById(a).career().roundsFired()
                 + roster.soldierById(b).career().roundsFired();
@@ -123,7 +123,7 @@ class SquadCareerTest {
         telemetry.put(killed, row(killed, squad.id(), false, 18, 9, 130f, 0f, 25f, 2));
         telemetry.put(wounded, row(wounded, squad.id(), true, 10, 2, 30f, 0f, 60f, 0));
 
-        roster.applySoldierOutcome(outcomes, 50, 100f, 10f, telemetry, false);
+        roster.applySoldierOutcome(outcomes, 100f, 10f, telemetry, false);
 
         SquadCareer career = squad.career();
         assertEquals(2, career.marinesDeployed());
@@ -149,7 +149,7 @@ class SquadCareerTest {
         assertTrue(roster.transferSoldier(marine, other.id()), "transfer should succeed");
 
         roster.applySoldierOutcome(
-                Map.of(marine, MarineSoldierStatus.ACTIVE), 50, 100f, 10f, telemetry, true);
+                Map.of(marine, MarineSoldierStatus.ACTIVE), 100f, 10f, telemetry, true);
 
         assertEquals(2, deployedWith.career().kills(),
                 "credit follows the squad frozen at spawn");
@@ -170,7 +170,7 @@ class SquadCareerTest {
             first.put(id, MarineSoldierStatus.KIA);
             telemetry.put(id, row(id, squad.id(), false, 10, 4, 50f, 0f, 30f, 1));
         }
-        roster.applySoldierOutcome(first, 50, 100f, 10f, telemetry, true);
+        roster.applySoldierOutcome(first, 100f, 10f, telemetry, true);
 
         int killsBefore = squad.career().kills();
         int missionsBefore = squad.career().missionsDeployed();

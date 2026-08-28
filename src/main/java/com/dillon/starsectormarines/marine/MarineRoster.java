@@ -545,25 +545,10 @@ public class MarineRoster implements Serializable {
      * <p>The single-recruit path remains the ordinary campaign operation. This
      * bulk form exists for formation bootstrap and detached fixtures, where a
      * complete squad is authored together. Basic issue and derived leadership
-     * are repaired once after the batch instead of once per billet.
+     * are repaired once after the batch instead of once per billet. Recruits
+     * arrive identical; what makes a squad good is the kit it is then issued.
      */
     public List<MarineSoldier> recruitToSquad(String squadId, int count) {
-        return recruitToSquad(squadId, count, null);
-    }
-
-    /**
-     * Formation-bootstrap variant that establishes service experience before
-     * the one derived-leadership rebuild. Ordinary campaign enlistment uses
-     * the count overload and therefore starts every recruit at zero XP.
-     */
-    public List<MarineSoldier> recruitToSquad(
-            String squadId, List<Integer> initialExperienceXp) {
-        if (initialExperienceXp == null) return Collections.emptyList();
-        return recruitToSquad(squadId, initialExperienceXp.size(), initialExperienceXp);
-    }
-
-    private List<MarineSoldier> recruitToSquad(
-            String squadId, int count, List<Integer> initialExperienceXp) {
         MarineSquad squad = squadById(squadId);
         if (squad == null || squad.stationed() || count <= 0) {
             return Collections.emptyList();
@@ -574,10 +559,6 @@ public class MarineRoster implements Serializable {
         List<MarineSoldier> recruits = new ArrayList<>(recruitCount);
         for (int index = 0; index < recruitCount; index++) {
             MarineSoldier recruit = createRecruit();
-            if (initialExperienceXp != null) {
-                Integer experience = initialExperienceXp.get(index);
-                recruit.addExperience(experience != null ? Math.max(0, experience) : 0);
-            }
             squad.add(recruit.id());
             recruits.add(recruit);
         }
@@ -1373,16 +1354,7 @@ public class MarineRoster implements Serializable {
     private record RefitPlan(MarineSquad squad, int teamIndex,
                              List<MarineSoldier> team, FireTeamTemplateCard card) {}
 
-    public void applySoldierOutcome(Set<String> survivors, Set<String> fallen,
-                                    int survivorXp) {
-        if (survivors != null) {
-            for (String id : survivors) {
-                MarineSoldier soldier = soldierById(id);
-                if (soldier != null && soldier.status() == MarineSoldierStatus.ACTIVE) {
-                    soldier.addExperience(survivorXp);
-                }
-            }
-        }
+    public void applySoldierOutcome(Set<String> survivors, Set<String> fallen) {
         if (fallen != null) {
             for (String id : fallen) {
                 MarineSoldier soldier = soldierById(id);
@@ -1394,8 +1366,8 @@ public class MarineRoster implements Serializable {
 
     /** Applies the richer personnel report used by the squad debrief. */
     public void applySoldierOutcome(Map<String, MarineSoldierStatus> outcomes,
-                                    int survivorXp, float currentDay, float wiaDays) {
-        applySoldierOutcome(outcomes, survivorXp, currentDay, wiaDays,
+                                    float currentDay, float wiaDays) {
+        applySoldierOutcome(outcomes, currentDay, wiaDays,
                 Collections.emptyMap(), false);
     }
 
@@ -1418,7 +1390,7 @@ public class MarineRoster implements Serializable {
      * per squad per mission, however many billets it filled.
      */
     public void applySoldierOutcome(Map<String, MarineSoldierStatus> outcomes,
-                                    int survivorXp, float currentDay, float wiaDays,
+                                    float currentDay, float wiaDays,
                                     Map<String, CombatTelemetryRow> telemetry,
                                     boolean victory) {
         if (outcomes == null) return;
@@ -1428,7 +1400,6 @@ public class MarineRoster implements Serializable {
             if (soldier == null || entry.getValue() == null) continue;
             MarineSoldierStatus status = entry.getValue();
             if (status == MarineSoldierStatus.ACTIVE) {
-                soldier.addExperience(survivorXp);
                 soldier.setUnavailableUntilDay(0f);
             } else if (status == MarineSoldierStatus.WIA) {
                 soldier.setUnavailableUntilDay(currentDay + Math.max(1f, wiaDays));
@@ -1496,10 +1467,17 @@ public class MarineRoster implements Serializable {
         return SoldierAptitude.LIMITED;
     }
 
-    /** Seniority order for picking a leader: rank, then experience, then a stable id tiebreak. */
+    /**
+     * Seniority order for picking a leader: rank, then time served, then a
+     * stable id tiebreak. Time served is deployments on the marine's career
+     * record — the marine who has actually been on more operations. It replaced
+     * a persisted XP number, which stopped meaning anything once experience
+     * became issued with the armour rather than accumulated.
+     */
     private static final Comparator<MarineSoldier> SENIORITY =
             Comparator.comparingInt((MarineSoldier s) -> s.enlistedRank().ordinal()).reversed()
-                    .thenComparing(Comparator.comparingInt(MarineSoldier::experienceXp).reversed())
+                    .thenComparing(Comparator.comparingInt(
+                            (MarineSoldier s) -> s.career().missionsDeployed()).reversed())
                     .thenComparing(MarineSoldier::id);
 
     /** The NCO leading this squad, or null when nobody in it is fit for duty. */
@@ -1519,12 +1497,10 @@ public class MarineRoster implements Serializable {
      * their stripes, so a corporal who returns outranks the marine who stood in
      * and resumes the billet instead of the squad drifting to a new leader every
      * time someone is hurt.
-     */
-    /**
-     * <p>Public because experience is one of the inputs and
-     * {@link MarineSoldier#addExperience} is not routed through the roster —
-     * a caller that awards XP outside {@link #applySoldierOutcome} has to say
-     * so. Idempotent; safe to call as often as a caller likes.
+     *
+     * <p>Public because issued armour is one of the inputs: a refit changes a
+     * marine's band and therefore whether their squad leader wears sergeant's
+     * stripes. Idempotent; safe to call as often as a caller likes.
      */
     public void refreshLeadership() {
         for (MarineSquad squad : squads) {

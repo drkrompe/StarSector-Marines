@@ -48,7 +48,7 @@ class MarineSquadTest {
         outcome.put(roster.soldiers().get(1).id(), MarineSoldierStatus.MIA);
         outcome.put(roster.soldiers().get(2).id(), MarineSoldierStatus.KIA);
 
-        roster.applySoldierOutcome(outcome, 20, 100f, 7f);
+        roster.applySoldierOutcome(outcome, 100f, 7f);
         roster.recoverWounded(106f);
         assertEquals(MarineSoldierStatus.WIA, roster.soldiers().get(0).status());
         roster.recoverWounded(107f);
@@ -67,7 +67,7 @@ class MarineSquadTest {
         outcome.put(roster.soldiers().get(0).id(), MarineSoldierStatus.KIA);
         outcome.put(roster.soldiers().get(1).id(), MarineSoldierStatus.WIA);
 
-        roster.applySoldierOutcome(outcome, 0, 10f, 7f);
+        roster.applySoldierOutcome(outcome, 10f, 7f);
 
         assertEquals(1, roster.vacancies(squad));
         assertNotNull(roster.recruitToSquad(squad.id()));
@@ -92,7 +92,7 @@ class MarineSquadTest {
 
         Map<String, MarineSoldierStatus> outcome = new HashMap<>();
         outcome.put(ready.id(), MarineSoldierStatus.MIA);
-        roster.applySoldierOutcome(outcome, 0, 0f, 1f);
+        roster.applySoldierOutcome(outcome, 0f, 1f);
         assertFalse(roster.transferSoldier(ready.id(), reserve.id()));
     }
 
@@ -117,7 +117,7 @@ class MarineSquadTest {
         MarineSquad reserve = roster.reserveSquad();
         Map<String, MarineSoldierStatus> outcome = new HashMap<>();
         outcome.put(roster.soldiers().get(0).id(), MarineSoldierStatus.WIA);
-        roster.applySoldierOutcome(outcome, 0, 10f, 7f);
+        roster.applySoldierOutcome(outcome, 10f, 7f);
 
         roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
 

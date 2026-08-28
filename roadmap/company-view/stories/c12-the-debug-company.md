@@ -9,8 +9,8 @@ Status: DEFERRED
 > catalog within it: flavour stays randomized, the stage keeps meaning what it
 > says, and coverage becomes per band. The three bands partition the authored
 > catalog with no unreachable doctrine, which a test now guards.
-> `DebugBilletPlan.experienceXp` is deprecated and inert for combat;
-> `xp-authority-cleanup.md` owns its removal. — slices 1–2 shipped; waiting for player-side vehicle deployment
+> `DebugBilletPlan` now states only that ceiling; its authored-XP method is
+> gone. — slices 1–2 shipped; waiting for player-side vehicle deployment
 Written: 2026-08-23
 Updated: 2026-08-23 — folded the detached debug roster and mech-stage defaults into `company-view-nouns.md`.
 

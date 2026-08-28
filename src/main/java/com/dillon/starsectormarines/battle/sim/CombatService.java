@@ -113,14 +113,6 @@ public final class CombatService {
         refreshTieredPrimaryStats(id);
     }
 
-    /** Adds earned XP and immediately refreshes the shooter's derived handling stats. */
-    public SoldierProfile addExperience(long id, int gainedXp) {
-        SoldierProfile updated = soldierProfile(id).withExperience(gainedXp);
-        entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_SOLDIER_PROFILE, updated);
-        refreshTieredPrimaryStats(id);
-        return updated;
-    }
-
     private void refreshTieredPrimaryStats(long id) {
         WeaponDef weapon = primaryWeaponDef(id);
         if (weapon == null) return;
