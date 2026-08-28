@@ -124,7 +124,6 @@ public class GroundSceneBackdrop implements CombatLayeredRenderingPlugin {
         sprites.ensureObjectiveIcons();
 
         // VEHICLES + CONVOY: parked map vehicles and supply trucks/turrets.
-        sprites.ensureVehicleSheets();
         sprites.ensureConvoySprites();
 
         // SHUTTLES: dropship hulls and their engine-FX plumes. Turret sprites for

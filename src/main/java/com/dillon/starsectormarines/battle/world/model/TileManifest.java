@@ -61,6 +61,14 @@ public final class TileManifest {
     /** Dedicated fixed-grid sheet for generated 32px doodad cutouts. */
     public static final String DOODAD_SHEET = "graphics/doodads/doodads.png";
 
+    /**
+     * Packed atlas of parked road vehicles — the trucks and vans scattered on
+     * streets and courtyards at generation. Its own sheet rather than a corner
+     * of {@link #DOODAD_SHEET} because these are drawn several times finer than
+     * the prop atlas, and sampling them down to it would throw the detail away.
+     */
+    public static final String PARKED_VEHICLE_SHEET = "graphics/tilesets/parked-vehicles.png";
+
     /** Open-road surface color, sampled at the center pixel of the road autotile center cell (13, 1). Verified by {@code TileManifestFillColorTest}. */
     public static final int ROAD_FILL_RGB = 0x2F3D4A; // 47, 61, 74
 

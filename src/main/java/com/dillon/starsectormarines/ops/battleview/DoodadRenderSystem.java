@@ -7,8 +7,8 @@ import com.dillon.starsectormarines.render2d.VisibleCellRect;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 
 /**
- * Emits the {@link RenderLayer#DOODADS} layer — point overlays (rocks, plants,
- * debris) painted above ground/decals/vehicles and below units. Each doodad uses
+ * Emits the {@link RenderLayer#DOODADS} layer — props (rocks, plants, debris,
+ * parked road vehicles) painted above ground/decals/aircraft and below units. Each doodad uses
  * the full fixed-grid source rectangle and world rectangle declared by its
  * cell footprint; the drain batches them per sheet. Off-camera footprints are
  * skipped against {@link VisibleCellRect}.
@@ -37,6 +37,7 @@ public final class DoodadRenderSystem implements RenderSystem {
         if (urban == null) return;
         SpriteAPI road = sprites.roadSheet();
         SpriteAPI generated = sprites.doodadSheet();
+        SpriteAPI parkedVehicles = sprites.parkedVehicleSheet();
 
         BattleCamera cam = ctx.camera;
         float cellPx = cam.cellPxSize();
@@ -47,6 +48,8 @@ public final class DoodadRenderSystem implements RenderSystem {
 
         emitSheet(ctx, out, cam, view, road, TileManifest.ROAD_SHEET, cellPx, alphaMult);
         emitSheet(ctx, out, cam, view, generated, TileManifest.DOODAD_SHEET, cellPx, alphaMult);
+        emitSheet(ctx, out, cam, view, parkedVehicles, TileManifest.PARKED_VEHICLE_SHEET,
+                cellPx, alphaMult);
         emitSheet(ctx, out, cam, view, urban, TileManifest.SHEET, cellPx, alphaMult);
     }
 
