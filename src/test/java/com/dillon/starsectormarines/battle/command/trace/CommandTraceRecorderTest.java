@@ -49,7 +49,7 @@ class CommandTraceRecorderTest {
 
         List<String> lines = recorder.canonicalJsonLines().lines().toList();
         assertEquals(2, lines.size());
-        assertEquals("{\"stream\":\"run\",\"tick\":0,\"schemaVersion\":4,"
+        assertEquals("{\"stream\":\"run\",\"tick\":0,\"schemaVersion\":5,"
                 + "\"fixtureKind\":\"CONQUEST\","
                 + "\"schedulerMode\":\"SERIAL_DETERMINISTIC\"}", lines.get(0));
         String line = lines.get(1);
@@ -176,6 +176,43 @@ class CommandTraceRecorderTest {
         String line = recorder.canonicalJsonLines().lines().toList().get(1);
         assertTrue(line.contains("\"reason\":\"TRACK_ADVANCE\""));
         assertTrue(line.contains("\"distantCaptureDeferred\":true"));
+    }
+
+    @Test
+    void canonicalFloatsIgnoreSubBasisPointAccumulationDrift() {
+        String first = conquestTrackTrace(
+                0.56759495f, 232.6269f, 96.5241f);
+        String second = conquestTrackTrace(
+                0.56759906f, 232.6197f, 96.5355f);
+
+        assertEquals(first, second);
+        assertTrue(first.contains("\"friendlyBodyProgress\":0.5676"));
+        assertTrue(first.contains("\"centroidX\":232.6"));
+        assertTrue(first.contains("\"centroidY\":96.5"));
+    }
+
+    private static String conquestTrackTrace(float friendlyBodyProgress,
+                                             float centroidX,
+                                             float centroidY) {
+        ConquestFrontSnapshot.TrackState track =
+                new ConquestFrontSnapshot.TrackState(2, 80, 119,
+                        21, 21, 70, friendlyBodyProgress,
+                        0.7968887f, -1f, 0, 70f, 0f, 17);
+        ConquestFrontSnapshot detail = new ConquestFrontSnapshot(75, 60,
+                TraversalAxis.SOUTH_TO_NORTH,
+                ConquestFrontSnapshot.Phase.LANE_ADVANCE, 2, 25,
+                CompoundService.CompoundState.DEFENDER_HELD,
+                List.of(track), List.of(new ConquestFrontSnapshot.SquadState(
+                        139, 4, centroidX, centroidY, 0, null, false)),
+                List.of());
+        CommanderSnapshot<ConquestFrontSnapshot> snapshot =
+                new CommanderSnapshot<>(Faction.MARINE, "conquest",
+                        "LANE_ADVANCE", 75, 60, 21, 0,
+                        List.of(), List.of(), detail);
+        CommandTraceRecorder recorder = new CommandTraceRecorder(
+                "CONQUEST", "SERIAL_DETERMINISTIC", 0);
+        recorder.recordPerspective(snapshot);
+        return recorder.canonicalJsonLines();
     }
 
     @Test

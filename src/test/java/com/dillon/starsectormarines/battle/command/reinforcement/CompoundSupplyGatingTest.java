@@ -213,6 +213,34 @@ public class CompoundSupplyGatingTest {
                 "trigger must not post for a marine-held compound, even when the assigned squad is depleted");
     }
 
+    @Test
+    public void depletedRequestsPreserveSquadDiscoveryOrder() {
+        BattleSimulation sim = openSim();
+        TacticalNode first = compoundAt(TacticalNode.Kind.BARRACKS, 3, 4);
+        TacticalNode second = compoundAt(TacticalNode.Kind.ARMORY, 7, 8);
+        sim.getCompoundService().register(first);
+        sim.getCompoundService().register(second);
+
+        int firstSquadId = sim.mintSquad(Faction.DEFENDER, UnitType.MILITIA);
+        Squad firstSquad = sim.getSquad(firstSquadId);
+        firstSquad.assignedNode = first;
+        firstSquad.originalSize = 4;
+        firstSquad.aliveMembers = 1;
+        int secondSquadId = sim.mintSquad(Faction.DEFENDER, UnitType.MILITIA);
+        Squad secondSquad = sim.getSquad(secondSquadId);
+        secondSquad.assignedNode = second;
+        secondSquad.originalSize = 4;
+        secondSquad.aliveMembers = 1;
+
+        List<ReinforcementRequest> emitted = new ArrayList<>();
+        new GarrisonDepletedTrigger().check(sim, emitted::add);
+
+        assertEquals(List.of(first.centerX(), second.centerX()),
+                emitted.stream().map(request -> request.rallyX).toList());
+        assertEquals(List.of(first.centerY(), second.centerY()),
+                emitted.stream().map(request -> request.rallyY).toList());
+    }
+
     /** Synthesizes a {@link RoadGraph} with one perimeter node + one interior node + a connecting edge so {@code ConvoyMeans.canFulfill}'s non-compound guards pass. Intentionally minimal so the test is about the supply gate, not routing geometry. */
     private static RoadGraph singlePerimeterNodeGraph() {
         RoadGraph.Node perim = new RoadGraph.Node(0, 5, 0, true);
