@@ -55,6 +55,12 @@ public interface BattleView {
 
     NavigationGrid getGrid();
 
+    /** Raw grid structural revision; changes with authored or runtime cell/edge mutation. */
+    long getNavigationGridRevision();
+
+    /** Derived navigation revision; advances after each flushed breach batch. */
+    long getNavigationTopologyRevision();
+
     /** Faction equipment doctrine frozen at battle creation, or {@code null} in legacy fixtures. */
     GroundRosterProfile getGroundRoster();
 

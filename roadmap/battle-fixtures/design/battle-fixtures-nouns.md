@@ -6,8 +6,8 @@ are shipped.
 
 Written: 2026-08-24
 
-Updated: 2026-08-28 — separated trace schema 7 from the derived Conquest
-summary-schema-5 provenance and last-alive loss-location analysis.
+Updated: 2026-08-28 — defined commander/GOAP cadence measurements and command
+subphase counters on the opt-in JFR handoff.
 
 ## Vocabulary
 
@@ -33,6 +33,14 @@ They do not own a second scene builder.
 A **profile run** is an opt-in headless replay measured by an external runtime
 profiler. Performance evidence is an artifact, not a pass/fail timing budget;
 continuous tests prove codec and deterministic-construction behavior instead.
+The run boundary records aggregate and maximum commander and GOAP wall time,
+plus commander synchronization, topology, frame, planning, and commit totals
+and cross-cutting influence refresh counts and normalized topology/source/
+propagation costs. The event duration includes reconstruction and pre-roll;
+only active-tick nanoseconds are a measured-work denominator. Each 75 ticks spans one
+current commander period; a 75-tick-aligned slice allows repeated
+reconstruction of the same battle age without treating 10 ms statistical
+samples as exact pulse timing.
 
 A **visual replay** is an opt-in observation of a normal headless replay. It
 samples current simulation state at a configured tick cadence and drains the

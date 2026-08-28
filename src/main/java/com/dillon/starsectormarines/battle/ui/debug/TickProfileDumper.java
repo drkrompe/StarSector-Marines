@@ -39,8 +39,8 @@ import java.io.IOException;
 public final class TickProfileDumper {
 
     private static final Logger LOG = Logger.getLogger(TickProfileDumper.class);
-    /** Bumped when the dump shape changes — v7 can spill the fixture to a sibling file. */
-    private static final int SCHEMA_VERSION = 7;
+    /** Bumped when the dump shape changes — v8 adds commander and influence subphase rows. */
+    private static final int SCHEMA_VERSION = 8;
     /**
      * SettingsAPI rejects any common-folder text write longer than this many
      * characters. It throws from its own writer thread when routed through
@@ -114,7 +114,7 @@ public final class TickProfileDumper {
             // counters directly. Either way the JSON shape is identical.
             JSONArray innerArr = new JSONArray();
             root.put("innerTimingSemantics",
-                    "aggregate worker time; primitive buckets overlap behavior buckets");
+                    "aggregate worker time; nested primitive and influence buckets overlap enclosing behavior and commander buckets");
             TickInnerProfile.Snapshot innerSnap = (spike != null) ? spike.innerSnapshot : null;
             TickInnerProfile liveInner = sim.getTickInnerProfile();
             for (TickInnerProfile.Bucket b : TickInnerProfile.Bucket.VALUES) {

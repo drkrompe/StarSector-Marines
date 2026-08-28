@@ -4,8 +4,8 @@ Status: ACTIVE — the shared autonomous command architecture is in production f
 
 Written: 2026-08-27
 
-Updated: 2026-08-28 — defined neutral capture-zone presence cohorts without
-importing exact occupancy into commander knowledge.
+Updated: 2026-08-28 — made navigation-revision caching and commander-pulse
+performance evidence part of the shared command boundary.
 
 Mission command is the slow, faction-scoped layer that turns authored mission
 meaning and faction-honest knowledge into stable squad assignments. It is the
@@ -38,6 +38,15 @@ A **command pulse** has five ordered stages:
 Planning both sides before either commit prevents dispatch order from becoming
 knowledge or behavior leakage. The initial cadence is 2.5 simulated seconds;
 directive stability, rather than a faster global loop, prevents churn.
+
+The frozen public topology and influence connectivity topology are immutable
+derived views. Public topology is reused until either the raw grid changes or
+the derived-navigation revision advances at the flushed breach boundary;
+influence connectivity is reused until that flush. Unit movement and changing
+belief rebuild frames and fields without recopying unchanged map geometry.
+Equal-strength influence emitters in one connectivity component may
+share one propagation traversal while retaining additive strength and the
+per-emitter attenuation cutoff.
 
 ## Perspective and disclosure
 
@@ -117,6 +126,14 @@ Selected-squad UI, map overlays, dumps, and traces consume the published
 snapshot rather than reconstructing intent from live state. Debug tools select
 one perspective at a time; showing both sides is an explicit diagnostic mode,
 not a merged tactical truth.
+
+The live tick-profile dump and opt-in fixture JFR boundary expose command
+assignment synchronization, topology freeze, per-perspective frame freeze,
+strategy planning, and commit as separate subphases. Cross-cutting influence
+topology, source aggregation, and propagation publish their own refresh counts
+and costs; they may be triggered by command frame capture or tactical GOAP and
+must not be added to the enclosing phase. These are timing diagnostics, not
+commander facts, and never enter deterministic traces.
 
 A **command trace** has perspective streams and a separately labelled neutral
 referee stream. Perspective events contain only published command facts.

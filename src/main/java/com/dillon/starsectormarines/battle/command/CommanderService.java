@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.command;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.sim.BattleView;
+import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,6 +46,9 @@ public final class CommanderService {
     private final Map<Faction, Registration> commanders = new EnumMap<>(Faction.class);
     private final Map<Faction, CommanderSnapshot<?>> snapshots = new EnumMap<>(Faction.class);
     private final AssignmentArbiter assignments = new AssignmentArbiter();
+    private CommandTopology cachedTopology;
+    private long cachedGridRevision = Long.MIN_VALUE;
+    private long cachedTopologyRevision = Long.MIN_VALUE;
     private static final Map<AutonomousMissionCommand<?, ?>, AssignmentArbiter>
             DIRECT_SERVICES = Collections.synchronizedMap(new WeakHashMap<>());
 
@@ -136,6 +140,11 @@ public final class CommanderService {
     }
 
     private void runPulse(BattleView sim) {
+        TickInnerProfile profile = TickInnerProfile.currentIfBound();
+        if (profile != null) {
+            profile.record(TickInnerProfile.Bucket.COMMANDER_PULSE, 0L);
+        }
+        long stageStart = System.nanoTime();
         Map<Faction, String> issuers = new EnumMap<>(Faction.class);
         for (Map.Entry<Faction, Registration> entry : commanders.entrySet()) {
             if (entry.getValue().strategy()
@@ -144,7 +153,13 @@ public final class CommanderService {
             }
         }
         assignments.synchronizeCompatibilityAssignments(sim, issuers);
-        CommandTopology topology = CommandTopology.freeze(sim);
+        record(profile, TickInnerProfile.Bucket.COMMANDER_SYNC, stageStart);
+
+        stageStart = System.nanoTime();
+        CommandTopology topology = freezeTopology(sim);
+        record(profile, TickInnerProfile.Bucket.COMMANDER_TOPOLOGY_LOOKUP, stageStart);
+
+        stageStart = System.nanoTime();
         CommandAssignmentSnapshot assignmentFrame = assignments.snapshot();
 
         List<FrozenCommand> frozen = new ArrayList<>();
@@ -158,15 +173,44 @@ public final class CommanderService {
                 legacy.add((MissionCommand) registration.strategy());
             }
         }
+        record(profile, TickInnerProfile.Bucket.COMMANDER_FRAME, stageStart);
 
+        stageStart = System.nanoTime();
         List<PreparedCommand> prepared = new ArrayList<>(frozen.size());
         for (FrozenCommand command : frozen) prepared.add(plan(command));
+        record(profile, TickInnerProfile.Bucket.COMMANDER_PLAN, stageStart);
 
         // No plan may observe another side's newly committed assignment: every
         // frame and plan exists before this loop begins.
+        stageStart = System.nanoTime();
         for (PreparedCommand command : prepared) commit(command, sim, topology);
         SquadDirectiveControl directives = assignments.control(sim);
         for (MissionCommand command : legacy) command.tick(sim, directives);
+        record(profile, TickInnerProfile.Bucket.COMMANDER_COMMIT, stageStart);
+    }
+
+    private static void record(TickInnerProfile profile,
+                               TickInnerProfile.Bucket bucket,
+                               long stageStart) {
+        if (profile != null) profile.record(bucket, System.nanoTime() - stageStart);
+    }
+
+    /** Reuses the immutable full-map snapshot until a flushed breach changes navigation. */
+    CommandTopology freezeTopology(BattleView sim) {
+        long gridRevision = sim.getNavigationGridRevision();
+        long topologyRevision = sim.getNavigationTopologyRevision();
+        if (cachedTopology == null
+                || cachedGridRevision != gridRevision
+                || cachedTopologyRevision != topologyRevision) {
+            TickInnerProfile profile = TickInnerProfile.currentIfBound();
+            long rebuildStart = System.nanoTime();
+            cachedTopology = CommandTopology.freeze(sim);
+            record(profile, TickInnerProfile.Bucket.COMMANDER_TOPOLOGY_REBUILD,
+                    rebuildStart);
+            cachedGridRevision = gridRevision;
+            cachedTopologyRevision = topologyRevision;
+        }
+        return cachedTopology;
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})

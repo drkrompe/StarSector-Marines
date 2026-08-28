@@ -130,9 +130,8 @@ public final class TickProfile {
     public void begin(int simTickIndex) {
         currentTickIndex = simTickIndex;
         inWarmup = simTickIndex < WARMUP_TICKS;
-        // Per-tick scratch is only relevant for spike detection (post-warmup).
-        // Still clear it during warmup so a warmup → post-warmup transition
-        // doesn't leave stale per-phase nanos sitting in the array.
+        // Per-tick scratch remains useful to the opt-in profiler during warmup;
+        // only window accumulation and spike detection are suppressed there.
         for (int i = 0; i < currentTickNanos.length; i++) {
             currentTickNanos[i] = 0L;
         }
@@ -144,10 +143,10 @@ public final class TickProfile {
         long now = System.nanoTime();
         long delta = now - lapStart;
         lapStart = now;
-        if (inWarmup) return;
         int idx = p.ordinal();
-        accumNanos[idx] += delta;
         currentTickNanos[idx] += delta;
+        if (inWarmup) return;
+        accumNanos[idx] += delta;
         if (delta > currentMaxNanos[idx]) currentMaxNanos[idx] = delta;
     }
 

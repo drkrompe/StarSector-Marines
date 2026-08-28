@@ -8,14 +8,49 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.TestUnits;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
+
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CommanderInfluenceServiceTest {
+
+    @Test
+    void cachedTopologyRebuildsOnlyAfterNavigationRevisionAdvances() {
+        NavigationGrid grid = new NavigationGrid(16, 8);
+        for (int y = 0; y < grid.getHeight(); y++) {
+            for (int x = 0; x < grid.getWidth(); x++) grid.setWalkableFloor(x, y);
+            grid.setWalkable(7, y, false);
+        }
+        UnitRosterService roster = new UnitRosterService(
+                new UnitSpatialIndex(16, 8), null);
+        roster.spawn(new EntitySpec("marine", Faction.MARINE,
+                UnitType.MARINE, 2, 3));
+        AtomicLong revision = new AtomicLong(1L);
+        CommanderInfluenceService service = new CommanderInfluenceService(
+                grid, roster, revision::get);
+
+        service.refresh(1);
+        assertEquals(0f, service.snapshot(Faction.MARINE)
+                .friendlyAtWorld(12, 3), 0.0001f);
+
+        grid.setWalkableFloor(7, 3);
+        service.refresh(2);
+        assertEquals(0f, service.snapshot(Faction.MARINE)
+                .friendlyAtWorld(12, 3), 0.0001f,
+                "unflushed grid mutation must not invalidate derived topology");
+
+        revision.incrementAndGet();
+        service.refresh(3);
+        assertTrue(service.snapshot(Faction.MARINE)
+                .friendlyAtWorld(12, 3) > 0f);
+    }
 
     @Test
     void factionPicturesUseOwnBeliefWithoutDiscoveringLiveEnemies() {

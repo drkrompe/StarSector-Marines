@@ -39,6 +39,27 @@ class InfluenceFieldBuilderTest {
         assertEquals(InfluenceFieldBuilder.ATTENUATION, field[1], 0.0001f);
     }
 
+    @Test
+    void colocatedEqualEmittersRetainAdditiveInfluenceAndPerEmitterCutoff() {
+        NavigationGrid grid = openGrid(24, 8);
+        InfluenceTopology topology = new InfluenceTopology(grid, 8);
+
+        float[] field = InfluenceFieldBuilder.propagate(topology, List.of(
+                new InfluenceSource(1, 1, 1f),
+                new InfluenceSource(2, 2, 1f),
+                new InfluenceSource(10, 2, 1f),
+                new InfluenceSource(3, 3, 0.04f)));
+
+        assertEquals(2f + InfluenceFieldBuilder.ATTENUATION,
+                field[0], 0.0001f);
+        assertEquals(1f + 2f * InfluenceFieldBuilder.ATTENUATION,
+                field[1], 0.0001f);
+        assertEquals(InfluenceFieldBuilder.ATTENUATION
+                        + 2f * InfluenceFieldBuilder.ATTENUATION
+                        * InfluenceFieldBuilder.ATTENUATION,
+                field[2], 0.0001f);
+    }
+
     private static NavigationGrid openGrid(int width, int height) {
         NavigationGrid grid = new NavigationGrid(width, height);
         for (int y = 0; y < height; y++) {

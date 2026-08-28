@@ -114,6 +114,8 @@ public class NavigationGrid {
     private final int height;
     private final long[] cellFlags;
     private final byte[] edgePassability;
+    /** Monotonic structural revision for immutable derived-view invalidation. */
+    private long topologyRevision;
     /**
      * Per-cell, per-facing cover level in {@code [0..{@link #MAX_COVER}]}.
      * Indexed as {@code (y * width + x) * FACING_COUNT + facing}. Initially
@@ -184,13 +186,17 @@ public class NavigationGrid {
     public void setTag(int x, int y, CellTag tag, boolean on) {
         if (!inBounds(x, y)) return;
         int idx = index(x, y);
-        if (on) cellFlags[idx] |=  tag.mask();
-        else    cellFlags[idx] &= ~tag.mask();
+        long before = cellFlags[idx];
+        long after = on ? before | tag.mask() : before & ~tag.mask();
+        if (after == before) return;
+        cellFlags[idx] = after;
+        topologyRevision++;
     }
 
 
     public int getWidth()  { return width;  }
     public int getHeight() { return height; }
+    public long topologyRevision() { return topologyRevision; }
 
     public boolean inBounds(int x, int y) {
         return x >= 0 && x < width && y >= 0 && y < height;
@@ -299,13 +305,21 @@ public class NavigationGrid {
     public void setEdgePassable(int x, int y, Direction dir, boolean passable) {
         if (!inBounds(x, y)) return;
         int idx = index(x, y);
-        if (passable) edgePassability[idx] |= (byte) (1 << dir.bit());
-        else          edgePassability[idx] &= (byte) ~(1 << dir.bit());
+        byte before = edgePassability[idx];
+        byte after = passable
+                ? (byte) (before | (1 << dir.bit()))
+                : (byte) (before & ~(1 << dir.bit()));
+        if (after == before) return;
+        edgePassability[idx] = after;
+        topologyRevision++;
     }
 
     public void openAllEdges(int x, int y) {
         if (!inBounds(x, y)) return;
-        edgePassability[index(x, y)] = (byte) 0xFF;
+        int idx = index(x, y);
+        if (edgePassability[idx] == (byte) 0xFF) return;
+        edgePassability[idx] = (byte) 0xFF;
+        topologyRevision++;
     }
 
     /**
@@ -778,6 +792,7 @@ public class NavigationGrid {
         // visible from this class.
         cellFlags[idx] |= CellTag.WALKABLE.mask() | CellTag.DOORWAY.mask();
         edgePassability[idx] = (byte) 0xFF;
+        topologyRevision++;
         recomputeCoverAt(x, y);
         recomputeCoverAt(x + 1, y);
         recomputeCoverAt(x - 1, y);
@@ -792,6 +807,7 @@ public class NavigationGrid {
     public byte[] getEdgePassabilityArray()  { return edgePassability; }
 
     public void clear() {
+        topologyRevision++;
         Arrays.fill(cellFlags, 0L);
         Arrays.fill(edgePassability, (byte) 0);
         Arrays.fill(coverByFacing, (byte) 0);

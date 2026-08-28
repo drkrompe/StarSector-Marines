@@ -6,7 +6,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Per-tick scratch profiler measuring sub-step cost inside one
- * {@code BattleSimulation.tick()} call. Two lenses, both filled by the same
+ * {@code BattleSimulation.tick()} call. Three lenses, all filled by the same
  * counters:
  *
  * <ul>
@@ -22,6 +22,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
  *       fired from inside a GOAP infantry behavior counts toward both
  *       {@code BEHAVIOR_COMBATANT} and {@code PATHFIND}. Different lenses,
  *       different questions.</li>
+ *   <li><b>Commander buckets</b> — main-thread wall time for pulse stages.
+ *       Influence refresh buckets are cross-cutting: they may run inside
+ *       commander frame freeze or tactical GOAP reads, and overlap whichever
+ *       enclosing phase triggered them.</li>
  * </ul>
  *
  * <p>Reset at the top of every tick via {@link #reset()}. Snapshotted by
@@ -40,7 +44,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
  *
  * <p>Cost: each {@link #record} call is one nanoTime delta plus a long+int
  * array increment — ~5ns. At ~5 record sites per unit × ~400 units = ~10µs
- * overhead per tick, well under 1% of the steady-state 4-7ms tick budget.
+ * overhead per tick, well under 1% of the steady-state 4-7ms tick budget;
+ * commander records occur only on their slow cadences.
  */
 public final class TickInnerProfile {
 
@@ -55,6 +60,18 @@ public final class TickInnerProfile {
         BEHAVIOR_DRONE_HUB,
         BEHAVIOR_GOAP_DRONE,
         BEHAVIOR_SWARM_PRESSURE,
+        // ---- Commander pulse stages — synchronous main-thread wall time. ----
+        COMMANDER_PULSE,
+        COMMANDER_SYNC,
+        COMMANDER_TOPOLOGY_LOOKUP,
+        COMMANDER_TOPOLOGY_REBUILD,
+        COMMANDER_FRAME,
+        COMMANDER_PLAN,
+        COMMANDER_COMMIT,
+        INFLUENCE_TOPOLOGY_LOOKUP,
+        INFLUENCE_TOPOLOGY_REBUILD,
+        INFLUENCE_SOURCES,
+        INFLUENCE_PROPAGATE,
         // ---- Per-primitive buckets — heavy ops counted wherever they fire. ----
         PATHFIND,
         SWARM_PATHFIND,
@@ -94,6 +111,11 @@ public final class TickInnerProfile {
             ALL_INSTANCES.add(p);
         }
         return p;
+    }
+
+    /** Current tick-owned profile, or {@code null} outside a simulation tick. */
+    public static TickInnerProfile currentIfBound() {
+        return CURRENT.get();
     }
 
     public static void setCurrent(TickInnerProfile p) {
