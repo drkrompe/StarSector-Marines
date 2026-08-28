@@ -192,7 +192,10 @@ the ward, which the ward does not own and must not close, because the road graph
 published that street and a convoy is entitled to drive it. Nothing made those
 cells solid and the shed came out open along its whole sixteen-cell flank,
 walled by a pavement, with its bays and berths standing in the road. A floor may
-therefore only stand where its ring still lands on ward ground.
+therefore only stand where its ring still lands on ward ground. The ring
+carries the room's own ground beneath it, and its facades carry windows: a wall
+is not only a mask, and a garrison building with no apertures is defensible only
+from its doorway.
 
 Demolition carries obligations the ward discovered the hard way, in both
 directions. A stage that replaces what an earlier one built must take out what
