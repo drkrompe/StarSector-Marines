@@ -105,7 +105,15 @@ class MilitaryCompoundLayoutTest {
     }
 
     @Test
-    void fortifiedPerimeterReceivesShootThroughApertures() {
+    void buildingsRetainTwoCellParadeGroundAprons() {
+        GenContext ctx = filled(31L);
+        for (BlockLeaf member : List.of(COMMAND, BARRACKS, ARMORY, VEHICLE_BAY)) {
+            assertApron(ctx, member, CellTopology.GroundKind.STONE);
+        }
+    }
+
+    @Test
+    void fortifiedPerimeterReceivesPairedShootThroughApertures() {
         GenContext ctx = filled(31L);
         int windows = 0;
         for (int y = 0; y < H; y++) {
@@ -117,10 +125,13 @@ class MilitaryCompoundLayoutTest {
                 assertFalse(ctx.grid.isDoorway(x, y));
                 assertFalse(ctx.topology.isVehicle(x, y),
                         "corner gun emplacements remain opaque hardpoints");
+                assertTrue(hasAdjacentCompoundWindow(ctx.grid, ctx.topology, x, y),
+                        "compound aperture must have an adjacent firing cell");
             }
         }
         assertTrue(windows >= 4,
-                "fortified perimeter should offer distributed firing points");
+                "fortified perimeter should offer distributed firing pairs");
+        assertEquals(0, windows % 2, "compound apertures are emitted as pairs");
     }
 
     @Test
@@ -173,7 +184,37 @@ class MilitaryCompoundLayoutTest {
     }
 
     private static BlockLeaf inset(BlockLeaf leaf) {
-        return new BlockLeaf(leaf.left + 1, leaf.top + 1, leaf.right - 1, leaf.bottom - 1, false);
+        return new BlockLeaf(leaf.left + MilitaryBaseFiller.BUILDING_SETBACK,
+                leaf.top + MilitaryBaseFiller.BUILDING_SETBACK,
+                leaf.right - MilitaryBaseFiller.BUILDING_SETBACK,
+                leaf.bottom - MilitaryBaseFiller.BUILDING_SETBACK, false);
+    }
+
+    private static void assertApron(GenContext ctx, BlockLeaf member,
+                                    CellTopology.GroundKind ground) {
+        BlockLeaf building = inset(member);
+        for (int y = member.top; y <= member.bottom; y++) {
+            for (int x = member.left; x <= member.right; x++) {
+                if (building.contains(x, y)) continue;
+                assertEquals(ground, ctx.topology.getGroundKind(x, y),
+                        "compound apron ground at " + x + "," + y);
+                assertFalse(ctx.topology.isWall(x, y),
+                        "compound apron cannot contain a structural wall at " + x + "," + y);
+            }
+        }
+    }
+
+    private static boolean hasAdjacentCompoundWindow(NavigationGrid grid,
+                                                       CellTopology topology,
+                                                       int x, int y) {
+        int[][] directions = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        for (int[] direction : directions) {
+            int nx = x + direction[0];
+            int ny = y + direction[1];
+            if (grid.inBounds(nx, ny) && grid.getWallHp(nx, ny) > 0
+                    && topology.isWindow(nx, ny)) return true;
+        }
+        return false;
     }
 
     private static int count(List<Doodad> doodads, String id) {
