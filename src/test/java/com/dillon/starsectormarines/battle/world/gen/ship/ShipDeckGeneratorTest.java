@@ -5,7 +5,10 @@ import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
-import com.dillon.starsectormarines.battle.world.gen.ship.fit.RoomFittings;
+import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
+import com.dillon.starsectormarines.battle.world.gen.fit.Hookup;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomFittings;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import org.junit.jupiter.api.Test;
@@ -190,7 +193,7 @@ class ShipDeckGeneratorTest {
             for (DeckGraph.Compartment bay : generator.getLastDeckGraph().compartments()) {
                 if (bay.purpose() != RoomPurpose.VEHICLE_BAY) continue;
                 Set<Integer> sides = new HashSet<>();
-                for (DeckGraph.Compartment.Door door : bay.doors()) {
+                for (Doorway door : bay.doors()) {
                     int[] cell = bay.pose().unmap(door.x() - bay.left(), door.y() - bay.top(),
                             canonical.width(), canonical.height());
                     assertTrue(authored.contains(

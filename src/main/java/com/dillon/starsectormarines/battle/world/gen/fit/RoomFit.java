@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.world.gen.ship.fit;
+package com.dillon.starsectormarines.battle.world.gen.fit;
 
 /**
  * How well a compartment is fitted out — the axis the upgrade chain moves along.
