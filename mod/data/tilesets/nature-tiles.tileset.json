@@ -1,28 +1,218 @@
 {
   "sheet": "graphics/tilesets/nature-tiles.png",
-  "slice": { "mode": "auto-strip", "alphaThreshold": 16, "minGap": 4 },
+  "slice": {
+    "alphaThreshold": 16,
+    "minGap": 4,
+    "mode": "auto-strip"
+  },
   "tiles": [
-    { "id": "nature.grass-1", "frame": 0, "layer": "ground", "name": "grass" },
-    { "id": "nature.grass-2", "frame": 1, "layer": "ground", "name": "grass-alt" },
-    { "id": "nature.dirt-1", "frame": 2, "layer": "ground", "name": "dirt" },
-    { "id": "nature.dirt-2", "frame": 3, "layer": "ground", "name": "dirt-alt" },
-    { "id": "nature.sand", "frame": 4, "layer": "ground", "name": "sand" },
-    { "id": "nature.water-1", "frame": 5, "layer": "ground", "name": "water" },
-    { "id": "nature.water-2", "frame": 6, "layer": "ground", "name": "water-alt" },
-
-    { "id": "nature.shrub-1", "frame": 7, "layer": "plant", "validOn": ["nature.grass-1", "nature.grass-2"], "name": "shrub" },
-    { "id": "nature.shrub-2", "frame": 8, "layer": "plant", "validOn": ["nature.grass-1", "nature.grass-2"], "name": "shrub-alt" },
-    { "id": "nature.tuft-1", "frame": 9, "layer": "plant", "validOn": ["nature.grass-1", "nature.grass-2"], "name": "grass-tuft" },
-    { "id": "nature.tuft-2", "frame": 10, "layer": "plant", "validOn": ["nature.grass-1", "nature.grass-2"], "name": "grass-tuft-alt" },
-    { "id": "nature.shrub-3", "frame": 11, "layer": "plant", "validOn": ["nature.grass-1", "nature.grass-2"], "name": "shrub-variant" },
-
-    { "id": "nature.rock-small-1", "frame": 12, "layer": "rock", "validOn": ["layer:ground", "!nature.water-1", "!nature.water-2"], "name": "rocks-small" },
-    { "id": "nature.rock-small-2", "frame": 13, "layer": "rock", "validOn": ["layer:ground", "!nature.water-1", "!nature.water-2"], "name": "rocks-small-2" },
-    { "id": "nature.rock-small-3", "frame": 14, "layer": "rock", "validOn": ["layer:ground", "!nature.water-1", "!nature.water-2"], "name": "rocks-small-3" },
-    { "id": "nature.rock-medium-1", "frame": 15, "layer": "rock", "cover": "light", "validOn": ["layer:ground", "!nature.water-1", "!nature.water-2"], "name": "rock-medium" },
-    { "id": "nature.rock-medium-2", "frame": 16, "layer": "rock", "cover": "light", "validOn": ["layer:ground", "!nature.water-1", "!nature.water-2"], "name": "rock-medium-2" },
-    { "id": "nature.rock-large-1", "frame": 17, "layer": "rock", "cover": "heavy", "passable": false, "validOn": ["layer:ground", "!nature.water-1", "!nature.water-2"], "name": "rock-large" },
-    { "id": "nature.rock-large-2", "frame": 18, "layer": "rock", "cover": "heavy", "passable": false, "validOn": ["layer:ground", "!nature.water-1", "!nature.water-2"], "name": "rock-large-2" },
-    { "id": "nature.rock-large-3", "frame": 19, "layer": "rock", "cover": "heavy", "passable": false, "validOn": ["layer:ground", "!nature.water-1", "!nature.water-2"], "name": "rock-large-3" }
+    {
+      "description": "grass field \u2014 primary outdoor surface, hash-paired with grass-2",
+      "frame": 0,
+      "id": "nature.grass-1",
+      "layer": "ground",
+      "name": "grass"
+    },
+    {
+      "description": "grass field, second variant \u2014 the pair is picked per cell by TileManifest",
+      "frame": 1,
+      "id": "nature.grass-2",
+      "layer": "ground",
+      "name": "grass-alt"
+    },
+    {
+      "description": "bare dirt field \u2014 hash-paired with dirt-2",
+      "frame": 2,
+      "id": "nature.dirt-1",
+      "layer": "ground",
+      "name": "dirt"
+    },
+    {
+      "description": "bare dirt field, second variant",
+      "frame": 3,
+      "id": "nature.dirt-2",
+      "layer": "ground",
+      "name": "dirt-alt"
+    },
+    {
+      "description": "sand field with dune grass \u2014 defined but not currently dispatched to; the SAND ground kind maps to floors.sand",
+      "frame": 4,
+      "id": "nature.sand",
+      "layer": "ground",
+      "name": "sand"
+    },
+    {
+      "description": "shallow water with reeds \u2014 defined but not currently dispatched to; the WATER ground kind maps to water.water",
+      "frame": 5,
+      "id": "nature.water-1",
+      "layer": "ground",
+      "name": "water"
+    },
+    {
+      "description": "open water \u2014 second water variant, likewise not dispatched to today",
+      "frame": 6,
+      "id": "nature.water-2",
+      "layer": "ground",
+      "name": "water-alt"
+    },
+    {
+      "description": "broad low rosette \u2014 the widest plant on the sheet",
+      "frame": 7,
+      "id": "nature.shrub-1",
+      "layer": "plant",
+      "name": "shrub",
+      "validOn": [
+        "nature.grass-1",
+        "nature.grass-2"
+      ]
+    },
+    {
+      "description": "small spiky shrub \u2014 the smallest plant, reads as scrub at cell size",
+      "frame": 8,
+      "id": "nature.shrub-2",
+      "layer": "plant",
+      "name": "shrub-alt",
+      "validOn": [
+        "nature.grass-1",
+        "nature.grass-2"
+      ]
+    },
+    {
+      "description": "upright grass tuft",
+      "frame": 9,
+      "id": "nature.tuft-1",
+      "layer": "plant",
+      "name": "grass-tuft",
+      "validOn": [
+        "nature.grass-1",
+        "nature.grass-2"
+      ]
+    },
+    {
+      "description": "wider grass tuft, second variant",
+      "frame": 10,
+      "id": "nature.tuft-2",
+      "layer": "plant",
+      "name": "grass-tuft-alt",
+      "validOn": [
+        "nature.grass-1",
+        "nature.grass-2"
+      ]
+    },
+    {
+      "description": "young palm \u2014 the one plant with a visible trunk",
+      "frame": 11,
+      "id": "nature.shrub-3",
+      "layer": "plant",
+      "name": "shrub-variant",
+      "validOn": [
+        "nature.grass-1",
+        "nature.grass-2"
+      ]
+    },
+    {
+      "description": "MISLABELLED: this frame is a sixth plant, a tall grass tuft, not a rock. The sheet carries six plants and seven rock groups; the tileset was written for five and eight, so every id from this frame on names the picture before it. The id is live in three rockPool entries of urban.mapping.json, which is why it is recorded here rather than quietly corrected: renaming it is a content change with its own review, not a re-export.",
+      "frame": 12,
+      "id": "nature.rock-small-1",
+      "layer": "rock",
+      "name": "rocks-small",
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "description": "three separate pebbles, widely scattered \u2014 one prop drawn as three stones, which is why its band spans a gap the loader would otherwise split on",
+      "frame": 13,
+      "id": "nature.rock-small-2",
+      "layer": "rock",
+      "name": "rocks-small-2",
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "description": "three small stones, one larger \u2014 a tighter scatter than rock-small-2",
+      "frame": 14,
+      "id": "nature.rock-small-3",
+      "layer": "rock",
+      "name": "rocks-small-3",
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "light",
+      "description": "a boulder with two stones at its foot \u2014 light cover, still walkable",
+      "frame": 15,
+      "id": "nature.rock-medium-1",
+      "layer": "rock",
+      "name": "rock-medium",
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "light",
+      "description": "a single tilted boulder with a detached pebble \u2014 light cover, still walkable",
+      "frame": 16,
+      "id": "nature.rock-medium-2",
+      "layer": "rock",
+      "name": "rock-medium-2",
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "heavy",
+      "description": "a boulder pair taller than a marine \u2014 heavy cover and impassable, but a fixture rather than a wall: no wall art and no destructible HP",
+      "frame": 17,
+      "id": "nature.rock-large-1",
+      "layer": "rock",
+      "name": "rock-large",
+      "passable": false,
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "heavy",
+      "description": "a leaning slab over a low stone \u2014 heavy cover, impassable",
+      "frame": 18,
+      "id": "nature.rock-large-2",
+      "layer": "rock",
+      "name": "rock-large-2",
+      "passable": false,
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    },
+    {
+      "cover": "heavy",
+      "description": "the tallest stack on the sheet \u2014 heavy cover, impassable",
+      "frame": 19,
+      "id": "nature.rock-large-3",
+      "layer": "rock",
+      "name": "rock-large-3",
+      "passable": false,
+      "validOn": [
+        "layer:ground",
+        "!nature.water-1",
+        "!nature.water-2"
+      ]
+    }
   ]
 }

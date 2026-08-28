@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Two ways of producing a shipped atlas exist here, and only one of them may
+ * Three ways of producing a shipped atlas exist here, and only one of them may
  * own a given sheet.
  *
  * <p>{@code normalize_tilesets.py} derives an atlas by transferring fresh
@@ -121,6 +121,39 @@ class KeyedSheetsAreExportedNotNormalizedTest {
                     name + " no longer carries its own alpha; it is not re-exportable and "
                             + "the guard that keeps it out of the normalize script is inert");
         }
+    }
+
+    /**
+     * The third producer, and the same law.
+     *
+     * <p>{@code texture-atlases.json} pastes tileable materials into an atlas
+     * <em>after</em> something else has written it, at pixel rectangles into a
+     * sheet whose layout the packer owns. On a sheet exported from an authoring
+     * document that is the two-producer hazard again, and worse than the
+     * normalize script's version of it: the two run in an order nothing records,
+     * the rectangles go wrong without going missing, and the atlas and the
+     * tileset beside it stay consistent through all of it.
+     *
+     * <p>The fix is for the document to say that a frame's picture is a material,
+     * so the export places it — which is what {@code nature-tiles} now does. The
+     * guard is measured the same way as the one above: a keyed plate is a sheet
+     * the exporter owns, so no atlas manifest may write that sheet's output.
+     */
+    @Test
+    void noAtlasManifestPacksASheetAnAuthoringDocumentExports() throws IOException {
+        String manifest = Files.readString(TILESETS.resolve("texture-atlases.json"));
+        List<String> claimed = new ArrayList<>();
+        for (Path raw : rawSheets()) {
+            String name = raw.getFileName().toString();
+            String sheet = name.substring(0, name.length() - ".raw.png".length());
+            if (!Files.isRegularFile(TILESETS.resolve(sheet + ".tileset-authoring.json"))) continue;
+            if (carriesKeyedAlpha(raw) && manifest.contains(sheet + ".png")) claimed.add(sheet);
+        }
+        assertEquals(List.of(), claimed, "these sheets are exported from their authoring "
+                + "documents, so an atlas manifest that pastes into them is a second producer "
+                + "of the same file: the two must run in an order nothing records, and the "
+                + "manifest's pixel rectangles point into a layout the packer owns. Declare "
+                + "the material on the frame's authoring entry instead");
     }
 
     private static List<String> claimedRawSheets() throws IOException {

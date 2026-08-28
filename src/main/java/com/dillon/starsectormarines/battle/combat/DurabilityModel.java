@@ -43,14 +43,20 @@ public final class DurabilityModel {
      * and it means a mitigated hit still spends what is left against armor at
      * the ordinary efficiency rather than skipping a step.
      *
-     * @param mitigationFraction the fraction of {@code postCoverDamage} the
-     *        target's live screen refuses, already resolved against its arc by
-     *        the caller. Must be finite and in {@code [0, 1)} — a screen that
-     *        refuses everything is an off-switch, not a capability.
+     * <p>The screen is a <b>pool of damage</b>, not a share of the hit: it takes
+     * as much of {@code postCoverDamage} as it still has left, and everything
+     * beyond that carries on to armor untouched. A hit larger than the pool
+     * therefore neither wastes the overflow nor absorbs it, and the caller
+     * spends {@link Resolution#mitigatedDamage()} out of the pool afterwards.
+     *
+     * @param mitigationSoak how much post-cover damage the target's live screen
+     *        can still absorb, already resolved against its arc by the caller —
+     *        an amount, not a share. Must be finite and non-negative; {@code 0}
+     *        is "no screen bears on this hit".
      */
     public static void resolveInto(float postCoverDamage,
                                    float penetration,
-                                   float mitigationFraction,
+                                   float mitigationSoak,
                                    float currentArmor,
                                    float armorRating,
                                    float currentStructure,
@@ -58,13 +64,10 @@ public final class DurabilityModel {
         if (out == null) throw new IllegalArgumentException("out must not be null");
         requireNonNegativeFinite("postCoverDamage", postCoverDamage);
         requireNonNegativeFinite("penetration", penetration);
-        requireNonNegativeFinite("mitigationFraction", mitigationFraction);
+        requireNonNegativeFinite("mitigationSoak", mitigationSoak);
         requireNonNegativeFinite("currentArmor", currentArmor);
         requireNonNegativeFinite("armorRating", armorRating);
         requireNonNegativeFinite("currentStructure", currentStructure);
-        if (mitigationFraction >= 1f) {
-            throw new IllegalArgumentException("mitigationFraction must stay below 1");
-        }
         if (currentArmor > 0f && armorRating <= 0f) {
             throw new IllegalArgumentException("positive armor requires a positive armorRating");
         }
@@ -72,10 +75,10 @@ public final class DurabilityModel {
         out.reset();
         if (postCoverDamage <= 0f || currentStructure <= 0f) return;
 
-        // Refused before armor or structure is consulted, and reported as its
+        // Absorbed before armor or structure is consulted, and reported as its
         // own quantity: the same number that tells a player their screen worked
         // tells the balance harness whether the arc asymmetry moved.
-        out.mitigatedDamage = postCoverDamage * mitigationFraction;
+        out.mitigatedDamage = Math.min(postCoverDamage, mitigationSoak);
         float remaining = postCoverDamage - out.mitigatedDamage;
         if (remaining <= 0f) return;
 
@@ -129,7 +132,11 @@ public final class DurabilityModel {
             return structureDamage;
         }
 
-        /** Post-cover damage a live screen refused, reaching neither armor nor structure. Never folded into {@link #armorDamage}. */
+        /**
+         * Post-cover damage a live screen absorbed out of its pool, reaching
+         * neither armor nor structure. Never folded into {@link #armorDamage},
+         * and it is also what the caller spends out of the pool.
+         */
         public float mitigatedDamage() {
             return mitigatedDamage;
         }

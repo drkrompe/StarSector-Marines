@@ -164,7 +164,7 @@ public final class IntegralSystemService {
         // The screen is mitigation, owned by combat-durability rather than by
         // this service: the authored pair is handed over and the durability
         // side owns the arc, the clock, and the expiry from there.
-        mitigations.grant(id, breacher.frontalResistance(),
+        mitigations.grant(id, breacher.screenSoak(),
                 breacher.shieldedArcDegrees(), def.durationSeconds());
     }
 

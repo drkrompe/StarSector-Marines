@@ -13,17 +13,14 @@
       "included": true,
       "layer": "ground",
       "name": "grass",
-      "note": "grass field \u2014 primary outdoor surface, hash-paired with grass-2",
+      "note": "grass field — primary outdoor surface, hash-paired with grass-2",
       "rect": [
         19,
         299,
         103,
         108
       ],
-      "spriteBorderPx": [
-        6,
-        7
-      ]
+      "material": "art-source/tilesets/atlas-material-source/game-buffs-forest/grass.png"
     },
     {
       "cover": "none",
@@ -35,17 +32,14 @@
       "included": true,
       "layer": "ground",
       "name": "grass-alt",
-      "note": "grass field, second variant \u2014 the pair is picked per cell by TileManifest",
+      "note": "grass field, second variant — the pair is picked per cell by TileManifest",
       "rect": [
         141,
         299,
         103,
         108
       ],
-      "spriteBorderPx": [
-        4,
-        9
-      ]
+      "material": "art-source/tilesets/atlas-material-source/game-buffs-forest/grass.png"
     },
     {
       "cover": "none",
@@ -57,17 +51,14 @@
       "included": true,
       "layer": "ground",
       "name": "dirt",
-      "note": "bare dirt field \u2014 hash-paired with dirt-2",
+      "note": "bare dirt field — hash-paired with dirt-2",
       "rect": [
         262,
         299,
         105,
         108
       ],
-      "spriteBorderPx": [
-        4,
-        8
-      ]
+      "material": "art-source/tilesets/atlas-material-source/game-buffs-forest/dirt.png"
     },
     {
       "cover": "none",
@@ -86,10 +77,7 @@
         104,
         108
       ],
-      "spriteBorderPx": [
-        4,
-        8
-      ]
+      "material": "art-source/tilesets/atlas-material-source/game-buffs-forest/dirt.png"
     },
     {
       "cover": "none",
@@ -101,17 +89,14 @@
       "included": true,
       "layer": "ground",
       "name": "sand",
-      "note": "sand field with dune grass \u2014 defined but not currently dispatched to; the SAND ground kind maps to floors.sand",
+      "note": "sand field with dune grass — defined but not currently dispatched to; the SAND ground kind maps to floors.sand",
       "rect": [
         508,
         299,
         105,
         108
       ],
-      "spriteBorderPx": [
-        5,
-        8
-      ]
+      "material": "art-source/tilesets/atlas-material-source/game-buffs-desert/nature-sand.png"
     },
     {
       "cover": "none",
@@ -123,7 +108,7 @@
       "included": true,
       "layer": "ground",
       "name": "water",
-      "note": "shallow water with reeds \u2014 defined but not currently dispatched to; the WATER ground kind maps to water.water",
+      "note": "shallow water with reeds — defined but not currently dispatched to; the WATER ground kind maps to water.water",
       "rect": [
         631,
         299,
@@ -145,7 +130,7 @@
       "included": true,
       "layer": "ground",
       "name": "water-alt",
-      "note": "open water \u2014 second water variant, likewise not dispatched to today",
+      "note": "open water — second water variant, likewise not dispatched to today",
       "rect": [
         754,
         299,
@@ -167,7 +152,7 @@
       "included": true,
       "layer": "plant",
       "name": "shrub",
-      "note": "broad low rosette \u2014 the widest plant on the sheet",
+      "note": "broad low rosette — the widest plant on the sheet",
       "rect": [
         876,
         316,
@@ -189,7 +174,7 @@
       "included": true,
       "layer": "plant",
       "name": "shrub-alt",
-      "note": "small spiky shrub \u2014 the smallest plant, reads as scrub at cell size",
+      "note": "small spiky shrub — the smallest plant, reads as scrub at cell size",
       "rect": [
         986,
         330,
@@ -255,7 +240,7 @@
       "included": true,
       "layer": "plant",
       "name": "shrub-variant",
-      "note": "young palm \u2014 the one plant with a visible trunk",
+      "note": "young palm — the one plant with a visible trunk",
       "rect": [
         1260,
         302,
@@ -300,7 +285,7 @@
       "included": true,
       "layer": "rock",
       "name": "rocks-small-2",
-      "note": "three separate pebbles, widely scattered \u2014 one prop drawn as three stones, which is why its band spans a gap the loader would otherwise split on",
+      "note": "three separate pebbles, widely scattered — one prop drawn as three stones, which is why its band spans a gap the loader would otherwise split on",
       "rect": [
         1486,
         336,
@@ -323,7 +308,7 @@
       "included": true,
       "layer": "rock",
       "name": "rocks-small-3",
-      "note": "three small stones, one larger \u2014 a tighter scatter than rock-small-2",
+      "note": "three small stones, one larger — a tighter scatter than rock-small-2",
       "rect": [
         1572,
         331,
@@ -346,7 +331,7 @@
       "included": true,
       "layer": "rock",
       "name": "rock-medium",
-      "note": "a boulder with two stones at its foot \u2014 light cover, still walkable",
+      "note": "a boulder with two stones at its foot — light cover, still walkable",
       "rect": [
         1662,
         324,
@@ -369,7 +354,7 @@
       "included": true,
       "layer": "rock",
       "name": "rock-medium-2",
-      "note": "a single tilted boulder with a detached pebble \u2014 light cover, still walkable",
+      "note": "a single tilted boulder with a detached pebble — light cover, still walkable",
       "rect": [
         1754,
         317,
@@ -392,7 +377,7 @@
       "included": true,
       "layer": "rock",
       "name": "rock-large",
-      "note": "a boulder pair taller than a marine \u2014 heavy cover and impassable, but a fixture rather than a wall: no wall art and no destructible HP",
+      "note": "a boulder pair taller than a marine — heavy cover and impassable, but a fixture rather than a wall: no wall art and no destructible HP",
       "passable": false,
       "rect": [
         1835,
@@ -416,7 +401,7 @@
       "included": true,
       "layer": "rock",
       "name": "rock-large-2",
-      "note": "a leaning slab over a low stone \u2014 heavy cover, impassable",
+      "note": "a leaning slab over a low stone — heavy cover, impassable",
       "passable": false,
       "rect": [
         1944,
@@ -440,7 +425,7 @@
       "included": true,
       "layer": "rock",
       "name": "rock-large-3",
-      "note": "the tallest stack on the sheet \u2014 heavy cover, impassable",
+      "note": "the tallest stack on the sheet — heavy cover, impassable",
       "passable": false,
       "rect": [
         2048,
@@ -458,7 +443,7 @@
   "gridCols": 1,
   "gridRows": 1,
   "idPrefix": "nature",
-  "note": "Twenty frames in a row: seven repeating ground fields, six plants and seven rock groups, drawn by ImageGen against black at roughly twice the size they ship at. It loads as an auto-strip \u2014 the game finds the frames by alpha at load and a tile pins the frame index it resolves to \u2014 so order IS the address and moving a piece renames every piece after it. Its alpha was keyed in by art-source/tilesets/key_background.py, per band: the seven fields are keyed solid, because a field is a rectangle where it is drawn and every pixel a key carves off its rim is a puncture the tiling repeats; the plants and rocks are keyed at a much lower threshold, because their own black outlines sit inside the range the fields call background. A rock is several stones, so its band spans the daylight inside it.\n\nTHIS SHEET IS NOT RE-EXPORTABLE YET, and the reason is not its alpha. Five of its twenty frames do not take their picture from this plate at all: grass-1, grass-2, dirt-1, dirt-2 and sand are tileable materials from art-source/tilesets/atlas-material-source/game-buffs-*, pasted into the shipped atlas by art-source/tilesets/texture-atlases.json after the fact, at pinned pixel rectangles, and cut to the exact pixel size of the frame they fill. Exporting from this document alone would replace them with the ImageGen fields underneath, which are busier, visibly repeat, and were deliberately replaced. See nature-tiles-material-provenance.md.\n\nThe ids below are live: urban.mapping.json names every plant and rock in its NATURE_* pools and TileManifest.pickNatureGrassTileId / pickNatureDirtTileId name the four field variants. The atlas has derived nature-tiles_height.png and _normal.png beside it, sampled at the same pixels; re-run 'gradlew.bat :asset-pipeline:deriveTileMaps' after any export or they read the relief of the sheet they replaced.",
+  "note": "Twenty frames in a row: seven repeating ground fields, six plants and seven rock groups, drawn by ImageGen against black at roughly twice the size they ship at. It loads as an auto-strip — the game finds the frames by alpha at load and a tile pins the frame index it resolves to — so order IS the address and moving a piece renames every piece after it. Its alpha was keyed in by art-source/tilesets/key_background.py, per band: the seven fields are keyed solid, because a field is a rectangle where it is drawn and every pixel a key carves off its rim is a puncture the tiling repeats; the plants and rocks are keyed at a much lower threshold, because their own black outlines sit inside the range the fields call background. A rock is several stones, so its band spans the daylight inside it.\n\nFive frames do not take their picture from this plate: grass-1, grass-2, dirt-1, dirt-2 and sand each name a tileable material under atlas-material-source/game-buffs-*, and each is exported at the material's own size plus the renderer's ground inset wrapped round it, so the inset crops back to exactly the material. The ImageGen fields underneath them are still on the plate and are deliberately not what ships: they are slabs with a lit rim and a shadowed skirt, and they repeat visibly. The other two fields, water-1 and water-2, are plate art and keep their authored spriteBorderPx.\n\nThe ids below are live: urban.mapping.json names every plant and rock in its NATURE_* pools and TileManifest.pickNatureGrassTileId / pickNatureDirtTileId name the four field variants. The atlas has derived nature-tiles_height.png and _normal.png beside it, sampled at the same pixels; re-run 'gradlew.bat :asset-pipeline:deriveTileMaps' after any export or they read the relief of the sheet they replaced.",
   "outputSheet": "graphics/tilesets/nature-tiles.png",
   "sheet": "art-source/tilesets/nature-tiles.raw.png",
   "sheetName": "nature-tiles",

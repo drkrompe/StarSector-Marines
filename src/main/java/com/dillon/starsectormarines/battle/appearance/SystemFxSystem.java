@@ -29,10 +29,17 @@ import it.unimi.dsi.fastutil.longs.LongLists;
  * because both are read after they have already happened.
  *
  * <p><b>The arc is copied, never derived.</b> The drawn screen's facing, width,
- * and strength come straight off {@link MitigationService} — the same columns
- * the damage path resolves a hit against. There is deliberately no second arc
- * calculation here to drift out of step with the first, because the entire
- * point of drawing the screen is that the player can trust which way it faces.
+ * and how much of its pool is left come straight off {@link MitigationService} —
+ * the same columns the damage path resolves a hit against. There is deliberately
+ * no second arc calculation here to drift out of step with the first, because
+ * the entire point of drawing the screen is that the player can trust which way
+ * it faces.
+ *
+ * <p><b>A screen ends two ways, and they look different.</b> A window that ran
+ * out simply stops; a pool beaten to nothing shatters, and the mark that says so
+ * is authored here from the durability side's own record of the absorb that
+ * emptied it. That mark is the one part of the treatment that is drawn after the
+ * system has stopped running.
  *
  * <p>Activations are also collected for the frame, so the audio tier can play
  * one positional cue per spend without inventing its own edge detection over
@@ -41,6 +48,9 @@ import it.unimi.dsi.fastutil.longs.LongLists;
  * at the start of the next.
  */
 public final class SystemFxSystem {
+
+    /** How long one shimmer cycle takes, in sim-seconds. Slow enough to read as a sheen rather than a strobe. */
+    private static final float SHIMMER_PERIOD_SECONDS = 1.1f;
 
     private final UnitRosterService rosterService;
     private final LongList activationsThisFrame = new LongArrayList();
@@ -77,6 +87,11 @@ public final class SystemFxSystem {
         for (int i = 0; i < count; i++) {
             long id = live[i];
             if (!fx.has(id)) continue;
+            // Authored first and unconditionally: a screen that shattered is
+            // already gone by the time this runs, and its going is the frame
+            // worth drawing.
+            fx.writeBreakFlash(id, screens.breakFlashRemaining(id)
+                    / MitigationService.BREAK_FLASH_SECONDS);
             boolean wasRunning = fx.isRunning(id);
             float remaining = systems.activeRemaining(id);
             if (remaining <= 0f) {
@@ -89,8 +104,21 @@ public final class SystemFxSystem {
             // rather than dividing by zero into an invisible treatment.
             float intensity = duration > 0f ? remaining / duration : 1f;
             fx.write(id, intensity, screens.facingDegrees(id),
-                    screens.arcDegrees(id), screens.fraction(id));
+                    screens.arcDegrees(id), screens.soakFraction(id),
+                    shimmerPhase(duration - remaining));
             if (!wasRunning) activationsThisFrame.add(id);
         }
+    }
+
+    /**
+     * Where the shimmer stands, from how long this activation has been running.
+     * Derived from simulation time rather than sampled from a wall clock so the
+     * same battle state draws the same frame — deterministic visual evidence
+     * depends on it, and a render-time clock would make two runs of an
+     * unchanged scene differ.
+     */
+    private static float shimmerPhase(float elapsedSeconds) {
+        float cycles = elapsedSeconds / SHIMMER_PERIOD_SECONDS;
+        return cycles - (float) Math.floor(cycles);
     }
 }

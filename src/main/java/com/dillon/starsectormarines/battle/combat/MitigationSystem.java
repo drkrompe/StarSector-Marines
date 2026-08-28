@@ -9,7 +9,8 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
 /**
  * Stateless per-tick sweep over the actors carrying a screen: points it, drains
- * its clock, and drops it the moment the clock runs out
+ * its clock, and drops it the moment the clock runs out — the other way a
+ * screen ends, its soak pool running dry, belongs to the damage path
  * ({@code combat-durability-nouns.md}).
  *
  * <p>A <b>System</b> (processor) — the live state lives on
@@ -46,8 +47,11 @@ public final class MitigationSystem {
         int count = rosterService.liveCount();
         for (int i = 0; i < count; i++) {
             long id = live[i];
-            if (!screens.isActive(id)) continue;
-            aim(id, screens, movement, combat, world);
+            // Every carrier, not only the ones holding a screen: the mark left
+            // by a screen that broke has to drain too, and it outlives the
+            // screen by construction.
+            if (!screens.has(id)) continue;
+            if (screens.isActive(id)) aim(id, screens, movement, combat, world);
             screens.tick(id, dt);
         }
     }
