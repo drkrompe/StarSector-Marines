@@ -74,7 +74,8 @@
     { "equipmentId": "special.frag-grenade", "accessTier": "common", "issueCost": { "supplies": 2, "heavyArmaments": 1 } },
     { "equipmentId": "special.breaching-cutter", "accessTier": "advanced", "issueCost": { "supplies": 2, "heavyArmaments": 1, "heavyMachinery": 2 } },
     { "equipmentId": "special.vibro-blade", "accessTier": "common", "issueCost": { "supplies": 2 } },
-    { "equipmentId": "special.point-defence-emplacement", "accessTier": "advanced", "issueCost": { "supplies": 3, "heavyArmaments": 1, "heavyMachinery": 2 } }
+    { "equipmentId": "special.point-defence-emplacement", "accessTier": "advanced", "issueCost": { "supplies": 3, "heavyArmaments": 1, "heavyMachinery": 2 } },
+    { "equipmentId": "special.field-revetment", "accessTier": "common", "issueCost": { "supplies": 2, "heavyMachinery": 1 } }
   ],
   "nonPlayerEquipment": [
     {

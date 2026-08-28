@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import org.json.JSONException;
@@ -7,6 +8,7 @@ import org.json.JSONObject;
 
 import java.awt.Color;
 import java.io.Serializable;
+import java.util.Locale;
 
 /** Stable, data-authored loadout identity for one special-equipment item. */
 public record SpecialEquipmentDef(
@@ -23,7 +25,8 @@ public record SpecialEquipmentDef(
         SmokeGrenadeSpec smokeGrenadeSpec,
         SatchelChargeSpec satchelChargeSpec,
         CloseContactSpec closeContactSpec,
-        DeployableEmplacementSpec deployableEmplacementSpec) implements Serializable {
+        DeployableEmplacementSpec deployableEmplacementSpec,
+        DeployableCoverSpec deployableCoverSpec) implements Serializable {
 
     /** Parses one entry from {@code *.equipment.json}; malformed required data fails load. */
     public static SpecialEquipmentDef parse(JSONObject json) throws JSONException {
@@ -59,6 +62,7 @@ public record SpecialEquipmentDef(
         SatchelChargeSpec satchel = null;
         CloseContactSpec closeContact = null;
         DeployableEmplacementSpec deployable = null;
+        DeployableCoverSpec deployableCover = null;
         switch (activation) {
             case DIRECT_EXPLOSIVE, DIRECT_PRECISION -> {
                 if (weaponId == null) {
@@ -106,8 +110,19 @@ public record SpecialEquipmentDef(
             }
             case UTILITY_DEPLOYABLE -> {
                 requireNoWeapon(weaponId, id);
-                requirePolicy(aiPolicy, SpecialAiPolicy.AREA_DENIAL_EMPLACEMENT, id);
-                deployable = parseDeployable(activationJson, id);
+                requirePolicy(id, aiPolicy, SpecialAiPolicy.AREA_DENIAL_EMPLACEMENT,
+                        SpecialAiPolicy.DIRECTIONAL_COVER_SCREEN);
+                // One activation, two shapes of placed thing. The emplacement
+                // policy leaves an actor behind; the cover policy leaves a
+                // property of a boundary behind. They share the carried item's
+                // channel — commit, freeze, spend one — and nothing else, so
+                // each names its own spec rather than pretending one record
+                // describes both.
+                if (aiPolicy == SpecialAiPolicy.DIRECTIONAL_COVER_SCREEN) {
+                    deployableCover = parseDeployableCover(activationJson, id);
+                } else {
+                    deployable = parseDeployable(activationJson, id);
+                }
                 if (resourceMode != SpecialResourceMode.AMMUNITION) {
                     throw new JSONException("Deployable equipment '" + id
                             + "' must use the ammunition resource mode — a placement"
@@ -155,7 +170,8 @@ public record SpecialEquipmentDef(
                 smoke,
                 satchel,
                 closeContact,
-                deployable);
+                deployable,
+                deployableCover);
     }
 
     /** True when this item acts only from honest physical contact. */
@@ -194,6 +210,7 @@ public record SpecialEquipmentDef(
 
     public float aimDuration() {
         if (deployableEmplacementSpec != null) return deployableEmplacementSpec.deployDuration();
+        if (deployableCoverSpec != null) return deployableCoverSpec.deployDuration();
         if (smokeGrenadeSpec != null) return smokeGrenadeSpec.throwDuration();
         if (satchelChargeSpec != null) return satchelChargeSpec.plantDuration();
         if (closeContactSpec != null) return closeContactSpec.channelSeconds();
@@ -248,6 +265,33 @@ public record SpecialEquipmentDef(
             throws JSONException {
         return new DeployableEmplacementSpec(
                 requireText(activation, "structureId", id),
+                positive(activation, "deployDuration", id),
+                positive(activation, "lifetimeSeconds", id));
+    }
+
+    /**
+     * The named profile is resolved and rejected at load, not at placement:
+     * a barricade whose kind does not exist, or whose kind would close a
+     * navigation transition, is a broken catalog rather than a battle that
+     * fails once a marine happens to reach for it.
+     */
+    private static DeployableCoverSpec parseDeployableCover(JSONObject activation, String id)
+            throws JSONException {
+        String kindName = requireText(activation, "barrierKind", id);
+        SharedEdgeBarrier.Kind kind;
+        try {
+            kind = SharedEdgeBarrier.Kind.valueOf(kindName.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            throw new JSONException("Cover deployable '" + id
+                    + "' names unknown shared-edge profile '" + kindName + "'");
+        }
+        if (kind.blocksMovement()) {
+            throw new JSONException("Cover deployable '" + id + "' names profile '"
+                    + kindName + "', which closes its navigation transition;"
+                    + " a carried screen may only place a profile that leaves"
+                    + " movement alone");
+        }
+        return new DeployableCoverSpec(kind.name(),
                 positive(activation, "deployDuration", id),
                 positive(activation, "lifetimeSeconds", id));
     }

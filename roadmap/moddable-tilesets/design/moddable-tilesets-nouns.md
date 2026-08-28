@@ -4,7 +4,7 @@ Status: ACTIVE — additive external catalogs shipped; variant-pool cleanup rema
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — a cut is now an origin and a pitch per axis rather than a division of the canvas; counts stay stated and only the placement is measured.
+Updated: 2026-08-28 — three laws added to the authoring pass: a packed sheet is addressed by id and never by coordinate, the authoring document must be able to say everything the tileset says, and a raw sheet must carry its own alpha.
 
 Read `stories.md` for open work.
 
@@ -156,7 +156,7 @@ the annotation is not, so the annotation is saved to an authoring document
 beside the raw sheet and can be resumed, corrected, and re-sliced without being
 lost.
 
-Five properties of that pass are part of the model rather than of the tool:
+These properties of that pass are part of the model rather than of the tool:
 
 - **A piece is a doodad or one cell of a block.** Facing is not a property of a
   piece. A wall or a corner is a block whose cells the game selects from the
@@ -173,6 +173,30 @@ Five properties of that pass are part of the model rather than of the tool:
 - **Only kept pieces are packed.** A sheet's unused art does not reach the
   atlas, so a tileset's size reflects what the game uses rather than what was
   drawn.
+- **A packed sheet is addressed by id and never by coordinate.** The packer is
+  free to lay an atlas out differently on every export, so an id is the only
+  thing an export preserves. A `(col, row)` held anywhere outside the tileset
+  that describes that atlas — a constant, a picker's origin, a frozen test
+  golden — is a reference that goes wrong without going missing: the map still
+  draws, and simply draws something else. Nothing downstream can detect it, so
+  the rule is not "keep such references up to date" but "do not hold one".
+  Content the game reaches for therefore needs an id even when it is only
+  paint: deck markings and floor covering are addressed exactly like props.
+- **The authoring document must be able to say everything the tileset says.**
+  A sheet whose document cannot express one of a definition's fields cannot be
+  re-exported without silently dropping it, and a dropped combat number — how
+  high a thing stops a shot, which edge of it wants a wall — changes fights
+  while changing nothing a reader would look at. The document and the exported
+  tileset are one round trip, and a field that only one of them has is a defect
+  in the model rather than a limitation of the tool.
+- **A raw sheet must carry its own alpha.** What is background and what is art
+  is a judgement about the picture, and an opaque plate has not recorded it.
+  Deriving the shipped atlas by transferring new colour onto a previous atlas's
+  alpha makes that previous atlas an input no source of truth can replace: the
+  authoring document can hold every id and every number and still not be able
+  to regenerate the sheet. Alpha belongs in `art-source/` with the art, and a
+  sheet that lacks it is not yet re-exportable however completely it is
+  annotated.
 - **A grid needs an origin and a pitch, not a division of the canvas.**
   Generated art sits inside a margin and is rarely drawn to a pitch that divides
   its own pixel size evenly, so dividing a plate proportionally puts every
