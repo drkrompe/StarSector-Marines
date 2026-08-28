@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import javax.imageio.ImageIO;
 
@@ -85,6 +86,71 @@ public final class TilesetOperations {
                 SheetSlicer.slice(sheet, alphaMin, SheetSlicer.DEFAULT_MIN_AREA);
         return TilesetDocument.reconcile(pieces, document.entries, document.idPrefix,
                 document.cellPxX(sheet.getWidth()), document.cellPxY(sheet.getHeight()));
+    }
+
+    /**
+     * What a caller is told when it asks for a {@code 1 x 1} split.
+     *
+     * <p>Shared so the window and the headless caller refuse the same thing for
+     * the same stated reason. {@code 1 x 1} is the default that means "this sheet
+     * is not a plate", not a layout anyone chose, so a split at it is a caller
+     * that has not stated the layout yet rather than one asking for one part.
+     */
+    public static final String DEGENERATE_GRID_MESSAGE =
+            "The grid is 1 x 1, so splitting would change nothing. Set it to the "
+                    + "layout the sheet was generated to — a 20-frame strip is 20 x 1 "
+                    + "— and the cells need not be square.";
+
+    /**
+     * Cut the selected entries into the stated grid, leaving the rest in place.
+     *
+     * <p>A tileable plate arrives fused into one piece because its cells are drawn
+     * edge to edge, so cutting it is an authoring decision rather than something
+     * {@link SheetSlicer#slice} could have found. Each part is one cell of the
+     * plate by construction, which is why the footprints come out {@code 1x1}
+     * instead of being guessed from pixels, and the parts land in row-major
+     * reading order so a 3x3 plate fills a block's slots without further
+     * correction.
+     *
+     * <p>Annotations other than the cover level are deliberately not carried onto
+     * the parts: a plate's id, note and footprint describe the plate, and every
+     * cell inheriting one description would read as many answers where there is
+     * one.
+     */
+    public static List<TilesetExport.Entry> splitOnGrid(List<TilesetExport.Entry> entries,
+                                                        Predicate<TilesetExport.Entry> selected,
+                                                        int cols, int rows) {
+        List<TilesetExport.Entry> replaced = new ArrayList<>();
+        for (TilesetExport.Entry entry : entries) {
+            if (!selected.test(entry)) {
+                replaced.add(entry);
+                continue;
+            }
+            int part = 0;
+            for (SheetSlicer.Piece piece : SheetSlicer.splitOnGrid(entry.piece, cols, rows)) {
+                TilesetExport.Entry split = new TilesetExport.Entry(
+                        piece, entry.id + "-" + partSuffix(part++));
+                split.cover = entry.cover;
+                split.footprintX = 1;
+                split.footprintY = 1;
+                replaced.add(split);
+            }
+        }
+        return replaced;
+    }
+
+    /**
+     * A part's name suffix: {@code a}…{@code z}, then {@code aa}, {@code ab}, and
+     * on. Real plates run well past 26 cells — a 25x26 floor sheet is 650 — and
+     * stepping one character further off {@code 'a'} walks out of the alphabet
+     * into punctuation.
+     */
+    static String partSuffix(int index) {
+        StringBuilder suffix = new StringBuilder();
+        for (int n = index; ; n = n / 26 - 1) {
+            suffix.insert(0, (char) ('a' + n % 26));
+            if (n < 26) return suffix.toString();
+        }
     }
 
     /**

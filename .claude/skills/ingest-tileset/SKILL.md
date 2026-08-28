@@ -29,13 +29,17 @@ marker is stripped when pairing the sheet with its tileset, so
 ## 2. Measure it
 
 ```bash
-python art-source/tilesets/measure_sheet.py art-source/tilesets/<name>.raw.png --cells 10x10
+tools/authoring.sh tileset_measure '{"sheet":"<name>","gridCols":10,"gridRows":10}'
 ```
 
-Pass `--cells COLSxROWS` whenever the sheet was generated to a layout you asked
+This needs no Python and no server — see the `authoring-tools` skill for the
+rest of the tool surface. `art-source/tilesets/measure_sheet.py` measures the
+same things for a sheet that is not yet in the project.
+
+Pass `gridCols`/`gridRows` whenever the sheet was generated to a layout you asked
 for — which is most of the time, since you chose the layout in the prompt. Cells
 need not be square: a 20-frame strip is `20x1`, and the split cuts exactly that
-grid. **The script will not detect the grid** — seam-energy and autocorrelation
+grid. **Nothing detects the grid for you** — seam-energy and autocorrelation
 were both tried against sheets whose grids were known, and both read noise, so
 it verifies a stated grid rather than inventing one. If you do not know the
 layout, ask; do not guess a number into the seed.
@@ -51,8 +55,14 @@ is, and the two kinds are annotated completely differently:
 
 ## 3. Write the seed
 
-`--write` drops a draft next to the sheet. Its `note` is a placeholder; replacing
-it is the work.
+The measurement comes back with a drafted seed. Its `note` is a placeholder;
+replacing it is the work. Write the finished seed with:
+
+```bash
+tools/authoring.sh tileset_write_document @seed-call.json
+```
+
+where the file holds `{"name": "<name>", "document": { ... }}`.
 
 ```json
 {
@@ -106,14 +116,21 @@ part of ingestion rather than a thing to remember.
 
 ## 5. Annotate it
 
-Slicing is mechanical; deciding what each piece *is* is not. Both halves are
-reachable from either the authoring MCP server or the workbench.
+Slicing and cutting are mechanical; deciding what each piece *is* is not. Both
+halves are reachable from a shell, and neither needs the window:
 
-Headless, if the `starsector-authoring` MCP server is registered (see
-`authoring-mcp-server.md`): `tileset_slice` finds the pieces,
-`tileset_set_block` declares a wall or corner set and assigns pieces to its
-slots, `tileset_write_document` saves per-piece footprints, covers, ids, notes
-and tags, and `tileset_export` writes the atlas.
+```bash
+tools/authoring.sh tileset_slice '{"name":"<name>","apply":true}'
+tools/authoring.sh tileset_split_on_grid '{"name":"<name>","apply":true}'
+tools/authoring.sh tileset_set_block @block.json
+tools/authoring.sh tileset_export '{"name":"<name>"}'
+```
+
+See the `authoring-tools` skill for the whole surface and for the argument
+forms; the same tools are served over MCP to a session that has the server
+registered. A fused plate slices to one piece, which is the piece
+`tileset_split_on_grid` cuts into the document's stated `gridCols` x `gridRows`.
+Everything that writes previews by default — pass `apply=true` to keep it.
 
 `tileset_set_block` answers with what every slot it filled *means*, and reading
 that back is the point of calling it: slot names read as **"the exterior is on
@@ -121,21 +138,20 @@ this side"**, not "the neighbour is a wall". A mirrored assignment still loads,
 still resolves and is still opaque, so nothing downstream can detect it. Assign
 a few slots, read the meanings against the art, then `apply`.
 
-In the window, for a sheet already in front of a person:
+Per-piece footprint, cover, id, note and tags go in through
+`tileset_write_document`: read the document, edit that object, write it back.
+
+In the window, for a sheet in front of a person:
 
 ```bash
 gradlew.bat layerAuthoring
 ```
 
 Tilesets page → pick the sheet from the project list → **Open**. A seeded
-document slices on open.
-
-- For a fused plate: select the single piece, **Split selected on grid**, then
-  **Group selected as block** for any wall or corner set — the same assignment
-  `tileset_set_block` makes, filling slots in the selection's reading order.
-  The preview draws each block as a room, which is the visual counterpart of the
-  slot descriptions.
-- For a prop sheet: set each piece's footprint, cover, id, note and tags.
+document slices on open. **Split selected on grid** and **Group selected as
+block** are those same two acts, filling slots in the selection's reading order,
+and the preview draws each block as a room — the visual counterpart of the slot
+descriptions.
 
 Export writes the packed atlas, its tileset, and a `*.tileset.md` catalog card.
 

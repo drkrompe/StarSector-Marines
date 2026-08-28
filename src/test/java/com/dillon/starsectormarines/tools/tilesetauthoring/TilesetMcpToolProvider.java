@@ -47,6 +47,7 @@ public final class TilesetMcpToolProvider implements McpToolProvider {
                 new ReadDocument(),
                 new WriteDocument(),
                 new SliceSheet(),
+                new SplitOnGrid(),
                 new SetBlock(),
                 new RemoveBlock(),
                 new ExportTileset(),
@@ -409,6 +410,135 @@ public final class TilesetMcpToolProvider implements McpToolProvider {
         }
     }
 
+    private static final class SplitOnGrid implements McpTool {
+
+        @Override public String name() { return "tileset_split_on_grid"; }
+
+        @Override
+        public String description() {
+            return "Cut a fused plate into the cells of its stated grid. A tileable plate is "
+                    + "drawn edge to edge with no gutter, so slicing finds it as one piece and "
+                    + "no threshold will ever separate it — the cut has to be stated. Each part "
+                    + "becomes a one-cell piece in reading order, left to right then top to "
+                    + "bottom, which is the order a block's slots are filled in. The grid "
+                    + "defaults to the document's own gridCols x gridRows and its cells need "
+                    + "not be square. Read-only unless you pass apply=true, which replaces the "
+                    + "plate with its parts in the document.";
+        }
+
+        @Override
+        public JSONObject inputSchema() {
+            return McpSchema.object()
+                    .requiredString("name", "The sheet's base name")
+                    .string("entryId", "Which piece to cut. Omit when the sheet has a single "
+                            + "piece, which is what a fused plate slices to.")
+                    .integer("cols", "Columns of the plate layout. Defaults to the document's "
+                            + "gridCols. Stated, never measured.")
+                    .integer("rows", "Rows of that layout. Defaults to the document's gridRows.")
+                    .bool("apply", "Replace the plate with its parts in the document. "
+                            + "Default false — look before you keep.")
+                    .build();
+        }
+
+        /**
+         * The piece to cut, or a stated reason there is no single answer.
+         *
+         * <p>Defaulting to the lone piece is the whole fused-plate case, but
+         * defaulting to <em>the first</em> of several would silently shred a
+         * sheet somebody had already annotated.
+         */
+        private static TilesetExport.Entry target(TilesetDocument document, String entryId) {
+            if (!entryId.isEmpty()) {
+                for (TilesetExport.Entry entry : document.entries) {
+                    if (entry.id.equals(entryId)) return entry;
+                }
+                throw new IllegalArgumentException("no piece with id '" + entryId
+                        + "'. The sheet holds: " + ids(document));
+            }
+            if (document.entries.size() != 1) {
+                throw new IllegalArgumentException("this sheet has " + document.entries.size()
+                        + " pieces, so there is no single plate to cut; name one with entryId. "
+                        + "The sheet holds: " + ids(document));
+            }
+            return document.entries.get(0);
+        }
+
+        private static String ids(TilesetDocument document) {
+            StringBuilder joined = new StringBuilder();
+            for (TilesetExport.Entry entry : document.entries) {
+                if (joined.length() > 0) joined.append(", ");
+                joined.append(entry.id);
+            }
+            return joined.length() == 0 ? "(nothing)" : joined.toString();
+        }
+
+        @Override
+        public McpToolResult call(JSONObject arguments, McpToolContext context) throws Exception {
+            String name = requireSheetName(arguments);
+            TilesetDocument document = documentFor(context.projectRoot(), name);
+            if (document.entries.isEmpty()) {
+                return McpToolResult.failure(name + " has no pieces to cut; slice it first with "
+                        + "tileset_slice apply=true, which finds a fused plate as one piece.");
+            }
+            TilesetExport.Entry plate = target(document, arguments.optString("entryId", "").trim());
+
+            int cols = arguments.optInt("cols", document.gridCols);
+            int rows = arguments.optInt("rows", document.gridRows);
+            if (cols < 1 || rows < 1) {
+                return McpToolResult.failure("a grid needs at least one cell: " + cols + "x" + rows);
+            }
+            if (cols == 1 && rows == 1) {
+                return McpToolResult.failure(TilesetOperations.DEGENERATE_GRID_MESSAGE);
+            }
+
+            int before = document.entries.size();
+            List<TilesetExport.Entry> replaced = TilesetOperations.splitOnGrid(
+                    document.entries, entry -> entry == plate, cols, rows);
+            boolean apply = arguments.optBoolean("apply", false);
+
+            // The parts replace the plate where it stood, so they are the run that
+            // starts at its old index. Matching on the id prefix instead would
+            // also claim a piece somebody had already named that way.
+            int at = document.entries.indexOf(plate);
+            JSONArray parts = new JSONArray();
+            for (TilesetExport.Entry entry : replaced.subList(at, at + cols * rows)) {
+                JSONObject described = new JSONObject();
+                described.put("id", entry.id);
+                described.put("rect", new JSONArray()
+                        .put(entry.piece.x()).put(entry.piece.y())
+                        .put(entry.piece.width()).put(entry.piece.height()));
+                described.put("footprintCells", new JSONArray()
+                        .put(entry.footprintX).put(entry.footprintY));
+                parts.put(described);
+            }
+
+            String applied = "";
+            if (apply) {
+                // The parts are only meaningful next to the layout they were cut
+                // to, so the document keeps the grid that produced them.
+                document.gridCols = cols;
+                document.gridRows = rows;
+                document.entries = replaced;
+                Path path = TilesetDocument.pathFor(context.projectRoot(), name);
+                document.write(path);
+                applied = "\nSaved into " + path;
+            }
+
+            JSONObject structured = new JSONObject();
+            structured.put("entryId", plate.id);
+            structured.put("cols", cols);
+            structured.put("rows", rows);
+            structured.put("partCount", parts.length());
+            structured.put("entriesBefore", before);
+            structured.put("entriesAfter", replaced.size());
+            structured.put("applied", apply);
+            structured.put("parts", parts);
+            return McpToolResult.of("Cut " + plate.id + " into " + parts.length()
+                    + " parts on a stated " + cols + "x" + rows + " grid, each one cell"
+                    + applied, structured);
+        }
+    }
+
     /**
      * The one authoring act nothing downstream can check.
      *
@@ -685,7 +815,6 @@ public final class TilesetMcpToolProvider implements McpToolProvider {
                     + text, structured);
         }
     }
-
     private static final class ExportTileset implements McpTool {
 
         @Override public String name() { return "tileset_export"; }
