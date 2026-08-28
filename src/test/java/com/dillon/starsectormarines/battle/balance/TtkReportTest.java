@@ -109,6 +109,23 @@ class TtkReportTest {
                 byProfile, m -> m.scenario().profile().experienceTier().displayName
                         + " / " + m.scenario().profile().aptitude().displayName);
 
+        // Experience alone, aptitude pinned. Since bands are issued with the
+        // armour pattern and aptitude stays innate and per marine, the band is
+        // what a player reads off a formation — so its span has to be
+        // measurable without an aptitude roll mixed into it.
+        List<Measurement> byBand = new ArrayList<>();
+        for (ExperienceTier band : ExperienceTier.values()) {
+            SoldierProfile profile = new SoldierProfile(SoldierAptitude.STEADY, band.minimumXp);
+            for (Defender defender : new Defender[]{UNARMORED, MID_ARMOR}) {
+                byBand.add(TtkHarness.measure(new Scenario(
+                        WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID),
+                        EquipmentGrade.SERVICE, profile, defender,
+                        BASELINE_RANGE_FRACTION, Cover.OPEN), TRIALS));
+            }
+        }
+        appendTable(report, "Experience band alone (aptitude held at Steady)", "band",
+                byBand, m -> m.scenario().profile().experienceTier().displayName);
+
         List<Measurement> byCoverAndRange = new ArrayList<>();
         for (Cover cover : Cover.values()) {
             for (float fraction : new float[]{0.25f, 0.5f, 0.9f}) {
@@ -123,12 +140,52 @@ class TtkReportTest {
         everyRow.addAll(byWeapon);
         everyRow.addAll(byGrade);
         everyRow.addAll(byProfile);
+        everyRow.addAll(byBand);
         everyRow.addAll(byCoverAndRange);
         appendUnresolvedCallout(report, everyRow);
 
         writeReport(report.toString());
 
         assertLethalityRelationships(byWeapon, byGrade, byCoverAndRange);
+        assertBandIsWorthAboutAGradeStep(byBand, byGrade);
+    }
+
+    /**
+     * Pins the calibration that decided against widening the experience bands.
+     *
+     * <p>The band ladder was once described as a 1.23x effect, which is the
+     * accuracy multiplier alone; measured end to end it also carries cooldown,
+     * spread, and the one-off reflex delay. Against an unarmored marine the
+     * measured Green-to-Elite span is materially wider than that, and lands in
+     * the same range as the equipment-grade steps beside it — so a band is
+     * worth roughly a grade step, which is a legible amount rather than noise.
+     *
+     * <p>Both bounds are loose enough to survive ordinary tuning and sampling
+     * noise. The lower one fails if a change flattens bands back into
+     * irrelevance; the upper one fails if bands grow to outweigh equipment,
+     * which would make the armour pattern the only lever that matters since it
+     * already sets the band ({@code progression-nouns.md}).
+     */
+    private static void assertBandIsWorthAboutAGradeStep(List<Measurement> byBand,
+                                                         List<Measurement> byGrade) {
+        Measurement green = pick(byBand, m -> m.scenario().profile().experienceTier()
+                == ExperienceTier.GREEN && m.scenario().defender() == UNARMORED);
+        Measurement elite = pick(byBand, m -> m.scenario().profile().experienceTier()
+                == ExperienceTier.ELITE && m.scenario().defender() == UNARMORED);
+        Measurement surplus = pick(byGrade, m -> m.scenario().grade() == EquipmentGrade.SURPLUS
+                && m.scenario().defender() == UNARMORED);
+        Measurement masterwork = pick(byGrade, m -> m.scenario().grade() == EquipmentGrade.MASTERWORK
+                && m.scenario().defender() == UNARMORED);
+
+        double bandSpan = green.meanTtkSeconds() / elite.meanTtkSeconds();
+        double gradeSpan = surplus.meanTtkSeconds() / masterwork.meanTtkSeconds();
+        assertTrue(bandSpan > 1.4d,
+                () -> "an issued band should be a visible difference, but Green-to-Elite"
+                        + " measured only " + String.format("%.2f", bandSpan) + "x TTK");
+        assertTrue(bandSpan < gradeSpan,
+                () -> "equipment should still out-range veterancy, but the band span "
+                        + String.format("%.2f", bandSpan) + "x met or beat the grade span "
+                        + String.format("%.2f", gradeSpan) + "x");
     }
 
     /**
