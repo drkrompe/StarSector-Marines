@@ -38,14 +38,14 @@ The subject line was varied for:
 The corner and straight outputs are preserved in `imagegen-masters/` and turned
 into the eight exact ring frames by `derive_sandbag_frames.py`. Raw chroma-key
 outputs are preserved under `imagegen-raw/`; cleaned production cutouts live in
-`sources/`.
+`mod/graphics/doodads/sources/`.
 
 ## Military-compound additions
 
 The military set was generated with the built-in ImageGen tool in
 `stylized-concept` mode. These outputs supplied clean alpha directly, so the
 untouched RGBA files are preserved under `imagegen-raw/` and copied to
-`sources/` without chroma-key cleanup. The atlas builder still crops and
+`mod/graphics/doodads/sources/` without chroma-key cleanup. The atlas builder still crops and
 normalizes them to the 32x32 runtime grid.
 
 Shared suffix used for all four prompts:
@@ -85,7 +85,7 @@ Per-asset primary requests:
 
 The civic office set also used the built-in ImageGen tool in
 `stylized-concept` mode with genuinely transparent backgrounds. Untouched RGBA
-outputs are preserved under `imagegen-raw/` and copied to `sources/`; the atlas
+outputs are preserved under `imagegen-raw/` and copied to `mod/graphics/doodads/sources/`; the atlas
 builder performs the only crop/scale operation needed for runtime use.
 
 Shared rendering contract:
@@ -122,7 +122,7 @@ Per-asset primary requests:
 
 The large-factory set used the built-in ImageGen tool in `stylized-concept`
 mode. The generated PNGs contain genuine alpha; untouched RGBA outputs are
-preserved under `imagegen-raw/` and copied to `sources/` for atlas normalization.
+preserved under `imagegen-raw/` and copied to `mod/graphics/doodads/sources/` for atlas normalization.
 
 Shared rendering contract:
 

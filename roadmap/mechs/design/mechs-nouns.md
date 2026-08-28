@@ -133,6 +133,8 @@ the chassis overrun both supports. Pivoting uses the same rule, so one pad
 supports the body while the other walks around the turn. The rendered waist and
 complete upper assembly respond through a damped, two-dimensional weight
 transfer toward the single support pad or the segment between two planted pads.
+Composition preserves the physical depth stack: feet first, thigh linkages over
+the feet, then the ordinary upper assembly and its equipment layers.
 This gait is fixed-tick presentation state only: it does not move collision,
 pathing, aim, or targeting authority.
 

@@ -148,11 +148,11 @@ public final class CompoundCaptureSystem {
         if (r.captureCellX < 0) {
             int[] cell = resolveCaptureCell(r.node, sim.getGrid(), zones);
             if (cell == null) {
-                // A compound generated with no open interior at all cannot be
-                // entered, so it cannot be captured, so Conquest cannot be won.
-                // Rare, and a map-gen defect rather than anything this layer can
-                // repair — but a silent skip leaves the player fighting an
-                // unwinnable battle with no trace of why.
+                // Generation guarantees every compound a room and a way into
+                // it, so reaching here means that guarantee broke. Nothing this
+                // layer can repair — an unenterable compound cannot be captured,
+                // so Conquest cannot be won — but a silent skip would leave the
+                // player fighting an unwinnable battle with no trace of why.
                 if (reportedRoomless.add(r.node)) {
                     LOG.warn("CompoundCaptureSystem: " + r.node.kind + " at "
                             + r.node.left + "," + r.node.top + ".." + r.node.right + ","

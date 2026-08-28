@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.decision;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 
 /**
  * Fall-back state — unit was recently hit and is breaking contact. Paths
@@ -25,7 +24,8 @@ public final class FallbackBehavior implements UnitBehavior {
             return;
         }
         if (sim.movement().mayRepath(u)) {
-            sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), sim.world().cellX(u), sim.world().cellY(u), fx, fy, sim.getOccupancyMap()));
+            sim.setPath(u, sim.findPath(sim.world().cellX(u),
+                    sim.world().cellY(u), fx, fy));
         }
         sim.advanceMovement(u);
     }
