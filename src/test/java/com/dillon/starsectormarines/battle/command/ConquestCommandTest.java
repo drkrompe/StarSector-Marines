@@ -987,6 +987,25 @@ public class ConquestCommandTest {
     }
 
     @Test
+    public void captureStatePublishesMemberAtTargetRoomPortal() {
+        BattleSimulation sim = oneCompoundSim();
+        registerCompound(sim, new TacticalNode(TacticalNode.Kind.ARMORY,
+                5, 5, 4, 4, 6, 6, Faction.DEFENDER, 80, 4));
+        Squad squad = addMarineSquad(sim, 5f, 3f);
+
+        ConquestCommand command = new ConquestCommand(
+                TraversalAxis.SOUTH_TO_NORTH);
+        tick(command, sim);
+
+        ConquestFrontSnapshot.SquadState state = command.frontSnapshot()
+                .squadFor(squad.id);
+        assertNotNull(state);
+        assertEquals(1, state.membersInTargetPortal());
+        assertEquals(0, state.membersInTargetZone(),
+                "the doorway sample must remain distinct from room entry");
+    }
+
+    @Test
     public void emptyPreferredTrackSupportsAdjacentDefendedCompound() {
         BattleSimulation sim = compoundAt(19);
         TacticalNode node = registerCompound(sim, new TacticalNode(TacticalNode.Kind.ARMORY,

@@ -82,7 +82,7 @@ class ConquestCommandBalanceReportTest {
                 List.of(row), 600, false);
 
         assertTrue(json.contains("\"schedulerMode\":\"SERIAL_DETERMINISTIC\""));
-        assertTrue(json.contains("\"schemaVersion\":7"));
+        assertTrue(json.contains("\"schemaVersion\":8"));
         assertTrue(json.contains("\"maxTicks\":600"));
         assertTrue(json.contains("\"repeatCount\":2"));
         assertTrue(json.contains("\"canonicalMatrix\":false"));
@@ -101,6 +101,10 @@ class ConquestCommandBalanceReportTest {
                 + "\"terminalResult\":0},\"retargetProvenance\":{"
                 + "\"objectiveChanged\":0,\"markerChanged\":0,"
                 + "\"assignmentChanged\":0,\"unclassified\":0},"
+                + "\"portalProgress\":{\"classifiedExits\":0,"
+                + "\"neverAtPortalExits\":0,"
+                + "\"atPortalNotEnteredExits\":0,\"enteredExits\":0,"
+                + "\"episodesObservedAtPortal\":0},"
                 + "\"squadLossLastDistancesDecicells\":[],"
                 + "\"squadLossApproachProgressBasisPoints\":[],"
                 + "\"squadLossFrontContext\":{\"observed\":0,"
@@ -118,6 +122,9 @@ class ConquestCommandBalanceReportTest {
         assertTrue(markdown.contains("peak live members"));
         assertTrue(markdown.contains("Marine secure-travel episodes: "
                 + "0/0 finalized, 0 open; exits: target entry 0"));
+        assertTrue(markdown.contains("Marine secure portal classification: "
+                + "0 exits; never at portal 0, at portal but not entered 0, "
+                + "entered 0; episodes observed at portal 0"));
         assertTrue(markdown.contains("Retarget provenance: objective changed 0, "
                 + "marker changed 0, assignment changed 0, unclassified 0"));
         assertTrue(markdown.contains("Squad-loss last distances (0.1 cells): "

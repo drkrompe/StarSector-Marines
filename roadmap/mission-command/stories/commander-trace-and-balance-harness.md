@@ -372,9 +372,20 @@ with defenders present, one exited empty, and two timed out. Secure travel
 ended with eight entries, six retargets, one release, and fifteen squad-loss
 exits. The 32/36 `episodesWithMarkerClosure` value means only one cell of
 progress from an episode's initial centroid distance; it does not prove marker
-or threshold arrival. The next trace slice should publish target-portal
-occupancy and classify never-at-portal, at-portal-not-entered, and entered
-episodes before changing final-hop tactics, capture slots, or timers.
+or threshold arrival.
+
+Trace schema 9 and summary schema 8 now copy exact member cells into the frozen
+command frame, count occupants on navigation doorway cells bordering the
+assigned target zone, expose that count in the selected-squad panel and dump,
+and classify every finalized secure trip. On the same duplicate fixture, 22/30
+trips never had a command-pulse portal observation, none were observed at the
+portal without later entering, and eight entered. Three entries had a sampled
+portal occupant; five crossed between the 75-tick command samples. This does
+not support persistent doorway parking. The stronger next evidence seam is
+contact-bound loss: all fifteen squad-loss exits had local contact, twelve last
+published `HOLD`, eleven still had engageable members/fireteams, and none were
+moving. Pair that investigation with the deterministic stale-fireteam-role
+rebind repair before changing final-hop tactics, capture slots, or timers.
 
 ## Historical construction-only baselines
 
