@@ -106,9 +106,9 @@ public final class ShipTransferScreen implements Screen {
         props.put("transferLabel", viewModel.transferLabel());
         props.put("transferClasses", viewModel.transferClasses());
         props.put("transferAction", (Runnable) this::transfer);
-        // Named for the fleet rather than for a compartment: this page is the
-        // only one in the shell that is not aboard anything in particular.
-        props.put("contextLabel", "COMPANY FLEET / TRANSFER");
+        props.put("roomTitle", viewModel.roomTitle());
+        props.put("roomCopy", viewModel.roomCopy());
+        props.put("contextLabel", viewModel.contextLabel());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.SHIP_TRANSFER,
                 context::shipHasRoom,
                 this::close,

@@ -122,10 +122,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
                 new SnapshotArtifact("ship-transfer-wide.png",
                         renderShipTransfer(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 0, HOVERED_CELL)),
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 0, HOVERED_CELL, true)),
                 new SnapshotArtifact("ship-transfer-costly-wide.png",
                         renderShipTransfer(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 2, null)),
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 2, null, true)),
+                new SnapshotArtifact("ship-transfer-founding-wide.png",
+                        renderShipTransfer(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 2, null, false)),
                 new SnapshotArtifact("fleet-armory-overview-wide.png",
                         renderFleetArmoryOverview(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
@@ -211,16 +214,20 @@ public final class UiSnapshotSuite implements SnapshotSuite {
      * @param selected which candidate to show; one shot is the ship they live
      *     on and the other a hull that would cost them something, since that
      *     second reading is what the screen exists for
+     * @param founded whether the company already has a home; without one the
+     *     screen is the founding choice and judges a hull on what she lacks
+     *     rather than on what leaving would cost
      */
     private static BufferedImage renderShipTransfer(
             SnapshotContext context, HeadlessUiRenderer renderer,
-            int width, int height, int selected, float[] pointAt) throws Exception {
+            int width, int height, int selected, float[] pointAt,
+            boolean founded) throws Exception {
         Reactor reactor = new Reactor();
         List<ShipTransferViewModel.Candidate> fleet = transferFleet(context);
         if (fleet.isEmpty()) return renderer.renderRelative(new UiDocument(null),
                 width, height, 1f, MarineOpsUiViewport.REFERENCE_WIDTH,
                 MarineOpsUiViewport.REFERENCE_HEIGHT);
-        String home = fleet.get(0).id();
+        String home = founded ? fleet.get(0).id() : null;
         ShipTransferViewModel viewModel = new ShipTransferViewModel(
                 reactor, () -> fleet, () -> home, moved -> { });
         viewModel.select(fleet.get(Math.min(selected, fleet.size() - 1)).id());
@@ -276,7 +283,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("transferLabel", viewModel.transferLabel());
         props.put("transferClasses", viewModel.transferClasses());
         props.put("transferAction", (Runnable) () -> { });
-        props.put("contextLabel", "COMPANY FLEET / TRANSFER");
+        props.put("roomTitle", viewModel.roomTitle());
+        props.put("roomCopy", viewModel.roomCopy());
+        props.put("contextLabel", viewModel.contextLabel());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.SHIP_TRANSFER,
                 MarineOpsPageNav.ANY_SHIP,
                 () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
