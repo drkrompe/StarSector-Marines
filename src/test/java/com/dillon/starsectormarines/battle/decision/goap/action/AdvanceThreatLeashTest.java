@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.combat.FireStance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
+import com.dillon.starsectormarines.battle.infantry.RepositionToCover;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
@@ -322,9 +323,57 @@ public class AdvanceThreatLeashTest {
                         <= AbstractZoneAction.ADVANCE_LEASH_MAX);
     }
 
+    @Test
+    public void receivedContactStaggersShooterIntoCoverWithoutResumingObjective() {
+        BattleSimulation sim = openSim();
+        Squad squad = marineSquad(sim, 4);
+        long primary = defender(sim, "approaching", 24, 15);
+        observeContacts(sim);
+        long shooter = squad.leaderId;
+        sim.world().setAttackRange(shooter, 30f);
+        sim.getGrid().setCoverAtFacing(9, 14, NavigationGrid.FACING_E, 2);
+        sim.setPath(shooter, new int[]{10, 14, DEST_X, DEST_Y});
+        squad.contactPicture = new SquadContactPicture(sim.getSimTickIndex(),
+                Posture.ADVANCING, 1f, 0f, 1, 1, 1f, 4,
+                ForceBalance.FAVORABLE, Sector.FRONT, Motion.APPROACHING,
+                primary, 24, 15, 1f, Doctrine.HOLD, 1, 4, 1, 1,
+                ContactInitiative.RECEIVE);
+
+        ProbeZoneAction action = new ProbeZoneAction();
+        action.advance(shooter, squad, sim, DEST_X, DEST_Y);
+
+        assertTrue(Paths.isEmpty(sim.world().path(shooter)),
+                "first contact suppresses the old objective path");
+        assertEquals(primary, sim.combat().fireTargetId(shooter));
+        assertEquals(FireStance.STANCED.ordinal(), fireStance(sim, shooter));
+        assertEquals(1, fireReposition(sim, shooter),
+                "committed fire requests the existing post-shot cover adjustment");
+
+        assertTrue(RepositionToCover.tryReposition(shooter, sim));
+        int[] coverPath = sim.world().path(shooter);
+        assertFalse(Paths.isEmpty(coverPath));
+        assertEquals(9, Paths.destX(coverPath));
+        assertEquals(14, Paths.destY(coverPath));
+        float beforeX = sim.world().x(shooter);
+
+        action.advance(shooter, squad, sim, DEST_X, DEST_Y);
+
+        assertFalse(Paths.isEmpty(sim.world().path(shooter)),
+                "the contact hold preserves its cooldown-marked cover path");
+        assertEquals(9, Paths.destX(sim.world().path(shooter)));
+        assertEquals(14, Paths.destY(sim.world().path(shooter)));
+        assertTrue(sim.world().x(shooter) < beforeX,
+                "the shooter advances the local cover move instead of freezing on its first firing cell");
+    }
+
     private static int fireStance(BattleSimulation sim, long member) {
         return sim.getRoster().entityWorld().getInt(member,
                 sim.getRoster().components().COMBAT, BattleComponents.COMBAT_FIRE_STANCE);
+    }
+
+    private static int fireReposition(BattleSimulation sim, long member) {
+        return sim.getRoster().entityWorld().getInt(member,
+                sim.getRoster().components().COMBAT, BattleComponents.COMBAT_FIRE_REPOSITION);
     }
 
     private static final class ProbeZoneAction extends AbstractZoneAction {
