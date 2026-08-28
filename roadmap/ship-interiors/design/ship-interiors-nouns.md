@@ -809,10 +809,22 @@ it is presentation-only by charter. The tactical articulation of a bay is a
     scrap of leftover deck is within a cell of somebody's room. The pass takes
     very nearly all of what exists (nothing on a frigate, which needs nothing;
     three to six links on a capital) and the residue is not a defect in it.
-    **The remaining lever is the packing, not the law**: a deck that leaves a
-    third of the hull as void aft while packing the bow wall-to-wall has put its
-    empty space where no corridor can use it. Do not answer a detour by letting
-    a passage open a compartment.
+    **Do not answer a detour by letting a passage open a compartment**, and do
+    not answer it by keeping deck clear beside every hall either. That second
+    one looks like the obvious fix and was measured: forbidding rooms from the
+    one or two cells beside circulation makes decks *worse*, because a room that
+    may no longer touch a hall has to tunnel its own stub to reach one, and
+    every stub reserves more deck and pushes the next room further out. It
+    multiplies dead ends rather than joining them. On an Eagle the badly
+    detoured share of near pairs went from a tenth to a quarter, nine
+    compartments went unplaced or unbuilt, and corridor grew by a third while
+    the deck stopped reading as a ship at all. A Valkyrie improved slightly on
+    the number and lost fourteen rooms and its long berthing rows doing it.
+
+    So the tight pack is right and the detours it leaves are the price of it.
+    What is still unexplained is why a third of the hull sits void aft while
+    the bow is packed wall-to-wall; that is a question about where the program
+    puts its rooms, not about how tightly it puts them.
 
 ## Boundaries
 
