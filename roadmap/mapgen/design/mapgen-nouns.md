@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — separated authoritative cells, shared-edge transitions, and derived regions; widened compound firing aprons while preserving functional buildings through parcel sizing; added role-readable compound dressing; guaranteed standable interior anchors; and made orphaned-pocket sealing yield to a compound.
+Updated: 2026-08-28 — separated authoritative cells, shared-edge transitions, and derived regions; widened compound firing aprons while preserving functional buildings through parcel sizing; added role-readable compound dressing and workstation groups; guaranteed standable interior anchors; and made orphaned-pocket sealing yield to a compound.
 
 Map generation turns a deterministic request into a validated tactical world. It
 owns authored spatial intent; runtime systems own subsequent mutation and play.
@@ -125,6 +125,10 @@ Compound dressing is clustered by role and place: logistics props explain each
 military wing, while planters and seating define shared domestic space. Hard
 fixtures and visual-only clutter both preserve gates, building thresholds,
 two-cell circulation, road reservations, and final walkable connectivity.
+Purpose-built interiors express their function through grouped equipment rather
+than a single symbolic prop: command rooms organize console banks around a
+planning focus, server rooms organize repeated racks around a service aisle,
+and both retain doorway, firing-position, and room-connectivity obligations.
 
 ## City, station, and ship families
 
