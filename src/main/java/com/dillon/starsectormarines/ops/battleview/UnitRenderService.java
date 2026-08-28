@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.sim.TurretStateService;
+import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -630,9 +631,15 @@ public final class UnitRenderService implements RenderSystem {
      * combatant-and-not-drone check.
      *
      * <p>Armor is an optional live-only pool, so the armored overload runs only for
-     * an entity that actually carries one; armorless bodies get the structure band
-     * alone and read as visibly slimmer. Ownership styling comes from
+     * an entity that actually carries one. Ownership styling comes from
      * {@link Allegiance}, resolved per entity from its simulation faction.
+     *
+     * <p>The bar spans the body it belongs to rather than one cell: an emplacement
+     * or hub is measured by its structure's visual extent and a mech by its render
+     * scale, which is also what gives a big, tough thing the room its segment
+     * dividers need. A type tagged {@code barsOnlyWhenUnderFire} stays bare until
+     * combat telemetry records damage against it, so an untouched turret line reads
+     * as scenery until the moment it starts taking hits.
      */
     private void sweepDurabilityBars(RenderContext ctx, DrawList out) {
         if (!ctx.hostProfile.unitDecorationsVisible()) return;
@@ -641,13 +648,16 @@ public final class UnitRenderService implements RenderSystem {
         TurretStateService turretState = ctx.sim.turretState();
         float cellPx = cam.cellPxSize();
         float unitSize = cellPx * BattleRenderer.UNIT_FRAC;
-        float half = unitSize / 2f;
         float alphaMult = ctx.alphaMult;
         FogOfWarService vis = ctx.sim.getFogOfWar();
 
+        CombatTelemetryService telemetry = ctx.sim.telemetry();
         for (int i = 0, n = ctx.sim.liveUnitCount(); i < n; i++) {
             long u = ctx.sim.liveUnitAt(i);
-            if (!RenderAppearance.of(ctx.sim.identity().type(u)).drawsDurabilityBar) continue;
+            UnitType type = ctx.sim.identity().type(u);
+            RenderAppearance appearance = RenderAppearance.of(type);
+            if (!appearance.drawsDurabilityBar) continue;
+            if (appearance.barsOnlyWhenUnderFire && !hasTakenFire(telemetry, u)) continue;
             byte uv = vis.getUnitVisibility(i);
             if (uv == FogOfWarService.VIS_HIDDEN) continue;
             float barAlpha = alphaMult;
@@ -655,23 +665,34 @@ public final class UnitRenderService implements RenderSystem {
 
             float cx = cam.cellToScreenX(world.renderX(u));
             float cy = cam.cellToScreenY(world.renderY(u));
-            float barY;
-            if (ctx.sim.identity().type(u).isTurret()) {
-                barY = cy + turretState.mount(u).visualCells * cellPx / 2f + BattleRenderer.HP_BAR_GAP;
-            } else if (ctx.sim.identity().type(u).isDroneHub()) {
-                barY = cy + DroneHub.VISUAL_CELLS * cellPx / 2f + BattleRenderer.HP_BAR_GAP;
+            // The bar spans the drawn body, so its extent doubles as the gap offset.
+            float bodyPx;
+            if (type.isTurret()) {
+                bodyPx = turretState.mount(u).visualCells * cellPx;
+            } else if (type.isDroneHub()) {
+                bodyPx = DroneHub.VISUAL_CELLS * cellPx;
             } else {
-                barY = cy + half + BattleRenderer.HP_BAR_GAP;
+                bodyPx = unitSize * appearance.renderScale;
             }
+            float barY = cy + bodyPx / 2f + BattleRenderer.HP_BAR_GAP;
             Allegiance owner = Allegiance.of(ctx.sim.identity().faction(u));
-            float hpFrac = world.hp(u) / world.maxHp(u);
             if (world.hasArmor(u)) {
-                DurabilityBarDecor.emit(out, RenderLayer.UNITS, owner, cx, barY, unitSize,
-                        hpFrac, world.armor(u) / world.maxArmor(u), barAlpha);
+                DurabilityBarDecor.emit(out, RenderLayer.UNITS, owner, cx, barY, bodyPx,
+                        world.hp(u), world.maxHp(u),
+                        world.armor(u), world.maxArmor(u), barAlpha);
             } else {
-                DurabilityBarDecor.emit(out, RenderLayer.UNITS, owner, cx, barY, unitSize,
-                        hpFrac, barAlpha);
+                DurabilityBarDecor.emit(out, RenderLayer.UNITS, owner, cx, barY, bodyPx,
+                        world.hp(u), world.maxHp(u), barAlpha);
             }
         }
+    }
+
+    /**
+     * True once combat telemetry has recorded damage against {@code id}. Telemetry
+     * is the exact first-hit record — a pool comparison would also read as "hit"
+     * for anything spawned below full, and it is already kept for every combatant.
+     */
+    private static boolean hasTakenFire(CombatTelemetryService telemetry, long id) {
+        return telemetry.isRecorded(id) && telemetry.damageTaken(id) > 0f;
     }
 }

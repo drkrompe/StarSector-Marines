@@ -135,7 +135,7 @@ The discovered suite ids and default output directories are:
 | Suite | Evidence | Output |
 |-------|----------|--------|
 | `armory` | Loadout previews and their contact sheet | `build/snapshots/armory/` |
-| `durability-bars` | Ownership-coded armor/structure bar matrix, true scale and magnified | `build/snapshots/durability-bars/` |
+| `durability-bars` | Ownership matrix and an authored-profile magnitude ladder, true scale and magnified | `build/snapshots/durability-bars/` |
 | `layers` | One combined composition sheet per authored unit | `build/snapshots/layers/` |
 | `ship-decks` | Generated ship-deck plan views, tinted by longitudinal zone | `build/snapshots/ship-decks/` |
 | `turrets` | Authored mount-state strips, including projectile and impact effects | `build/snapshots/turrets/` |

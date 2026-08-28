@@ -46,6 +46,8 @@ public final class RenderAppearance {
     public final boolean drawsFootprint;
     /** Gets a durability bar in the last (layer-wide top) sweep — combatants, excluding drones (they bar themselves in the DRONES layer). */
     public final boolean drawsDurabilityBar;
+    /** Withholds that bar until the entity has actually taken fire, so an untouched emplacement reads as scenery. */
+    public final boolean barsOnlyWhenUnderFire;
     /** Has a corpse sheet, so a {@code deathPoseIdx >= 0} entity is drawn in the dead-sprite sweep. */
     public final boolean hasDeathPose;
     /** Facing→frame convention for the sprite sweep. Meaningful only when {@link #spriteKind} is {@link SpriteKind#SHEET}. */
@@ -54,10 +56,12 @@ public final class RenderAppearance {
     public final float renderScale;
 
     private RenderAppearance(SpriteKind spriteKind, boolean drawsFootprint, boolean drawsDurabilityBar,
-                             boolean hasDeathPose, UnitType.FrameLayout frameLayout, float renderScale) {
+                             boolean barsOnlyWhenUnderFire, boolean hasDeathPose,
+                             UnitType.FrameLayout frameLayout, float renderScale) {
         this.spriteKind = spriteKind;
         this.drawsFootprint = drawsFootprint;
         this.drawsDurabilityBar = drawsDurabilityBar;
+        this.barsOnlyWhenUnderFire = barsOnlyWhenUnderFire;
         this.hasDeathPose = hasDeathPose;
         this.frameLayout = frameLayout;
         this.renderScale = renderScale;
@@ -108,6 +112,7 @@ public final class RenderAppearance {
         boolean hpBar = t.combatant && t != UnitType.DRONE
                 && t != UnitType.RANGE_TARGET;
         boolean deathPose = t.deadSpritePath != null;
-        return new RenderAppearance(kind, footprint, hpBar, deathPose, t.frameLayout, t.renderScale);
+        return new RenderAppearance(kind, footprint, hpBar, t.isTurret(), deathPose,
+                t.frameLayout, t.renderScale);
     }
 }
