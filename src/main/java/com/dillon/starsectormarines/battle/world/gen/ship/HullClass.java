@@ -43,6 +43,25 @@ public enum HullClass {
     }
 
     /**
+     * Whether a company could be based aboard a hull of this class.
+     *
+     * <p>Being boardable is not the same as being a home. A frigate is one
+     * deck: whatever else she is doing happens in the same space the marines
+     * would be living in, and a company quartered there has a berth and nothing
+     * else — no armory that locks, no bay, nowhere to muster. That is a boat
+     * you send somewhere, which is what a Kite or a Hound is actually used for.
+     *
+     * <p><b>Lift does not decide this.</b> A Kite carries twenty-eight hands
+     * beyond her crew and a Wolf fifteen, and neither is a base; a shuttle has
+     * lift because people can be packed into it for a short hop, not because
+     * they can live there. The second deck is what separates somewhere the
+     * company works from somewhere it is merely being carried.
+     */
+    public boolean quarters() {
+        return decks > 1;
+    }
+
+    /**
      * Map the engine's {@code hullSize} token onto a class. Unknown or absent
      * tokens fall back to {@link #DESTROYER}, the middle of the range, so a
      * modded hull still produces a plausible deck rather than nothing.

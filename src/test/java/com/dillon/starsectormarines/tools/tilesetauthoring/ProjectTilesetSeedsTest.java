@@ -71,7 +71,7 @@ class ProjectTilesetSeedsTest {
             if (!document.entries.isEmpty()) continue;
             assertFalse(document.note.isBlank(),
                     seed.getFileName() + " is a seed with nothing to say about its sheet");
-            // measure_sheet.py drafts a placeholder note on purpose, so that
+            // SheetMeasurement drafts a placeholder note on purpose, so that
             // replacing it is a visible step rather than an optional one.
             assertFalse(document.note.contains("TODO"),
                     seed.getFileName() + " still carries the drafted placeholder note; "

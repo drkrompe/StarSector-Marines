@@ -9,7 +9,7 @@
         1,
         1
       ],
-      "id": "doodad.urban3.piece-000-a",
+      "id": "doodad.urban3.c0r0",
       "included": true,
       "rect": [
         0,
@@ -24,7 +24,7 @@
         1,
         1
       ],
-      "id": "doodad.urban3.piece-000-b",
+      "id": "doodad.urban3.c1r0",
       "included": true,
       "rect": [
         309,
@@ -39,7 +39,7 @@
         1,
         1
       ],
-      "id": "doodad.urban3.piece-000-c",
+      "id": "doodad.urban3.c2r0",
       "included": true,
       "rect": [
         619,
@@ -54,7 +54,7 @@
         1,
         1
       ],
-      "id": "doodad.urban3.piece-000-d",
+      "id": "doodad.urban3.c3r0",
       "included": true,
       "rect": [
         928,
@@ -69,7 +69,7 @@
         1,
         1
       ],
-      "id": "doodad.urban3.piece-000-e",
+      "id": "doodad.urban3.c4r0",
       "included": true,
       "rect": [
         1238,
@@ -84,7 +84,7 @@
         1,
         1
       ],
-      "id": "doodad.urban3.piece-000-f",
+      "id": "doodad.urban3.c5r0",
       "included": true,
       "rect": [
         1547,
@@ -99,7 +99,7 @@
         1,
         1
       ],
-      "id": "doodad.urban3.piece-000-g",
+      "id": "doodad.urban3.c6r0",
       "included": true,
       "rect": [
         1857,
@@ -112,7 +112,7 @@
   "gridCols": 7,
   "gridRows": 1,
   "idPrefix": "doodad.urban3",
-  "note": "This sheet is RGB with no alpha channel, so it slices to one fused piece. That piece has been cut on its stated 7x1 grid, so the entries below are its cells in reading order - left to right, then top to bottom - one cell each and none of them annotated yet. Do not re-slice this sheet with apply=true: slicing finds the plate as one fused piece again and reports every cut cell as no longer found, so a re-slice discards the cut and anything authored onto it. Cut once, then annotate. 2166x726 as a 7x1 strip, so its cells are 309x726. It already ships as a hand-written tileset built by art-source/tilesets/normalize_tilesets.py. Exporting over it would rewrite the ids and coordinates that GenMappingRegistry references, so treat this as a sheet to inspect or adopt deliberately, not to re-export casually. Like nature-tiles it loads as a sliced frame-indexed sheet rather than col/row doodads, so re-exporting it would change its registry shape.",
+  "note": "This sheet is RGB with no alpha channel, so it slices to one fused piece. That piece has been cut on its stated 7x1 grid, so the entries below are its cells in reading order - left to right, then top to bottom - one cell each and none of them annotated yet. Cut once, then annotate: slicing finds the plate as one fused piece again, so re-slicing has nothing to add. 2166x726 as a 7x1 strip, so its cells are 309x726. It already ships as a hand-written tileset built by art-source/tilesets/normalize_tilesets.py. Exporting over it would rewrite the ids and coordinates that GenMappingRegistry references, so treat this as a sheet to inspect or adopt deliberately, not to re-export casually. Like nature-tiles it loads as a sliced frame-indexed sheet rather than col/row doodads, so re-exporting it would change its registry shape.",
   "sheet": "art-source/tilesets/urban-tileset-3.raw.png",
   "sheetName": "urban-tileset-3"
 }
