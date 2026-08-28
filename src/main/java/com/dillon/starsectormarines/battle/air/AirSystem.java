@@ -586,7 +586,7 @@ public class AirSystem {
                 aim.minRange = mt.mount.weaponDef().minRange;
                 aim.cooldownTimer = mt.cooldownTimer;
                 aim.attackCooldown = mt.mount.weaponDef().cooldown;
-                aim.target = roster.isLive(mt.targetId) ? mt.targetId : 0L;
+                aim.target = roster.isAliveById(mt.targetId) ? mt.targetId : 0L;
                 aim.ignoreCloseWalls = true;
                 aim.closeWallRadius = SHUTTLE_AIR_LOS_RADIUS;
 

@@ -148,7 +148,7 @@ public final class FiringSystem {
                     lastFireGate[r] = FireGate.TARGET_GONE.ordinal();
                     continue; // killed earlier this walk
                 }
-                if (!roster.isLive(ft)) {
+                if (!roster.isAliveById(ft)) {
                     lastFireGate[r] = FireGate.TARGET_GONE.ordinal();
                     continue; // target released (death-in-flight)
                 }
