@@ -1,10 +1,10 @@
 # Map generation story board
 
-Status: ACTIVE — eleven bounded station, city, economic, or cross-feature stories remain open.
+Status: ACTIVE — twelve bounded station, city, economic, or cross-feature stories remain open.
 
 Written: 2026-08-23
 
-Updated: 2026-08-24 — added faction-specific treatment for the hard-installation family.
+Updated: 2026-08-28 — added the thin edge-barrier production vertical.
 
 | Story | Status | Outcome |
 |---|---|---|
@@ -19,5 +19,6 @@ Updated: 2026-08-24 — added faction-specific treatment for the hard-installati
 | `refinery-district.md` | PROPOSED | Make refining a tactically distinct economic district. |
 | `agriculture-district.md` | PROPOSED | Make agriculture a tactically distinct economic district. |
 | `target-faction-facility-treatment.md` | PLANNED | Give the shared shield-relay and later battery functions core/modded faction-specific geometry, materials, cover, and approach character without changing their battle laws. |
+| `thin-edge-barriers.md` | IN PROGRESS | Promote shared-edge navigation barriers into honest authored structures with ballistic, cover, durability, and presentation semantics. |
 
 Historical implementation slices belong in `shipped.md`.

@@ -32,6 +32,9 @@ public class MarineRoster implements Serializable {
     /** Hardcoded cap for phase 2. Phase 2.5 will scale this with player level. */
     private static final int DEFAULT_CAPACITY = 10;
 
+    /** The layout every company got before the seed belonged to the company. */
+    private static final long DEFAULT_DECK_SEED = 0x5AFE_DECEL;
+
     private final List<MarineCaptain> captains = new ArrayList<>();
     // Non-final so xstream's readResolve can backfill on legacy saves that
     // predate this field (xstream bypasses the constructor on deserialization,
@@ -49,6 +52,19 @@ public class MarineRoster implements Serializable {
     private String reserveSquadId;
     private boolean initialComplementIssued;
     private int capacity = DEFAULT_CAPACITY;
+    /**
+     * The fleet member the company lives aboard, by id. Null until the company
+     * has been given a ship, and stale once that ship leaves the fleet — which
+     * is why it is resolved through {@code CompanyShipDesignation} rather than
+     * read directly.
+     */
+    private String companyShipId;
+    /**
+     * Fixes every deck this company will ever generate. Combined with the ship
+     * it is generating for, so each hull has its own stable layout and a ship
+     * the company returns to is the ship they left.
+     */
+    private long deckSeed = DEFAULT_DECK_SEED;
 
     public void add(MarineCaptain captain) {
         captains.add(captain);
@@ -113,6 +129,21 @@ public class MarineRoster implements Serializable {
 
     public boolean hasRoom() {
         return captains.size() < capacity;
+    }
+
+    /** @see #companyShipId */
+    public String companyShipId() {
+        return companyShipId;
+    }
+
+    /** @see #companyShipId */
+    public void setCompanyShipId(String companyShipId) {
+        this.companyShipId = companyShipId;
+    }
+
+    /** @see #deckSeed */
+    public long deckSeed() {
+        return deckSeed;
     }
 
     /**

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
+import com.dillon.starsectormarines.battle.world.gen.ship.TestHulls;
 import com.dillon.starsectormarines.battle.world.gen.ship.HullClass;
 import com.dillon.starsectormarines.battle.world.gen.ship.HullRole;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
@@ -40,7 +41,7 @@ class ShipRoomAvailabilityTest {
 
     /** A spread of hulls, so the agreement is checked against varied programs. */
     private static final List<CompanyShip> FLEET = List.of(
-            CompanyShip.founding(),
+            TestHulls.transport(),
             new CompanyShip(HullClass.CAPITAL, HullRole.TROOP_TRANSPORT, 60, 400, 250, 0.34f),
             new CompanyShip(HullClass.CRUISER, HullRole.WARSHIP, 200, 300, 100, 0.30f),
             new CompanyShip(HullClass.CRUISER, HullRole.FREIGHTER, 120, 120, 800, 0.32f),
