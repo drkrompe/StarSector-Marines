@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
-import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.combat.FireStance;
 
 /**
@@ -39,7 +38,8 @@ public final class KitRetrieverBehavior implements UnitBehavior {
         fireOpportunistically(u, sim);
 
         if (sim.movement().mayRepath(u)) {
-            sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), sim.world().cellX(u), sim.world().cellY(u), drop.cellX, drop.cellY, sim.getOccupancyMap()));
+            sim.setPath(u, sim.findPath(sim.world().cellX(u),
+                    sim.world().cellY(u), drop.cellX, drop.cellY));
         }
         sim.advanceMovement(u);
     }
