@@ -33,8 +33,8 @@ tools/authoring.sh tileset_measure '{"sheet":"<name>","gridCols":10,"gridRows":1
 ```
 
 This needs no Python and no server — see the `authoring-tools` skill for the
-rest of the tool surface. `art-source/tilesets/measure_sheet.py` measures the
-same things for a sheet that is not yet in the project.
+rest of the tool surface. It is the only way to measure a sheet; step 1 has
+already put it in the project, so a bare name resolves.
 
 Pass `gridCols`/`gridRows` whenever the sheet was generated to a layout you asked
 for — which is most of the time, since you chose the layout in the prompt. Cells
