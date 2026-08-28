@@ -16,6 +16,9 @@ import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MechBay;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
+import com.dillon.starsectormarines.marine.MarineSoldier;
+import com.dillon.starsectormarines.marine.MarineSoldierStatus;
+import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ops.detachment.Detachment;
 import com.dillon.starsectormarines.ops.detachment.DebugCompany;
 import com.dillon.starsectormarines.ops.detachment.DebugCompanyStage;
@@ -147,7 +150,8 @@ public class MarineOpsContext {
     public CompanyDeck companyDeck() {
         if (companyDeck == null) {
             companyDeck = new CompanyDeck(CompanyShip.founding(), COMPANY_DECK_SEED,
-                    new BattleSprites(), MarineOpsContext::companyLance);
+                    new BattleSprites(), MarineOpsContext::companyLance,
+                    MarineOpsContext::companyMarines);
         }
         return companyDeck;
     }
@@ -160,6 +164,36 @@ public class MarineOpsContext {
             for (CampaignMech mech : squad.mechs()) lance.add(mech.variant());
         }
         return lance;
+    }
+
+    /**
+     * The marines aboard: every fit member of a squad that is not away.
+     *
+     * <p>Away is the operative word. A squad on a stationing contract is
+     * somewhere else in the sector, and putting it in the berthing would have
+     * the player watch marines eat dinner on a ship they are not on. Everybody
+     * else is home, whichever squad they belong to - the ship carries the
+     * company, not the squad a screen happens to have selected.
+     */
+    private static List<MarineSoldier> companyMarines() {
+        MarineRosterScript script = MarineRosterScript.getInstance();
+        return companyMarines(script != null ? script.roster() : null);
+    }
+
+    /** @see #companyMarines() */
+    static List<MarineSoldier> companyMarines(MarineRoster roster) {
+        if (roster == null) return List.of();
+        List<MarineSoldier> aboard = new ArrayList<>();
+        for (MarineSquad squad : roster.squads()) {
+            if (squad.stationed()) continue;
+            for (String id : roster.manningMemberIds(squad)) {
+                MarineSoldier soldier = roster.soldierById(id);
+                if (soldier != null && soldier.status() == MarineSoldierStatus.ACTIVE) {
+                    aboard.add(soldier);
+                }
+            }
+        }
+        return List.copyOf(aboard);
     }
 
     /** What the company ship has, for the room screens' navigation shell. */

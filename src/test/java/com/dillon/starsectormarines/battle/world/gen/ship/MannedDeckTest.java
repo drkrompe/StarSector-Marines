@@ -1,18 +1,21 @@
 package com.dillon.starsectormarines.battle.world.gen.ship;
 
+import com.dillon.starsectormarines.battle.ambient.CrewRole;
+import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
+import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.sim.IdentityService;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.MarineSoldier;
+import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
-import com.dillon.starsectormarines.ops.battleview.HeadlessBattleSceneRenderer;
 import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
-import com.dillon.starsectormarines.ui.retained.headless.HeadlessUiRenderer;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,19 +34,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * it produce.
  *
  * <p>So these tests never frame anything. They man the deck, run it through the
- * ordinary fixed-step battle clock, and ask what the ship did.
+ * ordinary fixed-step battle clock, and ask what the ship did. Nothing here
+ * loads a sprite, and nothing here should: the catalogs a deck sim reads are
+ * installed for every test by {@code TileRegistryTestInstaller}, and standing a
+ * headless renderer up to get at them would drag the whole battle sprite pack
+ * into a test that draws nothing.
  */
 final class MannedDeckTest {
 
     private static final long SEED = 42L;
     private static final float TRANSPORT_ASPECT = 0.28f;
-
-    /** Constructing the headless drain installs the tile catalogs the deck sim needs. */
-    @BeforeAll
-    static void installCatalogs() {
-        Path modRoot = Paths.get("mod").toAbsolutePath().normalize();
-        new HeadlessUiRenderer(new HeadlessBattleSceneRenderer(modRoot), modRoot);
-    }
 
     /**
      * A manned deck is inhabited end to end, and stays that way once it is
@@ -101,6 +101,11 @@ final class MannedDeckTest {
      * only while framed, so the ship is busy wherever the player happens to be
      * and nowhere else. Nothing here frames anything, so if the deck only runs
      * under a camera, nobody moves at all.
+     *
+     * <p>Going to work is two facts and both are checked: that people cover
+     * ground, and that somebody covering ground is <em>drawn</em> walking.
+     * Ambient work authors the appearance as well as the position, and without
+     * the second the crew slide around the deck at attention.
      */
     @Test
     void crewOutOfFrameGoToWork() {
@@ -118,9 +123,12 @@ final class MannedDeckTest {
                 startY[index] = world.y(crew[index]);
             }
 
+            boolean anyWalking = false;
             for (float second = 0.1f; second <= 120f; second += 0.1f) {
                 scene.advanceTo(second);
+                anyWalking = anyWalking || walking(scene, crew);
             }
+            assertTrue(anyWalking, "nobody aboard was ever drawn walking");
 
             int moved = 0;
             for (int index = 0; index < crew.length; index++) {
@@ -193,6 +201,56 @@ final class MannedDeckTest {
                 "the ship only ran " + ship.elapsedSeconds() + " seconds");
         assertSame(fromBerthing, ship.scene(),
                 "coming back to a room view rebuilt the ship");
+    }
+
+    /**
+     * The marines aboard are the ones on the roster, and nobody else is.
+     *
+     * <p>The failure this guards is quiet and would look right: crewing the ship
+     * posts a watch wherever a role has jobs, so a company mustered into one
+     * bunkroom leaves every other berthing - and every room with a mess table -
+     * to be filled with marines who are on no muster roll. The player would read
+     * a roster of nine names and walk into a ship carrying a hundred and sixty.
+     */
+    @Test
+    void theMarinesAboardAreTheOnesOnTheRoster() {
+        MarineRoster roster = new MarineRoster();
+        roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
+        List<MarineSoldier> company = roster.soldiers();
+        assertTrue(!company.isEmpty(), "the company has nobody in it");
+
+        CompanyDeck ship = new CompanyDeck(
+                CompanyShip.founding(), SEED, null, null, () -> company);
+        try {
+            ShipDeckBattleScene scene = ship.scene();
+            int billeted = 0;
+            for (MarineSoldier soldier : company) {
+                if (ship.marineFor(soldier.id()) != 0L) billeted++;
+            }
+            assertTrue(billeted > 0, "the ship billeted none of the company");
+
+            IdentityService identity = scene.simulation().identity();
+            int marines = 0;
+            for (int index = 0; index < scene.simulation().getRoster().liveCount(); index++) {
+                long actor = scene.simulation().getRoster().get(index);
+                if (identity.type(actor) == CrewRole.MARINE.unit()) marines++;
+            }
+            assertEquals(billeted, marines,
+                    "crewing the ship added marines who are on no muster roll");
+        } finally {
+            ship.dismiss();
+        }
+    }
+
+    /** Whether anybody is carrying the moving flag this tick. */
+    private static boolean walking(ShipDeckBattleScene scene, long[] crew) {
+        BattleComponents components = scene.simulation().getBattleComponents();
+        for (long hand : crew) {
+            int flags = scene.simulation().getEntityWorld().getInt(hand,
+                    components.LAYERED_ANIMATION, BattleComponents.LAYERED_FLAGS);
+            if ((flags & LayeredAppearance.FLAG_MOVING) != 0) return true;
+        }
+        return false;
     }
 
     private static DeckSizing.DeckPlan transportPlan() {

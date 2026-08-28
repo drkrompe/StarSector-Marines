@@ -10,7 +10,10 @@ import com.dillon.starsectormarines.battle.profile.TickProfile;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.IOException;
 
 /**
  * One-shot JSON dump of the live per-phase tick profile. Records per-phase
@@ -21,6 +24,12 @@ import org.json.JSONObject;
  * — same common-folder route the squad dumper uses (the only file I/O
  * available to mod code, per the Starsector script sandbox).
  *
+ * <p>An embedded battle fixture can push the dump past the SettingsAPI
+ * common-folder size cap, so the fixture spills to a sibling
+ * {@code *.fixture.json} when the combined document would not fit;
+ * {@code BattleFixtureJson.fromJson} reads that spill file directly, so a
+ * spilled fixture stays replayable through {@code -Pfixture=}.
+ *
  * <p>Triggered from the {@code TickProfileDebugPanel} DUMP button. The dump
  * captures whatever the profile's display buffer is currently exposing —
  * the last completed averaging window, not the in-progress one. If the user
@@ -30,8 +39,17 @@ import org.json.JSONObject;
 public final class TickProfileDumper {
 
     private static final Logger LOG = Logger.getLogger(TickProfileDumper.class);
-    /** Bumped when the dump shape changes — v6 can embed a tick-zero battle fixture. */
-    private static final int SCHEMA_VERSION = 6;
+    /** Bumped when the dump shape changes — v7 can spill the fixture to a sibling file. */
+    private static final int SCHEMA_VERSION = 7;
+    /**
+     * SettingsAPI rejects any common-folder text write longer than this many
+     * characters. It throws from its own writer thread when routed through
+     * {@code writeJSONToCommon}, where mod code cannot catch it, so this class
+     * serializes up front and checks the length itself.
+     */
+    static final int MAX_COMMON_FILE_CHARS = 1_048_576;
+    /** Two-space indent keeps the dump readable at roughly half the bulk of the game's own indent. */
+    private static final int JSON_INDENT = 2;
 
     private TickProfileDumper() {}
 
@@ -68,11 +86,11 @@ public final class TickProfileDumper {
             root.put("unitCount", sim.liveUnitCount());
             root.put("squadCount", sim.getSquads().size());
             root.put("triggerSource", spike != null ? "auto-spike" : "manual");
-            if (fixture != null) {
-                // Construction inputs only: replay rebuilds tick zero through
-                // BattleSetup; this is deliberately not a live-state snapshot.
-                root.put("battleFixture", BattleFixtureJson.toJson(fixture));
-            }
+            // Construction inputs only: replay rebuilds tick zero through
+            // BattleSetup; this is deliberately not a live-state snapshot.
+            // Attached last, once the size of everything else is known.
+            JSONObject fixtureJson =
+                    fixture != null ? BattleFixtureJson.toJson(fixture) : null;
 
             long totalAvgNs = profile.totalAvgNanos();
             root.put("totalAvgUs", totalAvgNs / 1_000.0);
@@ -138,13 +156,66 @@ public final class TickProfileDumper {
             root.put("phases", phases);
 
             String path = pathFor(sim.simTickIndex, spike != null);
-            Global.getSettings().writeJSONToCommon(path, root, true);
-            LOG.info("TickProfileDumper: wrote tick profile to saves/common/" + path);
-            return path;
+            return write(path, root, fixtureJson);
         } catch (Exception ex) {
             LOG.warn("TickProfileDumper: dump failed", ex);
             return null;
         }
+    }
+
+    /**
+     * Attaches the fixture, then writes the dump under the common-folder size
+     * cap. The fixture is embedded when the whole document fits; otherwise it
+     * spills to a sibling file that the dump names, and is dropped outright
+     * only when it cannot fit on its own either. Returns the written profile
+     * path, or {@code null} when even the fixture-free profile is too large.
+     *
+     * <p>Paths here are the logical common-folder names; SettingsAPI appends
+     * {@code .data} to each of them on disk.
+     */
+    static String write(String path, JSONObject root, JSONObject fixtureJson)
+            throws IOException, JSONException {
+        String text = null;
+        if (fixtureJson != null) {
+            root.put("battleFixture", fixtureJson);
+            text = root.toString(JSON_INDENT);
+            if (text.length() > MAX_COMMON_FILE_CHARS) {
+                root.remove("battleFixture");
+                // Compact: the spill file is read back by BattleFixtureJson,
+                // not by eye, and every saved character is headroom.
+                String fixtureText = fixtureJson.toString();
+                String fixturePath = fixturePathFor(path);
+                if (fixtureText.length() > MAX_COMMON_FILE_CHARS) {
+                    root.put("battleFixtureOmitted", fixtureText.length()
+                            + " chars exceeds the " + MAX_COMMON_FILE_CHARS
+                            + "-char common-folder cap");
+                    LOG.warn("TickProfileDumper: battle fixture omitted; "
+                            + fixtureText.length() + " chars exceeds the "
+                            + MAX_COMMON_FILE_CHARS + "-char cap");
+                } else {
+                    Global.getSettings().writeTextFileToCommon(fixturePath, fixtureText);
+                    root.put("battleFixtureFile", fixturePath);
+                    LOG.info("TickProfileDumper: battle fixture spilled to saves/common/"
+                            + fixturePath);
+                }
+                text = null;
+            }
+        }
+        if (text == null) text = root.toString(JSON_INDENT);
+        if (text.length() > MAX_COMMON_FILE_CHARS) {
+            LOG.warn("TickProfileDumper: dump skipped; " + text.length()
+                    + " chars exceeds the " + MAX_COMMON_FILE_CHARS
+                    + "-char common-folder cap");
+            return null;
+        }
+        Global.getSettings().writeTextFileToCommon(path, text);
+        LOG.info("TickProfileDumper: wrote tick profile to saves/common/" + path);
+        return path;
+    }
+
+    private static String fixturePathFor(String path) {
+        int dot = path.lastIndexOf('.');
+        return (dot < 0 ? path : path.substring(0, dot)) + ".fixture.json";
     }
 
     private static String pathFor(int tickIndex, boolean isSpike) {

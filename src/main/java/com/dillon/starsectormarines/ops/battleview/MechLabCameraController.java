@@ -99,26 +99,6 @@ public final class MechLabCameraController {
         };
     }
 
-    /**
-     * Anchors on the hand-authored garage, for the headless fallback that draws
-     * it. Not a ship, and not a default: a live lab is always aboard something.
-     */
-    public static Anchors authoredGarage() {
-        return new Anchors() {
-            @Override
-            public CameraPose wide() {
-                return new CameraPose(MechLabBattleScene.GRID_WIDTH * 0.5f,
-                        MechLabBattleScene.GRID_HEIGHT * 0.5f, WIDE_ZOOM_NOTCHES);
-            }
-
-            @Override
-            public CameraPose berth(int index) {
-                return new CameraPose(MechLabBattleScene.mechWorldX(index),
-                        MechLabBattleScene.mechWorldY(index), FITTING_ZOOM_NOTCHES);
-            }
-        };
-    }
-
     private static CameraPose interpolate(CameraPose from, CameraPose to, float amount) {
         return new CameraPose(
                 lerp(from.worldX(), to.worldX(), amount),

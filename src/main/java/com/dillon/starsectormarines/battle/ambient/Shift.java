@@ -133,6 +133,34 @@ public final class Shift {
         return of(role, sites, authored, berthed, threatPolicy);
     }
 
+    /**
+     * Whether this role's people live here, as opposed to merely having
+     * business here.
+     *
+     * <p>Somewhere a role is based is its quarters or its work. Every other
+     * place its rotation reaches - the mess it eats in, the lane it shoots on -
+     * is somewhere it goes, and reading those as billets would invent a
+     * population: a galley with eight tables would become quarters for eight
+     * marines who sleep nowhere and are on no roster.
+     *
+     * <p>A role with no work aboard therefore has exactly one kind of billet,
+     * its berthing, which is the right shape for a marine complement carried as
+     * passengers on somebody else's ship.
+     *
+     * <p>This bounds a <em>complement</em>, not a posting. {@link #postedAt}
+     * will still build the shift a role would work anywhere it is deliberately
+     * stationed - a range detail is a real thing to order - and a caller
+     * deciding who lives aboard consults this first.
+     */
+    public static boolean basedAt(CrewRole role, JobSite posted,
+                                  List<FixtureTask> authored, boolean[] berthed) {
+        if (posted.purpose() == role.quarters()) return true;
+        for (Affordance job : role.onWatch()) {
+            if (job.duty() && offers(posted, role, job, authored, berthed)) return true;
+        }
+        return false;
+    }
+
     /** Whether this site has a live job of that kind, and it is this role's. */
     private static boolean offers(JobSite site, CrewRole role, Affordance job,
                                   List<FixtureTask> authored, boolean[] berthed) {
@@ -220,31 +248,45 @@ public final class Shift {
     }
 
     /**
-     * How many people this shift can keep busy at once.
+     * How many people this shift holds at once.
      *
-     * <p>Bounded by the scarcest job <em>at the site it is posted to</em>, not
-     * the scarcest anywhere it reaches. Within one room the scarcity is real: a
-     * bay with eight berths and one terminal cannot occupy eight technicians on
-     * a rotation that includes the terminal, and pretending otherwise puts seven
-     * of them in a queue.
+     * <p>Two different questions, decided by what the posting is. A berthing
+     * holds the people who sleep in it, so its capacity is its <b>bunks</b>: a
+     * bunkroom with eight racks and two lockers quarters eight marines who
+     * sometimes wait for a locker, and reading it as quartering two would empty
+     * a ship of three quarters of her complement to avoid a queue nobody would
+     * ever notice. A workplace holds the people it can keep busy, so its
+     * capacity is its <b>scarcest job</b>: a bay with eight berths and one
+     * terminal cannot occupy eight technicians on a rotation that includes the
+     * terminal, and pretending otherwise puts seven of them in a line.
      *
-     * <p>Across sites it is not. The ship has two firing lanes and
-     * twenty-seven barracks, so counting practice against a berthing posting
-     * would cap every one of them at two marines and then send all fifty-four of
-     * them at the same two lanes. A shared job is contended by everyone who
-     * reaches it, the claim service already arbitrates that, and a member who
-     * finds the range full waits out that stop and comes round again.
+     * <p>Either way the bound is read <em>at the site posted to</em>, never the
+     * scarcest anywhere the shift reaches. The ship has two firing lanes and
+     * twenty-seven barracks, so counting practice against a berthing would cap
+     * every one of them at two marines and then send all fifty-four at the same
+     * two lanes. A shared job is contended by everyone who reaches it, the claim
+     * service already arbitrates that, and a member who finds the range full
+     * waits out that stop and comes round again.
      */
     public int capacity() {
+        if (CrewRole.isBerthing(base.purpose())) return atBase(Affordance.REST);
         int fewest = Integer.MAX_VALUE;
         for (Affordance job : order) {
-            int here = 0;
-            for (Placed placed : byJob.get(job)) {
-                if (placed.site().id() == base.id()) here++;
-            }
+            int here = atBase(job);
             if (here > 0) fewest = Math.min(fewest, here);
         }
         return fewest == Integer.MAX_VALUE ? 0 : fewest;
+    }
+
+    /** How many places for this job stand in the compartment the shift is posted to. */
+    private int atBase(Affordance job) {
+        List<Placed> places = byJob.get(job);
+        if (places == null) return 0;
+        int here = 0;
+        for (Placed placed : places) {
+            if (placed.site().id() == base.id()) here++;
+        }
+        return here;
     }
 
     /**

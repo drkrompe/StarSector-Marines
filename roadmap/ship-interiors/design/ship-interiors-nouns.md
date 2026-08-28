@@ -403,6 +403,32 @@ host can take a backdrop pass and an actor pass off one settled frame, and
 catch-up after a long absence is bounded rather than replayed — ambient work is
 a rotation with no history to lose.
 
+**There is one answer to what a room looks like.** A screen has no substitute
+scene to draw when the ship is unavailable, and a canvas that cannot reach her
+draws nothing rather than something else. A fallback room is a second model of
+the same place, and it goes stale the moment the generator changes — the two
+rooms the screens once carried were, in the end, seen only in the headless
+evidence, which is to say the evidence was of a room no player would ever stand
+in. Deck-hosted evidence is rendered from the same deck the game builds.
+
+**The company is the ship's marine complement.** The marines aboard the company
+ship are the roster, and nobody else is: they muster into her berthings by name,
+carrying the weapon and armour the armoury issued them, and every rack the roster
+cannot fill stays empty. Crewing her afterwards must find nothing left to hire
+there — a berthing topped up with generated hands would put strangers asleep in
+the player's own ship, and the panel beside the room would list twelve names
+against a compartment holding thirty. A squad away on a stationing contract is
+somewhere else in the sector and is not aboard at all.
+
+A company spreads across however many berthings the deck laid down, so a
+berthing screen frames **the selected squad's own bunkroom** rather than the
+ship's largest one. A fixed framing would show a squad list beside a room that
+squad does not sleep in, and selecting a different formation would change nothing
+on screen. Which room is theirs is read off where they were billeted, not off
+where they are standing: half a watch is at the mess or on the range at any
+moment, and a camera following current positions would swing away from the room
+the moment somebody went to dinner.
+
 Threat policy is a parameter of the route and a home deck's crew yield only to
 **hostiles**. Yielding to any combatant sounds safer and is wrong here: the
 machines a technician services are armed, so the crew of a bay would flee the
