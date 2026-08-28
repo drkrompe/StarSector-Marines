@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.smoke.SmokeFieldService;
+import com.dillon.starsectormarines.battle.contact.CloseContactService;
 import com.dillon.starsectormarines.battle.satchel.SatchelChargeService;
 import com.dillon.starsectormarines.battle.grenade.FragGrenadeService;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
@@ -60,6 +61,9 @@ public interface BattleView {
 
     /** Reusable contact-demolition reservations and armed target attachments. */
     SatchelChargeService satchelCharges();
+
+    /** Close-contact commitments and the authored breach points a cutter may work. */
+    CloseContactService closeContact();
 
     /** Committed fragmentation-grenade landing footprints. */
     FragGrenadeService fragGrenades();
