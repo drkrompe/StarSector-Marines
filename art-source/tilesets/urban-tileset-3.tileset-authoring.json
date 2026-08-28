@@ -1,0 +1,9 @@
+{
+  "sheet": "art-source/tilesets/urban-tileset-3.raw.png",
+  "sheetName": "urban-tileset-3",
+  "idPrefix": "doodad.urban3",
+  "cellPx": 60,
+  "alphaMin": 40,
+  "gridCell": 309,
+  "note": "Not a straight ingest, for the same reason as nature-tiles: a 7-frame horizontal strip with non-square frames (raw about 309x726, shipped 400x60 overall) that loads as a sliced frame-indexed sheet rather than col/row doodads. It already ships as a hand-written tileset built by art-source/tilesets/normalize_tilesets.py. Exporting over it would rewrite the ids and coordinates that GenMappingRegistry references, so treat this as a sheet to inspect or adopt deliberately, not to re-export casually. Listed so the sheet is accounted for."
+}
