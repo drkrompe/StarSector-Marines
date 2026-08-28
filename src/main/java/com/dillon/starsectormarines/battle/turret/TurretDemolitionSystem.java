@@ -69,7 +69,11 @@ public final class TurretDemolitionSystem {
         // time this drains, so its Group-C cell accessors are fail-loud.
         int cx = event.cellX();
         int cy = event.cellY();
-        mapEditor.flipCellToRubble(cx, cy);
+        // Only a turret that actually sealed its cell leaves a hole behind. A
+        // carrier-placed emplacement stood on ordinary walkable floor, so
+        // flipping its cell would open authored edges under existing paths to
+        // undo a seal that was never applied.
+        if (mapEditor.isCellSealed(cx, cy)) mapEditor.flipCellToRubble(cx, cy);
         // Mount cell keeps smoking for a while so the player can see the
         // wreck is dead-and-cooling rather than just "gone".
         effects.spawnSmokingWreck(cx, cy);

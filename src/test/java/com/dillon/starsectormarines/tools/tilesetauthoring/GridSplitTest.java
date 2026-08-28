@@ -2,11 +2,13 @@ package com.dillon.starsectormarines.tools.tilesetauthoring;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -201,5 +203,84 @@ class GridSplitTest {
 
         assertEquals(109, doc.cellPxX(2172));
         assertEquals(724, doc.cellPxY(724), "the two axes are not one number");
+    }
+
+    @Test
+    void aMeasuredPitchIsTheCellSizeRatherThanTheCanvasDivision() {
+        TilesetDocument doc = new TilesetDocument();
+        doc.gridCols = 10;
+        doc.gridRows = 10;
+        doc.setCut(GridCut.dividing(1254, 1254, 10, 10).withColumnAxis(8.5, 123.23));
+
+        assertEquals(123, doc.cellPxX(1254), "the cell is the size the art drew it");
+        assertEquals(125, doc.cellPxY(1254), "the unmeasured axis still divides the canvas");
+    }
+
+    @Test
+    void aPlacedCutStartsWhereItIsToldAndStillTilesWithoutGaps() {
+        // The bug: dividing 1254 by ten puts the boundaries 125.4 apart from
+        // zero, while the art's are 123.23 apart from 8.5.
+        GridCut cut = new GridCut(10, 10, 8.5, 123.23, 8.5, 123.23);
+
+        List<SheetSlicer.Piece> parts = SheetSlicer.splitOnGrid(cut);
+
+        assertEquals(100, parts.size());
+        assertEquals(9, parts.get(0).x(), "the grid starts inside the margin, not at zero");
+        for (int row = 0; row < 10; row++) {
+            for (int col = 0; col + 1 < 10; col++) {
+                assertEquals(parts.get(row * 10 + col).right() + 1,
+                        parts.get(row * 10 + col + 1).x(),
+                        "no gap or overlap between columns");
+            }
+        }
+        assertEquals(1241, parts.get(99).right() + 1,
+                "the margin past the last line is outside the grid, which is what a margin is");
+    }
+
+    @Test
+    void aCutIsNotADivisionOfTheCanvasOnceItHasBeenPlaced() {
+        assertTrue(GridCut.dividing(1254, 1254, 10, 10).isDivisionOf(1254, 1254));
+        assertFalse(GridCut.dividing(1254, 1254, 10, 10)
+                .withColumnAxis(8.5, 123.23).isDivisionOf(1254, 1254));
+    }
+
+    @Test
+    void reCuttingMovesTheCellsAndKeepsEverythingWrittenOnThem() {
+        // Ids are positional and block membership lives on the entry, so a
+        // re-cut recomputes rectangles. Going back through the slicer would
+        // destroy both, which is why re-slicing a cut plate is refused.
+        List<TilesetExport.Entry> cells = new ArrayList<>(cells(3, 3));
+        cells.get(4).blockId = "urban.wall";
+        cells.get(4).slot = "center";
+        cells.get(4).note = "the wall's interior";
+        TilesetExport.Entry prop = new TilesetExport.Entry(plate(10, 10), "doodad.urban.crate");
+        cells.add(prop);
+
+        TilesetOperations.Recut recut = TilesetOperations.recut(
+                cells, "doodad.urban", new GridCut(3, 3, 8.5, 123.23, 8.5, 123.23));
+
+        assertEquals(9, recut.moved());
+        assertEquals(9, recut.shifted());
+        assertEquals(List.of(), recut.outside());
+        assertEquals("urban.wall", cells.get(4).blockId, "membership is on the entry, not the cut");
+        assertEquals("center", cells.get(4).slot);
+        assertEquals("the wall's interior", cells.get(4).note);
+        assertEquals("doodad.urban.c1r1", cells.get(4).id, "a positional id is stable across a re-cut");
+        assertEquals(new SheetSlicer.Piece(132, 132, 123, 123), cells.get(4).piece);
+        assertEquals(plate(10, 10), prop.piece, "a piece that is not a cut cell is left alone");
+    }
+
+    @Test
+    void aCellOutsideANarrowedCutIsReportedRatherThanMoved() {
+        List<TilesetExport.Entry> cells = new ArrayList<>(cells(3, 3));
+
+        TilesetOperations.Recut recut = TilesetOperations.recut(
+                cells, "doodad.urban", new GridCut(2, 2, 0, 100, 0, 100));
+
+        assertEquals(4, recut.moved());
+        assertEquals(List.of("doodad.urban.c2r0", "doodad.urban.c2r1",
+                        "doodad.urban.c0r2", "doodad.urban.c1r2", "doodad.urban.c2r2"),
+                recut.outside(),
+                "shrinking the stated count is a decision, so a re-cut reports it and stops");
     }
 }

@@ -22,7 +22,8 @@ public record SpecialEquipmentDef(
         SpecialEquipmentPresentationDef presentation,
         SmokeGrenadeSpec smokeGrenadeSpec,
         SatchelChargeSpec satchelChargeSpec,
-        CloseContactSpec closeContactSpec) implements Serializable {
+        CloseContactSpec closeContactSpec,
+        DeployableEmplacementSpec deployableEmplacementSpec) implements Serializable {
 
     /** Parses one entry from {@code *.equipment.json}; malformed required data fails load. */
     public static SpecialEquipmentDef parse(JSONObject json) throws JSONException {
@@ -57,6 +58,7 @@ public record SpecialEquipmentDef(
         SmokeGrenadeSpec smoke = null;
         SatchelChargeSpec satchel = null;
         CloseContactSpec closeContact = null;
+        DeployableEmplacementSpec deployable = null;
         switch (activation) {
             case DIRECT_EXPLOSIVE, DIRECT_PRECISION -> {
                 if (weaponId == null) {
@@ -102,6 +104,20 @@ public record SpecialEquipmentDef(
                             + "' requires carrier and deployed presentation recipes");
                 }
             }
+            case UTILITY_DEPLOYABLE -> {
+                requireNoWeapon(weaponId, id);
+                requirePolicy(aiPolicy, SpecialAiPolicy.AREA_DENIAL_EMPLACEMENT, id);
+                deployable = parseDeployable(activationJson, id);
+                if (resourceMode != SpecialResourceMode.AMMUNITION) {
+                    throw new JSONException("Deployable equipment '" + id
+                            + "' must use the ammunition resource mode — a placement"
+                            + " spends hardware the marine physically carried");
+                }
+                if (presentation.carrierLayer() == null) {
+                    throw new JSONException("Deployable equipment '" + id
+                            + "' requires a carrier presentation recipe");
+                }
+            }
             case CLOSE_CONTACT -> {
                 if (weaponId == null) {
                     throw new JSONException("Weapon-like special equipment '" + id
@@ -138,7 +154,8 @@ public record SpecialEquipmentDef(
                 presentation,
                 smoke,
                 satchel,
-                closeContact);
+                closeContact,
+                deployable);
     }
 
     /** True when this item acts only from honest physical contact. */
@@ -176,6 +193,7 @@ public record SpecialEquipmentDef(
     }
 
     public float aimDuration() {
+        if (deployableEmplacementSpec != null) return deployableEmplacementSpec.deployDuration();
         if (smokeGrenadeSpec != null) return smokeGrenadeSpec.throwDuration();
         if (satchelChargeSpec != null) return satchelChargeSpec.plantDuration();
         if (closeContactSpec != null) return closeContactSpec.channelSeconds();
@@ -224,6 +242,14 @@ public record SpecialEquipmentDef(
                 positive(activation, "blastRadius", id),
                 positive(activation, "damage", id),
                 positive(activation, "penetration", id));
+    }
+
+    private static DeployableEmplacementSpec parseDeployable(JSONObject activation, String id)
+            throws JSONException {
+        return new DeployableEmplacementSpec(
+                requireText(activation, "structureId", id),
+                positive(activation, "deployDuration", id),
+                positive(activation, "lifetimeSeconds", id));
     }
 
     private static CloseContactSpec parseCloseContact(JSONObject activation, JSONObject resource,

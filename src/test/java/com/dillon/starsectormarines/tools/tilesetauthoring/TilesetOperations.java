@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
@@ -228,6 +229,28 @@ public final class TilesetOperations {
     public static List<TilesetExport.Entry> splitOnGrid(List<TilesetExport.Entry> entries,
                                                         Predicate<TilesetExport.Entry> selected,
                                                         String idPrefix, int cols, int rows) {
+        return splitOnGrid(entries, selected, idPrefix, null, cols, rows);
+    }
+
+    /**
+     * Cut the selected entries on a placed grid rather than by dividing them.
+     *
+     * <p>A measured cut is absolute: it says where the art's own grid lines fall
+     * on the sheet, so where the selected plate happens to sit no longer enters
+     * into it. That is the point — a plate found by alpha is bounded by its
+     * content, and its content stops short of the margin the grid actually
+     * starts in.
+     */
+    public static List<TilesetExport.Entry> splitOnGrid(List<TilesetExport.Entry> entries,
+                                                        Predicate<TilesetExport.Entry> selected,
+                                                        String idPrefix, GridCut cut) {
+        return splitOnGrid(entries, selected, idPrefix, cut, cut.cols(), cut.rows());
+    }
+
+    private static List<TilesetExport.Entry> splitOnGrid(List<TilesetExport.Entry> entries,
+                                                         Predicate<TilesetExport.Entry> selected,
+                                                         String idPrefix, GridCut cut,
+                                                         int cols, int rows) {
         Set<String> taken = new LinkedHashSet<>();
         for (TilesetExport.Entry entry : entries) {
             if (!selected.test(entry)) taken.add(entry.id);
@@ -239,8 +262,11 @@ public final class TilesetOperations {
                 replaced.add(entry);
                 continue;
             }
+            List<SheetSlicer.Piece> parts = cut != null
+                    ? SheetSlicer.splitOnGrid(cut)
+                    : SheetSlicer.splitOnGrid(entry.piece, cols, rows);
             int part = 0;
-            for (SheetSlicer.Piece piece : SheetSlicer.splitOnGrid(entry.piece, cols, rows)) {
+            for (SheetSlicer.Piece piece : parts) {
                 String id = gridId(idPrefix, part % cols, part / cols);
                 part++;
                 if (!taken.add(id)) collisions.add(id);
@@ -253,6 +279,67 @@ public final class TilesetOperations {
         }
         if (!collisions.isEmpty()) throw new IllegalArgumentException(collisionMessage(collisions));
         return replaced;
+    }
+
+    /**
+     * What moving a sheet's cells onto a new cut did.
+     *
+     * @param moved    how many cut cells were placed again
+     * @param shifted  how many of those actually changed rectangle
+     * @param maxShift the largest distance any cell edge travelled, in pixels
+     * @param outside  cells whose address is no longer inside the cut, left where
+     *                 they were — a stated count that shrank, which is a decision
+     *                 rather than a placement and is not this operation's to make
+     */
+    public record Recut(int moved, int shifted, int maxShift, List<String> outside) {
+
+        public String summary() {
+            String text = moved + " cells re-cut, " + shifted + " moved, worst edge shifted "
+                    + maxShift + " px";
+            return outside.isEmpty() ? text
+                    : text + "; " + outside.size() + " outside the cut and left alone: "
+                            + String.join(", ", outside);
+        }
+    }
+
+    /**
+     * Place a plate's cells again on a new cut, keeping everything they carry.
+     *
+     * <p><b>Re-cutting recomputes rectangles; it is not slicing followed by
+     * splitting.</b> A cut cell's id is its address on the plate and its block
+     * membership lives on the entry, so going back through the slicer would
+     * destroy both — which is exactly why re-slicing a cut plate is refused. This
+     * moves each cell that already exists onto the rectangle its address now
+     * names and touches nothing else about it.
+     */
+    public static Recut recut(List<TilesetExport.Entry> entries, String idPrefix, GridCut cut) {
+        Pattern address = Pattern.compile(Pattern.quote(idPrefix) + "\\.c(\\d+)r(\\d+)");
+        int moved = 0;
+        int shifted = 0;
+        int maxShift = 0;
+        List<String> outside = new ArrayList<>();
+        for (TilesetExport.Entry entry : entries) {
+            Matcher matcher = address.matcher(entry.id);
+            if (!matcher.matches()) continue;
+            int col = Integer.parseInt(matcher.group(1));
+            int row = Integer.parseInt(matcher.group(2));
+            if (col >= cut.cols() || row >= cut.rows()) {
+                outside.add(entry.id);
+                continue;
+            }
+            SheetSlicer.Piece was = entry.piece;
+            SheetSlicer.Piece now = cut.cell(col, row);
+            entry.piece = now;
+            moved++;
+            if (!was.equals(now)) {
+                shifted++;
+                maxShift = Math.max(maxShift, Math.max(
+                        Math.max(Math.abs(now.x() - was.x()), Math.abs(now.y() - was.y())),
+                        Math.max(Math.abs(now.right() - was.right()),
+                                Math.abs(now.bottom() - was.bottom()))));
+            }
+        }
+        return new Recut(moved, shifted, maxShift, List.copyOf(outside));
     }
 
     /**

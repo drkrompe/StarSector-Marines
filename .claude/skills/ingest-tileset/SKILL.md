@@ -122,6 +122,7 @@ halves are reachable from a shell, and neither needs the window:
 ```bash
 tools/authoring.sh tileset_slice '{"name":"<name>","apply":true}'
 tools/authoring.sh tileset_split_on_grid '{"name":"<name>","apply":true}'
+tools/authoring.sh tileset_fit_grid '{"name":"<name>"}'
 tools/authoring.sh tileset_set_block @block.json
 tools/authoring.sh tileset_export '{"name":"<name>"}'
 ```
@@ -144,6 +145,18 @@ and column first, so `doodad.urban.c6r1` is the seventh cell of the second row �
 which is how a row in the document is found in the picture. Pieces found by
 alpha have no grid position and are named serially instead.
 Everything that writes previews by default — pass `apply=true` to keep it.
+
+**Then check where the cut landed.** The stated layout alone can only divide the
+canvas, and generated art sits inside a margin and is rarely drawn to a pitch
+that divides its own pixel size evenly, so the cells are usually a few pixels
+out and carry slivers of their neighbours. `tileset_fit_grid` measures where the
+grid really sits and reports how many boundaries landed on a real seam in the
+art and how far those seams lie from the line through them; `apply=true` moves
+the cells onto it, keeping every id, block slot and annotation. It applies only
+the axes that measured well. **It never measures the cell count** — that is
+stated, for the reason above. An axis it refuses is a sheet whose cells do not
+meet edge to edge, or whose frames vary in width; leave the stated cut there
+rather than forcing a measurement the measurement itself disowns.
 
 `tileset_set_block` answers with what every slot it filled *means*, and reading
 that back is the point of calling it: slot names read as **"the exterior is on

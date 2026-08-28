@@ -377,6 +377,58 @@
           "phase": 0.56
         }
       }
+    },
+    {
+      "id": "special.point-defence-emplacement",
+      "catalog": {
+        "displayName": "Palisade Interceptor Pod",
+        "subtitle": "Placed, self-expiring ordnance denial",
+        "description": "A Gilead voidwright shipping-lane pod cut down for ground work: a cluster gun on a folding tripod that shreds incoming warheads and nothing else. It carries the rounds you brought, runs its cell flat, and can be shot like anything else standing in the open."
+      },
+      "activation": {
+        "type": "utility-deployable",
+        "structureId": "structure.deployable-point-defence",
+        "deployDuration": 1.4,
+        "lifetimeSeconds": 45.0
+      },
+      "resource": {
+        "mode": "ammunition",
+        "startingAmmo": 1
+      },
+      "ai": {
+        "policy": "area-denial-emplacement"
+      },
+      "presentation": {
+        "armoryIcon": "graphics/ui/armory/special-point-defence-pod.png",
+        "aimSprite": null,
+        "usePose": "plant",
+        "carrierLayer": {
+          "sprite": "graphics/ui/armory/special-point-defence-pod.png",
+          "widthShoulders": 0.36,
+          "heightShoulders": 0.36,
+          "pivot": [0.5, 0.5],
+          "carried": {
+            "offsetShoulders": [-0.26, -0.06],
+            "angleDegrees": -12.0,
+            "occlusion": "under-body"
+          },
+          "using": {
+            "offsetShoulders": [0.0, 0.3],
+            "angleDegrees": 0.0,
+            "occlusion": "over-body"
+          },
+          "visibleWhileCarried": true,
+          "replacePrimaryWhileUsing": true
+        },
+        "layerClips": {
+          "variant": "satchel",
+          "using": "planting"
+        },
+        "preview": {
+          "state": "using",
+          "phase": 0.56
+        }
+      }
     }
   ]
 }
