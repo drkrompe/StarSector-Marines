@@ -46,9 +46,9 @@ public final class LabelLeavesStage implements GenStage {
     /** Minimum short footprint dimension for a multi-room civic headquarters. */
     public static final int CIVIC_MIN_SHORT_DIM = 11;
     /** Minimum long outer lot dimension for a courtyard-facing apartment seed. */
-    public static final int GATED_HOUSING_MIN_LONG_DIM = 14;
+    public static final int GATED_HOUSING_MIN_LONG_DIM = 16;
     /** Minimum short outer lot dimension for a courtyard-facing apartment seed. */
-    public static final int GATED_HOUSING_MIN_SHORT_DIM = 12;
+    public static final int GATED_HOUSING_MIN_SHORT_DIM = 14;
     /** Minimum long footprint for the factory seed in an industrial compound. */
     public static final int INDUSTRIAL_COMPOUND_MIN_LONG_DIM = 15;
     /** Minimum short footprint for the factory seed in an industrial compound. */

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.nav.zone;
 
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.ArrayList;
@@ -55,10 +56,10 @@ public final class PortalDetector {
             int y = idx / width;
 
             int seenCount = 0;
-            if (x + 1 < width)  seenCount = emitIfNew(grid, idx + 1,     cellToZoneId, doorwayZone, idx, portals, seenZones, seenCount);
-            if (x - 1 >= 0)     seenCount = emitIfNew(grid, idx - 1,     cellToZoneId, doorwayZone, idx, portals, seenZones, seenCount);
-            if (y + 1 < height) seenCount = emitIfNew(grid, idx + width, cellToZoneId, doorwayZone, idx, portals, seenZones, seenCount);
-            if (y - 1 >= 0)     seenCount = emitIfNew(grid, idx - width, cellToZoneId, doorwayZone, idx, portals, seenZones, seenCount);
+            if (x + 1 < width)  seenCount = emitIfNew(grid, x, y, Direction.E, idx + 1,     cellToZoneId, doorwayZone, idx, portals, seenZones, seenCount);
+            if (x - 1 >= 0)     seenCount = emitIfNew(grid, x, y, Direction.W, idx - 1,     cellToZoneId, doorwayZone, idx, portals, seenZones, seenCount);
+            if (y + 1 < height) seenCount = emitIfNew(grid, x, y, Direction.N, idx + width, cellToZoneId, doorwayZone, idx, portals, seenZones, seenCount);
+            if (y - 1 >= 0)     seenCount = emitIfNew(grid, x, y, Direction.S, idx - width, cellToZoneId, doorwayZone, idx, portals, seenZones, seenCount);
         }
 
         return portals;
@@ -82,10 +83,13 @@ public final class PortalDetector {
      * {@code doorwayZone}, appends one portal to {@code out} and returns the
      * incremented seen-count. Otherwise returns {@code seenCount} unchanged.
      */
-    private static int emitIfNew(NavigationGrid grid, int neighborIdx, int[] cellToZoneId,
+    private static int emitIfNew(NavigationGrid grid, int doorwayX, int doorwayY,
+                                 Direction direction, int neighborIdx,
+                                 int[] cellToZoneId,
                                  int doorwayZone, int doorwayCellIdx, List<Portal> out,
                                  int[] seenZones, int seenCount) {
         if (!grid.isWalkableAt(neighborIdx)) return seenCount;
+        if (!grid.isSharedEdgePassable(doorwayX, doorwayY, direction)) return seenCount;
         int neighborZone = cellToZoneId[neighborIdx];
         if (neighborZone < 0 || neighborZone == doorwayZone) return seenCount;
         for (int i = 0; i < seenCount; i++) {

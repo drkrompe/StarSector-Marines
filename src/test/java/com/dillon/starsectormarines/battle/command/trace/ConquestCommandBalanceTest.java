@@ -66,8 +66,8 @@ class ConquestCommandBalanceTest {
                 LoadedFixture loaded = load(spec);
                 BattleFixture fixture = loaded.fixture;
                 String runId = reportId(spec.id, spec.external, loaded.sha256);
-                RunResult first = run(fixture, maxTicks);
-                RunResult second = run(fixture, maxTicks);
+                RunResult first = run(fixture, maxTicks, staging, runId);
+                RunResult second = run(fixture, maxTicks, null, runId);
                 assertEquals(first.trace, second.trace,
                         "same fixture must produce byte-stable command events: "
                                 + runId);
@@ -99,13 +99,17 @@ class ConquestCommandBalanceTest {
                 + output.resolve("summary.md").toAbsolutePath());
     }
 
-    private static RunResult run(BattleFixture fixture, int maxTicks)
+    private static RunResult run(BattleFixture fixture, int maxTicks,
+                                 Path visualRoot, String runId)
             throws Exception {
-        try (BattleSimulation sim = fixture.build()) {
+        try (BattleSimulation sim = fixture.build();
+             CommanderEvidenceCapture capture = CommanderEvidenceCapture.open(
+                     visualRoot, runId, sim)) {
             sim.setCommandTraceEnabled(true, fixture.kind());
             while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                 int before = sim.getSimTickIndex();
                 sim.advance(BattleSimulation.TICK_DT);
+                capture.afterAdvance();
                 assertEquals(before + 1, sim.getSimTickIndex(),
                         "headless runner must advance exactly one fixed tick");
             }

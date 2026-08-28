@@ -31,9 +31,9 @@ class GatedHousingFillerTest {
 
     private static final int W = 48;
     private static final int H = 38;
-    private static final BlockLeaf MAIN = new BlockLeaf(2, 2, 17, 15, false);
-    private static final BlockLeaf SECONDARY = new BlockLeaf(22, 2, 36, 15, false);
-    private static final BlockLeaf OUTBUILDING = new BlockLeaf(2, 20, 13, 31, false);
+    private static final BlockLeaf MAIN = new BlockLeaf(2, 2, 19, 17, false);
+    private static final BlockLeaf SECONDARY = new BlockLeaf(24, 2, 41, 17, false);
+    private static final BlockLeaf OUTBUILDING = new BlockLeaf(2, 22, 13, 33, false);
 
     @Test
     void mainGateFitsTwoMarinesAbreast() {
@@ -46,10 +46,8 @@ class GatedHousingFillerTest {
         BlockLeaf mainInset = inset(MAIN);
         BlockLeaf secondaryInset = inset(SECONDARY);
 
-        assertTrue(hasDoorway(fixture.grid, mainInset, BuildingPlacement.Side.BOTTOM));
-        assertTrue(hasDoorway(fixture.grid, mainInset, BuildingPlacement.Side.TOP));
-        assertTrue(hasDoorway(fixture.grid, secondaryInset, BuildingPlacement.Side.LEFT));
-        assertTrue(hasDoorway(fixture.grid, secondaryInset, BuildingPlacement.Side.RIGHT));
+        assertTrue(hasOpposedDoorways(fixture.grid, mainInset));
+        assertTrue(hasOpposedDoorways(fixture.grid, secondaryInset));
         assertEquals(2, perimeterDoorwayCount(fixture.grid, mainInset));
         assertEquals(2, perimeterDoorwayCount(fixture.grid, secondaryInset));
 
@@ -111,7 +109,15 @@ class GatedHousingFillerTest {
     }
 
     @Test
-    void perimeterWallsReceiveShootThroughApertures() {
+    void buildingsRetainTwoCellCourtyardAprons() {
+        Fixture fixture = generate(117L);
+        for (BlockLeaf member : List.of(MAIN, SECONDARY, OUTBUILDING)) {
+            assertApron(fixture, member, CellTopology.GroundKind.COURTYARD);
+        }
+    }
+
+    @Test
+    void perimeterWallsReceivePairedShootThroughApertures() {
         Fixture fixture = generate(117L);
         int windows = 0;
         for (int y = 0; y < H; y++) {
@@ -122,10 +128,13 @@ class GatedHousingFillerTest {
                 assertFalse(fixture.grid.isWalkable(x, y));
                 assertTrue(fixture.grid.isSeeThrough(x, y));
                 assertFalse(fixture.grid.isDoorway(x, y));
+                assertTrue(hasAdjacentCompoundWindow(fixture.grid, fixture.topology, x, y),
+                        "compound aperture must have an adjacent firing cell");
             }
         }
-        assertTrue(windows >= 2,
-                "residential perimeter should offer several firing points");
+        assertTrue(windows >= 4,
+                "residential perimeter should offer several firing pairs");
+        assertEquals(0, windows % 2, "compound apertures are emitted as pairs");
     }
 
     @Test
@@ -166,13 +175,13 @@ class GatedHousingFillerTest {
 
         boolean[][] road = new boolean[W][H];
         boolean[][] reserved = new boolean[W][H];
-        for (int y = 2; y <= 15; y++) {
-            for (int x = 18; x <= 21; x++) road[x][y] = true;
-            reserved[20][y] = true;
+        for (int y = 2; y <= 17; y++) {
+            for (int x = 20; x <= 23; x++) road[x][y] = true;
+            reserved[22][y] = true;
         }
-        for (int x = 2; x <= 17; x++) {
-            for (int y = 16; y <= 19; y++) road[x][y] = true;
-            reserved[x][18] = true;
+        for (int x = 2; x <= 19; x++) {
+            for (int y = 18; y <= 21; y++) road[x][y] = true;
+            reserved[x][20] = true;
         }
         for (int y = 5; y <= 12; y++) {
             road[0][y] = true;
@@ -194,8 +203,37 @@ class GatedHousingFillerTest {
     }
 
     private static BlockLeaf inset(BlockLeaf leaf) {
-        return new BlockLeaf(leaf.left + 1, leaf.top + 1,
-                leaf.right - 1, leaf.bottom - 1, false);
+        return new BlockLeaf(leaf.left + GatedHousingFiller.BUILDING_SETBACK,
+                leaf.top + GatedHousingFiller.BUILDING_SETBACK,
+                leaf.right - GatedHousingFiller.BUILDING_SETBACK,
+                leaf.bottom - GatedHousingFiller.BUILDING_SETBACK, false);
+    }
+
+    private static void assertApron(Fixture fixture, BlockLeaf member,
+                                    CellTopology.GroundKind ground) {
+        BlockLeaf building = inset(member);
+        for (int y = member.top; y <= member.bottom; y++) {
+            for (int x = member.left; x <= member.right; x++) {
+                if (building.contains(x, y)) continue;
+                assertEquals(ground, fixture.topology.getGroundKind(x, y),
+                        "compound apron ground at " + x + "," + y);
+                assertFalse(fixture.topology.isWall(x, y),
+                        "compound apron cannot contain a structural wall at " + x + "," + y);
+            }
+        }
+    }
+
+    private static boolean hasAdjacentCompoundWindow(NavigationGrid grid,
+                                                       CellTopology topology,
+                                                       int x, int y) {
+        int[][] directions = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        for (int[] direction : directions) {
+            int nx = x + direction[0];
+            int ny = y + direction[1];
+            if (grid.inBounds(nx, ny) && grid.getWallHp(nx, ny) > 0
+                    && topology.isWindow(nx, ny)) return true;
+        }
+        return false;
     }
 
     private static boolean hasDoorway(NavigationGrid grid, BlockLeaf leaf,
@@ -212,6 +250,13 @@ class GatedHousingFillerTest {
             if (grid.isDoorway(x, y)) return true;
         }
         return false;
+    }
+
+    private static boolean hasOpposedDoorways(NavigationGrid grid, BlockLeaf leaf) {
+        return (hasDoorway(grid, leaf, BuildingPlacement.Side.TOP)
+                && hasDoorway(grid, leaf, BuildingPlacement.Side.BOTTOM)
+                || hasDoorway(grid, leaf, BuildingPlacement.Side.LEFT)
+                && hasDoorway(grid, leaf, BuildingPlacement.Side.RIGHT));
     }
 
     private static int perimeterDoorwayCount(NavigationGrid grid, BlockLeaf leaf) {

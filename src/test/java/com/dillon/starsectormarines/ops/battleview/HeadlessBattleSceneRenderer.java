@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.marine.EquipmentLayerDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.render2d.DrawCommand;
+import com.dillon.starsectormarines.render2d.PolyMesh;
 import com.dillon.starsectormarines.ui.retained.CanvasBlend;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 import com.dillon.starsectormarines.ui.retained.CanvasHostPass;
@@ -35,13 +36,25 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
 
     private final HeadlessBattleSprites sprites;
     private final BattleRenderer renderer;
+    private final boolean skipUnsupportedCommands;
 
     public HeadlessBattleSceneRenderer(Path modRoot) {
+        this(modRoot, false);
+    }
+
+    /**
+     * @param skipUnsupportedCommands omit GL-owned decorative commands while
+     *        retaining the command-driven world; ordinary snapshot tests keep
+     *        fail-loud behavior by using the one-argument constructor
+     */
+    public HeadlessBattleSceneRenderer(Path modRoot,
+                                       boolean skipUnsupportedCommands) {
         try {
             HeadlessArmoryPreviewRenderer.installCatalogs(modRoot);
             installTileCatalogs(modRoot);
             sprites = new HeadlessBattleSprites(modRoot);
             renderer = new BattleRenderer(sprites);
+            this.skipUnsupportedCommands = skipUnsupportedCommands;
         } catch (Exception failure) {
             throw new IllegalStateException("Could not prepare headless battle assets", failure);
         }
@@ -99,8 +112,31 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
             case LINE -> context.line(command.centerX(),
                     surfaceHeight - command.centerY(), command.width(),
                     surfaceHeight - command.height(), tint, command.angleDegrees());
-            case RIBBON, POLY, CUSTOM -> throw new IllegalStateException(
-                    "Embedded headless scene emitted unsupported command " + command.kind());
+            case POLY -> drawPolygon(context, surfaceHeight,
+                    command.polygon());
+            case RIBBON, CUSTOM -> {
+                if (!skipUnsupportedCommands) {
+                    throw new IllegalStateException(
+                            "Embedded headless scene emitted unsupported command "
+                                    + command.kind());
+                }
+            }
+        }
+    }
+
+    private static void drawPolygon(CanvasContext context, float surfaceHeight,
+                                    PolyMesh mesh) {
+        if (mesh == null) return;
+        for (int quad = 0; quad < mesh.quadCount(); quad++) {
+            Color color = new Color(clamp(mesh.red(quad)),
+                    clamp(mesh.green(quad)), clamp(mesh.blue(quad)),
+                    clamp(mesh.alpha(quad)));
+            context.fillQuad(
+                    mesh.vertexX(quad, 0), surfaceHeight - mesh.vertexY(quad, 0),
+                    mesh.vertexX(quad, 1), surfaceHeight - mesh.vertexY(quad, 1),
+                    mesh.vertexX(quad, 2), surfaceHeight - mesh.vertexY(quad, 2),
+                    mesh.vertexX(quad, 3), surfaceHeight - mesh.vertexY(quad, 3),
+                    color);
         }
     }
 

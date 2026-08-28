@@ -102,7 +102,12 @@ Do not run builds or leave generated task files there.
   arguments are currently `conquest`, `sabotage`, `assault`, `raid`, and `extraction`; later mission harnesses
   extend that argument instead of creating another Gradle task. The run is
   opt-in and excluded from ordinary `test` / `build`. Use `-PmaxTicks=9000` or
-  `-Pfixture=C:\path\to\fixture.json` for explicitly ad-hoc evidence.
+  `-Pfixture=C:\path\to\fixture.json` for explicitly ad-hoc evidence. Add
+  `-PsnapshotEveryTicks=300` to render neutral-observer PNG frames from the
+  first replay and assemble `visuals/<fixture>/review.gif`; the frames add
+  cyan marine, red defender, and yellow civilian markers for whole-map review. Optional
+  `-PgifFrameDelayMillis=125`, `-PsnapshotWidth=960`, and
+  `-PsnapshotHeight=640` arguments control review playback and output size.
 - `gradlew.bat createSnapshots` → every deterministic visual-evidence suite under
   `build/snapshots/` without launching Starsector or creating an OpenGL context. Select
   suites with `-Psnapshot=armory,durability-bars,layers,turrets,ui` (default `all`) and redirect the

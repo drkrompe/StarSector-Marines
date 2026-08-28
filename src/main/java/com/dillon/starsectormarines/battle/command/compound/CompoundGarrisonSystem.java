@@ -112,7 +112,7 @@ public final class CompoundGarrisonSystem {
      * Progressive LZ search:
      * <ol>
      *   <li>Parade ground — BFS from the building bbox exterior rim for a
-     *       3x3 clear patch. The 1-cell yard between the building shell and
+     *       3x3 clear patch. The two-cell apron between the building shell and
      *       the compound perimeter wall is ideal open ground.</li>
      *   <li>Gate cells — scan the bbox perimeter for doorway-flagged cells
      *       (compound gates punched by {@code MilitaryBaseFiller}), BFS from
@@ -123,7 +123,7 @@ public final class CompoundGarrisonSystem {
      */
     static int[] findCompoundLz(NavigationGrid grid, TacticalNode node) {
         // 1. Parade-ground scan: seed BFS from walkable cells just outside
-        //    the building bbox (the 1-cell rim MilitaryBaseFiller paints as
+        //    the building bbox (the two-cell apron MilitaryBaseFiller paints as
         //    STONE parade ground).
         List<int[]> perimeterSeeds = collectBboxExterior(grid, node);
         int[] lz = bfsFor3x3(grid, perimeterSeeds, LZ_SCAN_RADIUS);
