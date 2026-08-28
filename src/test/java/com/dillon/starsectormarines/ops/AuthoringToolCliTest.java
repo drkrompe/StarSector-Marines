@@ -133,8 +133,22 @@ class AuthoringToolCliTest {
     }
 
     @Test
-    void aToolTakesOneArgumentObject() {
+    void aShellThatSplitTheJsonIsToldSoRatherThanBlamedForAnExtraArgument() {
+        // What arrives when a shell breaks one object at its spaces. Rejoining
+        // it would parse, and accepting that is how a collapsed space inside a
+        // string becomes a value nobody typed - so it is refused, with the
+        // cause named.
+        assertEquals(USAGE, run("tileset_measure", "{\"sheet\":", "\"a\"}"));
+        String reported = stderr();
+        assertTrue(reported.contains("split one JSON object"), reported);
+        assertTrue(reported.contains("splatting operator"), reported);
+    }
+
+    @Test
+    void genuinelySeveralArgumentsGetThePlainComplaint() {
         assertEquals(USAGE, run("tileset_list", "{}", "{}"));
-        assertTrue(stderr().contains("one JSON object"), stderr());
+        String reported = stderr();
+        assertTrue(reported.contains("expected one JSON object but got 2"), reported);
+        assertFalse(reported.contains("split one JSON object"), reported);
     }
 }
