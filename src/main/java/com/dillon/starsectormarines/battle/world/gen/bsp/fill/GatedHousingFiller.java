@@ -89,9 +89,9 @@ public final class GatedHousingFiller implements CompoundFiller {
         carveSubBuildings(compound, courtyardCells, grid, topology, doodads, pois, rng);
         paintWallRing(inCompound, roadReservation, grid, topology);
         punchSingleGate(compound, inCompound, roadCells, grid, topology, rng);
-        CompoundWallApertures.stamp(inCompound, grid, topology);
-        furnishCourtyard(compound, courtyardCells, roadReservation,
+        furnishCourtyard(compound, roadReservation,
                 grid, topology, doodads, rng);
+        CompoundWallApertures.stamp(inCompound, grid, topology);
     }
 
     private void markBridgedRoads(Compound compound, boolean[][] roadCells, boolean[][] roadReservation,
@@ -260,9 +260,14 @@ public final class GatedHousingFiller implements CompoundFiller {
         }
     }
 
-    /** Sparse raised planters create courtyard cover without narrowing door or vehicle approaches. */
+    /**
+     * Raised planters create sparse tactical cover and benches turn the full
+     * two-cell apron into a lived-in shared courtyard. Planters are physical;
+     * benches are visual/cover doodads so the parallel circulation lane stays
+     * open. This runs before wall apertures so blocked planter cells cannot be
+     * selected as the firing space behind a shoot-through.
+     */
     private void furnishCourtyard(Compound compound,
-                                  boolean[][] courtyard,
                                   boolean[][] roadReservation,
                                   NavigationGrid grid,
                                   CellTopology topology,
@@ -273,25 +278,20 @@ public final class GatedHousingFiller implements CompoundFiller {
              y <= Math.min(grid.getHeight() - 2, compound.bottom + 1); y++) {
             for (int x = Math.max(1, compound.left - 1);
                  x <= Math.min(grid.getWidth() - 2, compound.right + 1); x++) {
-                if (!courtyard[x][y] || roadReservation[x][y]) continue;
+                if (topology.getGroundKind(x, y) != YARD_GROUND
+                        || roadReservation[x][y]) continue;
                 if (!grid.isWalkable(x, y) || grid.isDoorway(x, y)) continue;
-                if (!clearPlanterEnvelope(grid, x, y)) continue;
+                if (nearDoorway(grid, x, y, 2) || doodadAt(doodads, x, y)) continue;
+                if (!clearPlanterCell(grid, x, y)) continue;
                 candidates.add(new int[]{x, y});
             }
         }
         Collections.shuffle(candidates, rng);
         List<int[]> placed = new ArrayList<>();
-        int target = Math.min(3, candidates.size());
+        int target = Math.min(5, Math.max(4, compound.members.size() + 1));
         for (int[] cell : candidates) {
             if (placed.size() >= target) break;
-            boolean near = false;
-            for (int[] prior : placed) {
-                if (Math.max(Math.abs(cell[0] - prior[0]), Math.abs(cell[1] - prior[1])) < 4) {
-                    near = true;
-                    break;
-                }
-            }
-            if (near) continue;
+            if (nearPlaced(cell, placed, 3) || !clearPlanterCell(grid, cell[0], cell[1])) continue;
             String id = rng.nextBoolean()
                     ? "doodad.residential-planter-h" : "doodad.residential-planter-v";
             DoodadDef planter = TileRegistry.installed().doodad(id);
@@ -303,16 +303,57 @@ public final class GatedHousingFiller implements CompoundFiller {
             doodads.add(new Doodad(cell[0], cell[1], planter));
             placed.add(cell);
         }
+
+        DoodadDef bench = TileRegistry.installed().doodad("doodad.desk-dam");
+        if (bench == null) throw new IllegalStateException("Missing courtyard bench doodad.desk-dam");
+        Collections.shuffle(candidates, rng);
+        int benchTarget = Math.max(2, compound.members.size() - 1);
+        int benches = 0;
+        for (int[] cell : candidates) {
+            if (benches >= benchTarget) break;
+            int x = cell[0], y = cell[1];
+            if (!grid.isWalkable(x, y) || grid.isDoorway(x, y)
+                    || roadReservation[x][y] || nearDoorway(grid, x, y, 1)) continue;
+            if (topology.getGroundKind(x, y) != YARD_GROUND
+                    || doodadAt(doodads, x, y) || nearPlaced(cell, placed, 2)) continue;
+            doodads.add(new Doodad(x, y, bench));
+            placed.add(cell);
+            benches++;
+        }
     }
 
-    private boolean clearPlanterEnvelope(NavigationGrid grid, int x, int y) {
-        for (int dy = -1; dy <= 1; dy++) {
-            for (int dx = -1; dx <= 1; dx++) {
-                if (!grid.isWalkable(x + dx, y + dy)
-                        || grid.isDoorway(x + dx, y + dy)) return false;
+    private boolean clearPlanterCell(NavigationGrid grid, int x, int y) {
+        if (!grid.isWalkable(x, y) || grid.isDoorway(x, y)) return false;
+        int open = 0;
+        if (grid.isWalkable(x + 1, y)) open++;
+        if (grid.isWalkable(x - 1, y)) open++;
+        if (grid.isWalkable(x, y + 1)) open++;
+        if (grid.isWalkable(x, y - 1)) open++;
+        return open >= 3;
+    }
+
+    private boolean nearDoorway(NavigationGrid grid, int x, int y, int radius) {
+        for (int dy = -radius; dy <= radius; dy++) {
+            for (int dx = -radius; dx <= radius; dx++) {
+                if (grid.isDoorway(x + dx, y + dy)) return true;
             }
         }
-        return true;
+        return false;
+    }
+
+    private boolean nearPlaced(int[] cell, List<int[]> placed, int spacing) {
+        for (int[] prior : placed) {
+            if (Math.max(Math.abs(cell[0] - prior[0]),
+                    Math.abs(cell[1] - prior[1])) < spacing) return true;
+        }
+        return false;
+    }
+
+    private boolean doodadAt(List<Doodad> doodads, int x, int y) {
+        for (Doodad doodad : doodads) {
+            if (doodad.occupiesCell(x, y)) return true;
+        }
+        return false;
     }
 
     private void paintWallRing(boolean[][] inCompound, boolean[][] roadReservation,

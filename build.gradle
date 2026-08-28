@@ -101,6 +101,13 @@ test {
     // so the test can find them. Same source of truth the build.gradle root
     // uses for compileOnly + deployMod (resolved at line 13).
     systemProperty 'starsectorDir', starsectorDir.absolutePath
+    // ProjectTilesetSeedsTest reads the checked-in tileset seeds at runtime, so
+    // Gradle cannot see them as inputs and happily reports UP-TO-DATE after a
+    // seed is added or edited - which silently disarms the check that every raw
+    // sheet arrives annotated. Declare them.
+    inputs.dir('art-source/tilesets')
+            .withPropertyName('tilesetSeeds')
+            .withPathSensitivity(PathSensitivity.RELATIVE)
     // Opt-in gate for the ecs-migration Phase-0 access micro-bench
     // (EcsAccessBenchTest). Off by default so the normal suite stays fast for
     // concurrent sessions; run on demand with `-Decs.bench=true`.

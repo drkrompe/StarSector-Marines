@@ -26,7 +26,6 @@ import com.dillon.starsectormarines.battle.combat.fx.SmokingWreck;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.DoodadService;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
-import com.dillon.starsectormarines.battle.vehicle.MapVehicle;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.DeathEvent;
@@ -254,7 +253,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             new com.dillon.starsectormarines.battle.command.objective.WinCheckSystem();
     /** Persistent {@link Doodad} list + per-cell/per-facing cover lookup the AI consults when scoring firing positions. Initialized in the constructor once {@link #grid} is available. */
     private final DoodadService doodadService;
-    private final List<MapVehicle> vehicles = new ArrayList<>();
     private final List<ParkedAircraft> parkedAircraft = new ArrayList<>();
     /**
      * Transient visual side-effects — persistent ground decals, smoking wrecks,
@@ -698,7 +696,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public void attachAirTurrets(long airEntityId, MountedTurret[] mounts) { requireInternalAir("attachAirTurrets"); airSystem.attachTurrets(airEntityId, mounts); }
     /** An air entity's mounted turrets (by id), or {@code null} if it carries no turret component. Read by the shuttle render pass. */
     public MountedTurret[] getAirTurretMounts(long airEntityId) { return airSystem.mountsFor(airEntityId); }
-    /** The live convoy-vehicle entity ids — walk these and read each vehicle by id via {@link #convoy()} / {@link #convoyMission(long)}. Mirrors {@link #getAirEntityIds()}; distinct from {@link #getVehicles()}, the static map-vehicle obstacles. */
+    /** The live convoy-vehicle entity ids — walk these and read each vehicle by id via {@link #convoy()} / {@link #convoyMission(long)}. Mirrors {@link #getAirEntityIds()}; distinct from the parked road vehicles, which are ordinary doodads. */
     public long[] getConvoyVehicleIds() { return groundSystem.vehicleEntityIds(); }
     /** The convoy-vehicle data owner — by-id reads of the {@code GROUND_IDENTITY} / {@code GROUND_KINEMATICS} / {@code GROUND_TURRET} / {@code VEHICLE_MISSION} columns for the render / picking / debug passes. Service-direct, not via {@link #world()} ({@code World} is deprecated for migrated state). */
     public ConvoyService convoy() { return rosterService.convoy(); }
@@ -803,8 +801,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         return doodadService.getDoodadCoverAt(x, y);
     }
     /** Parked vehicles that occupy multi-cell footprints. Cells were flagged non-walkable at setup time, so the sim doesn't need to consult this list for pathing/LOS — only the renderer does. */
-    public List<MapVehicle> getVehicles()  { return vehicles; }
-    public void addVehicle(MapVehicle v)   { vehicles.add(v); }
     public List<ParkedAircraft> getParkedAircraft() { return parkedAircraft; }
     public void addParkedAircraft(ParkedAircraft aircraft) { parkedAircraft.add(aircraft); }
     /** Persistent visual decals — bullet holes, craters, rubble. Pure render data; combat ignores them. */
