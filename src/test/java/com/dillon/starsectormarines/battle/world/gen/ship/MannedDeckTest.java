@@ -9,14 +9,9 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
-import com.dillon.starsectormarines.ops.battleview.HeadlessBattleSceneRenderer;
 import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
-import com.dillon.starsectormarines.ui.retained.headless.HeadlessUiRenderer;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,19 +32,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * it produce.
  *
  * <p>So these tests never frame anything. They man the deck, run it through the
- * ordinary fixed-step battle clock, and ask what the ship did.
+ * ordinary fixed-step battle clock, and ask what the ship did. Nothing here
+ * loads a sprite, and nothing here should: the catalogs a deck sim reads are
+ * installed for every test by {@code TileRegistryTestInstaller}, and standing a
+ * headless renderer up to get at them would drag the whole battle sprite pack
+ * into a test that draws nothing.
  */
 final class MannedDeckTest {
 
     private static final long SEED = 42L;
     private static final float TRANSPORT_ASPECT = 0.28f;
-
-    /** Constructing the headless drain installs the tile catalogs the deck sim needs. */
-    @BeforeAll
-    static void installCatalogs() {
-        Path modRoot = Paths.get("mod").toAbsolutePath().normalize();
-        new HeadlessUiRenderer(new HeadlessBattleSceneRenderer(modRoot), modRoot);
-    }
 
     /**
      * A manned deck is inhabited end to end, and stays that way once it is
