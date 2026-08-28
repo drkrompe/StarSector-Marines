@@ -4,7 +4,8 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — shipped shared-edge windows for Conquest bunkers,
+Updated: 2026-08-28 — pointed at the compound-program direction; shipped
+shared-edge windows for Conquest bunkers,
 widened compound firing aprons while preserving functional parcel members,
 added role-readable compound dressing and workstation groups, guaranteed
 standable interior anchors, and made pocket sealing yield to a compound.
@@ -66,7 +67,11 @@ adjacent cell returns the same feature. Both cells must already be walkable and
 the transition initially open: the feature divides usable space instead of
 smuggling a cell wall into edge metadata. Its profile defines sight and direct-
 projectile policy, directional cover and vertical catch, structure, and
-appearance together. The first profile is a transparent firing **window**: it
+appearance together. Canonicalization also retains the adjacent authoring cell
+whose structure owns the feature. That structural side orients presentation
+today and can resolve through the map's building registry for later destruction
+objectives without turning visual thickness into collision. The first profile
+is a transparent firing **window**: it
 blocks movement, passes sight and direct rounds, supplies low cover to both
 adjacent positions, and can be broken by structural blast damage. Destruction
 removes the identity and cover, then opens the reciprocal edge through the map
@@ -125,6 +130,13 @@ paint over the footprint. It is therefore reconciled once against the finished
 grid, after the last stage to touch it. An anchor that fails the guarantee does
 not merely look wrong: mission layouts filter candidate sites on it, and
 room-scoped objectives resolve no room at all from a blocked or doorway cell.
+
+A compound's wings are sized by the partition rather than by their purpose, and
+a purpose that needs a minimum footprint therefore has no way to ask for one.
+`compound-programs.md` holds the direction that inverts this — a program that
+sizes the place, as a deck's does — together with the measurement that motivates
+it and the parts of the deck model that deliberately do not transfer. Nothing in
+it is implemented; the model below is still what generation does.
 
 Parcel ownership is established before content fills. A filler may own one leaf
 or an already-claimed compound, but it must not infer a multi-leaf building by

@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-08-27 — experience became armour-sourced rather than per-marine earned, career evidence gained a squad grain, the campaign arc was pinned by measurement, and late-game growth was directed at capability rather than durability.
+Updated: 2026-08-28 — close-contact boarding tools shipped as one typed activation carried by two families, adding contact reach, contact reservation, and the authored breach point to the special-equipment model.
 
 ## Purpose
 
@@ -60,10 +60,20 @@ legibility.
   presentation, and at most a bounded side-grade; it is not an allegiance lock,
   a quality tier, or a set bonus.
 - **Special equipment** — one optional billet item carried alongside the
-  marine's primary. Rocket launchers, anti-materiel rifles, and fragmentation
-  grenades activate weapon definitions; smoke and satchel charges activate
-  utility behavior. “Secondary” remains a transitional code/catalog name, not
-  the enduring player-facing category.
+  marine's primary. Rocket launchers, anti-materiel rifles, fragmentation
+  grenades, and close-contact tools activate weapon definitions; smoke and
+  satchel charges activate utility behavior. “Secondary” remains a transitional
+  code/catalog name, not the enduring player-facing category.
+- **Contact reach** — the distance at which a close-contact item may act, plus
+  the requirement that the carrier could physically cross the boundary between
+  its cell and the contact's. Reach is not a very short weapon range: a target
+  one cell away behind a shut barrier is out of reach even though it is close.
+- **Contact reservation** — one carrier's claim on one contact while it is
+  committed. It stops several carriers spending payloads on the same casualty,
+  and it costs nothing to release.
+- **Breach point** — a map cell authored as a legal place to cut an opening. A
+  breaching tool considers only authored breach points, which is what separates
+  a boarding tool from map-wide wall demolition.
 - **Assault-armor role** — the suit's battlefield weight and purpose: light
   infiltration/recon, standard line combat, or heavy mechanized battlesuit.
   Unpowered field kit remains outside those three powered roles. Role expresses
@@ -426,8 +436,6 @@ issued equipment is used. The same use policy is faction-neutral even when
 campaign availability differs by faction.
 
 Planned special-equipment extensions retain that slot and activation law.
-Close-contact boarding tools are weapon-like items whose catalog definitions
-own damage and penetration even though their executor has no traveling round.
 Combat stims are finite utility, not a weapon grade or permanent profile
 upgrade. Martyr rigs and carried improvised charges are explicit faction
 content with their own carrier cost and counterplay; faction flavor may not
@@ -444,10 +452,12 @@ names, but roster data uses semantic armor ids (`field-fatigues`, `scout`,
 `combat`, `line`, `heavy`, `outlaw`, `militia`) so the next visual/content pass
 can change colors without changing doctrine identity.
 
-The five built-in identities are the rocket launcher, anti-materiel
-rifle, Wayfarer smoke grenades, Breachhand mag-clamp satchel, and Shattercap
-fragmentation grenades. The first two are direct-fire activations, Shattercap
-is an arcing weapon activation, and smoke and satchels are utility activations,
+The seven built-in identities are the rocket launcher, anti-materiel
+rifle, Wayfarer smoke grenades, Breachhand mag-clamp satchel, Shattercap
+fragmentation grenades, the Emberjaw thermal breacher, and the Quillon
+vibro-blade. The first two are direct-fire activations, Shattercap
+is an arcing weapon activation, smoke and satchels are utility activations, and
+the last two share one close-contact activation,
 but only the item definition owns loadout identity, catalog copy, resource
 mode, initial ammunition, Armory art, activation type, AI policy, use-pose
 profile, and local presentation recipe; the
@@ -547,6 +557,56 @@ weapon doctrine issues exactly one
 frag carrier across its twelve billets. All built-in defender roster profiles
 author their own low/medium/high bulk and elite weights: the execution policy
 is faction-neutral, while availability remains faction-shaped and risk-scaled.
+
+Close-contact boarding tools are the sector's two recognizable contact
+implements, and they are one mechanism wearing two tactical identities. Both
+occupy the ordinary special slot, both reference a marine-secondary weapon
+definition for damage, penetration, wall damage, audio, and effects, and both
+run the same typed executor, which replaces the traveling shot with an
+adjacency test. **They are not a universal melee attack.** A marine carrying
+neither gains no contact attack of any kind, and no other special item acquires
+one by sharing the slot.
+
+The **Emberjaw thermal breacher** is anti-hard contact work: a long, visible,
+interruptible channel against an armored actor or emplacement the carrier is
+already standing against. It applies bounded contact work with no area blast,
+and at an authored breach point it applies the weapon's wall damage to that one
+cell through the ordinary map-edit authority. Arbitrary obstacle-seeking and
+map-wide wall chewing are not authorized, and a breach point is reachable only
+from the four cells that share a face with it.
+
+The **Quillon vibro-blade** is anti-personnel reaction equipment: one short
+strike against a living infantry contact when a firefight has already collapsed
+to arm's length. It cannot intentionally select a turret, drone hub, mech,
+convoy vehicle, drone, or non-combatant, and it never opens a wall.
+
+The two are distinguished by AI policy rather than by a second activation.
+Thermal and arc are mechanism variants of the one breach-tool role, and vibro
+and monofilament of the one edge role; provenance may vary within a family
+without earning a fourth definition.
+
+Both actions validate their contact before committing, again on every tick of
+the commitment, and once more at the payload seam. Death, separation, a lost
+line of contact, a barrier closing between the two cells, or a higher-priority
+survival response cancels the commitment before the payload applies, and an
+interrupted commitment costs the carrier nothing. While committed, a carrier
+holds a contact reservation, so several carriers cannot spend several payloads
+on the same contact.
+
+Equipment influences per-action suitability without creating a permanent
+breacher or swordsman role. A carrier uses its tool when ordinary squad
+movement has already brought it into contact; the executor never authors a
+path, never clears one, and never retargets its carrier, so engagement AI
+cannot abandon a firing line or cross its maneuver leash to manufacture a
+contact opportunity. Player and defender carriers obey the same legality,
+interruption, reservation, and target policy. Faction profiles control
+availability and provenance only: the blade is broadly circulated and
+market-reachable, while the cutter is Advanced and reaches the player through
+licensed, patron, and recovery channels.
+
+Both use the shipped contact-work pose rather than introducing a new one.
+Presentation carries the strike's audio, its impact effects, and the localized
+noise a nearby squad may hear; it never decides whether the contact landed.
 
 ### Telemetry and career
 
@@ -680,6 +740,14 @@ The following are direction, not current behavior:
   becomes player-faction ship-production knowledge.
 - A billet carries at most one special item; utilities do not become
   `WeaponDef` entries merely because they share that loadout slot with guns.
+- Contact damage exists only as a carried item. No marine has a fallback melee
+  attack, and no future close-contact family may grant one.
+- A close-contact family earns a definition through behavior, payload, or
+  readable presentation. A mechanism or provenance name — thermal, arc, vibro,
+  monofilament — is flavour on an existing role until it changes one of those.
+- A breaching tool damages a wall only at an authored breach point, one cell at
+  a time and with no radius. Obstacle-seeking demolition is a different feature
+  and requires its own authority.
 - Special-equipment use policy is simulation-owned and faction-neutral;
   template cards express issue, not hidden battle orders.
 - Special-equipment data selects a closed activation and AI policy; executors

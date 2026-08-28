@@ -134,11 +134,16 @@ final class CompanyHqViewModel {
      * without opening it.
      */
     private static String shipLabel() {
+        CompanyShipDesignation.Home home = CompanyShipDesignation.home();
+        if (home.displaced()) {
+            return home.formerShipName().toUpperCase(Locale.ROOT)
+                    + (home.lostInAction() ? "  ·  LOST" : "  ·  GONE")
+                    + "  ·  CHOOSE A SHIP";
+        }
         FleetMemberAPI aboard = CompanyShipDesignation.aboard();
         if (aboard == null) return "NO SHIP  ·  CHOOSE ONE";
-        String named = aboard.getShipName();
-        String ship = named == null || named.isBlank() ? aboard.getHullId() : named;
-        return ship.toUpperCase(Locale.ROOT) + "  ·  CHANGE SHIP";
+        return CompanyShipDesignation.shipName(aboard).toUpperCase(Locale.ROOT)
+                + "  ·  CHANGE SHIP";
     }
 
     /** Rich deterministic fixture used by the retained UI evidence suite. */

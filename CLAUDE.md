@@ -132,13 +132,17 @@ Do not run builds or leave generated task files there.
   Dropping a raw sheet there is enough to make it appear; a hand-written document
   carrying settings but no pieces is a valid seed and is sliced on open.
   The page finds pieces by keying on alpha and proposes a footprint for each from
-  the sheet grid, but footprints are edited there rather than inferred, because
+  the sheet's stated `gridCols` x `gridRows` layout — cells need not be square,
+  and a fused plate is cut into exactly that grid — but footprints are edited
+  there rather than inferred, because
   how much deck a piece covers is a judgement about the object, not a measurement
   of the art. A piece becomes a doodad or a cell of a named autotile block; walls
   and corners are authored by grouping pieces into a block's slots, which the
   packer places as one contiguous patch. Export writes a packed atlas holding only
   the included pieces, its `*.tileset.json`, and a generated `*.tileset.md`
-  catalog card. Annotations are saved to
+  catalog card; the atlas goes to `graphics/tilesets/` when the sheet declares
+  blocks and `graphics/doodads/` when it is only props, unless the document names
+  an `outputSheet`. Annotations are saved to
   `art-source/tilesets/<name>.tileset-authoring.json`, so a sheet can be annotated
   across several sittings; re-slicing carries existing annotations onto the newly
   found pieces and names any that no longer match.
@@ -196,6 +200,29 @@ rather than a composition, an animated GIF built from a frame sequence. The
 runner writes both; a suite never writes files itself. Animated review frames
 come from `BattleReviewFrameRenderer`, shared with commander evidence so the
 two do not drift into separate camera fits and marker palettes.
+
+### Behavior scenes
+
+`FrontageScene` is a small, purpose-built battle — one production-stamped
+compound, a configurable number of defender garrisons and marine assault
+squads, an approach edge — played headless in seconds. It exists because a
+whole-mission harness is both slower and worse at answering a question about
+one behavior: the scene found a real aperture-derivation bug in minutes that
+two full Conquest runs had hidden entirely.
+
+Prefer a scene over a mission harness whenever the question is about one
+behavior rather than about a whole battle's balance, and add another scene
+rather than widening this one past what its name claims.
+
+`gradlew.bat test --tests '*FrontageSceneTest*'` plays it and writes
+`build/reports/frontage-scene/<label>.json`: the force, the derived frontage,
+per-squad rows naming which layer each garrison held, crowding measurements,
+the ticks at which the run first stood to / manned a post / was breached, and a
+compact per-sample timeline. The report is deterministic for a given seed and
+configuration, so two runs of an unchanged scene produce identical bytes and a
+diff is a real change. It records measurements only — the verdicts live in the
+test, because a report that decided what "good" meant would let a threshold
+drift without anything failing.
 
 Snapshot generation is tool/test infrastructure and must not enter the shipped
 mod jar. Keep reusable catalog and runner code in `:layer-authoring`, keep

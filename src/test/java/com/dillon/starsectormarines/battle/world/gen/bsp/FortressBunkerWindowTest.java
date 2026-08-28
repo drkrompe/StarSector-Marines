@@ -89,6 +89,10 @@ public class FortressBunkerWindowTest {
                     context(axis, seed, "missing shared-edge firing window"));
             assertEquals(SharedEdgeBarrier.Kind.WINDOW, window.kind(),
                     context(axis, seed, "wrong barrier profile"));
+            assertEquals(stand.x(), window.structureCellX(),
+                    context(axis, seed, "window lost its bunker-side owner x"));
+            assertEquals(stand.y(), window.structureCellY(),
+                    context(axis, seed, "window lost its bunker-side owner y"));
             assertFalse(map.topology.isWindow(stand.x(), stand.y()),
                     context(axis, seed, "edge window must not consume a wall cell"));
             assertFalse(map.grid.isSharedEdgePassable(

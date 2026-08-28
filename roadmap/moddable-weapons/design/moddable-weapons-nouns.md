@@ -4,8 +4,8 @@ Status: SHIPPED — weapon identity, behavior, and presentation are data-owned
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — connected additive faction availability to stable
-equipment-template ids without moving progression policy into weapon data.
+Updated: 2026-08-28 — the close-contact executor shipped: a weapon-like item
+whose payload lands from adjacency rather than from a traveling body.
 
 ## Purpose
 
@@ -196,9 +196,17 @@ The public manifest and authoring examples live in `submod-catalog-contract.md`.
   but those shared execution primitives do not make its cloud or placement
   channel a weapon definition.
 - A weapon-like close-contact tool still references a weapon definition for
-  damage, penetration, audio, and effects. Its typed executor replaces the
-  traveling trajectory; the special-equipment item still owns stock, resource
-  mode, use policy, and carrier presentation.
+  damage, penetration, wall damage, audio, and effects. Its typed executor
+  replaces the traveling trajectory with an adjacency test, so the definition
+  authors no velocity, flight time, arc, or projectile body and the payload is
+  never carried by a phantom round. Contact privilege still comes from physical
+  interception; here the interception is the reach itself. The
+  special-equipment item still owns stock, resource mode, use policy, and
+  carrier presentation.
+- Authored wall damage on a close-contact definition is a magnitude, not a
+  licence. A cutter's wall damage applies at one authored breach point and
+  nowhere else, and it carries no radius: the map-edit authority decides which
+  cell may open, and the weapon only says how hard the tool bites.
 - A weapon-like arcing grenade uses the same simulated-projectile and detonation
   authorities as other slow explosive ordnance. The definition owns range,
   scatter, velocity, arc height, area payload, structural damage, projectile

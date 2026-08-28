@@ -54,11 +54,27 @@ public class MarineRoster implements Serializable {
     private int capacity = DEFAULT_CAPACITY;
     /**
      * The fleet member the company lives aboard, by id. Null until the company
-     * has been given a ship, and stale once that ship leaves the fleet — which
-     * is why it is resolved through {@code CompanyShipDesignation} rather than
-     * read directly.
+     * has been given a ship, and again once that ship is gone — which is why it
+     * is resolved through {@code CompanyShipDesignation} rather than read
+     * directly.
      */
     private String companyShipId;
+    /**
+     * Her name, kept alongside her id so she can still be named after she is
+     * gone. A ship that has left the fleet cannot be asked what she was called.
+     */
+    private String companyShipName;
+    /** The ship the company lost, until they are given another. */
+    private String formerShipName;
+    /**
+     * Whether the company's ship was lost in action rather than let go. Set
+     * from the engagement she failed to come home from, and only believed once
+     * she is actually missing from the fleet — a ship can be disabled in a
+     * battle and recovered from the field afterwards.
+     */
+    private boolean formerShipLostInAction;
+    /** Evidence from the last engagement, pending confirmation she is gone. */
+    private boolean companyShipCasualty;
     /**
      * Fixes every deck this company will ever generate. Combined with the ship
      * it is generating for, so each hull has its own stable layout and a ship
@@ -136,9 +152,48 @@ public class MarineRoster implements Serializable {
         return companyShipId;
     }
 
-    /** @see #companyShipId */
-    public void setCompanyShipId(String companyShipId) {
+    /** @see #companyShipName */
+    public String companyShipName() {
+        return companyShipName;
+    }
+
+    /** Quarter the company aboard a ship, which is also how a loss is put behind them. */
+    public void setCompanyShip(String companyShipId, String companyShipName) {
         this.companyShipId = companyShipId;
+        this.companyShipName = companyShipName;
+        this.formerShipName = null;
+        this.formerShipLostInAction = false;
+        this.companyShipCasualty = false;
+    }
+
+    /**
+     * The company's ship is gone and they have nowhere to live.
+     *
+     * <p>Deliberately does not move them to another hull. Losing a home is not
+     * the same as being handed one, and where the company goes next is the
+     * player's decision for the same reason the first one was.
+     */
+    public void reportCompanyShipGone() {
+        formerShipName = companyShipName;
+        formerShipLostInAction = companyShipCasualty;
+        companyShipId = null;
+        companyShipName = null;
+        companyShipCasualty = false;
+    }
+
+    /** @see #formerShipName */
+    public String formerShipName() {
+        return formerShipName;
+    }
+
+    /** @see #formerShipLostInAction */
+    public boolean formerShipLostInAction() {
+        return formerShipLostInAction;
+    }
+
+    /** @see #companyShipCasualty */
+    public void reportCompanyShipCasualty() {
+        companyShipCasualty = true;
     }
 
     /** @see #deckSeed */

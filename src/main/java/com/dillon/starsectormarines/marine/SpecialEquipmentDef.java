@@ -21,7 +21,8 @@ public record SpecialEquipmentDef(
         SpecialAiPolicy aiPolicy,
         SpecialEquipmentPresentationDef presentation,
         SmokeGrenadeSpec smokeGrenadeSpec,
-        SatchelChargeSpec satchelChargeSpec) implements Serializable {
+        SatchelChargeSpec satchelChargeSpec,
+        CloseContactSpec closeContactSpec) implements Serializable {
 
     /** Parses one entry from {@code *.equipment.json}; malformed required data fails load. */
     public static SpecialEquipmentDef parse(JSONObject json) throws JSONException {
@@ -55,6 +56,7 @@ public record SpecialEquipmentDef(
                 SpecialEquipmentPresentationDef.parse(json.getJSONObject("presentation"), id);
         SmokeGrenadeSpec smoke = null;
         SatchelChargeSpec satchel = null;
+        CloseContactSpec closeContact = null;
         switch (activation) {
             case DIRECT_EXPLOSIVE, DIRECT_PRECISION -> {
                 if (weaponId == null) {
@@ -100,6 +102,27 @@ public record SpecialEquipmentDef(
                             + "' requires carrier and deployed presentation recipes");
                 }
             }
+            case CLOSE_CONTACT -> {
+                if (weaponId == null) {
+                    throw new JSONException("Weapon-like special equipment '" + id
+                            + "' must declare activation.weaponId");
+                }
+                requirePolicy(id, aiPolicy, SpecialAiPolicy.CONTACT_BREACH_CHANNEL,
+                        SpecialAiPolicy.CONTACT_REACTION_STRIKE);
+                closeContact = parseCloseContact(activationJson, resource, id);
+                if (resourceMode != SpecialResourceMode.COOLDOWN) {
+                    throw new JSONException("Close-contact equipment '" + id
+                            + "' must use the cooldown resource mode");
+                }
+                if (presentation.carrierLayer() == null) {
+                    throw new JSONException("Close-contact equipment '" + id
+                            + "' requires a carrier presentation recipe");
+                }
+                if (presentation.thrown() != null || presentation.fieldSpritePath() != null) {
+                    throw new JSONException("Close-contact equipment '" + id
+                            + "' has no thrown or deployed field payload");
+                }
+            }
         }
 
         return new SpecialEquipmentDef(
@@ -114,7 +137,13 @@ public record SpecialEquipmentDef(
                 aiPolicy,
                 presentation,
                 smoke,
-                satchel);
+                satchel,
+                closeContact);
+    }
+
+    /** True when this item acts only from honest physical contact. */
+    public boolean isCloseContactWeapon() {
+        return activation == SpecialActivation.CLOSE_CONTACT;
     }
 
     public String aimSpritePath() {
@@ -149,6 +178,7 @@ public record SpecialEquipmentDef(
     public float aimDuration() {
         if (smokeGrenadeSpec != null) return smokeGrenadeSpec.throwDuration();
         if (satchelChargeSpec != null) return satchelChargeSpec.plantDuration();
+        if (closeContactSpec != null) return closeContactSpec.channelSeconds();
         return weaponDef().aimDuration;
     }
 
@@ -196,6 +226,14 @@ public record SpecialEquipmentDef(
                 positive(activation, "penetration", id));
     }
 
+    private static CloseContactSpec parseCloseContact(JSONObject activation, JSONObject resource,
+                                                      String id) throws JSONException {
+        return new CloseContactSpec(
+                positive(activation, "contactRange", id),
+                positive(activation, "channelSeconds", id),
+                positive(resource, "cooldownSeconds", id));
+    }
+
     private static float positive(JSONObject json, String key, String id) throws JSONException {
         float value = (float) json.getDouble(key);
         if (value <= 0f) {
@@ -218,6 +256,21 @@ public record SpecialEquipmentDef(
             throw new JSONException("Special equipment '" + id + "' activation requires AI policy '"
                     + expected.key + "', got '" + actual.key + "'");
         }
+    }
+
+    /** One activation may admit several policies when each names a distinct legal contact. */
+    private static void requirePolicy(String id, SpecialAiPolicy actual,
+                                      SpecialAiPolicy... permitted) throws JSONException {
+        for (SpecialAiPolicy candidate : permitted) {
+            if (actual == candidate) return;
+        }
+        StringBuilder keys = new StringBuilder();
+        for (SpecialAiPolicy candidate : permitted) {
+            if (keys.length() > 0) keys.append(" or ");
+            keys.append('\'').append(candidate.key).append('\'');
+        }
+        throw new JSONException("Special equipment '" + id + "' activation requires AI policy "
+                + keys + ", got '" + actual.key + "'");
     }
 
     private static String requireText(JSONObject json, String key, String owner)
