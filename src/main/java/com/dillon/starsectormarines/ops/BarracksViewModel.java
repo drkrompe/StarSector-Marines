@@ -176,8 +176,28 @@ public final class BarracksViewModel {
         if (squad == null) return "No line formations on the company roll";
         int ready = roster.readyCount(squad);
         int wounded = woundedCount(squad);
-        return ready + " ready aboard  ·  " + wounded + " recovering  ·  "
+        String summary = ready + " ready aboard  ·  " + wounded + " recovering  ·  "
                 + Math.max(0, MarineSquad.CAPACITY - ready - wounded) + " open billets";
+        int systems = integralSystemCount(squad);
+        if (systems == 0) return summary;
+        return summary + "  ·  " + systems
+                + (systems == 1 ? " integral system" : " integral systems") + " aboard";
+    }
+
+    /**
+     * How many of the formation's suits carry a capability of their own
+     * ({@code integral-armor-systems.md}). Reported here at squad level rather
+     * than per marine because the muster row is a fixed 208px name-and-detail
+     * pair that already truncates a long pattern name; the Armory fire-team card
+     * is where an individual suit's system is spelled out.
+     */
+    private int integralSystemCount(MarineSquad squad) {
+        int carrying = 0;
+        for (String id : roster.manningMemberIds(squad)) {
+            MarineSoldier soldier = roster.soldierById(id);
+            if (soldier != null && soldier.armorDef().hasIntegralSystem()) carrying++;
+        }
+        return carrying;
     }
 
     private String buildQuartersStatus() {

@@ -1,8 +1,14 @@
 # Company ship selection
 
-Status: PROPOSED
+Status: IN PROGRESS
 
 Written: 2026-08-27
+
+Updated: 2026-08-28 — the company now lives aboard a real ship in the player's
+fleet: the designation is recorded on company state, the hull's form is read
+with its battle damage lifted, and the deck is derived per ship. What remains
+is the comparison screen and a founding choice the player makes rather than
+inherits.
 
 Read `ship-interiors-nouns.md` and `company-ship.md` before implementing this
 story. Depends on the room views being deck-hosted, which they now are — see
@@ -56,9 +62,12 @@ fleet.
 
 ## Open questions
 
-- What makes a hull a candidate. Any ship with a boardable hull class is the
-  loosest rule and probably too loose: a tanker technically has an interior and
-  is a strange place to keep a mech.
+- ~~What makes a hull a candidate.~~ Settled: every ship the player owns that is
+  not mothballed, ranked by lift. Filtering by role would hide exactly the
+  comparison the screen exists to make — a tanker should read as a bad home,
+  not be absent — and being laid up is the one state that makes a hull
+  genuinely uninhabitable rather than merely a poor choice. Whether a candidate
+  can hold a barracks at all is a fact the comparison shows, not a filter.
 - Whether transfer costs anything, and whether facility contents move with the
   company or stay with the hull.
 - What happens when the company ship is destroyed rather than merely damaged.

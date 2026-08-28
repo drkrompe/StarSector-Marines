@@ -64,7 +64,13 @@ public class FortressBunkerWindowTest {
             assertTrue(unique.add(key(stand.x(), stand.y())),
                     context(axis, seed, "duplicate stand position"));
             assertTrue(map.grid.isWalkable(stand.x(), stand.y()),
-                    context(axis, seed, "stand position must be walkable"));
+                    context(axis, seed, "stand position must be walkable at "
+                            + stand.x() + "," + stand.y()
+                            + " [wall=" + map.topology.isWall(stand.x(), stand.y())
+                            + ", fixture=" + map.topology.isFixture(stand.x(), stand.y())
+                            + ", vehicle=" + map.topology.isVehicle(stand.x(), stand.y())
+                            + ", window=" + map.topology.isWindow(stand.x(), stand.y())
+                            + ", ground=" + map.topology.getGroundKind(stand.x(), stand.y()) + "]"));
             assertTrue(GridPathfinder.findPath(map.grid,
                             map.marineSpawnX, map.marineSpawnY,
                             stand.x(), stand.y()).length > 0,
