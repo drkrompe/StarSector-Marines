@@ -29,10 +29,14 @@ import java.lang.reflect.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
+import java.util.Map;
 
 /** Java2D drain for the ordinary battle renderer's collected embedded-scene frame. */
 public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRenderer {
+
+    private static final Map<Path, HeadlessBattleSprites> SHARED_SPRITES = new HashMap<>();
 
     private final HeadlessBattleSprites sprites;
     private final BattleRenderer renderer;
@@ -52,11 +56,22 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
         try {
             HeadlessArmoryPreviewRenderer.installCatalogs(modRoot);
             installTileCatalogs(modRoot);
-            sprites = new HeadlessBattleSprites(modRoot);
+            sprites = sharedSprites(modRoot);
             renderer = new BattleRenderer(sprites);
             this.skipUnsupportedCommands = skipUnsupportedCommands;
         } catch (Exception failure) {
             throw new IllegalStateException("Could not prepare headless battle assets", failure);
+        }
+    }
+
+    private static HeadlessBattleSprites sharedSprites(Path modRoot) throws Exception {
+        Path normalized = modRoot.toAbsolutePath().normalize();
+        synchronized (SHARED_SPRITES) {
+            HeadlessBattleSprites existing = SHARED_SPRITES.get(normalized);
+            if (existing != null) return existing;
+            HeadlessBattleSprites loaded = new HeadlessBattleSprites(normalized);
+            SHARED_SPRITES.put(normalized, loaded);
+            return loaded;
         }
     }
 
