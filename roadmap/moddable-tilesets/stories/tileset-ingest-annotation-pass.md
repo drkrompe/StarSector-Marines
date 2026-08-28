@@ -1,10 +1,10 @@
 # Tileset Ingest and Annotation Pass
 
-Status: In progress — chunk 1 (authoring document) landed
+Status: In progress — chunks 1-2 landed
 
 Written: 2026-08-28
 
-Updated: 2026-08-28 — the annotation pass persists and reconciles; roles, raw/packed separation and hints remain.
+Updated: 2026-08-28 — the pass persists and reconciles, and walls and corners export as packed blocks; raw/packed separation and hints remain.
 
 Read `moddable-tilesets-nouns.md` before changing this story.
 
