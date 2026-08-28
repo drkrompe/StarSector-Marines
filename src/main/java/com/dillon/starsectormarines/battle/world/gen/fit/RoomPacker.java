@@ -850,7 +850,14 @@ public final class RoomPacker {
         for (int[] cell : shape.wall()) {
             int x = candidate.x() + cell[0];
             int y = candidate.y() + cell[1];
-            if (inBounds(x, y)) claimed[x + 1][y + 1] = true;
+            if (!inBounds(x, y)) continue;
+            claimed[x + 1][y + 1] = true;
+            // A claimed bulkhead is real navigation structure, not merely a
+            // promise that another packed room will stay away. Fortress rooms
+            // can inherit live city floor under this ring; leaving it walkable
+            // joins the room to the yard even when its threshold is a doorway.
+            ctx.grid.setWalkable(x, y, false);
+            ctx.grid.setDoorway(x, y, false);
         }
     }
 
@@ -865,7 +872,7 @@ public final class RoomPacker {
         }
         // The door itself is a threshold, not circulation: leaving it out of the
         // passage mask is what stops the next room treating it as a hallway.
-        carve(access.doorX(), access.doorY(), RoomPurpose.CORRIDOR, palette.threshold());
+        carveDoorway(access.doorX(), access.doorY());
         List<Doorway> doors = new ArrayList<>();
         doors.add(new Doorway(access.doorX(), access.doorY()));
         Doorway widened = widenDoorway(candidate, access);
@@ -943,10 +950,26 @@ public final class RoomPacker {
             int outsideX = nx + access.dirX();
             int outsideY = ny + access.dirY();
             if (!inBounds(outsideX, outsideY) || !floor[outsideX + 1][outsideY + 1]) continue;
-            carve(nx, ny, RoomPurpose.CORRIDOR, palette.threshold());
+            carveDoorway(nx, ny);
             return new Doorway(nx, ny);
         }
         return null;
+    }
+
+    /**
+     * Cut a threshold and publish it to the navigation-zone layer.
+     *
+     * <p>A walkable wall opening without the doorway tag is ordinary floor to
+     * {@code ZoneDetector}: it flood-fills the room and the surrounding deck or
+     * yard into one zone. That made every packed fortress strongpoint share the
+     * outdoor zone, so one unit anywhere outside contested every compound at
+     * once. The room packer already owns the exact doorway cells; marking them
+     * here keeps each packed room a distinct tactical/capture zone while the
+     * portal graph still connects it to circulation.
+     */
+    private void carveDoorway(int x, int y) {
+        carve(x, y, RoomPurpose.CORRIDOR, palette.threshold());
+        ctx.grid.setDoorway(x, y, true);
     }
 
     private void carve(int x, int y, RoomPurpose purpose, GroundKind kind) {
