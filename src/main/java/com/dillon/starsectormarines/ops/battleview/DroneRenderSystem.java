@@ -16,8 +16,8 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
  * rather than being occluded by it). Two passes: crashing wrecks (read straight
  * from the {@link CrashingComponent} component store, fading hull only, drawn first so they
  * sit under the living) then live drones (dense-registry iteration — one rotated
- * {@code SPRITE} hull + an HP bar via the shared {@link HpBarDecor}, placement
- * uses the layer's own {@code HP_BAR_GAP}).
+ * {@code SPRITE} hull + an ownership-coded durability bar via the shared
+ * {@link DurabilityBarDecor}, placement uses the layer's own {@code HP_BAR_GAP}).
  *
  * <p>Faithful port of the former inline {@code BattleRenderer.renderDrones}: same
  * crash/visibility gating and fade-alpha (VIS_FADING fade + crash fade-out), same
@@ -102,8 +102,15 @@ public final class DroneRenderSystem implements RenderSystem {
                     1f, 1f, 1f, drawAlpha);
 
             float barY = cy + pxH / 2f + BattleRenderer.HP_BAR_GAP;
-            HpBarDecor.emit(out, RenderLayer.DRONES, cx, barY, barW,
-                    world.hp(u) / world.maxHp(u), drawAlpha);
+            Allegiance owner = Allegiance.of(ctx.sim.identity().faction(u));
+            float hpFrac = world.hp(u) / world.maxHp(u);
+            if (world.hasArmor(u)) {
+                DurabilityBarDecor.emit(out, RenderLayer.DRONES, owner, cx, barY, barW,
+                        hpFrac, world.armor(u) / world.maxArmor(u), drawAlpha);
+            } else {
+                DurabilityBarDecor.emit(out, RenderLayer.DRONES, owner, cx, barY, barW,
+                        hpFrac, drawAlpha);
+            }
         }
     }
 }
