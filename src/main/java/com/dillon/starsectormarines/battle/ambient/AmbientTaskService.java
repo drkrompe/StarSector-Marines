@@ -185,6 +185,59 @@ public final class AmbientTaskService {
         return sampleState(route, elapsedSeconds).pose();
     }
 
+    /**
+     * The stop somebody joining this route at this moment should be put down at.
+     *
+     * <p>Not where {@link #sample} says they are. A watch is deliberately spread
+     * across its loop, so at any given instant most of it is between jobs, and
+     * the sampler draws that as the straight line from one stop to the next.
+     * That is right for a presentation teleport and wrong for putting somebody
+     * into the world: on a generated map the line crosses bulkheads, and a
+     * seeded sweep of ship decks found one shift in seventy standing inside one.
+     *
+     * <p>Somebody mid-transit is placed at the job they are heading for rather
+     * than the one they left, so the very first tick finds them arrived instead
+     * of halfway along a leg they never walked.
+     */
+    public static AmbientTaskRoute.Stop standingPlace(AmbientTaskRoute route,
+                                                      float elapsedSeconds) {
+        return route.stops().get(sampleState(route, elapsedSeconds).destinationIndex());
+    }
+
+    /**
+     * Put every assigned actor down at a job and pose them there.
+     *
+     * <p>What a host calls once it has spawned a watch, in place of seeking to
+     * time zero. {@link #seek} is a presentation teleport that bypasses
+     * collision by design, which is exactly what setup must not do — the actors
+     * it places stay where it puts them and are then physically simulated.
+     */
+    public void settle() {
+        for (int index = 0; index < roster.liveCount(); index++) {
+            long actorId = roster.get(index);
+            AmbientTaskRoute route = assignments.get(actorId);
+            if (route == null) continue;
+            if (!roster.isLive(actorId)) {
+                release(actorId);
+                continue;
+            }
+            AmbientTaskPose pose = working(standingPlace(route, elapsedSeconds), 0f, 0f);
+            primaryFireWindows.put(actorId, isPrimaryFireWindow(actorId, pose));
+            applyPosition(actorId, pose);
+            livePoses.put(actorId, pose);
+            applyAppearance(actorId, pose);
+        }
+    }
+
+    /** Somebody at a stop, doing what the stop is for and facing what it faces. */
+    private static AmbientTaskPose working(AmbientTaskRoute.Stop stop,
+                                           float actionPhase, float headLook) {
+        return new AmbientTaskPose(stop.worldX(), stop.worldY(),
+                facing(stop.worldX(), stop.worldY(), stop.focusX(), stop.focusY()),
+                0f, actionPhase, stop.focusX(), stop.focusY(),
+                headLook, false, stop.activity());
+    }
+
     private static RouteSample sampleState(AmbientTaskRoute route, float elapsedSeconds) {
         float loopSeconds = loopSeconds(route);
         float cursor = positiveModulo(elapsedSeconds + route.phaseOffsetSeconds(), loopSeconds);
@@ -193,11 +246,8 @@ public final class AmbientTaskService {
             AmbientTaskRoute.Stop stop = route.stops().get(index);
             if (cursor < stop.dwellSeconds()) {
                 float actionPhase = cursor / stop.dwellSeconds();
-                float facing = facing(stop.worldX(), stop.worldY(), stop.focusX(), stop.focusY());
                 float headLook = headLook(stop.activity(), elapsedSeconds, route.phaseOffsetSeconds());
-                return new RouteSample(new AmbientTaskPose(stop.worldX(), stop.worldY(), facing,
-                        0f, actionPhase, stop.focusX(), stop.focusY(),
-                        headLook, false, stop.activity()), index, true);
+                return new RouteSample(working(stop, actionPhase, headLook), index, true);
             }
             cursor -= stop.dwellSeconds();
             AmbientTaskRoute.Stop next = route.stops().get((index + 1) % route.stops().size());
