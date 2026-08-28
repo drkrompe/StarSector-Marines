@@ -5,7 +5,7 @@ Status: IN PROGRESS — live diagnostics, deterministic Conquest evidence, and p
 Written: 2026-08-25
 
 Updated: 2026-08-28 — used schema-8 tactical evidence to move the next
-Conquest investigation from travel loss to contested-zone conversion.
+Conquest investigation from travel loss to measured contested-zone conversion.
 
 Read `mission-command-nouns.md` and `battle-fixtures-nouns.md` before implementing this
 story.
@@ -61,6 +61,10 @@ churned, or collapsed before tuning force budgets or doctrine.
 - [x] Conquest evidence distinguishes own-squad approach and target-zone
   arrival from neutral mixed or marine-only presence in the exact compound
   capture zone without leaking opposing occupancy into commander perspective.
+- [x] Exact capture-zone presence is grouped into single-exit neutral cohorts
+  with observed versus left-censored entry, strength/addition/clearance facts,
+  uncontested/capture latency, mixed duration, topology censoring, and explicit
+  gap/run-bound exits.
 - [x] Every observed Conquest secure-compound travel segment ends once by
   target entry, retarget, release, squad loss, execution suspension,
   observation gap, timeout, or terminal result; incomplete traces remain open
@@ -297,6 +301,64 @@ friendly reinforcement, hostile clearance, rotation or displacement, and time
 to uncontested control. Exact hostile and whole-zone occupancy remain referee
 facts and must not become commander input. Add a monotonic squad-level
 rounds-fired counter only if this cohort view leaves return fire unresolved.
+
+## Capture-zone cohort follow-up
+
+Conquest summary schema 7 now derives exact-room presence cohorts from the
+existing referee stream; command-trace schema 8 does not change. Each cohort
+begins on an observed Marine zero-to-positive transition or an explicitly
+left-censored positive baseline and ends once by capture, defender-present or
+empty Marine exit, unresolved or changed capture-zone topology, observation
+gap, timeout, or terminal result. Incomplete live evidence stays open, and a
+same-tick capture takes precedence over the following zero-presence row.
+
+The report retains observed-entry and all-cohort peak Marine strength, positive
+zone-member additions, defenders cleared from entry, uncontested observations
+and entry/capture latencies, per-cohort mixed duration, and the longest mixed
+run. It also correlates schema-7+ Marine command pulses by exact assigned target
+zone to show first/peak published squad count, members physically in-zone,
+total alive strength of those squads, multi-squad cohorts, and squads first
+appearing after the cohort's initial published sample. It deliberately
+does not call count growth a reinforcement-system delivery, identify the
+people who changed, or infer whether an empty exit was rotation, withdrawal,
+or annihilation. Schema 3–6 anchor-zone presence remains unavailable rather
+than being reinterpreted as exact capture-room evidence; capture-zone identity
+changes censor a cohort so a breached/merged room cannot fabricate an arrival
+or reinforcement.
+
+The duplicate bounded reinforced fixture completed byte-stably at 6,000 ticks.
+It initially appeared to contain twelve cohorts: six captured cleanly 125–155
+ticks after entry, while six remained mixed for 5,885 ticks. The latter were
+not independent assaults. All six newly published fortress-ward strongpoints
+resolved to capture zone `0`, the map's giant outdoor component, and therefore
+published the same 1,931-event occupancy series. One Marine entering that
+component at tick 115 made all six read `1M/260D`; all transitioned to
+`CONTESTED` together at tick 120. Those aliases contributed 35,310 of 35,350
+mixed compound-ticks. Three valid rear objectives were never entered, while
+every genuinely reached room captured promptly. This run therefore does not
+authorize contested-compound relief or tactical force tuning.
+
+The topology fault sat below command. `RoomPacker` published threshold cells
+without the navigation doorway tag, admitted room bulkheads over already-live
+floor outside its local mask, and the outer-wall demolition sweep did not honor
+the same compound/ward protection mask as wall placement. The repair keeps
+packed thresholds as portal boundaries, stamps every claimed bulkhead as real
+non-walkable structure without changing candidate selection, and excludes
+authored compounds/ward space from demolition. Focused
+coverage asserts every packed ship threshold is a navigation doorway and the
+six canonical fortress strongpoints own six bounded, distinct room zones.
+
+The final narrowed duplicate replay also completed byte-stably at 6,000 ticks.
+It observed five real compound rooms and twelve bounded cohorts: five captured,
+one exited with defenders present, four exited empty, one was censored by a zone
+change, and one timed out; ten became uncontested. Marines captured five rooms
+and held four. Secure travel recorded four target entries, four retargets, and
+fourteen squad-loss exits, while 23/24 assignments closed marker range and three
+adjacent-assault commitments published. Exact-room capture conversion therefore
+works after arrival. The next seam is the last approach/threshold transition:
+why squads that close the marker are lost or fragment before exact-zone entry.
+Inspect marker-closure-to-entry latency, unit distribution and staging at the
+door, and contact behavior there before changing capture slots or timers.
 
 ## Historical construction-only baselines
 

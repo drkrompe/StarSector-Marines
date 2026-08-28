@@ -150,10 +150,11 @@ likely to be violated by a *capability* rather than by a stat are:
 
 `integral-armor-systems.md` owns the shipped concept and its remaining scope.
 Directional mitigation and the shoulder pod have both landed, so every authored
-system now expresses the whole of what it was written to be. The mechanics the
-slate still needs are storied separately, because each is gated on different
-simulation work rather than on authoring: `integral-system-use-policy.md`,
-`integral-system-battle-presentation.md`, and `defender-integral-systems.md`.
+system now expresses the whole of what it was written to be; every system
+authors the moment it is spent at, and defenders wear the ones their patterns
+declare (`progression-nouns.md`). One mechanic the slate still needs is storied
+separately, because it is gated on simulation work rather than on authoring:
+`integral-system-battle-presentation.md`.
 
 The two individual systems have stories of their own:
 `perception-integral-systems.md` and `firing-platform-integral-systems.md`.

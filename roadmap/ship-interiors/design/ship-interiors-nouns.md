@@ -91,6 +91,11 @@ authored content.
 - A **passage** is connective walkable space that is not the spine. Passages are
   not ruled out in advance; they are cut where rooms need to be reached, which is
   what gives a deck hallways of differing length and route rather than a grid.
+- A **link** is a passage cut between two parts of circulation that already
+  exist, rather than to reach a room. It is the only circulation on a deck that
+  serves no compartment of its own: what it buys is a second way round. Links
+  are found after everything is placed, because whether one is worth cutting is
+  a fact about the finished network and not about any room in it.
 - A **transverse bulkhead** divides the deck across its beam at one frame and
   admits passage only through its authored hatches. It is the ship's natural
   chokepoint, and unlike a station's scattered articulation rooms, bulkheads come
@@ -783,6 +788,43 @@ it is presentation-only by charter. The tactical articulation of a bay is a
     in three twenty-one of its programmed rooms, eighteen of them berths, with
     parts cages backfilled into the space. Author the flips for the
     arrangement, never for the room merely having a front and a back.
+
+23. **Circulation must not be left a tree.** Cutting each passage to the
+    nearest thing already connected is right every single time and wrong in
+    aggregate: nothing ever joins two branches, so every stub is a dead end and
+    two compartments a few cells apart are walked between by going back to the
+    spine and out again. Measured across five vanilla hulls, of the pairs of
+    rooms whose doors lie within twenty-five cells, the worst tenth were walked
+    at three to five times their straight-line distance, and the worst single
+    pair on a troop transport was eighteen cells apart and two hundred and
+    fourteen cells of walking. So a **link** pass runs after placement, from the
+    dead ends outward, and cuts where the existing walk is at least double what
+    the link would be.
+
+    **What it may cut is not relaxed for it.** A link obeys law 13 exactly: it
+    never takes a cell a compartment stands behind and never runs along a
+    bulkhead. That bounds it hard, and the bound is the finding rather than a
+    disappointment — on those same hulls only about one badly-detoured pair in
+    ten can be joined by any legal cut at all, because in a packed warren every
+    scrap of leftover deck is within a cell of somebody's room. The pass takes
+    very nearly all of what exists (nothing on a frigate, which needs nothing;
+    three to six links on a capital) and the residue is not a defect in it.
+    **Do not answer a detour by letting a passage open a compartment**, and do
+    not answer it by keeping deck clear beside every hall either. That second
+    one looks like the obvious fix and was measured: forbidding rooms from the
+    one or two cells beside circulation makes decks *worse*, because a room that
+    may no longer touch a hall has to tunnel its own stub to reach one, and
+    every stub reserves more deck and pushes the next room further out. It
+    multiplies dead ends rather than joining them. On an Eagle the badly
+    detoured share of near pairs went from a tenth to a quarter, nine
+    compartments went unplaced or unbuilt, and corridor grew by a third while
+    the deck stopped reading as a ship at all. A Valkyrie improved slightly on
+    the number and lost fourteen rooms and its long berthing rows doing it.
+
+    So the tight pack is right and the detours it leaves are the price of it.
+    What is still unexplained is why a third of the hull sits void aft while
+    the bow is packed wall-to-wall; that is a question about where the program
+    puts its rooms, not about how tightly it puts them.
 
 ## Boundaries
 
