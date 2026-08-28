@@ -233,7 +233,6 @@ public class BattleRenderer {
                         collectFogOverlay(ctx.sim, out, ctx.alphaMult)),
                 new UnitRenderService(sprites),
                 new SatchelRenderSystem(sprites),
-                new SystemFxRenderSystem(sprites),
                 new PointDefenseRenderSystem(),
                 new FragGrenadeRenderSystem(),
                 new SmokeRenderSystem(sprites),
@@ -277,7 +276,6 @@ public class BattleRenderer {
     public void onAttach() {
         sprites.ensureSmokeSprites();
         sprites.ensureSatchelSprite();
-        sprites.ensureSystemFxSprites();
         impactFx.ensureSprites();
     }
 

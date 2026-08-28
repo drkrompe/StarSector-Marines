@@ -168,7 +168,7 @@ public final class DrawListRenderer {
         sprite.setSize(q.w, q.h);
         sprite.setAngle(q.angleDeg);
         sprite.setAlphaMult(q.a);
-        sprite.setNormalBlend();
+        if (q.additive) sprite.setAdditiveBlend(); else sprite.setNormalBlend();
         // Avoid a per-quad Color alloc for the common untinted case (all SHOTS
         // projectiles are white); only build a Color when an actual tint is set.
         sprite.setColor(q.r == 1f && q.g == 1f && q.b == 1f

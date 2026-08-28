@@ -252,7 +252,7 @@ public record IntegralSystemDef(
      * all; a system that only moves the wearer never gets one.
      */
     public boolean grantsMitigation() {
-        return breacherAssist != null && breacherAssist.frontalResistance() > 0f;
+        return breacherAssist != null && breacherAssist.screenSoak() > 0f;
     }
 
     private static void rejectDurability(JSONObject json, String armorId) throws JSONException {

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.appearance.LiveAppearance;
+import com.dillon.starsectormarines.battle.appearance.SystemFxService;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
@@ -83,6 +84,7 @@ public final class UnitRenderService implements RenderSystem {
     }
 
     private final BattleSprites sprites;
+    private final SystemHaloComposer halo = new SystemHaloComposer();
 
     public UnitRenderService(BattleSprites sprites) {
         this.sprites = sprites;
@@ -333,6 +335,7 @@ public final class UnitRenderService implements RenderSystem {
         BattleComponents c = ctx.sim.getBattleComponents();
         BattleCamera cam = ctx.camera;
         UnitRosterService roster = ctx.sim.getRoster();
+        SystemFxService systemFx = roster.systemFx();
         FogOfWarService vis = ctx.sim.getFogOfWar();
         float unitSize = cam.cellPxSize() * BattleRenderer.UNIT_FRAC;
         float half = unitSize / 2f;
@@ -462,16 +465,40 @@ public final class UnitRenderService implements RenderSystem {
                             layeredLocomotion[r], layeredWeaponPhase[r], layeredFlags[r]);
                     authoredPose = sprites.unitLayerLayouts().applyArmorMastering(
                             authoredPose, bodyFamily, headFamily);
+                    WeaponDef primary = primaryDefinition(
+                            primaryWeapon != null ? primaryWeapon[r] : null);
+                    EquipmentGrade grade = equipmentGrade != null
+                            ? (EquipmentGrade) equipmentGrade[r] : EquipmentGrade.SERVICE;
+                    float shoulderPx = layeredInfantryShoulderWidth(
+                            cam.cellPxSize(), type.renderScale);
+                    // Lifted out of the column arrays so the halo's replay of
+                    // this same composition can close over them.
+                    LayerPose pose = authoredPose;
+                    float facingDeg = layeredFacing[r];
+                    float headLookDeg = layeredHeadLook[r];
+                    float locomotion = layeredLocomotion[r];
+                    float weaponPhase = layeredWeaponPhase[r];
+                    int weaponPose = layeredPose[r];
+                    int animationFlags = layeredFlags[r];
+                    // The running-system halo is this actor's own head and body
+                    // drawn again underneath, so it is emitted here rather than
+                    // by a separate pass: it has to sit immediately behind the
+                    // layers it is a copy of, and it is composed from them.
+                    if (systemFx.isRunning(entityId) || systemFx.breakFlash(entityId) > 0f) {
+                        halo.emit(out, systemFx, entityId,
+                                layeredAssets.body, layeredHeadAssets.head,
+                                cx, cy, shoulderPx, unitAlpha,
+                                emitter -> LayeredUnitComposer.emit(emitter, layeredAssets,
+                                        layeredHeadAssets.head, primary,
+                                        type.drawsLayeredWeapon(), secondary, grade,
+                                        cx, cy, shoulderPx, facingDeg, headLookDeg,
+                                        locomotion, weaponPhase, weaponPose,
+                                        animationFlags, 1f, pose));
+                    }
                     LayeredUnitComposer.emit(out, layeredAssets, layeredHeadAssets.head,
-                            primaryDefinition(primaryWeapon != null ? primaryWeapon[r] : null),
-                            type.drawsLayeredWeapon(),
-                            secondary,
-                            equipmentGrade != null ? (EquipmentGrade) equipmentGrade[r]
-                                    : EquipmentGrade.SERVICE,
-                            cx, cy, layeredInfantryShoulderWidth(
-                                    cam.cellPxSize(), type.renderScale),
-                            layeredFacing[r], layeredHeadLook[r], layeredLocomotion[r],
-                            layeredWeaponPhase[r], layeredPose[r], layeredFlags[r], unitAlpha,
+                            primary, type.drawsLayeredWeapon(), secondary, grade,
+                            cx, cy, shoulderPx, facingDeg, headLookDeg, locomotion,
+                            weaponPhase, weaponPose, animationFlags, unitAlpha,
                             authoredPose);
                     continue;
                 }

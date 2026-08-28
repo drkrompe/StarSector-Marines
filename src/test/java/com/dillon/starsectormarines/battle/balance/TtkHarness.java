@@ -96,12 +96,17 @@ public final class TtkHarness {
 
     /**
      * A screen held up for the whole measurement, so a row isolates what the
-     * arc is worth rather than averaging one authored window into a long
-     * fight. {@code facingDegrees} is where the screen points: the shooter
-     * stands due west of the defender, so {@link #FRONT_DEGREES} faces it and
-     * {@link #FLANK_DEGREES} turns away from it.
+     * arc and the pool are worth rather than averaging one authored window into
+     * a long fight. {@code facingDegrees} is where the screen points: the
+     * shooter stands due west of the defender, so {@link #FRONT_DEGREES} faces
+     * it and {@link #FLANK_DEGREES} turns away from it.
+     *
+     * <p>{@code soak} is a quantity of damage rather than a share of each hit,
+     * so a measured row now includes the screen <em>breaking</em> partway
+     * through the fight — which is the point of the model and the reason a
+     * screened time-to-kill no longer scales without bound.
      */
-    public record Screen(float fraction, float arcDegrees, float facingDegrees) {}
+    public record Screen(float soak, float arcDegrees, float facingDegrees) {}
 
     /** The bearing of the shooter from the defender in this arena. */
     public static final float FRONT_DEGREES = 90f;
@@ -209,7 +214,7 @@ public final class TtkHarness {
                 // measures what the arc is worth, and a policy deciding when to
                 // spend it belongs in its own story's evidence.
                 roster.mitigations().face(target, screen.facingDegrees());
-                roster.mitigations().grant(target, screen.fraction(), screen.arcDegrees(),
+                roster.mitigations().grant(target, screen.soak(), screen.arcDegrees(),
                         TRIAL_TIMEOUT_SECONDS * 2f);
             }
             if (trial == 0) {
@@ -298,7 +303,7 @@ public final class TtkHarness {
         return new IntegralSystemDef("system.ttk-screen", "Measured screen", EquipmentGrade.SERVICE,
                 "Held up for the whole measurement.", IntegralSystemEffect.BREACHER_ASSIST,
                 SpecialResourceMode.COOLDOWN, 1f, 2f, 0,
-                new BreacherAssistSpec(1.01f, screen.fraction(), screen.arcDegrees()), null, null,
+                new BreacherAssistSpec(1.01f, screen.soak(), screen.arcDegrees()), null, null,
                 new CrossingUnderFireSpec(12f));
     }
 

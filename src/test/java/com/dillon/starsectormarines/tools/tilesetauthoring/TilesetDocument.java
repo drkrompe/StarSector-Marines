@@ -135,6 +135,7 @@ public final class TilesetDocument {
                             new JSONArray().put(entry.spriteBorderX).put(entry.spriteBorderY));
                 }
             }
+            if (entry.hasMaterial()) o.put("material", entry.material);
             if (entry.isBlockMember()) {
                 o.put("block", entry.blockId);
                 o.put("slot", entry.slot);
@@ -275,6 +276,7 @@ public final class TilesetDocument {
                 entry.spriteBorderX = Math.max(0, border.getInt(0));
                 entry.spriteBorderY = Math.max(0, border.getInt(1));
             }
+            entry.material = o.optString("material", "").trim();
             entry.blockId = o.optString("block", "");
             entry.slot = o.optString("slot", "");
             entry.note = o.optString("note", "");
