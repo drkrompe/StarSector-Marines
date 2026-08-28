@@ -6,8 +6,13 @@ import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipDeckGenerator;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import com.dillon.starsectormarines.marine.MarineSoldier;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 /**
@@ -56,6 +61,11 @@ public final class CompanyDeck {
     private final long seed;
     private final BattleSprites sprites;
     private final Supplier<List<MechVariant>> lance;
+    private final Supplier<List<MarineSoldier>> company;
+    /** Soldier id to the marine standing aboard, for anyone the ship could billet. */
+    private final Map<String, Long> mustered = new HashMap<>();
+    /** Soldier id to the compartment their bunk is in. */
+    private final Map<String, DeckGraph.Compartment> quarters = new HashMap<>();
     private MapResult deck;
     private DeckGraph rooms;
     private ShipDeckBattleScene scene;
@@ -69,19 +79,24 @@ public final class CompanyDeck {
      *     one deck
      * @param lance the machines to park in her berths, read when the ship is
      *     first crewed; servicing work only exists while something is berthed
+     * @param company the marines to muster into her berthing, read at the same
+     *     moment; they are the ship's marine complement, so a ship given none
+     *     has no marines aboard rather than anonymous ones
      */
     public CompanyDeck(CompanyShip ship, long seed, BattleSprites sprites,
-                       Supplier<List<MechVariant>> lance) {
+                       Supplier<List<MechVariant>> lance,
+                       Supplier<List<MarineSoldier>> company) {
         if (ship == null) throw new IllegalArgumentException("a company ship is required");
         this.ship = ship;
         this.seed = seed;
         this.sprites = sprites;
         this.lance = lance == null ? List::of : lance;
+        this.company = company == null ? List::of : company;
     }
 
-    /** A ship nobody will draw and nothing is berthed in. */
+    /** A ship nobody will draw, nothing is berthed in, and nobody is billeted on. */
     public CompanyDeck(CompanyShip ship, long seed) {
-        this(ship, seed, null, null);
+        this(ship, seed, null, null, null);
     }
 
     public CompanyShip ship() {
@@ -148,8 +163,74 @@ public final class CompanyDeck {
         generate();
         scene = new ShipDeckBattleScene(deck, rooms, seed, sprites);
         scene.occupyGantries(lance.get());
+        // The company musters before the ship is crewed, so the berthing is
+        // filled by marines who are on the roster rather than topped up with
+        // hands who are not.
+        musterCompany();
         scene.manDeck();
         return scene;
+    }
+
+    /**
+     * Billet the company across every berthing the ship has, biggest first.
+     *
+     * <p>Every one of them, not just the compartment a screen would frame. The
+     * marines aboard are the roster and no more, so a second bunkroom left out
+     * of the muster would be filled by the general crewing pass with marines who
+     * are on no muster roll - and the player would find strangers asleep in
+     * their own ship.
+     */
+    private void musterCompany() {
+        List<MarineSoldier> roll = company.get();
+        List<MarineSoldier> remaining = roll == null ? List.of() : roll;
+        for (DeckGraph.Compartment berthing : berthings()) {
+            long[] billeted = scene.muster(berthing, remaining);
+            int taken = 0;
+            for (int index = 0; index < billeted.length; index++) {
+                if (billeted[index] == 0L) continue;
+                String soldier = remaining.get(index).id();
+                mustered.put(soldier, billeted[index]);
+                quarters.put(soldier, berthing);
+                taken++;
+            }
+            remaining = remaining.subList(taken, remaining.size());
+        }
+    }
+
+    /** The ship's berthing compartments, the largest first. */
+    private List<DeckGraph.Compartment> berthings() {
+        List<DeckGraph.Compartment> found = new ArrayList<>();
+        for (DeckGraph.Compartment room : rooms().compartments()) {
+            if (room.purpose() == RoomPurpose.BARRACKS) found.add(room);
+        }
+        found.sort(Comparator.comparingInt(DeckGraph.Compartment::area).reversed());
+        return found;
+    }
+
+    /**
+     * The marine standing aboard for this soldier, or zero for one the ship had
+     * no billet for.
+     *
+     * <p>How a berthing screen connects the list it is showing to the people in
+     * the room: the selected squad is not a subset of the scene, it is a subset
+     * of the roster, and the join between the two is made here rather than
+     * rediscovered by matching names.
+     */
+    public long marineFor(String soldierId) {
+        Long aboard = mustered.get(soldierId);
+        return aboard == null ? 0L : aboard;
+    }
+
+    /**
+     * The compartment this soldier's bunk is in, or {@code null} for one the
+     * ship had no billet for.
+     *
+     * <p>Where they sleep rather than where they are. A screen framing a squad
+     * wants the room that is theirs, and reading it off current positions would
+     * have the camera follow whoever happened to be walking to the mess.
+     */
+    public DeckGraph.Compartment quartersOf(String soldierId) {
+        return quarters.get(soldierId);
     }
 
     /** Whether the ship has been built and crewed yet. */
@@ -191,6 +272,8 @@ public final class CompanyDeck {
     public void dismiss() {
         if (scene != null) scene.close();
         scene = null;
+        mustered.clear();
+        quarters.clear();
         elapsedSeconds = 0f;
     }
 
