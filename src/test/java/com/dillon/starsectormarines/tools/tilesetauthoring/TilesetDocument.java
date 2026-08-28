@@ -130,6 +130,10 @@ public final class TilesetDocument {
                 if (!entry.passable) o.put("passable", false);
                 if (!entry.validOn.isEmpty()) o.put("validOn", new JSONArray(entry.validOn));
                 if (!entry.label.isEmpty()) o.put("name", entry.label);
+                if (entry.spriteBorderX > 0 || entry.spriteBorderY > 0) {
+                    o.put("spriteBorderPx",
+                            new JSONArray().put(entry.spriteBorderX).put(entry.spriteBorderY));
+                }
             }
             if (entry.isBlockMember()) {
                 o.put("block", entry.blockId);
@@ -266,6 +270,11 @@ public final class TilesetDocument {
                 entry.validOn.add(validOn.getString(v));
             }
             entry.label = o.optString("name", "");
+            JSONArray border = o.optJSONArray("spriteBorderPx");
+            if (border != null && border.length() == 2) {
+                entry.spriteBorderX = Math.max(0, border.getInt(0));
+                entry.spriteBorderY = Math.max(0, border.getInt(1));
+            }
             entry.blockId = o.optString("block", "");
             entry.slot = o.optString("slot", "");
             entry.note = o.optString("note", "");
