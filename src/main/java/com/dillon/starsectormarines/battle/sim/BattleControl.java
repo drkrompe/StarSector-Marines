@@ -57,6 +57,21 @@ public interface BattleControl extends BattleView, SquadDirectiveControl {
     /** Complete a reserved contact-demolition plant and begin its fuse. */
     boolean plantSatchel(long carrier, long target);
 
+    /**
+     * Apply a committed close-contact payload to an adjacent actor. Damage and
+     * penetration come from the item's weapon definition and resolve through
+     * the shared durability calculation; there is no travelling round and no
+     * area blast. Returns {@code false} when the contact is no longer legal.
+     */
+    boolean applyContactStrike(long carrier, long target);
+
+    /**
+     * Apply a committed breaching cutter's weapon-owned wall damage to one
+     * authored breach point. Returns {@code false} for any cell that is not
+     * still an authored, uncut breach point beside the carrier.
+     */
+    boolean applyContactBreach(long carrier, int cellX, int cellY);
+
     void fireMechWeapon(long shooter, long target, WeaponDef weapon);
 
     /** Mech fire with explicit accuracy multiplier (LRM indirect-fire path). */

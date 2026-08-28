@@ -7,7 +7,19 @@ public enum SpecialAiPolicy {
     HARDENED_DIRECT_FIRE("hardened-direct-fire"),
     SOFT_CLUSTER_INDIRECT("soft-cluster-indirect"),
     SQUAD_SMOKE_SCREEN("squad-smoke-screen"),
-    CONTACT_DEMOLITION("contact-demolition");
+    CONTACT_DEMOLITION("contact-demolition"),
+    /**
+     * Sustained anti-hard contact work: a visible, interruptible channel
+     * against an adjacent hardened actor, or against an authored breach point
+     * the carrier is already standing beside. It never seeks obstacles.
+     */
+    CONTACT_BREACH_CHANNEL("contact-breach-channel"),
+    /**
+     * Short anti-personnel reaction: one strike against an adjacent living
+     * infantry contact. It cannot select a turret, hub, mech, vehicle, wall,
+     * or a target the carrier cannot honestly reach.
+     */
+    CONTACT_REACTION_STRIKE("contact-reaction-strike");
 
     public final String key;
 
