@@ -4,8 +4,8 @@ Status: IN PROGRESS — live diagnostics, deterministic Conquest evidence, and p
 
 Written: 2026-08-25
 
-Updated: 2026-08-28 — used schema-8 tactical evidence to move the next
-Conquest investigation from travel loss to measured contested-zone conversion.
+Updated: 2026-08-28 — closed the casualty-triggered sticky-plan role and
+bounding-state defect identified by schema-8 tactical evidence.
 
 Read `mission-command-nouns.md` and `battle-fixtures-nouns.md` before implementing this
 story.
@@ -372,9 +372,27 @@ with defenders present, one exited empty, and two timed out. Secure travel
 ended with eight entries, six retargets, one release, and fifteen squad-loss
 exits. The 32/36 `episodesWithMarkerClosure` value means only one cell of
 progress from an episode's initial centroid distance; it does not prove marker
-or threshold arrival. The next trace slice should publish target-portal
-occupancy and classify never-at-portal, at-portal-not-entered, and entered
-episodes before changing final-hop tactics, capture slots, or timers.
+or threshold arrival.
+
+Trace schema 9 and summary schema 8 now copy exact member cells into the frozen
+command frame, count occupants on navigation doorway cells bordering the
+assigned target zone, expose that count in the selected-squad panel and dump,
+and classify every finalized secure trip. On the same duplicate fixture, 22/30
+trips never had a command-pulse portal observation, none were observed at the
+portal without later entering, and eight entered. Three entries had a sampled
+portal occupant; five crossed between the 75-tick command samples. This does
+not support persistent doorway parking. The stronger next evidence seam is
+contact-bound loss: all fifteen squad-loss exits had local contact, twelve last
+published `HOLD`, eleven still had engageable members/fireteams, and none were
+moving. The paired deterministic defect is now repaired: casualty replans
+replace every retained step's role map, removing dissolved team keys and
+duplicate survivors, and restart any bound authored from the old partition
+even when target geometry is unchanged. The focused sticky-compound regression
+passes, as do the bounding and fire-team suites. The same 6,000-tick fixture is
+byte-stable and retains the prior 6 captures / 4 final holds and 22/0/8 portal
+classification, so the repair closes latent execution state without disguising
+the remaining contact-bound `HOLD` seam. Investigate that doctrine/execution
+handoff before changing final-hop tactics, capture slots, or timers.
 
 ## Historical construction-only baselines
 

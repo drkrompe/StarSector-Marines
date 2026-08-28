@@ -134,6 +134,10 @@ public class NavigationGrid {
     private final SharedEdgeBarrier[] northEdgeBarriers;
     /** Deterministic authoring order, also used by the sparse render pass. */
     private final List<SharedEdgeBarrier> edgeBarriers = new ArrayList<>();
+    /** {@link #edgeBarriers} as an array for the per-pair ray search; null when stale. */
+    private SharedEdgeBarrier[] edgeBarrierArray;
+    private int sightBlockingBarrierCount;
+    private int projectileBlockingBarrierCount;
     private final List<SharedEdgeBarrier> edgeBarriersView =
             Collections.unmodifiableList(edgeBarriers);
     /** Per-cell wall hit points. Non-zero only for non-walkable cells initialized as walls; ignored once a cell becomes walkable (rubble or floor). */
@@ -456,6 +460,7 @@ public class NavigationGrid {
                 structureCellX, structureCellY);
         barrierArray(canonicalDirection)[index(canonicalX, canonicalY)] = barrier;
         edgeBarriers.add(barrier);
+        invalidateBarrierIndex();
         if (kind.blocksMovement()) {
             blockSharedEdge(canonicalX, canonicalY, canonicalDirection);
         }
@@ -497,6 +502,7 @@ public class NavigationGrid {
         if (barrier == null || !barrier.damage(amount)) return false;
         barrierArray(barrier.direction())[index(barrier.cellX(), barrier.cellY())] = null;
         edgeBarriers.remove(barrier);
+        invalidateBarrierIndex();
         publishBarrierCover(barrier, false);
         if (barrier.kind().blocksSight()) LosCache.clearAll();
         return true;
@@ -520,6 +526,7 @@ public class NavigationGrid {
         if (barrier == null) return false;
         barrierArray(barrier.direction())[index(barrier.cellX(), barrier.cellY())] = null;
         edgeBarriers.remove(barrier);
+        invalidateBarrierIndex();
         publishBarrierCover(barrier, false);
         openSharedEdge(barrier.cellX(), barrier.cellY(), barrier.direction());
         if (barrier.kind().blocksSight()) LosCache.clearAll();
@@ -781,6 +788,7 @@ public class NavigationGrid {
         Arrays.fill(eastEdgeBarriers, null);
         Arrays.fill(northEdgeBarriers, null);
         edgeBarriers.clear();
+        invalidateBarrierIndex();
         Arrays.fill(wallHp, 0);
         Arrays.fill(transientOpacity, (short) 0);
         opacityRevision++;
@@ -879,33 +887,83 @@ public class NavigationGrid {
                 || !Float.isFinite(x1) || !Float.isFinite(y1)) {
             throw new IllegalArgumentException("Ray endpoints must be finite");
         }
+        // Line of sight asks this on every perception pair, so the cheap exits
+        // come first: a map with no barrier of the asked-for kind answers
+        // without looking at one, and a barrier outside the segment's own
+        // bounding box is rejected on four integer compares rather than the
+        // divide its crossing parameter would cost.
+        if (barrierCountFor(filter) == 0) return null;
+        SharedEdgeBarrier[] barriers = edgeBarrierArray();
         float dx = x1 - x0;
         float dy = y1 - y0;
+        int loX = (int) Math.floor(Math.min(x0, x1)) - 1;
+        int hiX = (int) Math.ceil(Math.max(x0, x1)) + 1;
+        int loY = (int) Math.floor(Math.min(y0, y1)) - 1;
+        int hiY = (int) Math.ceil(Math.max(y0, y1)) + 1;
         float bestT = Float.POSITIVE_INFINITY;
         SharedEdgeBarrier best = null;
-        for (SharedEdgeBarrier barrier : edgeBarriers) {
+        for (int i = 0, n = barriers.length; i < n; i++) {
+            SharedEdgeBarrier barrier = barriers[i];
+            int cellX = barrier.cellX();
+            int cellY = barrier.cellY();
+            if (cellX < loX || cellX > hiX || cellY < loY || cellY > hiY) continue;
             if (filter == 1 && !barrier.kind().blocksSight()) continue;
             if (filter == 2 && !barrier.kind().blocksProjectiles()) continue;
             float t;
             float along;
             if (barrier.direction() == Direction.E) {
                 if (Math.abs(dx) < 1e-7f) continue;
-                t = (barrier.cellX() + 1f - x0) / dx;
+                t = (cellX + 1f - x0) / dx;
                 along = y0 + dy * t;
-                if (along < barrier.cellY() - 1e-6f
-                        || along > barrier.cellY() + 1f + 1e-6f) continue;
+                if (along < cellY - 1e-6f
+                        || along > cellY + 1f + 1e-6f) continue;
             } else {
                 if (Math.abs(dy) < 1e-7f) continue;
-                t = (barrier.cellY() + 1f - y0) / dy;
+                t = (cellY + 1f - y0) / dy;
                 along = x0 + dx * t;
-                if (along < barrier.cellX() - 1e-6f
-                        || along > barrier.cellX() + 1f + 1e-6f) continue;
+                if (along < cellX - 1e-6f
+                        || along > cellX + 1f + 1e-6f) continue;
             }
             if (t <= 1e-6f || t >= 1f - 1e-6f || t >= bestT) continue;
             bestT = t;
             best = barrier;
         }
         return best;
+    }
+
+    /** How many installed barriers a filter admits: 0 lets a query exit at once. */
+    private int barrierCountFor(int filter) {
+        if (filter == 1) return sightBlockingBarrierCount;
+        if (filter == 2) return projectileBlockingBarrierCount;
+        return edgeBarriers.size();
+    }
+
+    /**
+     * The barrier list as an array, in the same install order the list holds.
+     * Rebuilt on install and removal, which are rare, so the ray search reads
+     * a flat array instead of allocating a list iterator per call.
+     */
+    private SharedEdgeBarrier[] edgeBarrierArray() {
+        SharedEdgeBarrier[] snapshot = edgeBarrierArray;
+        if (snapshot == null) {
+            snapshot = edgeBarriers.toArray(new SharedEdgeBarrier[0]);
+            edgeBarrierArray = snapshot;
+        }
+        return snapshot;
+    }
+
+    /** Drops the cached array and filter counts after any barrier set change. */
+    private void invalidateBarrierIndex() {
+        edgeBarrierArray = null;
+        int sight = 0;
+        int projectile = 0;
+        for (int i = 0, n = edgeBarriers.size(); i < n; i++) {
+            SharedEdgeBarrier.Kind kind = edgeBarriers.get(i).kind();
+            if (kind.blocksSight()) sight++;
+            if (kind.blocksProjectiles()) projectile++;
+        }
+        sightBlockingBarrierCount = sight;
+        projectileBlockingBarrierCount = projectile;
     }
 
     /**
