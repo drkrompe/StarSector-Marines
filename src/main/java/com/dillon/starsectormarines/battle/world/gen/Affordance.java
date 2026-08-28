@@ -43,5 +43,24 @@ public enum Affordance {
     FABRICATE,
 
     /** A firing lane. Somewhere marines who would otherwise be idle shoot. */
-    PRACTICE
+    PRACTICE;
+
+    /**
+     * Whether doing this is work, as opposed to what somebody does when they
+     * are not working.
+     *
+     * <p>The distinction decides where a watch is <em>posted</em>, not what it
+     * does. A watch is posted where its work is; eating, sleeping and keeping
+     * one's shooting in are things people go and do between shifts, and a room
+     * that affords them is somewhere they visit rather than somewhere they are
+     * stationed. Without this, a compartment offering any job a role does reads
+     * as a billet for that role, and a ship acquires a watch of marines who
+     * live in the galley.
+     */
+    public boolean duty() {
+        return switch (this) {
+            case SERVICE, FABRICATE, STOW, READOUT -> true;
+            case REST, MESS, PRACTICE -> false;
+        };
+    }
 }

@@ -1,8 +1,13 @@
 package com.dillon.starsectormarines.battle.world.gen.ship;
 
+import com.dillon.starsectormarines.battle.ambient.CrewRole;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.sim.IdentityService;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.MarineSoldier;
+import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.ops.battleview.HeadlessBattleSceneRenderer;
 import com.dillon.starsectormarines.ops.battleview.ShipDeckBattleScene;
@@ -13,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -193,6 +199,45 @@ final class MannedDeckTest {
                 "the ship only ran " + ship.elapsedSeconds() + " seconds");
         assertSame(fromBerthing, ship.scene(),
                 "coming back to a room view rebuilt the ship");
+    }
+
+    /**
+     * The marines aboard are the ones on the roster, and nobody else is.
+     *
+     * <p>The failure this guards is quiet and would look right: crewing the ship
+     * posts a watch wherever a role has jobs, so a company mustered into one
+     * bunkroom leaves every other berthing - and every room with a mess table -
+     * to be filled with marines who are on no muster roll. The player would read
+     * a roster of nine names and walk into a ship carrying a hundred and sixty.
+     */
+    @Test
+    void theMarinesAboardAreTheOnesOnTheRoster() {
+        MarineRoster roster = new MarineRoster();
+        roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
+        List<MarineSoldier> company = roster.soldiers();
+        assertTrue(!company.isEmpty(), "the company has nobody in it");
+
+        CompanyDeck ship = new CompanyDeck(
+                CompanyShip.founding(), SEED, null, null, () -> company);
+        try {
+            ShipDeckBattleScene scene = ship.scene();
+            int billeted = 0;
+            for (MarineSoldier soldier : company) {
+                if (ship.marineFor(soldier.id()) != 0L) billeted++;
+            }
+            assertTrue(billeted > 0, "the ship billeted none of the company");
+
+            IdentityService identity = scene.simulation().identity();
+            int marines = 0;
+            for (int index = 0; index < scene.simulation().getRoster().liveCount(); index++) {
+                long actor = scene.simulation().getRoster().get(index);
+                if (identity.type(actor) == CrewRole.MARINE.unit()) marines++;
+            }
+            assertEquals(billeted, marines,
+                    "crewing the ship added marines who are on no muster roll");
+        } finally {
+            ship.dismiss();
+        }
     }
 
     private static DeckSizing.DeckPlan transportPlan() {
