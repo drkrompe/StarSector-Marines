@@ -135,11 +135,27 @@ final class LayeredMechComposer {
 
         LayerTransform leftThigh = layer(authoredPose, "left-thigh");
         LayerTransform rightThigh = layer(authoredPose, "right-thigh");
-        if (gaitPose == null && leftThigh != null && rightThigh != null) {
+        // Legs always sit below the upper assembly: pads, then linkages, then
+        // the ordinary weapon/chassis/pod stack emitted below.
+        if (gaitPose != null
+                && (chassis == LayeredMechAppearance.CHASSIS_HOUND
+                || chassis == LayeredMechAppearance.CHASSIS_SIROCCO)) {
+            emitConnectionTo(out, assets.thighBone, upperX, upperY,
+                    gaitPose.leftFootX(), gaitPose.leftFootY(), hullWidth, alpha);
+            emitConnectionTo(out, assets.thighBone, upperX, upperY,
+                    gaitPose.rightFootX(), gaitPose.rightFootY(), hullWidth, alpha);
+        } else if (leftThigh != null && rightThigh != null) {
             emitAuthored(out, assets.thighBone, leftThigh, upperX, upperY, hullWidth,
                     hipFacingDeg, alpha);
             emitAuthored(out, assets.thighBone, rightThigh, upperX, upperY, hullWidth,
                     hipFacingDeg, alpha);
+        } else if (leftThigh == null && rightThigh == null
+                && (chassis == LayeredMechAppearance.CHASSIS_HOUND
+                || chassis == LayeredMechAppearance.CHASSIS_SIROCCO)) {
+            emitConnection(out, assets.thighBone, upperX, upperY, hullWidth, hipFacingDeg,
+                    -footX - waistSway, leftFootY, alpha);
+            emitConnection(out, assets.thighBone, upperX, upperY, hullWidth, hipFacingDeg,
+                    footX - waistSway, rightFootY, alpha);
         }
 
         LayerTransform chassisTransform = layer(authoredPose, "chassis");
@@ -172,24 +188,6 @@ final class LayeredMechComposer {
         } else {
             emitCentered(out, chassisSprite, upperX, upperY, hullWidth, torsoFacingDeg,
                     0f, 0f, 0f, alpha);
-        }
-
-        // Surface linkages originate at the waist and stop one foot-radius
-        // short of the pad, preserving the pad's lower layer and clean outline.
-        if (gaitPose != null
-                && (chassis == LayeredMechAppearance.CHASSIS_HOUND
-                || chassis == LayeredMechAppearance.CHASSIS_SIROCCO)) {
-            emitConnectionTo(out, assets.thighBone, upperX, upperY,
-                    gaitPose.leftFootX(), gaitPose.leftFootY(), hullWidth, alpha);
-            emitConnectionTo(out, assets.thighBone, upperX, upperY,
-                    gaitPose.rightFootX(), gaitPose.rightFootY(), hullWidth, alpha);
-        } else if (leftThigh == null && rightThigh == null
-                && (chassis == LayeredMechAppearance.CHASSIS_HOUND
-                || chassis == LayeredMechAppearance.CHASSIS_SIROCCO)) {
-            emitConnection(out, assets.thighBone, upperX, upperY, hullWidth, hipFacingDeg,
-                    -footX - waistSway, leftFootY, alpha);
-            emitConnection(out, assets.thighBone, upperX, upperY, hullWidth, hipFacingDeg,
-                    footX - waistSway, rightFootY, alpha);
         }
 
         // Bulwark's racks are exposed above its armor; Hound carries one dorsal
