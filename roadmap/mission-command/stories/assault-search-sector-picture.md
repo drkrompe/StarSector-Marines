@@ -4,11 +4,11 @@ Status: IN PROGRESS — paired production implementation complete; awaiting live
 
 Written: 2026-08-24
 
-Updated: 2026-08-26 — contracted persistent sector coverage, report-driven
-convergence, bounded rechecks, and common command diagnostics for the attacker
-slice.
+Updated: 2026-08-27 — moved under `assault-command.md`; implementation remains
+landed and live/canonical-duration acceptance remains.
 
-Read `ai-nouns.md`, `autonomous-mission-command-foundation.md`, and
+Read `mission-command-nouns.md`, `assault-command.md`,
+`autonomous-mission-command-foundation.md`, and
 `commander-trace-and-balance-harness.md` before planning this story.
 
 ## Intent
@@ -83,6 +83,6 @@ evidence review close the paired command duel.
 
 ## Exit
 
-Fold durable search-sector vocabulary and laws into `ai-nouns.md`, add the story
-to the AI shipped ledger, and delete it when implementation and live acceptance
+Fold durable search-sector vocabulary and laws into `assault-command.md`, add the story
+to the mission-command shipped ledger, and delete it when implementation and live acceptance
 ship.

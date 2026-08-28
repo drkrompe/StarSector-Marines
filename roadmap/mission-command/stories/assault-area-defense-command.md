@@ -4,8 +4,8 @@ Status: IN PROGRESS — production implementation complete; awaiting live accept
 
 Written: 2026-08-25
 
-Updated: 2026-08-26 — recorded the production ownership, reserve, and hidden-
-information seams exposed by the attacker migration audit.
+Updated: 2026-08-27 — moved under `assault-command.md`; production ownership,
+reserve, and hidden-information behavior remain awaiting live evidence review.
 
 The completed implementation review added immediate readiness-to-response
 supersession, dispatchable reserve exchange, casualty coverage repair,
@@ -14,7 +14,8 @@ counter-concentration. The 600-tick forced-serial smoke now gates attacker
 allocation, defender response, response bounds, unrelated coverage, and repeat
 trace/metric determinism; live and canonical-duration review remain deferred.
 
-Read `ai-nouns.md`, `autonomous-mission-command-foundation.md`,
+Read `mission-command-nouns.md`, `assault-command.md`,
+`autonomous-mission-command-foundation.md`,
 `assault-search-sector-picture.md`, and
 `commander-trace-and-balance-harness.md` before planning this story.
 
@@ -68,8 +69,8 @@ attackers search and converge using their own coverage and beliefs.
 
 ## Exit
 
-Fold durable Assault defense vocabulary into `ai-nouns.md`, add this story to
-the AI shipped ledger, and delete it when the paired command duel ships.
+Fold durable Assault defense vocabulary into `assault-command.md`, add this story to
+the mission-command shipped ledger, and delete it when the paired command duel ships.
 
 The durable vocabulary is folded. Keep this story until the deferred live play
 pass and canonical-duration `commanderEvidence -Pmission=assault` review close

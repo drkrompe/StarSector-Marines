@@ -1,15 +1,18 @@
 # AI nouns
 
-Status: ACTIVE — AI owns autonomous mission command, squad planning, belief-derived contact pictures, local doctrine, faction-local influence, and command observability; broader mission strategies, player interventions, strategic analysis, and live acceptance are bounded extensions.
+Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, local doctrine, faction-local influence, and unit execution; Mission Command owns strategic command duels and mission strategy adapters.
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — added the production Assault search/area-defense command
-duel, belief-latched defender reports, and argument-driven evidence laws.
+Updated: 2026-08-27 — separated shared command-duel architecture and each
+mission strategy into the Mission Command feature while retaining their
+AI-facing belief, assignment, and tactical-execution boundaries here.
 
-AI turns mission context and what a side has learned into coordinated
-movement, posture, and fire intent. It is a decision system, not the authority
-for combat resolution, map topology, campaign objectives, or player control.
+AI turns an assignment and what a squad has learned into coordinated movement,
+posture, and fire intent. It is a decision system, not the authority for combat
+resolution, map topology, campaign objectives, player control, or strategic
+force allocation. Read `mission-command-nouns.md` for the shared commander
+architecture and its per-mission designs.
 
 ## Decision layers
 
@@ -75,7 +78,13 @@ shipboard leisure and workshop activity useful proving grounds for civilians,
 technicians, guards, and other map-authored workers without creating
 presentation-only actor scripts.
 
-## Autonomous command duel
+## Mission-command integration
+
+`mission-command-nouns.md` is canonical for the command duel, frames,
+disclosure, pools, directives, arbiter, snapshots, traces, evidence, player
+intervention, and per-mission adapter contract. The following material records
+the AI-facing side of that seam: command supplies stable assignment context;
+AI retains local planning and execution authority.
 
 The normal battle baseline is **autonomous resolution**: every side with
 strategic agency must be capable of pursuing its mission without the player
@@ -251,7 +260,12 @@ squad remains when possible. The published directive keeps the reason for its
 actual order and separately exposes whether a distant capture was deferred for
 front resistance, so selected-squad UI, dumps, and traces explain both facts.
 
-## Assault area command
+## Assault command integration (summary)
+
+`assault-command.md` is canonical for Assault sector search, defender area
+security, reserve policy, command pictures, and evidence. These laws remain
+relevant here because squad planning consumes `SWEEP_SECTOR` and `DEFEND_AREA`
+assignments without acquiring strategic ownership.
 
 Assault is a two-dimensional search and security problem, not a directional
 front. Both perspectives share one stable rectangular sector partition as
@@ -297,7 +311,11 @@ and maximum-tick overrides remain arguments rather than mission-specific Gradle
 tasks. Canonical evidence uses forced-serial duplicate replays and requires
 byte-identical traces from both perspectives.
 
-## Named-site mission command
+## Sabotage command integration (summary)
+
+`sabotage-command.md` is canonical for named sites, task groups, planter
+logistics, site security, alarms, command pictures, and evidence. These laws
+remain relevant here only at the assignment-to-local-plan boundary.
 
 A **named site** is a mission-authored objective whose stable identity survives
 construction, command frames, directives, snapshots, diagnostics, traces, and
@@ -439,17 +457,18 @@ organization for maneuver.
 
 ## Mission, space, and feature boundaries
 
-Mission commands issue assignment context for the mission they serve. Zones,
+Mission commands issue assignment context for the mission they serve. Their
+shared contract and strategy catalog live in `mission-command-nouns.md`.
+Zones,
 portals, tactical nodes, and compound footprints are tactical places supplied
 by map generation and battle setup; AI may reason over them but does not author
 their geometry. `mapgen-nouns.md` owns that spatial substrate.
 
-Command geometry follows mission meaning. Conquest uses a directional front;
-Assault searches a two-dimensional area; Sabotage organizes around named sites;
-Rescue protects a moving corridor and cohort; Silent Colony divides an
-expedition between independent objectives. A useful geometry may be reused as
-an implementation primitive, but one mission's ownership and convergence laws
-do not silently become another mission's doctrine.
+Command geometry follows mission meaning. The enduring strategies live in
+`conquest-command.md`, `sabotage-command.md`, `assault-command.md`,
+`raid-command.md`, and `extraction-command.md`. A useful geometry may be reused
+as an implementation primitive, but one mission's ownership and convergence
+laws do not silently become another mission's doctrine.
 
 Not every opposing force needs a conventional squad commander. A swarm,
 security network, or scripted hazard may use an inspectable mission director

@@ -4,9 +4,11 @@ Status: IN PROGRESS — implementation is complete; paired live command-duel acc
 
 Written: 2026-08-24
 
-Updated: 2026-08-25 — aligned live acceptance with the autonomous mission-command foundation.
+Updated: 2026-08-27 — moved under `conquest-command.md` and retained as paired
+live acceptance for belief-honest patrol mobilization.
 
-Read `conquest-nouns.md`, `ai-nouns.md`, and
+Read `conquest-command.md`, `mission-command-nouns.md`, `conquest-nouns.md`,
+`ai-nouns.md`, and
 `autonomous-mission-command-foundation.md` before accepting this story.
 
 ## Story

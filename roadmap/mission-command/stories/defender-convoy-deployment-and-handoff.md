@@ -4,7 +4,11 @@ Status: IN PROGRESS — implementation complete; live Conquest playtest remains.
 
 Written: 2026-08-26
 
-Read `conquest-nouns.md`, `reinforcement-nouns.md`, `convoy-nouns.md`, and
+Updated: 2026-08-27 — moved under `conquest-command.md`; live rear-edge
+deployment and relief-ownership acceptance remains.
+
+Read `conquest-command.md`, `mission-command-nouns.md`, `conquest-nouns.md`,
+`reinforcement-nouns.md`, `convoy-nouns.md`, and
 `means-dispatch-transaction.md` before implementing this story.
 
 ## Story
