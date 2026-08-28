@@ -144,6 +144,17 @@ public final class TacticalScoring {
     public static final float FIRING_DOODAD_COVER_BONUS = 1.5f;
 
     /**
+     * Largest amount the cover terms can pull a firing-position score below
+     * {@code distFromSelf}. Occupancy and AoE-spread only ever add, so
+     * {@code distFromSelf - MAX_FIRING_SCORE_BONUS} is an exact lower bound
+     * on any candidate's score — a cell whose bound already loses to the
+     * incumbent can be skipped before its line-of-fire raycast without
+     * changing which cell the search returns.
+     */
+    private static final float MAX_FIRING_SCORE_BONUS =
+            (FIRING_COVER_BONUS + FIRING_DOODAD_COVER_BONUS) * NavigationGrid.MAX_COVER;
+
+    /**
      * Cell-radius around a target searched by
      * {@link #computeVantagePoints} when populating the vantage-point cache —
      * the stage-2 fallback used by {@link #findFiringPosition} when no
@@ -1886,20 +1897,35 @@ public final class TacticalScoring {
         float effectiveRange = effectiveAttackRange(self, target, world.attackRange(self));
         int range = Math.max(1, (int) Math.floor(effectiveRange));
 
+        // The anchor leash is normally far tighter than weapon range — a
+        // 12-cell hold ring inside a 22-cell rifle envelope — so the scan box
+        // is clamped to the leash up front and the leash test runs before the
+        // line-of-fire raycast rather than after it. Integer cell coordinates
+        // make the floored leash an exact bound on each axis.
+        int leash = (int) Math.floor(maxDistFromAnchor);
+        int firstY = Math.max(ty - range, anchorY - leash);
+        int lastY = Math.min(ty + range, anchorY + leash);
+        int firstX = Math.max(tx - range, anchorX - leash);
+        int lastX = Math.min(tx + range, anchorX + leash);
+
         int[] best = null;
         float bestScore = Float.MAX_VALUE;
-        for (int dy = -range; dy <= range; dy++) {
-            for (int dx = -range; dx <= range; dx++) {
-                int cx = tx + dx;
-                int cy = ty + dy;
+        for (int cy = firstY; cy <= lastY; cy++) {
+            for (int cx = firstX; cx <= lastX; cx++) {
+                int dx = cx - tx;
+                int dy = cy - ty;
                 if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) continue;
+                if (cellDistance(anchorX, anchorY, cx, cy) > maxDistFromAnchor) continue;
 
                 float distFromTarget = (float) Math.sqrt(dx * dx + dy * dy);
                 if (distFromTarget > effectiveRange) continue;
                 if (distFromTarget < FIRING_MIN_DISTANCE) continue;
+
+                float distFromSelf = cellDistance(sx, sy, cx, cy);
+                if (distFromSelf - MAX_FIRING_SCORE_BONUS >= bestScore) continue;
+
                 if (!canShootPair(grid, cx + 0.5f, cy + 0.5f,
                         world.x(target), world.y(target), selfAir, targetAir)) continue;
-                if (cellDistance(anchorX, anchorY, cx, cy) > maxDistFromAnchor) continue;
 
                 int occupants = occupantsExcludingSelf(self, sx, sy, cx, cy);
                 int alliesNear = alliesNearForSpread(self, cx, cy);
@@ -1909,7 +1935,6 @@ public final class TacticalScoring {
                 int fdy = ty - cy;
                 int cover = grid.getCoverAt(cx, cy, fdx, fdy);
                 int doodadCover = doodads.getDoodadCoverAt(cx, cy, fdx, fdy);
-                float distFromSelf = cellDistance(sx, sy, cx, cy);
                 float score = distFromSelf
                         + FIRING_OCCUPANCY_COST * occupants
                         + FIRING_AOE_SPREAD_COST * alliesNear
@@ -1961,6 +1986,10 @@ public final class TacticalScoring {
                 float distFromTarget = (float) Math.sqrt(dx * dx + dy * dy);
                 if (distFromTarget > effectiveRange) continue;
                 if (distFromTarget < FIRING_MIN_DISTANCE) continue;
+
+                float distFromSelf = cellDistance(sx, sy, cx, cy);
+                if (distFromSelf - MAX_FIRING_SCORE_BONUS >= bestScore) continue;
+
                 if (!canShootPair(grid, cx + 0.5f, cy + 0.5f,
                         world.x(target), world.y(target), selfAir, targetAir)) continue;
 
@@ -1971,7 +2000,6 @@ public final class TacticalScoring {
                 int fdy = ty - cy;
                 int cover = grid.getCoverAt(cx, cy, fdx, fdy);
                 int doodadCover = doodads.getDoodadCoverAt(cx, cy, fdx, fdy);
-                float distFromSelf = cellDistance(sx, sy, cx, cy);
                 float score = distFromSelf
                         + FIRING_OCCUPANCY_COST * occupants
                         + FIRING_AOE_SPREAD_COST * alliesNear
