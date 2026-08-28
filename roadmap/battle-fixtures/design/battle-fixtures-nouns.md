@@ -6,8 +6,7 @@ are shipped.
 
 Written: 2026-08-24
 
-Updated: 2026-08-27 — captures may travel beside a profile dump when they cannot fit inside it.
-named-site command evidence.
+Updated: 2026-08-28 — headless command replay may emit cadence-based neutral visual evidence.
 
 ## Vocabulary
 
@@ -33,6 +32,13 @@ They do not own a second scene builder.
 A **profile run** is an opt-in headless replay measured by an external runtime
 profiler. Performance evidence is an artifact, not a pass/fail timing budget;
 continuous tests prove codec and deterministic-construction behavior instead.
+
+A **visual replay** is an opt-in observation of a normal headless replay. It
+samples current simulation state at a configured tick cadence and drains the
+production battle renderer through Java2D into numbered PNG frames and a review
+GIF. Neutral faction markers keep live forces legible at whole-map scale; GL-only
+custom and ribbon decoration is outside the raster evidence contract. It is not
+a serialized checkpoint and cannot resume a battle.
 
 ## Authority and flow
 
@@ -66,6 +72,8 @@ without making the simulation or fixture codec depend on Starsector file APIs.
   claim that replay resumes at that tick.
 - Simulation-owned executors are resources. Hosts and headless runners release
   them when the battle leaves service.
+- Visual capture is read-only, explicitly neutral, and must not change the
+  trace or result relative to an uncaptured duplicate replay.
 
 ## Fidelity layers
 
