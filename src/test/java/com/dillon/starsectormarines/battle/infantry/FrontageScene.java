@@ -72,12 +72,21 @@ final class FrontageScene {
 
     private FrontageScene() {}
 
-    /** Where the marine assault enters from. The compound's own geometry is identical in every case; only the approach differs. */
+    /**
+     * Which edge the marine assault enters from. The compound's own geometry is
+     * identical in every case; only the approach differs.
+     *
+     * <p>Named for where the edge appears in a rendered frame rather than by
+     * compass point. World +y draws upward, and the two places that already
+     * name wall directions disagree about what that makes "north", so a
+     * compass label here would be a claim this scene has no way to check and
+     * every reader watching a recording would read it as wrong.
+     */
     enum Approach {
-        SOUTH(WIDTH / 2, HEIGHT - 4),
-        NORTH(WIDTH / 2, 3),
-        EAST(WIDTH - 4, HEIGHT / 2),
-        WEST(3, HEIGHT / 2);
+        TOP(WIDTH / 2, HEIGHT - 4),
+        BOTTOM(WIDTH / 2, 3),
+        RIGHT(WIDTH - 4, HEIGHT / 2),
+        LEFT(3, HEIGHT / 2);
 
         final int cellX;
         final int cellY;

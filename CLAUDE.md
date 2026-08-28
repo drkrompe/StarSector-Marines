@@ -110,8 +110,8 @@ Do not run builds or leave generated task files there.
   `-PsnapshotHeight=640` arguments control review playback and output size.
 - `gradlew.bat createSnapshots` → every deterministic visual-evidence suite under
   `build/snapshots/` without launching Starsector or creating an OpenGL context. Select
-  suites with `-Psnapshot=armory,durability-bars,layers,turrets,ui` (default `all`) and redirect the
-  common output root with `-PsnapshotDir=<path>`.
+  suites with `-Psnapshot=armory,durability-bars,frontage-scene,layers,ship-decks,turrets,ui`
+  (default `all`) and redirect the common output root with `-PsnapshotDir=<path>`.
 - `gradlew.bat layerAuthoring` → extensible standalone authoring workbench. The
   Layers page provides drag, scale, rotation, variant-scoped phase-driven
   animation playback, combined-sheet export, the shared snapshot
@@ -176,13 +176,21 @@ The discovered suite ids and default output directories are:
 | `ship-decks` | Generated ship-deck plan views, tinted by longitudinal zone | `build/snapshots/ship-decks/` |
 | `turrets` | Authored mount-state strips, including projectile and impact effects | `build/snapshots/turrets/` |
 | `ui` | Retained Marine Ops screens at authored viewport sizes | `build/snapshots/ui/` |
+| `frontage-scene` | Animated garrison stand-to on a generated compound, one loop per approach edge | `build/snapshots/frontage-scene/` |
 
 Run all suites with `gradlew.bat createSnapshots`. Use
 `-Psnapshot=<id>` for one suite or a comma-separated selector for several; quote
 the whole property in PowerShell, for example
 `'-Psnapshot=layers,turrets'`. `-PsnapshotDir=<path>` changes the shared output
 root while retaining the per-suite subdirectories. Command-line generation
-replaces matching PNGs without prompting and does not remove stale files.
+replaces matching files without prompting and does not remove stale ones, so a
+suite that renames an artifact leaves the old name behind until it is deleted.
+
+A suite artifact is a PNG or, for a suite whose evidence is a played battle
+rather than a composition, an animated GIF built from a frame sequence. The
+runner writes both; a suite never writes files itself. Animated review frames
+come from `BattleReviewFrameRenderer`, shared with commander evidence so the
+two do not drift into separate camera fits and marker palettes.
 
 Snapshot generation is tool/test infrastructure and must not enter the shipped
 mod jar. Keep reusable catalog and runner code in `:layer-authoring`, keep
