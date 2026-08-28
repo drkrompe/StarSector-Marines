@@ -46,9 +46,14 @@ public final class CompanyShipLossListener extends BaseCampaignEventListener {
                 && !wasCasualty(result.getLoserResult(), home)) {
             return;
         }
+        // Whether the player still owned the field is recorded with the
+        // casualty because it decides who gets picked up, and nobody can ask
+        // the battle about it again once it is over.
+        boolean heldTheField = result.getWinnerResult() != null
+                && result.getWinnerResult().isPlayer();
         LOG.info("CompanyShipLossListener: the company ship (" + home
-                + ") did not come through the engagement");
-        roster.reportCompanyShipCasualty();
+                + ") did not come through the engagement; field held: " + heldTheField);
+        roster.reportCompanyShipCasualty(heldTheField);
     }
 
     /** Whether the player's own side lost this ship in the engagement. */

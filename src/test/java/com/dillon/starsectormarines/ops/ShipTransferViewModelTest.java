@@ -53,11 +53,16 @@ class ShipTransferViewModelTest {
         }
 
         void moveAboard(String shipId) {
-            standing = new CompanyShipDesignation.Home(shipId, null, false);
+            standing = new CompanyShipDesignation.Home(shipId, null, false, 0);
         }
 
         void displace(String formerShipName, boolean lostInAction) {
-            standing = new CompanyShipDesignation.Home(null, formerShipName, lostInAction);
+            displace(formerShipName, lostInAction, 0);
+        }
+
+        void displace(String formerShipName, boolean lostInAction, int marinesLost) {
+            standing = new CompanyShipDesignation.Home(
+                    null, formerShipName, lostInAction, marinesLost);
         }
     }
 
@@ -171,6 +176,18 @@ class ShipTransferViewModelTest {
         assertTrue(copy.contains("was lost"), "losing her is not selling her: " + copy);
         // Displaced or founding, there is nothing to measure a hull against.
         assertEquals("QUARTER THE COMPANY HERE", viewModel.transferLabel().get());
+    }
+
+    @Test
+    @DisplayName("a company that lost marines with her is told how many")
+    void theTollIsNamedOnTheScreenTheLossPutsThemOn() {
+        Quarters quarters = new Quarters();
+        quarters.displace("SABRE", true, 41);
+        ShipTransferViewModel viewModel = new ShipTransferViewModel(new Reactor(),
+                () -> FLEET, quarters::get, quarters::moveAboard, company(MOVE * 4));
+
+        assertTrue(viewModel.roomCopy().get().contains("41 marines aboard"),
+                viewModel.roomCopy().get());
     }
 
     @Test
