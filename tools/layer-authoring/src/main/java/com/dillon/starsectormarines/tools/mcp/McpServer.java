@@ -186,10 +186,31 @@ public final class McpServer {
             }
             return result.toJson();
         } catch (Exception failure) {
-            String message = failure.getMessage();
-            return McpToolResult.failure(name + " failed: " + failure.getClass().getSimpleName()
-                    + (message == null ? "" : ": " + message)).toJson();
+            return McpToolResult.failure(name + " failed: " + describe(failure)).toJson();
         }
+    }
+
+    /**
+     * A throwable and everything under it, one link per line.
+     *
+     * <p>The chain rather than the top: the informative half of a wrapped
+     * failure is almost always the cause. "Could not prepare headless battle
+     * assets" names the step and says nothing a caller can act on, while the
+     * {@code NoSuchFileException} beneath it names the file. A caller here reads
+     * text and cannot ask for a stack trace, so the chain is the only place
+     * that detail can survive.
+     */
+    static String describe(Throwable failure) {
+        StringBuilder text = new StringBuilder();
+        // Guarded rather than trusted: a self-referential cause is rare but
+        // hangs the server rather than reporting anything at all.
+        for (Throwable link = failure; link != null && text.length() < 2000; link = link.getCause()) {
+            if (text.length() > 0) text.append("\n  caused by ");
+            text.append(link.getClass().getSimpleName());
+            if (link.getMessage() != null) text.append(": ").append(link.getMessage());
+            if (link.getCause() == link) break;
+        }
+        return text.toString();
     }
 
     // The two envelope builders wrap rather than declare: they are the only way
