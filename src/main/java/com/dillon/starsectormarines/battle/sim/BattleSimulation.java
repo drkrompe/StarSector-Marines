@@ -1458,8 +1458,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         smokeFields.tick(TICK_DT);
         // Fog-of-war visibility pass — recomputed every 3rd tick (~10 Hz at
         // 30 Hz sim). The render path lerps current→target alpha per frame so
-        // this cadence stays invisible. Ephemeral sources (shuttles, fighters)
-        // are pushed by BattleScreen.advance() each frame before this call.
+        // this cadence stays invisible. Host-projected temporary sources
+        // (shuttles, fighters, recon pings) are pushed by BattleScreen.advance()
+        // each frame before this call; simulation-carried ones (a running sensor
+        // sweep) are republished by integralSystemSystem below, so they are read
+        // here one tick later — well inside the vision cadence either way.
         fogOfWar.tick(simTickIndex, rosterService);
         tickProfile.lap(TickProfile.Phase.VISION);
         navigation.rebuildOccupancyMap(rosterService);
