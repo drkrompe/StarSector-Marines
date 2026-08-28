@@ -14,8 +14,8 @@ import static org.lwjgl.opengl.GL11.GL_ALL_ATTRIB_BITS;
 import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_LINEAR;
+import static org.lwjgl.opengl.GL11.GL_MAX_TEXTURE_SIZE;
 import static org.lwjgl.opengl.GL11.GL_MODELVIEW;
-import static org.lwjgl.opengl.GL11.GL_NO_ERROR;
 import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_PROJECTION;
 import static org.lwjgl.opengl.GL11.GL_QUADS;
@@ -39,7 +39,6 @@ import static org.lwjgl.opengl.GL11.glColorMask;
 import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glEnd;
-import static org.lwjgl.opengl.GL11.glGetError;
 import static org.lwjgl.opengl.GL11.glGetInteger;
 import static org.lwjgl.opengl.GL11.glLoadIdentity;
 import static org.lwjgl.opengl.GL11.glMatrixMode;
@@ -89,9 +88,11 @@ import static org.lwjgl.opengl.GL11.glGenTextures;
  * layer is decoupled from that count. See {@code render2d_batching}
  * memory + the project conversation log for context.
  *
- * <p>FBO is half-resolution per cell ({@link #DEFAULT_FBO_PX_PER_CELL})
- * — sharp at battle-overview zoom, slightly soft at max zoom; ~10 MB on
- * a 100×100 grid. Adjust via the constructor if needed.
+ * <p>FBO resolution is per cell ({@link #DEFAULT_FBO_PX_PER_CELL}), so its
+ * VRAM cost scales with the map: 41 MB on a 100×100 grid, and 157 MB on the
+ * 240×160 grid Conquest always builds. {@link #MAX_FBO_PIXELS} caps that,
+ * stepping the per-cell resolution down rather than refusing the allocation.
+ * Adjust the request via the constructor if needed.
  *
  * <p>Modeled on {@link com.dillon.starsectormarines.render.BridgeRenderer}'s
  * state-save/restore pattern: push GL attribs for everything {@code glPopAttrib}
@@ -115,6 +116,32 @@ public final class DecalAccumulator {
      * raise to 64 if you want sharp decals at max zoom (×4 VRAM).
      */
     public static final int DEFAULT_FBO_PX_PER_CELL = 32;
+
+    /**
+     * Ceiling on the color attachment's total pixels, before the per-dimension
+     * driver limit is also applied. 16.7 Mpx is 67 MB at RGBA8.
+     *
+     * <p>The requested resolution is per <em>cell</em>, so the allocation grows
+     * with the map and nothing in the request itself is bounded: Conquest always
+     * builds the LARGE 240x160 grid regardless of tier, which at the default 32
+     * px/cell asks for 7680x5120 -- 157 MB of VRAM, plus a transient 157 MB
+     * direct ByteBuffer, uploaded in one call on the render thread. That is a
+     * large enough single-shot upload to be a plausible driver-timeout risk on a
+     * VRAM-tight machine, and it was requested with no ceiling of any kind.
+     *
+     * <p>Prefer softer decals over a refused allocation: {@link #resolvePxPerCell}
+     * steps the resolution down until it fits, and only a grid too large at 1
+     * px/cell fails the accumulator outright.
+     */
+    private static final int MAX_FBO_PIXELS = 4096 * 4096;
+
+    /**
+     * {@code GL_MAX_TEXTURE_SIZE}, resolved from the driver on first use.
+     * Cached because this class deliberately avoids {@code glGet*} readbacks
+     * (they stall async-renderer bridges) -- once per process, off the
+     * per-frame path, is the compromise. {@code 0} = not yet queried.
+     */
+    private static int maxTextureSize;
 
     private final int fboPxPerCell;
 
@@ -387,18 +414,34 @@ public final class DecalAccumulator {
             invalidate();
         }
 
+        int perCell = resolvePxPerCell(gridW, gridH);
+        if (perCell < 1) {
+            LOG.error("DecalAccumulator: " + gridW + "x" + gridH
+                    + " cell grid does not fit a texture even at 1px/cell (driver max "
+                    + maxTextureSize + "px) -- disabling decal accumulation");
+            broken = true;
+            return;
+        }
+        if (perCell < fboPxPerCell) {
+            LOG.warn("DecalAccumulator: " + gridW + "x" + gridH + " cell grid at "
+                    + fboPxPerCell + "px/cell would need "
+                    + ((long) gridW * fboPxPerCell) + "x" + ((long) gridH * fboPxPerCell)
+                    + "; clamped to " + perCell + "px/cell -- decals will be softer");
+        }
+
         gridCellsW = gridW;
         gridCellsH = gridH;
-        fboPxW = gridW * fboPxPerCell;
-        fboPxH = gridH * fboPxPerCell;
+        fboPxW = gridW * perCell;
+        fboPxH = gridH * perCell;
 
         fbo      = glGenFramebuffers();
         fboColor = glGenTextures();
 
         glBindTexture(GL_TEXTURE_2D, fboColor);
         ByteBuffer empty = BufferUtils.createByteBuffer(fboPxW * fboPxH * 4);
+        GlErrors.clear();
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, fboPxW, fboPxH, 0, GL_RGBA, GL_UNSIGNED_BYTE, empty);
-        checkGL("glTexImage2D (decal FBO color)");
+        GlErrors.check("glTexImage2D (decal FBO color)");
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -419,17 +462,39 @@ public final class DecalAccumulator {
         }
 
         LOG.debug("DecalAccumulator FBO " + fbo + " complete at " + fboPxW + "x" + fboPxH
-                + " (cells " + gridW + "x" + gridH + " × " + fboPxPerCell + "px)");
+                + " (cells " + gridW + "x" + gridH + " × " + perCell + "px)");
         // FBO starts with random / zeroed contents — make sure it's a clean
         // transparent surface so the blit doesn't paint random pixels over the
         // floor pass before any decals stamp.
         clearFbo();
     }
 
-    private static void checkGL(String label) {
-        int err = glGetError();
-        if (err != GL_NO_ERROR) {
-            LOG.error("GL error at " + label + ": 0x" + Integer.toHexString(err));
+    /**
+     * Largest px-per-cell for this grid that satisfies both the driver's
+     * per-dimension texture limit and {@link #MAX_FBO_PIXELS}, never above the
+     * requested {@link #fboPxPerCell}. Returns {@code 0} when even 1 px/cell
+     * exceeds the driver limit, which no clamping can rescue.
+     */
+    private int resolvePxPerCell(int gridW, int gridH) {
+        int dimCap = maxTextureDimension();
+        for (int perCell = fboPxPerCell; perCell >= 1; perCell--) {
+            long w = (long) gridW * perCell;
+            long h = (long) gridH * perCell;
+            if (w <= dimCap && h <= dimCap && w * h <= MAX_FBO_PIXELS) return perCell;
         }
+        return 0;
+    }
+
+    /**
+     * {@code GL_MAX_TEXTURE_SIZE}, queried once and cached. Falls back to the
+     * GL2.1-guaranteed minimum if the driver reports something implausible,
+     * so a bad readback clamps conservatively rather than removing the ceiling.
+     */
+    private static int maxTextureDimension() {
+        if (maxTextureSize == 0) {
+            int reported = glGetInteger(GL_MAX_TEXTURE_SIZE);
+            maxTextureSize = reported >= 1024 ? reported : 1024;
+        }
+        return maxTextureSize;
     }
 }
