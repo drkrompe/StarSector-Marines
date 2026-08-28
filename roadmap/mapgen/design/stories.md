@@ -10,7 +10,7 @@ Updated: 2026-08-28 — added the compound vehicle-hangar vertical, blocked behi
 | Story | Status | Outcome |
 |---|---|---|
 | `battlespace-preview.md` | PARKED | Replay one persisted battlespace identity for an honest pre-battle preview if the briefing design adopts it. |
-| `compound-vehicle-hangar.md` | BLOCKED | Shared fill machinery is neutral and shipped; the hangar itself waits on a compound program, because measurement showed only 29% of compounds have a wing a bay fits in. |
+| `compound-vehicle-hangar.md` | BLOCKED | Fill, packing, furnishing and berths are shipped and proven in the Conquest fortress; the hangar waits only on a compound parcel a bay fits in — measured at 29% of compounds today. |
 | `cross-leaf-footprint-planning.md` | PROPOSED | Plan one coherent multi-leaf structure before roads and per-leaf fills commit the parcel layout. First step of `compound-programs.md`. |
 | `station-corridor-arenas.md` | PROPOSED | Give station junctions and gates intentional tactical space without turning transit into cover soup. |
 | `station-theme-fills.md` | PROPOSED | Fill station room purposes with distinct, tactically meaningful themes. |

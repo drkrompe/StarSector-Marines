@@ -6,6 +6,9 @@ import com.dillon.starsectormarines.battle.decision.goap.world.WorldStateBuilder
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.squad.SquadMoraleSystem;
+import com.dillon.starsectormarines.battle.squad.SquadPlan;
+import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 
@@ -53,23 +56,62 @@ public class CommandFrame {
             UnitRole role = memberCount > 0
                     ? sim.role().role(sim.squadMemberAt(squad.id, 0)) : null;
             int activePathMembers = 0;
+            int movingMembers = 0;
+            SquadContactPicture contact = squad.contactPicture;
+            boolean primaryKnown = contact.primaryCellX() >= 0
+                    && contact.primaryCellY() >= 0;
+            int coveredFromPrimaryMembers = primaryKnown ? 0 : -1;
+            int coolingDownMembers = 0;
             int[] memberZoneIds = new int[memberCount];
             for (int memberIndex = 0; memberIndex < memberCount; memberIndex++) {
                 long member = sim.squadMemberAt(squad.id, memberIndex);
-                memberZoneIds[memberIndex] = sim.getZoneGraph().zoneIdAt(
-                        sim.world().cellX(member), sim.world().cellY(member));
+                int memberX = sim.world().cellX(member);
+                int memberY = sim.world().cellY(member);
+                memberZoneIds[memberIndex] = sim.getZoneGraph().zoneIdAt(memberX, memberY);
                 if (sim.world().pathIdx(member)
                         < Paths.cellCount(sim.world().path(member))) {
                     activePathMembers++;
                 }
+                float velocityX = sim.movement().velX(member);
+                float velocityY = sim.movement().velY(member);
+                if (velocityX * velocityX + velocityY * velocityY > 0.0001f) {
+                    movingMembers++;
+                }
+                if (primaryKnown) {
+                    int fromDx = contact.primaryCellX() - memberX;
+                    int fromDy = contact.primaryCellY() - memberY;
+                    if (sim.getGrid().getCoverAt(memberX, memberY,
+                            fromDx, fromDy) > 0
+                            || sim.getDoodadCoverAt(memberX, memberY,
+                            fromDx, fromDy) > 0) {
+                        coveredFromPrimaryMembers++;
+                    }
+                }
+                if (sim.combat().has(member)
+                        && sim.combat().cooldownTimer(member) > 0f) {
+                    coolingDownMembers++;
+                }
             }
+            SquadPlan.Step step = squad.currentPlan != null
+                    ? squad.currentPlan.currentStep() : null;
             rows.add(new CommandSquadState(squad.id, squad.faction,
                     squad.aliveMembers, squad.centroidX, squad.centroidY,
                     anchorX, anchorY, ZoneQueries.squadCurrentZone(squad, sim),
                     role, WorldStateBuilder.hasActionableContact(squad, sim),
+                    squad.timeSinceUnderFire
+                            < SquadMoraleSystem.MORALE_RECOVER_AFTER_FIRE_SECONDS,
+                    squad.moraleBroken,
+                    squad.currentGoal != null ? squad.currentGoal.name() : null,
+                    step != null ? step.action.name() : null,
                     squad.assignmentExecutionSuspension(),
                     CommandFrameCopies.assignment(squad.assignedObjective),
                     ownAssignments.directiveFor(squad.id), activePathMembers,
+                    movingMembers, coveredFromPrimaryMembers,
+                    contact.primaryEngageableMembers(),
+                    contact.primaryEngageableFireTeams(),
+                    contact.posture().name(),
+                    contact.doctrine().name(),
+                    contact.contactInitiative().name(), coolingDownMembers,
                     memberZoneIds));
         }
         rows.sort(Comparator.comparingInt(CommandSquadState::squadId));

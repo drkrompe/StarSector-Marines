@@ -50,7 +50,7 @@ class CommandTraceRecorderTest {
 
         List<String> lines = recorder.canonicalJsonLines().lines().toList();
         assertEquals(2, lines.size());
-        assertEquals("{\"stream\":\"run\",\"tick\":0,\"schemaVersion\":7,"
+        assertEquals("{\"stream\":\"run\",\"tick\":0,\"schemaVersion\":8,"
                 + "\"fixtureKind\":\"CONQUEST\","
                 + "\"schedulerMode\":\"SERIAL_DETERMINISTIC\"}", lines.get(0));
         String line = lines.get(1);
@@ -204,7 +204,9 @@ class CommandTraceRecorderTest {
                 ConquestFrontSnapshot.Phase.LANE_ADVANCE, 2, 25,
                 CompoundService.CompoundState.DEFENDER_HELD,
                 List.of(track), List.of(new ConquestFrontSnapshot.SquadState(
-                        139, 4, centroidX, centroidY, 0, null, false, 3)),
+                        139, 4, centroidX, centroidY, 0, null, false, 3, 0,
+                        true, false, "SecureCompound", "Engage", 2, 3,
+                        4, 1, "ADVANCING", "HOLD", "PROSECUTE", 2)),
                 List.of());
         CommanderSnapshot<ConquestFrontSnapshot> snapshot =
                 new CommanderSnapshot<>(Faction.MARINE, "conquest",
@@ -215,6 +217,10 @@ class CommandTraceRecorderTest {
         recorder.recordPerspective(snapshot);
         String trace = recorder.canonicalJsonLines();
         assertTrue(trace.contains("\"activePathMembers\":3"));
+        assertTrue(trace.contains("\"coveredFromPrimaryMembers\":3"));
+        assertTrue(trace.contains("\"primaryEngageableFireTeams\":1"));
+        assertTrue(trace.contains("\"contactDoctrine\":\"HOLD\""));
+        assertTrue(trace.contains("\"coolingDownMembers\":2"));
         return trace;
     }
 
