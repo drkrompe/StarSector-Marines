@@ -55,8 +55,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * is correspondingly smaller to keep PNG sizes reasonable.
  *
  * <p>Outputs: {@code build/map-previews/sprite-seed-NNNN.png} (one per
- * seed), plus a close generated-compound crop at
- * {@code build/map-previews/sprite-conquest-military-compound.png}. Re-run via
+ * seed), plus close generated-compound crops at
+ * {@code build/map-previews/sprite-conquest-military-compound.png} and
+ * {@code build/map-previews/sprite-gated-housing-compound.png}. Re-run via
  * {@code gradlew :test --tests "*BspMapSpritePreviewTest*"}.
  */
 public class BspMapSpritePreviewTest {
@@ -124,20 +125,57 @@ public class BspMapSpritePreviewTest {
                         "Conquest preview seed must contain a military compound"));
 
         int cellPx = 16;
-        int margin = 4;
         BufferedImage full = battleMaps.render(map, seed, cellPx);
+        BufferedImage crop = cropCompound(full, map, compound, cellPx, 4);
+
+        Path out = OUT_DIR.resolve("sprite-conquest-military-compound.png");
+        ImageIO.write(crop, "PNG", out.toFile());
+        System.out.println("  wrote " + out.toAbsolutePath());
+    }
+
+    /** Production-path crop of the first deterministic generated housing compound. */
+    @Test
+    void renderGatedHousingCompound() throws Exception {
+        Files.createDirectories(OUT_DIR);
+        BspCityGenerator generator = new BspCityGenerator();
+        MapResult map = null;
+        Compound compound = null;
+        long previewSeed = -1L;
+        for (long seed = 0; seed < 60 && compound == null; seed++) {
+            MapResult candidateMap = generator.generate(GRID_W, GRID_H, seed);
+            Compound candidateCompound = generator.getLastCompounds().stream()
+                    .filter(candidate -> candidate.kind == BlockKind.GATED_HOUSING)
+                    .findFirst()
+                    .orElse(null);
+            if (candidateCompound != null) {
+                map = candidateMap;
+                compound = candidateCompound;
+                previewSeed = seed;
+            }
+        }
+        if (compound == null || map == null) {
+            throw new AssertionError("Preview seed range must contain gated housing");
+        }
+
+        int cellPx = 20;
+        BufferedImage full = battleMaps.render(map, previewSeed, cellPx);
+        BufferedImage crop = cropCompound(full, map, compound, cellPx, 4);
+        Path out = OUT_DIR.resolve("sprite-gated-housing-compound.png");
+        ImageIO.write(crop, "PNG", out.toFile());
+        System.out.println("  wrote " + out.toAbsolutePath());
+    }
+
+    private static BufferedImage cropCompound(BufferedImage full, MapResult map,
+                                              Compound compound, int cellPx,
+                                              int margin) {
         int left = Math.max(0, compound.left - margin);
         int top = Math.max(0, compound.top - margin);
         int right = Math.min(map.grid.getWidth() - 1, compound.right + margin);
         int bottom = Math.min(map.grid.getHeight() - 1, compound.bottom + margin);
         int imageY = (map.grid.getHeight() - 1 - bottom) * cellPx;
-        BufferedImage crop = full.getSubimage(left * cellPx, imageY,
+        return full.getSubimage(left * cellPx, imageY,
                 (right - left + 1) * cellPx,
                 (bottom - top + 1) * cellPx);
-
-        Path out = OUT_DIR.resolve("sprite-conquest-military-compound.png");
-        ImageIO.write(crop, "PNG", out.toFile());
-        System.out.println("  wrote " + out.toAbsolutePath());
     }
 
     /** Full-map look at the campaign-backed civilian port district and its authored berths. */
