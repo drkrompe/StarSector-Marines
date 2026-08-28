@@ -42,6 +42,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.stage.CoreSpawnStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.DiamondLayoutStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.CorridorStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FillDispatchStage;
+import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FortressWardStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InteriorAnchorFitStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.InitFloorStage;
@@ -174,6 +175,7 @@ public final class BspCityGenerator implements MapGenerator {
                 new PedestrianFrameStage(),                 // Step 3a'
                 new BiomeGroundOverrideStage(),             // Step 3b   conquest-only
                 new BeachShorelineStage(),                  // Step 3b'  conquest-only
+                new FortressWardStage(),                    // Step 3b'' conquest-only
                 new FortressWallStamper(),                  // Step 3c   conquest-only
                 new DefensePostStamper(),                   // Step 3c'  conquest-only
                 new CompoundPerimeterDefenderStamper(),     // Step 3c'' conquest-only
