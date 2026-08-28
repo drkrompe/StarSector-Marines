@@ -90,7 +90,7 @@ public final class SquadStateDumper {
             if (clearZone != null) root.put("clearZoneReachability", clearZone);
 
             String path = pathFor(squad);
-            Global.getSettings().writeJSONToCommon(path, root, true);
+            writeSnapshot(path, root);
             // SettingsAPI.writeJSONToCommon appends ".data" to the path on disk
             // (sandbox quirk) — log the actual filename so the reader can find it.
             LOG.info("SquadStateDumper: wrote SQ-" + squad.id + " state to saves/common/" + path + ".data");
@@ -103,6 +103,16 @@ public final class SquadStateDumper {
 
     private static String pathFor(Squad squad) {
         return StarsectorMarinesModPlugin.MOD_ID + "/debug/squad_" + squad.id + ".json";
+    }
+
+    /**
+     * Writes synchronously so the success log means the snapshot reached disk.
+     * Starsector's {@code onlyIfChanged=true} path delegates to a shared
+     * background writer; if that worker has stopped, the API still returns
+     * successfully after merely queueing the write.
+     */
+    static void writeSnapshot(String path, JSONObject root) throws Exception {
+        Global.getSettings().writeJSONToCommon(path, root, false);
     }
 
     static JSONObject buildSquadJson(Squad squad, BattleSimulation sim) throws Exception {

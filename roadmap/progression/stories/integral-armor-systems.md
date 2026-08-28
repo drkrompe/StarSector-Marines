@@ -4,9 +4,10 @@
 > doorway behind a shield is a different soldier; a breacher with more hit
 > points is the same soldier taking longer to kill.
 
-Status: PLANNED — direction agreed, both open questions decided, no implementation.
+Status: IN PROGRESS — the declaration layer is authored and enforced; no battle
+behavior yet, so a declared system currently does nothing once a marine deploys.
 Written: 2026-08-27
-Updated: 2026-08-27 — systems are per pattern; the breacher shield is mitigation and the room reacts.
+Updated: 2026-08-27 — armour patterns can declare a system and the standing rules are enforced at parse time; battle activation remains.
 
 Read `progression-nouns.md`, `combat-durability-nouns.md`, `mechs-nouns.md`, and
 `equipment-lore-catalog.md` before implementing. Coordinates with
@@ -104,6 +105,26 @@ Three reasons, in order of weight:
 Concealment is not lost by this, only relocated: `powered-assault-armor-roles.md`
 already flags it as needing an explicit shared perception contract, and it
 belongs to the light/recon role when that contract exists.
+
+## Remaining scope
+
+The declaration exists: an armour pattern may carry one integral system, the
+capability-never-durability rule is refused by name at parse time, and the
+foundry-breaker carries the first authored breacher assist. What remains is
+everything that happens after a marine deploys wearing it.
+
+- **Activation in battle.** A per-entity system component holding the live
+  cooldown and active timers, and the tick that drains them. Movement speed is
+  currently baked into the entity at spawn, so the boost needs a base-plus-live
+  multiplier rather than mutating the spawned value.
+- **The directional resistance.** `combat-durability-nouns.md` still owes the
+  bounded, timed, arc-limited mitigation concept this leans on, and telemetry
+  has to report it as its own mitigation rather than as inflated capacity.
+- **AI use policy.** When a squad decides to spend the assist, reusing the
+  special-equipment policy vocabulary rather than inventing a second one.
+- **Presentation.** The pose and the screen, downstream of simulation as always.
+- **The shoulder micro-missile pod**, which needs a micro-missile weapon in the
+  catalog before its effect is worth declaring.
 
 ## Out of scope
 

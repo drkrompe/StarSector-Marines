@@ -2830,14 +2830,13 @@ public final class BattleSetup {
      * Defense-post turret spawner. Each {@link DefensePost} carries 1-3 turret
      * specs (LIGHT/MEDIUM = 1, LARGE = 2) at cells already stamped by
      * {@link com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper}
-     * as walkable STONE pads — that walkability is a map-gen artifact required
-     * by {@link com.dillon.starsectormarines.battle.nav.NavigationGrid#recomputeCoverAt}
-     * (which skips non-walkable cells, so a fully-walled turret pad would bake
-     * to cover 0). Once the bake is done and the turret unit is in place we
-     * flip the cell non-walkable so marines can't path through (or onto) a
-     * live emplacement. {@code TurretDemolitionSystem} flips it
-     * back to walkable + rubble on death, so destroyed turrets open up
-     * traversal again.
+     * as non-walkable STONE pads with manually baked directional cover. The live
+     * turret body owns projectile interception, so its mount cell is see-through:
+     * otherwise the structural-wall ray stops at the cell boundary before it can
+     * reach the turret's inset collision radius. Non-walkability still keeps
+     * marines from pathing through the emplacement and still contributes edge
+     * cover to adjacent cells. {@code TurretDemolitionSystem} flips the cell back
+     * to walkable + rubble on death, so destroyed turrets open up traversal again.
      *
      * <p>Cover is recomputed on the cardinal neighbors so adjacent walkable
      * cells (corner cells around the ring, the middle pad on a LARGE post)
@@ -2861,6 +2860,7 @@ public final class BattleSetup {
                 long turret = sim.spawn(MapTurret.create("t" + i++, Faction.DEFENDER,
                         spec.structureId, spec.cellX, spec.cellY));
                 sim.getGrid().setWalkable(spec.cellX, spec.cellY, false);
+                sim.getGrid().setSeeThrough(spec.cellX, spec.cellY, true);
                 sim.getGrid().recomputeCoverAt(spec.cellX + 1, spec.cellY);
                 sim.getGrid().recomputeCoverAt(spec.cellX - 1, spec.cellY);
                 sim.getGrid().recomputeCoverAt(spec.cellX, spec.cellY + 1);
