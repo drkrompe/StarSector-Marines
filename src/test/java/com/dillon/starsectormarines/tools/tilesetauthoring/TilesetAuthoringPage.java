@@ -364,8 +364,14 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         }
     }
 
-    private void saveDocument() {
-        if (source == null) return;
+    /**
+     * The open annotation pass as a document.
+     *
+     * <p>Saving and exporting are the same state seen two ways, and the headless
+     * operations take a document, so the widgets are read into one here rather
+     * than by each caller in its own order.
+     */
+    private TilesetDocument currentDocument() {
         TilesetDocument document = new TilesetDocument();
         document.sheet = relative(sourcePath);
         document.sheetName = sheetNameOrDefault();
@@ -378,6 +384,12 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         document.note = sheetNote;
         document.entries = model.entries;
         document.blocks = new ArrayList<>(blocks);
+        return document;
+    }
+
+    private void saveDocument() {
+        if (source == null) return;
+        TilesetDocument document = currentDocument();
         Path path = documentPath != null ? documentPath
                 : TilesetDocument.pathFor(context.projectRoot(), document.sheetName);
         try {
@@ -652,70 +664,24 @@ public final class TilesetAuthoringPage implements AuthoringPage {
 
     private void export() {
         if (source == null || model.entries.isEmpty()) return;
-        int cell = (Integer) cellPx.getValue();
-        String name = sheetNameOrDefault();
-        // Terrain belongs with the tilesets and props with the doodads; the fixed
-        // doodad destination was right only while the tool could not author a wall.
-        String sheetRelative = outputSheet.isEmpty()
-                ? TilesetDocument.defaultOutputSheet(name, !blocks.isEmpty())
-                : outputSheet;
-        Path atlasPath = context.projectRoot().resolve("mod").resolve(sheetRelative);
-        Path tilesetPath = context.projectRoot()
-                .resolve("mod/data/tilesets").resolve(name + ".tileset.json");
-        Path cardPath = tilesetPath.resolveSibling(name + ".tileset.md");
         try {
-            BufferedImage atlas = TilesetExport.atlas(source, model.entries, blocks, cell);
-            TilesetExport.write(atlas,
-                    TilesetExport.tileset(sheetRelative, cell, model.entries, blocks),
-                    atlasPath, tilesetPath);
-            Files.writeString(cardPath, TilesetCatalogCard.render(
-                    name, sheetRelative, cell, model.entries, blocks));
+            // Delegated so the window and the headless tools cannot drift into
+            // two export paths. A tileset written to a destination the other
+            // would not have chosen is a startup crash, not a visible difference.
+            TilesetOperations.ExportResult exported =
+                    TilesetOperations.export(context.projectRoot(), currentDocument(), source);
             rescanLibrary();
-            context.reportStatus("Wrote " + atlasPath + ", " + tilesetPath + " and " + cardPath);
+            context.reportStatus("Wrote " + exported.atlasPath() + ", "
+                    + exported.tilesetPath() + " and " + exported.cardPath());
             report();
         } catch (Exception failure) {
             AuthoringMessages.error(root, "Export tileset", "Export failed.", failure);
         }
     }
 
-    /**
-     * The bound candidates, addressed by where the packer put them.
-     *
-     * <p>Packing assigns each included piece its atlas cell, so running it here
-     * is what turns "this row stands in for urban.wall" into a rectangle the
-     * preview can paint from.
-     */
+    /** The bound candidates; see {@link TilesetOperations#bindings}. */
     private List<TilesetMapPreview.Substitution> bindings() {
-        TilesetExport.pack(model.entries, blocks);
-        List<TilesetMapPreview.Substitution> bound = new ArrayList<>();
-        for (TilesetExport.Entry entry : model.entries) {
-            if (!entry.included || entry.standsInFor.isEmpty()) continue;
-            int cellsX = entry.isBlockMember() ? 1 : entry.footprintX;
-            int cellsY = entry.isBlockMember() ? 1 : entry.footprintY;
-            bound.add(new TilesetMapPreview.Substitution(
-                    entry.standsInFor, entry.col, entry.row, cellsX, cellsY));
-        }
-        // A block stands in as a whole patch: bind the block, not nine cells.
-        for (TilesetExport.BlockSpec spec : blocks) {
-            TilesetExport.Entry origin = firstMember(spec.id);
-            if (origin == null || origin.standsInFor.isEmpty()) continue;
-            bound.removeIf(binding -> binding.shippedId().equals(origin.standsInFor));
-            int span = spec.layout.span();
-            bound.add(new TilesetMapPreview.Substitution(origin.standsInFor,
-                    origin.col - BlockSlots.offset(origin.slot)[0],
-                    origin.row - BlockSlots.offset(origin.slot)[1], span, span));
-        }
-        return bound;
-    }
-
-    private TilesetExport.Entry firstMember(String blockId) {
-        for (TilesetExport.Entry entry : model.entries) {
-            if (entry.included && blockId.equals(entry.blockId)
-                    && !entry.standsInFor.isEmpty()) {
-                return entry;
-            }
-        }
-        return null;
+        return TilesetOperations.bindings(model.entries, blocks);
     }
 
     private void markDirty() {
