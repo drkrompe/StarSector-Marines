@@ -9,7 +9,8 @@ Updated: 2026-08-28 — narrowed to the Janus alone; the Specter now carries a b
 
 Read `progression-nouns.md`, `integral-system-slate.md`,
 `integral-armor-systems.md`, `powered-assault-armor-roles.md`, and the fog-of-war
-model before implementing. Depends on `integral-system-use-policy.md`.
+model before implementing. The use-policy vocabulary a sweep would extend is
+shipped and owned by `progression-nouns.md`.
 
 ## Problem
 

@@ -252,6 +252,8 @@ class IntegralSystemDefTest {
                 .put("description", "Rams and a screen on one trigger.")
                 .put("effect", "breacher-assist")
                 .put("resource", "cooldown")
+                .put("policy", "crossing-under-fire")
+                .put("threatRadiusCells", 12.0)
                 .put("durationSeconds", 3.0)
                 .put("cooldownSeconds", 22.0)
                 .put("moveSpeedMult", 1.45)
@@ -267,6 +269,8 @@ class IntegralSystemDefTest {
                 .put("description", "A brace of smart micro-missiles.")
                 .put("effect", "missile-pod")
                 .put("resource", "ammunition")
+                .put("policy", "sighted-standoff-contact")
+                .put("minimumStandoffCells", 5.0)
                 .put("durationSeconds", 1.0)
                 .put("startingAmmo", 2)
                 .put("weaponId", "weapon.micro-missile");

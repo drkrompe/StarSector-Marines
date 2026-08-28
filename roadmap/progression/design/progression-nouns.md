@@ -114,13 +114,30 @@ legibility.
   concrete suit was recovered is what surprises the player, and it never spends
   the billet's carried special item. An integral system must express itself as
   behavior — movement, protection with a clock on it, a delivered payload,
-  perception — never as durability. Whether a pattern carries one is a question
-  about what that suit is for, not a quota: see `integral-system-slate.md`.
+  perception — never as durability, and it declares the use policy it is spent
+  on so its trigger is readable from the catalog entry rather than compiled into
+  the sweep. Whether a pattern carries one is a question about what that suit is
+  for, not a quota: see `integral-system-slate.md`.
 - **System family** — the shared name and icon every pattern's take on one
   effect has in common, such as a breach assist. Six suits carry that effect and
   each names its own version something else; the family is what lets a player see
   they are the same capability rather than six unrelated tricks, so it leads and
   the tradition's own name follows as flavour.
+- **Use policy** — the authored moment at which spending a piece of equipment is
+  a good idea: what has to be true, not what the thing does. It is a closed
+  vocabulary shared by both carriers of equipment behavior, a carried special
+  item and a suit's integral system, and it is validated against the effect it
+  accompanies when the catalog loads. A policy named after its effect would be a
+  second vocabulary in the first one's clothes, so a self-directed capability —
+  which has no target to describe, only a situation it suits — names the
+  situation: crossing ground under fire, a contact sighted at standoff.
+- **Policy parameters** — the numbers one system's take on a policy is judged
+  by, authored on the catalog entry beside it. The radius that decides an
+  industrial rig's crossing is a judgement about that rig, so it belongs with
+  the rig; a constant in the code that spends it would be one author's judgement
+  about one suit imposed on every system that will ever exist. Each policy owns
+  its own parameters, so two systems declaring different policies share no
+  numbers and cannot perturb each other.
 - **System grade** — how well a tradition builds its version, on the same
   Surplus/Service/Milspec/Masterwork ladder a weapon's manufacture already uses,
   so one word means one thing across the Armory. It is <b>description, not
@@ -484,6 +501,31 @@ names, but roster data uses semantic armor ids (`field-fatigues`, `scout`,
 `combat`, `line`, `heavy`, `outlaw`, `militia`) so the next visual/content pass
 can change colors without changing doctrine identity.
 
+**Defenders carry what their patterns declare.** A pattern's integral system
+rides on the roster's existing armour weighting through the same catalog entry
+the player's Armory reads, so a hostile in a foundry-breaker fights with the
+thing the rig is named after and a recovered suit behaves exactly as it did for
+its previous owner. There is one data path and no defender-side tuning field: if
+a defender's use of a system is too strong or too weak, the fix is the authored
+numbers or the policy, never a second set of numbers or a branch in the sweep.
+That also means a system is not a difficulty lever — it composes with the
+weighting a roster already had, and no table should start reaching for
+system-carrying patterns to make a fight harder. Measurement bears that out: a
+defender who now carries what their pattern declares does not measurably harden
+a fight, and the reason is instructive. **A use policy names a moment, and some
+moments belong to one side.** Crossing ground under fire is an attacker's
+moment, so the breach family a defender wears is real, is offered the same
+decision the player's marines are offered, and — while that defender holds a
+line rather than crossing one — correctly declines to spend itself. What
+defenders actually gain from adoption is the capability whose moment they do
+reach. That is the intended shape rather than a gap to close: a defender who
+charged a doorway because the suit could would be spending it at an obviously
+wrong moment, which is the failure the policy exists to prevent. Whether a
+hostile pattern's
+system is readable before contact remains open: reading it at a distance makes a
+fight plannable, and discovering it when a rig comes through a door is more in
+keeping with how the rest of the equipment model treats recovery.
+
 The built-in identities are the rocket launcher, anti-materiel
 rifle, Wayfarer smoke grenades, Breachhand mag-clamp satchel, Shattercap
 fragmentation grenades, the Emberjaw thermal breacher, the Quillon
@@ -508,6 +550,17 @@ combinations, duplicate ids, malformed presentation transforms, or a
 weapon-like item pointing outside the marine-secondary mount class stop load.
 JSON selects only closed, typed execution policies; it does not name Java
 classes or inject simulation scripts.
+
+The use-policy vocabulary is one closed enum with two carriers rather than one
+per carrier. Joining costs an enum whose members no longer share a shape — some
+describe a target, some only a situation — and buys a single parse-time
+validation path and a single word for the same idea across the Armory, which is
+the trade the standing "second carrier, not a second vocabulary" rule already
+made for activation and resource mode. Membership grants nothing on its own:
+each carrier validates the declared policy against its own declared effect, so a
+suit cannot borrow a policy written for a grenade and a grenade cannot borrow
+one written for a suit. Both refusals name the policies that would have applied,
+in the style the armour catalog already uses to refuse durability keys.
 
 An equipment presentation separates catalog art, actor-local carrier layers,
 deployed-world art, and preview state. Carrier transforms are authored in
@@ -889,6 +942,20 @@ The following are direction, not current behavior:
 - An integral system is behavior with a bound on it, authored per pattern and
   carried by few. It never adds durability, never spends the carried special
   item, and never becomes an authority the player cannot read before issue.
+- An integral system's trigger is authored, never compiled. The sweep that
+  spends one dispatches on the declared policy and reads that system's own
+  numbers; a threat radius, range band, or per-effect special case living in a
+  system class is the defect this rule exists to prevent.
+- A use policy names a moment, not an effect. A policy whose name only restates
+  what is being spent is a second vocabulary and must be renamed rather than
+  added.
+- A policy's parameters belong to that policy alone. Two systems declaring
+  different policies share no numbers, and no parameter may be reachable from a
+  policy that did not author it.
+- Defenders and the player draw a pattern's system from the same catalog entry.
+  A defender-only tuning field, a second catalog, or a faction branch in the
+  sweep is a defect: a recovered suit must behave identically to the one it was
+  taken from, in both directions.
 - A heavy battlesuit remains a one-person infantry billet using infantry
   weapons, cover, pathing, and casualty authority. Mech chassis, mounts,
   lances, and support delivery remain Mechs authority.

@@ -15,9 +15,10 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.marine.CrossingUnderFireSpec;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
-import com.dillon.starsectormarines.marine.IntegralSystemEffect;
 import com.dillon.starsectormarines.marine.MissilePodSpec;
+import com.dillon.starsectormarines.marine.SightedStandoffSpec;
 
 import java.util.Random;
 
@@ -32,13 +33,19 @@ import java.util.Random;
  * that unit is doing; the cooldown-drain-during-a-long-approach lesson from
  * {@code InfantryUnitPrep.tickCooldowns} applies here for the same reason.
  *
- * <p><b>The use policy here is deliberately the crude one.</b> A breacher
- * spends its assist when it is actually moving and hostiles are close enough to
- * make that movement expensive; a missile pod spends a salvo the instant it can
- * see something worth spending it on. The authored AI-policy vocabulary that
- * special equipment uses is the intended home for both decisions
- * ({@code integral-system-use-policy.md}); until an integral system declares
- * one, this sweep is the whole policy and says so.
+ * <p><b>This sweep holds no judgement about any suit.</b> It dispatches on the
+ * {@link com.dillon.starsectormarines.marine.SpecialAiPolicy} each system
+ * declares and reads that system's own authored numbers to decide whether the
+ * policy's moment has arrived. There is deliberately no threat radius, no range
+ * band, and no per-effect special case left in this class: a constant here
+ * would be one author's judgement about one suit imposed on every system that
+ * will ever exist, which is exactly what the authored policy replaced
+ * ({@code progression-nouns.md}).
+ *
+ * <p><b>Nothing here reads faction.</b> A defender in a system-carrying pattern
+ * reaches this sweep through the same component the player's marines do and is
+ * offered the same reason to spend it; there is no defender branch and no
+ * defender-only tuning field to add one with.
  *
  * <p><b>The pod picks its own target.</b> It does not read the wearer's
  * engaged target ({@code World#targetId}) — that would make the suit a second
@@ -48,14 +55,6 @@ import java.util.Random;
  * because it is the more interesting half of the model to prove out.
  */
 public final class IntegralSystemSystem {
-
-    /**
-     * How close a hostile must be for crossing open ground to be worth a
-     * charge. Deliberately wider than a marine's own reach — the assist is for
-     * getting somewhere under fire, so the threat that justifies it is one that
-     * can already shoot at the crossing.
-     */
-    static final float THREAT_RADIUS_CELLS = 12f;
 
     /** Below this, the unit is standing still and has nothing to charge through. */
     private static final float MOVING_EPSILON = 1e-3f;
@@ -87,18 +86,21 @@ public final class IntegralSystemSystem {
             if (!systems.canActivate(id)) continue;
             IntegralSystemDef def = systems.spec(id);
             if (def == null) continue;
-            switch (def.effect()) {
-                case BREACHER_ASSIST -> {
-                    if (isMoving(id, movement) && hostileWithin(id, sim, THREAT_RADIUS_CELLS)) {
+            switch (def.aiPolicy()) {
+                case CROSSING_UNDER_FIRE -> {
+                    CrossingUnderFireSpec crossing = def.crossingUnderFire();
+                    if (isMoving(id, movement)
+                            && hostileWithin(id, sim, crossing.threatRadiusCells())) {
                         systems.activate(id);
                     }
                 }
-                case MISSILE_POD -> {
-                    long target = missilePodTarget(id, def, sim);
+                case SIGHTED_STANDOFF_CONTACT -> {
+                    long target = standoffTarget(id, def, sim);
                     if (target != 0L && systems.activate(id)) {
                         fireMissilePod(id, target, def.missilePod());
                     }
                 }
+                default -> { /* No integral system declares the carried-item policies. */ }
             }
         }
     }
@@ -124,22 +126,27 @@ public final class IntegralSystemSystem {
      * The pod's own pick, independent of whatever the wearer's primary weapon
      * is engaging: the best visible hostile within the referenced weapon's
      * range, scored by {@link TacticalScoring} the same way any other mount
-     * acquires a target it can actually reach. Returns {@code 0L} when nothing
-     * qualifies, in which case the pod simply waits — it never fires blind.
+     * acquires a target it can actually reach, and no closer than the system's
+     * authored standoff. Returns {@code 0L} when nothing qualifies, in which
+     * case the pod simply waits — it never fires blind, and it never spends a
+     * finite salvo on something the rifle already has in hand.
      */
-    private long missilePodTarget(long id, IntegralSystemDef def, BattleSimulation sim) {
+    private long standoffTarget(long id, IntegralSystemDef def, BattleSimulation sim) {
         MissilePodSpec pod = def.missilePod();
-        if (pod == null) return 0L;
+        SightedStandoffSpec standoff = def.sightedStandoff();
+        if (pod == null || standoff == null) return 0L;
         World world = rosterService.world();
         Faction faction = rosterService.identity().faction(id);
         if (faction == null) return 0L;
         int squadId = rosterService.squad().hasSquad(id)
                 ? rosterService.squad().squadId(id) : Squad.NO_SQUAD;
         WeaponDef weapon = pod.weaponDef();
+        // The authored standoff is the scorer's own minimum range, so a closer
+        // contact is never a candidate rather than being picked and discarded.
         return sim.getTacticalScoring().findBestTargetWithinRange(
                 world.x(id), world.y(id), faction, squadId, id,
                 rosterService.vision().airLosRadius(id), /*allowNoLos*/ false,
-                0f, weapon.range());
+                standoff.minimumStandoffCells(), weapon.range());
     }
 
     /**
