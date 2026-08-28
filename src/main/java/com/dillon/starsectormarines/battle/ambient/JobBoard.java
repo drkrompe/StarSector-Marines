@@ -1,0 +1,107 @@
+package com.dillon.starsectormarines.battle.ambient;
+
+import com.dillon.starsectormarines.battle.task.TaskPoint;
+import com.dillon.starsectormarines.battle.task.TaskPointService;
+import com.dillon.starsectormarines.battle.world.gen.Affordance;
+import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
+
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
+/**
+ * What a site is offering right now: which of its authored jobs can actually be
+ * done, and how they are named to whoever comes looking for one.
+ *
+ * <p>Generation authors what a room affords. This is the other half of that
+ * sentence — the part that knows about <em>this</em> map at <em>this</em>
+ * moment, which is a different kind of fact and deliberately not baked into the
+ * fixture. A berth's servicing job is live while a machine is parked in it and
+ * gone when the bay empties; a wrecked fixture's job is gone until the ship is
+ * repaired. Neither ever reaches the claim service, so what it sees is a group
+ * of interchangeable places, all of them real.
+ */
+public final class JobBoard {
+
+    private JobBoard() { }
+
+    /**
+     * The claim group one kind of job at one site belongs to.
+     *
+     * <p>Per site, not per map. Somebody asking for somewhere to weld should be
+     * offered a berth in the bay they are standing in, not the nearest one three
+     * compartments forward — and the claim service resolves by distance, which
+     * would happily send them there.
+     */
+    public static String group(int siteId, Affordance affordance) {
+        return siteId + ":" + affordance.name().toLowerCase(Locale.ROOT);
+    }
+
+    /**
+     * Publish a site's live jobs as claimable points.
+     *
+     * @param berthed whether the berth at each index holds a machine, as
+     *     returned by the host that parked them; an empty array means none do
+     * @return the affordances that actually have somewhere to be done, in
+     *     registration order
+     */
+    public static List<Affordance> publish(TaskPointService service,
+                                           List<FixtureTask> authored,
+                                           JobSite site,
+                                           boolean[] berthed) {
+        Map<Affordance, Integer> counts = new EnumMap<>(Affordance.class);
+        for (FixtureTask task : live(authored, site, berthed)) {
+            String group = group(site.id(), task.affordance());
+            int index = counts.merge(task.affordance(), 1, Integer::sum) - 1;
+            service.register(new TaskPoint(group + "#" + index, group,
+                    task.cellX() + 0.5f, task.cellY() + 0.5f,
+                    task.fixtureX() + 0.5f, task.fixtureY() + 0.5f));
+        }
+        return List.copyOf(counts.keySet());
+    }
+
+    /** This site's jobs that can actually be done right now. */
+    public static List<FixtureTask> live(List<FixtureTask> authored,
+                                         JobSite site,
+                                         boolean[] berthed) {
+        List<FixtureTask> live = new ArrayList<>();
+        for (FixtureTask task : authored) {
+            if (!task.inService()) continue;
+            if (!site.contains(task.cellX(), task.cellY())) continue;
+            if (task.berth() != FixtureTask.NO_BERTH) {
+                if (berthed == null
+                        || task.berth() >= berthed.length
+                        || !berthed[task.berth()]) {
+                    continue;
+                }
+            }
+            live.add(task);
+        }
+        return live;
+    }
+
+    /**
+     * Whether a job at this site is this role's to do.
+     *
+     * <p>Berthing is somebody's, and everywhere else is somebody's workplace.
+     * In a berth a role has only what it does in its own quarters, and only in
+     * its own: a ship carrying two populations berths them separately, so a
+     * marine turning in wherever the nearest bunkroom happened to be would be
+     * sleeping in the crew's, and a technician has no business in the marines'
+     * berthing at all.
+     *
+     * <p>Everywhere else, only the jobs the role works on watch. That second
+     * half matters as much as the first, because an affordance is not a job on
+     * its own: stowage means the parts run in a vehicle bay and somebody's own
+     * locker in a berth, and a role that simply worked stowage was offered a
+     * shift running a bay it has nothing to do with.
+     */
+    public static boolean belongsTo(CrewRole role, JobSite site, Affordance affordance) {
+        if (CrewRole.isBerthing(site.purpose())) {
+            return site.purpose() == role.quarters() && role.offWatch().contains(affordance);
+        }
+        return role.onWatch().contains(affordance);
+    }
+}

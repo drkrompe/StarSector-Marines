@@ -4,11 +4,12 @@ Status: IN PROGRESS
 
 Written: 2026-08-26
 
-Updated: 2026-08-27 — roles, jobs and shifts are built, every room a marine uses
-publishes its jobs, and live fire resolves on a generated range. What is missing
-is the one thing that joins the four stops: a shift is built from a single
-compartment's fixtures, so a marine gets each of them on its own. The seed sweep
-also remains.
+Updated: 2026-08-27 — done except the seed sweep. Roles, jobs and shifts are
+built, every room a marine uses publishes its jobs, live fire resolves on a
+generated range, and a shift now spans compartments so the four stops are one
+rotation. The model moved out from under ship interiors on the way: a shift is
+worked at job sites rather than in compartments, and `ai-nouns.md` is canonical
+for it.
 
 Read `ship-interiors-nouns.md` before implementing this story. Depends on
 `facility-room-themes.md`.
@@ -43,13 +44,11 @@ generated room and a dead one.
 
 ## Acceptance
 
-- A generated barracks produces the rest, socialize, inspect, practice rotation
-  currently seen in `barracks-wide.png` without any authored waypoint. All four
-  jobs are now published by generated rooms — rest and inspect at the berth's own
-  racks and lockers, socialize at a mess seat, practice at a firing point — and
-  none of them is in the same compartment as all the others. The criterion is
-  therefore down to a single remaining decision: whether a shift may span
-  compartments. That is a decision about the shift, not about the fill.
+- ~~A generated barracks produces the rest, socialize, inspect, practice rotation
+  currently seen in `barracks-wide.png` without any authored waypoint.~~ Done. A
+  marine posted to a generated barracks rests and stows kit at its own racks and
+  lockers, eats at a seat in the nearest mess, and shoots at a firing point on
+  the nearest range — one rotation across three compartments, no waypoints.
 - A generated mech bay produces fabrication, parts-running, and inspection
   activity around its gantries, scaling with gantry count.
 - ~~The live-fire window still resolves on a generated firing range: rounds are
