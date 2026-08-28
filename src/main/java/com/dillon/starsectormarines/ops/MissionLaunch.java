@@ -136,9 +136,16 @@ public final class MissionLaunch {
         // Campaign → battle bridge: the target world's planetary defenses /
         // market read, distilled once at the boundary so generation can reflect
         // which world the battle is over. NEUTRAL for story ops with no market.
-        TargetProfile profile = TargetProfileResolver.resolve(m.targetPlanetName);
+        // A mission may name a different defender than the market's own owner
+        // (the debug board's faction-comparison group). This is the one place
+        // that override is applied: it rewrites the profile's faction id and
+        // nothing else, so only roster selection sees it and generation cannot.
+        TargetProfile profile = TargetProfileResolver.resolve(m.targetPlanetName)
+                .withFactionId(m.defenderFactionOverride);
 
-        long seed = System.currentTimeMillis();
+        // Wall-clock unless the mission pins a seed, so an ordinary relaunch is
+        // a fresh battlefield and a pinned one is the same battlefield twice.
+        long seed = m.battleSeed != null ? m.battleSeed : System.currentTimeMillis();
         int firstPlayerShuttle = m.source == MissionSource.STATIONING
                 ? 0 : DetachmentResolver.employerPhysicalShipCount(m);
         ShuttleArrivalPlan conquestArrivalPlan = new ShuttleArrivalPlan(
