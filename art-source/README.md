@@ -18,6 +18,7 @@ work that cannot be redone mechanically.
 | Directory | Holds |
 |-----------|-------|
 | `tilesets/` | Raw tileset sheets, their authoring documents, and the normalization and atlas-packing scripts. |
+| `armory/` | ImageGen masters for Armory item icons. The shipped icon is the master downscaled to a 512px long edge, which `RawArtStaysOutOfModTest` enforces. |
 | `doodads/` | The whole prop chain: ImageGen masters, raw renders, the scripts that derive frames from them, the derived `sources/`, and the atlas builder. |
 | `alien-modular-topdown/` | Retained alien layer originals and the script that normalizes them. |
 | `mech-modular-topdown/` | Retained mech layer originals, the layer builder, and the variant contact-sheet renderer. |

@@ -40,7 +40,6 @@ import com.dillon.starsectormarines.battle.sim.VisionService;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -249,13 +248,22 @@ public final class TacticalScoring {
             WEAPON_AFFINITY_WEIGHT * (MAX_WEAPON_AFFINITY_RELATIVE - 1f);
 
     /**
-     * Per-thread scan buffer for {@link #findBestTargetImpl}, which runs on
-     * the parallel unit-update workers and so cannot use an instance field.
-     * Holds one {@code (distanceBits, denseIndex)} pair per candidate, packed
-     * so a primitive sort orders by distance without boxing.
+     * Cells of slack the nearest-first target scan allows between the spatial
+     * index's snapshot positions and the live positions it scores against.
+     * Movers advance during the unit-update phase the index was frozen before,
+     * so a candidate can be nearer than its bucket implies - by one tick of
+     * travel plus a sub-cell separation nudge, which is an order of magnitude
+     * inside this bound for every authored ground mover.
      */
-    private static final ThreadLocal<long[]> TARGET_SCAN_SCRATCH =
-            ThreadLocal.withInitial(() -> new long[256]);
+    private static final float SNAPSHOT_DRIFT_PADDING = 2f;
+
+    /**
+     * Per-thread nearest-first target scan. The unit-update phase runs in
+     * parallel, so the scan's running state cannot live on the shared
+     * scoring instance.
+     */
+    private static final ThreadLocal<TargetScan> TARGET_SCAN =
+            ThreadLocal.withInitial(TargetScan::new);
 
     /**
      * Seconds of unit travel that govern the fall-back candidate scan radius.
@@ -485,78 +493,30 @@ public final class TacticalScoring {
                                     int selfSquadId, long excludeFromCrowding,
                                     float shooterAirRadius, boolean allowNoLos,
                                     float minRange, float maxRange) {
-        // SoA consumer: dense iteration over [0, liveCount()) implicitly
-        // excludes released slots (no isAlive() filter inside the loop).
-
         World world = roster.world();
-        VisionService vision = roster.vision();
-        long[] dense = roster.denseArray();
-        int liveCount = roster.liveCount();
 
-        // Grid cell of the shooter, for the LoS + zone lookups only — the
+        // Grid cell of the shooter, for the LoS + zone lookups only - the
         // distance scoring below uses the true position.
         int selfCellX = (int) Math.floor(selfX);
         int selfCellY = (int) Math.floor(selfY);
 
-        long best = 0L;
-        int bestIndex = Integer.MAX_VALUE;
-        float bestScore = Float.MAX_VALUE;
-        long bestAny = 0L;
-        float bestAnyDist = Float.MAX_VALUE;
+        // Nearest bucket ring outward, not the whole roster. A target's score
+        // can never fall more than MAX_TARGET_SCORE_BONUS below its distance,
+        // so once a ring's outer boundary is further away than the incumbent
+        // can lose to, nothing beyond it can win and the scan stops - usually
+        // within a ring or two of the shooter. The any-distance fallback keeps
+        // it expanding while the nearest candidate is still unsettled, which
+        // is what an unbounded search was there to guarantee.
+        TargetScan scan = TARGET_SCAN.get();
+        scan.begin(this, selfX, selfY, selfCellX, selfCellY, selfFaction,
+                selfSquadId, excludeFromCrowding, shooterAirRadius, allowNoLos,
+                minRange, maxRange);
+        unitIndex.forEachOtherFactionCombatantByRing(selfX, selfY, selfFaction, scan);
+        long best = scan.best;
+        float bestScore = scan.bestScore;
+        long bestAny = scan.bestAny;
+        float bestAnyDist = scan.bestAnyDist;
 
-        // Pass 1 — distance only. Every hostile combatant in the roster is a
-        // candidate (the any-distance fallback needs the nearest one whether
-        // or not it is visible), but a target's score can never fall more than
-        // MAX_TARGET_SCORE_BONUS below its distance, so scoring the near ones
-        // first lets pass 2 stop before it raycasts the far half of the map.
-        long[] candidates = TARGET_SCAN_SCRATCH.get();
-        if (candidates.length < liveCount) {
-            candidates = new long[Math.max(liveCount, candidates.length * 2)];
-            TARGET_SCAN_SCRATCH.set(candidates);
-        }
-        int candidateCount = 0;
-        for (int i = 0; i < liveCount; i++) {
-            long other = dense[i];
-            if (roster.identity().faction(other) == selfFaction) continue;
-            // Civilians and other non-combatants don't draw fire — they're
-            // bystanders. A separate "rules of engagement" toggle could relax
-            // this for pirate atrocity scenarios later.
-            if (!roster.identity().type(other).combatant) continue;
-
-            float d = cellDistance(selfX, selfY, world.x(other), world.y(other));
-            if (d < minRange || d > maxRange) continue;
-            if (d < bestAnyDist) {
-                bestAnyDist = d;
-                bestAny = other;
-            }
-            // Distance is non-negative, so its raw bits order the same way it
-            // does and a plain long sort puts the nearest candidate first.
-            candidates[candidateCount++] =
-                    ((long) Float.floatToRawIntBits(d) << 32) | i;
-        }
-        Arrays.sort(candidates, 0, candidateCount);
-
-        // Pass 2 — nearest first, stopping once distance alone rules the rest
-        // out. Ties are resolved on dense index, so the winner is the same one
-        // a straight dense-order scan would have kept.
-        for (int k = 0; k < candidateCount; k++) {
-            float d = Float.intBitsToFloat((int) (candidates[k] >>> 32));
-            if (d - MAX_TARGET_SCORE_BONUS > bestScore) break;
-            int i = (int) (candidates[k] & 0xFFFFFFFFL);
-            long other = dense[i];
-            int ox = world.cellX(other);
-            int oy = world.cellY(other);
-            boolean visible = canSeePair(grid, selfCellX, selfCellY, ox, oy,
-                    shooterAirRadius, vision.airLosRadius(other));
-            if (!visible && !allowNoLos) continue;
-            float score = scoreTargetCandidate(other, d, visible, selfFaction,
-                    selfSquadId, excludeFromCrowding, selfCellX, selfCellY, ox, oy);
-            if (score < bestScore || (score == bestScore && i < bestIndex)) {
-                bestScore = score;
-                bestIndex = i;
-                best = other;
-            }
-        }
         // Convoy vehicles are world entities with HEALTH/ARMOR, deliberately
         // absent from the infantry-dense roster. Score their tiny id slice
         // explicitly so they become honest hostile combat targets without
@@ -610,6 +570,109 @@ public final class TacticalScoring {
                 + scoreWeaponAffinity(excludeFromCrowding, candidate)
                 + scoreZoneMismatch(selfCellX, selfCellY, candidateCellX, candidateCellY);
         return visible ? score : score + TARGET_NO_LOS_COST;
+    }
+
+    /**
+     * Scores hostile combatants as the spatial index hands them over, nearest
+     * bucket ring first, and tells the index when to stop expanding.
+     *
+     * <p>The index's snapshot position decides which ring a candidate is in;
+     * every distance that reaches a score is re-read live, so the scores match
+     * a full live-position scan exactly. {@link #SNAPSHOT_DRIFT_PADDING} covers
+     * the gap between the two when deciding where to stop.
+     *
+     * <p>Ties resolve on dense-roster index, which is the order a full scan
+     * visited candidates in - so the same target wins as before, even though
+     * this scan reaches it in a different order.
+     */
+    private static final class TargetScan implements UnitSpatialIndex.RingVisitor {
+
+        private TacticalScoring scoring;
+        private World world;
+        private VisionService vision;
+        private float selfX;
+        private float selfY;
+        private int selfCellX;
+        private int selfCellY;
+        private Faction selfFaction;
+        private int selfSquadId;
+        private long excludeFromCrowding;
+        private float shooterAirRadius;
+        private boolean allowNoLos;
+        private float minRange;
+        private float maxRange;
+
+        long best;
+        float bestScore;
+        long bestAny;
+        float bestAnyDist;
+
+        void begin(TacticalScoring scoring, float selfX, float selfY,
+                   int selfCellX, int selfCellY, Faction selfFaction,
+                   int selfSquadId, long excludeFromCrowding,
+                   float shooterAirRadius, boolean allowNoLos,
+                   float minRange, float maxRange) {
+            this.scoring = scoring;
+            this.world = scoring.roster.world();
+            this.vision = scoring.roster.vision();
+            this.selfX = selfX;
+            this.selfY = selfY;
+            this.selfCellX = selfCellX;
+            this.selfCellY = selfCellY;
+            this.selfFaction = selfFaction;
+            this.selfSquadId = selfSquadId;
+            this.excludeFromCrowding = excludeFromCrowding;
+            this.shooterAirRadius = shooterAirRadius;
+            this.allowNoLos = allowNoLos;
+            this.minRange = minRange;
+            this.maxRange = maxRange;
+            this.best = 0L;
+            this.bestScore = Float.MAX_VALUE;
+            this.bestAny = 0L;
+            this.bestAnyDist = Float.MAX_VALUE;
+        }
+
+        @Override
+        public void accept(long id, float snapshotX, float snapshotY) {
+            float d = cellDistance(selfX, selfY, world.x(id), world.y(id));
+            if (d < minRange || d > maxRange) return;
+            if (d < bestAnyDist) {
+                bestAnyDist = d;
+                bestAny = id;
+            } else if (d == bestAnyDist && bestAny != 0L && earlierInRoster(id, bestAny)) {
+                bestAny = id;
+            }
+
+            if (d - MAX_TARGET_SCORE_BONUS > bestScore) return;
+            int ox = world.cellX(id);
+            int oy = world.cellY(id);
+            boolean visible = canSeePair(scoring.grid, selfCellX, selfCellY, ox, oy,
+                    shooterAirRadius, vision.airLosRadius(id));
+            if (!visible && !allowNoLos) return;
+            float score = scoring.scoreTargetCandidate(id, d, visible, selfFaction,
+                    selfSquadId, excludeFromCrowding, selfCellX, selfCellY, ox, oy);
+            if (score < bestScore
+                    || (score == bestScore && best != 0L && earlierInRoster(id, best))) {
+                bestScore = score;
+                best = id;
+            }
+        }
+
+        @Override
+        public boolean continueAfterRing(float nearestOutsideDistance) {
+            float reachable = nearestOutsideDistance - SNAPSHOT_DRIFT_PADDING;
+            if (reachable > maxRange) return false;
+            // The any-distance fallback owes the caller the nearest hostile
+            // whether or not anything is visible, so an unsettled one keeps
+            // the scan expanding on its own.
+            if (bestAny == 0L || bestAnyDist > reachable) return true;
+            return reachable - MAX_TARGET_SCORE_BONUS <= bestScore;
+        }
+
+        private boolean earlierInRoster(long candidate, long incumbent) {
+            return scoring.roster.indexOf(candidate)
+                    < scoring.roster.indexOf(incumbent);
+        }
     }
 
     /**

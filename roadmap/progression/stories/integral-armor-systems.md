@@ -5,10 +5,10 @@
 > points is the same soldier taking longer to kill.
 
 Status: IN PROGRESS — declared, carried into battle, running with both halves,
-legible in the Armory before issue, and exercising both resource modes. An
-authored AI policy and battle presentation remain.
+legible in the Armory before issue, exercising both resource modes, spent on an
+authored use policy, and worn by defenders. Battle presentation remains.
 Written: 2026-08-27
-Updated: 2026-08-28 — the shield half and the shoulder pod both landed; what is left is the use policy and battle presentation.
+Updated: 2026-08-28 — the authored use policy and defender adoption landed; what is left is battle presentation.
 
 Read `progression-nouns.md`, `combat-durability-nouns.md`, `mechs-nouns.md`, and
 `equipment-lore-catalog.md` before implementing. Coordinates with
@@ -173,17 +173,18 @@ in a costume; what matters here is that the suit no longer advertises a screen i
 does not have, and that turning away from the fire costs the front in the same
 tick.
 
-Everything left is gated on simulation work rather than on authoring, so it is
+Every system now authors the moment it is spent at, and everyone who wears one
+spends it. The trigger is a declared use policy with its own numbers on the
+catalog entry rather than a constant in the sweep, and defenders draw their
+systems from the same catalog entry the player's Armory reads, so a hostile in a
+foundry-breaker fights with the thing the rig is named after. `progression-nouns.md`
+owns both models.
+
+What is left is gated on simulation work rather than on authoring, so it is
 storied separately rather than held here:
 
-- **An authored AI use policy** — `integral-system-use-policy.md`. The current
-  trigger is a placeholder living in the sweep: spend it while actually moving
-  with hostiles inside twelve cells.
 - **Battle presentation** — `integral-system-battle-presentation.md`. Nothing is
   drawn today, so an active assist is invisible on the field.
-- **Defender adoption** — `defender-integral-systems.md`. `InfantryLoadoutRolls`
-  still does not pass a pattern's system through, so a hostile in a
-  foundry-breaker fights without one.
 
 Which patterns should carry a system at all, and what the faction traditions
 support, is direction rather than scope: see `integral-system-slate.md`.
@@ -194,7 +195,6 @@ support, is direction rather than scope: see `integral-system-slate.md`.
 - Concealment and perception, which the recon role owns.
 - Mech mounts, lances, and support delivery.
 - Reworking the carried special-equipment slot.
-- Defender adoption, which follows once the player-side model is proven.
 
 ## Acceptance
 
@@ -219,5 +219,16 @@ support, is direction rather than scope: see `integral-system-slate.md`.
 
 - Whether a pattern's integral system should be visible on defender formations
   before contact, or only once used. Reading a hostile suit's capability at a
-  distance is powerful; discovering it the hard way is memorable. Defender
-  adoption is out of scope here, so this can wait for it.
+  distance is powerful and makes the fight plannable; discovering it the hard way
+  is memorable and is more in keeping with how the rest of the equipment model
+  treats recovery. Defender adoption has landed and deliberately did not settle
+  this: it is a readability decision about hostile formations, which belongs with
+  the wider "give defender formations the same readable loadout vocabulary"
+  direction in `progression-nouns.md` rather than with the capability itself, and
+  answering it inside an adoption change would have shipped a UI commitment
+  nobody had argued for.
+- Whether an integral system and a carried special item should ever coordinate.
+  A marine who has just spent a breacher assist is in a very specific situation,
+  and the grenade in their hand does not know it. This is a squad-level question
+  rather than an equipment one, and the use policy deliberately did not create a
+  channel for it.

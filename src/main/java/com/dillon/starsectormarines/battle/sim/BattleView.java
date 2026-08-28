@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.combat.Projectile;
+import com.dillon.starsectormarines.battle.deployable.DeployedCoverService;
 import com.dillon.starsectormarines.battle.deployable.PointDefenseService;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
@@ -107,6 +108,16 @@ public interface BattleView {
     /** Per-cell unit count, indexed by {@link NavigationGrid#index(int, int)}. */
     byte[] getOccupancyMap();
 
+    /**
+     * Occupancy-aware route to a cell many movers are heading for, served off
+     * the shared reverse field for that goal. Only valid inside the frozen
+     * unit-update snapshot; outside it the implementation falls back to A*.
+     * Gate the choice on {@code SharedGoalPolicy.usesSharedGoalFields} rather
+     * than calling this unconditionally — a field only pays for itself once a
+     * battle is dense enough to reuse it.
+     */
+    int[] findSharedPathToGoal(int startX, int startY, int goalX, int goalY);
+
     /** The entity id that {@code u} is currently targeting, or {@code 0L} if none. */
     long targetOf(long u);
 
@@ -140,6 +151,9 @@ public interface BattleView {
 
     /** Live point-defence emplacements placed out of the carried special slot, and their remaining bounds. */
     PointDefenseService pointDefense();
+
+    /** Live cover screens placed out of the carried special slot, and their remaining lifetime. */
+    DeployedCoverService deployedCover();
 
     /** True for a live hostile-capable roster actor or a targetable convoy vehicle. */
     boolean isCombatTarget(long id);
