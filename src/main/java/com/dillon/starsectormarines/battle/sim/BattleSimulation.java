@@ -580,7 +580,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, world, turretFire,
                 rng, this::spawn, effects, resupply, this);
         this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, world,
-                turretFire, rng, this::spawn, this, effects, mapEditor);
+                turretFire, rng, this::spawn, this, effects);
         this.vehicleDamageResolver.setDestructionSink(groundSystem::destroyVehicle);
         mapEditor.setRoofCollapseSink((x, y) -> {
             float jx = x + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
