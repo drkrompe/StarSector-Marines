@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 2,
+  "kind": "EXTRACTION",
+  "seed": 141418,
+  "enemyHasHeavyArmor": false,
+  "tier": "ESTABLISHED",
+  "risk": "MEDIUM",
+  "shuttles": [
+    { "type": "AEROSHUTTLE", "cycles": 1, "seatsPerSortie": 6 },
+    { "type": "AEROSHUTTLE", "cycles": 1, "seatsPerSortie": 6 },
+    { "type": "AEROSHUTTLE", "cycles": 1, "seatsPerSortie": 6 },
+    { "type": "AEROSHUTTLE", "cycles": 1, "seatsPerSortie": 6 },
+    { "type": "AEROSHUTTLE", "cycles": 1, "seatsPerSortie": 6 },
+    { "type": "AEROSHUTTLE", "cycles": 1, "seatsPerSortie": 6 },
+    { "type": "AEROSHUTTLE", "cycles": 1, "seatsPerSortie": 6 },
+    { "type": "AEROSHUTTLE", "cycles": 1, "seatsPerSortie": 6 }
+  ],
+  "targetProfile": {
+    "marketSize": 5,
+    "stability": 6,
+    "defenseLevel": 2,
+    "spaceportTier": 2,
+    "factionId": "independent",
+    "functions": [ "SPACEPORT", "HEAVY_INDUSTRY" ]
+  },
+  "marineFighterSupport": [],
+  "enemyFighterSupport": []
+}

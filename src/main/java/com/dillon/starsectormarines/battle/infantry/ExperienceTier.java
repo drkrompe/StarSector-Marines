@@ -1,6 +1,13 @@
 package com.dillon.starsectormarines.battle.infantry;
 
-/** Earned field experience derived from an individual soldier's XP total. */
+/**
+ * The four steps of field experience a marine can deploy at.
+ *
+ * <p>Issued, not earned: {@code SquadExperienceStandard} resolves a marine's
+ * band from the armour their company was able to issue them, and the XP
+ * thresholds below are how a band is <em>defined</em>, not a ladder anyone
+ * climbs ({@code progression-nouns.md}).
+ */
 public enum ExperienceTier {
     GREEN("Green", 0, 0.92f, 1.08f, 1.08f, 0.20f, 0.50f),
     REGULAR("Regular", 100, 1.00f, 1.00f, 1.00f, 0.50f, 0.35f),

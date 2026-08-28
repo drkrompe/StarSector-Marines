@@ -93,7 +93,7 @@ class StationingAssignmentServiceTest {
         roster.applySoldierOutcome(Map.of(
                 roster.squadMembers(first).get(0).id(), MarineSoldierStatus.WIA,
                 roster.squadMembers(first).get(1).id(), MarineSoldierStatus.KIA),
-                0, 10f, 7f);
+                10f, 7f);
 
         assertTrue(StationingAssignmentService.acceptNamed(
                 fixture.state, fixture.contractId, roster, fixture.captain,

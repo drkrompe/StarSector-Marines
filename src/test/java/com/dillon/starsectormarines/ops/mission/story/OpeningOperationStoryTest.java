@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.mission.story;
 
+import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.ops.Client;
 import com.dillon.starsectormarines.ops.Mission;
@@ -54,9 +55,12 @@ class OpeningOperationStoryTest {
     void firstRungDoesNotFollowARegularOrOversizedCompany() {
         OpeningOperationStory relief = new OpeningOperationStory(
                 OpeningOperationKind.RELIEF);
+        // One recovered line suit puts a marine above starting issue, and the
+        // company has outgrown the first rung.
         MarineRoster experienced = new MarineRoster();
         experienced.bootstrapInitialComplement(10);
-        experienced.soldiers().get(0).addExperience(100);
+        assertTrue(experienced.allocateArmor(
+                experienced.soldiers().get(0).id(), MarineArmorPattern.CHARCOAL));
         assertFalse(relief.isEligible(context(experienced, INDEPENDENT)));
 
         MarineRoster oversized = new MarineRoster();

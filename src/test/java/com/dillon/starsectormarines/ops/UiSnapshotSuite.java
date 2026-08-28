@@ -172,7 +172,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 .findFirst().orElseThrow();
         Map<String, MarineSoldierStatus> postBattle = new LinkedHashMap<>();
         postBattle.put(squad.memberIds().get(3), MarineSoldierStatus.WIA);
-        roster.applySoldierOutcome(postBattle, 0, 100f, 1.25f);
+        roster.applySoldierOutcome(postBattle, 100f, 1.25f);
         BarracksViewModel viewModel = new BarracksViewModel(reactor, roster, () -> 100d);
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), BARRACKS_COMPONENTS);
@@ -210,7 +210,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         postBattle.put(squad.memberIds().get(0), MarineSoldierStatus.WIA);
         postBattle.put(squad.memberIds().get(MarineSquad.CAPACITY - 1),
                 MarineSoldierStatus.KIA);
-        roster.applySoldierOutcome(postBattle, 0, 100f, 1.25f);
+        roster.applySoldierOutcome(postBattle, 100f, 1.25f);
         roster.recruitToSquad(roster.reserveSquad().id());
         FleetArmoryViewModel viewModel = new FleetArmoryViewModel(
                 reactor, roster, () -> { }, () -> 100d);
@@ -270,7 +270,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         roster.ensureActiveSoldiers(MarineSquad.CAPACITY * 2);
         Map<String, MarineSoldierStatus> postBattle = new LinkedHashMap<>();
         postBattle.put(roster.soldiers().get(0).id(), MarineSoldierStatus.WIA);
-        roster.applySoldierOutcome(postBattle, 0, 100f, 1.25f);
+        roster.applySoldierOutcome(postBattle, 100f, 1.25f);
         FleetArmoryOverviewViewModel viewModel = new FleetArmoryOverviewViewModel(
                 reactor, roster, () -> { }, () -> 100d);
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(

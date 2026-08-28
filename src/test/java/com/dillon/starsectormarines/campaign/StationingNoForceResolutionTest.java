@@ -43,7 +43,7 @@ class StationingNoForceResolutionTest {
         for (MarineSoldier soldier : roster.squadMembers(squad)) {
             wounded.put(soldier.id(), MarineSoldierStatus.WIA);
         }
-        roster.applySoldierOutcome(wounded, 0, 40f, 12f);
+        roster.applySoldierOutcome(wounded, 40f, 12f);
         StationingIncidentPayload payload = StationingIncidentPayload.from(
                 state, contractId, roster);
         assertNotNull(payload);

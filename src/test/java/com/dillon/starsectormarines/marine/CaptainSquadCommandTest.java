@@ -68,7 +68,7 @@ class CaptainSquadCommandTest {
         for (MarineSoldier soldier : roster.squadMembers(roster.squads().get(0))) {
             casualties.put(soldier.id(), MarineSoldierStatus.KIA);
         }
-        roster.applySoldierOutcome(casualties, 0, 0f, 1f);
+        roster.applySoldierOutcome(casualties, 0f, 1f);
 
         MarineSquad beyondCap = roster.squads().get(Rank.LIEUTENANT.squadCommandCap());
         assertFalse(roster.assignCaptainToSquad(captain.id(), beyondCap.id()));

@@ -126,7 +126,7 @@ class FleetArmoryOverviewViewModelTest {
         roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
         Map<String, MarineSoldierStatus> outcome = new LinkedHashMap<>();
         outcome.put(roster.soldiers().get(0).id(), MarineSoldierStatus.WIA);
-        roster.applySoldierOutcome(outcome, 0, 50f, 0.5f);
+        roster.applySoldierOutcome(outcome, 50f, 0.5f);
         FleetArmoryOverviewViewModel viewModel = new FleetArmoryOverviewViewModel(
                 new Reactor(), roster, () -> { }, () -> 50.5d);
 

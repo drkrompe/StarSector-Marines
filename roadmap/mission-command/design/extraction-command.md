@@ -4,7 +4,7 @@ Status: ACTIVE — generic Extraction has an authoritative payload law and paire
 
 Written: 2026-08-27
 
-Updated: 2026-08-27 — added bounded defender source security and belief-driven interdiction without disclosing hidden corridor truth.
+Updated: 2026-08-27 — added a deterministic two-fixture matrix covering quiet production pressure and surviving post-alarm interdiction.
 
 Read `mission-command-nouns.md` for the shared architecture and
 `campaign-event-nouns.md` for the authored event stakes.
@@ -63,9 +63,14 @@ perspective trace all consume that picture. `commanderEvidence
 -Pmission=extraction` replays the production fixture twice under forced-serial
 scheduling. With paired command active, the current canonical fixture reaches
 an explained defender win at tick 5,079 before uncontested source control; it
-proves quiet security, ownership, redaction, and deterministic terminal law,
-but a fixture that actually raises the alarm is still needed to accept the
-post-alarm evidence branch.
+proves quiet security, ownership, redaction, and deterministic terminal law.
+The paired alarm-response fixture deliberately concentrates eight six-seat
+shuttles into one sortie. It is branch evidence rather than a balance target:
+Marines complete extraction at tick 8,712 while surviving defender patrols
+publish six source-perimeter response pictures and eight belief-driven
+interdiction pictures after the alarm. Both fixtures replay byte-identically.
+`-Pfixture` and `-PmaxTicks` continue to select labelled ad hoc evidence rather
+than adding a mission-specific Gradle task.
 
 Generic conventional defenders receive a small mission-owned patrol pool while
 authored garrisons retain their posts. One patrol guards the public source and
