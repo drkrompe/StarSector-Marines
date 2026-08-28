@@ -7,7 +7,9 @@ import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef.WallSide;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -431,7 +433,7 @@ final class BuildingLayouts {
             for (int x = bl + 1; x <= br - 1; x++) {
                 if (!footprintHasPurpose(topology, x, y, prop, purpose)) continue;
                 if (!canPlaceDoodad(grid, x, y, prop, doodads)) continue;
-                if (footprintTouchesWindow(topology, x, y, prop)) continue;
+                if (footprintTouchesWindow(grid, topology, x, y, prop)) continue;
                 free.add(new int[]{x, y});
             }
         }
@@ -795,7 +797,7 @@ final class BuildingLayouts {
                                 topology, cell[0], cell[1], prop, purpose)) continue;
                         if (!canPlaceDoodad(grid, cell[0], cell[1], prop, doodads)) continue;
                         if (footprintTouchesWindow(
-                                topology, cell[0], cell[1], prop)) continue;
+                                grid, topology, cell[0], cell[1], prop)) continue;
                         if (requirePreferredWall
                                 && (!hasWallSupport(grid, topology, cell[0], cell[1], prop)
                                 || !hasOpenFront(grid, topology, purpose,
@@ -1035,7 +1037,7 @@ final class BuildingLayouts {
                     || topology.isFixture(behindX, behindY)) continue;
             if (!footprintHasPurpose(topology, x, y, prop, purpose)) continue;
             if (!canPlaceDoodad(grid, x, y, prop, doodads)) continue;
-            if (footprintTouchesWindow(topology, x, y, prop)) continue;
+            if (footprintTouchesWindow(grid, topology, x, y, prop)) continue;
             cells.add(new int[]{x, y});
         }
         return cells;
@@ -1055,7 +1057,7 @@ final class BuildingLayouts {
             int x = cell[0], y = cell[1];
             if (!footprintHasPurpose(topology, x, y, prop, purpose)
                     || !canPlaceDoodad(grid, x, y, prop, doodads)
-                    || footprintTouchesWindow(topology, x, y, prop)) continue;
+                    || footprintTouchesWindow(grid, topology, x, y, prop)) continue;
             if (!preservesRoomConnectivity(grid, topology, purpose, roomCells,
                     x, y, prop)) continue;
             int distance = Math.abs(2 * x - bounds[0] - bounds[2])
@@ -1308,17 +1310,33 @@ final class BuildingLayouts {
     }
 
     /** Keeps the standable cell immediately inside every firing window clear. */
-    private static boolean footprintTouchesWindow(CellTopology topology, int x, int y,
+    private static boolean footprintTouchesWindow(NavigationGrid grid,
+                                                  CellTopology topology, int x, int y,
                                                   DoodadDef prop) {
         for (int dy = 0; dy < prop.footprintCellsY; dy++) {
             for (int dx = 0; dx < prop.footprintCellsX; dx++) {
                 int cellX = x + dx;
                 int cellY = y + dy;
-                if (topology.isWindow(cellX + 1, cellY)
-                        || topology.isWindow(cellX - 1, cellY)
-                        || topology.isWindow(cellX, cellY + 1)
-                        || topology.isWindow(cellX, cellY - 1)) return true;
+                for (Direction direction : Direction.CARDINALS) {
+                    int neighborX = cellX + direction.dx;
+                    int neighborY = cellY + direction.dy;
+                    if (topology.isWindow(neighborX, neighborY)
+                            || ownsWindowEdge(grid, neighborX, neighborY)) return true;
+                }
             }
+        }
+        return false;
+    }
+
+    /** True when this cell is the structure side of any thin window edge. */
+    private static boolean ownsWindowEdge(NavigationGrid grid, int x, int y) {
+        if (!grid.inBounds(x, y)) return false;
+        for (Direction direction : Direction.CARDINALS) {
+            SharedEdgeBarrier barrier = grid.getEdgeBarrier(x, y, direction);
+            if (barrier != null
+                    && barrier.kind() == SharedEdgeBarrier.Kind.WINDOW
+                    && barrier.structureCellX() == x
+                    && barrier.structureCellY() == y) return true;
         }
         return false;
     }

@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
@@ -52,18 +54,17 @@ class StandaloneApartmentFillerTest {
 
             fixture.topology.tagDefaultWalls(fixture.grid);
             recomputeCover(fixture.grid);
-            int windows = 0;
-            for (int y = APARTMENT.top; y <= APARTMENT.bottom; y++) {
-                for (int x = APARTMENT.left; x <= APARTMENT.right; x++) {
-                    if (!fixture.topology.isWindow(x, y)) continue;
-                    windows++;
-                    assertFalse(fixture.grid.isWalkable(x, y));
-                    assertTrue(fixture.grid.isSeeThrough(x, y));
-                    assertTrue(fixture.topology.isWall(x, y));
-                    assertWindowHasFiringLane(fixture, x, y);
-                }
+            var windows = BuildingWindowTestSupport.windowsOwnedBy(fixture.grid, APARTMENT);
+            for (SharedEdgeBarrier window : windows) {
+                int ownerX = window.structureCellX();
+                int ownerY = window.structureCellY();
+                assertTrue(fixture.grid.isWalkable(ownerX, ownerY));
+                assertFalse(fixture.topology.isWindow(ownerX, ownerY));
+                assertFalse(fixture.topology.isWall(ownerX, ownerY));
+                assertWindowHasFiringLane(fixture, window);
             }
-            assertTrue(windows >= 4, "apartment should expose several room firing points");
+            assertTrue(windows.size() >= 4,
+                    "apartment should expose several room firing points");
         }
     }
 
@@ -79,6 +80,7 @@ class StandaloneApartmentFillerTest {
                 assertEquals(null, fixture.topology.getRoomPurpose(x, y));
             }
         }
+        assertTrue(BuildingWindowTestSupport.windowsOwnedBy(fixture.grid, home).isEmpty());
     }
 
     @Test
@@ -95,7 +97,7 @@ class StandaloneApartmentFillerTest {
                 if (countPurpose(map.topology, footprint,
                         RoomPurpose.RESIDENTIAL_HALL) == 0) continue;
                 standalone++;
-                assertTrue(hasWindow(map.topology, footprint));
+                assertTrue(hasWindow(map.grid, footprint));
             }
         }
         assertTrue(standalone >= 2,
@@ -147,13 +149,8 @@ class StandaloneApartmentFillerTest {
         return false;
     }
 
-    private static boolean hasWindow(CellTopology topology, BlockLeaf leaf) {
-        for (int y = leaf.top; y <= leaf.bottom; y++) {
-            for (int x = leaf.left; x <= leaf.right; x++) {
-                if (topology.isWindow(x, y)) return true;
-            }
-        }
-        return false;
+    private static boolean hasWindow(NavigationGrid grid, BlockLeaf leaf) {
+        return !BuildingWindowTestSupport.windowsOwnedBy(grid, leaf).isEmpty();
     }
 
     private static boolean hasDoor(NavigationGrid grid, BlockLeaf leaf,
@@ -241,23 +238,23 @@ class StandaloneApartmentFillerTest {
         }
     }
 
-    private static void assertWindowHasFiringLane(Fixture fixture, int windowX, int windowY) {
-        int[][] directions = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
-        for (int[] direction : directions) {
-            int insideX = windowX + direction[0];
-            int insideY = windowY + direction[1];
-            RoomPurpose purpose = fixture.topology.getRoomPurpose(insideX, insideY);
-            if (purpose != RoomPurpose.APARTMENT_LIVING && purpose != RoomPurpose.BEDROOM) continue;
-            int outsideX = windowX - direction[0];
-            int outsideY = windowY - direction[1];
-            assertTrue(fixture.grid.hasLineOfSight(outsideX, outsideY, insideX, insideY),
-                    "shots cross window at " + windowX + "," + windowY);
-            int facing = NavigationGrid.facingFor(-direction[0], -direction[1]);
-            assertEquals(1, fixture.grid.getCoverAtFacing(insideX, insideY, facing),
-                    "interior firing cell receives facade cover");
-            return;
-        }
-        throw new AssertionError("window is not aligned with a private room");
+    private static void assertWindowHasFiringLane(Fixture fixture,
+                                                  SharedEdgeBarrier window) {
+        int windowX = window.structureCellX();
+        int windowY = window.structureCellY();
+        Direction outward = BuildingWindowTestSupport.outwardFromOwner(window);
+        int insideX = windowX - outward.dx;
+        int insideY = windowY - outward.dy;
+        RoomPurpose purpose = fixture.topology.getRoomPurpose(insideX, insideY);
+        assertTrue(purpose == RoomPurpose.APARTMENT_LIVING
+                || purpose == RoomPurpose.BEDROOM);
+        int outsideX = windowX + outward.dx;
+        int outsideY = windowY + outward.dy;
+        assertTrue(fixture.grid.hasLineOfSight(outsideX, outsideY, insideX, insideY),
+                "shots cross window at " + windowX + "," + windowY);
+        int facing = NavigationGrid.facingFor(outward.dx, outward.dy);
+        assertEquals(1, fixture.grid.getCoverAtFacing(windowX, windowY, facing),
+                "building-owned firing recess receives facade cover");
     }
 
     private static final class Fixture {

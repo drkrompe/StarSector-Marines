@@ -1040,6 +1040,7 @@ public final class FortressWallStamper implements GenStage {
         // reconnect more than the pocket it was cut for, and sealing a region
         // the breach just opened would undo the repair.
         reachable = floodFromMapEdge(grid, w, h);
+        removeBarriersTouchingSealedCells(grid, reachable);
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
                 if (!grid.isWalkable(x, y)) continue;
@@ -1068,12 +1069,13 @@ public final class FortressWallStamper implements GenStage {
         }
         while (!queue.isEmpty()) {
             int[] p = queue.poll();
-            for (int[] d : CARDINALS) {
-                int nx = p[0] + d[0];
-                int ny = p[1] + d[1];
+            for (Direction direction : Direction.CARDINALS) {
+                int nx = p[0] + direction.dx;
+                int ny = p[1] + direction.dy;
                 if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
                 if (reachable[nx][ny]) continue;
                 if (!grid.isWalkable(nx, ny)) continue;
+                if (!grid.isSharedEdgePassable(p[0], p[1], direction)) continue;
                 reachable[nx][ny] = true;
                 queue.add(new int[]{nx, ny});
             }
@@ -1091,12 +1093,13 @@ public final class FortressWallStamper implements GenStage {
         while (!queue.isEmpty()) {
             int[] p = queue.poll();
             pocket.add(p);
-            for (int[] d : CARDINALS) {
-                int nx = p[0] + d[0];
-                int ny = p[1] + d[1];
+            for (Direction direction : Direction.CARDINALS) {
+                int nx = p[0] + direction.dx;
+                int ny = p[1] + direction.dy;
                 if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
                 if (visited[nx][ny]) continue;
                 if (!grid.isWalkable(nx, ny)) continue;
+                if (!grid.isSharedEdgePassable(p[0], p[1], direction)) continue;
                 visited[nx][ny] = true;
                 queue.add(new int[]{nx, ny});
             }
@@ -1166,13 +1169,48 @@ public final class FortressWallStamper implements GenStage {
         while (index != PATH_START) {
             int x = index % w;
             int y = index / w;
+            int previous = cameFrom[index];
+            if (previous >= 0) {
+                int previousX = previous % w;
+                int previousY = previous / w;
+                Direction direction = cardinalDirection(
+                        previousX - x, previousY - y);
+                SharedEdgeBarrier barrier = grid.getEdgeBarrier(x, y, direction);
+                if (barrier != null) {
+                    grid.damageEdgeBarrier(x, y, direction, barrier.maxStructure());
+                    grid.openSharedEdge(x, y, direction);
+                }
+            }
             if (!grid.isWalkable(x, y)) {
                 grid.setWalkableFloor(x, y);
                 topology.setWall(x, y, false);
                 topology.setGroundKind(x, y, WALL_GROUND);
             }
-            index = cameFrom[index];
+            index = previous;
         }
+    }
+
+    /** Removes sparse identities that would otherwise survive beside a sealed cell. */
+    private static void removeBarriersTouchingSealedCells(
+            NavigationGrid grid, boolean[][] reachable) {
+        List<SharedEdgeBarrier> toRemove = new ArrayList<>();
+        for (SharedEdgeBarrier barrier : grid.getEdgeBarriers()) {
+            int otherX = barrier.cellX() + barrier.direction().dx;
+            int otherY = barrier.cellY() + barrier.direction().dy;
+            if (!reachable[barrier.cellX()][barrier.cellY()]
+                    || !reachable[otherX][otherY]) toRemove.add(barrier);
+        }
+        for (SharedEdgeBarrier barrier : toRemove) {
+            grid.damageEdgeBarrier(barrier.cellX(), barrier.cellY(),
+                    barrier.direction(), barrier.maxStructure());
+        }
+    }
+
+    private static Direction cardinalDirection(int dx, int dy) {
+        for (Direction direction : Direction.CARDINALS) {
+            if (direction.dx == dx && direction.dy == dy) return direction;
+        }
+        throw new IllegalArgumentException("cells must be cardinal neighbors");
     }
 
     private static boolean isCompoundKind(TacticalNode.Kind kind) {
