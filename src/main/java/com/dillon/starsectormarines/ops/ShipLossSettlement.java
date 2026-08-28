@@ -16,21 +16,22 @@ import java.util.Set;
  * <p>The rule is that the company keeps what it <b>is</b> and loses what it
  * <b>had</b>. Squads, fire-team templates, doctrines, arrangements, named
  * officers and the machines in the bay are the company itself and survive her;
- * the marines who were aboard, the kit racked in her armory, the spares on the
- * bay shelf and the stores in her holds were aboard a ship that burned. What
- * that leaves is an outfit that still knows how it fights and has to buy back
- * the means to do it.
+ * the marines who were aboard, the spares on the bay's shelf and the stores in
+ * her holds were aboard a ship that burned. What that leaves is an outfit that
+ * still knows how it fights and has to buy back the means to do it.
+ *
+ * <p><b>There is no armory inventory to sink.</b> A company's equipment is a
+ * set of designs it owns permanently rather than a rack it draws down: owning a
+ * template card is what lets a squad be issued a weapon, and what an issue
+ * actually consumes is fleet cargo. So the materiel cost of a sinking lands
+ * where the counted things are — the spare mech components and the stores — and
+ * restocking those is what makes the company workable again.
  *
  * <p><b>Holding the field decides who is picked up.</b> Losing the ship out of
  * a battle the player still won leaves boats in the water and time to use them;
  * losing her out of a rout does not. That is the one lever the player has over
  * the toll after the ship is already burning, and it is why the same loss reads
  * as a bad day or as a disaster.
- *
- * <p>Killing the people without destroying the kit would have been worse than
- * doing nothing: a marine who stops being active releases their issued weapon
- * and armour back to available stock, so a sinking would have handed the player
- * a full rack of rifles.
  *
  * @see CompanyShipLossListener
  */
@@ -54,18 +55,17 @@ public final class ShipLossSettlement {
      *
      * @param marinesLost named marines who went down with her
      * @param marinesSurvived named marines who were picked up
-     * @param kitLost pieces of issued kit destroyed in her armory
      * @param sparesLost spare mech components destroyed on the bay shelf
      * @param storesLost units of cargo that went down in her holds
      */
-    public record Toll(int marinesLost, int marinesSurvived, int kitLost,
+    public record Toll(int marinesLost, int marinesSurvived,
                        int sparesLost, int storesLost) {
 
-        public static final Toll NOTHING = new Toll(0, 0, 0, 0, 0);
+        public static final Toll NOTHING = new Toll(0, 0, 0, 0);
 
         /** Whether anything at all was lost worth telling the player about. */
         public boolean anything() {
-            return marinesLost > 0 || kitLost > 0 || sparesLost > 0 || storesLost > 0;
+            return marinesLost > 0 || sparesLost > 0 || storesLost > 0;
         }
     }
 
@@ -95,13 +95,9 @@ public final class ShipLossSettlement {
         roster.applySoldierOutcome(Set.of(), fallen);
         int survivors = aboard.size() - fallen.size();
 
-        int kit = roster.armory().loseStock();
-        // Survivors come out of the water in fatigues, carrying the one weapon
-        // that is fleet issue rather than counted stock.
-        roster.armory().ensureBasicIssue(survivors);
         int spares = roster.mechBay().loseSpares();
         int stores = sink(holds, holdCapacity);
-        return new Toll(fallen.size(), survivors, kit, spares, stores);
+        return new Toll(fallen.size(), survivors, spares, stores);
     }
 
     /**

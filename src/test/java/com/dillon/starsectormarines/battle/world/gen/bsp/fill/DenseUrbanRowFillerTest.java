@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.fill;
 
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
@@ -50,7 +52,7 @@ class DenseUrbanRowFillerTest {
         assertEquals(1, fixture.ctx.pois.size());
         assertEquals(0, countPurpose(fixture.topology, leaf, RoomPurpose.APARTMENT_LIVING));
         assertEquals(0, countPurpose(fixture.topology, leaf, RoomPurpose.SHOP_FLOOR));
-        assertEquals(0, countWindows(fixture.topology, leaf));
+        assertEquals(0, countWindows(fixture.grid, leaf));
         int midX = leaf.left + leaf.width() / 2;
         int midY = leaf.top + leaf.height() / 2;
         for (int y = leaf.top; y <= leaf.bottom; y++) assertTrue(fixture.grid.isWalkable(midX, y));
@@ -136,17 +138,15 @@ class DenseUrbanRowFillerTest {
 
         fixture.topology.tagDefaultWalls(fixture.grid);
         recomputeCover(fixture.grid);
-        int windows = 0;
-        for (int y = leaf.top; y <= leaf.bottom; y++) {
-            for (int x = leaf.left; x <= leaf.right; x++) {
-                if (!fixture.topology.isWindow(x, y)) continue;
-                windows++;
-                assertFalse(fixture.grid.isWalkable(x, y));
-                assertTrue(fixture.grid.isSeeThrough(x, y));
-                assertWindowPurposeAndCover(fixture, x, y);
-            }
+        var windows = BuildingWindowTestSupport.windowsOwnedBy(fixture.grid, leaf);
+        for (SharedEdgeBarrier window : windows) {
+            int ownerX = window.structureCellX();
+            int ownerY = window.structureCellY();
+            assertTrue(fixture.grid.isWalkable(ownerX, ownerY));
+            assertFalse(fixture.topology.isWindow(ownerX, ownerY));
+            assertWindowPurposeAndCover(fixture, window);
         }
-        assertTrue(windows >= 2);
+        assertTrue(windows.size() >= 2);
     }
 
     private static String alleyWalkability(NavigationGrid grid,
@@ -235,14 +235,8 @@ class DenseUrbanRowFillerTest {
         return count;
     }
 
-    private static int countWindows(CellTopology topology, BlockLeaf leaf) {
-        int count = 0;
-        for (int y = leaf.top; y <= leaf.bottom; y++) {
-            for (int x = leaf.left; x <= leaf.right; x++) {
-                if (topology.isWindow(x, y)) count++;
-            }
-        }
-        return count;
+    private static int countWindows(NavigationGrid grid, BlockLeaf leaf) {
+        return BuildingWindowTestSupport.windowsOwnedBy(grid, leaf).size();
     }
 
     private static void recomputeCover(NavigationGrid grid) {
@@ -251,20 +245,20 @@ class DenseUrbanRowFillerTest {
         }
     }
 
-    private static void assertWindowPurposeAndCover(Fixture fixture, int windowX, int windowY) {
-        for (int[] direction : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
-            int insideX = windowX + direction[0];
-            int insideY = windowY + direction[1];
-            RoomPurpose purpose = fixture.topology.getRoomPurpose(insideX, insideY);
-            if (purpose != RoomPurpose.BEDROOM && purpose != RoomPurpose.SHOP_FLOOR) continue;
-            int outsideX = windowX - direction[0];
-            int outsideY = windowY - direction[1];
-            assertTrue(fixture.grid.hasLineOfSight(outsideX, outsideY, insideX, insideY));
-            int facing = NavigationGrid.facingFor(-direction[0], -direction[1]);
-            assertEquals(1, fixture.grid.getCoverAtFacing(insideX, insideY, facing));
-            return;
-        }
-        throw new AssertionError("window does not face an eligible dense-row room");
+    private static void assertWindowPurposeAndCover(Fixture fixture,
+                                                    SharedEdgeBarrier window) {
+        int windowX = window.structureCellX();
+        int windowY = window.structureCellY();
+        Direction outward = BuildingWindowTestSupport.outwardFromOwner(window);
+        int insideX = windowX - outward.dx;
+        int insideY = windowY - outward.dy;
+        RoomPurpose purpose = fixture.topology.getRoomPurpose(insideX, insideY);
+        assertTrue(purpose == RoomPurpose.BEDROOM || purpose == RoomPurpose.SHOP_FLOOR);
+        int outsideX = windowX + outward.dx;
+        int outsideY = windowY + outward.dy;
+        assertTrue(fixture.grid.hasLineOfSight(outsideX, outsideY, insideX, insideY));
+        int facing = NavigationGrid.facingFor(outward.dx, outward.dy);
+        assertEquals(1, fixture.grid.getCoverAtFacing(windowX, windowY, facing));
     }
 
     private static String digest(Fixture fixture) {
