@@ -9,7 +9,8 @@ posture, which give a held place's authored apertures to whichever side holds
 it and make believed pressure, rather than local contact, the trigger for
 manning them; recorded what an aperture may open onto and what an open-sided
 envelope yields; added held layers, so a bounded few garrisons may share a
-perimeter and a garrison that loses one envelope falls back to the next.
+perimeter and a garrison that loses one envelope falls back to the next; made
+allocation picket every threatened facing before massing on the hottest.
 
 AI turns an assignment and what a squad has learned into coordinated movement,
 posture, and fire intent. It is a decision system, not the authority for combat
@@ -593,6 +594,16 @@ is gone.
 fight. It distributes members onto stances covering the apertures under the
 greatest believed pressure, holding part of the squad back as an interior
 reserve so a single threatened facing cannot strip the rest of the envelope.
+
+Allocation **pickets before it masses**: every threatened facing receives a post
+before any facing receives a second one, and the remainder go in plain threat
+order. Ranking apertures by pressure alone is right for one approach and wrong
+for two — the field ranks a whole wall above another, so a squad filling from
+one global list puts everybody on whichever side reads hotter and leaves the
+other approach with nobody facing it. A picket on each threatened approach and
+the weight on the dangerous one is the reading a defender should make; it costs
+the hot side one post per other threatened facing, which is the trade being
+made deliberately.
 Its trigger is the squad's own faction influence, which is aggregated from
 believed contacts and propagated through navigable topology: a forward
 element's contact mans the wall facing it, and a garrison that has personally

@@ -425,6 +425,33 @@ the second, held until she is confirmed missing - a ship can be disabled in a
 battle and recovered off the field afterwards, and a company told their ship was
 lost while it is being towed home has been told a falsehood.
 
+**A company keeps what it is and loses what it had.** When the ship goes down,
+the squads, the fire-team templates, the weapon and armour doctrines, the
+arrangements, the named officers and the machines in the bay all survive her -
+they are the company itself, and an outfit that forgets how it fights has been
+deleted rather than hurt. What sinks is what was aboard: the marines who were
+home, the kit racked in her armoury, the spares on the bay's shelf and the
+stores in her holds. That leaves an outfit that still knows how it fights and
+has to buy back the means to do it, which is a setback the player can work
+against rather than a save they have to abandon.
+
+Destroying the kit is not decoration on top of the casualties, it is what stops
+them reading backwards. A marine who is no longer active releases their issued
+weapon and armour back to available stock, so killing the people without sinking
+the armoury would hand the player a fuller rack than they had before the ship
+burned.
+
+**Holding the field decides who is picked up.** Losing the ship out of a battle
+the player still won leaves boats in the water and the time to use them; losing
+her out of a rout does not, and most of the company goes with her. That is the
+one lever the player has over the toll once she is already burning, and it is
+what makes the same loss a bad day or a disaster. Squads away on a stationing
+contract are somewhere else in the sector and were never aboard, which is the
+standing hedge against losing everybody at once.
+
+The roll is fixed by the company and the ship's name rather than freshly random,
+because a loss the player can reload away is not a loss.
+
 **Moving costs money; being given a home does not.** A transfer is a refit
 rather than a decision on paper - bunks, lockers, an armoury that locks and a
 bay a walker can be worked on in are not aboard a freighter until somebody
