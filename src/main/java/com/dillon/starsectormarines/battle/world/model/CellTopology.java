@@ -41,6 +41,15 @@ public class CellTopology {
      * surfaces.
      */
     public enum GroundKind {
+        /**
+         * No deck here at all — outside the hull a ship encloses.
+         *
+         * <p>Distinct from a cell that is merely unwalkable. A wall is part of
+         * the vessel and is drawn; this is the space she is not, and painting
+         * it puts a floor outside the ship. Nothing draws it, which is what
+         * lets a hull backdrop show through the shape she actually occupies.
+         */
+        VOID,
         /** Light beige indoor floor (urban-1 floor 3×3). Carved building interiors + doorways. Default for un-set cells. */
         INDOOR,
         /** Gray asphalt road (urban-2 road 3×3). Public outdoor pavement. */
