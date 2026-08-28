@@ -2,6 +2,9 @@ package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
+import com.dillon.starsectormarines.battle.unit.TestUnits;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
@@ -14,10 +17,12 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -154,5 +159,69 @@ public class SecureCompoundGoalTest {
         // No EnterZone against a transit zone — squad is already there.
         boolean anyEnter = steps.stream().anyMatch(s -> s.action instanceof EnterZone);
         assertFalse(anyEnter, "already in the compound zone → no transit EnterZone steps");
+    }
+
+    @Test
+    public void casualtyRebindReplacesStickyPlanRolesAndRestartsBounding() {
+        BattleSimulation sim = threeZoneSim();
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        Squad squad = sim.getSquad(squadId);
+        java.util.ArrayList<Long> members = new java.util.ArrayList<>();
+        for (int i = 0; i < 12; i++) {
+            members.add(sim.spawn(new EntitySpec("m" + i, Faction.MARINE,
+                    UnitType.MARINE, 2, 2 + i % 6)
+                    .squad(squadId).fireTeam(i / 4)));
+        }
+        squad.aliveMembers = 12;
+        squad.centroidX = 2.5f;
+        squad.centroidY = 5.5f;
+        TacticalNode node = compoundNode();
+        sim.getCompoundService().register(node);
+        int compoundZone = sim.getZoneGraph().zoneIdAt(27, 5);
+        squad.assignedObjective = ObjectiveAssignment.secureCompound(
+                squad.id, compoundZone, node);
+
+        GoapInfantryBehavior.replanIfNeeded(squad, sim);
+        SquadPlan stickyPlan = squad.currentPlan;
+        assertNotNull(stickyPlan);
+        assertTrue(stickyPlan.currentStep().action instanceof EnterZone);
+        assertEquals(Set.of("fireteam:0", "fireteam:1", "fireteam:2"),
+                stickyPlan.currentStep().assignments.keySet());
+
+        EnterZone enter = (EnterZone) stickyPlan.currentStep().action;
+        squad.boundingActive = true;
+        squad.boundingPhase = 0;
+        squad.boundingTargetZoneId = enter.targetZoneId();
+        squad.boundingDestX = enter.destX();
+        squad.boundingDestY = enter.destY();
+        squad.boundingThreatId = 99L;
+        squad.boundingMemberIds = new long[]{members.get(4), members.get(5),
+                members.get(6), members.get(7)};
+        squad.boundingTargetXs = new int[]{8, 8, 8, 8};
+        squad.boundingTargetYs = new int[]{3, 4, 5, 6};
+
+        // Bravo falls below viable-team strength. Its survivor is folded into
+        // Alpha while Charlie remains intact.
+        TestUnits.kill(sim, members.get(4));
+        TestUnits.kill(sim, members.get(5));
+        TestUnits.kill(sim, members.get(6));
+        squad.aliveMembers = 9;
+
+        GoapInfantryBehavior.replanIfNeeded(squad, sim);
+
+        assertSame(stickyPlan, squad.currentPlan,
+                "compound plan stickiness should retain route progress");
+        assertFalse(squad.boundingActive,
+                "a bound authored for the old team partition must restart");
+        assertEquals(0, squad.boundingMemberIds.length);
+        SquadPlan.Step rebound = squad.currentPlan.currentStep();
+        assertEquals(Set.of("fireteam:0", "fireteam:2"),
+                rebound.assignments.keySet(),
+                "the dissolved Bravo key must not survive the exact role rebind");
+        List<Long> assigned = rebound.allAssignedMembers();
+        assertEquals(9, assigned.size());
+        assertEquals(9, Set.copyOf(assigned).size(),
+                "a folded survivor must appear in exactly one effective team");
+        assertTrue(assigned.contains(members.get(7)));
     }
 }

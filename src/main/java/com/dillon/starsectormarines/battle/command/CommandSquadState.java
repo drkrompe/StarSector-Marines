@@ -31,15 +31,28 @@ public record CommandSquadState(
         String contactDoctrine,
         String contactInitiative,
         int coolingDownMembers,
-        int[] memberZoneIds) {
+        int[] memberZoneIds,
+        int[] memberCellXs,
+        int[] memberCellYs) {
 
     public CommandSquadState {
         memberZoneIds = memberZoneIds.clone();
+        memberCellXs = memberCellXs.clone();
+        memberCellYs = memberCellYs.clone();
+        if (memberCellXs.length != memberCellYs.length
+                || memberCellXs.length != memberZoneIds.length) {
+            throw new IllegalArgumentException(
+                    "member position and zone arrays must have equal length");
+        }
     }
 
     @Override public int[] memberZoneIds() {
         return memberZoneIds.clone();
     }
+
+    @Override public int[] memberCellXs() { return memberCellXs.clone(); }
+
+    @Override public int[] memberCellYs() { return memberCellYs.clone(); }
 
     /** Back-compatible construction seam for focused command fixtures. */
     public CommandSquadState(int squadId, Faction faction, int aliveMembers,
@@ -53,6 +66,7 @@ public record CommandSquadState(
                 anchorCellY, currentZoneId, role, localContact, false, false,
                 null, null, executionSuspension, assignment, directive,
                 activePathMembers, 0, -1, 0, 0, null, null, null, 0,
-                memberZoneIds);
+                memberZoneIds, new int[memberZoneIds.length],
+                new int[memberZoneIds.length]);
     }
 }

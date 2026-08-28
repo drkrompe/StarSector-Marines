@@ -80,7 +80,7 @@ public final class CompanyShipResolver {
                 hull.getHullSize() == null ? null : hull.getHullSize().name(),
                 hull.getDesignation(),
                 whole.getMinCrew(), whole.getMaxCrew(), whole.getCargoCapacity(),
-                outlineOf(hull.getBaseHullId()));
+                outlineOf(hull.getBaseHullId()), hull.getSpriteName());
     }
 
     /**
@@ -96,14 +96,22 @@ public final class CompanyShipResolver {
     static CompanyShip shipOf(String hullSize, String designation,
                               float minCrew, float maxCrew, float cargo,
                               HullSilhouette outline) {
+        return shipOf(hullSize, designation, minCrew, maxCrew, cargo, outline, null);
+    }
+
+    /** @see #shipOf(String, String, float, float, float, HullSilhouette) */
+    static CompanyShip shipOf(String hullSize, String designation,
+                              float minCrew, float maxCrew, float cargo,
+                              HullSilhouette outline, String art) {
         int holds = Math.max(0, Math.round(cargo));
         int carries = Math.max(0, Math.round(maxCrew));
         int works = Math.min(carries, Math.max(0, Math.round(minCrew)));
         HullClass hullClass = HullClass.fromHullSize(hullSize);
         HullRole role = HullRole.fromDesignation(designation);
         return outline != null
-                ? new CompanyShip(hullClass, role, works, carries, holds, outline)
-                : new CompanyShip(hullClass, role, works, carries, holds, TYPICAL_ASPECT);
+                ? new CompanyShip(hullClass, role, works, carries, holds, outline, art)
+                : new CompanyShip(hullClass, role, works, carries, holds,
+                        TYPICAL_ASPECT, null, art);
     }
 
     /**
