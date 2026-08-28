@@ -4,7 +4,9 @@ import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
 import com.dillon.starsectormarines.battle.command.ExtractionCommandSnapshot;
 import com.dillon.starsectormarines.battle.command.ExtractionDefenseSnapshot;
+import com.dillon.starsectormarines.battle.command.RescueCommandSnapshot;
 import com.dillon.starsectormarines.battle.command.objective.ExtractionPayloadObjective;
+import com.dillon.starsectormarines.battle.evacuation.SwarmPressureSnapshot;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import org.junit.jupiter.api.Test;
 
@@ -87,5 +89,47 @@ class ExtractionCommanderOverlayPublisherTest {
                 HighlightOverlay.SRC_EXTRACTION_SOURCE));
         assertFalse(overlay.hasSource(
                 HighlightOverlay.SRC_EXTRACTION_ACTIONS));
+    }
+
+    @Test
+    void rescueOverlayPublishesCorridorAndOwnedSwarmApproaches() {
+        HighlightOverlay overlay = new HighlightOverlay();
+        RescueCommandSnapshot detail = new RescueCommandSnapshot(
+                100, Faction.MARINE, "IN_TRANSIT", "CIVILIAN-COHORT",
+                "civilian cohort", 30, 20, 18, 14, 16, 13, 5, 6,
+                8, 6, 1, 1, 0.125f, true, 7, 2,
+                false, false, ExtractionPayloadObjective.Failure.NONE,
+                List.of(new RescueCommandSnapshot.SquadIntent(7,
+                        RescueCommandSnapshot.Role.COHORT_ESCORT,
+                        "COHORT_ESCORT", AssignmentKind.ESCORT,
+                        18, 14, false, false)));
+        CommanderSnapshot<RescueCommandSnapshot> commander =
+                new CommanderSnapshot<>(Faction.MARINE,
+                        "rescue-corridor", "IN_TRANSIT", 100, 90,
+                        1, 0, List.of(), List.of(), detail);
+        SwarmPressureSnapshot director = new SwarmPressureSnapshot(
+                1, 100, SwarmPressureSnapshot.Phase.COHORT_RELEASED,
+                "PRESSURE_COHORT_SCREEN", 20, 14, 18, 1,
+                List.of(), List.of(), List.of(
+                new SwarmPressureSnapshot.WaveIntent(99L,
+                        SwarmPressureSnapshot.Approach.NORTH, 12, 0,
+                        SwarmPressureSnapshot.TargetContext.MARINE_SCREEN,
+                        "RESTORE_PRESSURE_FLOOR")));
+
+        ExtractionCommanderOverlayPublisher.publish(
+                overlay, commander, 7, director);
+
+        assertEquals(1, overlay.source(
+                HighlightOverlay.SRC_EXTRACTION_SOURCE).size());
+        assertEquals(1, overlay.source(
+                HighlightOverlay.SRC_EXTRACTION_PAYLOAD).size());
+        assertEquals(1, overlay.source(
+                HighlightOverlay.SRC_EXTRACTION_GUIDE).size());
+        assertEquals(1, overlay.source(
+                HighlightOverlay.SRC_EXTRACTION_EGRESS).size());
+        assertEquals(1, overlay.source(
+                HighlightOverlay.SRC_EXTRACTION_ACTIONS).size());
+        assertEquals(1, overlay.source(
+                HighlightOverlay.SRC_RESCUE_SWARM_APPROACHES).size());
     }
 }

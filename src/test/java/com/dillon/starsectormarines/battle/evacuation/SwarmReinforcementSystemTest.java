@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -51,6 +52,14 @@ class SwarmReinforcementSystemTest {
             }
         }
         assertEquals(4, perimeterRunners);
+        SwarmPressureSnapshot snapshot = system.snapshot();
+        assertNotNull(snapshot);
+        assertEquals("RESTORE_PRESSURE_FLOOR", snapshot.pressureReason());
+        assertEquals(4, snapshot.ownedWave().size());
+        assertEquals(4, snapshot.ownedWave().stream()
+                .map(SwarmPressureSnapshot.WaveIntent::approach)
+                .collect(Collectors.toSet()).size(),
+                "one bounded wave is allocated across all legal approaches");
     }
 
     @Test
@@ -81,6 +90,10 @@ class SwarmReinforcementSystemTest {
         system.tick(SwarmReinforcementSystem.WAVE_INTERVAL_SECONDS, fixture.sim);
 
         assertEquals(4, runnerCount(fixture.sim));
+        assertEquals(SwarmPressureSnapshot.Phase.TERMINAL,
+                system.snapshot().phase());
+        assertEquals("OBJECTIVE_TERMINAL",
+                system.snapshot().pressureReason());
     }
 
     private static Fixture fixture() {
