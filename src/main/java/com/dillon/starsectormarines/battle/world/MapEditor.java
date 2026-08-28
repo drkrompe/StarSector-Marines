@@ -126,11 +126,22 @@ public final class MapEditor {
      * see-through navigation obstacle. Infantry and later convoy routes both see
      * the same honest blocked cells; the full zone/cache rebuild is required
      * because this is a cell closure rather than an opening.
+     *
+     * <p>A burnt-out hull is a hulk, not a wall. It stops anything that has to
+     * drive or walk over it, but sight and fire cross it — so the cells the
+     * wreck closes are marked {@code SEE_THROUGH}, and a squad does not lose
+     * its firing line the moment it kills the vehicle standing in it. Only
+     * cells the wreck itself closed take that bit: a hull that comes to rest
+     * half inside a building must not punch a window through the wall it
+     * stopped against.
      */
     public void placeVehicleWreck(GroundBody body, VehicleType type) {
         VehicleFootprint.forEachSampledCell(body.x, body.y, body.facingDegrees,
                 type.visualLengthCells, type.visualWidthCells, grid, (x, y) -> {
-                    grid.setWalkable(x, y, false);
+                    if (grid.isWalkable(x, y)) {
+                        grid.setWalkable(x, y, false);
+                        grid.setSeeThrough(x, y, true);
+                    }
                     topology.setVehicle(x, y, true);
                 });
         navigation.markZoneGraphDirty();

@@ -4,8 +4,8 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-08-27 — the durability bar gives each pool its own celled row, and
-decoration may be withheld until it carries news.
+Updated: 2026-08-28 — the durability bar is emitted by every layer that draws
+something shootable, convoy vehicles included, as a per-layer sweep.
 
 ## Vocabulary
 
@@ -78,6 +78,7 @@ Ground is a dense, cell-backed surface. Current camera culling range-loops the v
 12. Each pool reports on its own row against its own maximum. A reader asking "is the hull hurt?" must not have to subtract the armor pool to find out, and a pool's row stays comparable with the same pool on every other unit on the field.
 13. A quantised scale degrades by dropping a tier, never by smearing one, and it drops for the whole bar at once. A divider tier too fine to resolve at the current bar length is omitted entirely, so the bar falls back to coarser notches and then to none instead of turning into noise — and one row never ends up visibly finer than the row above it over a rounding error.
 14. Decoration may be withheld until it carries news. An emplacement shows no bar until recorded fact says it has been fired on, so a quiet turret line reads as terrain rather than as a row of gauges. Withholding keys on something the simulation already records; the renderer never maintains its own idea of what has happened.
+15. A bar belongs to whatever can be shot, not to one layer's cast. Anything carrying the durability pools wears the same gauge with the same ownership coding wherever it is drawn — infantry and emplacements in `UNITS`, drones in `DRONES`, convoy vehicles in `CONVOY` — so the player reads one instrument rather than a per-layer dialect. Each layer emits its bars as a sweep after its bodies, so no body paints over a neighbour's gauge.
 
 ## Boundaries and extension paths
 
