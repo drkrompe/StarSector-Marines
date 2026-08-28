@@ -56,6 +56,10 @@ public final class HighlightOverlay {
     public static final String SRC_ASSAULT_SELECTED_ACTION = "assault-selected-action";
     public static final String SRC_SABOTAGE_SITES = "sabotage-sites";
     public static final String SRC_SABOTAGE_SELECTED_SITE = "sabotage-selected-site";
+    public static final String SRC_RAID_TARGET = "raid-target";
+    public static final String SRC_RAID_EGRESS = "raid-egress";
+    public static final String SRC_RAID_ACTIONS = "raid-actions";
+    public static final String SRC_RAID_SELECTED_ACTION = "raid-selected-action";
 
     /** Suggested palette so unrelated sources don't visually collide. */
     public static final Color COLOR_ACTION_CELLS   = new Color(0x40, 0xE0, 0xFF, 0xFF);  // cyan

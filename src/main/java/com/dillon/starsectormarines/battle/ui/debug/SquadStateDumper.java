@@ -22,6 +22,7 @@ import com.dillon.starsectormarines.battle.command.AssaultSearchSnapshot;
 import com.dillon.starsectormarines.battle.command.AssaultDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.SabotageSiteSnapshot;
 import com.dillon.starsectormarines.battle.command.SabotageDefenseSnapshot;
+import com.dillon.starsectormarines.battle.command.RaidCommandSnapshot;
 import com.dillon.starsectormarines.battle.command.influence.CommanderContact;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
@@ -182,6 +183,7 @@ public final class SquadStateDumper {
         o.put("sabotageCommand", buildSabotageCommandJson(squad, commander, sim));
         o.put("sabotageDefenseCommand", buildSabotageDefenseCommandJson(
                 squad, commander, sim));
+        o.put("raidCommand", buildRaidCommandJson(squad, commander, sim));
         o.put("currentCommanderInfluence", buildCommanderInfluenceJson(
                 squad.faction, sim));
         // Garrison-specific flags — load-bearing for "why won't this squad fire" diagnostics.
@@ -466,6 +468,49 @@ public final class SquadStateDumper {
             tracks.put(row);
         }
         out.put("tracks", tracks);
+        return out;
+    }
+
+    private static Object buildRaidCommandJson(Squad squad,
+                                                CommanderSnapshot<?> commander,
+                                                BattleSimulation sim)
+            throws Exception {
+        RaidCommandSnapshot snapshot = commander != null
+                && commander.detail() instanceof RaidCommandSnapshot raid
+                ? raid : null;
+        if (snapshot == null) return JSONObject.NULL;
+        JSONObject out = new JSONObject();
+        out.put("tick", snapshot.tick());
+        out.put("ageTicks", Math.max(0, sim.simTickIndex - snapshot.tick()));
+        out.put("perspective", snapshot.perspective().name());
+        out.put("phase", snapshot.phase());
+        out.put("targetId", snapshot.targetId());
+        out.put("targetName", snapshot.targetName());
+        out.put("targetCellX", snapshot.targetCellX());
+        out.put("targetCellY", snapshot.targetCellY());
+        out.put("targetZoneId", snapshot.targetZoneId());
+        out.put("egressCellX", snapshot.egressCellX());
+        out.put("egressCellY", snapshot.egressCellY());
+        out.put("serviceProgress", snapshot.serviceProgress());
+        out.put("serviceDuration", snapshot.serviceDuration());
+        out.put("targetSecured", snapshot.targetSecured());
+        out.put("alarmActive", snapshot.alarmActive());
+        out.put("alarmRaisedTick", snapshot.alarmRaisedTick());
+        RaidCommandSnapshot.SquadIntent selected = snapshot.squadIntents().stream()
+                .filter(intent -> intent.squadId() == squad.id)
+                .findFirst().orElse(null);
+        if (selected == null) {
+            out.put("squadIntent", JSONObject.NULL);
+        } else {
+            JSONObject intent = new JSONObject();
+            intent.put("role", selected.role());
+            intent.put("reason", selected.reason());
+            intent.put("assignmentKind", selected.assignmentKind() != null
+                    ? selected.assignmentKind().name() : JSONObject.NULL);
+            intent.put("targetCellX", selected.targetCellX());
+            intent.put("targetCellY", selected.targetCellY());
+            out.put("squadIntent", intent);
+        }
         return out;
     }
 

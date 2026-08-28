@@ -10,6 +10,8 @@ import com.dillon.starsectormarines.battle.command.DefendAssignedSiteGoal;
 import com.dillon.starsectormarines.battle.command.DefendAssignedAreaGoal;
 import com.dillon.starsectormarines.battle.command.AdvanceAssignedTrackGoal;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.command.ServiceAssignedObjectiveGoal;
+import com.dillon.starsectormarines.battle.command.WithdrawAssignedGoal;
 import com.dillon.starsectormarines.battle.nav.Paths;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -57,6 +59,8 @@ public final class GoapInfantryBehavior implements UnitBehavior {
             CordonForPlant.INSTANCE,
             SecureObjectiveZone.INSTANCE,
             SecureCompoundGoal.INSTANCE,
+            WithdrawAssignedGoal.INSTANCE,
+            ServiceAssignedObjectiveGoal.INSTANCE,
             AdvanceAssignedTrackGoal.INSTANCE,
             DefendAssignedSiteGoal.INSTANCE,
             DefendAssignedAreaGoal.INSTANCE,

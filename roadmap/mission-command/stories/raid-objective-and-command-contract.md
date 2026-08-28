@@ -1,8 +1,10 @@
 # Raid objective and command contract
 
-Status: DRAFT — replace the generic elimination placeholder before implementing Raid commander policy.
+Status: IN PROGRESS — the primary-target objective, paired commanders, diagnostics, fixture, and evidence adapter are implemented; canonical-duration and live acceptance remain.
 
 Written: 2026-08-27
+
+Updated: 2026-08-27 — fixed the first contract as abstract seizure plus survivor egress and implemented the production vertical.
 
 Read `mission-command-nouns.md`, `raid-command.md`, and `contracts-nouns.md`
 before planning this story.
@@ -28,16 +30,25 @@ command duel instead of inheriting Assault elimination or Sabotage planting.
 
 ## Acceptance
 
-- [ ] Raid can succeed through its authored target and egress law without
+- [x] Raid can succeed through its authored target and egress law without
   eliminating every defender.
-- [ ] Attackers progress approach, breach, objective service, consolidation,
-  and withdrawal from legal facts without hidden occupancy.
-- [ ] Defenders preserve targets and mobilize bounded response from alarms or
-  beliefs without learning exact raider state.
-- [ ] Objective, command, campaign resolution, and reinforcement ownership have
+- [x] Attackers progress through the first contract's approach/breach, service,
+  and withdrawal phases from legal facts without hidden occupancy. Seizure is
+  abstract, so no separate carrier-consolidation phase exists yet.
+- [x] Defenders preserve targets and mobilize bounded response from the first
+  contract's legal alarm without learning exact raider state.
+- [x] Objective, command, campaign resolution, and reinforcement ownership have
   distinct tested authorities.
-- [ ] Selected-squad, mission dump, and duplicate forced-serial traces explain
+- [x] Selected-squad, mission dump, and duplicate forced-serial traces explain
   both perspectives and the neutral outcome.
+
+## Remaining acceptance
+
+- [ ] Review a canonical-duration `commanderEvidence -Pmission=raid` duplicate
+  run for target arrival, alarm response, seizure, and egress behavior.
+- [ ] Live-accept that local contact interruptions resume service/withdrawal
+  assignments without creating a target-room brick or leaking egress to the
+  defender picture.
 
 ## Constraints
 
