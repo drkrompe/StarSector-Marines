@@ -174,16 +174,32 @@ and pinned by tests that assert the contract rather than the implementation.
 3. Add `SheetMeasurement`, the Java equivalent of `measure_sheet.py`'s measured
    half, so ingestion does not need Python.
 4. Mod-domain `TilesetMcpToolProvider`; snapshot `SnapshotMcpToolProvider`.
-5. `AuthoringMcpCli` entry point beside `CreateSnapshotsCli`, and an
-   `installAuthoringMcpServer` Gradle task that writes the launcher.
+5. `AuthoringMcpCli` (stdio server) and `AuthoringToolCli` (one call, one
+   answer) beside `CreateSnapshotsCli`, and an `installAuthoringTools` Gradle
+   task that writes both launchers.
 6. Contract tests for the protocol and for each tool's request/response shape.
+
+## Reaching the tools
+
+Two front doors onto one catalog. The shell is the default:
+
+```bash
+tools/authoring.sh tileset_list
+```
+
+MCP registration is the optimization, and it is only available to a session
+that was started with the server registered. That is the whole reason the
+one-shot CLI exists: an MCP stdio server has to be running before the session
+that wants it begins, so a session that discovers mid-task that it needs to
+look at a tileset cannot reach one. An HTTP server with a long life would only
+move the same constraint behind a port number.
 
 ## Registering it
 
 Once, and again after a dependency change:
 
 ```powershell
-gradlew.bat installAuthoringMcpServer
+gradlew.bat installAuthoringTools
 ```
 
 The task prints the snippet with its own absolute path filled in. In the
@@ -193,7 +209,7 @@ repository's `.mcp.json`:
 {
   "mcpServers": {
     "starsector-authoring": {
-      "command": "C:/Users/Dillon/IdeaProjects/starsectormarines/build/mcp/starsector-authoring-mcp.cmd",
+      "command": "C:/Users/Dillon/IdeaProjects/starsectormarines/build/authoring/starsector-authoring-mcp.cmd",
       "args": []
     }
   }
@@ -205,7 +221,10 @@ absolute resolved classpath, so it is per-checkout, and each worktree therefore
 registers its own. `build/` is cleaned, so a `gradlew.bat clean` is also a
 "re-run the install task".
 
-The launcher reads `%JAVA_HOME%`. The classpath is written with forward slashes
+The launchers bake in the toolchain's own `java` rather than reading
+`%JAVA_HOME%`: they are invoked from whatever shell a session happens to hold,
+and a launcher that works only in a prepared shell is the setup step this entry
+point exists to remove. The classpath is written with forward slashes
 because the JDK treats a backslash inside a quoted `@argfile` entry as an
 escape, which silently strips every separator out of a native Windows path and
 produces a bare `ClassNotFoundException`.
