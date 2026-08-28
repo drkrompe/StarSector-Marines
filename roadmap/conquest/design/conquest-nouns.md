@@ -4,9 +4,8 @@ Status: ACTIVE — Conquest owns reversible compound territory, deliberate captu
 
 Written: 2026-08-23
 
-Updated: 2026-08-27 — separated commander allocation and diagnostics into
-`conquest-command.md`; territorial law remains here, including mission-configured
-Aeroshuttle pairs and lane-aligned beachheads.
+Updated: 2026-08-28 — named the compound capture room and its
+footprint-bounded resolution.
 
 Conquest is a territorial assault: marines establish a beachhead, take the
 defender's supply hubs through the city, and finish at the keep. It is not a
@@ -79,6 +78,17 @@ quickly once they regain it. Defender entry can reopen a marine-held compound,
 so capture is reversible rather than a one-way destruction event. A mixed or
 empty transition pauses its progress instead of assigning ownership by a
 momentary absence.
+
+A compound is captured in its **capture room** — the room holding the nearest
+standable cell to its anchor within its own footprint. The room is resolved
+from the footprint rather than read off the anchor, because a compound's anchor
+is a tactical-node anchor and carries no promise of standing on open floor (see
+`mapgen-nouns.md`). Resolving it any other way makes a compound whose anchor
+happens to sit on a wall or a furnished cell permanently uncapturable, which on
+Conquest — where victory requires every compound to flip — is an unwinnable
+mission rather than a cosmetic defect. Bounding the search to the compound's
+own footprint is what keeps the room its own: a compound never captures in a
+neighbour's room or out on the parade ground.
 
 ## Assault and control loop
 
