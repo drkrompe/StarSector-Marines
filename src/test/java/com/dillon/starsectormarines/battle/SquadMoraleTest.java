@@ -299,14 +299,11 @@ public class SquadMoraleTest {
     }
 
     @Test
-    public void soloSurvivorFoldsWithinTwoHits() {
-        // With drain scaled by 1/cap, the lone survivor of a four-marine team
-        // (cap = 0.25) takes a 0.035/0.25 = 0.14 drain per hit. Sitting at
-        // cap, the first hit leaves 0.11 — still above the scaled broken
-        // threshold (0.075) — and the second takes them under. Brittle, which
-        // is the intent, but no longer folding to a single round: that was a
-        // side effect of the pre-tuning 0.05 drain, and at team granularity
-        // every team drains on its own cooldown rather than sharing one.
+    public void soloSurvivorFoldsOnSingleHit() {
+        // With drain scaled by 1/cap, a solo survivor (cap = 0.25) takes a
+        // 0.20 drain per hit. Sitting at cap, one hit drops morale to 0.05,
+        // below the scaled broken threshold (0.075). Folds in one shot —
+        // matches the "any incoming suppressing fire and they fold" intent.
         BattleSimulation sim = openSim();
         Squad sq = marineSquad(sim, 4);
         hideDefender(sim);
@@ -318,36 +315,24 @@ public class SquadMoraleTest {
         // Recover the survivor to their cap.
         team(sq).morale = 0.25f;
         team(sq).broken = false;
-        // One tick to settle the broken flag at the cap value.
+        // One tick to settle moraleBroken at the cap value.
         sim.advance(BattleSimulation.TICK_DT);
         // The recovery tick may have just-barely tweaked morale; reset to
-        // exactly cap so the assertions below pin on the drain math.
+        // exactly cap so the assertion below pins on the drain math.
         team(sq).morale = 0.25f;
         team(sq).broken = false;
-        team(sq).drainCooldown = 0f;
 
         long survivor = units.get(3);
         sim.applyDamage(survivor, 1f, 1f);
         assertTrue(sim.world().isAlive(survivor), "test prerequisite: 1 damage shouldn't kill");
 
-        assertEquals(0.11f, team(sq).morale, 1e-5f,
-                "solo hit drain should scale to MORALE_DROP_ON_HIT/cap = 0.14");
-        sim.advance(BattleSimulation.TICK_DT);
-        assertFalse(team(sq).broken,
-                "0.11 is still above the scaled broken threshold (0.075) — one round is survivable");
-
-        // Wait out the drain cooldown. Well inside the under-fire window, so
-        // nothing recovers in the meantime.
-        for (int i = 0; i < 10; i++) sim.advance(BattleSimulation.TICK_DT);
-        assertEquals(0.11f, team(sq).morale, 1e-5f,
-                "test prerequisite: no recovery inside the under-fire window");
-
-        sim.applyDamage(survivor, 1f, 1f);
-        assertTrue(sim.world().isAlive(survivor), "test prerequisite: still alive after the second hit");
-        assertEquals(0f, team(sq).morale, 1e-5f, "second hit takes them to the floor");
+        // Hit drain for cap=0.25 is 0.05/0.25 = 0.20 → morale = 0.05.
+        assertEquals(0.05f, team(sq).morale, 1e-5f,
+                "solo hit drain should scale to 0.05/cap = 0.20");
+        // Now run one tick so updateSquadMorale notices the threshold cross.
         sim.advance(BattleSimulation.TICK_DT);
         assertTrue(team(sq).broken,
-                "morale 0 < scaled broken (0.075) — the second incoming round folds the solo");
+                "morale 0.05 < scaled broken (0.075) — single incoming hit folds the solo");
     }
 
     @Test
