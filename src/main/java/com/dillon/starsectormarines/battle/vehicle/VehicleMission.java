@@ -30,7 +30,10 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
  * off-map entry/exit tails. The terminal inbound waypoint names the LZ
  * ({@link #lzX}/{@link #lzY}); travel is body-driven through ordinary tracking
  * and the validated terminal docking phase until the final arrival tolerance,
- * where the state transition applies a small terminal snap as a fallback.
+ * where the state transition applies a small terminal snap as a fallback. If
+ * no safe forward segment remains inside the aligned terminal goal region, the
+ * current footprint-valid pose becomes the landing pose instead of stranding
+ * the payload.
  */
 public final class VehicleMission {
 
