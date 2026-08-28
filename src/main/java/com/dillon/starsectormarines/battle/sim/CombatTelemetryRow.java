@@ -20,6 +20,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
  * @param faction           which side this entity fought for
  * @param type              what it was
  * @param campaignSoldierId the campaign roster key, or {@code null} for anyone the campaign does not track
+ * @param campaignSquadId   the campaign squad this marine deployed with, frozen at spawn, or {@code null}
  * @param survived          false if the entity was a corpse when the battle ended
  */
 public record CombatTelemetryRow(long entityId,
@@ -27,6 +28,7 @@ public record CombatTelemetryRow(long entityId,
                                  Faction faction,
                                  UnitType type,
                                  String campaignSoldierId,
+                                 String campaignSquadId,
                                  boolean survived,
                                  int roundsFired,
                                  int roundsHit,

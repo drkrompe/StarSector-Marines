@@ -58,6 +58,14 @@ public final class BattleComponents {
     public static final int IDENTITY_CAMPAIGN_SOLDIER_ID = 3;
     /** Optional persistent {@link com.dillon.starsectormarines.battle.mech.MechVariant}; null for non-mechs. */
     public static final int IDENTITY_MECH_VARIANT = 4;
+    /**
+     * {@link #IDENTITY} field 5: the campaign squad this marine deployed with, frozen at
+     * spawn from its {@link com.dillon.starsectormarines.battle.squad.CampaignSquadTag}
+     * (String OBJECT); null for generated units. Deliberately frozen rather than looked
+     * up at mission end, so a roster edit after the battle cannot rewrite who a marine
+     * fought alongside ({@code progression-nouns.md}).
+     */
+    public static final int IDENTITY_CAMPAIGN_SQUAD_ID = 5;
 
     /** {@link #POSITION} field 0: continuous position x (FLOAT) — cell (cx,cy) spans [cx,cx+1), center at cx+0.5; floor for the grid cell. */
     public static final int POSITION_X = 0;
@@ -895,7 +903,7 @@ public final class BattleComponents {
 
     public BattleComponents(EntityWorld world) {
         IDENTITY        = world.register(0, "Identity", FieldKind.OBJECT, FieldKind.OBJECT,
-                FieldKind.OBJECT, FieldKind.OBJECT, FieldKind.OBJECT);
+                FieldKind.OBJECT, FieldKind.OBJECT, FieldKind.OBJECT, FieldKind.OBJECT);
         POSITION        = world.register(1, "Position", FieldKind.FLOAT, FieldKind.FLOAT);
         SPRITE          = world.register(3, "Sprite", FieldKind.INT, FieldKind.INT, FieldKind.INT);
         CORPSE          = world.register(4, "Corpse");

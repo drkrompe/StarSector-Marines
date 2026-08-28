@@ -542,6 +542,8 @@ public final class UnitRosterService {
         entityWorld.setObject(id, components.IDENTITY,
                 BattleComponents.IDENTITY_CAMPAIGN_SOLDIER_ID, spec.campaignSoldierId);
         entityWorld.setObject(id, components.IDENTITY,
+                BattleComponents.IDENTITY_CAMPAIGN_SQUAD_ID, spec.campaignSquadId);
+        entityWorld.setObject(id, components.IDENTITY,
                 BattleComponents.IDENTITY_MECH_VARIANT, spec.mechVariant);
         entityWorld.setFloat(id, components.POSITION, BattleComponents.POSITION_X, spec.cellX + 0.5f);
         entityWorld.setFloat(id, components.POSITION, BattleComponents.POSITION_Y, spec.cellY + 0.5f);
