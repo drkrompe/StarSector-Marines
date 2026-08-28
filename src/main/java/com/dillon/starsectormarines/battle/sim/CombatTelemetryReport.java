@@ -51,6 +51,8 @@ public final class CombatTelemetryReport {
             Object[] names = t.objects(components.IDENTITY, BattleComponents.IDENTITY_NAME).array();
             Object[] soldierIds = t.objects(components.IDENTITY,
                     BattleComponents.IDENTITY_CAMPAIGN_SOLDIER_ID).array();
+            Object[] squadIds = t.objects(components.IDENTITY,
+                    BattleComponents.IDENTITY_CAMPAIGN_SQUAD_ID).array();
             int[] fired = t.ints(components.TELEMETRY, BattleComponents.TELEMETRY_ROUNDS_FIRED).array();
             int[] hits = t.ints(components.TELEMETRY, BattleComponents.TELEMETRY_ROUNDS_HIT).array();
             float[] dealt = t.floats(components.TELEMETRY, BattleComponents.TELEMETRY_DAMAGE_DEALT).array();
@@ -66,6 +68,7 @@ public final class CombatTelemetryReport {
                         (Faction) factions[r],
                         (UnitType) types[r],
                         (String) soldierIds[r],
+                        (String) squadIds[r],
                         survived,
                         fired[r], hits[r], dealt[r], friendly[r], taken[r],
                         kills[r], secondary[r]));

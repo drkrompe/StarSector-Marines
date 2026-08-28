@@ -55,6 +55,8 @@ public final class EntitySpec {
     public EquipmentGrade equipmentGrade = EquipmentGrade.SERVICE;
     public SoldierProfile soldierProfile = SoldierProfile.REGULAR;
     public String campaignSoldierId;
+    /** Campaign squad this marine deployed with; null for generated units. */
+    public String campaignSquadId;
     /** Persistent physical/loadout profile for mech-class entities; null otherwise. */
     public MechVariant mechVariant;
     public LayeredArmorFamily layeredArmorFamily;
@@ -115,6 +117,7 @@ public final class EntitySpec {
     public EntitySpec turretStructureId(String structureId) { this.turretStructureId = structureId; return this; }
     public EntitySpec homeHubId(long id) { this.homeHubId = id; return this; }
     public EntitySpec campaignSoldierId(String id) { this.campaignSoldierId = id; return this; }
+    public EntitySpec campaignSquadId(String id) { this.campaignSquadId = id; return this; }
     public EntitySpec mechVariant(MechVariant variant) {
         if (!type.isMech()) throw new IllegalStateException("Only mech unit types accept a mech variant");
         if (variant == null) throw new IllegalArgumentException("Mech variant is required");
