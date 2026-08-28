@@ -38,6 +38,20 @@ public final class RoomFloor {
     private final boolean[][] claimed;
     private final boolean[][] shut;
     private final List<int[]> closed = new ArrayList<>();
+    /**
+     * Cells held for somebody to stand and work at.
+     *
+     * <p>Kept apart from {@link #lane} because the two are protected for
+     * opposite reasons. A lane is circulation the room authored and must keep;
+     * a standing cell is a consequence of where a fixture ended up. Both are
+     * off limits to later furniture, and only the first is something the room
+     * has promised to keep reachable — a standing cell that turns out to be
+     * walled in by its own neighbours costs the room its work point, not its
+     * fill.
+     */
+    private final boolean[][] standing;
+    /** Where in the run's task list this room's own work begins. */
+    private final int taskFloor;
     private final int left;
     private final int top;
     private final int width;
@@ -56,6 +70,8 @@ public final class RoomFloor {
         this.lane = new boolean[width][height];
         this.claimed = new boolean[width][height];
         this.shut = new boolean[width][height];
+        this.standing = new boolean[width][height];
+        this.taskFloor = ctx.fixtureTasks.size();
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 free[x][y] = room.shape().contains(x, y);
@@ -153,7 +169,8 @@ public final class RoomFloor {
 
     /** Whether the floor cell at local coordinates can still take a fixture. */
     public boolean isFree(int x, int y) {
-        return x >= 0 && y >= 0 && x < width && y < height && free[x][y] && !lane[x][y];
+        return x >= 0 && y >= 0 && x < width && y < height
+                && free[x][y] && !lane[x][y] && !standing[x][y];
     }
 
     /** Whether a whole footprint is free, so a group is placed entire or not at all. */
@@ -351,7 +368,7 @@ public final class RoomFloor {
                              int fixtureX, int fixtureY) {
         if (!standable(cellX, cellY) || claimed[cellX][cellY]) return false;
         claimed[cellX][cellY] = true;
-        reserveLane(cellX, cellY, 1, 1);
+        standing[cellX][cellY] = true;
         ctx.fixtureTasks.add(FixtureTask.at(left + cellX, top + cellY, affordance,
                 left + fixtureX, top + fixtureY));
         return true;
@@ -362,7 +379,7 @@ public final class RoomFloor {
                                   int fixtureX, int fixtureY) {
         if (!standable(cellX, cellY) || claimed[cellX][cellY]) return false;
         claimed[cellX][cellY] = true;
-        reserveLane(cellX, cellY, 1, 1);
+        standing[cellX][cellY] = true;
         ctx.fixtureTasks.add(FixtureTask.servingBerth(left + cellX, top + cellY, berth,
                 left + fixtureX, top + fixtureY));
         return true;
@@ -422,6 +439,60 @@ public final class RoomFloor {
      * route that runs down its own firing lane.
      */
     public boolean circulationSurvives() {
+        boolean[][] seen = reachedFromADoor();
+        if (seen == null) return room.doors().isEmpty();
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                if (lane[x][y] && !shut[x][y] && !seen[x][y]) return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Withdraw work nobody can walk to, and say how much was withdrawn.
+     *
+     * <p>Furniture strands the odd sliver behind itself — the gap between two
+     * beds in a rank, the corner past the end of a shelf — and a standing cell
+     * chosen there is a job with no way in. The room is fine; that one point is
+     * not, so the point goes rather than the room.
+     *
+     * <p>This is the difference between a ship's armoury, sick bay, holds and
+     * boat bays being furnished and their being bare deck. Held as circulation
+     * instead, a single walled-in standing cell made the room's own connectivity
+     * check fail, and the fill was discarded entire: five compartment types
+     * generated their fixtures, published their work, and shipped as empty
+     * floor.
+     *
+     * <p>Run before {@link #circulationSurvives}, since what it removes is
+     * exactly what would otherwise be mistaken for severed circulation.
+     */
+    public int dropUnreachableWork() {
+        if (taskFloor >= ctx.fixtureTasks.size()) return 0;
+        boolean[][] seen = reachedFromADoor();
+        if (seen == null) return 0;
+        List<FixtureTask> mine = ctx.fixtureTasks.subList(taskFloor, ctx.fixtureTasks.size());
+        int before = mine.size();
+        mine.removeIf(task -> {
+            int x = task.cellX() - left;
+            int y = task.cellY() - top;
+            if (x < 0 || y < 0 || x >= width || y >= height) return false;
+            if (seen[x][y]) return false;
+            standing[x][y] = false;
+            return true;
+        });
+        return before - mine.size();
+    }
+
+    /**
+     * Every cell a hatch can be walked to, or null for a room with no way in.
+     *
+     * <p>Deliberately over open floor rather than over the lanes. Furniture is
+     * what makes a cell unreachable, so a walk that could only use authored
+     * circulation would answer a different question from the one both callers
+     * are asking.
+     */
+    private boolean[][] reachedFromADoor() {
         int[] start = null;
         for (Doorway door : localDoors()) {
             for (int[] step : STEPS) {
@@ -435,7 +506,7 @@ public final class RoomFloor {
             }
             if (start != null) break;
         }
-        if (start == null) return room.doors().isEmpty();
+        if (start == null) return null;
 
         boolean[][] seen = new boolean[width][height];
         Deque<int[]> queue = new ArrayDeque<>();
@@ -452,12 +523,7 @@ public final class RoomFloor {
                 queue.add(new int[]{ nx, ny });
             }
         }
-        for (int x = 0; x < width; x++) {
-            for (int y = 0; y < height; y++) {
-                if (lane[x][y] && !shut[x][y] && !seen[x][y]) return false;
-            }
-        }
-        return true;
+        return seen;
     }
 
     private static final int[][] STEPS = { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } };
