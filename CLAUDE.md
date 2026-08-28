@@ -192,7 +192,12 @@ other's domain dependencies.
 
 ## Mod layout
 
-The `mod/` folder in this repo is what ships. `mod_info.json` lists the jar at
+The `mod/` folder in this repo is what ships. Pre-pack art inputs — raw
+generated sheets, ImageGen masters, tileset authoring documents, and the scripts
+that derive shipped art from them — live under `art-source/` instead, because
+`deployMod` is a `Sync` of the whole `mod/` folder and would otherwise copy them
+into every install. `RawArtStaysOutOfModTest` enforces that boundary; see
+`art-source/README.md`. `mod_info.json` lists the jar at
 `jars/StarsectorMarines.jar`. The `modPlugin` entry point is
 `com.dillon.starsectormarines.StarsectorMarinesModPlugin`.
 
