@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.unit;
 import com.dillon.starsectormarines.battle.appearance.LiveAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
+import com.dillon.starsectormarines.battle.mech.MechGaitState;
+import com.dillon.starsectormarines.battle.mech.MechLocomotion;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.combat.DamageService;
@@ -469,7 +471,7 @@ public final class UnitRosterService {
                 5 + (hasArmor ? 1 : 0) + (combatant ? 2 : 0) + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0)
                   + (hasIntegralSystem ? 1 : 0)
                   + (hasBody ? 1 : 0) + (inSquad ? 1 : 0) + (hasHome ? 1 : 0) + (hasTask ? 1 : 0)
-                  + (sheetDrawn ? 1 : 0) + (layerDrawn ? 1 : 0) + (mechLayerDrawn ? 2 : 0)
+                  + (sheetDrawn ? 1 : 0) + (layerDrawn ? 1 : 0) + (mechLayerDrawn ? 3 : 0)
                   + (isHub ? 1 : 0) + (isTurret ? 1 : 0) + (isDrone ? 1 : 0)];
         int c = 0;
         archetype[c++] = components.IDENTITY;
@@ -498,6 +500,7 @@ public final class UnitRosterService {
         if (mechLayerDrawn) {
             archetype[c++] = components.MECH_LAYERED_ANIMATION;
             archetype[c++] = components.MECH_LOCOMOTION;
+            archetype[c++] = components.MECH_GAIT_STATE;
         }
         if (isHub) archetype[c++] = components.HUB_STATE;
         if (isTurret) archetype[c++] = components.TURRET_STATE;
@@ -529,7 +532,7 @@ public final class UnitRosterService {
                     BattleComponents.MECH_LOCOMOTION_FACING_DEGREES, 180f);
             entityWorld.setFloat(id, components.MECH_LOCOMOTION,
                     BattleComponents.MECH_LOCOMOTION_TURN_RATE,
-                    com.dillon.starsectormarines.battle.mech.MechLocomotion.DEFAULT_TURN_RATE_DEGREES);
+                    MechLocomotion.DEFAULT_TURN_RATE_DEGREES);
             entityWorld.setFloat(id, components.MECH_LAYERED_ANIMATION,
                     BattleComponents.MECH_LAYERED_FACING_DEGREES, 180f);
             entityWorld.setFloat(id, components.MECH_LAYERED_ANIMATION,
@@ -556,6 +559,14 @@ public final class UnitRosterService {
                 BattleComponents.IDENTITY_MECH_VARIANT, spec.mechVariant);
         entityWorld.setFloat(id, components.POSITION, BattleComponents.POSITION_X, spec.cellX + 0.5f);
         entityWorld.setFloat(id, components.POSITION, BattleComponents.POSITION_Y, spec.cellY + 0.5f);
+        if (mechLayerDrawn) {
+            MechVariant variant = spec.mechVariant != null
+                    ? spec.mechVariant : MechVariant.BULWARK;
+            entityWorld.setObject(id, components.MECH_GAIT_STATE,
+                    BattleComponents.MECH_GAIT_STATE_STATE,
+                    MechGaitState.create(spec.cellX + 0.5f, spec.cellY + 0.5f,
+                            180f, variant));
+        }
         entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_HP, spec.hp);
         entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_MAX_HP, spec.maxHp);
         entityWorld.setFloat(id, components.HEALTH,
