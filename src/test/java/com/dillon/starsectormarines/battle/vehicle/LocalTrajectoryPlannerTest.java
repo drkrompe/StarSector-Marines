@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.vehicle;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -164,6 +165,33 @@ public class LocalTrajectoryPlannerTest {
         Trajectory t = LocalTrajectoryPlanner.plan(start, corr, TYPE, grid);
 
         assertNull(t, "goal walled off → no forward trajectory");
+    }
+
+    @Test
+    public void capturedTerminalMergeDoesNotBecomePlanningFailure() {
+        NavigationGrid grid = new NavigationGrid(260, 100);
+        carve(grid, 0, 0, 259, 99);
+
+        // Captured from a live APC that held here for 376 seconds. The pose is
+        // just inside the planner's soft goal radius and aligned with the final
+        // corridor tangent, but its clear line to the exact LZ is 23.1 degrees
+        // off that tangent. The zero-motion start used to satisfy Hybrid A*'s
+        // soft goal and yield no executable path; terminal coasting must supply
+        // the finish without weakening tangent checks at intermediate bends.
+        Pose start = new Pose(161.15f, 81.23f, 84.27f);
+        ReferenceCorridor corr = new ReferenceCorridor(
+                new float[]{246f, 237.5f, 181.62f, 181.38f, 158.5f},
+                new float[]{82.5f, 82.5f, 81.5f, 81.51f, 82.5f},
+                4);
+
+        Trajectory t = LocalTrajectoryPlanner.plan(start, corr, TYPE, grid);
+
+        assertNotNull(t, "a clear merge into the actual route endpoint is arrival, not plan failure");
+        assertEquals(2, t.size(), "the terminal fallback is the exact short finish");
+        assertEquals(corr.endX(), t.end().x, 0.001f);
+        assertEquals(corr.endY(), t.end().y, 0.001f);
+        assertAllPosesFeasible(t, grid);
+        assertHeadingsSmooth(t);
     }
 
     @Test

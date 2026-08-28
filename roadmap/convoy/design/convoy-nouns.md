@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery uses a shared convoy lifecycle, with the defe
 
 Written: 2026-08-23
 
-Updated: 2026-08-26 — added transactional route proof and Conquest rear-front deployment policy.
+Updated: 2026-08-27 — made aligned terminal-region landing authoritative when no safer exact approach remains.
 
 ## Purpose and boundary
 
@@ -89,6 +89,11 @@ not a hidden cusp in an ordinary plan. The bicycle body, speed-aware lookahead,
 corner-speed governor, and terminal docking maneuver make turns continuous.
 Docking aligns the parked APC with its outbound corridor. The only pose playback
 is that short validated maneuver; ordinary route travel is always body-driven.
+When docking or ordinary pursuit can reach the exact drop-off, they remain
+authoritative. If no safe forward segment remains after an inbound vehicle has
+entered the aligned terminal goal region, its current footprint-valid pose is
+the landing pose; terminal proximity must not strand the payload as a false
+planning failure.
 Coarse pursuit is limited to deliberate off-map entry and exit tails. Once the
 full footprint is on-grid, a missing local trajectory means brake and reroute,
 never "drive the rejected coarse corner anyway."
