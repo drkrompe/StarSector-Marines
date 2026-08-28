@@ -36,6 +36,9 @@ public final class CompanyShipDesignation {
 
     private static final Logger LOG = Global.getLogger(CompanyShipDesignation.class);
 
+    /** The layout a company gets with no campaign to read their own seed from. */
+    private static final long FOUNDING_DECK_SEED = 0x5AFE_DECEL;
+
     private CompanyShipDesignation() { }
 
     /**
@@ -131,12 +134,33 @@ public final class CompanyShipDesignation {
         return found;
     }
 
+    /**
+     * The layout seed for one hull: the company's own seed mixed with the ship
+     * it is generating for.
+     *
+     * <p>Per ship rather than per company, so transferring produces a genuinely
+     * different interior, and stable per ship, so a hull the company moves back
+     * to is the one they remember rather than a fresh draw. Shared with the
+     * transfer preview, because a preview generated from a different seed is of
+     * a different ship.
+     */
+    public static long deckSeedFor(String hull) {
+        MarineRoster roster = roster();
+        long company = roster == null ? FOUNDING_DECK_SEED : roster.deckSeed();
+        return hull == null ? company : company * 31L + hull.hashCode();
+    }
+
     /** Everyone a hull can carry who is not needed to work her. */
     private static float lift(FleetMemberAPI member) {
         return Math.max(0f, member.getMaxCrew() - member.getMinCrew());
     }
 
+    /**
+     * The company's own state, or null outside a campaign — which a headless
+     * caller asking what a hull's deck would look like legitimately is.
+     */
     private static MarineRoster roster() {
+        if (Global.getSector() == null) return null;
         MarineRosterScript script = MarineRosterScript.getInstance();
         return script == null ? null : script.roster();
     }

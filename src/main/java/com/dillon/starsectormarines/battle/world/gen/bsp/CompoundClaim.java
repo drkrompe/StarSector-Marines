@@ -41,7 +41,12 @@ public final class CompoundClaim {
         public final int minMembers;
         public final int maxMembers;
         public final int seedMinDim;
-        /** Minimum dimension (both axes) for a neighbor leaf to be absorbed. A member leaf of dimension N produces a sub-building of N-2 (1-cell inset); that sub-building needs ≥5 on each axis for a 3x3 interior with doors. */
+        /**
+         * Minimum dimension (both axes) for a neighbor leaf to be absorbed.
+         * Walled compounds spend four cells on their two-cell apron (two per
+         * axis), so their claim specs must reject parcels where that cost
+         * would leave an intended building without an interior and doorway.
+         */
         public final int memberMinDim;
         /** Block kinds that cannot be absorbed as a neighbor (e.g. WATERFRONT, LANDING_ZONE). */
         public final Set<BlockKind> ineligibleNeighbors;
@@ -71,10 +76,10 @@ public final class CompoundClaim {
     /** Default spec set — non-Conquest missions. One compound per kind max. */
     public static final List<ClaimSpec> DEFAULT_SPECS = Arrays.asList(
             new ClaimSpec(BlockKind.MILITARY_BASE, BlockKind.FORTIFIED_POST,
-                    1, 3, 2, 4, 6, 7,
+                    1, 3, 2, 4, 8, 9,
                     EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE, BlockKind.SPACEPORT_PAD)),
             new ClaimSpec(BlockKind.GATED_HOUSING, BlockKind.BUILDING_RESIDENTIAL,
-                    1, 3, 2, 3, 12, 10,
+                    1, 3, 2, 3, 14, 10,
                     EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE, BlockKind.SPACEPORT_PAD)),
             new ClaimSpec(BlockKind.DENSE_QUARTER, BlockKind.BUILDING_COMMERCIAL,
                     1, 3, 2, 4, 5,
@@ -99,10 +104,10 @@ public final class CompoundClaim {
      */
     public static final List<ClaimSpec> CONQUEST_SPECS = Arrays.asList(
             new ClaimSpec(BlockKind.MILITARY_BASE, BlockKind.FORTIFIED_POST,
-                    3, 3, 1, 4, 6, 7,
+                    3, 3, 1, 4, 8, 9,
                     EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE, BlockKind.SPACEPORT_PAD)),
             new ClaimSpec(BlockKind.GATED_HOUSING, BlockKind.BUILDING_RESIDENTIAL,
-                    1, 3, 2, 3, 12, 10,
+                    1, 3, 2, 3, 14, 10,
                     EnumSet.of(BlockKind.WATERFRONT, BlockKind.LANDING_ZONE, BlockKind.SPACEPORT_PAD)),
             new ClaimSpec(BlockKind.DENSE_QUARTER, BlockKind.BUILDING_COMMERCIAL,
                     1, 3, 2, 4, 5,

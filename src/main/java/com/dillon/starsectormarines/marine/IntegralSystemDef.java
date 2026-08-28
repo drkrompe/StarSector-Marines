@@ -108,6 +108,16 @@ public record IntegralSystemDef(
         return resourceMode == SpecialResourceMode.AMMUNITION;
     }
 
+    /**
+     * Whether running this system raises a screen — bounded directional
+     * mitigation in the sense {@code combat-durability-nouns.md} owns. Read at
+     * spawn to decide whether the suit needs the live mitigation capability at
+     * all; a system that only moves the wearer never gets one.
+     */
+    public boolean grantsMitigation() {
+        return breacherAssist != null && breacherAssist.frontalResistance() > 0f;
+    }
+
     private static void rejectDurability(JSONObject json, String armorId) throws JSONException {
         for (String key : FORBIDDEN_DURABILITY_KEYS) {
             if (json.has(key)) {
