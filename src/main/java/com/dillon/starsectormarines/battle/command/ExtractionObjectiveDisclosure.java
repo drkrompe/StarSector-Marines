@@ -58,7 +58,8 @@ public final class ExtractionObjectiveDisclosure {
                 objective.extractionPhase().name(), objective.sourceCellX(),
                 objective.sourceCellY(), objective.egressCellX(),
                 objective.egressCellY(), objective.payloadCellX(),
-                objective.payloadCellY(), objective.initialElements(),
+                objective.payloadCellY(), objective.corridorGuideCellX(),
+                objective.corridorGuideCellY(), objective.initialElements(),
                 objective.activeElements(), objective.boardedElements(),
                 objective.lostElements(), objective.normalizedProgress(),
                 objective.alarmActive(), objective.alarmRaisedTick(),
@@ -75,7 +76,7 @@ public final class ExtractionObjectiveDisclosure {
         return new ExtractionObjectiveFacts(objective.payloadId(),
                 objective.payloadName(), objective.payloadKind(), phase,
                 objective.sourceCellX(), objective.sourceCellY(),
-                -1, -1, -1, -1, -1, -1, -1, -1, 0f,
+                -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 0f,
                 objective.alarmActive(), objective.alarmRaisedTick(),
                 -1, false, objective.isComplete(), objective.isFailed(),
                 objective.isFailed() ? objective.failureReason()

@@ -60,6 +60,13 @@ public final class HighlightOverlay {
     public static final String SRC_RAID_EGRESS = "raid-egress";
     public static final String SRC_RAID_ACTIONS = "raid-actions";
     public static final String SRC_RAID_SELECTED_ACTION = "raid-selected-action";
+    public static final String SRC_EXTRACTION_SOURCE = "extraction-source";
+    public static final String SRC_EXTRACTION_PAYLOAD = "extraction-payload";
+    public static final String SRC_EXTRACTION_GUIDE = "extraction-guide";
+    public static final String SRC_EXTRACTION_EGRESS = "extraction-egress";
+    public static final String SRC_EXTRACTION_ACTIONS = "extraction-actions";
+    public static final String SRC_EXTRACTION_SELECTED_ACTION =
+            "extraction-selected-action";
 
     /** Suggested palette so unrelated sources don't visually collide. */
     public static final Color COLOR_ACTION_CELLS   = new Color(0x40, 0xE0, 0xFF, 0xFF);  // cyan

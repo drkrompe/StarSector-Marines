@@ -39,8 +39,10 @@ class ExtractionObjectiveDisclosureTest {
 
             assertEquals(2, marine.egressCellX());
             assertEquals(objective.payloadCellX(), marine.payloadCellX());
+            assertTrue(marine.corridorGuideCellX() >= 0);
             assertEquals(-1, defender.egressCellX());
             assertEquals(-1, defender.payloadCellX());
+            assertEquals(-1, defender.corridorGuideCellX());
             assertEquals(-1, defender.activeElements());
             assertEquals("ALARM", defender.phase());
             assertTrue(defender.alarmActive());

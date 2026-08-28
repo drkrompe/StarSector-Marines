@@ -48,6 +48,8 @@ import com.dillon.starsectormarines.battle.command.ConquestCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.ConquestDefenderCommand;
 import com.dillon.starsectormarines.battle.command.ConquestDefenderStartingForce;
 import com.dillon.starsectormarines.battle.command.ConquestTrackLayout;
+import com.dillon.starsectormarines.battle.command.ExtractionCommand;
+import com.dillon.starsectormarines.battle.command.ExtractionCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.OpeningOperationCommand;
 import com.dillon.starsectormarines.battle.command.RaidCommand;
 import com.dillon.starsectormarines.battle.command.RaidCommandDisclosure;
@@ -711,6 +713,11 @@ public final class BattleSetup {
             sim.setAutonomousCommander(Faction.DEFENDER,
                     new RaidDefenderCommand(raidMobileSquads),
                     RaidDefenderCommandDisclosure.INSTANCE);
+        }
+        if (type == MissionType.EXTRACTION) {
+            sim.setAutonomousCommander(Faction.MARINE,
+                    new ExtractionCommand(),
+                    ExtractionCommandDisclosure.INSTANCE);
         }
         return sim;
     }
