@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
 import java.util.ArrayDeque;
@@ -22,6 +23,8 @@ import java.util.Set;
  *       existing non-walkable mass (BSP outdoor wall, fortress wall, another
  *       building), sealing a thin strip of walkable cells between itself and
  *       the wall.</li>
+ *   <li>{@link #touchesEdgeBarrier} — the stamp would consume one of the two
+ *       standable cells that an authored shared-edge feature divides.</li>
  * </ul>
  *
  * <p>Both are pre-stamp checks — they read the grid's current state, don't
@@ -44,6 +47,20 @@ public final class PlacementGuards {
         if (grid.inBounds(x - 1, y) && grid.isDoorway(x - 1, y)) return true;
         if (grid.inBounds(x, y + 1) && grid.isDoorway(x, y + 1)) return true;
         if (grid.inBounds(x, y - 1) && grid.isDoorway(x, y - 1)) return true;
+        return false;
+    }
+
+    /**
+     * True when {@code (x, y)} is one endpoint of an authored shared-edge
+     * barrier. Both endpoint cells are part of that feature's usable geometry;
+     * a later hard fixture must choose another cell rather than invalidating
+     * an otherwise valid window, gate, or future narrow-wall profile.
+     */
+    public static boolean touchesEdgeBarrier(NavigationGrid grid, int x, int y) {
+        if (!grid.inBounds(x, y)) return false;
+        for (Direction direction : Direction.CARDINALS) {
+            if (grid.getEdgeBarrier(x, y, direction) != null) return true;
+        }
         return false;
     }
 

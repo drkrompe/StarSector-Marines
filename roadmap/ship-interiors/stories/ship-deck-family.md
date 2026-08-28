@@ -64,20 +64,46 @@ story adds a spatial premise, not a second topology model.
 - Consumers read zone, frame, and spine membership from the published graph. No
   test or stage re-derives them from cell coordinates.
 
-## Known: a very large program does not fit its own deck
+## Measured: circulation is about a fifth of a walkable deck
 
-Measured 2026-08-28 while building the candidate comparison
-(`build/snapshots/ship-decks/ship-candidates.png`). Every hull tried places the
-berthing its program owes — a Valkyrie lifts 240 and berths 243, a Legion lifts
-800 and berths 801 — except the Starliner, which lifts 1450 and berths 324, and
-loses its crew quarters entirely. `DeckSizing.planFor` sizes the deck from the
-program's own area, so the shortfall is the packer failing at that scale rather
-than a deck deliberately sized small.
+Counted 2026-08-28 over three hulls, generating each from its own outline:
 
-It surfaces here rather than being fixed here because it is a packing question,
-and because a hull that cannot fit its program is a real thing for the
-comparison to report — the question is whether 78% unplaced is the generator
-being honest or the generator giving up.
+| Hull | Deck box | Walkable | Corridor cells | Room cells | Compartment area |
+|---|---|---|---|---|---|
+| Starliner | 428x185 | 33212 | 6435 (19.4%) | 26777 | 26777 |
+| Legion | 273x274 | 29953 | 6043 (20.2%) | 23910 | 23986 |
+| Valkyrie | 257x79 | 9045 | 1951 (21.6%) | 7094 | 7246 |
+
+Two things follow. The pack is real rather than an artifact of what the plan
+draws: compartment area and actual walkable room cells agree to within a
+percent, so the rooms genuinely occupy the deck they appear to. And the spine
+and its branches are a fifth of the walkable ship, which a plan drawing only
+compartments leaves invisible - the deck plan now draws them.
+
+## Known: a large program occasionally fails to pack
+
+Measured 2026-08-28 over eight seeds per hull, generating each from its own
+collision outline:
+
+| Hull | Lift | Berths placed across eight seeds |
+|---|---|---|
+| Starliner | 1450 | 1458 x7, then 423 |
+| Legion | 800 | 801 x7, then 135 |
+| Valkyrie | 240 | 243 on every seed |
+| Conquest | 100 | 108 on every seed |
+| Atlas | 50 | 54 on every seed |
+
+So this is not a ceiling on program size — the two largest programs pack
+completely on most seeds. It is an occasional collapse, roughly one seed in
+eight for the big hulls and never seen on the small ones, that drops the deck to
+a fifth or a third of what the ship owes. A player would experience it as one
+particular ship being inexplicably cramped, permanently, since the seed is
+stable per hull.
+
+An earlier reading of this blamed program size. That was an artifact of
+generating from a synthetic taper; hulls laid out inside their real outlines
+place far more, and the failure that remains is intermittent rather than
+size-related.
 
 ## Out of scope
 

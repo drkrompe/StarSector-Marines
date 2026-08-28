@@ -20,7 +20,7 @@ earns its keep and the catalog has no expression of the other half.
 Two line traditions are authored around standing still and shooting, and neither
 can express it. The Hegemony's Legionary is standardized, pressure-sealed, and
 built for campaign repair — a suit for being somewhere a long time. The Diktat's
-Furnace line pairs a deep pool with ordinary resistance, real weight, and a
+Furnace line pairs a deep capacity with ordinary resistance, real weight, and a
 conspicuous profile, which describes a suit that expects to be shot at while it
 works. Both currently differ from their peers only in the four scalars.
 
@@ -38,9 +38,10 @@ mobility while it runs.
 
 ## Pick one pattern, not both
 
-The slate's budget has room for about two more carriers across the whole
-catalog, and `perception-integral-systems.md` wants one of them. This story
-therefore authors a brace on **one** line pattern and leaves the other alone.
+Two line suits with near-identical braces would be the palette swap the catalog
+exists to prevent, so this story authors a brace on **one** pattern and leaves
+the other alone — not because a slot is scarce, but because the second one
+would have nothing of its own to say.
 
 The Legionary is the better fit for bracing as hardware — it is the pattern with
 standardized fittings and a repair culture, and a brace is a mechanism that gets
@@ -70,8 +71,8 @@ trade the player and the AI can both get wrong:
 
 - **Never durability.** A brace must not add capacity, rating, or hit points,
   and must not become mitigation by another name — mitigation is
-  `d5-timed-directional-mitigation.md`'s concept and a stance that quietly
-  duplicates it is the forbidden thing wearing a third costume.
+  `combat-durability-nouns.md`'s concept and a stance that quietly duplicates it
+  is the forbidden thing wearing a third costume.
 - **Accuracy is a legitimate timed effect; evasion is delicate.** Improving what
   the wearer hits is behavior. Reducing what hits the wearer is close enough to
   durability that it needs a specific argument, and probably belongs to

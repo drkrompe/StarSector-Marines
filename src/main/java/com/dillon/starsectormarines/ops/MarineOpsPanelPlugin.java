@@ -53,7 +53,8 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
      * own crossfade to the battle track via {@code playCustomMusic}.
      */
     private static final Set<ScreenId> INTEL_MUSIC_SCREENS =
-            EnumSet.of(ScreenId.COMPANY_HQ, ScreenId.BARRACKS, ScreenId.UI_WORKBENCH,
+            EnumSet.of(ScreenId.COMPANY_HQ, ScreenId.BARRACKS,
+                    ScreenId.SHIP_TRANSFER, ScreenId.UI_WORKBENCH,
                     ScreenId.MISSION_SELECT,
                     ScreenId.FLEET_ARMORY_OVERVIEW, ScreenId.FLEET_ARMORY,
                     ScreenId.MECH_LAB,
@@ -82,6 +83,7 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
         this.ctx = new MarineOpsContext(planet);
         screens.put(ScreenId.COMPANY_HQ,     new CompanyHqScreen());
         screens.put(ScreenId.BARRACKS,       new BarracksScreen());
+        screens.put(ScreenId.SHIP_TRANSFER,  new ShipTransferScreen());
         screens.put(ScreenId.UI_WORKBENCH,   new UiWorkbenchScreen());
         screens.put(ScreenId.MISSION_SELECT, new MissionSelectScreen());
         screens.put(ScreenId.FLEET_ARMORY_OVERVIEW, new FleetArmoryOverviewScreen());
@@ -94,6 +96,10 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
         screens.put(ScreenId.RESULTS,        new ResultsScreen());
         screens.put(ScreenId.LOOT,           new LootScreen());
         if (seed != null) seed.accept(ctx);
+        // A company with nowhere to live has nowhere to be shown. Every room
+        // view is a camera on the company ship, so until the player has chosen
+        // one there is no operations screen to open — the choice is the screen.
+        if (!CompanyShipDesignation.quartered()) ctx.goTo(ScreenId.SHIP_TRANSFER);
     }
 
     public void setOnBack(Runnable dismissDialog) {

@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.balance.TtkHarness.Cover;
 import com.dillon.starsectormarines.battle.balance.TtkHarness.Defender;
 import com.dillon.starsectormarines.battle.balance.TtkHarness.Measurement;
 import com.dillon.starsectormarines.battle.balance.TtkHarness.Scenario;
+import com.dillon.starsectormarines.battle.balance.TtkHarness.Screen;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.infantry.ExperienceTier;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
@@ -62,6 +63,21 @@ class TtkReportTest {
     private static final Defender UNARMORED = Defender.armored("marine, unarmored", MarineArmorPattern.ARMORLESS);
     private static final Defender MID_ARMOR = Defender.armored("marine, T3 armor", MarineArmorPattern.ARMY_GREEN);
     private static final Defender HEAVY_ARMOR = Defender.armored("marine, T4 armor", MarineArmorPattern.RED_ELITE);
+
+    /**
+     * A representative authored screen, not a catalogued one. The point of the
+     * slice below is what a bounded arc is worth at all; pinning it to one
+     * pattern's numbers would turn a structural measurement into a balance
+     * assertion the catalog is free to move.
+     */
+    private static final float SCREEN_FRACTION = 0.5f;
+    private static final float SCREEN_ARC_DEGREES = 160f;
+    private static final Defender SCREENED_FRONT = Defender.screened(
+            "marine, T4 armor, screen forward", MarineArmorPattern.RED_ELITE,
+            new Screen(SCREEN_FRACTION, SCREEN_ARC_DEGREES, TtkHarness.FRONT_DEGREES));
+    private static final Defender SCREENED_FLANK = Defender.screened(
+            "marine, T4 armor, screen turned away", MarineArmorPattern.RED_ELITE,
+            new Screen(SCREEN_FRACTION, SCREEN_ARC_DEGREES, TtkHarness.FLANK_DEGREES));
 
     private static final float BASELINE_RANGE_FRACTION = 0.5f;
 
@@ -150,6 +166,22 @@ class TtkReportTest {
                 byArc, m -> m.scenario().grade() == EquipmentGrade.SURPLUS
                         ? "opening: Green / Surplus" : "endgame: Elite / Masterwork");
 
+        // Directional mitigation, reported as its own contribution rather than
+        // folded into the armour rows: the same suit, the same shot, and the
+        // only thing that changes is which way the screen points.
+        List<Measurement> byScreen = new ArrayList<>();
+        for (Defender defender : new Defender[]{HEAVY_ARMOR, SCREENED_FRONT, SCREENED_FLANK}) {
+            byScreen.add(TtkHarness.measure(new Scenario(
+                    WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID),
+                    EquipmentGrade.SERVICE, REGULAR, defender,
+                    BASELINE_RANGE_FRACTION, Cover.OPEN), TRIALS));
+        }
+        appendTable(report, "Directional mitigation (" + Math.round(SCREEN_FRACTION * 100f)
+                        + "% over " + Math.round(SCREEN_ARC_DEGREES) + " degrees)", "screen",
+                byScreen, m -> m.scenario().defender().screen() == null ? "none"
+                        : m.scenario().defender().screen().facingDegrees() == TtkHarness.FRONT_DEGREES
+                                ? "facing the shooter" : "turned away");
+
         List<Measurement> byCoverAndRange = new ArrayList<>();
         for (Cover cover : Cover.values()) {
             for (float fraction : new float[]{0.25f, 0.5f, 0.9f}) {
@@ -166,6 +198,7 @@ class TtkReportTest {
         everyRow.addAll(byProfile);
         everyRow.addAll(byBand);
         everyRow.addAll(byArc);
+        everyRow.addAll(byScreen);
         everyRow.addAll(byCoverAndRange);
         appendUnresolvedCallout(report, everyRow);
 
@@ -174,6 +207,35 @@ class TtkReportTest {
         assertLethalityRelationships(byWeapon, byGrade, byCoverAndRange);
         assertBandIsWorthAboutAGradeStep(byBand, byGrade);
         assertTheArcEndsInSuperSoldiers(byArc);
+        assertAScreenOnlyWorksFromTheFront(byScreen);
+    }
+
+    /**
+     * Pins the two halves of the mitigation law end to end, through the real
+     * firing pipeline rather than through the model in isolation: a screen
+     * pointed at the shooter buys measurable time, and the same screen pointed
+     * away buys none.
+     *
+     * <p>The flank bound is the more important of the two. A mitigation that
+     * quietly worked all round would still show up as "the screen helps" on the
+     * front row, and only the turned-away row can tell that apart from the
+     * capability the design actually authorized.
+     */
+    private static void assertAScreenOnlyWorksFromTheFront(List<Measurement> byScreen) {
+        Measurement unscreened = pick(byScreen, m -> m.scenario().defender() == HEAVY_ARMOR);
+        Measurement front = pick(byScreen, m -> m.scenario().defender() == SCREENED_FRONT);
+        Measurement flank = pick(byScreen, m -> m.scenario().defender() == SCREENED_FLANK);
+
+        assertTrue(front.meanTtkSeconds() > unscreened.meanTtkSeconds(),
+                () -> "a screen facing the shooter should extend the fight, but measured "
+                        + fmt(front.meanTtkSeconds()) + "s vs " + fmt(unscreened.meanTtkSeconds())
+                        + "s unscreened");
+        // Loose enough for sampling noise at this trial count, tight enough that
+        // an arc check that silently passed everything would fail here.
+        assertTrue(flank.meanTtkSeconds() < unscreened.meanTtkSeconds() * 1.25d,
+                () -> "a screen turned away from the shooter should buy nothing, but measured "
+                        + fmt(flank.meanTtkSeconds()) + "s vs " + fmt(unscreened.meanTtkSeconds())
+                        + "s unscreened");
     }
 
     /**

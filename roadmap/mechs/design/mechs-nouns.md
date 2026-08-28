@@ -126,11 +126,16 @@ Hip and upper-chassis turns accelerate and brake within separate angular
 budgets. A changed target or route therefore arrests the old swing before
 reversing it instead of snapping to a new turn direction. Each foot retains a
 world-space plant until reach or yaw requires a step; the lifted foot advances
-toward a velocity-predicted, stance-constrained landing and adopts the hip
-bearing only at touchdown. Pivoting uses the same rule, so one pad supports the
-body while the other walks around the turn. The rendered waist and complete
-upper assembly respond through a damped support-driven weight transfer. This
-gait is fixed-tick presentation state only: it does not move collision,
+toward a stance-constrained landing predicted around the body's touchdown
+position and adopts the hip bearing only when it plants. A completed moving
+stride leaves one pad behind the body and the new pad ahead, rather than letting
+the chassis overrun both supports. Pivoting uses the same rule, so one pad
+supports the body while the other walks around the turn. The rendered waist and
+complete upper assembly respond through a damped, two-dimensional weight
+transfer toward the single support pad or the segment between two planted pads.
+Composition preserves the physical depth stack: feet first, thigh linkages over
+the feet, then the ordinary upper assembly and its equipment layers.
+This gait is fixed-tick presentation state only: it does not move collision,
 pathing, aim, or targeting authority.
 
 ## Authority flow
@@ -170,7 +175,7 @@ support sortie, subject only to practical runtime resources.
 - Every specialist loses a meaningful capability as well as durability; a
   lighter chassis cannot be a discounted all-range Bulwark.
 - Chassis structure, armor capacity, and armor rating are separate values. Bulwark
-  remains the high-pool, high-rating anchor; Hound trades armor endurance for
+  remains the high-capacity, high-rating anchor; Hound trades armor endurance for
   mobility; Sirocco has the least protection and depends on range and a screen.
 - Mount absence is a tactical weakness. Firing, continuation, AI utility,
   resupply, and rendering must operate only on installed components.

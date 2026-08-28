@@ -81,10 +81,11 @@ import java.util.List;
  *       gathers {@code b}, once as {@code b} gathers {@code a}), so there is
  *       no half-pair bookkeeping.</li>
  *   <li><b>Apply</b> — clamp each accumulated impulse to {@link
- *       #MAX_PUSH_SPEED}{@code × dt}, walkability-guard the resulting
- *       position (full move, else X-only slide, else Y-only slide, else drop
- *       the impulse), and write it back through the authoritative POSITION
- *       and MOVEMENT columns.</li>
+ *       #MAX_PUSH_SPEED}{@code × dt}, topology-guard the resulting position
+ *       (full move, else X-only slide, else Y-only slide, else drop the
+ *       impulse), and write it back through the authoritative POSITION and
+ *       MOVEMENT columns. The guard applies the same shared-edge and diagonal
+ *       rules as A*, not merely destination-cell walkability.</li>
  * </ol>
  *
  * <p>Every applied displacement is also folded additively into the
@@ -873,20 +874,18 @@ public final class SeparationSystem {
                 float nx = ax + ix;
                 float ny = ay + iy;
                 float appliedX, appliedY;
-                if (grid.isWalkable((int) Math.floor(nx), (int) Math.floor(ny))) {
+                if (canApplyDisplacement(ax, ay, nx, ny)) {
                     posX[row] = nx;
                     posY[row] = ny;
                     appliedX = ix;
                     appliedY = iy;
-                } else if (grid.isWalkable((int) Math.floor(nx),
-                        (int) Math.floor(ay))) {
+                } else if (canApplyDisplacement(ax, ay, nx, ay)) {
                     // X-only slide: the full move clips a wall, but sliding along it does not.
                     posX[row] = nx;
                     posY[row] = ay;
                     appliedX = ix;
                     appliedY = 0f;
-                } else if (grid.isWalkable((int) Math.floor(ax),
-                        (int) Math.floor(ny))) {
+                } else if (canApplyDisplacement(ax, ay, ax, ny)) {
                     // Y-only slide, the perpendicular case.
                     posX[row] = ax;
                     posY[row] = ny;
@@ -900,6 +899,13 @@ public final class SeparationSystem {
                 velY[row] = velY[row] + appliedY / dt;
             }
         }
+    }
+
+    private boolean canApplyDisplacement(float fromX, float fromY,
+                                         float toX, float toY) {
+        return grid.canTraverseCellStep(
+                (int) Math.floor(fromX), (int) Math.floor(fromY),
+                (int) Math.floor(toX), (int) Math.floor(toY));
     }
 
     /**

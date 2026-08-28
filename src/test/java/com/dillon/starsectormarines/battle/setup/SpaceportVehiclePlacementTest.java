@@ -6,7 +6,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.vehicle.MapVehicle;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
@@ -119,14 +119,14 @@ class SpaceportVehiclePlacementTest {
         LandingPad second = LandingPad.spaceport(28, 12, LandingPad.Approach.WEST);
         MapResult map = map(grid, topology, List.of(first, second));
 
-        List<MapVehicle> vehicles = BattleSetup.stampVehicles(map, new Random(7L));
+        List<Doodad> vehicles = BattleSetup.stampVehicles(map, new Random(7L));
 
         assertFalse(vehicles.isEmpty(), "civilian apron should receive service traffic");
         assertTrue(first.isClear(grid, topology));
         assertTrue(second.isClear(grid, topology));
-        for (MapVehicle vehicle : vehicles) {
-            for (int dy = 0; dy < vehicle.kind.footprintCellsY; dy++) {
-                for (int dx = 0; dx < vehicle.kind.footprintCellsX; dx++) {
+        for (Doodad vehicle : vehicles) {
+            for (int dy = 0; dy < vehicle.footprintCellsY; dy++) {
+                for (int dx = 0; dx < vehicle.footprintCellsX; dx++) {
                     int x = vehicle.cellX + dx;
                     int y = vehicle.cellY + dy;
                     assertFalse(first.contains(x, y));

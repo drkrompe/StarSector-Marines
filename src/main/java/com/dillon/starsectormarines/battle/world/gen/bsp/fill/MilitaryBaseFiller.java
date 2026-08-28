@@ -21,6 +21,7 @@ import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,6 +72,20 @@ public final class MilitaryBaseFiller implements CompoundFiller {
     /** Default wall HP — matches the legacy seed used elsewhere. Higher than building walls because the compound wall is meant to read as armor. */
     private static final int WALL_HP_FORTIFIED = 150;
     private static final String RADAR_DISH_ID = "doodad.military-radar-dish";
+    private static final String[] COMMAND_APRON_PROPS = {
+            "doodad.industrial-generator", "doodad.industrial-cable-reel"
+    };
+    private static final String[] BARRACKS_APRON_PROPS = {
+            "doodad.industrial-pallet-stack", "doodad.industrial-drum-cluster"
+    };
+    private static final String[] ARMORY_APRON_PROPS = {
+            "doodad.industrial-crate-stack", "doodad.industrial-pallet-stack",
+            "doodad.industrial-pipe-bundle"
+    };
+    private static final String[] VEHICLE_APRON_PROPS = {
+            "doodad.industrial-generator", "doodad.industrial-cable-reel",
+            "doodad.industrial-drum-cluster"
+    };
 
     /**
      * Keep COMMAND sub-building. Opts into {@link RoomPurpose} labeling so
@@ -132,6 +147,7 @@ public final class MilitaryBaseFiller implements CompoundFiller {
         punchGates(compound, inCompound, roadCells, grid, topology, rng);
         stampCommandRadar(compound, inCompound, memberCells, roadReservation,
                 grid, topology, doodads);
+        furnishRoleAprons(compound, roadReservation, grid, topology, doodads, rng);
         stampGunEmplacements(compound, inCompound, grid, topology, pois);
         CompoundWallApertures.stamp(inCompound, grid, topology);
         emitTacticalNodes(compound, leafPois, tactical);
@@ -493,6 +509,67 @@ public final class MilitaryBaseFiller implements CompoundFiller {
         if (grid.isWalkable(x, y + 1)) count++;
         if (grid.isWalkable(x, y - 1)) count++;
         return count;
+    }
+
+    /**
+     * Groups service props on the paved apron beside the building that gives
+     * them meaning. These remain visual/cover doodads rather than hard
+     * fixtures: the radar and interior furniture already provide physical
+     * cover, while an exterior logistics cluster should not consume either
+     * lane of the deliberately widened two-cell circulation apron.
+     */
+    private void furnishRoleAprons(Compound compound, boolean[][] roadReservation,
+                                   NavigationGrid grid, CellTopology topology,
+                                   List<Doodad> doodads, Random rng) {
+        for (BlockLeaf member : compound.members) {
+            String[] propIds = apronPropsFor(compound.roles.get(member));
+            if (propIds.length == 0) continue;
+
+            List<int[]> candidates = new ArrayList<>();
+            for (int y = member.top; y <= member.bottom; y++) {
+                for (int x = member.left; x <= member.right; x++) {
+                    if (roadReservation[x][y] || !grid.isWalkable(x, y)
+                            || grid.isDoorway(x, y)) continue;
+                    if (topology.getGroundKind(x, y) != PARADE_GROUND) continue;
+                    if (nearDoorway(grid, x, y, 2) || doodadAt(doodads, x, y)) continue;
+                    candidates.add(new int[]{x, y});
+                }
+            }
+            if (candidates.isEmpty()) continue;
+
+            Collections.shuffle(candidates, rng);
+            int[] anchor = candidates.get(0);
+            candidates.sort(Comparator.comparingInt(cell ->
+                    Math.abs(cell[0] - anchor[0]) + Math.abs(cell[1] - anchor[1])));
+            int prop = 0;
+            for (int[] cell : candidates) {
+                if (prop >= propIds.length) break;
+                if (doodadAt(doodads, cell[0], cell[1])) continue;
+                DoodadDef def = TileRegistry.installed().doodad(propIds[prop]);
+                if (def == null) {
+                    throw new IllegalStateException("Missing military apron prop " + propIds[prop]);
+                }
+                doodads.add(new Doodad(cell[0], cell[1], def));
+                prop++;
+            }
+        }
+    }
+
+    private String[] apronPropsFor(Compound.Role role) {
+        if (role == null) return BARRACKS_APRON_PROPS;
+        return switch (role) {
+            case COMMAND -> COMMAND_APRON_PROPS;
+            case BARRACKS -> BARRACKS_APRON_PROPS;
+            case ARMORY -> ARMORY_APRON_PROPS;
+            case VEHICLE_BAY -> VEHICLE_APRON_PROPS;
+        };
+    }
+
+    private boolean doodadAt(List<Doodad> doodads, int x, int y) {
+        for (Doodad doodad : doodads) {
+            if (doodad.occupiesCell(x, y)) return true;
+        }
+        return false;
     }
 
     private BuildingShellCore.BuildingConfig configFor(Compound.Role role) {

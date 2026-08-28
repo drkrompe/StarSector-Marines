@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.battle.nav;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * 2D navigation grid with per-cell walkability and per-edge passability.
@@ -121,6 +124,18 @@ public class NavigationGrid {
     private final byte[] coverByFacing;
     /** Per-facing symmetric vertical catch half-height paired with {@link #coverByFacing}. */
     private final float[] coverCatchHalfHeightByFacing;
+    /** Independent shared-edge contribution, revealed/cleared with the barrier identity. */
+    private final byte[] edgeBarrierCoverByFacing;
+    /** Catch height paired with {@link #edgeBarrierCoverByFacing}. */
+    private final float[] edgeBarrierCoverCatchHalfHeightByFacing;
+    /** Canonical east-facing barrier anchored on a cell, or null. */
+    private final SharedEdgeBarrier[] eastEdgeBarriers;
+    /** Canonical north-facing barrier anchored on a cell, or null. */
+    private final SharedEdgeBarrier[] northEdgeBarriers;
+    /** Deterministic authoring order, also used by the sparse render pass. */
+    private final List<SharedEdgeBarrier> edgeBarriers = new ArrayList<>();
+    private final List<SharedEdgeBarrier> edgeBarriersView =
+            Collections.unmodifiableList(edgeBarriers);
     /** Per-cell wall hit points. Non-zero only for non-walkable cells initialized as walls; ignored once a cell becomes walkable (rubble or floor). */
     private final int[] wallHp;
     /** Reference-counted temporary opacity (smoke). Never affects walkability or ballistics. */
@@ -135,6 +150,11 @@ public class NavigationGrid {
         this.edgePassability = new byte[size];
         this.coverByFacing = new byte[size * FACING_COUNT];
         this.coverCatchHalfHeightByFacing = new float[size * FACING_COUNT];
+        this.edgeBarrierCoverByFacing = new byte[size * FACING_COUNT];
+        this.edgeBarrierCoverCatchHalfHeightByFacing =
+                new float[size * FACING_COUNT];
+        this.eastEdgeBarriers = new SharedEdgeBarrier[size];
+        this.northEdgeBarriers = new SharedEdgeBarrier[size];
         this.wallHp = new int[size];
         this.transientOpacity = new short[size];
     }
@@ -306,6 +326,28 @@ public class NavigationGrid {
     }
 
     /**
+     * Authoritative one-cell movement check for continuous systems that may
+     * cross a cell boundary without asking A* for a path. It applies the same
+     * reciprocal-edge and diagonal corner constraints as the pathfinder.
+     */
+    public boolean canTraverseCellStep(int fromX, int fromY,
+                                       int toX, int toY) {
+        if (!inBounds(fromX, fromY) || !inBounds(toX, toY)) return false;
+        if (!isWalkable(fromX, fromY) || !isWalkable(toX, toY)) return false;
+        int dx = toX - fromX;
+        int dy = toY - fromY;
+        if (dx == 0 && dy == 0) return true;
+        if (Math.abs(dx) > 1 || Math.abs(dy) > 1) return false;
+        for (Direction direction : Direction.ALL) {
+            if (direction.dx != dx || direction.dy != dy) continue;
+            return GridPathfinder.canStep(index(fromX, fromY), fromX, fromY,
+                    index(toX, toY), direction.ordinal(), width, height,
+                    cellFlags, edgePassability, null);
+        }
+        return false;
+    }
+
+    /**
      * Atomically changes both cell-local halves of one shared cardinal edge.
      * No-op when either cell is out of bounds. Generation may use this method
      * directly; runtime opening goes through
@@ -339,6 +381,112 @@ public class NavigationGrid {
         }
     }
 
+    // ----- Authored shared-edge barriers -----
+
+    /**
+     * Authors one physical barrier and closes its shared transition. Both
+     * adjacent cells must already be standable: a barrier divides usable
+     * space rather than masquerading as a cell wall. Runtime construction is
+     * intentionally unsupported; generators place barriers before play.
+     */
+    public SharedEdgeBarrier placeEdgeBarrier(
+            int x, int y, Direction direction, SharedEdgeBarrier.Kind kind) {
+        requireCardinal(direction);
+        if (kind == null) throw new IllegalArgumentException("barrier kind is required");
+        int canonicalX = direction == Direction.W ? x - 1 : x;
+        int canonicalY = direction == Direction.S ? y - 1 : y;
+        Direction canonicalDirection = direction == Direction.W
+                ? Direction.E : direction == Direction.S ? Direction.N : direction;
+        int otherX = canonicalX + canonicalDirection.dx;
+        int otherY = canonicalY + canonicalDirection.dy;
+        if (!inBounds(canonicalX, canonicalY) || !inBounds(otherX, otherY)) {
+            throw new IllegalArgumentException("barrier edge must join two in-bounds cells");
+        }
+        if (!isWalkable(canonicalX, canonicalY) || !isWalkable(otherX, otherY)) {
+            throw new IllegalArgumentException("barrier edge must join two walkable cells");
+        }
+        if (getEdgeBarrier(canonicalX, canonicalY, canonicalDirection) != null) {
+            throw new IllegalArgumentException("barrier edge is already authored");
+        }
+        if (!isSharedEdgePassable(canonicalX, canonicalY, canonicalDirection)) {
+            throw new IllegalArgumentException(
+                    "barrier must own an initially passable shared edge");
+        }
+
+        SharedEdgeBarrier barrier = new SharedEdgeBarrier(
+                canonicalX, canonicalY, canonicalDirection, kind);
+        barrierArray(canonicalDirection)[index(canonicalX, canonicalY)] = barrier;
+        edgeBarriers.add(barrier);
+        blockSharedEdge(canonicalX, canonicalY, canonicalDirection);
+        publishBarrierCover(barrier, true);
+        if (kind.blocksSight()) LosCache.clearAll();
+        return barrier;
+    }
+
+    /** Reciprocal lookup: either adjacent cell and facing names one identity. */
+    public SharedEdgeBarrier getEdgeBarrier(int x, int y, Direction direction) {
+        requireCardinal(direction);
+        int canonicalX = direction == Direction.W ? x - 1 : x;
+        int canonicalY = direction == Direction.S ? y - 1 : y;
+        Direction canonicalDirection = direction == Direction.W
+                ? Direction.E : direction == Direction.S ? Direction.N : direction;
+        if (!inBounds(canonicalX, canonicalY)) return null;
+        return barrierArray(canonicalDirection)[index(canonicalX, canonicalY)];
+    }
+
+    /** Stable read-only authoring order for sparse consumers such as rendering. */
+    public List<SharedEdgeBarrier> getEdgeBarriers() { return edgeBarriersView; }
+
+    /** Zero-allocation iteration seam for mutation systems. */
+    public int edgeBarrierCount() { return edgeBarriers.size(); }
+
+    /** Zero-allocation iteration seam for mutation systems. */
+    public SharedEdgeBarrier edgeBarrierAt(int offset) {
+        return edgeBarriers.get(offset);
+    }
+
+    /**
+     * Applies structure damage and removes the identity and cover contribution
+     * on destruction. The shared edge remains closed until the runtime
+     * coordinator opens it and invalidates derived navigation exactly once.
+     */
+    public boolean damageEdgeBarrier(int x, int y, Direction direction,
+                                     int amount) {
+        SharedEdgeBarrier barrier = getEdgeBarrier(x, y, direction);
+        if (barrier == null || !barrier.damage(amount)) return false;
+        barrierArray(barrier.direction())[index(barrier.cellX(), barrier.cellY())] = null;
+        edgeBarriers.remove(barrier);
+        publishBarrierCover(barrier, false);
+        if (barrier.kind().blocksSight()) LosCache.clearAll();
+        return true;
+    }
+
+    private SharedEdgeBarrier[] barrierArray(Direction canonicalDirection) {
+        return canonicalDirection == Direction.E
+                ? eastEdgeBarriers : northEdgeBarriers;
+    }
+
+    private void publishBarrierCover(SharedEdgeBarrier barrier, boolean present) {
+        int x = barrier.cellX();
+        int y = barrier.cellY();
+        Direction direction = barrier.direction();
+        int level = present ? barrier.kind().coverLevel() : 0;
+        float height = present ? barrier.kind().coverCatchHalfHeight() : 0f;
+        setEdgeBarrierCoverAtFacing(x, y,
+                facingFor(direction.dx, direction.dy), level, height);
+        setEdgeBarrierCoverAtFacing(x + direction.dx, y + direction.dy,
+                facingFor(-direction.dx, -direction.dy), level, height);
+    }
+
+    private void setEdgeBarrierCoverAtFacing(int x, int y, int facing,
+                                             int level, float catchHalfHeight) {
+        int slot = index(x, y) * FACING_COUNT + facing;
+        edgeBarrierCoverByFacing[slot] = (byte) Math.max(0,
+                Math.min(MAX_COVER, level));
+        edgeBarrierCoverCatchHalfHeightByFacing[slot] = level > 0
+                ? Math.max(0f, catchHalfHeight) : 0f;
+    }
+
     // ----- Cover -----
 
     /**
@@ -365,7 +513,25 @@ public class NavigationGrid {
     public int getCoverAtFacing(int x, int y, int facing) {
         if (!inBounds(x, y)) return 0;
         if (facing < 0 || facing >= FACING_COUNT) return 0;
+        int slot = index(x, y) * FACING_COUNT + facing;
+        return Math.max(coverByFacing[slot] & 0xFF,
+                edgeBarrierCoverByFacing[slot] & 0xFF);
+    }
+
+    /** Base cell/fixture contribution, excluding a feature on the shared edge. */
+    public int getCellCoverAtFacing(int x, int y, int facing) {
+        if (!inBounds(x, y)) return 0;
+        if (facing < 0 || facing >= FACING_COUNT) return 0;
         return coverByFacing[index(x, y) * FACING_COUNT + facing] & 0xFF;
+    }
+
+    /** Base cell/fixture catch height, excluding a feature on the shared edge. */
+    public float getCellCoverCatchHalfHeightAtFacing(
+            int x, int y, int facing) {
+        if (!inBounds(x, y)) return 0f;
+        if (facing < 0 || facing >= FACING_COUNT) return 0f;
+        return coverCatchHalfHeightByFacing[
+                index(x, y) * FACING_COUNT + facing];
     }
 
     /**
@@ -381,7 +547,15 @@ public class NavigationGrid {
     public float getCoverCatchHalfHeightAtFacing(int x, int y, int facing) {
         if (!inBounds(x, y)) return 0f;
         if (facing < 0 || facing >= FACING_COUNT) return 0f;
-        return coverCatchHalfHeightByFacing[index(x, y) * FACING_COUNT + facing];
+        int slot = index(x, y) * FACING_COUNT + facing;
+        int cellLevel = coverByFacing[slot] & 0xFF;
+        int barrierLevel = edgeBarrierCoverByFacing[slot] & 0xFF;
+        if (cellLevel > barrierLevel) return coverCatchHalfHeightByFacing[slot];
+        if (barrierLevel > cellLevel) {
+            return edgeBarrierCoverCatchHalfHeightByFacing[slot];
+        }
+        return Math.max(coverCatchHalfHeightByFacing[slot],
+                edgeBarrierCoverCatchHalfHeightByFacing[slot]);
     }
 
     /** Directional catch half-height using the same facing snap as {@link #getCoverAt}. */
@@ -400,11 +574,10 @@ public class NavigationGrid {
      */
     public int getCoverAt(int x, int y) {
         if (!inBounds(x, y)) return 0;
-        int base = index(x, y) * FACING_COUNT;
-        return (coverByFacing[base    ] & 0xFF)
-             + (coverByFacing[base + 1] & 0xFF)
-             + (coverByFacing[base + 2] & 0xFF)
-             + (coverByFacing[base + 3] & 0xFF);
+        return getCoverAtFacing(x, y, FACING_N)
+                + getCoverAtFacing(x, y, FACING_E)
+                + getCoverAtFacing(x, y, FACING_S)
+                + getCoverAtFacing(x, y, FACING_W);
     }
 
     /** Sets the cover at (x, y) for one facing. Clamped to [0, {@link #MAX_COVER}]. */
@@ -520,6 +693,11 @@ public class NavigationGrid {
         Arrays.fill(edgePassability, (byte) 0);
         Arrays.fill(coverByFacing, (byte) 0);
         Arrays.fill(coverCatchHalfHeightByFacing, 0f);
+        Arrays.fill(edgeBarrierCoverByFacing, (byte) 0);
+        Arrays.fill(edgeBarrierCoverCatchHalfHeightByFacing, 0f);
+        Arrays.fill(eastEdgeBarriers, null);
+        Arrays.fill(northEdgeBarriers, null);
+        edgeBarriers.clear();
         Arrays.fill(wallHp, 0);
         Arrays.fill(transientOpacity, (short) 0);
         opacityRevision++;
@@ -555,6 +733,10 @@ public class NavigationGrid {
     }
 
     private boolean hasLineOfSightImpl(int x0, int y0, int x1, int y1) {
+        if (firstSightBlockingEdgeBarrierOnLine(
+                x0 + 0.5f, y0 + 0.5f, x1 + 0.5f, y1 + 0.5f) != null) {
+            return false;
+        }
         int dx = Math.abs(x1 - x0);
         int dy = Math.abs(y1 - y0);
         int sx = x0 < x1 ? 1 : -1;
@@ -585,8 +767,62 @@ public class NavigationGrid {
      * ballistic ray.
      */
     public boolean hasLineOfFire(float x0, float y0, float x1, float y1) {
-        return firstBlockOnLine(x0, y0, x1, y1,
+        return firstProjectileBlockingEdgeBarrierOnLine(x0, y0, x1, y1) == null
+                && firstBlockOnLine(x0, y0, x1, y1,
                 false, true) == noBlockPacked();
+    }
+
+    /** First authored edge feature physically crossed by an exact segment. */
+    public SharedEdgeBarrier firstEdgeBarrierOnLine(
+            float x0, float y0, float x1, float y1) {
+        return firstEdgeBarrierOnLine(x0, y0, x1, y1, 0);
+    }
+
+    /** First exact crossing whose authored profile blocks sight. */
+    public SharedEdgeBarrier firstSightBlockingEdgeBarrierOnLine(
+            float x0, float y0, float x1, float y1) {
+        return firstEdgeBarrierOnLine(x0, y0, x1, y1, 1);
+    }
+
+    /** First exact crossing whose authored profile blocks direct projectiles. */
+    public SharedEdgeBarrier firstProjectileBlockingEdgeBarrierOnLine(
+            float x0, float y0, float x1, float y1) {
+        return firstEdgeBarrierOnLine(x0, y0, x1, y1, 2);
+    }
+
+    private SharedEdgeBarrier firstEdgeBarrierOnLine(
+            float x0, float y0, float x1, float y1, int filter) {
+        if (!Float.isFinite(x0) || !Float.isFinite(y0)
+                || !Float.isFinite(x1) || !Float.isFinite(y1)) {
+            throw new IllegalArgumentException("Ray endpoints must be finite");
+        }
+        float dx = x1 - x0;
+        float dy = y1 - y0;
+        float bestT = Float.POSITIVE_INFINITY;
+        SharedEdgeBarrier best = null;
+        for (SharedEdgeBarrier barrier : edgeBarriers) {
+            if (filter == 1 && !barrier.kind().blocksSight()) continue;
+            if (filter == 2 && !barrier.kind().blocksProjectiles()) continue;
+            float t;
+            float along;
+            if (barrier.direction() == Direction.E) {
+                if (Math.abs(dx) < 1e-7f) continue;
+                t = (barrier.cellX() + 1f - x0) / dx;
+                along = y0 + dy * t;
+                if (along < barrier.cellY() - 1e-6f
+                        || along > barrier.cellY() + 1f + 1e-6f) continue;
+            } else {
+                if (Math.abs(dy) < 1e-7f) continue;
+                t = (barrier.cellY() + 1f - y0) / dy;
+                along = x0 + dx * t;
+                if (along < barrier.cellX() - 1e-6f
+                        || along > barrier.cellX() + 1f + 1e-6f) continue;
+            }
+            if (t <= 1e-6f || t >= 1f - 1e-6f || t >= bestT) continue;
+            bestT = t;
+            best = barrier;
+        }
+        return best;
     }
 
     /**

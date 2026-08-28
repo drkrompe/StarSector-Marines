@@ -12,7 +12,9 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.Compound;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef.WallSide;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayDeque;
@@ -90,7 +92,10 @@ class GatedHousingFillerTest {
             }
         }
         assertEquals(2, outerGateCells, "compound receives one two-cell public gate");
-        assertTrue(courtyardPlanters >= 1, "shared courtyard receives tactical planter cover");
+        assertTrue(courtyardPlanters >= 4,
+                "shared courtyard and its two-cell apron receive distributed planter cover");
+        assertTrue(count(fixture.ctx.doodads, "doodad.desk-dam") >= 2,
+                "shared domestic space receives more than tactical cover");
         assertAllWalkableCellsConnected(fixture.grid);
 
         for (Doodad doodad : fixture.ctx.doodads) {
@@ -155,12 +160,31 @@ class GatedHousingFillerTest {
                 compounds++;
                 if (countPurpose(map.topology, inset(compound.seed),
                         RoomPurpose.RESIDENTIAL_HALL) > 0) roomedSeeds++;
+                for (BlockLeaf member : compound.members) {
+                    assertFunctionalBuilding(map.grid, inset(member));
+                }
             }
         }
         assertTrue(compounds >= 2,
                 "residential compounds should remain visible; count=" + compounds);
         assertEquals(compounds, roomedSeeds,
                 "every claimed gated-housing seed must retain its qualifying apartment plan");
+    }
+
+    private static void assertFunctionalBuilding(NavigationGrid grid,
+                                                 BlockLeaf building) {
+        boolean doorway = false;
+        boolean interior = false;
+        for (int y = building.top; y <= building.bottom; y++) {
+            for (int x = building.left; x <= building.right; x++) {
+                doorway |= grid.isDoorway(x, y);
+                interior |= grid.isWalkable(x, y) && !grid.isDoorway(x, y);
+            }
+        }
+        assertTrue(interior,
+                "claimed residential member needs a standable interior: " + building);
+        assertTrue(doorway,
+                "claimed residential member needs a doorway: " + building);
     }
 
     private static Fixture generate(long seed) {
@@ -291,6 +315,16 @@ class GatedHousingFillerTest {
                 if (topology.getRoomPurpose(x, y) == purpose
                         && topology.isFixture(x, y)) count++;
             }
+        }
+        return count;
+    }
+
+    private static int count(List<Doodad> doodads, String id) {
+        DoodadDef def = TileRegistry.installed().doodad(id);
+        int count = 0;
+        for (Doodad doodad : doodads) {
+            if (doodad.sheetPath.equals(def.sheetPath)
+                    && doodad.tile.col == def.col && doodad.tile.row == def.row) count++;
         }
         return count;
     }

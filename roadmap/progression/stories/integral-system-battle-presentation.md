@@ -51,7 +51,7 @@ different while it runs, and the difference ends when it does.
   expiry.
 - A treatment for the breacher assist: the deployed screen is the readable part
   and is also the part the player needs to understand, because the arc is a
-  rule they have to play around once `d5-timed-directional-mitigation.md` lands.
+  rule they already have to play around (`combat-durability-nouns.md`).
   Orienting the drawn screen to the arc it actually protects is the whole
   requirement.
 - Audio, positional, following the shipped mono/positional convention.

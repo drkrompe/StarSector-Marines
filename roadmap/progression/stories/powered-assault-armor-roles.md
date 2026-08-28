@@ -1,22 +1,22 @@
 # Powered assault-armor roles
 
 Status: PARTIALLY SHIPPED — the cross-faction line/heavy pattern catalog, bounded
-stat side-grades, acquisition sources, tiered built-in doctrine matrix, and defender
-adoption are live. Explicit role/provenance fields, comparison presentation, and
-concealment still coordinate with `s6-unlock-ladder-expansion.md` and
+stat side-grades, acquisition sources, tiered built-in doctrine matrix, defender
+adoption, and Armory comparison presentation are live. Explicit role/provenance
+fields and concealment still coordinate with `s6-unlock-ladder-expansion.md` and
 `target-faction-ground-rosters.md`; concealment behavior requires an explicit shared
 perception contract.
 
 Written: 2026-08-24
 
-Updated: 2026-08-26 — attached concrete faction suits to defender tables and broadened tier-I scrap issue.
+Updated: 2026-08-28 — shipped the Fleet Armory pattern comparison surface (`FleetArmoryViewModel.armorComparisonCards`, `armory-armor-comparison.mlx`) so every catalogued pattern reads side by side; explicit role/provenance data fields remain outstanding.
 
 Read `progression-nouns.md`, `combat-durability-nouns.md`, `mechs-nouns.md`,
 and `faction-lore-nouns.md` before implementing this story.
 
 ## Problem
 
-`MarineArmorPattern` currently exposes pool, rating, movement, incoming
+`MarineArmorPattern` currently exposes capacity, rating, movement, incoming
 accuracy, icon, and a numeric tier. The authored patterns form a useful stat
 ladder, but the player cannot tell what kind of suit each one is meant to be,
 why two patterns at a similar price behave differently, or how recovered
@@ -92,16 +92,16 @@ to mix a few institutional shells into common security protection without preten
 the whole formation is line infantry.
 
 Within a peer band, mechanics follow provenance through concrete pattern stats.
-Hegemony favors pool/rating and accepts slower, easier targets. Tri-Tachyon gives up
+Hegemony favors capacity/rating and accepts slower, easier targets. Tri-Tachyon gives up
 raw plate for speed and reduced incoming accuracy. League patterns occupy the
 balanced center. Church and Knight suits emphasize rating with a mobility penalty.
-Diktat and Lion's Guard suits emphasize pool while remaining conspicuous. Outlaw
-patterns use very high crude pool, weak rating, and worsening handling as weight
+Diktat and Lion's Guard suits emphasize capacity while remaining conspicuous. Outlaw
+patterns use very high crude capacity, weak rating, and worsening handling as weight
 rises. No doctrine applies a faction-wide multiplier after issue.
 
 The tier-I baseline now distinguishes three forms of bad protection inside that one
 doctrine: mobile Domain-pattern fatigues with no armor capacity, expired Cordon security
-shells with a little rated plate, and slow Lashplate cargo harnesses with crude pool
+shells with a little rated plate, and slow Lashplate cargo harnesses with crude capacity
 but almost no resistance. They reuse the established low-end militia/outlaw
 silhouettes and are intentionally broad circulation categories rather than a new
 faction-equivalent matrix.
@@ -117,7 +117,7 @@ faction-equivalent matrix.
 - Campaign Armory owns template cards, cargo-backed assignment, provenance copy,
   and maintenance/fabrication price. Deployment freezes the selected pattern's
   plain combat values and capabilities.
-- Battle durability consumes pool and rating. Infantry movement consumes the
+- Battle durability consumes capacity and rating. Infantry movement consumes the
   frozen movement tradeoff. Rendering consumes the same role/provenance for
   silhouette and material treatment without feeding presentation back into
   simulation.
@@ -159,7 +159,13 @@ an oversized armor pattern.
   assigned pattern and stock exactly.
 - Armory comparison names role, protection, mobility, and provenance without
   presenting role as tier. A player can explain why a light suit may be a
-  later unlock than a crude heavy one.
+  later unlock than a crude heavy one. **Shipped**: the Fleet Armory's Compare
+  Patterns surface (reachable from the fire-team armor picker) lists every
+  catalogued pattern side by side with its unit class, tier, protection and
+  mobility meters, integral system (via the shared `IntegralSystemCopy`), and
+  provenance copy, sorted by tier then name. It remains presentation-only and
+  does not select or issue a pattern; the closed role vocabulary and stable
+  provenance id fields it will eventually read are still outstanding below.
 - Representative Hegemony, Tri-Tachyon, Church, Path, and pirate suits are
   distinguishable by more than color; League, Diktat, Independent, and modded
   fallback behavior also have deterministic catalog coverage.

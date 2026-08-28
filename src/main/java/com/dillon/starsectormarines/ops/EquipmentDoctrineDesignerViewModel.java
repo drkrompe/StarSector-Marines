@@ -508,10 +508,10 @@ public final class EquipmentDoctrineDesignerViewModel {
     private static List<StatMeter> armorStats(String cardId, MarineArmorCatalogDef armor) {
         float evasion = 1f - armor.incomingAccuracyMult();
         return List.of(
-                statMeter(cardId + ":pool", "POOL",
+                statMeter(cardId + ":armor-value", "ARMOR",
                         String.format(Locale.ROOT, "%.0f", armor.armorCapacity()),
-                        armor.armorCapacity(), maximumArmorPool()),
-                statMeter(cardId + ":rating", "RATING",
+                        armor.armorCapacity(), maximumArmorCapacity()),
+                statMeter(cardId + ":resist", "RESIST",
                         String.format(Locale.ROOT, "%.0f", armor.armorRating()),
                         armor.armorRating(), maximumArmorRating()),
                 statMeter(cardId + ":move", "MOVE",
@@ -568,7 +568,7 @@ public final class EquipmentDoctrineDesignerViewModel {
         return maximum;
     }
 
-    private static float maximumArmorPool() {
+    private static float maximumArmorCapacity() {
         float maximum = 1f;
         for (MarineArmorCatalogDef armor : MarineArmorCatalogRegistry.installed().all()) {
             maximum = Math.max(maximum, armor.armorCapacity());

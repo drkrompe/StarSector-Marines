@@ -310,7 +310,7 @@ public final class CompanyDeck {
                     "a " + ship.hullClass() + " has no interior to walk around");
         }
         ShipDeckGenerator generator = new ShipDeckGenerator();
-        deck = generator.generateDeck(ship.deckPlan(), seed, null);
+        deck = generator.generateDeck(ship.deckPlan(), seed, ship.outline());
         rooms = generator.getLastDeckGraph();
     }
 }

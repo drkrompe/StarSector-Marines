@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
+import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.render2d.BattleCamera;
@@ -21,6 +22,12 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
  * {@code BattleRenderer.renderConvoyVehicles}; the batch path drops that pass's
  * per-frame mutation of the shared sheet sprite (sub-rect, color, angle) and its
  * end-of-pass {@code setAngle(0)} reset.
+ *
+ * <p>A vehicle is a unit with a hull: it carries the same structure and armor
+ * capacities as anything else that can be shot, so it wears the same ownership-coded
+ * {@link DurabilityBarDecor} gauge, emitted last in the layer so bars paint over
+ * every chassis. A wreck is exempt — its bar would read empty forever, and the
+ * darkened hull already says what happened to it.
  *
  * <p>The debug overlays the old method dispatched (Reeds-Shepp docking paths,
  * selected-vehicle debug) are own-GL line passes and stay inline in
@@ -66,8 +73,8 @@ public final class ConvoyRenderSystem implements RenderSystem {
             float chassisFacingDeg = body.facingDegrees + type.spriteFacingOffsetDeg;
             float cx = cam.cellToScreenX(body.x);
             float cy = cam.cellToScreenY(body.y);
-            float wreckTint = v.state == com.dillon.starsectormarines.battle.vehicle.VehicleState.WRECKED
-                    ? 0.38f : 1f;
+            boolean wrecked = v.state == VehicleState.WRECKED;
+            float wreckTint = wrecked ? 0.38f : 1f;
             out.addSheetQuad(RenderLayer.CONVOY, cache.sheet,
                     f.x, f.y, f.w, f.h,
                     cx, cy, drawLong, drawShort, chassisFacingDeg,
@@ -103,6 +110,40 @@ public final class ConvoyRenderSystem implements RenderSystem {
                         tDrawLong, tDrawShort, turretFacingDeg,
                         wreckTint, wreckTint, wreckTint, alphaMult);
             }
+
+        }
+
+        if (ctx.hostProfile.unitDecorationsVisible()) {
+            sweepDurabilityBars(ids, convoy, cam, cellPx, alphaMult, out);
+        }
+    }
+
+    /**
+     * Durability bars for every live convoy vehicle, run <b>last</b> in the layer
+     * so a bar is never painted over by a neighbouring chassis — the same
+     * per-stratum sweep the UNITS layer uses rather than per-entity decoration.
+     *
+     * <p>Vehicles are always authored with both capacities, so this always emits the
+     * armored two-row bar. Placement follows the shared rule: the gauge spans the
+     * body it belongs to and sits that body's half-extent above its center. A hull
+     * is measured by its longest side so the bar clears the sprite at every
+     * heading instead of sinking into it broadside-on.
+     */
+    private static void sweepDurabilityBars(long[] ids, ConvoyService convoy,
+                                            BattleCamera cam, float cellPx,
+                                            float alphaMult, DrawList out) {
+        for (long id : ids) {
+            VehicleMission v = convoy.mission(id);
+            if (v == null || !v.isVisible() || v.state == VehicleState.WRECKED) continue;
+            VehicleType type = convoy.vehicleType(id);
+            GroundBody body = convoy.body(id);
+            float bodyPx = Math.max(type.visualLengthCells, type.visualWidthCells) * cellPx;
+            float cx = cam.cellToScreenX(body.x);
+            float barY = cam.cellToScreenY(body.y) + bodyPx / 2f + BattleRenderer.HP_BAR_GAP;
+            DurabilityBarDecor.emit(out, RenderLayer.CONVOY,
+                    Allegiance.of(convoy.faction(id)), cx, barY, bodyPx,
+                    convoy.structure(id), convoy.maxStructure(id),
+                    convoy.armor(id), convoy.maxArmor(id), alphaMult);
         }
     }
 }

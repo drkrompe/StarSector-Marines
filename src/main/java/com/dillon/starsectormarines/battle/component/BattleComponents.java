@@ -369,6 +369,28 @@ public final class BattleComponents {
     public static final int TELEMETRY_KILLS = 5;
     /** {@link #TELEMETRY} field 6: secondary-weapon rounds expended — rockets and grenades, for economy tuning (INT). */
     public static final int TELEMETRY_SECONDARY_USED = 6;
+    /**
+     * {@link #TELEMETRY} field 7: post-cover damage this entity's live
+     * mitigation refused, never reaching either armor or structure (FLOAT).
+     *
+     * <p>Its own quantity on purpose. Folding a screen's work into
+     * {@link #TELEMETRY_DAMAGE_TAKEN} would make a working screen
+     * indistinguishable from a run of lucky misses, which is exactly the
+     * invisible damage multiplier {@code combat-durability-nouns.md} refuses.
+     */
+    public static final int TELEMETRY_DAMAGE_MITIGATED = 7;
+
+    /**
+     * {@link #MITIGATION} field 0: the fraction of post-cover damage the live
+     * screen refuses, in {@code [0, 1)} (FLOAT). {@code 0} = nothing raised.
+     */
+    public static final int MITIGATION_FRACTION = 0;
+    /** {@link #MITIGATION} field 1: total arc width the screen covers, centred on {@link #MITIGATION_FACING_DEGREES}, in {@code [0, 360)} (FLOAT). */
+    public static final int MITIGATION_ARC_DEGREES = 1;
+    /** {@link #MITIGATION} field 2: sim-owned direction the screen points, in the same degrees as {@code AirBody.facingToward} (FLOAT). */
+    public static final int MITIGATION_FACING_DEGREES = 2;
+    /** {@link #MITIGATION} field 3: sim-seconds left before the screen drops (FLOAT); {@code <= 0} = nothing raised. */
+    public static final int MITIGATION_REMAINING = 3;
 
     // ---- component types ----
 
@@ -434,7 +456,7 @@ public final class BattleComponents {
     /**
      * Optional live protection state — {@code float current, max, rating}.
      * Presence means the actor has an authored armor capability, including while
-     * its current pool is depleted; armorless actors omit the component. Removed
+     * its current capacity is depleted; armorless actors omit the component. Removed
      * in the corpse transmute alongside {@link #HEALTH}.
      */
     public final ComponentType ARMOR;
@@ -628,6 +650,24 @@ public final class BattleComponents {
      * carry both, and most carry neither. Removed in the corpse transmute.
      */
     public final ComponentType INTEGRAL_SYSTEM;
+    /**
+     * Optional mitigation state — the live screen an actor can hold up:
+     * {@code float fraction, arcDegrees, facingDegrees, remaining}
+     * ({@code combat-durability-nouns.md}).
+     *
+     * <p>Presence means "this actor carries something that can raise a screen",
+     * not "a screen is up right now" — the {@link #ARMOR} shape rather than the
+     * {@link #INTEGRAL_SYSTEM} one, so a grant and an expiry are four float
+     * writes instead of an archetype move on the damage path. A raised screen
+     * is {@link #MITIGATION_REMAINING} {@code > 0}; ask
+     * {@code MitigationService.isActive} rather than reading the column.
+     *
+     * <p>The facing is deliberately simulation state, unlike the presentation
+     * facings on {@link #LAYERED_ANIMATION}. A screen that turns with the wearer
+     * is the rule that keeps an entry a squad problem, so it cannot be authored
+     * by a render-tier system. Removed in the corpse transmute.
+     */
+    public final ComponentType MITIGATION;
     /**
      * Optional crash state — one OBJECT field holding the
      * {@link com.dillon.starsectormarines.battle.air.components.CrashingComponent}
@@ -995,12 +1035,14 @@ public final class BattleComponents {
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT);
         TELEMETRY       = world.register(34, "Telemetry",
                 FieldKind.INT, FieldKind.INT, FieldKind.FLOAT, FieldKind.FLOAT,
-                FieldKind.FLOAT, FieldKind.INT, FieldKind.INT);
+                FieldKind.FLOAT, FieldKind.INT, FieldKind.INT, FieldKind.FLOAT);
         ARMOR          = world.register(35, "Armor",
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT);
         INTEGRAL_SYSTEM = world.register(36, "IntegralSystem",
                 FieldKind.OBJECT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.INT);
         MECH_GAIT_STATE = world.register(37, "MechGaitState", FieldKind.OBJECT);
+        MITIGATION      = world.register(38, "Mitigation",
+                FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, SPRITE, CORPSE}, null);
         liveSprites = world.query(
