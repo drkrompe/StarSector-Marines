@@ -4,7 +4,12 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — pointed at the compound-program direction; shipped
+Updated: 2026-08-28 — replaced the blanket runtime-construction exclusion with
+the no-islands law construction must satisfy and added the passable
+field-revetment profile that law admits; added the Conquest fortress ward,
+packed walls as authored rather than left over, family-neutral room fittings,
+and the obligations a replacing stage carries; pointed at the compound-program
+direction; shipped
 shared-edge windows for Conquest bunkers and ordinary building shells,
 widened compound firing aprons while preserving functional parcel members,
 added role-readable compound dressing and authored multi-cell civic room
@@ -54,13 +59,38 @@ reason about reachability and roles without making incidental tile shapes into
 API.
 
 Edge passability is navigation topology, not by itself a structural wall. A
-production thin barrier must publish one authored identity from which movement,
-ballistic interception, visibility, directional cover, durability, and
-presentation derive. Closing an edge only for A* would create a secret obstacle;
-drawing a narrow wall without closing its edge would create dishonest scenery.
-Runtime topology retains the permissive-mutation law: destruction may open an
-authored edge, while construction that closes an edge under existing paths is a
-separate future problem.
+production thin barrier must publish one profile from which movement, ballistic
+interception, visibility, directional cover, durability, and presentation all
+derive. The law is that the profile is one identity, not that any particular
+combination is forbidden: closing an edge only for A* would create a secret
+obstacle, and drawing a full-height wall without closing its edge would create
+dishonest scenery, but a chest-high revetment that a soldier steps over, shoots
+over, and takes cover behind is honest precisely because it declares all three.
+
+Runtime mutation is admitted in both directions, under different obligations.
+**Destruction is free**, because it only ever makes the world more permissive: a
+path that was valid stays valid, a zone that was connected stays connected, and
+a unit standing somewhere legal is still standing somewhere legal.
+**Construction must not create an island.** That is the harm the model exists to
+prevent — a unit cut off from its objective, or sealed inside a region with no
+way out — and it is what a runtime placement has to answer for, since a new
+obstacle can partition the walkable graph that everything already standing on it
+depends on. A construction that does not touch navigation cannot cause it: cover,
+presentation, and structure are invisible to walkability, zones, the
+navigation mesh, and retained paths, so such a placement needs no check and no
+flush. A construction that *does* block navigation must prove, before placing,
+that it neither partitions the walkable graph nor strands a unit — before,
+because a repair afterwards is already too late for the unit inside. That proof
+must be reachability as the pathfinder computes it. Zone connectivity is not a
+substitute: `ZoneDetector` floods on cell walkability alone while the pathfinder
+honours edges, so a zone-graph answer can say "connected" about a region no unit
+can actually walk out of.
+
+Only the non-blocking case is built. `MapEditor.placeDeployedBarrier` is the
+single runtime construction seam and enforces the condition mechanically, by
+refusing any profile that blocks movement; the carried cover screen in
+`progression-nouns.md` is its one consumer. A future movement-blocking placement
+extends that seam with the reachability proof rather than bypassing it.
 
 A **shared-edge barrier** is that authored identity. It is stored once on a
 canonical east- or north-facing edge, while reciprocal lookup from either
@@ -71,13 +101,20 @@ projectile policy, directional cover and vertical catch, structure, and
 appearance together. Canonicalization also retains the adjacent authoring cell
 whose structure owns the feature. That structural side orients presentation
 today and can resolve through the map's building registry for later destruction
-objectives without turning visual thickness into collision. The first profile
-is a transparent firing **window**: it
-blocks movement, passes sight and direct rounds, supplies low cover to both
-adjacent positions, and can be broken by structural blast damage. Destruction
-removes the identity and cover, then opens the reciprocal edge through the map
-editor so zones, retained paths, vantage caches, and the region mesh advance
-together at the normal topology flush. Runtime construction remains excluded.
+objectives without turning visual thickness into collision.
+
+Two profiles exist. A transparent firing **window** blocks movement, passes
+sight and direct rounds, supplies low cover to both adjacent positions, and can
+be broken by structural blast damage; it is authored by generation. A **field
+revetment** is chest-high cover that leaves the transition open — passable,
+transparent, shoot-through, low cover to both sides, its own structure to spend —
+and is therefore the profile a runtime placement may use. Destruction of either
+removes the identity and its cover; for a profile that had closed its edge it
+also opens the reciprocal transition through the map editor, so zones, retained
+paths, vantage caches, and the region mesh advance together at the normal
+topology flush. A profile that never closed one skips that flush, because there
+is nothing derived to advance.
+
 Diagonal traversal consumes the neighboring cardinal transitions as well, so a
 unit cannot slip around a closed barrier endpoint in one diagonal step.
 Arbitrary angled or within-cell dividers remain outside this model: a shape
@@ -136,12 +173,12 @@ grid, after the last stage to touch it. An anchor that fails the guarantee does
 not merely look wrong: mission layouts filter candidate sites on it, and
 room-scoped objectives resolve no room at all from a blocked or doorway cell.
 
-A compound's wings are sized by the partition rather than by their purpose, and
-a purpose that needs a minimum footprint therefore has no way to ask for one.
+An ordinary compound's wings are sized by the partition rather than by their
+purpose, and a purpose that needs a minimum footprint has no way to ask for one.
 `compound-programs.md` holds the direction that inverts this — a program that
-sizes the place, as a deck's does — together with the measurement that motivates
-it and the parts of the deck model that deliberately do not transfer. Nothing in
-it is implemented; the model below is still what generation does.
+sizes the place, as a deck's does — with the measurement that motivates it and
+the parts of the deck model that deliberately do not transfer. The Conquest
+fortress ward is built that way already; every other compound is not.
 
 Parcel ownership is established before content fills. A filler may own one leaf
 or an already-claimed compound, but it must not infer a multi-leaf building by
@@ -189,6 +226,48 @@ City recipes compose a trunk, parcels, circulation, zoning, purpose-specific
 fillers, tactical linking, and final validation. The conquest recipe also
 places its fortress and defense structure, while legacy/preview city generation
 can use the same spatial vocabulary without importing campaign concerns.
+
+A **ward** is the exception to parcel-first fill, and the conquest fortress is
+the one place that has it. Rather than being filled leaf by leaf and then walled,
+its band is laid out from a program of authored building footprints, packed into
+depth bands measured from the attacker's approach, furnished by the shared room
+fittings, and opened as parade ground wherever packing leaves ground over — and
+the wall is drawn around that result. The order is the point: a wall stamped
+first can only ever enclose whatever the fill happened to leave, however good the
+wall is. `compound-programs.md` owns the model, the measurements behind its
+sizing rules, and what remains before an ordinary compound can be built the same
+way.
+
+**Room fittings are family-neutral.** A furnishable room is a floor, a pose, its
+doors, and its purpose; a deck compartment and a packed fortress building both
+present one, and the same authored fitting furnishes either. A machine berth is
+likewise a map fact rather than a shipboard one — a fortress vehicle shed
+publishes the same berths a mech bay does, and what occupies one remains the
+host's decision from a roster.
+
+**A wall is left over on a hull and authored on a map.** A packer carves a
+room's floor and leaves the ring around it alone, which is the whole of a
+bulkhead inside a vessel: a void in a hull is structure, and nothing has to say
+so. On a map it is not. Ground reads as wall only where the cell names which of
+its faces are outside, so an unauthored ring falls through to the blank fill
+meant for a cell buried inside a wall mass — a building with no wall on any
+face, standing as an invisible obstruction with its furniture apparently in the
+open. A host that packs rooms onto a map authors the wall its packing implies,
+and gives that wall ground to stand on: a floor laid flush to the edge of its
+envelope puts the ring outside it, on ground the host does not own and may not
+close.
+
+A stage that replaces what an earlier stage built owns everything the earlier one
+recorded, not only what it drew: decorative placements, points of interest,
+tactical nodes, and authored shared-edge identities all belong to the ground being
+replaced. Because an edge carries exactly one authored identity, a leftover
+window is not merely scenery whose building is gone — it is an edge the next
+stage cannot author on. The obligation runs the other way as well: a stage that
+clears ground to make room for its own must be told what it may not clear.
+Keeping the fortress wall's route out of the ward is only half of not destroying
+it, since the same stage demolishes whole buildings that stray into its sweep,
+and a garrison shed is indistinguishable from a tenement once both are only
+joined-up interior floor.
 
 Station recipes compose a chosen layout, partitioning, room carving, corridors,
 spawn placement, station-topology analysis, tactical linking, and finalization.

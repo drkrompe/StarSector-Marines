@@ -117,8 +117,8 @@ public final class RoomPlacementStage implements GenStage {
     /** A packed room as the deck records it: which side of the spine, and which zone. */
     private static DeckGraph.Compartment describe(DeckProfile profile,
                                                   RoomPacker.Placed room, int id) {
-        int left = room.x();
-        int top = room.y();
+        int left = room.originX();
+        int top = room.originY();
         int right = left + room.shape().width() - 1;
         int bottom = top + room.shape().height() - 1;
         int spineCentre = (profile.spineTop() + profile.spineBottom()) / 2;

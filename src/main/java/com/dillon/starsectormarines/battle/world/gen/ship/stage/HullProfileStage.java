@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.world.gen.ship.DeckProfile;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckZone;
 import com.dillon.starsectormarines.battle.world.gen.ship.HullSilhouette;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipKeys;
+import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 
 /**
  * Step 1 (ship) — establish the deck's longitudinal shape and publish it.
@@ -80,6 +81,17 @@ public final class HullProfileStage implements GenStage {
             top[f] = spineTop - clamp(port, maxPortDepth);
             bottom[f] = spineBottom + clamp(starboard, maxStarboardDepth);
             zone[f] = zoneAt(t);
+        }
+
+        // Everything outside the hull is not deck. Said here because this stage
+        // is the authority on where the hull is, and left unsaid every cell the
+        // ship does not occupy defaults to indoor floor — which paints a
+        // rectangle of decking around her and hides the vessel it belongs to.
+        for (int f = 0; f < frames; f++) {
+            for (int y = 0; y < ctx.height; y++) {
+                if (y >= top[f] && y <= bottom[f]) continue;
+                ctx.topology.setGroundKind(f, y, GroundKind.VOID);
+            }
         }
 
         ctx.put(ShipKeys.DECK_PROFILE, new DeckProfile(spineTop, spineBottom, top, bottom, zone));

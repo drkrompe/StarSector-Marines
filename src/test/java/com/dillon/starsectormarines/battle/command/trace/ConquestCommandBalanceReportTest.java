@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.command.trace;
 
 import com.dillon.starsectormarines.battle.command.trace.CommandTraceAnalyzer.Analysis;
+import com.dillon.starsectormarines.battle.command.trace.CommandTraceAnalyzer.CaptureZoneCohortMetrics;
+import com.dillon.starsectormarines.battle.command.trace.CommandTraceAnalyzer.CaptureZonePublishedSquadMetrics;
 import com.dillon.starsectormarines.battle.command.trace.CommandTraceAnalyzer.ConquestMetrics;
 import com.dillon.starsectormarines.battle.command.trace.CommandTraceAnalyzer.CommandInactivityMetrics;
 import com.dillon.starsectormarines.battle.command.trace.CommandTraceAnalyzer.FactionMetrics;
@@ -80,7 +82,7 @@ class ConquestCommandBalanceReportTest {
                 List.of(row), 600, false);
 
         assertTrue(json.contains("\"schedulerMode\":\"SERIAL_DETERMINISTIC\""));
-        assertTrue(json.contains("\"schemaVersion\":5"));
+        assertTrue(json.contains("\"schemaVersion\":7"));
         assertTrue(json.contains("\"maxTicks\":600"));
         assertTrue(json.contains("\"repeatCount\":2"));
         assertTrue(json.contains("\"canonicalMatrix\":false"));
@@ -105,6 +107,8 @@ class ConquestCommandBalanceReportTest {
                 + "\"unknown\":0,\"localContact\":0,"
                 + "\"trackBeliefOnly\":0,\"noPublishedContact\":0,"
                 + "\"unknownTrack\":0}"));
+        assertTrue(json.contains("\"captureZoneCohorts\":{"
+                + "\"available\":false,\"observed\":0"));
         assertTrue(markdown.contains("Evidence mode: ad hoc override"));
         assertTrue(markdown.contains("production launch fixtures"));
         assertTrue(markdown.contains("mobilization latencies: [75, 150]"));
@@ -124,12 +128,89 @@ class ConquestCommandBalanceReportTest {
         assertTrue(markdown.contains("Context may overlap: local contact 0, "
                 + "active path 0, quiet travel 0"));
         assertTrue(markdown.contains("Capture-zone presence:"));
+        assertTrue(markdown.contains("Capture-zone cohorts: unavailable before "
+                + "exact capture-zone trace schema 7"));
         assertTrue(markdown.contains("territorial progress: OBSERVED"));
         assertFalse(markdown.contains("response latencies"));
         assertEquals("fixture-0123456789ab",
                 ConquestCommandBalanceTest.reportId("fixture", true, sha));
         assertEquals("fixture",
                 ConquestCommandBalanceTest.reportId("fixture", false, sha));
+    }
+
+    @Test
+    void reportPublishesCaptureZoneCohortLifecycle() throws Exception {
+        ConquestBattleFixture fixture =
+                BattleFixtureTestSupport.loadConquestFixture();
+        FactionMetrics marine = factionMetrics(List.of());
+        FactionMetrics defender = factionMetrics(List.of());
+        CaptureZoneCohortMetrics cohorts = new CaptureZoneCohortMetrics(
+                true, 2, 2, 0, 2, 0,
+                1, 1, 0, 0, 0, 0, 0, 0,
+                1, 1, 1,
+                List.of(1, 2), List.of(1, 4), List.of(0, 2),
+                List.of(0, 5), List.of(30), List.of(60),
+                List.of(10, 30), 30,
+                new CaptureZonePublishedSquadMetrics(
+                        1, 1, 4, 1, 1,
+                        List.of(1), List.of(2),
+                        List.of(2), List.of(6),
+                        List.of(2), List.of(6)));
+        Analysis analysis = new Analysis(
+                new RunMetrics("CONQUEST", "SERIAL_DETERMINISTIC",
+                        0, 100, 100, Termination.TIMEOUT, null, false, 1,
+                        Map.of()),
+                Map.of(Faction.MARINE, marine, Faction.DEFENDER, defender),
+                new ConquestMetrics(4, 0, 1, 1, 1, 0, -1, 100,
+                        false, null, cohorts));
+        String sha = "0123456789abcdef0123456789abcdef"
+                + "0123456789abcdef0123456789abcdef";
+        var row = new ConquestCommandBalanceTest.ReportRow(
+                "fixture", sha, fixture, 204, 17, analysis);
+
+        String markdown = ConquestCommandBalanceTest.summaryMarkdown(
+                List.of(row), 100, false);
+        String json = ConquestCommandBalanceTest.summaryJson(
+                List.of(row), 100, false);
+
+        assertTrue(markdown.contains("Capture-zone cohorts: 2 observed "
+                + "(2 entries, 0 left-censored), 2 finalized / 0 open"));
+        assertTrue(markdown.contains("exits captured 1, defender-present 1"));
+        assertTrue(markdown.contains("observed-entry Marine units [1, 2]"));
+        assertTrue(markdown.contains("all-cohort peak Marine units [1, 4]"));
+        assertTrue(markdown.contains("entry-to-capture ticks [60]"));
+        assertTrue(markdown.contains("mixed durations [10, 30], longest mixed "
+                + "run 30 ticks"));
+        assertTrue(markdown.contains("Published in-zone squads: 1 cohorts "
+                + "observed / 1 unobserved, 4 squad-pulses"));
+        assertTrue(json.contains("\"captureZoneCohorts\":{"
+                + "\"available\":true,\"observed\":2,"
+                + "\"entriesObserved\":2,\"leftCensored\":0,"
+                + "\"finalized\":2,\"open\":0,\"exits\":{"
+                + "\"captured\":1,\"defenderPresent\":1,\"empty\":0,"
+                + "\"unresolved\":0,\"zoneChanged\":0,"
+                + "\"observationGap\":0,\"timeout\":0,"
+                + "\"terminalResult\":0},\"uncontestedObserved\":1,"
+                + "\"withZoneMemberAdditions\":1,"
+                + "\"withDefenderReduction\":1,"
+                + "\"entryMarineUnits\":[1,2],"
+                + "\"peakMarineUnits\":[1,4],"
+                + "\"zoneMemberAdditions\":[0,2],"
+                + "\"defenderUnitsClearedFromEntry\":[0,5],"
+                + "\"entryToUncontestedTicks\":[30],"
+                + "\"entryToCaptureTicks\":[60],"
+                + "\"observedMixedTicks\":[10,30],"
+                + "\"longestMixedRunTicks\":30,\"publishedSquads\":{"
+                + "\"observedCohorts\":1,\"unobservedCohorts\":1,"
+                + "\"inZoneSquadPulses\":4,"
+                + "\"cohortsWithMultipleSquads\":1,"
+                + "\"cohortsWithAddedSquads\":1,"
+                + "\"firstInZoneSquads\":[1],"
+                + "\"peakInZoneSquads\":[2],"
+                + "\"firstInZoneMembers\":[2],"
+                + "\"peakInZoneMembers\":[6],"
+                + "\"firstAssignedAliveMembers\":[2],"
+                + "\"peakAssignedAliveMembers\":[6]}}"));
     }
 
     @Test

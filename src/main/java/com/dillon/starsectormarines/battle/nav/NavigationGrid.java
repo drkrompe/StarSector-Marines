@@ -384,14 +384,20 @@ public class NavigationGrid {
     // ----- Authored shared-edge barriers -----
 
     /**
-     * Authors one physical barrier and closes its shared transition. Both
-     * adjacent cells must already be standable: a barrier divides usable
-     * space rather than masquerading as a cell wall. Runtime construction is
-     * intentionally unsupported; generators place barriers before play. The
-     * authored {@code (x,y)} cell is retained as the structural-owner side of
-     * the edge even when west/south placement is canonicalized onto its
-     * neighbor. Presentation and later building-level consumers may use that
-     * side without changing the zero-width navigation transition.
+     * Places one physical barrier on a shared cardinal edge, closing that
+     * transition when the kind {@linkplain SharedEdgeBarrier.Kind#blocksMovement
+     * blocks movement}. Both adjacent cells must already be standable and the
+     * transition already open: a barrier divides usable space rather than
+     * masquerading as a cell wall. The authored {@code (x,y)} cell is retained
+     * as the structural-owner side of the edge even when west/south placement
+     * is canonicalized onto its neighbor. Presentation and later building-level
+     * consumers may use that side without changing the zero-width navigation
+     * transition.
+     *
+     * <p>Fails loud on an illegal edge, which is what a generator wants.
+     * Runtime placement goes through {@link #tryPlaceEdgeBarrier} instead: a
+     * marine setting a revetment down on ground another marine claimed a
+     * moment earlier should decline, not crash the battle.
      */
     public SharedEdgeBarrier placeEdgeBarrier(
             int x, int y, Direction direction, SharedEdgeBarrier.Kind kind) {
@@ -416,12 +422,43 @@ public class NavigationGrid {
             throw new IllegalArgumentException(
                     "barrier must own an initially passable shared edge");
         }
+        return install(canonicalX, canonicalY, canonicalDirection, kind, x, y);
+    }
 
+    /**
+     * Same placement, but returns {@code null} instead of throwing when the
+     * edge is not legal for a barrier right now. This is the runtime seam:
+     * every precondition {@link #placeEdgeBarrier} enforces is a reason for a
+     * live placement to be declined rather than a programming error.
+     */
+    public SharedEdgeBarrier tryPlaceEdgeBarrier(
+            int x, int y, Direction direction, SharedEdgeBarrier.Kind kind) {
+        if (kind == null || direction == null || direction.isDiagonal()) return null;
+        int canonicalX = direction == Direction.W ? x - 1 : x;
+        int canonicalY = direction == Direction.S ? y - 1 : y;
+        Direction canonicalDirection = direction == Direction.W
+                ? Direction.E : direction == Direction.S ? Direction.N : direction;
+        int otherX = canonicalX + canonicalDirection.dx;
+        int otherY = canonicalY + canonicalDirection.dy;
+        if (!inBounds(canonicalX, canonicalY) || !inBounds(otherX, otherY)) return null;
+        if (!isWalkable(canonicalX, canonicalY) || !isWalkable(otherX, otherY)) return null;
+        if (getEdgeBarrier(canonicalX, canonicalY, canonicalDirection) != null) return null;
+        if (!isSharedEdgePassable(canonicalX, canonicalY, canonicalDirection)) return null;
+        return install(canonicalX, canonicalY, canonicalDirection, kind, x, y);
+    }
+
+    private SharedEdgeBarrier install(int canonicalX, int canonicalY,
+                                      Direction canonicalDirection,
+                                      SharedEdgeBarrier.Kind kind,
+                                      int structureCellX, int structureCellY) {
         SharedEdgeBarrier barrier = new SharedEdgeBarrier(
-                canonicalX, canonicalY, canonicalDirection, kind, x, y);
+                canonicalX, canonicalY, canonicalDirection, kind,
+                structureCellX, structureCellY);
         barrierArray(canonicalDirection)[index(canonicalX, canonicalY)] = barrier;
         edgeBarriers.add(barrier);
-        blockSharedEdge(canonicalX, canonicalY, canonicalDirection);
+        if (kind.blocksMovement()) {
+            blockSharedEdge(canonicalX, canonicalY, canonicalDirection);
+        }
         publishBarrierCover(barrier, true);
         if (kind.blocksSight()) LosCache.clearAll();
         return barrier;
@@ -461,6 +498,30 @@ public class NavigationGrid {
         barrierArray(barrier.direction())[index(barrier.cellX(), barrier.cellY())] = null;
         edgeBarriers.remove(barrier);
         publishBarrierCover(barrier, false);
+        if (barrier.kind().blocksSight()) LosCache.clearAll();
+        return true;
+    }
+
+    /**
+     * Un-author a barrier outright, opening the edge behind it.
+     *
+     * <p>For generation, where a stage demolishes what an earlier one built.
+     * {@link #damageEdgeBarrier} is the runtime story and deliberately leaves
+     * the edge closed for the coordinator to open exactly once; during
+     * generation there is no coordinator, the ground is being reset anyway, and
+     * a window left on an edge whose building no longer exists is both scenery
+     * nobody can explain and an edge the next stage cannot author on — a single
+     * authored identity per edge means the leftover blocks its successor.
+     *
+     * @return whether an identity was there to remove
+     */
+    public boolean removeEdgeBarrier(int x, int y, Direction direction) {
+        SharedEdgeBarrier barrier = getEdgeBarrier(x, y, direction);
+        if (barrier == null) return false;
+        barrierArray(barrier.direction())[index(barrier.cellX(), barrier.cellY())] = null;
+        edgeBarriers.remove(barrier);
+        publishBarrierCover(barrier, false);
+        openSharedEdge(barrier.cellX(), barrier.cellY(), barrier.direction());
         if (barrier.kind().blocksSight()) LosCache.clearAll();
         return true;
     }
@@ -507,6 +568,24 @@ public class NavigationGrid {
             return dx >= 0 ? FACING_E : FACING_W;
         }
         return dy >= 0 ? FACING_S : FACING_N;
+    }
+
+    /**
+     * Inverse of {@link #facingFor}: the cardinal step from a covered cell to
+     * the neighbour a feature on that facing sits between. Note that the two
+     * vocabularies disagree about which way is north — {@link #FACING_N} means
+     * "threat at lower y", while {@link Direction#N} steps to higher y — so the
+     * mapping crosses over, and that crossover lives here rather than in every
+     * caller that has a facing and needs an edge.
+     */
+    public static Direction directionForFacing(int facing) {
+        switch (facing) {
+            case FACING_N: return Direction.S;
+            case FACING_E: return Direction.E;
+            case FACING_S: return Direction.N;
+            case FACING_W: return Direction.W;
+            default: throw new IllegalArgumentException("unknown cover facing " + facing);
+        }
     }
 
     /**

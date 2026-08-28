@@ -164,12 +164,18 @@ clock says they are heading for — never to a point between two. A seeded sweep
 of ship decks found one shift in seventy standing inside a bulkhead before this
 was separated out.
 
-That sweep is the standing check on the whole model, and it is deliberately not
-a check on a picture: for a spread of hulls and seeds it asserts that every stop
-stands on floor somebody can occupy and that consecutive stops are connected by
-a path **the game's own pathfinder** will find. A route that fails either is
-silent by nature — the clock keeps advancing and the actor keeps repathing, and
-what a player sees is somebody walking into a wall all watch.
+That sweep was the standing check on the whole model, and it was deliberately
+not a check on a picture: for a spread of hulls and seeds it asserted that every
+stop stands on floor somebody can occupy and that consecutive stops are
+connected by a path **the game's own pathfinder** will find. A route that fails
+either is silent by nature — the clock keeps advancing and the actor keeps
+repathing, and what a player sees is somebody walking into a wall all watch.
+
+The sweep was deleted on 2026-08-28: it cost 36s of a 560s `:test` run for a
+single test, and the owner judged the invariant not worth that. The property it
+protected is unchanged and still what a route owes; nothing enforces it
+automatically now, so a change to fitting placement or route derivation is worth
+checking by hand.
 
 Bounded embedded scenes may seek the same route sampler at an exact presentation
 time without advancing combat; that pose-only operation is not physical

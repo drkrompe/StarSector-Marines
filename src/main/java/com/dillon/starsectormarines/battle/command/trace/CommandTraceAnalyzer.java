@@ -8,10 +8,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 /** Pure offline analysis of canonical commander JSONL. */
 public final class CommandTraceAnalyzer {
@@ -163,6 +166,22 @@ public final class CommandTraceAnalyzer {
             int squadLossWithTrackBeliefOnly,
             int squadLossWithoutPublishedContact,
             int squadLossWithUnknownTrack,
+            int squadLossTacticalObserved,
+            int squadLossTacticalUnknown,
+            int squadLossWithBreachAction,
+            int squadLossWithMovingMembers,
+            int squadLossExposedFromPrimary,
+            int squadLossDoctrineAdvance,
+            int squadLossDoctrineHold,
+            int squadLossDoctrineDisengage,
+            int squadLossInitiativeNone,
+            int squadLossInitiativeReceive,
+            int squadLossInitiativeProsecute,
+            int squadLossWithEngageableMembers,
+            int squadLossWithEngageableFireTeams,
+            int squadLossUnderFireRecently,
+            int squadLossMajorityCoveredFromPrimary,
+            int squadLossCoolingDown,
             List<Integer> squadLossLastDistancesDecicells,
             List<Integer> squadLossApproachProgressBasisPoints) {
 
@@ -188,6 +207,11 @@ public final class CommandTraceAnalyzer {
                 throw new IllegalArgumentException(
                         "front context must classify every squad loss");
             }
+            if (squadLossTacticalObserved + squadLossTacticalUnknown
+                    != squadLossExits) {
+                throw new IllegalArgumentException(
+                        "tactical observation must classify every squad loss");
+            }
         }
 
         public int episodesFinalized() {
@@ -202,6 +226,7 @@ public final class CommandTraceAnalyzer {
 
         static SecureTravelMetrics empty() {
             return new SecureTravelMetrics(0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                     List.of(), List.of());
         }
@@ -260,6 +285,100 @@ public final class CommandTraceAnalyzer {
         }
     }
 
+    public record CaptureZoneCohortMetrics(
+            boolean available,
+            int observed,
+            int entriesObserved,
+            int leftCensored,
+            int finalized,
+            int open,
+            int capturedExits,
+            int defenderPresentExits,
+            int emptyExits,
+            int unresolvedExits,
+            int zoneChangedExits,
+            int observationGapExits,
+            int timeoutExits,
+            int terminalExits,
+            int uncontestedObserved,
+            int withZoneMemberAdditions,
+            int withDefenderReduction,
+            List<Integer> entryMarineUnits,
+            List<Integer> peakMarineUnits,
+            List<Integer> zoneMemberAdditions,
+            List<Integer> defenderUnitsClearedFromEntry,
+            List<Integer> entryToUncontestedTicks,
+            List<Integer> entryToCaptureTicks,
+            List<Integer> observedMixedTicks,
+            int longestMixedRunTicks,
+            CaptureZonePublishedSquadMetrics publishedSquads) {
+
+        public CaptureZoneCohortMetrics {
+            entryMarineUnits = sortedCopy(entryMarineUnits);
+            peakMarineUnits = sortedCopy(peakMarineUnits);
+            zoneMemberAdditions = sortedCopy(zoneMemberAdditions);
+            defenderUnitsClearedFromEntry =
+                    sortedCopy(defenderUnitsClearedFromEntry);
+            entryToUncontestedTicks = sortedCopy(entryToUncontestedTicks);
+            entryToCaptureTicks = sortedCopy(entryToCaptureTicks);
+            observedMixedTicks = sortedCopy(observedMixedTicks);
+            publishedSquads = publishedSquads != null
+                    ? publishedSquads : CaptureZonePublishedSquadMetrics.empty();
+            if (observed != entriesObserved + leftCensored) {
+                throw new IllegalArgumentException(
+                        "capture-zone cohort origins must sum to observed");
+            }
+            if (observed != finalized + open) {
+                throw new IllegalArgumentException(
+                        "capture-zone cohort outcomes must sum to observed");
+            }
+            int exitTotal = capturedExits + defenderPresentExits + emptyExits
+                    + unresolvedExits + zoneChangedExits + observationGapExits
+                    + timeoutExits + terminalExits;
+            if (finalized != exitTotal) {
+                throw new IllegalArgumentException(
+                        "capture-zone cohort exits must sum to finalized");
+            }
+        }
+
+        static CaptureZoneCohortMetrics empty() {
+            return new CaptureZoneCohortMetrics(false, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    List.of(), List.of(), List.of(), List.of(),
+                    List.of(), List.of(), List.of(), 0,
+                    CaptureZonePublishedSquadMetrics.empty());
+        }
+    }
+
+    public record CaptureZonePublishedSquadMetrics(
+            int observedCohorts,
+            int unobservedCohorts,
+            int inZoneSquadPulses,
+            int cohortsWithMultipleSquads,
+            int cohortsWithAddedSquads,
+            List<Integer> firstInZoneSquads,
+            List<Integer> peakInZoneSquads,
+            List<Integer> firstInZoneMembers,
+            List<Integer> peakInZoneMembers,
+            List<Integer> firstAssignedAliveMembers,
+            List<Integer> peakAssignedAliveMembers) {
+
+        public CaptureZonePublishedSquadMetrics {
+            firstInZoneSquads = sortedCopy(firstInZoneSquads);
+            peakInZoneSquads = sortedCopy(peakInZoneSquads);
+            firstInZoneMembers = sortedCopy(firstInZoneMembers);
+            peakInZoneMembers = sortedCopy(peakInZoneMembers);
+            firstAssignedAliveMembers = sortedCopy(firstAssignedAliveMembers);
+            peakAssignedAliveMembers = sortedCopy(peakAssignedAliveMembers);
+        }
+
+        static CaptureZonePublishedSquadMetrics empty() {
+            return new CaptureZonePublishedSquadMetrics(0, 0, 0, 0, 0,
+                    List.of(), List.of(), List.of(), List.of(),
+                    List.of(), List.of());
+        }
+    }
+
     public record ConquestMetrics(
             int compoundCount,
             int initialMarineHeld,
@@ -270,11 +389,14 @@ public final class CommandTraceAnalyzer {
             int keepCaptureTick,
             int longestObservedCaptureGapTicks,
             boolean territorialProgressStalled,
-            CompoundPresenceMetrics physicalPresence) {
+            CompoundPresenceMetrics physicalPresence,
+            CaptureZoneCohortMetrics captureZoneCohorts) {
 
         public ConquestMetrics {
             physicalPresence = physicalPresence != null
                     ? physicalPresence : CompoundPresenceMetrics.empty();
+            captureZoneCohorts = captureZoneCohorts != null
+                    ? captureZoneCohorts : CaptureZoneCohortMetrics.empty();
         }
 
         public ConquestMetrics(int compoundCount, int initialMarineHeld,
@@ -285,7 +407,8 @@ public final class CommandTraceAnalyzer {
             this(compoundCount, initialMarineHeld, finalMarineHeld,
                     maximumMarineHeld, captures, losses, keepCaptureTick,
                     longestObservedCaptureGapTicks, territorialProgressStalled,
-                    CompoundPresenceMetrics.empty());
+                    CompoundPresenceMetrics.empty(),
+                    CaptureZoneCohortMetrics.empty());
         }
     }
 
@@ -462,6 +585,36 @@ public final class CommandTraceAnalyzer {
                 numberField(out, "unknownTrack",
                         secure.squadLossWithUnknownTrack());
                 out.append('}');
+                out.append(",\"squadLossTacticalContact\":{");
+                rawNumberField(out, "observed", secure.squadLossTacticalObserved());
+                numberField(out, "unknown", secure.squadLossTacticalUnknown());
+                numberField(out, "breachAction",
+                        secure.squadLossWithBreachAction());
+                numberField(out, "moving", secure.squadLossWithMovingMembers());
+                numberField(out, "exposedFromPrimary",
+                        secure.squadLossExposedFromPrimary());
+                out.append(",\"doctrine\":{");
+                rawNumberField(out, "advance", secure.squadLossDoctrineAdvance());
+                numberField(out, "hold", secure.squadLossDoctrineHold());
+                numberField(out, "disengage",
+                        secure.squadLossDoctrineDisengage());
+                out.append('}');
+                out.append(",\"initiative\":{");
+                rawNumberField(out, "none", secure.squadLossInitiativeNone());
+                numberField(out, "receive", secure.squadLossInitiativeReceive());
+                numberField(out, "prosecute",
+                        secure.squadLossInitiativeProsecute());
+                out.append('}');
+                numberField(out, "withEngageableMembers",
+                        secure.squadLossWithEngageableMembers());
+                numberField(out, "withEngageableFireTeams",
+                        secure.squadLossWithEngageableFireTeams());
+                numberField(out, "underFireRecently",
+                        secure.squadLossUnderFireRecently());
+                numberField(out, "majorityCoveredFromPrimary",
+                        secure.squadLossMajorityCoveredFromPrimary());
+                numberField(out, "coolingDown", secure.squadLossCoolingDown());
+                out.append('}');
                 numberField(out, "withLocalContact",
                         secure.episodesWithLocalContact());
                 numberField(out, "withActivePath",
@@ -509,6 +662,74 @@ public final class CommandTraceAnalyzer {
                     presence.maximumMarineUnits());
             numberField(out, "maximumCaptureProgressBasisPoints",
                     presence.maximumCaptureProgressBasisPoints());
+            out.append('}');
+            CaptureZoneCohortMetrics cohorts = conquest.captureZoneCohorts();
+            out.append(",\"captureZoneCohorts\":{");
+            out.append("\"available\":").append(cohorts.available());
+            numberField(out, "observed", cohorts.observed());
+            numberField(out, "entriesObserved", cohorts.entriesObserved());
+            numberField(out, "leftCensored", cohorts.leftCensored());
+            numberField(out, "finalized", cohorts.finalized());
+            numberField(out, "open", cohorts.open());
+            out.append(",\"exits\":{");
+            rawNumberField(out, "captured", cohorts.capturedExits());
+            numberField(out, "defenderPresent",
+                    cohorts.defenderPresentExits());
+            numberField(out, "empty", cohorts.emptyExits());
+            numberField(out, "unresolved", cohorts.unresolvedExits());
+            numberField(out, "zoneChanged", cohorts.zoneChangedExits());
+            numberField(out, "observationGap",
+                    cohorts.observationGapExits());
+            numberField(out, "timeout", cohorts.timeoutExits());
+            numberField(out, "terminalResult", cohorts.terminalExits());
+            out.append('}');
+            numberField(out, "uncontestedObserved",
+                    cohorts.uncontestedObserved());
+            numberField(out, "withZoneMemberAdditions",
+                    cohorts.withZoneMemberAdditions());
+            numberField(out, "withDefenderReduction",
+                    cohorts.withDefenderReduction());
+            appendIntList(out, "entryMarineUnits",
+                    cohorts.entryMarineUnits());
+            appendIntList(out, "peakMarineUnits", cohorts.peakMarineUnits());
+            appendIntList(out, "zoneMemberAdditions",
+                    cohorts.zoneMemberAdditions());
+            appendIntList(out, "defenderUnitsClearedFromEntry",
+                    cohorts.defenderUnitsClearedFromEntry());
+            appendIntList(out, "entryToUncontestedTicks",
+                    cohorts.entryToUncontestedTicks());
+            appendIntList(out, "entryToCaptureTicks",
+                    cohorts.entryToCaptureTicks());
+            appendIntList(out, "observedMixedTicks",
+                    cohorts.observedMixedTicks());
+            numberField(out, "longestMixedRunTicks",
+                    cohorts.longestMixedRunTicks());
+            CaptureZonePublishedSquadMetrics published =
+                    cohorts.publishedSquads();
+            out.append(",\"publishedSquads\":{");
+            rawNumberField(out, "observedCohorts",
+                    published.observedCohorts());
+            numberField(out, "unobservedCohorts",
+                    published.unobservedCohorts());
+            numberField(out, "inZoneSquadPulses",
+                    published.inZoneSquadPulses());
+            numberField(out, "cohortsWithMultipleSquads",
+                    published.cohortsWithMultipleSquads());
+            numberField(out, "cohortsWithAddedSquads",
+                    published.cohortsWithAddedSquads());
+            appendIntList(out, "firstInZoneSquads",
+                    published.firstInZoneSquads());
+            appendIntList(out, "peakInZoneSquads",
+                    published.peakInZoneSquads());
+            appendIntList(out, "firstInZoneMembers",
+                    published.firstInZoneMembers());
+            appendIntList(out, "peakInZoneMembers",
+                    published.peakInZoneMembers());
+            appendIntList(out, "firstAssignedAliveMembers",
+                    published.firstAssignedAliveMembers());
+            appendIntList(out, "peakAssignedAliveMembers",
+                    published.peakAssignedAliveMembers());
+            out.append('}');
             out.append('}');
             return out.append("}}\n").toString();
         }
@@ -1273,7 +1494,8 @@ public final class CommandTraceAnalyzer {
                 + assignment.getInt("targetCellY");
     }
 
-    private static ConquestMetrics analyzeConquest(ParsedTrace trace) {
+    private static ConquestMetrics analyzeConquest(ParsedTrace trace)
+            throws Exception {
         int initialHeld = 0;
         int finalHeld = 0;
         int compoundCount = 0;
@@ -1325,9 +1547,224 @@ public final class CommandTraceAnalyzer {
                 && captures == 0 && maxHeld <= initialHeld;
         CompoundPresenceMetrics physicalPresence =
                 analyzeCompoundPresence(trace);
+        CaptureZoneCohortMetrics captureZoneCohorts =
+                analyzeCaptureZoneCohorts(trace);
         return new ConquestMetrics(compoundCount, initialHeld, finalHeld,
                 maxHeld, captures, losses, keepTick, longestGap,
-                progressStalled, physicalPresence);
+                progressStalled, physicalPresence, captureZoneCohorts);
+    }
+
+    private static CaptureZoneCohortMetrics analyzeCaptureZoneCohorts(
+            ParsedTrace trace) throws Exception {
+        if (trace.schemaVersion < 7) {
+            return CaptureZoneCohortMetrics.empty();
+        }
+        CaptureZoneCohortAccumulator metrics =
+                new CaptureZoneCohortAccumulator();
+        for (int window : trace.windowStarts.keySet()) {
+            Map<Integer, List<CompoundPresenceEvent>> presenceByTick =
+                    trace.compoundPresence.getOrDefault(window, Map.of());
+            Map<Integer, List<CompoundEvent>> stateByTick =
+                    trace.compounds.getOrDefault(window, Map.of());
+            TreeSet<Integer> ticks = new TreeSet<>(presenceByTick.keySet());
+            ticks.addAll(stateByTick.keySet());
+            Map<String, CompoundPresenceEvent> presence = new HashMap<>();
+            Map<String, String> states = new HashMap<>();
+            Map<String, CaptureZoneCohort> active = new HashMap<>();
+            Set<String> capturedUntilVacated = new HashSet<>();
+
+            for (int tick : ticks) {
+                for (CompoundEvent event : stateByTick.getOrDefault(
+                        tick, List.of())) {
+                    String prior = states.put(event.subject, event.state);
+                    if (!"MARINE_HELD".equals(prior)
+                            && "MARINE_HELD".equals(event.state)) {
+                        CaptureZoneCohort cohort = active.remove(event.subject);
+                        if (cohort != null) {
+                            metrics.finish(cohort, CaptureZoneCohortExit.CAPTURED,
+                                    tick);
+                            capturedUntilVacated.add(event.subject);
+                        }
+                    } else if ("MARINE_HELD".equals(prior)
+                            && !"MARINE_HELD".equals(event.state)) {
+                        capturedUntilVacated.remove(event.subject);
+                    }
+                }
+
+                for (CompoundPresenceEvent event : presenceByTick.getOrDefault(
+                        tick, List.of())) {
+                    CompoundPresenceEvent prior = presence.get(event.subject);
+                    CaptureZoneCohort cohort = active.get(event.subject);
+                    boolean zoneChanged = prior != null
+                            && prior.captureZoneId != event.captureZoneId;
+                    if (zoneChanged && cohort != null) {
+                        active.remove(event.subject);
+                        metrics.finish(cohort,
+                                CaptureZoneCohortExit.ZONE_CHANGED, tick);
+                        cohort = null;
+                    }
+                    presence.put(event.subject, event);
+                    if (cohort != null) {
+                        if (event.marineUnits <= 0) {
+                            active.remove(event.subject);
+                            CaptureZoneCohortExit exit = event.defenderUnits > 0
+                                    ? CaptureZoneCohortExit.DEFENDER_PRESENT
+                                    : event.defenderUnits == 0
+                                    ? CaptureZoneCohortExit.EMPTY
+                                    : CaptureZoneCohortExit.UNRESOLVED;
+                            metrics.finish(cohort, exit, tick);
+                        } else {
+                            cohort.observe(event, tick);
+                        }
+                    }
+                    if (event.marineUnits <= 0) {
+                        capturedUntilVacated.remove(event.subject);
+                        continue;
+                    }
+                    if (active.containsKey(event.subject)
+                            || capturedUntilVacated.contains(event.subject)
+                            || "MARINE_HELD".equals(states.get(event.subject))) {
+                        continue;
+                    }
+                    boolean entryObserved = !zoneChanged && prior != null
+                            && prior.marineUnits == 0;
+                    CaptureZoneCohort started = new CaptureZoneCohort(
+                            window, event, tick, entryObserved);
+                    active.put(event.subject, started);
+                    metrics.start(started);
+                }
+            }
+
+            int windowEnd = trace.windowEnds.getOrDefault(window,
+                    trace.windowStarts.get(window));
+            boolean finalWindow = window == trace.finalWindow();
+            if (!finalWindow || trace.capturePausedAtEnd) {
+                finishCaptureCohorts(active, metrics,
+                        CaptureZoneCohortExit.OBSERVATION_GAP, windowEnd);
+            } else if (trace.termination == Termination.TIMEOUT) {
+                finishCaptureCohorts(active, metrics,
+                        CaptureZoneCohortExit.TIMEOUT, windowEnd);
+            } else if (trace.termination == Termination.TERMINAL) {
+                finishCaptureCohorts(active, metrics,
+                        CaptureZoneCohortExit.TERMINAL, windowEnd);
+            } else {
+                for (CaptureZoneCohort cohort : active.values()) {
+                    metrics.leaveOpen(cohort, windowEnd);
+                }
+            }
+        }
+        return metrics.result(analyzeCaptureZonePublishedSquads(
+                trace, metrics.cohorts));
+    }
+
+    private static CaptureZonePublishedSquadMetrics
+    analyzeCaptureZonePublishedSquads(
+            ParsedTrace trace, List<CaptureZoneCohort> cohorts)
+            throws Exception {
+        int observedCohorts = 0;
+        int unobservedCohorts = 0;
+        int inZoneSquadPulses = 0;
+        int withMultiple = 0;
+        int withAdded = 0;
+        List<Integer> firstSquads = new ArrayList<>();
+        List<Integer> peakSquads = new ArrayList<>();
+        List<Integer> firstZoneMembers = new ArrayList<>();
+        List<Integer> peakZoneMembers = new ArrayList<>();
+        List<Integer> firstAliveMembers = new ArrayList<>();
+        List<Integer> peakAliveMembers = new ArrayList<>();
+        List<PerspectiveSample> samples = trace.samples.getOrDefault(
+                Faction.MARINE, List.of());
+
+        for (CaptureZoneCohort cohort : cohorts) {
+            Set<Integer> seenSquads = new HashSet<>();
+            boolean observed = false;
+            boolean added = false;
+            int firstSquadCount = 0;
+            int firstZoneMemberCount = 0;
+            int firstAliveMemberCount = 0;
+            int peakSquadCount = 0;
+            int peakZoneMemberCount = 0;
+            int peakAliveMemberCount = 0;
+            for (PerspectiveSample sample : samples) {
+                if (sample.window != cohort.window
+                        || sample.observedTick < cohort.startedTick
+                        || sample.observedTick > cohort.endedTick) continue;
+                JSONObject conquest = sample.row.optJSONObject("conquest");
+                if (conquest == null) continue;
+                Map<Integer, JSONObject> states = bySquad(
+                        conquest.optJSONArray("squads"));
+                Map<Integer, JSONObject> actions = bySquad(
+                        conquest.optJSONArray("actions"));
+                int squadCount = 0;
+                int zoneMemberCount = 0;
+                int aliveMemberCount = 0;
+                Set<Integer> pulseSquads = new HashSet<>();
+                for (Map.Entry<Integer, JSONObject> entry
+                        : actions.entrySet()) {
+                    JSONObject action = entry.getValue();
+                    if (!"SECURE_COMPOUND".equals(
+                            nullableString(action, "assignmentKind"))
+                            || action.optInt("targetZoneId", -1)
+                            != cohort.captureZoneId) continue;
+                    JSONObject state = states.get(entry.getKey());
+                    if (state == null
+                            || state.optInt("aliveMembers", 0) <= 0
+                            || state.optInt("membersInTargetZone", 0) <= 0) {
+                        continue;
+                    }
+                    squadCount++;
+                    zoneMemberCount += state.optInt(
+                            "membersInTargetZone", 0);
+                    aliveMemberCount += state.optInt("aliveMembers", 0);
+                    pulseSquads.add(entry.getKey());
+                }
+                if (squadCount == 0) continue;
+                inZoneSquadPulses += squadCount;
+                if (!observed) {
+                    observed = true;
+                    firstSquadCount = squadCount;
+                    firstZoneMemberCount = zoneMemberCount;
+                    firstAliveMemberCount = aliveMemberCount;
+                    seenSquads.addAll(pulseSquads);
+                } else {
+                    for (int squadId : pulseSquads) {
+                        if (seenSquads.add(squadId)) added = true;
+                    }
+                }
+                peakSquadCount = Math.max(peakSquadCount, squadCount);
+                peakZoneMemberCount = Math.max(peakZoneMemberCount,
+                        zoneMemberCount);
+                peakAliveMemberCount = Math.max(peakAliveMemberCount,
+                        aliveMemberCount);
+            }
+            if (!observed) {
+                unobservedCohorts++;
+                continue;
+            }
+            observedCohorts++;
+            if (peakSquadCount > 1) withMultiple++;
+            if (added) withAdded++;
+            firstSquads.add(firstSquadCount);
+            peakSquads.add(peakSquadCount);
+            firstZoneMembers.add(firstZoneMemberCount);
+            peakZoneMembers.add(peakZoneMemberCount);
+            firstAliveMembers.add(firstAliveMemberCount);
+            peakAliveMembers.add(peakAliveMemberCount);
+        }
+        return new CaptureZonePublishedSquadMetrics(observedCohorts,
+                unobservedCohorts, inZoneSquadPulses, withMultiple, withAdded,
+                firstSquads, peakSquads, firstZoneMembers, peakZoneMembers,
+                firstAliveMembers, peakAliveMembers);
+    }
+
+    private static void finishCaptureCohorts(
+            Map<String, CaptureZoneCohort> active,
+            CaptureZoneCohortAccumulator metrics,
+            CaptureZoneCohortExit exit, int tick) {
+        for (CaptureZoneCohort cohort : active.values()) {
+            metrics.finish(cohort, exit, tick);
+        }
+        active.clear();
     }
 
     private static CompoundPresenceMetrics analyzeCompoundPresence(
@@ -1467,7 +1904,8 @@ public final class CommandTraceAnalyzer {
                     int schemaVersion = row.getInt("schemaVersion");
                     if (schemaVersion != 2 && schemaVersion != 3
                             && schemaVersion != 4 && schemaVersion != 5
-                            && schemaVersion != 6 && schemaVersion != 7) {
+                            && schemaVersion != 6 && schemaVersion != 7
+                            && schemaVersion != 8) {
                         throw new IllegalArgumentException(
                                 "Unsupported command trace schemaVersion: "
                                         + schemaVersion);
@@ -1545,6 +1983,8 @@ public final class CommandTraceAnalyzer {
                             ignored -> new TreeMap<>())
                     .computeIfAbsent(tick, ignored -> new ArrayList<>())
                     .add(new CompoundPresenceEvent(row.getString("subject"),
+                            trace.schemaVersion >= 7
+                                    ? row.getInt("captureZoneId") : -1,
                             row.getString("occupancy"),
                             row.getInt("marineUnits"),
                             row.getInt("defenderUnits"),
@@ -1723,8 +2163,185 @@ public final class CommandTraceAnalyzer {
     private record CompoundEvent(String subject, String kind, String state) { }
 
     private record CompoundPresenceEvent(
-            String subject, String occupancy, int marineUnits,
+            String subject, int captureZoneId, String occupancy, int marineUnits,
             int defenderUnits, int captureProgressBasisPoints) { }
+
+    private enum CaptureZoneCohortExit {
+        CAPTURED,
+        DEFENDER_PRESENT,
+        EMPTY,
+        UNRESOLVED,
+        ZONE_CHANGED,
+        OBSERVATION_GAP,
+        TIMEOUT,
+        TERMINAL
+    }
+
+    private static final class CaptureZoneCohort {
+        final int window;
+        final int captureZoneId;
+        final int startedTick;
+        final boolean entryObserved;
+        final int entryMarineUnits;
+        final int entryDefenderUnits;
+        int previousMarineUnits;
+        int peakMarineUnits;
+        int minimumDefenderUnits;
+        int zoneMemberAdditions;
+        int uncontestedTick = -1;
+        int previousDefenderUnits;
+        int lastTick;
+        int observedMixedTicks;
+        int currentMixedRunTicks;
+        int longestMixedRunTicks;
+        int endedTick;
+        boolean finished;
+
+        private CaptureZoneCohort(int window, CompoundPresenceEvent event,
+                                  int startedTick,
+                                  boolean entryObserved) {
+            this.window = window;
+            this.captureZoneId = event.captureZoneId;
+            this.startedTick = startedTick;
+            this.entryObserved = entryObserved;
+            this.entryMarineUnits = event.marineUnits;
+            this.entryDefenderUnits = event.defenderUnits;
+            this.previousMarineUnits = event.marineUnits;
+            this.peakMarineUnits = event.marineUnits;
+            this.minimumDefenderUnits = event.defenderUnits;
+            this.previousDefenderUnits = event.defenderUnits;
+            this.lastTick = startedTick;
+            if (event.defenderUnits == 0) uncontestedTick = startedTick;
+        }
+
+        private void observe(CompoundPresenceEvent event, int tick) {
+            advanceTo(tick);
+            if (event.marineUnits > previousMarineUnits) {
+                zoneMemberAdditions += event.marineUnits - previousMarineUnits;
+            }
+            previousMarineUnits = event.marineUnits;
+            peakMarineUnits = Math.max(peakMarineUnits, event.marineUnits);
+            minimumDefenderUnits = Math.min(minimumDefenderUnits,
+                    event.defenderUnits);
+            previousDefenderUnits = event.defenderUnits;
+            if (uncontestedTick < 0 && event.defenderUnits == 0) {
+                uncontestedTick = tick;
+            }
+        }
+
+        private void advanceTo(int tick) {
+            int span = Math.max(0, tick - lastTick);
+            if (previousMarineUnits > 0 && previousDefenderUnits > 0) {
+                observedMixedTicks += span;
+                currentMixedRunTicks += span;
+                longestMixedRunTicks = Math.max(longestMixedRunTicks,
+                        currentMixedRunTicks);
+            } else {
+                currentMixedRunTicks = 0;
+            }
+            lastTick = tick;
+        }
+    }
+
+    private static final class CaptureZoneCohortAccumulator {
+        int observed;
+        int entriesObserved;
+        int leftCensored;
+        int finalized;
+        int open;
+        int captured;
+        int defenderPresent;
+        int empty;
+        int unresolved;
+        int zoneChanged;
+        int observationGap;
+        int timeout;
+        int terminal;
+        int uncontestedObserved;
+        int withZoneMemberAdditions;
+        int withDefenderReduction;
+        final List<Integer> entryMarineUnits = new ArrayList<>();
+        final List<Integer> peakMarineUnits = new ArrayList<>();
+        final List<Integer> zoneMemberAdditions = new ArrayList<>();
+        final List<Integer> defenderUnitsClearedFromEntry = new ArrayList<>();
+        final List<Integer> entryToUncontestedTicks = new ArrayList<>();
+        final List<Integer> entryToCaptureTicks = new ArrayList<>();
+        final List<Integer> observedMixedTicks = new ArrayList<>();
+        final List<CaptureZoneCohort> cohorts = new ArrayList<>();
+        int longestMixedRunTicks;
+
+        void start(CaptureZoneCohort cohort) {
+            cohorts.add(cohort);
+            observed++;
+            if (cohort.entryObserved) entriesObserved++;
+            else leftCensored++;
+        }
+
+        void finish(CaptureZoneCohort cohort, CaptureZoneCohortExit exit,
+                    int tick) {
+            if (cohort.finished) return;
+            cohort.finished = true;
+            cohort.endedTick = tick;
+            finalized++;
+            switch (exit) {
+                case CAPTURED -> captured++;
+                case DEFENDER_PRESENT -> defenderPresent++;
+                case EMPTY -> empty++;
+                case UNRESOLVED -> unresolved++;
+                case ZONE_CHANGED -> zoneChanged++;
+                case OBSERVATION_GAP -> observationGap++;
+                case TIMEOUT -> timeout++;
+                case TERMINAL -> terminal++;
+            }
+            record(cohort, tick, exit);
+        }
+
+        void leaveOpen(CaptureZoneCohort cohort, int tick) {
+            if (cohort.finished) return;
+            cohort.finished = true;
+            cohort.endedTick = tick;
+            open++;
+            record(cohort, tick, null);
+        }
+
+        private void record(CaptureZoneCohort cohort, int tick,
+                            CaptureZoneCohortExit exit) {
+            cohort.advanceTo(tick);
+            peakMarineUnits.add(cohort.peakMarineUnits);
+            zoneMemberAdditions.add(cohort.zoneMemberAdditions);
+            if (cohort.zoneMemberAdditions > 0) withZoneMemberAdditions++;
+            observedMixedTicks.add(cohort.observedMixedTicks);
+            longestMixedRunTicks = Math.max(longestMixedRunTicks,
+                    cohort.longestMixedRunTicks);
+            if (cohort.uncontestedTick >= 0) uncontestedObserved++;
+            if (!cohort.entryObserved) return;
+            entryMarineUnits.add(cohort.entryMarineUnits);
+            int defendersCleared = Math.max(0, cohort.entryDefenderUnits
+                    - cohort.minimumDefenderUnits);
+            defenderUnitsClearedFromEntry.add(defendersCleared);
+            if (defendersCleared > 0) withDefenderReduction++;
+            if (cohort.uncontestedTick >= 0) {
+                entryToUncontestedTicks.add(
+                        cohort.uncontestedTick - cohort.startedTick);
+            }
+            if (exit == CaptureZoneCohortExit.CAPTURED) {
+                entryToCaptureTicks.add(tick - cohort.startedTick);
+            }
+        }
+
+        CaptureZoneCohortMetrics result(
+                CaptureZonePublishedSquadMetrics publishedSquads) {
+            return new CaptureZoneCohortMetrics(true, observed, entriesObserved,
+                    leftCensored, finalized, open, captured, defenderPresent,
+                    empty, unresolved, zoneChanged, observationGap, timeout,
+                    terminal, uncontestedObserved,
+                    withZoneMemberAdditions, withDefenderReduction,
+                    entryMarineUnits, peakMarineUnits, zoneMemberAdditions,
+                    defenderUnitsClearedFromEntry, entryToUncontestedTicks,
+                    entryToCaptureTicks, observedMixedTicks,
+                    longestMixedRunTicks, publishedSquads);
+        }
+    }
 
     private enum SecureTravelExit {
         TARGET_ENTRY,
@@ -1767,6 +2384,17 @@ public final class CommandTraceAnalyzer {
         boolean finished;
         SecureTravelLossContext lastLossContext =
                 SecureTravelLossContext.UNKNOWN_TRACK;
+        boolean lastTacticalObserved;
+        boolean lastBreachAction;
+        boolean lastMoving;
+        boolean lastExposedFromPrimary;
+        String lastDoctrine;
+        String lastInitiative;
+        boolean lastWithEngageableMembers;
+        boolean lastWithEngageableFireTeams;
+        boolean lastUnderFireRecently;
+        boolean lastMajorityCoveredFromPrimary;
+        boolean lastCoolingDown;
 
         private SecureTravelEpisode(SecureTravelCandidate candidate,
                                     JSONObject state) {
@@ -1798,6 +2426,22 @@ public final class CommandTraceAnalyzer {
         int lossWithTrackBeliefOnly;
         int lossWithoutPublishedContact;
         int lossWithUnknownTrack;
+        int lossTacticalObserved;
+        int lossTacticalUnknown;
+        int lossWithBreachAction;
+        int lossWithMovingMembers;
+        int lossExposedFromPrimary;
+        int lossDoctrineAdvance;
+        int lossDoctrineHold;
+        int lossDoctrineDisengage;
+        int lossInitiativeNone;
+        int lossInitiativeReceive;
+        int lossInitiativeProsecute;
+        int lossWithEngageableMembers;
+        int lossWithEngageableFireTeams;
+        int lossUnderFireRecently;
+        int lossMajorityCoveredFromPrimary;
+        int lossCoolingDown;
         final List<Integer> lossDistances = new ArrayList<>();
         final List<Integer> lossProgress = new ArrayList<>();
 
@@ -1812,6 +2456,7 @@ public final class CommandTraceAnalyzer {
                     episode.markerY);
             if (Double.isFinite(distance)) episode.lastDistance = distance;
             episode.lastLossContext = lossContext(state, action, perspective);
+            if (schemaVersion >= 8) observeLossTactics(episode, state);
             if (!episode.localContact
                     && state.optBoolean("localContact", false)) {
                 episode.localContact = true;
@@ -1882,6 +2527,33 @@ public final class CommandTraceAnalyzer {
                 case NO_PUBLISHED_CONTACT -> lossWithoutPublishedContact++;
                 case UNKNOWN_TRACK -> lossWithUnknownTrack++;
             }
+            if (episode.lastTacticalObserved) {
+                lossTacticalObserved++;
+                if (episode.lastBreachAction) lossWithBreachAction++;
+                if (episode.lastMoving) lossWithMovingMembers++;
+                if (episode.lastExposedFromPrimary) lossExposedFromPrimary++;
+                switch (episode.lastDoctrine) {
+                    case "ADVANCE" -> lossDoctrineAdvance++;
+                    case "HOLD" -> lossDoctrineHold++;
+                    case "DISENGAGE" -> lossDoctrineDisengage++;
+                    default -> { }
+                }
+                switch (episode.lastInitiative) {
+                    case "NONE" -> lossInitiativeNone++;
+                    case "RECEIVE" -> lossInitiativeReceive++;
+                    case "PROSECUTE" -> lossInitiativeProsecute++;
+                    default -> { }
+                }
+                if (episode.lastWithEngageableMembers) lossWithEngageableMembers++;
+                if (episode.lastWithEngageableFireTeams) lossWithEngageableFireTeams++;
+            } else {
+                lossTacticalUnknown++;
+            }
+            if (episode.lastUnderFireRecently) lossUnderFireRecently++;
+            if (episode.lastMajorityCoveredFromPrimary) {
+                lossMajorityCoveredFromPrimary++;
+            }
+            if (episode.lastCoolingDown) lossCoolingDown++;
         }
 
         SecureTravelMetrics result() {
@@ -1893,8 +2565,40 @@ public final class CommandTraceAnalyzer {
                     lossLocationsObserved, lossLocationsUnknown,
                     lossAtLocalContact, lossWithTrackBeliefOnly,
                     lossWithoutPublishedContact, lossWithUnknownTrack,
+                    lossTacticalObserved, lossTacticalUnknown,
+                    lossWithBreachAction, lossWithMovingMembers,
+                    lossExposedFromPrimary, lossDoctrineAdvance,
+                    lossDoctrineHold, lossDoctrineDisengage,
+                    lossInitiativeNone, lossInitiativeReceive,
+                    lossInitiativeProsecute, lossWithEngageableMembers,
+                    lossWithEngageableFireTeams, lossUnderFireRecently,
+                    lossMajorityCoveredFromPrimary, lossCoolingDown,
                     lossDistances, lossProgress);
         }
+    }
+
+    private static void observeLossTactics(SecureTravelEpisode episode,
+                                           JSONObject state) {
+        int alive = state.optInt("aliveMembers", 0);
+        int moving = state.optInt("movingMembers", 0);
+        int covered = state.optInt("coveredFromPrimaryMembers", -1);
+        int coolingDown = state.optInt("coolingDownMembers", 0);
+        String action = state.optString("currentAction", "");
+        episode.lastTacticalObserved = true;
+        episode.lastBreachAction = action.startsWith("BreachAndAdvance");
+        episode.lastMoving = moving > 0;
+        episode.lastExposedFromPrimary = moving > 0 && covered == 0;
+        episode.lastDoctrine = state.optString("contactDoctrine", "");
+        episode.lastInitiative = state.optString("contactInitiative", "");
+        episode.lastWithEngageableMembers =
+                state.optInt("primaryEngageableMembers", 0) > 0;
+        episode.lastWithEngageableFireTeams =
+                state.optInt("primaryEngageableFireTeams", 0) > 0;
+        episode.lastUnderFireRecently =
+                state.optBoolean("underFireRecently", false);
+        episode.lastMajorityCoveredFromPrimary =
+                alive > 0 && covered >= 0 && covered * 2 >= alive;
+        episode.lastCoolingDown = coolingDown > 0;
     }
 
     private static double distanceToMarker(JSONObject state, int markerX,

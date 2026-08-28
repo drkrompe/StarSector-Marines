@@ -36,6 +36,14 @@ public enum SpecialAiPolicy {
      */
     AREA_DENIAL_EMPLACEMENT("area-denial-emplacement"),
     /**
+     * Placed directional cover: the carrier sets a screen down on one boundary
+     * of the cell it is standing on, facing a threat it can already see. It
+     * has no gun, no radius, and no opinion about anyone — it is a property of
+     * that boundary, protecting whoever stands on either side of it from fire
+     * crossing it, and nothing else.
+     */
+    DIRECTIONAL_COVER_SCREEN("directional-cover-screen"),
+    /**
      * Sustained anti-hard contact work: a visible, interruptible channel
      * against an adjacent hardened actor, or against an authored breach point
      * the carrier is already standing beside. It never seeks obstacles.

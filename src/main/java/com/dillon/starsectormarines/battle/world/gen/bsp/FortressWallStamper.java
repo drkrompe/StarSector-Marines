@@ -154,8 +154,39 @@ public final class FortressWallStamper implements GenStage {
             stampWestToEast(grid, topology, bbox, keepCompound,
                     wallMask, skip, ctx.tactical, w, h, rng);
         }
-        demolishIntersectedBuildings(grid, topology, ctx.doodads, wallMask, w, h);
+        boolean[][] ward = new boolean[w][h];
+        markWard(ward, ctx.get(BspKeys.FORTRESS_WARD), w, h);
+        demolishIntersectedBuildings(grid, topology, ctx.doodads, wallMask, ward, w, h);
         sealOrphanedPockets(grid, topology, ctx.tactical, w, h);
+        dropBunkersWithoutWindows(grid, ctx.tactical, axis);
+    }
+
+    /**
+     * Retire any forward bunker whose firing slits did not survive the seal.
+     *
+     * <p>Sealing removes barriers beside ground nothing can reach, which is
+     * right — a window onto a stranded pocket is a window onto nowhere. What it
+     * cannot know is that some of those barriers are the slits of a bunker
+     * published moments earlier, and a bunker without them is two fighting
+     * cells staring at a wall.
+     *
+     * <p>Dropping the node is the standing answer rather than a repair: a
+     * bunker is omitted when it cannot be built usable, and re-opening the
+     * ground in front of one to justify it would be the wall deciding where the
+     * map's dead ends are.
+     */
+    private static void dropBunkersWithoutWindows(NavigationGrid grid,
+                                                  List<TacticalNode> tactical,
+                                                  TraversalAxis axis) {
+        Direction slit = axis == TraversalAxis.SOUTH_TO_NORTH
+                ? Direction.S : Direction.W;
+        tactical.removeIf(node -> {
+            if (node.kind != TacticalNode.Kind.FORWARD_BUNKER) return false;
+            for (StandPosition stand : node.standPositions()) {
+                if (grid.getEdgeBarrier(stand.x(), stand.y(), slit) == null) return true;
+            }
+            return false;
+        });
     }
 
     /**
@@ -673,18 +704,11 @@ public final class FortressWallStamper implements GenStage {
                     clearBunkerFloor(grid, topology, x, y);
                     Direction front = axis == TraversalAxis.SOUTH_TO_NORTH
                             ? Direction.S : Direction.W;
-                    // A bunker is stamped over whatever the fill left here, and
-                    // a building demolished under it can leave its own window on
-                    // this very edge. An edge carries exactly one authored
-                    // identity, so the bunker takes the one already there rather
-                    // than authoring a second: a window is a window, and it is
-                    // reciprocal, so the firing line is unaffected. Insisting on
-                    // a fresh edge threw instead, turning a coincidence of
-                    // geometry into a map that failed to generate at all.
-                    if (grid.getEdgeBarrier(x, y, front) == null) {
-                        grid.placeEdgeBarrier(x, y, front,
-                                SharedEdgeBarrier.Kind.WINDOW);
-                    }
+                    // The site gate has already proved this edge is free, so
+                    // the bunker authors its own window here rather than
+                    // discovering someone else's.
+                    grid.placeEdgeBarrier(x, y, front,
+                            SharedEdgeBarrier.Kind.WINDOW);
                     standPositions.add(new StandPosition(x, y));
                 } else if (perimeterWall) {
                     paintBunkerWall(grid, topology, x, y, wallMask);
@@ -770,6 +794,25 @@ public final class FortressWallStamper implements GenStage {
         // that the intact pane still has a route around the free-standing
         // bunker. This rejects a visually plausible stamp inside a stranded
         // one-cell pocket.
+        // Both firing slits have to be cuttable, which is not a given: this
+        // bunker is stamped over ground the fill already used, and a building
+        // demolished under it can have left its own window on the very edge a
+        // slit wants. An edge carries one authored identity, so a site whose
+        // slits are already spoken for is not a site — rejecting it here is the
+        // standing rule that a bunker is omitted rather than published with
+        // fighting cells that do not work.
+        Direction slit = axis == TraversalAxis.SOUTH_TO_NORTH
+                ? Direction.S : Direction.W;
+        for (int along = -1; along <= 1; along += 2) {
+            int x = cx + (axis == TraversalAxis.SOUTH_TO_NORTH
+                    ? along : -BUNKER_HALF_DEPTH);
+            int y = cy + (axis == TraversalAxis.SOUTH_TO_NORTH
+                    ? -BUNKER_HALF_DEPTH : along);
+            if (!grid.inBounds(x, y)) return false;
+            if (grid.getEdgeBarrier(x, y, slit) != null) return false;
+            if (!grid.isSharedEdgePassable(x, y, slit)) return false;
+        }
+
         int frontDepth = -BUNKER_HALF_DEPTH - 1;
         List<int[]> frontExits = new ArrayList<>(BUNKER_FRONTAGE);
         for (int along = -BUNKER_HALF_FRONTAGE;
@@ -928,10 +971,22 @@ public final class FortressWallStamper implements GenStage {
      * extends well past the sweep zone, the entire building still gets
      * cleared — that's intentional: any structure touching the wall is part
      * of the fortification and shouldn't read as an independent block.
+     *
+     * <p><b>The ward is exempt, for the reason its route exclusion exists.</b>
+     * Keeping the wall out of the ward is only half of not destroying it: a
+     * shed whose near row falls inside the sweep zone is flooded to its far
+     * corner by the rule above, and comes back walkable parade ground with its
+     * bays and berths still standing in the open. The clearance the ward
+     * reserves is measured from the band it sits in rather than from the wall,
+     * which lands where the route lets it, so the two can end up two cells
+     * apart — near enough for that flood, and it takes the whole building.
+     * Nothing distinguishes a garrison shed from a tenement in the flood
+     * itself; both are joined-up {@code INDOOR}. The ward has to say so here.
      */
     private static void demolishIntersectedBuildings(NavigationGrid grid, CellTopology topology,
                                                       List<Doodad> doodads,
-                                                      boolean[][] wallMask, int w, int h) {
+                                                      boolean[][] wallMask, boolean[][] ward,
+                                                      int w, int h) {
         boolean[][] sweepZone = dilateMask(wallMask, DEMOLISH_RADIUS, w, h);
 
         boolean[][] toClear = new boolean[w][h];
@@ -939,9 +994,10 @@ public final class FortressWallStamper implements GenStage {
             for (int x = 0; x < w; x++) {
                 if (!sweepZone[x][y]) continue;
                 if (wallMask[x][y]) continue;
+                if (ward[x][y]) continue;
                 if (toClear[x][y]) continue;
                 if (topology.getGroundKind(x, y) != GroundKind.INDOOR) continue;
-                floodIndoor(x, y, topology, toClear, w, h);
+                floodIndoor(x, y, topology, toClear, ward, w, h);
             }
         }
 
@@ -960,6 +1016,7 @@ public final class FortressWallStamper implements GenStage {
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
                 if (wallMask[x][y]) continue;
+                if (ward[x][y]) continue;
                 if (toClear[x][y]) continue;
                 if (grid.isWalkable(x, y)) continue;
                 if (!hasClearedNeighbor(toClear, x, y, w, h)) continue;
@@ -1005,7 +1062,7 @@ public final class FortressWallStamper implements GenStage {
     }
 
     private static void floodIndoor(int startX, int startY, CellTopology topology,
-                                     boolean[][] toClear, int w, int h) {
+                                     boolean[][] toClear, boolean[][] ward, int w, int h) {
         Deque<int[]> queue = new ArrayDeque<>();
         queue.add(new int[]{startX, startY});
         toClear[startX][startY] = true;
@@ -1017,6 +1074,7 @@ public final class FortressWallStamper implements GenStage {
                 int ny = p[1] + d[1];
                 if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
                 if (toClear[nx][ny]) continue;
+                if (ward[nx][ny]) continue;
                 if (topology.getGroundKind(nx, ny) != GroundKind.INDOOR) continue;
                 toClear[nx][ny] = true;
                 queue.add(new int[]{nx, ny});

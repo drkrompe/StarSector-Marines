@@ -125,18 +125,29 @@ See `ui-nouns.md` and `company-view-nouns.md`.
 
 ## Immediate recommendation
 
-Use the explicit Conquest secure-travel evidence to investigate tactical
-survival under contact before tuning capture allocation. On the current sealed
-6,000-tick reinforced row, 19 trips produced 2 target entries, 16 squad losses,
-and one deliberate replacement assignment; there was no compound-target or
-capture-marker churn. Every lost squad's final living command pulse had local
-contact. Median loss distance was about 44.8 cells after 39.6% of the original
-approach, while four squads got within 13.5 cells, separating a broad contact-
-survival problem from a smaller near-objective breach problem. Compare the
-full-strength row when the local Gradle environment permits, then correlate
-loss episodes with cover, suppression, and engagement behavior rather than
-changing commander targets from this one seed. Exact whole-zone occupancy
-remains neutral outcome evidence and must never become commander input. Then
+Investigate Conquest's contested-compound conversion before tuning capture
+allocation or broad contact doctrine. The duplicate byte-stable schema-8
+6,000-tick reinforced row produced 23 exact target-zone entries from 32 secure
+trips, but no marine-only compound tick, no capture, and 41,230 mixed-occupancy
+compound-ticks. Only two trips ended in squad loss. Both final living pulses
+were lone, stationary survivors with an engageable fire line and weapon
+cooldown; neither was executing the breach action or moving exposed from its
+published primary contact. One was holding and receiving contact on
+`EnterZone`, while the other was recently under fire and morale-broken on
+`BreakContact`. The older travel-survival hypothesis therefore does not explain
+the current row. Conquest summary schema 7 now groups exact-room Marine presence
+into neutral cohorts with entry/peak strength, zone-member additions, defenders
+cleared, uncontested/capture latency, mixed duration, and explicit exit or
+censor reasons. Run the duplicate bounded reinforced fixture next. If weak
+cohorts receive no added members and leave defenders present, preserve their
+intent but let the commander assign contested-compound relief instead of
+counting a broken or single-survivor squad as a full capture slot. If healthy,
+reinforced cohorts still never clear, investigate `ClearZone` reachability and
+`HoldZone` defender re-entry. Exact hostile and whole-zone occupancy remain
+neutral evidence and never commander input. Cooldown still does not prove a
+shot, and there is no implemented suppression state; add a monotonic
+squad-level rounds-fired counter only if cohort evidence leaves return fire
+unresolved. Then
 close the remaining assignment-writer and live-acceptance edges in
 `autonomous-mission-command-foundation.md`. Assault's paired production
 commanders now share stable area geometry while retaining separate beliefs,

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.stage;
 
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
@@ -308,6 +309,14 @@ public final class FortressWardStage implements GenStage {
         for (int x = ward[0]; x <= ward[2]; x++) {
             for (int y = ward[1]; y <= ward[3]; y++) {
                 if (inCitadel(citadel, x, y, CITADEL_CLEARANCE) || roads[x][y]) continue;
+                // Before the cell stops being walkable: a barrier is an edge
+                // feature, and a window left behind by a demolished building is
+                // scenery with nothing to belong to — and worse, an authored
+                // edge the next stage cannot build on.
+                ctx.grid.removeEdgeBarrier(x, y, Direction.E);
+                ctx.grid.removeEdgeBarrier(x, y, Direction.N);
+                ctx.grid.removeEdgeBarrier(x, y, Direction.W);
+                ctx.grid.removeEdgeBarrier(x, y, Direction.S);
                 ctx.grid.setWalkable(x, y, false);
                 ctx.grid.setDoorway(x, y, false);
                 ctx.topology.setWallDirMask(x, y, 0);
@@ -378,9 +387,9 @@ public final class FortressWardStage implements GenStage {
             int[] stand = standCell(ctx, room);
             if (stand == null) continue;
             ctx.tactical.add(new TacticalNode(kind, stand[0], stand[1],
-                    room.x(), room.y(),
-                    room.x() + room.shape().width() - 1,
-                    room.y() + room.shape().height() - 1,
+                    room.originX(), room.originY(),
+                    room.originX() + room.shape().width() - 1,
+                    room.originY() + room.shape().height() - 1,
                     Faction.DEFENDER,
                     kind == TacticalNode.Kind.ARMORY ? 70 : 60, 3, false));
         }
@@ -389,8 +398,8 @@ public final class FortressWardStage implements GenStage {
     /** A walkable cell the building actually owns, never a wall or a doorway. */
     private static int[] standCell(GenContext ctx, RoomPacker.Placed room) {
         for (int[] cell : room.shape().filled()) {
-            int x = room.x() + cell[0];
-            int y = room.y() + cell[1];
+            int x = room.originX() + cell[0];
+            int y = room.originY() + cell[1];
             if (x < 0 || y < 0 || x >= ctx.width || y >= ctx.height) continue;
             if (ctx.grid.isWalkable(x, y) && !ctx.grid.isDoorway(x, y)) return new int[]{ x, y };
         }

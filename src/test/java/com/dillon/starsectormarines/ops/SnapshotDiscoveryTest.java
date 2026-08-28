@@ -16,8 +16,8 @@ class SnapshotDiscoveryTest {
                 .map(SnapshotSuite::id)
                 .toList();
 
-        assertEquals(List.of("armory", "durability-bars", "frontage-scene", "layers",
-                "point-defence", "ship-decks", "turrets", "ui"), ids);
+        assertEquals(List.of("armory", "deployable-cover", "durability-bars", "frontage-scene",
+                "layers", "point-defence", "ship-decks", "turrets", "ui"), ids);
     }
 
     @Test

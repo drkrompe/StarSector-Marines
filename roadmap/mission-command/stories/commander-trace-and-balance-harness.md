@@ -4,8 +4,8 @@ Status: IN PROGRESS — live diagnostics, deterministic Conquest evidence, and p
 
 Written: 2026-08-25
 
-Updated: 2026-08-28 — classified secure-travel retarget provenance and
-last-alive squad-loss location/context in summary schema 5.
+Updated: 2026-08-28 — used schema-8 tactical evidence to move the next
+Conquest investigation from travel loss to measured contested-zone conversion.
 
 Read `mission-command-nouns.md` and `battle-fixtures-nouns.md` before implementing this
 story.
@@ -61,6 +61,10 @@ churned, or collapsed before tuning force budgets or doctrine.
 - [x] Conquest evidence distinguishes own-squad approach and target-zone
   arrival from neutral mixed or marine-only presence in the exact compound
   capture zone without leaking opposing occupancy into commander perspective.
+- [x] Exact capture-zone presence is grouped into single-exit neutral cohorts
+  with observed versus left-censored entry, strength/addition/clearance facts,
+  uncontested/capture latency, mixed duration, topology censoring, and explicit
+  gap/run-bound exits.
 - [x] Every observed Conquest secure-compound travel segment ends once by
   target entry, retarget, release, squad loss, execution suspension,
   observation gap, timeout, or terminal result; incomplete traces remain open
@@ -114,7 +118,7 @@ early terminal results—and may take several minutes. A max-tick or external-
 fixture override is labelled ad hoc in the report; `summary.json` is the full
 machine-readable evidence and `summary.md` is its human overview.
 
-Command-trace schema 7 canonicalizes diagnostic scalar floats to basis-point
+Command-trace schema 8 canonicalizes diagnostic scalar floats to basis-point
 precision and published squad centroids to one tenth of a cell. The simulation
 and commander still consume their unmodified values. This boundary keeps
 sub-cell integration drift from masquerading as a different command decision
@@ -122,7 +126,12 @@ while retaining much finer spatial resolution than any objective zone or
 movement marker requires. Schema 6 added the count of squad members with an
 unexhausted movement path. Schema 7 adds the authoritative compound capture
 cell/zone and the perspective-safe count of own squad members in their current
-assigned target zone. The offline analyzer applies strict
+assigned target zone. Schema 8 adds final-living tactical-contact facets:
+published contact posture/doctrine/initiative and engageability, actual-moving
+members, directional cover from the believed primary contact, recent incoming
+fire, morale state, current goal/action, and members presently cooling down.
+Cooldown is not reported as shots fired and no suppression state is invented.
+The offline analyzer applies strict
 lifecycle → suspension → contact → active-path → genuine-idle precedence to
 command-unassigned actions; schema 5 and older rows remain explicitly
 unclassified rather than being reinterpreted without the missing path fact.
@@ -256,6 +265,75 @@ were within 13.5 cells and five had crossed half their starting range. The run
 captured two compounds and held one at timeout. This isolates tactical survival
 under contact—and secondarily the final breach—as the next question; it does
 not authorize force, damage, or doctrine tuning from one seed.
+
+## Tactical-contact loss follow-up
+
+Command-trace schema 8 and Conquest summary schema 6 now retain the last living
+command-pulse tactical picture for every secure-travel squad-loss exit. The
+report exposes orthogonal facts instead of forcing a single explanation:
+breach action, actual movement, movement with no directional cover from the
+published primary contact, contact doctrine and initiative, engageable members
+and fireteams, recent incoming fire, majority directional cover, and weapon
+cooldown presence. Schema 7 losses remain explicitly unknown.
+
+The duplicate forced-serial 6,000-tick reinforced replay was byte-stable and
+materially changed the current picture. Of 32 secure trips, 23 entered their
+exact target zone, five retargeted, two ended in squad loss, and two remained
+active at timeout. Twenty-two adjacent-assault commitments and eight compounds
+with Marine presence confirm that approach and final-room entry are no longer
+the dominant failure in this row.
+
+The two loss exits likewise do not support an uncovered charge or final-breach
+failure. SQ-124's final living pulse was one stationary Marine 45.6 cells from
+the marker on `EnterZone[97]`, with `HOLD` / `RECEIVE`, one engageable member
+and fireteam, and one member cooling down. SQ-126's was one stationary Marine
+69.9 cells out on `BreakContact`, recently under fire and morale-broken, with
+`ADVANCE` / `NONE`, one engageable member and fireteam, and one member cooling
+down. Neither row published `BreachAndAdvance` or actual movement. Cooldown
+remains a recovery-state observation rather than a cumulative shot count.
+
+The stronger next seam is contested capture conversion. The same run recorded
+41,230 mixed-occupancy compound-ticks, zero marine-only compound-ticks, zero
+captures, and peak capture progress of 6,667 basis points despite those 23
+entries. Extend neutral evidence around capture-zone cohorts and correlate it
+with the perspective squad actions already in the zone: arrival strength,
+friendly reinforcement, hostile clearance, rotation or displacement, and time
+to uncontested control. Exact hostile and whole-zone occupancy remain referee
+facts and must not become commander input. Add a monotonic squad-level
+rounds-fired counter only if this cohort view leaves return fire unresolved.
+
+## Capture-zone cohort follow-up
+
+Conquest summary schema 7 now derives exact-room presence cohorts from the
+existing referee stream; command-trace schema 8 does not change. Each cohort
+begins on an observed Marine zero-to-positive transition or an explicitly
+left-censored positive baseline and ends once by capture, defender-present or
+empty Marine exit, unresolved or changed capture-zone topology, observation
+gap, timeout, or terminal result. Incomplete live evidence stays open, and a
+same-tick capture takes precedence over the following zero-presence row.
+
+The report retains observed-entry and all-cohort peak Marine strength, positive
+zone-member additions, defenders cleared from entry, uncontested observations
+and entry/capture latencies, per-cohort mixed duration, and the longest mixed
+run. It also correlates schema-7+ Marine command pulses by exact assigned target
+zone to show first/peak published squad count, members physically in-zone,
+total alive strength of those squads, multi-squad cohorts, and squads first
+appearing after the cohort's initial published sample. It deliberately
+does not call count growth a reinforcement-system delivery, identify the
+people who changed, or infer whether an empty exit was rotation, withdrawal,
+or annihilation. Schema 3–6 anchor-zone presence remains unavailable rather
+than being reinterpreted as exact capture-room evidence; capture-zone identity
+changes censor a cohort so a breached/merged room cannot fabricate an arrival
+or reinforcement.
+
+Run the duplicate bounded reinforced fixture next. If cohorts commonly enter
+understrength, gain no zone members, and exit with defenders still present,
+the first commander behavior seam is contested-compound relief: preserve the
+depleted squad's intent but stop treating one broken, displaced, or
+single-survivor squad as a full capture allocation. If healthy reinforced
+cohorts remain mixed instead, focus the tactical slice on unreachable in-zone
+defenders in `ClearZone` and unseen defender re-entry in `HoldZone` before
+tuning force budgets or capture timers.
 
 ## Historical construction-only baselines
 

@@ -75,21 +75,47 @@ public record ConquestFrontSnapshot(
             String executionSuspension,
             boolean localContact,
             int activePathMembers,
-            int membersInTargetZone) {
+            int membersInTargetZone,
+            boolean underFireRecently,
+            boolean moraleBroken,
+            String currentGoal,
+            String currentAction,
+            int movingMembers,
+            int coveredFromPrimaryMembers,
+            int primaryEngageableMembers,
+            int primaryEngageableFireTeams,
+            String contactPosture,
+            String contactDoctrine,
+            String contactInitiative,
+            int coolingDownMembers) {
 
         public SquadState(int squadId, int aliveMembers, float centroidX,
                           float centroidY, int currentZoneId,
                           String executionSuspension, boolean localContact,
                           int activePathMembers) {
             this(squadId, aliveMembers, centroidX, centroidY, currentZoneId,
-                    executionSuspension, localContact, activePathMembers, 0);
+                    executionSuspension, localContact, activePathMembers, 0,
+                    false, false, null, null, 0, -1, 0, 0,
+                    null, null, null, 0);
         }
 
         public SquadState(int squadId, int aliveMembers, float centroidX,
                           float centroidY, int currentZoneId,
                           String executionSuspension, boolean localContact) {
             this(squadId, aliveMembers, centroidX, centroidY, currentZoneId,
-                    executionSuspension, localContact, 0, 0);
+                    executionSuspension, localContact, 0, 0,
+                    false, false, null, null, 0, -1, 0, 0,
+                    null, null, null, 0);
+        }
+
+        public SquadState(int squadId, int aliveMembers, float centroidX,
+                          float centroidY, int currentZoneId,
+                          String executionSuspension, boolean localContact,
+                          int activePathMembers, int membersInTargetZone) {
+            this(squadId, aliveMembers, centroidX, centroidY, currentZoneId,
+                    executionSuspension, localContact, activePathMembers,
+                    membersInTargetZone, false, false, null, null,
+                    0, -1, 0, 0, null, null, null, 0);
         }
     }
 
