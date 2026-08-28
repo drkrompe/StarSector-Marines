@@ -10,7 +10,9 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -126,7 +128,10 @@ public final class GroundRosterProfile {
     GroundRosterProfile(String id, Set<String> factionIds, Issue bulk, Issue elite,
                         List<MechVariant> heavySupport) {
         this.id = id;
-        this.factionIds = Set.copyOf(factionIds);
+        // Authored order, not Set.copyOf: an immutable JDK set salts its iteration
+        // order per JVM run, and the first authored faction id is this profile's
+        // stable public name (see primaryFactionId).
+        this.factionIds = Collections.unmodifiableSet(new LinkedHashSet<>(factionIds));
         this.bulk = bulk;
         this.elite = elite;
         this.heavySupport = List.copyOf(heavySupport);
@@ -134,6 +139,14 @@ public final class GroundRosterProfile {
 
     public String id() { return id; }
     public Set<String> factionIds() { return factionIds; }
+
+    /**
+     * The first faction id the catalog assigned to this profile — the one a
+     * caller names when it wants <em>this</em> doctrine rather than a particular
+     * campaign faction. Round-trips: {@code resolve(primaryFactionId())} returns
+     * this profile.
+     */
+    public String primaryFactionId() { return factionIds.iterator().next(); }
     public Issue issue(ForceTier tier) { return tier == ForceTier.ELITE ? elite : bulk; }
     public UnitType unitType(ForceTier tier) { return issue(tier).unitType(); }
     public List<MechVariant> heavySupport() { return heavySupport; }

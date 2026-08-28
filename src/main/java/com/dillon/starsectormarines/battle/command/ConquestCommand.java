@@ -238,6 +238,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
         final String contactInitiative;
         final int coolingDownMembers;
         final int[] memberZoneIds;
+        final int[] memberCellXs;
+        final int[] memberCellYs;
         final ObjectiveAssignment originalAssignment;
         ObjectiveAssignment assignedObjective;
 
@@ -267,6 +269,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
             contactInitiative = state.contactInitiative();
             coolingDownMembers = state.coolingDownMembers();
             memberZoneIds = state.memberZoneIds();
+            memberCellXs = state.memberCellXs();
+            memberCellYs = state.memberCellYs();
             originalAssignment = state.assignment();
             assignedObjective = state.assignment();
         }
@@ -508,14 +512,16 @@ public final class ConquestCommand implements ConquestFrontCommand,
         for (PlanningSquad squad : squads) {
             ObjectiveAssignment a = squad.assignedObjective;
             if (a == null || a.kind() != AssignmentKind.SECURE_COMPOUND) continue;
-            int idx = targetIndexForCaptureZone(a.targetZoneId());
+            int idx = targetIndexForCompound(a.targetNode());
+            if (idx < 0 && a.targetNode() == null) {
+                idx = targetIndexForCaptureZone(a.targetZoneId());
+            }
             if (idx < 0 || slots[idx] <= 0) continue;
             if (!reachableZone(squad, compoundTargets.get(idx).captureZoneId, frame)) {
                 continue;
             }
             slots[idx]--;
-            committed.add(squad.id);
-            putCompoundDirective(squad, compoundTargets.get(idx), directives,
+            commitCapture(squad, compoundTargets.get(idx), committed, directives,
                     AssignmentReason.COMPOUND_CAPTURE_PRESERVED);
         }
 
@@ -629,7 +635,9 @@ public final class ConquestCommand implements ConquestFrontCommand,
         ObjectiveAssignment cur = squad.assignedObjective;
         if (cur == null
                 || cur.kind() != AssignmentKind.SECURE_COMPOUND
-                || cur.targetZoneId() != t.captureZoneId) {
+                || cur.targetZoneId() != t.captureZoneId
+                || !CommandFrameCopies.sameNodeIdentity(
+                cur.targetNode(), t.node)) {
             squad.assignedObjective = ObjectiveAssignment.secureCompound(
                     squad.id, t.captureZoneId, t.node);
         }
@@ -662,6 +670,15 @@ public final class ConquestCommand implements ConquestFrontCommand,
     private int targetIndexForCaptureZone(int captureZoneId) {
         for (int i = 0; i < compoundTargets.size(); i++) {
             if (compoundTargets.get(i).captureZoneId == captureZoneId) return i;
+        }
+        return -1;
+    }
+
+    private int targetIndexForCompound(TacticalNode node) {
+        if (node == null) return -1;
+        for (int i = 0; i < compoundTargets.size(); i++) {
+            if (CommandFrameCopies.sameNodeIdentity(
+                    node, compoundTargets.get(i).node)) return i;
         }
         return -1;
     }
@@ -738,7 +755,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
             if (markerCellX < 0
                     && assignment.kind() == AssignmentKind.SECURE_COMPOUND) {
                 CompoundTarget target = compoundTarget(
-                        assignment.targetZoneId());
+                        assignment.targetNode(), assignment.targetZoneId());
                 if (target != null) {
                     markerCellX = target.captureCellX;
                     markerCellY = target.captureCellY;
@@ -1242,13 +1259,14 @@ public final class ConquestCommand implements ConquestFrontCommand,
                 influenceTick, axis, phase, remainingCompounds,
                 keep != null ? keep.captureZoneId : -1,
                 keep != null ? keep.state : null,
-                tracks, squadStates(allSquads, directives),
+                tracks, squadStates(allSquads, directives, frame.topology()),
                 new ArrayList<>(directives.values()));
     }
 
     private static List<ConquestFrontSnapshot.SquadState> squadStates(
             Map<Integer, PlanningSquad> squads,
-            Map<Integer, SquadDirective> directives) {
+            Map<Integer, SquadDirective> directives,
+            CommandTopology topology) {
         List<ConquestFrontSnapshot.SquadState> states = new ArrayList<>(squads.size());
         for (PlanningSquad squad : squads.values()) {
             SquadDirective directive = directives.get(squad.id);
@@ -1259,6 +1277,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
                     squad.executionSuspension, squad.localContact,
                     squad.activePathMembers,
                     membersInZone(squad.memberZoneIds, targetZone),
+                    membersAtTargetPortal(squad, targetZone, topology),
                     squad.underFireRecently, squad.moraleBroken,
                     squad.currentGoal, squad.currentAction,
                     squad.movingMembers, squad.coveredFromPrimaryMembers,
@@ -1275,6 +1294,27 @@ public final class ConquestCommand implements ConquestFrontCommand,
         if (targetZone < 0) return 0;
         int count = 0;
         for (int zoneId : memberZoneIds) if (zoneId == targetZone) count++;
+        return count;
+    }
+
+    private static int membersAtTargetPortal(PlanningSquad squad,
+                                             int targetZone,
+                                             CommandTopology topology) {
+        if (targetZone < 0) return 0;
+        int count = 0;
+        for (int i = 0; i < squad.memberCellXs.length; i++) {
+            int x = squad.memberCellXs[i];
+            int y = squad.memberCellYs[i];
+            if (!topology.inBounds(x, y)) continue;
+            int cell = y * topology.width() + x;
+            if (!topology.isDoorwayCell(cell)) continue;
+            if (topology.zoneIdAt(x - 1, y) == targetZone
+                    || topology.zoneIdAt(x + 1, y) == targetZone
+                    || topology.zoneIdAt(x, y - 1) == targetZone
+                    || topology.zoneIdAt(x, y + 1) == targetZone) {
+                count++;
+            }
+        }
         return count;
     }
 
@@ -1327,16 +1367,27 @@ public final class ConquestCommand implements ConquestFrontCommand,
             return CommandStabilityBreak.NONE;
         }
         ObjectiveAssignment old = incumbent.assignment();
+        if (old.kind() == AssignmentKind.SECURE_COMPOUND
+                && squad.assignedObjective != null
+                && squad.assignedObjective.kind()
+                == AssignmentKind.SECURE_COMPOUND
+                && CommandFrameCopies.sameNodeIdentity(old.targetNode(),
+                squad.assignedObjective.targetNode())
+                && old.targetZoneId()
+                != squad.assignedObjective.targetZoneId()) {
+            return CommandStabilityBreak.TOPOLOGY_REBOUND;
+        }
         if (frontSnapshot != null && frontSnapshot.phase() != phase) {
             return CommandStabilityBreak.OBJECTIVE_COMPLETED;
         }
         if (old.kind() == AssignmentKind.SECURE_COMPOUND) {
-            CompoundTarget target = compoundTarget(old.targetZoneId());
+            CompoundTarget target = compoundTarget(
+                    old.targetNode(), old.targetZoneId());
             if (target == null
                     || target.state == CompoundService.CompoundState.MARINE_HELD) {
                 return CommandStabilityBreak.OBJECTIVE_COMPLETED;
             }
-            if (!reachableZone(squad, old.targetZoneId(), frame)) {
+            if (!reachableZone(squad, target.captureZoneId, frame)) {
                 return CommandStabilityBreak.TARGET_UNREACHABLE;
             }
         } else if (old.kind() == AssignmentKind.CLEAR_ZONE) {
@@ -1370,7 +1421,14 @@ public final class ConquestCommand implements ConquestFrontCommand,
         return CommandStabilityBreak.NONE;
     }
 
-    private CompoundTarget compoundTarget(int zoneId) {
+    private CompoundTarget compoundTarget(TacticalNode node, int zoneId) {
+        if (node != null) {
+            for (CompoundTarget target : compoundTargets) {
+                if (CommandFrameCopies.sameNodeIdentity(
+                        node, target.node)) return target;
+            }
+            return null;
+        }
         for (CompoundTarget target : compoundTargets) {
             if (target.captureZoneId == zoneId) return target;
         }

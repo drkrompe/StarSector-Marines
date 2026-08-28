@@ -76,6 +76,7 @@ public record ConquestFrontSnapshot(
             boolean localContact,
             int activePathMembers,
             int membersInTargetZone,
+            int membersInTargetPortal,
             boolean underFireRecently,
             boolean moraleBroken,
             String currentGoal,
@@ -95,7 +96,7 @@ public record ConquestFrontSnapshot(
                           int activePathMembers) {
             this(squadId, aliveMembers, centroidX, centroidY, currentZoneId,
                     executionSuspension, localContact, activePathMembers, 0,
-                    false, false, null, null, 0, -1, 0, 0,
+                    0, false, false, null, null, 0, -1, 0, 0,
                     null, null, null, 0);
         }
 
@@ -104,7 +105,7 @@ public record ConquestFrontSnapshot(
                           String executionSuspension, boolean localContact) {
             this(squadId, aliveMembers, centroidX, centroidY, currentZoneId,
                     executionSuspension, localContact, 0, 0,
-                    false, false, null, null, 0, -1, 0, 0,
+                    0, false, false, null, null, 0, -1, 0, 0,
                     null, null, null, 0);
         }
 
@@ -114,7 +115,7 @@ public record ConquestFrontSnapshot(
                           int activePathMembers, int membersInTargetZone) {
             this(squadId, aliveMembers, centroidX, centroidY, currentZoneId,
                     executionSuspension, localContact, activePathMembers,
-                    membersInTargetZone, false, false, null, null,
+                    membersInTargetZone, 0, false, false, null, null,
                     0, -1, 0, 0, null, null, null, 0);
         }
     }

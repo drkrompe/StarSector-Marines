@@ -33,4 +33,26 @@ final class CommandFrameCopies {
                 source.compoundRight(), source.compoundBottom());
         return copy;
     }
+
+    /**
+     * Logical identity retained by a node copied into a frozen command frame.
+     * Tactical-node reference identity remains meaningful inside the live map,
+     * but a command assignment and the next frame necessarily hold different
+     * defensive copies of that same authored place.
+     */
+    static boolean sameNodeIdentity(TacticalNode left, TacticalNode right) {
+        if (left == right) return true;
+        if (left == null || right == null) return false;
+        return left.kind == right.kind
+                && left.anchorX == right.anchorX
+                && left.anchorY == right.anchorY
+                && left.left == right.left
+                && left.top == right.top
+                && left.right == right.right
+                && left.bottom == right.bottom
+                && left.compoundLeft() == right.compoundLeft()
+                && left.compoundTop() == right.compoundTop()
+                && left.compoundRight() == right.compoundRight()
+                && left.compoundBottom() == right.compoundBottom();
+    }
 }
