@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-08-27 — generalized firing apertures across eligible building facades and compound perimeter walls.
+Updated: 2026-08-28 — widened compound aprons and paired perimeter firing apertures.
 
 Map generation turns a deterministic request into a validated tactical world. It
 owns authored spatial intent; runtime systems own subsequent mutation and play.
@@ -70,9 +70,10 @@ Firing apertures are structural wall cells: they remain non-walkable and
 destructible while passing sight and projectiles. Hollow building shells place
 them on facade runs belonging to tactically usable rooms; secured storage and
 infrastructure rooms may deliberately remain opaque. Compound perimeter walls
-place apertures only on sufficiently long straight runs with walkable firing
-space on both sides, preserving gates, hardpoints, corners, and reserved road
-circulation.
+place apertures in adjacent two-cell pairs only on sufficiently long straight
+runs with walkable firing space on both sides. Compound buildings retain a
+two-cell internal apron to support oblique firing angles, while gates,
+hardpoints, corners, and reserved road circulation remain clear.
 
 ## City, station, and ship families
 

@@ -741,7 +741,51 @@ public final class FortressWallStamper implements GenStage {
             if (roadReservation != null && roadReservation[x][y]
                     && !grid.isWalkable(x, y)) return false;
         }
-        return true;
+        int exitDepth = rearDepth + 1;
+        List<int[]> exits = new ArrayList<>(3);
+        for (int along = -1; along <= 1; along++) {
+            int x = cx + (axis == TraversalAxis.SOUTH_TO_NORTH ? along : exitDepth);
+            int y = cy + (axis == TraversalAxis.SOUTH_TO_NORTH ? exitDepth : along);
+            if (grid.inBounds(x, y) && grid.isWalkable(x, y)) {
+                exits.add(new int[]{x, y});
+            }
+        }
+        return rearExitReachesMapEdge(grid, exits, cx, cy, axis);
+    }
+
+    private static boolean rearExitReachesMapEdge(NavigationGrid grid, List<int[]> exits,
+                                                   int cx, int cy, TraversalAxis axis) {
+        if (exits.isEmpty()) return false;
+        boolean[][] seen = new boolean[grid.getWidth()][grid.getHeight()];
+        Deque<int[]> queue = new ArrayDeque<>();
+        for (int[] exit : exits) {
+            seen[exit[0]][exit[1]] = true;
+            queue.addLast(exit);
+        }
+        int[][] directions = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+        while (!queue.isEmpty()) {
+            int[] cell = queue.removeFirst();
+            if (cell[0] == 0 || cell[0] == grid.getWidth() - 1
+                    || cell[1] == 0 || cell[1] == grid.getHeight() - 1) return true;
+            for (int[] direction : directions) {
+                int nx = cell[0] + direction[0];
+                int ny = cell[1] + direction[1];
+                if (!grid.inBounds(nx, ny) || seen[nx][ny]
+                        || !grid.isWalkable(nx, ny)
+                        || insideBunkerFootprint(nx, ny, cx, cy, axis)) continue;
+                seen[nx][ny] = true;
+                queue.addLast(new int[]{nx, ny});
+            }
+        }
+        return false;
+    }
+
+    private static boolean insideBunkerFootprint(int x, int y, int cx, int cy,
+                                                  TraversalAxis axis) {
+        int along = axis == TraversalAxis.SOUTH_TO_NORTH ? x - cx : y - cy;
+        int depth = axis == TraversalAxis.SOUTH_TO_NORTH ? y - cy : x - cx;
+        return Math.abs(along) <= BUNKER_HALF_FRONTAGE
+                && Math.abs(depth) <= BUNKER_HALF_DEPTH;
     }
 
     /**
