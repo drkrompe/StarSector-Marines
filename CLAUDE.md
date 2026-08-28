@@ -252,6 +252,12 @@ mod-specific providers in the root test source set, register providers through
 `META-INF/services`, and keep renderers deterministic and independent of a
 Starsector process or OpenGL context.
 
+`gradlew.bat verifyModJarBoundary` enforces that, and `check` depends on it.
+It computes the forbidden set — everything on the tool runtime classpath that is
+not also on the shipped one, which is the workbench, the MCP host, JUnit and the
+game's own jars — and fails if any of it is in `StarsectorMarines.jar`. Nothing
+to keep in step: a new tool dependency is covered the moment it is added.
+
 The `layerAuthoring` workbench's **Snapshots** tab invokes the same catalog in
 process. It renders off the Swing event thread, confirms before replacing PNGs,
 and refuses to create `layers` evidence while the authoring document has unsaved
