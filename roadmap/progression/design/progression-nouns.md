@@ -605,7 +605,12 @@ belongs to the marine's profile, career, and current contribution. Because
 quality is issued with a definition, that definition's declared standard is
 itself a presentation obligation: where a squad's loadout is shown, its
 experience standard is shown with it, and battle presentation should let the
-same distinction be read from a silhouette. Avoid stacking redundant
+same distinction be read from a silhouette. A suit's integral system carries
+the same obligation, and carries one more: the Armory reports what the
+simulation applies, never what the catalog declares. An authored effect that
+does not run yet is not advertised, because a screen describing intent rather
+than behavior is a brochure, and a player cannot tell the two apart from the
+outside. Avoid stacking redundant
 battlefield overlays; start with the closest decision surface and add in-world
 signal only when it materially improves play.
 

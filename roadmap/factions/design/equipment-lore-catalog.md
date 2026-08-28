@@ -67,7 +67,7 @@ delivery behavior, protection tradeoff, or special activation.
 | `armor.bulwark-heavy` | **Bulwark coalition battlesuit** — modular League heavy armor built around replaceable actuators and shared control standards. | League breach formations, wealthy member worlds, and mercenary patron or recovery channels. | Balance and repairability are its identity; it does not match each specialist heavy pattern at that pattern's strongest axis. |
 | `armor.reliquary-heavy` | **Reliquary consecrated battlesuit** — an artisan-restored legacy shell entrusted through Knightly trials. | Knights of Ludd and scarce Church or Independent patron/recovery channels. | Exceptional rating is paid for with lower pool and the heaviest deliberate movement; spiritual sanction is provenance, not damage reduction. |
 | `armor.lions-mantle` | **Lion's Mantle guard battlesuit** — prestige Sindrian armor with oversized cooling and lavish plate support. | Lion's Guard patron issue and rare captured or diverted examples. | The largest formal-faction armor reserve is slow and easy to hit; spectacle is a liability as well as flavor. |
-| `armor.foundry-breaker` | **Foundry-breaker industrial rig** — a cargo exoskeleton buried under illicit servos and welded ship plate. | Pirate and Pather foundry cells; Independent access is recovery-only. | Enormous crude pool cannot substitute for rating, mobility, or target denial, and the rig remains infantry rather than a mech. |
+| `armor.foundry-breaker` | **Foundry-breaker industrial rig** — a cargo exoskeleton buried under illicit servos and welded ship plate. Its shoulder bracing and a salvaged riot screen are wired to one trigger as the **breaching assist**, the first authored integral system. | Pirate and Pather foundry cells; Independent access is recovery-only. | Enormous crude pool cannot substitute for rating, mobility, or target denial, and the rig remains infantry rather than a mech. |
 
 ## Built-in loadout provenance
 
@@ -93,6 +93,22 @@ player how an institution composes shared equipment:
   composite issue is faster and harder to hit, League issue is balanced, Church and
   Knight legacy armor is resistant but slow, Sindrian plate is deep and conspicuous,
   and outlaw rigs survive through crude volume with weak resistance.
+
+## Integral systems
+
+An armour pattern may carry one **integral system**: a capability the suit
+itself has, authored per pattern and declared by very few. `progression-nouns.md`
+owns the rule that a system is behaviour and never durability; this catalog owns
+whether a given tradition would plausibly build one and what it would look like.
+
+A system is provenance made mechanical, so it is the sharpest tool this catalog
+has for keeping faction suits from becoming palette swaps. It is also the
+easiest to overuse: a system on every pattern is a tax on the tier rather than a
+reason to want one suit, and the shipped catalog keeps carriers to a small
+minority on purpose.
+
+Only the foundry-breaker declares one today. `integral-armor-systems.md` carries
+the direction, and the faction slate is planned rather than shipped.
 
 ## Availability law
 

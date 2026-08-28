@@ -18,7 +18,7 @@ class LayeredMechComposerTest {
         MechVariant variant = MechVariant.BULWARK;
 
         LayeredMechComposer.emit((sprite, x, y, width, height, angle, alpha) ->
-                        layers.add(new Layer(sprite.sourcePath, width, height)),
+                        layers.add(new Layer(sprite.sourcePath, x, y, width, height)),
                 assets, 400f, 300f, 208f,
                 0f, 0f, 0f, 0f, 0f, 0f, 0,
                 variant.chassisAppearance, variant.arms.appearanceSelector,
@@ -51,9 +51,30 @@ class LayeredMechComposerTest {
         assertEquals(1, layers.stream().filter("srm-pod.png"::equals).count());
     }
 
+    @Test
+    void walkingShiftsTheUpperMassButLeavesFeetPlanted() {
+        LayeredMechAssets assets = MechLabDollCanvas.headlessAssets();
+        List<Layer> layers = new ArrayList<>();
+        MechVariant variant = MechVariant.BULWARK;
+
+        LayeredMechComposer.emit((sprite, x, y, width, height, angle, alpha) ->
+                        layers.add(new Layer(sprite.sourcePath, x, y, width, height)),
+                assets, 400f, 300f, 208f,
+                0f, 0f, 0.40f, 0f, 0f, 0f,
+                LayeredMechAppearance.FLAG_MOVING,
+                variant.chassisAppearance, variant.arms.appearanceSelector,
+                variant.leftShoulder.appearanceSelector,
+                variant.rightShoulder.appearanceSelector, 1f);
+
+        assertEquals(400f, (layers.get(0).x() + layers.get(1).x()) * 0.5f, 0.001f,
+                "the planted feet remain centered on the physical actor position");
+        assertEquals(400f + 0.035f * 208f, layers.get(4).x(), 0.001f,
+                "the chassis shifts laterally over the supporting foot");
+    }
+
     private static String fileName(String path) {
         return path.substring(path.lastIndexOf('/') + 1);
     }
 
-    private record Layer(String path, float width, float height) { }
+    private record Layer(String path, float x, float y, float width, float height) { }
 }
