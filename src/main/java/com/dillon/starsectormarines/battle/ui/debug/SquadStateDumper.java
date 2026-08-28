@@ -463,6 +463,27 @@ public final class SquadStateDumper {
             state.put("activePathMembers", squadState.activePathMembers());
             state.put("membersInTargetZone",
                     squadState.membersInTargetZone());
+            state.put("underFireRecently", squadState.underFireRecently());
+            state.put("moraleBroken", squadState.moraleBroken());
+            state.put("currentGoal", squadState.currentGoal() != null
+                    ? squadState.currentGoal() : JSONObject.NULL);
+            state.put("currentAction", squadState.currentAction() != null
+                    ? squadState.currentAction() : JSONObject.NULL);
+            state.put("movingMembers", squadState.movingMembers());
+            state.put("coveredFromPrimaryMembers",
+                    squadState.coveredFromPrimaryMembers());
+            state.put("primaryEngageableMembers",
+                    squadState.primaryEngageableMembers());
+            state.put("primaryEngageableFireTeams",
+                    squadState.primaryEngageableFireTeams());
+            state.put("contactPosture", squadState.contactPosture() != null
+                    ? squadState.contactPosture() : JSONObject.NULL);
+            state.put("contactDoctrine", squadState.contactDoctrine() != null
+                    ? squadState.contactDoctrine() : JSONObject.NULL);
+            state.put("contactInitiative",
+                    squadState.contactInitiative() != null
+                            ? squadState.contactInitiative() : JSONObject.NULL);
+            state.put("coolingDownMembers", squadState.coolingDownMembers());
             out.put("squadState", state);
         }
 
