@@ -354,7 +354,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     .findFirst().orElseThrow().select().run();
         }
         if (pickerOpen) viewModel.openAssetPickerAction().run();
-        MechLabCameraController camera = new MechLabCameraController();
+        // No ship: the snapshot exercises the panel, and the canvas falls back
+        // to its own authored garage when no host pass is available.
+        MechLabCameraController camera = new MechLabCameraController(
+                MechLabCameraController.authoredGarage());
         camera.snap(viewModel.fittingFocused(), viewModel.selectedGantryIndex(),
                 viewModel.gantryVariants().size());
         HeadlessArmoryPreviewRenderer technicianPreview =
@@ -377,7 +380,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                     MarineArmorPattern.ARMY_GREEN),
                             () -> null, () -> null, () -> null, () -> null,
                             camera::pose, viewModel::fittingFocused,
-                            new MechLabBattleScene(), () -> 0d));
+                            () -> null, () -> null, List::of, () -> 0d));
             return renderRelative(renderer, document, width, height, uiScale);
         }
     }
