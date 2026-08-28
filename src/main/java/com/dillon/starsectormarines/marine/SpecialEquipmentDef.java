@@ -90,7 +90,7 @@ public record SpecialEquipmentDef(
                 requireNoWeapon(weaponId, id);
                 requirePolicy(aiPolicy, SpecialAiPolicy.SQUAD_SMOKE_SCREEN, id);
                 smoke = parseSmoke(activationJson, id);
-                if (presentation.thrown() == null || presentation.fieldSpritePath() == null) {
+                if (presentation.thrown() == null || presentation.field() == null) {
                     throw new JSONException("Smoke equipment '" + id
                             + "' requires thrown and field presentation recipes");
                 }
@@ -149,7 +149,7 @@ public record SpecialEquipmentDef(
                     throw new JSONException("Close-contact equipment '" + id
                             + "' requires a carrier presentation recipe");
                 }
-                if (presentation.thrown() != null || presentation.fieldSpritePath() != null) {
+                if (presentation.thrown() != null || presentation.field() != null) {
                     throw new JSONException("Close-contact equipment '" + id
                             + "' has no thrown or deployed field payload");
                 }
