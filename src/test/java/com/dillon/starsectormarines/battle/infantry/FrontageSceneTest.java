@@ -69,11 +69,14 @@ class FrontageSceneTest {
         assertTrue(standingTo.stream().anyMatch(s -> s.membersOnPost() > 0),
                 "members must actually reach their posts, not just be assigned them");
 
-        boolean releasedAfterEntry = samples.stream()
-                .filter(Sample::enemyInside)
-                .noneMatch(s -> "FrontageDefense".equals(s.goal()));
-        assertTrue(releasedAfterEntry,
-                "once marines are inside the compound the fight belongs to the room behaviors");
+        // The gate is what must close the instant marines are inside. The
+        // squad's goal is whatever its last replan chose, so it can still read
+        // FrontageDefense for up to one replan interval afterwards; asserting
+        // on that label would be asserting that GOAP replans every tick.
+        assertTrue(samples.stream().noneMatch(s -> s.enemyInside() && s.standToLegalNow()),
+                "standing to must stop being legal the moment marines are inside");
+        assertTrue(samples.stream().anyMatch(Sample::enemyInside),
+                "this scene is only evidence of the hand-off if the compound is entered");
     }
 
     @Test
