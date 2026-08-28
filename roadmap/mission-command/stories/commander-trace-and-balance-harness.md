@@ -4,8 +4,8 @@ Status: IN PROGRESS — live diagnostics, deterministic Conquest evidence, and p
 
 Written: 2026-08-25
 
-Updated: 2026-08-28 — used schema-8 tactical evidence to move the next
-Conquest investigation from travel loss to measured contested-zone conversion.
+Updated: 2026-08-28 — closed the casualty-triggered sticky-plan role and
+bounding-state defect identified by schema-8 tactical evidence.
 
 Read `mission-command-nouns.md` and `battle-fixtures-nouns.md` before implementing this
 story.
@@ -384,8 +384,15 @@ portal occupant; five crossed between the 75-tick command samples. This does
 not support persistent doorway parking. The stronger next evidence seam is
 contact-bound loss: all fifteen squad-loss exits had local contact, twelve last
 published `HOLD`, eleven still had engageable members/fireteams, and none were
-moving. Pair that investigation with the deterministic stale-fireteam-role
-rebind repair before changing final-hop tactics, capture slots, or timers.
+moving. The paired deterministic defect is now repaired: casualty replans
+replace every retained step's role map, removing dissolved team keys and
+duplicate survivors, and restart any bound authored from the old partition
+even when target geometry is unchanged. The focused sticky-compound regression
+passes, as do the bounding and fire-team suites. The same 6,000-tick fixture is
+byte-stable and retains the prior 6 captures / 4 final holds and 22/0/8 portal
+classification, so the repair closes latent execution state without disguising
+the remaining contact-bound `HOLD` seam. Investigate that doctrine/execution
+handoff before changing final-hop tactics, capture slots, or timers.
 
 ## Historical construction-only baselines
 
