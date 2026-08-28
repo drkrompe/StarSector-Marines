@@ -4,7 +4,8 @@ Status: ACTIVE — ground delivery uses a shared convoy lifecycle, with the defe
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — recorded that a vehicle is a target that never perceives.
+Updated: 2026-08-28 — a wreck writes nothing to the navigation or sight map,
+and a live vehicle wears the shared durability gauge.
 
 ## Purpose and boundary
 
@@ -49,8 +50,17 @@ nearby free cell and assigns their new squad to the reinforcement objective.
 An armed APC then `OVERWATCH`s before `DEPARTING`; a variant that does not
 linger may go straight to departure. `GONE` is terminal and removes the world
 actor. `WRECKED` stops motion and weapons, removes combat targetability, and
-retains the chassis as presentation and navigation authority. Dispatch proves
-inbound and outbound travel before creating the vehicle.
+retains the chassis as presentation. Dispatch proves inbound and outbound
+travel before creating the vehicle.
+
+A wreck writes nothing to the map. It is a rendered chassis, not terrain: it
+closes no navigation cell and casts no line-of-sight shadow. A hull dies
+wherever it happens to be standing — in a doorway, on the one street joining
+two halves of a district — and terrain a destroyed vehicle can permanently
+close is terrain that can be permanently islanded, by an event no map author
+anticipated and no generator can validate. Sight and fire cross a wreck for
+the same reason: the squad that just killed the vehicle in its firing line
+keeps that line.
 Entries, junctions, and exits are tried in stable ranked order, so one bad route
 does not suppress a later valid candidate. A perimeter route stages far enough
 inside the map for the full body to fit while its visible path still begins and
@@ -128,10 +138,10 @@ exists, reroute attempts are rate-limited while ordinary tracking continues;
 the durable abort, hold, or deliver-in-place terminal outcome remains open.
 
 The macro terrain cost input is built for a battle and reused by recovery.
-Clearance is an immutable snapshot, so creating a wreck rebuilds every active
-mission's clearance and later dispatches always derive a fresh mask. The local
-planner sees the same live navigation closure. Thus neither recovery nor a new
-reinforcement can honestly plan through a destroyed APC.
+Clearance is an immutable snapshot derived from live walkability, and later
+dispatches always derive a fresh mask. Because a wreck closes no cell, that
+mask does not change when a vehicle dies, and a later convoy plans the street
+it planned before.
 
 ## Standing laws
 
@@ -152,9 +162,15 @@ reinforcement can honestly plan through a destroyed APC.
   conventions as other reinforcement means. The convoy creates delivery; it
   does not create a separate infantry ruleset.
 - Vehicle durability uses the shared armor/structure authority. A destroyed
-  vehicle is no longer a combat target or weapon platform, but its persistent
-  footprint closes navigation cells and invalidates clearance before later
-  vehicles plan or recover.
+  vehicle stops being a combat target and a weapon platform, and stops there.
+  It never edits the battlefield: no walkability write, no line-of-sight
+  write, no clearance invalidation. A combat outcome must not be able to
+  reshape the map's connectivity, because nothing validates the map a
+  mid-battle closure leaves behind.
+- A vehicle is a unit with a hull. It reads its durability the way every other
+  combat actor does — the shared ownership-coded gauge over its chassis, armor
+  row over structure row — for as long as it is alive. A wreck drops the gauge;
+  the darkened hull is the whole report.
 
 ## Adjacent domains and extension points
 
