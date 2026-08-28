@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
-import com.dillon.starsectormarines.ops.battleview.BarracksBattleScene;
 import com.dillon.starsectormarines.ops.battleview.BarracksCanvas;
 import com.dillon.starsectormarines.ops.battleview.BattleSprites;
 import com.dillon.starsectormarines.ops.battleview.BattleShotAudio;
@@ -21,7 +20,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Planet-free, read-only shipboard room for casually browsing line squads. */
+/**
+ * Planet-free, read-only shipboard room for casually browsing line squads.
+ *
+ * <p>A camera on the company ship's berthing, not a room beside her. The
+ * marines in the panel are the roster's own, mustered into the compartment the
+ * deck generator gave them, and they are still there - a little further round
+ * their watch - when the player comes back from another page.
+ */
 public final class BarracksScreen implements Screen {
 
     private static final String ROOT_COMPONENT = "shipboard-barracks";
@@ -32,7 +38,6 @@ public final class BarracksScreen implements Screen {
     private final Reactor reactor = new Reactor();
     private final MarkupLoader markup = new MarkupLoader(
             path -> Global.getSettings().loadText(path), COMPONENT_PATHS);
-    private final BattleSprites battleSprites = new BattleSprites();
 
     private MarineOpsContext context;
     private Runnable dismissDialog;
@@ -42,15 +47,12 @@ public final class BarracksScreen implements Screen {
     private UiDocument document;
     private MarkupInstance markupInstance;
     private StarsectorUiInputAdapter input;
-    private BarracksBattleScene battleScene;
-    private double previewSeconds;
     private int projectedCampaignHour = Integer.MIN_VALUE;
 
     @Override
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
         context = ctx;
         this.dismissDialog = dismissDialog;
-        previewSeconds = 0d;
         viewport = MarineOpsUiViewport.from(position);
         MarineRosterScript script = MarineRosterScript.getInstance();
         MarineRoster liveRoster = script != null ? script.roster() : null;
@@ -82,18 +84,16 @@ public final class BarracksScreen implements Screen {
             built = new UiDocument(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard()).onCancel(this::close);
-            battleSprites.ensureLayeredUnitSprites();
+            shipSprites().ensureLayeredUnitSprites();
             // ShotRenderService resolves both projectile bodies and shared
             // tinted bolts from this cache. Battles load it through their full
-            // sprite bootstrap; the bounded Barracks host must opt in too.
-            battleSprites.ensureMarineSecondarySprites();
-            battleSprites.ensureTileSheet();
-            battleSprites.ensureRoadSheet();
-            battleSprites.ensureDoodadSheet();
-            if (battleScene == null) battleScene = new BarracksBattleScene(battleSprites);
+            // sprite bootstrap; a shipboard room host must opt in too.
+            shipSprites().ensureMarineSecondarySprites();
+            shipSprites().ensureTileSheet();
+            shipSprites().ensureRoadSheet();
+            shipSprites().ensureDoodadSheet();
             built.canvases().set(candidate.requireElement("barracks-canvas"),
-                    new BarracksCanvas(viewModel::sceneMarines, battleScene,
-                            () -> previewSeconds));
+                    new BarracksCanvas(context.companyDeck(), viewModel::sceneMarines));
             if (viewport != null) {
                 built.layout(viewport.documentWidth(), viewport.documentHeight());
             }
@@ -139,16 +139,22 @@ public final class BarracksScreen implements Screen {
         }
     }
 
+    private BattleSprites shipSprites() {
+        return context.companyDeck().sprites();
+    }
+
     private void close() {
         if (dismissDialog != null) dismissDialog.run();
     }
 
     @Override
     public void advance(float dt) {
-        previewSeconds += Math.max(0f, dt);
-        if (battleScene != null && viewModel != null) {
-            battleScene.advanceTo(viewModel.sceneMarines(), (float) previewSeconds);
-            BattleShotAudio.playCampaignLocal(battleScene.shotsThisFrame(), 0.55f);
+        // The ship is run by the panel, not by this page. What is left here is
+        // the part that belongs to standing in the berthing: hearing the range
+        // through the bulkhead.
+        if (context != null && context.companyDeck().live()) {
+            BattleShotAudio.playCampaignLocal(
+                    context.companyDeck().scene().simulation().getShotsThisFrame(), 0.55f);
         }
         int currentHour = campaignHour();
         if (viewModel != null && currentHour != projectedCampaignHour) {
@@ -175,18 +181,18 @@ public final class BarracksScreen implements Screen {
 
     @Override
     public void detach() {
+        // The ship outlives the page. Closing her scene here would end the
+        // continuity every other room view depends on; the panel puts her away
+        // with the dialog.
         if (document != null) document.deactivateInput();
-        if (battleScene != null) battleScene.close();
         input = null;
     }
 
     private void closeDocument() {
         if (document != null) document.deactivateInput();
         if (markupInstance != null) markupInstance.close();
-        if (battleScene != null) battleScene.close();
         document = null;
         markupInstance = null;
         input = null;
-        battleScene = null;
     }
 }
