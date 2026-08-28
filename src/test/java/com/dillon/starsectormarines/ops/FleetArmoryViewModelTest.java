@@ -296,7 +296,7 @@ class FleetArmoryViewModelTest {
         assertTrue(bareCard.systemClasses().contains("tone-muted"));
 
         for (FleetArmoryViewModel.ArmorComparisonCard card : viewModel.armorComparisonCards().get()) {
-            assertEquals(List.of("POOL", "RATING", "MOVE", "EVASION"), card.stats().stream()
+            assertEquals(List.of("ARMOR", "RESIST", "MOVE", "EVASION"), card.stats().stream()
                     .map(FleetArmoryViewModel.StatMeter::label).toList());
         }
     }

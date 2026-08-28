@@ -396,7 +396,7 @@ added.
 The pattern owns the deployed armor capacity, rating, movement modifier, and
 incoming-accuracy tradeoff; `combat-durability-nouns.md` owns how battle damage
 removes that armor and exposed structure. Structure remains the platform's base
-pool; armor no longer adds health or applies a permanent damage-reduction
+capacity; armor no longer adds health or applies a permanent damage-reduction
 multiplier after it breaks.
 
 The planned assault-armor role makes those trades legible without turning the

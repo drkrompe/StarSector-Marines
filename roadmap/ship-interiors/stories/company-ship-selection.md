@@ -4,12 +4,13 @@ Status: IN PROGRESS
 
 Written: 2026-08-27
 
-Updated: 2026-08-28 — the company lives aboard a real ship in the player's
-fleet, and the transfer screen is in: every candidate is drawn as her own
-generated deck inside her own hull outline, with what she would cost the
-company named before they commit. What remains is a founding choice the player
-makes rather than inherits, and what happens when the company ship is destroyed
-rather than merely sold.
+Updated: 2026-08-28 — founding and transfer both land. The company lives aboard
+a ship the player picked out of their own fleet; every candidate is drawn as her
+own generated deck inside her own hull outline, with the passages threading it
+and the room under the cursor named. A company with no ship opens on the choice
+and cannot reach a room view until it has made one. What remains is what happens
+when the company ship is destroyed rather than sold, and whether transfer costs
+anything.
 
 Read `ship-interiors-nouns.md` and `company-ship.md` before implementing this
 story. Depends on the room views being deck-hosted, which they now are — see

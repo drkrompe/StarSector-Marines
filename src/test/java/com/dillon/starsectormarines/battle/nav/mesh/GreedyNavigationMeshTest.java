@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.nav.mesh;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.MapEditor;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
@@ -131,13 +132,16 @@ class GreedyNavigationMeshTest {
     @Test
     void barrierDestructionRemeshesAtTheSameTopologyBoundary() {
         NavigationGrid grid = walkableGrid(2, 1);
-        grid.blockSharedEdge(0, 0, Direction.E);
+        grid.placeEdgeBarrier(0, 0, Direction.E,
+                SharedEdgeBarrier.Kind.WINDOW);
         NavigationService navigation = service(grid);
+        MapEditor editor = new MapEditor(navigation);
         GreedyNavigationMesh.Snapshot before =
                 navigation.getNavigationMesh().snapshot();
         assertEquals(2, before.regions().size());
 
-        navigation.openSharedEdge(0, 0, Direction.E);
+        assertTrue(editor.damageEdgeBarrier(0, 0, Direction.E,
+                SharedEdgeBarrier.Kind.WINDOW.structure()));
 
         assertEquals(2,
                 navigation.getNavigationMesh().snapshot().regions().size());

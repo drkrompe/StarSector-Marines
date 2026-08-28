@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class ArmorCombatStatsTest {
 
     @Test
-    void armorSeedsSeparatePoolRatingMobilityAndEvasion() {
+    void armorSeedsSeparateCapacityRatingMobilityAndEvasion() {
         NavigationGrid grid = new NavigationGrid(12, 12);
         for (int y = 0; y < 12; y++) {
             for (int x = 0; x < 12; x++) grid.setWalkableFloor(x, y);
