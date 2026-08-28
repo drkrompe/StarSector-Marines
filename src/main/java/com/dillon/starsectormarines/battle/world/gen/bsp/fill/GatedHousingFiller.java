@@ -88,6 +88,7 @@ public final class GatedHousingFiller implements CompoundFiller {
         carveSubBuildings(compound, courtyardCells, grid, topology, doodads, pois, rng);
         paintWallRing(inCompound, roadReservation, grid, topology);
         punchSingleGate(compound, inCompound, roadCells, grid, topology, rng);
+        CompoundWallApertures.stamp(inCompound, grid, topology);
         furnishCourtyard(compound, courtyardCells, roadReservation,
                 grid, topology, doodads, rng);
     }
