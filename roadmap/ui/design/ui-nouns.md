@@ -4,10 +4,9 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — Marine Ops takeovers request the complete reported screen,
-retained text supports explicitly authored multi-line wrapping, and a bounded
-live-host canvas pass lets an existing renderer inhabit retained layout without
-inheriting document input or creating a second world projection.
+Updated: 2026-08-28 — the built-in element vocabulary now includes an image
+element that paints one authored asset through the existing canvas sprite
+primitive, aspect-fitted inside its content box.
 
 ## Purpose
 
@@ -62,6 +61,12 @@ them.
   from the existing view model. Domain and view-model state are not component state.
 - A **canvas element** is the procedural escape hatch for visuals that do not fit
   ordinary boxes: formation connectors, graphs, paper dolls, or transaction flows.
+- An **image element** shows one whole authored asset at a path — an icon, a
+  crest, a portrait — with no procedural drawing behind it. It is the ordinary
+  answer to "put this picture here"; a canvas producer is what a composed or
+  computed visual still requires. Its source is an ordinary bindable attribute,
+  so a subject that carries no asset simply supplies nothing and the element
+  draws nothing rather than reserving a placeholder.
 - A **surface** is a document plus its view model, navigation behavior, and host
   lifecycle. Fleet Armory, Company HQ, Mech Lab, and the UI workbench are surfaces.
 - A **shipboard room** is the fiction and navigation identity of a player-facing
@@ -299,6 +304,15 @@ source region for atlas and flipbook art and declare normal or additive
 blending. Those are producer-owned visual intents rather than backend
 shortcuts: the live and headless targets apply the same region, RGB tint,
 opacity, rotation, and blend contract.
+
+An image element paints through that same sprite primitive rather than teaching
+the painter about textures, so both backends already agree on what an asset looks
+like. It resolves the drawable through the paint target: the live target asks a
+document-installed resolver that loads a texture once per path and remembers a
+failure, and the headless target reads the file the source path names. The asset
+is aspect-fitted and centred inside the content box, never stretched to it,
+because a square icon in a rectangular box would otherwise read as a different
+symbol. An unresolvable or absent source draws nothing at all.
 
 An existing renderer that already owns a complete GL lifecycle may use the canvas's
 bounded live-host pass. The pass receives the absolute content-box viewport plus

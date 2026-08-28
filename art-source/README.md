@@ -58,7 +58,8 @@ script cannot do. A seed:
   "idPrefix": "doodad.reactor-hall",
   "cellPx": 64,
   "alphaMin": 40,
-  "gridCell": 104
+  "gridCols": 4,
+  "gridRows": 4
 }
 ```
 
@@ -69,9 +70,14 @@ script cannot do. A seed:
   so a finely drawn sheet keeps its detail.
 - `alphaMin` — alpha at or above which a pixel counts as art. Raise it when a
   soft key fuses the whole sheet into one piece.
-- `gridCell` — cell size *on the raw sheet*, in its own pixels. Used to split
-  fused plates and to guess footprints, so it is worth measuring rather than
-  guessing.
+- `gridCols` / `gridRows` — the plate layout the sheet was drawn to. Stated, not
+  measured: it is what you asked the generator for, and it cannot be read off the
+  pixels. **Cells need not be square** — a 20-frame strip is `20 x 1` — and every
+  cell size is derived from this and the sheet's own size. `1 x 1` means the
+  sheet is not a plate.
+- `outputSheet` — optional. Where the packed atlas is written under `mod/`. When
+  absent it follows the content: a sheet declaring blocks is terrain and goes to
+  `graphics/tilesets/`, one that is only props goes to `graphics/doodads/`.
 - `note` — what is true of this sheet, shown when it is opened. Slice settings
   say how to cut a sheet up but not what it *is*: that it has no alpha channel
   and arrives as one fused plate, that its frames are not square, that it is a

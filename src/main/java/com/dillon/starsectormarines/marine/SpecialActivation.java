@@ -8,7 +8,14 @@ public enum SpecialActivation {
     DIRECT_PRECISION("direct-precision"),
     ARC_EXPLOSIVE("arc-explosive"),
     UTILITY_SMOKE("utility-smoke"),
-    UTILITY_SATCHEL("utility-satchel");
+    UTILITY_SATCHEL("utility-satchel"),
+    /**
+     * Weapon-like activation whose executor replaces the travelling shot with
+     * an adjacent contact test. One typed channel serves every close-contact
+     * family; which contacts are legal is decided by the item's
+     * {@link SpecialAiPolicy}, never by this activation alone.
+     */
+    CLOSE_CONTACT("close-contact");
 
     public final String key;
 
