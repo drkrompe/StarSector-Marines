@@ -221,6 +221,17 @@ shed, which is the shortest wall a ward with a vehicle shed can have. Buildings
 left over across the sweep fall from seven to one at the same time, because a
 slab wastes the ground it encloses.
 
+**The yard is a place, not a remainder.** Sizing the envelope from the program
+leaves a lot of open ground on purpose — at the measured ratio the largest
+untouched square in a ward runs to seventeen cells a side — and that ground is
+what a garrison airfield is made of. The apron is paved and given hardstands
+after the packing, out of yard nothing else claimed, so a structure whose
+substance is open ground costs the program nothing and cannot reshape it. Trying
+it the other way round is what proved the rule: an apron reserved before packing
+rearranged the ward into one with no heavy-vehicle route to the defender rear,
+which no connectivity or reachability check in generation can see, because every
+building still had its door.
+
 The charge is a price rather than a ban, and it counts abutment as well as
 sharing. A ban costs placements, and a room that cannot be placed at all is
 worse than a room placed against its neighbour. Counting only shared cells

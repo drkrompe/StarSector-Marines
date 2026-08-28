@@ -34,6 +34,23 @@ class CompanyShipResolverTest {
     }
 
     @Test
+    @DisplayName("a hull carries her own picture, shaped or not")
+    void theHullsArtRidesWithHerFacts() {
+        HullSilhouette outline = HullOutline.fromBounds(new float[] {
+                60f, 0f, 20f, 18f, -60f, 18f, -60f, -18f, 20f, -18f }, "shaped");
+
+        assertEquals("graphics/ships/valkyrie.png", CompanyShipResolver.shipOf(
+                "CRUISER", "Troop Transport", 10f, 250f, 50f,
+                outline, "graphics/ships/valkyrie.png").art());
+        // A hull too degenerate to lay a deck in still has a picture. The two
+        // are read off the same file and fail independently, so the ship view
+        // draws the vessel even where the deck falls back to a synthetic taper.
+        assertEquals("graphics/ships/valkyrie.png", CompanyShipResolver.shipOf(
+                "CRUISER", "Troop Transport", 10f, 250f, 50f,
+                null, "graphics/ships/valkyrie.png").art());
+    }
+
+    @Test
     @DisplayName("effective stats arrive as fractions and berths are whole people")
     void fractionalStatsRoundToWholePeopleAndCargo() {
         CompanyShip ship = CompanyShipResolver.shipOf(
