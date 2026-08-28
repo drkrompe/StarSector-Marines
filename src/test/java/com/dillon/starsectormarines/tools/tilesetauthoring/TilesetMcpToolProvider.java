@@ -344,7 +344,10 @@ public final class TilesetMcpToolProvider implements McpToolProvider {
                     + "annotations onto them. This is how a threshold gets tuned: a piece list "
                     + "is only meaningful next to the threshold that found it. Reports what was "
                     + "kept, what is new, and what no longer matches anything. Read-only unless "
-                    + "you pass apply=true, which saves the reconciled pieces into the document.";
+                    + "you pass apply=true, which saves the reconciled pieces into the document. "
+                    + "Applying is refused when it would drop entries that were decided rather "
+                    + "than found — a cut plate's cells, or anything annotated — because slicing "
+                    + "reads pixels and cannot bring those back.";
         }
 
         @Override
@@ -356,6 +359,9 @@ public final class TilesetMcpToolProvider implements McpToolProvider {
                             + "fuses the sheet into one piece.")
                     .bool("apply", "Save the reconciled pieces into the document. "
                             + "Default false — look before you keep.")
+                    .bool("force", "Apply even though authored entries would be dropped. "
+                            + "Default false. Only for a sheet whose annotation you mean to "
+                            + "throw away; a cut plate is never that.")
                     .build();
         }
 
@@ -387,6 +393,14 @@ public final class TilesetMcpToolProvider implements McpToolProvider {
                 pieces.put(described);
             }
 
+            List<TilesetOperations.AtRisk> atRisk =
+                    TilesetOperations.atRisk(reconciled.lost(), document.idPrefix);
+            if (apply && !atRisk.isEmpty() && !arguments.optBoolean("force", false)) {
+                return McpToolResult.failure(name + " at alpha " + alphaMin + ": "
+                        + TilesetOperations.discardWarning(atRisk)
+                        + " Nothing was written. Pass force=true to apply anyway.");
+            }
+
             String applied = "";
             if (apply) {
                 document.alphaMin = alphaMin;
@@ -396,13 +410,19 @@ public final class TilesetMcpToolProvider implements McpToolProvider {
                         + TilesetDocument.pathFor(context.projectRoot(), name);
             }
 
+            JSONArray atRiskArray = new JSONArray();
+            for (TilesetOperations.AtRisk risk : atRisk) {
+                atRiskArray.put(new JSONObject().put("id", risk.id()).put("reason", risk.reason()));
+            }
+
             JSONObject structured = new JSONObject();
             structured.put("alphaMin", alphaMin);
             structured.put("sheetWidth", sheet.getWidth());
             structured.put("sheetHeight", sheet.getHeight());
             structured.put("carried", reconciled.carried());
             structured.put("added", reconciled.added());
-            structured.put("lost", new JSONArray(reconciled.lost()));
+            structured.put("lost", new JSONArray(reconciled.lostIds()));
+            structured.put("atRisk", atRiskArray);
             structured.put("applied", apply);
             structured.put("pieces", pieces);
             return McpToolResult.of(name + " at alpha " + alphaMin + ": "
