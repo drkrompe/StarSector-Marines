@@ -100,6 +100,17 @@ public final class BattleFixtureJson {
                     wingsToJson(raid.enemyFighterSupport()));
             return root;
         }
+        if (fixture instanceof ExtractionBattleFixture extraction) {
+            encodeCommon(root, extraction.kind(), extraction.seed(),
+                    extraction.manifest(), extraction.enemyHasHeavyArmor(),
+                    extraction.risk(), extraction.targetProfile());
+            root.put("tier", extraction.tier().name());
+            root.put("marineFighterSupport",
+                    wingsToJson(extraction.marineFighterSupport()));
+            root.put("enemyFighterSupport",
+                    wingsToJson(extraction.enemyFighterSupport()));
+            return root;
+        }
         throw new IllegalArgumentException("Unsupported battle fixture: " + fixture);
     }
 
@@ -167,6 +178,7 @@ public final class BattleFixtureJson {
             case SabotageBattleFixture.KIND -> decodeSabotage(root);
             case AssaultBattleFixture.KIND -> decodeAssault(root);
             case RaidBattleFixture.KIND -> decodeRaid(root);
+            case ExtractionBattleFixture.KIND -> decodeExtraction(root);
             default -> throw new IllegalArgumentException(
                     "Unsupported battle fixture kind: " + kind);
         };
@@ -250,6 +262,19 @@ public final class BattleFixtureJson {
 
     private static RaidBattleFixture decodeRaid(JSONObject root) throws Exception {
         return new RaidBattleFixture(
+                root.getLong("seed"),
+                shuttlesFromJson(root.getJSONArray("shuttles")),
+                root.getBoolean("enemyHasHeavyArmor"),
+                enumValue(OperationTier.class, root.getString("tier"), "tier"),
+                enumValue(RiskLevel.class, root.getString("risk"), "risk"),
+                targetProfileFromJson(root.getJSONObject("targetProfile")),
+                wingsFromJson(root.getJSONArray("marineFighterSupport")),
+                wingsFromJson(root.getJSONArray("enemyFighterSupport")));
+    }
+
+    private static ExtractionBattleFixture decodeExtraction(JSONObject root)
+            throws Exception {
+        return new ExtractionBattleFixture(
                 root.getLong("seed"),
                 shuttlesFromJson(root.getJSONArray("shuttles")),
                 root.getBoolean("enemyHasHeavyArmor"),

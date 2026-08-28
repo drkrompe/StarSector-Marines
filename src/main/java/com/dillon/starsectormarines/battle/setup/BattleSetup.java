@@ -95,6 +95,7 @@ import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective
 import com.dillon.starsectormarines.battle.command.objective.ColonyArchiveObjective;
 import com.dillon.starsectormarines.battle.command.objective.ConquestObjective;
 import com.dillon.starsectormarines.battle.command.objective.EliminateFactionObjective;
+import com.dillon.starsectormarines.battle.command.objective.ExtractionObjective;
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
@@ -260,6 +261,13 @@ public final class BattleSetup {
     public static BattleSimulation createRaid(long seed) {
         RiskLevel risk = RiskLevel.MEDIUM;
         return createRaid(seed, defaultManifest(), false,
+                OperationTier.forRisk(risk), risk, TargetProfile.NEUTRAL,
+                FlybyRoster.EMPTY, FlybyRoster.EMPTY);
+    }
+
+    public static BattleSimulation createExtraction(long seed) {
+        RiskLevel risk = RiskLevel.MEDIUM;
+        return createExtraction(seed, defaultManifest(), false,
                 OperationTier.forRisk(risk), risk, TargetProfile.NEUTRAL,
                 FlybyRoster.EMPTY, FlybyRoster.EMPTY);
     }
@@ -458,6 +466,17 @@ public final class BattleSetup {
                 enemyFighterSupport);
     }
 
+    /** Dedicated generic Extraction factory; payload escort replaces elimination. */
+    public static BattleSimulation createExtraction(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, OperationTier tier, RiskLevel risk,
+            TargetProfile profile, FlybyRoster marineFighterSupport,
+            FlybyRoster enemyFighterSupport) {
+        return createPlaceholder(seed, manifest, enemyHasHeavyArmor, tier, risk,
+                MissionType.EXTRACTION, profile, marineFighterSupport,
+                enemyFighterSupport);
+    }
+
     /**
      * Slot 0 of each shuttle gets a PLANTER assigned to a charge site (paired
      * by shuttle index, wrapping around if shuttle count and site count differ).
@@ -534,8 +553,8 @@ public final class BattleSetup {
 
     /**
      * Catch-all construction pipeline shared by Assault, Raid, and Extraction.
-     * Raid enters through {@link #createRaid} and replaces the generic Marine
-     * objective below; Extraction remains the only elimination placeholder.
+     * Dedicated entry points replace the generic Marine objective with their
+     * mission-owned contract while retaining shared map and force construction.
      */
     public static BattleSimulation createPlaceholder(long seed, List<ShuttleAssignment> manifest,
                                                      boolean enemyHasHeavyArmor, RiskLevel risk,
@@ -586,6 +605,8 @@ public final class BattleSetup {
                 map, assignments.size(), LZ_MIN_SEPARATION);
         RaidTargetLayout raidLayout = type == MissionType.RAID
                 ? RaidTargetLayout.select(map, lzCells) : null;
+        ExtractionPayloadLayout extractionLayout = type == MissionType.EXTRACTION
+                ? ExtractionPayloadLayout.select(map, lzCells) : null;
         List<ParkedAircraft> parkedAircraft = stampParkedAircraft(map, lzCells, rng);
         BattleSimulation sim = buildMap(
                 map, vehiclePlacements, defenders.defensePosts(), parkedAircraft, seed).sim();
@@ -599,6 +620,13 @@ public final class BattleSetup {
                     raidLayout.targetName(), raidLayout.targetCellX(),
                     raidLayout.targetCellY(), targetZone,
                     raidLayout.egressCellX(), raidLayout.egressCellY()));
+        } else if (extractionLayout != null) {
+            int sourceZone = sim.getZoneGraph().zoneIdAt(
+                    extractionLayout.sourceCellX(),
+                    extractionLayout.sourceCellY());
+            sim.addObjective(new ExtractionObjective(
+                    extractionLayout.payloadId(), extractionLayout.payloadName(),
+                    sourceZone, extractionLayout.route()));
         } else {
             sim.addObjective(new EliminateFactionObjective(
                     Faction.MARINE, Faction.DEFENDER));
@@ -929,7 +957,8 @@ public final class BattleSetup {
 
             CivilianEvacuationPayload survivors =
                     CivilianEvacuationPayload.install(sim, map,
-                            scenarioSeed, survivorCount, false);
+                            scenarioSeed, survivorCount, false,
+                            "COLONY-SURVIVORS", "colony survivor cohort");
             if (survivors == null) continue;
             PointOfInterest archiveSite = pickColonyArchiveSite(
                     map.pointsOfInterest, survivors.placement,

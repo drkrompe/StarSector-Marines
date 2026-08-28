@@ -1,8 +1,10 @@
 # Extraction objective contract
 
-Status: DRAFT — define the generic payload/cohort-and-egress law before installing a generic commander.
+Status: IN PROGRESS — implementation and automated evidence are complete; fold and retirement remain.
 
 Written: 2026-08-27
+
+Updated: 2026-08-27 — shipped the generic objective, variant projection, disclosure, fixture, and short duplicate evidence pass.
 
 Read `mission-command-nouns.md`, `extraction-command.md`, and
 `contracts-nouns.md` before planning this story.
@@ -28,14 +30,14 @@ adapt without duplicating payload truth.
 
 ## Acceptance
 
-- [ ] A fixture can resolve success or failure from payload/cohort and egress
+- [x] A fixture can resolve success or failure from payload/cohort and egress
   state without eliminating either faction.
-- [ ] Each perspective receives only its legally disclosed objective state.
-- [ ] Civilian Rescue and Silent Colony can adapt the contract without losing
+- [x] Each perspective receives only its legally disclosed objective state.
+- [x] Civilian Rescue and Silent Colony can adapt the contract without losing
   their cohort/branch-specific laws.
-- [ ] A timeout remains a timeout, and neutral payload progress never feeds
+- [x] A timeout remains a timeout, and neutral payload progress never feeds
   back into an unauthorized commander or director.
-- [ ] New evidence is selected by `-Pmission` rather than a new Gradle task.
+- [x] New evidence is selected by `-Pmission` rather than a new Gradle task.
 
 ## Constraints
 
