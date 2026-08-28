@@ -122,10 +122,10 @@ Do not run builds or leave generated task files there.
   It exposes specialized projectile/artillery behavior and audio; preview
   flight reads the authored burst, boost, arc, contrail, and directional
   launch-FX data instead of substituting a generic projectile treatment.
-  New sheets are ingested through the `ingest-tileset` skill:
-  `art-source/tilesets/measure_sheet.py` measures a sheet and drafts its authoring
-  seed, and `ProjectTilesetSeedsTest` fails the build for raw art that arrives
-  without one.
+  New sheets are ingested through the `ingest-tileset` skill: the
+  `tileset_measure` tool measures a sheet and drafts its authoring seed, and
+  `ProjectTilesetSeedsTest` fails the build for raw art that arrives without
+  one.
   The Tilesets page turns a raw art sheet into a loadable tileset. It lists every
   sheet under `art-source/tilesets/` with its state — raw, seeded, annotated,
   exported — so sheets are picked from the project rather than browsed for.
@@ -136,7 +136,14 @@ Do not run builds or leave generated task files there.
   and a fused plate is cut into exactly that grid — but footprints are edited
   there rather than inferred, because
   how much deck a piece covers is a judgement about the object, not a measurement
-  of the art. A piece becomes a doodad or a cell of a named autotile block; walls
+  of the art. Pieces are picked on the sheet itself — click, ctrl-click to add,
+  shift-click to run, drag a box — and the table follows, because a cut cell's id
+  cannot be recognised in a list of a hundred. Each cell carries its `col,row` on
+  the picture, which is what lets a person and a model name the same cell.
+  **Copy selection for LLM** writes a labelled contact sheet of the picked cells
+  under `build/tileset-authoring/` and puts a table of their current annotation,
+  keyed by the same coordinates, on the clipboard with that image's path.
+  A piece becomes a doodad or a cell of a named autotile block; walls
   and corners are authored by grouping pieces into a block's slots, which the
   packer places as one contiguous patch. Export writes a packed atlas holding only
   the included pieces, its `*.tileset.json`, and a generated `*.tileset.md`
@@ -160,8 +167,8 @@ Do not run builds or leave generated task files there.
   or dissolve one of its autotile blocks, render its map-preview comparison, run the snapshot catalog — with no workbench window
   and nothing to start first. `--list` names the tools, `--describe <tool>`
   prints its schema, `--json` returns the structured result. Arguments are one
-  JSON object, inline or as `@file` or `-` for stdin; prefer `@file` from
-  PowerShell, which rewrites quotes on their way to a native executable. Exit
+  JSON object, inline or as `@file` or `-` for stdin; from PowerShell quote the
+  `@file` or use `-`, because a bare `@token` is its splatting operator. Exit
   status is 1 when the tool reports a failure and 2 on a usage mistake. See the
   `authoring-tools` skill.
 - `gradlew.bat installAuthoringTools` → writes the generated launchers under

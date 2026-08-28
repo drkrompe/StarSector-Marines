@@ -8,11 +8,16 @@ import java.util.Map;
 /**
  * What can be read off a raw sheet's pixels, and nothing else.
  *
- * <p>The Java half of {@code measure_sheet.py}, so that ingesting a sheet does
- * not require Python, NumPy and Pillow to be installed. It answers the same
- * questions in the same terms: how big the sheet is, whether it carries a usable
- * alpha channel, and how many pieces alpha-keying finds at each of a few
- * thresholds.
+ * <p>It answers how big the sheet is, whether it carries a usable alpha channel,
+ * and how many pieces alpha-keying finds at each of a few thresholds. This is
+ * the only implementation: a {@code measure_sheet.py} answered the same
+ * questions until 2026-08-28 and was deleted rather than kept in step, because
+ * two measurements that disagree produce a committed seed whose numbers do not
+ * match what the tool reports.
+ *
+ * <p>Counting pieces here calls the same {@link SheetSlicer} the authoring page
+ * cuts with, so the reported count is what slicing will actually find rather
+ * than a second opinion about it.
  *
  * <p><b>It does not detect the cell grid, and must not learn to.</b> Seam energy
  * and autocorrelation were both measured against sheets whose grids were known
@@ -29,10 +34,7 @@ public final class SheetMeasurement {
 
     private SheetMeasurement() {}
 
-    /**
-     * Thresholds swept so a caller can see where a sheet stops fusing.
-     * The same ladder {@code measure_sheet.py} reports, so the two agree.
-     */
+    /** Thresholds swept so a caller can see where a sheet stops fusing. */
     public static final List<Integer> SWEEP = List.of(16, 40, 96, 160);
 
     /**
@@ -85,8 +87,8 @@ public final class SheetMeasurement {
             }
         }
         double fraction = notFullyOpaque / (double) Math.max(1, (long) width * height);
-        // The same 0.1% floor the Python tool uses: a handful of soft pixels at
-        // the border of an otherwise opaque sheet is not a key.
+        // A handful of soft pixels at the border of an otherwise opaque sheet
+        // is not a key.
         boolean hasAlpha = fraction > 0.001;
 
         Map<Integer, Integer> pieces = new LinkedHashMap<>();

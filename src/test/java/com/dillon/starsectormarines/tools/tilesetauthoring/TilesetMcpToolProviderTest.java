@@ -409,8 +409,12 @@ class TilesetMcpToolProviderTest {
 
         assertEquals(8, structured.getInt("partCount"));
         assertTilesTheSheet(structured.getJSONArray("parts"), 4, 2);
-        assertEquals("doodad.plate.piece-000-a",
-                structured.getJSONArray("parts").getJSONObject(0).getString("id"));
+        JSONArray parts = structured.getJSONArray("parts");
+        assertEquals("doodad.plate.c0r0", parts.getJSONObject(0).getString("id"),
+                "a cut cell is named for where it sits on the plate");
+        assertEquals("doodad.plate.c3r0", parts.getJSONObject(3).getString("id"));
+        assertEquals("doodad.plate.c0r1", parts.getJSONObject(4).getString("id"),
+                "the fifth cell of a four-column plate starts the second row");
     }
 
     @Test
