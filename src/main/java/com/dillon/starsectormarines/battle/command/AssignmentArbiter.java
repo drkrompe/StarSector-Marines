@@ -420,7 +420,7 @@ public final class AssignmentArbiter {
                 }
             }
             case DEFEND_TRACK, DEFEND_SITE, DEFEND_AREA, ADVANCE_TRACK,
-                    SWEEP_SECTOR, ESCORT -> {
+                    SWEEP_SECTOR, ESCORT, WITHDRAW -> {
                 if (assignment.targetCellX() < 0 || assignment.targetCellY() < 0) {
                     return "assignment kind requires a complete target cell";
                 }
@@ -433,6 +433,9 @@ public final class AssignmentArbiter {
             case RUSH_OBJECTIVE -> {
                 if (assignment.objectiveId() < 0) {
                     return "assignment kind requires a target objective";
+                }
+                if (assignment.targetCellX() < 0 || assignment.targetCellY() < 0) {
+                    return "assignment kind requires a complete target cell";
                 }
             }
             case SUPPORT -> { }

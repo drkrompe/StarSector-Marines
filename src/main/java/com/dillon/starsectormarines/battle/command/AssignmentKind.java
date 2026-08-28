@@ -33,8 +33,10 @@ package com.dillon.starsectormarines.battle.command;
  *   <li>{@link #HOLD_NODE} — anchor on a tactical node and defend it. Pairs
  *       with Story H's last-stand {@code HoldPosition} when that ships.</li>
  *   <li>{@link #RUSH_OBJECTIVE} — close on a specific mission objective and
- *       execute it (planter cordon, extract, etc.). Composes with Story J's
- *       {@code CordonForPlant}.</li>
+ *       execute its interaction. Raid uses it to seize the target even when
+ *       the target room is already clear.</li>
+ *   <li>{@link #WITHDRAW} — disengage toward a mission-authored egress and
+ *       hold its return perimeter. Raid issues it after target seizure.</li>
  *   <li>{@link #ESCORT} — advance to a mission-authored rally cell, then
  *       maintain a protective ring as that cell follows a moving payload.</li>
  *   <li>{@link #SUPPORT} — fallback when no objective-specific kind fits:
@@ -57,6 +59,7 @@ public enum AssignmentKind {
     SECURE_COMPOUND,
     HOLD_NODE,
     RUSH_OBJECTIVE,
+    WITHDRAW,
     SUPPORT,
     /** Advance to a rally cell, then remain within a protective leash of a moving mission payload. */
     ESCORT

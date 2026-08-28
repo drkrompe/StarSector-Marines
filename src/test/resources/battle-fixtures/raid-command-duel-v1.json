@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 2,
+  "kind": "RAID",
+  "seed": 141418,
+  "enemyHasHeavyArmor": false,
+  "tier": "ESTABLISHED",
+  "risk": "MEDIUM",
+  "shuttles": [
+    { "type": "AEROSHUTTLE", "cycles": 2, "seatsPerSortie": 6 },
+    { "type": "AEROSHUTTLE", "cycles": 2, "seatsPerSortie": 6 }
+  ],
+  "targetProfile": {
+    "marketSize": 6,
+    "stability": 5,
+    "defenseLevel": 4,
+    "spaceportTier": 2,
+    "factionId": "independent",
+    "functions": [ "SPACEPORT", "HEAVY_INDUSTRY" ]
+  },
+  "marineFighterSupport": [],
+  "enemyFighterSupport": []
+}
