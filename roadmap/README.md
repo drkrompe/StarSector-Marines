@@ -125,8 +125,8 @@ See `ui-nouns.md` and `company-view-nouns.md`.
 
 ## Immediate recommendation
 
-Conquest's fortress capture topology and stable command handoff are repaired;
-instrument the actual portal crossing before tuning final-hop tactics. Summary
+Conquest's fortress capture topology, stable command handoff, portal evidence,
+and contact-execution seam are repaired. Summary
 schema 7 groups exact-room Marine presence into neutral cohorts with entry/peak
 strength, zone-member additions, defenders cleared, uncontested/capture
 latency, mixed duration, and explicit exit or censor reasons. The first
@@ -160,26 +160,30 @@ fixture, 22/30 trips never had a command-pulse portal observation, none were
 observed at the portal without later entering, and eight entered; three of the
 eight entries had a sampled portal occupant, while five crossed between the
 75-tick command samples. The evidence therefore does not show persistent
-doorway parking. Investigate the dominant loss/contact seam next—all fifteen
-squad-loss exits had local contact, twelve last published `HOLD`, eleven still
-had engageable members/fireteams, and none were moving. The deterministic
-fireteam-role rebind defect is now closed: a casualty replan exactly replaces
-sticky-plan role maps and restarts bounds authored from the old partition.
-Focused coordination suites pass, while the 6,000-tick fixture remains
-byte-stable at 6 captures / 4 holds and the same 22/0/8 portal classification.
-Investigate the contact-bound `HOLD` doctrine/execution handoff before changing
-capture slots or timers. Exact
-hostile and whole-zone occupancy remain neutral evidence and never commander
-input.
-Then
-close the remaining assignment-writer and live-acceptance edges in
-`autonomous-mission-command-foundation.md`. Assault's paired production
+doorway parking. The two deterministic contact-execution defects it exposed
+are now closed: casualty replans exactly replace sticky-plan fireteam roles,
+and committed shooters may advance only the existing cooldown-staggered move
+to strictly better cover while the mission route remains suppressed. Opening
+Operations and Silent Colony now submit their legacy plans through scoped
+directive control as well, closing the remaining production assignment-writer
+bypass without pretending those missions have adopted frozen perspective
+frames. Exact hostile and whole-zone occupancy remain neutral evidence and
+never commander input.
+
+Complete the remaining live acceptance in
+`autonomous-mission-command-foundation.md`. Re-establish the canonical Conquest
+baseline after the concurrent garrison-airfield force/setup change before
+using outcome deltas for balance conclusions. Assault's paired production
 commanders now share stable area geometry while retaining separate beliefs,
 ownership, directives, panel/dump/overlay views, and forced-serial trace evidence.
 Review a canonical-duration `commanderEvidence -Pmission=assault` run and the
 deferred live play pass before retiring its two implementation stories.
-Opening Operations remains the smallest later command-duel proof. Raid's first
-contract is ready for canonical-duration and live review. Generic Extraction is
+Opening Operations now supplies the small-force command-duel proof: both sides
+plan preserve/assault intent around one disclosed scenario place without exact
+hostile positions, and spawn-time claims keep the finite force pools explicit.
+Its deterministic cells still need authored COMMS/depot place legibility and
+the opening-ladder live pass before that story closes. Raid's first contract is
+ready for canonical-duration and live review. Generic Extraction is
 ready for live review, while Civilian Rescue now has deterministic canonical
 evidence for its Marine corridor command and separate swarm-pressure director;
 its live pressure pass remains deliberately deferred. Each mission

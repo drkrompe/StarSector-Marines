@@ -33,3 +33,4 @@ Written: 2026-08-23
 | `corridors-first-class.md` | 2026-06-02 | `aae42444`, `6a07e8f6`, `c4471040`, `f04c2d51` | `mapgen-nouns.md` |
 | `station-interior-fills.md` | 2026-06-02 | `aae42444` | `mapgen-nouns.md` |
 | `thin-edge-barriers.md` | 2026-08-28 | this commit | `mapgen-nouns.md` — canonical shared-edge identity, transparent window profile, Conquest bunker consumer, and reactive destruction; `continuous-positions-nouns.md`, `ballistics-nouns.md`, `combat-durability-nouns.md`, and `battle-render-nouns.md` — routing, tracing, durability, and presentation boundaries |
+| `garrison-airfield-reinforcement.md` | 2026-08-28 | this commit | `air-nouns.md` — the ground-loading sortie phase; `reinforcement-nouns.md` — the airfield supply gate and the shared delivery-deployment policy |

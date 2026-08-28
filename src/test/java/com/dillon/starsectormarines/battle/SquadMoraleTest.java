@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.squad.FireTeamMorale;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -22,12 +23,20 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Coverage for the squad-morale state machine — drain hooks ({@link
+ * Coverage for the morale state machine — drain hooks ({@link
  * BattleSimulation#applyDamage}), the per-tick recovery + hysteresis pass
- * ({@code updateSquadMorale}), and the {@code aliveMembers / originalSize}
+ * ({@link SquadMoraleSystem#tick}), and the {@code aliveMembers / originalSize}
  * recovery cap. Drives the real {@link BattleSimulation} so the wiring path
- * (applyDamage → squad lookup → drain → recovery → hysteresis) gets exercised
- * end to end.
+ * (applyDamage → squad lookup → fire-team drain → recovery → hysteresis) gets
+ * exercised end to end.
+ *
+ * <p>Morale is held per fire team, so these cases assert against
+ * {@link #team(Squad)} rather than the squad's derived readouts. Every squad
+ * here is minted as a single team, which is what keeps the drain and recovery
+ * arithmetic below directly comparable to the model's constants; the
+ * multi-team semantics — whose team a hit charges, when the squad as a whole
+ * counts as broken, and what a broken team stops doing — live in
+ * {@code FireTeamMoraleTest}.
  */
 public class SquadMoraleTest {
 
@@ -80,7 +89,23 @@ public class SquadMoraleTest {
         }
         Squad sq = sim.getSquad(squadId);
         sq.originalSize = size;
+        // Stamp the team's strength the way originalSize is stamped above.
+        // In a real battle the morale tick's census establishes this on the
+        // squad's first tick, before anyone is in a position to shoot at it;
+        // these cases damage the squad before ever ticking, so seed it here
+        // rather than have the drains read an unestablished cap.
+        FireTeamMorale team = team(sq);
+        team.aliveMembers = size;
+        team.originalSize = size;
         return sq;
+    }
+
+    /**
+     * The squad's single fire team. {@link #marineSquad} spawns without an
+     * explicit billet, so every marine lands in team 0.
+     */
+    private static FireTeamMorale team(Squad sq) {
+        return sq.fireTeamMorale(0);
     }
 
     @Test
@@ -93,7 +118,7 @@ public class SquadMoraleTest {
         sim.applyDamage(target, 1f, 1f);
         assertTrue(sim.world().hp(target) < startingHp, "test prerequisite: damage actually landed");
         assertTrue(sim.world().isAlive(target), "test prerequisite: target survived the hit");
-        assertEquals(1.0f - SquadMoraleSystem.MORALE_DROP_ON_HIT, sq.morale, 1e-5f,
+        assertEquals(1.0f - SquadMoraleSystem.MORALE_DROP_ON_HIT, team(sq).morale, 1e-5f,
                 "single hit on a squadmate drops morale by exactly MORALE_DROP_ON_HIT");
     }
 
@@ -107,7 +132,7 @@ public class SquadMoraleTest {
         assertFalse(sim.world().isAlive(target), "test prerequisite: target died");
         float expected = 1.0f - SquadMoraleSystem.MORALE_DROP_ON_HIT
                               - SquadMoraleSystem.MORALE_DROP_ON_DEATH;
-        assertEquals(expected, sq.morale, 1e-5f,
+        assertEquals(expected, team(sq).morale, 1e-5f,
                 "kill = hit drain + death drain stacked");
     }
 
@@ -116,15 +141,15 @@ public class SquadMoraleTest {
         BattleSimulation sim = openSim();
         Squad sq = marineSquad(sim, 4);
         hideDefender(sim);
-        sq.morale = 0.2f;
-        sq.moraleBroken = true;
+        team(sq).morale = 0.2f;
+        team(sq).broken = true;
 
         // Hidden defender keeps the battle from auto-completing; the wall
         // keeps LoS clean → _engagedThisTick stays false → recovery fires.
         sim.advance(BattleSimulation.TICK_DT);
 
         float expected = 0.2f + SquadMoraleSystem.MORALE_RECOVERY_RATE * BattleSimulation.TICK_DT;
-        assertEquals(expected, sq.morale, 1e-5f,
+        assertEquals(expected, team(sq).morale, 1e-5f,
                 "out-of-contact tick should grant exactly one TICK_DT of recovery");
     }
 
@@ -137,14 +162,14 @@ public class SquadMoraleTest {
         // locked the squad broken indefinitely (the SQ-64 dump bug).
         BattleSimulation sim = openSim();
         Squad sq = marineSquad(sim, 4);
-        sq.morale = 0.2f;
-        sq.timeSinceUnderFire = 10f; // out of the under-fire window
+        team(sq).morale = 0.2f;
+        team(sq).timeSinceUnderFire = 10f; // out of the under-fire window
         sim.spawn(new EntitySpec("d", Faction.DEFENDER, UnitType.MARINE, 10, 1));
 
         sim.advance(BattleSimulation.TICK_DT);
 
         float expected = 0.2f + SquadMoraleSystem.MORALE_RECOVERY_RATE * BattleSimulation.TICK_DT;
-        assertEquals(expected, sq.morale, 1e-5f,
+        assertEquals(expected, team(sq).morale, 1e-5f,
                 "LoS without incoming fire must grant exactly one TICK_DT of recovery");
     }
 
@@ -156,12 +181,12 @@ public class SquadMoraleTest {
         BattleSimulation sim = openSim();
         Squad sq = marineSquad(sim, 4);
         hideDefender(sim);
-        sq.morale = 0.2f;
-        sq.timeSinceUnderFire = 0f;
+        team(sq).morale = 0.2f;
+        team(sq).timeSinceUnderFire = 0f;
 
         sim.advance(BattleSimulation.TICK_DT);
 
-        assertEquals(0.2f, sq.morale, 1e-5f,
+        assertEquals(0.2f, team(sq).morale, 1e-5f,
                 "inside the under-fire window must not grant recovery");
     }
 
@@ -174,12 +199,12 @@ public class SquadMoraleTest {
         List<Long> units = TestUnits.snapshot(sim);
         TestUnits.kill(sim, units.get(0));
         TestUnits.kill(sim, units.get(1));
-        sq.morale = 0.49f;
+        team(sq).morale = 0.49f;
 
         // Drive enough ticks that uncapped recovery would push morale well above 0.5.
         for (int i = 0; i < 200; i++) sim.advance(BattleSimulation.TICK_DT);
 
-        assertEquals(0.5f, sq.morale, 1e-3f,
+        assertEquals(0.5f, team(sq).morale, 1e-3f,
                 "morale should pin at the alive/original ratio cap, not climb back to 1.0");
     }
 
@@ -196,15 +221,15 @@ public class SquadMoraleTest {
         // sits downstream of how morale got there.
         long b = sim.liveUnitAt(1);
         sim.applyDamage(b, sim.world().hp(b) + 1000f, 1f); // 1 kill → 3-of-4 alive, cap=0.75
-        sq.morale = 0.15f;
-        sq.moraleDrainCooldown = 0f;
+        team(sq).morale = 0.15f;
+        team(sq).drainCooldown = 0f;
         // The kill reset timeSinceUnderFire; this test validates hysteresis
         // math, not the under-fire gate (covered separately). Bypass the
         // gate so recovery fires immediately.
-        sq.timeSinceUnderFire = 10f;
+        team(sq).timeSinceUnderFire = 10f;
 
         sim.advance(BattleSimulation.TICK_DT);
-        assertTrue(sq.moraleBroken, "morale below broken threshold → moraleBroken flips true");
+        assertTrue(team(sq).broken, "morale below broken threshold → moraleBroken flips true");
         assertTrue(sq._moraleBrokenChangedThisTick,
                 "the break transition is published for the same-tick planner interrupt");
 
@@ -212,13 +237,13 @@ public class SquadMoraleTest {
         // Recovery rate scales with cap: 0.20 * 0.75 = 0.15/sec for a 3-of-4
         // squad. clear_at = 0.5 * 0.75 = 0.375. From 0.15 needs > 0.225 /
         // 0.15 = 1.5s. Drive 3 sim-seconds to give headroom.
-        for (int i = 0; i < 90 && sq.moraleBroken; i++) {
+        for (int i = 0; i < 90 && team(sq).broken; i++) {
             sim.advance(BattleSimulation.TICK_DT);
         }
 
-        assertTrue(sq.morale > SquadMoraleSystem.MORALE_CLEAR_THRESHOLD * 0.75f,
+        assertTrue(team(sq).morale > SquadMoraleSystem.MORALE_CLEAR_THRESHOLD * 0.75f,
                 "morale should have recovered past the (scaled) clear threshold within 3 sim-seconds");
-        assertFalse(sq.moraleBroken,
+        assertFalse(team(sq).broken,
                 "above clear threshold → moraleBroken flips false (hysteresis cleared)");
         assertTrue(sq._moraleBrokenChangedThisTick,
                 "the clear transition is also published on the exact crossing tick");
@@ -233,15 +258,15 @@ public class SquadMoraleTest {
         BattleSimulation sim = openSim();
         Squad sq = marineSquad(sim, 4);
         hideDefender(sim);
-        sq.morale = 0.35f;
-        sq.moraleBroken = true;
+        team(sq).morale = 0.35f;
+        team(sq).broken = true;
 
         // One tick → morale climbs by RATE * DT = ~0.0067, still well under 0.5.
         sim.advance(BattleSimulation.TICK_DT);
 
-        assertTrue(sq.morale < SquadMoraleSystem.MORALE_CLEAR_THRESHOLD,
+        assertTrue(team(sq).morale < SquadMoraleSystem.MORALE_CLEAR_THRESHOLD,
                 "test prerequisite: morale stays in the hysteresis band after one tick");
-        assertTrue(sq.moraleBroken,
+        assertTrue(team(sq).broken,
                 "hysteresis must hold broken flag while morale is in (broken, clear) gap");
     }
 
@@ -259,26 +284,29 @@ public class SquadMoraleTest {
         TestUnits.kill(sim, units.get(0));
         TestUnits.kill(sim, units.get(1));
         TestUnits.kill(sim, units.get(2));
-        sq.morale = 0f;
-        sq.moraleBroken = true;
+        team(sq).morale = 0f;
+        team(sq).broken = true;
 
         // Drive long enough for recovery to saturate at cap. Solo recovery
         // rate scales: 0.20 * 0.25 = 0.05/sec → ~5 sim-seconds to reach
         // cap from 0. 200 ticks (~6.7s) gives comfortable headroom.
         for (int i = 0; i < 200; i++) sim.advance(BattleSimulation.TICK_DT);
 
-        assertEquals(0.25f, sq.morale, 1e-3f,
+        assertEquals(0.25f, team(sq).morale, 1e-3f,
                 "solo survivor's morale should pin at their cap (0.25), not climb past");
-        assertFalse(sq.moraleBroken,
+        assertFalse(team(sq).broken,
                 "morale at cap (0.25) is well above scaled clear (0.125) — must clear");
     }
 
     @Test
-    public void soloSurvivorFoldsOnSingleHit() {
-        // With drain scaled by 1/cap, a solo survivor (cap = 0.25) takes a
-        // 0.20 drain per hit. Sitting at cap, one hit drops morale to 0.05,
-        // below the scaled broken threshold (0.075). Folds in one shot —
-        // matches the "any incoming suppressing fire and they fold" intent.
+    public void soloSurvivorFoldsWithinTwoHits() {
+        // With drain scaled by 1/cap, the lone survivor of a four-marine team
+        // (cap = 0.25) takes a 0.035/0.25 = 0.14 drain per hit. Sitting at
+        // cap, the first hit leaves 0.11 — still above the scaled broken
+        // threshold (0.075) — and the second takes them under. Brittle, which
+        // is the intent, but no longer folding to a single round: that was a
+        // side effect of the pre-tuning 0.05 drain, and at team granularity
+        // every team drains on its own cooldown rather than sharing one.
         BattleSimulation sim = openSim();
         Squad sq = marineSquad(sim, 4);
         hideDefender(sim);
@@ -288,26 +316,38 @@ public class SquadMoraleTest {
         TestUnits.kill(sim, units.get(1));
         TestUnits.kill(sim, units.get(2));
         // Recover the survivor to their cap.
-        sq.morale = 0.25f;
-        sq.moraleBroken = false;
-        // One tick to settle moraleBroken at the cap value.
+        team(sq).morale = 0.25f;
+        team(sq).broken = false;
+        // One tick to settle the broken flag at the cap value.
         sim.advance(BattleSimulation.TICK_DT);
         // The recovery tick may have just-barely tweaked morale; reset to
-        // exactly cap so the assertion below pins on the drain math.
-        sq.morale = 0.25f;
-        sq.moraleBroken = false;
+        // exactly cap so the assertions below pin on the drain math.
+        team(sq).morale = 0.25f;
+        team(sq).broken = false;
+        team(sq).drainCooldown = 0f;
 
         long survivor = units.get(3);
         sim.applyDamage(survivor, 1f, 1f);
         assertTrue(sim.world().isAlive(survivor), "test prerequisite: 1 damage shouldn't kill");
 
-        // Hit drain for cap=0.25 is 0.05/0.25 = 0.20 → morale = 0.05.
-        assertEquals(0.05f, sq.morale, 1e-5f,
-                "solo hit drain should scale to 0.05/cap = 0.20");
-        // Now run one tick so updateSquadMorale notices the threshold cross.
+        assertEquals(0.11f, team(sq).morale, 1e-5f,
+                "solo hit drain should scale to MORALE_DROP_ON_HIT/cap = 0.14");
         sim.advance(BattleSimulation.TICK_DT);
-        assertTrue(sq.moraleBroken,
-                "morale 0.05 < scaled broken (0.075) — single incoming hit folds the solo");
+        assertFalse(team(sq).broken,
+                "0.11 is still above the scaled broken threshold (0.075) — one round is survivable");
+
+        // Wait out the drain cooldown. Well inside the under-fire window, so
+        // nothing recovers in the meantime.
+        for (int i = 0; i < 10; i++) sim.advance(BattleSimulation.TICK_DT);
+        assertEquals(0.11f, team(sq).morale, 1e-5f,
+                "test prerequisite: no recovery inside the under-fire window");
+
+        sim.applyDamage(survivor, 1f, 1f);
+        assertTrue(sim.world().isAlive(survivor), "test prerequisite: still alive after the second hit");
+        assertEquals(0f, team(sq).morale, 1e-5f, "second hit takes them to the floor");
+        sim.advance(BattleSimulation.TICK_DT);
+        assertTrue(team(sq).broken,
+                "morale 0 < scaled broken (0.075) — the second incoming round folds the solo");
     }
 
     @Test
@@ -323,18 +363,18 @@ public class SquadMoraleTest {
         List<Long> units = TestUnits.snapshot(sim);
         TestUnits.kill(sim, units.get(0));
         TestUnits.kill(sim, units.get(1));
-        sq.morale = 0.20f;
-        sq.moraleBroken = true;
+        team(sq).morale = 0.20f;
+        team(sq).broken = true;
 
         sim.advance(BattleSimulation.TICK_DT);
 
         // Morale ticked up slightly (~0.0067), still in the (0.15, 0.25)
         // hysteresis band for cap=0.5 — should NOT have cleared.
-        assertTrue(sq.morale < 0.25f,
+        assertTrue(team(sq).morale < 0.25f,
                 "test prerequisite: morale stays in the scaled hysteresis band after one tick");
-        assertTrue(sq.morale > 0.15f,
+        assertTrue(team(sq).morale > 0.15f,
                 "test prerequisite: morale stays above scaled broken threshold");
-        assertTrue(sq.moraleBroken,
+        assertTrue(team(sq).broken,
                 "scaled-threshold hysteresis must hold broken flag inside the band");
     }
 
@@ -347,13 +387,13 @@ public class SquadMoraleTest {
         BattleSimulation sim = openSim();
         Squad sq = marineSquad(sim, 4);
         long target = sim.liveUnitAt(0);
-        float startMorale = sq.morale;
+        float startMorale = team(sq).morale;
 
         for (int i = 0; i < 10; i++) sim.applyDamage(target, 1f, 1f);
 
-        assertEquals(startMorale - SquadMoraleSystem.MORALE_DROP_ON_HIT, sq.morale, 1e-5f,
+        assertEquals(startMorale - SquadMoraleSystem.MORALE_DROP_ON_HIT, team(sq).morale, 1e-5f,
                 "10 hits inside one cooldown window drain by exactly one hit");
-        assertEquals(SquadMoraleSystem.MORALE_DRAIN_COOLDOWN, sq.moraleDrainCooldown, 1e-5f,
+        assertEquals(SquadMoraleSystem.MORALE_DRAIN_COOLDOWN, team(sq).drainCooldown, 1e-5f,
                 "cooldown set on the first hit and not refreshed by subsequent hits");
     }
 
@@ -367,7 +407,7 @@ public class SquadMoraleTest {
         long target = sim.liveUnitAt(0);
 
         sim.applyDamage(target, 1f, 1f);
-        float afterFirst = sq.morale;
+        float afterFirst = team(sq).morale;
 
         // Tick past the cooldown so the next hit can drain again. The
         // ~0.2s cooldown window is well inside MORALE_RECOVER_AFTER_FIRE_SECONDS
@@ -378,12 +418,12 @@ public class SquadMoraleTest {
         int cooldownTicks = (int) Math.ceil(
                 SquadMoraleSystem.MORALE_DRAIN_COOLDOWN / BattleSimulation.TICK_DT) + 1;
         for (int i = 0; i < cooldownTicks; i++) sim.advance(BattleSimulation.TICK_DT);
-        float moraleAfterCooldown = sq.morale;
+        float moraleAfterCooldown = team(sq).morale;
 
         sim.applyDamage(target, 1f, 1f);
 
         assertEquals(moraleAfterCooldown - SquadMoraleSystem.MORALE_DROP_ON_HIT,
-                sq.morale, 1e-5f,
+                team(sq).morale, 1e-5f,
                 "second hit after cooldown elapses must drain again");
     }
 
@@ -400,15 +440,15 @@ public class SquadMoraleTest {
 
         // Burn the cooldown with a non-lethal hit.
         sim.applyDamage(a, 1f, 1f);
-        float afterHit = sq.morale;
-        assertTrue(sq.moraleDrainCooldown > 0f,
+        float afterHit = team(sq).morale;
+        assertTrue(team(sq).drainCooldown > 0f,
                 "test prerequisite: first hit puts the cooldown on");
 
         // Kill b immediately — death drain should still apply.
         sim.applyDamage(b, sim.world().hp(b) + 1000f, 1f);
 
         assertEquals(afterHit - SquadMoraleSystem.MORALE_DROP_ON_DEATH,
-                sq.morale, 1e-5f,
+                team(sq).morale, 1e-5f,
                 "death drain stacks regardless of the cooldown state");
     }
 
@@ -423,14 +463,14 @@ public class SquadMoraleTest {
         List<Long> units = TestUnits.snapshot(sim);
         TestUnits.kill(sim, units.get(0));
         TestUnits.kill(sim, units.get(1));
-        sq.morale = 0.10f;
-        sq.moraleBroken = true;
+        team(sq).morale = 0.10f;
+        team(sq).broken = true;
 
         sim.advance(BattleSimulation.TICK_DT);
 
         float expected = 0.10f
                 + SquadMoraleSystem.MORALE_RECOVERY_RATE * 0.5f * BattleSimulation.TICK_DT;
-        assertEquals(expected, sq.morale, 1e-5f,
+        assertEquals(expected, team(sq).morale, 1e-5f,
                 "recovery should be cap-scaled (rate × 0.5 for a 2-of-4 squad)");
     }
 
@@ -442,13 +482,13 @@ public class SquadMoraleTest {
         BattleSimulation sim = openSim();
         Squad sq = marineSquad(sim, 4);
         long target = sim.liveUnitAt(0);
-        float before = sq.morale;
+        float before = team(sq).morale;
 
         sim.applyDamage(target, 1f, 1f, UnitType.MILITIA.moraleImpact);
 
         float expected = before - SquadMoraleSystem.MORALE_DROP_ON_HIT
                 * UnitType.MILITIA.moraleImpact;
-        assertEquals(expected, sq.morale, 1e-5f,
+        assertEquals(expected, team(sq).morale, 1e-5f,
                 "militia hit drain should scale by MILITIA.moraleImpact (0.4)");
     }
 
@@ -464,14 +504,14 @@ public class SquadMoraleTest {
         long a = sim.liveUnitAt(0);
 
         sim.applyDamage(a, 1f, 1f, UnitType.MARINE.moraleImpact);
-        float marineDrain = 1.0f - sq.morale;
+        float marineDrain = 1.0f - team(sq).morale;
 
         // Reset state and apply the heavy-mech hit identically.
-        sq.morale = 1.0f;
-        sq.moraleDrainCooldown = 0f;
+        team(sq).morale = 1.0f;
+        team(sq).drainCooldown = 0f;
         long b = sim.liveUnitAt(1);
         sim.applyDamage(b, 1f, 1f, UnitType.HEAVY_MECH.moraleImpact);
-        float mechDrain = 1.0f - sq.morale;
+        float mechDrain = 1.0f - team(sq).morale;
 
         assertTrue(mechDrain > marineDrain,
                 "HEAVY_MECH (1.5) drain must exceed MARINE (1.0) drain on identical hits ("
@@ -487,13 +527,13 @@ public class SquadMoraleTest {
         // squadId != NO_SQUAD check; this pins it.
         BattleSimulation sim = openSim();
         Squad sq = marineSquad(sim, 2);
-        float before = sq.morale;
+        float before = team(sq).morale;
 
         long civilian = sim.spawn(new EntitySpec("c", Faction.DEFENDER, UnitType.MARINE, 8, 8)
                 .squad(Squad.NO_SQUAD));
         sim.applyDamage(civilian, sim.world().hp(civilian) + 1000f, 1f);
 
-        assertEquals(before, sq.morale, 1e-6f,
+        assertEquals(before, team(sq).morale, 1e-6f,
                 "killing a non-squad unit must not drain any squad's morale");
     }
 
@@ -536,10 +576,10 @@ public class SquadMoraleTest {
         shots.postShot(new ShotEvent(fromX, fromY, toX, toY, false, Faction.DEFENDER, 1f));
         SquadMoraleSystem morale = new SquadMoraleSystem(sim.getRoster(), shots);
 
-        float before = sq.morale;
+        float before = team(sq).morale;
         morale.tick(BattleSimulation.TICK_DT);
 
-        assertTrue(sq.morale < before,
+        assertTrue(team(sq).morale < before,
                 "a segment passing 1 cell from a squadmate must drain near-miss morale even though its endpoint is far downrange");
     }
 
@@ -556,10 +596,10 @@ public class SquadMoraleTest {
         shots.postShot(new ShotEvent(20f, 20f, 25f, 20f, false, Faction.DEFENDER, 1f));
         SquadMoraleSystem morale = new SquadMoraleSystem(sim.getRoster(), shots);
 
-        float before = sq.morale;
+        float before = team(sq).morale;
         morale.tick(BattleSimulation.TICK_DT);
 
-        assertEquals(before, sq.morale, 1e-6f,
+        assertEquals(before, team(sq).morale, 1e-6f,
                 "a shot whose segment never comes within range of any member must not drain morale");
     }
 }

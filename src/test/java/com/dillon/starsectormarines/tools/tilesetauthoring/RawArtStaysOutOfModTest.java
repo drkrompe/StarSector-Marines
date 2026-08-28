@@ -38,6 +38,9 @@ class RawArtStaysOutOfModTest {
     /** Long-edge ceiling for a shipped Armory icon, matching the armour-tier art. */
     private static final int MAX_ICON_EDGE = 512;
 
+    /** Long-edge ceiling for a shipped battle FX texture. */
+    private static final int MAX_FX_EDGE = 256;
+
     private static List<Path> under(Path root, String suffix) throws IOException {
         if (!Files.isDirectory(root)) return List.of();
         try (Stream<Path> walk = Files.walk(root)) {
@@ -111,17 +114,33 @@ class RawArtStaysOutOfModTest {
     @Test
     void armoryIconsShipAtDisplayResolution() throws IOException {
         Path icons = MOD.resolve("graphics").resolve("ui").resolve("armory");
-        if (!Files.isDirectory(icons)) return;
-        List<String> oversized = new ArrayList<>();
-        for (Path icon : under(icons, ".png")) {
-            Dimension size = pngSize(icon);
-            if (Math.max(size.width, size.height) > MAX_ICON_EDGE) {
-                oversized.add(icon.getFileName() + " is " + size.width + "x" + size.height);
-            }
-        }
-        assertEquals(List.of(), oversized,
+        assertEquals(List.of(), oversized(icons, MAX_ICON_EDGE),
                 "Armory icons must ship at no more than " + MAX_ICON_EDGE
                         + "px on their long edge; downscale the master before committing it");
+    }
+
+    /**
+     * A battle FX texture is drawn at a fraction of a cell and is decoded into
+     * the headless renderers' image cache exactly like an icon, so it gets the
+     * same rule for the same reason. The masters these are derived from are
+     * 1024px and live under {@code art-source/fx/}, where nothing loads them.
+     */
+    @Test
+    void battleFxTexturesShipAtDisplayResolution() throws IOException {
+        assertEquals(List.of(), oversized(MOD.resolve("graphics").resolve("fx"), MAX_FX_EDGE),
+                "battle FX textures must ship at no more than " + MAX_FX_EDGE
+                        + "px on their long edge; downscale the master before committing it");
+    }
+
+    private static List<String> oversized(Path directory, int maxEdge) throws IOException {
+        List<String> found = new ArrayList<>();
+        for (Path png : under(directory, ".png")) {
+            Dimension size = pngSize(png);
+            if (Math.max(size.width, size.height) > maxEdge) {
+                found.add(png.getFileName() + " is " + size.width + "x" + size.height);
+            }
+        }
+        return found;
     }
 
     /** Reads an IHDR without decoding the image, so the guard costs nothing. */

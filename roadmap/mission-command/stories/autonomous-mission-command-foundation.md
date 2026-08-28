@@ -1,11 +1,12 @@
 # Autonomous mission-command foundation
 
-Status: IN PROGRESS — the shared frame/plan/commit envelope, paired Conquest migration, common diagnostics, spawn-time ownership, disclosure boundary, and directive stability are implemented; legacy scripted writers and live acceptance remain.
+Status: IN PROGRESS — the shared frame/plan/commit envelope, paired Conquest migration, common diagnostics, spawn-time ownership, disclosure boundary, directive stability, and assignment-writer ownership are implemented; live acceptance remains.
 
 Written: 2026-08-25
 
-Updated: 2026-08-27 — moved under the shared Mission Command architecture;
-remaining foundation acceptance still uses Conquest as the production reference.
+Updated: 2026-08-28 — Opening Operations has migrated to paired frozen command;
+the remaining Silent Colony legacy planner submits through scoped directive
+control. Foundation acceptance still uses Conquest as the production reference.
 
 Read `mission-command-nouns.md`, `conquest-command.md`, `ai-nouns.md`,
 `conquest-nouns.md`, and `battle-fixtures-nouns.md` before

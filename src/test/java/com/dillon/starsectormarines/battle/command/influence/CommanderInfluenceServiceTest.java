@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CommanderInfluenceServiceTest {
@@ -122,7 +123,7 @@ class CommanderInfluenceServiceTest {
     }
 
     @Test
-    void staleBeliefAboutADeadHostileIsNotPublishedAsActionableContact() {
+    void deadHostileLeavesSquadBeliefAndTheCommanderPicture() {
         BattleSimulation sim = openSim(40, 12);
         for (int y = 0; y < 12; y++) sim.getGrid().setWalkable(20, y, false);
         int squad = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
@@ -139,8 +140,8 @@ class CommanderInfluenceServiceTest {
             sim.advance(BattleSimulation.TICK_DT);
         }
 
-        assertTrue(sim.getSquad(squad).hasBelievedContacts(),
-                "the identity belief intentionally outlives the target");
+        assertFalse(sim.getSquad(squad).hasBelievedContacts(),
+                "belief is dropped at the source once its identity stops resolving");
         CommanderInfluenceSnapshot refreshed =
                 sim.getCommanderInfluence(Faction.MARINE);
         assertEquals(16, refreshed.updatedTick());

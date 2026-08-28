@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.command;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
-import com.dillon.starsectormarines.battle.command.reinforcement.ConvoyDeployment;
+import com.dillon.starsectormarines.battle.command.reinforcement.DeliveryDeployment;
 import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementRequest;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -95,7 +95,7 @@ class ConquestDefenderCommandTest {
                 ReinforcementRequest.Strength.SMALL,
                 5, 18, 5, 14);
 
-        ConvoyDeployment deployment = command.deploymentFor(request);
+        DeliveryDeployment deployment = command.deploymentFor(request);
 
         assertTrue(deployment.strictDefenderRearEntry());
         assertTrue(deployment.minimumDefenderForward()
@@ -119,7 +119,7 @@ class ConquestDefenderCommandTest {
                 ReinforcementRequest.Strength.SMALL,
                 5, 14, 5, 14);
 
-        ConvoyDeployment deployment = command.deploymentFor(request);
+        DeliveryDeployment deployment = command.deploymentFor(request);
 
         assertTrue(deployment.minimumDefenderForward()
                         >= 14 + ConquestDefenderCommand.CONVOY_REAR_STANDOFF_CELLS,

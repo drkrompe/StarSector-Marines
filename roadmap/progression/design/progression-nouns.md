@@ -4,7 +4,10 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — the deployable category split into its two placed shapes, actor and boundary property, as the Rampart field revetment shipped as carried directional cover.
+Updated: 2026-08-28 — perception joined movement and payload as a shipped
+integral-system effect, as the Janus aperture read landed as a bounded,
+player-facing reveal; and a running integral system became visible on the
+battlefield as the running-system treatment, drawn as the arc it protects.
 
 ## Purpose
 
@@ -145,6 +148,13 @@ legibility.
   grade's stat multipliers, because its numbers are authored outright and scaling
   them again would price the same quality twice. A Masterwork system is finely
   made, not automatically the strongest — a family is side-grades.
+- **Running-system treatment** — what a wearer looks like while an integral
+  system is running: authored appearance data written from the live effect and
+  cleared when it ends. It describes the capability rather than the suit — a
+  window with a clock on it, and, when the system raised one, the screen's
+  facing, width, and strength — so a consumer draws from what is running and
+  never from which pattern is running it. It is presentation in one direction
+  only: the simulation neither reads it nor may ever come to.
 - **Equipment template card** — permanent collected capability for one primary
   family-and-grade, armor pattern, or special item. It gates authoring and issue,
   is never consumed, and is distinct from a reusable squad definition.
@@ -562,6 +572,41 @@ suit cannot borrow a policy written for a grenade and a grenade cannot borrow
 one written for a suit. Both refusals name the policies that would have applied,
 in the style the armour catalog already uses to refuse durability keys.
 
+**Perception is an effect, and it is player-facing by construction.** A sensor
+sweep is the third thing an integral system may be, beside movement-with-a-screen
+and a delivered payload. What it does is contribute a temporary observer to the
+player's own reveal for its authored window — the same shadowcast, the same
+reference count, and the same expiry a shuttle or a recon ping already gets
+(`fog-of-war-nouns.md`), so it is a client of player reveal composition rather
+than a second visibility path. It authors how far it reads and how far that read
+carries into the walls in front of it, and the wall tolerance is bounded strictly
+inside the range: a read that carried through walls as far as it carried through
+air would leave nothing for a wall to do at the rim of its own disc.
+
+A sweep is **information, not authority**. It reveals and does nothing else — it
+does not target, mark, follow, or make anything easier to hit, and no decision
+layer reads it, because fog of war is presentation authority and must never
+become a simulation input. That is also why the moment a sweep is spent at is
+judged from the wearer's own line of sight rather than from the reveal bitmap:
+a policy that read the fog would let what the player has already been shown
+decide what a marine does, which is the same law inverted. The consequence worth
+stating plainly is that a sweep confers no advantage the same information
+obtained by walking round the corner would not.
+
+The corollary is the rule this effect exists to keep: **whatever a sensor system
+finds, the player is shown.** A capability that fed better information to the AI
+and showed the player nothing would be exactly the hidden modifier the
+visible-issue law forbids, and a perception effect is unusually easy to build
+that way by accident. Building the reveal as a player-picture contribution and
+nothing else makes that true by construction rather than by discipline.
+
+**A sweep does not conceal.** Concealment is a separate capability belonging to
+the light/recon role behind its own contract (`powered-assault-armor-roles.md`),
+and a reveal path that recomputed rather than contributed would be the cheapest
+accidental route to it. A running sweep only ever adds to the picture; no cell
+that was open closes because of one, and the wearer is exactly as visible while
+it runs as they were before.
+
 An equipment presentation separates catalog art, actor-local carrier layers,
 deployed-world art, and preview state. Carrier transforms are authored in
 shoulder-width coordinates with carried/using states, pivot, occlusion,
@@ -898,6 +943,36 @@ outside. Avoid stacking redundant
 battlefield overlays; start with the closest decision surface and add in-world
 signal only when it materially improves play.
 
+**A running system is legible in the world, not in a status bar.** The wearer
+looks different while it runs and stops looking different when it ends, and
+that difference is drawn where the effect is rather than floated above the
+sprite. Three rules make the drawing honest, and each exists because breaking
+it would teach the player something false:
+
+- **A drawn screen spans the arc it protects and no more.** The whole
+  counterplay of a directional screen is that it covers one facing and leaves
+  the flanks open, so a 90-degree scrap screen and a 200-degree interlock
+  screen must not look alike, and neither may be drawn as an all-round glow.
+  The drawn arc is the one the damage path resolves against, copied rather than
+  recomputed — a second calculation would eventually disagree with the first,
+  and the value of the picture is entirely that it can be trusted.
+- **The window is shown closing rather than counted down.** A screen with a
+  second left reads as a screen with a second left. What thins is the depth of
+  the drawn band, never its angular width, because the protected arc does not
+  narrow as it expires. Cooldown is deliberately not drawn: these are spent on
+  an authored policy rather than a player click, so a cooldown readout answers
+  a question nobody has.
+- **The treatment keys on the capability.** A running system that raises no
+  screen reports no arc and is drawn without one; nothing in the presentation
+  may branch on which armour pattern is in front of it. That is what lets a
+  future system inherit the treatment by describing itself rather than by being
+  added to a list.
+
+Both sides read the same, because the capability is symmetric and an incoming
+breacher is exactly the thing a player needs to recognise; a hostile's
+treatment is gated on ordinary cell visibility like every other field effect,
+so symmetry hands out no information the fog was withholding.
+
 ## Growth directions
 
 The following are direction, not current behavior:
@@ -952,6 +1027,12 @@ The following are direction, not current behavior:
 - A policy's parameters belong to that policy alone. Two systems declaring
   different policies share no numbers, and no parameter may be reachable from a
   policy that did not author it.
+- A perception effect reveals to the player. Feeding a decision layer something
+  the player is not shown is a hidden modifier, not a capability, and reading
+  the player's reveal back into a simulation decision is that law inverted.
+- A perception effect never conceals, marks, targets, or makes anything easier
+  to hit. Concealment belongs to the recon role and its own contract; a sweep
+  that acquired any of those has stopped being perception.
 - Defenders and the player draw a pattern's system from the same catalog entry.
   A defender-only tuning field, a second catalog, or a faction branch in the
   sweep is a defect: a recovered suit must behave identically to the one it was
@@ -992,4 +1073,14 @@ The following are direction, not current behavior:
 - Career evidence is folded from a frozen campaign outcome; battle-local state
   must not become a second career authority, and career totals must never be
   read back as a combat-quality input.
+- A running system's treatment is drawn from authored appearance data, written
+  by a presentation system and read by render and audio. No simulation
+  consumer may read it, and an activation, damage, or movement decision that
+  came to depend on it is a defect rather than an optimisation.
+- A drawn screen's arc is the arc the damage path resolves against, and its
+  width is authored per pattern. Widening, rounding, or averaging it for the
+  picture's sake is prohibited; so is any treatment whose readable extent
+  implies a protected facing the simulation does not honour.
+- A treatment ends with the effect that produced it and never survives its
+  wearer. It is live-only state and leaves nothing on a corpse.
 - Presentation conveys existing quality but never changes sim state.
