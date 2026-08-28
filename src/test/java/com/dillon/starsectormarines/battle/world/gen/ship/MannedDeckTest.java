@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.battle.world.gen.ship;
 
 import com.dillon.starsectormarines.battle.ambient.CrewRole;
+import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
+import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.sim.IdentityService;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
@@ -99,6 +101,11 @@ final class MannedDeckTest {
      * only while framed, so the ship is busy wherever the player happens to be
      * and nowhere else. Nothing here frames anything, so if the deck only runs
      * under a camera, nobody moves at all.
+     *
+     * <p>Going to work is two facts and both are checked: that people cover
+     * ground, and that somebody covering ground is <em>drawn</em> walking.
+     * Ambient work authors the appearance as well as the position, and without
+     * the second the crew slide around the deck at attention.
      */
     @Test
     void crewOutOfFrameGoToWork() {
@@ -116,9 +123,12 @@ final class MannedDeckTest {
                 startY[index] = world.y(crew[index]);
             }
 
+            boolean anyWalking = false;
             for (float second = 0.1f; second <= 120f; second += 0.1f) {
                 scene.advanceTo(second);
+                anyWalking = anyWalking || walking(scene, crew);
             }
+            assertTrue(anyWalking, "nobody aboard was ever drawn walking");
 
             int moved = 0;
             for (int index = 0; index < crew.length; index++) {
@@ -230,6 +240,17 @@ final class MannedDeckTest {
         } finally {
             ship.dismiss();
         }
+    }
+
+    /** Whether anybody is carrying the moving flag this tick. */
+    private static boolean walking(ShipDeckBattleScene scene, long[] crew) {
+        BattleComponents components = scene.simulation().getBattleComponents();
+        for (long hand : crew) {
+            int flags = scene.simulation().getEntityWorld().getInt(hand,
+                    components.LAYERED_ANIMATION, BattleComponents.LAYERED_FLAGS);
+            if ((flags & LayeredAppearance.FLAG_MOVING) != 0) return true;
+        }
+        return false;
     }
 
     private static DeckSizing.DeckPlan transportPlan() {
