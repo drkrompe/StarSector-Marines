@@ -1788,6 +1788,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         navigation.setPath(u, newPath);
     }
 
+    /** Occupancy-aware hierarchical route for ordinary one-off movement. */
+    public int[] findPath(int startX, int startY, int goalX, int goalY) {
+        return navigation.findPath(startX, startY, goalX, goalY);
+    }
+
     /** Shared-goal path seam for dense target-pursuit behaviors. */
     public int[] findSharedPathToGoal(int startX, int startY,
                                       int goalX, int goalY) {
