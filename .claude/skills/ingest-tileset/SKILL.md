@@ -130,6 +130,10 @@ See the `authoring-tools` skill for the whole surface and for the argument
 forms; the same tools are served over MCP to a session that has the server
 registered. A fused plate slices to one piece, which is the piece
 `tileset_split_on_grid` cuts into the document's stated `gridCols` x `gridRows`.
+Each cut cell is named for where it sits — `<idPrefix>.c<col>r<row>`, zero-based
+and column first, so `doodad.urban.c6r1` is the seventh cell of the second row —
+which is how a row in the document is found in the picture. Pieces found by
+alpha have no grid position and are named serially instead.
 Everything that writes previews by default — pass `apply=true` to keep it.
 
 `tileset_set_block` answers with what every slot it filled *means*, and reading

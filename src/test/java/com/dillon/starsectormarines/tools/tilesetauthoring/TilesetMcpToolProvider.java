@@ -420,7 +420,9 @@ public final class TilesetMcpToolProvider implements McpToolProvider {
                     + "drawn edge to edge with no gutter, so slicing finds it as one piece and "
                     + "no threshold will ever separate it — the cut has to be stated. Each part "
                     + "becomes a one-cell piece in reading order, left to right then top to "
-                    + "bottom, which is the order a block's slots are filled in. The grid "
+                    + "bottom, which is the order a block's slots are filled in, and is named "
+                    + "for where it sits: <idPrefix>.c<col>r<row>, zero-based and column "
+                    + "first, so doodad.urban.c6r1 is the seventh cell of the second row. The grid "
                     + "defaults to the document's own gridCols x gridRows and its cells need "
                     + "not be square. Read-only unless you pass apply=true, which replaces the "
                     + "plate with its parts in the document.";
@@ -493,7 +495,7 @@ public final class TilesetMcpToolProvider implements McpToolProvider {
 
             int before = document.entries.size();
             List<TilesetExport.Entry> replaced = TilesetOperations.splitOnGrid(
-                    document.entries, entry -> entry == plate, cols, rows);
+                    document.entries, entry -> entry == plate, document.idPrefix, cols, rows);
             boolean apply = arguments.optBoolean("apply", false);
 
             // The parts replace the plate where it stood, so they are the run that
