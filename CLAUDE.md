@@ -77,7 +77,7 @@ Do not run builds or leave generated task files there.
   mission's documented construction-fixture matrix twice in a forced-serial,
   zero-input simulation and writes canonical traces plus `summary.json` /
   `summary.md` under `build/reports/commander/<mission>/`. Supported mission
-  arguments are currently `conquest`, `sabotage`, `assault`, and `raid`; later mission harnesses
+  arguments are currently `conquest`, `sabotage`, `assault`, `raid`, and `extraction`; later mission harnesses
   extend that argument instead of creating another Gradle task. The run is
   opt-in and excluded from ordinary `test` / `build`. Use `-PmaxTicks=9000` or
   `-Pfixture=C:\path\to\fixture.json` for explicitly ad-hoc evidence.

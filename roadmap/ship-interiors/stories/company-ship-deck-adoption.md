@@ -8,8 +8,8 @@ Updated: 2026-08-27 — renamed off the flagship framing. The company lives on a
 ship the player designates, which need not be the ship they fly. Read
 `company-ship.md` for where the deck's parameters come from.
 
-Read `ship-interiors-nouns.md` before implementing this story. Depends on
-`fixture-derived-ambient-routes.md`.
+Read `ship-interiors-nouns.md` before implementing this story. The crew model it
+puts on the deck is in `ai-nouns.md`.
 
 Retire the two constant scene layouts and host Barracks and Mech Lab on the
 company ship's generated deck. Today each screen owns a private grid with its
@@ -36,6 +36,15 @@ real.
   as the live views, substituting only the final drain.
 - The screens keep their current interaction and layout authority. This story
   changes the place they depict, not the surface.
+- **A screen that seeks rather than advances will draw people through walls.**
+  The Mech Lab freezes time and samples poses, and that sampler interpolates
+  between stops in a straight line — deliberately, since it exists to make a
+  picture rather than to simulate. On the two hand-authored layouts the straight
+  lines are clear by construction; on a generated deck they are not, and a shift
+  that reaches the mess crosses several bulkheads to get there. Moving these
+  screens onto the deck is exactly what turns a documented bound into a visible
+  defect, so decide it here: either these screens advance the bounded simulation
+  the way Barracks already does, or the sampler walks stops rather than lines.
 
 ## Acceptance
 

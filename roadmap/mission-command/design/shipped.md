@@ -8,3 +8,4 @@ Written: 2026-08-27
 |---|---|---|---|---|
 | `sabotage-site-task-groups.md` | Sabotage | 2026-08-26 | `3efd0c42`, `30da6637` | `sabotage-command.md` |
 | `sabotage-site-defense-command.md` | Sabotage | 2026-08-26 | `d598c1df` | `sabotage-command.md` |
+| `extraction-objective-contract.md` | Extraction | 2026-08-27 | `34ce388a` | `extraction-command.md`, `mission-command-nouns.md` |

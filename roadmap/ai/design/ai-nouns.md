@@ -6,7 +6,10 @@ Written: 2026-08-23
 
 Updated: 2026-08-27 — separated shared command-duel architecture and each
 mission strategy into the Mission Command feature while retaining their
-AI-facing belief, assignment, and tactical-execution boundaries here.
+AI-facing belief, assignment, and tactical-execution boundaries here; took
+ownership of the ambient job site, role, and shift model, which
+`fixture-derived-ambient-routes.md` proved out on ship decks and which is not
+shipboard.
 
 AI turns an assignment and what a squad has learned into coordinated movement,
 posture, and fire intent. It is a decision system, not the authority for combat
@@ -111,6 +114,34 @@ keeping a routine before it is disturbed, or an individual actor lifted out of
 ordinary behaviour to act out a role for a while and returned to it afterwards.
 The assignment already suspends and restores ordinary dispatch; what a mission
 supplies is the role and the sites.
+
+A shift derives where it works from what each place publishes, so **posting is
+the only thing a caller decides**. Hand it a role, the place somebody is
+stationed, and the map's sites, and it finds the nearest site offering each job
+the posting does not. A table of which purpose serves which job would be a
+second copy of the generator's decisions and would go stale the first time a
+room started affording something new.
+
+**Publishing a site is a statement, not an increment.** Shifts share sites — two
+berthing spaces send their watches to the same mess — so each publishes it, and
+saying the same thing twice must leave the board as it was. A genuinely clashing
+id still fails loudly, because that is a different mistake.
+
+**Putting somebody into the world is not the same as posing them.** A watch is
+spread across its loop on purpose, so at any instant most of it is between jobs,
+and the pose sampler draws that as the straight line from one stop to the next.
+That line is a presentation convenience which bypasses collision by design; on a
+generated map it crosses walls. Placement therefore goes to a job — the one the
+clock says they are heading for — never to a point between two. A seeded sweep
+of ship decks found one shift in seventy standing inside a bulkhead before this
+was separated out.
+
+That sweep is the standing check on the whole model, and it is deliberately not
+a check on a picture: for a spread of hulls and seeds it asserts that every stop
+stands on floor somebody can occupy and that consecutive stops are connected by
+a path **the game's own pathfinder** will find. A route that fails either is
+silent by nature — the clock keeps advancing and the actor keeps repathing, and
+what a player sees is somebody walking into a wall all watch.
 
 Bounded embedded scenes may seek the same route sampler at an exact presentation
 time without advancing combat; that pose-only operation is not physical

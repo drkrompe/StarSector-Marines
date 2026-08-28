@@ -321,8 +321,9 @@ than reading as scenery.
 It sits on the member of a group that actually affords it, not on the group. A
 mess is a table with chairs round it and the meal is at a chair: published at the
 table it would be one place to sit at the fixture four people sit at. The same
-rule keeps a range's arms racks as scenery — drawing weapons is the armory's
-work, and no role aboard yet spends a watch on a range.
+rule keeps a range's arms racks as scenery even though marines do spend part of
+a watch on the range: what they come to do is shoot, and the firing point is
+where that happens. Drawing weapons is the armory's work.
 
 Each usable affordance publishes one exclusive **task point**: a cell *beside*
 the fixture, since nobody stands inside a workbench, reserved as circulation so

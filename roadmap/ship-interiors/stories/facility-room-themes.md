@@ -56,7 +56,7 @@ which is presentation only.
 - Purposeful density variation: dense work and living clusters, clear transit,
   and clear space only where a firing lane or hatch approach needs it.
 - Fixtures declare their tactical effect and their ambient affordance. Affordance
-  is authored here and consumed by `fixture-derived-ambient-routes.md`.
+  is authored here; the crew model that consumes it is in `ai-nouns.md`.
 - A **refit level** per compartment, which is how the upgrade chain works: the
   same floor area fitted better holds more. A berth compartment given single
   racks and generous aisles berths fewer than the same compartment given triple
