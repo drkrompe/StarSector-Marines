@@ -1,9 +1,12 @@
 # Generic Extraction interdiction command
 
 Status: IN PROGRESS — bounded source security, alarm response, diagnostics,
-and headless evidence are implemented; canonical and live acceptance remain.
+and canonical headless evidence are implemented; live acceptance remains.
 
 Written: 2026-08-27
+
+Updated: 2026-08-27 — added a deterministic alarm-reaching fixture with
+surviving source response and belief-driven interdiction.
 
 Read `mission-command-nouns.md`, `extraction-command.md`,
 `generic-extraction-corridor-command.md`, and
@@ -44,7 +47,7 @@ it while authored garrisons retain their posts.
 - [x] Defender overlay, squad dump, and perspective trace expose the same
   public source, alarm, belief summary, reserve, role, reason, and rally.
 - [x] The generic production setup installs the paired Extraction commanders.
-- [ ] Canonical-duration duplicate evidence remains byte-stable and shows an
+- [x] Canonical-duration duplicate evidence remains byte-stable and shows an
   intelligible source response plus belief-driven interception when contact is
   acquired.
 - [ ] Live play confirms defenders mobilize promptly without omnisciently
