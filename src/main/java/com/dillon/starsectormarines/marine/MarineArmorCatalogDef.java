@@ -16,7 +16,8 @@ public record MarineArmorCatalogDef(
         float armorCapacity,
         float armorRating,
         float moveSpeedMult,
-        float incomingAccuracyMult) {
+        float incomingAccuracyMult,
+        IntegralSystemDef integralSystem) {
 
     public static MarineArmorCatalogDef parse(JSONObject json) throws JSONException {
         String id = requireText(json, "id", "armor catalog entry");
@@ -43,7 +44,19 @@ public record MarineArmorCatalogDef(
                 nonNegative(battle, "armorCapacity", id),
                 nonNegative(battle, "armorRating", id),
                 positive(battle, "moveSpeedMult", id),
-                nonNegative(battle, "incomingAccuracyMult", id));
+                nonNegative(battle, "incomingAccuracyMult", id),
+                battle.has("integralSystem")
+                        ? IntegralSystemDef.parse(battle.getJSONObject("integralSystem"), id)
+                        : null);
+    }
+
+    /**
+     * The capability this suit carries, or null. Most patterns carry none —
+     * that is what makes one worth hunting for
+     * ({@code integral-armor-systems.md}).
+     */
+    public boolean hasIntegralSystem() {
+        return integralSystem != null;
     }
 
     private static float nonNegative(JSONObject json, String key, String owner)
