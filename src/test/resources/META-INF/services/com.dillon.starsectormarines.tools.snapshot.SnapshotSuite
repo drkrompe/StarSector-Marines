@@ -6,3 +6,4 @@ com.dillon.starsectormarines.ops.battleview.DurabilityBarSnapshotSuite
 com.dillon.starsectormarines.battle.infantry.FrontageSceneSnapshotSuite
 com.dillon.starsectormarines.battle.deployable.PointDefenceSceneSnapshotSuite
 com.dillon.starsectormarines.battle.deployable.DeployedCoverSceneSnapshotSuite
+com.dillon.starsectormarines.battle.appearance.IntegralSystemFxSnapshotSuite

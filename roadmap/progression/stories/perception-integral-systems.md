@@ -75,8 +75,9 @@ and either way the world behaves normally.
 - The Janus sweep as the only carrier. A sensor capability belongs on the suit
    built around sensors; spreading it to a second pattern would need that
    pattern to have its own reason, not a spare slot.
-- Presentation, following `integral-system-battle-presentation.md`: a sweep the
-  player cannot see happen is information arriving from nowhere.
+- Presentation, following the running-system treatment rules in
+  `progression-nouns.md`: a sweep the player cannot see happen is information
+  arriving from nowhere.
 
 ## Out of scope
 

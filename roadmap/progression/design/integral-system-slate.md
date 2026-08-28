@@ -152,9 +152,11 @@ likely to be violated by a *capability* rather than by a stat are:
 Directional mitigation and the shoulder pod have both landed, so every authored
 system now expresses the whole of what it was written to be; every system
 authors the moment it is spent at, and defenders wear the ones their patterns
-declare (`progression-nouns.md`). One mechanic the slate still needs is storied
-separately, because it is gated on simulation work rather than on authoring:
-`integral-system-battle-presentation.md`.
+declare (`progression-nouns.md`), and a running system is legible on the field:
+its treatment is drawn from authored appearance data and, when it raises a
+screen, that screen spans the arc it actually protects (`progression-nouns.md`,
+presentation law). A new effect on this slate inherits that treatment by
+describing itself rather than by being added to a list.
 
 The two individual systems have stories of their own:
 `perception-integral-systems.md` and `firing-platform-integral-systems.md`.
