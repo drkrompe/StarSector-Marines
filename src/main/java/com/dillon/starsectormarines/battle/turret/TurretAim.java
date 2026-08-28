@@ -118,7 +118,7 @@ public final class TurretAim {
         boolean inRange = dist <= s.attackRange && dist >= s.minRange;
         boolean visible = TacticalScoring.canShootPair(grid,
                 s.originX, s.originY, world.x(s.target), world.y(s.target),
-                shooterAirR, vision.has(s.target) ? vision.airLosRadius(s.target) : 0f);
+                shooterAirR, vision.targetAirLosRadius(s.target));
         // Direct-fire kinds drop on either out-of-range OR LoS loss; indirect-
         // fire kinds keep the lock when LoS breaks (the kremlin wall doesn't
         // hide attackers from artillery that's been ranged in) and only drop

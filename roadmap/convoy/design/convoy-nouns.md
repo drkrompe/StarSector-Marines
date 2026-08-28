@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery uses a shared convoy lifecycle, with the defe
 
 Written: 2026-08-23
 
-Updated: 2026-08-27 — added shared armor/structure, combat targeting, and persistent obstructing wrecks.
+Updated: 2026-08-28 — recorded that a vehicle is a target that never perceives.
 
 ## Purpose and boundary
 
@@ -67,6 +67,13 @@ dense infantry roster or occupancy index. Its continuous body supplies target
 position, velocity, radius, and height. Moving vehicles still do not occupy the
 infantry grid or participate in ordinary unit-unit collision; that remains the
 vehicle-interaction extension.
+
+A vehicle is seen but never sees. It carries no perception components at all, so
+any code that reads a target's sight stats must treat "target" and "perceiver"
+as separate roles: the seeing side of a line-of-sight pair reads the fail-loud
+sight accessor, and the seen side reads the tolerant one that answers with plain
+grid line-of-sight for an entity that has no vision. The same rule covers a
+remembered contact that has since become a corpse.
 
 `HEAVY_APC` durability is 220 structure behind 160 armor at rating 18. It uses
 the shared durability law: low-penetration rifles chip armor slowly, while

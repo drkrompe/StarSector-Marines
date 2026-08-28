@@ -562,8 +562,14 @@ public final class TacticalScoring {
                 vision.airLosRadius(shooter), targetAirLosRadius(target));
     }
 
+    /**
+     * Air-LoS radius of an arbitrary target id. A convoy vehicle carries no VISION
+     * (it is a combat target, not a perceiver) and neither does a corpse a squad
+     * still remembers, so every seen-side read goes through the Service's tolerant
+     * accessor rather than the fail-loud one.
+     */
     private float targetAirLosRadius(long target) {
-        return convoy.isVehicle(target) ? 0f : roster.vision().airLosRadius(target);
+        return roster.vision().targetAirLosRadius(target);
     }
 
     /**
@@ -914,7 +920,7 @@ public final class TacticalScoring {
         int ty = world.cellY(currentTarget);
         float selfAir = vision.airLosRadius(self);
         boolean visible = canSeePair(grid, sx, sy, tx, ty,
-                selfAir, vision.airLosRadius(currentTarget));
+                selfAir, targetAirLosRadius(currentTarget));
 
         float selfX = world.x(self);
         float selfY = world.y(self);
@@ -1467,7 +1473,7 @@ public final class TacticalScoring {
                         roster.world().x(member), roster.world().y(member),
                         targetX, targetY,
                         roster.vision().airLosRadius(member),
-                        roster.vision().airLosRadius(primary.unitId()));
+                        targetAirLosRadius(primary.unitId()));
             }
             if (engageable) {
                 engageableMembers++;

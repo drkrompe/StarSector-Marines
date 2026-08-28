@@ -95,7 +95,7 @@ public final class TurretBehavior implements UnitBehavior {
                 boolean hasLos = TacticalScoring.canShootPair(sim.getGrid(),
                         sim.world().x(id), sim.world().y(id),
                         sim.world().x(currentBurstTarget), sim.world().y(currentBurstTarget),
-                        0f, sim.vision().airLosRadius(currentBurstTarget));
+                        0f, sim.vision().targetAirLosRadius(currentBurstTarget));
                 sim.fireShotFrom(id, sim.world().x(id), sim.world().y(id), sim.identity().faction(u), structure, currentBurstTarget,
                         /*aerialShooter*/ false, hasLos);
                 turretState.setRecoilTimer(id, 0f);
