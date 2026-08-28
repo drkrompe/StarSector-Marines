@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
@@ -51,6 +53,11 @@ public final class GroundRenderSystem implements RenderSystem {
     private static final float CROSSWALK_GAP_FRAC    = 0.10f;
     private static final float CROSSWALK_ALPHA       = 0.85f;
     private static final float CROSSWALK_INSET_FRAC  = 0.08f;
+
+    /** Shared-edge windows are seams between cells, not miniature wall cells. */
+    private static final float EDGE_WINDOW_FRAME_THICKNESS_FRAC = 0.10f;
+    private static final float EDGE_WINDOW_GLASS_THICKNESS_FRAC = 0.04f;
+    private static final float EDGE_WINDOW_END_INSET_FRAC = 0.08f;
 
     private static final int GROUND_TILE_EDGE_INSET_PX       = FixedGridTileDrawer.GROUND_INSET_PX_LARGE;
     private static final int GROUND_SMALL_TILE_EDGE_INSET_PX = FixedGridTileDrawer.GROUND_INSET_PX_SMALL;
@@ -116,11 +123,13 @@ public final class GroundRenderSystem implements RenderSystem {
                     if (topology.isWindow(x, y)) windowPane(topology, x, y);
                 }
             }
+            emitEdgeBarriers(grid, view);
             return;
         }
 
         emitFloors(grid, topology, view);
         emitWalls(grid, topology, view);
+        emitEdgeBarriers(grid, view);
     }
 
     // ---- floor + overlay pass ------------------------------------------------
@@ -253,6 +262,42 @@ public final class GroundRenderSystem implements RenderSystem {
         float inset = cell * 0.07f;
         fillRect(frameX + inset, frameY + inset,
                 frameX + frameW - inset, frameY + frameH - inset, WINDOW_GLASS);
+    }
+
+    /** Sparse shared-edge features paint over both adjacent floor cells. */
+    private void emitEdgeBarriers(NavigationGrid grid, VisibleCellRect view) {
+        float cell = cam.cellPxSize();
+        float frameThickness = cell * EDGE_WINDOW_FRAME_THICKNESS_FRAC;
+        float glassThickness = cell * EDGE_WINDOW_GLASS_THICKNESS_FRAC;
+        float endInset = cell * EDGE_WINDOW_END_INSET_FRAC;
+        for (SharedEdgeBarrier barrier : grid.getEdgeBarriers()) {
+            int x = barrier.cellX();
+            int y = barrier.cellY();
+            int nx = x + barrier.direction().dx;
+            int ny = y + barrier.direction().dy;
+            if (!view.contains(x, y) && !view.contains(nx, ny)) continue;
+            if (barrier.kind() != SharedEdgeBarrier.Kind.WINDOW) continue;
+
+            if (barrier.direction() == Direction.E) {
+                float edgeX = cam.cellToScreenX(x + 1f);
+                float y0 = cam.cellToScreenY(y) + endInset;
+                float y1 = cam.cellToScreenY(y + 1f) - endInset;
+                fillRect(edgeX - frameThickness * 0.5f, y0,
+                        edgeX + frameThickness * 0.5f, y1, WINDOW_FRAME);
+                fillRect(edgeX - glassThickness * 0.5f, y0 + endInset,
+                        edgeX + glassThickness * 0.5f, y1 - endInset,
+                        WINDOW_GLASS);
+            } else {
+                float edgeY = cam.cellToScreenY(y + 1f);
+                float x0 = cam.cellToScreenX(x) + endInset;
+                float x1 = cam.cellToScreenX(x + 1f) - endInset;
+                fillRect(x0, edgeY - frameThickness * 0.5f,
+                        x1, edgeY + frameThickness * 0.5f, WINDOW_FRAME);
+                fillRect(x0 + endInset, edgeY - glassThickness * 0.5f,
+                        x1 - endInset, edgeY + glassThickness * 0.5f,
+                        WINDOW_GLASS);
+            }
+        }
     }
 
     /**

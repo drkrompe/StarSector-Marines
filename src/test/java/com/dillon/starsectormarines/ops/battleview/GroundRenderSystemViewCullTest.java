@@ -1,11 +1,14 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.render2d.BattleCamera;
+import com.dillon.starsectormarines.render2d.DrawCommand;
 import com.dillon.starsectormarines.render2d.VisibleCellRect;
 import org.junit.jupiter.api.Test;
 
@@ -47,12 +50,76 @@ class GroundRenderSystemViewCullTest {
         assertTrue(view.contains((int) cam.panCellX(), (int) cam.panCellY()));
     }
 
+    @Test
+    void intactWindowEdgeEmitsFrameAndGlassThenDisappears() {
+        NavigationGrid grid = new NavigationGrid(2, 1);
+        grid.setWalkableFloor(0, 0);
+        grid.setWalkableFloor(1, 0);
+        grid.placeEdgeBarrier(0, 0, Direction.E,
+                SharedEdgeBarrier.Kind.WINDOW);
+        BattleSimulation sim = new BattleSimulation(grid,
+                new CellTopology(2, 1));
+        BattleCamera cam = new BattleCamera(2, 1);
+        cam.setViewport(0f, 0f, 200f, 100f, 100f);
+
+        DrawList intact = collectGroundCommands(sim, cam);
+        assertEquals(3, intact.count(RenderLayer.GROUND),
+                "backing fill + window frame + glass");
+        DrawCommand frame = intact.buffer(RenderLayer.GROUND)[1];
+        DrawCommand glass = intact.buffer(RenderLayer.GROUND)[2];
+        float cell = cam.cellPxSize();
+        float edgeX = cam.cellToScreenX(1f);
+        assertEquals(edgeX, (frame.centerX() + frame.width()) * 0.5f, 0.001f,
+                "frame must remain centered on the shared edge");
+        assertEquals(edgeX, (glass.centerX() + glass.width()) * 0.5f, 0.001f,
+                "pane must remain centered on the shared edge");
+        assertEquals(cell * 0.10f, frame.width() - frame.centerX(), 0.001f,
+                "edge frame is a thin seam, not a partial cell wall");
+        assertEquals(cell * 0.04f, glass.width() - glass.centerX(), 0.001f,
+                "glass stays visibly narrower than its frame");
+        assertEquals(cell * 0.84f, frame.height() - frame.centerY(), 0.001f);
+        assertEquals(cell * 0.68f, glass.height() - glass.centerY(), 0.001f);
+
+        assertTrue(sim.damageEdgeBarrier(0, 0, Direction.E, 40));
+        assertEquals(1, collectGround(sim, cam),
+                "destroyed window leaves only the floor backing");
+    }
+
+    @Test
+    void northWindowEdgeUsesTheSameThinGeometryRotated() {
+        NavigationGrid grid = new NavigationGrid(1, 2);
+        grid.setWalkableFloor(0, 0);
+        grid.setWalkableFloor(0, 1);
+        grid.placeEdgeBarrier(0, 0, Direction.N,
+                SharedEdgeBarrier.Kind.WINDOW);
+        BattleSimulation sim = new BattleSimulation(grid,
+                new CellTopology(1, 2));
+        BattleCamera cam = new BattleCamera(1, 2);
+        cam.setViewport(0f, 0f, 100f, 200f, 100f);
+
+        DrawList out = collectGroundCommands(sim, cam);
+        DrawCommand frame = out.buffer(RenderLayer.GROUND)[1];
+        DrawCommand glass = out.buffer(RenderLayer.GROUND)[2];
+        float cell = cam.cellPxSize();
+        float edgeY = cam.cellToScreenY(1f);
+        assertEquals(edgeY, (frame.centerY() + frame.height()) * 0.5f, 0.001f);
+        assertEquals(edgeY, (glass.centerY() + glass.height()) * 0.5f, 0.001f);
+        assertEquals(cell * 0.10f, frame.height() - frame.centerY(), 0.001f);
+        assertEquals(cell * 0.04f, glass.height() - glass.centerY(), 0.001f);
+        assertEquals(cell * 0.84f, frame.width() - frame.centerX(), 0.001f);
+        assertEquals(cell * 0.68f, glass.width() - glass.centerX(), 0.001f);
+    }
+
     private static int collectGround(BattleSimulation sim, BattleCamera cam) {
+        return collectGroundCommands(sim, cam).count(RenderLayer.GROUND);
+    }
+
+    private static DrawList collectGroundCommands(BattleSimulation sim, BattleCamera cam) {
         GroundRenderSystem system = new GroundRenderSystem(new BattleSprites());
         DrawList out = new DrawList();
         system.collect(new RenderContext(sim, cam, null, 1f, 0f, false,
                 new HighlightOverlay(), new Selection()), out);
-        return out.count(RenderLayer.GROUND);
+        return out;
     }
 
     private static BattleSimulation emptyWalls() {

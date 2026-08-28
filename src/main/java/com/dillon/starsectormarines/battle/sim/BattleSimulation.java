@@ -77,6 +77,7 @@ import com.dillon.starsectormarines.battle.mech.MechGaitSystem;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.LosCache;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -611,6 +612,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     public boolean damageCell(int x, int y, int amount) {
         return mapEditor.damageWall(x, y, amount);
+    }
+
+    /** Damages an authored feature occupying one shared cardinal edge. */
+    public boolean damageEdgeBarrier(int x, int y, Direction direction,
+                                     int amount) {
+        return mapEditor.damageEdgeBarrier(x, y, direction, amount);
     }
 
     public boolean isRoofShielded(long target) {

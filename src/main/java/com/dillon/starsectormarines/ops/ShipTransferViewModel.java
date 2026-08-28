@@ -64,7 +64,7 @@ public final class ShipTransferViewModel {
     }
 
     private final Supplier<List<Candidate>> fleet;
-    private final Supplier<String> home;
+    private final Supplier<CompanyShipDesignation.Home> home;
     private final Consumer<String> moveAboard;
     private final Map<String, ShipInterior> interiors = new HashMap<>();
     private final Map<String, CompanyDeck> plans = new HashMap<>();
@@ -81,15 +81,16 @@ public final class ShipTransferViewModel {
     private final ComputedSignal<String> roomCopy;
     private final ComputedSignal<String> contextLabel;
 
-    /** The player's own fleet, and their own company's designation. */
+    /** The player's own fleet, and their own company's standing for quarters. */
     public ShipTransferViewModel(Reactor reactor) {
         this(reactor, ShipTransferViewModel::playerFleet,
-                ShipTransferViewModel::designatedShipId,
+                CompanyShipDesignation::home,
                 ShipTransferViewModel::designate);
     }
 
     public ShipTransferViewModel(Reactor reactor, Supplier<List<Candidate>> fleet,
-                                 Supplier<String> home, Consumer<String> moveAboard) {
+                                 Supplier<CompanyShipDesignation.Home> home,
+                                 Consumer<String> moveAboard) {
         if (reactor == null) throw new IllegalArgumentException("reactor is required");
         if (fleet == null) throw new IllegalArgumentException("a fleet is required");
         if (home == null) throw new IllegalArgumentException("a home is required");
@@ -98,7 +99,7 @@ public final class ShipTransferViewModel {
         this.home = home;
         this.moveAboard = moveAboard;
         revision = reactor.signal(0);
-        selectedShipId = reactor.signal(home.get());
+        selectedShipId = reactor.signal(home.get().shipId());
         candidateRows = reactor.computed(this::buildCandidateRows);
         facilityCells = reactor.computed(this::buildFacilityCells);
         selectedName = reactor.computed(() -> {
@@ -111,7 +112,7 @@ public final class ShipTransferViewModel {
         transferLabel = reactor.computed(() -> {
             revision.get();
             if (isHome(selected())) return "THE COMPANY LIVES HERE";
-            return founding() ? "QUARTER THE COMPANY HERE" : "MOVE THE COMPANY ABOARD";
+            return unquartered() ? "QUARTER THE COMPANY HERE" : "MOVE THE COMPANY ABOARD";
         });
         transferClasses = reactor.computed(() -> {
             revision.get();
@@ -119,17 +120,26 @@ public final class ShipTransferViewModel {
         });
         roomTitle = reactor.computed(() -> {
             revision.get();
-            return founding() ? "COMPANY SHIP  //  FOUNDING" : "COMPANY SHIP  //  TRANSFER";
+            if (home.get().displaced()) return "COMPANY SHIP  //  DISPLACED";
+            return unquartered() ? "COMPANY SHIP  //  FOUNDING"
+                    : "COMPANY SHIP  //  TRANSFER";
         });
         // Named for the fleet rather than a compartment: this is the only page
         // in the shell that is not aboard anything in particular.
         contextLabel = reactor.computed(() -> {
             revision.get();
-            return founding() ? "COMPANY FLEET / FOUNDING" : "COMPANY FLEET / TRANSFER";
+            if (home.get().displaced()) return "COMPANY FLEET / DISPLACED";
+            return unquartered() ? "COMPANY FLEET / FOUNDING" : "COMPANY FLEET / TRANSFER";
         });
         roomCopy = reactor.computed(() -> {
             revision.get();
-            return founding()
+            CompanyShipDesignation.Home standing = home.get();
+            if (standing.displaced()) {
+                return standing.formerShipName()
+                        + (standing.lostInAction() ? " was lost. " : " is gone. ")
+                        + "The company needs somewhere to live.";
+            }
+            return unquartered()
                     ? "The company has to live somewhere. This is the first real "
                             + "decision about what it is for."
                     : "A bigger hull is not automatically a better home. What a ship "
@@ -250,7 +260,7 @@ public final class ShipTransferViewModel {
         // Before there is a home the question is not what the company would
         // give up but what this hull cannot give them, which is the same
         // question asked of a ship rather than of a move.
-        if (founding()) {
+        if (unquartered()) {
             List<RoomPurpose> absent = missing(interior);
             return absent.isEmpty()
                     ? "She has everywhere the company needs."
@@ -264,9 +274,14 @@ public final class ShipTransferViewModel {
                 : "Moving here would give up " + list(lost, "and") + ".";
     }
 
-    /** Whether the company has yet to be given a ship at all. */
-    private boolean founding() {
-        return home.get() == null;
+    /**
+     * Whether the company has nowhere to live, whether because they have never
+     * chosen or because what they chose is gone. Both are answered the same
+     * way — a hull is judged on what she lacks, since there is nothing to
+     * measure her against.
+     */
+    private boolean unquartered() {
+        return home.get().shipId() == null;
     }
 
     /** The places a company weighs a hull on that this one does not have. */
@@ -312,7 +327,7 @@ public final class ShipTransferViewModel {
     }
 
     private Candidate homeShip() {
-        return find(home.get());
+        return find(home.get().shipId());
     }
 
     private Candidate selected() {
@@ -331,7 +346,7 @@ public final class ShipTransferViewModel {
     }
 
     private boolean isHome(Candidate ship) {
-        return ship != null && ship.id().equals(home.get());
+        return ship != null && ship.id().equals(home.get().shipId());
     }
 
     private static String berths(ShipInterior interior) {
@@ -350,11 +365,6 @@ public final class ShipTransferViewModel {
                     Math.round(member.getCargoCapacity()), hull));
         }
         return ships;
-    }
-
-    private static String designatedShipId() {
-        FleetMemberAPI aboard = CompanyShipDesignation.aboard();
-        return aboard == null ? null : aboard.getId();
     }
 
     private static void designate(String shipId) {

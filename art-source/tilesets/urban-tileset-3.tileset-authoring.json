@@ -4,6 +4,7 @@
   "idPrefix": "doodad.urban3",
   "cellPx": 60,
   "alphaMin": 40,
-  "gridCell": 309,
-  "note": "Not a straight ingest, for the same reason as nature-tiles: a 7-frame horizontal strip with non-square frames (raw about 309x726, shipped 400x60 overall) that loads as a sliced frame-indexed sheet rather than col/row doodads. It already ships as a hand-written tileset built by art-source/tilesets/normalize_tilesets.py. Exporting over it would rewrite the ids and coordinates that GenMappingRegistry references, so treat this as a sheet to inspect or adopt deliberately, not to re-export casually. Listed so the sheet is accounted for."
+  "note": "This sheet is RGB with no alpha channel, so slicing finds one piece covering the whole sheet. That is correct for a fixed-grid plate: select the single piece and use \"Split selected on grid\" at the layout below. 2166x726 as a 7x1 strip, so its cells are 309x726. It already ships as a hand-written tileset built by art-source/tilesets/normalize_tilesets.py. Exporting over it would rewrite the ids and coordinates that GenMappingRegistry references, so treat this as a sheet to inspect or adopt deliberately, not to re-export casually. Like nature-tiles it loads as a sliced frame-indexed sheet rather than col/row doodads, so re-exporting it would change its registry shape.",
+  "gridCols": 7,
+  "gridRows": 1
 }

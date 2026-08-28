@@ -534,19 +534,36 @@ final class BuildingLayouts {
         }
     }
 
-    /** Furnishes the deepest command chambers with hard C2 silhouettes while preserving circulation. */
+    /**
+     * Builds a recognizable command workspace: a central planning table,
+     * console banks around the command chamber, a separate operations bank in
+     * the inner chamber, and workstation banks in a qualifying entry chamber.
+     * Repeated stations hug real walls and leave each room's service aisle
+     * connected rather than reading as isolated symbolic boxes.
+     */
     private static void applyCommandCenter(NavigationGrid grid, CellTopology topology,
                                            int bl, int bt, int br, int bb,
                                            List<Doodad> doodads, Random rng) {
         DoodadDef console = TileRegistry.installed().doodad("doodad.military-command-console");
         DoodadDef table = TileRegistry.installed().doodad("doodad.military-tactical-table");
+        DoodadDef workstation = TileRegistry.installed().doodad("doodad.office-workstation-bank");
 
-        stampPurposeFixture(grid, topology, bl, bt, br, bb,
-                RoomPurpose.KEEP_THRONE, table, doodads, rng);
-        stampPurposeFixture(grid, topology, bl, bt, br, bb,
-                RoomPurpose.KEEP_THRONE, console, doodads, rng);
-        stampPurposeFixture(grid, topology, bl, bt, br, bb,
-                RoomPurpose.KEEP_INNER, console, doodads, rng);
+        stampPurposeCenterFixture(grid, topology, bl, bt, br, bb,
+                RoomPurpose.KEEP_THRONE, table, doodads, rng, true);
+        stampPurposeFixtureRows(grid, topology, bl, bt, br, bb,
+                RoomPurpose.KEEP_THRONE, console, doodads,
+                purposeFixtureBudget(topology, bl, bt, br, bb,
+                        RoomPurpose.KEEP_THRONE, 2, 4, 5), 2, true, false);
+        preservePlacementDraw(topology, bl, bt, br, bb, RoomPurpose.KEEP_THRONE, rng);
+        stampPurposeFixtureRows(grid, topology, bl, bt, br, bb,
+                RoomPurpose.KEEP_INNER, console, doodads,
+                purposeFixtureBudget(topology, bl, bt, br, bb,
+                        RoomPurpose.KEEP_INNER, 2, 5, 4), 2, true, false);
+        preservePlacementDraw(topology, bl, bt, br, bb, RoomPurpose.KEEP_INNER, rng);
+        stampPurposeFixtureRows(grid, topology, bl, bt, br, bb,
+                RoomPurpose.KEEP_ENTRY, workstation, doodads,
+                purposeFixtureBudget(topology, bl, bt, br, bb,
+                        RoomPurpose.KEEP_ENTRY, 2, 4, 5), 2, true, false);
     }
 
     /** Two vertical bunk rows leave at least a two-cell central lane for 0.3-cell-radius marines. */
@@ -594,8 +611,9 @@ final class BuildingLayouts {
 
     /**
      * Gives every enclosed office one workstation, adds a low lobby desk and
-     * conference table, and makes the server cabinet the plan's opaque LOS
-     * blocker. The corridor itself remains entirely clear.
+     * conference table, and fills the secured server room with an opaque rack
+     * row and a connected service aisle. The corridor itself remains entirely
+     * clear.
      */
     private static void applyCivicHeadquarters(NavigationGrid grid, CellTopology topology,
                                                 PartitionLayout partition,
@@ -613,8 +631,11 @@ final class BuildingLayouts {
                 RoomPurpose.CIVIC_RECEPTION, receptionDesk, doodads, rng, true);
         stampPurposeFixture(grid, topology, bl, bt, br, bb,
                 RoomPurpose.CONFERENCE_ROOM, conference, doodads, rng, true);
-        stampPurposeFixture(grid, topology, bl, bt, br, bb,
-                RoomPurpose.SERVER_ROOM, serverRack, doodads, rng, false);
+        stampPurposeFixtureRows(grid, topology, bl, bt, br, bb,
+                RoomPurpose.SERVER_ROOM, serverRack, doodads,
+                purposeFixtureBudget(topology, bl, bt, br, bb,
+                        RoomPurpose.SERVER_ROOM, 3, 6, 4), 2, false, true);
+        preservePlacementDraw(topology, bl, bt, br, bb, RoomPurpose.SERVER_ROOM, rng);
     }
 
     /**
@@ -917,6 +938,151 @@ final class BuildingLayouts {
         if (cell != null) {
             stampFixture(grid, topology, cell[0], cell[1], prop, doodads, seeThrough);
         }
+    }
+
+    private static int purposeFixtureBudget(CellTopology topology,
+                                            int bl, int bt, int br, int bb,
+                                            RoomPurpose purpose, int minimum,
+                                            int maximum, int cellsPerFixture) {
+        int cells = 0;
+        for (int y = bt + 1; y < bb; y++) {
+            for (int x = bl + 1; x < br; x++) {
+                if (topology.getRoomPurpose(x, y) == purpose) cells++;
+            }
+        }
+        if (cells == 0) return 0;
+        return Math.max(minimum, Math.min(maximum,
+                (cells + cellsPerFixture - 1) / cellsPerFixture));
+    }
+
+    /**
+     * Repeated authored rows replace one historical random placement without
+     * shifting the request-owned RNG stream seen by later fills and stages.
+     */
+    private static void preservePlacementDraw(CellTopology topology,
+                                              int bl, int bt, int br, int bb,
+                                              RoomPurpose purpose, Random rng) {
+        if (purposeBounds(topology, bl, bt, br, bb, purpose) != null) rng.nextInt();
+    }
+
+    /**
+     * Stamps a purpose-specific fixture bank along the room's real wall edges.
+     * Rows are tried from the most-supported edge outward, with spacing between
+     * stations and a connectivity check after every placement. This is the
+     * common grammar for server racks and command-console banks.
+     */
+    private static void stampPurposeFixtureRows(
+            NavigationGrid grid, CellTopology topology,
+            int bl, int bt, int br, int bb,
+            RoomPurpose purpose, DoodadDef prop,
+            List<Doodad> doodads, int budget, int spacing,
+            boolean seeThrough, boolean blocking) {
+        if (budget <= 0) return;
+        int[] bounds = purposeBounds(topology, bl, bt, br, bb, purpose);
+        if (bounds == null) return;
+        List<int[]> roomCells = purposeCells(topology, bl, bt, br, bb, purpose);
+        WallSide[] sides = WallSide.values();
+        boolean[] used = new boolean[sides.length];
+        int placed = 0;
+
+        for (int row = 0; row < sides.length && placed < budget; row++) {
+            int bestIndex = -1;
+            int bestScore = 0;
+            for (int i = 0; i < sides.length; i++) {
+                if (used[i]) continue;
+                int score = purposeWallRow(grid, topology, bounds, purpose,
+                        prop, doodads, sides[i]).size();
+                if (score > bestScore) {
+                    bestIndex = i;
+                    bestScore = score;
+                }
+            }
+            if (bestIndex < 0) break;
+            used[bestIndex] = true;
+            List<int[]> cells = purposeWallRow(grid, topology, bounds, purpose,
+                    prop, doodads, sides[bestIndex]);
+            for (int i = 0; i < cells.size() && placed < budget; i += spacing) {
+                int[] cell = cells.get(i);
+                if (!canPlaceDoodad(grid, cell[0], cell[1], prop, doodads)) continue;
+                if (blocking && !preservesRoomConnectivity(grid, topology, purpose, roomCells,
+                        cell[0], cell[1], prop)) continue;
+                int before = doodads.size();
+                if (blocking) {
+                    stampFixture(grid, topology, cell[0], cell[1], prop, doodads, seeThrough);
+                } else {
+                    doodads.add(new Doodad(cell[0], cell[1], prop));
+                }
+                if (doodads.size() > before) placed++;
+            }
+        }
+    }
+
+    private static List<int[]> purposeWallRow(
+            NavigationGrid grid, CellTopology topology, int[] bounds,
+            RoomPurpose purpose, DoodadDef prop, List<Doodad> doodads,
+            WallSide side) {
+        List<int[]> cells = new ArrayList<>();
+        int start = side == WallSide.N || side == WallSide.S ? bounds[0] : bounds[1];
+        int end = side == WallSide.N || side == WallSide.S ? bounds[2] : bounds[3];
+        for (int along = start; along <= end; along++) {
+            int x = side == WallSide.W ? bounds[0]
+                    : side == WallSide.E ? bounds[2] : along;
+            int y = side == WallSide.S ? bounds[1]
+                    : side == WallSide.N ? bounds[3] : along;
+            int behindX = x + (side == WallSide.E ? 1 : side == WallSide.W ? -1 : 0);
+            int behindY = y + (side == WallSide.N ? 1 : side == WallSide.S ? -1 : 0);
+            if (!grid.inBounds(behindX, behindY) || grid.isWalkable(behindX, behindY)
+                    || topology.isFixture(behindX, behindY)) continue;
+            if (!footprintHasPurpose(topology, x, y, prop, purpose)) continue;
+            if (!canPlaceDoodad(grid, x, y, prop, doodads)) continue;
+            if (footprintTouchesWindow(topology, x, y, prop)) continue;
+            cells.add(new int[]{x, y});
+        }
+        return cells;
+    }
+
+    private static void stampPurposeCenterFixture(
+            NavigationGrid grid, CellTopology topology,
+            int bl, int bt, int br, int bb,
+            RoomPurpose purpose, DoodadDef prop,
+            List<Doodad> doodads, Random rng, boolean seeThrough) {
+        int[] bounds = purposeBounds(topology, bl, bt, br, bb, purpose);
+        if (bounds == null) return;
+        List<int[]> roomCells = purposeCells(topology, bl, bt, br, bb, purpose);
+        List<int[]> best = new ArrayList<>();
+        int bestDistance = Integer.MAX_VALUE;
+        for (int[] cell : roomCells) {
+            int x = cell[0], y = cell[1];
+            if (!footprintHasPurpose(topology, x, y, prop, purpose)
+                    || !canPlaceDoodad(grid, x, y, prop, doodads)
+                    || footprintTouchesWindow(topology, x, y, prop)) continue;
+            if (!preservesRoomConnectivity(grid, topology, purpose, roomCells,
+                    x, y, prop)) continue;
+            int distance = Math.abs(2 * x - bounds[0] - bounds[2])
+                    + Math.abs(2 * y - bounds[1] - bounds[3]);
+            if (distance < bestDistance) {
+                best.clear();
+                bestDistance = distance;
+            }
+            if (distance == bestDistance) best.add(cell);
+        }
+        if (best.isEmpty()) return;
+        int[] cell = best.get(rng.nextInt(best.size()));
+        stampFixture(grid, topology, cell[0], cell[1], prop, doodads, seeThrough);
+    }
+
+    private static List<int[]> purposeCells(CellTopology topology,
+                                            int bl, int bt, int br, int bb,
+                                            RoomPurpose purpose) {
+        List<int[]> cells = new ArrayList<>();
+        for (int y = bt + 1; y < bb; y++) {
+            for (int x = bl + 1; x < br; x++) {
+                if (topology.getRoomPurpose(x, y) == purpose) {
+                    cells.add(new int[]{x, y});
+                }
+            }
+        }
+        return cells;
     }
 
     private static void fixtureWallLine(NavigationGrid grid, CellTopology topology,

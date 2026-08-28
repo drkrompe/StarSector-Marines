@@ -72,6 +72,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
      */
     private static final float[] HOVERED_CELL = { 436f, 273f };
 
+    /** A company with a home, and one whose ship did not come back. */
+    private static final CompanyShipDesignation.Home QUARTERED =
+            new CompanyShipDesignation.Home("home", null, false);
+    private static final CompanyShipDesignation.Home DISPLACED =
+            new CompanyShipDesignation.Home(null, "SABRE", true);
+
     private static final List<String> SHIP_TRANSFER_COMPONENTS = List.of(
             "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/company/ship-transfer.mlx");
@@ -122,13 +128,18 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
                 new SnapshotArtifact("ship-transfer-wide.png",
                         renderShipTransfer(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 0, HOVERED_CELL, true)),
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 0, HOVERED_CELL,
+                                QUARTERED)),
                 new SnapshotArtifact("ship-transfer-costly-wide.png",
                         renderShipTransfer(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 2, null, true)),
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 2, null, QUARTERED)),
                 new SnapshotArtifact("ship-transfer-founding-wide.png",
                         renderShipTransfer(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 2, null, false)),
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 2, null,
+                                CompanyShipDesignation.Home.NONE)),
+                new SnapshotArtifact("ship-transfer-displaced-wide.png",
+                        renderShipTransfer(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1, null, DISPLACED)),
                 new SnapshotArtifact("fleet-armory-overview-wide.png",
                         renderFleetArmoryOverview(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
@@ -214,20 +225,21 @@ public final class UiSnapshotSuite implements SnapshotSuite {
      * @param selected which candidate to show; one shot is the ship they live
      *     on and the other a hull that would cost them something, since that
      *     second reading is what the screen exists for
-     * @param founded whether the company already has a home; without one the
-     *     screen is the founding choice and judges a hull on what she lacks
-     *     rather than on what leaving would cost
+     * @param standing whether the company has a home, never had one, or lost
+     *     one; without a home the screen judges a hull on what she lacks rather
+     *     than on what leaving would cost
      */
     private static BufferedImage renderShipTransfer(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, int selected, float[] pointAt,
-            boolean founded) throws Exception {
+            CompanyShipDesignation.Home standing) throws Exception {
         Reactor reactor = new Reactor();
         List<ShipTransferViewModel.Candidate> fleet = transferFleet(context);
         if (fleet.isEmpty()) return renderer.renderRelative(new UiDocument(null),
                 width, height, 1f, MarineOpsUiViewport.REFERENCE_WIDTH,
                 MarineOpsUiViewport.REFERENCE_HEIGHT);
-        String home = founded ? fleet.get(0).id() : null;
+        CompanyShipDesignation.Home home = standing.shipId() == null ? standing
+                : new CompanyShipDesignation.Home(fleet.get(0).id(), null, false);
         ShipTransferViewModel viewModel = new ShipTransferViewModel(
                 reactor, () -> fleet, () -> home, moved -> { });
         viewModel.select(fleet.get(Math.min(selected, fleet.size() - 1)).id());

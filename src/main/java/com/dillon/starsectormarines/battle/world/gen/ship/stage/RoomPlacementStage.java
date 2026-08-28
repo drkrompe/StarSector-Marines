@@ -2,18 +2,19 @@ package com.dillon.starsectormarines.battle.world.gen.ship.stage;
 
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
+import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckProfile;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckSide;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckZone;
-import com.dillon.starsectormarines.battle.world.gen.ship.Hookup;
+import com.dillon.starsectormarines.battle.world.gen.fit.Hookup;
 import com.dillon.starsectormarines.battle.world.gen.ship.HullContact;
-import com.dillon.starsectormarines.battle.world.gen.ship.RoomPose;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomPose;
 import com.dillon.starsectormarines.battle.world.gen.ship.RoomRecipe;
-import com.dillon.starsectormarines.battle.world.gen.ship.RoomShape;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipKeys;
-import com.dillon.starsectormarines.battle.world.gen.ship.fit.RoomFitting;
-import com.dillon.starsectormarines.battle.world.gen.ship.fit.RoomFittings;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomFitting;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomFittings;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
@@ -222,7 +223,7 @@ public final class RoomPlacementStage implements GenStage {
             Candidate candidate = candidates.get(i);
             Access access = findAccess(candidate, mayTunnel, null);
             if (access == null) continue;
-            List<DeckGraph.Compartment.Door> doors =
+            List<Doorway> doors =
                     commit(ctx, candidate, recipe.purpose(), List.of(access));
             return describe(profile, candidate, recipe.purpose(), placed.size(), doors);
         }
@@ -262,7 +263,7 @@ public final class RoomPlacementStage implements GenStage {
             if (bestAccesses != null && bestAccesses.size() >= wanted) break;
         }
         if (best == null) return null;
-        List<DeckGraph.Compartment.Door> doors =
+        List<Doorway> doors =
                 commit(ctx, best, recipe.purpose(), bestAccesses);
         return describe(profile, best, recipe.purpose(), placed.size(), doors);
     }
@@ -746,10 +747,10 @@ public final class RoomPlacementStage implements GenStage {
      *
      * @return the door cells, which the fill needs to know where people enter
      */
-    private List<DeckGraph.Compartment.Door> commit(GenContext ctx, Candidate candidate,
+    private List<Doorway> commit(GenContext ctx, Candidate candidate,
                                                    RoomPurpose purpose, List<Access> accesses) {
         carveRoom(ctx, candidate, purpose);
-        List<DeckGraph.Compartment.Door> doors = new ArrayList<>();
+        List<Doorway> doors = new ArrayList<>();
         for (Access access : accesses) {
             doors.addAll(cutDoor(ctx, candidate, access));
         }
@@ -774,7 +775,7 @@ public final class RoomPlacementStage implements GenStage {
     }
 
     /** Cut one doorway and whatever passage was needed to reach it. */
-    private List<DeckGraph.Compartment.Door> cutDoor(GenContext ctx, Candidate candidate,
+    private List<Doorway> cutDoor(GenContext ctx, Candidate candidate,
                                                      Access access) {
         int[] anchor = null;
         for (int[] cell : access.passage()) {
@@ -785,9 +786,9 @@ public final class RoomPlacementStage implements GenStage {
         // The door itself is a threshold, not circulation: leaving it out of the
         // passage mask is what stops the next room treating it as a hallway.
         carve(ctx, access.doorX(), access.doorY(), RoomPurpose.CORRIDOR, GroundKind.STRIPED);
-        List<DeckGraph.Compartment.Door> doors = new ArrayList<>();
-        doors.add(new DeckGraph.Compartment.Door(access.doorX(), access.doorY()));
-        DeckGraph.Compartment.Door widened = widenDoorway(ctx, candidate, access);
+        List<Doorway> doors = new ArrayList<>();
+        doors.add(new Doorway(access.doorX(), access.doorY()));
+        Doorway widened = widenDoorway(ctx, candidate, access);
         if (widened != null) doors.add(widened);
         return doors;
     }
@@ -845,7 +846,7 @@ public final class RoomPlacementStage implements GenStage {
      * where the room authored its doorway, the second cell has to be one the
      * room named.
      */
-    private DeckGraph.Compartment.Door widenDoorway(GenContext ctx, Candidate candidate,
+    private Doorway widenDoorway(GenContext ctx, Candidate candidate,
                                                     Access access) {
         int perpX = access.dirY();
         int perpY = access.dirX();
@@ -863,7 +864,7 @@ public final class RoomPlacementStage implements GenStage {
             int outsideY = ny + access.dirY();
             if (!inBounds(outsideX, outsideY) || !floor[outsideX + 1][outsideY + 1]) continue;
             carve(ctx, nx, ny, RoomPurpose.CORRIDOR, GroundKind.STRIPED);
-            return new DeckGraph.Compartment.Door(nx, ny);
+            return new Doorway(nx, ny);
         }
         return null;
     }
@@ -879,7 +880,7 @@ public final class RoomPlacementStage implements GenStage {
 
     private DeckGraph.Compartment describe(DeckProfile profile, Candidate candidate,
                                            RoomPurpose purpose, int id,
-                                           List<DeckGraph.Compartment.Door> doors) {
+                                           List<Doorway> doors) {
         int left = candidate.x();
         int top = candidate.y();
         int right = left + candidate.shape().width() - 1;

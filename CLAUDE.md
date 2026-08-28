@@ -110,8 +110,8 @@ Do not run builds or leave generated task files there.
   `-PsnapshotHeight=640` arguments control review playback and output size.
 - `gradlew.bat createSnapshots` → every deterministic visual-evidence suite under
   `build/snapshots/` without launching Starsector or creating an OpenGL context. Select
-  suites with `-Psnapshot=armory,durability-bars,layers,turrets,ui` (default `all`) and redirect the
-  common output root with `-PsnapshotDir=<path>`.
+  suites with `-Psnapshot=armory,durability-bars,frontage-scene,layers,ship-decks,turrets,ui`
+  (default `all`) and redirect the common output root with `-PsnapshotDir=<path>`.
 - `gradlew.bat layerAuthoring` → extensible standalone authoring workbench. The
   Layers page provides drag, scale, rotation, variant-scoped phase-driven
   animation playback, combined-sheet export, the shared snapshot
@@ -132,16 +132,25 @@ Do not run builds or leave generated task files there.
   Dropping a raw sheet there is enough to make it appear; a hand-written document
   carrying settings but no pieces is a valid seed and is sliced on open.
   The page finds pieces by keying on alpha and proposes a footprint for each from
-  the sheet grid, but footprints are edited there rather than inferred, because
+  the sheet's stated `gridCols` x `gridRows` layout — cells need not be square,
+  and a fused plate is cut into exactly that grid — but footprints are edited
+  there rather than inferred, because
   how much deck a piece covers is a judgement about the object, not a measurement
   of the art. A piece becomes a doodad or a cell of a named autotile block; walls
   and corners are authored by grouping pieces into a block's slots, which the
   packer places as one contiguous patch. Export writes a packed atlas holding only
   the included pieces, its `*.tileset.json`, and a generated `*.tileset.md`
-  catalog card. Annotations are saved to
+  catalog card; the atlas goes to `graphics/tilesets/` when the sheet declares
+  blocks and `graphics/doodads/` when it is only props, unless the document names
+  an `outputSheet`. Annotations are saved to
   `art-source/tilesets/<name>.tileset-authoring.json`, so a sheet can be annotated
   across several sittings; re-slicing carries existing annotations onto the newly
   found pieces and names any that no longer match.
+  Its Map preview generates a city and draws it twice at one seed: as it ships,
+  and with pieces bound through the "stands in for" column painted over the
+  cells of the shipped id they are candidates for. The substitution is made in
+  the pixels, so the two maps are the same map and only the art differs. The
+  binding is preview-only and is never exported.
   All three pages validate before replacement; the Turrets page prepares every
   linked target before replacing files atomically and rolls back earlier files
   if a later replacement fails.
@@ -176,13 +185,21 @@ The discovered suite ids and default output directories are:
 | `ship-decks` | Generated ship-deck plan views, tinted by longitudinal zone | `build/snapshots/ship-decks/` |
 | `turrets` | Authored mount-state strips, including projectile and impact effects | `build/snapshots/turrets/` |
 | `ui` | Retained Marine Ops screens at authored viewport sizes | `build/snapshots/ui/` |
+| `frontage-scene` | Animated garrison stand-to on a generated compound, one loop per approach edge | `build/snapshots/frontage-scene/` |
 
 Run all suites with `gradlew.bat createSnapshots`. Use
 `-Psnapshot=<id>` for one suite or a comma-separated selector for several; quote
 the whole property in PowerShell, for example
 `'-Psnapshot=layers,turrets'`. `-PsnapshotDir=<path>` changes the shared output
 root while retaining the per-suite subdirectories. Command-line generation
-replaces matching PNGs without prompting and does not remove stale files.
+replaces matching files without prompting and does not remove stale ones, so a
+suite that renames an artifact leaves the old name behind until it is deleted.
+
+A suite artifact is a PNG or, for a suite whose evidence is a played battle
+rather than a composition, an animated GIF built from a frame sequence. The
+runner writes both; a suite never writes files itself. Animated review frames
+come from `BattleReviewFrameRenderer`, shared with commander evidence so the
+two do not drift into separate camera fits and marker palettes.
 
 Snapshot generation is tool/test infrastructure and must not enter the shipped
 mod jar. Keep reusable catalog and runner code in `:layer-authoring`, keep
