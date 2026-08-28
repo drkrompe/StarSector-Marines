@@ -13,7 +13,6 @@ import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.CampaignMechSquad;
 import com.dillon.starsectormarines.marine.MarineCaptain;
-import com.dillon.starsectormarines.marine.MechBay;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineSoldier;
@@ -166,7 +165,12 @@ public class MarineOpsContext {
     /** The machines parked in the company ship's berths: whatever the player owns. */
     private static List<MechVariant> companyLance() {
         List<MechVariant> lance = new ArrayList<>();
-        CampaignMechSquad squad = new MechBay().activeSquad();
+        MarineRosterScript script = MarineRosterScript.getInstance();
+        MarineRoster roster = script == null ? null : script.roster();
+        // The player's own bay, not a fresh one: MechBay seeds a starter squad
+        // in its constructor, so a new instance always parks the same machine
+        // in the berths whatever the company actually owns.
+        CampaignMechSquad squad = roster == null ? null : roster.mechBay().activeSquad();
         if (squad != null) {
             for (CampaignMech mech : squad.mechs()) lance.add(mech.variant());
         }

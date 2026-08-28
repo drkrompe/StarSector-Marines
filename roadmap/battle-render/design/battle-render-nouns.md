@@ -69,12 +69,14 @@ of either adjacent floor cell. The collector reads the live canonical barrier
 list, culls against either neighboring cell, and emits frame and pane geometry
 over the shared boundary after the floor/wall pass. Destruction removes that
 same identity, so the next collected frame contains neither pane nor a stale
-presentation-side tombstone. Their presentation is a compact band centered on
-the edge. Its visible thickness may deliberately exceed the mathematical
-navigation boundary so the feature remains legible at distance; presentation
-geometry does not redefine collision. It must still read as an edge fixture,
-not expand into a cell-owned facade. Wall-cell windows remain a separate,
-visibly thicker aperture treatment for structures whose facade owns the cell.
+presentation-side tombstone. Their frame spans the complete shared-edge run so
+it meets neighboring structure, while the pane remains inset inside that
+frame. The band projects from the mathematical edge into the feature's retained
+structure-owner cell rather than swelling equally into both sides. Its visible
+thickness may deliberately exceed the navigation boundary so the feature
+remains legible at distance; presentation geometry does not redefine collision.
+Wall-cell windows remain a separate aperture treatment for structures whose
+facade owns the cell.
 
 ## Standing laws
 

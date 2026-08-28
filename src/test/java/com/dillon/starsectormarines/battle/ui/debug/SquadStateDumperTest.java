@@ -235,6 +235,10 @@ class SquadStateDumperTest {
                 .getJSONObject("squadDirective").getString("reason"));
         assertFalse(conquest.getJSONObject("squadDirective")
                 .getBoolean("distantCaptureDeferred"));
+        JSONObject commandState = conquest.getJSONObject("squadState");
+        assertEquals(1, commandState.getInt("aliveMembers"));
+        assertEquals(1, commandState.getInt("activePathMembers"));
+        assertTrue(commandState.getBoolean("localContact"));
         assertEquals(3, conquest.getJSONArray("tracks").length());
 
         JSONObject influence = dump.getJSONObject("currentCommanderInfluence");
