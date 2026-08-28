@@ -16,7 +16,9 @@
  *           {@code GridPathfinder} whenever the corridor is stale,
  *           ineffective, or too indirect. {@code zone/ZoneGraph} honors
  *           shared cardinal transitions while retaining doorway cells as
- *           explicit portals.
+ *           explicit portals. {@code SharedEdgeBarrier} is the canonical
+ *           authored identity for a physical feature that owns one such
+ *           transition without consuming either adjacent cell.
  *           {@code mesh/GreedyNavigationMesh} combines compatible cells but
  *           remains a revisioned cache rebuilt from that authoritative grid.
  *           For radius

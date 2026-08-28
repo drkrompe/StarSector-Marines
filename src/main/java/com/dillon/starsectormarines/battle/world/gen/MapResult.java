@@ -33,6 +33,8 @@ import java.util.List;
  *       walkable AND outside the rect.</li>
  *   <li>Cover is baked on every walkable cell (cardinal-wall count) and any
  *       walls left after generation are flagged {@link CellTopology.Tag#WALL}.</li>
+ *   <li>Authored shared-edge barriers join two walkable cells, own a closed
+ *       reciprocal cardinal transition, and publish cover from their profile.</li>
  *   <li>Doodads sit on walkable cells, never on doorways.</li>
  * </ul>
  */

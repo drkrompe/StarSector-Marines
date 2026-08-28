@@ -4,8 +4,9 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — parked road vehicles draw as ordinary doodads, and the
-durability bar is emitted by every layer that draws something shootable.
+Updated: 2026-08-28 — parked road vehicles draw as ordinary doodads, shared-
+edge windows draw from live GROUND identity, and durability bars cover every
+shootable layer.
 
 ## Vocabulary
 
@@ -22,8 +23,8 @@ durability bar is emitted by every layer that draws something shootable.
 - A **sheet quad** is a sub-rectangle batched from a shared sheet; a **sprite** is a whole texture rendered through the host API. They are presentation forms, not simulation identity.
 - A **render appearance** is a type-shared render-side description of what an entity kind can draw. Dynamic pose, health, visibility, and interpolation remain current simulation inputs.
 - An **allegiance** is the presentation reading of a unit's simulation faction from the player's chair: player, ally, neutral, or enemy. Faction is the side a unit fights for; allegiance is how the person watching should read it. The number of ownership buckets a player can distinguish at a glance stays four however many factions the simulation fields.
-- A **durability bar** is the ownership-coded gauge above an entity reporting its remaining combat durability. It carries one **row** per pool — structure below, armor above it, since armor is spent first — and each row fills against its own maximum, so a pool at full reads as full whatever the other is doing. It is a per-frame read of current pools, never a second durability authority.
-- A **notch** is one fixed quantity of a pool marked off along its row. It is deliberately not called a cell: cells are the simulation's grid, and a notch measures durability, not space. The quantity is per pool and identical for every entity in the battle, so notch count and density read magnitude directly: a marine is one notch, an emplacement a handful, a heavy mech a full comb. Notches measure the entity, not the bar — a longer bar shows the same notches further apart. Armor and structure take different quantities because the authored pools differ in size; forcing one scale on both leaves the larger pool illegible.
+- A **durability bar** is the ownership-coded gauge above an entity reporting its remaining combat durability. It carries one **row** per capacity — structure below, armor above it, since armor is spent first — and each row fills against its own maximum, so a capacity at full reads as full whatever the other is doing. It is a per-frame read of current capacities, never a second durability authority.
+- A **notch** is one fixed quantity of a capacity marked off along its row. It is deliberately not called a cell: cells are the simulation's grid, and a notch measures durability, not space. The quantity is per capacity and identical for every entity in the battle, so notch count and density read magnitude directly: a marine is one notch, an emplacement a handful, a heavy mech a full comb. Notches measure the entity, not the bar — a longer bar shows the same notches further apart. Armor and structure take different quantities because the authored capacities differ in size; forcing one scale on both leaves the larger capacity illegible.
 - A **visible cell rectangle** is the camera-derived dense-world cull. It reduces work for cell-backed terrain passes; it does not replace the simulation's cell grid.
 - An **embedded scene host** is a bounded consumer of the ordinary battle camera,
   simulation view, and selected render layers. It owns its viewport and framing,
@@ -63,6 +64,13 @@ The current world order is `GROUND → DECALS → VEHICLES → DOODADS → HIGHL
 
 Ground is a dense, cell-backed surface. Current camera culling range-loops the visible cell rectangle for dense passes and AABB-rejects eligible sparse scenery. This preserves cell truth while avoiding off-camera collection. If terrain or decal work becomes the measured ceiling again, future dense render tiles may cache a view-resident projection of cell blocks. A tile is a derived, view-admitted presentation block, never a new simulation grid or coordinate system. Ground and decals may keep separate backing while sharing tile addressing, invalidation, and eviction policy. Evicted ground rebuilds from cells and evicted decals replay retained sources; unavailable tile backing falls back locally to the present cell path without changing paint order.
 
+Shared-edge windows are sparse GROUND features rather than painted properties
+of either adjacent floor cell. The collector reads the live canonical barrier
+list, culls against either neighboring cell, and emits frame and pane geometry
+over the shared boundary after the floor/wall pass. Destruction removes that
+same identity, so the next collected frame contains neither pane nor a stale
+presentation-side tombstone.
+
 ## Standing laws
 
 1. Paint order is semantic. Change `RenderLayer` order or same-layer producer order only after re-deriving the affected occlusion contract.
@@ -79,7 +87,7 @@ Ground is a dense, cell-backed surface. Current camera culling range-loops the v
     snapshot of an embedded battle scene must collect the same simulation,
     camera, selected render systems, command order, and authored assets as live.
 11. Ownership coding is redundant by construction. An allegiance is carried on hue *and* at least one non-color channel, so a busy field, a colorblind reader, and a pulled-back camera all still resolve whose unit it is. Decoration measured in screen pixels stays legible at any zoom; decoration measured in cells does not.
-12. Each pool reports on its own row against its own maximum. A reader asking "is the hull hurt?" must not have to subtract the armor pool to find out, and a pool's row stays comparable with the same pool on every other unit on the field.
+12. Each capacity reports on its own row against its own maximum. A reader asking "is the hull hurt?" must not have to subtract the armor capacity to find out, and a capacity's row stays comparable with the same capacity on every other unit on the field.
 13. A quantised scale degrades by dropping a tier, never by smearing one, and it drops for the whole bar at once. A divider tier too fine to resolve at the current bar length is omitted entirely, so the bar falls back to coarser notches and then to none instead of turning into noise — and one row never ends up visibly finer than the row above it over a rounding error.
 14. Decoration may be withheld until it carries news. An emplacement shows no bar until recorded fact says it has been fired on, so a quiet turret line reads as terrain rather than as a row of gauges. Withholding keys on something the simulation already records; the renderer never maintains its own idea of what has happened.
 15. A battle-map preview is a camera and an annotation surface, never a renderer.
@@ -87,11 +95,11 @@ Ground is a dense, cell-backed surface. Current camera culling range-loops the v
     terrain, walls, apertures, doors, and props must come from the production
     render systems. Raw atlas and topology diagrams remain diagnostics and must
     not present themselves as battle-scene evidence.
-16. A bar belongs to whatever can be shot, not to one layer's cast. Anything carrying the durability pools wears the same gauge with the same ownership coding wherever it is drawn — infantry and emplacements in `UNITS`, drones in `DRONES`, convoy vehicles in `CONVOY` — so the player reads one instrument rather than a per-layer dialect. Each layer emits its bars as a sweep after its bodies, so no body paints over a neighbour's gauge.
+16. A bar belongs to whatever can be shot, not to one layer's cast. Anything carrying armor and structure wears the same gauge with the same ownership coding wherever it is drawn — infantry and emplacements in `UNITS`, drones in `DRONES`, convoy vehicles in `CONVOY` — so the player reads one instrument rather than a per-layer dialect. Each layer emits its bars as a sweep after its bodies, so no body paints over a neighbour's gauge.
 
 ## Boundaries and extension paths
 
-`combat-durability-nouns.md` owns the two pools, what depletes them, and in which order; the bar only reports that model and must not invent a third pool or a different drain order. Combat telemetry is the recorded-fact source a withheld bar consults. Allegiance is resolved render-side from simulation faction; the simulation never gains a presentation ownership field. The player's side is `MARINE` by standing convention across missions, so `MARINE` reads as player, `CIVILIAN` as neutral, and anything else as enemy. The ally reading has no producer until the simulation fields a friendly non-player faction — the same allied-contributor gap `fog-of-war-nouns.md` law 2 already names — and is styled ahead of that work so the presentation side needs no second design pass when it lands.
+`combat-durability-nouns.md` owns armor and structure, what depletes them, and in which order; the bar only reports that model and must not invent a third capacity or a different drain order. Combat telemetry is the recorded-fact source a withheld bar consults. Allegiance is resolved render-side from simulation faction; the simulation never gains a presentation ownership field. The player's side is `MARINE` by standing convention across missions, so `MARINE` reads as player, `CIVILIAN` as neutral, and anything else as enemy. The ally reading has no producer until the simulation fields a friendly non-player faction — the same allied-contributor gap `fog-of-war-nouns.md` law 2 already names — and is styled ahead of that work so the presentation side needs no second design pass when it lands.
 
 `surface-relief-nouns.md` owns the ground-relief composite that may redirect the GROUND layer while preserving the render pipeline's order. `air-nouns.md` owns airborne behavior; this model only guarantees the layered presentation space it consumes. `vanilla-combat-bridge-nouns.md` owns the vanilla host and selects the bridge's subset of ground layers. `moddable-tilesets-nouns.md` owns tile catalog and generation mapping, while rendering resolves their authored visual identity.
 

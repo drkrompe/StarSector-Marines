@@ -16,14 +16,14 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Pins the durability bar's geometry contract, its per-pool notch scales, and its
+ * Pins the durability bar's geometry contract, its per-capacity notch scales, and its
  * ownership coding. No GL and no simulation — {@link DurabilityBarDecor} emits into
  * a plain {@link DrawList}, so the emitted {@code SOLID_RECT}s are the whole
  * observable surface.
  *
- * <p>Assertions are structural (which rows a pool occupies, how far its fill runs
+ * <p>Assertions are structural (which rows a capacity occupies, how far its fill runs
  * against its own maximum, how many dividers survive) rather than a pinned palette:
- * the design owns the exact hues, but "each pool fills its own row on its own
+ * the design owns the exact hues, but "each capacity fills its own row on its own
  * scale" and "the four allegiances stay distinguishable" are contracts a future
  * restyle must keep.
  */
@@ -160,7 +160,7 @@ public class DurabilityBarDecorTest {
     }
 
     @Test
-    void eachRowFillsAgainstItsOwnPoolRatherThanACombinedTotal() {
+    void eachRowFillsAgainstItsOwnCapacityRatherThanACombinedTotal() {
         // Armor half spent, hull untouched: the structure row must still read full.
         List<Rect> bar = emit(Allegiance.ENEMY, TURRET_STRUCTURE, TURRET_STRUCTURE,
                 TURRET_ARMOR / 2f, TURRET_ARMOR);
@@ -178,13 +178,13 @@ public class DurabilityBarDecorTest {
     }
 
     @Test
-    void theTwoPoolsAreNotchedOnTheirOwnScales() {
+    void theTwoCapacitiesAreNotchedOnTheirOwnScales() {
         // 100 structure at 25 a notch is cut three times; 100 armor at 50 once.
         List<Rect> bar = emit(Allegiance.ENEMY, 100f, 100f, 100f, 100f);
         assertEquals(3, dividers(bar, structureTrack(bar)).size(),
                 "structure notches are the finer scale");
         assertEquals(1, dividers(bar, armorTrack(bar)).size(),
-                "armor notches are the coarser scale, because armor pools run larger");
+                "armor notches are the coarser scale, because armor capacities run larger");
 
         // Every fifth divider is promoted, so a 250-point structure row shows eight
         // minors plus one major.
@@ -209,15 +209,15 @@ public class DurabilityBarDecorTest {
 
         List<Rect> absurd = emit(Allegiance.ENEMY, 1_000_000f, 1_000_000f);
         assertTrue(dividers(absurd, structureTrack(absurd)).isEmpty(),
-                "an absurd pool drops both tiers instead of drawing a solid smear");
+                "an absurd capacity drops both tiers instead of drawing a solid smear");
     }
 
     @Test
-    void aSurvivingSliverStaysVisibleAndAnEmptyPoolKeepsItsTrack() {
+    void aSurvivingSliverStaysVisibleAndAnEmptyCapacityKeepsItsTrack() {
         List<Rect> dead = emit(Allegiance.ENEMY, 0f, 100f);
         List<Rect> sliver = emit(Allegiance.ENEMY, 0.05f, 100f);
         assertEquals(dead.size() + 1, sliver.size(),
-                "an empty pool paints its track and notches but no fill");
+                "an empty capacity paints its track and notches but no fill");
         assertTrue(sliver.get(2).width() >= 1f,
                 "a nearly-dead unit still shows at least one pixel of structure");
 
@@ -303,10 +303,10 @@ public class DurabilityBarDecorTest {
         assertEquals(0, noWidth.count(RenderLayer.UNITS),
                 "a bar with no width emits nothing at all");
 
-        DrawList noPool = new DrawList();
-        DurabilityBarDecor.emit(noPool, RenderLayer.UNITS, Allegiance.PLAYER,
+        DrawList noStructure = new DrawList();
+        DurabilityBarDecor.emit(noStructure, RenderLayer.UNITS, Allegiance.PLAYER,
                 CX, BASE_Y, WIDTH, 0f, 0f, 1f);
-        assertEquals(0, noPool.count(RenderLayer.UNITS),
+        assertEquals(0, noStructure.count(RenderLayer.UNITS),
                 "an entity with no authored structure has nothing to gauge");
 
         assertEquals(emit(Allegiance.ENEMY, 40f, 40f).size(),

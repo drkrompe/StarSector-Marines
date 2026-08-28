@@ -1,10 +1,10 @@
-<template props="contextLabel,candidateRows,facilityCells,selectedName,selectedSummary,verdict,transferLabel,transferClasses,transferAction,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses">
+<template props="roomTitle,roomCopy,contextLabel,candidateRows,facilityCells,selectedName,selectedSummary,verdict,transferLabel,transferClasses,transferAction,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses">
   <div id="transfer-root" class="transfer-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" contextLabel="{contextLabel}" />
 
     <div id="transfer-room-bar" class="panel transfer-room-bar">
-      <div id="transfer-room-title" class="label heading tone-edge">COMPANY SHIP  //  TRANSFER</div>
-      <div id="transfer-room-copy" class="label tone-muted">A bigger hull is not automatically a better home. What a ship takes away is the half worth reading.</div>
+      <div id="transfer-room-title" class="label heading tone-edge">{roomTitle}</div>
+      <div id="transfer-room-copy" class="label tone-muted">{roomCopy}</div>
     </div>
 
     <div id="transfer-body" class="transfer-body">

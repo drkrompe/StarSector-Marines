@@ -84,7 +84,7 @@ class EquipmentDoctrineDesignerViewModelTest {
         viewModel.showArmor().run();
         EquipmentDoctrineDesignerViewModel.BilletCard armor =
                 viewModel.billets().get().get(0);
-        assertEquals(List.of("POOL", "RATING", "MOVE", "EVA"), armor.stats().stream()
+        assertEquals(List.of("ARMOR", "RESIST", "MOVE", "EVA"), armor.stats().stream()
                 .map(EquipmentDoctrineDesignerViewModel.StatMeter::label).toList());
         assertTrue(armor.flavor().contains("Patchwork protection"));
     }
