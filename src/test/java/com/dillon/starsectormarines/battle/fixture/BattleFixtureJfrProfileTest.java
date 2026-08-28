@@ -1,7 +1,7 @@
 package com.dillon.starsectormarines.battle.fixture;
 
 import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
-import com.dillon.starsectormarines.battle.evacuation.SwarmPressureBehavior;
+import com.dillon.starsectormarines.battle.nav.SharedGoalPolicy;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import jdk.jfr.Category;
@@ -103,7 +103,7 @@ class BattleFixtureJfrProfileTest {
         boundary.unitUpdateParallelism =
                 UnitUpdateSystem.configuredPoolParallelism();
         boundary.minimumSharedGoalUnits =
-                SwarmPressureBehavior.configuredMinimumSharedGoalUnits();
+                SharedGoalPolicy.configuredMinimumSharedGoalUnits();
 
         RunStats measured;
         // Construct the ordinary measured sim before recording so map/scenario

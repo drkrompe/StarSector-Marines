@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.decision.goap.ActionStatus;
 import com.dillon.starsectormarines.battle.decision.goap.Planner;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.SharedGoalPolicy;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.NavigationZone;
@@ -205,8 +206,19 @@ abstract class AbstractZoneAction implements Action {
         }
 
         if (sim.movement().mayRepath(member)) {
-            sim.setPath(member, GridPathfinder.findPath(sim.getGrid(),
-                    sim.world().cellX(member), sim.world().cellY(member), destX, destY, sim.getOccupancyMap()));
+            // Every member ordered into this zone walks to the same interior
+            // cell, so this is the dense same-destination case a shared
+            // reverse field exists for: one field per zone serves the whole
+            // push instead of one A* per member per repath. The firing-position
+            // route above stays on A* — that destination is picked per member.
+            int memberX = sim.world().cellX(member);
+            int memberY = sim.world().cellY(member);
+            sim.setPath(member,
+                    SharedGoalPolicy.usesSharedGoalFields(sim.liveUnitCount())
+                            ? sim.findSharedPathToGoal(memberX, memberY, destX, destY)
+                            : GridPathfinder.findPath(sim.getGrid(),
+                                    memberX, memberY, destX, destY,
+                                    sim.getOccupancyMap()));
         }
         sim.advanceMovement(member);
     }

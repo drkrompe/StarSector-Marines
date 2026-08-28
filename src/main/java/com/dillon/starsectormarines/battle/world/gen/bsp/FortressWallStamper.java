@@ -974,6 +974,17 @@ public final class FortressWallStamper implements GenStage {
      * extends well past the sweep zone, the entire building still gets
      * cleared — that's intentional: any structure touching the wall is part
      * of the fortification and shouldn't read as an independent block.
+     *
+     * <p><b>The ward is exempt, for the reason its route exclusion exists.</b>
+     * Keeping the wall out of the ward is only half of not destroying it: a
+     * shed whose near row falls inside the sweep zone is flooded to its far
+     * corner by the rule above, and comes back walkable parade ground with its
+     * bays and berths still standing in the open. The clearance the ward
+     * reserves is measured from the band it sits in rather than from the wall,
+     * which lands where the route lets it, so the two can end up two cells
+     * apart — near enough for that flood, and it takes the whole building.
+     * Nothing distinguishes a garrison shed from a tenement in the flood
+     * itself; both are joined-up {@code INDOOR}. The ward has to say so here.
      */
     private static void demolishIntersectedBuildings(NavigationGrid grid, CellTopology topology,
                                                       List<Doodad> doodads,

@@ -40,7 +40,6 @@ import com.dillon.starsectormarines.battle.sim.VisionService;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -534,15 +533,22 @@ public final class TacticalScoring {
             candidates[candidateCount++] =
                     ((long) Float.floatToRawIntBits(d) << 32) | i;
         }
-        Arrays.sort(candidates, 0, candidateCount);
+        // A heap, not a sort: the scan almost always stops within the first
+        // few candidates, so paying O(n log n) to order the far ones costs
+        // more than the raycasts it saves. Heapifying is linear and each
+        // candidate actually consumed costs one log-n sift.
+        heapify(candidates, candidateCount);
 
         // Pass 2 — nearest first, stopping once distance alone rules the rest
         // out. Ties are resolved on dense index, so the winner is the same one
         // a straight dense-order scan would have kept.
-        for (int k = 0; k < candidateCount; k++) {
-            float d = Float.intBitsToFloat((int) (candidates[k] >>> 32));
+        for (int remaining = candidateCount; remaining > 0; remaining--) {
+            long candidate = candidates[0];
+            candidates[0] = candidates[remaining - 1];
+            siftDown(candidates, 0, remaining - 1);
+            float d = Float.intBitsToFloat((int) (candidate >>> 32));
             if (d - MAX_TARGET_SCORE_BONUS > bestScore) break;
-            int i = (int) (candidates[k] & 0xFFFFFFFFL);
+            int i = (int) (candidate & 0xFFFFFFFFL);
             long other = dense[i];
             int ox = world.cellX(other);
             int oy = world.cellY(other);
@@ -610,6 +616,26 @@ public final class TacticalScoring {
                 + scoreWeaponAffinity(excludeFromCrowding, candidate)
                 + scoreZoneMismatch(selfCellX, selfCellY, candidateCellX, candidateCellY);
         return visible ? score : score + TARGET_NO_LOS_COST;
+    }
+
+    /** Arranges {@code count} packed candidates into a min-heap by distance. */
+    private static void heapify(long[] heap, int count) {
+        for (int i = (count >> 1) - 1; i >= 0; i--) siftDown(heap, i, count);
+    }
+
+    /** Restores the min-heap property at {@code index} over {@code count} entries. */
+    private static void siftDown(long[] heap, int index, int count) {
+        long moved = heap[index];
+        int half = count >> 1;
+        while (index < half) {
+            int child = (index << 1) + 1;
+            int right = child + 1;
+            if (right < count && heap[right] < heap[child]) child = right;
+            if (heap[child] >= moved) break;
+            heap[index] = heap[child];
+            index = child;
+        }
+        heap[index] = moved;
     }
 
     /**
