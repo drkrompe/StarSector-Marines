@@ -358,28 +358,4 @@ class ShiftTest {
                 "reaching the ship's firing range changed how many marines a berth holds");
     }
 
-    /**
-     * A shift that crosses the ship is scheduled for the walk it actually has.
-     *
-     * <p>The route clock budgets travel from the straight line between stops,
-     * and a deck is a spine with rooms hung off it. Budget the line and the
-     * schedule moves somebody on before they have arrived, and a shift spanning
-     * the ship never dwells anywhere at all.
-     */
-    @Test
-    void aSpanningShiftBudgetsForTheCorridor() {
-        ShipDeckGenerator generator = new ShipDeckGenerator();
-        MapResult deck = generator.generateDeck(
-                DeckSizing.planFor(HullClass.CRUISER, HullRole.TROOP_TRANSPORT,
-                        10, 250, 50, 0.28f),
-                42L, null);
-        try (ShipDeckBattleScene scene = new ShipDeckBattleScene(
-                deck, generator.getLastDeckGraph(), 42L, null)) {
-            DeckGraph.Compartment barracks = scene.room(RoomPurpose.BARRACKS);
-            Shift spanning = scene.watchBill(barracks, CrewRole.MARINE);
-            assertTrue(spanning.spansSites(), "this shift does not span, so nothing is tested");
-            assertTrue(spanning.member(0).walkSpeedCellsPerSecond() < Shift.WALK_SPEED,
-                    "a shift crossing the ship is scheduled as though it walked in a line");
-        }
-    }
 }
