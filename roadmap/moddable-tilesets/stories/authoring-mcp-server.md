@@ -37,7 +37,7 @@ run the mechanical half itself and spend its own effort on the judged half.
 - A generic MCP protocol host in `:layer-authoring`, with a discoverable tool
   SPI mirroring the existing `AuthoringPageProvider` / `SnapshotSuite` pattern.
 - Mod-domain tools in root test sources covering list, measure, read document,
-  write document, slice, export, and map preview.
+  write document, slice, set block, remove block, export, and map preview.
 - Snapshot-catalog tools beside the catalog they drive.
 - A launcher the user registers in `.mcp.json`.
 
@@ -159,6 +159,9 @@ and pinned by tests that assert the contract rather than the implementation.
   the session.
 - [x] The tileset tools cover list, measure, read, write, slice, export, and
   map preview, and the snapshot tools cover list and create.
+- [x] A block is authored through a tool rather than by hand-writing `block` and
+  `slot` fields into a document, and that tool answers with what each slot it
+  filled means.
 - [x] A sheet name containing a path separator or `..` is refused.
 - [x] A caller-supplied output directory outside the project root is refused.
 - [x] `:test` and `:layer-authoring:test` stay green.

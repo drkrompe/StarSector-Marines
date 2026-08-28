@@ -104,20 +104,37 @@ with usable settings, and every un-annotated seed explains itself. A new sheet
 with no seed fails the build — that is the mechanism that makes this procedure
 part of ingestion rather than a thing to remember.
 
-## 5. Hand it over
+## 5. Annotate it
+
+Slicing is mechanical; deciding what each piece *is* is not. Both halves are
+reachable from either the authoring MCP server or the workbench.
+
+Headless, if the `starsector-authoring` MCP server is registered (see
+`authoring-mcp-server.md`): `tileset_slice` finds the pieces,
+`tileset_set_block` declares a wall or corner set and assigns pieces to its
+slots, `tileset_write_document` saves per-piece footprints, covers, ids, notes
+and tags, and `tileset_export` writes the atlas.
+
+`tileset_set_block` answers with what every slot it filled *means*, and reading
+that back is the point of calling it: slot names read as **"the exterior is on
+this side"**, not "the neighbour is a wall". A mirrored assignment still loads,
+still resolves and is still opaque, so nothing downstream can detect it. Assign
+a few slots, read the meanings against the art, then `apply`.
+
+In the window, for a sheet already in front of a person:
 
 ```bash
 gradlew.bat layerAuthoring
 ```
 
 Tilesets page → pick the sheet from the project list → **Open**. A seeded
-document slices on open. From there it is annotation, which is a person's job:
+document slices on open.
 
 - For a fused plate: select the single piece, **Split selected on grid**, then
-  **Group selected as block** for any wall or corner set. Slot names read as
-  *"the exterior is on this side"*, not "the neighbour is a wall" — a mirrored
-  assignment still loads and still resolves, so the preview drawing each block as
-  a room is the only thing that catches it.
+  **Group selected as block** for any wall or corner set — the same assignment
+  `tileset_set_block` makes, filling slots in the selection's reading order.
+  The preview draws each block as a room, which is the visual counterpart of the
+  slot descriptions.
 - For a prop sheet: set each piece's footprint, cover, id, note and tags.
 
 Export writes the packed atlas, its tileset, and a `*.tileset.md` catalog card.

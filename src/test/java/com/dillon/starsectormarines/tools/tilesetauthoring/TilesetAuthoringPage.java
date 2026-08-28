@@ -41,7 +41,9 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Turns a raw art sheet into a tileset the game can load.
@@ -567,14 +569,9 @@ public final class TilesetAuthoringPage implements AuthoringPage {
                             + " has only " + slots.size() + " slots.");
             return;
         }
-        for (int i = 0; i < selected.size(); i++) {
-            TilesetExport.Entry entry = selected.get(i);
-            entry.blockId = blockId;
-            entry.slot = slots.get(i);
-            entry.included = true;
-        }
-        blocks.removeIf(spec -> spec.id.equals(blockId));
-        blocks.add(new TilesetExport.BlockSpec(blockId, chosen, fillRgb));
+        Map<String, TilesetExport.Entry> bySlot = new LinkedHashMap<>();
+        for (int i = 0; i < selected.size(); i++) bySlot.put(slots.get(i), selected.get(i));
+        TilesetOperations.setBlock(model.entries, blocks, blockId, chosen, fillRgb, bySlot);
         pruneEmptyBlocks();
         model.fireTableDataChanged();
         markDirty();

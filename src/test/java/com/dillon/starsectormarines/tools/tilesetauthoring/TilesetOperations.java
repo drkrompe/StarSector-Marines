@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.tools.tilesetauthoring;
 
+import com.dillon.starsectormarines.battle.world.tiles.GridLayout;
+
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -7,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 
@@ -118,6 +121,70 @@ public final class TilesetOperations {
         }
         return new ExportResult(atlasPath, tilesetPath, cardPath, sheetPath,
                 packing.columns(), packing.rows(), doodads, packing.blockOrigins().size());
+    }
+
+    /**
+     * Put pieces into the named slots of a block, declaring or redeclaring it.
+     *
+     * <p>The spec is replaced outright; the membership is merged, so a sheet can
+     * be grouped a few slots at a time rather than all at once. A slot holds one
+     * piece, so assigning over an occupied slot displaces whatever was there —
+     * returned rather than dropped quietly, because that is the case the caller
+     * has to look at.
+     *
+     * <p>Assignment forces the piece to ship, which is the one piece of
+     * doodad-side state a grouping settles: an excluded block cell would leave a
+     * hole the layout has no fill for. A footprint and a cover level are left
+     * alone because a block cell is one cell by definition and neither is read
+     * for it.
+     *
+     * @return the members this assignment pushed out of the block
+     */
+    public static List<TilesetExport.Entry> setBlock(List<TilesetExport.Entry> entries,
+                                                     List<TilesetExport.BlockSpec> blocks,
+                                                     String blockId, GridLayout layout,
+                                                     Integer fillRgb,
+                                                     Map<String, TilesetExport.Entry> bySlot) {
+        List<TilesetExport.Entry> displaced = new ArrayList<>();
+        for (TilesetExport.Entry entry : entries) {
+            if (!blockId.equals(entry.blockId) || bySlot.containsValue(entry)) continue;
+            if (bySlot.containsKey(entry.slot)) {
+                entry.blockId = "";
+                entry.slot = "";
+                displaced.add(entry);
+            }
+        }
+        for (Map.Entry<String, TilesetExport.Entry> assignment : bySlot.entrySet()) {
+            TilesetExport.Entry entry = assignment.getValue();
+            entry.blockId = blockId;
+            entry.slot = assignment.getKey();
+            entry.included = true;
+        }
+        blocks.removeIf(spec -> spec.id.equals(blockId));
+        blocks.add(new TilesetExport.BlockSpec(blockId, layout, fillRgb));
+        return displaced;
+    }
+
+    /**
+     * Dissolve a block, handing its cells back as doodads.
+     *
+     * <p>A released member keeps its id, footprint and annotation: it was always
+     * a piece of the sheet, and only its membership is being withdrawn.
+     *
+     * @return the members released, in document order
+     */
+    public static List<TilesetExport.Entry> removeBlock(List<TilesetExport.Entry> entries,
+                                                        List<TilesetExport.BlockSpec> blocks,
+                                                        String blockId) {
+        List<TilesetExport.Entry> released = new ArrayList<>();
+        for (TilesetExport.Entry entry : entries) {
+            if (!blockId.equals(entry.blockId)) continue;
+            entry.blockId = "";
+            entry.slot = "";
+            released.add(entry);
+        }
+        blocks.removeIf(spec -> spec.id.equals(blockId));
+        return released;
     }
 
     /**

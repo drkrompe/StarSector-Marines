@@ -175,8 +175,12 @@ seed cannot supply is which piece is which, because that needs the slice.
 
 Slot names state the mask the way its layout reads it — "the exterior is on this
 side", not "the neighbour is a wall". A mirrored assignment still loads, still
-resolves, and is still opaque, so no validation can detect it; the wording of
-the label and a preview that draws the block as a room are the only defences.
+resolves, and is still opaque, so no validation can detect it. The defences are
+therefore all at the moment of assignment and all of them are legibility: the
+wording of the label, a preview that draws the block as a room, and an
+assignment that answers with what each slot it filled means. An authoring
+surface that lets a piece be put into a slot owes that reading back to whoever
+made the assignment, because afterwards there is nothing left to ask.
 
 Raw sheets, masters, authoring documents and derivation scripts are pre-pack
 input and live outside `mod/`, which is synchronized wholesale into every
