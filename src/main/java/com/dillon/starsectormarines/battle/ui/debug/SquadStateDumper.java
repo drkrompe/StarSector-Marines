@@ -25,6 +25,7 @@ import com.dillon.starsectormarines.battle.command.SabotageDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.RaidCommandSnapshot;
 import com.dillon.starsectormarines.battle.command.ExtractionCommandSnapshot;
 import com.dillon.starsectormarines.battle.command.ExtractionDefenseSnapshot;
+import com.dillon.starsectormarines.battle.command.OpeningOperationCommandPicture;
 import com.dillon.starsectormarines.battle.command.RescueCommandSnapshot;
 import com.dillon.starsectormarines.battle.evacuation.SwarmPressureSnapshot;
 import com.dillon.starsectormarines.battle.command.influence.CommanderContact;
@@ -188,6 +189,8 @@ public final class SquadStateDumper {
                 squad, commandDirective));
         o.put("commander", buildCommanderJson(
                 squad, commander, commandDirective, sim));
+        o.put("openingOperationCommand", buildOpeningOperationCommandJson(
+                squad, commander, sim));
         o.put("conquestCommand", buildConquestCommandJson(squad, commander, sim));
         o.put("assaultCommand", buildAssaultCommandJson(squad, commander, sim));
         o.put("assaultDefenseCommand", buildAssaultDefenseCommandJson(
@@ -392,6 +395,42 @@ public final class SquadStateDumper {
         } else {
             out.put("squadDirective", buildCommandDirectiveJson(
                     squad, directive));
+        }
+        return out;
+    }
+
+    private static Object buildOpeningOperationCommandJson(
+            Squad squad, CommanderSnapshot<?> commander, BattleSimulation sim)
+            throws Exception {
+        OpeningOperationCommandPicture picture = commander != null
+                && commander.detail() instanceof OpeningOperationCommandPicture opening
+                ? opening : null;
+        if (picture == null) return JSONObject.NULL;
+        JSONObject out = new JSONObject();
+        out.put("tick", picture.tick());
+        out.put("ageTicks", picture.tick() >= 0
+                ? Math.max(0, sim.simTickIndex - picture.tick()) : -1);
+        out.put("influenceTick", picture.influenceTick());
+        out.put("perspective", picture.perspective().name());
+        out.put("operationKind", picture.kind().name());
+        out.put("phase", picture.phase().name());
+        out.put("placeId", picture.placeId());
+        out.put("placeName", picture.placeName());
+        out.put("placeCellX", picture.placeCellX());
+        out.put("placeCellY", picture.placeCellY());
+        out.put("placeZoneId", picture.placeZoneId());
+        OpeningOperationCommandPicture.SquadIntent intent =
+                picture.intentFor(squad.id);
+        if (intent == null) {
+            out.put("squadIntent", JSONObject.NULL);
+        } else {
+            out.put("squadIntent", new JSONObject()
+                    .put("role", intent.role().name())
+                    .put("reason", intent.reason().name())
+                    .put("assignmentKind", intent.assignmentKind() != null
+                            ? intent.assignmentKind().name() : JSONObject.NULL)
+                    .put("targetCellX", intent.targetCellX())
+                    .put("targetCellY", intent.targetCellY()));
         }
         return out;
     }
