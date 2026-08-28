@@ -131,6 +131,15 @@ public final class GroundRosterRegistry {
         return exact != null ? exact : registry.byId.get(registry.fallbackProfileId);
     }
 
+    /**
+     * Every catalogued profile in authored order — the one source any caller
+     * that needs "all defender doctrines" reads, so a newly catalogued profile
+     * is picked up without a second, hand-maintained list going stale beside it.
+     */
+    public static List<GroundRosterProfile> profiles() {
+        return List.copyOf(requireInstalled().byId.values());
+    }
+
     public static GroundRosterProfile requireProfile(String profileId) {
         GroundRosterRegistry registry = requireInstalled();
         GroundRosterProfile profile = registry.byId.get(profileId);

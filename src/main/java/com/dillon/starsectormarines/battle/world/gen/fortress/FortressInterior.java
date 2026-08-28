@@ -408,7 +408,22 @@ public final class FortressInterior {
         if (!ctx.grid.inBounds(outsideX, outsideY)) return false;
         if (!ctx.grid.isWalkable(insideX, insideY)) return false;
         if (!ctx.grid.isWalkable(outsideX, outsideY)) return false;
-        return !occupied.contains(cellKey(outsideX, outsideY));
+        if (occupied.contains(cellKey(outsideX, outsideY))) return false;
+        // Opening a ring cell makes the entire cell standable. A convex or
+        // irregular corner can face walkable yard on a second side; placing a
+        // barrier only on the requested facade would then leave that side open
+        // and join the room's navigation/capture zone to the yard. Windows are
+        // therefore cut only through a straight facade cell whose other
+        // non-interior cardinal neighbours remain solid.
+        for (Direction side : Direction.CARDINALS) {
+            if (side == outward) continue;
+            int nx = x + side.dx;
+            int ny = y + side.dy;
+            if (!ctx.grid.inBounds(nx, ny)) continue;
+            if (floor.contains(cellKey(nx, ny))) continue;
+            if (ctx.grid.isWalkable(nx, ny)) return false;
+        }
+        return true;
     }
 
     /** Turn one wall cell into a window onto the ground beyond it. */

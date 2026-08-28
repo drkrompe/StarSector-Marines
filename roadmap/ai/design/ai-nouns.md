@@ -527,6 +527,13 @@ contact-bound maneuver override decorative formation pressure. Acquisition
 may retain a legal target through near-equal alternatives so reflex delay and
 visual facing do not chatter.
 
+A casualty rebind replaces, rather than extends, every retained plan step's
+role map. A fire team below viable strength dissolves into the nearest sibling,
+and no old slot may keep dead members or duplicate its survivors. Any active
+bound is restarted from the new partition even when a sticky mission plan keeps
+the same target zone and destination; geometric plan continuity is not team
+continuity.
+
 A perceived contact and a usable firing line are distinct. Perception may use
 the cached projected-cell line of sight, while a ground direct-fire decision
 must validate the member's true point against the intended target's true point.
