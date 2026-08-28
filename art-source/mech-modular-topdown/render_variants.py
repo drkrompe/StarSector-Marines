@@ -12,8 +12,12 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 
-ROOT = Path(__file__).resolve().parent
-REPOSITORY = ROOT.parents[3]
+# Raw art lives outside mod/, so the shipped folder never carries pre-pack
+# inputs. Outputs are addressed from the repository root rather than from
+# a sibling directory.
+HERE = Path(__file__).resolve().parent
+REPOSITORY = HERE.parent.parent
+ROOT = REPOSITORY / "mod" / "graphics" / "battle" / "mech-modular-topdown"
 OUTPUT = REPOSITORY / "roadmap" / "mechs" / "previews" / "layered-mech-variants.png"
 SOURCE_HULL_WIDTH = 208
 
