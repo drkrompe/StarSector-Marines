@@ -2,14 +2,15 @@
 
 Status: DEFERRED
 
-> **Open conflict, opened 2026-08-27.** Experience is now issued with the armour
-> pattern (`progression-nouns.md`). That collides with two properties this
-> fixture currently wants at once: armour doctrines randomized across the whole
-> catalog for coverage, and company quality as a stable property of the stage
-> ladder. Under the shipped model those are the same axis, so a stage no longer
-> determines the band its squads field. `DebugBilletPlan`'s per-billet XP is
-> inert for combat. Resolving it means choosing whether the stage ladder filters
-> the armour draw, authors armour outright, or stops claiming to set quality. — slices 1–2 shipped; waiting for player-side vehicle deployment
+> **Quality axis re-sourced, 2026-08-27.** Experience is issued with the armour
+> pattern (`progression-nouns.md`), so a stage's quality axis is now the best
+> armour it has collected rather than authored XP. `DebugBilletPlan` states that
+> ceiling and `DebugCompany` draws each squad's armour doctrine from the faction
+> catalog within it: flavour stays randomized, the stage keeps meaning what it
+> says, and coverage becomes per band. The three bands partition the authored
+> catalog with no unreachable doctrine, which a test now guards.
+> `DebugBilletPlan.experienceXp` is deprecated and inert for combat;
+> `xp-authority-cleanup.md` owns its removal. — slices 1–2 shipped; waiting for player-side vehicle deployment
 Written: 2026-08-23
 Updated: 2026-08-23 — folded the detached debug roster and mech-stage defaults into `company-view-nouns.md`.
 

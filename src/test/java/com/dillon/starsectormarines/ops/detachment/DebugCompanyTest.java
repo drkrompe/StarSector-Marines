@@ -174,9 +174,37 @@ class DebugCompanyTest {
         assertEquals(SquadEquipmentDoctrines.weaponDoctrines().size(),
                 weaponDoctrines.size(),
                 "the first shuffle bag exposes every faction-flavored weapon doctrine");
-        assertEquals(SquadEquipmentDoctrines.armorDoctrines().size(),
-                armorDoctrines.size(),
-                "the first shuffle bag exposes every faction-flavored armor doctrine");
+        // Armour decides the band, so a stage draws only from the doctrines that
+        // top out at what it has collected. Coverage is therefore per band.
+        Set<String> admissible = new HashSet<>();
+        for (SquadArmorDoctrine doctrine : SquadEquipmentDoctrines.armorDoctrines()) {
+            if (DebugCompany.bestArmorTier(doctrine)
+                    == DebugCompanyStage.VETERAN_COMPANY.plan.maxArmorTier()) {
+                admissible.add(doctrine.id());
+            }
+        }
+        assertEquals(admissible, armorDoctrines,
+                "the first shuffle bag exposes every armor doctrine at the stage's band");
+    }
+
+    @Test
+    void theStageBandsBetweenThemReachEveryArmorDoctrine() {
+        // A doctrine no stage can draw is unreachable from the debug company,
+        // which is how an authored loadout quietly stops being exercised.
+        Set<String> reachable = new HashSet<>();
+        for (DebugBilletPlan plan : DebugBilletPlan.values()) {
+            for (SquadArmorDoctrine doctrine : SquadEquipmentDoctrines.armorDoctrines()) {
+                if (DebugCompany.bestArmorTier(doctrine) == plan.maxArmorTier()) {
+                    reachable.add(doctrine.id());
+                }
+            }
+        }
+        Set<String> authored = new HashSet<>();
+        for (SquadArmorDoctrine doctrine : SquadEquipmentDoctrines.armorDoctrines()) {
+            authored.add(doctrine.id());
+        }
+        assertEquals(authored, reachable,
+                "every authored armor doctrine sits in some stage's band");
     }
 
     @Test
