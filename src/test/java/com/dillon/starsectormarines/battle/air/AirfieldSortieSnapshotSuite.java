@@ -28,13 +28,13 @@ public final class AirfieldSortieSnapshotSuite implements SnapshotSuite {
     private static final long SEED = 20260828L;
     private static final int TICKS = 4200;
     /** One frame per 30 ticks, matching the other scene recordings. */
-    private static final int FRAME_EVERY_TICKS = 30;
+    private static final int FRAME_EVERY_TICKS = 45;
     private static final int FRAME_DELAY_MILLIS = 90;
     /** Ticks kept rolling after the sortie resolves, so the last frames show the outcome. */
     private static final int TAIL_TICKS = 120;
     /** Sized for a 64x48 map. Small enough that a hundred frames stay a couple of megabytes. */
-    private static final int WIDTH = 512;
-    private static final int HEIGHT = 384;
+    private static final int WIDTH = 448;
+    private static final int HEIGHT = 336;
 
     @Override public String id() { return "airfield-sortie"; }
 
