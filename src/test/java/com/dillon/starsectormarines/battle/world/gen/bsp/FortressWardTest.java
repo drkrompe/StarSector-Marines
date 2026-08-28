@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp;
 
+import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
+import com.dillon.starsectormarines.battle.world.gen.BiomeKind;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
@@ -7,8 +10,13 @@ import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import org.junit.jupiter.api.Test;
 
 import java.util.EnumMap;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -63,6 +71,60 @@ class FortressWardTest {
                                 + seed + "/" + axis);
             }
         }
+    }
+
+    /** Packed strongpoints are rooms, not aliases for the fortress yard. */
+    @Test
+    void packedStrongpointsPublishDistinctCaptureZones() {
+        MapResult map = new BspCityGenerator().generate(
+                W, H, 1L, TraversalAxis.SOUTH_TO_NORTH);
+        ZoneGraph zones = new ZoneGraph(map.grid);
+        zones.rebuild();
+
+        int observed = 0;
+        Set<Integer> captureZones = new HashSet<>();
+        Map<Integer, List<String>> strongpointsByZone = new java.util.TreeMap<>();
+        for (TacticalNode node : map.tacticalMap.all()) {
+            if (node.kind != TacticalNode.Kind.ARMORY
+                    && node.kind != TacticalNode.Kind.BARRACKS) {
+                continue;
+            }
+            if (map.biomeMap.biomeAt(node.anchorX, node.anchorY)
+                    != BiomeKind.FORTRESS_DISTRICT) {
+                continue;
+            }
+            RoomPurpose purpose = map.topology.getRoomPurpose(node.left, node.top);
+            if (purpose != RoomPurpose.ARMORY
+                    && purpose != RoomPurpose.BARRACKS
+                    && purpose != RoomPurpose.VEHICLE_BAY) {
+                continue;
+            }
+
+            observed++;
+            int zoneId = zones.zoneIdAt(node.anchorX, node.anchorY);
+            assertTrue(zoneId >= 0,
+                    "packed strongpoint must own a zoned stand cell: " + node);
+            for (int cell : zones.zoneById(zoneId).getCellIndices()) {
+                int x = cell % W;
+                int y = cell / W;
+                assertTrue(x >= node.left && x <= node.right
+                                && y >= node.top && y <= node.bottom,
+                        "packed strongpoint zone escapes its room at " + x + "," + y
+                                + ": " + node.kind + "@" + node.anchorX + ","
+                                + node.anchorY);
+            }
+            captureZones.add(zoneId);
+            strongpointsByZone.computeIfAbsent(zoneId, ignored -> new ArrayList<>())
+                    .add(node.kind + "@" + node.anchorX + "," + node.anchorY
+                            + " bbox=" + node.left + "," + node.top + ".."
+                            + node.right + "," + node.bottom);
+        }
+
+        assertEquals(6, observed,
+                "canonical fortress program should expose six capturable strongpoints");
+        assertEquals(observed, captureZones.size(),
+                "packed strongpoints must own distinct capture zones: "
+                        + strongpointsByZone);
     }
 
     private static Map<RoomPurpose, Integer> wardPurposes(long seed, TraversalAxis axis) {
