@@ -60,7 +60,11 @@ public final class WallMasks {
      * <p>Resolves the {@code urban.wall} {@link GridBlockDef} from the
      * {@link TileRegistry} (moddable-tilesets Phase 1c); falls back to the
      * static {@link TileManifest#pickWallTile} when the registry isn't
-     * installed (the two agree by construction — the block was ported from it).
+     * installed.
+     *
+     * <p>The fallback is a last resort, not a second authority. It carries the
+     * origin the sheet was hand-cut at, and the atlas is now packed by the
+     * tileset exporter, which is free to move the block. Prefer the block.
      */
     public static TileManifest.TileFrame pickTileFromMask(int wallDirMask) {
         boolean n = (wallDirMask & CellTopology.WALL_DIR_N) != 0;

@@ -14,8 +14,9 @@ import java.util.List;
  * <p>Most of the choosing is now done by an LLM asked to assemble a map, which
  * reads whatever text is in the repository and cannot open the atlas at all. So
  * the card is the artifact that makes a sheet usable: one row per authored id,
- * with what it is, how much deck it covers, what cover it gives, and the note
- * and tags its author left. It is generated on export and never edited by hand.
+ * with what it is, how much deck it covers, what cover it gives, how high it
+ * stops a shot, which edge wants a wall, and the note and tags its author left.
+ * It is generated on export and never edited by hand.
  */
 public final class TilesetCatalogCard {
 
@@ -69,11 +70,15 @@ public final class TilesetCatalogCard {
             out.append("None.\n");
             return out.toString();
         }
-        out.append("| id | cells | cover | note | tags |\n|---|---|---|---|---|\n");
+        out.append("| id | cells | cover | half height | wall side | note | tags |\n");
+        out.append("|---|---|---|---|---|---|---|\n");
         for (TilesetExport.Entry entry : doodads) {
             out.append("| `").append(entry.id).append("` | ")
                     .append(entry.footprintX).append("x").append(entry.footprintY).append(" | ")
                     .append(entry.cover).append(" | ")
+                    .append(cell(entry.ballisticHalfHeight == null
+                            ? "" : String.valueOf(entry.ballisticHalfHeight))).append(" | ")
+                    .append(cell(entry.preferredWallSide)).append(" | ")
                     .append(cell(entry.note)).append(" | ")
                     .append(cell(String.join(", ", entry.tags))).append(" |\n");
         }

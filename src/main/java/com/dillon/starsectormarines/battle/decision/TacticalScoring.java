@@ -40,6 +40,7 @@ import com.dillon.starsectormarines.battle.sim.VisionService;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -234,6 +235,27 @@ public final class TacticalScoring {
     public static final float WEAPON_AFFINITY_WEIGHT = 8f;
     /** Caps hardened-target preference so suitability cannot overwhelm engagement range. */
     public static final float MAX_WEAPON_AFFINITY_RELATIVE = 3.5f;
+
+    /**
+     * Largest amount a target's score can sit below its distance. Crowding,
+     * threat density, zone mismatch and the no-LoS cost only add; weapon
+     * affinity is the one term that can subtract, bottoming out at
+     * {@code WEAPON_AFFINITY_WEIGHT * (1 - MAX_WEAPON_AFFINITY_RELATIVE)}.
+     * So {@code distance - MAX_TARGET_SCORE_BONUS} is an exact lower bound on
+     * any candidate's score, which lets the picker stop raycasting once the
+     * remaining candidates are too far to beat the incumbent.
+     */
+    private static final float MAX_TARGET_SCORE_BONUS =
+            WEAPON_AFFINITY_WEIGHT * (MAX_WEAPON_AFFINITY_RELATIVE - 1f);
+
+    /**
+     * Per-thread scan buffer for {@link #findBestTargetImpl}, which runs on
+     * the parallel unit-update workers and so cannot use an instance field.
+     * Holds one {@code (distanceBits, denseIndex)} pair per candidate, packed
+     * so a primitive sort orders by distance without boxing.
+     */
+    private static final ThreadLocal<long[]> TARGET_SCAN_SCRATCH =
+            ThreadLocal.withInitial(() -> new long[256]);
 
     /**
      * Seconds of unit travel that govern the fall-back candidate scan radius.
@@ -477,10 +499,22 @@ public final class TacticalScoring {
         int selfCellY = (int) Math.floor(selfY);
 
         long best = 0L;
+        int bestIndex = Integer.MAX_VALUE;
         float bestScore = Float.MAX_VALUE;
         long bestAny = 0L;
         float bestAnyDist = Float.MAX_VALUE;
 
+        // Pass 1 — distance only. Every hostile combatant in the roster is a
+        // candidate (the any-distance fallback needs the nearest one whether
+        // or not it is visible), but a target's score can never fall more than
+        // MAX_TARGET_SCORE_BONUS below its distance, so scoring the near ones
+        // first lets pass 2 stop before it raycasts the far half of the map.
+        long[] candidates = TARGET_SCAN_SCRATCH.get();
+        if (candidates.length < liveCount) {
+            candidates = new long[Math.max(liveCount, candidates.length * 2)];
+            TARGET_SCAN_SCRATCH.set(candidates);
+        }
+        int candidateCount = 0;
         for (int i = 0; i < liveCount; i++) {
             long other = dense[i];
             if (roster.identity().faction(other) == selfFaction) continue;
@@ -489,25 +523,37 @@ public final class TacticalScoring {
             // this for pirate atrocity scenarios later.
             if (!roster.identity().type(other).combatant) continue;
 
-            int ox = world.cellX(other);
-            int oy = world.cellY(other);
             float d = cellDistance(selfX, selfY, world.x(other), world.y(other));
             if (d < minRange || d > maxRange) continue;
             if (d < bestAnyDist) {
                 bestAnyDist = d;
                 bestAny = other;
             }
+            // Distance is non-negative, so its raw bits order the same way it
+            // does and a plain long sort puts the nearest candidate first.
+            candidates[candidateCount++] =
+                    ((long) Float.floatToRawIntBits(d) << 32) | i;
+        }
+        Arrays.sort(candidates, 0, candidateCount);
+
+        // Pass 2 — nearest first, stopping once distance alone rules the rest
+        // out. Ties are resolved on dense index, so the winner is the same one
+        // a straight dense-order scan would have kept.
+        for (int k = 0; k < candidateCount; k++) {
+            float d = Float.intBitsToFloat((int) (candidates[k] >>> 32));
+            if (d - MAX_TARGET_SCORE_BONUS > bestScore) break;
+            int i = (int) (candidates[k] & 0xFFFFFFFFL);
+            long other = dense[i];
+            int ox = world.cellX(other);
+            int oy = world.cellY(other);
             boolean visible = canSeePair(grid, selfCellX, selfCellY, ox, oy,
                     shooterAirRadius, vision.airLosRadius(other));
             if (!visible && !allowNoLos) continue;
-            float crowding = scoreCrowding(selfFaction, selfSquadId, other, excludeFromCrowding);
-            float density = scoreThreatDensity(other, world.x(other), world.y(other), selfFaction);
-            float affinity = scoreWeaponAffinity(excludeFromCrowding, other);
-            float zoneMismatch = scoreZoneMismatch(selfCellX, selfCellY, ox, oy);
-            float score = d + crowding + density + affinity + zoneMismatch;
-            if (!visible) score += TARGET_NO_LOS_COST;
-            if (score < bestScore) {
+            float score = scoreTargetCandidate(other, d, visible, selfFaction,
+                    selfSquadId, excludeFromCrowding, selfCellX, selfCellY, ox, oy);
+            if (score < bestScore || (score == bestScore && i < bestIndex)) {
                 bestScore = score;
+                bestIndex = i;
                 best = other;
             }
         }
@@ -527,6 +573,7 @@ public final class TacticalScoring {
                 bestAnyDist = d;
                 bestAny = other;
             }
+            if (d - MAX_TARGET_SCORE_BONUS > bestScore) continue;
             boolean visible = canSeePair(grid, selfCellX, selfCellY, ox, oy,
                     shooterAirRadius, 0f);
             if (!visible && !allowNoLos) continue;
@@ -541,6 +588,28 @@ public final class TacticalScoring {
             }
         }
         return best != 0L ? best : bestAny;
+    }
+
+    /**
+     * Score of one target candidate: its distance, plus the crowding, threat
+     * density, zone-mismatch and no-line-of-sight costs, minus the weapon
+     * affinity bonus. Only affinity can subtract, and never by more than
+     * {@link #MAX_TARGET_SCORE_BONUS} — the bound
+     * {@link #findBestTargetImpl} prunes with.
+     */
+    float scoreTargetCandidate(long candidate, float distance, boolean visible,
+                               Faction selfFaction, int selfSquadId,
+                               long excludeFromCrowding,
+                               int selfCellX, int selfCellY,
+                               int candidateCellX, int candidateCellY) {
+        World world = roster.world();
+        float score = distance
+                + scoreCrowding(selfFaction, selfSquadId, candidate, excludeFromCrowding)
+                + scoreThreatDensity(candidate, world.x(candidate), world.y(candidate),
+                        selfFaction)
+                + scoreWeaponAffinity(excludeFromCrowding, candidate)
+                + scoreZoneMismatch(selfCellX, selfCellY, candidateCellX, candidateCellY);
+        return visible ? score : score + TARGET_NO_LOS_COST;
     }
 
     /**

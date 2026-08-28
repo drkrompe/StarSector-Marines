@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.tools.tilesetauthoring;
 
+import com.dillon.starsectormarines.battle.world.tiles.DoodadCover;
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.GridBlockDef;
 import com.dillon.starsectormarines.battle.world.tiles.GridLayout;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
@@ -106,6 +108,38 @@ class TilesetBlockExportTest {
         int[] cell = block.resolve(n, s, e, w);
         assertNotNull(cell, "this mask should resolve to art");
         return sample(atlas, cell[0], cell[1]);
+    }
+
+    /**
+     * The export is the only place a doodad's combat data can be lost, and
+     * losing it is invisible: the sheet still packs, every id still resolves,
+     * and every prop quietly drops to its cover bucket's default silhouette.
+     * So this asks a real registry what it got, rather than the JSON what it
+     * wrote.
+     */
+    @Test
+    void anAuthoredSilhouetteReachesTheLoadedDoodad() throws Exception {
+        TilesetExport.Entry sofa = piece(0, "doodad.test.sofa");
+        sofa.cover = "med";
+        sofa.ballisticHalfHeight = 0.42;
+        sofa.preferredWallSide = "N";
+        TilesetExport.Entry crate = piece(1, "doodad.test.crate");
+        crate.cover = "med";
+        List<TilesetExport.Entry> entries = List.of(sofa, crate);
+
+        JSONObject tileset =
+                TilesetExport.tileset("graphics/test.png", CELL, entries, List.of());
+        TileRegistry registry = new TileRegistry();
+        registry.ingestSheet(tileset);
+
+        assertEquals(0.42f, registry.doodad("doodad.test.sofa").ballisticHalfHeight, 1e-6f);
+        assertEquals(DoodadDef.WallSide.N,
+                registry.doodad("doodad.test.sofa").preferredWallSide);
+
+        // And an unjudged piece still takes the bucket default rather than zero.
+        assertEquals(DoodadCover.MED.defaultBallisticHalfHeight(),
+                registry.doodad("doodad.test.crate").ballisticHalfHeight, 1e-6f);
+        assertNull(registry.doodad("doodad.test.crate").preferredWallSide);
     }
 
     @Test

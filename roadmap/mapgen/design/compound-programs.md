@@ -1,12 +1,14 @@
 # Compound programs
 
-Status: ACTIVE — direction agreed, nothing implemented.
+Status: ACTIVE — the fortress is programmed and shipped; the ordinary compound
+is not.
 
 Written: 2026-08-28
 
-Updated: 2026-08-28 — the fortress inverts: its interior is packed first and its
-wall is derived from the result. The packer is family-neutral, the fortress
-program packs, and the envelope-sizing ratio is measured.
+Updated: 2026-08-28 — the Conquest fortress ward now packs, furnishes and berths
+from its own program, so steps 2 to 4 are shipped for that family. Step 1 — a
+compound sized to hold what it owes — remains the open piece, and is still what
+blocks the hangar in an ordinary military base.
 
 Read `mapgen-nouns.md` for the recipe, context, stage, and validation
 obligations any of this inherits. `ship-interiors-nouns.md` owns the deck
@@ -154,6 +156,39 @@ families already label. A wing that is packed and purposed can be furnished by
 the same fittings that furnish a compartment, with the same
 lanes-before-fixtures and roll-back-rather-than-seal contracts.
 
+## The ward, as it shipped
+
+The Conquest fortress band now holds a **ward**: a program-sized rectangle laid
+out before the wall, packed from authored building footprints into three depth
+bands measured from the attacker's approach, furnished by the shared fittings,
+and opened as parade ground wherever packing left ground over. Three of its
+rules were learned by measurement rather than chosen, and each is a standing
+constraint rather than a tuning value.
+
+**The ward is sized from ground it can actually build on.** Roads crossing the
+band and the citadel standing in it take cells out of the middle; an envelope
+sized as though they were not there comes up short by exactly what they occupy.
+
+**A fortress does not inherit a city's street grid.** Keeping every road that
+crossed the band subdivided it into blocks smaller than the buildings meant to
+stand in them — 2647 buildable cells and not one clear pocket for a
+fifteen-by-nine shed. The ward keeps one through route and the full width of the
+street carrying it: enough to keep the published road graph honest, since a
+defender convoy still commits along it, without cutting the ward into
+courtyards.
+
+**A room that means to hold bays is sized from the bay module.** A shed picked
+to look about right came out at fifteen by nine, which the fitting could only
+answer with a single shallow bay before the fill was rolled back for sealing
+itself. Shed dimensions are arithmetic over the module, so they follow it.
+
+Demolition carries obligations the ward discovered the hard way. A stage that
+replaces what an earlier one built must take out what it recorded as well as
+what it drew — doodads, points of interest, tactical nodes, and the authored
+identities on shared edges. A window that outlives its building is scenery
+nobody can explain, and, because an edge carries exactly one authored identity,
+it is also an edge the next stage cannot build on.
+
 ## What does not transfer
 
 A deck is a closed volume with one authority. A compound is not, and pretending
@@ -180,21 +215,26 @@ otherwise would break things the city family is right about.
 
 The program is the load-bearing piece; everything else is downstream of it.
 
-1. A compound states what it owes, as recipes with footprints and ward
+1. **Open.** A compound states what it owes, as recipes with footprints and ward
    affinities, and the claim pass sizes the compound to hold them rather than
    labelling whatever it grew over. `cross-leaf-footprint-planning.md` owns the
-   seam where that claim has to coexist with roads and neighbors.
-2. Wings are packed and posed into the claimed footprint, with perimeter
-   contact honored for the wings that need it, and the yard is what is left.
-   An unplaced wing is reported.
-3. Purposed wings are furnished by the shared fittings.
-   `compound-vehicle-hangar.md` is the first consumer, and is blocked on step 1
-   for the reason the measurement gives.
-4. The fortress is programmed rather than stamped. Its interior is packed from
-   its own program — magazines, vehicle sheds, barrack blocks, the keep — with
-   roadways cut to reach them, and `FortressWallStamper` then draws its wall
-   around that result instead of across a district. The wall's own authored
-   features are unchanged.
+   seam where that claim has to coexist with roads and neighbors. This is the
+   step the ordinary military base still lacks, and therefore the one that keeps
+   `compound-vehicle-hangar.md` blocked.
+2. **Shipped for the fortress.** Wings are packed and posed into the claimed
+   footprint, with perimeter contact honored for the wings that need it, and the
+   yard is what is left. An unplaced wing is reported.
+3. **Shipped for the fortress.** Purposed wings are furnished by the shared
+   fittings, and a wing that berths machines publishes them.
+4. **Shipped.** The fortress is programmed rather than stamped. Its interior is
+   packed from its own program — magazines, vehicle sheds, barrack blocks — with
+   roadways cut to reach them, and its wall is drawn around that result instead
+   of across a district. The wall's own authored features are unchanged.
+
+The fortress reached steps 2 to 4 without step 1 because it did not need a claim
+pass: its band is given by the biome, so the ward sizes itself inside ground it
+already has. An ordinary compound has no such given, which is exactly why step 1
+is what remains.
 
 Each step is a separate story. None of them is a reason to widen `MapResult`
 with analysis nothing consumes, and all of them keep the standing obligations:

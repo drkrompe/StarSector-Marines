@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -24,13 +25,19 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  * the <em>shipped</em> values directly:
  * <ul>
  *   <li>each pool resolves (via {@link GenMappingRegistry}) to its frozen ordered
- *       {@code (col,row)} sequence — order matters, scatter indexes the pool by
+ *       id sequence — order matters, scatter indexes the pool by
  *       {@code rng.nextInt(len)}, so a re-order shifts every seeded map;</li>
  *   <li>a representative cover golden — one prop per cover bucket — guards the
  *       {@code "cover"} parse + the authored values.</li>
  * </ul>
  * A bad doodad id in any pool fails loud at resolve time (and at the test
  * bootstrap, which loads every sheet).
+ *
+ * <p>Frozen by <b>id</b> rather than by {@code (col,row)}, which is what this
+ * pinned when a doodad still was a source cell. A sheet built by the tileset
+ * exporter is packed afresh on every export, so a coordinate golden fails for
+ * the one reason nobody needs to hear about — the packer moved something — and
+ * says nothing about the pool it is guarding.
  */
 public class DoodadMappingParityTest {
 
@@ -45,15 +52,25 @@ public class DoodadMappingParityTest {
     @Test
     void poolsResolveToFrozenFrames() throws Exception {
         GenMappingRegistry mapping = loadMapping();
-        assertPool(mapping, "MIXED",       new int[][]{{8,1},{9,1},{3,3},{4,3},{6,7},{7,7},{8,7},{9,7},{6,2}});
-        assertPool(mapping, "RESIDENTIAL", new int[][]{{6,1},{7,1},{3,3},{4,3}});
-        assertPool(mapping, "WAREHOUSE",   new int[][]{{8,1},{9,1},{3,3},{4,3}});
-        assertPool(mapping, "SKY_PORT",    new int[][]{{8,1},{9,1},{7,7},{6,2}});
-        assertPool(mapping, "COMMERCIAL",  new int[][]{{5,3},{6,3},{7,3},{8,3},{9,2},{9,3},{3,3},{4,3},{8,1},{9,1}});
+        assertPool(mapping, "MIXED",
+                "doodad.box", "doodad.crate", "doodad.chest-1", "doodad.chest-2",
+                "doodad.desk-dam", "doodad.box-dam", "doodad.chair-s-yellow-dam",
+                "doodad.chair-s-green-dam", "doodad.door-closed");
+        assertPool(mapping, "RESIDENTIAL",
+                "doodad.chair-south-yellow", "doodad.chair-south-green",
+                "doodad.chest-1", "doodad.chest-2");
+        assertPool(mapping, "WAREHOUSE",
+                "doodad.box", "doodad.crate", "doodad.chest-1", "doodad.chest-2");
+        assertPool(mapping, "SKY_PORT",
+                "doodad.box", "doodad.crate", "doodad.box-dam", "doodad.door-closed");
+        assertPool(mapping, "COMMERCIAL",
+                "doodad.shelf-empty", "doodad.shelf-1", "doodad.shelf-2", "doodad.shelf-3",
+                "doodad.desk-1", "doodad.desk-2", "doodad.chest-1", "doodad.chest-2",
+                "doodad.box", "doodad.crate");
     }
 
     @Test
-    void coverGoldenPerBucket() {
+    void coverGoldenPerBucket() throws Exception {
         TileRegistry reg = TileRegistry.installed();
         assertNotNull(reg, "TileRegistry not installed");
         assertCover(reg, "doodad.decal-rubble-1",      DoodadCover.LIGHT);
@@ -66,10 +83,19 @@ public class DoodadMappingParityTest {
         assertCover(reg, "doodad.desk-1",              DoodadCover.MED);
         assertCover(reg, "doodad.shelf-empty",         DoodadCover.HEAVY);
 
-        // Invariant after the gap fix: every registered prop carries real cover —
-        // markers (LZ pads/arrows) are literal frames, not defs, so none reach here.
-        for (DoodadDef d : reg.doodads()) {
-            assertNotEquals(DoodadCover.NONE, d.cover, "prop doodad must carry cover: " + d.id);
+        // Invariant after the gap fix: every prop a pool can scatter carries real
+        // cover. Asked of the pools rather than of the whole registry, because a
+        // sheet also carries deck markings — bay paving, laid by id and walked
+        // straight over. Those used to be literal (col,row) frames and so could
+        // not reach a registry at all; they have ids now because a coordinate
+        // into a re-packed atlas is a silent lie, and having ids is not the same
+        // as being something to hide behind.
+        GenMappingRegistry mapping = loadMapping();
+        for (String poolId : mapping.doodadPoolNames()) {
+            for (DoodadDef d : mapping.doodadPool(poolId)) {
+                assertNotEquals(DoodadCover.NONE, d.cover,
+                        "scattered prop must carry cover: " + d.id + " (pool " + poolId + ")");
+            }
         }
     }
 
@@ -125,13 +151,11 @@ public class DoodadMappingParityTest {
         assertEquals(side, registry.doodad(id).preferredWallSide, "wall side for " + id);
     }
 
-    private static void assertPool(GenMappingRegistry mapping, String poolId, int[][] expected) {
+    private static void assertPool(GenMappingRegistry mapping, String poolId, String... expected) {
         List<DoodadDef> got = mapping.doodadPool(poolId);
-        assertEquals(expected.length, got.size(), "pool size for " + poolId);
-        for (int i = 0; i < expected.length; i++) {
-            assertEquals(expected[i][0], got.get(i).col, "pool " + poolId + " entry " + i + " col");
-            assertEquals(expected[i][1], got.get(i).row, "pool " + poolId + " entry " + i + " row");
-        }
+        List<String> ids = new ArrayList<>();
+        for (DoodadDef def : got) ids.add(def.id);
+        assertEquals(List.of(expected), ids, "pool " + poolId);
     }
 
     private static void assertCover(TileRegistry reg, String id, DoodadCover want) {

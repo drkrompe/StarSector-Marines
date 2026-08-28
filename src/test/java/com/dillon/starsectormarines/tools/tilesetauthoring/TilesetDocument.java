@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.tools.tilesetauthoring;
 
+import com.dillon.starsectormarines.battle.world.tiles.DoodadDef.WallSide;
 import com.dillon.starsectormarines.battle.world.tiles.GridLayout;
 
 import org.json.JSONArray;
@@ -100,6 +101,12 @@ public final class TilesetDocument {
             o.put("rect", new JSONArray().put(p.x()).put(p.y()).put(p.width()).put(p.height()));
             o.put("footprintCells", new JSONArray().put(entry.footprintX).put(entry.footprintY));
             o.put("cover", entry.cover);
+            if (entry.ballisticHalfHeight != null) {
+                o.put("ballisticHalfHeight", entry.ballisticHalfHeight.doubleValue());
+            }
+            if (!entry.preferredWallSide.isEmpty()) {
+                o.put("preferredWallSide", entry.preferredWallSide);
+            }
             o.put("included", entry.included);
             if (entry.isBlockMember()) {
                 o.put("block", entry.blockId);
@@ -186,6 +193,21 @@ public final class TilesetDocument {
                 entry.footprintY = Math.max(1, footprint.getInt(1));
             }
             entry.cover = o.optString("cover", "none");
+            if (o.has("ballisticHalfHeight")) {
+                double height = o.getDouble("ballisticHalfHeight");
+                if (!Double.isFinite(height) || height < 0) {
+                    throw new JSONException("piece '" + entry.id + "' has an impossible "
+                            + "ballisticHalfHeight " + height);
+                }
+                entry.ballisticHalfHeight = height;
+            }
+            // Parsed on read so a side the game would reject cannot reach a
+            // document: the write path proves a document reads back, and this is
+            // the only place that check can happen.
+            String wallSide = o.optString("preferredWallSide", "").trim();
+            if (!wallSide.isEmpty()) {
+                entry.preferredWallSide = WallSide.fromJson(wallSide).name();
+            }
             entry.included = o.optBoolean("included", true);
             entry.blockId = o.optString("block", "");
             entry.slot = o.optString("slot", "");
