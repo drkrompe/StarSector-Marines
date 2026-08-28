@@ -149,11 +149,31 @@ public final class TilesetMcpToolProvider implements McpToolProvider {
                     + "note and then pass to tileset_write_document.";
         }
 
+        /**
+         * Resolve either spelling of a sheet.
+         *
+         * <p>{@code tileset_list} reports base names and this is the tool a session
+         * reaches for next, so a bare name has to work; a path still does, for raw
+         * art that the library does not list.
+         */
+        private static Path rawSheet(McpToolContext context, String sheet) throws IOException {
+            if (sheet.isBlank()) return null;
+            if (!sheet.contains("/") && !sheet.contains("\\")) {
+                for (TilesetLibrary.Sheet known : TilesetLibrary.scan(context.projectRoot())) {
+                    if (known.name().equals(sheet) && known.rawSheet() != null) {
+                        return known.rawSheet();
+                    }
+                }
+            }
+            return context.resolveInsideProject(sheet);
+        }
+
         @Override
         public JSONObject inputSchema() {
             return McpSchema.object()
-                    .requiredString("sheet", "The raw sheet, project-relative, "
-                            + "e.g. art-source/tilesets/reactor-hall.raw.png")
+                    .requiredString("sheet", "The sheet's base name as tileset_list reports "
+                            + "it, e.g. reactor-hall; or a project-relative path to any raw "
+                            + "sheet, e.g. art-source/tilesets/reactor-hall.raw.png")
                     .integer("gridCols", "Columns of the plate layout the sheet was drawn to. "
                             + "Stated, never guessed. Omit if unknown.")
                     .integer("gridRows", "Rows of that layout. Omit if unknown.")
@@ -162,9 +182,11 @@ public final class TilesetMcpToolProvider implements McpToolProvider {
 
         @Override
         public McpToolResult call(JSONObject arguments, McpToolContext context) throws Exception {
-            Path sheetPath = context.resolveInsideProject(arguments.optString("sheet", ""));
-            if (!Files.isRegularFile(sheetPath)) {
-                return McpToolResult.failure("no such sheet: " + sheetPath);
+            Path sheetPath = rawSheet(context, arguments.optString("sheet", ""));
+            if (sheetPath == null || !Files.isRegularFile(sheetPath)) {
+                return McpToolResult.failure("no such sheet: " + arguments.optString("sheet", "")
+                        + ". Use a base name as tileset_list reports it, or a project-relative "
+                        + "path.");
             }
             BufferedImage image = ImageIO.read(sheetPath.toFile());
             if (image == null) return McpToolResult.failure("not an image: " + sheetPath);

@@ -445,4 +445,41 @@ class TilesetMcpToolProviderTest {
         assertFalse(Files.exists(root.resolve("mod").resolve(TilesetLibrary.SOURCE_DIR)),
                 "no pre-pack input may follow the export into mod/");
     }
+
+    @Test
+    void measureAcceptsTheNameThatTilesetListReported() throws Exception {
+        // list-then-measure is the sequence a session actually runs, so the
+        // second tool has to accept what the first one handed it. Run against
+        // the real checkout, because that pairing is what is being protected.
+        Path project = Path.of(".").toAbsolutePath().normalize();
+
+        JSONObject measured = call(project, "tileset_measure",
+                new JSONObject().put("sheet", "urban-tileset"));
+
+        assertFalse(measured.optBoolean("isError", false),
+                "a bare name should resolve: " + textOf(measured));
+        assertTrue(textOf(measured).contains("1254x1254"), textOf(measured));
+    }
+
+    @Test
+    void measureStillAcceptsAProjectRelativePath() throws Exception {
+        Path project = Path.of(".").toAbsolutePath().normalize();
+
+        JSONObject measured = call(project, "tileset_measure", new JSONObject()
+                .put("sheet", "art-source/tilesets/urban-tileset.raw.png"));
+
+        assertFalse(measured.optBoolean("isError", false), textOf(measured));
+        assertTrue(textOf(measured).contains("1254x1254"), textOf(measured));
+    }
+
+    @Test
+    void anUnknownSheetSaysWhichSpellingsWork() throws Exception {
+        Path project = Path.of(".").toAbsolutePath().normalize();
+
+        JSONObject measured = call(project, "tileset_measure",
+                new JSONObject().put("sheet", "not-a-sheet"));
+
+        assertTrue(measured.optBoolean("isError", false), textOf(measured));
+        assertTrue(textOf(measured).contains("base name"), textOf(measured));
+    }
 }
