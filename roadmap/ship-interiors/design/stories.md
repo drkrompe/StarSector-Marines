@@ -14,7 +14,7 @@ The first two stories are sequenced and the second depends on the first.
 |---|---|---|
 | `ship-deck-family.md` | IN PROGRESS | Deck, rooms and circulation are integrated. Owes the transverse bulkhead chokepoint sequence and the breach point. |
 | `facility-room-themes.md` | IN PROGRESS | Bay, berthing, mess and range are fitted. Owes the density and empty-region seed sweeps, and a refit level that changes what a floor holds. |
-| `company-ship-selection.md` | IN PROGRESS | The company lives aboard a real ship in the player's fleet, resolved and recorded. Left: the transfer screen, and a founding choice the player makes rather than inherits. |
+| `company-ship-selection.md` | IN PROGRESS | The company lives aboard a real ship, and the transfer screen compares candidates as generated decks. Left: a founding choice the player makes rather than inherits, and losing the ship rather than selling her. |
 | `deck-capacity-upgrades.md` | PROPOSED | Make facility capacity spatial and let a bounded upgrade transaction change the room. Needs a named economic owner first. |
 | `boarding-deck-missions.md` | PARKED | Generate hostile prize decks for boarding once a mission model owns objectives and extraction. |
 

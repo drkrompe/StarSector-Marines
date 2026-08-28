@@ -25,15 +25,33 @@ final class MarineOpsPageNav {
      * headquarters is the company, not a wardroom.
      */
     enum Page {
-        HQ(null),
-        BARRACKS(RoomPurpose.BARRACKS),
-        ARMORY(RoomPurpose.ARMORY),
-        MECH_LAB(RoomPurpose.VEHICLE_BAY);
+        HQ(null, "hq"),
+        BARRACKS(RoomPurpose.BARRACKS, "barracks"),
+        ARMORY(RoomPurpose.ARMORY, "armory"),
+        MECH_LAB(RoomPurpose.VEHICLE_BAY, "mechLab"),
+        /**
+         * Choosing the ship, which is not a place aboard one and so has no
+         * button of its own: the shell is for moving around the vessel, and
+         * this page is about which vessel it is. It names no room for the same
+         * reason {@link #HQ} does not — a hull cannot fail to have it.
+         */
+        SHIP_TRANSFER(null, null);
 
         private final RoomPurpose room;
+        private final String button;
 
-        Page(RoomPurpose room) {
+        Page(RoomPurpose room, String button) {
             this.room = room;
+            this.button = button;
+        }
+
+        /**
+         * The property prefix of this page's button in the shell, or null for a
+         * page the shell does not offer a way to. Declared here so the shell,
+         * and anything checking it, agree on which pages have buttons.
+         */
+        String button() {
+            return button;
         }
 
         /** The compartment this page frames, or null when it is not a room. */
@@ -69,10 +87,10 @@ final class MarineOpsPageNav {
         if (current == null) throw new IllegalArgumentException("current page is required");
         if (aboard == null) throw new IllegalArgumentException("the ship's rooms are required");
         props.put("returnAction", required(returnAction, "returnAction"));
-        put(props, Page.HQ, current, aboard, hqAction, "hq");
-        put(props, Page.BARRACKS, current, aboard, barracksAction, "barracks");
-        put(props, Page.ARMORY, current, aboard, armoryAction, "armory");
-        put(props, Page.MECH_LAB, current, aboard, mechLabAction, "mechLab");
+        put(props, Page.HQ, current, aboard, hqAction);
+        put(props, Page.BARRACKS, current, aboard, barracksAction);
+        put(props, Page.ARMORY, current, aboard, armoryAction);
+        put(props, Page.MECH_LAB, current, aboard, mechLabAction);
     }
 
     /** Compatibility helper for focused fixtures that do not exercise room routing. */
@@ -85,7 +103,8 @@ final class MarineOpsPageNav {
     }
 
     private static void put(Map<String, Object> props, Page page, Page current,
-                            Predicate<RoomPurpose> aboard, Runnable action, String name) {
+                            Predicate<RoomPurpose> aboard, Runnable action) {
+        String name = page.button();
         Runnable wired = required(action, name + "Action");
         boolean available = page.availableAboard(aboard);
         // An unavailable page keeps its button rather than losing it, so the

@@ -171,10 +171,16 @@ class ShipRoomAvailabilityTest {
      */
     @Test
     void everyRoomPageDeclaresItsCompartment() {
+        // The two pages that are not places aboard. Headquarters is the
+        // company rather than a wardroom, and choosing the ship is a decision
+        // about which vessel the rest of the shell is aboard — gating either on
+        // a compartment would let a hull exist the player cannot navigate.
+        Set<MarineOpsPageNav.Page> notRooms = EnumSet.of(
+                MarineOpsPageNav.Page.HQ, MarineOpsPageNav.Page.SHIP_TRANSFER);
         for (MarineOpsPageNav.Page page : MarineOpsPageNav.Page.values()) {
-            if (page == MarineOpsPageNav.Page.HQ) {
+            if (notRooms.contains(page)) {
                 assertEquals(null, page.room(),
-                        "headquarters was made a compartment, which can strand the player");
+                        page + " was made a compartment, which can strand the player");
                 continue;
             }
             assertTrue(FRAMED.contains(page.room()),
@@ -183,11 +189,6 @@ class ShipRoomAvailabilityTest {
     }
 
     private static String prop(MarineOpsPageNav.Page page) {
-        return switch (page) {
-            case HQ -> "hqClasses";
-            case BARRACKS -> "barracksClasses";
-            case ARMORY -> "armoryClasses";
-            case MECH_LAB -> "mechLabClasses";
-        };
+        return page.button() + "Classes";
     }
 }

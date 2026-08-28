@@ -1,4 +1,4 @@
-<template props="purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,statusHeader,statusCards,financeHeader,runway,runwayCaption,runwayClasses,financeRows,standingHeader,employers,employerEmpty,boardHeader,boardIntro,obligationsHeader,obligations,obligationEmpty,newsHeader,newsPosts,newsEmpty">
+<template props="purpose,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,assessmentHeader,ratingHeader,rating,ratingScore,assessment,statusHeader,statusCards,financeHeader,runway,runwayCaption,runwayClasses,financeRows,standingHeader,employers,employerEmpty,boardHeader,boardIntro,obligationsHeader,obligations,obligationEmpty,newsHeader,newsPosts,newsEmpty,shipAction,shipLabel">
   <div id="company-hq-root" class="company-hq-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" contextLabel="{purpose}" />
 
@@ -25,6 +25,9 @@
               <div id="{card.detailId}" class="label tone-muted stat-detail">{card.detail}</div>
             </div>
           </div>
+          <button id="company-hq-ship" class="hq-ship-button" onclick="{shipAction}">
+            <div id="company-hq-ship-label" class="label heading hq-ship-label">{shipLabel}</div>
+          </button>
         </div>
 
         <div id="company-hq-finance" class="panel sidebar-section finance-section">
@@ -172,4 +175,6 @@
   .rumor-surface { background-color: #172638; border-color: #6ed7ff; }
   .empty-copy { height: 22px; padding: 3px; }
 
+  .hq-ship-button { width: 100%; height: 30px; padding: 6px; border-width: 1px; border-color: #31485f; }
+  .hq-ship-label { width: 100%; height: 18px; text-align: center; }
 </style>
