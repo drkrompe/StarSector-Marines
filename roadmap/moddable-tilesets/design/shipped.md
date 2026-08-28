@@ -11,3 +11,4 @@ Written: 2026-08-23
 | `tileset-ingest-annotation-pass.md` | 2026-08-28 | `cccbd3c0`, `61fb4bd1`, `aa7ba140` | `moddable-tilesets-nouns.md` — authoring: raw sheet to packed atlas |
 | `authoring-mcp-server.md` | 2026-08-28 | `d38d219d`, `7f462fe7`, `c384f349`, `76b69ac4`, `98d37a75`, `ad52df1d` | `moddable-tilesets-nouns.md` — authoring: raw sheet to packed atlas; rationale to `authoring-entry-points.md` |
 | `urban-tileset-raw-alpha.md` | 2026-08-28 | `fbe00570`, `bb30e8d5`, `23978cc5` | `moddable-tilesets-nouns.md` — the alpha law and the fit law; the sheet's own findings to its authoring-document note |
+| `nature-tiles-material-piece.md` | 2026-08-28 | `9eddea2ba` | `moddable-tilesets-nouns.md` — a frame's picture may be a material, and a sheet has one producer; the alternatives and the sheet's own findings to `nature-tiles-material-provenance.md` |

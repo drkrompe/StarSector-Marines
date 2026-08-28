@@ -24,13 +24,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Mitigation as a durability noun: a bounded fraction of post-cover damage
- * refused, for an explicit duration, across a bounded arc measured from the
- * target's facing at the moment of the hit ({@code combat-durability-nouns.md}).
+ * Mitigation as a durability noun: a bounded <em>pool</em> of post-cover damage
+ * an actor absorbs, for an explicit duration, across a bounded arc measured from
+ * the target's facing at the moment of the hit
+ * ({@code combat-durability-nouns.md}).
  *
- * <p>Every assertion here is about behaviour or an invariant. The authored
- * fractions and arcs in the armour catalog are balance output and are
- * deliberately not pinned by any test in this file.
+ * <p>Every assertion here is about behaviour or an invariant. The authored soak
+ * amounts and arcs in the armour catalog are balance output and are deliberately
+ * not pinned by any test in this file.
  */
 class TimedDirectionalMitigationTest {
 
@@ -50,26 +51,102 @@ class TimedDirectionalMitigationTest {
     private static final float ARC = 160f;
     private static final float DAMAGE = 12f;
     private static final float PENETRATION = 4f;
+    /** Comfortably more than one hit, so a test about the arc is not also a test about running dry. */
+    private static final float SOAK = 30f;
 
     @Test
     void aScreenedHitResolvesLessAndTheDifferenceIsMitigationRatherThanArmor() {
         Arena arena = new Arena();
         long control = arena.spawnTarget();
-        long screened = arena.spawnScreenedTarget(TOWARD_SHOOTER, 0.5f, ARC, 5f);
+        long screened = arena.spawnScreenedTarget(TOWARD_SHOOTER, SOAK, ARC, 5f);
 
         Resolved plain = arena.shoot(control);
         Resolved shielded = arena.shoot(screened);
 
         assertTrue(shielded.total() < plain.total(),
                 "a screened hit should cost the target less than the same hit unscreened");
-        assertTrue(shielded.mitigated > 0f, "the screen should have refused something");
-        assertEquals(0f, plain.mitigated, 1e-4f, "an unscreened target refuses nothing");
+        assertTrue(shielded.mitigated > 0f, "the screen should have absorbed something");
+        assertEquals(0f, plain.mitigated, 1e-4f, "an unscreened target absorbs nothing");
         // The screen is not extra armour wearing a costume: it took damage off
         // the hit, so LESS armour was spent, not more.
         assertTrue(shielded.armorLost < plain.armorLost,
-                "mitigated damage must not be booked as armour absorption");
-        assertEquals(0.5f * DAMAGE, shielded.mitigated, 1e-3f,
-                "the screen refuses its fraction of the hit, and the rest goes on to armour");
+                "absorbed damage must not be booked as armour absorption");
+        assertEquals(DAMAGE, shielded.mitigated, 1e-3f,
+                "a pool that covers the whole hit takes the whole hit");
+    }
+
+    /**
+     * The half of the change that makes concentrated fire an answer: the pool is
+     * a quantity, it is spent as it absorbs, and the screen ends when it is gone.
+     */
+    @Test
+    void thePoolIsSpentAsItAbsorbsAndTheScreenEndsWhenItIsEmpty() {
+        Arena arena = new Arena();
+        // Two hits' worth and a little, so the third is what breaks it.
+        float pool = DAMAGE * 2.5f;
+        long screened = arena.spawnScreenedTarget(TOWARD_SHOOTER, pool, ARC, 300f);
+        MitigationService screens = arena.roster().mitigations();
+
+        assertEquals(pool, screens.soakRemaining(screened), 1e-4f);
+        arena.shoot(screened);
+        assertEquals(pool - DAMAGE, screens.soakRemaining(screened), 1e-3f,
+                "a hit spends exactly what it was absorbed by");
+        arena.shoot(screened);
+        assertTrue(screens.isActive(screened), "and the screen holds while anything is left");
+
+        Resolved breaking = arena.shoot(screened);
+
+        assertFalse(screens.isActive(screened), "the pool ran out, so the screen is gone");
+        // No time is ticked anywhere in this test and the window is five
+        // minutes long, so the pool is the only thing that could have ended it.
+        assertTrue(screens.breakFlashRemaining(screened) > 0f,
+                "and it ended by breaking rather than by timing out");
+        assertEquals(pool - 2 * DAMAGE, breaking.mitigated, 1e-3f,
+                "the breaking hit absorbs only what was left");
+        assertTrue(breaking.total() > 0f, "and the rest of it lands");
+    }
+
+    /**
+     * A hit larger than what is left neither wastes the overflow nor absorbs it.
+     * That is the difference between a pool and a fraction, stated as an
+     * arithmetic identity against an unscreened control.
+     */
+    @Test
+    void overflowBeyondThePoolPassesToArmorUnchanged() {
+        Arena arena = new Arena();
+        float pool = DAMAGE * 0.25f;
+        long control = arena.spawnTarget();
+        long screened = arena.spawnScreenedTarget(TOWARD_SHOOTER, pool, ARC, 300f);
+
+        Resolved overflowing = arena.shoot(screened);
+        Resolved plain = arena.shoot(control);
+
+        assertEquals(pool, overflowing.mitigated, 1e-3f, "the pool absorbs all of itself");
+        // Armour here is deep enough never to break, so what it removes is
+        // linear in what reached it — which makes the overflow's fate checkable
+        // as an identity against the unscreened control rather than a threshold.
+        assertEquals(plain.total() * (DAMAGE - pool) / DAMAGE, overflowing.total(), 1e-2f,
+                "and the remainder resolves at the ordinary efficiency");
+    }
+
+    /** Fire from outside the arc never touches the pool. Flanking bypasses the screen entirely. */
+    @Test
+    void fireFromOutsideTheArcNeverTouchesThePool() {
+        Arena arena = new Arena();
+        long control = arena.spawnTarget();
+        long screened = arena.spawnScreenedTarget(AWAY_FROM_SHOOTER, SOAK, ARC, 300f);
+        MitigationService screens = arena.roster().mitigations();
+
+        for (int i = 0; i < 10; i++) {
+            Resolved flanked = arena.shoot(screened);
+            assertEquals(0f, flanked.mitigated, 1e-4f);
+        }
+
+        assertEquals(SOAK, screens.soakRemaining(screened), 1e-4f,
+                "a screen pointed the wrong way is not worn down by fire it never met");
+        assertTrue(screens.isActive(screened));
+        assertEquals(arena.shoot(control).total(), arena.shoot(screened).total(), 1e-3f,
+                "and the flanked target resolves exactly as an unscreened one would");
     }
 
     /**
@@ -82,7 +159,7 @@ class TimedDirectionalMitigationTest {
     {
         Arena arena = new Arena();
         long control = arena.spawnTarget();
-        long screened = arena.spawnScreenedTarget(TOWARD_SHOOTER, 0.5f, ARC, 30f);
+        long screened = arena.spawnScreenedTarget(TOWARD_SHOOTER, SOAK, ARC, 30f);
 
         assertTrue(arena.shoot(screened).mitigated > 0f);
 
@@ -91,7 +168,7 @@ class TimedDirectionalMitigationTest {
         Resolved plain = arena.shoot(control);
 
         assertEquals(0f, turnedAway.mitigated, 1e-4f,
-                "a shot arriving outside the arc is not mitigated at all");
+                "a shot arriving outside the arc is not absorbed at all");
         assertEquals(plain.total(), turnedAway.total(), 1e-3f,
                 "and the target resolves it exactly as an unscreened one would");
         assertTrue(arena.roster().mitigations().isActive(screened),
@@ -102,13 +179,14 @@ class TimedDirectionalMitigationTest {
     void expiryLeavesNoResidue() {
         Arena arena = new Arena();
         long control = arena.spawnTarget();
-        long screened = arena.spawnScreenedTarget(TOWARD_SHOOTER, 0.5f, ARC, 0.4f);
+        long screened = arena.spawnScreenedTarget(TOWARD_SHOOTER, SOAK, ARC, 0.4f);
         MitigationService screens = arena.roster().mitigations();
 
         screens.tick(screened, 0.4f);
 
         assertFalse(screens.isActive(screened));
-        assertEquals(0f, screens.fraction(screened), 1e-6f);
+        assertEquals(0f, screens.soakRemaining(screened), 1e-6f,
+                "an unspent pool does not survive its own window");
         Resolved after = arena.shoot(screened);
         Resolved plain = arena.shoot(control);
         assertEquals(0f, after.mitigated, 1e-4f);
@@ -117,55 +195,66 @@ class TimedDirectionalMitigationTest {
     }
 
     /**
-     * Summation is how two individually reasonable authored numbers reach
-     * immunity without anyone noticing, and the arc rule cannot rescue a design
-     * that has already reached 1.
+     * Summation is how two individually reasonable authored numbers reach an
+     * unbeatable pool without anyone noticing, and the arc rule cannot rescue a
+     * design whose pool no fight can spend.
      */
     @Test
-    void twoSimultaneousMitigationsResolveAsTheStrongerNotTheSum() {
+    void twoSimultaneousMitigationsResolveAsTheLargerNotTheSum() {
         Arena arena = new Arena();
         MitigationService screens = arena.roster().mitigations();
 
-        long weakerFirst = arena.spawnScreenedTarget(TOWARD_SHOOTER, 0.3f, ARC, 30f);
-        screens.grant(weakerFirst, 0.6f, ARC, 30f);
-        assertEquals(0.6f, screens.fraction(weakerFirst), 1e-6f);
+        long smallerFirst = arena.spawnScreenedTarget(TOWARD_SHOOTER, 10f, ARC, 30f);
+        screens.grant(smallerFirst, 25f, ARC, 30f);
+        assertEquals(25f, screens.soakRemaining(smallerFirst), 1e-6f);
 
-        long strongerFirst = arena.spawnScreenedTarget(TOWARD_SHOOTER, 0.6f, ARC, 30f);
-        screens.grant(strongerFirst, 0.3f, ARC, 30f);
-        assertEquals(0.6f, screens.fraction(strongerFirst), 1e-6f,
-                "a weaker screen must not displace a stronger live one");
+        long largerFirst = arena.spawnScreenedTarget(TOWARD_SHOOTER, 25f, ARC, 30f);
+        screens.grant(largerFirst, 10f, ARC, 30f);
+        assertEquals(25f, screens.soakRemaining(largerFirst), 1e-6f,
+                "a smaller screen must not displace a larger live one");
 
-        long sole = arena.spawnScreenedTarget(TOWARD_SHOOTER, 0.6f, ARC, 30f);
-        assertEquals(arena.shoot(sole).mitigated, arena.shoot(weakerFirst).mitigated, 1e-3f,
-                "two screens must resolve as the stronger, never as the sum");
+        long sole = arena.spawnScreenedTarget(TOWARD_SHOOTER, 25f, ARC, 30f);
+        assertEquals(arena.shoot(sole).mitigated, arena.shoot(smallerFirst).mitigated, 1e-3f,
+                "two screens must resolve as the larger, never as the sum");
     }
 
+    /**
+     * The arc law is enforced by the service rather than left to authoring, and
+     * finiteness needs no separate rule: a pool that can be spent is a pool
+     * massed fire can beat.
+     */
     @Test
-    void aScreenIsNeverTotalAndNeverAllRound() {
+    void aScreenIsNeverAllRoundAndAlwaysRunsOut() {
         Arena arena = new Arena();
-        long absurd = arena.spawnScreenedTarget(TOWARD_SHOOTER, 0.5f, ARC, 30f);
+        long absurd = arena.spawnScreenedTarget(TOWARD_SHOOTER, SOAK, ARC, 30f);
         MitigationService screens = arena.roster().mitigations();
 
-        screens.grant(absurd, 4f, 900f, 30f);
+        screens.grant(absurd, 1_000f, 900f, 30f);
 
-        assertTrue(screens.fraction(absurd) < 1f, "a hit that cannot land is an off-switch");
         assertTrue(screens.arcDegrees(absurd) < 360f, "a screen has to leave a flank");
         screens.face(absurd, AWAY_FROM_SHOOTER);
         assertEquals(0f, arena.shoot(absurd).mitigated, 1e-4f,
                 "even the widest legal arc leaves a bearing it does not cover");
+
         screens.face(absurd, TOWARD_SHOOTER);
-        assertTrue(arena.shoot(absurd).mitigated < DAMAGE,
-                "and inside the arc it still refuses less than the whole hit");
+        float pool = screens.soakRemaining(absurd);
+        while (screens.isActive(absurd)) arena.shoot(absurd);
+        assertEquals(0f, screens.soakRemaining(absurd), 1e-4f,
+                "however large the pool, enough fire spends it");
+        assertTrue(pool > 0f, "fixture assumption: there was a pool to spend");
     }
 
     @Test
-    void aScreenNeedsAClock() {
+    void aScreenNeedsAClockAndSomethingToSpend() {
         Arena arena = new Arena();
-        long target = arena.spawnScreenedTarget(TOWARD_SHOOTER, 0.5f, ARC, 30f);
+        long target = arena.spawnScreenedTarget(TOWARD_SHOOTER, SOAK, ARC, 30f);
         MitigationService screens = arena.roster().mitigations();
         screens.clear(target);
 
-        assertFalse(screens.grant(target, 0.5f, ARC, 0f), "there is no mitigation without a duration");
+        assertFalse(screens.grant(target, SOAK, ARC, 0f),
+                "there is no mitigation without a duration");
+        assertFalse(screens.grant(target, 0f, ARC, 5f),
+                "and none without a pool to absorb with");
         assertFalse(screens.isActive(target));
     }
 
@@ -177,30 +266,33 @@ class TimedDirectionalMitigationTest {
         MitigationService screens = arena.roster().mitigations();
 
         assertFalse(screens.has(plain));
-        assertFalse(screens.grant(plain, 0.5f, ARC, 5f));
-        assertEquals(0f, screens.fractionAgainst(plain, 0f, 0f, 1f, 0f), 1e-6f);
+        assertFalse(screens.grant(plain, SOAK, ARC, 5f));
+        assertEquals(0f, screens.soakAgainst(plain, 0f, 0f, 1f, 0f), 1e-6f);
         screens.tick(plain, 1f);
+        screens.absorb(plain, 5f);
         screens.clear(plain);
     }
 
     /**
      * Cover is a property of the world the shot crossed; the screen is a
      * property of the target at that instant. A marine behind a wall and behind
-     * a screen is simply both, in that order.
+     * a screen is simply both, in that order — so the screen spends its pool on
+     * what cover left, not on the raw hit.
      */
     @Test
     void coverResolvesBeforeTheScreenSoNeitherIsBypassedNorDoubleCounted() {
         Arena arena = new Arena();
-        long openGround = arena.spawnScreenedTarget(TOWARD_SHOOTER, 0.5f, ARC, 30f);
+        long openGround = arena.spawnScreenedTarget(TOWARD_SHOOTER, SOAK, ARC, 30f);
         arena.coverFacingShooter(NavigationGrid.MAX_COVER);
-        long behindCover = arena.spawnScreenedTarget(TOWARD_SHOOTER, 0.5f, ARC, 30f);
+        long behindCover = arena.spawnScreenedTarget(TOWARD_SHOOTER, SOAK, ARC, 30f);
 
-        float inCover = arena.shoot(behindCover).mitigated;
+        float spentInCover = arena.shoot(behindCover).mitigated;
         arena.clearCover();
-        float inTheOpen = arena.shoot(openGround).mitigated;
+        float spentInTheOpen = arena.shoot(openGround).mitigated;
 
-        assertTrue(inCover > 0f && inCover < inTheOpen,
-                "the screen refuses a fraction of what cover left, not of the raw hit");
+        assertTrue(spentInCover > 0f && spentInCover < spentInTheOpen,
+                "a covered target hands its screen a smaller hit to absorb, so the pool"
+                        + " lasts longer behind a wall");
     }
 
     /**
@@ -211,13 +303,15 @@ class TimedDirectionalMitigationTest {
     @Test
     void aHitWithNoLocatableSourceIsNeverMitigated() {
         Arena arena = new Arena();
-        long screened = arena.spawnScreenedTarget(TOWARD_SHOOTER, 0.5f, ARC, 30f);
+        long screened = arena.spawnScreenedTarget(TOWARD_SHOOTER, SOAK, ARC, 30f);
 
         float before = arena.telemetry().damageMitigated(screened);
         arena.sim().applyDamage(screened, CombatTelemetryService.NO_ATTACKER,
                 DAMAGE, PENETRATION, 0f);
 
         assertEquals(before, arena.telemetry().damageMitigated(screened), 1e-4f);
+        assertEquals(SOAK, arena.roster().mitigations().soakRemaining(screened), 1e-4f,
+                "and it costs the pool nothing");
     }
 
     /**
@@ -229,14 +323,14 @@ class TimedDirectionalMitigationTest {
     @Test
     void theSharedCalculationReproducesWhatTheSimulationApplied() {
         Arena arena = new Arena();
-        long screened = arena.spawnScreenedTarget(TOWARD_SHOOTER, 0.5f, ARC, 30f);
+        long screened = arena.spawnScreenedTarget(TOWARD_SHOOTER, DAMAGE * 0.5f, ARC, 30f);
         World world = arena.roster().world();
 
-        float fraction = arena.roster().mitigations().fractionAgainst(
+        float soak = arena.roster().mitigations().soakAgainst(
                 screened, world.x(screened), world.y(screened),
                 world.x(arena.shooter()), world.y(arena.shooter()));
         DurabilityModel.Resolution predicted = new DurabilityModel.Resolution();
-        DurabilityModel.resolveInto(DAMAGE, PENETRATION, fraction, world.armor(screened),
+        DurabilityModel.resolveInto(DAMAGE, PENETRATION, soak, world.armor(screened),
                 world.armorRating(screened), world.hp(screened), predicted);
 
         Resolved applied = arena.shoot(screened);
@@ -248,23 +342,35 @@ class TimedDirectionalMitigationTest {
     }
 
     @Test
-    void theModelRefusesATotalScreen() {
+    void theModelRefusesANonsensePool() {
         DurabilityModel.Resolution out = new DurabilityModel.Resolution();
         assertThrows(IllegalArgumentException.class,
-                () -> DurabilityModel.resolveInto(10f, 1f, 1f, 0f, 0f, 10f, out));
-        assertThrows(IllegalArgumentException.class,
                 () -> DurabilityModel.resolveInto(10f, 1f, -0.5f, 0f, 0f, 10f, out));
+        assertThrows(IllegalArgumentException.class,
+                () -> DurabilityModel.resolveInto(10f, 1f, Float.NaN, 0f, 0f, 10f, out));
+    }
+
+    /** A pool larger than the hit takes the hit, and never more than the hit. */
+    @Test
+    void theModelNeverAbsorbsMoreThanTheHit() {
+        DurabilityModel.Resolution out = new DurabilityModel.Resolution();
+        DurabilityModel.resolveInto(100f, 10f, 1_000f, 5f, 10f, 25f, out);
+
+        assertEquals(100f, out.mitigatedDamage(), 1e-4f);
+        assertEquals(0f, out.armorDamage(), 1e-4f);
+        assertEquals(0f, out.structureDamage(), 1e-4f);
+        assertFalse(out.armorBroken());
     }
 
     /** Mitigation removes damage; it never puts anything back into a capacity. */
     @Test
     void theModelNeverRestoresACapacity() {
         DurabilityModel.Resolution out = new DurabilityModel.Resolution();
-        DurabilityModel.resolveInto(100f, 10f, 0.5f, 5f, 10f, 25f, out);
+        DurabilityModel.resolveInto(100f, 10f, 50f, 5f, 10f, 25f, out);
 
         assertEquals(50f, out.mitigatedDamage(), 1e-4f);
         assertEquals(5f, out.armorDamage(), 1e-4f, "armour loss is still clamped to the capacity");
-        assertTrue(out.armorBroken(), "a mitigated hit that still exceeds the armour breaks it");
+        assertTrue(out.armorBroken(), "an absorbed hit that still exceeds the armour breaks it");
         assertTrue(out.structureDamage() > 0f && out.structureDamage() <= 25f);
     }
 
@@ -277,7 +383,7 @@ class TimedDirectionalMitigationTest {
     @Test
     void theSweepPointsTheScreenAtWhatTheWearerIsDealingWith() {
         Arena arena = new Arena();
-        long screened = arena.spawnScreenedTarget(0f, 0.5f, ARC, 30f);
+        long screened = arena.spawnScreenedTarget(0f, SOAK, ARC, 30f);
         long behind = arena.sim().spawn(new EntitySpec("behind", Faction.MARINE,
                 UnitType.MARINE, TARGET_X + 5, ROW));
         MitigationSystem sweep = new MitigationSystem(arena.roster());
@@ -298,7 +404,7 @@ class TimedDirectionalMitigationTest {
     @Test
     void theSweepDrainsTheClockAndDropsTheScreenOnExpiry() {
         Arena arena = new Arena();
-        long screened = arena.spawnScreenedTarget(TOWARD_SHOOTER, 0.5f, ARC, 0.25f);
+        long screened = arena.spawnScreenedTarget(TOWARD_SHOOTER, SOAK, ARC, 0.25f);
         MitigationSystem sweep = new MitigationSystem(arena.roster());
         MitigationService screens = arena.roster().mitigations();
 
@@ -308,6 +414,38 @@ class TimedDirectionalMitigationTest {
 
         assertFalse(screens.isActive(screened));
         assertEquals(0f, arena.shoot(screened).mitigated, 1e-4f);
+    }
+
+    /** A screen that broke leaves a mark for presentation, and the sweep drains it. */
+    @Test
+    void breakingLeavesAMarkThatDrainsWithTheSweep() {
+        Arena arena = new Arena();
+        long screened = arena.spawnScreenedTarget(TOWARD_SHOOTER, DAMAGE * 0.5f, ARC, 300f);
+        MitigationService screens = arena.roster().mitigations();
+        MitigationSystem sweep = new MitigationSystem(arena.roster());
+
+        assertEquals(0f, screens.breakFlashRemaining(screened), 1e-6f);
+        arena.shoot(screened);
+
+        assertFalse(screens.isActive(screened));
+        assertTrue(screens.breakFlashRemaining(screened) > 0f,
+                "a screen beaten down is distinguishable from one that timed out");
+
+        sweep.tick(MitigationService.BREAK_FLASH_SECONDS);
+        assertEquals(0f, screens.breakFlashRemaining(screened), 1e-6f);
+    }
+
+    /** A window that simply ran out is not a break, and must not be marked as one. */
+    @Test
+    void aWindowThatRanOutLeavesNoBreakMark() {
+        Arena arena = new Arena();
+        long screened = arena.spawnScreenedTarget(TOWARD_SHOOTER, SOAK, ARC, 0.25f);
+        MitigationService screens = arena.roster().mitigations();
+
+        new MitigationSystem(arena.roster()).tick(0.3f);
+
+        assertFalse(screens.isActive(screened));
+        assertEquals(0f, screens.breakFlashRemaining(screened), 1e-6f);
     }
 
     // ---- fixture ----
@@ -363,30 +501,35 @@ class TimedDirectionalMitigationTest {
             return sim.spawn(targetSpec());
         }
 
-        long spawnScreenedTarget(float facingDegrees, float fraction, float arcDegrees,
+        long spawnScreenedTarget(float facingDegrees, float soakAmount, float arcDegrees,
                                  float durationSeconds) {
-            long id = sim.spawn(targetSpec().integralSystem(screenSource(fraction, arcDegrees)));
+            long id = sim.spawn(targetSpec().integralSystem(screenSource(soakAmount, arcDegrees)));
             roster().mitigations().face(id, facingDegrees);
-            roster().mitigations().grant(id, fraction, arcDegrees, durationSeconds);
+            roster().mitigations().grant(id, soakAmount, arcDegrees, durationSeconds);
             return id;
         }
 
         private EntitySpec targetSpec() {
             return new EntitySpec("target-" + spawned++, Faction.DEFENDER, UnitType.MARINE,
                     TARGET_X, ROW)
-                    // Hit points well past what any one shot here can spend, so a
-                    // measurement never turns into a death cascade mid-assertion.
+                    // Hit points and armour well past what these hits can spend,
+                    // so a measurement never turns into an armour break or a
+                    // death cascade mid-assertion.
                     .health(10_000f)
-                    .armor(40f, 8f, 1f, 1f);
+                    .armor(4_000f, 8f, 1f, 1f);
         }
 
         /** Fires one attributed hit and reports what it cost. */
         Resolved shoot(long target) {
+            return shoot(target, DAMAGE);
+        }
+
+        private Resolved shoot(long target, float damage) {
             World world = roster().world();
             float armorBefore = world.armor(target);
             float hpBefore = world.hp(target);
             float mitigatedBefore = telemetry().damageMitigated(target);
-            sim.applyDamage(target, shooter, DAMAGE, PENETRATION, 0f);
+            sim.applyDamage(target, shooter, damage, PENETRATION, 0f);
             return new Resolved(armorBefore - world.armor(target), hpBefore - world.hp(target),
                     telemetry().damageMitigated(target) - mitigatedBefore);
         }
@@ -398,10 +541,10 @@ class TimedDirectionalMitigationTest {
      * one. Its own clocks are never spent here; these tests grant directly so
      * they measure mitigation rather than an activation policy.
      */
-    private static IntegralSystemDef screenSource(float fraction, float arcDegrees) {
+    private static IntegralSystemDef screenSource(float soakAmount, float arcDegrees) {
         return new IntegralSystemDef("system.test-screen", "Test screen", EquipmentGrade.SERVICE, "A screen.",
                 IntegralSystemEffect.BREACHER_ASSIST, SpecialResourceMode.COOLDOWN,
-                3f, 9f, 0, new BreacherAssistSpec(1.1f, fraction, arcDegrees), null, null,
+                3f, 9f, 0, new BreacherAssistSpec(1.1f, soakAmount, arcDegrees), null, null,
                 new CrossingUnderFireSpec(12f));
     }
 }

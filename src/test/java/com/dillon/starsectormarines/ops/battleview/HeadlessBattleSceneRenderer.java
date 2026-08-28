@@ -135,7 +135,8 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
                 Asset asset = sprites.asset(command.sprite());
                 context.sprite(asset.path(), null, command.centerX(),
                         surfaceHeight - command.centerY(), command.width(), command.height(),
-                        command.angleDegrees(), tint);
+                        command.angleDegrees(), tint, CanvasSpriteRegion.FULL,
+                        command.additive() ? CanvasBlend.ADDITIVE : CanvasBlend.NORMAL);
             }
             case SOLID_RECT -> {
                 float left = Math.min(command.centerX(), command.width());
@@ -218,8 +219,6 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
                 new EnumMap<>(LayeredArmorFamily.class);
         private final UnitLayerLayouts layouts;
 
-        private final SpriteAPI systemScreenFacet;
-        private final SpriteAPI systemEmitter;
         private final SpriteAPI tile;
         private final SpriteAPI road;
         private final SpriteAPI floors;
@@ -236,11 +235,6 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
             this.modRoot = modRoot.toAbsolutePath().normalize();
             layouts = UnitLayerLayouts.parse(new JSONObject(Files.readString(
                     this.modRoot.resolve(UnitLayerLayouts.CONTENT_PATH))));
-            // The live loader reaches these through Global.getSettings(), which
-            // does not exist here — so a headless review would silently draw a
-            // running integral system without its art unless they are bound.
-            systemScreenFacet = sprite(BattleSprites.SYSTEM_SCREEN_FACET_SPRITE);
-            systemEmitter = sprite(BattleSprites.SYSTEM_EMITTER_SPRITE);
             tile = sprite(TileManifest.SHEET);
             road = sprite(TileManifest.ROAD_SHEET);
             floors = sprite(TileManifest.FLOORS_SHEET);
@@ -255,8 +249,6 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
             mech = loadMech();
         }
 
-        @Override public SpriteAPI systemScreenFacetSprite() { return systemScreenFacet; }
-        @Override public SpriteAPI systemEmitterSprite() { return systemEmitter; }
         @Override public SpriteAPI tileSheet() { return tile; }
         @Override public int tileSheetPxW() { return asset(tile).width(); }
         @Override public int tileSheetPxH() { return asset(tile).height(); }

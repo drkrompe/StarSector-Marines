@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -76,6 +77,45 @@ public final class TilesetOperations {
         BufferedImage read = ImageIO.read(path.toFile());
         if (read == null) throw new IOException("not an image: " + path);
         return toArgb(read);
+    }
+
+    /**
+     * Read every tileable material this document's frames take their picture
+     * from.
+     *
+     * <p>Each is checked solid here, at the one point a material file is opened.
+     * A material is a repeating field, so the void law inverts for it: a hole in
+     * one is a hole in the ground, repeated in every cell the map paves with it,
+     * and a keyed rim is a puncture at every join.
+     */
+    public static TilesetExport.Materials readMaterials(Path projectRoot, TilesetDocument document)
+            throws IOException {
+        Map<String, BufferedImage> loaded = new LinkedHashMap<>();
+        for (TilesetExport.Entry entry : document.entries) {
+            if (!entry.included || !entry.hasMaterial() || loaded.containsKey(entry.material)) {
+                continue;
+            }
+            Path path = resolve(projectRoot, entry.material);
+            BufferedImage read = ImageIO.read(path.toFile());
+            if (read == null) {
+                throw new IOException(entry.id + " takes its picture from " + path
+                        + ", which is not a readable image");
+            }
+            BufferedImage material = toArgb(read);
+            int clear = 0;
+            for (int y = 0; y < material.getHeight(); y++) {
+                for (int x = 0; x < material.getWidth(); x++) {
+                    if ((material.getRGB(x, y) >>> 24) != 0xFF) clear++;
+                }
+            }
+            if (clear > 0) {
+                throw new IOException(path + " has " + clear + " see-through pixels, so it is "
+                        + "not a surface: a material repeats, and every pixel missing from it "
+                        + "is a hole in every cell " + entry.id + " paves");
+            }
+            loaded.put(entry.material, material);
+        }
+        return loaded::get;
     }
 
     /** A document's sheet path, which is project-relative unless it lies outside. */
@@ -416,8 +456,16 @@ public final class TilesetOperations {
         Path cardPath = tilesetPath.resolveSibling(name + ".tileset.md");
 
         if (document.isStrip()) {
-            return exportStrip(document, sheet, name, sheetPath,
-                    atlasPath, tilesetPath, cardPath);
+            return exportStrip(document, sheet, readMaterials(projectRoot, document), name,
+                    sheetPath, atlasPath, tilesetPath, cardPath);
+        }
+        for (TilesetExport.Entry entry : document.entries) {
+            if (entry.included && entry.hasMaterial()) {
+                throw new IOException(entry.id + " takes its picture from the material "
+                        + entry.material + ", but this sheet exports as a cell grid, which "
+                        + "packs every piece from the plate. The material would be dropped "
+                        + "without anything saying so.");
+            }
         }
 
         BufferedImage atlas =
@@ -450,12 +498,15 @@ public final class TilesetOperations {
      * finds to be the frames that were packed.
      */
     private static ExportResult exportStrip(TilesetDocument document, BufferedImage sheet,
+                                            TilesetExport.Materials materials,
                                             String name, String sheetPath, Path atlasPath,
                                             Path tilesetPath, Path cardPath)
             throws IOException, JSONException {
         TilesetExport.StripSpec spec = document.strip;
-        TilesetExport.StripPacking packing = TilesetExport.packStrip(document.entries, spec);
-        BufferedImage atlas = TilesetExport.stripAtlas(sheet, document.entries, spec);
+        TilesetExport.StripPacking packing =
+                TilesetExport.packStrip(document.entries, spec, materials);
+        BufferedImage atlas =
+                TilesetExport.stripAtlas(sheet, document.entries, spec, materials);
         verifySliceable(atlas, packing);
         TilesetExport.write(atlas,
                 TilesetExport.slicedTileset(sheetPath, document.entries, spec),

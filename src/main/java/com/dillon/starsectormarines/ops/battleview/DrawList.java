@@ -83,6 +83,13 @@ public final class DrawList {
         slot(layer).setSprite(sprite, cx, cy, w, h, angleDeg, r, g, b, a);
     }
 
+    /** As {@link #addSprite}, but the sprite adds light instead of compositing over what is beneath it. */
+    public void addAdditiveSprite(RenderLayer layer, SpriteAPI sprite,
+                                  float cx, float cy, float w, float h, float angleDeg,
+                                  float r, float g, float b, float a) {
+        slot(layer).setSprite(sprite, cx, cy, w, h, angleDeg, r, g, b, a, true);
+    }
+
     /** {@code (x0,y0)}–{@code (x1,y1)} are opposing screen-space corners. */
     public void addSolidRect(RenderLayer layer, float x0, float y0, float x1, float y1,
                              float r, float g, float b, float a) {

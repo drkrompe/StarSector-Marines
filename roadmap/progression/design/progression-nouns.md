@@ -5,9 +5,9 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 Written: 2026-08-23
 
 Updated: 2026-08-28 — perception joined movement and payload as a shipped
-integral-system effect, as the Janus aperture read landed as a bounded,
-player-facing reveal; and a running integral system became visible on the
-battlefield as the running-system treatment, drawn as the arc it protects.
+integral-system effect; and the running-system treatment became a halo worn on
+the marine's own silhouette, asymmetric toward the arc it protects, dimming with
+the screen's soak pool and shattering when that pool breaks.
 
 ## Purpose
 
@@ -152,9 +152,15 @@ legibility.
   system is running: authored appearance data written from the live effect and
   cleared when it ends. It describes the capability rather than the suit — a
   window with a clock on it, and, when the system raised one, the screen's
-  facing, width, and strength — so a consumer draws from what is running and
-  never from which pattern is running it. It is presentation in one direction
-  only: the simulation neither reads it nor may ever come to.
+  facing, arc width, how much of its soak pool is left, and whether that pool
+  has just broken — so a consumer draws from what is running and never from
+  which pattern is running it. It is presentation in one direction only: the
+  simulation neither reads it nor may ever come to.
+- **Halo** — how the treatment is drawn: the wearer's own head and body layers
+  emitted a second time behind them, slightly larger, tinted a shimmering blue,
+  and swept along the screen's arc so the rim of light protrudes on the covered
+  side and nowhere else. It reuses the suit's existing art rather than adding
+  any, so a pattern that gets new armour art gets a halo shaped like it.
 - **Equipment template card** — permanent collected capability for one primary
   family-and-grade, armor pattern, or special item. It gates authoring and issue,
   is never consumed, and is distinct from a reusable squad definition.
@@ -945,28 +951,36 @@ signal only when it materially improves play.
 
 **A running system is legible in the world, not in a status bar.** The wearer
 looks different while it runs and stops looking different when it ends, and
-that difference is drawn where the effect is rather than floated above the
-sprite. Three rules make the drawing honest, and each exists because breaking
-it would teach the player something false:
+that difference is drawn **on the wearer** rather than floating in front of
+them: the treatment is the marine's own silhouette wearing a rim of light, not a
+shape hanging off it. Four rules make the drawing honest, and each exists
+because breaking it would teach the player something false:
 
-- **A drawn screen spans the arc it protects and no more.** The whole
-  counterplay of a directional screen is that it covers one facing and leaves
-  the flanks open, so a 90-degree scrap screen and a 200-degree interlock
-  screen must not look alike, and neither may be drawn as an all-round glow.
-  The drawn arc is the one the damage path resolves against, copied rather than
-  recomputed — a second calculation would eventually disagree with the first,
-  and the value of the picture is entirely that it can be trusted.
-- **The window is shown closing rather than counted down.** A screen with a
-  second left reads as a screen with a second left. What thins is the depth of
-  the drawn band, never its angular width, because the protected arc does not
-  narrow as it expires. Cooldown is deliberately not drawn: these are spent on
-  an authored policy rather than a player click, so a cooldown readout answers
-  a question nobody has.
+- **The halo is the arc.** The whole counterplay of a directional screen is that
+  it covers one facing and leaves the flanks open, so a 90-degree scrap screen
+  and a 200-degree interlock screen must not look alike, and neither may be
+  drawn as an all-round glow. The halo is therefore asymmetric: the enlarged
+  copy is swept along the authored arc, so the rim is thick on the protected
+  side and simply absent on the exposed one. The arc it is swept along is the
+  one the damage path resolves against, copied rather than recomputed — a second
+  calculation would eventually disagree with the first, and the value of the
+  picture is entirely that it can be trusted.
+- **The pool is shown draining rather than counted down.** A screen with a
+  sliver of soak left reads as one: the rim fades as the pool is spent, and its
+  angular extent never narrows, because the protected arc does not narrow as the
+  pool goes. Cooldown is deliberately not drawn: these are spent on an authored
+  policy rather than a player click, so a cooldown readout answers a question
+  nobody has.
+- **Breaking looks like breaking.** A window that ran out and a pool that was
+  beaten to nothing are different events and must not share a picture. The
+  shatter is its own brief moment — the wearer's whole silhouette thrown outward
+  and gone — because a screen broken by concentrated fire is what the soak pool
+  exists to make possible, and the player who earned it should see it.
 - **The treatment keys on the capability.** A running system that raises no
-  screen reports no arc and is drawn without one; nothing in the presentation
-  may branch on which armour pattern is in front of it. That is what lets a
-  future system inherit the treatment by describing itself rather than by being
-  added to a list.
+  screen reports no arc and is drawn with an even, undirected rim that claims no
+  facing; nothing in the presentation may branch on which armour pattern is in
+  front of it. That is what lets a future system inherit the treatment by
+  describing itself rather than by being added to a list.
 
 Both sides read the same, because the capability is symmetric and an incoming
 breacher is exactly the thing a player needs to recognise; a hostile's
@@ -1082,5 +1096,11 @@ The following are direction, not current behavior:
   picture's sake is prohibited; so is any treatment whose readable extent
   implies a protected facing the simulation does not honour.
 - A treatment ends with the effect that produced it and never survives its
-  wearer. It is live-only state and leaves nothing on a corpse.
+  wearer. It is live-only state and leaves nothing on a corpse. The one part
+  drawn after the effect is gone is the shatter, which exists precisely to show
+  a screen ending and drains on its own within the same breath.
+- A running system's treatment is composed from the wearer's own authored
+  layers. It must not acquire art of its own: a treatment with a private texture
+  is a treatment that stops matching the suit the first time the suit is
+  re-authored.
 - Presentation conveys existing quality but never changes sim state.
