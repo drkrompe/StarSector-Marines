@@ -7,9 +7,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
+import java.util.Set;
+import java.util.TreeSet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -22,14 +27,55 @@ class SpecialEquipmentRegistryTest {
 
     private static final float EPS = 1e-6f;
 
+    /**
+     * The code-to-data bridge, derived rather than listed. Every {@code *_ID}
+     * constant the registry publishes must resolve to a catalogued definition,
+     * and every catalogued definition must be reachable through one — a
+     * constant pointing at a deleted entry and an entry no code can name are
+     * both real breakages, and neither is what a count would have caught.
+     */
     @Test
-    void allBuiltInsResolveThroughTheDataRegistry() {
-        assertEquals(7, SpecialEquipmentRegistry.installed().size());
-        for (MarineSecondaryHandle handle : MarineSecondaryHandle.values()) {
-            SpecialEquipmentDef def = SpecialEquipmentRegistry.require(handle.id);
-            assertEquals(handle.id, def.id());
-            assertNotNull(def.presentation());
-            assertNotNull(def.presentation().layerClips());
+    void everyPublishedIdResolvesAndEveryEntryIsNameable() throws IllegalAccessException {
+        Set<String> published = new TreeSet<>();
+        for (Field field : SpecialEquipmentRegistry.class.getDeclaredFields()) {
+            if (!field.getName().endsWith("_ID") || field.getType() != String.class) continue;
+            if (!Modifier.isStatic(field.getModifiers())
+                    || !Modifier.isPublic(field.getModifiers())) continue;
+            published.add((String) field.get(null));
+        }
+        assertFalse(published.isEmpty(), "the registry should publish its ids as constants");
+
+        Set<String> catalogued = new TreeSet<>();
+        for (SpecialEquipmentDef def : SpecialEquipmentRegistry.installed().all()) {
+            catalogued.add(def.id());
+        }
+        assertEquals(published, catalogued,
+                "every published id must be catalogued and every catalogued entry nameable");
+    }
+
+    /**
+     * Structural completeness across the whole catalog. Adding equipment widens
+     * this test instead of breaking it, which is the point: the previous version
+     * walked a hand-maintained list of five while the catalog held seven, so the
+     * two newest entries were asserted by nothing at all.
+     */
+    @Test
+    void everyCataloguedSpecialIsStructurallyComplete() {
+        Collection<SpecialEquipmentDef> all = SpecialEquipmentRegistry.installed().all();
+        assertFalse(all.isEmpty(), "the built-in catalog must load");
+        for (SpecialEquipmentDef def : all) {
+            assertSame(def, SpecialEquipmentRegistry.require(def.id()), def.id());
+            assertNotNull(def.displayName(), def.id());
+            assertFalse(def.displayName().isBlank(), def.id());
+            assertNotNull(def.activation(), def.id());
+            assertNotNull(def.aiPolicy(), def.id());
+            assertNotNull(def.resourceMode(), def.id());
+            assertNotNull(def.presentation(), def.id());
+            assertNotNull(def.presentation().layerClips(), def.id());
+            if (def.resourceMode() == SpecialResourceMode.AMMUNITION) {
+                assertTrue(def.startingAmmo() > 0,
+                        def.id() + " is ammunition-gated and must start with uses");
+            }
         }
     }
 
@@ -132,19 +178,5 @@ class SpecialEquipmentRegistryTest {
         if (relativePath == null) return;
         Path path = Paths.get("mod").resolve(relativePath);
         assertTrue(Files.isRegularFile(path), equipmentId + " asset does not exist: " + path);
-    }
-
-    private enum MarineSecondaryHandle {
-        ROCKET(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID),
-        AMR(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID),
-        SMOKE(SpecialEquipmentRegistry.SMOKE_GRENADE_ID),
-        SATCHEL(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID),
-        FRAG(SpecialEquipmentRegistry.FRAG_GRENADE_ID);
-
-        final String id;
-
-        MarineSecondaryHandle(String id) {
-            this.id = id;
-        }
     }
 }
