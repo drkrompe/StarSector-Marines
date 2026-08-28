@@ -33,8 +33,8 @@ tools/authoring.sh tileset_measure '{"sheet":"<name>","gridCols":10,"gridRows":1
 ```
 
 This needs no Python and no server — see the `authoring-tools` skill for the
-rest of the tool surface. `art-source/tilesets/measure_sheet.py` measures the
-same things for a sheet that is not yet in the project.
+rest of the tool surface. It is the only way to measure a sheet; step 1 has
+already put it in the project, so a bare name resolves.
 
 Pass `gridCols`/`gridRows` whenever the sheet was generated to a layout you asked
 for — which is most of the time, since you chose the layout in the prompt. Cells
@@ -130,6 +130,15 @@ See the `authoring-tools` skill for the whole surface and for the argument
 forms; the same tools are served over MCP to a session that has the server
 registered. A fused plate slices to one piece, which is the piece
 `tileset_split_on_grid` cuts into the document's stated `gridCols` x `gridRows`.
+
+**Slice once, then cut.** Running `tileset_slice apply=true` a second time on a
+sheet that has been cut or annotated is refused rather than applied: a fused
+plate has no gutters, so it is found whole again and every cut cell reconciles
+to nothing. The refusal names what would go and how to override it. Do not
+override it to get past this step — the override discards the annotation, which
+is the part nothing can re-derive. Tuning `alphaMin` on an alpha-keyed sheet is
+untouched by this: those pieces are mechanically derived and may be dropped and
+re-found freely.
 Each cut cell is named for where it sits — `<idPrefix>.c<col>r<row>`, zero-based
 and column first, so `doodad.urban.c6r1` is the seventh cell of the second row —
 which is how a row in the document is found in the picture. Pieces found by

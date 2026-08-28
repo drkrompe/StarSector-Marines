@@ -6,6 +6,7 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -62,6 +63,8 @@ class SabotageCommandTraceAnalyzerTest {
                 .contains("\"termination\":\"TIMEOUT\""));
         assertTrue(analysis.canonicalJson()
                 .contains("\"retrieverToPlanter\":1"));
+        assertFalse(analysis.canonicalJson().contains("secureTravelEpisodes"),
+                "Conquest perspective evidence must not leak into Sabotage output");
     }
 
     @Test
