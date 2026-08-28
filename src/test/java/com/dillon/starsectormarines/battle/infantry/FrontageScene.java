@@ -23,9 +23,13 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Random;
 
 /**
@@ -69,6 +73,9 @@ final class FrontageScene {
 
     private static final int GARRISON_SPAWN_RADIUS = 5;
 
+    /** Cells between adjacent assault squads' spawn seeds along the approach edge. */
+    private static final int ASSAULT_SQUAD_SPACING = 14;
+
     private FrontageScene() {}
 
     /** Where the marine assault enters from. The compound's own geometry is identical in every case; only the approach differs. */
@@ -85,10 +92,44 @@ final class FrontageScene {
             this.cellX = cellX;
             this.cellY = cellY;
         }
+
+        /**
+         * Which edge of a rendered frame this approach enters from. World +y
+         * draws upward, so the world name and the picture disagree: anything a
+         * person reads — a recording's caption, a report label — should use
+         * this, and anything about world geometry should use the name.
+         */
+        String renderedEdge() {
+            return switch (this) {
+                case SOUTH -> "top";
+                case NORTH -> "bottom";
+                case EAST -> "right";
+                case WEST -> "left";
+            };
+        }
     }
 
-    record Scene(BattleSimulation sim, TacticalNode primary, Squad garrison, Squad assault,
-                 List<TacticalNode> nodes, Approach approach) {}
+    /**
+     * @param garrisons defender squads, one per emitted tactical node, in node order
+     * @param assaults  marine squads, spread along the approach edge
+     */
+    record Scene(BattleSimulation sim, TacticalNode primary, List<Squad> garrisons,
+                 List<Squad> assaults, List<TacticalNode> nodes, Approach approach) {
+
+        /**
+         * The garrison whose frontage is the compound perimeter, falling back to
+         * the highest-priority node's squad when none of them holds it. Asked of
+         * the live sim rather than assumed from spawn order, since which squad
+         * holds the whole compound depends on the room count its footprint
+         * currently resolves to.
+         */
+        Squad perimeterGarrison() {
+            for (Squad squad : garrisons) {
+                if (FrontageDefense.holdsWholeCompound(squad, sim)) return squad;
+            }
+            return garrisons.get(0);
+        }
+    }
 
     /**
      * One observation of the garrison, taken between ticks.
@@ -104,22 +145,101 @@ final class FrontageScene {
     record Sample(int tick, String goal, int aperturePosts, int reservePosts,
                   int postsFacingThreat, int membersOnPost, float believedPressure,
                   boolean enemyInside, boolean frontageRelevant,
-                  float marineX, float marineY, int liveMarines) {
+                  float marineX, float marineY, int liveMarines,
+                  List<SquadSample> garrisons, Crowding crowding) {
 
         int posts() { return aperturePosts + reservePosts; }
     }
 
+    /**
+     * One garrison squad's state at a sampled instant. {@code scope} is the
+     * layer it holds — the compound perimeter or one structure's shell — which
+     * is what makes overlapping posts between two squads a defect rather than
+     * a coincidence.
+     */
+    record SquadSample(int squadId, String scope, String goal, int aperturePosts,
+                       int reservePosts, int membersOnPost, boolean frontageRelevant,
+                       int aliveMembers) {}
+
+    /**
+     * How tightly the battle is packed at a sampled instant.
+     *
+     * <p>Two different questions, deliberately kept apart. {@code postCollisions}
+     * counts stance cells that more than one squad has assigned somebody to —
+     * an allocation defect, since two squads sending members to one cell leaves
+     * one of them permanently unable to reach its post. {@code maxUnitsInCell}
+     * and {@code crowdedPairs} measure where bodies physically ended up, which
+     * separation and occupancy already govern; a squad correctly ordered to a
+     * doorway is expected to bunch there.
+     *
+     * @param postCells      distinct stance cells assigned across every garrison squad
+     * @param postCollisions stance cells assigned by more than one squad
+     * @param liveUnits      live combatants of either side
+     * @param occupiedCells  distinct cells those units stand on
+     * @param maxUnitsInCell most units sharing any one cell
+     * @param crowdedPairs   pairs of same-faction units within {@link #CROWDING_RADIUS} of each other
+     * @param minGarrisonGap smallest distance between any two garrison squad centroids, or
+     *                       {@code -1} when fewer than two garrisons still have members
+     */
+    record Crowding(int postCells, int postCollisions, int liveUnits, int occupiedCells,
+                    int maxUnitsInCell, int crowdedPairs, float minGarrisonGap) {
+
+        /** Units per distinct occupied cell; 1.0 means nobody is sharing ground. */
+        double packing() {
+            return occupiedCells == 0 ? 0d : (double) liveUnits / occupiedCells;
+        }
+    }
+
+    /**
+     * Separation below which two same-faction units count as bunched, in cells.
+     * Matches {@code SeparationSystem.QUERY_RADIUS} — the distance at which the
+     * sim itself starts treating a pair as neighbours worth pushing apart.
+     *
+     * <p>Note that bunching is not by itself a defect: infantry compresses to
+     * {@code SeparationSystem.INFANTRY_FORMATION_MIN_DISTANCE} (0.75 cells) in a
+     * tight passage on purpose, so several bodies legitimately share one cell
+     * at a doorway. These counts are for watching a trend, not for a threshold.
+     */
+    static final float CROWDING_RADIUS = 1.5f;
+
+    /** One garrison on the compound's primary node and one assault squad — the original two-squad scene. */
     static Scene build(long seed, int garrisonSize, int assaultSize, Approach approach) {
+        return build(seed, 1, garrisonSize, 1, assaultSize, approach);
+    }
+
+    /**
+     * @param garrisonSquads defender squads to raise, one per emitted tactical node in
+     *                       priority order; more than the compound has nodes is an error
+     *                       rather than two squads silently sharing a post
+     * @param assaultSquads  marine squads, spread across the approach edge so the
+     *                       scene measures an assault on a frontage rather than one
+     *                       column walking into one gate
+     */
+    static Scene build(long seed, int garrisonSquads, int garrisonSize,
+                       int assaultSquads, int assaultSize, Approach approach) {
         GenContext ctx = stampCompound(seed);
         BattleSimulation sim = new BattleSimulation(ctx.grid, ctx.topology, seed);
         List<TacticalNode> nodes = List.copyOf(ctx.tactical);
         sim.setTacticalMap(new TacticalMap(nodes));
         for (Doodad doodad : ctx.doodads) sim.addDoodad(doodad);
 
-        TacticalNode primary = primaryNode(nodes);
-        Squad garrison = spawnGarrison(sim, primary, garrisonSize);
-        Squad assault = spawnAssault(sim, primary, assaultSize, approach);
-        return new Scene(sim, primary, garrison, assault, nodes, approach);
+        List<TacticalNode> garrisoned = nodesByPriority(nodes);
+        if (garrisonSquads < 1 || garrisonSquads > garrisoned.size()) {
+            throw new IllegalArgumentException("compound has " + garrisoned.size()
+                    + " tactical nodes; cannot raise " + garrisonSquads + " garrisons");
+        }
+        List<Squad> garrisons = new ArrayList<>(garrisonSquads);
+        for (int i = 0; i < garrisonSquads; i++) {
+            garrisons.add(spawnGarrison(sim, garrisoned.get(i), garrisonSize, i));
+        }
+
+        TacticalNode primary = garrisoned.get(0);
+        List<Squad> assaults = new ArrayList<>(assaultSquads);
+        for (int i = 0; i < assaultSquads; i++) {
+            assaults.add(spawnAssault(sim, primary, assaultSize, approach, i, assaultSquads));
+        }
+        return new Scene(sim, primary, List.copyOf(garrisons), List.copyOf(assaults),
+                nodes, approach);
     }
 
     /** Run the scene, sampling the garrison every {@code samplePeriod} ticks. */
@@ -133,16 +253,20 @@ final class FrontageScene {
     }
 
     static Sample sample(Scene scene, int tick) {
-        Squad garrison = scene.garrison();
         BattleSimulation sim = scene.sim();
-        String goal = garrison.currentGoal != null ? garrison.currentGoal.name() : "none";
-
         float[] marines = marineCentroid(sim);
+
+        List<SquadSample> rows = new ArrayList<>(scene.garrisons().size());
+        for (Squad squad : scene.garrisons()) rows.add(squadSample(scene, squad, sim));
+
+        // The headline numbers describe the squad holding the perimeter: it is
+        // the one whose posts face the approach, and the one a recording's
+        // caption is about. The rest are reported per squad.
+        Squad perimeter = scene.perimeterGarrison();
+        ApertureHold hold = activeHold(perimeter);
         int aperture = 0;
         int reserve = 0;
         int facingThreat = 0;
-        int onPost = 0;
-        ApertureHold hold = activeHold(garrison);
         if (hold != null) {
             for (ApertureHold.Post post : hold.posts()) {
                 if (post.isReserve()) {
@@ -152,15 +276,113 @@ final class FrontageScene {
                     if (facesThreat(scene, post, marines)) facingThreat++;
                 }
             }
-            onPost = membersOnPost(sim, garrison, hold);
         }
-
+        String goal = perimeter.currentGoal != null ? perimeter.currentGoal.name() : "none";
+        int onPost = hold == null ? 0 : membersOnPost(sim, perimeter, hold);
         float pressure = sim.getCommanderInfluence(Faction.DEFENDER).maxHostile();
         boolean frontageRelevant = FrontageDefense.INSTANCE.relevance(
-                WorldState.EMPTY, garrison, sim) > 0f;
+                WorldState.EMPTY, perimeter, sim) > 0f;
+
         return new Sample(tick, goal, aperture, reserve, facingThreat, onPost,
                 pressure, enemyInside(scene), frontageRelevant,
-                marines[0], marines[1], (int) marines[2]);
+                marines[0], marines[1], (int) marines[2],
+                List.copyOf(rows), crowding(scene, sim));
+    }
+
+    private static SquadSample squadSample(Scene scene, Squad squad, BattleSimulation sim) {
+        ApertureHold hold = activeHold(squad);
+        int aperture = 0;
+        int reserve = 0;
+        if (hold != null) {
+            for (ApertureHold.Post post : hold.posts()) {
+                if (post.isReserve()) reserve++; else aperture++;
+            }
+        }
+        return new SquadSample(squad.id,
+                FrontageDefense.holdsWholeCompound(squad, sim) ? "COMPOUND" : "STRUCTURE",
+                squad.currentGoal != null ? squad.currentGoal.name() : "none",
+                aperture, reserve, hold == null ? 0 : membersOnPost(sim, squad, hold),
+                FrontageDefense.INSTANCE.relevance(WorldState.EMPTY, squad, sim) > 0f,
+                squad.aliveMembers);
+    }
+
+    /** Post overlap between squads, and how tightly live bodies are packed. */
+    private static Crowding crowding(Scene scene, BattleSimulation sim) {
+        Map<Long, Integer> squadsPerPostCell = new LinkedHashMap<>();
+        for (Squad squad : scene.garrisons()) {
+            ApertureHold hold = activeHold(squad);
+            if (hold == null) continue;
+            Set<Long> own = new HashSet<>();
+            for (ApertureHold.Post post : hold.posts()) own.add(key(post.standX(), post.standY()));
+            for (long cell : own) squadsPerPostCell.merge(cell, 1, Integer::sum);
+        }
+        int collisions = 0;
+        for (int count : squadsPerPostCell.values()) if (count > 1) collisions++;
+
+        Map<Long, Integer> unitsPerCell = new LinkedHashMap<>();
+        List<float[]> live = new ArrayList<>();
+        for (int i = 0; i < sim.getRoster().liveCount(); i++) {
+            long unit = sim.getRoster().get(i);
+            if (!sim.identity().type(unit).combatant) continue;
+            Faction faction = sim.identity().faction(unit);
+            if (faction != Faction.MARINE && faction != Faction.DEFENDER) continue;
+            unitsPerCell.merge(key(sim.world().cellX(unit), sim.world().cellY(unit)), 1, Integer::sum);
+            live.add(new float[]{sim.world().x(unit), sim.world().y(unit), faction.ordinal()});
+        }
+        int maxPerCell = 0;
+        for (int count : unitsPerCell.values()) maxPerCell = Math.max(maxPerCell, count);
+
+        int crowded = 0;
+        for (int a = 0; a < live.size(); a++) {
+            for (int b = a + 1; b < live.size(); b++) {
+                float[] first = live.get(a);
+                float[] second = live.get(b);
+                if (first[2] != second[2]) continue;
+                float dx = first[0] - second[0];
+                float dy = first[1] - second[1];
+                if (dx * dx + dy * dy <= CROWDING_RADIUS * CROWDING_RADIUS) crowded++;
+            }
+        }
+        return new Crowding(squadsPerPostCell.size(), collisions, live.size(),
+                unitsPerCell.size(), maxPerCell, crowded, minGarrisonGap(scene, sim));
+    }
+
+    /**
+     * Smallest distance between two garrison squad centroids. This is the
+     * question "are they all in the same place" asked at the level it means
+     * something: individual bodies compress together by design, but two squads
+     * holding two different layers of a compound should not be standing on top
+     * of one another.
+     */
+    private static float minGarrisonGap(Scene scene, BattleSimulation sim) {
+        List<float[]> centroids = new ArrayList<>();
+        for (Squad squad : scene.garrisons()) {
+            float sumX = 0f;
+            float sumY = 0f;
+            int count = 0;
+            for (int i = 0; i < sim.getRoster().liveCount(); i++) {
+                long unit = sim.getRoster().get(i);
+                if (!sim.squad().hasSquad(unit) || sim.squad().squadId(unit) != squad.id) continue;
+                sumX += sim.world().x(unit);
+                sumY += sim.world().y(unit);
+                count++;
+            }
+            if (count > 0) centroids.add(new float[]{sumX / count, sumY / count});
+        }
+        if (centroids.size() < 2) return -1f;
+        float best = Float.MAX_VALUE;
+        for (int a = 0; a < centroids.size(); a++) {
+            for (int b = a + 1; b < centroids.size(); b++) {
+                float dx = centroids.get(a)[0] - centroids.get(b)[0];
+                float dy = centroids.get(a)[1] - centroids.get(b)[1];
+                best = Math.min(best, (float) Math.sqrt(dx * dx + dy * dy));
+            }
+        }
+        return best;
+    }
+
+    private static long key(int x, int y) {
+        return ((long) x << 32) ^ (y & 0xffffffffL);
     }
 
     /** The {@link ApertureHold} the garrison is executing right now, or null when it is doing something else. */
@@ -233,7 +455,7 @@ final class FrontageScene {
      */
     private static boolean enemyInside(Scene scene) {
         BattleSimulation sim = scene.sim();
-        List<Integer> held = FrontageDefense.heldZones(scene.garrison(), sim);
+        List<Integer> held = FrontageDefense.heldZones(scene.perimeterGarrison(), sim);
         for (int i = 0; i < sim.getRoster().liveCount(); i++) {
             long unit = sim.getRoster().get(i);
             if (sim.identity().faction(unit) != Faction.MARINE) continue;
@@ -288,32 +510,31 @@ final class FrontageScene {
         return new Compound(BlockKind.MILITARY_BASE, COMMAND, members, roles, null);
     }
 
-    /** Highest-priority emitted node, anchor-ordered for ties — the same primary rule the garrison behaviors use. */
-    private static TacticalNode primaryNode(List<TacticalNode> nodes) {
-        TacticalNode best = null;
-        for (TacticalNode node : nodes) {
-            if (best == null
-                    || node.priorityScore > best.priorityScore
-                    || (node.priorityScore == best.priorityScore && node.anchorX < best.anchorX)) {
-                best = node;
-            }
-        }
-        if (best == null) throw new IllegalStateException("compound emitted no tactical nodes");
-        return best;
+    /** Emitted nodes, highest priority first and anchor-ordered for ties — the same primary rule the garrison behaviors use. */
+    private static List<TacticalNode> nodesByPriority(List<TacticalNode> nodes) {
+        if (nodes.isEmpty()) throw new IllegalStateException("compound emitted no tactical nodes");
+        List<TacticalNode> ordered = new ArrayList<>(nodes);
+        ordered.sort(Comparator
+                .comparingInt((TacticalNode n) -> -n.priorityScore)
+                .thenComparingInt(n -> n.anchorX)
+                .thenComparingInt(n -> n.anchorY));
+        return ordered;
     }
 
-    private static Squad spawnGarrison(BattleSimulation sim, TacticalNode node, int size) {
+    private static Squad spawnGarrison(BattleSimulation sim, TacticalNode node, int size, int ordinal) {
         List<int[]> cells = BattleSetup.pickCellsNear(sim.getGrid(), sim.getZoneGraph(),
                 node.anchorX, node.anchorY, GARRISON_SPAWN_RADIUS, size);
-        if (cells.isEmpty()) throw new IllegalStateException("no garrison spawn cells near anchor");
+        if (cells.isEmpty()) {
+            throw new IllegalStateException("no garrison spawn cells near " + node.kind + " anchor");
+        }
         int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.MARINE_RED);
         Squad squad = sim.getSquad(squadId);
         squad.assignedNode = node;
         squad.holdsFireUntilKillZone = true;
         int index = 0;
         for (int[] cell : cells) {
-            EntitySpec spec = new EntitySpec("garrison-" + index++, Faction.DEFENDER,
-                    UnitType.MARINE_RED, cell[0], cell[1]);
+            EntitySpec spec = new EntitySpec("garrison-" + ordinal + "-" + index++,
+                    Faction.DEFENDER, UnitType.MARINE_RED, cell[0], cell[1]);
             spec.role(UnitRole.GARRISON).home(cell[0], cell[1]).squad(squadId);
             sim.spawn(spec);
         }
@@ -321,17 +542,26 @@ final class FrontageScene {
         return squad;
     }
 
+    /**
+     * One assault squad, spawned at its own point along the approach edge.
+     * Squads are spread across the edge rather than stacked on one seed cell,
+     * because an assault that starts as a single column tells you nothing about
+     * whether a defense spreads to meet it.
+     */
     private static Squad spawnAssault(BattleSimulation sim, TacticalNode node, int size,
-                                      Approach approach) {
+                                      Approach approach, int ordinal, int total) {
         int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
         Squad squad = sim.getSquad(squadId);
+        int[] seed = assaultSeed(approach, ordinal, total);
         List<int[]> cells = BattleSetup.pickCellsNear(sim.getGrid(), sim.getZoneGraph(),
-                approach.cellX, approach.cellY, 4, size);
-        if (cells.isEmpty()) throw new IllegalStateException("no assault spawn cells at " + approach);
+                seed[0], seed[1], 4, size);
+        if (cells.isEmpty()) {
+            throw new IllegalStateException("no assault spawn cells at " + approach + " slot " + ordinal);
+        }
         int index = 0;
         for (int[] cell : cells) {
-            EntitySpec spec = new EntitySpec("assault-" + index++, Faction.MARINE,
-                    UnitType.MARINE, cell[0], cell[1]);
+            EntitySpec spec = new EntitySpec("assault-" + ordinal + "-" + index++,
+                    Faction.MARINE, UnitType.MARINE, cell[0], cell[1]);
             spec.squad(squadId);
             sim.spawn(spec);
         }
@@ -339,5 +569,19 @@ final class FrontageScene {
         squad.assignedObjective = ObjectiveAssignment.secureCompound(squadId,
                 sim.getZoneGraph().zoneIdAt(node.anchorX, node.anchorY), node);
         return squad;
+    }
+
+    /** Evenly spaced seed cells along the approach edge, centred on its midpoint. */
+    private static int[] assaultSeed(Approach approach, int ordinal, int total) {
+        int spread = ASSAULT_SQUAD_SPACING * (total - 1);
+        int offset = -spread / 2 + ASSAULT_SQUAD_SPACING * ordinal;
+        boolean alongX = approach == Approach.SOUTH || approach == Approach.NORTH;
+        int x = clampToMap(approach.cellX + (alongX ? offset : 0), WIDTH);
+        int y = clampToMap(approach.cellY + (alongX ? 0 : offset), HEIGHT);
+        return new int[]{x, y};
+    }
+
+    private static int clampToMap(int value, int extent) {
+        return Math.max(2, Math.min(extent - 3, value));
     }
 }

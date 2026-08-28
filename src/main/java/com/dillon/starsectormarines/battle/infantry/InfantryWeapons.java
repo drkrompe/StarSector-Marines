@@ -56,6 +56,13 @@ public class InfantryWeapons {
      */
     private final LongArrayList burstScratch = new LongArrayList();
 
+    /**
+     * Visible lifetime of a close-contact strike record. Short because there is
+     * no flight to depict — the record exists so the strike is heard, felt, and
+     * seen as a contact spark rather than as a round crossing the gap.
+     */
+    private static final float CONTACT_STRIKE_LIFETIME = 0.12f;
+
     /** The battle's seeded stream — see {@code BattleSimulation.random()}. */
     private final Random rng;
 
@@ -342,6 +349,63 @@ public class InfantryWeapons {
                 res.endX(), res.endY(), res.endZ(),
                 res.hitIntended(), shooterFaction, Math.max(res.flightTime(), 0.05f),
                 sec, 1f, res.victimId() != 0L, res.kind(), shooter));
+    }
+
+    /**
+     * Resolves one close-contact payload against an adjacent actor.
+     *
+     * <p>This is the typed executor's replacement for the travelling shot: no
+     * ballistic resolution, no projectile, no detonation, and no area effect.
+     * The referenced weapon definition still owns the damage, penetration,
+     * audio, and impact effects, and the payload lands through the ordinary
+     * delayed-impact seam so cover, armor, telemetry, hit response, and the
+     * death cascade behave exactly as they do for a round that arrived. The
+     * caller is responsible for having validated the contact.
+     */
+    public void strikeContact(long carrier, long target) {
+        World world = roster.world();
+        if (!world.hasSecondaryWeapon(carrier)) return;
+        SpecialEquipmentDef contactTool = world.specialEquipment(carrier);
+        if (contactTool.activation() != SpecialActivation.CLOSE_CONTACT) return;
+        Faction carrierFaction = roster.identity().faction(carrier);
+        boolean friendly = roster.identity().faction(target) == carrierFaction;
+        float damage = friendly
+                ? contactTool.damage() * BallisticResolver.FRIENDLY_FIRE_DAMAGE_MULT
+                : contactTool.damage();
+        roster.telemetry().recordSecondaryUsed(carrier);
+        roster.telemetry().recordRoundFired(carrier);
+        shots.queueImpact(new ShotService.PendingImpact(target, carrier,
+                /*remainingTime*/ 0f, damage, contactTool.penetration(),
+                roster.identity().type(carrier).moraleImpact, friendly, contactTool));
+        // A contact strike still emits its shot record: it is what carries the
+        // weapon's audio, its impact effects, and the localized noise a nearby
+        // squad may hear. The endpoint is the contact itself, so the record
+        // describes a strike rather than a round in flight.
+        shots.postShot(ShotEvent.special(
+                world.renderX(carrier), world.renderY(carrier), 0f,
+                world.x(target), world.y(target), 0f,
+                /*hit*/ true, carrierFaction, CONTACT_STRIKE_LIFETIME,
+                contactTool, roster.identity().type(carrier).moraleImpact,
+                /*struckUnit*/ true, /*stopKind*/ null, carrier));
+    }
+
+    /**
+     * Emits the shot record for a completed breaching cut. The wall damage
+     * itself belongs to the map-edit authority; this is only the audio, effect,
+     * and noise the surrounding battle can perceive.
+     */
+    public void reportContactBreach(long carrier, float cellCenterX, float cellCenterY) {
+        World world = roster.world();
+        if (!world.hasSecondaryWeapon(carrier)) return;
+        SpecialEquipmentDef contactTool = world.specialEquipment(carrier);
+        if (contactTool.activation() != SpecialActivation.CLOSE_CONTACT) return;
+        roster.telemetry().recordSecondaryUsed(carrier);
+        shots.postShot(ShotEvent.special(
+                world.renderX(carrier), world.renderY(carrier), 0f,
+                cellCenterX, cellCenterY, 0f,
+                /*hit*/ true, roster.identity().faction(carrier), CONTACT_STRIKE_LIFETIME,
+                contactTool, roster.identity().type(carrier).moraleImpact,
+                /*struckUnit*/ false, /*stopKind*/ null, carrier));
     }
 
     /** Releases a short-arc, ground-targeted fragmentation grenade. */

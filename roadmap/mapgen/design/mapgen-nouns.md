@@ -67,7 +67,11 @@ adjacent cell returns the same feature. Both cells must already be walkable and
 the transition initially open: the feature divides usable space instead of
 smuggling a cell wall into edge metadata. Its profile defines sight and direct-
 projectile policy, directional cover and vertical catch, structure, and
-appearance together. The first profile is a transparent firing **window**: it
+appearance together. Canonicalization also retains the adjacent authoring cell
+whose structure owns the feature. That structural side orients presentation
+today and can resolve through the map's building registry for later destruction
+objectives without turning visual thickness into collision. The first profile
+is a transparent firing **window**: it
 blocks movement, passes sight and direct rounds, supplies low cover to both
 adjacent positions, and can be broken by structural blast damage. Destruction
 removes the identity and cover, then opens the reciprocal edge through the map
