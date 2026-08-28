@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
@@ -31,6 +32,7 @@ import com.dillon.starsectormarines.ui.retained.CanvasHostViewport;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -125,6 +127,15 @@ public final class ShipDeckBattleScene implements AutoCloseable {
      * named ones, in a room whose whole population is on the roster.
      */
     private final Map<String, Integer> billets = new HashMap<>();
+    /**
+     * Hands taken on so far, by the kind of compartment they sleep in.
+     *
+     * <p>Counted across the whole ship rather than per posting, because a bunk
+     * is spent wherever its occupant works. Mustering the company's marines by
+     * name spends barracks racks through the same counter, so crewing the ship
+     * afterwards cannot berth somebody in a rack the roster is already in.
+     */
+    private final Map<RoomPurpose, Integer> hired = new EnumMap<>(RoomPurpose.class);
     private final HighlightOverlay highlights = new HighlightOverlay();
     private final Selection selection = new Selection();
     /** How far the deck has been run; see {@link #advanceTo}. */
@@ -357,6 +368,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
             hired.add(actor);
         }
         billets.put(billet, filled + hired.size());
+        this.hired.merge(role.quarters(), hired.size(), Integer::sum);
         simulation.ambientTasks().settle();
         simulation.getFogOfWar().tick(0, simulation.getRoster());
         long[] actors = new long[hired.size()];
@@ -440,16 +452,69 @@ public final class ShipDeckBattleScene implements AutoCloseable {
             throw new IllegalStateException("this deck scene carries no room graph");
         }
         if (watch <= 0) return new long[0];
-        List<Long> aboard = new ArrayList<>();
+        List<Posting> postings = new ArrayList<>();
         for (DeckGraph.Compartment room : rooms.compartments()) {
             for (CrewRole role : CrewRole.values()) {
                 if (!Shift.basedAt(role, room, fixtureTasks, occupiedBerths)) continue;
-                for (long hand : staff(room, role, watch)) aboard.add(hand);
+                postings.add(new Posting(room, role));
+            }
+        }
+        // One at a time, round the postings, until either the work runs out or
+        // the bunks do. Filling each posting to its own capacity in turn would
+        // let the first rooms in the list take the whole complement, and the
+        // ship would come out fully crewed forward and deserted aft.
+        List<Long> aboard = new ArrayList<>();
+        Map<RoomPurpose, Integer> berths = new EnumMap<>(RoomPurpose.class);
+        boolean progressed = true;
+        while (progressed) {
+            progressed = false;
+            for (Posting posting : postings) {
+                int budget = berths.computeIfAbsent(posting.role().quarters(),
+                        this::bunksIn) - hired.getOrDefault(posting.role().quarters(), 0);
+                if (budget <= 0) continue;
+                long[] hand = staff(posting.room(), posting.role(), 1);
+                if (hand.length == 0) continue;
+                aboard.add(hand[0]);
+                progressed = true;
             }
         }
         long[] crew = new long[aboard.size()];
         for (int index = 0; index < crew.length; index++) crew[index] = aboard.get(index);
         return crew;
+    }
+
+    /** One role's station in one compartment. */
+    private record Posting(DeckGraph.Compartment room, CrewRole role) { }
+
+    /**
+     * Racks in the compartments of this kind, which is how many people the ship
+     * can carry of whoever sleeps in them.
+     *
+     * <p>The honest bound on a complement, and the only one available: what a
+     * room can keep <em>busy</em> is a fact about its fixtures and says nothing
+     * about whether the ship can carry the people to do it. Read off the fill
+     * rather than off the hull's stated crew, because the racks are the thing
+     * the player can walk up and count.
+     *
+     * <p>Without it a deck crews itself out of its own furniture. A spares
+     * pocket with three stowage points is three more storekeepers, and a hull
+     * that fills every leftover corner with such pockets carried two hundred and
+     * seventy-six engineers on ten bunks - a ship's company several times her
+     * own lift, none of whom had anywhere to sleep.
+     */
+    private int bunksIn(RoomPurpose quarters) {
+        int bunks = 0;
+        for (FixtureTask task : fixtureTasks) {
+            if (task.affordance() != Affordance.REST || !task.inService()) continue;
+            for (DeckGraph.Compartment room : rooms.compartments()) {
+                if (room.purpose() != quarters) continue;
+                if (room.contains(task.cellX(), task.cellY())) {
+                    bunks++;
+                    break;
+                }
+            }
+        }
+        return bunks;
     }
 
     /**

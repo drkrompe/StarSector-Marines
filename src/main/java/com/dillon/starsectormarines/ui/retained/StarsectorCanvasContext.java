@@ -73,6 +73,18 @@ final class StarsectorCanvasContext extends CanvasContext {
         CanvasMetrics metrics = metrics();
         float textureWidth = sprite.getTextureWidth();
         float textureHeight = sprite.getTextureHeight();
+        // KNOWN DIVERGENCE, unresolved: this passes region.y() to setTexY
+        // unchanged, while the headless backend resolves the same value as a
+        // top-down image row — which is the convention CanvasSpriteRegion's
+        // own contract states. Every ground-FX caller of setTexY in this repo
+        // is written as though the axis runs bottom-up, so one of the two
+        // backends mirrors any region that is not vertically symmetric.
+        //
+        // Nothing observable depends on it today: every live canvas region is
+        // FULL except the mech-lab welding sparks, which cycle a whole sheet
+        // and so only shift phase under a mirror. Settling it needs a look at
+        // the running game, not more reading; until then do not author a
+        // vertically asymmetric region for a canvas that draws through both.
         try {
             sprite.setTexX((region.x() + (region.flipX() ? region.width() : 0f))
                     * textureWidth);

@@ -115,7 +115,7 @@ Do not run builds or leave generated task files there.
   `-PsnapshotHeight=640` arguments control review playback and output size.
 - `gradlew.bat createSnapshots` → every deterministic visual-evidence suite under
   `build/snapshots/` without launching Starsector or creating an OpenGL context. Select
-  suites with `-Psnapshot=armory,deployable-cover,durability-bars,frontage-scene,integral-system-fx,layers,perception-sweep,point-defence,ship-decks,turrets,ui`
+  suites with `-Psnapshot=airfield-sortie,armory,deployable-cover,durability-bars,frontage-scene,integral-system-fx,layers,perception-sweep,point-defence,ship-decks,turrets,ui`
   (default `all`) and redirect the common output root with `-PsnapshotDir=<path>`.
 - `gradlew.bat layerAuthoring` → extensible standalone authoring workbench. The
   Layers page provides drag, scale, rotation, variant-scoped phase-driven
@@ -260,6 +260,7 @@ The discovered suite ids and default output directories are:
 | `deployable-cover` | Animated controlled comparison of a placed revetment: the same fire into a covered lane, an open lane, and a screened post shot from the flank | `build/snapshots/deployable-cover/` |
 | `integral-system-fx` | A running integral system's halo: a narrow authored screen beside a wide one draining their soak pools, one breaking under concentrated fire, and one pattern's screen at four facings | `build/snapshots/integral-system-fx/` |
 | `perception-sweep` | The player's own picture — fog overlay and hidden-unit gating included — before, during, and after a Janus sensor sweep | `build/snapshots/perception-sweep/` |
+| `airfield-sortie` | Animated pair of one reinforcement sortie loading on its own hardstand: the crew's walk to the pad unopposed, and the same walk under fire | `build/snapshots/airfield-sortie/` |
 
 Run all suites with `gradlew.bat createSnapshots`. Use
 `-Psnapshot=<id>` for one suite or a comma-separated selector for several; quote
@@ -284,9 +285,23 @@ whole-mission harness is both slower and worse at answering a question about
 one behavior: the scene found a real aperture-derivation bug in minutes that
 two full Conquest runs had hidden entirely.
 
+`AirfieldSortieScene` is the second: a garrison airfield, a shuttle on its
+hardstand, and the crew that has to walk out to board it, recorded twice — once
+unopposed and once with a marine fire team on the walk. It exists because the
+unit tests around embarkation each pin one link (the means sets the state, the
+system takes a marine aboard, the gate rejects without a field) and none of them
+can show the thing the change was for: that the crossing is a stretch of time
+during which somebody can be shot.
+
 Prefer a scene over a mission harness whenever the question is about one
 behavior rather than about a whole battle's balance, and add another scene
 rather than widening this one past what its name claims.
+
+**A scene needs both sides on the map even when only one of them acts.** The
+simulation returns immediately once a side is absent, so a scene with a lone
+faction never advances a tick — and one whose only enemies die mid-recording
+freezes at that instant with the clock stopped. Both airfield loops keep a
+single distant marine nobody can reach for exactly this reason.
 
 The scene is reached through its snapshot suite —
 `gradlew.bat createSnapshots -Psnapshot=frontage-scene` — which plays it and

@@ -50,7 +50,15 @@ class KeyedSheetsAreExportedNotNormalizedTest {
     private static final Path TILESETS = Path.of("art-source", "tilesets");
     private static final Path SCRIPT = TILESETS.resolve("normalize_tilesets.py");
 
-    /** {@code GridSpec("x.png", "x.raw.png", "x.png")} and its strip sibling. */
+    /**
+     * {@code GridSpec("x.png", "x.raw.png", "x.png")}, and the strip sibling
+     * that used to sit beside it.
+     *
+     * <p>{@code StripSpec} no longer exists: {@code nature-tiles} was the last
+     * sheet the script produced that way, and withdrawing it took the whole
+     * auto-strip half with it. The alternation stays, because what this pattern
+     * guards against is a spec tuple being added back.
+     */
     private static final Pattern SPEC =
             Pattern.compile("(?:Grid|Strip)Spec\\(\\s*\"[^\"]+\"\\s*,\\s*\"([^\"]+)\"");
 
@@ -65,7 +73,7 @@ class KeyedSheetsAreExportedNotNormalizedTest {
     @Test
     void everySheetTheNormalizeScriptClaimsIsAnOpaquePlate() throws IOException {
         List<String> claimed = claimedRawSheets();
-        assertTrue(claimed.size() >= 3, "parsed " + claimed.size() + " sheets out of "
+        assertTrue(claimed.size() >= 2, "parsed " + claimed.size() + " sheets out of "
                 + SCRIPT + "; the spec tuples changed shape and this guard no longer reads "
                 + "them, so it is no longer guarding anything");
         List<String> keyed = new ArrayList<>();
@@ -107,7 +115,8 @@ class KeyedSheetsAreExportedNotNormalizedTest {
      */
     @Test
     void theWithdrawnSheetsStillCarryTheAlphaThatWithdrewThem() throws IOException {
-        for (String name : List.of("urban-tileset.raw.png", "urban-tileset-3.raw.png")) {
+        for (String name : List.of("urban-tileset.raw.png", "urban-tileset-3.raw.png",
+                "nature-tiles.raw.png")) {
             assertTrue(carriesKeyedAlpha(TILESETS.resolve(name)),
                     name + " no longer carries its own alpha; it is not re-exportable and "
                             + "the guard that keeps it out of the normalize script is inert");

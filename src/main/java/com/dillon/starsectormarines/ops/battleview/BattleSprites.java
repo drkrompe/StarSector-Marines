@@ -142,7 +142,7 @@ public class BattleSprites {
     private SpriteAPI iconStar;
     private boolean iconsLoadAttempted;
     private SpriteAPI smokeGrenadeSprite;
-    private SpriteAPI smokePuffSprite;
+    private SpriteAPI smokeFieldSheet;
     private boolean smokeSpritesLoadAttempted;
     private SpriteAPI satchelChargeSprite;
     private boolean satchelSpriteLoadAttempted;
@@ -170,7 +170,8 @@ public class BattleSprites {
         return specialEquipmentAimSheets;
     }
     public SpriteAPI smokeGrenadeSprite() { return smokeGrenadeSprite; }
-    public SpriteAPI smokePuffSprite() { return smokePuffSprite; }
+    /** The deployed smoke field's flipbook sheet; frames are addressed by {@code SpecialEquipmentPresentationDef.Field}. */
+    public SpriteAPI smokeFieldSheet() { return smokeFieldSheet; }
     public SpriteAPI satchelChargeSprite() { return satchelChargeSprite; }
     public SpriteAPI mechLabWeldingTorch() { return mechLabWeldingTorch; }
     public SpriteAPI mechLabWeldingSparks() { return mechLabWeldingSparks; }
@@ -500,15 +501,15 @@ public class BattleSprites {
             SpecialEquipmentDef smoke = SpecialEquipmentRegistry.require(
                     SpecialEquipmentRegistry.SMOKE_GRENADE_ID);
             if (smoke.presentation().thrown() == null
-                    || smoke.presentation().fieldSpritePath() == null) {
+                    || smoke.presentation().field() == null) {
                 throw new IllegalStateException("Smoke equipment has incomplete usage presentation");
             }
             String grenadePath = smoke.presentation().thrown().spritePath();
-            String fieldPath = smoke.presentation().fieldSpritePath();
+            String fieldPath = smoke.presentation().field().sheetPath();
             Global.getSettings().loadTexture(grenadePath);
             smokeGrenadeSprite = Global.getSettings().getSprite(grenadePath);
             Global.getSettings().loadTexture(fieldPath);
-            smokePuffSprite = Global.getSettings().getSprite(fieldPath);
+            smokeFieldSheet = Global.getSettings().getSprite(fieldPath);
         } catch (Exception e) {
             LOG.error("BattleSprites: failed to load smoke utility sprites", e);
         }
