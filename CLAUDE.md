@@ -136,7 +136,16 @@ Do not run builds or leave generated task files there.
   and a fused plate is cut into exactly that grid — but footprints are edited
   there rather than inferred, because
   how much deck a piece covers is a judgement about the object, not a measurement
-  of the art. Pieces are picked on the sheet itself — click, ctrl-click to add,
+  of the art.
+  **Fit grid to art** measures where that stated grid actually sits — generated
+  art sits inside a margin and is rarely drawn to a pitch that divides its own
+  pixel size evenly — and reports how many boundaries landed on a real seam and
+  how far they lie from the line through them. It applies only the axes that
+  measured well, and its dialog's fields are editable so the measurement can be
+  overridden. The cell *count* is never measured; only the placement is.
+  A fitted cut moves the plate's existing cells onto new rectangles, keeping
+  every id, block slot and annotation.
+  Pieces are picked on the sheet itself — click, ctrl-click to add,
   shift-click to run, drag a box — and the table follows, because a cut cell's id
   cannot be recognised in a list of a hundred. Each cell carries its `col,row` on
   the picture, which is what lets a person and a model name the same cell.
@@ -163,7 +172,8 @@ Do not run builds or leave generated task files there.
   if a later replacement fails.
 - `tools/authoring.sh <tool> [json]` (or `tools/authoring.cmd`) → call one
   authoring tool and exit. This is the **default** way to reach the authoring
-  tools headlessly — list/measure/read/write/slice/split/export a tileset, declare
+  tools headlessly — list/measure/read/write/slice/fit/split/export a tileset,
+  declare
   or dissolve one of its autotile blocks, render its map-preview comparison, run the snapshot catalog — with no workbench window
   and nothing to start first. `--list` names the tools, `--describe <tool>`
   prints its schema, `--json` returns the structured result. Arguments are one
