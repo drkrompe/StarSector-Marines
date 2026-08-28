@@ -13,7 +13,7 @@ Read `company-view-nouns.md` before changing a company-view story.
 | `c3-company-card-stack.md` | Planned | Depends on C2; expands the shipped HQ roster area. |
 | `c4-whereabouts-and-deployed-state.md` | Planned | Depends on C2 and C3; derives whereabouts rather than persisting them. |
 | `c5-battle-hud-company-rollup.md` | Planned | Depends on the shipped deployment-identity law and C2. |
-| `c6-after-action-by-fireteam.md` | Planned | Depends on shipped deployment identity; coordinate officer outcomes with C13. |
+| `c6-after-action-by-fireteam.md` | Planned | Depends on shipped deployment identity; coordinate officer outcomes with C13. Shares its squad-attribution seam with `s12-squad-career-standing.md`; land the two together. |
 | `c8-lift-capacity-and-multi-pass-drops.md` | Ready | Slices 1–3 are folded; only explicit safe rejoin for late arrivals remains. |
 | `c11-the-contract-board.md` | Planned | Uses the shipped campaign-map home; owns offers, not obligation clocks. |
 | `c12-the-debug-company.md` | Deferred | Slices 1–2 are folded; combined arms waits for player-side vehicle deployment. |
