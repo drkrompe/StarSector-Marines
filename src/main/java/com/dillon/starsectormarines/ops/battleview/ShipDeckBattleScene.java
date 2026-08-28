@@ -5,8 +5,10 @@ import com.dillon.starsectormarines.battle.ambient.AmbientTaskPose;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskRoute;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
 import com.dillon.starsectormarines.battle.ambient.AmbientThreatPolicy;
-import com.dillon.starsectormarines.battle.ambient.CompartmentCrew;
 import com.dillon.starsectormarines.battle.ambient.CrewRole;
+import com.dillon.starsectormarines.battle.ambient.JobBoard;
+import com.dillon.starsectormarines.battle.ambient.JobSite;
+import com.dillon.starsectormarines.battle.ambient.Shift;
 import com.dillon.starsectormarines.battle.appearance.FacingSystem;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
@@ -17,6 +19,7 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
@@ -234,8 +237,9 @@ public final class ShipDeckBattleScene implements AutoCloseable {
      * doing.
      *
      * <p>The count is capped by what the room can actually sustain — see
-     * {@link CompartmentCrew#capacity} — so a bay is never given more people
-     * than it has jobs to hand out. Nobody is spawned to stand in a queue.
+     * {@link com.dillon.starsectormarines.battle.ambient.Shift#capacity} — so a
+     * bay is never given more people than it has jobs to hand out. Nobody is
+     * spawned to stand in a queue.
      *
      * @return the actors put to work, which may be fewer than asked for
      */
@@ -244,18 +248,15 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         if (role == null) throw new IllegalArgumentException("a role is required");
         if (watch <= 0) return new long[0];
 
-        CompartmentCrew.publish(simulation.taskPoints(), fixtureTasks,
-                compartment, occupiedBerths);
-        int hands = Math.min(watch,
-                CompartmentCrew.capacity(role, compartment, fixtureTasks, occupiedBerths));
+        // Hostiles only. A technician works on armed machines by definition, and
+        // yielding to any combatant means yielding to the mech they are welding
+        // - so the crew of a home deck would flee their own bay and stand around
+        // the edges of it forever.
+        Shift watchBill = watchBill(compartment, role);
+        int hands = Math.min(watch, watchBill.capacity());
         List<Long> hired = new ArrayList<>(hands);
         for (int index = 0; index < hands; index++) {
-            // Hostiles only. A technician works on armed machines by definition,
-            // and yielding to any combatant means yielding to the mech they are
-            // welding - so the crew of a home deck would flee their own bay and
-            // stand around the edges of it forever.
-            AmbientTaskRoute shift = CompartmentCrew.shift(role, compartment, fixtureTasks,
-                    occupiedBerths, index, AmbientThreatPolicy.HOSTILE_COMBATANT);
+            AmbientTaskRoute shift = watchBill.member(index);
             if (shift == null) break;
             AmbientTaskPose start = AmbientTaskService.sample(shift, 0f);
             long hand = simulation.spawn(new EntitySpec(shift.id(), Faction.MARINE,
@@ -271,6 +272,82 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         long[] actors = new long[hired.size()];
         for (int index = 0; index < actors.length; index++) actors[index] = hired.get(index);
         return actors;
+    }
+
+    /**
+     * The shift a role posted to this compartment would work, and the jobs it
+     * reaches across the rest of the deck.
+     *
+     * <p>Publishing happens here rather than at spawn, because the claim groups
+     * have to exist before anybody is given a route that names them. Reading the
+     * bill without hiring anybody is what lets a screen say how many hands a
+     * room can keep busy.
+     */
+    public Shift watchBill(DeckGraph.Compartment compartment, CrewRole role) {
+        if (compartment == null) throw new IllegalArgumentException("a compartment is required");
+        if (role == null) throw new IllegalArgumentException("a role is required");
+        List<JobSite> sites = shiftSites(compartment, role);
+        for (JobSite site : sites) {
+            JobBoard.publish(simulation.taskPoints(), fixtureTasks, site, occupiedBerths);
+        }
+        return Shift.of(role, sites, fixtureTasks, occupiedBerths,
+                AmbientThreatPolicy.HOSTILE_COMBATANT);
+    }
+
+    /**
+     * Where a shift posted to this compartment actually works.
+     *
+     * <p>The compartment somebody is posted to, plus the nearest place on the
+     * deck that offers each of their other jobs. A marine's four jobs live in
+     * three compartments — they sleep and stow kit in their own berthing, eat in
+     * the mess, and shoot on the range — so a shift confined to one room gave
+     * each of those as a separate posting.
+     *
+     * <p>Nearest rather than authored, and found by asking the deck what it
+     * publishes rather than by a table of which purpose serves which job. A
+     * table would be a second place to keep the fill's decisions, and it would
+     * be wrong the first time a room started affording something new.
+     */
+    private List<JobSite> shiftSites(DeckGraph.Compartment posted, CrewRole role) {
+        List<JobSite> sites = new ArrayList<>();
+        sites.add(posted);
+        if (rooms == null) return sites;
+        for (Affordance job : role.jobs()) {
+            if (offers(posted, role, job)) continue;
+            DeckGraph.Compartment nearest = null;
+            long best = Long.MAX_VALUE;
+            for (DeckGraph.Compartment candidate : rooms.compartments()) {
+                if (candidate.id() == posted.id() || !offers(candidate, role, job)) continue;
+                long span = distanceSquared(posted, candidate);
+                if (span < best) {
+                    best = span;
+                    nearest = candidate;
+                }
+            }
+            if (nearest != null && !sites.contains(nearest)) sites.add(nearest);
+        }
+        return sites;
+    }
+
+    /** Whether this compartment has a live job of that kind, and it is this role's. */
+    private boolean offers(DeckGraph.Compartment site, CrewRole role, Affordance job) {
+        if (!JobBoard.belongsTo(role, site, job)) return false;
+        for (FixtureTask task : JobBoard.live(fixtureTasks, site, occupiedBerths)) {
+            if (task.affordance() == job) return true;
+        }
+        return false;
+    }
+
+    private static long distanceSquared(DeckGraph.Compartment from, DeckGraph.Compartment to) {
+        long dx = (long) centre(from.left(), from.shape().width())
+                - centre(to.left(), to.shape().width());
+        long dy = (long) centre(from.top(), from.shape().height())
+                - centre(to.top(), to.shape().height());
+        return dx * dx + dy * dy;
+    }
+
+    private static int centre(int origin, int extent) {
+        return origin + extent / 2;
     }
 
     /**

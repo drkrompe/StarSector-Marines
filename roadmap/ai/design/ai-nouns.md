@@ -67,6 +67,51 @@ released, or the actor dies. This prevents two independent tasks from converging
 on one station and gives ambient work, civilians, guards, and future mission
 interactions one reservation law.
 
+A **job site** is anywhere on a map that holds work: a ship's compartment, a
+building interior, a walled yard. The ambient model asks exactly three things of
+a place and this is all of them — an extent, which says which of the map's
+authored jobs are here; a purpose, which says whose jobs those are; and an id,
+which scopes the claim groups so somebody looking for a free bench is offered one
+in the room they are standing in. Deliberately not a compartment: everything
+downstream of a fixture is the same problem in a berthing space and in a market
+square, and the only reason it began life tied to a ship is that a ship is where
+it was needed first.
+
+A **role** is what somebody is aboard to do, as the jobs they will work. It names
+those jobs twice, because the same affordance is different work in different
+rooms: stowage in a vehicle bay is the parts run and belongs to whoever works the
+bay, while stowage in a berth is somebody's own locker and belongs to whoever
+sleeps there. So a role has jobs it works **on watch**, at any site that is
+somebody's workplace, and jobs it has **off watch**, only at its own quarters.
+Collapsing the two into one list is not a simplification but a leak — with one,
+the marines were duly offered a shift running the mech bay's stores.
+
+A **shift** is one role's work across one or more sites, and the loop each member
+of it walks. It is the join between a role and a map, and it is derived rather
+than authored: hand it the places somebody is posted and the work a generator
+published, and it produces a route. A shift is emphatically **not a room**. A
+marine's four jobs live in three compartments — they sleep and stow kit in their
+own berthing, eat in the mess, and shoot on the range — so a per-room shift gave
+each of those as a separate posting. What somebody does is a fact about them;
+where they do it is a fact about the map.
+
+Two consequences follow and neither is optional. A shift takes on only as many
+people as the scarcest job **at the site it is posted to** can sustain — within a
+room that scarcity is real, while across the map it is not, since counting a
+ship-wide firing range against a berthing posting would cap every berth on the
+hull at the lane count and then send all of them at the same two lanes. And a
+shift that spans sites is scheduled at a slower assumed pace, because the route
+clock budgets travel from the straight line between stops while a deck is a spine
+with rooms hung off it; budget the line and the schedule moves somebody on before
+they have arrived, and a shift crossing the ship never dwells anywhere at all.
+
+Because none of this knows what map family it is on, it is equally the mechanism
+for scripted mission flavour: civilians going about a town's business, a garrison
+keeping a routine before it is disturbed, or an individual actor lifted out of
+ordinary behaviour to act out a role for a while and returned to it afterwards.
+The assignment already suspends and restores ordinary dispatch; what a mission
+supplies is the role and the sites.
+
 Bounded embedded scenes may seek the same route sampler at an exact presentation
 time without advancing combat; that pose-only operation is not physical
 simulation. Live hosts use a route only to choose the next claimed destination,
