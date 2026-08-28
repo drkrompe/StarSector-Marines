@@ -8,11 +8,15 @@ import com.dillon.starsectormarines.battle.world.gen.fit.RoomFitting;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFittings;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFloor;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
+import com.dillon.starsectormarines.battle.world.model.BuildingKind;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Packs a fortress's program into its envelope and cuts the roadways that reach
@@ -62,17 +66,19 @@ public final class FortressInterior {
     private FortressInterior() {}
 
     /**
-     * Lay the program into {@code buildable}, approached from {@code axis}.
+     * Lay the program into {@code ground}, approached from {@code axis}.
      *
+     * @param ground every cell the ward owns: where its buildings go, and what
+     *               becomes open yard wherever none did
      * @param muster the parade ground and approach that already exist, which the
      *               packing must leave alone and may open onto
      */
-    public static Result pack(GenContext ctx, boolean[][] buildable, boolean[][] muster,
+    public static Result pack(GenContext ctx, boolean[][] ground, boolean[][] muster,
                               TraversalAxis axis, List<FortressBuilding> program) {
-        Bounds bounds = Bounds.of(buildable, ctx.width, ctx.height);
+        Bounds bounds = Bounds.of(ground, ctx.width, ctx.height);
         if (bounds == null) return new Result(List.of(), program);
 
-        RoomPacker packer = new RoomPacker(ctx, buildable, muster, PALETTE);
+        RoomPacker packer = new RoomPacker(ctx, footings(ctx, ground, muster), muster, PALETTE);
         List<RoomPacker.Placed> placed = new ArrayList<>();
         List<FortressBuilding> unplaced = new ArrayList<>();
         for (FortressBuilding building : FortressProgram.expanded(program)) {
@@ -86,7 +92,8 @@ public final class FortressInterior {
                 placed.add(room);
             }
         }
-        metalYard(ctx, buildable, placed);
+        metalYard(ctx, ground, placed);
+        stampWalls(ctx, placed);
         furnish(ctx, placed);
         return new Result(placed, unplaced);
     }
@@ -132,6 +139,115 @@ public final class FortressInterior {
                 ctx.fixtureTasks.subList(work, ctx.fixtureTasks.size()).clear();
             }
         }
+    }
+
+    /**
+     * The ground a building's floor may actually stand on: the ward's own,
+     * less the last cell at every edge of it.
+     *
+     * <p>A packed room is a floor and the ring around it, and the packer carves
+     * only the floor — the ring is wall precisely because it is ground the
+     * packing was told to leave alone. So the ring needs ground of the ward's
+     * own underneath it. Let a floor reach the ward's last row and the ring
+     * falls outside, onto a city street the ward does not own and must not
+     * close, because the road graph published that street and a convoy is
+     * entitled to drive it. Nothing then makes those cells solid, and the
+     * building comes out open along its whole flank — walled by a pavement,
+     * with its berths and bunks standing in the street.
+     *
+     * <p>Circulation is not an edge in that sense. A ring may not cross the
+     * kept road at all — the packer rejects the placement outright — so a room
+     * beside one is already as close as it is allowed to get, and treating the
+     * road as an edge here would only push the packing a cell further off it
+     * for nothing.
+     */
+    private static boolean[][] footings(GenContext ctx, boolean[][] ground, boolean[][] muster) {
+        boolean[][] footings = new boolean[ctx.width][ctx.height];
+        for (int x = 0; x < ctx.width; x++) {
+            for (int y = 0; y < ctx.height; y++) {
+                if (!ground[x][y]) continue;
+                boolean walled = true;
+                for (int dx = -1; dx <= 1 && walled; dx++) {
+                    for (int dy = -1; dy <= 1 && walled; dy++) {
+                        int nx = x + dx;
+                        int ny = y + dy;
+                        walled = nx >= 0 && ny >= 0 && nx < ctx.width && ny < ctx.height
+                                && (ground[nx][ny] || muster[nx][ny]);
+                    }
+                }
+                footings[x][y] = walled;
+            }
+        }
+        return footings;
+    }
+
+    /**
+     * Author the wall around every building the packer left as negative space.
+     *
+     * <p>The packer draws no walls. It carves a room out of solid ground, and
+     * the ring around it is simply ground that was not carved — which is all a
+     * hull needs, because a void inside a ship is structure whether or not
+     * anything says so. On a map a wall is a thing in its own right: it is
+     * drawn from a per-cell mask naming which of its faces are outside, and a
+     * ring carrying no mask falls through to the blank fill reserved for a cell
+     * buried inside a wall mass. That is a building with no wall on any face,
+     * standing as an invisible obstruction with its furniture apparently out in
+     * the open.
+     *
+     * <p>A face is exterior when the cell beyond it is not part of this
+     * building's own footprint. That is the rule
+     * {@link com.dillon.starsectormarines.battle.world.model.WallMasks#stampPerimeter}
+     * applies to a rectangle, restated so that it also holds for a shape which
+     * is not one. Faces are or-ed rather than assigned, so where two buildings
+     * wedge tight enough to share a ring cell the shared wall comes out with a
+     * face towards each of them.
+     *
+     * <p>Walkable ring cells are skipped. A doorway, or a cell some other
+     * room's passage was cut through, is an opening rather than wall, and the
+     * cells beside it keep the faces the footprint gives them: framing the gap
+     * would draw the hole instead of the building. This matches what an
+     * ordinary building does when its doorway is punched.
+     */
+    private static void stampWalls(GenContext ctx, List<RoomPacker.Placed> placed) {
+        for (RoomPacker.Placed room : placed) {
+            Set<Long> footprint = new HashSet<>();
+            for (int[] cell : room.shape().filled()) {
+                footprint.add(cellKey(room.originX() + cell[0], room.originY() + cell[1]));
+            }
+            for (int[] cell : room.shape().wall()) {
+                footprint.add(cellKey(room.originX() + cell[0], room.originY() + cell[1]));
+            }
+            for (int[] cell : room.shape().filled()) {
+                hint(ctx, room.originX() + cell[0], room.originY() + cell[1]);
+            }
+            for (int[] cell : room.shape().wall()) {
+                int x = room.originX() + cell[0];
+                int y = room.originY() + cell[1];
+                if (x < 0 || y < 0 || x >= ctx.width || y >= ctx.height) continue;
+                if (ctx.grid.isWalkable(x, y)) continue;
+                int mask = 0;
+                if (!footprint.contains(cellKey(x, y + 1))) mask |= CellTopology.WALL_DIR_N;
+                if (!footprint.contains(cellKey(x, y - 1))) mask |= CellTopology.WALL_DIR_S;
+                if (!footprint.contains(cellKey(x + 1, y))) mask |= CellTopology.WALL_DIR_E;
+                if (!footprint.contains(cellKey(x - 1, y))) mask |= CellTopology.WALL_DIR_W;
+                ctx.topology.orWallDirMask(x, y, mask);
+                hint(ctx, x, y);
+            }
+        }
+    }
+
+    /**
+     * Claim a cell for a fortified building, so the pass that votes a kind per
+     * flooded room reads a garrison building rather than falling through to the
+     * unclassified default.
+     */
+    private static void hint(GenContext ctx, int x, int y) {
+        if (x < 0 || y < 0 || x >= ctx.width || y >= ctx.height) return;
+        ctx.topology.setBuildingKindHint(x, y, BuildingKind.FORTIFIED);
+    }
+
+    private static long cellKey(int x, int y) {
+        return ((long) x << 32) ^ (y & 0xFFFFFFFFL);
     }
 
     /**
