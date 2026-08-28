@@ -4,9 +4,12 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — added the Conquest fortress ward, packed walls as authored
-rather than left over, family-neutral room
-fittings, and the obligations a replacing stage carries; shipped
+Updated: 2026-08-28 — replaced the blanket runtime-construction exclusion with
+the no-islands law construction must satisfy and added the passable
+field-revetment profile that law admits; added the Conquest fortress ward,
+packed walls as authored rather than left over, family-neutral room fittings,
+and the obligations a replacing stage carries; pointed at the compound-program
+direction; shipped
 shared-edge windows for Conquest bunkers and ordinary building shells,
 widened compound firing aprons while preserving functional parcel members,
 added role-readable compound dressing and authored multi-cell civic room
@@ -56,13 +59,38 @@ reason about reachability and roles without making incidental tile shapes into
 API.
 
 Edge passability is navigation topology, not by itself a structural wall. A
-production thin barrier must publish one authored identity from which movement,
-ballistic interception, visibility, directional cover, durability, and
-presentation derive. Closing an edge only for A* would create a secret obstacle;
-drawing a narrow wall without closing its edge would create dishonest scenery.
-Runtime topology retains the permissive-mutation law: destruction may open an
-authored edge, while construction that closes an edge under existing paths is a
-separate future problem.
+production thin barrier must publish one profile from which movement, ballistic
+interception, visibility, directional cover, durability, and presentation all
+derive. The law is that the profile is one identity, not that any particular
+combination is forbidden: closing an edge only for A* would create a secret
+obstacle, and drawing a full-height wall without closing its edge would create
+dishonest scenery, but a chest-high revetment that a soldier steps over, shoots
+over, and takes cover behind is honest precisely because it declares all three.
+
+Runtime mutation is admitted in both directions, under different obligations.
+**Destruction is free**, because it only ever makes the world more permissive: a
+path that was valid stays valid, a zone that was connected stays connected, and
+a unit standing somewhere legal is still standing somewhere legal.
+**Construction must not create an island.** That is the harm the model exists to
+prevent — a unit cut off from its objective, or sealed inside a region with no
+way out — and it is what a runtime placement has to answer for, since a new
+obstacle can partition the walkable graph that everything already standing on it
+depends on. A construction that does not touch navigation cannot cause it: cover,
+presentation, and structure are invisible to walkability, zones, the
+navigation mesh, and retained paths, so such a placement needs no check and no
+flush. A construction that *does* block navigation must prove, before placing,
+that it neither partitions the walkable graph nor strands a unit — before,
+because a repair afterwards is already too late for the unit inside. That proof
+must be reachability as the pathfinder computes it. Zone connectivity is not a
+substitute: `ZoneDetector` floods on cell walkability alone while the pathfinder
+honours edges, so a zone-graph answer can say "connected" about a region no unit
+can actually walk out of.
+
+Only the non-blocking case is built. `MapEditor.placeDeployedBarrier` is the
+single runtime construction seam and enforces the condition mechanically, by
+refusing any profile that blocks movement; the carried cover screen in
+`progression-nouns.md` is its one consumer. A future movement-blocking placement
+extends that seam with the reachability proof rather than bypassing it.
 
 A **shared-edge barrier** is that authored identity. It is stored once on a
 canonical east- or north-facing edge, while reciprocal lookup from either
@@ -73,13 +101,20 @@ projectile policy, directional cover and vertical catch, structure, and
 appearance together. Canonicalization also retains the adjacent authoring cell
 whose structure owns the feature. That structural side orients presentation
 today and can resolve through the map's building registry for later destruction
-objectives without turning visual thickness into collision. The first profile
-is a transparent firing **window**: it
-blocks movement, passes sight and direct rounds, supplies low cover to both
-adjacent positions, and can be broken by structural blast damage. Destruction
-removes the identity and cover, then opens the reciprocal edge through the map
-editor so zones, retained paths, vantage caches, and the region mesh advance
-together at the normal topology flush. Runtime construction remains excluded.
+objectives without turning visual thickness into collision.
+
+Two profiles exist. A transparent firing **window** blocks movement, passes
+sight and direct rounds, supplies low cover to both adjacent positions, and can
+be broken by structural blast damage; it is authored by generation. A **field
+revetment** is chest-high cover that leaves the transition open — passable,
+transparent, shoot-through, low cover to both sides, its own structure to spend —
+and is therefore the profile a runtime placement may use. Destruction of either
+removes the identity and its cover; for a profile that had closed its edge it
+also opens the reciprocal transition through the map editor, so zones, retained
+paths, vantage caches, and the region mesh advance together at the normal
+topology flush. A profile that never closed one skips that flush, because there
+is nothing derived to advance.
+
 Diagonal traversal consumes the neighboring cardinal transitions as well, so a
 unit cannot slip around a closed barrier endpoint in one diagonal step.
 Arbitrary angled or within-cell dividers remain outside this model: a shape

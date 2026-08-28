@@ -159,6 +159,9 @@ public final class InfantryUnitPrep {
         if (sec.aiPolicy() == SpecialAiPolicy.AREA_DENIAL_EMPLACEMENT) {
             return DeployableTactics.tryCommitPlacement(unit, sec, sim);
         }
+        if (sec.aiPolicy() == SpecialAiPolicy.DIRECTIONAL_COVER_SCREEN) {
+            return DeployableTactics.tryCommitCoverPlacement(unit, sec, sim);
+        }
         if (sec.activation() == SpecialActivation.CLOSE_CONTACT) {
             return CloseContactTactics.tryCommit(unit, sec, sim);
         }
