@@ -6,9 +6,13 @@ import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
+import com.fs.starfarer.api.Global;
+import org.apache.log4j.Logger;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Slow-tick consumer that drives the compound capture state machine. Each
@@ -34,7 +38,12 @@ public final class CompoundCaptureSystem {
     /** Sim-seconds between capture-state evaluations. Same cadence shape as {@link com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementService#REINFORCEMENT_TICK_PERIOD} so the two layers reach the same compound state within at most a tick of each other. */
     public static final float CAPTURE_TICK_PERIOD = 1.0f;
 
+    private static final Logger LOG = Global.getLogger(CompoundCaptureSystem.class);
+
     private float accumulator = 0f;
+
+    /** Compounds already reported as roomless, so the warning stays one per compound rather than one per second. */
+    private final Set<TacticalNode> reportedRoomless = new HashSet<>();
 
     /**
      * Advance the capture state machine. Accumulates {@code dt} and only
@@ -135,11 +144,23 @@ public final class CompoundCaptureSystem {
      * only ever opens cells, so a cell that was walkable remains walkable, and
      * re-reading its zone each tick picks up any merge the breach caused.
      */
-    private static int captureZone(CompoundService.Record r, BattleView sim,
-                                   ZoneGraph zones) {
+    private int captureZone(CompoundService.Record r, BattleView sim, ZoneGraph zones) {
         if (r.captureCellX < 0) {
             int[] cell = resolveCaptureCell(r.node, sim.getGrid(), zones);
-            if (cell == null) return -1;
+            if (cell == null) {
+                // A compound generated with no open interior at all cannot be
+                // entered, so it cannot be captured, so Conquest cannot be won.
+                // Rare, and a map-gen defect rather than anything this layer can
+                // repair — but a silent skip leaves the player fighting an
+                // unwinnable battle with no trace of why.
+                if (reportedRoomless.add(r.node)) {
+                    LOG.warn("CompoundCaptureSystem: " + r.node.kind + " at "
+                            + r.node.left + "," + r.node.top + ".." + r.node.right + ","
+                            + r.node.bottom + " encloses no zoned cell, so it can never be"
+                            + " captured. Generated compound has no walkable interior.");
+                }
+                return -1;
+            }
             r.captureCellX = cell[0];
             r.captureCellY = cell[1];
         }

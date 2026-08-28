@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BuildingFloodFill;
-import com.dillon.starsectormarines.battle.world.gen.bsp.InteriorAnchorFit;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadGraph;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -17,11 +16,6 @@ import org.apache.log4j.Logger;
  * {@code tagDefaultWalls} so the wall predicate it reads is authoritative; its
  * result is the {@link Buildings} registry that drives the roof-render and
  * fog-of-war visibility passes, bound under {@link BspKeys#BUILDINGS}.
- *
- * <p>Being the last stage to touch the grid also makes this the only stage that
- * can reconcile map-wide claims against the finished map, so
- * {@link InteriorAnchorFit} runs here — see that class for why the guarantee
- * cannot live in the fillers that author the anchors.
  *
  * <p>Closes with a diagnostic: any road-graph centerline cell that ended up
  * non-walkable means a stamper trampled the graph despite the reservation —
@@ -45,10 +39,6 @@ public final class FinalizeStage implements GenStage {
 
         Buildings buildings = BuildingFloodFill.populate(topology, ctx.seed);
         ctx.put(BspKeys.BUILDINGS, buildings);
-
-        // Last stage to touch the grid, so this is the only point at which a
-        // POI's interior anchor can be promised to stand in its room.
-        InteriorAnchorFit.apply(ctx.pois, grid);
 
         verifyRoadGraphWalkable(grid, ctx.get(BspKeys.ROAD_GRAPH));
     }
