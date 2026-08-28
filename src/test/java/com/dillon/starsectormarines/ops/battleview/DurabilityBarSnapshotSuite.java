@@ -106,7 +106,7 @@ public final class DurabilityBarSnapshotSuite implements SnapshotSuite {
         Graphics2D g = sheet.createGraphics();
         configure(g);
         paintChrome(g, width, height, "Durability bars — ownership coding",
-                "a row per pool, armor over structure; "
+                "a row per layer, armor over structure; "
                         + EMPLACEMENT.label() + " at " + ZOOM + "x over true scale");
         paintColumnHeads(g, cellW, DRAINS.stream().map(Drain::label).toList());
 
@@ -171,10 +171,10 @@ public final class DurabilityBarSnapshotSuite implements SnapshotSuite {
     private static void paintBar(Graphics2D g, Allegiance owner, Profile profile,
                                  float remaining, int originX, int baselineY, int scale) {
         // Damage takes armor before structure, so a single "remaining" figure still
-        // produces the pool pair a real fight would show.
-        float pool = profile.total() * remaining;
-        float armor = Math.min(profile.maxArmor(), Math.max(0f, pool - profile.maxStructure()));
-        float structure = Math.max(0f, pool - armor);
+        // produces the armor-and-structure pair a real fight would show.
+        float totalRemaining = profile.total() * remaining;
+        float armor = Math.min(profile.maxArmor(), Math.max(0f, totalRemaining - profile.maxStructure()));
+        float structure = Math.max(0f, totalRemaining - armor);
 
         DrawList out = new DrawList();
         DurabilityBarDecor.emit(out, RenderLayer.UNITS, owner,

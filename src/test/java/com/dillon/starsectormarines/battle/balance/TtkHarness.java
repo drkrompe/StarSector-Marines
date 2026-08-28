@@ -294,7 +294,7 @@ public final class TtkHarness {
      * directly.
      */
     private static IntegralSystemDef screenSource(Screen screen) {
-        return new IntegralSystemDef("system.ttk-screen", "Measured screen",
+        return new IntegralSystemDef("system.ttk-screen", "Measured screen", EquipmentGrade.SERVICE,
                 "Held up for the whole measurement.", IntegralSystemEffect.BREACHER_ASSIST,
                 SpecialResourceMode.COOLDOWN, 1f, 2f, 0,
                 new BreacherAssistSpec(1.01f, screen.fraction(), screen.arcDegrees()), null);
