@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — separated authoritative cells, shared-edge transitions, and derived regions; widened compound firing aprons; guaranteed standable interior anchors; and made orphaned-pocket sealing yield to a compound.
+Updated: 2026-08-28 — separated authoritative cells, shared-edge transitions, and derived regions; widened compound firing aprons while preserving functional buildings through parcel sizing; guaranteed standable interior anchors; and made orphaned-pocket sealing yield to a compound.
 
 Map generation turns a deterministic request into a validated tactical world. It
 owns authored spatial intent; runtime systems own subsequent mutation and play.
@@ -118,7 +118,9 @@ infrastructure rooms may deliberately remain opaque. Compound perimeter walls
 place apertures in adjacent two-cell pairs only on sufficiently long straight
 runs with walkable firing space on both sides. Compound buildings retain a
 two-cell internal apron to support oblique firing angles, while gates,
-hardpoints, corners, and reserved road circulation remain clear.
+hardpoints, corners, and reserved road circulation remain clear. That apron
+expands the minimum parcel claimed by a walled compound; it may not reduce an
+intended member below a hollow shell with a standable interior and doorway.
 
 ## City, station, and ship families
 

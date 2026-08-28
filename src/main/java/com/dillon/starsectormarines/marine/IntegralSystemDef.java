@@ -32,7 +32,8 @@ public record IntegralSystemDef(
         float durationSeconds,
         float cooldownSeconds,
         int startingAmmo,
-        BreacherAssistSpec breacherAssist) implements Serializable {
+        BreacherAssistSpec breacherAssist,
+        MissilePodSpec missilePod) implements Serializable {
 
     /**
      * Keys that would express an integral system as durability. Rejected by
@@ -81,15 +82,24 @@ public record IntegralSystemDef(
             }
         }
 
-        BreacherAssistSpec breacher = switch (effect) {
+        BreacherAssistSpec breacher = null;
+        MissilePodSpec missilePod = null;
+        switch (effect) {
             case BREACHER_ASSIST -> {
                 if (resourceMode != SpecialResourceMode.COOLDOWN) {
                     throw new JSONException("Integral system '" + id + "' on armor '" + armorId
                             + "' is a breacher assist and must be cooldown-gated");
                 }
-                yield BreacherAssistSpec.parse(json, armorId, id);
+                breacher = BreacherAssistSpec.parse(json, armorId, id);
             }
-        };
+            case MISSILE_POD -> {
+                if (resourceMode != SpecialResourceMode.AMMUNITION) {
+                    throw new JSONException("Integral system '" + id + "' on armor '" + armorId
+                            + "' is a missile pod and must be ammunition-gated");
+                }
+                missilePod = MissilePodSpec.parse(json, armorId, id);
+            }
+        }
 
         return new IntegralSystemDef(
                 id,
@@ -100,12 +110,23 @@ public record IntegralSystemDef(
                 durationSeconds,
                 cooldownSeconds,
                 startingAmmo,
-                breacher);
+                breacher,
+                missilePod);
     }
 
     /** Ammunition-gated systems run out; cooldown-gated ones only make you wait. */
     public boolean usesAmmunition() {
         return resourceMode == SpecialResourceMode.AMMUNITION;
+    }
+
+    /**
+     * Whether running this system raises a screen — bounded directional
+     * mitigation in the sense {@code combat-durability-nouns.md} owns. Read at
+     * spawn to decide whether the suit needs the live mitigation capability at
+     * all; a system that only moves the wearer never gets one.
+     */
+    public boolean grantsMitigation() {
+        return breacherAssist != null && breacherAssist.frontalResistance() > 0f;
     }
 
     private static void rejectDurability(JSONObject json, String armorId) throws JSONException {

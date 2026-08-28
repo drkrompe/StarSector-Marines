@@ -36,7 +36,12 @@ public final class BiomeCompoundSeeder {
             BlockKind.COMPOUND_MEMBER, BlockKind.WATERFRONT, BlockKind.LANDING_ZONE,
             BlockKind.SPACEPORT_PAD, BlockKind.NATURE_WETLAND, BlockKind.NATURE_BEACH);
 
-    private static final int MIN_SEED_DIM = 6;
+    /**
+     * Two cells larger than the historical seed minimum: the widened apron
+     * grows the compound lot while preserving the old 4x4 minimum command
+     * building (and therefore a real interior plus doorway).
+     */
+    private static final int MIN_SEED_DIM = 8;
     /** Six cells of outer ward plus the two-cell minimum used by the outer wall's corner towers. */
     private static final int FORTRESS_WARD_EDGE_MARGIN = 8;
 

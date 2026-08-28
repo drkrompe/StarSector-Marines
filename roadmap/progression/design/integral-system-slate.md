@@ -1,10 +1,11 @@
 # Integral system slate
 
 Status: ACTIVE — direction for which patterns build a suit capability and what
-it should be. The breach family is authored; the individual systems are not.
+it should be. The breach family and the shoulder micro-missile pod are
+authored; the remaining individual systems are not.
 
 Written: 2026-08-28
-Updated: 2026-08-28 — the breach family became the assault role's signature across all six patterns; perception and firing-platform reallocated off the heavies.
+Updated: 2026-08-28 — the second first system shipped on `armor.aegis-composite`, chosen for its predictive-display flavor rather than to fill a faction grid slot.
 
 Read `progression-nouns.md` for the standing rules an integral system must obey,
 `equipment-lore-catalog.md` for each pattern's provenance and deliberate limits,
@@ -57,10 +58,11 @@ nothing else:
 
 ## The breach family
 
-Authored. Every one of these is the same effect and none of them plays the same,
-because the axes a tradition is good at are the axes it spends on. Only the
-movement half runs today; the screen arrives with
-`d5-timed-directional-mitigation.md`.
+Authored and running. Every one of these is the same effect and none of them
+plays the same, because the axes a tradition is good at are the axes it spends
+on. Both halves are live: the wearer speeds up, and the authored screen refuses
+its fraction across its arc for the window's duration
+(`combat-durability-nouns.md` owns what a screen is).
 
 | Pattern | Tradition | System | The character it buys |
 | --- | --- | --- | --- |
@@ -82,6 +84,27 @@ suit is for.
 Not a family. Each is one capability on one named pattern, because that pattern
 is the one built for it.
 
+One is shipped:
+
+| Pattern | Tradition | System | The character it buys |
+| --- | --- | --- | --- |
+| `armor.aegis-composite` | Tri-Tachyon | **Predictive volley** | The Specter's threat display is spent on evasion because breaching is what that suit is *for*; the Aegis is a line suit built to present a difficult firing solution rather than to cross a room, so its own display is spent the other direction — locking a shot instead of dodging one. A small salvo of `weapon.micro-missile` rounds, self-targeted, from a rack of two that does not refill. |
+
+That is a deliberate choice among three plausible homes. The faction lore
+guides put micro-missile support in Hegemony, League, and Tri-Tachyon
+traditions alike, which is three candidates and no obvious single one; the
+pattern that carries the first pod was picked for what its tradition says
+about *how* it fires rather than to fill a faction-grid slot. Hegemony's
+assault heavies and League's are already spoken for by the breach family, and
+a second system on an already-decorated ASSAULT pattern would blur the "one
+family, one role" rule above. The Aegis is Tri-Tachyon's tier-III line
+pattern — not a breacher, not yet spoken for, and its authored copy already
+says "predictive threat displays" and "a difficult firing solution," which a
+self-selecting missile lock is a truer reading of than a dodge would be — the
+Specter already owns that half of "predictive."
+
+Two more are candidates, each gated on simulation work this doc doesn't own:
+
 | Pattern | Tradition | Candidate capability | Needs from the simulation |
 | --- | --- | --- | --- |
 | `armor.scout` | Tri-Tachyon (Janus) | **Sensor sweep** — the suit's integrated sensor and EW package spending itself on a brief, wide read of what is actually in the room. | A shared perception contract; bounded temporary vision that is not permanent sight. `perception-integral-systems.md`. |
@@ -92,9 +115,8 @@ and the split is better for it: **assault crosses, line holds.** That reads from
 the role name alone, which the earlier allocation did not.
 
 Everything else in the catalog carries nothing, on purpose. The Church's
-Palatine, the League's Bastion, the Tri-Tachyon Aegis, the pirate Reaver, and
-every tier-I and tier-II pattern are complete as tradeoffs and gain nothing from
-a trick.
+Palatine, the League's Bastion, the pirate Reaver, and every tier-I and
+tier-II pattern are complete as tradeoffs and gain nothing from a trick.
 
 ## What each of these must not become
 
@@ -127,12 +149,11 @@ likely to be violated by a *capability* rather than by a stat are:
 ## Where this leaves the board
 
 `integral-armor-systems.md` owns the shipped concept and its remaining scope.
-The mechanics the slate still needs are storied separately, because each is
-gated on different simulation work rather than on authoring:
-`d5-timed-directional-mitigation.md` — which two authored members of the breach
-family are effectively waiting on — plus `integral-system-use-policy.md`,
-`integral-system-battle-presentation.md`, `shoulder-micro-missile-pod.md`, and
-`defender-integral-systems.md`.
+Directional mitigation and the shoulder pod have both landed, so every authored
+system now expresses the whole of what it was written to be. The mechanics the
+slate still needs are storied separately, because each is gated on different
+simulation work rather than on authoring: `integral-system-use-policy.md`,
+`integral-system-battle-presentation.md`, and `defender-integral-systems.md`.
 
 The two individual systems have stories of their own:
 `perception-integral-systems.md` and `firing-platform-integral-systems.md`.

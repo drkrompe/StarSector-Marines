@@ -7,7 +7,8 @@ Written: 2026-08-23
 Updated: 2026-08-28 — added the defense frontage and the standing-to garrison
 posture, which give a held place's authored apertures to whichever side holds
 it and make believed pressure, rather than local contact, the trigger for
-manning them.
+manning them; recorded what an aperture may open onto and what an open-sided
+envelope yields.
 
 AI turns an assignment and what a squad has learned into coordinated movement,
 posture, and fire intent. It is a decision system, not the authority for combat
@@ -559,11 +560,15 @@ into perimeter walls and building shells, and the derivation reads them.
 
 Inside is a held zone set, not a footprint rectangle. An opening is frontage
 only when it separates held ground from unheld ground, so a window between two
-interior rooms is not frontage and a perimeter wall is. The derivation is
-scoped by which footprint it is asked about, so the same rule produces a
-compound's perimeter, one building's shell inside that compound, and an
-isolated post's own envelope. A layered defense is the consequence of applying
-one rule at two scopes rather than a separate behavior.
+interior rooms is not frontage and a perimeter wall is. An aperture must also
+open onto real ground: a doorway is its own zone and therefore not held, which
+would otherwise make the ordinary floor on either side of every internal
+threshold read as an opening and let phantom apertures compete with the real
+perimeter for a garrison's posts. The derivation is scoped by which footprint
+it is asked about, so the same rule produces a compound's perimeter, one
+building's shell inside that compound, and an isolated post's own envelope. A
+layered defense is the consequence of applying one rule at two scopes rather
+than a separate behavior.
 
 **Standing to** is the garrison posture between quiet patrol and the indoor
 fight. It distributes members onto stances covering the apertures under the
@@ -580,9 +585,15 @@ Frontage belongs to whoever holds the place, not to whoever is defending the
 mission. An attacker holding a captured compound stands to on the same envelope
 against the counter-attack.
 
-A frontage exists only while the envelope does. A breach is not a new entrance:
-opening a hole merges the interior with the ground outside, so held and unheld
-stop being distinguishable and the frontage dissolves. Standing to also ends
+A frontage exists only while the envelope does, and the envelope is whatever is
+actually closed rather than whatever was drawn. Where map generation leaves a
+wall open on purpose — a reserved road centreline crossing a compound is the
+standing case — the ground inside joins the ground outside, and the frontage
+found at compound scope is the member buildings' shells instead of the
+perimeter. That degradation to the inner layer is the correct reading of an
+open-sided compound, not a failure to find the wall. A breach is likewise not a
+new entrance: opening a hole merges the interior with the ground outside, so
+held and unheld stop being distinguishable and the frontage dissolves. Standing to also ends
 once any enemy is inside. Both hand the fight to the room-clearing and
 choke-point behaviors, which is the correct answer — posting people at intact
 windows while the building is being entered elsewhere is the failure these
