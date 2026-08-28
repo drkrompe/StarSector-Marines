@@ -122,10 +122,10 @@ Do not run builds or leave generated task files there.
   It exposes specialized projectile/artillery behavior and audio; preview
   flight reads the authored burst, boost, arc, contrail, and directional
   launch-FX data instead of substituting a generic projectile treatment.
-  New sheets are ingested through the `ingest-tileset` skill:
-  `art-source/tilesets/measure_sheet.py` measures a sheet and drafts its authoring
-  seed, and `ProjectTilesetSeedsTest` fails the build for raw art that arrives
-  without one.
+  New sheets are ingested through the `ingest-tileset` skill: the
+  `tileset_measure` tool measures a sheet and drafts its authoring seed, and
+  `ProjectTilesetSeedsTest` fails the build for raw art that arrives without
+  one.
   The Tilesets page turns a raw art sheet into a loadable tileset. It lists every
   sheet under `art-source/tilesets/` with its state — raw, seeded, annotated,
   exported — so sheets are picked from the project rather than browsed for.
@@ -167,8 +167,8 @@ Do not run builds or leave generated task files there.
   or dissolve one of its autotile blocks, render its map-preview comparison, run the snapshot catalog — with no workbench window
   and nothing to start first. `--list` names the tools, `--describe <tool>`
   prints its schema, `--json` returns the structured result. Arguments are one
-  JSON object, inline or as `@file` or `-` for stdin; prefer `@file` from
-  PowerShell, which rewrites quotes on their way to a native executable. Exit
+  JSON object, inline or as `@file` or `-` for stdin; from PowerShell quote the
+  `@file` or use `-`, because a bare `@token` is its splatting operator. Exit
   status is 1 when the tool reports a failure and 2 on a usage mistake. See the
   `authoring-tools` skill.
 - `gradlew.bat installAuthoringTools` → writes the generated launchers under
