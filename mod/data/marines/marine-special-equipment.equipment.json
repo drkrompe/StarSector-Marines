@@ -216,6 +216,110 @@
       }
     },
     {
+      "id": "special.breaching-cutter",
+      "catalog": {
+        "displayName": "Emberjaw Thermal Breacher",
+        "subtitle": "Reusable cooldown-gated anti-hard contact channel",
+        "description": "Independent breaker yards cut hulls apart with the Emberjaw; Church custodians keep older units running and pirates convert whatever they salvage. The carrier must stand against the work and hold it: a long, visible channel that ruins armor and emplacements at arm's length, and opens an authored breach point. It has no blast and cannot chew arbitrary walls."
+      },
+      "activation": {
+        "type": "close-contact",
+        "weaponId": "weapon.breaching-cutter",
+        "contactRange": 1.5,
+        "channelSeconds": 1.9
+      },
+      "resource": {
+        "mode": "cooldown",
+        "cooldownSeconds": 12.0
+      },
+      "ai": {
+        "policy": "contact-breach-channel"
+      },
+      "presentation": {
+        "armoryIcon": "graphics/ui/armory/special-breaching-cutter.png",
+        "aimSprite": null,
+        "usePose": "plant",
+        "carrierLayer": {
+          "sprite": "graphics/ui/armory/special-breaching-cutter.png",
+          "widthShoulders": 0.42,
+          "heightShoulders": 0.42,
+          "pivot": [0.5, 0.5],
+          "carried": {
+            "offsetShoulders": [-0.26, -0.06],
+            "angleDegrees": -22.0,
+            "occlusion": "under-body"
+          },
+          "using": {
+            "offsetShoulders": [0.0, 0.30],
+            "angleDegrees": 0.0,
+            "occlusion": "over-body"
+          },
+          "visibleWhileCarried": true,
+          "replacePrimaryWhileUsing": true
+        },
+        "layerClips": {
+          "variant": "satchel",
+          "using": "planting"
+        },
+        "preview": {
+          "state": "using",
+          "phase": 0.56
+        }
+      }
+    },
+    {
+      "id": "special.vibro-blade",
+      "catalog": {
+        "displayName": "Quillon Vibro-Blade",
+        "subtitle": "Reusable cooldown-gated anti-personnel contact reaction",
+        "description": "A rugged Hegemony boarding pattern copied across League and Diktat arsenals, with rare monofilament corporate tools and crude outlaw imitations beside it. One short reaction against somebody already inside arm's reach when a firefight collapses into contact. It cannot be used on machinery, and it will not chase anyone."
+      },
+      "activation": {
+        "type": "close-contact",
+        "weaponId": "weapon.vibro-blade",
+        "contactRange": 1.2,
+        "channelSeconds": 0.35
+      },
+      "resource": {
+        "mode": "cooldown",
+        "cooldownSeconds": 2.4
+      },
+      "ai": {
+        "policy": "contact-reaction-strike"
+      },
+      "presentation": {
+        "armoryIcon": "graphics/ui/armory/special-vibro-blade.png",
+        "aimSprite": null,
+        "usePose": "plant",
+        "carrierLayer": {
+          "sprite": "graphics/ui/armory/special-vibro-blade.png",
+          "widthShoulders": 0.26,
+          "heightShoulders": 0.26,
+          "pivot": [0.5, 0.5],
+          "carried": {
+            "offsetShoulders": [-0.22, -0.10],
+            "angleDegrees": -34.0,
+            "occlusion": "under-body"
+          },
+          "using": {
+            "offsetShoulders": [0.06, 0.30],
+            "angleDegrees": 0.0,
+            "occlusion": "over-body"
+          },
+          "visibleWhileCarried": true,
+          "replacePrimaryWhileUsing": true
+        },
+        "layerClips": {
+          "variant": "satchel",
+          "using": "planting"
+        },
+        "preview": {
+          "state": "using",
+          "phase": 0.56
+        }
+      }
+    },
+    {
       "id": "special.satchel-charge",
       "catalog": {
         "displayName": "Breachhand Mag-Clamp Kit",

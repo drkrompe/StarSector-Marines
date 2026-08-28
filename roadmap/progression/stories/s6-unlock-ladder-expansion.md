@@ -3,11 +3,11 @@
 > Every current asset is reachable; the remaining problem is turning that
 > complete catalog into a paced 30-mission collection arc.
 
-Status: PLANNED — depends on the remaining S2E–S2G special-equipment stories;
+Status: PLANNED — depends on the remaining S2F–S2G special-equipment stories;
 armor expansion also depends on
 `powered-assault-armor-roles.md`.
 Written: 2026-08-22
-Updated: 2026-08-26 — kept access visibility while removing every undiscovered-card hint; richer achievement gates and live pacing acceptance remain.
+Updated: 2026-08-28 — the close-contact tools shipped and left the dependency list; richer achievement gates and live pacing acceptance remain.
 
 Read `progression-nouns.md`, `faction-lore-nouns.md`, and
 `powered-assault-armor-roles.md` before implementing this story.
@@ -266,12 +266,12 @@ Where a milestone gate is still the right tool, gate on more than a count:
 
 ## Out of scope
 
-- New special equipment to unlock —
-  `s2e-close-contact-boarding-tools.md`, `s2f-combat-stim-injectors.md`, and
+- New special equipment to unlock — `s2f-combat-stim-injectors.md` and
   `s2g-martyr-rigs-and-carried-ieds.md`. New armor roles and patterns belong to
   `powered-assault-armor-roles.md`. The shipped AMR, smoke grenades, and satchel
-  kits are already starter templates, while the shipped frag template has a temporary
-  two-victory acquisition rung. All must remain covered by the stranded-asset
+  kits are already starter templates, the shipped frag template has a temporary
+  two-victory acquisition rung, and the shipped close-contact tools reach the
+  player through faction sources only (`progression-nouns.md`). All must remain covered by the stranded-asset
   check, and Slice 2 may replace the frag milestone with an equally reachable
   recovery path rather than strand or duplicate it.
 - Visual differentiation of unlocked tiers —
