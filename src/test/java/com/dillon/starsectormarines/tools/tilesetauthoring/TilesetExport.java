@@ -72,6 +72,15 @@ public final class TilesetExport {
         public String note = "";
         /** The greppable half: short descriptive tags, lowercase. */
         public List<String> tags = new ArrayList<>();
+        /**
+         * A shipped id this piece is a candidate replacement for.
+         *
+         * <p>Preview only: it says what to paint over when the map preview asks
+         * "what would this look like instead of that", and is never exported.
+         * A tileset describes what content is; it does not describe what some
+         * other content might have been.
+         */
+        public String standsInFor = "";
         /** Assigned by {@link #pack}. */
         public int col;
         public int row;

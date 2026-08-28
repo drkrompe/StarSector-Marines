@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.tools.tilesetauthoring;
 
 import com.dillon.starsectormarines.battle.world.tiles.GridLayout;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.tools.authoring.AuthoringMessages;
 import com.dillon.starsectormarines.tools.authoring.AuthoringPage;
 import com.dillon.starsectormarines.tools.authoring.AuthoringPageContext;
@@ -20,6 +21,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
@@ -94,6 +96,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
 
     private final List<TilesetExport.BlockSpec> blocks = new ArrayList<>();
     private final TilesetLibraryView library = new TilesetLibraryView(this::openFromLibrary);
+    private TilesetMapPanel mapPanel;
 
     private BufferedImage source;
     private Path sourcePath;
@@ -187,8 +190,28 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         previewScroll.setBorder(BorderFactory.createTitledBorder(
                 "Compartment preview — the tileset as loaded, at deck scale"));
 
+        mapPanel = new TilesetMapPanel(context.projectRoot(), new TilesetMapPanel.Source() {
+            @Override public BufferedImage atlas() {
+                if (source == null || model.entries.isEmpty()) return null;
+                return TilesetExport.atlas(source, model.entries, blocks,
+                        (Integer) cellPx.getValue());
+            }
+
+            @Override public int cellPx() {
+                return (Integer) TilesetAuthoringPage.this.cellPx.getValue();
+            }
+
+            @Override public List<TilesetMapPreview.Substitution> substitutions() {
+                return bindings();
+            }
+        }, context::reportStatus);
+
+        JTabbedPane previews = new JTabbedPane();
+        previews.addTab("Compartment", previewScroll);
+        previews.addTab("Map", mapPanel);
+
         JSplitPane rightSide = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
-                tableScroll, previewScroll);
+                tableScroll, previews);
         rightSide.setResizeWeight(0.45);
         JSplitPane sheetSide = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
                 library, new JScrollPane(view));
@@ -620,6 +643,46 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         }
     }
 
+    /**
+     * The bound candidates, addressed by where the packer put them.
+     *
+     * <p>Packing assigns each included piece its atlas cell, so running it here
+     * is what turns "this row stands in for urban.wall" into a rectangle the
+     * preview can paint from.
+     */
+    private List<TilesetMapPreview.Substitution> bindings() {
+        TilesetExport.pack(model.entries, blocks);
+        List<TilesetMapPreview.Substitution> bound = new ArrayList<>();
+        for (TilesetExport.Entry entry : model.entries) {
+            if (!entry.included || entry.standsInFor.isEmpty()) continue;
+            int cellsX = entry.isBlockMember() ? 1 : entry.footprintX;
+            int cellsY = entry.isBlockMember() ? 1 : entry.footprintY;
+            bound.add(new TilesetMapPreview.Substitution(
+                    entry.standsInFor, entry.col, entry.row, cellsX, cellsY));
+        }
+        // A block stands in as a whole patch: bind the block, not nine cells.
+        for (TilesetExport.BlockSpec spec : blocks) {
+            TilesetExport.Entry origin = firstMember(spec.id);
+            if (origin == null || origin.standsInFor.isEmpty()) continue;
+            bound.removeIf(binding -> binding.shippedId().equals(origin.standsInFor));
+            int span = spec.layout.span();
+            bound.add(new TilesetMapPreview.Substitution(origin.standsInFor,
+                    origin.col - BlockSlots.offset(origin.slot)[0],
+                    origin.row - BlockSlots.offset(origin.slot)[1], span, span));
+        }
+        return bound;
+    }
+
+    private TilesetExport.Entry firstMember(String blockId) {
+        for (TilesetExport.Entry entry : model.entries) {
+            if (entry.included && blockId.equals(entry.blockId)
+                    && !entry.standsInFor.isEmpty()) {
+                return entry;
+            }
+        }
+        return null;
+    }
+
     private void markDirty() {
         dirty = true;
         context.stateChanged();
@@ -690,7 +753,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
     private final class EntryTableModel extends AbstractTableModel {
 
         private final String[] columns = { "#", "id", "block", "slot", "cells X", "cells Y",
-                "cover", "tags", "note", "px", "in" };
+                "cover", "tags", "note", "stands in for", "px", "in" };
         private List<TilesetExport.Entry> entries = new ArrayList<>();
         private int[] selectedRows = new int[0];
 
@@ -717,14 +780,14 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         public Class<?> getColumnClass(int column) {
             return switch (column) {
                 case 0, 4, 5 -> Integer.class;
-                case 10 -> Boolean.class;
+                case 11 -> Boolean.class;
                 default -> String.class;
             };
         }
 
         @Override
         public boolean isCellEditable(int row, int column) {
-            return column != 0 && column != 9;
+            return column != 0 && column != 10;
         }
 
         @Override
@@ -740,7 +803,8 @@ public final class TilesetAuthoringPage implements AuthoringPage {
                 case 6 -> e.isBlockMember() ? "" : e.cover;
                 case 7 -> String.join(", ", e.tags);
                 case 8 -> e.note;
-                case 9 -> e.piece.width() + "x" + e.piece.height();
+                case 9 -> e.standsInFor;
+                case 10 -> e.piece.width() + "x" + e.piece.height();
                 default -> e.included;
             };
         }
@@ -757,7 +821,8 @@ public final class TilesetAuthoringPage implements AuthoringPage {
                 case 6 -> e.cover = String.valueOf(value).trim().toLowerCase();
                 case 7 -> e.tags = parseTags(String.valueOf(value));
                 case 8 -> e.note = String.valueOf(value).trim();
-                case 10 -> e.included = Boolean.TRUE.equals(value);
+                case 9 -> setStandsInFor(e, String.valueOf(value).trim());
+                case 11 -> e.included = Boolean.TRUE.equals(value);
                 default -> { }
             }
             fireTableRowsUpdated(row, row);
@@ -792,6 +857,29 @@ public final class TilesetAuthoringPage implements AuthoringPage {
                 if (!tag.isEmpty() && !tags.contains(tag)) tags.add(tag);
             }
             return tags;
+        }
+
+        /**
+         * Bind this piece as a candidate for a shipped id.
+         *
+         * <p>Checked against the installed catalog when there is one, because a
+         * typo here fails silently later: the map renders, and simply does not
+         * contain the thing you were trying to look at.
+         */
+        private void setStandsInFor(TilesetExport.Entry e, String shippedId) {
+            if (!shippedId.isEmpty()) {
+                TileRegistry registry = TileRegistry.installed();
+                if (registry != null && registry.doodad(shippedId) == null
+                        && registry.block(shippedId) == null) {
+                    AuthoringMessages.error(root, "Stands in for",
+                            "'" + shippedId + "' is not a doodad or block in the shipped "
+                                    + "catalog, so a map preview would silently leave it "
+                                    + "alone. Use an id from mod/data/tilesets, for example "
+                                    + "urban.wall or doodad.crate.");
+                    return;
+                }
+            }
+            e.standsInFor = shippedId;
         }
 
         private void setSlot(TilesetExport.Entry e, String slot) {

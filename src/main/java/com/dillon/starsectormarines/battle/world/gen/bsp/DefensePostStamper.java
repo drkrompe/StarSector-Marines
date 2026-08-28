@@ -451,6 +451,7 @@ public final class DefensePostStamper implements GenStage {
                 if (!grid.inBounds(x, y)) return false;
                 if (!grid.isWalkable(x, y)) return false;
                 if (PlacementGuards.touchesDoorway(grid, x, y)) return false;
+                if (PlacementGuards.touchesEdgeBarrier(grid, x, y)) return false;
                 if (topology.isWall(x, y)) return false;
                 if (topology.isVehicle(x, y)) return false;
                 if (!isStampableGround(topology.getGroundKind(x, y))) return false;

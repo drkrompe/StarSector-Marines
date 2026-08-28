@@ -26,7 +26,7 @@ class FrontageSceneTest {
 
     @Test
     void aGeneratedCompoundHasAFrontageOnEveryWall() {
-        Scene scene = FrontageScene.build(SEED, 8, 8, Approach.TOP);
+        Scene scene = FrontageScene.build(SEED, 8, 8, Approach.SOUTH);
         List<DefenseFrontage.Aperture> frontage =
                 DefenseFrontage.forCompound(scene.primary(), scene.sim());
 
@@ -47,9 +47,9 @@ class FrontageSceneTest {
 
     @Test
     void theGarrisonStandsToAsTheAssaultClosesAndReleasesWhenItIsInside() {
-        Scene scene = FrontageScene.build(SEED, 8, 8, Approach.TOP);
+        Scene scene = FrontageScene.build(SEED, 8, 8, Approach.SOUTH);
         List<Sample> samples = FrontageScene.play(scene, TICKS, SAMPLE_PERIOD);
-        print(samples, "TOP");
+        print(samples, "SOUTH");
 
         Sample first = samples.get(0);
         assertFalse("FrontageDefense".equals(first.goal()),
@@ -69,19 +69,17 @@ class FrontageSceneTest {
         assertTrue(standingTo.stream().anyMatch(s -> s.membersOnPost() > 0),
                 "members must actually reach their posts, not just be assigned them");
 
-        // The gate is what must close the instant marines are inside. The
-        // squad's goal is whatever its last replan chose, so it can still read
-        // FrontageDefense for up to one replan interval afterwards; asserting
-        // on that label would be asserting that GOAP replans every tick.
-        assertTrue(samples.stream().noneMatch(s -> s.enemyInside() && s.standToLegalNow()),
-                "standing to must stop being legal the moment marines are inside");
-        assertTrue(samples.stream().anyMatch(Sample::enemyInside),
-                "this scene is only evidence of the hand-off if the compound is entered");
+        List<Sample> breached = samples.stream().filter(Sample::enemyInside).toList();
+        assertFalse(breached.isEmpty(), "the assault must enter a held zone during the scene");
+        assertTrue(breached.stream().noneMatch(Sample::frontageRelevant),
+                "once marines are inside, the frontage goal must yield to room behaviors; "
+                        + "currentGoal may trail until the periodic replan");
     }
 
     @Test
     void thePostsGoToTheWallTheThreatIsBehind() {
-        for (Approach approach : Approach.values()) {
+        for (Approach approach : List.of(Approach.SOUTH, Approach.NORTH,
+                Approach.EAST, Approach.WEST)) {
             Scene scene = FrontageScene.build(SEED, 8, 8, approach);
             List<Sample> standing = FrontageScene.play(scene, TICKS, SAMPLE_PERIOD).stream()
                     .filter(s -> "FrontageDefense".equals(s.goal()))
@@ -106,7 +104,7 @@ class FrontageSceneTest {
 
     @Test
     void aReserveIsHeldBackOffTheWall() {
-        Scene scene = FrontageScene.build(SEED, 8, 8, Approach.TOP);
+        Scene scene = FrontageScene.build(SEED, 8, 8, Approach.SOUTH);
         Sample stood = firstStandTo(FrontageScene.play(scene, TICKS, SAMPLE_PERIOD));
         assertTrue(stood.reservePosts() >= 1,
                 "an eight-marine garrison should not put every body on one wall");

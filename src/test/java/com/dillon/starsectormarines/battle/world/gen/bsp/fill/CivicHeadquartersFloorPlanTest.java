@@ -64,7 +64,8 @@ class CivicHeadquartersFloorPlanTest {
 
             assertEquals(2, doodadsInPurpose(doodads, topology, RoomPurpose.CIVIC_OFFICE));
             assertEquals(1, doodadsInPurpose(doodads, topology, RoomPurpose.CONFERENCE_ROOM));
-            assertEquals(1, doodadsInPurpose(doodads, topology, RoomPurpose.SERVER_ROOM));
+            assertTrue(doodadsInPurpose(doodads, topology, RoomPurpose.SERVER_ROOM) >= 3,
+                    "server room needs a rack row rather than one symbolic cabinet");
             assertTrue(doodadsInPurpose(doodads, topology, RoomPurpose.CIVIC_RECEPTION) >= 1);
 
             for (int y = leaf.top + 1; y < leaf.bottom; y++) {

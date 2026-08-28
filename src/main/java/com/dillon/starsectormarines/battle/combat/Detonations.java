@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.combat;
 
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.perception.NoiseEventBus;
 import com.dillon.starsectormarines.battle.perception.NoiseKind;
 import com.dillon.starsectormarines.battle.world.MapEditor;
@@ -235,6 +236,26 @@ public class Detonations {
                         && det.spawnDustOnWallBreak) {
                     effects.spawnDustBurst(targetCx + 0.5f, targetCy + 0.5f);
                 }
+            }
+            damageEdgeBarriers(det);
+        }
+    }
+
+    private void damageEdgeBarriers(PendingDetonation det) {
+        float radius = det.wallDamageRadius > 0f
+                ? det.wallDamageRadius : 0.75f;
+        float radiusSq = radius * radius;
+        // Reverse iteration remains valid when destruction removes the current
+        // barrier from the sparse authoring-order list.
+        for (int i = grid.edgeBarrierCount() - 1; i >= 0; i--) {
+            SharedEdgeBarrier barrier = grid.edgeBarrierAt(i);
+            float dx = barrier.midpointX() - det.endpointX;
+            float dy = barrier.midpointY() - det.endpointY;
+            if (dx * dx + dy * dy > radiusSq) continue;
+            if (mapEditor.damageEdgeBarrier(barrier.cellX(), barrier.cellY(),
+                    barrier.direction(), det.wallDamage)
+                    && det.spawnDustOnWallBreak) {
+                effects.spawnDustBurst(barrier.midpointX(), barrier.midpointY());
             }
         }
     }

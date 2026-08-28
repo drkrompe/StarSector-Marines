@@ -4,7 +4,7 @@ Status: ACTIVE — modeled ground direct fire is shipped; one manual feel pass r
 
 Written: 2026-08-23
 
-Updated: 2026-08-27 — admitted convoy bodies as explicit direct-fire contacts and targets.
+Updated: 2026-08-28 — added exact profile-aware crossings for authored shared-edge barriers.
 
 Ballistics makes a direct shot a committed physical event instead of an
 accuracy result applied at the muzzle. It owns contact along the predicted
@@ -63,6 +63,15 @@ fire gate uses the same exact source-to-intended-target geometry. Cached
 cell-to-cell visibility remains valid for perception, but it cannot authorize
 a shot or a firing position when the bodies' within-cell offsets put a wall on
 the physical segment.
+
+An authored shared-edge barrier contributes its exact unit-length boundary
+segment to that same trace. Its single profile decides whether the crossing is
+a sight stop, a direct-projectile stop, or neither; navigation closure alone
+never implies ballistic opacity. The first window profile is transparent to
+sight and direct rounds while still supplying directional low cover at the
+adjacent body position. That cover remains an interception chance rather than
+a hard pane contact, and disappears with the feature when structural blast
+damage breaks it.
 
 ## Cover and safety
 
