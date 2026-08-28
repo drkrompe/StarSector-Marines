@@ -1,6 +1,10 @@
 package com.dillon.starsectormarines.battle.world.gen.ship;
 
 import com.dillon.starsectormarines.battle.ambient.JobSite;
+import com.dillon.starsectormarines.battle.world.gen.fit.Doorway;
+import com.dillon.starsectormarines.battle.world.gen.fit.FurnishableRoom;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomPose;
+import com.dillon.starsectormarines.battle.world.gen.fit.RoomShape;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 import java.util.List;
@@ -44,6 +48,11 @@ public final class DeckGraph {
      * fitting authors facing one way and reads the pose to find out where that
      * ended up.
      *
+     * <p>A compartment is the ship family's {@link FurnishableRoom}. The deck
+     * decides which rooms exist, where they sit, and which side and zone they
+     * belong to; none of that reaches the fill, which is handed the same floor,
+     * pose, doors and purpose a compound sub-building presents.
+     *
      * @param originX cell the shape's local origin sits on
      * @param originY cell the shape's local origin sits on
      * @param pose how the shape was turned and flipped to get here
@@ -51,22 +60,12 @@ public final class DeckGraph {
      */
     public record Compartment(int id, RoomShape shape, int originX, int originY,
                               RoomPose pose, DeckSide side, DeckZone zone,
-                              RoomPurpose purpose, List<Door> doors) implements JobSite {
+                              RoomPurpose purpose, List<Doorway> doors)
+            implements JobSite, FurnishableRoom {
 
         public Compartment {
             doors = List.copyOf(doors);
         }
-
-        /**
-         * One cell of doorway.
-         *
-         * <p>A record rather than an {@code int[]} because a record's own
-         * equality compares its components, and an array component compares by
-         * identity — so a compartment carrying arrays never equalled an
-         * identical compartment, and the determinism check that was supposed to
-         * catch layout drift could only ever fail.
-         */
-        public record Door(int x, int y) {}
 
         /** Whether this compartment's floor covers the given deck cell. */
         public boolean contains(int x, int y) {

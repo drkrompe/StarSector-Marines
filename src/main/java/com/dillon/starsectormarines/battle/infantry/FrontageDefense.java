@@ -130,21 +130,13 @@ public final class FrontageDefense implements Goal {
         TacticalNode node = heldNode(squad, sim);
         if (node == null) return null;
 
-        boolean compoundScope = GarrisonCompound.defenderAreaPatrol(squad, sim)
-                || marineHeldNode(squad) != null;
-        int boxL = compoundScope ? node.compoundLeft() : node.left;
-        int boxT = compoundScope ? node.compoundTop() : node.top;
-        int boxR = compoundScope ? node.compoundRight() : node.right;
-        int boxB = compoundScope ? node.compoundBottom() : node.bottom;
-
-        List<Integer> heldZones = GarrisonArea.garrisonZones(
-                boxL - DefenseFrontage.COMPOUND_MARGIN, boxT - DefenseFrontage.COMPOUND_MARGIN,
-                boxR + DefenseFrontage.COMPOUND_MARGIN, boxB + DefenseFrontage.COMPOUND_MARGIN, sim);
+        int[] box = heldBox(squad, node, sim);
+        List<Integer> heldZones = heldZones(squad, sim);
         if (heldZones.isEmpty()) return null;
         if (breached(heldZones, squad, sim)) return null;
 
         List<Aperture> frontage = DefenseFrontage.derive(
-                boxL, boxT, boxR, boxB, DefenseFrontage.COMPOUND_MARGIN, sim);
+                box[0], box[1], box[2], box[3], DefenseFrontage.COMPOUND_MARGIN, sim);
         if (frontage.isEmpty()) return null;
 
         List<Aperture> threatened = byThreat(frontage, squad.faction, sim);
@@ -169,6 +161,36 @@ public final class FrontageDefense implements Goal {
             posts.add(ApertureHold.Post.reserve(cell[0], cell[1]));
         }
         return new Held(new ApertureHold(posts));
+    }
+
+    /**
+     * The footprint this squad's frontage is derived against: the whole
+     * compound for its primary garrison or a marine holder, one structure for
+     * anybody else holding a place inside it.
+     */
+    private static int[] heldBox(Squad squad, TacticalNode node, BattleView sim) {
+        boolean compoundScope = GarrisonCompound.defenderAreaPatrol(squad, sim)
+                || marineHeldNode(squad) != null;
+        return compoundScope
+                ? new int[]{node.compoundLeft(), node.compoundTop(),
+                node.compoundRight(), node.compoundBottom()}
+                : new int[]{node.left, node.top, node.right, node.bottom};
+    }
+
+    /**
+     * The zones this squad actually holds. Package-visible because a caller
+     * asking "are enemies inside" has to ask it of the same ground this goal
+     * calls held — a compound-scope answer given to a structure-scope garrison
+     * reports a breach the goal does not see, and vice versa.
+     */
+    static List<Integer> heldZones(Squad squad, BattleView sim) {
+        TacticalNode node = heldNode(squad, sim);
+        if (node == null) return List.of();
+        int[] box = heldBox(squad, node, sim);
+        return GarrisonArea.garrisonZones(
+                box[0] - DefenseFrontage.COMPOUND_MARGIN, box[1] - DefenseFrontage.COMPOUND_MARGIN,
+                box[2] + DefenseFrontage.COMPOUND_MARGIN, box[3] + DefenseFrontage.COMPOUND_MARGIN,
+                sim);
     }
 
     /**

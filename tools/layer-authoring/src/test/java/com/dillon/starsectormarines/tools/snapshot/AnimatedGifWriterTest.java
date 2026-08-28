@@ -1,4 +1,4 @@
-package com.dillon.starsectormarines.battle.command.trace;
+package com.dillon.starsectormarines.tools.snapshot;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -38,6 +38,36 @@ class AnimatedGifWriterTest {
             assertEquals(Color.RED.getRGB(), reader.read(0).getRGB(4, 4));
             assertEquals(Color.GREEN.getRGB(), reader.read(1).getRGB(4, 4));
             assertEquals(Color.BLUE.getRGB(), reader.read(2).getRGB(4, 4));
+        } finally {
+            reader.dispose();
+        }
+    }
+
+    @Test
+    void rerecordingAShorterLoopReplacesTheLongerOne() throws Exception {
+        Path gif = tempDir.resolve("review.gif");
+        try (AnimatedGifWriter writer = new AnimatedGifWriter(gif, 120)) {
+            for (int i = 0; i < 12; i++) writer.append(frame(Color.RED));
+        }
+        long longRun = gif.toFile().length();
+
+        try (AnimatedGifWriter writer = new AnimatedGifWriter(gif, 120)) {
+            writer.append(frame(Color.BLUE));
+        }
+
+        // ImageIO opens an existing file for random access without truncating
+        // it, so without an explicit delete the short recording is written over
+        // the head of the long one and the file keeps its old length. Every
+        // attempt to measure a smaller or shorter animation then reports the
+        // stale size.
+        assertTrue(gif.toFile().length() < longRun,
+                "re-recording must not leave the previous loop's tail behind");
+        Iterator<ImageReader> readers = ImageIO.getImageReadersByFormatName("gif");
+        ImageReader reader = readers.next();
+        try (ImageInputStream input = ImageIO.createImageInputStream(gif.toFile())) {
+            reader.setInput(input);
+            assertEquals(1, reader.getNumImages(true));
+            assertEquals(Color.BLUE.getRGB(), reader.read(0).getRGB(4, 4));
         } finally {
             reader.dispose();
         }

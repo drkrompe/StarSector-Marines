@@ -1,9 +1,7 @@
-package com.dillon.starsectormarines.battle.world.gen.ship.fit;
+package com.dillon.starsectormarines.battle.world.gen.fit;
 
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
-import com.dillon.starsectormarines.battle.world.gen.ship.Hookup;
-import com.dillon.starsectormarines.battle.world.gen.ship.RoomShape;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
@@ -121,7 +119,7 @@ public final class FiringRangeFitting implements RoomFitting {
     }
 
     @Override
-    public void fit(CompartmentFloor floor) {
+    public void fit(RoomFloor floor) {
         int along = floor.canonicalWidth();
         int across = floor.canonicalHeight();
         Plan plan = plan(along, across, floor::contains);
@@ -157,7 +155,7 @@ public final class FiringRangeFitting implements RoomFitting {
      * whether or not anybody is on it, unlike a gantry bay, which is only work
      * while a machine is parked in it.
      */
-    private void layFiringLine(CompartmentFloor floor, Plan plan, int butts) {
+    private void layFiringLine(RoomFloor floor, Plan plan, int butts) {
         int[] downrange = floor.pose().mapDirection(1, 0);
         String barrier = barrierFacing(downrange);
         for (int lane = plan.laneFrom(); lane < plan.laneFrom() + plan.laneSpan();
@@ -170,7 +168,7 @@ public final class FiringRangeFitting implements RoomFitting {
     }
 
     /** The butts, packed across the far end so every lane has something to stop it. */
-    private void layButts(CompartmentFloor floor, Plan plan, int butts, int along) {
+    private void layButts(RoomFloor floor, Plan plan, int butts, int along) {
         int index = 0;
         for (int column = butts; column < along; column++) {
             for (int lane = plan.laneFrom(); lane < plan.laneFrom() + plan.laneSpan(); lane++) {
@@ -189,8 +187,8 @@ public final class FiringRangeFitting implements RoomFitting {
      * how a range came out as bare deck on one seed in two and looked like
      * nothing had been attempted.
      */
-    private void clearApproaches(CompartmentFloor floor, Plan plan, int along, int across) {
-        for (DeckGraph.Compartment.Door door : floor.localDoors()) {
+    private void clearApproaches(RoomFloor floor, Plan plan, int along, int across) {
+        for (Doorway door : floor.localDoors()) {
             int[] canonical = floor.toCanonical(door.x(), door.y());
             int column = Math.max(0, Math.min(along - 1, canonical[0]));
             int row = Math.max(0, Math.min(across - 1, canonical[1]));
@@ -210,7 +208,7 @@ public final class FiringRangeFitting implements RoomFitting {
      * it is how a detail reaches the line — and it is reserved rather than
      * merely left over, so it stays that way.
      */
-    private void layReadyEnd(CompartmentFloor floor, Plan plan, int across) {
+    private void layReadyEnd(RoomFloor floor, Plan plan, int across) {
         int index = 0;
         for (int row = plan.laneFrom() + plan.laneSpan(); row < across; row++) {
             boolean inboard = floor.contains(0, row + 1) && !floor.contains(0, row + 2);
@@ -288,24 +286,24 @@ public final class FiringRangeFitting implements RoomFitting {
         return new Plan(firingLine, laneFrom, laneSpan, back);
     }
 
-    private void place(CompartmentFloor floor, int along, int across, String id) {
+    private void place(RoomFloor floor, int along, int across, String id) {
         int[] cell = floor.toLocal(along, across);
         floor.place(id, cell[0], cell[1]);
     }
 
-    private void reserve(CompartmentFloor floor,
+    private void reserve(RoomFloor floor,
                          int along, int across, int alongSpan, int acrossSpan) {
         int[] rect = floor.toLocalRect(along, across, alongSpan, acrossSpan);
         floor.reserveLane(rect[0], rect[1], rect[2], rect[3]);
     }
 
-    private void closeOff(CompartmentFloor floor,
+    private void closeOff(RoomFloor floor,
                           int along, int across, int alongSpan, int acrossSpan) {
         int[] rect = floor.toLocalRect(along, across, alongSpan, acrossSpan);
         floor.closeOff(rect[0], rect[1], rect[2], rect[3]);
     }
 
-    private void mark(CompartmentFloor floor,
+    private void mark(RoomFloor floor,
                       int along, int across, int alongSpan, int acrossSpan) {
         int[] rect = floor.toLocalRect(along, across, alongSpan, acrossSpan);
         floor.markGround(rect[0], rect[1], rect[2], rect[3], GroundKind.STRIPED);

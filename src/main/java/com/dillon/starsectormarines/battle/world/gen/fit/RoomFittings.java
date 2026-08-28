@@ -1,8 +1,8 @@
-package com.dillon.starsectormarines.battle.world.gen.ship.fit;
+package com.dillon.starsectormarines.battle.world.gen.fit;
 
 import com.dillon.starsectormarines.battle.world.gen.Affordance;
-import com.dillon.starsectormarines.battle.world.gen.ship.fit.AisleFitting.FixtureGroup;
-import com.dillon.starsectormarines.battle.world.gen.ship.fit.AisleFitting.FixtureGroup.Satellite;
+import com.dillon.starsectormarines.battle.world.gen.fit.AisleFitting.FixtureGroup;
+import com.dillon.starsectormarines.battle.world.gen.fit.AisleFitting.FixtureGroup.Satellite;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 import java.util.EnumMap;
