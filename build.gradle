@@ -96,6 +96,12 @@ test {
         // gradle console so devs don't have to dig through the XML report.
         showStandardStreams = true
     }
+    // ~620 test classes share one forked JVM (maxParallelForks = 1, no forkEvery),
+    // and the headless renderers hold decoded sprite caches for the life of that
+    // JVM. The default 512m is now marginal: it survives on an idle machine and
+    // OOMs inside sprite loading when it is not, which surfaces as an unrelated
+    // assertion in whichever memory-hungry test happens to run at the edge.
+    maxHeapSize = '2g'
     // EngineSlotPreviewTest loads vanilla .ship files + sprites from the
     // game install; forward the project-level `starsectorDir` gradle property
     // so the test can find them. Same source of truth the build.gradle root
