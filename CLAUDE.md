@@ -307,6 +307,29 @@ services on the tool runtime classpath. Keep the generic host and lifecycle in
 sources so the shipped mod jar and the generic tool module do not acquire each
 other's domain dependencies.
 
+## Tests
+
+**A unit test tests a unit.** It exercises one class or one function
+directly, on the smallest input that can show the mechanism is right. If it
+has to stand up a world generator, a battle, or a renderer to ask its
+question, it is not a unit test and does not belong in `test` — whatever it
+is measuring, there is a unit underneath it that can be asked directly.
+
+The failure mode is proving the *case* instead of the *core*. A fill-quality
+question is about the fitting and the floor it fills, so it is asked of
+those. Generating five hulls at six seeds to look at the result establishes
+nothing the one fitting did not, fails for reasons belonging to the inputs
+rather than the code, and costs ninety world generations on every run by
+every concurrent session forever. The arithmetic hides: five times six times
+three reads like one test.
+
+A test runs in a second or two. That is a consequence rather than the rule —
+a test aimed at one unit is small because the unit is.
+
+Measurement that genuinely needs the whole space is **evidence, not a
+test**, and belongs in an opt-in Gradle task excluded from `test`, the shape
+`commanderEvidence` and `createSnapshots` already use.
+
 ## Mod layout
 
 The `mod/` folder in this repo is what ships. Pre-pack art inputs — raw
