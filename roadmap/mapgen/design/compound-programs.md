@@ -5,7 +5,8 @@ Status: ACTIVE — direction agreed, nothing implemented.
 Written: 2026-08-28
 
 Updated: 2026-08-28 — the fortress inverts: its interior is packed first and its
-wall is derived from the result. Baseline evidence rendered.
+wall is derived from the result. The packer is family-neutral, the fortress
+program packs, and the envelope-sizing ratio is measured.
 
 Read `mapgen-nouns.md` for the recipe, context, stage, and validation
 obligations any of this inherits. `ship-interiors-nouns.md` owns the deck
@@ -80,6 +81,43 @@ exception becomes the rule, and the special case for the keep disappears into it
 None of this makes the wall less authored. Towers, gates, MG nests, and forward
 bunkers stay exactly what they are; they stop being drawn across a district and
 start being drawn around a fortress.
+
+## Measured: the program has to size the ground
+
+Counted 2026-08-28 over eight seeds, packing the garrison program (1256 cells of
+building floor) into envelopes scaled from it.
+
+| Ground per cell of floor | Envelope | Worst unplaced | Largest untouched square |
+|---|---|---|---|
+| 1.8 | 60x45 | 8 | 14 |
+| 2.0 | 64x48 | 1 | 11 |
+| **2.2** | **67x50** | **0** | **14** |
+| 2.6 | 72x54 | 0 | 20 |
+| 3.0 | 76x57 | 0 | 25 |
+
+Two things follow, and the second was a surprise. There is a real floor at about
+2.2 — below it the program genuinely does not fit, because each building carries
+a wall ring and the roadways between them are two cells wide. And **too much
+ground is a defect in its own right**: the packer scores a position by how
+tightly it wedges against something solid, and at the start the only solid thing
+is the envelope boundary, so an oversized envelope pins every building to the rim
+and leaves a hole in the middle that no tuning fills. The first fortress packed
+this way had a forty-cell void at its centre. Sizing the envelope from the
+program fixed it, which is the law arriving from the other direction: a place
+built from what it is for cannot be given arbitrary ground either.
+
+## Leftover ground is the yard
+
+A hull's leftovers stay solid, because a void inside a ship is structure. A
+fortress's leftovers are its parade ground, and closing them would produce a
+fortress that is mostly corridor and cannot be fought through.
+
+This is also what makes packed roadways read as roadways. Cut against solid
+ground they are the only way through, which is a warren; cut across open yard
+they are the made-up routes over it, and a squad can leave one and cross open
+ground under fire. That choice is what a fortress assault should be about, and
+it is a property of what the leftovers become rather than of how the roads were
+routed.
 
 ## Organic comes from packing, not from subdivision
 
