@@ -253,7 +253,7 @@ class SystemFxSystemTest {
                 "system.test-assist", "Breaching assist", EquipmentGrade.SERVICE, "Rams and a screen.",
                 IntegralSystemEffect.BREACHER_ASSIST, SpecialResourceMode.COOLDOWN,
                 DURATION, COOLDOWN, 0,
-                new BreacherAssistSpec(BOOST, RESISTANCE, arcDegrees), null,
+                new BreacherAssistSpec(BOOST, RESISTANCE, arcDegrees), null, null,
                 new CrossingUnderFireSpec(12f));
     }
 
@@ -262,7 +262,7 @@ class SystemFxSystemTest {
                 "system.test-pod", "Predictive volley", EquipmentGrade.SERVICE, "A brace of missiles.",
                 IntegralSystemEffect.MISSILE_POD, SpecialResourceMode.AMMUNITION,
                 1f, 0f, 2,
-                null, new MissilePodSpec("weapon.micro-missile"),
+                null, new MissilePodSpec("weapon.micro-missile"), null,
                 new SightedStandoffSpec(5f));
     }
 }
