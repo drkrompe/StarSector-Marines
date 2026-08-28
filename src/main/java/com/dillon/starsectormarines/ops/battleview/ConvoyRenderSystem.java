@@ -66,10 +66,12 @@ public final class ConvoyRenderSystem implements RenderSystem {
             float chassisFacingDeg = body.facingDegrees + type.spriteFacingOffsetDeg;
             float cx = cam.cellToScreenX(body.x);
             float cy = cam.cellToScreenY(body.y);
+            float wreckTint = v.state == com.dillon.starsectormarines.battle.vehicle.VehicleState.WRECKED
+                    ? 0.38f : 1f;
             out.addSheetQuad(RenderLayer.CONVOY, cache.sheet,
                     f.x, f.y, f.w, f.h,
                     cx, cy, drawLong, drawShort, chassisFacingDeg,
-                    1f, 1f, 1f, alphaMult);
+                    wreckTint, wreckTint, wreckTint, alphaMult);
 
             if (type.turretFrame >= 0 && type.turretFrame < frames.frames.length) {
                 SpriteSheetFrames.Frame tf = frames.frames[type.turretFrame];
@@ -99,7 +101,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
                         tf.x, tf.y, tf.w, tf.h,
                         cam.cellToScreenX(drawCellX), cam.cellToScreenY(drawCellY),
                         tDrawLong, tDrawShort, turretFacingDeg,
-                        1f, 1f, 1f, alphaMult);
+                        wreckTint, wreckTint, wreckTint, alphaMult);
             }
         }
     }

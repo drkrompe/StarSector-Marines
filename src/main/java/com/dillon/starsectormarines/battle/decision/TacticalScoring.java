@@ -37,6 +37,7 @@ import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.sim.VisionService;
+import com.dillon.starsectormarines.battle.sim.ConvoyService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -85,6 +86,7 @@ public final class TacticalScoring {
     private final AttackerIndexService attackerIndex;
     private final ShotService shots;
     private final DoodadService doodads;
+    private final ConvoyService convoy;
 
     public TacticalScoring(NavigationService nav, UnitRosterService roster,
                            AttackerIndexService attackerIndex, ShotService shots,
@@ -99,6 +101,7 @@ public final class TacticalScoring {
         this.attackerIndex = attackerIndex;
         this.shots = shots;
         this.doodads = doodads;
+        this.convoy = roster.convoy();
     }
 
     /** Per-engaging-ally penalty added to target selection — pushes the squad to spread fire instead of dogpiling. */
@@ -340,7 +343,7 @@ public final class TacticalScoring {
     public long refreshTargetIfNotShootable(long self) {
         World world = roster.world();
         long cur = world.targetId(self);
-        if (roster.isLive(cur)) {
+        if (roster.isAliveById(cur)) {
             if (cellDistance(world.x(self), world.y(self), world.x(cur), world.y(cur)) <= world.attackRange(self)
                     && hasClearShot(self, cur)) {
                 return cur;
@@ -497,6 +500,35 @@ public final class TacticalScoring {
                 best = other;
             }
         }
+        // Convoy vehicles are world entities with HEALTH/ARMOR, deliberately
+        // absent from the infantry-dense roster. Score their tiny id slice
+        // explicitly so they become honest hostile combat targets without
+        // acquiring grid-occupant capabilities.
+        for (long other : convoy.entityIds()) {
+            if (!convoy.isTargetable(other) || convoy.faction(other) == selfFaction) continue;
+            float oxWorld = world.x(other);
+            float oyWorld = world.y(other);
+            int ox = (int) Math.floor(oxWorld);
+            int oy = (int) Math.floor(oyWorld);
+            float d = cellDistance(selfX, selfY, oxWorld, oyWorld);
+            if (d < minRange || d > maxRange) continue;
+            if (d < bestAnyDist) {
+                bestAnyDist = d;
+                bestAny = other;
+            }
+            boolean visible = canSeePair(grid, selfCellX, selfCellY, ox, oy,
+                    shooterAirRadius, 0f);
+            if (!visible && !allowNoLos) continue;
+            float score = d
+                    + scoreCrowding(selfFaction, selfSquadId, other, excludeFromCrowding)
+                    + scoreWeaponAffinity(excludeFromCrowding, other)
+                    + scoreZoneMismatch(selfCellX, selfCellY, ox, oy);
+            if (!visible) score += TARGET_NO_LOS_COST;
+            if (score < bestScore) {
+                bestScore = score;
+                best = other;
+            }
+        }
         return best != 0L ? best : bestAny;
     }
 
@@ -527,7 +559,11 @@ public final class TacticalScoring {
         return canShootPair(grid,
                 world.x(shooter), world.y(shooter),
                 world.x(target), world.y(target),
-                vision.airLosRadius(shooter), vision.airLosRadius(target));
+                vision.airLosRadius(shooter), targetAirLosRadius(target));
+    }
+
+    private float targetAirLosRadius(long target) {
+        return convoy.isVehicle(target) ? 0f : roster.vision().airLosRadius(target);
     }
 
     /**
@@ -561,7 +597,7 @@ public final class TacticalScoring {
      */
     private float scoreWeaponAffinity(long self, long target) {
         if (self == 0L) return 0f;
-        if (!isHardened(roster.identity().type(target))) return 0f;
+        if (!isHardenedTarget(target)) return 0f;
         World world = roster.world();
         // self is the scoring combatant (non-combatant callers pass 0L above), so its
         // COMBAT primary-weapon read is safe by id; null = no per-weapon profile.
@@ -613,6 +649,11 @@ public final class TacticalScoring {
         return type == UnitType.HEAVY_MECH;
     }
 
+    /** Hardened classification over both roster actors and convoy vehicles. */
+    public boolean isHardenedTarget(long target) {
+        return convoy.isVehicle(target) || isHardened(roster.identity().type(target));
+    }
+
     /**
      * True when {@code shooter} carries a loaded rocket and {@code target} is
      * a hardened class (a turret, a drone hub, heavy mech) —
@@ -621,7 +662,7 @@ public final class TacticalScoring {
      */
     public boolean canSpecialTarget(long shooter, long target) {
         World world = roster.world();
-        if (!isHardened(roster.identity().type(target))
+        if (!isHardenedTarget(target)
                 || !world.hasSecondaryWeapon(shooter)) return false;
         SpecialEquipmentDef special = world.specialEquipment(shooter);
         return special.isDirectFireWeapon()
@@ -1812,7 +1853,7 @@ public final class TacticalScoring {
         int sy = world.cellY(self);
         VisionService vision = roster.vision();
         float selfAir = vision.airLosRadius(self);
-        float targetAir = vision.airLosRadius(target);
+        float targetAir = targetAirLosRadius(target);
 
         // Rocketeer-vs-turret pairs search a ring sized to the rocket's range —
         // otherwise an out-of-rifle-range marine paths into rifle range before
@@ -1878,7 +1919,7 @@ public final class TacticalScoring {
         int sy = world.cellY(self);
         VisionService vision = roster.vision();
         float selfAir = vision.airLosRadius(self);
-        float targetAir = vision.airLosRadius(target);
+        float targetAir = targetAirLosRadius(target);
 
         // See findFiringPositionWithin — rocketeer-vs-turret widens the ring.
         float effectiveRange = effectiveAttackRange(self, target, world.attackRange(self));
@@ -2276,7 +2317,7 @@ public final class TacticalScoring {
         int range = Math.max(1, (int) Math.floor(selfRange));
         VisionService vision = roster.vision();
         float selfAir = vision.airLosRadius(self);
-        float targetAir = vision.airLosRadius(target);
+        float targetAir = targetAirLosRadius(target);
         // Self's current cover against the target — per-facing, so a
         // marine already in heavy cover from this threat direction won't
         // downgrade to a cell that lacks that specific facing.

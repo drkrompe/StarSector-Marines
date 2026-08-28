@@ -23,6 +23,11 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
  */
 public final class VehicleFootprint {
 
+    @FunctionalInterface
+    public interface CellConsumer {
+        void accept(int cellX, int cellY);
+    }
+
     private VehicleFootprint() {}
 
     /**
@@ -49,6 +54,33 @@ public final class VehicleFootprint {
                                            float lengthCells, float widthCells,
                                            NavigationGrid grid) {
         return allSamplesValid(x, y, facingDeg, lengthCells, widthCells, grid, false);
+    }
+
+    /**
+     * Visits the grid cells touched by the same 5x3 body samples used for
+     * collision feasibility. Duplicate visits are intentional and harmless for
+     * idempotent map writes; keeping this allocation-free matters more than
+     * deduplicating a fifteen-sample footprint.
+     */
+    public static void forEachSampledCell(float x, float y, float facingDeg,
+                                          float lengthCells, float widthCells,
+                                          NavigationGrid grid, CellConsumer consumer) {
+        float rad = (float) Math.toRadians(facingDeg);
+        float fx = -(float) Math.sin(rad);
+        float fy =  (float) Math.cos(rad);
+        float sx =  (float) Math.cos(rad);
+        float sy =  (float) Math.sin(rad);
+        float halfL = lengthCells * 0.5f;
+        float halfW = widthCells * 0.5f;
+        for (int li = -2; li <= 2; li++) {
+            float u = (li / 2f) * halfL;
+            for (int wi = -1; wi <= 1; wi++) {
+                float v = wi * halfW;
+                int cx = (int) Math.floor(x + u * fx + v * sx);
+                int cy = (int) Math.floor(y + u * fy + v * sy);
+                if (grid.inBounds(cx, cy)) consumer.accept(cx, cy);
+            }
+        }
     }
 
     private static boolean allSamplesValid(float x, float y, float facingDeg,

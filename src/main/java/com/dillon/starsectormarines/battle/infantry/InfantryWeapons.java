@@ -95,7 +95,7 @@ public class InfantryWeapons {
             world.setBurstTimer(id, timer);
             if (timer > 0f) continue;
             long burstTargetId = world.burstTargetId(id);
-            if (!roster.isLive(burstTargetId) || weapon == null) {
+            if (!roster.isAliveById(burstTargetId) || weapon == null) {
                 world.setBurstRemaining(id, 0);
                 world.setBurstTargetId(id, 0L);
                 continue;
