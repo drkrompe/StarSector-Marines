@@ -32,7 +32,10 @@
             <div id="{stat.valueId}" class="comparison-stat-value label tone-edge">{stat.value}</div>
           </div>
         </div>
-        <div id="{card.systemId}" class="{card.systemClasses}">{card.system}</div>
+        <div id="{card.systemRowId}" class="comparison-system-row">
+          <img id="{card.systemIconId}" class="comparison-system-icon" src="{card.systemIcon}" />
+          <div id="{card.systemId}" class="{card.systemClasses}">{card.system}</div>
+        </div>
         <div id="{card.descriptionId}" class="comparison-description label tone-muted">{card.description}</div>
       </div>
     </div>
@@ -99,7 +102,9 @@
   .comparison-stat-fill { height: 100%; background-color: #71c9f2; }
   .comparison-stat-value { width: 46px; text-align: right; }
 
-  .comparison-system { height: 20px; padding: 3px 5px; border-width: 1px; overflow: hidden; }
+  .comparison-system-row { flex-direction: row; height: 26px; gap: 4px; }
+  .comparison-system-icon { width: 26px; height: 26px; }
+  .comparison-system { width: 0px; flex-grow: 1; height: 26px; padding: 6px 3px; border-width: 1px; overflow: hidden; }
 
-  .comparison-description { height: 128px; white-space: normal; overflow: hidden; }
+  .comparison-description { height: 122px; white-space: normal; overflow: hidden; }
 </style>

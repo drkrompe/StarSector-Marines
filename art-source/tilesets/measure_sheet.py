@@ -14,6 +14,8 @@ two 25-cell sheets neither method found 25 at all. Generated tile art blends
 across its own boundaries, so the grid is something the generator knows and the
 pixels do not say. State it with ``--cells`` — which is free when the sheet was
 generated to a layout you asked for — and this will verify it rather than guess.
+Cells need not be square: a 20-frame strip is ``--cells 20x1``, and the split
+divides the plate into exactly that grid.
 
 Usage:
 
@@ -167,15 +169,10 @@ def report(measurement: Measurement, grid: Grid | None) -> str:
 
     lines.append(f"  grid: {grid.cells_across}x{grid.cells_down} stated "
                  f"-> {grid.cell_x:.1f} x {grid.cell_y:.1f} px per cell")
-    if grid.square:
-        across, down = grid.splits_to(measurement.width, measurement.height)
-        verdict = "matches" if (across, down) == (grid.cells_across, grid.cells_down) \
-            else f"splits to {across}x{down}, NOT the stated grid"
-        lines.append(f"  gridCell {grid.grid_cell} {verdict}")
-    else:
-        lines.append(f"  NON-SQUARE CELLS ({grid.cell_x:.1f} vs {grid.cell_y:.1f}). The grid")
-        lines.append("     split takes one cell size, so it cannot cut this sheet in one")
-        lines.append("     action. Seed it to record that rather than as ready to slice.")
+    if not grid.square:
+        lines.append("     Cells are not square, which is ordinary for generated art. The")
+        lines.append("     split divides the plate into exactly the stated grid, so this is")
+        lines.append("     cut the same as any other plate.")
     return "\n".join(lines)
 
 
@@ -196,13 +193,9 @@ def draft(measurement: Measurement, grid: Grid | None) -> dict:
         alpha_min = DEFAULT_ALPHA_MIN
         measured = (f"{measurement.width}x{measurement.height}, no alpha channel, so slicing "
                     "finds one fused piece covering the whole sheet.")
-        if grid is not None and grid.square:
-            measured += (f" Select it and split on the grid at {grid.grid_cell} px, which "
-                         f"yields its {grid.cells_across}x{grid.cells_down} cells.")
-        elif grid is not None:
-            measured += (f" Its {grid.cells_across}x{grid.cells_down} cells are not square "
-                         f"({grid.cell_x:.0f}x{grid.cell_y:.0f} px), so the grid split cannot "
-                         "cut it in one action.")
+        if grid is not None:
+            measured += (f" Select it and split on the {grid.cells_across}x{grid.cells_down} "
+                         f"grid, whose cells are {grid.cell_x:.0f}x{grid.cell_y:.0f} px.")
 
     return {
         "sheet": sheet,
@@ -210,7 +203,8 @@ def draft(measurement: Measurement, grid: Grid | None) -> dict:
         "idPrefix": f"doodad.{name}",
         "cellPx": 32,
         "alphaMin": alpha_min,
-        "gridCell": grid.grid_cell if grid is not None and grid.square else 104,
+        "gridCols": grid.cells_across if grid is not None else 1,
+        "gridRows": grid.cells_down if grid is not None else 1,
         "note": f"TODO - say what this sheet is for and what the next reader would "
                 f"otherwise learn by failing. Measured: {measured}",
     }

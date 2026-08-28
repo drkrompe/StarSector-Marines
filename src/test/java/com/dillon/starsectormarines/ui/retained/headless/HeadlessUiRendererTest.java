@@ -172,6 +172,58 @@ class HeadlessUiRendererTest {
         assertEquals(0, result.getRGB(25, 10));
     }
 
+    @Test
+    void imagesAspectFitAndCentreInsideTheirContentBox(@TempDir Path resourceRoot)
+            throws Exception {
+        Path asset = resourceRoot.resolve("graphics/wide-icon.png");
+        Files.createDirectories(asset.getParent());
+        BufferedImage source = new BufferedImage(8, 4, BufferedImage.TYPE_INT_ARGB);
+        for (int y = 0; y < source.getHeight(); y++) {
+            for (int x = 0; x < source.getWidth(); x++) {
+                source.setRGB(x, y, Color.MAGENTA.getRGB());
+            }
+        }
+        ImageIO.write(source, "PNG", asset.toFile());
+
+        UiElement image = new UiElement("icon")
+                .tag(UiTag.IMAGE)
+                .imageSource("graphics/wide-icon.png")
+                .preferredWidth(40f)
+                .preferredHeight(40f);
+        UiDocument document = new UiDocument(image);
+
+        BufferedImage result = new HeadlessUiRenderer(resourceRoot).render(document, 40, 40);
+
+        // A 2:1 asset in a square box fills the width and keeps its own height.
+        assertEquals(Color.MAGENTA.getRGB(), result.getRGB(20, 20));
+        assertEquals(Color.MAGENTA.getRGB(), result.getRGB(1, 20));
+        assertEquals(0, result.getRGB(20, 2), "letterboxing above the fitted image stays empty");
+        assertEquals(0, result.getRGB(20, 37), "letterboxing below the fitted image stays empty");
+    }
+
+    @Test
+    void anImageWithNoSourcePaintsNothingAtAll() {
+        UiElement blank = new UiElement("icon")
+                .tag(UiTag.IMAGE)
+                .imageSource("  ")
+                .preferredWidth(20f)
+                .preferredHeight(20f);
+        UiElement missing = new UiElement("missing")
+                .tag(UiTag.IMAGE)
+                .imageSource("graphics/there-is-no-such-icon.png")
+                .preferredWidth(20f)
+                .preferredHeight(20f);
+        UiElement root = new UiElement("root").layout(UiLayout.ROW).child(blank).child(missing);
+
+        BufferedImage result = new HeadlessUiRenderer(Path.of("mod"))
+                .render(new UiDocument(root), 40, 20);
+
+        int[] pixels = ((DataBufferInt) result.getRaster().getDataBuffer()).getData();
+        assertEquals(1, Arrays.stream(pixels).distinct().count(),
+                "a missing icon draws no placeholder");
+        assertEquals(0, pixels[0]);
+    }
+
     private static HeadlessUiRenderer renderer() {
         Path starsectorCore = Path.of(System.getProperty("starsectorDir"))
                 .resolve("starsector-core");
