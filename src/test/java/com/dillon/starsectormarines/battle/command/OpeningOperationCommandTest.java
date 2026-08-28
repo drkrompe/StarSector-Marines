@@ -14,7 +14,6 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 class OpeningOperationCommandTest {
 
@@ -25,16 +24,27 @@ class OpeningOperationCommandTest {
         locals.assignedNode = new TacticalNode(TacticalNode.Kind.OBJECTIVE,
                 2, 5, 1, 4, 3, 6, Faction.MARINE, 50, 4);
         Squad raiders = squad(sim, Faction.DEFENDER, UnitType.MILITIA, 16, 5);
+        ObjectiveAssignment localPost = ObjectiveAssignment.holdNode(
+                locals.id, locals.assignedNode);
+        sim.assignSquadCommand(localPost, CommandAuthority.GARRISON,
+                "local-garrison", "preserve opening position");
 
         new OpeningOperationCommand(Faction.MARINE, Faction.DEFENDER, true)
-                .tick(sim);
+                .tick(sim, sim);
         new OpeningOperationCommand(Faction.DEFENDER, Faction.MARINE, false)
-                .tick(sim);
+                .tick(sim, sim);
 
-        assertNull(locals.assignedObjective);
+        assertEquals(localPost, locals.assignedObjective);
+        assertEquals("local-garrison",
+                sim.getSquadCommandDirective(locals.id).issuer());
         assertNotNull(raiders.assignedObjective);
         assertEquals(AssignmentKind.CLEAR_ZONE,
                 raiders.assignedObjective.kind());
+        CommandDirective directive = sim.getSquadCommandDirective(raiders.id);
+        assertNotNull(directive);
+        assertEquals(CommandAuthority.MISSION_COMMAND, directive.authority());
+        assertEquals(OpeningOperationCommand.ISSUER_PREFIX + Faction.DEFENDER,
+                directive.issuer());
         assertEquals(0f, RoutinePatrol.INSTANCE.relevance(
                 WorldState.EMPTY, raiders, sim));
     }

@@ -32,6 +32,25 @@ import java.util.concurrent.ConcurrentHashMap;
  * then ordinary navigation, movement, and separation move the actor there.
  * The standalone battle calls {@link #advance(float)} and
  * {@link #applyAppearance()} from its normal tick pipeline.</p>
+ *
+ * <p><b>Live work is paced by the person, not by a clock.</b> A route is a
+ * rotation rather than a timetable: an actor walks to a job, does it for as long
+ * as the job takes, and then goes to the next one. The alternative — sampling
+ * every actor off one authored clock that budgets its own travel — was measured
+ * on a manned deck and is what a crew spends its life doing: the schedule
+ * assumes an unhurried pace across a whole ship, the pathfinder covers the same
+ * ground several times faster, and everybody arrives at their bench and stands
+ * there waiting for the clock to agree they have got there. Four in five
+ * actor-samples on a transport were an actor standing still at a fixture with
+ * nothing to do, and nine in ten on a capital.</p>
+ *
+ * <p><b>A full room is not a queue.</b> Where the next job on the rotation has
+ * no free place to do it, the actor takes the one after it, and where nothing on
+ * the rotation is free they stay at the job they are already doing for another
+ * turn. A ship with three firing points and six hundred marines is a fact about
+ * the ship; six hundred marines standing motionless in the passage outside the
+ * range is a scheduling defect, and so is one marine standing at a bench they
+ * have finished with.</p>
  */
 public final class AmbientTaskService {
 
@@ -45,7 +64,15 @@ public final class AmbientTaskService {
     private final NavigationService navigation;
     private final MovementService movement;
     private final TaskPointService taskPoints;
+    /**
+     * How long an actor persists with a job it cannot reach before giving up on
+     * it and taking the next one. Long enough that a passing crowd is waited
+     * out, short enough that a genuinely unreachable fixture is not a career.
+     */
+    private static final float PATIENCE_SECONDS = 6f;
+
     private final Map<Long, AmbientTaskRoute> assignments = new ConcurrentHashMap<>();
+    private final Map<Long, Progress> progress = new ConcurrentHashMap<>();
     private final Map<Long, Long> liveFireTargets = new ConcurrentHashMap<>();
     private final Map<Long, Boolean> primaryFireWindows = new ConcurrentHashMap<>();
     private final Map<Long, AmbientTaskPose> livePoses = new ConcurrentHashMap<>();
@@ -97,6 +124,7 @@ public final class AmbientTaskService {
         navigation.clearPath(actorId);
         taskPoints.release(actorId);
         assignments.put(actorId, route);
+        progress.put(actorId, new Progress(route));
         if (targetId != 0L) liveFireTargets.put(actorId, targetId);
         else liveFireTargets.remove(actorId);
         AmbientTaskPose pose = stationaryPoseAtCurrentPosition(actorId, sample(route, elapsedSeconds));
@@ -107,6 +135,7 @@ public final class AmbientTaskService {
 
     public void release(long actorId) {
         assignments.remove(actorId);
+        progress.remove(actorId);
         liveFireTargets.remove(actorId);
         primaryFireWindows.remove(actorId);
         livePoses.remove(actorId);
@@ -134,8 +163,8 @@ public final class AmbientTaskService {
                 release(actorId);
                 continue;
             }
-            RouteSample authored = sampleState(route, elapsedSeconds);
-            AmbientTaskPose pose = advanceTowardDestination(actorId, route, authored, dt);
+            Progress state = progress.computeIfAbsent(actorId, key -> new Progress(route));
+            AmbientTaskPose pose = advanceWork(actorId, route, state, dt);
             livePoses.put(actorId, pose);
             boolean firing = isPrimaryFireWindow(actorId, pose);
             boolean wasFiring = primaryFireWindows.put(actorId, firing) == Boolean.TRUE;
@@ -209,22 +238,22 @@ public final class AmbientTaskService {
     }
 
     /**
-     * The stop somebody joining this route at this moment should be put down at.
+     * The stop somebody joining this route should be put down at.
      *
-     * <p>Not where {@link #sample} says they are. A watch is deliberately spread
-     * across its loop, so at any given instant most of it is between jobs, and
-     * the sampler draws that as the straight line from one stop to the next.
-     * That is right for a presentation teleport and wrong for putting somebody
-     * into the world: on a generated map the line crosses bulkheads, and a
-     * seeded sweep of ship decks found one shift in seventy standing inside one.
+     * <p>Its first, which is not the same job for every member: a shift hands
+     * each of its people a rotation already turned to start on their own, so a
+     * watch coming on is spread across the work rather than queued at one end of
+     * it. What varies within a job is how far through it they are, and that is
+     * the route's phase.
      *
-     * <p>Somebody mid-transit is placed at the job they are heading for rather
-     * than the one they left, so the very first tick finds them arrived instead
-     * of halfway along a leg they never walked.
+     * <p>Never a point between two stops. A route is a loop and the straight
+     * line between its stops is not a corridor — on a generated map it crosses
+     * bulkheads, and a seeded sweep of ship decks once found one shift in
+     * seventy put down inside one.
      */
     public static AmbientTaskRoute.Stop standingPlace(AmbientTaskRoute route,
                                                       float elapsedSeconds) {
-        return route.stops().get(sampleState(route, elapsedSeconds).destinationIndex());
+        return route.stops().get(0);
     }
 
     /**
@@ -244,9 +273,24 @@ public final class AmbientTaskService {
                 release(actorId);
                 continue;
             }
-            AmbientTaskPose pose = working(standingPlace(route, elapsedSeconds), 0f, 0f);
+            Progress state = progress.computeIfAbsent(actorId, key -> new Progress(route));
+            AmbientTaskRoute.Stop stop = route.stops().get(state.stopIndex);
+            // Claimed rather than merely stood on. A member's index already picks
+            // a different fixture for the same job, but two shifts posted to one
+            // room can still land on the same one, and setup that ignores the
+            // claim service puts two people on a cell nothing will separate them
+            // off again.
+            TaskPoint point = stop.pointGroup() == null ? null
+                    : taskPoints.claimNearest(actorId, stop.pointGroup(),
+                            world.x(actorId), world.y(actorId));
+            float worldX = point != null ? point.worldX() : stop.worldX();
+            float worldY = point != null ? point.worldY() : stop.worldY();
+            float focusX = point != null ? point.focusX() : stop.focusX();
+            float focusY = point != null ? point.focusY() : stop.focusY();
+            world.setPos(actorId, worldX, worldY);
+            state.startWork(stop, focusX, focusY);
+            AmbientTaskPose pose = performing(actorId, route, state);
             primaryFireWindows.put(actorId, isPrimaryFireWindow(actorId, pose));
-            applyPosition(actorId, pose);
             livePoses.put(actorId, pose);
             applyAppearance(actorId, pose);
         }
@@ -295,16 +339,82 @@ public final class AmbientTaskService {
         throw new IllegalStateException("ambient route has no sampleable segment");
     }
 
-    private AmbientTaskPose advanceTowardDestination(
-            long actorId, AmbientTaskRoute route, RouteSample authored, float dt) {
-        AmbientTaskRoute.Stop stop = route.stops().get(authored.destinationIndex());
+    /**
+     * One tick of somebody's working day: dwell if they are at a job, walk if
+     * they are on their way to one.
+     */
+    private AmbientTaskPose advanceWork(long actorId, AmbientTaskRoute route,
+                                        Progress state, float dt) {
+        if (state.working) {
+            state.dwellRemaining -= dt;
+            if (state.dwellRemaining > 0f) return performing(actorId, route, state);
+            if (departFor(actorId, route, state)) {
+                state.working = false;
+                state.blockedSeconds = 0f;
+                navigation.clearPath(actorId);
+            } else {
+                // Nowhere on the rotation is free. Carry on with this job rather
+                // than walk off to stand outside a full room.
+                state.dwellRemaining = state.dwellSeconds;
+                return performing(actorId, route, state);
+            }
+        }
+        return travel(actorId, route, state, dt);
+    }
+
+    /**
+     * Leave this job for the next one on the rotation that has somewhere free to
+     * do it, taking the place as we go.
+     *
+     * <p>The claim is made <em>before</em> setting out rather than on arrival, so
+     * a walk is only ever taken to a place that will still be there. It is also
+     * what releases the place just left: {@link TaskPointService} swaps one claim
+     * for another only when the replacement succeeds, so somebody who finds the
+     * whole ship busy keeps the bench they are standing at instead of giving it
+     * up to wait in a corridor for it.
+     *
+     * <p>Steps stop one short of a full turn. Coming back round to the job
+     * already being done is the caller's fallback and reads as staying put;
+     * reached through here it would be a departure to where the actor already
+     * stands, which is a walk of no distance and a fresh arrival every tick.
+     *
+     * @return whether a next job was found and its place taken
+     */
+    private boolean departFor(long actorId, AmbientTaskRoute route, Progress state) {
+        int stops = route.stops().size();
+        for (int step = 1; step < stops; step++) {
+            int index = (state.stopIndex + step) % stops;
+            AmbientTaskRoute.Stop candidate = route.stops().get(index);
+            if (candidate.pointGroup() == null) {
+                taskPoints.release(actorId);
+                state.stopIndex = index;
+                return true;
+            }
+            if (taskPoints.claimNearest(actorId, candidate.pointGroup(),
+                    world.x(actorId), world.y(actorId)) == null) {
+                continue;
+            }
+            state.stopIndex = index;
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Walk towards the job this actor is bound for, and start it on arrival.
+     *
+     * <p>Arrival is not deferred to the next tick. Somebody who reaches their
+     * bench is working at it in the same frame they got there, which is the
+     * whole difference between a rotation and a timetable.
+     */
+    private AmbientTaskPose travel(long actorId, AmbientTaskRoute route,
+                                   Progress state, float dt) {
+        AmbientTaskRoute.Stop stop = route.stops().get(state.stopIndex);
         TaskPoint point = null;
         if (stop.pointGroup() != null) {
-            point = taskPoints.claimNearest(actorId, stop.pointGroup(), world.x(actorId), world.y(actorId));
-            if (point == null) {
-                if (!Paths.isEmpty(world.path(actorId))) navigation.clearPath(actorId);
-                return stationaryPoseAtCurrentPosition(actorId, authored.pose());
-            }
+            point = taskPoints.claimNearest(
+                    actorId, stop.pointGroup(), world.x(actorId), world.y(actorId));
+            if (point == null) return giveUpOn(actorId, route, state, stop, dt);
         } else {
             taskPoints.release(actorId);
         }
@@ -317,8 +427,7 @@ public final class AmbientTaskService {
         int destinationCellY = (int) Math.floor(destinationY);
         if (!navigation.getGrid().inBounds(destinationCellX, destinationCellY)
                 || !navigation.getGrid().isWalkable(destinationCellX, destinationCellY)) {
-            if (!Paths.isEmpty(world.path(actorId))) navigation.clearPath(actorId);
-            return stationaryPoseAtCurrentPosition(actorId, authored.pose());
+            return giveUpOn(actorId, route, state, stop, dt);
         }
 
         boolean arrived = movement.atCell(actorId, destinationCellX, destinationCellY)
@@ -326,16 +435,33 @@ public final class AmbientTaskService {
         int[] path = world.path(actorId);
         boolean wrongDestination = Paths.destX(path) != destinationCellX
                 || Paths.destY(path) != destinationCellY;
+        boolean unroutable = false;
         if (!arrived && (wrongDestination || movement.mayRepath(actorId))) {
             int[] replacement = navigation.findPath(
                     world.cellX(actorId), world.cellY(actorId),
                     destinationCellX, destinationCellY);
             if (!Paths.isEmpty(replacement)) navigation.setPath(actorId, replacement);
-            else if (!Paths.isEmpty(path)) navigation.clearPath(actorId);
+            else {
+                unroutable = true;
+                if (!Paths.isEmpty(path)) navigation.clearPath(actorId);
+            }
         }
         movement.advanceAlongPath(world, actorId, dt);
         arrived = movement.atCell(actorId, destinationCellX, destinationCellY)
                 && movement.settled(actorId);
+
+        if (arrived) {
+            state.startWork(stop, focusX, focusY);
+            return performing(actorId, route, state);
+        }
+        if (unroutable) {
+            state.blockedSeconds += dt;
+            if (state.blockedSeconds >= PATIENCE_SECONDS) {
+                return giveUpOn(actorId, route, state, stop, dt);
+            }
+        } else {
+            state.blockedSeconds = 0f;
+        }
 
         float velocityX = movement.velX(actorId);
         float velocityY = movement.velY(actorId);
@@ -343,14 +469,59 @@ public final class AmbientTaskService {
         float facing = movingNow
                 ? facing(0f, 0f, velocityX, velocityY)
                 : facing(world.x(actorId), world.y(actorId), focusX, focusY);
-        boolean performing = arrived && authored.dwelling();
-        AmbientTaskPose sampled = authored.pose();
         return new AmbientTaskPose(
                 world.x(actorId), world.y(actorId), facing,
-                sampled.locomotionPhase(), performing ? sampled.actionPhase() : 0f,
-                focusX, focusY, performing ? sampled.headLookDegrees() : 0f,
-                movingNow, performing ? stop.activity()
-                        : movingNow ? AmbientActivity.WALKING : AmbientActivity.IDLE);
+                gait(actorId), 0f, focusX, focusY, 0f, movingNow,
+                movingNow ? AmbientActivity.WALKING : AmbientActivity.IDLE);
+    }
+
+    /**
+     * The job cannot be had — its places are all taken, or it cannot be reached
+     * — so take the next one instead.
+     *
+     * <p>Patience is spent before this is reached for an unroutable job and not
+     * at all for a full one, because those are different facts. A crowded
+     * doorway clears; a room with no free bench does not clear because somebody
+     * stood outside it.
+     */
+    private AmbientTaskPose giveUpOn(long actorId, AmbientTaskRoute route,
+                                     Progress state, AmbientTaskRoute.Stop stop, float dt) {
+        state.blockedSeconds = 0f;
+        if (!Paths.isEmpty(world.path(actorId))) navigation.clearPath(actorId);
+        if (departFor(actorId, route, state)) return travel(actorId, route, state, dt);
+        // The whole rotation is spoken for. Stand by rather than mime work at a
+        // place there is no room for this actor at.
+        return new AmbientTaskPose(
+                world.x(actorId), world.y(actorId),
+                facing(world.x(actorId), world.y(actorId), stop.focusX(), stop.focusY()),
+                0f, 0f, stop.focusX(), stop.focusY(), 0f, false, AmbientActivity.IDLE);
+    }
+
+    /** Somebody at their job, as far through it as their dwell has run. */
+    private AmbientTaskPose performing(long actorId, AmbientTaskRoute route, Progress state) {
+        AmbientTaskRoute.Stop stop = route.stops().get(state.stopIndex);
+        float dwell = Math.max(1e-4f, state.dwellSeconds);
+        float actionPhase = clamp01(1f - state.dwellRemaining / dwell);
+        return new AmbientTaskPose(
+                world.x(actorId), world.y(actorId),
+                facing(world.x(actorId), world.y(actorId), state.focusX, state.focusY),
+                0f, actionPhase, state.focusX, state.focusY,
+                headLook(stop.activity(), elapsedSeconds, route.phaseOffsetSeconds()),
+                false, stop.activity());
+    }
+
+    /**
+     * How far through its stride a walking actor is drawn.
+     *
+     * <p>Off the distance walked rather than off the clock, so a stride matches
+     * the ground covered and everybody in a passage is not in step.
+     */
+    private float gait(long actorId) {
+        return positiveModulo(world.x(actorId) + world.y(actorId), 1f);
+    }
+
+    private static float clamp01(float value) {
+        return value < 0f ? 0f : value > 1f ? 1f : value;
     }
 
     private AmbientTaskPose stationaryPoseAtCurrentPosition(long actorId, AmbientTaskPose authored) {
@@ -500,4 +671,63 @@ public final class AmbientTaskService {
     }
 
     private record RouteSample(AmbientTaskPose pose, int destinationIndex, boolean dwelling) { }
+
+    /**
+     * Where one actor has got to on its rotation.
+     *
+     * <p>Per actor rather than per route, because a route is shared, immutable
+     * data and where somebody has got to is the opposite of that. It is also
+     * what makes the work event-driven: a dwell that counts down is a job that
+     * takes as long as it takes, wherever the person doing it happened to arrive
+     * from and however quickly they walked.
+     */
+    private static final class Progress {
+
+        /** Which stop of the route is being worked or walked to. */
+        private int stopIndex;
+
+        /** Seconds left of the current dwell; meaningless unless {@link #working}. */
+        private float dwellRemaining;
+
+        /** How long the current dwell was, so the action phase can be read off it. */
+        private float dwellSeconds;
+
+        /** Whether the actor is at the job or on the way to it. */
+        private boolean working;
+
+        /** What the actor faces while working: the fixture, not the standing cell. */
+        private float focusX;
+
+        /** @see #focusX */
+        private float focusY;
+
+        /** How long this actor has been unable to reach the job it is bound for. */
+        private float blockedSeconds;
+
+        /**
+         * How much of the first dwell to skip, so a watch coming on does not
+         * finish its first job in unison and set off down the passage together.
+         */
+        private float firstDwellRemaining;
+
+        /** Whether the first dwell's head start is still to be spent. */
+        private boolean firstDwellPending = true;
+
+        private Progress(AmbientTaskRoute route) {
+            AmbientTaskRoute.Stop first = route.stops().get(0);
+            float dwell = first.dwellSeconds();
+            firstDwellRemaining = dwell - positiveModulo(route.phaseOffsetSeconds(), dwell);
+        }
+
+        /** Begin the stop just arrived at, facing what it is done to. */
+        private void startWork(AmbientTaskRoute.Stop stop, float focusX, float focusY) {
+            working = true;
+            dwellSeconds = stop.dwellSeconds();
+            dwellRemaining = firstDwellPending ? firstDwellRemaining : dwellSeconds;
+            firstDwellPending = false;
+            blockedSeconds = 0f;
+            this.focusX = focusX;
+            this.focusY = focusY;
+        }
+    }
 }
