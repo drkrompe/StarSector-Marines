@@ -580,7 +580,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, world, turretFire,
                 rng, this::spawn, effects, resupply, this);
         this.groundSystem = new GroundSystem(navigation, rosterService, tacticalScoring, world,
-                turretFire, rng, this::spawn, this, effects, mapEditor);
+                turretFire, rng, this::spawn, this, effects);
         this.vehicleDamageResolver.setDestructionSink(groundSystem::destroyVehicle);
         mapEditor.setRoofCollapseSink((x, y) -> {
             float jx = x + 0.5f + (rng.nextFloat() * 2f - 1f) * 0.25f;
@@ -1696,7 +1696,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // breaches or turret demolishes that happened this tick + clears the
         // vantage-point cache in lockstep. Multiple breaches in one tick
         // (e.g., a rocket shredding a wall section) collapse into one rebuild.
-        navigation.flushZoneGraphIfDirty();
+        navigation.flushNavigationTopologyIfDirty();
         tickProfile.lap(TickProfile.Phase.ZONE_GRAPH);
         if (missionCompletionEnabled) {
             WinCheckSystem.WinResult result =
@@ -1771,7 +1771,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         return attackerIndex.getAttackersOf(target);
     }
 
-    /** Delegates to {@link NavigationService#getVantagePointsFor(int, int)}. Cached per-battle; invalidated in lockstep with the zone-graph rebuild driven by {@link NavigationService#flushZoneGraphIfDirty}. */
+    /** Delegates to {@link NavigationService#getVantagePointsFor(int, int)}. Cached per-battle; invalidated in lockstep with the navigation-topology rebuild driven by {@link NavigationService#flushNavigationTopologyIfDirty}. */
     public int[][] getVantagePointsFor(int tx, int ty) {
         return navigation.getVantagePointsFor(tx, ty);
     }
@@ -1786,6 +1786,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      */
     public void setPath(long u, int[] newPath) {
         navigation.setPath(u, newPath);
+    }
+
+    /** Occupancy-aware hierarchical route for ordinary one-off movement. */
+    public int[] findPath(int startX, int startY, int goalX, int goalY) {
+        return navigation.findPath(startX, startY, goalX, goalY);
     }
 
     /** Shared-goal path seam for dense target-pursuit behaviors. */

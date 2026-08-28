@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.decision;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
@@ -87,7 +86,8 @@ public final class FleeBehavior implements UnitBehavior {
         if (needsRepath && sim.movement().mayRepath(u)) {
             int[] dest = pickFleeDestination(u, threat, sim);
             if (dest != null) {
-                sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), sim.world().cellX(u), sim.world().cellY(u), dest[0], dest[1], sim.getOccupancyMap()));
+                sim.setPath(u, sim.findPath(sim.world().cellX(u),
+                        sim.world().cellY(u), dest[0], dest[1]));
             }
         }
         sim.advanceMovement(u);
@@ -122,7 +122,8 @@ public final class FleeBehavior implements UnitBehavior {
             sim.world().setWanderDwellTimer(u, FAILED_SAMPLE_DWELL);
             return;
         }
-        sim.setPath(u, GridPathfinder.findPath(sim.getGrid(), sim.world().cellX(u), sim.world().cellY(u), dest[0], dest[1], sim.getOccupancyMap()));
+        sim.setPath(u, sim.findPath(sim.world().cellX(u),
+                sim.world().cellY(u), dest[0], dest[1]));
         if (Paths.isEmpty(sim.world().path(u))) {
             // Pathfinder found no route (isolated room, blocked by walls). Dwell briefly and try elsewhere.
             sim.world().setWanderDwellTimer(u, FAILED_SAMPLE_DWELL);

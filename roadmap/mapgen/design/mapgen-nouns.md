@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — separated cell standability from shared-edge transitions, widened compound firing aprons, and stated the interior-anchor standability guarantee.
+Updated: 2026-08-28 — separated authoritative cells, shared-edge transitions, and derived regions; widened compound firing aprons; guaranteed standable interior anchors; and made orphaned-pocket sealing yield to a compound.
 
 Map generation turns a deterministic request into a validated tactical world. It
 owns authored spatial intent; runtime systems own subsequent mutation and play.
@@ -57,6 +57,14 @@ Runtime topology retains the permissive-mutation law: destruction may open an
 authored edge, while construction that closes an edge under existing paths is a
 separate future problem.
 
+The greedy navigation mesh is derived runtime structure, not generated map
+authority. It combines compatible walkable cells into deterministic rectangular
+regions, preserves doorways and closed edges as seams, and publishes passable
+boundary intervals between regions. Generation and runtime destruction mutate
+cells or shared edges; the ordinary navigation-topology flush then rebuilds the
+mesh alongside zones and geometry-dependent caches. A generator must never
+author a region directly or depend on a particular greedy decomposition.
+
 **Room purpose** is a carve-time semantic label, such as a room, corridor, or
 special facility. Consumers ask the purpose instead of rediscovering regions
 from coordinates. It must remain an authored fact, not a post-hoc convention.
@@ -75,6 +83,16 @@ generation stages must not overwrite their enclosing authored footprint.
 Because an anchor carries identity rather than standability, a consumer that
 needs somewhere to stand — or a room to resolve — derives that cell from the
 place's footprint instead of reading it off the anchor.
+
+A late stamper that overwrites earlier structure can strand walkable ground
+behind it. Such an **orphaned pocket** is normally filled in solid, because a
+room with no way in is scenery, and cutting it a new entrance would scatter
+openings through authored wall geometry. A pocket holding a compound is the
+exception: it is breached open, because a compound is a mission's win condition
+and burying one does not cost a room, it makes the mission unwinnable. The
+general law is that structure yields to a place the mission depends on, never
+the other way round — and that declining to bury such a place is not enough on
+its own, since ground nobody can walk to is as useless as ground that is gone.
 
 A point of interest's **interior anchor** is the opposite promise: the cell a
 mission objective is placed on, and therefore standable whenever the footprint

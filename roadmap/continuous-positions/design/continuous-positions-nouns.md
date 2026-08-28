@@ -4,7 +4,7 @@ Status: SHIPPED — ground combat uses continuous cell-space positions over a di
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — distinguished cell standability from shared-edge transition passability.
+Updated: 2026-08-28 — added bounded coarse-to-fine routing over reactive greedy regions.
 
 ## Vocabulary
 
@@ -14,6 +14,10 @@ Updated: 2026-08-28 — distinguished cell standability from shared-edge transit
 - **Path** is a grid route: an ordered sequence of cell destinations connected
   by passable transitions. It guides a continuous mover but is not the mover's
   location.
+- **Navigation region** is a derived axis-aligned rectangle of compatible
+  walkable cells joined by passable internal edges. Regions and their boundary
+  intervals form the acceleration seam for higher-level routing; they never replace or modify the
+  authoritative cells and shared edges from which they were built.
 - **Arrival** means being within the arrival radius of a named cell center. **Settled** means the current path is exhausted. **Repath permission** is a throttle decision. These are distinct questions.
 - **Footprint radius** is a unit type's physical extent in continuous space.
   It applies to picking, blast reach, separation, and physical ballistic
@@ -29,7 +33,13 @@ Updated: 2026-08-28 — distinguished cell standability from shared-edge transit
 Navigation retains ownership of discrete map facts. A cell owns whether an
 agent may stand in its area, while a shared cardinal edge owns whether an agent
 may transition between two standable cells; this permits thin boundary
-barriers without declaring either adjacent cell unusable. A* routes,
+barriers without declaring either adjacent cell unusable. The greedy navigation
+mesh combines compatible cells into immutable, revisioned rectangular regions;
+closed edges become region seams and doorway cells remain explicit singleton
+regions. Ordinary one-off routes search those regions and boundary intervals,
+pad the selected region corridor, then run authoritative cell A* inside it.
+Shared-goal reverse fields remain the dense same-destination path for a frozen
+unit-update snapshot. A* routes,
 walkability and occupancy density, perception line of sight, fog, zones, and
 topology all consume a grid projection at their boundary. A grid result is
 converted back to a center only when it becomes a point-space destination. Direct-fire
@@ -52,13 +62,22 @@ Nearby-unit queries snapshot true positions once per tick. Point-space consumers
    connectivity from walkability alone. Direct fire may intersect a continuous
    segment with authored blocker shapes; it does not create a second terrain
    model.
-4. Arrival, settling, and repath permission must never be inferred from one old-style progress flag or exact point equality. A completed route pins its final center so arrival and settling agree for its own destination.
-5. A live spatial distance must use true positions. A bucket, cache key, destination cell, or map lookup may use projected cells only where the discrete abstraction is the intended authority.
-6. Radius is the shared interaction footprint. Direct-fire aim remains
+4. Cells and shared edges remain navigation authority. A region mesh is a
+   disposable acceleration snapshot and must be rebuilt from that authority;
+   no mutation may patch a region while leaving the grid unchanged. Runtime
+   topology changes are batched, then zones, region mesh, retained path fields,
+   and geometry-dependent caches advance together at one flush boundary.
+   A hierarchical route is accepted only after cell-level refinement and only
+   when its measured cost is no more than 25% above an admissible lower bound;
+   stale, failed, overly broad, or overly indirect corridors fall back to
+   unrestricted cell A*.
+5. Arrival, settling, and repath permission must never be inferred from one old-style progress flag or exact point equality. A completed route pins its final center so arrival and settling agree for its own destination.
+6. A live spatial distance must use true positions. A bucket, cache key, destination cell, or map lookup may use projected cells only where the discrete abstraction is the intended authority.
+7. Radius is the shared interaction footprint. Direct-fire aim remains
    entity-targeted, while ballistic resolution tests the physical ray against
    unit radii and may contact an incidental body first.
-7. Separation is soft, deterministic, and subordinate to authored movement: it relaxes overlap over time, never becomes hard collision, stays on walkable space, and cannot move a unit faster than its intent permits. Static ground emplacements anchor; independently kinematic craft do not participate.
-8. Formation steering may shape a coherent moving allied group, but it must
+8. Separation is soft, deterministic, and subordinate to authored movement: it relaxes overlap over time, never becomes hard collision, stays on walkable space, and cannot move a unit faster than its intent permits. Static ground emplacements anchor; independently kinematic craft do not participate.
+9. Formation steering may shape a coherent moving allied group, but it must
    remain weaker than physical separation and must yield in constrained
    terrain. A brief movement-derived heading may finish settling infantry that
    already share one authored destination; it expires and never applies across
@@ -72,5 +91,9 @@ Air and convoy systems own their own continuous bodies; they are not ground `POS
 Future work may improve path geometry, tactical scoring precision, or
 firing-position selection, but must preserve the projection boundary and the
 separate point-authoritative direct-fire boundary.
+Hierarchical routing searches navigation regions and their boundary intervals,
+then refines against the authoritative grid. Clearance or terrain-cost variants
+may derive their own compatible-region snapshots rather than weakening the base
+mesh's uniform traversal contract.
 Surface-to-surface range rules and broader ballistic-contact changes belong to
 the combat model; they are not implied by continuous positions.

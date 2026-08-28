@@ -19,7 +19,6 @@ import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
-import com.dillon.starsectormarines.battle.world.MapEditor;
 
 import java.util.ArrayDeque;
 import java.util.HashSet;
@@ -65,13 +64,12 @@ public class GroundSystem {
      *  live in the {@code VEHICLE_MISSION} component (reached via {@link ConvoyService#mission},
      *  not a side list) — no separate mission storage. GONE ids are reaped each tick. */
     private final EffectsService effects;
-    private final MapEditor mapEditor;
 
     public GroundSystem(NavigationService navigation, UnitRosterService roster,
                         com.dillon.starsectormarines.battle.decision.TacticalScoring tacticalScoring,
                         World world, TurretFireSink fireSink, Random rng,
                         Consumer<EntitySpec> addUnitSink, SquadDirectiveControl commandControl,
-                        EffectsService effects, MapEditor mapEditor) {
+                        EffectsService effects) {
         this.navigation = navigation;
         this.roster = roster;
         this.tacticalScoring = tacticalScoring;
@@ -81,7 +79,6 @@ public class GroundSystem {
         this.addUnitSink = addUnitSink;
         this.commandControl = commandControl;
         this.effects = effects;
-        this.mapEditor = mapEditor;
         this.convoy = roster.convoy();
         this.controlSystem = new VehicleControlSystem(convoy, navigation);
     }
@@ -195,8 +192,15 @@ public class GroundSystem {
 
     /**
      * Once-only terminal transition invoked by the vehicle damage resolver.
-     * The entity remains present as a darkened chassis/wreck obstacle, but its
-     * mission, motion, turret, targetability, and onboard payload all stop here.
+     * The entity remains present as a darkened chassis, but its mission, motion,
+     * turret, targetability, and onboard payload all stop here.
+     *
+     * <p>The map is not touched. A wreck is a rendered chassis and nothing more:
+     * it writes neither walkability nor line of sight, so a hull that dies in a
+     * doorway or a street cannot strand a region behind it or cut the firing
+     * line the squad just won. Every navigation authority — the infantry grid,
+     * the zone graph, and vehicle clearance — sees the map it saw a tick
+     * earlier.
      */
     public void destroyVehicle(long id) {
         VehicleMission mission = convoy.mission(id);
@@ -213,20 +217,7 @@ public class GroundSystem {
             turret.burstRemaining = 0;
         }
         resolveOnboardPassengers(id, mission, type, body);
-        mapEditor.placeVehicleWreck(body, type);
-        refreshRouteClearance();
         effects.spawnSmokingWreck((int) Math.floor(body.x), (int) Math.floor(body.y));
-    }
-
-    /** Rebuild every active mission's immutable clearance snapshot after the wreck closes cells. */
-    private void refreshRouteClearance() {
-        NavigationGrid grid = navigation.getGrid();
-        for (long vehicleId : convoy.entityIds()) {
-            VehicleMission active = convoy.mission(vehicleId);
-            if (active == null || active.routeClearance == null) continue;
-            active.routeClearance = VehicleClearance.erode(
-                    grid, active.routeClearance.radiusCells());
-        }
     }
 
     private void resolveOnboardPassengers(long id, VehicleMission mission,
