@@ -493,8 +493,14 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             AuthoringMessages.info(root, "Split on grid", TilesetOperations.DEGENERATE_GRID_MESSAGE);
             return;
         }
-        List<TilesetExport.Entry> replaced =
-                TilesetOperations.splitOnGrid(model.entries, model::isSelected, cols, gridDown);
+        List<TilesetExport.Entry> replaced;
+        try {
+            replaced = TilesetOperations.splitOnGrid(
+                    model.entries, model::isSelected, idPrefix.getText().trim(), cols, gridDown);
+        } catch (IllegalArgumentException refused) {
+            AuthoringMessages.info(root, "Split on grid", refused.getMessage());
+            return;
+        }
         model.setEntries(replaced);
         view.setEntries(replaced);
         markDirty();

@@ -9,7 +9,7 @@
         1,
         1
       ],
-      "id": "doodad.nature.piece-000-a",
+      "id": "doodad.nature.c0r0",
       "included": true,
       "rect": [
         0,
@@ -24,7 +24,7 @@
         1,
         1
       ],
-      "id": "doodad.nature.piece-000-b",
+      "id": "doodad.nature.c1r0",
       "included": true,
       "rect": [
         109,
@@ -39,7 +39,7 @@
         1,
         1
       ],
-      "id": "doodad.nature.piece-000-c",
+      "id": "doodad.nature.c2r0",
       "included": true,
       "rect": [
         217,
@@ -54,7 +54,7 @@
         1,
         1
       ],
-      "id": "doodad.nature.piece-000-d",
+      "id": "doodad.nature.c3r0",
       "included": true,
       "rect": [
         326,
@@ -69,7 +69,7 @@
         1,
         1
       ],
-      "id": "doodad.nature.piece-000-e",
+      "id": "doodad.nature.c4r0",
       "included": true,
       "rect": [
         434,
@@ -84,7 +84,7 @@
         1,
         1
       ],
-      "id": "doodad.nature.piece-000-f",
+      "id": "doodad.nature.c5r0",
       "included": true,
       "rect": [
         543,
@@ -99,7 +99,7 @@
         1,
         1
       ],
-      "id": "doodad.nature.piece-000-g",
+      "id": "doodad.nature.c6r0",
       "included": true,
       "rect": [
         652,
@@ -114,7 +114,7 @@
         1,
         1
       ],
-      "id": "doodad.nature.piece-000-h",
+      "id": "doodad.nature.c7r0",
       "included": true,
       "rect": [
         760,
@@ -129,7 +129,7 @@
         1,
         1
       ],
-      "id": "doodad.nature.piece-000-i",
+      "id": "doodad.nature.c8r0",
       "included": true,
       "rect": [
         869,
@@ -144,7 +144,7 @@
         1,
         1
       ],
-      "id": "doodad.nature.piece-000-j",
+      "id": "doodad.nature.c9r0",
       "included": true,
       "rect": [
         977,
@@ -159,7 +159,7 @@
         1,
         1
       ],
-      "id": "doodad.nature.piece-000-k",
+      "id": "doodad.nature.c10r0",
       "included": true,
       "rect": [
         1086,
@@ -174,7 +174,7 @@
         1,
         1
       ],
-      "id": "doodad.nature.piece-000-l",
+      "id": "doodad.nature.c11r0",
       "included": true,
       "rect": [
         1195,
@@ -189,7 +189,7 @@
         1,
         1
       ],
-      "id": "doodad.nature.piece-000-m",
+      "id": "doodad.nature.c12r0",
       "included": true,
       "rect": [
         1303,
@@ -204,7 +204,7 @@
         1,
         1
       ],
-      "id": "doodad.nature.piece-000-n",
+      "id": "doodad.nature.c13r0",
       "included": true,
       "rect": [
         1412,
@@ -219,7 +219,7 @@
         1,
         1
       ],
-      "id": "doodad.nature.piece-000-o",
+      "id": "doodad.nature.c14r0",
       "included": true,
       "rect": [
         1520,
@@ -234,7 +234,7 @@
         1,
         1
       ],
-      "id": "doodad.nature.piece-000-p",
+      "id": "doodad.nature.c15r0",
       "included": true,
       "rect": [
         1629,
@@ -249,7 +249,7 @@
         1,
         1
       ],
-      "id": "doodad.nature.piece-000-q",
+      "id": "doodad.nature.c16r0",
       "included": true,
       "rect": [
         1738,
@@ -264,7 +264,7 @@
         1,
         1
       ],
-      "id": "doodad.nature.piece-000-r",
+      "id": "doodad.nature.c17r0",
       "included": true,
       "rect": [
         1846,
@@ -279,7 +279,7 @@
         1,
         1
       ],
-      "id": "doodad.nature.piece-000-s",
+      "id": "doodad.nature.c18r0",
       "included": true,
       "rect": [
         1955,
@@ -294,7 +294,7 @@
         1,
         1
       ],
-      "id": "doodad.nature.piece-000-t",
+      "id": "doodad.nature.c19r0",
       "included": true,
       "rect": [
         2063,
