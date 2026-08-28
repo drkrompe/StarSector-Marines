@@ -6,6 +6,11 @@ runtime atlas dimensions, fixed-grid alpha topology, and auto-strip frame
 ordering. The checked-in runtime atlases are the geometry templates and are
 overwritten in place with normalized output. Individual material replacements
 are applied afterward through ``texture-atlases.json``.
+
+Borrowing the alpha topology makes a shipped atlas its own input, so this
+script may only be pointed at a sheet whose raw plate is opaque. A sheet whose
+raw art has been keyed is exported from its authoring document instead, and is
+refused here rather than silently reverted.
 """
 
 from __future__ import annotations
@@ -43,21 +48,19 @@ class StripSpec:
 
 
 GRID_SPECS = (
-    GridSpec("urban-tileset.png", "urban-tileset.raw.png", "urban-tileset.png"),
     GridSpec("Floors_Tiles.png", "Floors_Tiles.raw.png", "Floors_Tiles.png"),
     GridSpec("Water_tiles.png", "Water_tiles.raw.png", "Water_tiles.png"),
 )
 
-# urban-tileset-3 is deliberately absent: its raw sheet now carries its own
-# keyed alpha (see key_background.py) and its atlas is produced by the tileset
-# authoring export from urban-tileset-3.tileset-authoring.json. Re-adding it here
-# would make the shipped atlas this sheet's own input again — the circularity
-# that made it un-re-exportable — and running this script would silently revert
-# the export. The same is still true of urban-tileset below, which is generated
-# from its keyed raw sheet but has not been withdrawn from GRID_SPECS.
 STRIP_SPECS = (
     StripSpec("nature-tiles.png", "nature-tiles.raw.png", "nature-tiles.png", 20),
 )
+
+# Two sheets that were once listed above are deliberately absent, and the guard
+# below is what keeps them absent. Their raw art now carries its own keyed alpha
+# and their atlases are produced by the tileset authoring export from their
+# authoring documents; this script is no longer their producer. See
+# _refuse_keyed_raw_sheets for why that is measured rather than written down.
 
 # Auto-strips need their original production placement boxes pinned explicitly.
 # The normalized alpha silhouettes do not necessarily touch every side of those
@@ -401,7 +404,48 @@ def validate() -> None:
             raise ValueError(f"{spec.output}: detected {count} frames, expected {spec.frames}")
 
 
+def _refuse_keyed_raw_sheets() -> None:
+    """Refuse to run against any sheet whose raw art carries its own alpha.
+
+    This script derives an atlas by transferring fresh colour onto the alpha of
+    the atlas it is about to overwrite. That makes the shipped file its own
+    input, which is fine only while the raw plate is opaque and has therefore
+    recorded nothing about what is background and what is art.
+
+    A raw sheet that has been keyed has recorded exactly that, at the source,
+    per cell. Its atlas is exported from its authoring document instead, and
+    this script is not its producer. Running it anyway would rebuild the sheet
+    from the alpha topology of the file it is replacing and silently revert the
+    export: a valid PNG, the right size, the wrong art, and nothing red at the
+    moment it happens.
+
+    The withdrawal is measured rather than declared. Keying the plate *is* the
+    withdrawal, so there is no flag to set, no list to keep in step, and nothing
+    for the next person to have read. Removing a sheet from the spec tuples
+    above without this check would be an instruction, and an instruction is
+    followed until it isn't.
+    """
+    keyed = []
+    for spec in (*GRID_SPECS, *STRIP_SPECS):
+        with Image.open(HERE / spec.raw) as image:
+            if "A" not in image.getbands():
+                continue
+            alpha = np.asarray(image.getchannel("A"))
+        if bool((alpha < 128).any()):
+            keyed.append(spec.raw)
+    if keyed:
+        raise SystemExit(
+            "refusing to run: " + ", ".join(keyed) + " carries its own keyed "
+            "alpha, so its atlas is exported from its authoring document and "
+            "this script is not its producer. Normalizing it would rebuild it "
+            "from the alpha of the atlas it is about to overwrite, silently "
+            "reverting that export. Remove it from GRID_SPECS/STRIP_SPECS and "
+            "export it through the tileset authoring exporter instead."
+        )
+
+
 def main() -> None:
+    _refuse_keyed_raw_sheets()
     for spec in GRID_SPECS:
         normalize_grid(spec)
     for spec in STRIP_SPECS:
