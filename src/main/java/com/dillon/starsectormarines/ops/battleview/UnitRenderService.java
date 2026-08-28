@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+import com.dillon.starsectormarines.battle.mech.MechGaitState;
 import com.dillon.starsectormarines.battle.sim.TurretStateService;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -70,13 +71,10 @@ public final class UnitRenderService implements RenderSystem {
     private static final Color CIVILIAN_COLOR = new Color(0xC8, 0xC8, 0x80);
     /** Composition-wide scale relative to the original layered infantry sizing. */
     static final float LAYERED_INFANTRY_SCALE = 0.60f;
-    /** Composition-wide scale relative to the original layered mech sizing. */
-    static final float LAYERED_MECH_SCALE = 1.40f;
-
     /** Shared physical sizing authority for battle and shipboard room projections. */
     static float layeredMechHullWidth(float cellPx, float renderScale) {
-        return cellPx * BattleRenderer.UNIT_FRAC * renderScale * 0.82f
-                * LAYERED_MECH_SCALE;
+        return cellPx * BattleRenderer.UNIT_FRAC
+                * LayeredMechAppearance.hullWidthCells(renderScale);
     }
 
     /** Shared physical sizing authority for layered infantry room projections. */
@@ -352,6 +350,7 @@ public final class UnitRenderService implements RenderSystem {
             boolean hasSecondary = t.has(c.SECONDARY_WEAPON);
             boolean hasLayered = t.has(c.LAYERED_ANIMATION);
             boolean hasMechLayered = t.has(c.MECH_LAYERED_ANIMATION);
+            boolean hasMechGait = t.has(c.MECH_GAIT_STATE);
             Object[] secSpec = hasSecondary
                     ? t.objects(c.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_SPEC).array() : null;
             Object[] primaryWeapon = t.has(c.COMBAT)
@@ -396,6 +395,9 @@ public final class UnitRenderService implements RenderSystem {
                     ? t.ints(c.MECH_LAYERED_ANIMATION, BattleComponents.MECH_LAYERED_LEFT_SHOULDER).array() : null;
             int[] mechRightShoulder = hasMechLayered
                     ? t.ints(c.MECH_LAYERED_ANIMATION, BattleComponents.MECH_LAYERED_RIGHT_SHOULDER).array() : null;
+            Object[] mechGait = hasMechGait
+                    ? t.objects(c.MECH_GAIT_STATE,
+                    BattleComponents.MECH_GAIT_STATE_STATE).array() : null;
 
             for (int r = 0, n = t.rowCount(); r < n; r++) {
                 long entityId = t.entityAt(r);
@@ -423,11 +425,22 @@ public final class UnitRenderService implements RenderSystem {
                             cam.cellPxSize(), roster.renderScale(entityId));
                     LayerPose authoredPose = mechPose(mechChassis[r], mechLocomotion[r],
                             mechFlags[r]);
+                    MechGaitState gait = mechGait != null
+                            ? (MechGaitState) mechGait[r] : null;
+                    LayeredMechComposer.GaitPose gaitPose = gait != null
+                            ? new LayeredMechComposer.GaitPose(
+                            cam.cellToScreenX(gait.leftFootX()),
+                            cam.cellToScreenY(gait.leftFootY()), gait.leftFootFacing(),
+                            cam.cellToScreenX(gait.rightFootX()),
+                            cam.cellToScreenY(gait.rightFootY()), gait.rightFootFacing(),
+                            cam.cellToScreenX(rx[r] + gait.waistOffsetX()),
+                            cam.cellToScreenY(ry[r] + gait.waistOffsetY()),
+                            gait.leftFootLift(), gait.rightFootLift()) : null;
                     LayeredMechComposer.emit(out, mechAssets, cx, cy, hullWidth,
                             mechHipFacing[r], mechFacing[r], mechLocomotion[r], mechChaingunPhase[r],
                             mechSrmPhase[r], mechLrmPhase[r], mechFlags[r], mechChassis[r],
                             mechArms[r], mechLeftShoulder[r], mechRightShoulder[r], unitAlpha,
-                            authoredPose);
+                            authoredPose, gaitPose);
                     continue;
                 }
                 LayeredArmorFamily bodyFamily = hasLayered
