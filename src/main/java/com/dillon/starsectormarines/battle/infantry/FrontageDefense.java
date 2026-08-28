@@ -184,7 +184,14 @@ public final class FrontageDefense implements Goal {
         int alive = Math.max(1, squad.aliveMembers);
         int reserve = alive >= MIN_SQUAD_FOR_RESERVE
                 ? Math.max(1, Math.round(alive * RESERVE_FRACTION)) : 0;
-        int onPost = Math.max(1, alive - reserve);
+        // The reserve is there so one threatened facing cannot strip the rest
+        // of the envelope. It must never be the reason a threatened facing has
+        // nobody on it: a squad that cannot picket every side it believes is
+        // under threat gives up reserve bodies until it can, or until it runs
+        // out. Under a four-sided assault an attrited garrison hits this, and
+        // holding two back while a wall stands empty is the wrong trade.
+        int facings = threatenedFacings(threatened);
+        int onPost = Math.max(1, Math.max(alive - reserve, Math.min(alive, facings)));
 
         List<ApertureHold.Post> posts = new ArrayList<>(alive);
         Set<Long> taken = new HashSet<>(claimed);
@@ -303,6 +310,13 @@ public final class FrontageDefense implements Goal {
         TacticalNode node = heldNode(squad, sim);
         if (node == null) return List.of();
         return zonesFor(node, layersFor(squad, sim).get(0), sim);
+    }
+
+    /** How many distinct facings carry believed threat right now. */
+    private static int threatenedFacings(List<Aperture> threatened) {
+        Set<DefenseFrontage.Facing> facings = new LinkedHashSet<>();
+        for (Aperture aperture : threatened) facings.add(aperture.facing());
+        return facings.size();
     }
 
     /**

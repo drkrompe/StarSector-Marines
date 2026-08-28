@@ -10,7 +10,8 @@ it and make believed pressure, rather than local contact, the trigger for
 manning them; recorded what an aperture may open onto and what an open-sided
 envelope yields; added held layers, so a bounded few garrisons may share a
 perimeter and a garrison that loses one envelope falls back to the next; made
-allocation picket every threatened facing before massing on the hottest.
+allocation picket every threatened facing before massing on the hottest, with
+the reserve yielding to that rule.
 
 AI turns an assignment and what a squad has learned into coordinated movement,
 posture, and fire intent. It is a decision system, not the authority for combat
@@ -597,7 +598,16 @@ reserve so a single threatened facing cannot strip the rest of the envelope.
 
 Allocation **pickets before it masses**: every threatened facing receives a post
 before any facing receives a second one, and the remainder go in plain threat
-order. Ranking apertures by pressure alone is right for one approach and wrong
+order. The interior reserve yields to that rule rather than outranking it — a
+squad too small to picket every side it believes is threatened gives up reserve
+bodies until it can. The reserve exists so one facing cannot strip the envelope;
+it must never itself be the reason a wall stands empty.
+
+Because posts are chosen at replan time and belief moves continuously, a side
+that becomes threatened is uncovered until its garrison next replans. The
+guarantee is that the gap closes within a replan period, not that it never
+opens; a defense that re-aimed every tick would be reading the map rather than
+its own reports. Ranking apertures by pressure alone is right for one approach and wrong
 for two — the field ranks a whole wall above another, so a squad filling from
 one global list puts everybody on whichever side reads hotter and leaves the
 other approach with nobody facing it. A picket on each threatened approach and

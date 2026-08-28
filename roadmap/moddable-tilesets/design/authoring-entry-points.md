@@ -4,6 +4,8 @@ Status: SHIPPED
 
 Written: 2026-08-28
 
+Updated: 2026-08-28 — why the checked-in wrappers build before every call
+
 Read `moddable-tilesets-nouns.md` first. This doc holds the reasoning behind
 *how* the authoring pass is reached, not what it does; the pass itself and its
 standing laws live in the noun doc under "Authoring: raw sheet to packed atlas".
@@ -68,6 +70,56 @@ launchers rather than being one, resolving the tool classpath into an argument
 file and writing scripts that exec `java` directly. They are generated rather
 than checked in because they embed an absolute classpath, so each checkout and
 each worktree registers its own.
+
+## Why the checked-in wrapper builds before every call
+
+A generated launcher execs `java -classpath build/classes/java/test`. It
+therefore runs whatever was compiled last, and there is nothing in its output —
+by construction, since it is one `java` line — to say how old that is.
+
+This is not a theoretical hazard. A `tileset_slice` call made immediately after
+a new safety guard was merged ran pre-guard classes; the guard did not fire, and
+it destroyed a hand-authored hundred-cell cut and its block-slot assignments.
+Run against current classes the same call correctly refuses and writes nothing.
+The failure mode is the bad one on every axis: silent, indistinguishable from a
+bug in the tool, unattended, and worst precisely when it matters most — right
+after a change, which is exactly when someone reaches for the tool.
+
+So `tools/authoring.sh` and `tools/authoring.cmd` run `installAuthoringTools`
+unconditionally and exec the launcher only if it succeeded. Three alternatives
+were weighed and rejected:
+
+- **A staleness check in the wrapper.** Attractive because it would keep the
+  fast path fast, and wrong because a shell-side comparison of source and class
+  mtimes cannot see a deleted source, a changed resource, a new dependency or an
+  edited `build.gradle` — and every case it gets wrong is silently the original
+  bug again. It would be a second, worse implementation of Gradle's up-to-date
+  check, competing with one that is already correct.
+- **Warn instead of fix.** A line on stderr is invisible in a piped call, and
+  the damaging case was unattended.
+- **Stamp the launcher and compare.** Real defence, but it makes a stale call
+  *loud* rather than impossible, and the freshness build is cheap enough that
+  there is no reason to settle for loud.
+
+The cost was measured rather than assumed: against a warm daemon an up-to-date
+`installAuthoringTools` is about 0.7s, so a call goes from ~0.15s to ~0.85s.
+Under a second is still "one command, one answer"; correctness beats latency for
+a tool whose whole job is rewriting authored files. There is deliberately no
+bypass switch, because a named bypass is a hole someone will set once and forget.
+
+Two consequences worth keeping:
+
+- **A failed build refuses the call** (exit 3) rather than falling back on the
+  last classes that compiled. Classes of unknown age are the thing being
+  prevented; a broken build makes their age exactly that.
+- **The MCP front door cannot be fixed as completely.** `tools/authoring-mcp.cmd`
+  builds before spawning, so a session starts current, but a stdio server holds
+  its classes for the whole session and no wrapper can reload them. Changing
+  tool code means restarting the server or using the one-shot CLI, and the skill
+  says so. This is a real asymmetry between the two front doors, and it is a
+  further reason the one-shot is the default. The generated launchers say in
+  their own headers that they do not check, so reaching past a wrapper is at
+  least an informed choice.
 
 Two Windows details that cost real time to find:
 
