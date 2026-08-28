@@ -4,8 +4,8 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-08-27 — allegiance and the durability bar enter the vocabulary; unit
-decoration now reports the armor pool and codes ownership.
+Updated: 2026-08-27 — the durability bar becomes one segmented gauge over both
+pools, and decoration may be withheld until it carries news.
 
 ## Vocabulary
 
@@ -21,7 +21,8 @@ decoration now reports the armor pool and codes ownership.
 - A **sheet quad** is a sub-rectangle batched from a shared sheet; a **sprite** is a whole texture rendered through the host API. They are presentation forms, not simulation identity.
 - A **render appearance** is a type-shared render-side description of what an entity kind can draw. Dynamic pose, health, visibility, and interpolation remain current simulation inputs.
 - An **allegiance** is the presentation reading of a unit's simulation faction from the player's chair: player, ally, neutral, or enemy. Faction is the side a unit fights for; allegiance is how the person watching should read it. The number of ownership buckets a player can distinguish at a glance stays four however many factions the simulation fields.
-- A **durability bar** is the ownership-coded gauge above an entity reporting its remaining combat durability — the armor pool stacked over the structure pool. It is a per-frame read of current pools, never a second durability authority.
+- A **durability bar** is the ownership-coded gauge above an entity reporting its remaining combat durability. Armor and structure share one band measured against the entity's total authored durability, armor occupying the outer end of the run because it is spent first. It is a per-frame read of current pools, never a second durability authority.
+- A **segment** is one fixed quantity of durability marked off along a bar. The quantity is the same on every bar in the battle, so segment count and density read magnitude directly: a militiaman carries none, an emplacement a handful, a heavy mech a dense comb. Segments measure the entity, not the bar — a longer bar shows the same segments further apart.
 - A **visible cell rectangle** is the camera-derived dense-world cull. It reduces work for cell-backed terrain passes; it does not replace the simulation's cell grid.
 - An **embedded scene host** is a bounded consumer of the ordinary battle camera,
   simulation view, and selected render layers. It owns its viewport and framing,
@@ -74,11 +75,13 @@ Ground is a dense, cell-backed surface. Current camera culling range-loops the v
     snapshot of an embedded battle scene must collect the same simulation,
     camera, selected render systems, command order, and authored assets as live.
 11. Ownership coding is redundant by construction. An allegiance is carried on hue *and* at least one non-color channel, so a busy field, a colorblind reader, and a pulled-back camera all still resolve whose unit it is. Decoration measured in screen pixels stays legible at any zoom; decoration measured in cells does not.
-12. A durability band is drawn only for a pool the entity actually carries. Armor is optional and live-only, so an armorless body reads visibly slimmer rather than showing an empty armor track it could never fill.
+12. Armor and structure are one gauge, not two. They share a band, a scale, and a drain direction, because a player reading a fight tracks how much life is left rather than which pool it currently sits in. The scale is total authored durability, which is what lets one segment mean the same quantity on every bar on the field.
+13. A quantised scale degrades by dropping a tier, never by smearing one. A divider tier too fine to resolve at the current bar length is omitted whole, so the bar falls back to coarser marks and then to none instead of turning into noise.
+14. Decoration may be withheld until it carries news. An emplacement shows no bar until recorded fact says it has been fired on, so a quiet turret line reads as terrain rather than as a row of gauges. Withholding keys on something the simulation already records; the renderer never maintains its own idea of what has happened.
 
 ## Boundaries and extension paths
 
-Allegiance is resolved render-side from simulation faction; the simulation never gains a presentation ownership field. The player's side is `MARINE` by standing convention across missions, so `MARINE` reads as player, `CIVILIAN` as neutral, and anything else as enemy. The ally reading has no producer until the simulation fields a friendly non-player faction — the same allied-contributor gap `fog-of-war-nouns.md` law 2 already names — and is styled ahead of that work so the presentation side needs no second design pass when it lands.
+`combat-durability-nouns.md` owns the two pools, what depletes them, and in which order; the bar only reports that model and must not invent a third pool or a different drain order. Combat telemetry is the recorded-fact source a withheld bar consults. Allegiance is resolved render-side from simulation faction; the simulation never gains a presentation ownership field. The player's side is `MARINE` by standing convention across missions, so `MARINE` reads as player, `CIVILIAN` as neutral, and anything else as enemy. The ally reading has no producer until the simulation fields a friendly non-player faction — the same allied-contributor gap `fog-of-war-nouns.md` law 2 already names — and is styled ahead of that work so the presentation side needs no second design pass when it lands.
 
 `surface-relief-nouns.md` owns the ground-relief composite that may redirect the GROUND layer while preserving the render pipeline's order. `air-nouns.md` owns airborne behavior; this model only guarantees the layered presentation space it consumes. `vanilla-combat-bridge-nouns.md` owns the vanilla host and selects the bridge's subset of ground layers. `moddable-tilesets-nouns.md` owns tile catalog and generation mapping, while rendering resolves their authored visual identity.
 
