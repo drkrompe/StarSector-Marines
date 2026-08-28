@@ -86,6 +86,32 @@ class CommanderServiceTest {
     }
 
     @Test
+    void legacyMissionCommandMutatesOnlyThroughScopedDirectiveControl() {
+        BattleSimulation sim = openSim();
+        Squad marine = addSquad(sim, Faction.MARINE, 2, 2);
+        CommanderService service = new CommanderService();
+        service.setCommander(Faction.MARINE, new MissionCommand() {
+            @Override public Faction faction() { return Faction.MARINE; }
+
+            @Override
+            public void tick(BattleView view, SquadDirectiveControl directives) {
+                directives.assignSquadCommand(
+                        ObjectiveAssignment.support(marine.id),
+                        CommandAuthority.MISSION_COMMAND,
+                        "legacy-test", "scoped mutation");
+            }
+        });
+
+        service.tick(CommanderService.COMMANDER_TICK_PERIOD, sim);
+
+        CommandDirective directive = service.activeDirective(marine.id);
+        assertNotNull(directive);
+        assertEquals("legacy-test", directive.issuer());
+        assertEquals(CommandAuthority.MISSION_COMMAND, directive.authority());
+        assertEquals(directive.assignment(), marine.assignedObjective);
+    }
+
+    @Test
     void pairedConquestCommandsPublishEmptySnapshotsForEmptyPools() {
         BattleSimulation sim = openSim();
         ConquestTrackLayout tracks = new ConquestTrackLayout(
