@@ -407,6 +407,20 @@ public final class BattleComponents {
     /** {@link #MITIGATION} field 3: sim-seconds left before the screen drops (FLOAT); {@code <= 0} = nothing raised. */
     public static final int MITIGATION_REMAINING = 3;
 
+    /**
+     * {@link #SYSTEM_FX} field 0: how much of the running activation's window is
+     * left, as a fraction in {@code [0, 1]} (FLOAT). {@code 1} on the tick the
+     * system is spent, falling to {@code 0} as the window closes. {@code 0} =
+     * nothing is running, which is the whole "is there a treatment" question.
+     */
+    public static final int SYSTEM_FX_INTENSITY = 0;
+    /** {@link #SYSTEM_FX} field 1: the direction the drawn screen faces (FLOAT), copied from the arc the damage path is resolving against. */
+    public static final int SYSTEM_FX_ARC_FACING_DEGREES = 1;
+    /** {@link #SYSTEM_FX} field 2: total width of the drawn screen's arc (FLOAT); {@code 0} = the running system raises no screen. */
+    public static final int SYSTEM_FX_ARC_DEGREES = 2;
+    /** {@link #SYSTEM_FX} field 3: the fraction that screen refuses inside its arc (FLOAT), so a stronger screen may read heavier. */
+    public static final int SYSTEM_FX_ARC_FRACTION = 3;
+
     // ---- component types ----
 
     /** Who/what this entity is — {@code UnitType type, Faction faction, String name}. Persists alive→dead. */
@@ -683,6 +697,32 @@ public final class BattleComponents {
      * by a render-tier system. Removed in the corpse transmute.
      */
     public final ComponentType MITIGATION;
+    /**
+     * Optional <em>presentation</em> state for a running integral system:
+     * {@code float intensity, arcFacingDegrees, arcDegrees, arcFraction}
+     * ({@code progression-nouns.md}).
+     *
+     * <p>Write-only appearance data in the {@link #SPRITE} / {@link #THRUSTER_FX}
+     * sense — {@code battle.appearance.SystemFxSystem} authors it each tick from
+     * the live {@link #INTEGRAL_SYSTEM} and {@link #MITIGATION} state, and the
+     * render tier is a pure reader of it. <b>Nothing in the simulation reads
+     * these columns</b>, and no activation, damage, or movement decision may
+     * ever come to depend on one.
+     *
+     * <p>Presence means "this actor can show a system running", following its
+     * {@link #INTEGRAL_SYSTEM} exactly — the {@link #MITIGATION} shape rather
+     * than an archetype move per activation, so starting and ending a treatment
+     * is four float writes. A treatment that has ended is
+     * {@link #SYSTEM_FX_INTENSITY} {@code 0}; ask
+     * {@code SystemFxService.isRunning} rather than reading the column. Removed
+     * in the corpse transmute, so a treatment can never outlive its wearer.
+     *
+     * <p>Deliberately keyed on the capability rather than on the effect: a
+     * running system with no screen simply reports {@link #SYSTEM_FX_ARC_DEGREES}
+     * {@code 0}, and the renderer branches on the data it was handed instead of
+     * on which suit produced it.
+     */
+    public final ComponentType SYSTEM_FX;
     /**
      * Optional crash state — one OBJECT field holding the
      * {@link com.dillon.starsectormarines.battle.air.components.CrashingComponent}
@@ -1058,6 +1098,8 @@ public final class BattleComponents {
                 FieldKind.OBJECT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.INT);
         MECH_GAIT_STATE = world.register(37, "MechGaitState", FieldKind.OBJECT);
         MITIGATION      = world.register(38, "Mitigation",
+                FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT);
+        SYSTEM_FX       = world.register(39, "SystemFx",
                 FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, SPRITE, CORPSE}, null);

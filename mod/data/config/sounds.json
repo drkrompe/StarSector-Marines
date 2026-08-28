@@ -444,4 +444,30 @@
 
 #collapseclose
 
+#collapseopen INTEGRAL ARMOUR SYSTEM SFX
+
+	# One positional cue per spend of a suit's integral system, played by
+	# BattleScreen from the presentation-owned activation list. Both point straight
+	# at the base game's own files rather than shipping a copy: the mod is a public
+	# release and ships only original or permissively-licensed assets, and an id
+	# registered against the read-only core install redistributes nothing (same
+	# trick as the vehicle engine loops and the flyby weapon block above).
+	#
+	# Both clips are mono, so playSound places them in the world. A stereo clip
+	# here would be silently non-positional.
+
+	# A screen going up in front of a breacher. The damper field is vanilla's own
+	# "a bounded fraction of damage is being refused for a few seconds" cue, which
+	# is exactly what the breach assist's screen is.
+	"marines_system_screen_up":[
+		{"file":"sounds/sfx_systems/damper_field_activate.ogg","pitch":1,"volume":0.85},
+	],
+	# A running system that raises no screen — the shoulder pod's rack coming
+	# live. Kept distinct so the two capabilities do not sound identical.
+	"marines_system_engaged":[
+		{"file":"sounds/sfx_systems/high_energy_focus_activate.ogg","pitch":1,"volume":0.75},
+	],
+
+#collapseclose
+
 }
