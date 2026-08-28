@@ -451,12 +451,16 @@ public final class BspCityGenerator implements MapGenerator {
         int[] marine = ctx.get(BspKeys.MARINE_SPAWN);
         int[] defender = ctx.get(BspKeys.DEFENDER_SPAWN);
 
+        // Berths and fixture work come out of the shared room fittings, which a
+        // city map now uses too: a fortress vehicle shed publishes the same
+        // machine berths a deck's bay does, and dropping them here would leave
+        // the sheds furnished and empty.
         return new MapResult(ctx.grid, ctx.topology,
                 marine[0], marine[1], defender[0], defender[1],
                 ctx.pois, ctx.doodads, this.lastTacticalMap, buildings,
                 ctx.defensePosts, this.lastRoadGraph, ctx.landingPads,
                 ctx.landingAreas,
-                ctx.get(BspKeys.BIOME_MAP));
+                ctx.get(BspKeys.BIOME_MAP), ctx.gantries, ctx.fixtureTasks);
     }
 
     /** Last district map produced by {@link #generate} — exposed for the preview test's overlay rendering. Null in conquest (biome) mode. */

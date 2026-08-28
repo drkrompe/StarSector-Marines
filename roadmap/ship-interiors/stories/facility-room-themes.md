@@ -7,21 +7,27 @@ Written: 2026-08-26
 Updated: 2026-08-28 — the mech bay, berthing, the mess and the firing range are
 furnished and publish affordances and task points. Berthing came out with no room
 for a lounge at its authored size, so that part of the scope is now a question
-about the recipe rather than about the fill. `CompartmentFillSweepTest` now
-measures the empty-region and density criteria across five hulls and six seeds,
-and it says the fill is not there yet: **344 of 2054 fitted compartments hold a
-void larger than four cells square** — a hangar comes out twelve square, an
-engine room ten — and **480 are furnished below a tenth of their floor**. Those
-counts are ratchets, not pass marks; they come down as the fill improves. The
-refit ladder is confirmed: the same floor measurably holds more at each of
-`MAKESHIFT`, `STANDARD`, `OPTIMISED`.
+about the recipe rather than about the fill.
 
-The sweep still overcounts. `AisleFitting` deliberately reserves a working aisle
-scaled to the room, and a machinery space is mostly open deck on purpose, but
-the instrument measures the finished deck and cannot see a reservation. Telling
-an argued aisle from an abandoned middle is the next thing it owes — and the
-open design question underneath it is whether a large declared working floor is
-a legitimate room or the defect this story exists to fix.
+**The sweep that measured this story's fill criteria is gone.**
+`CompartmentFillSweepTest` measured the empty-region and density criteria across
+five hulls and six seeds, and its last reading said the fill is not there yet:
+**344 of 2054 fitted compartments held a void larger than four cells square** —
+a hangar came out twelve square, an engine room ten — and **480 were furnished
+below a tenth of their floor**. It also confirmed the refit ladder: the same
+floor measurably holds more at each of `MAKESHIFT`, `STANDARD`, `OPTIMISED`.
+The test was deleted on 2026-08-28 because it cost 158s of a 560s `:test` run,
+and the owner judged the invariants not worth that. Those figures are now a
+historical reading rather than a live ratchet; work that claims to improve the
+fill has to re-establish its own measurement.
+
+The sweep also overcounted, which is part of why it was cheap to lose.
+`AisleFitting` deliberately reserves a working aisle scaled to the room, and a
+machinery space is mostly open deck on purpose, but the instrument measured the
+finished deck and could not see a reservation. Telling an argued aisle from an
+abandoned middle is what any replacement instrument owes — and the open design
+question underneath it is whether a large declared working floor is a legitimate
+room or the defect this story exists to fix.
 
 Read `ship-interiors-nouns.md` before implementing this story, especially the
 Fill quality section and law 9. Depends on `ship-deck-family.md`.
