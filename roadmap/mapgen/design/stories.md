@@ -4,13 +4,14 @@ Status: ACTIVE — twelve bounded station, city, economic, or cross-feature stor
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — added the compound vehicle-hangar vertical.
+Updated: 2026-08-28 — added the compound vehicle-hangar vertical, blocked behind
+`compound-programs.md`.
 
 | Story | Status | Outcome |
 |---|---|---|
 | `battlespace-preview.md` | PARKED | Replay one persisted battlespace identity for an honest pre-battle preview if the briefing design adopts it. |
-| `compound-vehicle-hangar.md` | IN PROGRESS | Give a military compound a hangar with machine-sized bays, a door a machine fits through, and berths whose occupants come from a roster. |
-| `cross-leaf-footprint-planning.md` | PROPOSED | Plan one coherent multi-leaf structure before roads and per-leaf fills commit the parcel layout. |
+| `compound-vehicle-hangar.md` | BLOCKED | Shared fill machinery is neutral and shipped; the hangar itself waits on a compound program, because measurement showed only 29% of compounds have a wing a bay fits in. |
+| `cross-leaf-footprint-planning.md` | PROPOSED | Plan one coherent multi-leaf structure before roads and per-leaf fills commit the parcel layout. First step of `compound-programs.md`. |
 | `station-corridor-arenas.md` | PROPOSED | Give station junctions and gates intentional tactical space without turning transit into cover soup. |
 | `station-theme-fills.md` | PROPOSED | Fill station room purposes with distinct, tactically meaningful themes. |
 | `station-role-placement.md` | PROPOSED | Use station topology roles for the first placement consumer. |

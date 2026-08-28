@@ -47,4 +47,24 @@ public final class HeadlessBattleMapRenderer {
                     map.grid.getWidth() * cellPx, map.grid.getHeight() * cellPx);
         }
     }
+
+    /**
+     * Renders a camera-framed portion of the map without first allocating a
+     * complete-map image. The selected cells still come from the ordinary
+     * scene collectors; only the host viewport is smaller.
+     */
+    public BufferedImage renderView(MapResult map, long seed,
+                                    float centerCellX, float centerCellY,
+                                    int widthCells, int heightCells, int cellPx) {
+        if (widthCells <= 0 || heightCells <= 0) {
+            throw new IllegalArgumentException("view dimensions must be positive");
+        }
+        if (cellPx <= 0) throw new IllegalArgumentException("cell size must be positive");
+        try (MapBattleScene scene = new MapBattleScene(map, seed)) {
+            return drain.renderHostPass(
+                    scene.pass(new MapBattleScene.MapView(
+                            centerCellX, centerCellY, cellPx)),
+                    widthCells * cellPx, heightCells * cellPx);
+        }
+    }
 }
