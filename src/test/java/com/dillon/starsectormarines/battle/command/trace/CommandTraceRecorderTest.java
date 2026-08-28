@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.command.trace;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
+import com.dillon.starsectormarines.battle.command.CommanderService;
 import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
 import com.dillon.starsectormarines.battle.command.AssaultSearchSnapshot;
 import com.dillon.starsectormarines.battle.command.AssaultDefenseSnapshot;
@@ -13,12 +14,16 @@ import com.dillon.starsectormarines.battle.command.SabotageDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.RaidCommandSnapshot;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
+import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPayload;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
+import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -324,6 +329,54 @@ class CommandTraceRecorderTest {
 
             assertEquals(sealed, sim.getCommandTraceJsonLines());
             assertTrue(!sim.isCommandTraceEnabled());
+        }
+    }
+
+    @Test
+    void rescueTraceSeparatesMarineCommandFromSwarmDirector() {
+        NavigationGrid grid = new NavigationGrid(40, 30);
+        for (int y = 0; y < grid.getHeight(); y++) {
+            for (int x = 0; x < grid.getWidth(); x++) {
+                grid.setWalkableFloor(x, y);
+            }
+        }
+        try (BattleSimulation sim = new BattleSimulation(
+                grid, new CellTopology(40, 30))) {
+            CivilianEvacuationPayload payload =
+                    CivilianEvacuationPayload.install(sim,
+                            List.of(new PointOfInterest(
+                                    PointOfInterest.Kind.RESIDENTIAL,
+                                    9, 5, 13, 9, 8, 7, 11, 7)), 91L);
+            int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+            long marine = sim.spawn(new EntitySpec("escort", Faction.MARINE,
+                    UnitType.MARINE, 2, 2).squad(squadId));
+            sim.getSquad(squadId).leaderId = marine;
+            sim.spawn(new EntitySpec("runner", Faction.DEFENDER,
+                    UnitType.SWARM_RUNNER, 39, 29)
+                    .role(UnitRole.SWARM_PRESSURE));
+            assertTrue(sim.configureSwarmReinforcements(
+                    payload.placement, 1, 91L));
+            sim.setCommandTraceEnabled(true, "CIVILIAN_RESCUE");
+
+            sim.advance(CommanderService.COMMANDER_TICK_PERIOD
+                    + BattleSimulation.TICK_DT);
+
+            String trace = sim.getCommandTraceJsonLines();
+            assertTrue(trace.contains("\"strategy\":\"rescue-corridor\""));
+            assertTrue(trace.contains("\"rescue\":{"));
+            assertTrue(trace.contains("\"stream\":\"director\""));
+            assertTrue(trace.contains("\"perspective\":\"SWARM\""));
+            assertTrue(trace.contains(
+                    "\"director\":\"rescue-swarm-pressure\""));
+            for (String line : trace.lines()
+                    .filter(row -> row.contains(
+                            "\"director\":\"rescue-swarm-pressure\""))
+                    .toList()) {
+                assertTrue(!line.contains("controllingSquadId")
+                                && !line.contains("cohortCellX")
+                                && !line.contains("marineCellX"),
+                        "swarm picture may not disclose hidden corridor truth");
+            }
         }
     }
 

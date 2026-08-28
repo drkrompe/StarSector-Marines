@@ -502,7 +502,8 @@ public class BattleScreen implements Screen, BattleUiContext {
                     selection.getSelectedSquadId());
             ExtractionCommanderOverlayPublisher.publish(highlights,
                     sim.getCommanderSnapshot(debugConquestPerspective),
-                    selection.getSelectedSquadId());
+                    selection.getSelectedSquadId(),
+                    sim.getSwarmPressureSnapshot());
         } else {
             ConquestCommanderOverlayPublisher.clear(highlights);
             AssaultCommanderOverlayPublisher.clear(highlights);

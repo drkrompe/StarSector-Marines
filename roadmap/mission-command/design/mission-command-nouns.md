@@ -1,10 +1,10 @@
 # Mission-command nouns
 
-Status: ACTIVE — the shared autonomous command architecture is in production for paired Conquest, Sabotage, Assault, Raid, and generic Extraction command duels.
+Status: ACTIVE — the shared autonomous command architecture is in production for paired Conquest, Sabotage, Assault, Raid, and generic Extraction command duels, plus asymmetric Civilian Rescue command.
 
 Written: 2026-08-27
 
-Updated: 2026-08-27 — added paired generic Extraction evidence for production pressure and alarm/interdiction response.
+Updated: 2026-08-27 — shipped Civilian Rescue's Marine corridor commander and separately disclosed swarm-pressure director.
 
 Mission command is the slow, faction-scoped layer that turns authored mission
 meaning and faction-honest knowledge into stable squad assignments. It is the
@@ -137,12 +137,13 @@ seed is not a balance target.
 | Sabotage | Three named-site task groups with planter logistics and site security | Paired production duel shipped | `sabotage-command.md` |
 | Assault | Two-dimensional search sectors versus strongpoint security areas | Paired production duel; live/evidence acceptance remains | `assault-command.md` |
 | Raid | Primary high-value target plus authored ingress/egress corridor | Paired production duel; canonical/live acceptance remains | `raid-command.md` |
-| Extraction | Payload/cohort corridor, with bounded conventional interdiction or scenario-specific directors | Paired generic commanders shipped; canonical/live acceptance and authored variants remain | `extraction-command.md` |
+| Extraction | Payload/cohort corridor, with bounded conventional interdiction or scenario-specific directors | Paired generic commanders and asymmetric Civilian Rescue shipped; live acceptance and Silent Colony remain | `extraction-command.md` |
 
 Opening Operations reuse the Assault battle type but keep scenario-specific
 preserve/secure command meaning. Civilian Rescue and Silent Colony are authored
 Extraction-family scenarios; each preserves its own payload law while exposing
-the shared objective projection.
+the shared objective projection. Civilian Rescue proves that an opposing command
+picture may be a mission director rather than a mirrored squad commander.
 
 ## Player and faction extensions
 

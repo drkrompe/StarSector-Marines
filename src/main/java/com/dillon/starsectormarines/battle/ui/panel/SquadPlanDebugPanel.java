@@ -1063,7 +1063,8 @@ public final class SquadPlanDebugPanel implements HudPanel {
                                               BattleSimulation sim) {
         if (picture.primaryContactId() == 0L) return "—";
         long live = sim.resolveUnit(picture.primaryContactId());
-        return live != 0L ? sim.identity().name(live)
+        return live != 0L && sim.identity().has(live)
+                ? sim.identity().name(live)
                 : "#" + picture.primaryContactId();
     }
 

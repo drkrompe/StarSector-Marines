@@ -1328,7 +1328,7 @@ public final class TacticalScoring {
         float presence = 0f;
         for (BelievedContact contact : squad.believedContacts()) {
             long id = contact.unitId();
-            if (!roster.isAliveById(id)) continue;
+            if (!roster.isAliveById(id) || !roster.identity().has(id)) continue;
             if (roster.identity().faction(id) == squad.faction) continue;
             if (!roster.identity().type(id).combatant) continue;
             if (cellDistance(cx, cy, contact.lastSeenCellX(),
@@ -1383,6 +1383,7 @@ public final class TacticalScoring {
         for (BelievedContact contact : squad.believedContacts()) {
             long id = contact.unitId();
             if (!roster.isAliveById(id)
+                    || !roster.identity().has(id)
                     || roster.identity().faction(id) == squad.faction
                     || !roster.identity().type(id).combatant) continue;
             float dx = contact.lastSeenCellX() + 0.5f - squad.centroidX;
@@ -1759,7 +1760,8 @@ public final class TacticalScoring {
 
         for (BelievedContact belief : squad.believedContacts()) {
             long contact = belief.unitId();
-            if (!roster.isAliveById(contact)) continue;
+            if (!roster.isAliveById(contact)
+                    || !roster.identity().has(contact)) continue;
             if (roster.identity().faction(contact) == squad.faction) continue;
             if (!roster.identity().type(contact).combatant) continue;
 

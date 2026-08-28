@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.command.RescueEscortCommand;
+import com.dillon.starsectormarines.battle.command.RescueCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.objective.CivilianEvacuationObjective;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -131,8 +132,9 @@ public final class CivilianEvacuationPayload {
                     "planned evacuation routing configuration failed");
         }
         sim.addObjective(objective);
-        sim.setCommander(Faction.MARINE,
-                new RescueEscortCommand(placement));
+        sim.setAutonomousCommander(Faction.MARINE,
+                new RescueEscortCommand(placement),
+                RescueCommandDisclosure.INSTANCE);
         return new CivilianEvacuationPayload(placement, objective, ids);
     }
 

@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.command.SabotageDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.RaidCommandSnapshot;
 import com.dillon.starsectormarines.battle.command.ExtractionCommandSnapshot;
 import com.dillon.starsectormarines.battle.command.ExtractionDefenseSnapshot;
+import com.dillon.starsectormarines.battle.command.RescueCommandSnapshot;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.command.objective.ExtractionPayloadObjective;
@@ -19,6 +20,7 @@ import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.evacuation.SwarmPressureSnapshot;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,6 +52,7 @@ public final class CommandTraceRecorder {
     private boolean terminalRecorded;
     private boolean sealed;
     private int eventCount;
+    private int lastSwarmDirectorRevision = -1;
 
     public CommandTraceRecorder(String fixtureKind, String schedulerMode,
                                 int startTick) {
@@ -67,6 +70,7 @@ public final class CommandTraceRecorder {
             CommanderSnapshot<?> snapshot = sim.getCommanderSnapshot(faction);
             recordPerspective(snapshot, sim.getSimTickIndex());
         }
+        sampleSwarmDirector(sim);
         sampleCompounds(sim);
         sampleChargeSites(sim);
         sampleExtractionPayloads(sim);
@@ -111,6 +115,7 @@ public final class CommandTraceRecorder {
         lastCompoundPresence.clear();
         lastChargeSiteState.clear();
         lastExtractionState.clear();
+        lastSwarmDirectorRevision = -1;
         StringBuilder out = begin("control", tick);
         field(out, "event", "capture-resumed");
         appendLine(end(out));
@@ -366,8 +371,64 @@ public final class CommandTraceRecorder {
         } else if (snapshot.detail()
                 instanceof ExtractionDefenseSnapshot defense) {
             extractionDefense(out, defense);
+        } else if (snapshot.detail() instanceof RescueCommandSnapshot rescue) {
+            rescue(out, rescue);
         }
         return end(out);
+    }
+
+    private void sampleSwarmDirector(BattleSimulation sim) {
+        SwarmPressureSnapshot snapshot = sim.getSwarmPressureSnapshot();
+        if (snapshot == null
+                || snapshot.revision() == lastSwarmDirectorRevision) return;
+        lastSwarmDirectorRevision = snapshot.revision();
+        StringBuilder out = begin("director", snapshot.tick());
+        field(out, "perspective", "SWARM");
+        field(out, "director", "rescue-swarm-pressure");
+        field(out, "phase", snapshot.phase().name());
+        field(out, "pressureReason", snapshot.pressureReason());
+        numberField(out, "targetPopulation", snapshot.targetPopulation());
+        numberField(out, "populationFloor", snapshot.populationFloor());
+        numberField(out, "liveRunners", snapshot.liveRunners());
+        numberField(out, "waveIndex", snapshot.waveIndex());
+        out.append(",\"approaches\":[");
+        for (int i = 0; i < snapshot.approaches().size(); i++) {
+            if (i > 0) out.append(',');
+            SwarmPressureSnapshot.ApproachState approach =
+                    snapshot.approaches().get(i);
+            out.append('{');
+            rawField(out, "approach", approach.approach().name());
+            numberField(out, "liveRunners", approach.liveRunners());
+            numberField(out, "ownedWaveRunners",
+                    approach.ownedWaveRunners());
+            out.append('}');
+        }
+        out.append("],\"targetContexts\":[");
+        for (int i = 0; i < snapshot.targetContexts().size(); i++) {
+            if (i > 0) out.append(',');
+            SwarmPressureSnapshot.TargetState target =
+                    snapshot.targetContexts().get(i);
+            out.append('{');
+            rawField(out, "context", target.context().name());
+            numberField(out, "runnerCount", target.runnerCount());
+            out.append('}');
+        }
+        out.append("],\"ownedWave\":[");
+        for (int i = 0; i < snapshot.ownedWave().size(); i++) {
+            if (i > 0) out.append(',');
+            SwarmPressureSnapshot.WaveIntent intent =
+                    snapshot.ownedWave().get(i);
+            out.append('{');
+            rawLongField(out, "runnerId", intent.runnerId());
+            field(out, "approach", intent.approach().name());
+            numberField(out, "spawnCellX", intent.spawnCellX());
+            numberField(out, "spawnCellY", intent.spawnCellY());
+            field(out, "targetContext", intent.targetContext().name());
+            field(out, "reason", intent.reason());
+            out.append('}');
+        }
+        out.append("]}");
+        appendLine(out.toString());
     }
 
     private static void directive(StringBuilder out, CommandDirective directive) {
@@ -597,6 +658,59 @@ public final class CommandTraceRecorder {
             numberField(out, "targetCellX", intent.targetCellX());
             numberField(out, "targetCellY", intent.targetCellY());
             booleanField(out, "localContact", intent.localContact());
+            out.append('}');
+        }
+        out.append("]}");
+    }
+
+    private static void rescue(StringBuilder out,
+                               RescueCommandSnapshot snapshot) {
+        out.append(",\"rescue\":{");
+        rawField(out, "phase", snapshot.phase());
+        field(out, "payloadId", snapshot.payloadId());
+        field(out, "payloadName", snapshot.payloadName());
+        numberField(out, "shelterCellX", snapshot.shelterCellX());
+        numberField(out, "shelterCellY", snapshot.shelterCellY());
+        numberField(out, "cohortCellX", snapshot.cohortCellX());
+        numberField(out, "cohortCellY", snapshot.cohortCellY());
+        numberField(out, "corridorGuideCellX",
+                snapshot.corridorGuideCellX());
+        numberField(out, "corridorGuideCellY",
+                snapshot.corridorGuideCellY());
+        numberField(out, "liftCellX", snapshot.liftCellX());
+        numberField(out, "liftCellY", snapshot.liftCellY());
+        numberField(out, "initialCivilians", snapshot.initialCivilians());
+        numberField(out, "activeCivilians", snapshot.activeCivilians());
+        numberField(out, "boardedCivilians", snapshot.boardedCivilians());
+        numberField(out, "lostCivilians", snapshot.lostCivilians());
+        floatField(out, "progress", snapshot.progress());
+        booleanField(out, "escortPresent", snapshot.escortPresent());
+        numberField(out, "controllingSquadId",
+                snapshot.controllingSquadId());
+        numberField(out, "knownPressureContacts",
+                snapshot.knownPressureContacts());
+        booleanField(out, "complete", snapshot.complete());
+        booleanField(out, "failed", snapshot.failed());
+        field(out, "failure", snapshot.failure().name());
+        List<RescueCommandSnapshot.SquadIntent> intents =
+                new ArrayList<>(snapshot.squadIntents());
+        intents.sort(Comparator.comparingInt(
+                RescueCommandSnapshot.SquadIntent::squadId));
+        out.append(",\"actions\":[");
+        for (int i = 0; i < intents.size(); i++) {
+            if (i > 0) out.append(',');
+            RescueCommandSnapshot.SquadIntent intent = intents.get(i);
+            out.append('{');
+            rawNumberField(out, "squadId", intent.squadId());
+            field(out, "role", intent.role().name());
+            field(out, "reason", intent.reason());
+            nullableField(out, "assignmentKind",
+                    intent.assignmentKind() != null
+                            ? intent.assignmentKind().name() : null);
+            numberField(out, "targetCellX", intent.targetCellX());
+            numberField(out, "targetCellY", intent.targetCellY());
+            booleanField(out, "localContact", intent.localContact());
+            booleanField(out, "locallySlowed", intent.locallySlowed());
             out.append('}');
         }
         out.append("]}");
@@ -943,6 +1057,12 @@ public final class CommandTraceRecorder {
 
     private static void rawNumberField(StringBuilder out, String name,
                                        int value) {
+        name(out, name);
+        out.append(value);
+    }
+
+    private static void rawLongField(StringBuilder out, String name,
+                                     long value) {
         name(out, name);
         out.append(value);
     }
