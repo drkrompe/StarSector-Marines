@@ -19,7 +19,10 @@ import java.util.List;
  * compartment as void: plausible on the plan and obviously wrong close up.
  *
  * <p>The bay module is {@link #BAY_WIDTH} by {@link #BAY_DEPTH}, as the
- * hand-authored Mech Lab had it. The middle is kept clear for the machine —
+ * hand-authored Mech Lab had it. It and the runs around it are public because a
+ * room that means to hold bays has to be sized from them: a compound hangar
+ * derives its own footprint here rather than picking dimensions that look about
+ * right and discovering the arrangement will not fit. The middle is kept clear for the machine —
  * which may be any size, so the clearance is reserved rather than filled — and
  * the flanking columns carry the tools a technician works from. A bay a walker
  * cannot fit into, or that a technician cannot get around, is not a bay.
@@ -39,11 +42,11 @@ public final class VehicleBayFitting implements RoomFitting {
     /** Cells along one gantry bay, bow to stern of the machine standing in it. */
     public static final int BAY_DEPTH = 7;
     /** Bulkhead between one bay and the next. Enough to walk a part through. */
-    private static final int BAY_GAP = 3;
+    public static final int BAY_GAP = 3;
     /** Clear deck down the middle, between the two ranks. The room's main lane. */
-    private static final int SERVICE_LANE = 2;
+    public static final int SERVICE_LANE = 2;
     /** Cells at one end given over to the fab shop. */
-    private static final int SHOP_WIDTH = 7;
+    public static final int SHOP_WIDTH = 7;
     /** Cells of bulkhead a doorway may take, which is what a machine needs to pass. */
     private static final int DOORWAY = 2;
     /**
@@ -56,20 +59,25 @@ public final class VehicleBayFitting implements RoomFitting {
      * every deck. Now the room says where its doors are, so the deck they open
      * onto can be part of the arrangement instead of an apology for it.
      */
-    private static final int VESTIBULE = DOORWAY + 1;
+    public static final int VESTIBULE = DOORWAY + 1;
 
     /**
      * The bay floor, taken from the hand-authored Mech Lab rather than invented.
      *
-     * <p>Row three of the urban sheet carries a marked industrial deck: column
-     * one edges a bay, columns nought and two alternate across its middle. A
-     * shade of the room colour was never going to do this job — a bay is a
-     * marked-out rectangle of floor, and painting it is what stops a row of bays
-     * reading as frames standing on nothing.
+     * <p>The urban sheet carries a marked industrial deck: a yellow stripe edges
+     * a bay, and two grates alternate across its middle. A shade of the room
+     * colour was never going to do this job — a bay is a marked-out rectangle of
+     * floor, and painting it is what stops a row of bays reading as frames
+     * standing on nothing.
+     *
+     * <p>Named rather than pointed at. These used to be a row and three columns
+     * into {@code urban-tileset.png}, which is a coordinate into a packed atlas
+     * that the tileset exporter is free to lay out however it likes. Nothing
+     * downstream can notice such a reference going stale: the deck still paints,
+     * and simply paints shelves.
      */
-    private static final int FLOOR_ROW = 3;
-    private static final int FLOOR_EDGE_COLUMN = 1;
-    private static final int[] FLOOR_FIELD_COLUMNS = { 0, 2 };
+    private static final String FLOOR_EDGE = "doodad.fl-striped-yellow";
+    private static final String[] FLOOR_FIELD = { "doodad.fl-grate-1", "doodad.fl-grate-2" };
 
     /**
      * The gantry frame down each side of a bay, and the clutter that collects
@@ -346,10 +354,9 @@ public final class VehicleBayFitting implements RoomFitting {
             for (int side = 0; side < BAY_WIDTH; side++) {
                 boolean perimeter = side == 0 || side == BAY_WIDTH - 1
                         || step == 0 || step == depth - 1;
-                int column = perimeter ? FLOOR_EDGE_COLUMN
-                        : FLOOR_FIELD_COLUMNS[((side + step) & 1)];
+                String paving = perimeter ? FLOOR_EDGE : FLOOR_FIELD[((side + step) & 1)];
                 int[] cell = floor.toLocal(origin + side, band + step);
-                floor.pave(cell[0], cell[1], column, FLOOR_ROW);
+                floor.pave(cell[0], cell[1], paving);
             }
         }
     }

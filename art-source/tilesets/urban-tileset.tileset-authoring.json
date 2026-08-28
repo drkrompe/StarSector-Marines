@@ -2,12 +2,21 @@
   "alphaMin": 40,
   "blocks": [
     {
+      "fillRgb": "0x060A10",
+      "id": "urban.wall",
+      "layout": "wall-3x3"
+    },
+    {
       "id": "urban.floor",
       "layout": "floor-3x3"
     },
     {
-      "id": "urban.wall",
-      "layout": "wall-3x3"
+      "id": "urban.rubble",
+      "layout": "floor-3x3"
+    },
+    {
+      "id": "urban.door-open",
+      "layout": "single"
     }
   ],
   "cellPx": 32,
@@ -19,6 +28,7 @@
   },
   "entries": [
     {
+      "block": "urban.floor",
       "cover": "none",
       "footprintCells": [
         1,
@@ -31,9 +41,11 @@
         0,
         124,
         125
-      ]
+      ],
+      "slot": "nw"
     },
     {
+      "block": "urban.floor",
       "cover": "none",
       "footprintCells": [
         1,
@@ -46,9 +58,11 @@
         0,
         123,
         125
-      ]
+      ],
+      "slot": "n"
     },
     {
+      "block": "urban.floor",
       "cover": "none",
       "footprintCells": [
         1,
@@ -61,7 +75,8 @@
         0,
         123,
         125
-      ]
+      ],
+      "slot": "ne"
     },
     {
       "block": "urban.wall",
@@ -121,7 +136,7 @@
         1
       ],
       "id": "doodad.urban.c6r0",
-      "included": true,
+      "included": false,
       "rect": [
         742,
         0,
@@ -136,7 +151,7 @@
         1
       ],
       "id": "doodad.urban.c7r0",
-      "included": true,
+      "included": false,
       "rect": [
         865,
         0,
@@ -151,7 +166,7 @@
         1
       ],
       "id": "doodad.urban.c8r0",
-      "included": true,
+      "included": false,
       "rect": [
         988,
         0,
@@ -166,7 +181,7 @@
         1
       ],
       "id": "doodad.urban.c9r0",
-      "included": true,
+      "included": false,
       "rect": [
         1112,
         0,
@@ -175,6 +190,7 @@
       ]
     },
     {
+      "block": "urban.floor",
       "cover": "none",
       "footprintCells": [
         1,
@@ -187,9 +203,11 @@
         125,
         124,
         126
-      ]
+      ],
+      "slot": "w"
     },
     {
+      "block": "urban.floor",
       "cover": "none",
       "footprintCells": [
         1,
@@ -202,9 +220,11 @@
         125,
         123,
         126
-      ]
+      ],
+      "slot": "center"
     },
     {
+      "block": "urban.floor",
       "cover": "none",
       "footprintCells": [
         1,
@@ -217,7 +237,8 @@
         125,
         123,
         126
-      ]
+      ],
+      "slot": "e"
     },
     {
       "block": "urban.wall",
@@ -271,12 +292,13 @@
       "slot": "e"
     },
     {
-      "cover": "none",
+      "ballisticHalfHeight": 0.3,
+      "cover": "med",
       "footprintCells": [
         1,
         1
       ],
-      "id": "doodad.urban.c6r1",
+      "id": "doodad.chair-south-yellow",
       "included": true,
       "rect": [
         742,
@@ -286,12 +308,13 @@
       ]
     },
     {
-      "cover": "none",
+      "ballisticHalfHeight": 0.3,
+      "cover": "med",
       "footprintCells": [
         1,
         1
       ],
-      "id": "doodad.urban.c7r1",
+      "id": "doodad.chair-south-green",
       "included": true,
       "rect": [
         865,
@@ -301,12 +324,13 @@
       ]
     },
     {
-      "cover": "none",
+      "ballisticHalfHeight": 0.28,
+      "cover": "med",
       "footprintCells": [
         1,
         1
       ],
-      "id": "doodad.urban.c8r1",
+      "id": "doodad.box",
       "included": true,
       "rect": [
         988,
@@ -316,12 +340,13 @@
       ]
     },
     {
-      "cover": "none",
+      "ballisticHalfHeight": 0.38,
+      "cover": "med",
       "footprintCells": [
         1,
         1
       ],
-      "id": "doodad.urban.c9r1",
+      "id": "doodad.crate",
       "included": true,
       "rect": [
         1112,
@@ -331,6 +356,7 @@
       ]
     },
     {
+      "block": "urban.floor",
       "cover": "none",
       "footprintCells": [
         1,
@@ -343,9 +369,11 @@
         251,
         124,
         125
-      ]
+      ],
+      "slot": "sw"
     },
     {
+      "block": "urban.floor",
       "cover": "none",
       "footprintCells": [
         1,
@@ -358,9 +386,11 @@
         251,
         123,
         125
-      ]
+      ],
+      "slot": "s"
     },
     {
+      "block": "urban.floor",
       "cover": "none",
       "footprintCells": [
         1,
@@ -373,7 +403,8 @@
         251,
         123,
         125
-      ]
+      ],
+      "slot": "se"
     },
     {
       "block": "urban.wall",
@@ -427,12 +458,13 @@
       "slot": "se"
     },
     {
-      "cover": "none",
+      "ballisticHalfHeight": 0.75,
+      "cover": "med",
       "footprintCells": [
         1,
         1
       ],
-      "id": "doodad.urban.c6r2",
+      "id": "doodad.door-closed",
       "included": true,
       "rect": [
         742,
@@ -442,6 +474,7 @@
       ]
     },
     {
+      "block": "urban.door-open",
       "cover": "none",
       "footprintCells": [
         1,
@@ -454,7 +487,8 @@
         251,
         123,
         125
-      ]
+      ],
+      "slot": "only"
     },
     {
       "cover": "none",
@@ -463,21 +497,24 @@
         1
       ],
       "id": "doodad.urban.c8r2",
-      "included": true,
+      "included": false,
+      "note": "'wall-s-computer' on the hand-written sheet. Nothing addresses it - no id and no block - so it is not packed.",
       "rect": [
         988,
         251,
         124,
         125
-      ]
+      ],
+      "tags": ["unaddressed"]
     },
     {
-      "cover": "none",
+      "ballisticHalfHeight": 0.38,
+      "cover": "med",
       "footprintCells": [
         1,
         1
       ],
-      "id": "doodad.urban.c9r2",
+      "id": "doodad.desk-1",
       "included": true,
       "rect": [
         1112,
@@ -492,13 +529,18 @@
         1,
         1
       ],
-      "id": "doodad.urban.c0r3",
+      "id": "doodad.fl-grate-1",
       "included": true,
+      "note": "Bay-deck field paving. Addressed by VehicleBayFitting.",
       "rect": [
         2,
         376,
         124,
         126
+      ],
+      "tags": [
+        "floor",
+        "paving"
       ]
     },
     {
@@ -507,13 +549,18 @@
         1,
         1
       ],
-      "id": "doodad.urban.c1r3",
+      "id": "doodad.fl-striped-yellow",
       "included": true,
+      "note": "Bay-deck perimeter stripe. Addressed by VehicleBayFitting.",
       "rect": [
         126,
         376,
         123,
         126
+      ],
+      "tags": [
+        "floor",
+        "paving"
       ]
     },
     {
@@ -522,22 +569,28 @@
         1,
         1
       ],
-      "id": "doodad.urban.c2r3",
+      "id": "doodad.fl-grate-2",
       "included": true,
+      "note": "Bay-deck field paving, the alternate of the checker. Addressed by VehicleBayFitting.",
       "rect": [
         249,
         376,
         123,
         126
+      ],
+      "tags": [
+        "floor",
+        "paving"
       ]
     },
     {
-      "cover": "none",
+      "ballisticHalfHeight": 0.32,
+      "cover": "med",
       "footprintCells": [
         1,
         1
       ],
-      "id": "doodad.urban.c3r3",
+      "id": "doodad.chest-1",
       "included": true,
       "rect": [
         372,
@@ -547,12 +600,13 @@
       ]
     },
     {
-      "cover": "none",
+      "ballisticHalfHeight": 0.32,
+      "cover": "med",
       "footprintCells": [
         1,
         1
       ],
-      "id": "doodad.urban.c4r3",
+      "id": "doodad.chest-2",
       "included": true,
       "rect": [
         495,
@@ -562,12 +616,13 @@
       ]
     },
     {
-      "cover": "none",
+      "ballisticHalfHeight": 0.75,
+      "cover": "heavy",
       "footprintCells": [
         1,
         1
       ],
-      "id": "doodad.urban.c5r3",
+      "id": "doodad.shelf-empty",
       "included": true,
       "rect": [
         619,
@@ -577,12 +632,13 @@
       ]
     },
     {
-      "cover": "none",
+      "ballisticHalfHeight": 0.75,
+      "cover": "heavy",
       "footprintCells": [
         1,
         1
       ],
-      "id": "doodad.urban.c6r3",
+      "id": "doodad.shelf-1",
       "included": true,
       "rect": [
         742,
@@ -592,12 +648,13 @@
       ]
     },
     {
-      "cover": "none",
+      "ballisticHalfHeight": 0.75,
+      "cover": "heavy",
       "footprintCells": [
         1,
         1
       ],
-      "id": "doodad.urban.c7r3",
+      "id": "doodad.shelf-2",
       "included": true,
       "rect": [
         865,
@@ -607,12 +664,13 @@
       ]
     },
     {
-      "cover": "none",
+      "ballisticHalfHeight": 0.75,
+      "cover": "heavy",
       "footprintCells": [
         1,
         1
       ],
-      "id": "doodad.urban.c8r3",
+      "id": "doodad.shelf-3",
       "included": true,
       "rect": [
         988,
@@ -622,12 +680,13 @@
       ]
     },
     {
-      "cover": "none",
+      "ballisticHalfHeight": 0.38,
+      "cover": "med",
       "footprintCells": [
         1,
         1
       ],
-      "id": "doodad.urban.c9r3",
+      "id": "doodad.desk-2",
       "included": true,
       "rect": [
         1112,
@@ -637,6 +696,7 @@
       ]
     },
     {
+      "block": "urban.rubble",
       "cover": "none",
       "footprintCells": [
         1,
@@ -649,9 +709,11 @@
         502,
         124,
         125
-      ]
+      ],
+      "slot": "nw"
     },
     {
+      "block": "urban.rubble",
       "cover": "none",
       "footprintCells": [
         1,
@@ -664,9 +726,11 @@
         502,
         123,
         125
-      ]
+      ],
+      "slot": "n"
     },
     {
+      "block": "urban.rubble",
       "cover": "none",
       "footprintCells": [
         1,
@@ -679,7 +743,8 @@
         502,
         123,
         125
-      ]
+      ],
+      "slot": "ne"
     },
     {
       "cover": "none",
@@ -688,13 +753,15 @@
         1
       ],
       "id": "doodad.urban.c3r4",
-      "included": true,
+      "included": false,
+      "note": "'wall-nw-dam' on the hand-written sheet. Nothing addresses it - no id and no block - so it is not packed.",
       "rect": [
         372,
         502,
         123,
         125
-      ]
+      ],
+      "tags": ["unaddressed"]
     },
     {
       "cover": "none",
@@ -703,13 +770,15 @@
         1
       ],
       "id": "doodad.urban.c4r4",
-      "included": true,
+      "included": false,
+      "note": "'wall-n-dam' on the hand-written sheet. Nothing addresses it - no id and no block - so it is not packed.",
       "rect": [
         495,
         502,
         124,
         125
-      ]
+      ],
+      "tags": ["unaddressed"]
     },
     {
       "cover": "none",
@@ -718,13 +787,15 @@
         1
       ],
       "id": "doodad.urban.c5r4",
-      "included": true,
+      "included": false,
+      "note": "'wall-ne-dam' on the hand-written sheet. Nothing addresses it - no id and no block - so it is not packed.",
       "rect": [
         619,
         502,
         123,
         125
-      ]
+      ],
+      "tags": ["unaddressed"]
     },
     {
       "cover": "none",
@@ -733,7 +804,7 @@
         1
       ],
       "id": "doodad.urban.c6r4",
-      "included": true,
+      "included": false,
       "rect": [
         742,
         502,
@@ -748,7 +819,7 @@
         1
       ],
       "id": "doodad.urban.c7r4",
-      "included": true,
+      "included": false,
       "rect": [
         865,
         502,
@@ -763,7 +834,7 @@
         1
       ],
       "id": "doodad.urban.c8r4",
-      "included": true,
+      "included": false,
       "rect": [
         988,
         502,
@@ -778,7 +849,7 @@
         1
       ],
       "id": "doodad.urban.c9r4",
-      "included": true,
+      "included": false,
       "rect": [
         1112,
         502,
@@ -787,6 +858,7 @@
       ]
     },
     {
+      "block": "urban.rubble",
       "cover": "none",
       "footprintCells": [
         1,
@@ -799,9 +871,11 @@
         627,
         124,
         125
-      ]
+      ],
+      "slot": "w"
     },
     {
+      "block": "urban.rubble",
       "cover": "none",
       "footprintCells": [
         1,
@@ -814,9 +888,11 @@
         627,
         123,
         125
-      ]
+      ],
+      "slot": "center"
     },
     {
+      "block": "urban.rubble",
       "cover": "none",
       "footprintCells": [
         1,
@@ -829,7 +905,8 @@
         627,
         123,
         125
-      ]
+      ],
+      "slot": "e"
     },
     {
       "cover": "none",
@@ -838,13 +915,15 @@
         1
       ],
       "id": "doodad.urban.c3r5",
-      "included": true,
+      "included": false,
+      "note": "'wall-w-dam' on the hand-written sheet. Nothing addresses it - no id and no block - so it is not packed.",
       "rect": [
         372,
         627,
         123,
         125
-      ]
+      ],
+      "tags": ["unaddressed"]
     },
     {
       "cover": "none",
@@ -853,7 +932,7 @@
         1
       ],
       "id": "doodad.urban.c4r5",
-      "included": true,
+      "included": false,
       "rect": [
         495,
         627,
@@ -868,13 +947,15 @@
         1
       ],
       "id": "doodad.urban.c5r5",
-      "included": true,
+      "included": false,
+      "note": "'wall-e-dam' on the hand-written sheet. Nothing addresses it - no id and no block - so it is not packed.",
       "rect": [
         619,
         627,
         123,
         125
-      ]
+      ],
+      "tags": ["unaddressed"]
     },
     {
       "cover": "none",
@@ -883,13 +964,15 @@
         1
       ],
       "id": "doodad.urban.c6r5",
-      "included": true,
+      "included": false,
+      "note": "'wall-s-computer-dam' on the hand-written sheet. Nothing addresses it - no id and no block - so it is not packed.",
       "rect": [
         742,
         627,
         123,
         125
-      ]
+      ],
+      "tags": ["unaddressed"]
     },
     {
       "cover": "none",
@@ -898,7 +981,7 @@
         1
       ],
       "id": "doodad.urban.c7r5",
-      "included": true,
+      "included": false,
       "rect": [
         865,
         627,
@@ -913,7 +996,7 @@
         1
       ],
       "id": "doodad.urban.c8r5",
-      "included": true,
+      "included": false,
       "rect": [
         988,
         627,
@@ -928,7 +1011,7 @@
         1
       ],
       "id": "doodad.urban.c9r5",
-      "included": true,
+      "included": false,
       "rect": [
         1112,
         627,
@@ -937,6 +1020,7 @@
       ]
     },
     {
+      "block": "urban.rubble",
       "cover": "none",
       "footprintCells": [
         1,
@@ -949,9 +1033,11 @@
         752,
         124,
         126
-      ]
+      ],
+      "slot": "sw"
     },
     {
+      "block": "urban.rubble",
       "cover": "none",
       "footprintCells": [
         1,
@@ -964,9 +1050,11 @@
         752,
         123,
         126
-      ]
+      ],
+      "slot": "s"
     },
     {
+      "block": "urban.rubble",
       "cover": "none",
       "footprintCells": [
         1,
@@ -979,7 +1067,8 @@
         752,
         123,
         126
-      ]
+      ],
+      "slot": "se"
     },
     {
       "cover": "none",
@@ -988,13 +1077,15 @@
         1
       ],
       "id": "doodad.urban.c3r6",
-      "included": true,
+      "included": false,
+      "note": "'wall-sw-dam' on the hand-written sheet. Nothing addresses it - no id and no block - so it is not packed.",
       "rect": [
         372,
         752,
         123,
         126
-      ]
+      ],
+      "tags": ["unaddressed"]
     },
     {
       "cover": "none",
@@ -1003,13 +1094,15 @@
         1
       ],
       "id": "doodad.urban.c4r6",
-      "included": true,
+      "included": false,
+      "note": "'wall-s-dam' on the hand-written sheet. Nothing addresses it - no id and no block - so it is not packed.",
       "rect": [
         495,
         752,
         124,
         126
-      ]
+      ],
+      "tags": ["unaddressed"]
     },
     {
       "cover": "none",
@@ -1018,13 +1111,15 @@
         1
       ],
       "id": "doodad.urban.c5r6",
-      "included": true,
+      "included": false,
+      "note": "'wall-se-dam' on the hand-written sheet. Nothing addresses it - no id and no block - so it is not packed.",
       "rect": [
         619,
         752,
         123,
         126
-      ]
+      ],
+      "tags": ["unaddressed"]
     },
     {
       "cover": "none",
@@ -1033,7 +1128,7 @@
         1
       ],
       "id": "doodad.urban.c6r6",
-      "included": true,
+      "included": false,
       "rect": [
         742,
         752,
@@ -1048,7 +1143,7 @@
         1
       ],
       "id": "doodad.urban.c7r6",
-      "included": true,
+      "included": false,
       "rect": [
         865,
         752,
@@ -1063,7 +1158,7 @@
         1
       ],
       "id": "doodad.urban.c8r6",
-      "included": true,
+      "included": false,
       "rect": [
         988,
         752,
@@ -1078,7 +1173,7 @@
         1
       ],
       "id": "doodad.urban.c9r6",
-      "included": true,
+      "included": false,
       "rect": [
         1112,
         752,
@@ -1087,12 +1182,13 @@
       ]
     },
     {
-      "cover": "none",
+      "ballisticHalfHeight": 0.16,
+      "cover": "light",
       "footprintCells": [
         1,
         1
       ],
-      "id": "doodad.urban.c0r7",
+      "id": "doodad.decal-rubble-1",
       "included": true,
       "rect": [
         2,
@@ -1102,12 +1198,13 @@
       ]
     },
     {
-      "cover": "none",
+      "ballisticHalfHeight": 0.16,
+      "cover": "light",
       "footprintCells": [
         1,
         1
       ],
-      "id": "doodad.urban.c1r7",
+      "id": "doodad.decal-rubble-2",
       "included": true,
       "rect": [
         126,
@@ -1117,12 +1214,13 @@
       ]
     },
     {
-      "cover": "none",
+      "ballisticHalfHeight": 0.16,
+      "cover": "light",
       "footprintCells": [
         1,
         1
       ],
-      "id": "doodad.urban.c2r7",
+      "id": "doodad.decal-rubble-3",
       "included": true,
       "rect": [
         249,
@@ -1132,12 +1230,13 @@
       ]
     },
     {
-      "cover": "none",
+      "ballisticHalfHeight": 0.16,
+      "cover": "light",
       "footprintCells": [
         1,
         1
       ],
-      "id": "doodad.urban.c3r7",
+      "id": "doodad.decal-rubble-4",
       "included": true,
       "rect": [
         372,
@@ -1147,12 +1246,13 @@
       ]
     },
     {
-      "cover": "none",
+      "ballisticHalfHeight": 0.55,
+      "cover": "heavy",
       "footprintCells": [
         1,
         1
       ],
-      "id": "doodad.urban.c4r7",
+      "id": "doodad.shelf-dam-1",
       "included": true,
       "rect": [
         495,
@@ -1162,12 +1262,13 @@
       ]
     },
     {
-      "cover": "none",
+      "ballisticHalfHeight": 0.55,
+      "cover": "heavy",
       "footprintCells": [
         1,
         1
       ],
-      "id": "doodad.urban.c5r7",
+      "id": "doodad.shelf-dam-2",
       "included": true,
       "rect": [
         619,
@@ -1177,12 +1278,13 @@
       ]
     },
     {
-      "cover": "none",
+      "ballisticHalfHeight": 0.28,
+      "cover": "med",
       "footprintCells": [
         1,
         1
       ],
-      "id": "doodad.urban.c6r7",
+      "id": "doodad.desk-dam",
       "included": true,
       "rect": [
         742,
@@ -1192,12 +1294,13 @@
       ]
     },
     {
-      "cover": "none",
+      "ballisticHalfHeight": 0.22,
+      "cover": "med",
       "footprintCells": [
         1,
         1
       ],
-      "id": "doodad.urban.c7r7",
+      "id": "doodad.box-dam",
       "included": true,
       "rect": [
         865,
@@ -1207,12 +1310,13 @@
       ]
     },
     {
-      "cover": "none",
+      "ballisticHalfHeight": 0.22,
+      "cover": "med",
       "footprintCells": [
         1,
         1
       ],
-      "id": "doodad.urban.c8r7",
+      "id": "doodad.chair-s-yellow-dam",
       "included": true,
       "rect": [
         988,
@@ -1222,12 +1326,13 @@
       ]
     },
     {
-      "cover": "none",
+      "ballisticHalfHeight": 0.22,
+      "cover": "med",
       "footprintCells": [
         1,
         1
       ],
-      "id": "doodad.urban.c9r7",
+      "id": "doodad.chair-s-green-dam",
       "included": true,
       "rect": [
         1112,
@@ -1243,7 +1348,7 @@
         1
       ],
       "id": "doodad.urban.c0r8",
-      "included": true,
+      "included": false,
       "rect": [
         2,
         1003,
@@ -1258,7 +1363,7 @@
         1
       ],
       "id": "doodad.urban.c1r8",
-      "included": true,
+      "included": false,
       "rect": [
         126,
         1003,
@@ -1273,7 +1378,7 @@
         1
       ],
       "id": "doodad.urban.c2r8",
-      "included": true,
+      "included": false,
       "rect": [
         249,
         1003,
@@ -1288,7 +1393,7 @@
         1
       ],
       "id": "doodad.urban.c3r8",
-      "included": true,
+      "included": false,
       "rect": [
         372,
         1003,
@@ -1303,7 +1408,7 @@
         1
       ],
       "id": "doodad.urban.c4r8",
-      "included": true,
+      "included": false,
       "rect": [
         495,
         1003,
@@ -1318,7 +1423,7 @@
         1
       ],
       "id": "doodad.urban.c5r8",
-      "included": true,
+      "included": false,
       "rect": [
         619,
         1003,
@@ -1333,7 +1438,7 @@
         1
       ],
       "id": "doodad.urban.c6r8",
-      "included": true,
+      "included": false,
       "rect": [
         742,
         1003,
@@ -1348,7 +1453,7 @@
         1
       ],
       "id": "doodad.urban.c7r8",
-      "included": true,
+      "included": false,
       "rect": [
         865,
         1003,
@@ -1363,7 +1468,7 @@
         1
       ],
       "id": "doodad.urban.c8r8",
-      "included": true,
+      "included": false,
       "rect": [
         988,
         1003,
@@ -1378,7 +1483,7 @@
         1
       ],
       "id": "doodad.urban.c9r8",
-      "included": true,
+      "included": false,
       "rect": [
         1112,
         1003,
@@ -1393,7 +1498,7 @@
         1
       ],
       "id": "doodad.urban.c0r9",
-      "included": true,
+      "included": false,
       "rect": [
         2,
         1129,
@@ -1408,7 +1513,7 @@
         1
       ],
       "id": "doodad.urban.c1r9",
-      "included": true,
+      "included": false,
       "rect": [
         126,
         1129,
@@ -1423,7 +1528,7 @@
         1
       ],
       "id": "doodad.urban.c2r9",
-      "included": true,
+      "included": false,
       "rect": [
         249,
         1129,
@@ -1438,7 +1543,7 @@
         1
       ],
       "id": "doodad.urban.c3r9",
-      "included": true,
+      "included": false,
       "rect": [
         372,
         1129,
@@ -1453,7 +1558,7 @@
         1
       ],
       "id": "doodad.urban.c4r9",
-      "included": true,
+      "included": false,
       "rect": [
         495,
         1129,
@@ -1468,7 +1573,7 @@
         1
       ],
       "id": "doodad.urban.c5r9",
-      "included": true,
+      "included": false,
       "rect": [
         619,
         1129,
@@ -1483,7 +1588,7 @@
         1
       ],
       "id": "doodad.urban.c6r9",
-      "included": true,
+      "included": false,
       "rect": [
         742,
         1129,
@@ -1498,7 +1603,7 @@
         1
       ],
       "id": "doodad.urban.c7r9",
-      "included": true,
+      "included": false,
       "rect": [
         865,
         1129,
@@ -1513,7 +1618,7 @@
         1
       ],
       "id": "doodad.urban.c8r9",
-      "included": true,
+      "included": false,
       "rect": [
         988,
         1129,
@@ -1528,7 +1633,7 @@
         1
       ],
       "id": "doodad.urban.c9r9",
-      "included": true,
+      "included": false,
       "rect": [
         1112,
         1129,
@@ -1540,7 +1645,7 @@
   "gridCols": 10,
   "gridRows": 10,
   "idPrefix": "doodad.urban",
-  "note": "This sheet is RGB with no alpha channel, so it slices to one fused piece. That piece has been cut on its stated 10x10 grid, so the entries below are its cells in reading order - left to right, then top to bottom - one cell each and none of them annotated yet. Cut once, then annotate: slicing finds the plate as one fused piece again, so re-slicing has nothing to add. 1254x1254 at 10x10. It already ships as a hand-written tileset built by art-source/tilesets/normalize_tilesets.py. Exporting over it would rewrite the ids and coordinates that GenMappingRegistry references, so treat this as a sheet to inspect or adopt deliberately, not to re-export casually. Its 3x3 wall and floor patches are what block grouping was built for: urban.wall is a wall-3x3 at origin (3,0), urban.floor a floor-3x3 at (0,0). urban.wall is assigned and was checked against the art before it was kept: corner studs sit on the outer corners, each edge cell carries its face slit on the side the slot names as exterior, and the enclosed centre is blank because the 0x060A10 fill is what that case is for. urban.floor is declared but still unassigned.",
+  "note": "This sheet is RGB with no alpha channel, so it slices to one fused piece. That piece has been cut on its stated 10x10 grid, so the entries below are its cells in reading order - left to right, then top to bottom. Cut once, then annotate: slicing finds the plate as one fused piece again, so re-slicing has nothing to add. 1254x1254 at 10x10.\n\nADOPTED BUT NOT YET EXPORTING. This document now carries everything the shipped mod/data/tilesets/urban-tileset.tileset.json carries - all four blocks with their layouts and fill, all 23 doodad ids with their cover and ballistic half-height - so the two no longer disagree about what the sheet contains. The shipped tileset is still hand-maintained; this document is the adoption, ready to become the source of truth as soon as the blocker below is cleared.\n\nTHE BLOCKER IS ALPHA. This raw sheet is fully opaque - the alpha that makes a crate a crate instead of a black square has never existed in art-source. It lives only in the shipped PNG: art-source/tilesets/normalize_tilesets.py transfers new raw colour onto the *previous* shipped atlas's alpha topology, which it calls that sheet's hard contract. The exporter reads the raw sheet, so an export today packs every piece as an opaque black-backed tile. Measured on a real export: urban.door-open goes from 12.5% opaque to 100%, urban.wall's hollow centre from 0% to 100%, every doodad to 100%. Doorways become black holes and props become black squares. Do not export until the sheet carries its own alpha - key it into art-source/tilesets/urban-tileset.raw.png, or teach the tool a background key.\n\nIts 3x3 wall and floor patches are what block grouping was built for. urban.wall was checked against the art before it was kept: corner studs sit on the outer corners, each edge cell carries its face slit on the side the slot names as exterior, and the enclosed centre is blank because the 0x060A10 fill is what that case is for. urban.floor, urban.rubble and the single-cell urban.door-open were taken from the shipped tileset's own origins and layouts, and the wall assignment was independently re-derived from the layout and found to agree cell for cell.\n\nExporting repacks the atlas, so ids survive and coordinates do not. Anything addressing this sheet by a hardcoded (col,row) instead of an id breaks silently on every export - the map still draws, and simply draws the wrong thing. Three such references have been retired; the row-3 paving cells carry ids (doodad.fl-grate-1, doodad.fl-striped-yellow, doodad.fl-grate-2) because VehicleBayFitting paints bay decks with them.\n\nExcluded: the damaged wall 3x3 at cols 3-5 rows 4-6, the two computer-console wall cells, and rows 8-9. The shipped tileset never addressed any of them, so they are art the game has no name for. Group the damaged wall as a block if it is ever wanted - the art is there.\n\nCut caveat: the column axis is fitted to the sheet's own gutters (origin 2.31, pitch 123.25), but GridFit refused the row axis, so rows are still the plain canvas division and sit roughly 9px off the drawn cells. The vertical cut is therefore NOT corrected.",
   "sheet": "art-source/tilesets/urban-tileset.raw.png",
   "sheetName": "urban-tileset"
 }

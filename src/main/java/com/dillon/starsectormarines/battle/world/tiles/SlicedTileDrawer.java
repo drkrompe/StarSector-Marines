@@ -11,7 +11,7 @@ package com.dillon.starsectormarines.battle.world.tiles;
  * with their full sliced bbox because cropping a standalone sprite's
  * edge would visibly chop the art. This matches the rule the in-game
  * urban/floors/water renderer uses (ground autotiles inset; doodads /
- * DOOR_OPEN at inset=0).
+ * the open-door overlay at inset=0).
  *
  * <p>The drawer doesn't know what device units the sink uses (screen
  * pixels in-game, image pixels in tests). It only forwards source-rect

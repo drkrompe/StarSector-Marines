@@ -28,6 +28,7 @@ public final class SpecialEquipmentRegistry {
     public static final String BREACHING_CUTTER_ID = "special.breaching-cutter";
     public static final String VIBRO_BLADE_ID = "special.vibro-blade";
     public static final String POINT_DEFENCE_EMPLACEMENT_ID = "special.point-defence-emplacement";
+    public static final String FIELD_REVETMENT_ID = "special.field-revetment";
 
     public static final List<String> BUILTIN_CATALOGS = List.of(
             "data/marines/marine-special-equipment.equipment.json");

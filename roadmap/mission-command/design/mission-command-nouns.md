@@ -4,8 +4,8 @@ Status: ACTIVE — the shared autonomous command architecture is in production f
 
 Written: 2026-08-27
 
-Updated: 2026-08-28 — classified secure-travel retarget causes and last-alive
-loss location/context without importing referee knowledge.
+Updated: 2026-08-28 — defined neutral capture-zone presence cohorts without
+importing exact occupancy into commander knowledge.
 
 Mission command is the slow, faction-scoped layer that turns authored mission
 meaning and faction-honest knowledge into stable squad assignments. It is the
@@ -151,6 +151,35 @@ that final picture carried local contact, track-level hostile belief, no
 published contact, or insufficient track context. Exact position relative to
 a normalized front requires normalized own-squad progress and must not be
 inferred from cell coordinates alone.
+
+Final-living tactical evidence stays orthogonal rather than collapsing into a
+guessed posture. A command pulse may publish the squad contact picture's
+posture, doctrine, initiative and engageable fire line; actual moving members;
+directional cover against the published primary believed contact; recent
+incoming-fire/morale facts; the current action; and members presently inside a
+weapon cooldown. None of those alone proves suppression or a shot between
+command pulses. Missing threat direction is unknown cover, not exposure, and
+older trace schemas remain unknown rather than receiving zero-valued facts.
+
+A neutral **capture-zone presence cohort** is a contiguous observation of one
+or more Marine units inside a compound's exact capture room before that
+compound becomes Marine-held. It describes changing zone population, not
+personnel identity. An observed zero-to-positive transition supplies entry
+strength; a first positive baseline is left-censored. The cohort retains peak
+strength, positive zone-member deltas, defenders cleared from entry, observed
+uncontested control, mixed duration, and capture latency. Perspective samples
+may be correlated offline by exact target zone to retain the first and peak
+published squad count, members physically in-zone, total alive strength of
+those squads, and whether additional squads appeared;
+that correlation still does not expose neutral occupancy to either commander.
+Capture, a
+defender-present or empty Marine exit, an unresolved or changed capture zone,
+an observation gap, timeout, and terminal result are distinct boundaries; an
+incomplete trace leaves the cohort open. Capture wins a same-tick tie with
+zone exit. Topology changes censor rather than masquerading as reinforcement,
+and pre-schema-7 anchor-zone rows remain unavailable for this exact-room
+metric. These are referee facts for offline balance evidence only and never
+commander input.
 
 An opt-in **visual replay** samples the first deterministic replay at a requested
 tick cadence, renders the production battle scene through the GL-free Java2D

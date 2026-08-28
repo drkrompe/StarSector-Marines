@@ -45,6 +45,8 @@ public final class GroundRenderSystem implements RenderSystem {
     private static final Color WALL_COLOR      = new Color(0x06, 0x0A, 0x10);
     private static final Color WINDOW_FRAME    = new Color(0x08, 0x12, 0x18);
     private static final Color WINDOW_GLASS    = new Color(0x3A, 0x72, 0x84);
+    private static final Color REVETMENT_BODY  = new Color(0x6B, 0x60, 0x3C);
+    private static final Color REVETMENT_RIB   = new Color(0x39, 0x33, 0x1E);
     private static final Color ROAD_FILL       = new Color(TileManifest.ROAD_FILL_RGB);
     private static final Color CROSSWALK_STRIPE = new Color(0xE8, 0xE8, 0xD0);
 
@@ -58,6 +60,16 @@ public final class GroundRenderSystem implements RenderSystem {
     private static final float EDGE_WINDOW_FRAME_THICKNESS_FRAC = 0.30f;
     private static final float EDGE_WINDOW_GLASS_THICKNESS_FRAC = 0.12f;
     private static final float EDGE_WINDOW_GLASS_END_INSET_FRAC = 0.08f;
+    /**
+     * A deployed revetment straddles its boundary rather than being projected
+     * inward off an owning wall, because it has no owning wall — it is the
+     * boundary. Thicker than a window frame and drawn across the whole edge, so
+     * "which way does this protect me" is answerable at a glance.
+     */
+    private static final float EDGE_REVETMENT_THICKNESS_FRAC = 0.26f;
+    /** Ribs down the run, so a hand-built barricade does not read as a painted line. */
+    private static final int EDGE_REVETMENT_RIBS = 3;
+    private static final float EDGE_REVETMENT_RIB_LENGTH_FRAC = 0.16f;
 
     private static final int GROUND_TILE_EDGE_INSET_PX       = FixedGridTileDrawer.GROUND_INSET_PX_LARGE;
     private static final int GROUND_SMALL_TILE_EDGE_INSET_PX = FixedGridTileDrawer.GROUND_INSET_PX_SMALL;
@@ -104,12 +116,16 @@ public final class GroundRenderSystem implements RenderSystem {
                 VisibleCellRect.GEOMETRY_MARGIN_CELLS, grid.getWidth(), grid.getHeight());
 
         // Full-grid backing fill — under everything (matches renderGrid's backing quad).
-        // One quad; the scissor bracket clips it to the viewport.
-        float wx0 = cam.cellToScreenX(0);
-        float wy0 = cam.cellToScreenY(0);
-        float wx1 = cam.cellToScreenX(grid.getWidth());
-        float wy1 = cam.cellToScreenY(grid.getHeight());
-        fillRect(wx0, wy0, wx1, wy1, FLOOR_COLOR);
+        // One quad; the scissor bracket clips it to the viewport. A host whose
+        // world does not fill its own grid declines it, because the quad would
+        // paint over whatever it has put behind the world.
+        if (ctx.hostProfile.worldBackingPainted()) {
+            float wx0 = cam.cellToScreenX(0);
+            float wy0 = cam.cellToScreenY(0);
+            float wx1 = cam.cellToScreenX(grid.getWidth());
+            float wy1 = cam.cellToScreenY(grid.getHeight());
+            fillRect(wx0, wy0, wx1, wy1, FLOOR_COLOR);
+        }
 
         if (urban == null) {
             // No tile sheet: solid-fill non-walkable cells (renderGrid's fallback branch).
@@ -210,6 +226,8 @@ public final class GroundRenderSystem implements RenderSystem {
                             drawGroundBlock(kindBlock[ord], kindSheet[ord], kindFill[ord], nWall, sWall, eWall, wWall, x, y);
                         }
                         break;
+                    case VOID:
+                        break; // outside the hull: there is no deck here to paint
                     case SNOW:
                         break; // defined in GroundKind but no generator emits it (dead)
                     default:
@@ -276,6 +294,10 @@ public final class GroundRenderSystem implements RenderSystem {
             int nx = x + barrier.direction().dx;
             int ny = y + barrier.direction().dy;
             if (!view.contains(x, y) && !view.contains(nx, ny)) continue;
+            if (barrier.kind() == SharedEdgeBarrier.Kind.REVETMENT) {
+                emitRevetment(barrier, cell);
+                continue;
+            }
             if (barrier.kind() != SharedEdgeBarrier.Kind.WINDOW) continue;
 
             if (barrier.direction() == Direction.E) {
@@ -300,6 +322,45 @@ public final class GroundRenderSystem implements RenderSystem {
                 fillRect(x0 + glassEndInset, centerY - glassThickness * 0.5f,
                         x1 - glassEndInset, centerY + glassThickness * 0.5f,
                         WINDOW_GLASS);
+            }
+        }
+    }
+
+    /**
+     * One deployed revetment: a slab centred on the shared edge with ribs
+     * across it. Centred, not offset to one side, because a screen a marine set
+     * down belongs to the boundary itself and protects whoever is on either
+     * side of it — drawing it inside one of the two cells would claim an
+     * ownership it does not have.
+     */
+    private void emitRevetment(SharedEdgeBarrier barrier, float cell) {
+        int x = barrier.cellX();
+        int y = barrier.cellY();
+        float thickness = cell * EDGE_REVETMENT_THICKNESS_FRAC;
+        float ribLength = cell * EDGE_REVETMENT_RIB_LENGTH_FRAC;
+        if (barrier.direction() == Direction.E) {
+            float centerX = cam.cellToScreenX(x + 1f);
+            float y0 = cam.cellToScreenY(y);
+            float y1 = cam.cellToScreenY(y + 1f);
+            fillRect(centerX - thickness * 0.5f, y0,
+                    centerX + thickness * 0.5f, y1, REVETMENT_BODY);
+            for (int rib = 1; rib <= EDGE_REVETMENT_RIBS; rib++) {
+                float ribY = y0 + (y1 - y0) * rib / (EDGE_REVETMENT_RIBS + 1f);
+                fillRect(centerX - thickness * 0.5f, ribY - ribLength * 0.5f,
+                        centerX + thickness * 0.5f, ribY + ribLength * 0.5f,
+                        REVETMENT_RIB);
+            }
+        } else {
+            float centerY = cam.cellToScreenY(y + 1f);
+            float x0 = cam.cellToScreenX(x);
+            float x1 = cam.cellToScreenX(x + 1f);
+            fillRect(x0, centerY - thickness * 0.5f,
+                    x1, centerY + thickness * 0.5f, REVETMENT_BODY);
+            for (int rib = 1; rib <= EDGE_REVETMENT_RIBS; rib++) {
+                float ribX = x0 + (x1 - x0) * rib / (EDGE_REVETMENT_RIBS + 1f);
+                fillRect(ribX - ribLength * 0.5f, centerY - thickness * 0.5f,
+                        ribX + ribLength * 0.5f, centerY + thickness * 0.5f,
+                        REVETMENT_RIB);
             }
         }
     }

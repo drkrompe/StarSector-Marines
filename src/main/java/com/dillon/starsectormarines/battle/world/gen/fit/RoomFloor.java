@@ -6,7 +6,6 @@ import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
-import com.dillon.starsectormarines.battle.world.model.TileManifest;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
@@ -274,12 +273,12 @@ public final class RoomFloor {
      * <p>Pave before furnishing. Doodads draw in the order they are recorded, so
      * covering laid after a fixture is covering laid over it.
      */
-    public void pave(int x, int y, int tileColumn, int tileRow) {
+    public void pave(int x, int y, String doodadId) {
         if (x < 0 || y < 0 || x >= width || y >= height) return;
         if (!room.shape().contains(x, y)) return;
-        ctx.doodads.add(new Doodad(left + x, top + y,
-                new TileManifest.TileFrame(tileColumn, tileRow),
-                TileManifest.SHEET, Doodad.COVER_NONE));
+        DoodadDef def = TileRegistry.installed().doodad(doodadId);
+        if (def == null) return;
+        ctx.doodads.add(new Doodad(left + x, top + y, def));
     }
 
     /**

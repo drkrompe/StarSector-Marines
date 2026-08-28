@@ -4,7 +4,7 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — close-contact boarding tools shipped as one typed activation carried by two families, adding contact reach, contact reservation, and the authored breach point to the special-equipment model.
+Updated: 2026-08-28 — the deployable category split into its two placed shapes, actor and boundary property, as the Rampart field revetment shipped as carried directional cover.
 
 ## Purpose
 
@@ -75,6 +75,11 @@ legibility.
   survivability, geometry, force value, magazine, and gun from the shipped
   emplacement catalogs rather than from the backpack that carried it. It is
   never a squad member and never a second soldier.
+- **Placed cover screen** — the other thing a deployable may leave behind: a
+  barricade occupying one boundary between two cells. It is not an actor and
+  never enters the roster — cover is stored per cell per facing, so a screen
+  is a property of the map rather than a body standing on it. It takes its
+  cover, durability, and passability from a named shared-edge profile.
 - **Engagement** — one burst a placed emplacement fires at one warhead. It
   spends a round of the mount's magazine and puts the mount on its interval
   whether or not it connects, so an engagement is an attempt, not an outcome.
@@ -524,10 +529,10 @@ keeping with how the rest of the equipment model treats recovery.
 The built-in identities are the rocket launcher, anti-materiel
 rifle, Wayfarer smoke grenades, Breachhand mag-clamp satchel, Shattercap
 fragmentation grenades, the Emberjaw thermal breacher, the Quillon
-vibro-blade, and the Palisade interceptor pod. The first two are direct-fire
-activations, Shattercap
+vibro-blade, the Palisade interceptor pod, and the Rampart field revetment.
+The first two are direct-fire activations, Shattercap
 is an arcing weapon activation, smoke and satchels are utility activations,
-the pod is a deployable activation, and
+the pod and the revetment are deployable activations, and
 the breacher and blade share one close-contact activation,
 but only the item definition owns loadout identity, catalog copy, resource
 mode, initial ammunition, Armory art, activation type, AI policy, use-pose
@@ -747,6 +752,54 @@ Placement never seals the cell it stands on. A carried pod sits on the floor its
 carrier was standing on; closing that cell would both trap the carrier and shut
 a navigation edge under existing paths. Only an emplacement that actually sealed
 a cell re-opens one when it dies.
+
+**A deployable leaves behind one of two kinds of thing, and only one of them is
+an actor.** The category's shared part is the carried item's channel: an
+activation that commits the carrier, freezes them for a short build, spends one
+piece of hardware, and enqueues a placement that the serial pass resolves. What
+that placement produces is not shared at all. A **placed emplacement** is an
+actor — an entity on a cell, with hit points and armour, targetable, killable,
+drawn by the ordinary unit pass. A **placed cover screen** is a *property of a
+boundary* — there is no entity, because cover in this game is stored per cell
+per facing and a barricade is the thing that puts some there. Each shape has its
+own owner: an emplacement takes its survivability, geometry, and gun from the
+emplacement catalogs, while a screen takes its cover level, catch height,
+structure, and passability from the named shared-edge profile that
+`mapgen-nouns.md` owns. A future deployable picks the shape that matches what it
+actually leaves standing, rather than being bent into whichever one shipped
+first.
+
+The second deployable is the **Rampart field revetment**: folding baskets and a
+stake kit a marine drops across one boundary of the ground they are already
+holding. It is placed when the carrier is standing still, taking fire from a
+hostile it can locate, and the boundary between them offers nothing — so it is
+free in a battle fought from cover and it never pulls a marine off a firing
+line to build.
+
+**A cover screen protects one boundary, and the boundary belongs to both cells
+it joins.** Whoever stands on either side of it is behind it against fire
+crossing it, which is faction-blind because a barricade does not know who built
+it, and it does nothing whatever against fire from the other three directions.
+That directionality is the whole design: a screen that made its cell safer from
+everywhere would be a durability increase in a costume, which is the same
+mistake the all-round screen refused. It is enforced rather than asserted —
+the damage path resolves cover against the bearing from the target to the hit's
+source whenever the hit has a locatable one, and falls back to the
+direction-blind scalar only for a hit with no bearing at all.
+
+**A screen is cover, not a wall, and that is what makes it placeable at all.**
+It leaves the navigation transition open: a soldier steps over it, shoots over
+it, and sees over it. Nothing about the walkable graph changes when one appears,
+so no path in progress is invalidated, no zone is severed, and no unit can be
+stranded behind one — which is exactly the condition `mapgen-nouns.md` puts on
+runtime construction. A barricade that also blocked movement would be a
+different feature owing a different proof, and would be a portable wall rather
+than a portable piece of cover.
+
+Its bounds are the boundary it occupies, a finite time standing, and a small
+structure that explosive wall damage depletes. Expiry and destruction share
+one removal path, so a screen that ran its clock out and one that was blown
+apart leave the boundary in the same state — the one it was found in.
 
 **Which rounds may be engaged is the weapon's declaration, not the
 emplacement's.** A weapon definition opts itself in, and the shipped warhead

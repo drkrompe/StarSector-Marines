@@ -54,7 +54,7 @@ public final class VanillaHullSilhouettes {
      * people rather than employing them.
      */
     public record Hull(String id, HullSilhouette silhouette, HullClass hullClass, HullRole role,
-                       int minCrew, int maxCrew, int cargo) {
+                       int minCrew, int maxCrew, int cargo, String spriteName) {
 
         /** Everyone aboard who is not needed to work the ship. */
         public int lift() {
@@ -97,7 +97,8 @@ public final class VanillaHullSilhouettes {
         Complement complement = readComplement(hullId);
         return new Hull(hullId, trace(image, hullId), hullClass,
                 HullRole.fromDesignation(complement.designation()),
-                complement.minCrew(), complement.maxCrew(), complement.cargo());
+                complement.minCrew(), complement.maxCrew(), complement.cargo(),
+                spriteName);
     }
 
     /** Reads designation, crew, and hold for one hull from the vanilla ship table. */

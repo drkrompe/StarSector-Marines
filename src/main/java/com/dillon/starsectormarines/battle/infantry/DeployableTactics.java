@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.deployable.DeployedEmplacement;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -13,8 +14,14 @@ import java.util.List;
 
 /**
  * Carrier-side executor for the {@code utility-deployable} activation: when a
- * marine decides to set an emplacement down, and what completing that channel
- * does.
+ * marine decides to set something down, and what completing that channel does.
+ *
+ * <p>Two policies share this executor because they share the channel and
+ * nothing else. An emplacement carrier places when hostile <em>ordnance</em> is
+ * already in the air; a cover carrier places when hostile <em>fire</em> is
+ * already coming from a direction the ground does not protect them from. Both
+ * triggers are local, reactive, and free in a battle where the condition never
+ * arises.
  *
  * <p>Like the other special-equipment executors, it authors no path, clears no
  * path, and never retargets its carrier — a marine sets a pod down where they
@@ -67,10 +74,57 @@ public final class DeployableTactics {
     }
 
     /**
+     * Begins the placement channel when the carrier is standing still, taking
+     * fire from a hostile it can locate, and the boundary between it and that
+     * hostile offers nothing.
+     *
+     * <p>Every clause is load-bearing. <b>Standing still</b>, because a marine
+     * mid-bound does not stop to build — like every other executor here this
+     * one authors no path and never retargets its carrier, so the only way a
+     * screen goes down is that the marine had already chosen to stay.
+     * <b>A locatable hostile</b>, because a screen is directional and a
+     * direction has to come from somewhere real. <b>Nothing there already</b>,
+     * because the item exists to fix bare ground: a marine beside a wall, a
+     * window, or a barricade a squadmate already built has the cover this
+     * would have given them, and spending a second one buys nothing.
+     */
+    public static boolean tryCommitCoverPlacement(long unit, SpecialEquipmentDef special,
+                                                  BattleControl sim) {
+        World world = sim.world();
+        if (!sim.movement().settled(unit)) return false;
+        long threat = threatToCoverAgainst(unit, sim);
+        if (threat == 0L) return false;
+        int cellX = world.cellX(unit);
+        int cellY = world.cellY(unit);
+        int facing = NavigationGrid.facingFor(world.cellX(threat) - cellX,
+                world.cellY(threat) - cellY);
+        if (sim.deployedCover().isCovered(cellX, cellY, facing)) return false;
+        sim.deployedCover().reserveFacing(unit, facing);
+        world.setSecondaryActionTimer(unit, special.deployableCoverSpec().deployDuration());
+        world.setSecondaryFired(unit, false);
+        world.setSecondaryAimTargetId(unit, 0L);
+        return true;
+    }
+
+    /**
+     * The hostile whose fire the carrier is answering: the one it is shooting
+     * at, or failing that the one that last shot it. Both are contacts the
+     * marine already has — this never opens a search for a reason to build
+     * something.
+     */
+    private static long threatToCoverAgainst(long unit, BattleControl sim) {
+        long engaged = sim.resolveUnit(sim.combat().fireTargetId(unit));
+        if (engaged != 0L && sim.world().isAlive(engaged)) return engaged;
+        long reflex = sim.resolveUnit(sim.combat().reflexTargetId(unit));
+        if (reflex != 0L && sim.world().isAlive(reflex)) return reflex;
+        return 0L;
+    }
+
+    /**
      * Advances an in-progress placement channel. On completion the carrier
-     * spends one carried emplacement and queues the placement on its own cell;
-     * the service mints the entity at the next serial pass. Returns
-     * {@code true} for as long as the carrier is committed.
+     * spends one piece of carried hardware and queues the placement; the
+     * service builds it at the next serial pass. Returns {@code true} for as
+     * long as the carrier is committed.
      */
     public static boolean tickPlacement(long unit, SpecialEquipmentDef special,
                                         BattleControl sim) {
@@ -82,14 +136,35 @@ public final class DeployableTactics {
         if (ammo > 0) {
             world.setSecondaryAmmo(unit, ammo - 1);
             sim.telemetry().recordSecondaryUsed(unit);
-            sim.pointDefense().queuePlacement(unit, sim.identity().faction(unit),
-                    world.cellX(unit), world.cellY(unit),
-                    special.deployableEmplacementSpec());
+            if (special.deployableCoverSpec() != null) {
+                queueCoverPlacement(unit, special, sim);
+            } else {
+                sim.pointDefense().queuePlacement(unit, sim.identity().faction(unit),
+                        world.cellX(unit), world.cellY(unit),
+                        special.deployableEmplacementSpec());
+            }
             world.setSecondaryFired(unit, true);
         }
         world.setSecondaryActionTimer(unit, 0f);
         world.setSecondaryAimTargetId(unit, 0L);
         return true;
+    }
+
+    /**
+     * Hands the completed screen to its service, on the boundary reserved when
+     * the carrier committed rather than one re-derived now. The reservation is
+     * released either way, so an interrupted carrier leaves nothing behind.
+     */
+    private static void queueCoverPlacement(long unit, SpecialEquipmentDef special,
+                                            BattleControl sim) {
+        World world = sim.world();
+        int facing = sim.deployedCover().reservedFacing(unit);
+        sim.deployedCover().releaseFacing(unit);
+        if (facing < 0) return;
+        sim.deployedCover().queuePlacement(unit, sim.identity().faction(unit),
+                world.cellX(unit), world.cellY(unit),
+                NavigationGrid.directionForFacing(facing),
+                special.deployableCoverSpec());
     }
 
     /**

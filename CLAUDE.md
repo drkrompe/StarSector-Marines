@@ -115,7 +115,7 @@ Do not run builds or leave generated task files there.
   `-PsnapshotHeight=640` arguments control review playback and output size.
 - `gradlew.bat createSnapshots` → every deterministic visual-evidence suite under
   `build/snapshots/` without launching Starsector or creating an OpenGL context. Select
-  suites with `-Psnapshot=armory,durability-bars,frontage-scene,layers,point-defence,ship-decks,turrets,ui`
+  suites with `-Psnapshot=armory,deployable-cover,durability-bars,frontage-scene,layers,point-defence,ship-decks,turrets,ui`
   (default `all`) and redirect the common output root with `-PsnapshotDir=<path>`.
 - `gradlew.bat layerAuthoring` → extensible standalone authoring workbench. The
   Layers page provides drag, scale, rotation, variant-scoped phase-driven
@@ -246,6 +246,7 @@ The discovered suite ids and default output directories are:
 | `ui` | Retained Marine Ops screens at authored viewport sizes | `build/snapshots/ui/` |
 | `frontage-scene` | Animated garrison stand-to on a generated compound, one loop per approach edge | `build/snapshots/frontage-scene/` |
 | `point-defence` | Animated LRM salvos against a placed interceptor pod: rounds stopped, rounds missed, rounds arriving | `build/snapshots/point-defence/` |
+| `deployable-cover` | Animated controlled comparison of a placed revetment: the same fire into a covered lane, an open lane, and a screened post shot from the flank | `build/snapshots/deployable-cover/` |
 
 Run all suites with `gradlew.bat createSnapshots`. Use
 `-Psnapshot=<id>` for one suite or a comma-separated selector for several; quote
@@ -274,15 +275,14 @@ Prefer a scene over a mission harness whenever the question is about one
 behavior rather than about a whole battle's balance, and add another scene
 rather than widening this one past what its name claims.
 
-`gradlew.bat test --tests '*FrontageSceneTest*'` plays it and writes
-`build/reports/frontage-scene/<label>.json`: the force, the derived frontage,
-per-squad rows naming which layer each garrison held, crowding measurements,
-the ticks at which the run first stood to / manned a post / was breached, and a
-compact per-sample timeline. The report is deterministic for a given seed and
-configuration, so two runs of an unchanged scene produce identical bytes and a
-diff is a real change. It records measurements only — the verdicts live in the
-test, because a report that decided what "good" meant would let a threshold
-drift without anything failing.
+The scene is reached through its snapshot suite —
+`gradlew.bat createSnapshots -Psnapshot=frontage-scene` — which plays it and
+records the animated evidence. It carried a JUnit harness and a JSON report as
+well; both were deleted on 2026-08-28 because playing the scene twelve times
+cost 93s of a 560s `:test` run, and the owner judged the invariants not worth
+that. A scene is still the right instrument for a question about one behavior;
+reach for it from a snapshot suite or a scratch harness rather than from the
+default suite.
 
 Snapshot generation is tool/test infrastructure and must not enter the shipped
 mod jar. Keep reusable catalog and runner code in `:layer-authoring`, keep
@@ -307,6 +307,29 @@ services on the tool runtime classpath. Keep the generic host and lifecycle in
 `:layer-authoring`; keep mod-domain pages such as Turrets in root tool/test
 sources so the shipped mod jar and the generic tool module do not acquire each
 other's domain dependencies.
+
+## Tests
+
+**A unit test tests a unit.** It exercises one class or one function
+directly, on the smallest input that can show the mechanism is right. If it
+has to stand up a world generator, a battle, or a renderer to ask its
+question, it is not a unit test and does not belong in `test` — whatever it
+is measuring, there is a unit underneath it that can be asked directly.
+
+The failure mode is proving the *case* instead of the *core*. A fill-quality
+question is about the fitting and the floor it fills, so it is asked of
+those. Generating five hulls at six seeds to look at the result establishes
+nothing the one fitting did not, fails for reasons belonging to the inputs
+rather than the code, and costs ninety world generations on every run by
+every concurrent session forever. The arithmetic hides: five times six times
+three reads like one test.
+
+A test runs in a second or two. That is a consequence rather than the rule —
+a test aimed at one unit is small because the unit is.
+
+Measurement that genuinely needs the whole space is **evidence, not a
+test**, and belongs in an opt-in Gradle task excluded from `test`, the shape
+`commanderEvidence` and `createSnapshots` already use.
 
 ## Mod layout
 

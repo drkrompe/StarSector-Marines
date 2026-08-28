@@ -63,6 +63,14 @@ public final class ShipViewScreen implements Screen {
     public void attach(PositionAPI position, MarineOpsContext ctx, Runnable dismissDialog) {
         context = ctx;
         this.dismissDialog = dismissDialog;
+        // There is no ship to look at until the company has one. Headquarters
+        // is reachable without a ship on purpose — it is the company rather
+        // than a room — so this page can be asked for by a company that has
+        // nowhere to live, and the answer is the choice rather than a crash.
+        if (ctx.companyDeck() == null) {
+            ctx.goTo(ScreenId.SHIP_TRANSFER);
+            return;
+        }
         viewport = MarineOpsUiViewport.from(position);
         installDocument();
         document.layout(viewport.documentWidth(), viewport.documentHeight());

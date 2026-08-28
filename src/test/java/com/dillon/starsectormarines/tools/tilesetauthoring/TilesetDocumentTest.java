@@ -11,6 +11,8 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** An annotation pass has to survive being put down, and survive a re-slice. */
@@ -64,6 +66,54 @@ class TilesetDocumentTest {
         assertTrue(console.included);
 
         assertFalse(reopened.entries.get(1).included, "an excluded piece stays excluded");
+    }
+
+    /**
+     * A doodad's combat silhouette is not derivable from anything else the
+     * document holds, so a document that could not carry it would quietly
+     * relevel every prop on the sheet to its cover bucket's default on the next
+     * export — a change to how fights go, with nothing in the diff to show it.
+     */
+    @Test
+    void theCombatSilhouetteSurvivesTheRoundTrip(@TempDir Path dir) throws Exception {
+        TilesetDocument doc = document();
+        doc.entries.get(0).ballisticHalfHeight = 0.42;
+        doc.entries.get(0).preferredWallSide = "N";
+
+        Path path = dir.resolve("ship.tileset-authoring.json");
+        doc.write(path);
+        TilesetExport.Entry console = TilesetDocument.read(path).entries.get(0);
+
+        assertEquals(0.42, console.ballisticHalfHeight, 1e-9);
+        assertEquals("N", console.preferredWallSide);
+        assertNull(TilesetDocument.read(path).entries.get(1).ballisticHalfHeight,
+                "a piece nobody judged stays unjudged rather than acquiring a default");
+    }
+
+    /**
+     * Unjudged is a third state, not a zero. Writing the cover bucket's default
+     * down would make "nobody has looked at this" indistinguishable from
+     * "somebody looked and that is the answer".
+     */
+    @Test
+    void anUnsetSilhouetteIsNotWritten(@TempDir Path dir) throws Exception {
+        Path path = dir.resolve("ship.tileset-authoring.json");
+        document().write(path);
+        assertFalse(Files.readString(path).contains("ballisticHalfHeight"));
+        assertFalse(Files.readString(path).contains("preferredWallSide"));
+    }
+
+    @Test
+    void anImpossibleSilhouetteIsRefusedOnRead(@TempDir Path dir) throws Exception {
+        TilesetDocument doc = document();
+        doc.entries.get(0).ballisticHalfHeight = -1.0;
+        assertThrows(Exception.class, () -> doc.write(dir.resolve("ship.tileset-authoring.json")),
+                "a document is proven to read back before it replaces anything");
+
+        TilesetDocument side = document();
+        side.entries.get(0).preferredWallSide = "UP";
+        assertThrows(IllegalArgumentException.class,
+                () -> side.write(dir.resolve("ship2.tileset-authoring.json")));
     }
 
     @Test
