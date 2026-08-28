@@ -4,6 +4,9 @@ Status: ACTIVE — paired attacker and defender command is implemented; live con
 
 Written: 2026-08-27
 
+Updated: 2026-08-28 — defined explicit secure-travel exits separately from
+contact, active-path, and quiet-travel context.
+
 Read `mission-command-nouns.md` for the shared architecture and
 `conquest-nouns.md` for territory, compounds, supply, keep, and victory law.
 
@@ -60,7 +63,12 @@ ownership transitions remain neutral referee facts.
 
 Conquest evidence measures assignment churn, response latency, reserve time,
 track concentration, target closure, target-zone arrival, capture-zone
-presence, captures/losses, casualties, and terminal or timeout result. The
-current acceptance work is tracked by `front-command-and-keep-convergence.md`,
+presence, captures/losses, casualties, and terminal or timeout result. A
+secure-compound trip ends once on target entry, retarget, release, squad loss,
+execution suspension, observation gap, timeout, or terminal result. Its local
+contact, active-path, and quiet-travel observations remain overlapping context,
+so a lethal contact-bound approach cannot be mislabeled as unexplained idle.
+The current acceptance work is tracked by
+`front-command-and-keep-convergence.md`,
 `defender-track-mobilization.md`, and
 `defender-convoy-deployment-and-handoff.md`.

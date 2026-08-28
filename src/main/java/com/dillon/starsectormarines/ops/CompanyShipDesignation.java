@@ -1,11 +1,13 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.world.gen.ship.HullClass;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.CampaignUIAPI;
 import com.fs.starfarer.api.campaign.CargoAPI;
+import com.fs.starfarer.api.combat.ShipAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import org.apache.log4j.Logger;
 
@@ -185,7 +187,7 @@ public final class CompanyShipDesignation {
     public static boolean designate(FleetMemberAPI member) {
         MarineRoster roster = roster();
         if (roster == null || member == null) return false;
-        if (!candidates().contains(member)) return false;
+        if (!candidates().contains(member) || !quarters(member)) return false;
         roster.setCompanyShip(member.getId(), shipName(member),
                 Math.round(member.getCargoCapacity()));
         LOG.info("CompanyShipDesignation: the company now lives aboard "
@@ -208,6 +210,12 @@ public final class CompanyShipDesignation {
      * the list, including hulls that would be bad homes — what a candidate
      * <em>loses</em> is the interesting half of the comparison, and it cannot be
      * shown for a candidate that was filtered out before the player saw it.
+     *
+     * <p>A hull too small to base a company on stays on the list too, and is
+     * refused when the player tries to move in. Absent, she would read as a
+     * ship the game had forgotten; listed and refused, she reads as a boat, and
+     * the player learns where the line is by seeing it. {@link #quarters} draws
+     * it.
      */
     public static List<FleetMemberAPI> candidates() {
         return ranked(false);
@@ -249,6 +257,20 @@ public final class CompanyShipDesignation {
         MarineRoster roster = roster();
         long company = roster == null ? FOUNDING_DECK_SEED : roster.deckSeed();
         return hull == null ? company : company * 31L + hull.hashCode();
+    }
+
+    /**
+     * Whether the company could be based aboard this ship at all.
+     *
+     * <p>A distinct answer from "would she be a good home". The hulls the
+     * player runs squads around in — a Kite, a Hound, a shuttle — have lift and
+     * an interior and are still not somewhere a company lives. See
+     * {@link HullClass#quarters()}.
+     */
+    public static boolean quarters(FleetMemberAPI member) {
+        if (member == null || member.getHullSpec() == null) return false;
+        ShipAPI.HullSize size = member.getHullSpec().getHullSize();
+        return HullClass.fromHullSize(size == null ? null : size.name()).quarters();
     }
 
     /** What to call her, falling back to her hull when she is unnamed. */

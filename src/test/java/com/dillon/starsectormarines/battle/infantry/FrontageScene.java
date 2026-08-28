@@ -712,15 +712,82 @@ final class FrontageScene {
         // the compound's frontage becomes its building shells instead of its
         // wall. A shape shallower than the square baseline would hit exactly
         // that with a fixed span.
-        int[] bounds = footprint(compound(shape));
-        for (int y = bounds[1] + 1; y <= bounds[3] - 1; y++) reservation[PARADE_X][y] = true;
-        for (int x = bounds[0] + 1; x <= bounds[2] - 1; x++) reservation[x][PARADE_Y] = true;
+        reserveParadeLines(compound(shape), reservation);
 
         GenContext ctx = new GenContext(grid, topology, new Random(seed), WIDTH, HEIGHT, seed);
         ctx.put(BspKeys.ROAD_CELLS, road);
         ctx.put(BspKeys.ROAD_RESERVATION, reservation);
         new MilitaryBaseFiller().fill(compound(shape), ctx);
         return ctx;
+    }
+
+    /**
+     * Reserve the parade centrelines only where they genuinely run between two
+     * member leaves.
+     *
+     * <p>Clipping to the footprint bounding box is not enough on a shape with a
+     * notch. {@code paintWallRing} deliberately skips reserved cells so a road
+     * can cross a compound, so a centreline continued across the missing
+     * quadrant of an L opens the wall there, the courtyard joins the street as
+     * one zone, and every perimeter window loses the held interior it needs to
+     * be frontage — an L-shaped compound then reads as having no firing line at
+     * all, when what it actually has is a road driven through its wall.
+     */
+    private static void reserveParadeLines(Compound compound, boolean[][] reservation) {
+        int[] vertical = interiorSpan(compound, true);
+        for (int y = vertical[0]; y <= vertical[1]; y++) reservation[PARADE_X][y] = true;
+        int[] horizontal = interiorSpan(compound, false);
+        for (int x = horizontal[0]; x <= horizontal[1]; x++) reservation[x][PARADE_Y] = true;
+    }
+
+    /**
+     * First and last position along a centreline that genuinely runs between
+     * two leaves, as an inclusive span.
+     *
+     * <p>Taken as a span rather than cell by cell because the reservation does
+     * double duty: it opens the wall, and it is also what makes the filler
+     * bridge the inter-leaf roads into the compound. A line reserved only where
+     * leaves flank it is broken at the point the two centrelines cross, the
+     * central plaza never gets bridged in, and the compound ends up with no
+     * courtyard at all. Filling between the ends keeps the interior continuous
+     * while still stopping the line before it reaches open ground.
+     */
+    private static int[] interiorSpan(Compound compound, boolean vertical) {
+        int first = Integer.MAX_VALUE;
+        int last = Integer.MIN_VALUE;
+        int extent = vertical ? HEIGHT : WIDTH;
+        for (int i = 0; i < extent; i++) {
+            int x = vertical ? PARADE_X : i;
+            int y = vertical ? i : PARADE_Y;
+            if (!between(compound, x, y, vertical)) continue;
+            first = Math.min(first, i);
+            last = Math.max(last, i);
+        }
+        // Inset by one at each end: the reservation is a road centreline
+        // through the gap, not a cut across the leaf edges that bound it.
+        return first > last ? new int[]{1, 0} : new int[]{first + 1, last - 1};
+    }
+
+    /**
+     * Whether {@code (x, y)} lies in a gap with a member leaf on both sides —
+     * across the line for a vertical centreline, above and below for a
+     * horizontal one.
+     */
+    private static boolean between(Compound compound, int x, int y, boolean vertical) {
+        boolean before = false;
+        boolean after = false;
+        for (BlockLeaf leaf : compound.members) {
+            if (vertical) {
+                if (y < leaf.top || y > leaf.bottom) continue;
+                if (leaf.right < x) before = true;
+                if (leaf.left > x) after = true;
+            } else {
+                if (x < leaf.left || x > leaf.right) continue;
+                if (leaf.bottom < y) before = true;
+                if (leaf.top > y) after = true;
+            }
+        }
+        return before && after;
     }
 
     /** Union bbox of a compound's member leaves as {@code [left, top, right, bottom]}. */

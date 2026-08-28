@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
 
@@ -88,6 +89,104 @@ public final class TilesetOperations {
                 SheetSlicer.slice(sheet, alphaMin, SheetSlicer.DEFAULT_MIN_AREA);
         return TilesetDocument.reconcile(pieces, document.entries, document.idPrefix,
                 document.cellPxX(sheet.getWidth()), document.cellPxY(sheet.getHeight()));
+    }
+
+    /**
+     * A lost entry that was decided rather than measured, and what made it one.
+     *
+     * <p>The reason is carried because a refusal that only counts entries tells
+     * an operator nothing about whether losing them matters.
+     */
+    public record AtRisk(String id, String reason) {}
+
+    /** How many at-risk entries a refusal names before summarizing the rest. */
+    private static final int NAMED_IN_REFUSAL = 6;
+
+    /**
+     * Which of a re-slice's lost entries carry authored work.
+     *
+     * <p>Re-slicing derives pieces from pixels, so it can only ever recover what
+     * a threshold can see. Everything else an entry holds was decided by someone
+     * looking at the art, and a piece that reconciles to nothing takes all of it
+     * with it. Two shapes qualify:
+     *
+     * <ul>
+     *   <li>an entry carrying judgement — block membership, a note, tags, a
+     *       non-default cover, a footprint other than one cell, a stand-in
+     *       binding, or an id that is no longer the generated one;
+     *   <li>a cut cell, recognizable from the positional id
+     *       {@link #gridId} gives it. It may carry no annotation yet, but the cut
+     *       itself is a stated decision that a re-slice silently reverses: a
+     *       fused plate has no alpha gutters, so slicing finds it whole again and
+     *       every cell reconciles to nothing.
+     * </ul>
+     *
+     * <p>Exclusion is deliberately not judgement. Marking specks as not shipping
+     * and then raising the threshold until they vanish is a threshold sweep
+     * working, not work being lost.
+     */
+    public static List<AtRisk> atRisk(List<TilesetExport.Entry> lost, String idPrefix) {
+        List<AtRisk> found = new ArrayList<>();
+        for (TilesetExport.Entry entry : lost) {
+            String reason = authoredReason(entry, idPrefix);
+            if (reason != null) found.add(new AtRisk(entry.id, reason));
+        }
+        return found;
+    }
+
+    private static String authoredReason(TilesetExport.Entry entry, String idPrefix) {
+        List<String> reasons = new ArrayList<>();
+        if (entry.isBlockMember()) {
+            reasons.add("slot " + entry.slot + " of block " + entry.blockId);
+        }
+        if (!entry.note.isEmpty()) reasons.add("a note");
+        if (!entry.tags.isEmpty()) reasons.add("tags");
+        if (!"none".equals(entry.cover)) reasons.add("cover " + entry.cover);
+        if (entry.footprintX != 1 || entry.footprintY != 1) {
+            reasons.add("footprint " + entry.footprintX + "x" + entry.footprintY);
+        }
+        if (!entry.standsInFor.isEmpty()) reasons.add("stands in for " + entry.standsInFor);
+        if (isCutCell(entry.id, idPrefix)) {
+            reasons.add("a cut cell");
+        } else if (!isGeneratedSerialId(entry.id, idPrefix)) {
+            reasons.add("a chosen id");
+        }
+        return reasons.isEmpty() ? null : String.join(", ", reasons);
+    }
+
+    /** A cell of a plate that was cut on the grid: {@code <idPrefix>.c<col>r<row>}. */
+    private static boolean isCutCell(String id, String idPrefix) {
+        return id.matches(Pattern.quote(idPrefix) + "\\.c\\d+r\\d+");
+    }
+
+    /** The reading-order name a slice hands a piece nobody has named yet. */
+    private static boolean isGeneratedSerialId(String id, String idPrefix) {
+        return id.matches(Pattern.quote(idPrefix) + "\\.piece-\\d+");
+    }
+
+    /**
+     * Why keeping a re-slice is refused, and what it would have cost.
+     *
+     * <p>Shared so the window and the headless caller refuse the same thing for
+     * the same stated reason. Neither says how to override here: a confirmation
+     * button and a {@code force} argument are not the same escape, and a message
+     * naming the wrong one is worse than one naming none.
+     */
+    public static String discardWarning(List<AtRisk> atRisk) {
+        StringBuilder message = new StringBuilder("keeping this re-slice would drop ")
+                .append(atRisk.size())
+                .append(atRisk.size() == 1 ? " entry that was" : " entries that were")
+                .append(" decided rather than found: ");
+        for (int i = 0; i < Math.min(NAMED_IN_REFUSAL, atRisk.size()); i++) {
+            if (i > 0) message.append("; ");
+            message.append(atRisk.get(i).id()).append(" (").append(atRisk.get(i).reason()).append(')');
+        }
+        if (atRisk.size() > NAMED_IN_REFUSAL) {
+            message.append("; and ").append(atRisk.size() - NAMED_IN_REFUSAL).append(" more");
+        }
+        return message.append(". Slicing reads pixels, so none of that comes back: a fused "
+                + "plate has no gutters and is found whole again, and every cell cut from it "
+                + "reconciles to nothing.").toString();
     }
 
     /**
