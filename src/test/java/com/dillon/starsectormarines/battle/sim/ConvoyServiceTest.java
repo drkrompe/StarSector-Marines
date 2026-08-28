@@ -52,6 +52,8 @@ public class ConvoyServiceTest {
         assertTrue(r.entityWorld().has(id, r.components().GROUND_IDENTITY));
         assertTrue(r.entityWorld().has(id, r.components().GROUND_KINEMATICS));
         assertTrue(r.entityWorld().has(id, r.components().VEHICLE_MISSION));
+        assertTrue(r.entityWorld().has(id, r.components().HEALTH));
+        assertTrue(r.entityWorld().has(id, r.components().ARMOR));
 
         // Identity + variant seeded from the spawn args.
         assertSame(VehicleType.HEAVY_APC, convoy.vehicleType(id));
@@ -72,6 +74,10 @@ public class ConvoyServiceTest {
 
         // The handed-in mission bag is the VEHICLE_MISSION payload (the id→mission resolution).
         assertSame(m, convoy.mission(id), "convoy.mission(id) resolves the seeded mission bag");
+        assertEquals(VehicleType.HEAVY_APC.maxStructure, convoy.structure(id), 1e-4f);
+        assertEquals(VehicleType.HEAVY_APC.maxArmor, convoy.armor(id), 1e-4f);
+        assertEquals(VehicleType.HEAVY_APC.armorRating, convoy.armorRating(id), 1e-4f);
+        assertTrue(r.isAliveById(id), "HEALTH makes held-id liveness work without dense-roster membership");
 
         // Off the dense ground roster — grid systems iterate [0, liveCount()) and skip it.
         assertFalse(r.isLive(id), "a convoy vehicle is not a dense-roster entity");
@@ -96,6 +102,7 @@ public class ConvoyServiceTest {
         assertNull(convoy.vehicleType(id));
         assertNull(convoy.turret(id));
         assertNull(convoy.mission(id));
+        assertEquals(0, convoy.entityIds().length);
     }
 
     @Test

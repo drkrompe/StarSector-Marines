@@ -5,7 +5,7 @@ Status: PROPOSED — gated on a named economic owner.
 Written: 2026-08-26
 
 Read `ship-interiors-nouns.md` before implementing this story. Depends on
-`company-ship-deck-adoption.md`.
+`ship-interiors-nouns.md`.
 
 Make facility capacity spatial, then let a bounded upgrade transaction change the
 room. This is the story the whole model exists for: buying bay space adds a

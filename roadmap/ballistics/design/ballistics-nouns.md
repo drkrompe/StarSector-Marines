@@ -4,7 +4,7 @@ Status: ACTIVE — modeled ground direct fire is shipped; one manual feel pass r
 
 Written: 2026-08-23
 
-Updated: 2026-08-25 — made wall contact and direct-fire legality continuous-point traces.
+Updated: 2026-08-27 — admitted convoy bodies as explicit direct-fire contacts and targets.
 
 Ballistics makes a direct shot a committed physical event instead of an
 accuracy result applied at the muzzle. It owns contact along the predicted
@@ -42,6 +42,13 @@ has a longer chance to meet a moving interposer. The body circle is shared with
 other physical gameplay; vertical contact uses the body's lightweight combat
 silhouette. This is a target-plane convention, not terrain elevation, gravity,
 or a general airborne collision policy.
+
+The dense ground-unit spatial index supplies ordinary body candidates. The
+small convoy population is appended explicitly from `ConvoyService`; each live
+vehicle contributes its continuous body position/velocity and authored radius
+and height. This keeps vehicle contact physical without pretending that an APC
+is a grid infantry row. Wrecked vehicles are no longer damageable contacts;
+their persistent obstruction belongs to navigation rather than Ballistics.
 
 Contacts are considered in travel order. A structural wall is a full-height
 hard stop. A crossed physical cover feature, a directional cover edge at a
@@ -99,6 +106,8 @@ but it cannot change the resolved path or create damage.
 
 Ground direct-fire adopters share this model: infantry primaries and direct
 special weapons, ground mech direct weapons, and ground direct turret bursts.
+Their intended targets may be either ordinary combatants or targetable convoy
+vehicles; the committed payload then enters the shared durability authority.
 Arc, indirect, and other projectile procedures retain their own trajectory and
 arrival contracts. Aerial fire is not implicitly ground direct fire; modeled
 fighter shots require an Air-owned airborne source, target, roof, and wall

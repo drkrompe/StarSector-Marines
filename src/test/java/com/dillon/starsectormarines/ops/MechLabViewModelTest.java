@@ -220,6 +220,9 @@ class MechLabViewModelTest {
 
     private static Map<String, Object> props(MechLabViewModel viewModel) {
         Map<String, Object> props = new LinkedHashMap<>();
+        // Layout evidence, so the heading only has to be a string of about the
+        // right length; where the room actually is belongs to the ship.
+        props.put("contextLabel", "CRUISER TROOP TRANSPORT / MIDSHIPS PORT / VEHICLE BAY");
         props.put("labSummary", viewModel.labSummary());
         props.put("squadRows", viewModel.squadRows());
         props.put("mechRows", viewModel.mechRows());
