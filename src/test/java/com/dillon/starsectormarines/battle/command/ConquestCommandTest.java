@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -739,6 +740,74 @@ public class ConquestCommandTest {
         int zoneB = sim.getZoneGraph().zoneIdAt(b.anchorX, b.anchorY);
         assertEquals(zoneA, sqA.assignedObjective.targetZoneId(), "squad A → compound A");
         assertEquals(zoneB, sqB.assignedObjective.targetZoneId(), "squad B → compound B");
+    }
+
+    @Test
+    public void sharedCaptureZoneKeepsAuthoredCompoundIdentity() {
+        BattleSimulation sim = openSim();
+        TacticalNode a = registerCompound(sim, new TacticalNode(
+                TacticalNode.Kind.ARMORY, 5, 5, 4, 4, 6, 6,
+                Faction.DEFENDER, 80, 4));
+        TacticalNode b = registerCompound(sim, new TacticalNode(
+                TacticalNode.Kind.BARRACKS, 8, 5, 7, 4, 9, 6,
+                Faction.DEFENDER, 80, 4));
+        Squad sqA = addMarineSquad(sim, 5f, 5f);
+        Squad sqB = addMarineSquad(sim, 8f, 5f);
+
+        tick(new ConquestCommand(TraversalAxis.SOUTH_TO_NORTH), sim);
+
+        assertEquals(sqA.assignedObjective.targetZoneId(),
+                sqB.assignedObjective.targetZoneId(),
+                "the fixture deliberately places both compounds in one zone");
+        assertSame(a, sqA.assignedObjective.targetNode());
+        assertSame(b, sqB.assignedObjective.targetNode(),
+                "the arbiter must not bind a typed order to the first compound in a shared zone");
+    }
+
+    @Test
+    public void topologyRebuildRebindsStableCaptureToTheSameCompound() {
+        BattleSimulation sim = twoCompoundSim();
+        CompoundService.Record earlier = sim.getCompoundService().register(
+                new TacticalNode(TacticalNode.Kind.ARMORY, 5, 5,
+                        4, 4, 6, 6, Faction.DEFENDER, 80, 4));
+        earlier.state = CompoundService.CompoundState.MARINE_HELD;
+        TacticalNode target = registerCompound(sim, new TacticalNode(
+                TacticalNode.Kind.BARRACKS, 24, 5,
+                23, 4, 25, 6, Faction.DEFENDER, 80, 4));
+        Squad squad = addMarineSquad(sim, 24f, 1f);
+        ConquestCommand command = new ConquestCommand(
+                TraversalAxis.SOUTH_TO_NORTH);
+        CommanderService service = new CommanderService();
+        service.setAutonomousCommander(Faction.MARINE, command,
+                ConquestCommandDisclosure.INSTANCE);
+
+        service.tick(CommanderService.COMMANDER_TICK_PERIOD, sim);
+        int oldZone = squad.assignedObjective.targetZoneId();
+        assertSame(target, squad.assignedObjective.targetNode());
+
+        // Merge an earlier room into the exterior. The target room itself is
+        // unchanged, but the rebuilt graph renumbers its capture zone.
+        sim.getGrid().setDoorway(5, 3, false);
+        sim.getZoneGraph().rebuild();
+        int rebuiltZone = sim.getCompoundService().captureZoneId(
+                sim.getCompoundService().getRecords().stream()
+                        .filter(record -> record.node == target)
+                        .findFirst().orElseThrow(), sim);
+        assertNotEquals(oldZone, rebuiltZone);
+
+        service.tick(CommanderService.COMMANDER_TICK_PERIOD, sim);
+
+        assertEquals(AssignmentKind.SECURE_COMPOUND,
+                squad.assignedObjective.kind());
+        assertEquals(rebuiltZone, squad.assignedObjective.targetZoneId());
+        assertSame(target, squad.assignedObjective.targetNode());
+        CommandDirective rebound = service.assignments()
+                .activeDirective(squad.id);
+        assertEquals(CommandDirective.Status.ACTIVE, rebound.status());
+        assertTrue(rebound.dispositionReason()
+                .contains(CommandStabilityBreak.TOPOLOGY_REBOUND.description()));
+        assertEquals(AssignmentReason.COMPOUND_CAPTURE_PRESERVED,
+                command.frontSnapshot().directiveFor(squad.id).reason());
     }
 
     @Test

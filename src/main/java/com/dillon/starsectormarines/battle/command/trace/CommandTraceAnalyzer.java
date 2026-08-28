@@ -232,6 +232,12 @@ public final class CommandTraceAnalyzer {
         }
     }
 
+    /**
+     * Aggregate movement evidence. The compatibility accessor
+     * {@code episodesWithMarkerClosure} means that an episode reduced its
+     * initial marker distance by at least one cell; it does not mean the squad
+     * reached the marker, a portal, or the target zone.
+     */
     public record PhysicalProgressMetrics(
             int squadSamples,
             int maximumConcurrentAliveSquads,
