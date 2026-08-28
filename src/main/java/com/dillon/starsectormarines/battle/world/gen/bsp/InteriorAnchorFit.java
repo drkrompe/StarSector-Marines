@@ -14,10 +14,11 @@ import java.util.List;
  * <h2>Why this is a whole-map pass and not a per-filler concern</h2>
  * A filler picks the interior anchor while it is carving, but the cell it picks
  * keeps changing afterwards: its own furnishing pass drops a crate on it, a
- * wall stamper paints over the footprint, an emplacement lands in the room.
- * Every producer would have to re-check after every later stage, which no
- * producer can do. Running once at the end, against the grid nobody will touch
- * again, is the only place the guarantee actually holds.
+ * wall stamper paints over the footprint, a post-finalize tower stage lands an
+ * emplacement in the room. Every producer would have to re-check after every
+ * later stage, which no producer can do. Running once at the end, against the
+ * grid nobody will touch again, is the only place the guarantee actually
+ * holds — hence {@code InteriorAnchorFitStage} closing every recipe.
  *
  * <h2>The guarantee</h2>
  * After this pass, a POI's interior anchor is a walkable non-doorway cell
