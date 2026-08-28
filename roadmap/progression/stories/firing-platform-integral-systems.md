@@ -93,8 +93,9 @@ trade the player and the AI can both get wrong:
 - An authored use policy for "hold this position and shoot", added to the closed
   use-policy vocabulary `progression-nouns.md` owns, with its own parameters and
   its own parse-time validation against the stance effect.
-- Presentation, following `integral-system-battle-presentation.md`. A braced
-  marine that looks identical to a walking one hides the whole trade.
+- Presentation, following the running-system treatment rules in
+  `progression-nouns.md`. A braced marine that looks identical to a walking one
+  hides the whole trade.
 
 ## Out of scope
 

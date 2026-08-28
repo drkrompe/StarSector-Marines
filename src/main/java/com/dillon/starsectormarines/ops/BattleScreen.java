@@ -18,6 +18,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.air.engine.EngineVoice;
 import com.dillon.starsectormarines.battle.air.engine.EngineVoiceResolver;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.appearance.SystemFxService;
 import it.unimi.dsi.fastutil.longs.LongList;
 import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementRequest;
 import com.dillon.starsectormarines.battle.command.reinforcement.ReinforcementService;
@@ -135,6 +136,10 @@ public class BattleScreen implements Screen, BattleUiContext {
     };
     private static final String LOOP_TICKING  = "marines_ticking_clock";
     private static final String SFX_VOICE_DEAD = "marines_voice_dead";
+    /** A suit's integral system raising a screen. Mono, so it plays positionally. */
+    private static final String SFX_SYSTEM_SCREEN_UP = "marines_system_screen_up";
+    /** A suit's integral system running without raising a screen. */
+    private static final String SFX_SYSTEM_ENGAGED = "marines_system_engaged";
     private static final String SFX_DISTANT_BOOM = "marines_explosion_muffled";
     private static final String SFX_NEAR_EXPLOSION = "marines_explosion";
     /** Crossfade duration (seconds, whole numbers required) for entering / leaving the battle music. */
@@ -940,6 +945,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     private void playCombatEventSounds(BattleSimulation sim) {
         BattleShotAudio.playPositional(sim.getShotsThisFrame());
         Vector2f zeroVel = new Vector2f(0f, 0f);
+        playSystemActivationCues(sim, zeroVel);
         LongList deaths = sim.getDeathsThisFrame();
         for (int i = 0, n = deaths.size(); i < n; i++) {
             long u = deaths.getLong(i);
@@ -950,6 +956,30 @@ public class BattleScreen implements Screen, BattleUiContext {
                 Global.getSoundPlayer().playSound(SFX_VOICE_DEAD, 1f, 1f, loc, zeroVel);
                 break;  // one voice per frame
             }
+        }
+    }
+
+    /**
+     * One positional cue per integral system spent this frame, at the wearer.
+     *
+     * <p>Reads the presentation-owned activation list rather than watching for a
+     * change in what is on screen: the edge was already detected once, in the
+     * system that authors the treatment, and detecting it a second time here
+     * would be a second answer to the same question. Which cue plays keys on
+     * the capability — a screen went up, or a system is simply running — never
+     * on which armour pattern produced it.
+     */
+    private void playSystemActivationCues(BattleSimulation sim, Vector2f zeroVel) {
+        LongList activations = sim.getSystemActivationsThisFrame();
+        SystemFxService fx = sim.getRoster().systemFx();
+        for (int i = 0, n = activations.size(); i < n; i++) {
+            long unit = activations.getLong(i);
+            Vector2f loc = new Vector2f(
+                    sim.world().renderX(unit) * AUDIO_WORLD_UNITS_PER_CELL,
+                    sim.world().renderY(unit) * AUDIO_WORLD_UNITS_PER_CELL);
+            String cue = fx.arcDegrees(unit) > 0f
+                    ? SFX_SYSTEM_SCREEN_UP : SFX_SYSTEM_ENGAGED;
+            Global.getSoundPlayer().playSound(cue, 1f, 1f, loc, zeroVel);
         }
     }
 
