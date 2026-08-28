@@ -115,7 +115,7 @@ final class IntegralSystemCopy {
         if (breacher != null) {
             String movement = percent(breacher.moveSpeedMult() - 1f) + " faster";
             return system.grantsMitigation()
-                    ? movement + ", " + percent(breacher.frontalResistance()) + " refused over "
+                    ? movement + ", " + Math.round(breacher.screenSoak()) + " soak over "
                             + degrees(breacher.shieldedArcDegrees())
                     : movement;
         }
@@ -145,9 +145,11 @@ final class IntegralSystemCopy {
             String movement = "Moves " + percent(breacher.moveSpeedMult() - 1f)
                     + " faster while it runs";
             return system.grantsMitigation()
-                    ? movement + " and turns aside " + percent(breacher.frontalResistance())
-                            + " of what reaches its " + degrees(breacher.shieldedArcDegrees())
-                            + " front, leaving the flanks exactly as exposed as they were"
+                    ? movement + " and raises a screen that soaks "
+                            + damage(breacher.screenSoak())
+                            + " of damage across its " + degrees(breacher.shieldedArcDegrees())
+                            + " front before it breaks, leaving the flanks exactly as exposed"
+                            + " as they were"
                     : movement;
         }
         MissilePodSpec pod = system.missilePod();
@@ -177,6 +179,14 @@ final class IntegralSystemCopy {
     /** Whole cells; a range is authored to the cell and read as a distance. */
     private static String cells(float value) {
         return Math.round(value) + " cells";
+    }
+
+    /**
+     * The screen's pool, in damage. Whole numbers: a player is judging whether
+     * a rush survives the doorway, not auditing a decimal.
+     */
+    private static String damage(float value) {
+        return Math.round(value) + " damage";
     }
 
     /** Whole degrees with the sign; an arc is authored to the degree and read at a glance. */

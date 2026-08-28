@@ -61,6 +61,8 @@ public final class DrawCommand {
     float angleDeg;
     /** {@code SHEET_QUAD} only: sample the sub-rect mirrored vertically (the SOUTH-weapon-up flip). Always axis-aligned. */
     boolean flipV;
+    /** {@code SPRITE} only: draw with additive blend, for a glow that adds light instead of covering what is under it. */
+    boolean additive;
     float r, g, b, a;
     /** {@code RIBBON} only: the contrail sample history the drain expands. */
     ContrailTrail trail;
@@ -80,6 +82,8 @@ public final class DrawCommand {
     public float height() { return h; }
     public float angleDegrees() { return angleDeg; }
     public boolean flippedVertically() { return flipV; }
+    /** Whether this sprite adds light rather than compositing over what is beneath it. */
+    public boolean additive() { return additive; }
     public PolyMesh polygon() { return poly; }
     public float red() { return r; }
     public float green() { return g; }
@@ -128,10 +132,22 @@ public final class DrawCommand {
     public void setSprite(SpriteAPI sprite,
                           float cx, float cy, float w, float h, float angleDeg,
                           float r, float g, float b, float a) {
+        setSprite(sprite, cx, cy, w, h, angleDeg, r, g, b, a, false);
+    }
+
+    /**
+     * Whole-texture sprite with an explicit blend. Additive is for light a
+     * treatment <em>adds</em> — a tinted normal draw of a dark texture is a
+     * shadow, however hard it is tinted, so a glow has to be able to say so.
+     */
+    public void setSprite(SpriteAPI sprite,
+                          float cx, float cy, float w, float h, float angleDeg,
+                          float r, float g, float b, float a, boolean additive) {
         this.kind = Kind.SPRITE;
         this.sprite = sprite;
         this.cx = cx; this.cy = cy; this.w = w; this.h = h; this.angleDeg = angleDeg;
         this.r = r; this.g = g; this.b = b; this.a = a;
+        this.additive = additive;
         this.trail = null;
         this.poly = null;
         this.custom = null;

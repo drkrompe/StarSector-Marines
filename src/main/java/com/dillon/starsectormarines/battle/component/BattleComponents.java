@@ -396,16 +396,33 @@ public final class BattleComponents {
     public static final int TELEMETRY_ORDNANCE_ENGAGED = 9;
 
     /**
-     * {@link #MITIGATION} field 0: the fraction of post-cover damage the live
-     * screen refuses, in {@code [0, 1)} (FLOAT). {@code 0} = nothing raised.
+     * {@link #MITIGATION} field 0: post-cover damage the live screen can still
+     * absorb before it breaks (FLOAT). {@code 0} = nothing raised, or a pool
+     * spent to nothing — which are the same state, because a spent screen is
+     * gone.
      */
-    public static final int MITIGATION_FRACTION = 0;
-    /** {@link #MITIGATION} field 1: total arc width the screen covers, centred on {@link #MITIGATION_FACING_DEGREES}, in {@code [0, 360)} (FLOAT). */
-    public static final int MITIGATION_ARC_DEGREES = 1;
-    /** {@link #MITIGATION} field 2: sim-owned direction the screen points, in the same degrees as {@code AirBody.facingToward} (FLOAT). */
-    public static final int MITIGATION_FACING_DEGREES = 2;
-    /** {@link #MITIGATION} field 3: sim-seconds left before the screen drops (FLOAT); {@code <= 0} = nothing raised. */
-    public static final int MITIGATION_REMAINING = 3;
+    public static final int MITIGATION_SOAK_REMAINING = 0;
+    /**
+     * {@link #MITIGATION} field 1: the pool this screen was raised with (FLOAT).
+     * Kept beside the remainder purely so "how much is left" is answerable as a
+     * fraction; the damage path only ever reads
+     * {@link #MITIGATION_SOAK_REMAINING}.
+     */
+    public static final int MITIGATION_SOAK_CAPACITY = 1;
+    /** {@link #MITIGATION} field 2: total arc width the screen covers, centred on {@link #MITIGATION_FACING_DEGREES}, in {@code [0, 360)} (FLOAT). */
+    public static final int MITIGATION_ARC_DEGREES = 2;
+    /** {@link #MITIGATION} field 3: sim-owned direction the screen points, in the same degrees as {@code AirBody.facingToward} (FLOAT). */
+    public static final int MITIGATION_FACING_DEGREES = 3;
+    /** {@link #MITIGATION} field 4: sim-seconds left before the screen drops (FLOAT); {@code <= 0} = nothing raised. */
+    public static final int MITIGATION_REMAINING = 4;
+    /**
+     * {@link #MITIGATION} field 5: sim-seconds left of the "this screen just
+     * broke" mark (FLOAT). Set by the absorb that emptied the pool and drained
+     * by {@code MitigationSystem}; it exists because breaking is an edge only
+     * the damage path can see, and the tail-of-tick presentation sweep has to
+     * be able to see it too. No simulation decision reads it.
+     */
+    public static final int MITIGATION_BREAK_FLASH = 5;
 
     /**
      * {@link #SYSTEM_FX} field 0: how much of the running activation's window is
@@ -418,8 +435,26 @@ public final class BattleComponents {
     public static final int SYSTEM_FX_ARC_FACING_DEGREES = 1;
     /** {@link #SYSTEM_FX} field 2: total width of the drawn screen's arc (FLOAT); {@code 0} = the running system raises no screen. */
     public static final int SYSTEM_FX_ARC_DEGREES = 2;
-    /** {@link #SYSTEM_FX} field 3: the fraction that screen refuses inside its arc (FLOAT), so a stronger screen may read heavier. */
-    public static final int SYSTEM_FX_ARC_FRACTION = 3;
+    /**
+     * {@link #SYSTEM_FX} field 3: how much of the screen's soak pool is left, as
+     * a fraction in {@code [0, 1]} (FLOAT). This is what the drawn screen's
+     * strength reads off — a screen with a sliver of pool left looks like one.
+     */
+    public static final int SYSTEM_FX_SOAK_FRACTION = 3;
+    /**
+     * {@link #SYSTEM_FX} field 4: the "it just shattered" mark, in {@code [0, 1]}
+     * (FLOAT), {@code 1} at the instant the pool emptied and falling to
+     * {@code 0}. Distinct from a window simply closing, because a screen beaten
+     * down by massed fire is the outcome worth seeing.
+     */
+    public static final int SYSTEM_FX_BREAK_FLASH = 4;
+    /**
+     * {@link #SYSTEM_FX} field 5: a wrapping {@code [0, 1)} phase for the
+     * treatment's shimmer (FLOAT). Authored from elapsed simulation time rather
+     * than sampled from a wall clock, so the same battle state draws the same
+     * frame and deterministic visual evidence stays reproducible.
+     */
+    public static final int SYSTEM_FX_SHIMMER_PHASE = 5;
 
     // ---- component types ----
 
@@ -686,9 +721,10 @@ public final class BattleComponents {
      *
      * <p>Presence means "this actor carries something that can raise a screen",
      * not "a screen is up right now" — the {@link #ARMOR} shape rather than the
-     * {@link #INTEGRAL_SYSTEM} one, so a grant and an expiry are four float
-     * writes instead of an archetype move on the damage path. A raised screen
-     * is {@link #MITIGATION_REMAINING} {@code > 0}; ask
+     * {@link #INTEGRAL_SYSTEM} one, so a grant and an expiry are a handful of
+     * float writes instead of an archetype move on the damage path. A raised
+     * screen is {@link #MITIGATION_REMAINING} {@code > 0} <em>and</em>
+     * {@link #MITIGATION_SOAK_REMAINING} {@code > 0}; ask
      * {@code MitigationService.isActive} rather than reading the column.
      *
      * <p>The facing is deliberately simulation state, unlike the presentation
@@ -699,8 +735,8 @@ public final class BattleComponents {
     public final ComponentType MITIGATION;
     /**
      * Optional <em>presentation</em> state for a running integral system:
-     * {@code float intensity, arcFacingDegrees, arcDegrees, arcFraction}
-     * ({@code progression-nouns.md}).
+     * {@code float intensity, arcFacingDegrees, arcDegrees, soakFraction,
+     * breakFlash, shimmerPhase} ({@code progression-nouns.md}).
      *
      * <p>Write-only appearance data in the {@link #SPRITE} / {@link #THRUSTER_FX}
      * sense — {@code battle.appearance.SystemFxSystem} authors it each tick from
@@ -712,7 +748,7 @@ public final class BattleComponents {
      * <p>Presence means "this actor can show a system running", following its
      * {@link #INTEGRAL_SYSTEM} exactly — the {@link #MITIGATION} shape rather
      * than an archetype move per activation, so starting and ending a treatment
-     * is four float writes. A treatment that has ended is
+     * is a handful of float writes. A treatment that has ended is
      * {@link #SYSTEM_FX_INTENSITY} {@code 0}; ask
      * {@code SystemFxService.isRunning} rather than reading the column. Removed
      * in the corpse transmute, so a treatment can never outlive its wearer.
@@ -1098,9 +1134,11 @@ public final class BattleComponents {
                 FieldKind.OBJECT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.INT);
         MECH_GAIT_STATE = world.register(37, "MechGaitState", FieldKind.OBJECT);
         MITIGATION      = world.register(38, "Mitigation",
-                FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT);
+                FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT,
+                FieldKind.FLOAT, FieldKind.FLOAT);
         SYSTEM_FX       = world.register(39, "SystemFx",
-                FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT);
+                FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT, FieldKind.FLOAT,
+                FieldKind.FLOAT, FieldKind.FLOAT);
         corpses = world.query(
                 new ComponentType[]{IDENTITY, POSITION, SPRITE, CORPSE}, null);
         liveSprites = world.query(

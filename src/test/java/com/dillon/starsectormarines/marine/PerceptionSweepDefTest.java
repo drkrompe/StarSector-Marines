@@ -106,7 +106,7 @@ class PerceptionSweepDefTest {
                 .put("durationSeconds", 3.0)
                 .put("cooldownSeconds", 22.0)
                 .put("moveSpeedMult", 1.4)
-                .put("frontalResistance", 0.4)
+                .put("screenSoak", 15.0)
                 .put("shieldedArcDegrees", 140.0);
         JSONException onAssist = assertThrows(JSONException.class,
                 () -> IntegralSystemDef.parse(deadGroundOnAnAssist, "armor.test"));
