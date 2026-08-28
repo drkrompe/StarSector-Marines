@@ -69,6 +69,18 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
         final boolean localContact;
         final String executionSuspension;
         final int activePathMembers;
+        final boolean underFireRecently;
+        final boolean moraleBroken;
+        final String currentGoal;
+        final String currentAction;
+        final int movingMembers;
+        final int coveredFromPrimaryMembers;
+        final int primaryEngageableMembers;
+        final int primaryEngageableFireTeams;
+        final String contactPosture;
+        final String contactDoctrine;
+        final String contactInitiative;
+        final int coolingDownMembers;
         final int[] memberZoneIds;
         final CommandDirective originalDirective;
         ObjectiveAssignment assignedObjective;
@@ -85,6 +97,18 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
             localContact = state.localContact();
             executionSuspension = state.executionSuspension();
             activePathMembers = state.activePathMembers();
+            underFireRecently = state.underFireRecently();
+            moraleBroken = state.moraleBroken();
+            currentGoal = state.currentGoal();
+            currentAction = state.currentAction();
+            movingMembers = state.movingMembers();
+            coveredFromPrimaryMembers = state.coveredFromPrimaryMembers();
+            primaryEngageableMembers = state.primaryEngageableMembers();
+            primaryEngageableFireTeams = state.primaryEngageableFireTeams();
+            contactPosture = state.contactPosture();
+            contactDoctrine = state.contactDoctrine();
+            contactInitiative = state.contactInitiative();
+            coolingDownMembers = state.coolingDownMembers();
             memberZoneIds = state.memberZoneIds();
             originalDirective = state.directive();
             assignedObjective = state.assignment();
@@ -547,7 +571,14 @@ public final class ConquestDefenderCommand implements ConquestFrontCommand,
                     squad.id, squad.aliveMembers, squad.centroidX,
                     squad.centroidY, squad.currentZoneId,
                     squad.executionSuspension, squad.localContact,
-                    squad.activePathMembers, membersInTargetZone));
+                    squad.activePathMembers, membersInTargetZone,
+                    squad.underFireRecently, squad.moraleBroken,
+                    squad.currentGoal, squad.currentAction,
+                    squad.movingMembers, squad.coveredFromPrimaryMembers,
+                    squad.primaryEngageableMembers,
+                    squad.primaryEngageableFireTeams,
+                    squad.contactPosture, squad.contactDoctrine,
+                    squad.contactInitiative, squad.coolingDownMembers));
         }
         return states;
     }

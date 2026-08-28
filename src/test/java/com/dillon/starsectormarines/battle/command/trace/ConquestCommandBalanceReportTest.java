@@ -80,7 +80,7 @@ class ConquestCommandBalanceReportTest {
                 List.of(row), 600, false);
 
         assertTrue(json.contains("\"schedulerMode\":\"SERIAL_DETERMINISTIC\""));
-        assertTrue(json.contains("\"schemaVersion\":5"));
+        assertTrue(json.contains("\"schemaVersion\":6"));
         assertTrue(json.contains("\"maxTicks\":600"));
         assertTrue(json.contains("\"repeatCount\":2"));
         assertTrue(json.contains("\"canonicalMatrix\":false"));
