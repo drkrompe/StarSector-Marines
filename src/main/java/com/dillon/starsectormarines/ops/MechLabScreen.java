@@ -150,6 +150,7 @@ public final class MechLabScreen implements Screen {
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.MECH_LAB,
+                context::shipHasRoom,
                 this::close,
                 () -> context.goTo(ScreenId.COMPANY_HQ),
                 () -> context.goTo(ScreenId.BARRACKS),

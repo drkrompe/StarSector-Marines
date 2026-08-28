@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
+import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
+import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.ContractState;
@@ -13,6 +15,7 @@ import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ops.detachment.Detachment;
 import com.dillon.starsectormarines.ops.detachment.DebugCompany;
 import com.dillon.starsectormarines.ops.detachment.DebugCompanyStage;
+import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.ops.loot.LootManifest;
 import com.dillon.starsectormarines.ops.loot.LootSettlementPlan;
 import com.fs.starfarer.api.Global;
@@ -104,6 +107,15 @@ public class MarineOpsContext {
     /** Mission lists cached per client so positions stay stable across re-layouts. */
     private final Map<String, List<Mission>> missionsByClient = new HashMap<>();
 
+    /**
+     * Fixes the company ship's layout. Constant rather than random because the
+     * ship a player leaves has to be the ship they come back to; it moves to
+     * company state when the ship becomes a thing the player chooses.
+     */
+    private static final long COMPANY_DECK_SEED = 0x5AFE_DECEL;
+
+    private CompanyDeck companyDeck;
+
     public MarineOpsContext(PlanetAPI planet) {
         this.planet = planet;
         MarketAPI m = null;
@@ -117,6 +129,26 @@ public class MarineOpsContext {
         this.market = m;
         this.planetTexture = tex;
         this.clients = Collections.unmodifiableList(resolveClients(planet, m));
+    }
+
+    /**
+     * The company ship's interior, generated once per ops session.
+     *
+     * <p>Held here because every room screen is a camera onto the same ship:
+     * building one deck per screen would let the Mech Lab and a berthing screen
+     * disagree about the vessel they are both aboard. Which rooms exist is read
+     * off this, so a hull with no vehicle bay has no route to a Mech Lab.
+     */
+    public CompanyDeck companyDeck() {
+        if (companyDeck == null) {
+            companyDeck = new CompanyDeck(CompanyShip.founding(), COMPANY_DECK_SEED);
+        }
+        return companyDeck;
+    }
+
+    /** What the company ship has, for the room screens' navigation shell. */
+    public boolean shipHasRoom(RoomPurpose purpose) {
+        return companyDeck().has(purpose);
     }
 
     public Client getSelectedClient() {
