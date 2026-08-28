@@ -164,10 +164,10 @@ row is a fixed 208px name-and-detail pair that already truncates a long pattern
 name, so an individual suit's capability is spelled out in the Armory and the
 barracks says only how many of the formation carry one.
 
-The breacher's protection is real. Its authored frontal resistance and arc are
-handed to combat durability as **mitigation** — a bounded fraction of post-cover
-damage refused, for the system's duration, across an arc measured from the
-wearer's facing when the hit lands. `combat-durability-nouns.md` owns the
+The breacher's protection is real. Its authored soak pool and arc are handed to
+combat durability as **mitigation** — a bounded quantity of post-cover damage
+absorbed, for the system's duration, across an arc measured from the wearer's
+facing when the hit lands, and gone when either the pool or the clock runs out. `combat-durability-nouns.md` owns the
 concept, the resolution order, and the laws that keep it from becoming capacity
 in a costume; what matters here is that the suit no longer advertises a screen it
 does not have, and that turning away from the fire costs the front in the same

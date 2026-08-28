@@ -41,7 +41,7 @@ class IntegralSystemDefTest {
         BreacherAssistSpec spec = system.breacherAssist();
         assertNotNull(spec);
         assertEquals(1.45f, spec.moveSpeedMult(), 1e-6f);
-        assertEquals(0.5f, spec.frontalResistance(), 1e-6f);
+        assertEquals(20f, spec.screenSoak(), 1e-6f);
         assertEquals(120f, spec.shieldedArcDegrees(), 1e-6f);
     }
 
@@ -76,16 +76,32 @@ class IntegralSystemDefTest {
     }
 
     @Test
-    void aBreacherAssistMustSpeedTheSuitUpStayPenetrableAndLeaveAFlank() throws JSONException {
+    void aBreacherAssistMustSpeedTheSuitUpCarryAPoolAndLeaveAFlank() throws JSONException {
         assertThrows(JSONException.class, () -> IntegralSystemDef.parse(
                 breacherAssist().put("moveSpeedMult", 0.9), "armor.test"),
                 "a movement system that slows you down is not the capability");
         assertThrows(JSONException.class, () -> IntegralSystemDef.parse(
-                breacherAssist().put("frontalResistance", 1.0), "armor.test"),
-                "total immunity is an off-switch, not mitigation");
+                breacherAssist().put("screenSoak", 0.0), "armor.test"),
+                "a screen with nothing to absorb with is not a screen");
         assertThrows(JSONException.class, () -> IntegralSystemDef.parse(
                 breacherAssist().put("shieldedArcDegrees", 360.0), "armor.test"),
                 "an all-round screen removes the flank the squad is there to cover");
+    }
+
+    /**
+     * The old authoring shape said what share of a hit was refused, which is a
+     * soft invulnerability window rather than something fire can beat. An author
+     * carrying it forward is told the model changed rather than silently getting
+     * a pool of "0.55 damage".
+     */
+    @Test
+    void aRefusedFractionIsRefusedByName() throws JSONException {
+        JSONException failure = assertThrows(JSONException.class,
+                () -> IntegralSystemDef.parse(
+                        breacherAssist().put("frontalResistance", 0.55), "armor.test"));
+
+        assertTrue(failure.getMessage().contains("screenSoak"),
+                "the error should name the key that replaced it: " + failure.getMessage());
     }
 
     @Test
@@ -231,8 +247,8 @@ class IntegralSystemDefTest {
         assertEquals(surplus.cooldownSeconds(), masterwork.cooldownSeconds(), 1e-6f);
         assertEquals(surplus.breacherAssist().moveSpeedMult(),
                 masterwork.breacherAssist().moveSpeedMult(), 1e-6f);
-        assertEquals(surplus.breacherAssist().frontalResistance(),
-                masterwork.breacherAssist().frontalResistance(), 1e-6f);
+        assertEquals(surplus.breacherAssist().screenSoak(),
+                masterwork.breacherAssist().screenSoak(), 1e-6f);
     }
 
     /** One icon per family: a pattern's own version is told apart by name and grade, not art. */
@@ -257,7 +273,7 @@ class IntegralSystemDefTest {
                 .put("durationSeconds", 3.0)
                 .put("cooldownSeconds", 22.0)
                 .put("moveSpeedMult", 1.45)
-                .put("frontalResistance", 0.5)
+                .put("screenSoak", 20.0)
                 .put("shieldedArcDegrees", 120.0);
     }
 

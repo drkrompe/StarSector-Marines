@@ -258,7 +258,7 @@ The discovered suite ids and default output directories are:
 | `frontage-scene` | Animated garrison stand-to on a generated compound, one loop per approach edge | `build/snapshots/frontage-scene/` |
 | `point-defence` | Animated LRM salvos against a placed interceptor pod: rounds stopped, rounds missed, rounds arriving | `build/snapshots/point-defence/` |
 | `deployable-cover` | Animated controlled comparison of a placed revetment: the same fire into a covered lane, an open lane, and a screened post shot from the flank | `build/snapshots/deployable-cover/` |
-| `integral-system-fx` | A running integral system: a narrow authored screen beside a wide one closing their windows, and one pattern's screen at four facings | `build/snapshots/integral-system-fx/` |
+| `integral-system-fx` | A running integral system's halo: a narrow authored screen beside a wide one draining their soak pools, one breaking under concentrated fire, and one pattern's screen at four facings | `build/snapshots/integral-system-fx/` |
 | `perception-sweep` | The player's own picture — fog overlay and hidden-unit gating included — before, during, and after a Janus sensor sweep | `build/snapshots/perception-sweep/` |
 | `airfield-sortie` | Animated pair of one reinforcement sortie loading on its own hardstand: the crew's walk to the pad unopposed, and the same walk under fire | `build/snapshots/airfield-sortie/` |
 

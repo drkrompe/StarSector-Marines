@@ -66,18 +66,18 @@ class TtkReportTest {
 
     /**
      * A representative authored screen, not a catalogued one. The point of the
-     * slice below is what a bounded arc is worth at all; pinning it to one
-     * pattern's numbers would turn a structural measurement into a balance
-     * assertion the catalog is free to move.
+     * slice below is what a bounded arc and a bounded pool are worth at all;
+     * pinning it to one pattern's numbers would turn a structural measurement
+     * into a balance assertion the catalog is free to move.
      */
-    private static final float SCREEN_FRACTION = 0.5f;
+    private static final float SCREEN_SOAK = 20f;
     private static final float SCREEN_ARC_DEGREES = 160f;
     private static final Defender SCREENED_FRONT = Defender.screened(
             "marine, T4 armor, screen forward", MarineArmorPattern.RED_ELITE,
-            new Screen(SCREEN_FRACTION, SCREEN_ARC_DEGREES, TtkHarness.FRONT_DEGREES));
+            new Screen(SCREEN_SOAK, SCREEN_ARC_DEGREES, TtkHarness.FRONT_DEGREES));
     private static final Defender SCREENED_FLANK = Defender.screened(
             "marine, T4 armor, screen turned away", MarineArmorPattern.RED_ELITE,
-            new Screen(SCREEN_FRACTION, SCREEN_ARC_DEGREES, TtkHarness.FLANK_DEGREES));
+            new Screen(SCREEN_SOAK, SCREEN_ARC_DEGREES, TtkHarness.FLANK_DEGREES));
 
     private static final float BASELINE_RANGE_FRACTION = 0.5f;
 
@@ -176,8 +176,9 @@ class TtkReportTest {
                     EquipmentGrade.SERVICE, REGULAR, defender,
                     BASELINE_RANGE_FRACTION, Cover.OPEN), TRIALS));
         }
-        appendTable(report, "Directional mitigation (" + Math.round(SCREEN_FRACTION * 100f)
-                        + "% over " + Math.round(SCREEN_ARC_DEGREES) + " degrees)", "screen",
+        appendTable(report, "Directional mitigation (" + Math.round(SCREEN_SOAK)
+                        + " damage soaked over " + Math.round(SCREEN_ARC_DEGREES)
+                        + " degrees)", "screen",
                 byScreen, m -> m.scenario().defender().screen() == null ? "none"
                         : m.scenario().defender().screen().facingDegrees() == TtkHarness.FRONT_DEGREES
                                 ? "facing the shooter" : "turned away");

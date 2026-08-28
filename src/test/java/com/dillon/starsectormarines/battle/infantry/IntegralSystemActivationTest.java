@@ -35,7 +35,7 @@ class IntegralSystemActivationTest {
     private static final float DURATION = 3f;
     private static final float COOLDOWN = 22f;
     private static final float BOOST = 1.45f;
-    private static final float RESISTANCE = 0.5f;
+    private static final float SOAK = 20f;
     private static final float ARC = 120f;
     private static final float TICK = 0.1f;
 
@@ -113,10 +113,10 @@ class IntegralSystemActivationTest {
     }
 
     /**
-     * The other half of the assist. The authored frontal resistance and arc are
-     * handed to combat durability as a screen, which owns the clock and the
-     * expiry from there — so the suit that was advertising protection is finally
-     * applying it.
+     * The other half of the assist. The authored soak pool and arc are handed to
+     * combat durability as a screen, which owns the arc, the clock, and both
+     * ways it can end from there — so the suit that was advertising protection
+     * is finally applying it.
      */
     @Test
     void activatingRaisesTheAuthoredScreenAndExpiryDropsIt() {
@@ -131,7 +131,7 @@ class IntegralSystemActivationTest {
         assertTrue(systems.activate(breacher));
 
         assertTrue(screens.isActive(breacher));
-        assertEquals(RESISTANCE, screens.fraction(breacher), 1e-6f);
+        assertEquals(SOAK, screens.soakRemaining(breacher), 1e-6f);
         assertEquals(ARC, screens.arcDegrees(breacher), 1e-6f);
         assertEquals(DURATION, screens.remaining(breacher), 1e-6f,
                 "the screen runs exactly as long as the system does");
@@ -139,7 +139,8 @@ class IntegralSystemActivationTest {
         drain(systems, breacher, DURATION);
 
         assertFalse(screens.isActive(breacher), "and leaves nothing behind");
-        assertEquals(0f, screens.fraction(breacher), 1e-6f);
+        assertEquals(0f, screens.soakRemaining(breacher), 1e-6f,
+                "an unspent pool does not outlive the window it was raised for");
     }
 
     /** A suit whose system only moves the wearer never acquires the capability at all. */
@@ -260,7 +261,7 @@ class IntegralSystemActivationTest {
                 "system.test-assist", "Breaching assist", EquipmentGrade.SERVICE, "Rams and a screen.",
                 IntegralSystemEffect.BREACHER_ASSIST, SpecialResourceMode.COOLDOWN,
                 DURATION, COOLDOWN, 0,
-                new BreacherAssistSpec(BOOST, RESISTANCE, ARC), null, null,
+                new BreacherAssistSpec(BOOST, SOAK, ARC), null, null,
                 new CrossingUnderFireSpec(12f));
     }
 

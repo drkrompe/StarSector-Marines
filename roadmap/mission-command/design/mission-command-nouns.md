@@ -201,7 +201,7 @@ and the second replay must still match the captured first replay byte-for-byte.
 | Sabotage | Three named-site task groups with planter logistics and site security | Paired production duel shipped | `sabotage-command.md` |
 | Assault | Two-dimensional search sectors versus strongpoint security areas | Paired production duel; live/evidence acceptance remains | `assault-command.md` |
 | Raid | Primary high-value target plus authored ingress/egress corridor | Paired production duel; canonical/live acceptance remains | `raid-command.md` |
-| Extraction | Payload/cohort corridor, with bounded conventional interdiction or scenario-specific directors | Paired generic commanders and asymmetric Civilian Rescue shipped; live acceptance and Silent Colony remain | `extraction-command.md` |
+| Extraction | Payload/cohort corridor, with bounded conventional interdiction or scenario-specific directors | Generic paired command, Civilian Rescue, and Silent Colony Marine branches shipped; live acceptance remains | `extraction-command.md` |
 
 Opening Operations reuse the Assault battle type and now apply the shared
 frozen frame/plan/commit envelope to scenario-specific preserve/secure command

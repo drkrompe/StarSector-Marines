@@ -146,14 +146,20 @@ public final class DamageResolver {
         // is measured against the target's facing at the moment the hit lands,
         // and this is the one seam that knows both. An unattributed hit has no
         // locatable source, so it has no bearing and is never mitigated.
-        float mitigationFraction = 0f;
+        float mitigationSoak = 0f;
         MitigationService screens = roster.mitigations();
         if (screens.isActive(targetId) && roster.isAliveById(attackerId)) {
-            mitigationFraction = screens.fractionAgainst(targetId, tx, ty,
+            mitigationSoak = screens.soakAgainst(targetId, tx, ty,
                     world.x(attackerId), world.y(attackerId));
         }
-        DurabilityModel.resolveInto(postCoverDamage, penetration, mitigationFraction,
+        DurabilityModel.resolveInto(postCoverDamage, penetration, mitigationSoak,
                 armorBefore, armorRating, hpBefore, durability);
+        // The pool is spent by exactly what the model said it absorbed, which is
+        // the step that lets massed fire beat a screen rather than wait it out.
+        // It may break here; that is the interesting way for a screen to end.
+        if (durability.mitigatedDamage() > 0f) {
+            screens.absorb(targetId, durability.mitigatedDamage());
+        }
         if (hasArmor && durability.armorDamage() > 0f) {
             world.setArmor(targetId, Math.max(0f, armorBefore - durability.armorDamage()));
         }
@@ -171,7 +177,8 @@ public final class DamageResolver {
         telemetry.recordDamageTaken(targetId, applied);
         // Its own quantity, never folded into armor: a screen that showed up as
         // smaller resolved damage would be a statistical rumour rather than a
-        // capability the player can read.
+        // capability the player can read. What the pool absorbed is attributable
+        // exactly as the refused fraction used to be.
         telemetry.recordDamageMitigated(targetId, durability.mitigatedDamage());
         // Gated on isRecorded, not on the NO_ATTACKER sentinel alone: a convoy
         // vehicle's turret fires with the vehicle entity as the attacker, and a

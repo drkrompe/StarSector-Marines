@@ -65,6 +65,7 @@ import com.dillon.starsectormarines.battle.command.SabotageCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.SabotageDefenderCommand;
 import com.dillon.starsectormarines.battle.command.SabotageDefenderCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.SilentColonyCommand;
+import com.dillon.starsectormarines.battle.command.SilentColonyCommandDisclosure;
 import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.command.compound.CompoundGarrisonSystem;
 import com.dillon.starsectormarines.battle.vehicle.ConvoyPlanner;
@@ -1044,6 +1045,9 @@ public final class BattleSetup {
                         assignment.seatsPerSortie);
                 ShuttleMission shuttleMission = sim.world().mission(shuttleId);
                 shuttleMission.totalCycles = assignment.cycles;
+                shuttleMission.commandClaim = SquadCommandClaim.mission(
+                        SilentColonyCommand.ISSUER,
+                        "Silent Colony expedition force");
                 MarineLoadout[][] cycleLoadouts =
                         new MarineLoadout[assignment.cycles][];
                 for (int cycle = 0; cycle < assignment.cycles; cycle++) {
@@ -1054,8 +1058,9 @@ public final class BattleSetup {
                 shuttleMission.marineLoadout = cycleLoadouts[0];
                 equipDefaultTurrets(sim, shuttleId);
             }
-            sim.setCommander(Faction.MARINE,
-                    new SilentColonyCommand(survivors.placement, archive));
+            sim.setAutonomousCommander(Faction.MARINE,
+                    new SilentColonyCommand(),
+                    new SilentColonyCommandDisclosure(survivors.placement));
             return sim;
         }
         throw new IllegalStateException(
