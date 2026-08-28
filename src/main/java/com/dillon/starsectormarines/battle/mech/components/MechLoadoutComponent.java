@@ -27,6 +27,8 @@ public final class MechLoadoutComponent {
     public static final int DEFAULT_LRM_AMMO_SALVOS = MechWeaponComponent.LRM_15.ammoCapacity;
     /** Default upper-torso traverse speed, in sprite degrees per sim-second. */
     public static final float DEFAULT_TORSO_TURN_RATE_DEGREES = 120f;
+    /** Default upper-torso acceleration/braking, in sprite degrees per second squared. */
+    public static final float DEFAULT_TORSO_TURN_ACCELERATION_DEGREES = 300f;
 
     public final MechVariant variant;
     private final MechWeaponMount[] mounts = new MechWeaponMount[MechMountSlot.values().length];
@@ -37,6 +39,8 @@ public final class MechLoadoutComponent {
     public float torsoFacingDegrees = 180f;
     /** Maximum upper-torso traverse speed, in degrees per sim-second. */
     public float torsoTurnRateDegrees = DEFAULT_TORSO_TURN_RATE_DEGREES;
+    /** Current upper-torso angular velocity, in degrees per sim-second. */
+    public float torsoAngularVelocityDegrees;
     /** Target this torso state was last evaluated against. {@code 0L} means neutral/no target. */
     public long torsoAimTargetId;
     /** True only when the upper torso is physically aligned enough to fire at {@link #torsoAimTargetId}. */

@@ -4,8 +4,8 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-08-27 — made upper-chassis facing preserve remembered contact or
-short-horizon route intent when no live target is active.
+Updated: 2026-08-28 — gave hip and torso turns persistent angular momentum and
+added planted-foot weight transfer to the walking silhouette.
 
 ## Purpose
 
@@ -121,6 +121,14 @@ looks a short horizon along its queued route so an approaching turn reads before
 the hips reach it. Remembered facing never reads the hidden unit's live position
 and never becomes permission to fire. Moving hips remain aligned to the path;
 stationary hips may settle toward the same remembered contact.
+
+Hip and upper-chassis turns accelerate and brake within separate angular
+budgets. A changed target or route therefore arrests the old swing before
+reversing it instead of snapping to a new turn direction. During forward
+walking, the rendered waist and complete upper assembly shift laterally over
+the planted foot while foot anchors remain on the actor position. This weight
+transfer is presentation only: it does not move collision, pathing, aim, or
+targeting authority.
 
 ## Authority flow
 
