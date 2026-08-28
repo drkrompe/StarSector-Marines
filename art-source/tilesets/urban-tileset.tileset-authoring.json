@@ -1,21 +1,1540 @@
 {
-  "sheet": "art-source/tilesets/urban-tileset.raw.png",
-  "sheetName": "urban-tileset",
-  "idPrefix": "doodad.urban",
-  "cellPx": 32,
   "alphaMin": 40,
-  "note": "This sheet is RGB with no alpha channel, so slicing finds one piece covering the whole sheet. That is correct for a fixed-grid plate: select the single piece and use \"Split selected on grid\" at the layout below. 1254x1254 at 10x10. It already ships as a hand-written tileset built by art-source/tilesets/normalize_tilesets.py. Exporting over it would rewrite the ids and coordinates that GenMappingRegistry references, so treat this as a sheet to inspect or adopt deliberately, not to re-export casually. Its 3x3 wall and floor patches are what block grouping was built for: urban.wall is a wall-3x3 at origin (3,0), urban.floor a floor-3x3 at (0,0).",
   "blocks": [
-    {
-      "id": "urban.wall",
-      "layout": "wall-3x3",
-      "fillRgb": "0x060A10"
-    },
     {
       "id": "urban.floor",
       "layout": "floor-3x3"
+    },
+    {
+      "id": "urban.wall",
+      "layout": "wall-3x3"
+    }
+  ],
+  "cellPx": 32,
+  "entries": [
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-a",
+      "included": true,
+      "rect": [
+        0,
+        0,
+        125,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-b",
+      "included": true,
+      "rect": [
+        125,
+        0,
+        126,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-c",
+      "included": true,
+      "rect": [
+        251,
+        0,
+        125,
+        125
+      ]
+    },
+    {
+      "block": "urban.wall",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-d",
+      "included": true,
+      "rect": [
+        376,
+        0,
+        126,
+        125
+      ],
+      "slot": "nw"
+    },
+    {
+      "block": "urban.wall",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-e",
+      "included": true,
+      "rect": [
+        502,
+        0,
+        125,
+        125
+      ],
+      "slot": "n"
+    },
+    {
+      "block": "urban.wall",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-f",
+      "included": true,
+      "rect": [
+        627,
+        0,
+        125,
+        125
+      ],
+      "slot": "ne"
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-g",
+      "included": true,
+      "rect": [
+        752,
+        0,
+        126,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-h",
+      "included": true,
+      "rect": [
+        878,
+        0,
+        125,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-i",
+      "included": true,
+      "rect": [
+        1003,
+        0,
+        126,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-j",
+      "included": true,
+      "rect": [
+        1129,
+        0,
+        125,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-k",
+      "included": true,
+      "rect": [
+        0,
+        125,
+        125,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-l",
+      "included": true,
+      "rect": [
+        125,
+        125,
+        126,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-m",
+      "included": true,
+      "rect": [
+        251,
+        125,
+        125,
+        126
+      ]
+    },
+    {
+      "block": "urban.wall",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-n",
+      "included": true,
+      "rect": [
+        376,
+        125,
+        126,
+        126
+      ],
+      "slot": "w"
+    },
+    {
+      "block": "urban.wall",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-o",
+      "included": true,
+      "rect": [
+        502,
+        125,
+        125,
+        126
+      ],
+      "slot": "center"
+    },
+    {
+      "block": "urban.wall",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-p",
+      "included": true,
+      "rect": [
+        627,
+        125,
+        125,
+        126
+      ],
+      "slot": "e"
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-q",
+      "included": true,
+      "rect": [
+        752,
+        125,
+        126,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-r",
+      "included": true,
+      "rect": [
+        878,
+        125,
+        125,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-s",
+      "included": true,
+      "rect": [
+        1003,
+        125,
+        126,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-t",
+      "included": true,
+      "rect": [
+        1129,
+        125,
+        125,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-u",
+      "included": true,
+      "rect": [
+        0,
+        251,
+        125,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-v",
+      "included": true,
+      "rect": [
+        125,
+        251,
+        126,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-w",
+      "included": true,
+      "rect": [
+        251,
+        251,
+        125,
+        125
+      ]
+    },
+    {
+      "block": "urban.wall",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-x",
+      "included": true,
+      "rect": [
+        376,
+        251,
+        126,
+        125
+      ],
+      "slot": "sw"
+    },
+    {
+      "block": "urban.wall",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-y",
+      "included": true,
+      "rect": [
+        502,
+        251,
+        125,
+        125
+      ],
+      "slot": "s"
+    },
+    {
+      "block": "urban.wall",
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-z",
+      "included": true,
+      "rect": [
+        627,
+        251,
+        125,
+        125
+      ],
+      "slot": "se"
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-aa",
+      "included": true,
+      "rect": [
+        752,
+        251,
+        126,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-ab",
+      "included": true,
+      "rect": [
+        878,
+        251,
+        125,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-ac",
+      "included": true,
+      "rect": [
+        1003,
+        251,
+        126,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-ad",
+      "included": true,
+      "rect": [
+        1129,
+        251,
+        125,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-ae",
+      "included": true,
+      "rect": [
+        0,
+        376,
+        125,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-af",
+      "included": true,
+      "rect": [
+        125,
+        376,
+        126,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-ag",
+      "included": true,
+      "rect": [
+        251,
+        376,
+        125,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-ah",
+      "included": true,
+      "rect": [
+        376,
+        376,
+        126,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-ai",
+      "included": true,
+      "rect": [
+        502,
+        376,
+        125,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-aj",
+      "included": true,
+      "rect": [
+        627,
+        376,
+        125,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-ak",
+      "included": true,
+      "rect": [
+        752,
+        376,
+        126,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-al",
+      "included": true,
+      "rect": [
+        878,
+        376,
+        125,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-am",
+      "included": true,
+      "rect": [
+        1003,
+        376,
+        126,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-an",
+      "included": true,
+      "rect": [
+        1129,
+        376,
+        125,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-ao",
+      "included": true,
+      "rect": [
+        0,
+        502,
+        125,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-ap",
+      "included": true,
+      "rect": [
+        125,
+        502,
+        126,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-aq",
+      "included": true,
+      "rect": [
+        251,
+        502,
+        125,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-ar",
+      "included": true,
+      "rect": [
+        376,
+        502,
+        126,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-as",
+      "included": true,
+      "rect": [
+        502,
+        502,
+        125,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-at",
+      "included": true,
+      "rect": [
+        627,
+        502,
+        125,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-au",
+      "included": true,
+      "rect": [
+        752,
+        502,
+        126,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-av",
+      "included": true,
+      "rect": [
+        878,
+        502,
+        125,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-aw",
+      "included": true,
+      "rect": [
+        1003,
+        502,
+        126,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-ax",
+      "included": true,
+      "rect": [
+        1129,
+        502,
+        125,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-ay",
+      "included": true,
+      "rect": [
+        0,
+        627,
+        125,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-az",
+      "included": true,
+      "rect": [
+        125,
+        627,
+        126,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-ba",
+      "included": true,
+      "rect": [
+        251,
+        627,
+        125,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-bb",
+      "included": true,
+      "rect": [
+        376,
+        627,
+        126,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-bc",
+      "included": true,
+      "rect": [
+        502,
+        627,
+        125,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-bd",
+      "included": true,
+      "rect": [
+        627,
+        627,
+        125,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-be",
+      "included": true,
+      "rect": [
+        752,
+        627,
+        126,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-bf",
+      "included": true,
+      "rect": [
+        878,
+        627,
+        125,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-bg",
+      "included": true,
+      "rect": [
+        1003,
+        627,
+        126,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-bh",
+      "included": true,
+      "rect": [
+        1129,
+        627,
+        125,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-bi",
+      "included": true,
+      "rect": [
+        0,
+        752,
+        125,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-bj",
+      "included": true,
+      "rect": [
+        125,
+        752,
+        126,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-bk",
+      "included": true,
+      "rect": [
+        251,
+        752,
+        125,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-bl",
+      "included": true,
+      "rect": [
+        376,
+        752,
+        126,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-bm",
+      "included": true,
+      "rect": [
+        502,
+        752,
+        125,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-bn",
+      "included": true,
+      "rect": [
+        627,
+        752,
+        125,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-bo",
+      "included": true,
+      "rect": [
+        752,
+        752,
+        126,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-bp",
+      "included": true,
+      "rect": [
+        878,
+        752,
+        125,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-bq",
+      "included": true,
+      "rect": [
+        1003,
+        752,
+        126,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-br",
+      "included": true,
+      "rect": [
+        1129,
+        752,
+        125,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-bs",
+      "included": true,
+      "rect": [
+        0,
+        878,
+        125,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-bt",
+      "included": true,
+      "rect": [
+        125,
+        878,
+        126,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-bu",
+      "included": true,
+      "rect": [
+        251,
+        878,
+        125,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-bv",
+      "included": true,
+      "rect": [
+        376,
+        878,
+        126,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-bw",
+      "included": true,
+      "rect": [
+        502,
+        878,
+        125,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-bx",
+      "included": true,
+      "rect": [
+        627,
+        878,
+        125,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-by",
+      "included": true,
+      "rect": [
+        752,
+        878,
+        126,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-bz",
+      "included": true,
+      "rect": [
+        878,
+        878,
+        125,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-ca",
+      "included": true,
+      "rect": [
+        1003,
+        878,
+        126,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-cb",
+      "included": true,
+      "rect": [
+        1129,
+        878,
+        125,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-cc",
+      "included": true,
+      "rect": [
+        0,
+        1003,
+        125,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-cd",
+      "included": true,
+      "rect": [
+        125,
+        1003,
+        126,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-ce",
+      "included": true,
+      "rect": [
+        251,
+        1003,
+        125,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-cf",
+      "included": true,
+      "rect": [
+        376,
+        1003,
+        126,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-cg",
+      "included": true,
+      "rect": [
+        502,
+        1003,
+        125,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-ch",
+      "included": true,
+      "rect": [
+        627,
+        1003,
+        125,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-ci",
+      "included": true,
+      "rect": [
+        752,
+        1003,
+        126,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-cj",
+      "included": true,
+      "rect": [
+        878,
+        1003,
+        125,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-ck",
+      "included": true,
+      "rect": [
+        1003,
+        1003,
+        126,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-cl",
+      "included": true,
+      "rect": [
+        1129,
+        1003,
+        125,
+        126
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-cm",
+      "included": true,
+      "rect": [
+        0,
+        1129,
+        125,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-cn",
+      "included": true,
+      "rect": [
+        125,
+        1129,
+        126,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-co",
+      "included": true,
+      "rect": [
+        251,
+        1129,
+        125,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-cp",
+      "included": true,
+      "rect": [
+        376,
+        1129,
+        126,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-cq",
+      "included": true,
+      "rect": [
+        502,
+        1129,
+        125,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-cr",
+      "included": true,
+      "rect": [
+        627,
+        1129,
+        125,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-cs",
+      "included": true,
+      "rect": [
+        752,
+        1129,
+        126,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-ct",
+      "included": true,
+      "rect": [
+        878,
+        1129,
+        125,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-cu",
+      "included": true,
+      "rect": [
+        1003,
+        1129,
+        126,
+        125
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.urban.piece-000-cv",
+      "included": true,
+      "rect": [
+        1129,
+        1129,
+        125,
+        125
+      ]
     }
   ],
   "gridCols": 10,
-  "gridRows": 10
+  "gridRows": 10,
+  "idPrefix": "doodad.urban",
+  "note": "This sheet is RGB with no alpha channel, so it slices to one fused piece. That piece has been cut on its stated 10x10 grid, so the entries below are its cells in reading order - left to right, then top to bottom - one cell each and none of them annotated yet. Do not re-slice this sheet with apply=true: slicing finds the plate as one fused piece again and reports every cut cell as no longer found, so a re-slice discards the cut and anything authored onto it. Cut once, then annotate. 1254x1254 at 10x10. It already ships as a hand-written tileset built by art-source/tilesets/normalize_tilesets.py. Exporting over it would rewrite the ids and coordinates that GenMappingRegistry references, so treat this as a sheet to inspect or adopt deliberately, not to re-export casually. Its 3x3 wall and floor patches are what block grouping was built for: urban.wall is a wall-3x3 at origin (3,0), urban.floor a floor-3x3 at (0,0). urban.wall is assigned and was checked against the art before it was kept: corner studs sit on the outer corners, each edge cell carries its face slit on the side the slot names as exterior, and the enclosed centre is blank because the 0x060A10 fill is what that case is for. urban.floor is declared but still unassigned.",
+  "sheet": "art-source/tilesets/urban-tileset.raw.png",
+  "sheetName": "urban-tileset"
 }

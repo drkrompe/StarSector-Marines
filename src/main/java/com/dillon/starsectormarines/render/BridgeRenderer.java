@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.render;
 
+import com.dillon.starsectormarines.render2d.GlErrors;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 import org.lwjgl.BufferUtils;
@@ -246,8 +247,11 @@ public class BridgeRenderer {
         glBindTexture(GL_TEXTURE_2D, fboColor);
         // Use a real (zeroed) buffer rather than null — some drivers/LWJGL paths refuse null.
         java.nio.ByteBuffer empty = BufferUtils.createByteBuffer(w * h * 4);
+        // Clear once here; each check below drains fully, so every later call in
+        // this sequence starts on an empty queue and is attributed to itself.
+        GlErrors.clear();
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, empty);
-        checkGL("glTexImage2D fboColor");
+        GlErrors.check("glTexImage2D fboColor");
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -259,11 +263,11 @@ public class BridgeRenderer {
         glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-        checkGL("glBindFramebuffer (init)");
+        GlErrors.check("glBindFramebuffer (init)");
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboColor, 0);
-        checkGL("glFramebufferTexture2D");
+        GlErrors.check("glFramebufferTexture2D");
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fboDepth);
-        checkGL("glFramebufferRenderbuffer");
+        GlErrors.check("glFramebufferRenderbuffer");
         int status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         if (status != GL_FRAMEBUFFER_COMPLETE) {
@@ -271,13 +275,6 @@ public class BridgeRenderer {
             broken = true;
         } else {
             LOG.info("FBO " + fbo + " complete at " + w + "x" + h + " (colorTex=" + fboColor + ", depthRB=" + fboDepth + ")");
-        }
-    }
-
-    private static void checkGL(String label) {
-        int err = glGetError();
-        if (err != GL_NO_ERROR) {
-            LOG.error("GL error at " + label + ": 0x" + Integer.toHexString(err));
         }
     }
 
@@ -358,6 +355,7 @@ public class BridgeRenderer {
         float hx = fboWidth * 0.5f;
         float hy = fboHeight * 0.5f;
 
+        GlErrors.clear();
         glBegin(GL_QUADS);
         glColor3f(1f, 0f, 0f);
         glVertex2f(0f, 0f); glVertex2f(hx, 0f); glVertex2f(hx, hy); glVertex2f(0f, hy);
@@ -368,13 +366,13 @@ public class BridgeRenderer {
         glColor3f(1f, 1f, 0f);
         glVertex2f(hx, hy); glVertex2f(fboWidth, hy); glVertex2f(fboWidth, fboHeight); glVertex2f(hx, fboHeight);
         glEnd();
-        checkGL("after quadrant glEnd");
+        GlErrors.check("after quadrant glEnd");
 
         if (!fboPixelLogged) {
             fboPixelLogged = true;
             java.nio.ByteBuffer pixel = BufferUtils.createByteBuffer(4);
             glReadPixels((int)(hx + hx * 0.5f), (int)(hy + hy * 0.5f), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
-            checkGL("glReadPixels (NE/yellow)");
+            GlErrors.check("glReadPixels (NE/yellow)");
             int r = pixel.get(0) & 0xff;
             int g = pixel.get(1) & 0xff;
             int b = pixel.get(2) & 0xff;

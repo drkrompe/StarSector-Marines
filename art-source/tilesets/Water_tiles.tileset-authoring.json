@@ -1,10 +1,9388 @@
 {
-  "sheet": "art-source/tilesets/Water_tiles.raw.png",
-  "sheetName": "Water_tiles",
-  "idPrefix": "doodad.water",
-  "cellPx": 16,
   "alphaMin": 40,
-  "note": "This sheet is RGB with no alpha channel, so slicing finds one piece covering the whole sheet. That is correct for a fixed-grid plate: select the single piece and use \"Split selected on grid\" at the layout below. 1254x1254 at 25x25. It already ships as a hand-written tileset built by art-source/tilesets/normalize_tilesets.py. Exporting over it would rewrite the ids and coordinates that GenMappingRegistry references, so treat this as a sheet to inspect or adopt deliberately, not to re-export casually. Water is a zero-cover blocker: non-walkable and see-through, publishing no edge cover profile.",
+  "blocks": [],
+  "cellPx": 16,
+  "entries": [
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-a",
+      "included": true,
+      "rect": [
+        0,
+        0,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-b",
+      "included": true,
+      "rect": [
+        50,
+        0,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-c",
+      "included": true,
+      "rect": [
+        100,
+        0,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-d",
+      "included": true,
+      "rect": [
+        150,
+        0,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-e",
+      "included": true,
+      "rect": [
+        201,
+        0,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-f",
+      "included": true,
+      "rect": [
+        251,
+        0,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-g",
+      "included": true,
+      "rect": [
+        301,
+        0,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-h",
+      "included": true,
+      "rect": [
+        351,
+        0,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-i",
+      "included": true,
+      "rect": [
+        401,
+        0,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-j",
+      "included": true,
+      "rect": [
+        451,
+        0,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-k",
+      "included": true,
+      "rect": [
+        502,
+        0,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-l",
+      "included": true,
+      "rect": [
+        552,
+        0,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-m",
+      "included": true,
+      "rect": [
+        602,
+        0,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-n",
+      "included": true,
+      "rect": [
+        652,
+        0,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-o",
+      "included": true,
+      "rect": [
+        702,
+        0,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-p",
+      "included": true,
+      "rect": [
+        752,
+        0,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-q",
+      "included": true,
+      "rect": [
+        803,
+        0,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-r",
+      "included": true,
+      "rect": [
+        853,
+        0,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-s",
+      "included": true,
+      "rect": [
+        903,
+        0,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-t",
+      "included": true,
+      "rect": [
+        953,
+        0,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-u",
+      "included": true,
+      "rect": [
+        1003,
+        0,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-v",
+      "included": true,
+      "rect": [
+        1053,
+        0,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-w",
+      "included": true,
+      "rect": [
+        1104,
+        0,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-x",
+      "included": true,
+      "rect": [
+        1154,
+        0,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-y",
+      "included": true,
+      "rect": [
+        1204,
+        0,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-z",
+      "included": true,
+      "rect": [
+        0,
+        50,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-aa",
+      "included": true,
+      "rect": [
+        50,
+        50,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ab",
+      "included": true,
+      "rect": [
+        100,
+        50,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ac",
+      "included": true,
+      "rect": [
+        150,
+        50,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ad",
+      "included": true,
+      "rect": [
+        201,
+        50,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ae",
+      "included": true,
+      "rect": [
+        251,
+        50,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-af",
+      "included": true,
+      "rect": [
+        301,
+        50,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ag",
+      "included": true,
+      "rect": [
+        351,
+        50,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ah",
+      "included": true,
+      "rect": [
+        401,
+        50,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ai",
+      "included": true,
+      "rect": [
+        451,
+        50,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-aj",
+      "included": true,
+      "rect": [
+        502,
+        50,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ak",
+      "included": true,
+      "rect": [
+        552,
+        50,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-al",
+      "included": true,
+      "rect": [
+        602,
+        50,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-am",
+      "included": true,
+      "rect": [
+        652,
+        50,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-an",
+      "included": true,
+      "rect": [
+        702,
+        50,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ao",
+      "included": true,
+      "rect": [
+        752,
+        50,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ap",
+      "included": true,
+      "rect": [
+        803,
+        50,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-aq",
+      "included": true,
+      "rect": [
+        853,
+        50,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ar",
+      "included": true,
+      "rect": [
+        903,
+        50,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-as",
+      "included": true,
+      "rect": [
+        953,
+        50,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-at",
+      "included": true,
+      "rect": [
+        1003,
+        50,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-au",
+      "included": true,
+      "rect": [
+        1053,
+        50,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-av",
+      "included": true,
+      "rect": [
+        1104,
+        50,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-aw",
+      "included": true,
+      "rect": [
+        1154,
+        50,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ax",
+      "included": true,
+      "rect": [
+        1204,
+        50,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ay",
+      "included": true,
+      "rect": [
+        0,
+        100,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-az",
+      "included": true,
+      "rect": [
+        50,
+        100,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ba",
+      "included": true,
+      "rect": [
+        100,
+        100,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-bb",
+      "included": true,
+      "rect": [
+        150,
+        100,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-bc",
+      "included": true,
+      "rect": [
+        201,
+        100,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-bd",
+      "included": true,
+      "rect": [
+        251,
+        100,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-be",
+      "included": true,
+      "rect": [
+        301,
+        100,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-bf",
+      "included": true,
+      "rect": [
+        351,
+        100,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-bg",
+      "included": true,
+      "rect": [
+        401,
+        100,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-bh",
+      "included": true,
+      "rect": [
+        451,
+        100,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-bi",
+      "included": true,
+      "rect": [
+        502,
+        100,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-bj",
+      "included": true,
+      "rect": [
+        552,
+        100,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-bk",
+      "included": true,
+      "rect": [
+        602,
+        100,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-bl",
+      "included": true,
+      "rect": [
+        652,
+        100,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-bm",
+      "included": true,
+      "rect": [
+        702,
+        100,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-bn",
+      "included": true,
+      "rect": [
+        752,
+        100,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-bo",
+      "included": true,
+      "rect": [
+        803,
+        100,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-bp",
+      "included": true,
+      "rect": [
+        853,
+        100,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-bq",
+      "included": true,
+      "rect": [
+        903,
+        100,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-br",
+      "included": true,
+      "rect": [
+        953,
+        100,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-bs",
+      "included": true,
+      "rect": [
+        1003,
+        100,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-bt",
+      "included": true,
+      "rect": [
+        1053,
+        100,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-bu",
+      "included": true,
+      "rect": [
+        1104,
+        100,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-bv",
+      "included": true,
+      "rect": [
+        1154,
+        100,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-bw",
+      "included": true,
+      "rect": [
+        1204,
+        100,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-bx",
+      "included": true,
+      "rect": [
+        0,
+        150,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-by",
+      "included": true,
+      "rect": [
+        50,
+        150,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-bz",
+      "included": true,
+      "rect": [
+        100,
+        150,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ca",
+      "included": true,
+      "rect": [
+        150,
+        150,
+        51,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-cb",
+      "included": true,
+      "rect": [
+        201,
+        150,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-cc",
+      "included": true,
+      "rect": [
+        251,
+        150,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-cd",
+      "included": true,
+      "rect": [
+        301,
+        150,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ce",
+      "included": true,
+      "rect": [
+        351,
+        150,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-cf",
+      "included": true,
+      "rect": [
+        401,
+        150,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-cg",
+      "included": true,
+      "rect": [
+        451,
+        150,
+        51,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ch",
+      "included": true,
+      "rect": [
+        502,
+        150,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ci",
+      "included": true,
+      "rect": [
+        552,
+        150,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-cj",
+      "included": true,
+      "rect": [
+        602,
+        150,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ck",
+      "included": true,
+      "rect": [
+        652,
+        150,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-cl",
+      "included": true,
+      "rect": [
+        702,
+        150,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-cm",
+      "included": true,
+      "rect": [
+        752,
+        150,
+        51,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-cn",
+      "included": true,
+      "rect": [
+        803,
+        150,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-co",
+      "included": true,
+      "rect": [
+        853,
+        150,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-cp",
+      "included": true,
+      "rect": [
+        903,
+        150,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-cq",
+      "included": true,
+      "rect": [
+        953,
+        150,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-cr",
+      "included": true,
+      "rect": [
+        1003,
+        150,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-cs",
+      "included": true,
+      "rect": [
+        1053,
+        150,
+        51,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ct",
+      "included": true,
+      "rect": [
+        1104,
+        150,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-cu",
+      "included": true,
+      "rect": [
+        1154,
+        150,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-cv",
+      "included": true,
+      "rect": [
+        1204,
+        150,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-cw",
+      "included": true,
+      "rect": [
+        0,
+        201,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-cx",
+      "included": true,
+      "rect": [
+        50,
+        201,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-cy",
+      "included": true,
+      "rect": [
+        100,
+        201,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-cz",
+      "included": true,
+      "rect": [
+        150,
+        201,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-da",
+      "included": true,
+      "rect": [
+        201,
+        201,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-db",
+      "included": true,
+      "rect": [
+        251,
+        201,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-dc",
+      "included": true,
+      "rect": [
+        301,
+        201,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-dd",
+      "included": true,
+      "rect": [
+        351,
+        201,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-de",
+      "included": true,
+      "rect": [
+        401,
+        201,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-df",
+      "included": true,
+      "rect": [
+        451,
+        201,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-dg",
+      "included": true,
+      "rect": [
+        502,
+        201,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-dh",
+      "included": true,
+      "rect": [
+        552,
+        201,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-di",
+      "included": true,
+      "rect": [
+        602,
+        201,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-dj",
+      "included": true,
+      "rect": [
+        652,
+        201,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-dk",
+      "included": true,
+      "rect": [
+        702,
+        201,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-dl",
+      "included": true,
+      "rect": [
+        752,
+        201,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-dm",
+      "included": true,
+      "rect": [
+        803,
+        201,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-dn",
+      "included": true,
+      "rect": [
+        853,
+        201,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-do",
+      "included": true,
+      "rect": [
+        903,
+        201,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-dp",
+      "included": true,
+      "rect": [
+        953,
+        201,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-dq",
+      "included": true,
+      "rect": [
+        1003,
+        201,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-dr",
+      "included": true,
+      "rect": [
+        1053,
+        201,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ds",
+      "included": true,
+      "rect": [
+        1104,
+        201,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-dt",
+      "included": true,
+      "rect": [
+        1154,
+        201,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-du",
+      "included": true,
+      "rect": [
+        1204,
+        201,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-dv",
+      "included": true,
+      "rect": [
+        0,
+        251,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-dw",
+      "included": true,
+      "rect": [
+        50,
+        251,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-dx",
+      "included": true,
+      "rect": [
+        100,
+        251,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-dy",
+      "included": true,
+      "rect": [
+        150,
+        251,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-dz",
+      "included": true,
+      "rect": [
+        201,
+        251,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ea",
+      "included": true,
+      "rect": [
+        251,
+        251,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-eb",
+      "included": true,
+      "rect": [
+        301,
+        251,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ec",
+      "included": true,
+      "rect": [
+        351,
+        251,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ed",
+      "included": true,
+      "rect": [
+        401,
+        251,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ee",
+      "included": true,
+      "rect": [
+        451,
+        251,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ef",
+      "included": true,
+      "rect": [
+        502,
+        251,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-eg",
+      "included": true,
+      "rect": [
+        552,
+        251,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-eh",
+      "included": true,
+      "rect": [
+        602,
+        251,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ei",
+      "included": true,
+      "rect": [
+        652,
+        251,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ej",
+      "included": true,
+      "rect": [
+        702,
+        251,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ek",
+      "included": true,
+      "rect": [
+        752,
+        251,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-el",
+      "included": true,
+      "rect": [
+        803,
+        251,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-em",
+      "included": true,
+      "rect": [
+        853,
+        251,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-en",
+      "included": true,
+      "rect": [
+        903,
+        251,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-eo",
+      "included": true,
+      "rect": [
+        953,
+        251,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ep",
+      "included": true,
+      "rect": [
+        1003,
+        251,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-eq",
+      "included": true,
+      "rect": [
+        1053,
+        251,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-er",
+      "included": true,
+      "rect": [
+        1104,
+        251,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-es",
+      "included": true,
+      "rect": [
+        1154,
+        251,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-et",
+      "included": true,
+      "rect": [
+        1204,
+        251,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-eu",
+      "included": true,
+      "rect": [
+        0,
+        301,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ev",
+      "included": true,
+      "rect": [
+        50,
+        301,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ew",
+      "included": true,
+      "rect": [
+        100,
+        301,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ex",
+      "included": true,
+      "rect": [
+        150,
+        301,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ey",
+      "included": true,
+      "rect": [
+        201,
+        301,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ez",
+      "included": true,
+      "rect": [
+        251,
+        301,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-fa",
+      "included": true,
+      "rect": [
+        301,
+        301,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-fb",
+      "included": true,
+      "rect": [
+        351,
+        301,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-fc",
+      "included": true,
+      "rect": [
+        401,
+        301,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-fd",
+      "included": true,
+      "rect": [
+        451,
+        301,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-fe",
+      "included": true,
+      "rect": [
+        502,
+        301,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ff",
+      "included": true,
+      "rect": [
+        552,
+        301,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-fg",
+      "included": true,
+      "rect": [
+        602,
+        301,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-fh",
+      "included": true,
+      "rect": [
+        652,
+        301,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-fi",
+      "included": true,
+      "rect": [
+        702,
+        301,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-fj",
+      "included": true,
+      "rect": [
+        752,
+        301,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-fk",
+      "included": true,
+      "rect": [
+        803,
+        301,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-fl",
+      "included": true,
+      "rect": [
+        853,
+        301,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-fm",
+      "included": true,
+      "rect": [
+        903,
+        301,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-fn",
+      "included": true,
+      "rect": [
+        953,
+        301,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-fo",
+      "included": true,
+      "rect": [
+        1003,
+        301,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-fp",
+      "included": true,
+      "rect": [
+        1053,
+        301,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-fq",
+      "included": true,
+      "rect": [
+        1104,
+        301,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-fr",
+      "included": true,
+      "rect": [
+        1154,
+        301,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-fs",
+      "included": true,
+      "rect": [
+        1204,
+        301,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ft",
+      "included": true,
+      "rect": [
+        0,
+        351,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-fu",
+      "included": true,
+      "rect": [
+        50,
+        351,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-fv",
+      "included": true,
+      "rect": [
+        100,
+        351,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-fw",
+      "included": true,
+      "rect": [
+        150,
+        351,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-fx",
+      "included": true,
+      "rect": [
+        201,
+        351,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-fy",
+      "included": true,
+      "rect": [
+        251,
+        351,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-fz",
+      "included": true,
+      "rect": [
+        301,
+        351,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ga",
+      "included": true,
+      "rect": [
+        351,
+        351,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-gb",
+      "included": true,
+      "rect": [
+        401,
+        351,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-gc",
+      "included": true,
+      "rect": [
+        451,
+        351,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-gd",
+      "included": true,
+      "rect": [
+        502,
+        351,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ge",
+      "included": true,
+      "rect": [
+        552,
+        351,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-gf",
+      "included": true,
+      "rect": [
+        602,
+        351,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-gg",
+      "included": true,
+      "rect": [
+        652,
+        351,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-gh",
+      "included": true,
+      "rect": [
+        702,
+        351,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-gi",
+      "included": true,
+      "rect": [
+        752,
+        351,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-gj",
+      "included": true,
+      "rect": [
+        803,
+        351,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-gk",
+      "included": true,
+      "rect": [
+        853,
+        351,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-gl",
+      "included": true,
+      "rect": [
+        903,
+        351,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-gm",
+      "included": true,
+      "rect": [
+        953,
+        351,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-gn",
+      "included": true,
+      "rect": [
+        1003,
+        351,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-go",
+      "included": true,
+      "rect": [
+        1053,
+        351,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-gp",
+      "included": true,
+      "rect": [
+        1104,
+        351,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-gq",
+      "included": true,
+      "rect": [
+        1154,
+        351,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-gr",
+      "included": true,
+      "rect": [
+        1204,
+        351,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-gs",
+      "included": true,
+      "rect": [
+        0,
+        401,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-gt",
+      "included": true,
+      "rect": [
+        50,
+        401,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-gu",
+      "included": true,
+      "rect": [
+        100,
+        401,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-gv",
+      "included": true,
+      "rect": [
+        150,
+        401,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-gw",
+      "included": true,
+      "rect": [
+        201,
+        401,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-gx",
+      "included": true,
+      "rect": [
+        251,
+        401,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-gy",
+      "included": true,
+      "rect": [
+        301,
+        401,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-gz",
+      "included": true,
+      "rect": [
+        351,
+        401,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ha",
+      "included": true,
+      "rect": [
+        401,
+        401,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-hb",
+      "included": true,
+      "rect": [
+        451,
+        401,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-hc",
+      "included": true,
+      "rect": [
+        502,
+        401,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-hd",
+      "included": true,
+      "rect": [
+        552,
+        401,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-he",
+      "included": true,
+      "rect": [
+        602,
+        401,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-hf",
+      "included": true,
+      "rect": [
+        652,
+        401,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-hg",
+      "included": true,
+      "rect": [
+        702,
+        401,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-hh",
+      "included": true,
+      "rect": [
+        752,
+        401,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-hi",
+      "included": true,
+      "rect": [
+        803,
+        401,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-hj",
+      "included": true,
+      "rect": [
+        853,
+        401,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-hk",
+      "included": true,
+      "rect": [
+        903,
+        401,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-hl",
+      "included": true,
+      "rect": [
+        953,
+        401,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-hm",
+      "included": true,
+      "rect": [
+        1003,
+        401,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-hn",
+      "included": true,
+      "rect": [
+        1053,
+        401,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ho",
+      "included": true,
+      "rect": [
+        1104,
+        401,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-hp",
+      "included": true,
+      "rect": [
+        1154,
+        401,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-hq",
+      "included": true,
+      "rect": [
+        1204,
+        401,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-hr",
+      "included": true,
+      "rect": [
+        0,
+        451,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-hs",
+      "included": true,
+      "rect": [
+        50,
+        451,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ht",
+      "included": true,
+      "rect": [
+        100,
+        451,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-hu",
+      "included": true,
+      "rect": [
+        150,
+        451,
+        51,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-hv",
+      "included": true,
+      "rect": [
+        201,
+        451,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-hw",
+      "included": true,
+      "rect": [
+        251,
+        451,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-hx",
+      "included": true,
+      "rect": [
+        301,
+        451,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-hy",
+      "included": true,
+      "rect": [
+        351,
+        451,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-hz",
+      "included": true,
+      "rect": [
+        401,
+        451,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ia",
+      "included": true,
+      "rect": [
+        451,
+        451,
+        51,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ib",
+      "included": true,
+      "rect": [
+        502,
+        451,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ic",
+      "included": true,
+      "rect": [
+        552,
+        451,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-id",
+      "included": true,
+      "rect": [
+        602,
+        451,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ie",
+      "included": true,
+      "rect": [
+        652,
+        451,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-if",
+      "included": true,
+      "rect": [
+        702,
+        451,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ig",
+      "included": true,
+      "rect": [
+        752,
+        451,
+        51,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ih",
+      "included": true,
+      "rect": [
+        803,
+        451,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ii",
+      "included": true,
+      "rect": [
+        853,
+        451,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ij",
+      "included": true,
+      "rect": [
+        903,
+        451,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ik",
+      "included": true,
+      "rect": [
+        953,
+        451,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-il",
+      "included": true,
+      "rect": [
+        1003,
+        451,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-im",
+      "included": true,
+      "rect": [
+        1053,
+        451,
+        51,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-in",
+      "included": true,
+      "rect": [
+        1104,
+        451,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-io",
+      "included": true,
+      "rect": [
+        1154,
+        451,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ip",
+      "included": true,
+      "rect": [
+        1204,
+        451,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-iq",
+      "included": true,
+      "rect": [
+        0,
+        502,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ir",
+      "included": true,
+      "rect": [
+        50,
+        502,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-is",
+      "included": true,
+      "rect": [
+        100,
+        502,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-it",
+      "included": true,
+      "rect": [
+        150,
+        502,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-iu",
+      "included": true,
+      "rect": [
+        201,
+        502,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-iv",
+      "included": true,
+      "rect": [
+        251,
+        502,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-iw",
+      "included": true,
+      "rect": [
+        301,
+        502,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ix",
+      "included": true,
+      "rect": [
+        351,
+        502,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-iy",
+      "included": true,
+      "rect": [
+        401,
+        502,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-iz",
+      "included": true,
+      "rect": [
+        451,
+        502,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ja",
+      "included": true,
+      "rect": [
+        502,
+        502,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-jb",
+      "included": true,
+      "rect": [
+        552,
+        502,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-jc",
+      "included": true,
+      "rect": [
+        602,
+        502,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-jd",
+      "included": true,
+      "rect": [
+        652,
+        502,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-je",
+      "included": true,
+      "rect": [
+        702,
+        502,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-jf",
+      "included": true,
+      "rect": [
+        752,
+        502,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-jg",
+      "included": true,
+      "rect": [
+        803,
+        502,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-jh",
+      "included": true,
+      "rect": [
+        853,
+        502,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ji",
+      "included": true,
+      "rect": [
+        903,
+        502,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-jj",
+      "included": true,
+      "rect": [
+        953,
+        502,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-jk",
+      "included": true,
+      "rect": [
+        1003,
+        502,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-jl",
+      "included": true,
+      "rect": [
+        1053,
+        502,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-jm",
+      "included": true,
+      "rect": [
+        1104,
+        502,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-jn",
+      "included": true,
+      "rect": [
+        1154,
+        502,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-jo",
+      "included": true,
+      "rect": [
+        1204,
+        502,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-jp",
+      "included": true,
+      "rect": [
+        0,
+        552,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-jq",
+      "included": true,
+      "rect": [
+        50,
+        552,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-jr",
+      "included": true,
+      "rect": [
+        100,
+        552,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-js",
+      "included": true,
+      "rect": [
+        150,
+        552,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-jt",
+      "included": true,
+      "rect": [
+        201,
+        552,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ju",
+      "included": true,
+      "rect": [
+        251,
+        552,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-jv",
+      "included": true,
+      "rect": [
+        301,
+        552,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-jw",
+      "included": true,
+      "rect": [
+        351,
+        552,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-jx",
+      "included": true,
+      "rect": [
+        401,
+        552,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-jy",
+      "included": true,
+      "rect": [
+        451,
+        552,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-jz",
+      "included": true,
+      "rect": [
+        502,
+        552,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ka",
+      "included": true,
+      "rect": [
+        552,
+        552,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-kb",
+      "included": true,
+      "rect": [
+        602,
+        552,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-kc",
+      "included": true,
+      "rect": [
+        652,
+        552,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-kd",
+      "included": true,
+      "rect": [
+        702,
+        552,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ke",
+      "included": true,
+      "rect": [
+        752,
+        552,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-kf",
+      "included": true,
+      "rect": [
+        803,
+        552,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-kg",
+      "included": true,
+      "rect": [
+        853,
+        552,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-kh",
+      "included": true,
+      "rect": [
+        903,
+        552,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ki",
+      "included": true,
+      "rect": [
+        953,
+        552,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-kj",
+      "included": true,
+      "rect": [
+        1003,
+        552,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-kk",
+      "included": true,
+      "rect": [
+        1053,
+        552,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-kl",
+      "included": true,
+      "rect": [
+        1104,
+        552,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-km",
+      "included": true,
+      "rect": [
+        1154,
+        552,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-kn",
+      "included": true,
+      "rect": [
+        1204,
+        552,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ko",
+      "included": true,
+      "rect": [
+        0,
+        602,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-kp",
+      "included": true,
+      "rect": [
+        50,
+        602,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-kq",
+      "included": true,
+      "rect": [
+        100,
+        602,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-kr",
+      "included": true,
+      "rect": [
+        150,
+        602,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ks",
+      "included": true,
+      "rect": [
+        201,
+        602,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-kt",
+      "included": true,
+      "rect": [
+        251,
+        602,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ku",
+      "included": true,
+      "rect": [
+        301,
+        602,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-kv",
+      "included": true,
+      "rect": [
+        351,
+        602,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-kw",
+      "included": true,
+      "rect": [
+        401,
+        602,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-kx",
+      "included": true,
+      "rect": [
+        451,
+        602,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ky",
+      "included": true,
+      "rect": [
+        502,
+        602,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-kz",
+      "included": true,
+      "rect": [
+        552,
+        602,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-la",
+      "included": true,
+      "rect": [
+        602,
+        602,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-lb",
+      "included": true,
+      "rect": [
+        652,
+        602,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-lc",
+      "included": true,
+      "rect": [
+        702,
+        602,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ld",
+      "included": true,
+      "rect": [
+        752,
+        602,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-le",
+      "included": true,
+      "rect": [
+        803,
+        602,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-lf",
+      "included": true,
+      "rect": [
+        853,
+        602,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-lg",
+      "included": true,
+      "rect": [
+        903,
+        602,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-lh",
+      "included": true,
+      "rect": [
+        953,
+        602,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-li",
+      "included": true,
+      "rect": [
+        1003,
+        602,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-lj",
+      "included": true,
+      "rect": [
+        1053,
+        602,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-lk",
+      "included": true,
+      "rect": [
+        1104,
+        602,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ll",
+      "included": true,
+      "rect": [
+        1154,
+        602,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-lm",
+      "included": true,
+      "rect": [
+        1204,
+        602,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ln",
+      "included": true,
+      "rect": [
+        0,
+        652,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-lo",
+      "included": true,
+      "rect": [
+        50,
+        652,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-lp",
+      "included": true,
+      "rect": [
+        100,
+        652,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-lq",
+      "included": true,
+      "rect": [
+        150,
+        652,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-lr",
+      "included": true,
+      "rect": [
+        201,
+        652,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ls",
+      "included": true,
+      "rect": [
+        251,
+        652,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-lt",
+      "included": true,
+      "rect": [
+        301,
+        652,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-lu",
+      "included": true,
+      "rect": [
+        351,
+        652,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-lv",
+      "included": true,
+      "rect": [
+        401,
+        652,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-lw",
+      "included": true,
+      "rect": [
+        451,
+        652,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-lx",
+      "included": true,
+      "rect": [
+        502,
+        652,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ly",
+      "included": true,
+      "rect": [
+        552,
+        652,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-lz",
+      "included": true,
+      "rect": [
+        602,
+        652,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ma",
+      "included": true,
+      "rect": [
+        652,
+        652,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-mb",
+      "included": true,
+      "rect": [
+        702,
+        652,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-mc",
+      "included": true,
+      "rect": [
+        752,
+        652,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-md",
+      "included": true,
+      "rect": [
+        803,
+        652,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-me",
+      "included": true,
+      "rect": [
+        853,
+        652,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-mf",
+      "included": true,
+      "rect": [
+        903,
+        652,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-mg",
+      "included": true,
+      "rect": [
+        953,
+        652,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-mh",
+      "included": true,
+      "rect": [
+        1003,
+        652,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-mi",
+      "included": true,
+      "rect": [
+        1053,
+        652,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-mj",
+      "included": true,
+      "rect": [
+        1104,
+        652,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-mk",
+      "included": true,
+      "rect": [
+        1154,
+        652,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ml",
+      "included": true,
+      "rect": [
+        1204,
+        652,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-mm",
+      "included": true,
+      "rect": [
+        0,
+        702,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-mn",
+      "included": true,
+      "rect": [
+        50,
+        702,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-mo",
+      "included": true,
+      "rect": [
+        100,
+        702,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-mp",
+      "included": true,
+      "rect": [
+        150,
+        702,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-mq",
+      "included": true,
+      "rect": [
+        201,
+        702,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-mr",
+      "included": true,
+      "rect": [
+        251,
+        702,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ms",
+      "included": true,
+      "rect": [
+        301,
+        702,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-mt",
+      "included": true,
+      "rect": [
+        351,
+        702,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-mu",
+      "included": true,
+      "rect": [
+        401,
+        702,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-mv",
+      "included": true,
+      "rect": [
+        451,
+        702,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-mw",
+      "included": true,
+      "rect": [
+        502,
+        702,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-mx",
+      "included": true,
+      "rect": [
+        552,
+        702,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-my",
+      "included": true,
+      "rect": [
+        602,
+        702,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-mz",
+      "included": true,
+      "rect": [
+        652,
+        702,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-na",
+      "included": true,
+      "rect": [
+        702,
+        702,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-nb",
+      "included": true,
+      "rect": [
+        752,
+        702,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-nc",
+      "included": true,
+      "rect": [
+        803,
+        702,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-nd",
+      "included": true,
+      "rect": [
+        853,
+        702,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ne",
+      "included": true,
+      "rect": [
+        903,
+        702,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-nf",
+      "included": true,
+      "rect": [
+        953,
+        702,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ng",
+      "included": true,
+      "rect": [
+        1003,
+        702,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-nh",
+      "included": true,
+      "rect": [
+        1053,
+        702,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ni",
+      "included": true,
+      "rect": [
+        1104,
+        702,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-nj",
+      "included": true,
+      "rect": [
+        1154,
+        702,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-nk",
+      "included": true,
+      "rect": [
+        1204,
+        702,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-nl",
+      "included": true,
+      "rect": [
+        0,
+        752,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-nm",
+      "included": true,
+      "rect": [
+        50,
+        752,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-nn",
+      "included": true,
+      "rect": [
+        100,
+        752,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-no",
+      "included": true,
+      "rect": [
+        150,
+        752,
+        51,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-np",
+      "included": true,
+      "rect": [
+        201,
+        752,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-nq",
+      "included": true,
+      "rect": [
+        251,
+        752,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-nr",
+      "included": true,
+      "rect": [
+        301,
+        752,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ns",
+      "included": true,
+      "rect": [
+        351,
+        752,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-nt",
+      "included": true,
+      "rect": [
+        401,
+        752,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-nu",
+      "included": true,
+      "rect": [
+        451,
+        752,
+        51,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-nv",
+      "included": true,
+      "rect": [
+        502,
+        752,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-nw",
+      "included": true,
+      "rect": [
+        552,
+        752,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-nx",
+      "included": true,
+      "rect": [
+        602,
+        752,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ny",
+      "included": true,
+      "rect": [
+        652,
+        752,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-nz",
+      "included": true,
+      "rect": [
+        702,
+        752,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-oa",
+      "included": true,
+      "rect": [
+        752,
+        752,
+        51,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ob",
+      "included": true,
+      "rect": [
+        803,
+        752,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-oc",
+      "included": true,
+      "rect": [
+        853,
+        752,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-od",
+      "included": true,
+      "rect": [
+        903,
+        752,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-oe",
+      "included": true,
+      "rect": [
+        953,
+        752,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-of",
+      "included": true,
+      "rect": [
+        1003,
+        752,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-og",
+      "included": true,
+      "rect": [
+        1053,
+        752,
+        51,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-oh",
+      "included": true,
+      "rect": [
+        1104,
+        752,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-oi",
+      "included": true,
+      "rect": [
+        1154,
+        752,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-oj",
+      "included": true,
+      "rect": [
+        1204,
+        752,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ok",
+      "included": true,
+      "rect": [
+        0,
+        803,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ol",
+      "included": true,
+      "rect": [
+        50,
+        803,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-om",
+      "included": true,
+      "rect": [
+        100,
+        803,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-on",
+      "included": true,
+      "rect": [
+        150,
+        803,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-oo",
+      "included": true,
+      "rect": [
+        201,
+        803,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-op",
+      "included": true,
+      "rect": [
+        251,
+        803,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-oq",
+      "included": true,
+      "rect": [
+        301,
+        803,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-or",
+      "included": true,
+      "rect": [
+        351,
+        803,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-os",
+      "included": true,
+      "rect": [
+        401,
+        803,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ot",
+      "included": true,
+      "rect": [
+        451,
+        803,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ou",
+      "included": true,
+      "rect": [
+        502,
+        803,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ov",
+      "included": true,
+      "rect": [
+        552,
+        803,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ow",
+      "included": true,
+      "rect": [
+        602,
+        803,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ox",
+      "included": true,
+      "rect": [
+        652,
+        803,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-oy",
+      "included": true,
+      "rect": [
+        702,
+        803,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-oz",
+      "included": true,
+      "rect": [
+        752,
+        803,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-pa",
+      "included": true,
+      "rect": [
+        803,
+        803,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-pb",
+      "included": true,
+      "rect": [
+        853,
+        803,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-pc",
+      "included": true,
+      "rect": [
+        903,
+        803,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-pd",
+      "included": true,
+      "rect": [
+        953,
+        803,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-pe",
+      "included": true,
+      "rect": [
+        1003,
+        803,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-pf",
+      "included": true,
+      "rect": [
+        1053,
+        803,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-pg",
+      "included": true,
+      "rect": [
+        1104,
+        803,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ph",
+      "included": true,
+      "rect": [
+        1154,
+        803,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-pi",
+      "included": true,
+      "rect": [
+        1204,
+        803,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-pj",
+      "included": true,
+      "rect": [
+        0,
+        853,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-pk",
+      "included": true,
+      "rect": [
+        50,
+        853,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-pl",
+      "included": true,
+      "rect": [
+        100,
+        853,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-pm",
+      "included": true,
+      "rect": [
+        150,
+        853,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-pn",
+      "included": true,
+      "rect": [
+        201,
+        853,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-po",
+      "included": true,
+      "rect": [
+        251,
+        853,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-pp",
+      "included": true,
+      "rect": [
+        301,
+        853,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-pq",
+      "included": true,
+      "rect": [
+        351,
+        853,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-pr",
+      "included": true,
+      "rect": [
+        401,
+        853,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ps",
+      "included": true,
+      "rect": [
+        451,
+        853,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-pt",
+      "included": true,
+      "rect": [
+        502,
+        853,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-pu",
+      "included": true,
+      "rect": [
+        552,
+        853,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-pv",
+      "included": true,
+      "rect": [
+        602,
+        853,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-pw",
+      "included": true,
+      "rect": [
+        652,
+        853,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-px",
+      "included": true,
+      "rect": [
+        702,
+        853,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-py",
+      "included": true,
+      "rect": [
+        752,
+        853,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-pz",
+      "included": true,
+      "rect": [
+        803,
+        853,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-qa",
+      "included": true,
+      "rect": [
+        853,
+        853,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-qb",
+      "included": true,
+      "rect": [
+        903,
+        853,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-qc",
+      "included": true,
+      "rect": [
+        953,
+        853,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-qd",
+      "included": true,
+      "rect": [
+        1003,
+        853,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-qe",
+      "included": true,
+      "rect": [
+        1053,
+        853,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-qf",
+      "included": true,
+      "rect": [
+        1104,
+        853,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-qg",
+      "included": true,
+      "rect": [
+        1154,
+        853,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-qh",
+      "included": true,
+      "rect": [
+        1204,
+        853,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-qi",
+      "included": true,
+      "rect": [
+        0,
+        903,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-qj",
+      "included": true,
+      "rect": [
+        50,
+        903,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-qk",
+      "included": true,
+      "rect": [
+        100,
+        903,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ql",
+      "included": true,
+      "rect": [
+        150,
+        903,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-qm",
+      "included": true,
+      "rect": [
+        201,
+        903,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-qn",
+      "included": true,
+      "rect": [
+        251,
+        903,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-qo",
+      "included": true,
+      "rect": [
+        301,
+        903,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-qp",
+      "included": true,
+      "rect": [
+        351,
+        903,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-qq",
+      "included": true,
+      "rect": [
+        401,
+        903,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-qr",
+      "included": true,
+      "rect": [
+        451,
+        903,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-qs",
+      "included": true,
+      "rect": [
+        502,
+        903,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-qt",
+      "included": true,
+      "rect": [
+        552,
+        903,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-qu",
+      "included": true,
+      "rect": [
+        602,
+        903,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-qv",
+      "included": true,
+      "rect": [
+        652,
+        903,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-qw",
+      "included": true,
+      "rect": [
+        702,
+        903,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-qx",
+      "included": true,
+      "rect": [
+        752,
+        903,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-qy",
+      "included": true,
+      "rect": [
+        803,
+        903,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-qz",
+      "included": true,
+      "rect": [
+        853,
+        903,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ra",
+      "included": true,
+      "rect": [
+        903,
+        903,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-rb",
+      "included": true,
+      "rect": [
+        953,
+        903,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-rc",
+      "included": true,
+      "rect": [
+        1003,
+        903,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-rd",
+      "included": true,
+      "rect": [
+        1053,
+        903,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-re",
+      "included": true,
+      "rect": [
+        1104,
+        903,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-rf",
+      "included": true,
+      "rect": [
+        1154,
+        903,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-rg",
+      "included": true,
+      "rect": [
+        1204,
+        903,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-rh",
+      "included": true,
+      "rect": [
+        0,
+        953,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ri",
+      "included": true,
+      "rect": [
+        50,
+        953,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-rj",
+      "included": true,
+      "rect": [
+        100,
+        953,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-rk",
+      "included": true,
+      "rect": [
+        150,
+        953,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-rl",
+      "included": true,
+      "rect": [
+        201,
+        953,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-rm",
+      "included": true,
+      "rect": [
+        251,
+        953,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-rn",
+      "included": true,
+      "rect": [
+        301,
+        953,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ro",
+      "included": true,
+      "rect": [
+        351,
+        953,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-rp",
+      "included": true,
+      "rect": [
+        401,
+        953,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-rq",
+      "included": true,
+      "rect": [
+        451,
+        953,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-rr",
+      "included": true,
+      "rect": [
+        502,
+        953,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-rs",
+      "included": true,
+      "rect": [
+        552,
+        953,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-rt",
+      "included": true,
+      "rect": [
+        602,
+        953,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ru",
+      "included": true,
+      "rect": [
+        652,
+        953,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-rv",
+      "included": true,
+      "rect": [
+        702,
+        953,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-rw",
+      "included": true,
+      "rect": [
+        752,
+        953,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-rx",
+      "included": true,
+      "rect": [
+        803,
+        953,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ry",
+      "included": true,
+      "rect": [
+        853,
+        953,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-rz",
+      "included": true,
+      "rect": [
+        903,
+        953,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-sa",
+      "included": true,
+      "rect": [
+        953,
+        953,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-sb",
+      "included": true,
+      "rect": [
+        1003,
+        953,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-sc",
+      "included": true,
+      "rect": [
+        1053,
+        953,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-sd",
+      "included": true,
+      "rect": [
+        1104,
+        953,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-se",
+      "included": true,
+      "rect": [
+        1154,
+        953,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-sf",
+      "included": true,
+      "rect": [
+        1204,
+        953,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-sg",
+      "included": true,
+      "rect": [
+        0,
+        1003,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-sh",
+      "included": true,
+      "rect": [
+        50,
+        1003,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-si",
+      "included": true,
+      "rect": [
+        100,
+        1003,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-sj",
+      "included": true,
+      "rect": [
+        150,
+        1003,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-sk",
+      "included": true,
+      "rect": [
+        201,
+        1003,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-sl",
+      "included": true,
+      "rect": [
+        251,
+        1003,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-sm",
+      "included": true,
+      "rect": [
+        301,
+        1003,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-sn",
+      "included": true,
+      "rect": [
+        351,
+        1003,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-so",
+      "included": true,
+      "rect": [
+        401,
+        1003,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-sp",
+      "included": true,
+      "rect": [
+        451,
+        1003,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-sq",
+      "included": true,
+      "rect": [
+        502,
+        1003,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-sr",
+      "included": true,
+      "rect": [
+        552,
+        1003,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ss",
+      "included": true,
+      "rect": [
+        602,
+        1003,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-st",
+      "included": true,
+      "rect": [
+        652,
+        1003,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-su",
+      "included": true,
+      "rect": [
+        702,
+        1003,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-sv",
+      "included": true,
+      "rect": [
+        752,
+        1003,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-sw",
+      "included": true,
+      "rect": [
+        803,
+        1003,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-sx",
+      "included": true,
+      "rect": [
+        853,
+        1003,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-sy",
+      "included": true,
+      "rect": [
+        903,
+        1003,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-sz",
+      "included": true,
+      "rect": [
+        953,
+        1003,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ta",
+      "included": true,
+      "rect": [
+        1003,
+        1003,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-tb",
+      "included": true,
+      "rect": [
+        1053,
+        1003,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-tc",
+      "included": true,
+      "rect": [
+        1104,
+        1003,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-td",
+      "included": true,
+      "rect": [
+        1154,
+        1003,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-te",
+      "included": true,
+      "rect": [
+        1204,
+        1003,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-tf",
+      "included": true,
+      "rect": [
+        0,
+        1053,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-tg",
+      "included": true,
+      "rect": [
+        50,
+        1053,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-th",
+      "included": true,
+      "rect": [
+        100,
+        1053,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ti",
+      "included": true,
+      "rect": [
+        150,
+        1053,
+        51,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-tj",
+      "included": true,
+      "rect": [
+        201,
+        1053,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-tk",
+      "included": true,
+      "rect": [
+        251,
+        1053,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-tl",
+      "included": true,
+      "rect": [
+        301,
+        1053,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-tm",
+      "included": true,
+      "rect": [
+        351,
+        1053,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-tn",
+      "included": true,
+      "rect": [
+        401,
+        1053,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-to",
+      "included": true,
+      "rect": [
+        451,
+        1053,
+        51,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-tp",
+      "included": true,
+      "rect": [
+        502,
+        1053,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-tq",
+      "included": true,
+      "rect": [
+        552,
+        1053,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-tr",
+      "included": true,
+      "rect": [
+        602,
+        1053,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ts",
+      "included": true,
+      "rect": [
+        652,
+        1053,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-tt",
+      "included": true,
+      "rect": [
+        702,
+        1053,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-tu",
+      "included": true,
+      "rect": [
+        752,
+        1053,
+        51,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-tv",
+      "included": true,
+      "rect": [
+        803,
+        1053,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-tw",
+      "included": true,
+      "rect": [
+        853,
+        1053,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-tx",
+      "included": true,
+      "rect": [
+        903,
+        1053,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ty",
+      "included": true,
+      "rect": [
+        953,
+        1053,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-tz",
+      "included": true,
+      "rect": [
+        1003,
+        1053,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ua",
+      "included": true,
+      "rect": [
+        1053,
+        1053,
+        51,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ub",
+      "included": true,
+      "rect": [
+        1104,
+        1053,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-uc",
+      "included": true,
+      "rect": [
+        1154,
+        1053,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ud",
+      "included": true,
+      "rect": [
+        1204,
+        1053,
+        50,
+        51
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ue",
+      "included": true,
+      "rect": [
+        0,
+        1104,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-uf",
+      "included": true,
+      "rect": [
+        50,
+        1104,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ug",
+      "included": true,
+      "rect": [
+        100,
+        1104,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-uh",
+      "included": true,
+      "rect": [
+        150,
+        1104,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ui",
+      "included": true,
+      "rect": [
+        201,
+        1104,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-uj",
+      "included": true,
+      "rect": [
+        251,
+        1104,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-uk",
+      "included": true,
+      "rect": [
+        301,
+        1104,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ul",
+      "included": true,
+      "rect": [
+        351,
+        1104,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-um",
+      "included": true,
+      "rect": [
+        401,
+        1104,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-un",
+      "included": true,
+      "rect": [
+        451,
+        1104,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-uo",
+      "included": true,
+      "rect": [
+        502,
+        1104,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-up",
+      "included": true,
+      "rect": [
+        552,
+        1104,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-uq",
+      "included": true,
+      "rect": [
+        602,
+        1104,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ur",
+      "included": true,
+      "rect": [
+        652,
+        1104,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-us",
+      "included": true,
+      "rect": [
+        702,
+        1104,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ut",
+      "included": true,
+      "rect": [
+        752,
+        1104,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-uu",
+      "included": true,
+      "rect": [
+        803,
+        1104,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-uv",
+      "included": true,
+      "rect": [
+        853,
+        1104,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-uw",
+      "included": true,
+      "rect": [
+        903,
+        1104,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ux",
+      "included": true,
+      "rect": [
+        953,
+        1104,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-uy",
+      "included": true,
+      "rect": [
+        1003,
+        1104,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-uz",
+      "included": true,
+      "rect": [
+        1053,
+        1104,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-va",
+      "included": true,
+      "rect": [
+        1104,
+        1104,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-vb",
+      "included": true,
+      "rect": [
+        1154,
+        1104,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-vc",
+      "included": true,
+      "rect": [
+        1204,
+        1104,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-vd",
+      "included": true,
+      "rect": [
+        0,
+        1154,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ve",
+      "included": true,
+      "rect": [
+        50,
+        1154,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-vf",
+      "included": true,
+      "rect": [
+        100,
+        1154,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-vg",
+      "included": true,
+      "rect": [
+        150,
+        1154,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-vh",
+      "included": true,
+      "rect": [
+        201,
+        1154,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-vi",
+      "included": true,
+      "rect": [
+        251,
+        1154,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-vj",
+      "included": true,
+      "rect": [
+        301,
+        1154,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-vk",
+      "included": true,
+      "rect": [
+        351,
+        1154,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-vl",
+      "included": true,
+      "rect": [
+        401,
+        1154,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-vm",
+      "included": true,
+      "rect": [
+        451,
+        1154,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-vn",
+      "included": true,
+      "rect": [
+        502,
+        1154,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-vo",
+      "included": true,
+      "rect": [
+        552,
+        1154,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-vp",
+      "included": true,
+      "rect": [
+        602,
+        1154,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-vq",
+      "included": true,
+      "rect": [
+        652,
+        1154,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-vr",
+      "included": true,
+      "rect": [
+        702,
+        1154,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-vs",
+      "included": true,
+      "rect": [
+        752,
+        1154,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-vt",
+      "included": true,
+      "rect": [
+        803,
+        1154,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-vu",
+      "included": true,
+      "rect": [
+        853,
+        1154,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-vv",
+      "included": true,
+      "rect": [
+        903,
+        1154,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-vw",
+      "included": true,
+      "rect": [
+        953,
+        1154,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-vx",
+      "included": true,
+      "rect": [
+        1003,
+        1154,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-vy",
+      "included": true,
+      "rect": [
+        1053,
+        1154,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-vz",
+      "included": true,
+      "rect": [
+        1104,
+        1154,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-wa",
+      "included": true,
+      "rect": [
+        1154,
+        1154,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-wb",
+      "included": true,
+      "rect": [
+        1204,
+        1154,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-wc",
+      "included": true,
+      "rect": [
+        0,
+        1204,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-wd",
+      "included": true,
+      "rect": [
+        50,
+        1204,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-we",
+      "included": true,
+      "rect": [
+        100,
+        1204,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-wf",
+      "included": true,
+      "rect": [
+        150,
+        1204,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-wg",
+      "included": true,
+      "rect": [
+        201,
+        1204,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-wh",
+      "included": true,
+      "rect": [
+        251,
+        1204,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-wi",
+      "included": true,
+      "rect": [
+        301,
+        1204,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-wj",
+      "included": true,
+      "rect": [
+        351,
+        1204,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-wk",
+      "included": true,
+      "rect": [
+        401,
+        1204,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-wl",
+      "included": true,
+      "rect": [
+        451,
+        1204,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-wm",
+      "included": true,
+      "rect": [
+        502,
+        1204,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-wn",
+      "included": true,
+      "rect": [
+        552,
+        1204,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-wo",
+      "included": true,
+      "rect": [
+        602,
+        1204,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-wp",
+      "included": true,
+      "rect": [
+        652,
+        1204,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-wq",
+      "included": true,
+      "rect": [
+        702,
+        1204,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-wr",
+      "included": true,
+      "rect": [
+        752,
+        1204,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ws",
+      "included": true,
+      "rect": [
+        803,
+        1204,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-wt",
+      "included": true,
+      "rect": [
+        853,
+        1204,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-wu",
+      "included": true,
+      "rect": [
+        903,
+        1204,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-wv",
+      "included": true,
+      "rect": [
+        953,
+        1204,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-ww",
+      "included": true,
+      "rect": [
+        1003,
+        1204,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-wx",
+      "included": true,
+      "rect": [
+        1053,
+        1204,
+        51,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-wy",
+      "included": true,
+      "rect": [
+        1104,
+        1204,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-wz",
+      "included": true,
+      "rect": [
+        1154,
+        1204,
+        50,
+        50
+      ]
+    },
+    {
+      "cover": "none",
+      "footprintCells": [
+        1,
+        1
+      ],
+      "id": "doodad.water.piece-000-xa",
+      "included": true,
+      "rect": [
+        1204,
+        1204,
+        50,
+        50
+      ]
+    }
+  ],
   "gridCols": 25,
-  "gridRows": 25
+  "gridRows": 25,
+  "idPrefix": "doodad.water",
+  "note": "This sheet is RGB with no alpha channel, so it slices to one fused piece. That piece has been cut on its stated 25x25 grid, so the entries below are its cells in reading order - left to right, then top to bottom - one cell each and none of them annotated yet. Do not re-slice this sheet with apply=true: slicing finds the plate as one fused piece again and reports every cut cell as no longer found, so a re-slice discards the cut and anything authored onto it. Cut once, then annotate. 1254x1254 at 25x25. It already ships as a hand-written tileset built by art-source/tilesets/normalize_tilesets.py. Exporting over it would rewrite the ids and coordinates that GenMappingRegistry references, so treat this as a sheet to inspect or adopt deliberately, not to re-export casually. Water is a zero-cover blocker: non-walkable and see-through, publishing no edge cover profile.",
+  "sheet": "art-source/tilesets/Water_tiles.raw.png",
+  "sheetName": "Water_tiles"
 }
