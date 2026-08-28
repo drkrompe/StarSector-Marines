@@ -3,9 +3,6 @@ package com.dillon.starsectormarines.battle.world;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
-import com.dillon.starsectormarines.battle.vehicle.GroundBody;
-import com.dillon.starsectormarines.battle.vehicle.VehicleFootprint;
-import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
 /**
  * Coordinates the runtime map-modification cycle — the cross-domain operations
@@ -18,8 +15,9 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
  * neither {@link NavigationService} nor {@link CellTopology} is the natural
  * owner of the whole sequence. MapEditor is the thin coordinator that
  * sequences each domain's slice: it mutates topology directly (CellTopology
- * stays a data holder) and delegates the walkability + zone-graph writes to
- * the navigation service ({@code grid.*} + {@link NavigationService#markZoneGraphDirty()}).
+ * stays a data holder) and delegates walkability plus derived-navigation
+ * invalidation to
+ * the navigation service ({@code grid.*} + {@link NavigationService#markNavigationTopologyDirty()}).
  *
  * <p>The {@link #roofCollapseSink} (a rubble-decal effect, not topology and
  * not navigation) lives here because it's the cross-cutting glue this
@@ -119,20 +117,5 @@ public final class MapEditor {
         grid.recomputeCoverAt(cellX, cellY + 1);
         grid.recomputeCoverAt(cellX, cellY - 1);
         navigation.markCellOpened(cellX, cellY);
-    }
-
-    /**
-     * Commits a destroyed convoy vehicle's sampled footprint as a persistent,
-     * see-through navigation obstacle. Infantry and later convoy routes both see
-     * the same honest blocked cells; the full zone/cache rebuild is required
-     * because this is a cell closure rather than an opening.
-     */
-    public void placeVehicleWreck(GroundBody body, VehicleType type) {
-        VehicleFootprint.forEachSampledCell(body.x, body.y, body.facingDegrees,
-                type.visualLengthCells, type.visualWidthCells, grid, (x, y) -> {
-                    grid.setWalkable(x, y, false);
-                    topology.setVehicle(x, y, true);
-                });
-        navigation.markZoneGraphDirty();
     }
 }

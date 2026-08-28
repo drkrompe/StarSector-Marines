@@ -4,12 +4,10 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-08-27 — separated shared command-duel architecture and each
-mission strategy into the Mission Command feature while retaining their
-AI-facing belief, assignment, and tactical-execution boundaries here; took
-ownership of the ambient job site, role, and shift model, which
-`fixture-derived-ambient-routes.md` proved out on ship decks and which is not
-shipboard.
+Updated: 2026-08-28 — added the defense frontage and the standing-to garrison
+posture, which give a held place's authored apertures to whichever side holds
+it and make believed pressure, rather than local contact, the trigger for
+manning them.
 
 AI turns an assignment and what a squad has learned into coordinated movement,
 posture, and fire intent. It is a decision system, not the authority for combat
@@ -548,6 +546,47 @@ nearby cover cells. The ordinary hold returns an idle member to that home, so a
 bunker window is a durable defensive post rather than spawn-time decoration.
 Invalid or unavailable authored cells fall back to the bounded nearby picker;
 they do not make the entire garrison undeployable.
+
+### Frontage and standing to
+
+A **defense frontage** is the set of **apertures** in a held place's outer
+envelope — the openings through which its interior can be seen into, shot
+through, or entered — each paired with the interior **stance** cell that covers
+it. An aperture is either an **entrance**, which admits bodies, or a **window**,
+which admits only sight and fire. Frontage is derived from live map state
+rather than authored separately: the generators already stamp firing apertures
+into perimeter walls and building shells, and the derivation reads them.
+
+Inside is a held zone set, not a footprint rectangle. An opening is frontage
+only when it separates held ground from unheld ground, so a window between two
+interior rooms is not frontage and a perimeter wall is. The derivation is
+scoped by which footprint it is asked about, so the same rule produces a
+compound's perimeter, one building's shell inside that compound, and an
+isolated post's own envelope. A layered defense is the consequence of applying
+one rule at two scopes rather than a separate behavior.
+
+**Standing to** is the garrison posture between quiet patrol and the indoor
+fight. It distributes members onto stances covering the apertures under the
+greatest believed pressure, holding part of the squad back as an interior
+reserve so a single threatened facing cannot strip the rest of the envelope.
+Its trigger is the squad's own faction influence, which is aggregated from
+believed contacts and propagated through navigable topology: a forward
+element's contact mans the wall facing it, and a garrison that has personally
+seen nothing still reacts. Because it is belief rather than truth, a feint can
+pull a garrison and an unobserved approach arrives against a quiet patrol.
+Both are intended texture, not gaps.
+
+Frontage belongs to whoever holds the place, not to whoever is defending the
+mission. An attacker holding a captured compound stands to on the same envelope
+against the counter-attack.
+
+A frontage exists only while the envelope does. A breach is not a new entrance:
+opening a hole merges the interior with the ground outside, so held and unheld
+stop being distinguishable and the frontage dissolves. Standing to also ends
+once any enemy is inside. Both hand the fight to the room-clearing and
+choke-point behaviors, which is the correct answer — posting people at intact
+windows while the building is being entered elsewhere is the failure these
+boundaries exist to prevent. A live local contact still outranks standing to.
 
 The shared planner does not make all actors tactically identical. Infantry,
 mech, and drone groups use distinct goal/action libraries for their different

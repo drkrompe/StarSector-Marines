@@ -122,11 +122,22 @@ Do not run builds or leave generated task files there.
   It exposes specialized projectile/artillery behavior and audio; preview
   flight reads the authored burst, boost, arc, contrail, and directional
   launch-FX data instead of substituting a generic projectile treatment.
-  The Tilesets page turns a raw art sheet into a loadable tileset: it finds the
-  pieces by keying on alpha, proposes a footprint for each from the sheet grid,
-  and exports a packed atlas plus its `*.tileset.json`. Footprints are
-  edited there rather than inferred, because how much deck a piece covers is a
-  judgement about the object, not a measurement of the art.
+  The Tilesets page turns a raw art sheet into a loadable tileset. It lists every
+  sheet under `art-source/tilesets/` with its state — raw, seeded, annotated,
+  exported — so sheets are picked from the project rather than browsed for.
+  Dropping a raw sheet there is enough to make it appear; a hand-written document
+  carrying settings but no pieces is a valid seed and is sliced on open.
+  The page finds pieces by keying on alpha and proposes a footprint for each from
+  the sheet grid, but footprints are edited there rather than inferred, because
+  how much deck a piece covers is a judgement about the object, not a measurement
+  of the art. A piece becomes a doodad or a cell of a named autotile block; walls
+  and corners are authored by grouping pieces into a block's slots, which the
+  packer places as one contiguous patch. Export writes a packed atlas holding only
+  the included pieces, its `*.tileset.json`, and a generated `*.tileset.md`
+  catalog card. Annotations are saved to
+  `art-source/tilesets/<name>.tileset-authoring.json`, so a sheet can be annotated
+  across several sittings; re-slicing carries existing annotations onto the newly
+  found pieces and names any that no longer match.
   All three pages validate before replacement; the Turrets page prepares every
   linked target before replacing files atomically and rolls back earlier files
   if a later replacement fails.
@@ -189,7 +200,13 @@ other's domain dependencies.
 
 ## Mod layout
 
-The `mod/` folder in this repo is what ships. `mod_info.json` lists the jar at
+The `mod/` folder in this repo is what ships. Pre-pack art inputs — raw
+generated sheets, ImageGen masters, retained `sources/` originals, tileset
+authoring documents, and the scripts
+that derive shipped art from them — live under `art-source/` instead, because
+`deployMod` is a `Sync` of the whole `mod/` folder and would otherwise copy them
+into every install. `RawArtStaysOutOfModTest` enforces that boundary; see
+`art-source/README.md`. `mod_info.json` lists the jar at
 `jars/StarsectorMarines.jar`. The `modPlugin` entry point is
 `com.dillon.starsectormarines.StarsectorMarinesModPlugin`.
 

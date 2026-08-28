@@ -17,8 +17,8 @@ road sheet uses its own panel-extraction script.
 Regenerate the canonical atlases with:
 
 ```powershell
-python mod\graphics\tilesets\imagegen-source\normalize_tilesets.py
-python mod\graphics\tilesets\imagegen-source\normalize_spaceport_apron.py
+python art-source\tilesets\normalize_tilesets.py
+python art-source\tilesets\normalize_spaceport_apron.py
 .\gradlew.bat :asset-pipeline:deriveTileMaps
 ```
 
@@ -41,10 +41,10 @@ before atomically replacing any atlas.
 Validate or repack directly with:
 
 ```powershell
-python mod\graphics\tilesets\imagegen-source\pack_texture_atlas.py pack `
-  mod\graphics\tilesets\imagegen-source\texture-atlases.json --check
-python mod\graphics\tilesets\imagegen-source\pack_texture_atlas.py pack `
-  mod\graphics\tilesets\imagegen-source\texture-atlases.json
+python art-source\tilesets\pack_texture_atlas.py pack `
+  art-source\tilesets\texture-atlases.json --check
+python art-source\tilesets\pack_texture_atlas.py pack `
+  art-source\tilesets\texture-atlases.json
 ```
 
 Import a large tileable source without ever checking in or visually loading the
@@ -53,9 +53,9 @@ field with Lanczos, and crops the center tile so the resize filter sees wrapped
 neighbors instead of clamped image edges:
 
 ```powershell
-python mod\graphics\tilesets\imagegen-source\pack_texture_atlas.py import-tileable `
+python art-source\tilesets\pack_texture_atlas.py import-tileable `
   "C:\path\to\Sand_Albedo.png" `
-  mod\graphics\tilesets\imagegen-source\atlas-material-source\new-pack\sand.png `
+  art-source\tilesets\atlas-material-source\new-pack\sand.png `
   --size 52
 ```
 
@@ -71,7 +71,7 @@ Run the packer tests with:
 
 ```powershell
 python -m unittest discover `
-  -s mod\graphics\tilesets\imagegen-source\tests `
+  -s art-source\tilesets\tests `
   -p "test_*.py"
 ```
 

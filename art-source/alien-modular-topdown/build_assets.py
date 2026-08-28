@@ -80,8 +80,10 @@ def preview_pose(body: Image.Image, head: Image.Image, foot: Image.Image,
 
 
 def main() -> None:
-    root = Path(__file__).resolve().parent
-    sources = root / "sources"
+    here = Path(__file__).resolve().parent
+    repository = here.parent.parent
+    root = repository / "mod" / "graphics" / "battle" / "alien-modular-topdown"
+    sources = here / "sources"
     body = normalized(sources / "alien-body-source.png", BODY_WIDTH)
     head = normalized(sources / "alien-head-source.png", HEAD_WIDTH)
     foot = normalized(sources / "alien-foot-source.png", FOOT_WIDTH)
@@ -92,7 +94,7 @@ def main() -> None:
     foot.save(root / "foot.png", optimize=True)
     claw.save(root / "fore-claw.png", optimize=True)
 
-    preview_root = root.parents[3] / "build" / "sprite-previews" / "alien"
+    preview_root = repository / "build" / "sprite-previews" / "alien"
     preview_root.mkdir(parents=True, exist_ok=True)
     preview_pose(body, head, foot, claw, 0).save(
         preview_root / "alien-layered-idle.png", optimize=True)
