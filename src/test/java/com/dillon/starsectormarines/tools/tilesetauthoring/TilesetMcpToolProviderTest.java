@@ -17,6 +17,7 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -119,7 +120,7 @@ class TilesetMcpToolProviderTest {
                 .getJSONObject("result");
         JSONArray tools = listing.getJSONArray("tools");
 
-        assertEquals(9, tools.length(), "the tileset provider contributes nine tools: " + tools);
+        assertEquals(10, tools.length(), "the tileset provider contributes ten tools: " + tools);
         for (int i = 0; i < tools.length(); i++) {
             JSONObject tool = tools.getJSONObject(i);
             assertTrue(tool.getString("name").startsWith("tileset_"),
@@ -366,6 +367,137 @@ class TilesetMcpToolProviderTest {
         assertEquals(0, structured.getJSONArray("lost").length());
         assertEquals("doodad.hangar.crate",
                 structured.getJSONArray("pieces").getJSONObject(0).getString("id"));
+    }
+
+    // -------------------------------------------------------------- splitting
+
+    /** A seeded, sliced fused plate: one piece covering the sheet, with its layout stated. */
+    private static void statedPlate(Path root, String name, int cols, int rows) throws Exception {
+        writeSheet(root, name, fusedPlate());
+        TilesetDocument document = seed(root, name);
+        document.gridCols = cols;
+        document.gridRows = rows;
+        document.write(TilesetDocument.pathFor(root, name));
+        call(root, "tileset_slice", new JSONObject().put("name", name).put("apply", true));
+    }
+
+    /** Every part, laid end to end, must reconstruct the plate exactly. */
+    private static void assertTilesTheSheet(JSONArray parts, int cols, int rows)
+            throws JSONException {
+        assertEquals(cols * rows, parts.length());
+        long area = 0;
+        for (int i = 0; i < parts.length(); i++) {
+            JSONArray rect = parts.getJSONObject(i).getJSONArray("rect");
+            area += (long) rect.getInt(2) * rect.getInt(3);
+            if (i % cols + 1 < cols) {
+                JSONArray next = parts.getJSONObject(i + 1).getJSONArray("rect");
+                assertEquals(rect.getInt(0) + rect.getInt(2), next.getInt(0),
+                        "no gap or overlap between columns");
+            }
+        }
+        assertEquals((long) CELL * 4 * CELL * 2, area, "the parts must tile the plate exactly");
+    }
+
+    @Test
+    void splittingAFusedPlateCutsTheGridTheDocumentStates(@TempDir Path root) throws Exception {
+        // No threshold separates a plate — its cells are drawn edge to edge — so
+        // the layout the document states is the only thing that can cut it.
+        statedPlate(root, "plate", 4, 2);
+
+        JSONObject structured = call(root, "tileset_split_on_grid",
+                new JSONObject().put("name", "plate")).getJSONObject("structuredContent");
+
+        assertEquals(8, structured.getInt("partCount"));
+        assertTilesTheSheet(structured.getJSONArray("parts"), 4, 2);
+        assertEquals("doodad.plate.piece-000-a",
+                structured.getJSONArray("parts").getJSONObject(0).getString("id"));
+    }
+
+    @Test
+    void aSplitIsALookUntilItIsApplied(@TempDir Path root) throws Exception {
+        statedPlate(root, "plate", 4, 2);
+        Path path = TilesetDocument.pathFor(root, "plate");
+        byte[] before = Files.readAllBytes(path);
+
+        call(root, "tileset_split_on_grid", new JSONObject().put("name", "plate"));
+
+        assertArrayEquals(before, Files.readAllBytes(path),
+                "a preview must not touch the document at all");
+    }
+
+    @Test
+    void applyingASplitReplacesThePlateWithOneCellParts(@TempDir Path root) throws Exception {
+        statedPlate(root, "plate", 4, 2);
+
+        call(root, "tileset_split_on_grid",
+                new JSONObject().put("name", "plate").put("apply", true));
+
+        TilesetDocument saved = TilesetDocument.read(TilesetDocument.pathFor(root, "plate"));
+        assertEquals(8, saved.entries.size());
+        for (TilesetExport.Entry entry : saved.entries) {
+            assertEquals(1, entry.footprintX, entry.id + " is one cell of the plate");
+            assertEquals(1, entry.footprintY, entry.id);
+        }
+        assertEquals(4, saved.gridCols,
+                "the parts are only meaningful next to the layout they were cut to");
+    }
+
+    @Test
+    void aStatedGridOverridesTheDocumentsOwn(@TempDir Path root) throws Exception {
+        statedPlate(root, "plate", 4, 2);
+
+        JSONObject structured = call(root, "tileset_split_on_grid", new JSONObject()
+                .put("name", "plate").put("cols", 8).put("rows", 1))
+                .getJSONObject("structuredContent");
+
+        assertTilesTheSheet(structured.getJSONArray("parts"), 8, 1);
+        assertEquals(CELL * 2, structured.getJSONArray("parts").getJSONObject(0)
+                        .getJSONArray("rect").getInt(3),
+                "a one-row strip's frames are the full height of the plate");
+    }
+
+    @Test
+    void aOneByOneGridIsRefusedBecauseTheLayoutIsStated(@TempDir Path root) throws Exception {
+        // 1 x 1 is the default that means "not a plate", so reaching here is a
+        // caller that has not stated the layout rather than one asking for one part.
+        statedPlate(root, "plate", 1, 1);
+
+        JSONObject result = call(root, "tileset_split_on_grid",
+                new JSONObject().put("name", "plate"));
+
+        assertTrue(result.getBoolean("isError"));
+        assertTrue(textOf(result).contains("20-frame strip is 20 x 1"),
+                "the refusal should say what a stated layout looks like: " + textOf(result));
+    }
+
+    @Test
+    void aSheetWithSeveralPiecesWillNotGuessWhichOneToCut(@TempDir Path root) throws Exception {
+        // Cutting the first of several would shred a sheet somebody had already
+        // annotated, and the caller cannot see the table.
+        writeSheet(root, "hangar", keyedSheet());
+        seed(root, "hangar");
+        call(root, "tileset_slice", new JSONObject().put("name", "hangar").put("apply", true));
+
+        JSONObject result = call(root, "tileset_split_on_grid", new JSONObject()
+                .put("name", "hangar").put("cols", 2).put("rows", 2));
+
+        assertTrue(result.getBoolean("isError"));
+        assertTrue(textOf(result).contains("entryId"),
+                "the refusal names the way through: " + textOf(result));
+        assertTrue(textOf(result).contains("doodad.hangar.piece-000"),
+                "and says what there was to choose from: " + textOf(result));
+    }
+
+    @Test
+    void anUnslicedSheetIsToldToSliceRatherThanSplit(@TempDir Path root) throws Exception {
+        writeSheet(root, "plate", fusedPlate());
+        seed(root, "plate");
+
+        JSONObject result = call(root, "tileset_split_on_grid", new JSONObject()
+                .put("name", "plate").put("cols", 4).put("rows", 2));
+
+        assertTrue(result.getBoolean("isError"));
+        assertTrue(textOf(result).contains("tileset_slice"), textOf(result));
     }
 
     // -------------------------------------------------------------- exporting

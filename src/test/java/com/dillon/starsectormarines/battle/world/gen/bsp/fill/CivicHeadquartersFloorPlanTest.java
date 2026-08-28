@@ -70,6 +70,15 @@ class CivicHeadquartersFloorPlanTest {
             assertEquals(2,
                     doodadsInPurpose(doodads, topology, RoomPurpose.CIVIC_RECEPTION),
                     "paired counters should flank the public circulation lane");
+            assertTrue(doodads.stream().anyMatch(doodad -> doodad.quarterTurns != 0),
+                    "civic fixtures should turn to fit their rooms " + frontage);
+            for (Doodad doodad : doodads) {
+                boolean swapsAxes = (doodad.quarterTurns & 1) != 0;
+                assertEquals(swapsAxes ? doodad.sourceCellsY : doodad.sourceCellsX,
+                        doodad.footprintCellsX, "rotated footprint width " + frontage);
+                assertEquals(swapsAxes ? doodad.sourceCellsX : doodad.sourceCellsY,
+                        doodad.footprintCellsY, "rotated footprint height " + frontage);
+            }
             assertTrue(windowsFacingPurpose(topology, leaf, RoomPurpose.CIVIC_RECEPTION)
                             + windowsFacingPurpose(topology, leaf, RoomPurpose.CONFERENCE_ROOM) >= 2,
                     "public rooms retain exterior firing apertures " + frontage);
