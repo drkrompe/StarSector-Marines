@@ -31,6 +31,7 @@ import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,6 +50,11 @@ import java.util.List;
  * <p>Pieces are stretched into the footprint they are given rather than placed
  * at their drawn size, so setting a footprint is the authoring act: it says how
  * much floor the thing occupies, and the art follows.
+ *
+ * <p>Those judgements are saved to a {@link TilesetDocument} beside the raw
+ * sheet, so annotating a sheet is a task that can be put down and picked up
+ * rather than one long sitting. Re-slicing carries the existing annotations
+ * across, which is what makes tuning the threshold safe to do late.
  */
 public final class TilesetAuthoringPage implements AuthoringPage {
 
@@ -68,6 +74,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
 
     private BufferedImage source;
     private Path sourcePath;
+    private Path documentPath;
     private boolean dirty;
 
     public TilesetAuthoringPage(AuthoringPageContext context) {
@@ -78,6 +85,16 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         bar.add(new AbstractAction("Open sheet…") {
             @Override public void actionPerformed(ActionEvent e) {
                 openSheet();
+            }
+        });
+        bar.add(new AbstractAction("Open document…") {
+            @Override public void actionPerformed(ActionEvent e) {
+                openDocument();
+            }
+        });
+        bar.add(new AbstractAction("Save document") {
+            @Override public void actionPerformed(ActionEvent e) {
+                saveDocument();
             }
         });
         bar.add(new AbstractAction("Re-slice") {
@@ -164,21 +181,117 @@ public final class TilesetAuthoringPage implements AuthoringPage {
     }
 
     private void openSheet() {
-        JFileChooser chooser = new JFileChooser(context.projectRoot().toFile());
+        JFileChooser chooser = new JFileChooser(rawSheetDir().toFile());
         chooser.setFileFilter(new FileNameExtensionFilter("PNG art sheet", "png"));
         if (chooser.showOpenDialog(root) != JFileChooser.APPROVE_OPTION) return;
         File file = chooser.getSelectedFile();
         try {
-            BufferedImage read = ImageIO.read(file);
-            if (read == null) throw new IllegalStateException("not an image");
-            source = toArgb(read);
-            sourcePath = file.toPath();
-            view.setSheet(source);
+            loadSheet(file.toPath());
+            documentPath = null;
+            model.setEntries(new ArrayList<>());
             slice();
         } catch (Exception failure) {
             JOptionPane.showMessageDialog(root, "Could not read " + file + ":\n" + failure,
                     "Open sheet", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    /**
+     * Reopen a saved annotation pass exactly as it was left.
+     *
+     * <p>Deliberately does not re-slice. The document's pieces are the ones its
+     * annotations describe, and re-deriving them on open would let the sheet's
+     * current threshold, rather than the saved one, decide what those
+     * annotations are attached to.
+     */
+    private void openDocument() {
+        JFileChooser chooser = new JFileChooser(documentDir().toFile());
+        chooser.setFileFilter(new FileNameExtensionFilter("Tileset authoring document", "json"));
+        if (chooser.showOpenDialog(root) != JFileChooser.APPROVE_OPTION) return;
+        Path path = chooser.getSelectedFile().toPath();
+        try {
+            TilesetDocument document = TilesetDocument.read(path);
+            loadSheet(resolve(document.sheet));
+            documentPath = path;
+            idPrefix.setText(document.idPrefix);
+            sheetName.setText(document.sheetName);
+            cellPx.setValue(document.cellPx);
+            alphaMin.setValue(document.alphaMin);
+            gridCell.setValue(document.gridCell);
+            model.setEntries(document.entries);
+            view.setEntries(document.entries);
+            dirty = false;
+            context.stateChanged();
+            context.reportStatus("Opened " + path);
+            report();
+            refreshPreview();
+        } catch (Exception failure) {
+            JOptionPane.showMessageDialog(root, "Could not open " + path + ":\n" + failure,
+                    "Open document", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void saveDocument() {
+        if (source == null) return;
+        TilesetDocument document = new TilesetDocument();
+        document.sheet = relative(sourcePath);
+        document.sheetName = sheetNameOrDefault();
+        document.idPrefix = idPrefix.getText().trim();
+        document.cellPx = (Integer) cellPx.getValue();
+        document.alphaMin = (Integer) alphaMin.getValue();
+        document.gridCell = (Integer) gridCell.getValue();
+        document.entries = model.entries;
+        Path path = documentPath != null ? documentPath
+                : TilesetDocument.pathFor(context.projectRoot(), document.sheetName);
+        try {
+            document.write(path);
+            documentPath = path;
+            dirty = false;
+            context.stateChanged();
+            context.reportStatus("Wrote " + path);
+        } catch (Exception failure) {
+            JOptionPane.showMessageDialog(root, "Could not save " + path + ":\n" + failure,
+                    "Save document", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void loadSheet(Path path) throws Exception {
+        BufferedImage read = ImageIO.read(path.toFile());
+        if (read == null) throw new IllegalStateException("not an image: " + path);
+        source = toArgb(read);
+        sourcePath = path;
+        view.setSheet(source);
+    }
+
+    /** Raw sheets live outside the shipped mod folder; start the chooser where they are. */
+    private Path rawSheetDir() {
+        Path raw = context.projectRoot().resolve("art-source/tilesets");
+        return Files.isDirectory(raw) ? raw : context.projectRoot();
+    }
+
+    private Path documentDir() {
+        return documentPath != null ? documentPath.getParent() : rawSheetDir();
+    }
+
+    private Path resolve(String stored) {
+        Path path = Path.of(stored);
+        return path.isAbsolute() ? path : context.projectRoot().resolve(path);
+    }
+
+    /** Project-relative where possible, so a document survives the project moving. */
+    private String relative(Path path) {
+        Path absolute = path.toAbsolutePath().normalize();
+        Path projectRoot = context.projectRoot();
+        if (!absolute.startsWith(projectRoot)) return absolute.toString().replace(BACKSLASH, '/');
+        return projectRoot.relativize(absolute).toString().replace(BACKSLASH, '/');
+    }
+
+    /** Documents are read on whichever platform wrote them, so their paths use one separator. */
+    private static final char BACKSLASH = '\\';
+
+    private String sheetNameOrDefault() {
+        String name = sheetName.getText().trim();
+        return name.isEmpty() ? "sheet" : name;
     }
 
     /** A sheet without an alpha channel keys nothing; convert so the threshold means something. */
@@ -196,22 +309,12 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         if (source == null) return;
         List<SheetSlicer.Piece> pieces = SheetSlicer.slice(
                 source, (Integer) alphaMin.getValue(), SheetSlicer.DEFAULT_MIN_AREA);
-        List<TilesetExport.Entry> entries = new ArrayList<>();
-        int cell = (Integer) gridCell.getValue();
-        for (int i = 0; i < pieces.size(); i++) {
-            SheetSlicer.Piece piece = pieces.get(i);
-            TilesetExport.Entry entry = new TilesetExport.Entry(
-                    piece, String.format("%s.piece-%03d", idPrefix.getText().trim(), i));
-            // A first guess only: rounded from how many cells the art spans on
-            // the sheet's own grid. Anything near the middle of two cell counts
-            // is exactly the case a human has to settle.
-            entry.footprintX = Math.max(1, Math.round(piece.width() / (float) cell));
-            entry.footprintY = Math.max(1, Math.round(piece.height() / (float) cell));
-            entries.add(entry);
-        }
-        model.setEntries(entries);
-        view.setEntries(entries);
+        TilesetDocument.Reconciliation reconciled = TilesetDocument.reconcile(
+                pieces, model.entries, idPrefix.getText().trim(), (Integer) gridCell.getValue());
+        model.setEntries(reconciled.entries());
+        view.setEntries(reconciled.entries());
         markDirty();
+        context.reportStatus("Re-sliced: " + reconciled.summary());
         report();
         refreshPreview();
     }
@@ -236,6 +339,8 @@ public final class TilesetAuthoringPage implements AuthoringPage {
                 TilesetExport.Entry split = new TilesetExport.Entry(
                         piece, entry.id + "-" + (char) ('a' + part++));
                 split.cover = entry.cover;
+                split.footprintX = TilesetDocument.guessFootprint(piece.width(), cell);
+                split.footprintY = TilesetDocument.guessFootprint(piece.height(), cell);
                 replaced.add(split);
             }
         }
@@ -275,8 +380,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
     private void export() {
         if (source == null || model.entries.isEmpty()) return;
         int cell = (Integer) cellPx.getValue();
-        String name = sheetName.getText().trim();
-        if (name.isEmpty()) name = "sheet";
+        String name = sheetNameOrDefault();
         String sheetRelative = "graphics/doodads/" + name + ".png";
         Path atlasPath = context.projectRoot().resolve("mod").resolve(sheetRelative);
         Path tilesetPath = context.projectRoot()
@@ -286,7 +390,6 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             TilesetExport.write(atlas,
                     TilesetExport.tileset(sheetRelative, cell, model.entries),
                     atlasPath, tilesetPath);
-            dirty = false;
             context.reportStatus("Wrote " + atlasPath + " and " + tilesetPath);
             report();
         } catch (Exception failure) {
