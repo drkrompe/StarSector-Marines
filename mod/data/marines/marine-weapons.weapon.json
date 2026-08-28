@@ -557,6 +557,73 @@
       }
     },
     {
+      "id": "weapon.breaching-cutter",
+      "mount": "marine-secondary",
+      "catalog": {
+        "displayName": "Emberjaw Thermal Breacher",
+        "modelName": "Emberjaw",
+        "designation": "CUT-1",
+        "designationTiered": false
+      },
+      "sim": {
+        "range": 1.5,
+        "damage": 260.0,
+        "accuracy": 1.0,
+        "cooldown": 6.0,
+        "penetration": 40.0,
+        "wallDamage": 120,
+        "noiseMagnitude": 0.8
+      },
+      "render": {
+        "tracerColor": "FF8038",
+        "projectileSprite": null,
+        "projectileVisualCells": 0.0
+      },
+      "fx": {
+        "impact": [
+          { "kind": "glow", "radius": 0.44, "lifetime": 0.22, "color": "FFB050" },
+          { "kind": "fire", "radius": 0.30, "lifetime": 0.55 },
+          { "kind": "smoke", "radius": [0.28, 0.40], "lifetime": [0.70, 1.05], "count": 2, "jitter": 0.20 }
+        ]
+      },
+      "audio": {
+        "fireSound": "pulse_laser_fire"
+      }
+    },
+    {
+      "id": "weapon.vibro-blade",
+      "mount": "marine-secondary",
+      "catalog": {
+        "displayName": "Quillon Vibro-Blade",
+        "modelName": "Quillon",
+        "designation": "VBL-1",
+        "designationTiered": false
+      },
+      "sim": {
+        "range": 1.2,
+        "damage": 44.0,
+        "accuracy": 1.0,
+        "cooldown": 2.4,
+        "penetration": 6.0,
+        "noiseMagnitude": 0.3
+      },
+      "render": {
+        "tracerColor": "9CE8FF",
+        "projectileSprite": null,
+        "projectileVisualCells": 0.0
+      },
+      "fx": {
+        "impact": [
+          { "kind": "glow", "radius": 0.24, "lifetime": 0.10, "color": "C8F0FF" },
+          { "kind": "dust", "radius": 0.18, "lifetime": 0.16 }
+        ]
+      },
+      "audio": {
+        "fireSound": "soe_swish",
+        "impactSound": "soe_clash"
+      }
+    },
+    {
       "id": "weapon.micro-missile",
       "mount": "marine-secondary",
       "catalog": {

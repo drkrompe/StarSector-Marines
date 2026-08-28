@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.sim;
 import com.dillon.starsectormarines.battle.ambient.AmbientTaskService;
 import com.dillon.starsectormarines.battle.task.TaskPointService;
 import com.dillon.starsectormarines.battle.smoke.SmokeFieldService;
+import com.dillon.starsectormarines.battle.contact.CloseContactService;
 import com.dillon.starsectormarines.battle.satchel.SatchelChargeService;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
@@ -111,6 +112,7 @@ import com.dillon.starsectormarines.battle.combat.Detonations;
 import com.dillon.starsectormarines.battle.combat.FiringSystem;
 import com.dillon.starsectormarines.battle.combat.HeavyWeapons;
 import com.dillon.starsectormarines.battle.combat.HitResponseSystem;
+import com.dillon.starsectormarines.battle.infantry.CloseContactTactics;
 import com.dillon.starsectormarines.battle.infantry.InfantryWeapons;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
@@ -163,6 +165,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SmokeFieldService smokeFields;
     /** Contact-demolition reservations, target attachments, and fuse lifecycle. */
     private final SatchelChargeService satchelCharges;
+    private final CloseContactService closeContact;
     /** Committed anti-personnel grenade footprints used for squad overkill prevention. */
     private final com.dillon.starsectormarines.battle.grenade.FragGrenadeService fragGrenades;
     /** Alias of {@link NavigationService#getTopology()}. */
@@ -456,6 +459,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.grid = navigation.getGrid();
         this.smokeFields = new SmokeFieldService(this.grid);
         this.satchelCharges = new SatchelChargeService();
+        this.closeContact = new CloseContactService();
         this.fragGrenades = new com.dillon.starsectormarines.battle.grenade.FragGrenadeService();
         this.topology = navigation.getTopology();
         this.zoneGraph = navigation.getZoneGraph();
@@ -604,6 +608,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public NavigationGrid getGrid() { return grid; }
     @Override public SmokeFieldService smokeFields() { return smokeFields; }
     @Override public SatchelChargeService satchelCharges() { return satchelCharges; }
+    @Override public CloseContactService closeContact() { return closeContact; }
     @Override public com.dillon.starsectormarines.battle.grenade.FragGrenadeService fragGrenades() { return fragGrenades; }
     /** Categorization tags (street / rubble / wall / vehicle / etc.) for renderer + placement filters. Sibling to {@link #grid}; the pathfinder doesn't touch this. */
     public CellTopology getTopology()      { return topology; }
@@ -1589,6 +1594,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // Armed contact charges follow their target and resolve through the
         // ordinary AoE/durability pipeline when their fixed fuse expires.
         satchelCharges.tick(TICK_DT, this);
+        closeContact.tick(this);
         com.dillon.starsectormarines.battle.infantry.FragGrenadeTactics.cleanupReservations(this);
         tickProfile.lap(TickProfile.Phase.SATCHELS);
         // Simulated-projectile path — advance each in-flight Projectile by dt,
@@ -1960,6 +1966,39 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (!planted) return false;
         world.setSecondaryCooldownTimer(carrier, spec.cooldownSeconds());
         rosterService.telemetry().recordSecondaryUsed(carrier);
+        return true;
+    }
+
+    @Override
+    public boolean applyContactStrike(long carrier, long target) {
+        if (!world.hasSecondaryWeapon(carrier) || resolveUnit(carrier) == 0L) return false;
+        SpecialEquipmentDef contactTool = world.specialEquipment(carrier);
+        if (!contactTool.isCloseContactWeapon()) return false;
+        // Re-validated here as well as inside the channel: the payload seam is
+        // the last honest moment, and a contact that became illegal on the
+        // final tick must not land anyway.
+        if (!CloseContactTactics.isLegalUnitContact(carrier, contactTool, target, this)) {
+            return false;
+        }
+        infantry.strikeContact(carrier, target);
+        return true;
+    }
+
+    @Override
+    public boolean applyContactBreach(long carrier, int cellX, int cellY) {
+        if (!world.hasSecondaryWeapon(carrier) || resolveUnit(carrier) == 0L) return false;
+        SpecialEquipmentDef contactTool = world.specialEquipment(carrier);
+        if (!contactTool.isCloseContactWeapon()) return false;
+        if (!CloseContactTactics.isLegalBreachPoint(carrier, contactTool, cellX, cellY, this)) {
+            return false;
+        }
+        int wallDamage = contactTool.wallDamage();
+        if (wallDamage <= 0) return false;
+        // Bounded and local: exactly one authored cell, through the ordinary
+        // map-edit authority, with no radius and no blast.
+        boolean opened = mapEditor.damageWall(cellX, cellY, wallDamage);
+        if (opened) closeContact.consumeBreachPoint(cellX, cellY);
+        infantry.reportContactBreach(carrier, cellX + 0.5f, cellY + 0.5f);
         return true;
     }
 
