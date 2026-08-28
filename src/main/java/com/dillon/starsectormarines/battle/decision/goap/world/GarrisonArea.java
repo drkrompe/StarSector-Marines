@@ -60,11 +60,21 @@ public final class GarrisonArea {
      */
     public static List<Integer> garrisonZones(TacticalNode node, int margin, BattleView sim) {
         if (node == null || sim == null) return List.of();
-        int boxL = node.compoundLeft() - margin;
-        int boxT = node.compoundTop() - margin;
-        int boxR = node.compoundRight() + margin;
-        int boxB = node.compoundBottom() + margin;
+        return garrisonZones(node.compoundLeft() - margin, node.compoundTop() - margin,
+                node.compoundRight() + margin, node.compoundBottom() + margin, sim);
+    }
 
+    /**
+     * Zone ids that make up the garrison area of an explicit, already-expanded
+     * box. The overload above is this one applied to a node's compound
+     * footprint; callers holding a different box — a single structure's own
+     * bbox, or a footprint they derived themselves — use this directly rather
+     * than re-implementing the size/containment sweep. Same ordering contract:
+     * descending by cell count.
+     */
+    public static List<Integer> garrisonZones(int boxL, int boxT, int boxR, int boxB,
+                                              BattleView sim) {
+        if (sim == null) return List.of();
         ZoneGraph graph = sim.getZoneGraph();
         NavigationGrid grid = sim.getGrid();
         List<Integer> out = new ArrayList<>();
