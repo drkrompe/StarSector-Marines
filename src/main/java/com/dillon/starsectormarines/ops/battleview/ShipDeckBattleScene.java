@@ -630,7 +630,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
                 viewport.width(), viewport.height());
         RenderContext context = new RenderContext(simulation, camera, null,
                 alphaMult, 0f, false, highlights, selection,
-                BattleRenderHostProfile.EMBEDDED_SCENE);
+                BattleRenderHostProfile.DECK_SCENE);
         return new BattleSceneFrame(context, layers);
     }
 
@@ -646,7 +646,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         camera.centerOn(view.centerCellX(), view.centerCellY());
         RenderContext context = new RenderContext(simulation, camera, null,
                 alphaMult, 0f, false, highlights, selection,
-                BattleRenderHostProfile.EMBEDDED_SCENE);
+                BattleRenderHostProfile.DECK_SCENE);
         return new BattleSceneFrame(context, layers);
     }
 
