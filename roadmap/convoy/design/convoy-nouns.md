@@ -51,6 +51,12 @@ linger may go straight to departure. `GONE` is terminal and removes the world
 actor. `WRECKED` stops motion and weapons, removes combat targetability, and
 retains the chassis as presentation and navigation authority. Dispatch proves
 inbound and outbound travel before creating the vehicle.
+
+A wreck is a hulk, not a wall. Its footprint closes cells to anything that has
+to drive or walk over it, but sight and fire cross it, so killing the vehicle
+standing in a firing line does not cost the squad that line. Only cells the
+wreck itself closed become see-through; a hull that comes to rest half inside
+a building must not open a window in the wall it stopped against.
 Entries, junctions, and exits are tried in stable ranked order, so one bad route
 does not suppress a later valid candidate. A perimeter route stages far enough
 inside the map for the full body to fit while its visible path still begins and
@@ -154,7 +160,12 @@ reinforcement can honestly plan through a destroyed APC.
 - Vehicle durability uses the shared armor/structure authority. A destroyed
   vehicle is no longer a combat target or weapon platform, but its persistent
   footprint closes navigation cells and invalidates clearance before later
-  vehicles plan or recover.
+  vehicles plan or recover. That closure is navigational only: a wreck never
+  blocks line of sight or line of fire.
+- A vehicle is a unit with a hull. It reads its durability the way every other
+  combat actor does — the shared ownership-coded gauge over its chassis, armor
+  row over structure row — for as long as it is alive. A wreck drops the gauge;
+  the darkened hull is the whole report.
 
 ## Adjacent domains and extension points
 
