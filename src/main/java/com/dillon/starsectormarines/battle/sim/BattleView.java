@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.combat.Projectile;
+import com.dillon.starsectormarines.battle.deployable.PointDefenseService;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.influence.CommanderInfluenceSnapshot;
@@ -133,6 +134,12 @@ public interface BattleView {
 
     /** Resolve any held live roster entity or targetable convoy vehicle, else {@code 0L}. */
     long resolveUnit(long id);
+
+    /** Data owner for the {@code TELEMETRY} component — what each entity actually did this battle. Lifecycle-stable: readable and writable on a dead entity, so a record survives its subject. */
+    CombatTelemetryService telemetry();
+
+    /** Live point-defence emplacements placed out of the carried special slot, and their remaining bounds. */
+    PointDefenseService pointDefense();
 
     /** True for a live hostile-capable roster actor or a targetable convoy vehicle. */
     boolean isCombatTarget(long id);

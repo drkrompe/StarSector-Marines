@@ -95,6 +95,7 @@ tools/authoring.sh --describe <tool>
 | `tileset_read_document` | One sheet's authoring document — settings, note, blocks, pieces. |
 | `tileset_write_document` | Replace that document. Not merged: read, edit, write back. |
 | `tileset_slice` | Find pieces at a threshold, carrying existing annotations onto them. |
+| `tileset_fit_grid` | Measure where the stated grid actually sits and re-cut its cells onto it. |
 | `tileset_export` | Pack the kept pieces into an atlas and write the tileset the game loads. |
 | `tileset_map_preview` | Render a generated map as it ships and with this art substituted. |
 | `snapshot_list_suites` | The deterministic visual-evidence suites in this checkout. |

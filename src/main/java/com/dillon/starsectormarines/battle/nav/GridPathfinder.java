@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.nav;
 
+import com.dillon.starsectormarines.battle.nav.NavigationGrid.CellTag;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile;
 import org.apache.log4j.Logger;
 
@@ -208,6 +209,76 @@ public final class GridPathfinder {
 
     public static int[] findPath(NavigationGrid grid, int startX, int startY, int goalX, int goalY) {
         return findPath(grid, startX, startY, goalX, goalY, USE_CARDINAL_NAVIGATION, null);
+    }
+
+    /**
+     * Labels every walkable cell with the id of its connected component, using
+     * the same {@link #canStep} rule (and the same {@link #USE_CARDINAL_NAVIGATION}
+     * setting) the search itself expands with. Non-walkable cells get {@code -1}.
+     * Result is indexed by {@link NavigationGrid#index(int, int)}.
+     *
+     * <p>Two walkable cells share a component exactly when {@link #findPath}
+     * would find a route between them: whether a path exists is a question about
+     * connectivity, and step <em>costs</em> cannot change the answer. So one
+     * O(cells) flood answers "is this reachable" for every pair on the grid at
+     * once, where asking per pair runs a full search each time — and the pairs
+     * that are <em>not</em> connected are the expensive ones, since a failed A*
+     * exhausts the whole reachable region before returning empty.
+     *
+     * <p>The step rule lives in {@code canStep} and is called from here rather
+     * than reimplemented, so the labeling cannot drift from the search: the
+     * diagonal corner rules and the dual-side edge checks are symmetric, which
+     * is what makes an undirected component labeling valid in the first place.
+     *
+     * <p>Intended for a caller holding a grid fixed across many queries (see
+     * {@code CommandTopology}). It reads the grid once; a later mutation is not
+     * reflected.
+     */
+    public static int[] labelConnectedComponents(NavigationGrid grid) {
+        int w = grid.getWidth();
+        int h = grid.getHeight();
+        int totalCells = w * h;
+
+        int[] component = new int[totalCells];
+        Arrays.fill(component, -1);
+
+        long[] cellFlags = grid.getCellFlagsArray();
+        byte[] edgePass  = grid.getEdgePassabilityArray();
+        int dirCount = USE_CARDINAL_NAVIGATION ? 4 : 8;
+
+        int[] stack = new int[totalCells];
+        int nextComponent = 0;
+
+        for (int seed = 0; seed < totalCells; seed++) {
+            if (component[seed] >= 0) continue;
+            if ((cellFlags[seed] & CellTag.WALKABLE.mask()) == 0L) continue;
+
+            int id = nextComponent++;
+            int stackSize = 0;
+            component[seed] = id;
+            stack[stackSize++] = seed;
+
+            while (stackSize > 0) {
+                int currentIdx = stack[--stackSize];
+                int cx = currentIdx % w;
+                int cy = currentIdx / w;
+
+                for (int dirI = 0; dirI < dirCount; dirI++) {
+                    int nx = cx + DIR_DX[dirI];
+                    int ny = cy + DIR_DY[dirI];
+                    if (nx < 0 || nx >= w || ny < 0 || ny >= h) continue;
+
+                    int nIdx = ny * w + nx;
+                    if (component[nIdx] >= 0) continue;
+                    if (!canStep(currentIdx, cx, cy, nIdx, dirI, w, h,
+                            cellFlags, edgePass, null)) continue;
+
+                    component[nIdx] = id;
+                    stack[stackSize++] = nIdx;
+                }
+            }
+        }
+        return component;
     }
 
     /**

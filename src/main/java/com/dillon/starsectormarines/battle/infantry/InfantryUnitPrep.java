@@ -54,6 +54,9 @@ public final class InfantryUnitPrep {
         if (sec.activation() == SpecialActivation.ARC_EXPLOSIVE) {
             return tickFragThrow(unit, sec, sim);
         }
+        if (sec.activation() == SpecialActivation.UTILITY_DEPLOYABLE) {
+            return DeployableTactics.tickPlacement(unit, sec, sim);
+        }
         if (sec.activation() == SpecialActivation.CLOSE_CONTACT) {
             return CloseContactTactics.tickChannel(unit, sec, sim);
         }
@@ -152,6 +155,9 @@ public final class InfantryUnitPrep {
         }
         if (sec.aiPolicy() == SpecialAiPolicy.SOFT_CLUSTER_INDIRECT) {
             return FragGrenadeTactics.tryCommitThrow(unit, sec, sim);
+        }
+        if (sec.aiPolicy() == SpecialAiPolicy.AREA_DENIAL_EMPLACEMENT) {
+            return DeployableTactics.tryCommitPlacement(unit, sec, sim);
         }
         if (sec.activation() == SpecialActivation.CLOSE_CONTACT) {
             return CloseContactTactics.tryCommit(unit, sec, sim);

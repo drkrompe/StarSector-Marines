@@ -46,7 +46,13 @@ without turning a JSON typo into a silent zero-damage battle.
   installed weapon, capacity or rack behavior, and mount appearance. The
   weapon owns projectile behavior. This three-way distinction is especially
   important for emplacements, whose structure, mount, and weapon catalogs keep
-  all three authorities distinct.
+  all three authorities distinct. That split holds for an emplacement a marine
+  carried in and set down as firmly as for one bolted to a compound: its
+  durability and geometry come from the structure, its magazine and traverse
+  from the mount, its reach and rate of fire from the weapon. A carried item
+  that placed an emplacement owns only the placement — how long setting it up
+  takes and how long the result runs — and never restates the gun's numbers,
+  because one emplacement must not have two answers to the same question.
 - The **weapon registry** owns parsed definitions from enabled catalog providers and resolves ids.
   It is an asset store, not a combat system. `WeaponRegistry` is the present
   boundary.
@@ -152,6 +158,17 @@ The public manifest and authoring examples live in `submod-catalog-contract.md`.
   authored data.
 - Penetration replaces anti-hardened and anti-turret damage multipliers. A
   weapon never owns a list of platform types against which its damage changes.
+- **Vulnerability to point defence is declared by the round, not by whatever
+  shoots it down.** A weapon definition says whether it is a legal target for a
+  defensive mount, and that declaration is the only authority: no emplacement,
+  behavior, or system holds a list of engageable weapon ids. The alternative —
+  an interceptor naming the four things it knows about — silently excludes every
+  warhead authored afterwards, which is exactly the failure mode the catalogs
+  exist to prevent. Being engageable is a separate question from being modelled
+  as an in-flight body: the second is a prerequisite (a round with no travelling
+  entity cannot be shot down) but not a synonym, since ordinary bullets are also
+  bodies in flight and are not ordnance. Only a warhead may declare itself
+  engageable.
 - Contact privilege comes from physical interception. An explosive direct-fire
   shot does not grant its contact payload to a selected target after a wall stop
   or miss, and it does not stack contact and area payloads on one actor.
