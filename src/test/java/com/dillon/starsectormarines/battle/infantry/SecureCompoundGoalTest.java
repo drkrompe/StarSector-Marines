@@ -97,7 +97,9 @@ public class SecureCompoundGoalTest {
         assertFalse(clearsOutdoor, "must not emit ClearZone against the unbounded outdoor zone");
 
         boolean transitsOutdoor = steps.stream().anyMatch(s ->
-                s.action instanceof EnterZone ez && ez.targetZoneId() == outdoorZone);
+                s.action instanceof EnterZone ez
+                        && ez.targetZoneId() == outdoorZone
+                        && !ez.commitsThroughContact());
         assertTrue(transitsOutdoor, "must still walk through the outdoor zone via a transit EnterZone");
     }
 
@@ -117,6 +119,13 @@ public class SecureCompoundGoalTest {
         boolean clearsCompound = steps.stream().anyMatch(s ->
                 s.action instanceof ClearZone cz && cz.targetZoneId() == compoundZone);
         assertTrue(clearsCompound, "the in-box compound room is small enough to clear");
+
+        boolean commitsIntoCompound = steps.stream().anyMatch(s ->
+                s.action instanceof EnterZone ez
+                        && ez.targetZoneId() == compoundZone
+                        && ez.commitsThroughContact());
+        assertTrue(commitsIntoCompound,
+                "the final room-taking hop must push through threshold contact");
 
         // The plan always terminates on HoldZone(compound) — the step the old
         // plan could never reach because it parked on ClearZone[outdoor].

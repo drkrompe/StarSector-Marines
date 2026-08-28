@@ -4,13 +4,9 @@ import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.decision.goap.world.ZoneQueries;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
-import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -57,13 +53,21 @@ public final class CompoundCaptureSystem {
         if (accumulator < CAPTURE_TICK_PERIOD) return;
         accumulator -= CAPTURE_TICK_PERIOD;
 
-        ZoneGraph zones = sim.getZoneGraph();
         for (CompoundService.Record r : service.getRecords()) {
-            int zoneId = captureZone(r, sim, zones);
+            int zoneId = service.captureZoneId(r, sim);
             // The compound's footprint holds no zone at all — a degenerate
             // carve with no walkable interior. Skip this tick; the compound
             // state holds.
-            if (zoneId < 0) continue;
+            if (zoneId < 0) {
+                if (reportedRoomless.add(r.node)) {
+                    LOG.warn("CompoundCaptureSystem: " + r.node.kind + " at "
+                            + r.node.left + "," + r.node.top + ".."
+                            + r.node.right + "," + r.node.bottom
+                            + " encloses no zoned cell, so it can never be"
+                            + " captured. Generated compound has no walkable interior.");
+                }
+                continue;
+            }
 
             boolean defendersPresent = !ZoneQueries.zoneClear(zoneId, Faction.DEFENDER, sim);
             boolean marinesPresent   = !ZoneQueries.zoneClear(zoneId, Faction.MARINE, sim);
@@ -126,82 +130,4 @@ public final class CompoundCaptureSystem {
         }
     }
 
-    /**
-     * Zone the compound is captured in, resolving and caching the capture cell
-     * on first use.
-     *
-     * <p>The node anchor is deliberately <em>not</em> assumed to be walkable:
-     * {@link com.dillon.starsectormarines.battle.decision.TacticalNode} defines
-     * the anchor as the place's stable identity, free to sit on a wall, a
-     * turret mount, or a cell a furnishing pass later blocked. Reading a zone
-     * straight off such an anchor yields {@code -1} every tick, which would
-     * leave the compound permanently uncapturable and — on Conquest, where
-     * every compound must flip — the mission unwinnable. So resolve outward
-     * from the anchor to the nearest walkable cell inside the compound's own
-     * building footprint and capture in that cell's room instead.
-     *
-     * <p>The resolved cell is cached because it stays valid: breaching a wall
-     * only ever opens cells, so a cell that was walkable remains walkable, and
-     * re-reading its zone each tick picks up any merge the breach caused.
-     */
-    private int captureZone(CompoundService.Record r, BattleView sim, ZoneGraph zones) {
-        if (r.captureCellX < 0) {
-            int[] cell = resolveCaptureCell(r.node, sim.getGrid(), zones);
-            if (cell == null) {
-                // Generation guarantees every compound a room and a way into
-                // it, so reaching here means that guarantee broke. Nothing this
-                // layer can repair — an unenterable compound cannot be captured,
-                // so Conquest cannot be won — but a silent skip would leave the
-                // player fighting an unwinnable battle with no trace of why.
-                if (reportedRoomless.add(r.node)) {
-                    LOG.warn("CompoundCaptureSystem: " + r.node.kind + " at "
-                            + r.node.left + "," + r.node.top + ".." + r.node.right + ","
-                            + r.node.bottom + " encloses no zoned cell, so it can never be"
-                            + " captured. Generated compound has no walkable interior.");
-                }
-                return -1;
-            }
-            r.captureCellX = cell[0];
-            r.captureCellY = cell[1];
-        }
-        return zones.zoneIdAt(r.captureCellX, r.captureCellY);
-    }
-
-    /**
-     * Nearest cell to the node anchor that belongs to a zone, searched breadth
-     * first and bounded to the node's own building bbox so a compound never
-     * captures in a neighbour's room or out on the parade ground. Returns
-     * {@code null} when the footprint holds no zoned cell at all.
-     */
-    private static int[] resolveCaptureCell(TacticalNode node, NavigationGrid grid,
-                                            ZoneGraph zones) {
-        int left = Math.max(0, node.left);
-        int top = Math.max(0, node.top);
-        int right = Math.min(grid.getWidth() - 1, node.right);
-        int bottom = Math.min(grid.getHeight() - 1, node.bottom);
-        if (left > right || top > bottom) return null;
-        int width = right - left + 1;
-        boolean[] visited = new boolean[width * (bottom - top + 1)];
-        Deque<int[]> queue = new ArrayDeque<>();
-        int startX = Math.min(right, Math.max(left, node.anchorX));
-        int startY = Math.min(bottom, Math.max(top, node.anchorY));
-        queue.add(new int[]{startX, startY});
-        visited[(startY - top) * width + (startX - left)] = true;
-        while (!queue.isEmpty()) {
-            int[] cell = queue.poll();
-            if (zones.zoneIdAt(cell[0], cell[1]) >= 0) return cell;
-            for (int[] step : NEIGHBOURS) {
-                int nx = cell[0] + step[0];
-                int ny = cell[1] + step[1];
-                if (nx < left || nx > right || ny < top || ny > bottom) continue;
-                int index = (ny - top) * width + (nx - left);
-                if (visited[index]) continue;
-                visited[index] = true;
-                queue.add(new int[]{nx, ny});
-            }
-        }
-        return null;
-    }
-
-    private static final int[][] NEIGHBOURS = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
 }

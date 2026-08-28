@@ -993,8 +993,9 @@ public final class SquadPlanDebugPanel implements HudPanel {
         } else if (state.localContact()) cause = "LOCAL_CONTACT";
         else if (state.activePathMembers() > 0) cause = "ACTIVE_PATH";
         else cause = "IDLE_CANDIDATE";
-        return String.format("Command activity %s   Moving %d/%d",
-                cause, state.activePathMembers(), state.aliveMembers());
+        return String.format("Command activity %s   Moving %d/%d   In target %d",
+                cause, state.activePathMembers(), state.aliveMembers(),
+                state.membersInTargetZone());
     }
 
     static String sabotageOrderSummary(
