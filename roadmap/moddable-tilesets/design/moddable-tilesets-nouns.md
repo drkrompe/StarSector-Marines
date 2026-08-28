@@ -31,9 +31,14 @@ override layer: changing core generation policy remains a deliberate core edit.
 - A **grid block** is a named fixed-grid surface. Its named layout remains a
   code algorithm; the definition supplies the asset coordinates or a stable
   variant pool.
-- A **doodad** is a decorative prop with an authored source cell and intrinsic
-  tactical properties. A doodad definition says what the prop is; a pool says
-  where generation may choose it.
+- A **doodad** is a prop with an authored source cell and intrinsic tactical
+  properties. A doodad definition says what the prop is; a pool says where
+  generation may choose it. Prop is a role, not a size or a subject: a
+  parked truck is a doodad exactly as a crate is, because neither moves,
+  neither ticks, and neither is an entity. Anything that is scenery is
+  authored, placed, drawn, and scored as one kind of thing; a second prop
+  model for scenery that happens to look important is duplication wearing a
+  domain name.
 - A **mapping definition** is the selection policy between generated concepts
   and registry ids: render-surface dispatch, named doodad pools, and tunables
   for an existing filler. It does not currently select or define a filler
