@@ -4,8 +4,9 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — generated-map evidence now enters through the ordinary
-battle scene and may replace only the final graphics drain.
+Updated: 2026-08-28 — generated-map evidence enters through the ordinary battle
+scene, and the durability bar is emitted by every layer that draws something
+shootable, convoy vehicles included.
 
 ## Vocabulary
 
@@ -86,6 +87,7 @@ Ground is a dense, cell-backed surface. Current camera culling range-loops the v
     terrain, walls, apertures, doors, and props must come from the production
     render systems. Raw atlas and topology diagrams remain diagnostics and must
     not present themselves as battle-scene evidence.
+16. A bar belongs to whatever can be shot, not to one layer's cast. Anything carrying the durability pools wears the same gauge with the same ownership coding wherever it is drawn — infantry and emplacements in `UNITS`, drones in `DRONES`, convoy vehicles in `CONVOY` — so the player reads one instrument rather than a per-layer dialect. Each layer emits its bars as a sweep after its bodies, so no body paints over a neighbour's gauge.
 
 ## Boundaries and extension paths
 
