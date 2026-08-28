@@ -7,8 +7,8 @@ Written: 2026-08-28
 Updated: 2026-08-28 — reallocated from the XIV and Lion's Mantle to the line role, after the assault heavies took the breach family.
 
 Read `progression-nouns.md`, `integral-system-slate.md`, and
-`integral-armor-systems.md` before implementing. Depends on
-`integral-system-use-policy.md`.
+`integral-armor-systems.md` before implementing. The use-policy vocabulary this
+extends is shipped and owned by `progression-nouns.md`.
 
 ## Problem
 
@@ -90,8 +90,9 @@ trade the player and the AI can both get wrong:
   assist uses, so a stance and a boost cannot compound or leave a remainder.
 - Whichever of accuracy or weapon sustain the chosen pattern actually needs, decided
   in this story from what the shipped infantry combat stats can express.
-- An authored use policy for "hold this position and shoot", which is the second
-  policy `integral-system-use-policy.md` needs to prove its dispatch.
+- An authored use policy for "hold this position and shoot", added to the closed
+  use-policy vocabulary `progression-nouns.md` owns, with its own parameters and
+  its own parse-time validation against the stance effect.
 - Presentation, following `integral-system-battle-presentation.md`. A braced
   marine that looks identical to a walking one hides the whole trade.
 

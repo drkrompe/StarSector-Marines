@@ -20,9 +20,16 @@ import java.io.Serializable;
  * suit must not cost a marine their grenades, or the heavy role reads as a
  * downgrade. The two are separately authored and separately issued.
  *
- * <p>The resource and duration vocabulary is deliberately the one special
- * equipment already uses ({@link SpecialResourceMode}), because this is a
- * second carrier for that vocabulary rather than a second vocabulary.
+ * <p>The resource, duration, and AI-policy vocabulary is deliberately the one
+ * special equipment already uses ({@link SpecialResourceMode},
+ * {@link SpecialAiPolicy}), because this is a second carrier for that
+ * vocabulary rather than a second vocabulary.
+ *
+ * <p><b>The trigger is authored, not compiled.</b> A definition declares the
+ * moment it should be spent at and the numbers that recognise it, so every
+ * system's trigger is readable from its catalog entry. The sweep that spends
+ * it dispatches on the declared policy and reads those numbers; it holds no
+ * per-system judgement of its own.
  */
 public record IntegralSystemDef(
         String id,
@@ -35,7 +42,8 @@ public record IntegralSystemDef(
         float cooldownSeconds,
         int startingAmmo,
         BreacherAssistSpec breacherAssist,
-        MissilePodSpec missilePod) implements Serializable {
+        MissilePodSpec missilePod,
+        IntegralSystemPolicySpec policy) implements Serializable {
 
     /**
      * Keys that would express an integral system as durability. Rejected by
@@ -115,7 +123,61 @@ public record IntegralSystemDef(
                 cooldownSeconds,
                 startingAmmo,
                 breacher,
-                missilePod);
+                missilePod,
+                parsePolicy(json, armorId, id, effect));
+    }
+
+    /**
+     * The policies that can honestly apply to one effect. A policy names the
+     * moment worth spending something at, and not every moment fits every
+     * capability: charging a doorway is not something a shoulder rack can do,
+     * and a rack that waits for standoff has nothing to do with a suit that
+     * only moves faster. Keeping the mapping here, next to the effect's own
+     * validation, means an author meets the rule at parse time rather than
+     * discovering a policy that silently never fires.
+     */
+    private static SpecialAiPolicy[] applicablePolicies(IntegralSystemEffect effect) {
+        return switch (effect) {
+            case BREACHER_ASSIST -> new SpecialAiPolicy[] {SpecialAiPolicy.CROSSING_UNDER_FIRE};
+            case MISSILE_POD -> new SpecialAiPolicy[] {SpecialAiPolicy.SIGHTED_STANDOFF_CONTACT};
+        };
+    }
+
+    private static IntegralSystemPolicySpec parsePolicy(JSONObject json, String armorId,
+                                                        String systemId,
+                                                        IntegralSystemEffect effect)
+            throws JSONException {
+        SpecialAiPolicy declared = SpecialAiPolicy.fromKey(
+                requireText(json, "policy", armorId), systemId);
+        for (SpecialAiPolicy candidate : applicablePolicies(effect)) {
+            if (candidate != declared) continue;
+            return switch (declared) {
+                case CROSSING_UNDER_FIRE -> CrossingUnderFireSpec.parse(json, armorId, systemId);
+                case SIGHTED_STANDOFF_CONTACT -> SightedStandoffSpec.parse(json, armorId, systemId);
+                default -> throw new JSONException("Integral system '" + systemId + "' on armor '"
+                        + armorId + "' declares AI policy '" + declared.key
+                        + "', which has no authored parameters for an integral system");
+            };
+        }
+        throw new JSONException("Integral system '" + systemId + "' on armor '" + armorId
+                + "' declares AI policy '" + declared.key + "', which cannot apply to effect '"
+                + effect.key + "'. Policies that apply to that effect: "
+                + SpecialAiPolicy.keysOf(applicablePolicies(effect)) + ".");
+    }
+
+    /** The moment this system is authored to be spent at. */
+    public SpecialAiPolicy aiPolicy() {
+        return policy.aiPolicy();
+    }
+
+    /** This system's crossing parameters, or null when it declares another policy. */
+    public CrossingUnderFireSpec crossingUnderFire() {
+        return policy instanceof CrossingUnderFireSpec spec ? spec : null;
+    }
+
+    /** This system's standoff parameters, or null when it declares another policy. */
+    public SightedStandoffSpec sightedStandoff() {
+        return policy instanceof SightedStandoffSpec spec ? spec : null;
     }
 
     /**
