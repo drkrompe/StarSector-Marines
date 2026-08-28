@@ -150,6 +150,10 @@ class SquadPlanDebugPanelTest {
                 SquadPlanDebugPanel.conquestOrderSummary(directive));
         assertEquals("Command reason ADJACENT_TRACK_SUPPORT",
                 SquadPlanDebugPanel.conquestReasonSummary(directive));
+        assertEquals("Command activity ACTIVE_PATH   Moving 3/8",
+                SquadPlanDebugPanel.conquestExecutionSummary(
+                        new ConquestFrontSnapshot.SquadState(
+                                9, 8, 1f, 2f, 3, null, false, 3)));
         assertEquals("Command reason ADJACENT_TRACK_SUPPORT"
                         + "   Capture DEFERRED_FOR_FRONT_RESISTANCE",
                 SquadPlanDebugPanel.conquestReasonSummary(

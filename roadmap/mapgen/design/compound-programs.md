@@ -4,6 +4,10 @@ Status: ACTIVE — direction agreed, nothing implemented.
 
 Written: 2026-08-28
 
+Updated: 2026-08-28 — the fortress inverts: its interior is packed first and its
+wall is derived from the result. The packer is family-neutral, the fortress
+program packs, and the envelope-sizing ratio is measured.
+
 Read `mapgen-nouns.md` for the recipe, context, stage, and validation
 obligations any of this inherits. `ship-interiors-nouns.md` owns the deck
 family this borrows from; nothing here changes it.
@@ -31,6 +35,9 @@ draws an authored perimeter — towers, gates, kill-zone bunkers, an outer ward 
 around whatever the ordinary city fill happened to put inside it. The enclosure
 is designed and its interior is leftovers, so the climax of a Conquest mission is
 a very good wall with a district behind it rather than a fortress.
+`FortressPreviewTest` renders the band: freestanding rectangles on a road grid,
+one walled compound, and nothing that would read as a fortress if the wall were
+taken away.
 
 ## Measured: the parcels do not fit the function
 
@@ -54,6 +61,63 @@ compounds:
 Only the command wing is reliably large enough to hold a machine, and it is the
 keep. Two out of three bases could not garage anything whatever role assignment
 did, because nothing in the pipeline ever asked for a parcel a vehicle fits in.
+
+## The wall is a consequence, not a frame
+
+The order is the fix. A fortress interior is packed first — its program laid
+into the district envelope, its roadways cut through what packing leaves — and
+the wall is then drawn around the result. Today the wall is stamped last and
+overwrites whatever it crosses, which is what makes its interior leftovers no
+matter how good the wall itself is.
+
+Inverting it changes what the wall *is*. Drawn around a packed interior, its
+envelope follows the thing it defends, its gates land where the interior's own
+roadways already run out to meet them, and the kill-zone buffer is measured from
+real structure rather than from a biome inset. There is precedent in the current
+stamper: it already expands its envelope to wrap the keep compound rather than
+stranding it outside, because the keep's claimed footprint is authoritative. That
+exception becomes the rule, and the special case for the keep disappears into it.
+
+None of this makes the wall less authored. Towers, gates, MG nests, and forward
+bunkers stay exactly what they are; they stop being drawn across a district and
+start being drawn around a fortress.
+
+## Measured: the program has to size the ground
+
+Counted 2026-08-28 over eight seeds, packing the garrison program (1256 cells of
+building floor) into envelopes scaled from it.
+
+| Ground per cell of floor | Envelope | Worst unplaced | Largest untouched square |
+|---|---|---|---|
+| 1.8 | 60x45 | 8 | 14 |
+| 2.0 | 64x48 | 1 | 11 |
+| **2.2** | **67x50** | **0** | **14** |
+| 2.6 | 72x54 | 0 | 20 |
+| 3.0 | 76x57 | 0 | 25 |
+
+Two things follow, and the second was a surprise. There is a real floor at about
+2.2 — below it the program genuinely does not fit, because each building carries
+a wall ring and the roadways between them are two cells wide. And **too much
+ground is a defect in its own right**: the packer scores a position by how
+tightly it wedges against something solid, and at the start the only solid thing
+is the envelope boundary, so an oversized envelope pins every building to the rim
+and leaves a hole in the middle that no tuning fills. The first fortress packed
+this way had a forty-cell void at its centre. Sizing the envelope from the
+program fixed it, which is the law arriving from the other direction: a place
+built from what it is for cannot be given arbitrary ground either.
+
+## Leftover ground is the yard
+
+A hull's leftovers stay solid, because a void inside a ship is structure. A
+fortress's leftovers are its parade ground, and closing them would produce a
+fortress that is mostly corridor and cannot be fought through.
+
+This is also what makes packed roadways read as roadways. Cut against solid
+ground they are the only way through, which is a warren; cut across open yard
+they are the made-up routes over it, and a squad can leave one and cross open
+ground under fire. That choice is what a fortress assault should be about, and
+it is a property of what the leftovers become rather than of how the roads were
+routed.
 
 ## Organic comes from packing, not from subdivision
 
@@ -126,9 +190,11 @@ The program is the load-bearing piece; everything else is downstream of it.
 3. Purposed wings are furnished by the shared fittings.
    `compound-vehicle-hangar.md` is the first consumer, and is blocked on step 1
    for the reason the measurement gives.
-4. The fortress is programmed rather than stamped: its wall stops being a
-   perimeter drawn around a district and becomes the outline its own program is
-   packed into.
+4. The fortress is programmed rather than stamped. Its interior is packed from
+   its own program — magazines, vehicle sheds, barrack blocks, the keep — with
+   roadways cut to reach them, and `FortressWallStamper` then draws its wall
+   around that result instead of across a district. The wall's own authored
+   features are unchanged.
 
 Each step is a separate story. None of them is a reason to widen `MapResult`
 with analysis nothing consumes, and all of them keep the standing obligations:

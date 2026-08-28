@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
+import com.dillon.starsectormarines.battle.decision.UnitUpdateSystem;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -114,7 +115,13 @@ final class FrontageScene {
      * @param assaults  marine squads, spread along the approach edge
      */
     record Scene(BattleSimulation sim, TacticalNode primary, List<Squad> garrisons,
-                 List<Squad> assaults, List<TacticalNode> nodes, Approach approach) {
+                 List<Squad> assaults, List<TacticalNode> nodes, List<Approach> approaches,
+                 Map<Integer, Approach> approachBySquad) {
+
+        /** The first assaulted edge — the label a single-axis scene is named for. */
+        Approach approach() {
+            return approaches.get(0);
+        }
 
         /**
          * The garrison whose frontage is the compound perimeter, falling back to
@@ -144,20 +151,49 @@ final class FrontageScene {
      */
     record Sample(int tick, String goal, int aperturePosts, int reservePosts,
                   int postsFacingThreat, int membersOnPost, float believedPressure,
-                  boolean enemyInside, boolean frontageRelevant,
+                  boolean enemyInside, boolean frontageRelevant, String perimeterLayer,
                   float marineX, float marineY, int liveMarines,
-                  List<SquadSample> garrisons, Crowding crowding) {
+                  List<SquadSample> garrisons, List<AxisCoverage> axes, Crowding crowding) {
+
+        /** Aperture posts manned across every garrison at this instant. */
+        int mannedApertures() {
+            return garrisons.stream().mapToInt(SquadSample::aperturePosts).sum();
+        }
+
+        /** Posts covering the least-covered edge that still has live attackers, or -1 when none do. */
+        int coverageOfWeakestLiveAxis() {
+            int worst = -1;
+            for (AxisCoverage axis : axes) {
+                if (axis.liveMarines() == 0) continue;
+                worst = worst < 0 ? axis.postsCovering()
+                        : Math.min(worst, axis.postsCovering());
+            }
+            return worst;
+        }
 
         int posts() { return aperturePosts + reservePosts; }
     }
 
     /**
-     * One garrison squad's state at a sampled instant. {@code scope} is the
-     * layer it holds — the compound perimeter or one structure's shell — which
-     * is what makes overlapping posts between two squads a defect rather than
-     * a coincidence.
+     * One garrison squad's state at a sampled instant. {@code layer} is the
+     * envelope it is currently holding — {@code COMPOUND} for the perimeter,
+     * {@code STRUCTURE} for a building shell, {@code none} when it is not
+     * standing to. Two squads may share a layer; overlapping posts within one
+     * are still a defect.
      */
-    record SquadSample(int squadId, String scope, String goal, int aperturePosts,
+    /**
+     * One assaulted edge at a sampled instant: how much of the assault that
+     * came in there is still alive, and how many aperture posts cover that side
+     * of the compound.
+     *
+     * <p>Measured per edge rather than against the whole marine centroid,
+     * because two assaults on opposite sides average out to the middle of the
+     * compound and a single centroid would call a defense facing neither of
+     * them well aimed.
+     */
+    record AxisCoverage(String approach, String edge, int liveMarines, int postsCovering) {}
+
+    record SquadSample(int squadId, String layer, String goal, int aperturePosts,
                        int reservePosts, int membersOnPost, boolean frontageRelevant,
                        int aliveMembers) {}
 
@@ -215,10 +251,24 @@ final class FrontageScene {
      *                       scene measures an assault on a frontage rather than one
      *                       column walking into one gate
      */
+    /** Assault squads on each of {@code approaches}, converging on one compound. */
+    static Scene build(long seed, int garrisonSquads, int garrisonSize,
+                       int squadsPerApproach, int assaultSize, List<Approach> approaches) {
+        return buildScene(seed, garrisonSquads, garrisonSize, squadsPerApproach,
+                assaultSize, approaches);
+    }
+
     static Scene build(long seed, int garrisonSquads, int garrisonSize,
                        int assaultSquads, int assaultSize, Approach approach) {
+        return buildScene(seed, garrisonSquads, garrisonSize, assaultSquads,
+                assaultSize, List.of(approach));
+    }
+
+    private static Scene buildScene(long seed, int garrisonSquads, int garrisonSize,
+                                    int squadsPerApproach, int assaultSize,
+                                    List<Approach> approaches) {
         GenContext ctx = stampCompound(seed);
-        BattleSimulation sim = new BattleSimulation(ctx.grid, ctx.topology, seed);
+        BattleSimulation sim = serialSimulation(ctx, seed);
         List<TacticalNode> nodes = List.copyOf(ctx.tactical);
         sim.setTacticalMap(new TacticalMap(nodes));
         for (Doodad doodad : ctx.doodads) sim.addDoodad(doodad);
@@ -233,13 +283,20 @@ final class FrontageScene {
             garrisons.add(spawnGarrison(sim, garrisoned.get(i), garrisonSize, i));
         }
 
+        if (approaches.isEmpty()) throw new IllegalArgumentException("no approach given");
         TacticalNode primary = garrisoned.get(0);
-        List<Squad> assaults = new ArrayList<>(assaultSquads);
-        for (int i = 0; i < assaultSquads; i++) {
-            assaults.add(spawnAssault(sim, primary, assaultSize, approach, i, assaultSquads));
+        List<Squad> assaults = new ArrayList<>(squadsPerApproach * approaches.size());
+        Map<Integer, Approach> approachBySquad = new LinkedHashMap<>();
+        for (Approach approach : approaches) {
+            for (int i = 0; i < squadsPerApproach; i++) {
+                Squad squad = spawnAssault(sim, primary, assaultSize, approach, i,
+                        squadsPerApproach);
+                assaults.add(squad);
+                approachBySquad.put(squad.id, approach);
+            }
         }
         return new Scene(sim, primary, List.copyOf(garrisons), List.copyOf(assaults),
-                nodes, approach);
+                nodes, List.copyOf(approaches), Map.copyOf(approachBySquad));
     }
 
     /** Run the scene, sampling the garrison every {@code samplePeriod} ticks. */
@@ -284,9 +341,9 @@ final class FrontageScene {
                 WorldState.EMPTY, perimeter, sim) > 0f;
 
         return new Sample(tick, goal, aperture, reserve, facingThreat, onPost,
-                pressure, enemyInside(scene), frontageRelevant,
+                pressure, enemyInside(scene), frontageRelevant, layerName(perimeter, sim),
                 marines[0], marines[1], (int) marines[2],
-                List.copyOf(rows), crowding(scene, sim));
+                List.copyOf(rows), axisCoverage(scene, sim), crowding(scene, sim));
     }
 
     private static SquadSample squadSample(Scene scene, Squad squad, BattleSimulation sim) {
@@ -298,12 +355,73 @@ final class FrontageScene {
                 if (post.isReserve()) reserve++; else aperture++;
             }
         }
-        return new SquadSample(squad.id,
-                FrontageDefense.holdsWholeCompound(squad, sim) ? "COMPOUND" : "STRUCTURE",
+        return new SquadSample(squad.id, layerName(squad, sim),
                 squad.currentGoal != null ? squad.currentGoal.name() : "none",
                 aperture, reserve, hold == null ? 0 : membersOnPost(sim, squad, hold),
                 FrontageDefense.INSTANCE.relevance(WorldState.EMPTY, squad, sim) > 0f,
                 squad.aliveMembers);
+    }
+
+    /**
+     * Per-edge coverage across every garrison currently standing to. Counts
+     * posts from all garrisons, not just the perimeter holders, because an
+     * inner building shell facing a breached side is covering that side too.
+     */
+    private static List<AxisCoverage> axisCoverage(Scene scene, BattleSimulation sim) {
+        List<AxisCoverage> out = new ArrayList<>(scene.approaches().size());
+        for (Approach approach : scene.approaches()) {
+            int live = 0;
+            for (Squad squad : scene.assaults()) {
+                if (scene.approachBySquad().get(squad.id) != approach) continue;
+                live += liveMembers(sim, squad);
+            }
+            int covering = 0;
+            for (Squad garrison : scene.garrisons()) {
+                ApertureHold hold = activeHold(garrison);
+                if (hold == null) continue;
+                for (ApertureHold.Post post : hold.posts()) {
+                    if (post.isReserve()) continue;
+                    if (coversEdge(post, approach)) covering++;
+                }
+            }
+            out.add(new AxisCoverage(approach.name(), approach.renderedEdge(), live, covering));
+        }
+        return List.copyOf(out);
+    }
+
+    /**
+     * Whether a post faces {@code approach}. Read from the post's own outward
+     * direction — stance to watched cell — rather than from where it sits
+     * relative to the compound centre. Position is not enough: a post on the
+     * south wall standing east of centre is east of centre, and a
+     * position-based test counts it as covering an eastern assault it has its
+     * shoulder to. Aperture axes are orthogonal, so a post faces exactly one
+     * edge.
+     */
+    private static boolean coversEdge(ApertureHold.Post post, Approach approach) {
+        int dx = post.watchX() - post.standX();
+        int dy = post.watchY() - post.standY();
+        return switch (approach) {
+            case SOUTH -> dy > 0;
+            case NORTH -> dy < 0;
+            case EAST -> dx > 0;
+            case WEST -> dx < 0;
+        };
+    }
+
+    private static int liveMembers(BattleSimulation sim, Squad squad) {
+        int count = 0;
+        for (int i = 0; i < sim.getRoster().liveCount(); i++) {
+            long unit = sim.getRoster().get(i);
+            if (sim.squad().hasSquad(unit) && sim.squad().squadId(unit) == squad.id) count++;
+        }
+        return count;
+    }
+
+    /** The envelope a squad is holding at this instant, or {@code none} when it is not standing to. */
+    private static String layerName(Squad squad, BattleSimulation sim) {
+        FrontageDefense.Layer layer = FrontageDefense.activeLayer(squad, sim);
+        return layer == null ? "none" : layer.name();
     }
 
     /** Post overlap between squads, and how tightly live bodies are packed. */
@@ -466,6 +584,34 @@ final class FrontageScene {
             }
         }
         return false;
+    }
+
+    /**
+     * Build the simulation with per-unit dispatch pinned serial.
+     *
+     * <p>{@code UnitUpdateSystem} goes parallel at
+     * {@code DEFAULT_MINIMUM_PARALLEL_UNITS} (48) live units, and a scene with
+     * several squads a side is comfortably past that. Parallel dispatch makes a
+     * run irreproducible, which quietly costs this harness the property it
+     * exists for: the same seed has to produce the same battle or a difference
+     * between two runs means nothing. The commander-evidence task pins the same
+     * property for the same reason; doing it here as well keeps a scene
+     * reproducible whichever task runs it.
+     *
+     * <p>The threshold is read once, when the system is constructed, so the
+     * previous value is restored immediately afterwards rather than left set
+     * for the rest of the JVM.
+     */
+    private static BattleSimulation serialSimulation(GenContext ctx, long seed) {
+        String property = UnitUpdateSystem.MINIMUM_PARALLEL_UNITS_PROPERTY;
+        String previous = System.getProperty(property);
+        System.setProperty(property, Integer.toString(Integer.MAX_VALUE));
+        try {
+            return new BattleSimulation(ctx.grid, ctx.topology, seed);
+        } finally {
+            if (previous == null) System.clearProperty(property);
+            else System.setProperty(property, previous);
+        }
     }
 
     /** Open ground with one production-stamped military compound in the middle. */

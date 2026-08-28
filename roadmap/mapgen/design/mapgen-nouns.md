@@ -7,8 +7,9 @@ Written: 2026-08-23
 Updated: 2026-08-28 — pointed at the compound-program direction; shipped
 shared-edge windows for Conquest bunkers and ordinary building shells,
 widened compound firing aprons while preserving functional parcel members,
-added role-readable compound dressing and workstation groups, guaranteed
-standable interior anchors, and made pocket sealing yield to a compound.
+added role-readable compound dressing and authored multi-cell civic room
+programs with wall- and aisle-aware fixture rotation, guaranteed standable
+interior anchors, and made pocket sealing yield to a compound.
 
 Map generation turns a deterministic request into a validated tactical world. It
 owns authored spatial intent; runtime systems own subsequent mutation and play.
@@ -170,6 +171,17 @@ Purpose-built interiors express their function through grouped equipment rather
 than a single symbolic prop: command rooms organize console banks around a
 planning focus, server rooms organize repeated racks around a service aisle,
 and both retain doorway, firing-position, and room-connectivity obligations.
+Civic headquarters follow the same authored-program rule as ship mech labs:
+their two-cell spine, opposing entrances, room depths, and fixture groups are
+designed as one floor-plan family rather than discovered by random door and
+prop placement. A qualifying headquarters lot is at least 15 by 13 cells. Each
+office must fit its workstation-and-records group, each reception wing its
+counter, the conference room its central table, and the server room repeated
+racks around a service aisle. Multi-cell fixtures rotate at placement time so
+their backs meet supporting walls, their working faces meet open room cells,
+and centerpieces are centered by their complete footprint. On the compact
+footprint, office facade windows yield to that required room capacity;
+reception and conference facades retain the building's firing apertures.
 
 ## City, station, and ship families
 

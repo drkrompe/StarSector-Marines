@@ -584,6 +584,9 @@ public final class SquadPlanDebugPanel implements HudPanel {
                 lineY = drawLineIfVisible(font, conquestReasonSummary(
                                 conquestDirective), lineX, lineY,
                         DETAIL_VALUE_FG, alphaMult, vpBottomY, vpTopY);
+                lineY = drawLineIfVisible(font, conquestExecutionSummary(
+                                conquest.squadFor(s.id)), lineX, lineY,
+                        DETAIL_VALUE_FG, alphaMult, vpBottomY, vpTopY);
                 lineY = drawLineIfVisible(font, trackSummary(conquest,
                                 conquestDirective), lineX, lineY,
                         DETAIL_VALUE_FG, alphaMult, vpBottomY, vpTopY);
@@ -978,6 +981,20 @@ public final class SquadPlanDebugPanel implements HudPanel {
         String capturePolicy = directive.distantCaptureDeferred()
                 ? "   Capture DEFERRED_FOR_FRONT_RESISTANCE" : "";
         return "Command reason " + directive.reason() + capturePolicy;
+    }
+
+    static String conquestExecutionSummary(
+            ConquestFrontSnapshot.SquadState state) {
+        if (state == null) return "Command activity —";
+        String cause;
+        if (state.aliveMembers() <= 0) cause = "LIFECYCLE";
+        else if (state.executionSuspension() != null) {
+            cause = "SUSPENDED " + state.executionSuspension();
+        } else if (state.localContact()) cause = "LOCAL_CONTACT";
+        else if (state.activePathMembers() > 0) cause = "ACTIVE_PATH";
+        else cause = "IDLE_CANDIDATE";
+        return String.format("Command activity %s   Moving %d/%d",
+                cause, state.activePathMembers(), state.aliveMembers());
     }
 
     static String sabotageOrderSummary(
