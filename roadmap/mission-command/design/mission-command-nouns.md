@@ -1,10 +1,10 @@
 # Mission-command nouns
 
-Status: ACTIVE — the shared autonomous command architecture is in production for Conquest, Sabotage, Assault, and Raid; generic Extraction has objective/disclosure infrastructure and awaits corridor command.
+Status: ACTIVE — the shared autonomous command architecture is in production for Conquest, Sabotage, Assault, Raid, and the Marine side of generic Extraction.
 
 Written: 2026-08-27
 
-Updated: 2026-08-27 — added the generic Extraction payload contract, variant projection, perspective disclosure, and neutral evidence selection.
+Updated: 2026-08-27 — added route-aware generic Extraction corridor command and its published diagnostic/evidence picture.
 
 Mission command is the slow, faction-scoped layer that turns authored mission
 meaning and faction-honest knowledge into stable squad assignments. It is the
@@ -137,7 +137,7 @@ seed is not a balance target.
 | Sabotage | Three named-site task groups with planter logistics and site security | Paired production duel shipped | `sabotage-command.md` |
 | Assault | Two-dimensional search sectors versus strongpoint security areas | Paired production duel; live/evidence acceptance remains | `assault-command.md` |
 | Raid | Primary high-value target plus authored ingress/egress corridor | Paired production duel; canonical/live acceptance remains | `raid-command.md` |
-| Extraction | Payload/cohort corridor, with scenario-specific branches or directors | Generic objective/disclosure shipped; corridor commanders remain | `extraction-command.md` |
+| Extraction | Payload/cohort corridor, with scenario-specific branches or directors | Generic Marine corridor command shipped; defender and authored variants remain | `extraction-command.md` |
 
 Opening Operations reuse the Assault battle type but keep scenario-specific
 preserve/secure command meaning. Civilian Rescue and Silent Colony are authored

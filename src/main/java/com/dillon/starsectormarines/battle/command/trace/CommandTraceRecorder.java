@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.SabotageSiteSnapshot;
 import com.dillon.starsectormarines.battle.command.SabotageDefenseSnapshot;
 import com.dillon.starsectormarines.battle.command.RaidCommandSnapshot;
+import com.dillon.starsectormarines.battle.command.ExtractionCommandSnapshot;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.objective.ChargeSiteObjective;
 import com.dillon.starsectormarines.battle.command.objective.ExtractionPayloadObjective;
@@ -297,6 +298,10 @@ public final class CommandTraceRecorder {
             numberField(out, "egressCellY", payload.egressCellY());
             numberField(out, "payloadCellX", payload.payloadCellX());
             numberField(out, "payloadCellY", payload.payloadCellY());
+            numberField(out, "corridorGuideCellX",
+                    payload.corridorGuideCellX());
+            numberField(out, "corridorGuideCellY",
+                    payload.corridorGuideCellY());
             numberField(out, "initialElements", payload.initialElements());
             numberField(out, "activeElements", payload.activeElements());
             numberField(out, "boardedElements", payload.boardedElements());
@@ -354,6 +359,9 @@ public final class CommandTraceRecorder {
             sabotageDefense(out, defense);
         } else if (snapshot.detail() instanceof RaidCommandSnapshot raid) {
             raid(out, raid);
+        } else if (snapshot.detail()
+                instanceof ExtractionCommandSnapshot extraction) {
+            extraction(out, extraction);
         }
         return end(out);
     }
@@ -539,6 +547,52 @@ public final class CommandTraceRecorder {
                     ? intent.assignmentKind().name() : null);
             numberField(out, "targetCellX", intent.targetCellX());
             numberField(out, "targetCellY", intent.targetCellY());
+            out.append('}');
+        }
+        out.append("]}");
+    }
+
+    private static void extraction(StringBuilder out,
+                                   ExtractionCommandSnapshot snapshot) {
+        out.append(",\"extraction\":{");
+        rawField(out, "phase", snapshot.phase());
+        field(out, "payloadId", snapshot.payloadId());
+        field(out, "payloadName", snapshot.payloadName());
+        numberField(out, "sourceCellX", snapshot.sourceCellX());
+        numberField(out, "sourceCellY", snapshot.sourceCellY());
+        numberField(out, "payloadCellX", snapshot.payloadCellX());
+        numberField(out, "payloadCellY", snapshot.payloadCellY());
+        numberField(out, "corridorGuideCellX",
+                snapshot.corridorGuideCellX());
+        numberField(out, "corridorGuideCellY",
+                snapshot.corridorGuideCellY());
+        numberField(out, "egressCellX", snapshot.egressCellX());
+        numberField(out, "egressCellY", snapshot.egressCellY());
+        floatField(out, "progress", snapshot.progress());
+        booleanField(out, "escortPresent", snapshot.escortPresent());
+        numberField(out, "controllingSquadId",
+                snapshot.controllingSquadId());
+        booleanField(out, "complete", snapshot.complete());
+        booleanField(out, "failed", snapshot.failed());
+        field(out, "failure", snapshot.failure().name());
+        List<ExtractionCommandSnapshot.SquadIntent> intents =
+                new ArrayList<>(snapshot.squadIntents());
+        intents.sort(Comparator.comparingInt(
+                ExtractionCommandSnapshot.SquadIntent::squadId));
+        out.append(",\"actions\":[");
+        for (int i = 0; i < intents.size(); i++) {
+            if (i > 0) out.append(',');
+            ExtractionCommandSnapshot.SquadIntent intent = intents.get(i);
+            out.append('{');
+            rawNumberField(out, "squadId", intent.squadId());
+            field(out, "role", intent.role().name());
+            field(out, "reason", intent.reason());
+            nullableField(out, "assignmentKind",
+                    intent.assignmentKind() != null
+                            ? intent.assignmentKind().name() : null);
+            numberField(out, "targetCellX", intent.targetCellX());
+            numberField(out, "targetCellY", intent.targetCellY());
+            booleanField(out, "localContact", intent.localContact());
             out.append('}');
         }
         out.append("]}");
