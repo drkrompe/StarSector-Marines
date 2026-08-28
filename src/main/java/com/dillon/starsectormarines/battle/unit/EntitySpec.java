@@ -131,12 +131,12 @@ public final class EntitySpec {
     public EntitySpec moveSpeed(float v) { this.moveSpeed = v; return this; }
     public EntitySpec hp(float v) { this.hp = v; return this; }
     public EntitySpec maxHp(float v) { this.maxHp = v; return this; }
-    /** Spawn at full armor with the supplied pool and resistance rating. */
+    /** Spawn at full armor with the supplied capacity and resistance rating. */
     public EntitySpec armor(float maxArmor, float armorRating) {
         return armor(maxArmor, maxArmor, armorRating);
     }
 
-    /** Seed an authored armor capability, including a partially depleted pool. */
+    /** Seed an authored armor capability, including a partially depleted capacity. */
     public EntitySpec armor(float currentArmor, float maxArmor, float armorRating) {
         if (!Float.isFinite(maxArmor) || maxArmor <= 0f) {
             throw new IllegalArgumentException("Maximum armor must be finite and positive");
@@ -161,7 +161,7 @@ public final class EntitySpec {
 
     /**
      * Applies one issued armor package while keeping its movement and incoming-hit
-     * tradeoffs independent from durability. A zero pool leaves the ARMOR
+     * tradeoffs independent from durability. A zero capacity leaves the ARMOR
      * capability absent but still applies those profile modifiers.
      */
     public EntitySpec armor(float maxArmor, float armorRating, float moveSpeedMult,
@@ -190,7 +190,7 @@ public final class EntitySpec {
         return this;
     }
 
-    /** Full HP + max HP to the same value — the common "spawn at full health with this pool" case. */
+    /** Full HP + max HP to the same value — the common "spawn at full health with this capacity" case. */
     public EntitySpec health(float maxHp) { this.hp = maxHp; this.maxHp = maxHp; return this; }
 
     /**

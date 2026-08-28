@@ -137,7 +137,7 @@ public class CombatTelemetryServiceTest {
         long shooter = unit(sim, "shooter", Faction.MARINE, UnitType.MARINE, 5, 5);
         long target = unit(sim, "target", Faction.DEFENDER, UnitType.MILITIA, 9, 5);
         sim.combat().setPrimaryWeapon(shooter, WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID));
-        // Overshoot the roll, and a pool the target cannot burn through. fireShot feeds
+        // Overshoot the roll, and an armor capacity the target cannot burn through. fireShot feeds
         // accuracy through RangeFalloff and the grade/profile multipliers, so a nominal
         // 1.0 lands just under certain and roughly one round in twenty misses.
         //
