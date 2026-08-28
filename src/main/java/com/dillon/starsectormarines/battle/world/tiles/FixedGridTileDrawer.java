@@ -36,7 +36,7 @@ public final class FixedGridTileDrawer {
     /** Default inset for sub-32px source sheets. 1px keeps the sampler off the boundary texel without throwing away 25% of a 16px content area. */
     public static final int GROUND_INSET_PX_SMALL = 1;
 
-    /** Inset for standalone overlay sprites (doodads, DOOR_OPEN) — their edge pixels are visible art, not part of a tiling field. */
+    /** Inset for standalone overlay sprites (doodads, the open-door overlay) — their edge pixels are visible art, not part of a tiling field. */
     public static final int OVERLAY_INSET_PX = 0;
 
     private final int tileSize;

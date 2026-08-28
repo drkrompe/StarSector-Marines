@@ -135,12 +135,19 @@ cooldown; neither was executing the breach action or moving exposed from its
 published primary contact. One was holding and receiving contact on
 `EnterZone`, while the other was recently under fire and morale-broken on
 `BreakContact`. The older travel-survival hypothesis therefore does not explain
-the current row. Measure how squads already inside an assigned capture zone
-clear, reinforce, rotate, or remain contested, while keeping exact hostile and
-whole-zone occupancy in the neutral evidence stream. Cooldown still does not
-prove a shot, and there is no implemented suppression state; add a monotonic
-squad-level rounds-fired counter only if zone-cohort evidence leaves return
-fire unresolved. Then
+the current row. Conquest summary schema 7 now groups exact-room Marine presence
+into neutral cohorts with entry/peak strength, zone-member additions, defenders
+cleared, uncontested/capture latency, mixed duration, and explicit exit or
+censor reasons. Run the duplicate bounded reinforced fixture next. If weak
+cohorts receive no added members and leave defenders present, preserve their
+intent but let the commander assign contested-compound relief instead of
+counting a broken or single-survivor squad as a full capture slot. If healthy,
+reinforced cohorts still never clear, investigate `ClearZone` reachability and
+`HoldZone` defender re-entry. Exact hostile and whole-zone occupancy remain
+neutral evidence and never commander input. Cooldown still does not prove a
+shot, and there is no implemented suppression state; add a monotonic
+squad-level rounds-fired counter only if cohort evidence leaves return fire
+unresolved. Then
 close the remaining assignment-writer and live-acceptance edges in
 `autonomous-mission-command-foundation.md`. Assault's paired production
 commanders now share stable area geometry while retaining separate beliefs,
