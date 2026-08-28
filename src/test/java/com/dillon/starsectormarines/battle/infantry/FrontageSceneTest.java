@@ -69,11 +69,11 @@ class FrontageSceneTest {
         assertTrue(standingTo.stream().anyMatch(s -> s.membersOnPost() > 0),
                 "members must actually reach their posts, not just be assigned them");
 
-        boolean releasedAfterEntry = samples.stream()
-                .filter(Sample::enemyInside)
-                .noneMatch(s -> "FrontageDefense".equals(s.goal()));
-        assertTrue(releasedAfterEntry,
-                "once marines are inside the compound the fight belongs to the room behaviors");
+        List<Sample> breached = samples.stream().filter(Sample::enemyInside).toList();
+        assertFalse(breached.isEmpty(), "the assault must enter a held zone during the scene");
+        assertTrue(breached.stream().noneMatch(Sample::frontageRelevant),
+                "once marines are inside, the frontage goal must yield to room behaviors; "
+                        + "currentGoal may trail until the periodic replan");
     }
 
     @Test

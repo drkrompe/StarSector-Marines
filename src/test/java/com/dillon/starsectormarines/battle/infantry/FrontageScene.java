@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.decision.DefenseFrontage;
 import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.decision.goap.WorldState;
 import com.dillon.starsectormarines.battle.decision.goap.world.GarrisonArea;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
@@ -104,7 +105,8 @@ final class FrontageScene {
      */
     record Sample(int tick, String goal, int aperturePosts, int reservePosts,
                   int postsFacingThreat, int membersOnPost, float believedPressure,
-                  boolean enemyInside, float marineX, float marineY, int liveMarines) {
+                  boolean enemyInside, boolean frontageRelevant,
+                  float marineX, float marineY, int liveMarines) {
 
         int posts() { return aperturePosts + reservePosts; }
     }
@@ -156,8 +158,11 @@ final class FrontageScene {
         }
 
         float pressure = sim.getCommanderInfluence(Faction.DEFENDER).maxHostile();
+        boolean frontageRelevant = FrontageDefense.INSTANCE.relevance(
+                WorldState.EMPTY, garrison, sim) > 0f;
         return new Sample(tick, goal, aperture, reserve, facingThreat, onPost,
-                pressure, enemyInside(scene), marines[0], marines[1], (int) marines[2]);
+                pressure, enemyInside(scene), frontageRelevant,
+                marines[0], marines[1], (int) marines[2]);
     }
 
     /** The {@link ApertureHold} the garrison is executing right now, or null when it is doing something else. */
