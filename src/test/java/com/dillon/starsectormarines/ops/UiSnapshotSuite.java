@@ -198,16 +198,16 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         postBattle.put(squad.memberIds().get(3), MarineSoldierStatus.WIA);
         roster.applySoldierOutcome(postBattle, 100f, 1.25f);
         BarracksViewModel viewModel = new BarracksViewModel(reactor, roster, () -> 100d);
+        CompanyDeck ship = companyShip(List::of,
+                () -> MarineOpsContext.companyMarines(roster));
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), BARRACKS_COMPONENTS);
         loader.reload();
         try (MarkupInstance instance = loader.build(
-                reactor, "shipboard-barracks", props(viewModel))) {
+                reactor, "shipboard-barracks", props(viewModel, ship))) {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
-            CompanyDeck ship = companyShip(List::of,
-                    () -> MarineOpsContext.companyMarines(roster));
             document.canvases().set(instance.requireElement("barracks-canvas"),
                     new BarracksCanvas(ship, viewModel::sceneMarines));
             return renderRelative(renderer, document, width, height, 1f);
@@ -395,7 +395,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         loader.reload();
 
         try (MarkupInstance instance = loader.build(
-                reactor, "mech-lab", props(viewModel))) {
+                reactor, "mech-lab", props(viewModel, ship))) {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
@@ -434,8 +434,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         return props;
     }
 
-    private static Map<String, Object> props(BarracksViewModel viewModel) {
+    private static Map<String, Object> props(BarracksViewModel viewModel,
+                                             CompanyDeck ship) {
         Map<String, Object> props = new LinkedHashMap<>();
+        props.put("contextLabel", ShipBreadcrumb.of(ship.ship(),
+                ship.quartersFor(viewModel.sceneMarines())));
         props.put("squadRows", viewModel.squadRows());
         props.put("musterRows", viewModel.musterRows());
         props.put("recordCells", viewModel.recordCells());
@@ -517,8 +520,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 () -> { }, () -> { }, () -> { }, () -> { });
     }
 
-    private static Map<String, Object> props(MechLabViewModel viewModel) {
+    private static Map<String, Object> props(MechLabViewModel viewModel,
+                                             CompanyDeck ship) {
         Map<String, Object> props = new LinkedHashMap<>();
+        props.put("contextLabel", ShipBreadcrumb.of(ship.ship(),
+                ship.room(RoomPurpose.VEHICLE_BAY)));
         props.put("labSummary", viewModel.labSummary());
         props.put("squadRows", viewModel.squadRows());
         props.put("mechRows", viewModel.mechRows());

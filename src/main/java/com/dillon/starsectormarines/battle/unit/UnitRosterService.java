@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.combat.DamageService;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
 import com.dillon.starsectormarines.battle.sim.CombatService;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
 import com.dillon.starsectormarines.battle.sim.IdentityService;
@@ -156,6 +157,8 @@ public final class UnitRosterService {
     private final SquadService squadService = new SquadService(
             entityWorld, components, this::onSquadAssignment);
     private final RoleService roleService = new RoleService(entityWorld, components);
+    private final IntegralSystemService integralSystemService =
+            new IntegralSystemService(entityWorld, components);
     private final HomeService homeService = new HomeService(entityWorld, components);
     private final HubStateService hubStateService = new HubStateService(entityWorld, components);
     private final TurretStateService turretStateService = new TurretStateService(entityWorld, components);
@@ -291,6 +294,9 @@ public final class UnitRosterService {
     /** Data owner for the MOVEMENT component — inject into consumers that read/mutate movement state. */
     public MovementService movement() { return movementService; }
 
+    /** Data owner for the INTEGRAL_SYSTEM component — the capability a unit's armour pattern carries. */
+    public IntegralSystemService integralSystems() { return integralSystemService; }
+
     /** Data owner for the VISION component (sight stats) — inject into consumers that read/mutate visionRange/airLosRadius. */
     public VisionService vision() { return visionService; }
 
@@ -419,6 +425,7 @@ public final class UnitRosterService {
         boolean combatant = spec.type.combatant;
         boolean hasArmor = spec.maxArmor > 0f;
         boolean hasSecondary = spec.specialEquipment != null;
+        boolean hasIntegralSystem = spec.integralSystem != null;
         // SPRITE iff sheet-drawn (UnitType.drawnAsSheet) — see the bullet above.
         boolean sheetDrawn = spec.type.drawnAsSheet();
         boolean layerDrawn = spec.type.drawnAsLayers();
@@ -460,6 +467,7 @@ public final class UnitRosterService {
         boolean mechLayerDrawn = spec.type.drawnAsMechLayers();
         ComponentType[] archetype = new ComponentType[
                 5 + (hasArmor ? 1 : 0) + (combatant ? 2 : 0) + (mobile ? 2 : 0) + (hasSecondary ? 1 : 0)
+                  + (hasIntegralSystem ? 1 : 0)
                   + (hasBody ? 1 : 0) + (inSquad ? 1 : 0) + (hasHome ? 1 : 0) + (hasTask ? 1 : 0)
                   + (sheetDrawn ? 1 : 0) + (layerDrawn ? 1 : 0) + (mechLayerDrawn ? 2 : 0)
                   + (isHub ? 1 : 0) + (isTurret ? 1 : 0) + (isDrone ? 1 : 0)];
@@ -480,6 +488,7 @@ public final class UnitRosterService {
             archetype[c++] = components.AI_STATE;
         }
         if (hasSecondary) archetype[c++] = components.SECONDARY_WEAPON;
+        if (hasIntegralSystem) archetype[c++] = components.INTEGRAL_SYSTEM;
         if (hasBody) archetype[c++] = components.KINEMATICS;
         if (inSquad) archetype[c++] = components.SQUAD;
         if (hasHome) archetype[c++] = components.HOME;
@@ -591,6 +600,12 @@ public final class UnitRosterService {
                     BattleComponents.SECONDARY_WEAPON_SPEC, spec.specialEquipment);
             entityWorld.setInt(id, components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_AMMO, spec.secondaryAmmo);
         }
+        if (hasIntegralSystem) {
+            entityWorld.setObject(id, components.INTEGRAL_SYSTEM,
+                    BattleComponents.INTEGRAL_SYSTEM_SPEC, spec.integralSystem);
+            entityWorld.setInt(id, components.INTEGRAL_SYSTEM,
+                    BattleComponents.INTEGRAL_SYSTEM_AMMO, spec.integralSystem.startingAmmo());
+        }
         // Seed the flier's KINEMATICS body — the SAME AirBody instance the unit's
         // ctor created and positioned, now world-resident and aliased by the unit's
         // steering reads (zero-churn, the shuttle-KINEMATICS precedent).
@@ -661,6 +676,10 @@ public final class UnitRosterService {
             entityWorld.setInt(id, components.AI_STATE, BattleComponents.AI_STATE_FALLBACK_CELL_Y, -1);
             entityWorld.setObject(id, components.MOVEMENT, BattleComponents.MOVEMENT_PATH, GridPathfinder.EMPTY_PATH);
             entityWorld.setFloat(id, components.MOVEMENT, BattleComponents.MOVEMENT_MOVE_SPEED, spec.moveSpeed);
+            // The unmodified speed a temporary effect returns to. Written once,
+            // here, and never again — see MOVEMENT_BASE_MOVE_SPEED.
+            entityWorld.setFloat(id, components.MOVEMENT,
+                    BattleComponents.MOVEMENT_BASE_MOVE_SPEED, spec.moveSpeed);
         }
         indexById.put(id, liveCount);
         liveCount++;

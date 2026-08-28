@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
+import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -153,6 +154,9 @@ public interface BattleView {
 
     /** Data owner for the MOVEMENT component — {@code movement().moveSpeed(id)} etc. */
     MovementService movement();
+
+    /** Data owner for the INTEGRAL_SYSTEM component — the capability a unit's armour pattern carries, and its live clocks. */
+    IntegralSystemService integralSystems();
 
     /** Data owner for the VISION component (sight stats) — {@code vision().airLosRadius(id)} / {@code visionRange(id)}. The per-component Service that lands VISION off the {@link World} god-facade. */
     VisionService vision();

@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 
 /**
@@ -48,6 +49,8 @@ public final class EntitySpec {
     public UnitRole role = UnitRole.COMBATANT;
     /** Authoritative special-equipment definition. */
     public SpecialEquipmentDef specialEquipment;
+    /** The capability the worn armour pattern declares, or null — most declare none. */
+    public IntegralSystemDef integralSystem;
     public int secondaryAmmo;
     public AirBody body;
     /** Authoritative primary definition. */
@@ -173,6 +176,17 @@ public final class EntitySpec {
         }
         this.moveSpeed *= Math.max(0.1f, moveSpeedMult);
         this.incomingAccuracyMult = Math.max(0f, incomingAccuracyMult);
+        return this;
+    }
+
+    /**
+     * Attaches the integral system the unit's armour pattern carries. Separate
+     * from {@link #specialEquipment} on purpose: the suit's own capability
+     * never spends the billet's carried item
+     * ({@code integral-armor-systems.md}).
+     */
+    public EntitySpec integralSystem(IntegralSystemDef system) {
+        this.integralSystem = system;
         return this;
     }
 

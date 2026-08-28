@@ -105,7 +105,7 @@ Fill criteria, which today's rooms would fail:
   circulation or seal a hatch.
 - Neither `MechLabSceneLayout` nor `BarracksSceneLayout` is consulted by the
   fill, and neither is used as a fill target. They remain in place as the
-  structural reference until `company-ship-deck-adoption.md` retires them.
+  structural reference; both have since been retired.
 
 Judge the result against the criteria above rather than against
 `mech-lab-wide.png` and `barracks-wide.png`. Those snapshots show the structure

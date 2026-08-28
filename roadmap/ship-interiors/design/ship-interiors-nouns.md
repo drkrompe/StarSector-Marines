@@ -403,6 +403,17 @@ host can take a backdrop pass and an actor pass off one settled frame, and
 catch-up after a long absence is bounded rather than replayed — ambient work is
 a rotation with no history to lose.
 
+**A room screen says where it is by asking.** The heading over a room view is
+the ship, the compartment's longitudinal zone and side of the spine, and its
+purpose - read off the deck rather than written on the page. A literal
+breadcrumb is a claim nobody checks, and these pages carried three that had all
+gone wrong at once: a flagship, for a company whose ship need not be the one
+they fly; a mech bay, on a hull that may have none; and one berthing, on a ship
+carrying eighteen. The middle segment is what makes the vessel feel like a
+place rather than a menu - two squads berthed port and starboard of the same
+spine are living in different parts of a ship, and the heading is where the
+player finds that out.
+
 **There is one answer to what a room looks like.** A screen has no substitute
 scene to draw when the ship is unavailable, and a canvas that cannot reach her
 draws nothing rather than something else. A fallback room is a second model of

@@ -222,6 +222,32 @@ public final class CompanyDeck {
     }
 
     /**
+     * The berthing most of these marines bunk in, or the ship's principal one
+     * when none of them came aboard.
+     *
+     * <p>Most rather than first: a squad straddles two bunkrooms when the muster
+     * runs out of racks part way through it, and the room that is theirs is the
+     * one holding more of them. A squad away on a stationing has nobody aboard
+     * at all, and the ship's principal berthing stands in - a screen still has
+     * to name and draw somewhere, and nowhere reads as a fault rather than as a
+     * squad being elsewhere.
+     */
+    public DeckGraph.Compartment quartersFor(List<MarineSoldier> squad) {
+        Map<DeckGraph.Compartment, Integer> tally = new HashMap<>();
+        DeckGraph.Compartment best = null;
+        int most = 0;
+        for (MarineSoldier soldier : squad) {
+            DeckGraph.Compartment berthing = quartersOf(soldier.id());
+            if (berthing == null) continue;
+            int held = tally.merge(berthing, 1, Integer::sum);
+            if (held <= most) continue;
+            most = held;
+            best = berthing;
+        }
+        return best != null ? best : room(RoomPurpose.BARRACKS);
+    }
+
+    /**
      * The compartment this soldier's bunk is in, or {@code null} for one the
      * ship had no billet for.
      *
