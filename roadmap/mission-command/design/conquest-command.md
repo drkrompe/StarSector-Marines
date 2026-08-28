@@ -4,8 +4,8 @@ Status: ACTIVE — paired attacker and defender command is implemented; live con
 
 Written: 2026-08-27
 
-Updated: 2026-08-28 — defined explicit secure-travel exits separately from
-contact, active-path, and quiet-travel context.
+Updated: 2026-08-28 — added observed retarget provenance and last-alive
+objective-distance/front-context evidence.
 
 Read `mission-command-nouns.md` for the shared architecture and
 `conquest-nouns.md` for territory, compounds, supply, keep, and victory law.
@@ -72,3 +72,12 @@ The current acceptance work is tracked by
 `front-command-and-keep-convergence.md`,
 `defender-track-mobilization.md`, and
 `defender-convoy-deployment-and-handoff.md`.
+
+Derived evidence further separates a retarget to another compound, a changed
+capture marker, and a replacement assignment. For squads lost during a secure
+trip it records the final living pulse's objective distance and fraction of the
+approach completed, plus whether that pulse showed local contact, only track
+belief, no published contact, or missing track context. These are pulse-level
+observations rather than exact casualty coordinates. The current trace does
+not publish normalized own-squad forward progress, so reports do not pretend
+to place a loss behind or beyond the normalized hostile front.

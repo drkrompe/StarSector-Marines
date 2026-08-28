@@ -504,8 +504,36 @@ class CommandTraceAnalyzerTest {
         assertEquals(75L, physical.markerClosingSquadTicks());
         assertEquals(2, physical.secureTravel().episodesStarted());
         assertEquals(1, physical.secureTravel().retargetExits());
+        assertEquals(1, physical.secureTravel().retargetObjectiveChanged());
+        assertEquals(0, physical.secureTravel().retargetMarkerChanged());
         assertEquals(1, physical.secureTravel().timeoutExits());
         assertEquals(2, physical.secureTravel().episodesFinalized());
+    }
+
+    @Test
+    void secureTravelClassifiesMarkerAndAssignmentRetargets()
+            throws Exception {
+        String markerChanged = physicalPerspectiveV7(150, 12f, 12f, 1,
+                4, null, false, 1, 0, secureDirective(),
+                secureAction("COMPOUND_CAPTURE_PRESERVED", 5, 24, 20));
+        var marker = analyzeSecure(String.join("\n", schemaSevenHeader(),
+                physicalPerspectiveV7(75, 10f, 10f, 1, 0), markerChanged,
+                timeout(225), ""));
+        assertEquals(1, marker.retargetExits());
+        assertEquals(1, marker.retargetMarkerChanged());
+        assertEquals(0, marker.retargetObjectiveChanged());
+
+        String clearDirective = directive("ACTIVE", 150, 6);
+        String changedKind = physicalPerspectiveV7(150, 12f, 12f, 1,
+                4, null, false, 1, 0, clearDirective,
+                action("TRACK_ADVANCE", 0));
+        var assignment = analyzeSecure(String.join("\n",
+                schemaSevenHeader(),
+                physicalPerspectiveV7(75, 10f, 10f, 1, 0), changedKind,
+                timeout(225), ""));
+        assertEquals(1, assignment.retargetExits());
+        assertEquals(1, assignment.retargetAssignmentChanged());
+        assertEquals(0, assignment.retargetUnclassified());
     }
 
     @Test
@@ -528,6 +556,12 @@ class CommandTraceAnalyzerTest {
         assertEquals(1, loss.squadLossExits());
         assertEquals(0, loss.releaseExits(),
                 "a dead own-squad row outranks its missing command action");
+        assertEquals(List.of(148), loss.squadLossLastDistancesDecicells());
+        assertEquals(List.of(0),
+                loss.squadLossApproachProgressBasisPoints());
+        assertEquals(1, loss.squadLossLocationsObserved());
+        assertEquals(0, loss.squadLossLocationsUnknown());
+        assertEquals(1, loss.squadLossWithUnknownTrack());
 
         String forming = physicalPerspectiveV7(150, 10f, 10f, 1,
                 4, "FORMING_UP", false, 0, 0, secureDirective(),
@@ -539,6 +573,39 @@ class CommandTraceAnalyzerTest {
         assertEquals(2, suspension.episodesStarted());
         assertEquals(1, suspension.executionSuspensionExits());
         assertEquals(1, suspension.timeoutExits());
+    }
+
+    @Test
+    void secureTravelLossUsesLastAlivePublishedFrontContext()
+            throws Exception {
+        String dead = physicalPerspectiveV7(150, 0f, 0f, 1,
+                0, null, false, 0, 0, secureDirective(), "");
+
+        String localStart = physicalPerspectiveV7(75, 10f, 10f, 1,
+                4, null, true, 0, 0, secureDirective(),
+                secureAction("COMPOUND_CAPTURE_PRESERVED", 5, 20, 20));
+        var local = analyzeSecure(String.join("\n", schemaSevenHeader(),
+                localStart, dead, timeout(225), ""));
+        assertEquals(1, local.squadLossAtLocalContact());
+
+        String believedStart = physicalPerspectiveV7(75, 10f, 10f, 1, 0)
+                .replace("\"tracks\":[]", "\"tracks\":[{\"index\":0,"
+                        + "\"effectiveLiveMembers\":4,"
+                        + "\"knownHostileContacts\":2,"
+                        + "\"knownHostileFrontProgress\":0.5}]");
+        var believed = analyzeSecure(String.join("\n", schemaSevenHeader(),
+                believedStart, dead, timeout(225), ""));
+        assertEquals(1, believed.squadLossWithTrackBeliefOnly());
+
+        String clearStart = believedStart
+                .replace("\"knownHostileContacts\":2",
+                        "\"knownHostileContacts\":0")
+                .replace("\"knownHostileFrontProgress\":0.5",
+                        "\"knownHostileFrontProgress\":-1");
+        var clear = analyzeSecure(String.join("\n", schemaSevenHeader(),
+                clearStart, dead, timeout(225), ""));
+        assertEquals(1, clear.squadLossWithoutPublishedContact());
+
     }
 
     @Test
