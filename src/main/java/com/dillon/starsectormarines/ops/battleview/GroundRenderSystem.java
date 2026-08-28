@@ -54,9 +54,9 @@ public final class GroundRenderSystem implements RenderSystem {
     private static final float CROSSWALK_ALPHA       = 0.85f;
     private static final float CROSSWALK_INSET_FRAC  = 0.08f;
 
-    /** Shared-edge windows are seams between cells, not miniature wall cells. */
-    private static final float EDGE_WINDOW_FRAME_THICKNESS_FRAC = 0.10f;
-    private static final float EDGE_WINDOW_GLASS_THICKNESS_FRAC = 0.04f;
+    /** Visual width is deliberately larger than the mathematical navigation edge. */
+    private static final float EDGE_WINDOW_FRAME_THICKNESS_FRAC = 0.30f;
+    private static final float EDGE_WINDOW_GLASS_THICKNESS_FRAC = 0.12f;
     private static final float EDGE_WINDOW_END_INSET_FRAC = 0.08f;
 
     private static final int GROUND_TILE_EDGE_INSET_PX       = FixedGridTileDrawer.GROUND_INSET_PX_LARGE;
