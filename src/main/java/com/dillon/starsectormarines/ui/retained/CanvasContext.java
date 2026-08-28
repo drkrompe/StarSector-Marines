@@ -49,6 +49,15 @@ public abstract class CanvasContext {
         drawFillRect(x, y, width, height, requireColor(color));
     }
 
+    /** Fills one arbitrary quad in canvas-local coordinates. */
+    public final void fillQuad(float x0, float y0, float x1, float y1,
+                               float x2, float y2, float x3, float y3,
+                               Color color) {
+        requireFinite(x0, y0, x1, y1, x2, y2, x3, y3);
+        drawFillQuad(x0, y0, x1, y1, x2, y2, x3, y3,
+                requireColor(color));
+    }
+
     public final void strokeRect(float x, float y, float width, float height,
                                  Color color, float strokeWidth) {
         requireRect(x, y, width, height);
@@ -112,6 +121,10 @@ public abstract class CanvasContext {
     }
 
     protected abstract void drawFillRect(float x, float y, float width, float height,
+                                         Color color);
+
+    protected abstract void drawFillQuad(float x0, float y0, float x1, float y1,
+                                         float x2, float y2, float x3, float y3,
                                          Color color);
 
     protected abstract void drawLine(float x1, float y1, float x2, float y2,
