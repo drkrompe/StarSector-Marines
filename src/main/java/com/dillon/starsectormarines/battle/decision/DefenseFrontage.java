@@ -218,6 +218,12 @@ public final class DefenseFrontage {
             if (!grid.inBounds(outX, outY) || !grid.inBounds(inX, inY)) continue;
             if (!grid.isWalkable(inX, inY) || !inside.contains(graph.zoneIdAt(inX, inY))) continue;
             if (!grid.isWalkable(outX, outY) || inside.contains(graph.zoneIdAt(outX, outY))) continue;
+            // A doorway cell is its own singleton zone and so is excluded from
+            // the held set — which would otherwise make the far half of every
+            // interior door pair look like it opened onto unheld ground. An
+            // aperture has to open onto real ground. Gates are unaffected: the
+            // gate cell is the doorway, and what it opens onto is the street.
+            if (grid.isDoorway(outX, outY)) continue;
             if (found != null) return null;
             found = facing;
         }
