@@ -16,16 +16,16 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Pins the durability bar's geometry contract, its shared armor/structure scale,
- * and its ownership coding. No GL and no simulation — {@link DurabilityBarDecor}
- * emits into a plain {@link DrawList}, so the emitted {@code SOLID_RECT}s are the
- * whole observable surface.
+ * Pins the durability bar's geometry contract, its per-pool notch scales, and its
+ * ownership coding. No GL and no simulation — {@link DurabilityBarDecor} emits into
+ * a plain {@link DrawList}, so the emitted {@code SOLID_RECT}s are the whole
+ * observable surface.
  *
- * <p>Assertions are structural (which rows a band occupies, where one material
- * hands off to the next, how many dividers survive) rather than a pinned palette:
- * the design owns the exact hues, but "armor and structure drain one continuous
- * run on one absolute scale" and "the four allegiances stay distinguishable" are
- * contracts a future restyle must keep.
+ * <p>Assertions are structural (which rows a pool occupies, how far its fill runs
+ * against its own maximum, how many dividers survive) rather than a pinned palette:
+ * the design owns the exact hues, but "each pool fills its own row on its own
+ * scale" and "the four allegiances stay distinguishable" are contracts a future
+ * restyle must keep.
  */
 public class DurabilityBarDecorTest {
 
@@ -84,19 +84,34 @@ public class DurabilityBarDecorTest {
         return emitted.get(0);
     }
 
-    /** The drained track, painted before either material. */
-    private static Rect track(List<Rect> emitted) {
+    /** The structure row's drained track — the first rect after the plate. */
+    private static Rect structureTrack(List<Rect> emitted) {
         return emitted.get(1);
     }
 
-    /**
-     * Segment dividers are the only rects repainting the plate color at the
-     * divider's own opacity, so color identifies them without pinning an index.
-     */
-    private static List<Rect> dividers(List<Rect> emitted) {
-        Rect plate = plate(emitted);
+    /** Every rect sharing the given track's rows, the track included. */
+    private static List<Rect> rowOf(List<Rect> emitted, Rect track) {
         return emitted.stream()
-                .skip(1)
+                .filter(rect -> rect.y0() >= track.y0() && rect.y1() <= track.y1())
+                .toList();
+    }
+
+    /** The armor row's drained track — the first rect painted above the structure row. */
+    private static Rect armorTrack(List<Rect> emitted) {
+        float structureTop = structureTrack(emitted).y1();
+        return emitted.stream()
+                .filter(rect -> rect.y0() > structureTop)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("no armor row was painted"));
+    }
+
+    /**
+     * Notch dividers are the only rects repainting the plate color at the divider's
+     * own opacity, so color identifies them without pinning an index.
+     */
+    private static List<Rect> dividers(List<Rect> emitted, Rect track) {
+        Rect plate = plate(emitted);
+        return rowOf(emitted, track).stream()
                 .filter(rect -> rect.sameColorAs(plate) && rect.a() != plate.a())
                 .toList();
     }
@@ -117,7 +132,7 @@ public class DurabilityBarDecorTest {
         for (Allegiance owner : Allegiance.values()) {
             Rect plate = plate(emit(owner, 20f, 40f));
             assertEquals(BASE_Y, plate.y0(), 1e-4f, "plate bottom sits on baseY for " + owner);
-            assertEquals(BASE_Y + DurabilityBarDecor.height(owner), plate.y1(), 1e-4f,
+            assertEquals(BASE_Y + DurabilityBarDecor.height(owner, false), plate.y1(), 1e-4f,
                     "plate height matches the advertised height for " + owner);
             assertEquals(CX, (plate.x0() + plate.x1()) / 2f, 1e-4f,
                     "plate is centered on cx for " + owner);
@@ -125,111 +140,94 @@ public class DurabilityBarDecorTest {
     }
 
     @Test
-    void armorSharesTheStructureBandInsteadOfStackingAboveIt() {
-        List<Rect> bar = emit(Allegiance.ENEMY, TURRET_STRUCTURE, TURRET_STRUCTURE,
-                TURRET_ARMOR, TURRET_ARMOR);
-        Rect structure = bar.get(2);
-        Rect armor = bar.get(3);
+    void armorTakesItsOwnRowAboveStructureWithAGridlineBetween() {
+        for (Allegiance owner : Allegiance.values()) {
+            assertTrue(DurabilityBarDecor.height(owner, true)
+                            > DurabilityBarDecor.height(owner, false),
+                    "the armor row adds height for " + owner);
 
-        assertEquals(structure.y0(), armor.y0(), 1e-4f, "one band, not two");
-        assertEquals(structure.y1(), armor.y1(), 1e-4f, "one band, not two");
-        assertEquals(structure.x1(), armor.x0(), 1e-4f,
-                "armor continues from where structure ends — one uninterrupted run");
-        assertFalse(structure.sameColorAs(armor),
-                "the two materials stay tellable apart inside the shared band");
-        assertEquals(DurabilityBarDecor.height(Allegiance.ENEMY),
-                plate(emit(Allegiance.ENEMY, 20f, 40f)).y1() - BASE_Y, 1e-4f,
-                "carrying armor no longer makes the bar taller");
-    }
-
-    @Test
-    void bothMaterialsMeasureAgainstOneTotalDurabilityScale() {
-        List<Rect> bar = emit(Allegiance.ENEMY, TURRET_STRUCTURE, TURRET_STRUCTURE,
-                TURRET_ARMOR, TURRET_ARMOR);
-        Rect track = track(bar);
-        Rect structure = bar.get(2);
-        Rect armor = bar.get(3);
-
-        float total = TURRET_STRUCTURE + TURRET_ARMOR;
-        assertEquals(track.width() * (TURRET_STRUCTURE / total), structure.width(), 1e-3f,
-                "structure occupies its true share of total durability");
-        assertEquals(track.width() * (TURRET_ARMOR / total), armor.width(), 1e-3f,
-                "armor occupies its true share of total durability");
-        assertEquals(track.x1(), armor.x1(), 1e-3f,
-                "a fully intact entity fills its whole bar");
-    }
-
-    @Test
-    void damageDrainsTheOneRunRightToLeftThroughArmorThenStructure() {
-        float full = filledEdge(emit(Allegiance.ENEMY, TURRET_STRUCTURE, TURRET_STRUCTURE,
-                TURRET_ARMOR, TURRET_ARMOR));
-        float halfArmor = filledEdge(emit(Allegiance.ENEMY, TURRET_STRUCTURE, TURRET_STRUCTURE,
-                TURRET_ARMOR / 2f, TURRET_ARMOR));
-        float noArmor = filledEdge(emit(Allegiance.ENEMY, TURRET_STRUCTURE, TURRET_STRUCTURE,
-                0f, TURRET_ARMOR));
-        float halfStructure = filledEdge(emit(Allegiance.ENEMY, TURRET_STRUCTURE / 2f,
-                TURRET_STRUCTURE, 0f, TURRET_ARMOR));
-
-        assertTrue(full > halfArmor, "losing armor shortens the run");
-        assertTrue(halfArmor > noArmor, "losing the rest of the armor shortens it further");
-        assertTrue(noArmor > halfStructure, "structure loss keeps the same run shrinking");
-
-        List<Rect> stripped = emit(Allegiance.ENEMY, TURRET_STRUCTURE, TURRET_STRUCTURE,
-                0f, TURRET_ARMOR);
-        assertEquals(3 + dividers(stripped).size(), stripped.size(),
-                "a broken armor pool paints no armor rect at all");
-    }
-
-    /**
-     * Right edge of the filled run — armor's edge when it survives, structure's
-     * otherwise. Skips the dividers, which are laid over the band at the same rows
-     * a full-height material rect occupies.
-     */
-    private static float filledEdge(List<Rect> emitted) {
-        Rect plate = plate(emitted);
-        Rect track = track(emitted);
-        float edge = track.x0();
-        for (Rect rect : emitted.subList(2, emitted.size())) {
-            if (rect.sameColorAs(plate)) continue;
-            if (rect.y0() == track.y0() && rect.y1() == track.y1()) {
-                edge = Math.max(edge, rect.x1());
-            }
+            List<Rect> bar = emit(owner, TURRET_STRUCTURE, TURRET_STRUCTURE,
+                    TURRET_ARMOR, TURRET_ARMOR);
+            Rect structure = structureTrack(bar);
+            Rect armor = armorTrack(bar);
+            assertTrue(armor.y0() > structure.y1(),
+                    "the rows do not touch — a gridline separates them for " + owner);
+            assertEquals(structure.x0(), armor.x0(), 1e-4f, "both rows span the same width");
+            assertEquals(structure.x1(), armor.x1(), 1e-4f, "both rows span the same width");
+            assertEquals(BASE_Y + DurabilityBarDecor.height(owner, true),
+                    plate(bar).y1(), 1e-4f);
         }
-        return edge;
     }
 
     @Test
-    void segmentDividersCutTheBandOnOneAbsoluteScale() {
-        assertEquals(0, dividers(emit(Allegiance.ENEMY, 25f, 25f)).size(),
-                "a single-segment body carries no divider");
-        assertEquals(3, dividers(emit(Allegiance.ENEMY, 100f, 100f)).size(),
-                "100 durability at 25 per segment is cut three times");
-        assertEquals(3, dividers(emit(Allegiance.ENEMY, 40f, 40f, 60f, 60f)).size(),
-                "the scale spans both pools, not each separately");
+    void eachRowFillsAgainstItsOwnPoolRatherThanACombinedTotal() {
+        // Armor half spent, hull untouched: the structure row must still read full.
+        List<Rect> bar = emit(Allegiance.ENEMY, TURRET_STRUCTURE, TURRET_STRUCTURE,
+                TURRET_ARMOR / 2f, TURRET_ARMOR);
+        Rect structureTrack = structureTrack(bar);
+        Rect structureFill = bar.get(2);
+        Rect armorTrack = armorTrack(bar);
+        Rect armorFill = rowOf(bar, armorTrack).get(1);
 
-        // Every fifth divider is promoted, so a 250-point body shows eight minors
-        // plus one major.
-        List<Rect> emplacement = emit(Allegiance.ENEMY, 100f, 100f, 150f, 150f);
-        List<Rect> ticks = dividers(emplacement);
-        assertEquals(9, ticks.size());
-        Rect band = track(emplacement);
-        long majors = ticks.stream().filter(t -> t.y0() == band.y0()).count();
-        assertEquals(1, majors, "one full-height divider every five segments");
+        assertEquals(structureTrack.width(), structureFill.width(), 1e-3f,
+                "an untouched hull reads full however much armor is gone");
+        assertEquals(armorTrack.width() / 2f, armorFill.width(), 1e-3f,
+                "the armor row measures armor against armor");
+        assertFalse(structureFill.sameColorAs(armorFill),
+                "the two materials stay tellable apart between rows");
+    }
+
+    @Test
+    void theTwoPoolsAreNotchedOnTheirOwnScales() {
+        // 100 structure at 25 a notch is cut three times; 100 armor at 50 once.
+        List<Rect> bar = emit(Allegiance.ENEMY, 100f, 100f, 100f, 100f);
+        assertEquals(3, dividers(bar, structureTrack(bar)).size(),
+                "structure notches are the finer scale");
+        assertEquals(1, dividers(bar, armorTrack(bar)).size(),
+                "armor notches are the coarser scale, because armor pools run larger");
+
+        // Every fifth divider is promoted, so a 250-point structure row shows eight
+        // minors plus one major.
+        List<Rect> emplacement = emit(Allegiance.ENEMY, 250f, 250f);
+        Rect track = structureTrack(emplacement);
+        List<Rect> notches = dividers(emplacement, track);
+        assertEquals(9, notches.size());
+        assertEquals(1, notches.stream().filter(n -> n.y0() == track.y0()).count(),
+                "one full-height divider every five notches");
     }
 
     @Test
     void aDividerTierTooDenseToReadIsDroppedWholeRatherThanSmeared() {
-        // A heavy mech's 1500 points cannot show 59 minors in 40px, but its majors
+        // A Bulwark's 550 structure cannot show 21 minors in 40px, but its majors
         // still fit — density becomes the magnitude cue.
         List<Rect> mech = emit(Allegiance.PLAYER, 550f, 550f, 950f, 950f);
-        List<Rect> ticks = dividers(mech);
-        Rect band = track(mech);
-        assertEquals(11, ticks.size(), "only the major tier survives at this density");
-        assertTrue(ticks.stream().allMatch(t -> t.y0() == band.y0()),
+        Rect track = structureTrack(mech);
+        List<Rect> notches = dividers(mech, track);
+        assertEquals(4, notches.size(), "only the major tier survives at this density");
+        assertTrue(notches.stream().allMatch(n -> n.y0() == track.y0()),
                 "every surviving divider is a major");
 
-        assertTrue(dividers(emit(Allegiance.ENEMY, 1_000_000f, 1_000_000f)).isEmpty(),
+        List<Rect> absurd = emit(Allegiance.ENEMY, 1_000_000f, 1_000_000f);
+        assertTrue(dividers(absurd, structureTrack(absurd)).isEmpty(),
                 "an absurd pool drops both tiers instead of drawing a solid smear");
+    }
+
+    @Test
+    void aSurvivingSliverStaysVisibleAndAnEmptyPoolKeepsItsTrack() {
+        List<Rect> dead = emit(Allegiance.ENEMY, 0f, 100f);
+        List<Rect> sliver = emit(Allegiance.ENEMY, 0.05f, 100f);
+        assertEquals(dead.size() + 1, sliver.size(),
+                "an empty pool paints its track and notches but no fill");
+        assertTrue(sliver.get(2).width() >= 1f,
+                "a nearly-dead unit still shows at least one pixel of structure");
+
+        List<Rect> broken = emit(Allegiance.ENEMY, TURRET_STRUCTURE, TURRET_STRUCTURE,
+                0f, TURRET_ARMOR);
+        Rect armorTrack = armorTrack(broken);
+        assertEquals(armorTrack.width(), armorTrack.x1() - armorTrack.x0(), 1e-4f);
+        assertTrue(rowOf(broken, armorTrack).stream()
+                        .noneMatch(rect -> rect.sameColorAs(broken.get(2))),
+                "a stripped armor row keeps its empty notches and paints no fill");
     }
 
     @Test
@@ -242,11 +240,11 @@ public class DurabilityBarDecorTest {
         assertEquals(Allegiance.values().length, hues.size(),
                 "no two allegiances share a structure hue");
 
-        assertTrue(DurabilityBarDecor.height(Allegiance.PLAYER)
-                        > DurabilityBarDecor.height(Allegiance.ENEMY),
+        assertTrue(DurabilityBarDecor.height(Allegiance.PLAYER, false)
+                        > DurabilityBarDecor.height(Allegiance.ENEMY, false),
                 "the player's own bar is the thickest thing on the field");
-        assertTrue(DurabilityBarDecor.height(Allegiance.NEUTRAL)
-                        < DurabilityBarDecor.height(Allegiance.ENEMY),
+        assertTrue(DurabilityBarDecor.height(Allegiance.NEUTRAL, false)
+                        < DurabilityBarDecor.height(Allegiance.ENEMY, false),
                 "non-combatants read quieter than combatants");
         assertTrue(plate(emit(Allegiance.NEUTRAL, 40f, 40f)).width()
                         < plate(emit(Allegiance.ENEMY, 40f, 40f)).width(),
@@ -310,6 +308,10 @@ public class DurabilityBarDecorTest {
                 CX, BASE_Y, WIDTH, 0f, 0f, 1f);
         assertEquals(0, noPool.count(RenderLayer.UNITS),
                 "an entity with no authored structure has nothing to gauge");
+
+        assertEquals(emit(Allegiance.ENEMY, 40f, 40f).size(),
+                emit(Allegiance.ENEMY, 40f, 40f, 0f, 0f).size(),
+                "an authored-armorless entity gets no armor row");
     }
 
     @Test

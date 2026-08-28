@@ -106,7 +106,7 @@ public final class DurabilityBarSnapshotSuite implements SnapshotSuite {
         Graphics2D g = sheet.createGraphics();
         configure(g);
         paintChrome(g, width, height, "Durability bars — ownership coding",
-                "one band, armor draining ahead of structure; "
+                "a row per pool, armor over structure; "
                         + EMPLACEMENT.label() + " at " + ZOOM + "x over true scale");
         paintColumnHeads(g, cellW, DRAINS.stream().map(Drain::label).toList());
 
@@ -133,10 +133,10 @@ public final class DurabilityBarSnapshotSuite implements SnapshotSuite {
         Graphics2D g = sheet.createGraphics();
         configure(g);
         paintChrome(g, width, height, "Durability bars — magnitude by segment density",
-                "one divider per " + (int) DurabilityBarDecor.SEGMENT_UNIT
-                        + " durability, full height every "
-                        + DurabilityBarDecor.MAJOR_EVERY_SEGMENTS
-                        + "; the scale is the same for every unit");
+                "notches of " + (int) DurabilityBarDecor.STRUCTURE_NOTCH + " structure and "
+                        + (int) DurabilityBarDecor.ARMOR_NOTCH + " armor, full height every "
+                        + DurabilityBarDecor.MAJOR_EVERY_NOTCHES
+                        + "; each scale is the same for every unit");
         paintColumnHeads(g, cellW, List.of("intact", "armor stripped", "structure failing"));
 
         float[] states = {1f, 0.42f, 0.18f};
@@ -170,7 +170,8 @@ public final class DurabilityBarSnapshotSuite implements SnapshotSuite {
      */
     private static void paintBar(Graphics2D g, Allegiance owner, Profile profile,
                                  float remaining, int originX, int baselineY, int scale) {
-        // Damage takes armor before structure, which is what the bar draws.
+        // Damage takes armor before structure, so a single "remaining" figure still
+        // produces the pool pair a real fight would show.
         float pool = profile.total() * remaining;
         float armor = Math.min(profile.maxArmor(), Math.max(0f, pool - profile.maxStructure()));
         float structure = Math.max(0f, pool - armor);
