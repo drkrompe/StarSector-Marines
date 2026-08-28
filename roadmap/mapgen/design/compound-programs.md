@@ -7,8 +7,9 @@ Written: 2026-08-28
 
 Updated: 2026-08-28 — the Conquest fortress ward now packs, furnishes and berths
 from its own program, so steps 2 to 4 are shipped for that family; its buildings
-now author their walls and keep them out of the street, and the wall stamper no
-longer demolishes the ward it encloses. Step 1 — a compound sized to hold what it
+now author their walls and keep them out of the street, the wall stamper no
+longer demolishes the ward it encloses, and the ward bounds how far its
+buildings may be glued together. Step 1 — a compound sized to hold what it
 owes — remains the open piece, and is still what blocks the hangar in an ordinary
 military base.
 
@@ -91,24 +92,32 @@ start being drawn around a fortress.
 Counted 2026-08-28 over eight seeds, packing the garrison program (1256 cells of
 building floor) into envelopes scaled from it.
 
-| Ground per cell of floor | Envelope | Worst unplaced | Largest untouched square |
+| Ground per cell of floor | Envelope | Unplaced over the sweep | Largest untouched square |
 |---|---|---|---|
-| 1.8 | 60x45 | 8 | 14 |
-| 2.0 | 64x48 | 1 | 11 |
-| **2.2** | **67x50** | **0** | **14** |
-| 2.6 | 72x54 | 0 | 20 |
-| 3.0 | 76x57 | 0 | 25 |
+| 2.0 | 68x51 | 8 | 16 |
+| 2.2 | 72x54 | 7 | 16 |
+| **2.4** | **75x56** | **0** | **17** |
+| 2.6 | 77x58 | 0 | 17 |
+| 2.8 | 80x60 | 0 | 23 |
+| 3.0 | 83x62 | 0 | 25 |
 
-Two things follow, and the second was a surprise. There is a real floor at about
-2.2 — below it the program genuinely does not fit, because each building carries
-a wall ring and the roadways between them are two cells wide. And **too much
-ground is a defect in its own right**: the packer scores a position by how
+Two things follow, and the second was a surprise. There is a real floor — below
+it the program genuinely does not fit, because each building carries a wall ring,
+the roadways between them are two cells wide, and the ward keeps yard between
+neighbours. And **too much ground is a defect in its own right**: the packer scores a position by how
 tightly it wedges against something solid, and at the start the only solid thing
 is the envelope boundary, so an oversized envelope pins every building to the rim
 and leaves a hole in the middle that no tuning fills. The first fortress packed
 this way had a forty-cell void at its centre. Sizing the envelope from the
 program fixed it, which is the law arriving from the other direction: a place
 built from what it is for cannot be given arbitrary ground either.
+
+The table was re-measured when the ward stopped letting its buildings chain
+together, and the floor moved from 2.2 to 2.4. **A sizing ratio measured under
+one packing policy does not survive a change to it**: buildings held a cell
+apart need more ground than buildings glued into a slab, and the ratio that had
+been the tightest workable one left a building homeless the moment they were
+spaced.
 
 ## Leftover ground is the yard
 
@@ -196,6 +205,27 @@ therefore only stand where its ring still lands on ward ground. The ring
 carries the room's own ground beneath it, and its facades carry windows: a wall
 is not only a mask, and a garrison building with no apertures is defensible only
 from its doorway.
+
+**A garrison stands on ground, so its buildings may not be glued into a wall.**
+Packing scores a position by how tightly it wedges against something solid,
+which inside a hull is right — a void between two compartments is wasted
+displacement. On open ground the same reward chains every building into one
+slab, and nothing the packer checks notices: each room still has its door and
+its route, so the packing is correct by every test it applies. What it cannot
+see is the cost of crossing the place. Measured at production proportions, the
+chaining ran sixty-six cells of unbroken wall across a hundred-and-twenty-six
+cell ward and blocked the whole of its twenty-eight-cell depth; the ward now
+charges a building for wall it lays against a neighbour's, and the worst run
+falls to forty-five across and eighteen through — eighteen being one vehicle
+shed, which is the shortest wall a ward with a vehicle shed can have. Buildings
+left over across the sweep fall from seven to one at the same time, because a
+slab wastes the ground it encloses.
+
+The charge is a price rather than a ban, and it counts abutment as well as
+sharing. A ban costs placements, and a room that cannot be placed at all is
+worse than a room placed against its neighbour. Counting only shared cells
+measures the wrong thing: two rooms standing back to back make a wall two cells
+thick and share nothing, and it is exactly as impassable as one they share.
 
 Demolition carries obligations the ward discovered the hard way, in both
 directions. A stage that replaces what an earlier one built must take out what
