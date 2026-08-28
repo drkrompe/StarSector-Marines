@@ -318,6 +318,12 @@ knows what a crate looks like. Making every prop a work point is its own failure
 — a technician solemnly tending a scrap pile reads as purpose, which is worse
 than reading as scenery.
 
+It sits on the member of a group that actually affords it, not on the group. A
+mess is a table with chairs round it and the meal is at a chair: published at the
+table it would be one place to sit at the fixture four people sit at. The same
+rule keeps a range's arms racks as scenery — drawing weapons is the armory's
+work, and no role aboard yet spends a watch on a range.
+
 Each usable affordance publishes one exclusive **task point**: a cell *beside*
 the fixture, since nobody stands inside a workbench, reserved as circulation so
 later furniture cannot take it back. Exclusive means one point per cell, not one
@@ -397,6 +403,11 @@ every part of a compartment is either a fixture group, a circulation lane, or
 deliberately clear for a stated tactical reason such as a firing lane or a
 weapons-free approach to a hatch. Emptiness is allowed when it is argued for and
 is a defect when it is merely left over.
+
+A firing range is the standing example of the argued case, and the only room so
+far whose empty deck *is* the room. The stretch between the firing line and the
+butts is marked, reserved before anything is placed, and kept clear of fixtures
+in both directions — nothing may stand in it, and nothing may open onto it.
 
 Density varies on purpose. Work areas are dense and cluttered; transit is clear
 and legible; the boundary between them is visible from the fixtures alone,
@@ -568,6 +579,19 @@ it is presentation-only by charter. The tactical articulation of a bay is a
     neighbouring slot took a second rack the fitting had already laid a bunk in
     — in a different place on every deck, which is the failure authored doors
     exist to end.
+
+22. **A pose set is a cost, and the mask is what decides whether it is worth
+    paying.** Turns are deduplicated by the footprint they produce, so a
+    rectangle has two distinct poses and an L has four. A room whose
+    arrangement needs to face a direction its mask cannot reach must be
+    **handed** and take all eight — a berth is entered from one side, and
+    without the flips could only ever be entered from two of its four. A room
+    whose mask already reaches every direction gains only chirality, and
+    chirality is not free: making the firing range handed let the
+    second-largest room on the deck take a mirrored pocket, and cost one seed
+    in three twenty-one of its programmed rooms, eighteen of them berths, with
+    parts cages backfilled into the space. Author the flips for the
+    arrangement, never for the room merely having a front and a back.
 
 ## Boundaries
 

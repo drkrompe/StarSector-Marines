@@ -128,6 +128,24 @@ public final class CompartmentFloor {
                 Math.abs(near[0] - far[0]) + 1, Math.abs(near[1] - far[1]) + 1 };
     }
 
+    /**
+     * Whether the compartment covers this cell of the fitting's canonical frame.
+     *
+     * <p>For the arrangements that are decided by the room's own outline rather
+     * than by its bounding box. A firing range is an L because the ready end is
+     * deeper than the lanes, and where it stops being deep is where the firing
+     * line goes — so the fitting reads that off the footprint instead of being
+     * told a number that would then have to be kept in step with the recipe.
+     */
+    public boolean contains(int along, int across) {
+        if (along < 0 || across < 0
+                || along >= canonicalWidth() || across >= canonicalHeight()) {
+            return false;
+        }
+        int[] cell = toLocal(along, across);
+        return compartment.shape().contains(cell[0], cell[1]);
+    }
+
     /** How many fixtures this fitting has placed, which is the compartment's capacity. */
     public int placedFixtures() {
         return placed;
