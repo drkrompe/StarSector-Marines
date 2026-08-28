@@ -65,6 +65,17 @@ public final class PolyMesh {
     /** Package-private vertex readback (corner 0..3, y-coord) — for same-package tests. */
     float vertY(int quad, int corner) { return data[quad * FLOATS_PER_QUAD + corner * 2 + 1]; }
 
+    /** Read-only vertex X for non-GL drains. */
+    public float vertexX(int quad, int corner) { return vertX(quad, corner); }
+
+    /** Read-only vertex Y for non-GL drains. */
+    public float vertexY(int quad, int corner) { return vertY(quad, corner); }
+
+    public float red(int quad) { return data[quad * FLOATS_PER_QUAD + 8]; }
+    public float green(int quad) { return data[quad * FLOATS_PER_QUAD + 9]; }
+    public float blue(int quad) { return data[quad * FLOATS_PER_QUAD + 10]; }
+    public float alpha(int quad) { return data[quad * FLOATS_PER_QUAD + 11]; }
+
     /** Replay every queued quad into {@code batch} (the drain's shared solid-fill batch). */
     void appendTo(SolidQuadBatch batch) {
         for (int i = 0; i < quadCount; i++) {

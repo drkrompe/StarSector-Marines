@@ -79,7 +79,7 @@ class ZoneGraphIncrementalTest {
             // Random interior walkability (border stays solid) → a percolation of rooms + walls.
             for (int y = 1; y < h - 1; y++) {
                 for (int x = 1; x < w - 1; x++) {
-                    if (rng.nextInt(100) < 62) g.setWalkable(x, y, true);
+                    if (rng.nextInt(100) < 62) g.setWalkableFloor(x, y);
                     if (g.isWalkable(x, y) && rng.nextInt(100) < 6) g.setDoorway(x, y, true);
                 }
             }
@@ -106,7 +106,7 @@ class ZoneGraphIncrementalTest {
         // fold via a full rebuild and reset them — so dead never runs away toward the slot count.
         int w = 15, h = 15;
         NavigationGrid g = new NavigationGrid(w, h);
-        for (int y = 0; y < h; y += 2) for (int x = 0; x < w; x += 2) g.setWalkable(x, y, true);
+        for (int y = 0; y < h; y += 2) for (int x = 0; x < w; x += 2) g.setWalkableFloor(x, y);
         ZoneGraph inc = built(g);
         List<int[]> bridges = new ArrayList<>();
         for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) {
@@ -143,11 +143,11 @@ class ZoneGraphIncrementalTest {
     }
 
     private static void room(NavigationGrid g, int x0, int y0, int x1, int y1) {
-        for (int y = y0; y <= y1; y++) for (int x = x0; x <= x1; x++) g.setWalkable(x, y, true);
+        for (int y = y0; y <= y1; y++) for (int x = x0; x <= x1; x++) g.setWalkableFloor(x, y);
     }
 
     private static void doorway(NavigationGrid g, int x, int y) {
-        g.setWalkable(x, y, true);
+        g.setWalkableFloor(x, y);
         g.setDoorway(x, y, true);
     }
 
@@ -158,7 +158,7 @@ class ZoneGraphIncrementalTest {
     private static void breachBatch(NavigationGrid g, ZoneGraph inc, int[][] cells) {
         int[] opened = new int[cells.length];
         for (int i = 0; i < cells.length; i++) {
-            g.setWalkable(cells[i][0], cells[i][1], true);
+            g.setWalkableFloor(cells[i][0], cells[i][1]);
             opened[i] = g.index(cells[i][0], cells[i][1]);
         }
         inc.applyCellsOpened(opened);
