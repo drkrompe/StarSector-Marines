@@ -4,7 +4,8 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — added the Conquest fortress ward, family-neutral room
+Updated: 2026-08-28 — added the Conquest fortress ward, packed walls as authored
+rather than left over, family-neutral room
 fittings, and the obligations a replacing stage carries; shipped
 shared-edge windows for Conquest bunkers and ordinary building shells,
 widened compound firing aprons while preserving functional parcel members,
@@ -209,12 +210,29 @@ likewise a map fact rather than a shipboard one — a fortress vehicle shed
 publishes the same berths a mech bay does, and what occupies one remains the
 host's decision from a roster.
 
+**A wall is left over on a hull and authored on a map.** A packer carves a
+room's floor and leaves the ring around it alone, which is the whole of a
+bulkhead inside a vessel: a void in a hull is structure, and nothing has to say
+so. On a map it is not. Ground reads as wall only where the cell names which of
+its faces are outside, so an unauthored ring falls through to the blank fill
+meant for a cell buried inside a wall mass — a building with no wall on any
+face, standing as an invisible obstruction with its furniture apparently in the
+open. A host that packs rooms onto a map authors the wall its packing implies,
+and gives that wall ground to stand on: a floor laid flush to the edge of its
+envelope puts the ring outside it, on ground the host does not own and may not
+close.
+
 A stage that replaces what an earlier stage built owns everything the earlier one
 recorded, not only what it drew: decorative placements, points of interest,
 tactical nodes, and authored shared-edge identities all belong to the ground being
 replaced. Because an edge carries exactly one authored identity, a leftover
 window is not merely scenery whose building is gone — it is an edge the next
-stage cannot author on.
+stage cannot author on. The obligation runs the other way as well: a stage that
+clears ground to make room for its own must be told what it may not clear.
+Keeping the fortress wall's route out of the ward is only half of not destroying
+it, since the same stage demolishes whole buildings that stray into its sweep,
+and a garrison shed is indistinguishable from a tenement once both are only
+joined-up interior floor.
 
 Station recipes compose a chosen layout, partitioning, room carving, corridors,
 spawn placement, station-topology analysis, tactical linking, and finalization.
