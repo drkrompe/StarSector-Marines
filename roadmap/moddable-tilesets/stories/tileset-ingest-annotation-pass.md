@@ -1,10 +1,10 @@
 # Tileset Ingest and Annotation Pass
 
-Status: In progress — chunks 1-2 landed
+Status: In progress — chunks 1-3 landed
 
 Written: 2026-08-28
 
-Updated: 2026-08-28 — the pass persists and reconciles, and walls and corners export as packed blocks; raw/packed separation and hints remain.
+Updated: 2026-08-28 — the pass persists and reconciles, walls and corners export as packed blocks, and raw inputs left `mod/`; hints and the catalog card remain.
 
 Read `moddable-tilesets-nouns.md` before changing this story.
 
@@ -144,10 +144,18 @@ resolves every facing to the intended art, and whose enclosed case falls to
 
 ### 3. Raw and packed separation
 
-`mod/graphics/tilesets/imagegen-source/` moves to `art-source/tilesets/`, with
-its normalization and packing scripts. Path references are updated. A test
+Raw sheets, ImageGen masters and their derivation scripts move to
+`art-source/`. This turned out to be about 50 MB across three directories rather
+than the one this story first named — `mod/graphics/doodads/imagegen-raw/` alone
+is 33 MB. Every moved script addresses its outputs from the repository root
+instead of from a sibling, so the move cannot silently retarget a write. A test
 asserts that no raw input remains under `mod/`, so the boundary is enforced
 rather than remembered.
+
+Left in place: the build scripts under `mod/graphics/battle/*/` and
+`mod/graphics/doodads/stitch_atlas.py`, which derive shipped art from shipped art
+and are not pre-pack input. Relocating them means auditing the mech, marine and
+alien pipelines and is its own task.
 
 Acceptance: `deployMod` copies no `.raw.png` and no authoring document into the
 Starsector mods directory, and the existing tilesets still load unchanged.
