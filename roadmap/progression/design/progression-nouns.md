@@ -4,7 +4,10 @@ Status: ACTIVE — cross-tier quality, kit, career evidence, and legibility cont
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — a running integral system became visible on the battlefield: the running-system treatment, drawn as the arc it protects.
+Updated: 2026-08-28 — perception joined movement and payload as a shipped
+integral-system effect, as the Janus aperture read landed as a bounded,
+player-facing reveal; and a running integral system became visible on the
+battlefield as the running-system treatment, drawn as the arc it protects.
 
 ## Purpose
 
@@ -569,6 +572,41 @@ suit cannot borrow a policy written for a grenade and a grenade cannot borrow
 one written for a suit. Both refusals name the policies that would have applied,
 in the style the armour catalog already uses to refuse durability keys.
 
+**Perception is an effect, and it is player-facing by construction.** A sensor
+sweep is the third thing an integral system may be, beside movement-with-a-screen
+and a delivered payload. What it does is contribute a temporary observer to the
+player's own reveal for its authored window — the same shadowcast, the same
+reference count, and the same expiry a shuttle or a recon ping already gets
+(`fog-of-war-nouns.md`), so it is a client of player reveal composition rather
+than a second visibility path. It authors how far it reads and how far that read
+carries into the walls in front of it, and the wall tolerance is bounded strictly
+inside the range: a read that carried through walls as far as it carried through
+air would leave nothing for a wall to do at the rim of its own disc.
+
+A sweep is **information, not authority**. It reveals and does nothing else — it
+does not target, mark, follow, or make anything easier to hit, and no decision
+layer reads it, because fog of war is presentation authority and must never
+become a simulation input. That is also why the moment a sweep is spent at is
+judged from the wearer's own line of sight rather than from the reveal bitmap:
+a policy that read the fog would let what the player has already been shown
+decide what a marine does, which is the same law inverted. The consequence worth
+stating plainly is that a sweep confers no advantage the same information
+obtained by walking round the corner would not.
+
+The corollary is the rule this effect exists to keep: **whatever a sensor system
+finds, the player is shown.** A capability that fed better information to the AI
+and showed the player nothing would be exactly the hidden modifier the
+visible-issue law forbids, and a perception effect is unusually easy to build
+that way by accident. Building the reveal as a player-picture contribution and
+nothing else makes that true by construction rather than by discipline.
+
+**A sweep does not conceal.** Concealment is a separate capability belonging to
+the light/recon role behind its own contract (`powered-assault-armor-roles.md`),
+and a reveal path that recomputed rather than contributed would be the cheapest
+accidental route to it. A running sweep only ever adds to the picture; no cell
+that was open closes because of one, and the wearer is exactly as visible while
+it runs as they were before.
+
 An equipment presentation separates catalog art, actor-local carrier layers,
 deployed-world art, and preview state. Carrier transforms are authored in
 shoulder-width coordinates with carried/using states, pivot, occlusion,
@@ -989,6 +1027,12 @@ The following are direction, not current behavior:
 - A policy's parameters belong to that policy alone. Two systems declaring
   different policies share no numbers, and no parameter may be reachable from a
   policy that did not author it.
+- A perception effect reveals to the player. Feeding a decision layer something
+  the player is not shown is a hidden modifier, not a capability, and reading
+  the player's reveal back into a simulation decision is that law inverted.
+- A perception effect never conceals, marks, targets, or makes anything easier
+  to hit. Concealment belongs to the recon role and its own contract; a sweep
+  that acquired any of those has stopped being perception.
 - Defenders and the player draw a pattern's system from the same catalog entry.
   A defender-only tuning field, a second catalog, or a faction branch in the
   sweep is a defect: a recovered suit must behave identically to the one it was

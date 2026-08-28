@@ -1,11 +1,11 @@
 # Integral system slate
 
 Status: ACTIVE — direction for which patterns build a suit capability and what
-it should be. The breach family and the shoulder micro-missile pod are
-authored; the remaining individual systems are not.
+it should be. The breach family, the shoulder micro-missile pod, and the Janus
+sensor sweep are authored; the firing-platform brace is not.
 
 Written: 2026-08-28
-Updated: 2026-08-28 — the second first system shipped on `armor.aegis-composite`, chosen for its predictive-display flavor rather than to fill a faction grid slot.
+Updated: 2026-08-28 — the Janus sensor sweep shipped, leaving the line-suit brace as the only remaining candidate.
 
 Read `progression-nouns.md` for the standing rules an integral system must obey,
 `equipment-lore-catalog.md` for each pattern's provenance and deliberate limits,
@@ -84,11 +84,12 @@ suit is for.
 Not a family. Each is one capability on one named pattern, because that pattern
 is the one built for it.
 
-One is shipped:
+Two are shipped:
 
 | Pattern | Tradition | System | The character it buys |
 | --- | --- | --- | --- |
 | `armor.aegis-composite` | Tri-Tachyon | **Predictive volley** | The Specter's threat display is spent on evasion because breaching is what that suit is *for*; the Aegis is a line suit built to present a difficult firing solution rather than to cross a room, so its own display is spent the other direction — locking a shot instead of dodging one. A small salvo of `weapon.micro-missile` rounds, self-targeted, from a rack of two that does not refill. |
+| `armor.scout` | Tri-Tachyon (Janus) | **Aperture read** | The only system that changes nothing about a fight except what the player can see of it. One wide active return, spent when the scout is walking onto ground they cannot see into: it opens the room they are standing against and a short way past its nearer walls, and then the walls start working again. It costs a long recovery and buys no advantage that walking round the corner would not have bought. |
 
 That is a deliberate choice among three plausible homes. The faction lore
 guides put micro-missile support in Hegemony, League, and Tri-Tachyon
@@ -103,11 +104,10 @@ says "predictive threat displays" and "a difficult firing solution," which a
 self-selecting missile lock is a truer reading of than a dodge would be — the
 Specter already owns that half of "predictive."
 
-Two more are candidates, each gated on simulation work this doc doesn't own:
+One more is a candidate, gated on simulation work this doc doesn't own:
 
 | Pattern | Tradition | Candidate capability | Needs from the simulation |
 | --- | --- | --- | --- |
-| `armor.scout` | Tri-Tachyon (Janus) | **Sensor sweep** — the suit's integrated sensor and EW package spending itself on a brief, wide read of what is actually in the room. | A shared perception contract; bounded temporary vision that is not permanent sight. `perception-integral-systems.md`. |
 | `armor.line` or `armor.furnace-line` | Hegemony or Sindrian Diktat | **Brace** — a line suit planting as a firing platform: markedly steadier, and committed to standing there. | A stance with a real movement cost; accuracy as a timed effect. `firing-platform-integral-systems.md` picks whichever of the two the stance actually suits. |
 
 Holding ground moved to the line role once the assault heavies took breaching,
@@ -125,10 +125,11 @@ likely to be violated by a *capability* rather than by a stat are:
 
 - **Concealment is not a systems answer.** `powered-assault-armor-roles.md`
   places concealment with the light/recon role behind an explicit shared
-  perception contract. A Janus sweep reads the room; it does not hide the wearer.
-  `integral-armor-systems.md` already argued the breacher case at length — a room
-  that fails to react is indistinguishable from a room whose AI broke — and the
-  same reasoning applies to any suit that would go quiet.
+  perception contract. The Janus sweep reads the room; it does not hide the
+  wearer, and shipping the seeing half deliberately did not open a door to the
+  hiding half. `integral-armor-systems.md` already argued the breacher case at
+  length — a room that fails to react is indistinguishable from a room whose AI
+  broke — and the same reasoning applies to any suit that would go quiet.
 - **A Tri-Tachyon prediction system is not a hidden neural bonus.** The lore
   catalog says outright that no neural-interface faction bonus exists outside the
   suit. The Specter spends its prediction as a short, visible, expiring window;
@@ -158,7 +159,6 @@ screen, that screen spans the arc it actually protects (`progression-nouns.md`,
 presentation law). A new effect on this slate inherits that treatment by
 describing itself rather than by being added to a list.
 
-The two individual systems have stories of their own:
-`perception-integral-systems.md` and `firing-platform-integral-systems.md`.
-Neither is competing with the other, and a pattern not listed here is not
-waiting in a queue — it simply has nothing a capability would add.
+The one remaining individual system has a story of its own:
+`firing-platform-integral-systems.md`. A pattern not listed here is not waiting
+in a queue — it simply has nothing a capability would add.
