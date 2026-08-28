@@ -430,10 +430,23 @@ public final class TurretCatalogPreviewDocument {
             };
         }
 
+        /**
+         * Frame band for one particle kind on the shared 4x4 sheet: grey
+         * smoke occupies its first eight frames, orange fire the last eight.
+         *
+         * <p>Those indices are the opposite way round from the ones
+         * {@code ImpactFx} and {@code FlybyOverlay} name for the same sheet,
+         * and both are right: {@link CanvasSpriteRegion#frame} counts rows
+         * down from the top of the image, while Starsector's
+         * {@code SpriteAPI.setTexY} counts them up from the bottom of the
+         * texture. A preview document is drawn through the image-space
+         * renderer, so it reads the sheet the way a person looking at the
+         * file would.
+         */
         private ParticleSprite particleFrame(FxLayerKind kind, float age, float lifetime) {
             Sprite sheet = requiredSprite(scene.assets, PARTICLE_SHEET);
             int frame = Math.min(7, (int) (age / Math.max(0.001f, lifetime) * 8f));
-            int index = (kind == FxLayerKind.SMOKE ? 8 : 0) + frame;
+            int index = (kind == FxLayerKind.SMOKE ? 0 : 8) + frame;
             return new ParticleSprite(sheet, CanvasSpriteRegion.frame(4, 4, index));
         }
 

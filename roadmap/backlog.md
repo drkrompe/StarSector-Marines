@@ -40,6 +40,22 @@ ledger, code, tests, and Git.
   facts. Until that substrate exists, the map remains a non-load-bearing preview
   and cards retain every decision-critical fact.
 
+## Battle world
+
+- **Fire as a modeled hazard** — fire exists today only as particles: the
+  wreck plume, the impact flash, the fire half of the shared particle sheet.
+  Nothing burns. The sibling concept is already built and shipped, though —
+  smoke is a ref-counted, faction-neutral, expiring cell state on the
+  navigation grid that occludes sight and grades direct fire, which is exactly
+  the shape a fire hazard needs: cells that ignite, spread along something
+  fuel-like, damage what stands in them, expire, and emit the smoke that
+  already exists. It would land on `combat-durability`'s armor-and-structure
+  model as a damage-over-time source rather than inventing a second one, and
+  its smoke would price through `ballistics-nouns.md`'s obscuration rule for
+  free. Open questions are what carries fuel (terrain kind, doodads, wrecks),
+  whether anything extinguishes it, and whether AI must path around it —
+  that last one is what separates a hazard from a decoration.
+
 ## World and visual polish
 
 - **Planet pole treatment** — fade or tint near the poles to hide
