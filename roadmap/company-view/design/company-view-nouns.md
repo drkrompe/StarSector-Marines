@@ -300,6 +300,17 @@ the main region shows that squad's quarters and a twelve-billet muster without e
 Armory authoring controls. The room is casual company browsing, not a second roster or
 equipment authority.
 
+Barracks is also where a formation's **service record** is read. Each rail entry
+carries a one-line career summary so squads compare at a glance, and the selected
+squad's record opens as operations, confirmed kills, rounds on target, casualties,
+and friendly-fire damage. That last measure is reported rather than netted into
+damage dealt, because a squad being dangerous to stand near is part of who it is.
+The record is read-only evidence: `progression-nouns.md` forbids a career from
+becoming a combat input, so nothing shown here changes how the squad fights.
+A formation with no operations says so rather than rendering a row of zeroes, and
+zero states are spelled out in words because the heading face carries no
+placeholder dash glyph.
+
 The campaign roster holder establishes the one-time starting complement and reserve
 formation during game load. Company HQ, Barracks, and Fleet Armory therefore observe
 the same already-established company; visiting an authoring surface is never a
