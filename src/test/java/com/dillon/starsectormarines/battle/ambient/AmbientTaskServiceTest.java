@@ -293,6 +293,47 @@ class AmbientTaskServiceTest {
         }
     }
 
+    /**
+     * Yielding is stepping aside, not leaving the ship's books.
+     *
+     * <p>The failure this guards accumulates rather than crashes. A crew member
+     * released for a passing threat used to be released for good, so on a home
+     * deck — where the disturbance is routinely the crew's own live-fire range —
+     * marines dropped out of the ship's life one at a time and stood in the
+     * butts for the rest of the voyage.
+     */
+    @Test
+    void somebodyWhoStoodDownGoesBackToWorkOnceItIsQuiet() {
+        try (BattleSimulation simulation = simulation()) {
+            long worker = simulation.spawn(new EntitySpec(
+                    "worker", Faction.CIVILIAN, UnitType.ENGINEER, 2, 2)
+                    .role(UnitRole.FLEE));
+            simulation.ambientTasks().assign(worker, oneStop(
+                    AmbientActivity.WORKING, AmbientThreatPolicy.ANY_COMBATANT, 6f));
+            long stranger = simulation.spawn(new EntitySpec(
+                    "stranger", Faction.MARINE, UnitType.MARINE, 4, 2));
+
+            simulation.ambientTasks().advance(0f);
+            assertFalse(simulation.ambientTasks().isControlling(worker),
+                    "an armed stranger walked up and the worker carried on regardless");
+            assertTrue(simulation.ambientTasks().isStoodDown(worker),
+                    "the work was forgotten rather than set aside");
+
+            // The stranger leaves. Quiet has to last before work resumes, so one
+            // tick is deliberately not enough.
+            simulation.world().setPos(stranger, 40f, 40f);
+            simulation.ambientTasks().advance(0.5f);
+            assertFalse(simulation.ambientTasks().isControlling(worker),
+                    "the worker turned back to the bench the instant the radius cleared");
+
+            for (int tick = 0; tick < 30 * 8; tick++) simulation.ambientTasks().advance(1f / 30f);
+
+            assertTrue(simulation.ambientTasks().isControlling(worker),
+                    "the worker never went back to work after the stranger left");
+            assertFalse(simulation.ambientTasks().isStoodDown(worker));
+        }
+    }
+
     private static AmbientTaskRoute oneStop(
             AmbientActivity activity, AmbientThreatPolicy policy, float radius) {
         return new AmbientTaskRoute("test", 0f, 1f, radius, policy, List.of(
