@@ -43,6 +43,12 @@ public interface ExtractionPayloadObjective extends Objective {
     /** Current authoritative payload cell, or {@code -1} when not represented. */
     int payloadCellY();
 
+    /** Next authored corridor guide cell known to the owning side, or {@code -1}. */
+    default int corridorGuideCellX() { return -1; }
+
+    /** Next authored corridor guide cell known to the owning side, or {@code -1}. */
+    default int corridorGuideCellY() { return -1; }
+
     int initialElements();
 
     int activeElements();
