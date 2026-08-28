@@ -6,9 +6,11 @@ is not.
 Written: 2026-08-28
 
 Updated: 2026-08-28 — the Conquest fortress ward now packs, furnishes and berths
-from its own program, so steps 2 to 4 are shipped for that family. Step 1 — a
-compound sized to hold what it owes — remains the open piece, and is still what
-blocks the hangar in an ordinary military base.
+from its own program, so steps 2 to 4 are shipped for that family; its buildings
+now author their walls and keep them out of the street, and the wall stamper no
+longer demolishes the ward it encloses. Step 1 — a compound sized to hold what it
+owes — remains the open piece, and is still what blocks the hangar in an ordinary
+military base.
 
 Read `mapgen-nouns.md` for the recipe, context, stage, and validation
 obligations any of this inherits. `ship-interiors-nouns.md` owns the deck
@@ -161,7 +163,7 @@ lanes-before-fixtures and roll-back-rather-than-seal contracts.
 The Conquest fortress band now holds a **ward**: a program-sized rectangle laid
 out before the wall, packed from authored building footprints into three depth
 bands measured from the attacker's approach, furnished by the shared fittings,
-and opened as parade ground wherever packing left ground over. Three of its
+and opened as parade ground wherever packing left ground over. Four of its
 rules were learned by measurement rather than chosen, and each is a standing
 constraint rather than a tuning value.
 
@@ -182,12 +184,32 @@ to look about right came out at fifteen by nine, which the fitting could only
 answer with a single shallow bay before the fill was rolled back for sealing
 itself. Shed dimensions are arithmetic over the module, so they follow it.
 
-Demolition carries obligations the ward discovered the hard way. A stage that
-replaces what an earlier one built must take out what it recorded as well as
-what it drew — doodads, points of interest, tactical nodes, and the authored
-identities on shared edges. A window that outlives its building is scenery
-nobody can explain, and, because an edge carries exactly one authored identity,
-it is also an edge the next stage cannot build on.
+**A building's wall stands on ground, and the ward has to reserve it.** The
+envelope says where a floor may go, and the wall is the ring around that floor —
+ground the packing is told to leave alone rather than ground it asks for. A shed
+laid flush to the envelope's edge had its ring fall on the city street outside
+the ward, which the ward does not own and must not close, because the road graph
+published that street and a convoy is entitled to drive it. Nothing made those
+cells solid and the shed came out open along its whole sixteen-cell flank,
+walled by a pavement, with its bays and berths standing in the road. A floor may
+therefore only stand where its ring still lands on ward ground. The ring
+carries the room's own ground beneath it, and its facades carry windows: a wall
+is not only a mask, and a garrison building with no apertures is defensible only
+from its doorway.
+
+Demolition carries obligations the ward discovered the hard way, in both
+directions. A stage that replaces what an earlier one built must take out what
+it recorded as well as what it drew — doodads, points of interest, tactical
+nodes, and the authored identities on shared edges. A window that outlives its
+building is scenery nobody can explain, and, because an edge carries exactly one
+authored identity, it is also an edge the next stage cannot build on. And a
+stage that clears ground has to be told what it may not clear: keeping the wall's
+route out of the ward is only half of not destroying it, because the same stage
+demolishes any building straying into its sweep and takes the whole of it,
+however far it reaches. The clearance the ward reserves is measured from its
+band, and the wall lands where its route allows, so the two came out two cells
+apart and the flood ate a shed to its far corner — leaving parade ground with
+the fill still standing on it.
 
 ## What does not transfer
 

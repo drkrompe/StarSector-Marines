@@ -107,8 +107,11 @@ class FortressWardTest {
             for (int cell : zones.zoneById(zoneId).getCellIndices()) {
                 int x = cell % W;
                 int y = cell / W;
-                assertTrue(x >= node.left && x <= node.right
-                                && y >= node.top && y <= node.bottom,
+                // A standable window is cut into the room's one-cell ring,
+                // which may sit just outside the published interior bounds.
+                // Its shared-edge barrier still separates it from the yard.
+                assertTrue(x >= node.left - 1 && x <= node.right + 1
+                                && y >= node.top - 1 && y <= node.bottom + 1,
                         "packed strongpoint zone escapes its room at " + x + "," + y
                                 + ": " + node.kind + "@" + node.anchorX + ","
                                 + node.anchorY);
