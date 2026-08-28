@@ -7,6 +7,9 @@
  *           {@code BallisticResolver}, {@code ShotEvent}, {@code Projectile}),
  *           damage resolution ({@code DamageService},
  *           {@code DamageResolver}, {@code HitResponseSystem}),
+ *           the durability law and the screens that resolve inside it
+ *           ({@code DurabilityModel}, {@code MitigationService},
+ *           {@code MitigationSystem}),
  *           detonations, the shared chassis-weapon firing mechanism
  *           ({@code HeavyWeapons}), the fire-intent execution system
  *           ({@code FiringSystem} — consumes the {@code COMBAT} fire-intent

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.infantry;
 
+import com.dillon.starsectormarines.battle.combat.MitigationService;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
@@ -31,6 +32,8 @@ class IntegralSystemActivationTest {
     private static final float DURATION = 3f;
     private static final float COOLDOWN = 22f;
     private static final float BOOST = 1.45f;
+    private static final float RESISTANCE = 0.5f;
+    private static final float ARC = 120f;
     private static final float TICK = 0.1f;
 
     @Test
@@ -104,6 +107,45 @@ class IntegralSystemActivationTest {
             assertEquals(issued, roster.movement().moveSpeed(breacher), 1e-4f,
                     "run " + run + " should end back at the issued speed");
         }
+    }
+
+    /**
+     * The other half of the assist. The authored frontal resistance and arc are
+     * handed to combat durability as a screen, which owns the clock and the
+     * expiry from there — so the suit that was advertising protection is finally
+     * applying it.
+     */
+    @Test
+    void activatingRaisesTheAuthoredScreenAndExpiryDropsIt() {
+        UnitRosterService roster = roster();
+        long breacher = roster.spawn(marine().integralSystem(breacherAssist()));
+        IntegralSystemService systems = roster.integralSystems();
+        MitigationService screens = roster.mitigations();
+
+        assertTrue(screens.has(breacher), "the suit carries something that can raise a screen");
+        assertFalse(screens.isActive(breacher), "but nothing is up before it is spent");
+
+        assertTrue(systems.activate(breacher));
+
+        assertTrue(screens.isActive(breacher));
+        assertEquals(RESISTANCE, screens.fraction(breacher), 1e-6f);
+        assertEquals(ARC, screens.arcDegrees(breacher), 1e-6f);
+        assertEquals(DURATION, screens.remaining(breacher), 1e-6f,
+                "the screen runs exactly as long as the system does");
+
+        drain(systems, breacher, DURATION);
+
+        assertFalse(screens.isActive(breacher), "and leaves nothing behind");
+        assertEquals(0f, screens.fraction(breacher), 1e-6f);
+    }
+
+    /** A suit whose system only moves the wearer never acquires the capability at all. */
+    @Test
+    void aMovementOnlySuitCarriesNoScreen() {
+        UnitRosterService roster = roster();
+        long plain = roster.spawn(marine());
+
+        assertFalse(roster.mitigations().has(plain));
     }
 
     /** Death drops the live state with every other live-only component. */
@@ -215,7 +257,7 @@ class IntegralSystemActivationTest {
                 "system.test-assist", "Breaching assist", "Rams and a screen.",
                 IntegralSystemEffect.BREACHER_ASSIST, SpecialResourceMode.COOLDOWN,
                 DURATION, COOLDOWN, 0,
-                new BreacherAssistSpec(BOOST, 0.5f, 120f), null);
+                new BreacherAssistSpec(BOOST, RESISTANCE, ARC), null);
     }
 
     private static IntegralSystemDef missilePod() {

@@ -20,10 +20,13 @@ from typing import Any
 from PIL import Image
 
 
+# Raw art lives outside mod/, so the shipped folder never carries pre-pack
+# inputs. Outputs are addressed from the repository root rather than from
+# a sibling directory.
 HERE = Path(__file__).resolve().parent
-MOD_ROOT = HERE.parent.parent
+MOD_ROOT = HERE.parent.parent / "mod"
 DEFAULT_INPUT = HERE / "sources"
-DEFAULT_IMAGE = HERE / "doodads.png"
+DEFAULT_IMAGE = MOD_ROOT / "graphics" / "doodads" / "doodads.png"
 DEFAULT_MANIFEST = MOD_ROOT / "data" / "tilesets" / "doodads.tileset.json"
 DEFAULT_SHEET_PATH = "graphics/doodads/doodads.png"
 VALID_COVER = {"none", "light", "med", "heavy"}

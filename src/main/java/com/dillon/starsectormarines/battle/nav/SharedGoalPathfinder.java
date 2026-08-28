@@ -23,6 +23,7 @@ final class SharedGoalPathfinder {
 
     private final NavigationGrid grid;
     private final byte[] occupancy;
+    private final HierarchicalPathfinder ordinaryPathfinder;
     private final int maxBuildAgeSnapshots;
     private final ConcurrentHashMap<Long, ReverseField> fields =
             new ConcurrentHashMap<>();
@@ -32,17 +33,30 @@ final class SharedGoalPathfinder {
     private long snapshotIndex;
 
     SharedGoalPathfinder(NavigationGrid grid, byte[] occupancy) {
-        this(grid, occupancy, DEFAULT_MAX_BUILD_AGE_SNAPSHOTS);
+        this(grid, occupancy, DEFAULT_MAX_BUILD_AGE_SNAPSHOTS, null);
     }
 
     SharedGoalPathfinder(NavigationGrid grid, byte[] occupancy,
                          int maxBuildAgeSnapshots) {
+        this(grid, occupancy, maxBuildAgeSnapshots, null);
+    }
+
+    SharedGoalPathfinder(NavigationGrid grid, byte[] occupancy,
+                         HierarchicalPathfinder ordinaryPathfinder) {
+        this(grid, occupancy, DEFAULT_MAX_BUILD_AGE_SNAPSHOTS,
+                ordinaryPathfinder);
+    }
+
+    private SharedGoalPathfinder(NavigationGrid grid, byte[] occupancy,
+                                 int maxBuildAgeSnapshots,
+                                 HierarchicalPathfinder ordinaryPathfinder) {
         if (maxBuildAgeSnapshots < 1) {
             throw new IllegalArgumentException(
                     "maxBuildAgeSnapshots must be positive");
         }
         this.grid = grid;
         this.occupancy = occupancy;
+        this.ordinaryPathfinder = ordinaryPathfinder;
         this.maxBuildAgeSnapshots = maxBuildAgeSnapshots;
     }
 
@@ -85,6 +99,10 @@ final class SharedGoalPathfinder {
     int[] findPath(int startX, int startY, int goalX, int goalY,
                    boolean cardinalOnly) {
         if (!snapshotReady) {
+            if (ordinaryPathfinder != null) {
+                return ordinaryPathfinder.findPath(startX, startY,
+                        goalX, goalY, cardinalOnly, occupancy);
+            }
             return GridPathfinder.findPath(grid, startX, startY,
                     goalX, goalY, cardinalOnly, occupancy);
         }

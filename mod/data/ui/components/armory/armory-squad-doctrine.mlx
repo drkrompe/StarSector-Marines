@@ -1,4 +1,4 @@
-<template props="weaponDoctrineSummary,armorDoctrineSummary,weaponDoctrineTiles,armorDoctrineTiles,weaponPickerTabClasses,armorPickerTabClasses,weaponPickerPanelClasses,armorPickerPanelClasses,showWeaponPicker,showArmorPicker,loadoutFilters,loadoutBrowserSummary,transactionSummary,transactionClasses,applyDisabled,applyLabel,apply">
+<template props="weaponDoctrineSummary,armorDoctrineSummary,weaponDoctrineTiles,armorDoctrineTiles,weaponPickerTabClasses,armorPickerTabClasses,weaponPickerPanelClasses,armorPickerPanelClasses,showWeaponPicker,showArmorPicker,loadoutFilters,loadoutBrowserSummary,showArmorComparison,transactionSummary,transactionClasses,applyDisabled,applyLabel,apply">
   <div id="squad-doctrine-strip" class="panel squad-doctrine-strip">
     <div id="equipment-picker-tabs">
       <div id="equipment-picker-heading" class="label heading tone-edge">LOADOUTS</div>
@@ -31,7 +31,10 @@
     </div>
 
     <div id="armor-doctrine-slot" class="{armorPickerPanelClasses}">
-      <div id="armor-doctrine-summary" class="label surface-dark tone-edge">{armorDoctrineSummary}</div>
+      <div id="armor-doctrine-summary-row">
+        <div id="armor-doctrine-summary" class="label surface-dark tone-edge">{armorDoctrineSummary}</div>
+        <button id="compare-armor-patterns" onclick="{showArmorComparison}">Compare Patterns</button>
+      </div>
       <div id="armor-doctrine-list" class="doctrine-list">
         <button each="tile in armorDoctrineTiles" key="{tile.id}" id="{tile.id}" class="{tile.classes}" onclick="{tile.select}">
           <div id="{tile.headerId}" class="doctrine-header">
@@ -71,7 +74,10 @@
 
   .doctrine-slot { flex-direction: column; height: 0px; flex-grow: 1; padding: 4px; gap: 3px; border-width: 1px; overflow: hidden; }
   .picker-hidden { width: 0px; height: 0px; flex-grow: 0; padding: 0px; gap: 0px; border-width: 0px; opacity: 0; overflow: hidden; }
-  #weapon-doctrine-summary, #armor-doctrine-summary { height: 20px; padding: 2px 5px; }
+  #weapon-doctrine-summary { height: 20px; padding: 2px 5px; }
+  #armor-doctrine-summary-row { flex-direction: row; height: 20px; gap: 5px; }
+  #armor-doctrine-summary { width: 0px; flex-grow: 1; height: 20px; padding: 2px 5px; }
+  #compare-armor-patterns { width: 130px; height: 20px; padding: 2px 4px; border-width: 1px; font-family: body; text-align: center; }
   .doctrine-list { display: grid; height: 0px; flex-grow: 1; gap: 6px; padding: 1px; overflow: scroll; }
   .doctrine-tile { flex-direction: column; width: 476px; height: 150px; padding: 6px; gap: 2px; border-width: 1px; font-family: body; text-align: left; overflow: hidden; background-color: #0e1621; }
   .doctrine-tile.rarity-common { border-color: #607188; }
