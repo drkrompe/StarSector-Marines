@@ -165,7 +165,8 @@ public final class CommanderService {
         // No plan may observe another side's newly committed assignment: every
         // frame and plan exists before this loop begins.
         for (PreparedCommand command : prepared) commit(command, sim, topology);
-        for (MissionCommand command : legacy) command.tick(sim);
+        SquadDirectiveControl directives = assignments.control(sim);
+        for (MissionCommand command : legacy) command.tick(sim, directives);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
