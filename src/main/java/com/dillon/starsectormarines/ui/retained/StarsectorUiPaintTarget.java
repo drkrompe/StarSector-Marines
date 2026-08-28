@@ -37,9 +37,16 @@ import static org.lwjgl.opengl.GL20.glUseProgram;
 final class StarsectorUiPaintTarget implements UiPaintTarget {
 
     private final UiViewport viewport;
+    private final UiImageResolver images;
 
-    StarsectorUiPaintTarget(UiViewport viewport) {
+    StarsectorUiPaintTarget(UiViewport viewport, UiImageResolver images) {
         this.viewport = viewport;
+        this.images = images;
+    }
+
+    @Override
+    public UiImage image(String path) {
+        return images == null ? null : images.resolve(path);
     }
 
     @Override
