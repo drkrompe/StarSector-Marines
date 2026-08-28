@@ -9,8 +9,11 @@ import com.dillon.starsectormarines.ops.Mission;
  * generated list.
  *
  * <p>Completion is tracked by {@link #id} on the player's roster — see
- * {@code MarineRoster.completedStoryIds}. {@code isEligible} should typically check
- * {@code !ctx.roster.hasCompletedStory(id())} as its first clause for one-shot defs.
+ * {@code MarineRoster.completedStoryIds}. A one-shot def checks
+ * {@code !ctx.roster.hasCompletedStory(id())} as its first clause; a recurring
+ * one deliberately does not, and may still read the set to order itself behind
+ * another def. Recurring defs should gate on something other than roster
+ * quality, or they become work the player loses by growing.
  */
 public interface StoryMissionDef {
 

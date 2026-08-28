@@ -5,8 +5,11 @@ package com.dillon.starsectormarines.ops;
  * <ul>
  *   <li>{@link #GENERATED} — produced by {@code MissionGenerator} from planet intel.
  *       Stateless, rerolled per visit.</li>
- *   <li>{@link #STORY} — hand-authored, eligibility-gated, single-completion. Persisted
- *       via {@code MarineRosterScript}'s completed-id set.</li>
+ *   <li>{@link #STORY} — hand-authored, eligibility-gated. Completion is
+ *       persisted via {@code MarineRosterScript}'s completed-id set, but a def
+ *       decides for itself whether completion retires it: one-shot beats
+ *       (the veteran's job) and recurring work (militia support) share this
+ *       source because both need the authored build path.</li>
  *   <li>{@link #STATIONING} — incident mission fought by a detachment already
  *       committed to a stationing contract.</li>
  *   <li>{@link #CAMPAIGN_EVENT} — non-contract black-swan work carrying its own
