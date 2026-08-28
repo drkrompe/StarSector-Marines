@@ -97,7 +97,7 @@ python -m unittest discover `
 | `urban-tileset-3.png` | `urban-tileset-3.raw.png` (2166x726 RGBA, keyed) | Exported from `urban-tileset-3.tileset-authoring.json` as an auto-strip; withdrawn from `normalize_tilesets.py` |
 | `Floors_Tiles.png` | `Floors_Tiles.raw.png` (1225x1284 RGB) + `atlas-material-source/` (52x52 RGBA) | 25x26 topology retained at 56px per cell; sand and stone fields use manifest-packed seamless materials |
 | `Water_tiles.png` | `Water_tiles.raw.png` (1254x1254 RGB) | Strong macro-layout preservation; some edge spill into empty cells |
-| `nature-tiles.png` | `nature-tiles.raw.png` (2172x724 RGB) + `atlas-material-source/` (52x52 and 45x47 RGBA) | All 20 auto-sliced frames retained in order; grass, dirt, and sand fields use manifest-packed seamless materials |
+| `nature-tiles.png` | `nature-tiles.raw.png` (2172x724 RGBA, keyed) + `atlas-material-source/` (52x52 and 45x47 RGBA) | Withdrawn from `normalize_tilesets.py` and annotated in `nature-tiles.tileset-authoring.json`, but **not yet exported**: five of its twenty frames take their picture from the material library rather than from the plate, so the document alone cannot reproduce the atlas. See `nature-tiles-material-provenance.md` |
 
 ## Shared prompt frame
 
@@ -116,20 +116,26 @@ Sheet-specific constraints:
 - `urban-tileset-3`: preserve exactly 7 auto-sliced sprites in their original order and footprints with at least 4 transparent pixels between frames.
 - `Floors_Tiles`: preserve a 25x26 grid of 16px cells and all grass, stone, dirt, brick, snow, and sand autotile families and transition directions.
 - `Water_tiles`: preserve a 25x25 grid of 16px cells, four top island sprites, the water edge/corner family, center textures, and shoreline topology.
-- `nature-tiles`: preserve exactly 20 auto-sliced sprites in order: 7 ground tiles, 5 plants, 3 small-rock groups, 2 medium rocks, and 3 large rocks, with at least 4 transparent pixels between frames.
+- `nature-tiles`: preserve exactly 20 auto-sliced sprites in order, with at least 4 transparent pixels between frames. The prompt said "7 ground, 5 plants, 3 small-rock groups, 2 medium, 3 large"; the art is 7 ground, **6** plants and **7** rock groups, which is why `nature.rock-small-1` names a grass tuft.
 
 ## Normalization strategy
 
-The scripts preserve the runtime canvas dimensions and alpha topology. For
-fixed-grid sheets, normalization fits generated content into the current
-production content bounds and restores its alpha mask exactly. For auto-strips,
-it detects generated frames, fits them to the production frame bounding boxes,
-and restores the inter-frame gaps before the existing slicer runs.
+The scripts preserve the runtime canvas dimensions and alpha topology:
+normalization fits generated content into the current production content bounds
+and restores its alpha mask exactly. Only fixed-grid sheets are produced this
+way now — `Floors_Tiles` and `Water_tiles`.
 
-The current normalized pass uses whole-content fitting for fixed-grid sheets and per-frame fitting for auto-strips. After fitting, it removes ImageGen's dark isolated-sprite outline from repeating ground fields by mirroring a narrow band of neighboring interior rows and columns through each tile edge. This cleanup is intentionally limited to:
+The current normalized pass fits whole content into the production bounds. After
+fitting, it removes ImageGen's dark isolated-sprite outline from the reusable
+brick, grass, stone, dirt, sand, and water cells on the 16px fixed grids, by
+mirroring a narrow band of neighbouring interior rows and columns through each
+tile edge.
 
-- the reusable brick, grass, stone, dirt, sand, and water cells on the 16px fixed grids;
-- the first four ground frames on `urban-tileset-3`;
-- the first seven ground frames on `nature-tiles`.
+The auto-strip half of that pass is gone. It carried twenty pinned frame boxes
+into `nature-tiles.png` and a ground-edge band beside them — coordinates into an
+atlas held outside the tileset that describes it — and withdrawing the sheet
+took all of it. The same treatment now lives in the exporter as
+`spriteBorderPx`, authored per piece on the authoring document rather than
+keyed by sheet name in a script.
 
 Walls, transition autotiles, and overlays retain their authored edge contrast because those boundaries communicate topology. A future segmented regeneration can replace an individual material family without changing runtime paths.
