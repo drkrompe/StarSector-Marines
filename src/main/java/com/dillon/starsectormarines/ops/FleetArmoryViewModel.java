@@ -11,7 +11,6 @@ import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.FireTeamTemplateCard;
 import com.dillon.starsectormarines.marine.EquipmentIssueResources;
 import com.dillon.starsectormarines.marine.MarineCaptain;
-import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics;
@@ -587,7 +586,9 @@ public final class FleetArmoryViewModel {
                     id + ":armor", id + ":armor-description", id + ":armor-detail",
                     id + ":armor-stats",
                     id + ":special",
-                    id + ":special-description", id + ":weapon-delta", id + ":armor-delta",
+                    id + ":special-description",
+                    id + ":system", id + ":system-description",
+                    id + ":weapon-delta", id + ":armor-delta",
                     id + ":career", id + ":equipment", id + ":weapon-column",
                     id + ":armor-column",
                     marineCardClasses(soldier, previewing),
@@ -608,6 +609,9 @@ public final class FleetArmoryViewModel {
                     special != null ? special.displayName() : "No specialty equipment",
                     special != null ? special.catalogDescription()
                             : "This billet carries no specialty equipment beyond its primary weapon.",
+                    IntegralSystemCopy.summary(armorCatalog),
+                    IntegralSystemCopy.detail(armorCatalog),
+                    systemClasses(armorCatalog),
                     weaponDelta(billet, soldier, previewing),
                     armorDelta(billet, soldier, previewing),
                     previewing ? "marine-delta label tone-accent"
@@ -987,19 +991,20 @@ public final class FleetArmoryViewModel {
                 damage, range, accuracy, dps);
     }
 
-    /**
-     * The suit's copy, plus its integral system when it carries one. A player
-     * has to be able to see what a suit does before they issue it — a squad's
-     * fighting quality is fully determined by visible issue
-     * ({@code progression-nouns.md}), and a capability nobody can read before
-     * committing to it would be exactly the hidden modifier that law forbids.
-     */
     private static String armorDescription(MarineArmorCatalogDef armor) {
-        if (armor == null) return "";
-        if (!armor.hasIntegralSystem()) return armor.description();
-        IntegralSystemDef system = armor.integralSystem();
-        return armor.description() + "  //  " + system.displayName().toUpperCase(Locale.ROOT)
-                + "  //  " + system.description();
+        return armor == null ? "" : armor.description();
+    }
+
+    /**
+     * A suit that carries a capability says so in the accent the special-item
+     * line uses, because the two read as the same kind of thing to a player.
+     * A suit that carries none stays muted rather than vanishing: an absent
+     * line is indistinguishable from a line that failed to render, and the
+     * player is choosing between patterns that mostly have nothing here.
+     */
+    private static String systemClasses(MarineArmorCatalogDef armor) {
+        return "marine-equipment-title equipment-note-target label surface-dark "
+                + (IntegralSystemCopy.carried(armor) ? "tone-accent" : "tone-muted");
     }
 
     private static List<StatMeter> armorStats(String cardId, FireTeamBillet billet) {
@@ -1256,6 +1261,7 @@ public final class FleetArmoryViewModel {
             String primaryDescriptionId, String weaponDetailId, String weaponStatsId,
             String armorId, String armorDescriptionId, String armorDetailId,
             String armorStatsId, String specialId, String specialDescriptionId,
+            String systemId, String systemDescriptionId,
             String weaponDeltaId, String armorDeltaId,
             String careerId, String equipmentId, String weaponColumnId,
             String armorColumnId, String classes, String statusClasses,
@@ -1263,7 +1269,9 @@ public final class FleetArmoryViewModel {
             String unitClass, String weaponBadge, String armorBadge,
             String primary, String primaryDescription, List<StatMeter> weaponStats,
             String armor, List<StatMeter> armorStats, String armorDescription,
-            String special, String specialDescription, String weaponDelta, String armorDelta,
+            String special, String specialDescription,
+            String system, String systemDescription, String systemClasses,
+            String weaponDelta, String armorDelta,
             String deltaClasses, String career) implements MarkupPropertySource {
         @Override
         public Object markupProperty(String property) {
@@ -1293,6 +1301,8 @@ public final class FleetArmoryViewModel {
                 case "armorStatsId" -> armorStatsId;
                 case "specialId" -> specialId;
                 case "specialDescriptionId" -> specialDescriptionId;
+                case "systemId" -> systemId;
+                case "systemDescriptionId" -> systemDescriptionId;
                 case "weaponDeltaId" -> weaponDeltaId;
                 case "armorDeltaId" -> armorDeltaId;
                 case "careerId" -> careerId;
@@ -1317,6 +1327,9 @@ public final class FleetArmoryViewModel {
                 case "armorDescription" -> armorDescription;
                 case "special" -> special;
                 case "specialDescription" -> specialDescription;
+                case "system" -> system;
+                case "systemDescription" -> systemDescription;
+                case "systemClasses" -> systemClasses;
                 case "weaponDelta" -> weaponDelta;
                 case "armorDelta" -> armorDelta;
                 case "deltaClasses" -> deltaClasses;

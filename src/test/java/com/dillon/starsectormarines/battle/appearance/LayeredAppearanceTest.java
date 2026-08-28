@@ -114,6 +114,21 @@ public class LayeredAppearanceTest {
     }
 
     @Test
+    public void walkingWaistSettlesOverThePlantedFoot() {
+        float bulwarkLeftStep = LayeredMechAppearance.walkingWaistSway(
+                0.40f, LayeredMechAppearance.CHASSIS_CLEAN);
+        float bulwarkRightStep = LayeredMechAppearance.walkingWaistSway(
+                0.90f, LayeredMechAppearance.CHASSIS_CLEAN);
+        float houndLeftStep = LayeredMechAppearance.walkingWaistSway(
+                0.40f, LayeredMechAppearance.CHASSIS_HOUND);
+
+        assertEquals(0.035f, bulwarkLeftStep, 0.001f);
+        assertEquals(-bulwarkLeftStep, bulwarkRightStep, 0.001f);
+        assertTrue(houndLeftStep > bulwarkLeftStep,
+                "the lighter chassis commits farther into each weight transfer");
+    }
+
+    @Test
     public void infantryPrimaryWeaponsMapToDistinctLayerFamilies() {
         assertEquals(LayeredWeaponFamily.RIFLE,
                 LayeredWeaponFamily.fromPrimary((WeaponDef) null));

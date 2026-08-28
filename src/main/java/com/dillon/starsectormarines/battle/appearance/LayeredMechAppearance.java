@@ -103,6 +103,18 @@ public final class LayeredMechAppearance {
         return isLightChassis(chassis) ? 0.16f : 0.055f;
     }
 
+    /**
+     * Lateral waist displacement in hull widths. The upper mass settles over
+     * the planted foot while its opposite foot is advancing; light chassis
+     * commit farther than the broad, lower Bulwark body.
+     */
+    public static float walkingWaistSway(float phase, int chassis) {
+        float leftStep = mechanicalFootReveal(phase, false);
+        float rightStep = mechanicalFootReveal(phase, true);
+        float amplitude = isLightChassis(chassis) ? 0.055f : 0.035f;
+        return (leftStep - rightStep) * amplitude;
+    }
+
     private static boolean isLightChassis(int chassis) {
         return chassis == CHASSIS_HOUND || chassis == CHASSIS_SIROCCO;
     }

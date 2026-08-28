@@ -465,7 +465,16 @@ public final class EquipmentDoctrineDesignerViewModel {
                 : "Line billet · reliable general-purpose issue.";
     }
 
+    /**
+     * The one line on a designer tile that is not already a stat meter. A suit
+     * carrying an integral system spends it on the system: this is the screen
+     * where the pattern is actually chosen, and the four scalars beneath it
+     * cannot express the thing that makes a late pattern worth wanting
+     * ({@code integral-armor-systems.md}). Patterns without one keep the
+     * silhouette copy, which is all they have to say.
+     */
     private static String armorFlavor(MarineArmorCatalogDef armor) {
+        if (IntegralSystemCopy.carried(armor)) return IntegralSystemCopy.tile(armor);
         if (armor.id().equals(MarineArmorPattern.ARMORLESS.id)) {
             return "Unplated fatigues · mobility over protection.";
         }
