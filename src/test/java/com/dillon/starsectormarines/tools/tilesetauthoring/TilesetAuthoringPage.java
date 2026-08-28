@@ -89,7 +89,8 @@ public final class TilesetAuthoringPage implements AuthoringPage {
     private final JSpinner cellPx = new JSpinner(new SpinnerNumberModel(64, 8, 256, 8));
     private final JSpinner alphaMin =
             new JSpinner(new SpinnerNumberModel(SheetSlicer.DEFAULT_ALPHA_MIN, 1, 254, 1));
-    private final JSpinner gridCell = new JSpinner(new SpinnerNumberModel(104, 8, 512, 1));
+    private final JSpinner gridCols = new JSpinner(new SpinnerNumberModel(1, 1, 128, 1));
+    private final JSpinner gridRows = new JSpinner(new SpinnerNumberModel(1, 1, 128, 1));
     private final JSpinner screenCellPx = new JSpinner(new SpinnerNumberModel(40, 8, 160, 4));
     private final JLabel preview = new JLabel("", JLabel.CENTER);
     private final JLabel summary = new JLabel(" ");
@@ -102,6 +103,8 @@ public final class TilesetAuthoringPage implements AuthoringPage {
     private Path sourcePath;
     private Path documentPath;
     private String sheetNote = "";
+    /** Explicit atlas destination from the document; empty derives it from content. */
+    private String outputSheet = "";
     private boolean dirty;
 
     public TilesetAuthoringPage(AuthoringPageContext context) {
@@ -139,7 +142,9 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         bar.add(new JLabel(" alpha ≥ "));
         bar.add(small(alphaMin, 60));
         bar.add(new JLabel("  grid "));
-        bar.add(small(gridCell, 70));
+        bar.add(small(gridCols, 50));
+        bar.add(new JLabel(" x "));
+        bar.add(small(gridRows, 50));
         bar.add(new AbstractAction("Split selected on grid") {
             @Override public void actionPerformed(ActionEvent e) {
                 splitSelected();
@@ -252,6 +257,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             documentPath = null;
             blocks.clear();
             sheetNote = "";
+            outputSheet = "";
             model.setEntries(new ArrayList<>());
             slice();
         } catch (Exception failure) {
@@ -293,6 +299,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             documentPath = null;
             blocks.clear();
             sheetNote = "";
+            outputSheet = "";
             model.setEntries(new ArrayList<>());
             sheetName.setText(sheet.name());
             idPrefix.setText("doodad." + sheet.name());
@@ -326,10 +333,12 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             sheetName.setText(document.sheetName);
             cellPx.setValue(document.cellPx);
             alphaMin.setValue(document.alphaMin);
-            gridCell.setValue(document.gridCell);
+            gridCols.setValue(document.gridCols);
+            gridRows.setValue(document.gridRows);
             blocks.clear();
             blocks.addAll(document.blocks);
             sheetNote = document.note;
+            outputSheet = document.outputSheet;
             model.setEntries(document.entries);
             view.setEntries(document.entries);
             dirty = false;
@@ -363,7 +372,9 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         document.idPrefix = idPrefix.getText().trim();
         document.cellPx = (Integer) cellPx.getValue();
         document.alphaMin = (Integer) alphaMin.getValue();
-        document.gridCell = (Integer) gridCell.getValue();
+        document.gridCols = (Integer) gridCols.getValue();
+        document.gridRows = (Integer) gridRows.getValue();
+        document.outputSheet = outputSheet;
         document.note = sheetNote;
         document.entries = model.entries;
         document.blocks = new ArrayList<>(blocks);
@@ -415,6 +426,17 @@ public final class TilesetAuthoringPage implements AuthoringPage {
     /** Documents are read on whichever platform wrote them, so their paths use one separator. */
     private static final char BACKSLASH = '\\';
 
+    /** One cell's width in source pixels, from the stated layout and this sheet. */
+    private int cellPxX() {
+        if (source == null) return 1;
+        return Math.max(1, Math.round(source.getWidth() / (float) (Integer) gridCols.getValue()));
+    }
+
+    private int cellPxY() {
+        if (source == null) return 1;
+        return Math.max(1, Math.round(source.getHeight() / (float) (Integer) gridRows.getValue()));
+    }
+
     private String sheetNameOrDefault() {
         String name = sheetName.getText().trim();
         return name.isEmpty() ? "sheet" : name;
@@ -436,7 +458,7 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         List<SheetSlicer.Piece> pieces = SheetSlicer.slice(
                 source, (Integer) alphaMin.getValue(), SheetSlicer.DEFAULT_MIN_AREA);
         TilesetDocument.Reconciliation reconciled = TilesetDocument.reconcile(
-                pieces, model.entries, idPrefix.getText().trim(), (Integer) gridCell.getValue());
+                pieces, model.entries, idPrefix.getText().trim(), cellPxX(), cellPxY());
         model.setEntries(reconciled.entries());
         view.setEntries(reconciled.entries());
         markDirty();
@@ -451,7 +473,15 @@ public final class TilesetAuthoringPage implements AuthoringPage {
             AuthoringMessages.info(root, "Split on grid", "Select the fused plates in the table first.");
             return;
         }
-        int cell = (Integer) gridCell.getValue();
+        int cols = (Integer) gridCols.getValue();
+        int gridDown = (Integer) gridRows.getValue();
+        if (cols == 1 && gridDown == 1) {
+            AuthoringMessages.info(root, "Split on grid",
+                    "The grid is 1 x 1, so splitting would change nothing. Set it to the "
+                            + "layout the sheet was generated to — a 20-frame strip is 20 x 1 "
+                            + "— and the cells need not be square.");
+            return;
+        }
         List<TilesetExport.Entry> replaced = new ArrayList<>();
         for (TilesetExport.Entry entry : model.entries) {
             if (!model.isSelected(entry)) {
@@ -459,12 +489,13 @@ public final class TilesetAuthoringPage implements AuthoringPage {
                 continue;
             }
             int part = 0;
-            for (SheetSlicer.Piece piece : SheetSlicer.splitOnGrid(entry.piece, cell)) {
+            for (SheetSlicer.Piece piece : SheetSlicer.splitOnGrid(entry.piece, cols, gridDown)) {
                 TilesetExport.Entry split = new TilesetExport.Entry(
                         piece, entry.id + "-" + (char) ('a' + part++));
                 split.cover = entry.cover;
-                split.footprintX = TilesetDocument.guessFootprint(piece.width(), cell);
-                split.footprintY = TilesetDocument.guessFootprint(piece.height(), cell);
+                // A plate's cells are one cell each by construction.
+                split.footprintX = 1;
+                split.footprintY = 1;
                 replaced.add(split);
             }
         }
@@ -623,7 +654,11 @@ public final class TilesetAuthoringPage implements AuthoringPage {
         if (source == null || model.entries.isEmpty()) return;
         int cell = (Integer) cellPx.getValue();
         String name = sheetNameOrDefault();
-        String sheetRelative = "graphics/doodads/" + name + ".png";
+        // Terrain belongs with the tilesets and props with the doodads; the fixed
+        // doodad destination was right only while the tool could not author a wall.
+        String sheetRelative = outputSheet.isEmpty()
+                ? TilesetDocument.defaultOutputSheet(name, !blocks.isEmpty())
+                : outputSheet;
         Path atlasPath = context.projectRoot().resolve("mod").resolve(sheetRelative);
         Path tilesetPath = context.projectRoot()
                 .resolve("mod/data/tilesets").resolve(name + ".tileset.json");
