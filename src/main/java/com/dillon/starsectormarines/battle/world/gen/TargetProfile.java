@@ -55,4 +55,22 @@ public record TargetProfile(int marketSize, int stability, int defenseLevel,
                 ? Collections.unmodifiableSet(EnumSet.noneOf(EconomicFunction.class))
                 : Collections.unmodifiableSet(EnumSet.copyOf(functions));
     }
+
+    /**
+     * This profile with a different owner, every other field left exactly as the
+     * market gave it. The whole point of the wither is that {@link #factionId} is
+     * an axis of its own: no generator stage reads it — it selects the defending
+     * ground roster and nothing else — so swapping it changes who is standing on
+     * the battlefield without disturbing the battlefield. That is what makes a
+     * faction swap a controlled comparison rather than a reroll.
+     *
+     * @param overrideFactionId the replacement owner; {@code null} means "no
+     *     override" and returns {@code this} unchanged, so a caller can apply an
+     *     optional override without branching.
+     */
+    public TargetProfile withFactionId(String overrideFactionId) {
+        if (overrideFactionId == null || overrideFactionId.equals(factionId)) return this;
+        return new TargetProfile(marketSize, stability, defenseLevel, spaceportTier,
+                overrideFactionId, functions);
+    }
 }

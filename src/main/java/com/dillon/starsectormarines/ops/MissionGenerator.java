@@ -1,5 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.DevConfig;
+import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
+import com.dillon.starsectormarines.battle.setup.GroundRosterRegistry;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.flyby.FighterWing;
@@ -171,9 +174,100 @@ public final class MissionGenerator {
                         .build());
             }
         }
-        out.addAll(debugCivilianRescueMissions(
-                planet.getName(), r, index));
+        List<Mission> rescues = debugCivilianRescueMissions(planet.getName(), r, index);
+        out.addAll(rescues);
+        // Appended last, and drawing from r only after every entry above has
+        // taken its rolls, so adding this group cannot shift the board it joins.
+        out.addAll(debugFactionComparisonMissions(
+                planet.getName(), r, index + rescues.size()));
         return out;
+    }
+
+    /**
+     * The CONQUEST faction-comparison group: one Full Strength entry per
+     * catalogued {@link GroundRosterProfile}, all pinned to a single battlefield
+     * so the only thing that differs between two launches is who is defending
+     * it. Everything the player brings and everything the map is stays fixed;
+     * the defender's doctrine is the single free variable.
+     *
+     * <p>The list comes from {@link GroundRosterRegistry#profiles()} rather than
+     * a faction list written here, so a newly catalogued roster shows up on the
+     * board with no code change.
+     */
+    static List<Mission> debugFactionComparisonMissions(
+            String planetName, Random random, int startIndex) {
+        if (planetName == null || random == null) return Collections.emptyList();
+        MissionType type = MissionType.CONQUEST;
+        OperationTier tier = OperationTier.FULL_STRENGTH;
+        RiskLevel risk = RiskLevel.MEDIUM;
+        long battleSeed = factionComparisonBattleSeed(planetName, type, tier);
+        int requiredDrops = requiredDropsFor(type, tier);
+        if (DevConfig.DROP_COUNT_OVERRIDE > 0) {
+            requiredDrops = DevConfig.DROP_COUNT_OVERRIDE;
+        }
+
+        List<GroundRosterProfile> profiles = GroundRosterRegistry.profiles();
+        List<Mission> missions = new ArrayList<>(profiles.size());
+        int index = Math.max(0, startIndex);
+        for (GroundRosterProfile profile : profiles) {
+            // Map position is the one per-entry roll: it is where the pin sits on
+            // the tactical screen and reaches nothing the battle reads.
+            float x = 0.08f + random.nextFloat() * 0.84f;
+            float y = 0.08f + random.nextFloat() * 0.84f;
+            String defender = defenderDisplayName(profile);
+            missions.add(Mission.builder()
+                    .id("debug:CONQUEST_DEFENDER:" + profile.id() + ":" + index++)
+                    .name("CONQUEST — " + defender)
+                    .type(type)
+                    .source(MissionSource.DEBUG)
+                    .risk(risk)
+                    .tier(tier)
+                    .requirements(requirementsFor(risk))
+                    .flavor("DEBUG COMPARISON: " + tier.displayName + " CONQUEST on one"
+                            + " pinned battlefield — only the defender changes. Holding it: "
+                            + defender + " (" + profile.id() + ").")
+                    .mapPosition(x, y)
+                    .requiredDrops(requiredDrops)
+                    .targetPlanetName(planetName)
+                    .defenderFactionOverride(profile.primaryFactionId())
+                    .battleSeed(battleSeed)
+                    .build());
+        }
+        return missions;
+    }
+
+    /**
+     * The battlefield the whole comparison group lands on. Derived from what the
+     * group <em>is</em> — the place, the mission type, the scale — and never from
+     * an entry's position in it, because a per-entry seed would hand every
+     * faction a different map and quietly destroy the comparison.
+     */
+    static long factionComparisonBattleSeed(String planetName, MissionType type,
+                                            OperationTier tier) {
+        return (planetName + '|' + type.name() + '|' + tier.name()).hashCode();
+    }
+
+    /**
+     * A readable defender name taken from the roster profile's own id — the
+     * catalog carries no display string, and a lookup table beside it here would
+     * be one more hand-maintained list to go stale.
+     */
+    static String defenderDisplayName(GroundRosterProfile profile) {
+        String id = profile.id();
+        String slug = id.substring(id.lastIndexOf('.') + 1);
+        StringBuilder out = new StringBuilder(slug.length());
+        boolean startOfWord = true;
+        for (int i = 0; i < slug.length(); i++) {
+            char c = slug.charAt(i);
+            if (c == '-' || c == '_') {
+                out.append(' ');
+                startOfWord = true;
+                continue;
+            }
+            out.append(startOfWord ? Character.toUpperCase(c) : c);
+            startOfWord = false;
+        }
+        return out.length() == 0 ? id : out.toString();
     }
 
     static List<Mission> debugCivilianRescueMissions(
