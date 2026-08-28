@@ -4,7 +4,7 @@ Status: ACTIVE — additive external catalogs shipped; variant-pool cleanup rema
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — an atlas now has two shapes and a strip's laws are stated (order is the address, the scale is authored, reducing sharpens); a key's settings are per cell as well as its flooding; a derived height/normal companion is re-derived rather than preserved; keying a sheet withdraws it from the alpha-transfer derivation, measured rather than declared.
+Updated: 2026-08-28 — a piece's picture must be on the sheet its document annotates; a piece may be drawn as several bodies; a repeating field is solid and carries a sprite border that is not part of the surface.
 
 Read `stories.md` for open work.
 
@@ -272,6 +272,42 @@ These properties of that pass are part of the model rather than of the tool:
   still the wrong relief. What makes the obligation checkable rather than
   remembered is that the derivation leaves everything outside a cell flat, so the
   companions state their own frame boxes and those must be the albedo's.
+- **A piece's picture must be on the sheet its document annotates.** The alpha
+  law's sibling, and it fails in the same silent way. A document that names a
+  piece whose art lives somewhere else — a tileable material from a library, a
+  patch composited in afterwards — can hold every id, every cover level and
+  every number for that sheet and still not reproduce it: exporting puts back
+  whatever was under the replacement. The two producers stay consistent with
+  each other and the substitution is invisible in the tileset, so nothing
+  downstream can report it. Where a sheet's frames disagree about where their
+  picture comes from, the sheet is not exportable until they agree, and a strip
+  cannot compromise: order is the address, so it exports whole or not at all.
+  `nature-tiles-material-provenance.md` is the worked case.
+- **A repeating field is solid where it is drawn, and its sprite border is not
+  part of the surface.** A field is the one kind of piece drawn around nothing,
+  so the void law inverts for it: every pixel a key carves off its rim is a
+  puncture the tiling repeats, and the statement to check is that its box is
+  filled. Generated field art also arrives as a *slab* — a lit rim across the
+  top, a shadowed skirt under the foot, a darker column down each side — and
+  those belong to the sprite rather than to the surface. Repeat one and they
+  rule a lattice over the ground, one line per cell, which no id, frame count or
+  coverage figure can see. The depth of that border is authored per piece and in
+  two numbers, because what a sprite puts under itself is deeper than what it
+  puts beside itself, and because the same reading of the same pixels is a rim
+  on a field and the drawn edge of a paving slab that has to keep it. The export
+  replaces it with the interior mirrored back out through it. That is a repair
+  and not a cure: a mirror deep enough to remove a deep border reads as an
+  ornamental symmetry at every join, so art drawn as a slab remains worse than
+  art drawn as a surface.
+- **A piece may be drawn as several bodies.** A scatter of pebbles is one prop
+  drawn as three stones with daylight between them, and the daylight inside it
+  is not a gutter. Which gaps are internal is settled once, by the gap the
+  loader itself splits on: anything narrower is inside a piece, anything wider
+  separates two. Keying, packing and checking all have to agree with that or a
+  piece the document treats as one is two on the atlas — which renames every
+  frame after it. The count of bodies a piece is drawn as is authored, like a
+  void: it is the judgement a threshold silently overrules in either direction,
+  dissolving a pebble or admitting a speck, and it moves no total worth reading.
 - **A silhouette is checked as a shape, never as a total.** How much of a cell a
   piece covers is the one thing about its alpha that is easy to measure, and it
   is blind to every way the shape can be wrong, because the errors are signed

@@ -129,6 +129,33 @@ public final class TilesetExport {
          * tile's {@code description}.
          */
         public String label = "";
+        /**
+         * How deep this piece's own drawn border runs, in exported pixels,
+         * across and down — {@code 0} where the art has none.
+         *
+         * <p>A generated field sprite is a slab: a lit rim along its top, a
+         * shadowed skirt along its bottom, a darker column down each side. Those
+         * belong to the <em>sprite</em> and not to the <em>surface</em>, and a
+         * surface the map paves with has no boundary at all — so where the field
+         * repeats they read as a dark lattice ruled across the ground, every
+         * cell, everywhere the map uses it. The border is replaced on export
+         * with the interior mirrored back out through it, which keeps the local
+         * texture instead of laying down a flat stripe.
+         *
+         * <p>Two numbers rather than one because the skirt is deeper than the
+         * sides: what a sprite puts under itself is a shadow and what it puts
+         * beside itself is an outline.
+         *
+         * <p>Authored, not measured. How far in the border runs is a judgement
+         * about where the surface starts, and the same reading of the same
+         * pixels is a rim on a field and the drawn edge of a paving slab that
+         * has to keep it. Nothing about a piece says which it is.
+         *
+         * <p>Colour only. Alpha was decided when the sheet was keyed, and moving
+         * it here would move the frame boxes the loader finds.
+         */
+        public int spriteBorderX;
+        public int spriteBorderY;
         /** Assigned by {@link #pack}. */
         public int col;
         public int row;
@@ -356,8 +383,9 @@ public final class TilesetExport {
         BufferedImage atlas = new BufferedImage(
                 packing.width(), packing.height(), BufferedImage.TYPE_INT_ARGB);
         for (Entry entry : packing.frames()) {
-            BufferedImage frame = sharpen(
-                    resample(source, entry.piece, entry.frameWidth, entry.frameHeight));
+            BufferedImage frame = mirrorSpriteBorder(
+                    sharpen(resample(source, entry.piece, entry.frameWidth, entry.frameHeight)),
+                    entry.spriteBorderX, entry.spriteBorderY);
             for (int y = 0; y < entry.frameHeight; y++) {
                 for (int x = 0; x < entry.frameWidth; x++) {
                     int argb = frame.getRGB(x, y);
@@ -366,6 +394,57 @@ public final class TilesetExport {
             }
         }
         return atlas;
+    }
+
+    /**
+     * Replace a frame's own sprite border with the interior mirrored out
+     * through it, so a repeating field has no boundary.
+     *
+     * <p>Mirroring rather than smearing: a flat stripe of one colour is as
+     * visible a lattice as the dark one it replaces, while a reflection carries
+     * the field's own grain right up to the edge. Corners take the mirrored
+     * interior corner, so neither axis overwrites the other's work.
+     *
+     * <p>Alpha is left exactly as the key decided it. See
+     * {@link Entry#spriteBorderX}.
+     */
+    private static BufferedImage mirrorSpriteBorder(BufferedImage frame, int borderX, int borderY) {
+        int width = frame.getWidth();
+        int height = frame.getHeight();
+        if (borderX <= 0 && borderY <= 0) return frame;
+        // A border is mirrored from the interior immediately inside it, so the
+        // deepest row it reads is 2*border-1. Three times the border has to fit
+        // in the frame or the reflection lands in the border at the other end
+        // and copies the very pixels it is replacing.
+        if (width < borderX * 3 || height < borderY * 3) {
+            throw new IllegalArgumentException("a sprite border of " + borderX + "x" + borderY
+                    + " leaves nothing inside a " + width + "x" + height + " frame to mirror: "
+                    + "the reflection would reach the border at the far side");
+        }
+        int[] columns = mirrored(width, borderX);
+        int[] rows = mirrored(height, borderY);
+        int[] src = frame.getRGB(0, 0, width, height, null, 0, width);
+        int[] out = src.clone();
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int from = src[rows[y] * width + columns[x]];
+                out[y * width + x] = (src[y * width + x] & 0xFF000000) | (from & 0xFFFFFF);
+            }
+        }
+        BufferedImage result = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        result.setRGB(0, 0, width, height, out, 0, width);
+        return result;
+    }
+
+    /** Identity, except that each end's {@code border} entries reflect inward. */
+    private static int[] mirrored(int extent, int border) {
+        int[] index = new int[extent];
+        for (int i = 0; i < extent; i++) index[i] = i;
+        for (int i = 0; i < border; i++) {
+            index[i] = 2 * border - 1 - i;
+            index[extent - 1 - i] = extent - 2 * border + i;
+        }
+        return index;
     }
 
     /** Gaussian weight at one pixel's distance for the sharpen blur's radius. */
