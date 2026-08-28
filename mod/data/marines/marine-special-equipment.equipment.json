@@ -429,6 +429,58 @@
           "phase": 0.56
         }
       }
+    },
+    {
+      "id": "special.field-revetment",
+      "catalog": {
+        "displayName": "Rampart Field Revetment",
+        "subtitle": "Placed, self-expiring directional cover",
+        "description": "A Hegemony engineer pattern old enough that every arsenal builds its own: folding mesh baskets and a stake kit a marine drops across the front of the ground they are already holding. It stops nothing a soldier could not step over, and catches what crosses it at chest height. It covers one side of one boundary, and it comes down again."
+      },
+      "activation": {
+        "type": "utility-deployable",
+        "barrierKind": "revetment",
+        "deployDuration": 2.0,
+        "lifetimeSeconds": 60.0
+      },
+      "resource": {
+        "mode": "ammunition",
+        "startingAmmo": 2
+      },
+      "ai": {
+        "policy": "directional-cover-screen"
+      },
+      "presentation": {
+        "armoryIcon": "graphics/ui/armory/special-field-revetment.png",
+        "aimSprite": null,
+        "usePose": "plant",
+        "carrierLayer": {
+          "sprite": "graphics/ui/armory/special-field-revetment.png",
+          "widthShoulders": 0.34,
+          "heightShoulders": 0.34,
+          "pivot": [0.5, 0.5],
+          "carried": {
+            "offsetShoulders": [-0.28, -0.1],
+            "angleDegrees": 8.0,
+            "occlusion": "under-body"
+          },
+          "using": {
+            "offsetShoulders": [0.0, 0.34],
+            "angleDegrees": 0.0,
+            "occlusion": "over-body"
+          },
+          "visibleWhileCarried": true,
+          "replacePrimaryWhileUsing": true
+        },
+        "layerClips": {
+          "variant": "satchel",
+          "using": "planting"
+        },
+        "preview": {
+          "state": "using",
+          "phase": 0.5
+        }
+      }
     }
   ]
 }

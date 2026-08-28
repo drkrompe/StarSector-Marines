@@ -115,7 +115,7 @@ Do not run builds or leave generated task files there.
   `-PsnapshotHeight=640` arguments control review playback and output size.
 - `gradlew.bat createSnapshots` → every deterministic visual-evidence suite under
   `build/snapshots/` without launching Starsector or creating an OpenGL context. Select
-  suites with `-Psnapshot=armory,durability-bars,frontage-scene,layers,point-defence,ship-decks,turrets,ui`
+  suites with `-Psnapshot=armory,deployable-cover,durability-bars,frontage-scene,layers,point-defence,ship-decks,turrets,ui`
   (default `all`) and redirect the common output root with `-PsnapshotDir=<path>`.
 - `gradlew.bat layerAuthoring` → extensible standalone authoring workbench. The
   Layers page provides drag, scale, rotation, variant-scoped phase-driven
@@ -246,6 +246,7 @@ The discovered suite ids and default output directories are:
 | `ui` | Retained Marine Ops screens at authored viewport sizes | `build/snapshots/ui/` |
 | `frontage-scene` | Animated garrison stand-to on a generated compound, one loop per approach edge | `build/snapshots/frontage-scene/` |
 | `point-defence` | Animated LRM salvos against a placed interceptor pod: rounds stopped, rounds missed, rounds arriving | `build/snapshots/point-defence/` |
+| `deployable-cover` | Animated controlled comparison of a placed revetment: the same fire into a covered lane, an open lane, and a screened post shot from the flank | `build/snapshots/deployable-cover/` |
 
 Run all suites with `gradlew.bat createSnapshots`. Use
 `-Psnapshot=<id>` for one suite or a comma-separated selector for several; quote
