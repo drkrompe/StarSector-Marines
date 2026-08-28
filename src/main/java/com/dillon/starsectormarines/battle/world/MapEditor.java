@@ -18,8 +18,9 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
  * neither {@link NavigationService} nor {@link CellTopology} is the natural
  * owner of the whole sequence. MapEditor is the thin coordinator that
  * sequences each domain's slice: it mutates topology directly (CellTopology
- * stays a data holder) and delegates the walkability + zone-graph writes to
- * the navigation service ({@code grid.*} + {@link NavigationService#markZoneGraphDirty()}).
+ * stays a data holder) and delegates walkability plus derived-navigation
+ * invalidation to
+ * the navigation service ({@code grid.*} + {@link NavigationService#markNavigationTopologyDirty()}).
  *
  * <p>The {@link #roofCollapseSink} (a rubble-decal effect, not topology and
  * not navigation) lives here because it's the cross-cutting glue this
@@ -133,6 +134,6 @@ public final class MapEditor {
                     grid.setWalkable(x, y, false);
                     topology.setVehicle(x, y, true);
                 });
-        navigation.markZoneGraphDirty();
+        navigation.markNavigationTopologyDirty();
     }
 }

@@ -53,6 +53,12 @@ public final class GuardPost implements Goal {
         // compound — that squad patrols the whole base instead of leashing to
         // one post. Non-primary squads keep holding their own building here.
         if (GarrisonCompound.defenderAreaPatrol(squad, sim)) return 0f;
+        // Yield to FrontageDefense while the post's own frontage is under
+        // believed threat. Same explicit-yield shape as the line above, and
+        // needed for the same reason: this goal's flat 1.0 would otherwise win
+        // on relevance alone and leash the squad to its post with its back to
+        // the apertures the assault is about to come through.
+        if (FrontageDefense.INSTANCE.relevance(state, squad, sim) > 0f) return 0f;
         return 1.0f;
     }
 
