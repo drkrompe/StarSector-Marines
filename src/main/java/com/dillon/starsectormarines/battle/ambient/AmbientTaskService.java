@@ -2,7 +2,6 @@ package com.dillon.starsectormarines.battle.ambient;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredAppearance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
-import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.MovementService;
@@ -328,9 +327,9 @@ public final class AmbientTaskService {
         boolean wrongDestination = Paths.destX(path) != destinationCellX
                 || Paths.destY(path) != destinationCellY;
         if (!arrived && (wrongDestination || movement.mayRepath(actorId))) {
-            int[] replacement = GridPathfinder.findPath(
-                    navigation.getGrid(), world.cellX(actorId), world.cellY(actorId),
-                    destinationCellX, destinationCellY, navigation.getOccupancyMap());
+            int[] replacement = navigation.findPath(
+                    world.cellX(actorId), world.cellY(actorId),
+                    destinationCellX, destinationCellY);
             if (!Paths.isEmpty(replacement)) navigation.setPath(actorId, replacement);
             else if (!Paths.isEmpty(path)) navigation.clearPath(actorId);
         }
