@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.gen.ship.stage;
 
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
+import com.dillon.starsectormarines.battle.world.gen.fit.CirculationLoops;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckProfile;
@@ -39,6 +40,25 @@ public final class RoomPlacementStage implements GenStage {
     private static final RoomPacker.Palette DECK_PALETTE = new RoomPacker.Palette(
             GroundKind.INDOOR, GroundKind.INDOOR, GroundKind.STRIPED);
 
+    /**
+     * When a deck is worth a second way round.
+     *
+     * <p><b>Double the walk, and a dozen cells saved.</b> Doubling is a low bar
+     * on the face of it and is not one in practice: a deck offers very few
+     * places where it can be cleared at all, because a passage may never come
+     * within a cell of a compartment and the rooms are packed against one
+     * another. Measured across five vanilla hulls at two seeds it takes nothing
+     * on a frigate, which needs nothing, and three to six links on a capital.
+     * Raising it to four times took two links instead of six and left detours
+     * standing that a twenty-cell cut would have halved.
+     *
+     * <p>The budget bounds the search rather than expressing taste; sixty-four
+     * and a hundred and twenty produce the same decks, because what actually
+     * refuses a link is the detour test and not the length.
+     */
+    private static final CirculationLoops.Policy DECK_LOOPS =
+            new CirculationLoops.Policy(64, 2, 12);
+
     @Override
     public void run(GenContext ctx) {
         DeckProfile profile = ctx.get(ShipKeys.DECK_PROFILE);
@@ -66,6 +86,10 @@ public final class RoomPlacementStage implements GenStage {
             }
         }
         fillPockets(profile, packer, placed);
+        // Last, because it is a judgement about the finished network. Every
+        // passage above reached the nearest thing already connected, which is
+        // right each time and leaves a tree overall.
+        packer.openLoops(DECK_LOOPS);
         ctx.put(ShipKeys.DECK_GRAPH, new DeckGraph(placed, unplaced));
     }
 
