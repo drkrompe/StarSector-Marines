@@ -9,9 +9,14 @@ from pathlib import Path
 from PIL import Image
 
 
-ROOT = Path(__file__).resolve().parent
-SOURCES = ROOT / "sources"
-PREVIEWS = ROOT.parents[3] / "build" / "sprite-previews" / "mech"
+# Raw art lives outside mod/, so the shipped folder never carries pre-pack
+# inputs. Outputs are addressed from the repository root rather than from
+# a sibling directory.
+HERE = Path(__file__).resolve().parent
+REPOSITORY = HERE.parent.parent
+SOURCES = HERE / "sources"
+ROOT = REPOSITORY / "mod" / "graphics" / "battle" / "mech-modular-topdown"
+PREVIEWS = REPOSITORY / "build" / "sprite-previews" / "mech"
 
 
 def content_crop(image: Image.Image, threshold: int = 24) -> Image.Image:

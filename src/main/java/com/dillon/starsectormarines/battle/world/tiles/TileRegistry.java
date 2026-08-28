@@ -262,7 +262,13 @@ public final class TileRegistry {
                         + sheet + "' at [" + col + "," + row + "]: first declared by "
                         + previous.describe() + ", then by " + source.describe());
             }
-            bySheet.put(key, new CellLabel(o.optString("name", ""), o.optString("description", "")));
+            JSONArray tags = o.optJSONArray("tags");
+            List<String> tagList = new ArrayList<>();
+            for (int t = 0; tags != null && t < tags.length(); t++) {
+                tagList.add(tags.getString(t));
+            }
+            bySheet.put(key, new CellLabel(
+                    o.optString("name", ""), o.optString("description", ""), tagList));
             sources.put(key, source);
         }
     }

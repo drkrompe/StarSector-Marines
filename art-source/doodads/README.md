@@ -8,13 +8,13 @@ military-compound set, are recorded in `IMAGEGEN-PROMPTS.md`.
 
 ## Basic use
 
-1. Put cleaned transparent PNGs in `sources/`.
+1. Put cleaned transparent PNGs in `art-source/doodads/sources/`.
 2. Name them with stable descriptive names such as `sandbag-straight-n.png` or
    `industrial-cable-reel.png`.
 3. Run from the repository root:
 
    ```powershell
-   python mod/graphics/doodads/stitch_atlas.py
+   python art-source/doodads/stitch_atlas.py
    ```
 
 The default build produces:

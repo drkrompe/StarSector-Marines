@@ -65,6 +65,13 @@ public final class TilesetExport {
         public String blockId = "";
         /** Which cell of {@link #blockId} this piece is, as a {@link BlockSlots} name. */
         public String slot = "";
+        /**
+         * What this piece is for, in the author's words — the half of the
+         * annotation that carries nuance an id and a cover level cannot.
+         */
+        public String note = "";
+        /** The greppable half: short descriptive tags, lowercase. */
+        public List<String> tags = new ArrayList<>();
         /** Assigned by {@link #pack}. */
         public int col;
         public int row;
@@ -230,7 +237,47 @@ public final class TilesetExport {
         root.put("cellPx", cellPx);
         if (blockArray.length() > 0) root.put("blocks", blockArray);
         root.put("doodads", doodads);
+        JSONArray cells = cells(entries);
+        if (cells.length() > 0) root.put("cells", cells);
         return root;
+    }
+
+    /**
+     * Per-cell labels for every packed piece.
+     *
+     * <p>The tileset schema already has a place for descriptive annotation that
+     * generation and combat never read, keyed by the cell it describes. That is
+     * exactly the authority a usage hint should have, so the note and tags go
+     * there rather than becoming new fields on a doodad or a block — which would
+     * make a doc string look like something the game acts on.
+     */
+    private static JSONArray cells(List<Entry> entries) throws JSONException {
+        JSONArray cells = new JSONArray();
+        for (Entry entry : entries) {
+            if (!entry.included) continue;
+            String name = entry.isBlockMember()
+                    ? entry.blockId + " " + entry.slot
+                    : entry.id;
+            if (entry.note.isEmpty() && entry.tags.isEmpty() && entry.isBlockMember()) {
+                // An unannotated block cell is still worth naming: it says which
+                // facing the cell is, which is what a reader of the atlas wants.
+                cells.put(labelCell(entry, name, BlockSlots.describe(entry.slot)));
+                continue;
+            }
+            cells.put(labelCell(entry, name, entry.note));
+        }
+        return cells;
+    }
+
+    private static JSONObject labelCell(Entry entry, String name, String description)
+            throws JSONException {
+        JSONObject o = new JSONObject();
+        o.put("col", entry.col);
+        o.put("row", entry.row);
+        o.put("name", name);
+        if (!description.isEmpty()) o.put("description", description);
+        if (!entry.tags.isEmpty()) o.put("tags", new JSONArray(entry.tags));
+        return o;
     }
 
     /** The {@code layout} spelling {@link GridLayout#fromJson} reads back. */

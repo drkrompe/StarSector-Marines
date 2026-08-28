@@ -4,8 +4,8 @@ Status: ACTIVE — Conquest owns reversible compound territory, deliberate captu
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — named the compound capture room and its
-footprint-bounded resolution.
+Updated: 2026-08-28 — named the compound capture room, its footprint-bounded
+resolution, and the reachability guarantee generation owes it.
 
 Conquest is a territorial assault: marines establish a beachhead, take the
 defender's supply hubs through the city, and finish at the keep. It is not a
@@ -89,6 +89,15 @@ Conquest — where victory requires every compound to flip — is an unwinnable
 mission rather than a cosmetic defect. Bounding the search to the compound's
 own footprint is what keeps the room its own: a compound never captures in a
 neighbour's room or out on the parade ground.
+
+Having a capture room is not sufficient; marines have to be able to walk into
+it. Every compound is therefore reachable from the marine spawn, and generation
+owes that guarantee rather than the battle layer coping with its absence — no
+tactic recovers from a supply hub with no way in. It follows that a compound
+outranks the structures that would otherwise overwrite it: where the fortress
+wall would cut one off from the map, the wall yields a breach instead (see
+`mapgen-nouns.md`). One unintended opening is a far smaller cost than a
+mission that cannot be won.
 
 ## Assault and control loop
 
