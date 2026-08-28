@@ -34,13 +34,13 @@ class LabelLeavesStageTest {
     @Test
     void gatedHousingSeedsRequireInsetApartmentDimensions() {
         assertEquals(BlockKind.GATED_HOUSING,
-                LabelLeavesStage.constrainKindForSize(BlockKind.GATED_HOUSING, 14, 12));
+                LabelLeavesStage.constrainKindForSize(BlockKind.GATED_HOUSING, 16, 14));
         assertEquals(BlockKind.GATED_HOUSING,
-                LabelLeavesStage.constrainKindForSize(BlockKind.GATED_HOUSING, 12, 14));
+                LabelLeavesStage.constrainKindForSize(BlockKind.GATED_HOUSING, 14, 16));
         assertEquals(BlockKind.BUILDING_RESIDENTIAL,
-                LabelLeavesStage.constrainKindForSize(BlockKind.GATED_HOUSING, 13, 12));
+                LabelLeavesStage.constrainKindForSize(BlockKind.GATED_HOUSING, 15, 14));
         assertEquals(BlockKind.BUILDING_RESIDENTIAL,
-                LabelLeavesStage.constrainKindForSize(BlockKind.GATED_HOUSING, 14, 11));
+                LabelLeavesStage.constrainKindForSize(BlockKind.GATED_HOUSING, 16, 13));
     }
 
     @Test
