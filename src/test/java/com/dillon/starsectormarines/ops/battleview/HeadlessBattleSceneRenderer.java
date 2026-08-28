@@ -204,6 +204,7 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
         private final SpriteAPI urban3;
         private final SpriteAPI nature;
         private final SpriteAPI doodads;
+        private final SpriteAPI parkedVehicles;
         private final SpriteSheetFrames urban3Frames;
         private final SpriteSheetFrames natureFrames;
         private final LayeredMechAssets mech;
@@ -219,6 +220,7 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
             urban3 = sprite(TileManifest.STREET3_SHEET);
             nature = sprite(TileManifest.NATURE_SHEET);
             doodads = sprite(TileManifest.DOODAD_SHEET);
+            parkedVehicles = sprite(TileManifest.PARKED_VEHICLE_SHEET);
             urban3Frames = slice(TileManifest.STREET3_SHEET);
             natureFrames = slice(TileManifest.NATURE_SHEET);
             loadInfantry();
@@ -248,6 +250,9 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
         @Override public SpriteAPI doodadSheet() { return doodads; }
         @Override public int doodadSheetPxW() { return asset(doodads).width(); }
         @Override public int doodadSheetPxH() { return asset(doodads).height(); }
+        @Override public SpriteAPI parkedVehicleSheet() { return parkedVehicles; }
+        @Override public int parkedVehicleSheetPxW() { return asset(parkedVehicles).width(); }
+        @Override public int parkedVehicleSheetPxH() { return asset(parkedVehicles).height(); }
         @Override public EnumMap<LayeredArmorFamily, LayeredUnitAssets> layeredUnitSprites() {
             return infantry;
         }

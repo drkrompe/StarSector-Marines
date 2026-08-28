@@ -65,6 +65,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static final String[] TRANSFER_FLEET = {
             "valkyrie", "legion", "starliner", "eagle", "atlas", "wolf" };
 
+    /**
+     * Where the transfer evidence points at the plan, in canvas pixels. Chosen
+     * to land on the mech bay, which is the compartment the whole screen is
+     * usually being read for.
+     */
+    private static final float[] HOVERED_CELL = { 436f, 273f };
+
     private static final List<String> SHIP_TRANSFER_COMPONENTS = List.of(
             "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/company/ship-transfer.mlx");
@@ -115,10 +122,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
                 new SnapshotArtifact("ship-transfer-wide.png",
                         renderShipTransfer(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 0)),
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 0, HOVERED_CELL)),
                 new SnapshotArtifact("ship-transfer-costly-wide.png",
                         renderShipTransfer(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 2)),
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 2, null)),
                 new SnapshotArtifact("fleet-armory-overview-wide.png",
                         renderFleetArmoryOverview(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
@@ -207,7 +214,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
      */
     private static BufferedImage renderShipTransfer(
             SnapshotContext context, HeadlessUiRenderer renderer,
-            int width, int height, int selected) throws Exception {
+            int width, int height, int selected, float[] pointAt) throws Exception {
         Reactor reactor = new Reactor();
         List<ShipTransferViewModel.Candidate> fleet = transferFleet(context);
         if (fleet.isEmpty()) return renderer.renderRelative(new UiDocument(null),
@@ -226,9 +233,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
-            document.canvases().set(instance.requireElement("transfer-plan"),
-                    new DeckPlanCanvas(viewModel::selectedPlan,
-                            viewModel::selectedOutline));
+            DeckPlanCanvas plan = new DeckPlanCanvas(viewModel::selectedPlan);
+            // Pointed at the deck so the evidence shows what a player hovering
+            // one compartment is told about it.
+            if (pointAt != null) plan.pointAt(pointAt[0], pointAt[1]);
+            document.canvases().set(instance.requireElement("transfer-plan"), plan);
             return renderRelative(renderer, document, width, height, 1f);
         }
     }

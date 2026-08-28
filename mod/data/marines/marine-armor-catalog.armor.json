@@ -53,7 +53,23 @@
         "tier": 3,
         "iconPath": "graphics/ui/armory/armor-tier-3-combat.png"
       },
-      "battle": { "appearanceFamily": "AEGIS_COMPOSITE", "armorCapacity": 9.0, "armorRating": 7.0, "moveSpeedMult": 1.02, "incomingAccuracyMult": 0.91 }
+      "battle": {
+        "appearanceFamily": "AEGIS_COMPOSITE",
+        "armorCapacity": 9.0,
+        "armorRating": 7.0,
+        "moveSpeedMult": 1.02,
+        "incomingAccuracyMult": 0.91,
+        "integralSystem": {
+          "id": "system.predictive-volley",
+          "displayName": "Predictive volley",
+          "description": "The same threat display that buys the Aegis its footing can just as easily lock a firing solution. When the wearer holds a clear line on something worth spending it on, the suit's shoulder pod puts a brace of smart micro-missiles into it before the wearer would otherwise get a shot off. The rack is small, it is not the wearer's rifle, and it does not refill in the field.",
+          "effect": "missile-pod",
+          "resource": "ammunition",
+          "durationSeconds": 1.0,
+          "startingAmmo": 2,
+          "weaponId": "weapon.micro-missile"
+        }
+      }
     },
     {
       "id": "armor.palatine",

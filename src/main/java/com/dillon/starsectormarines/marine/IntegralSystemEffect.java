@@ -20,7 +20,15 @@ public enum IntegralSystemEffect {
      * cooldown. Answers how a heavy suit crosses the doorway it exists to cross
      * without widening anyone's armour capacity.
      */
-    BREACHER_ASSIST("breacher-assist");
+    BREACHER_ASSIST("breacher-assist"),
+
+    /**
+     * A small salvo fired from the suit's own shoulder mount against a
+     * self-selected target, from finite onboard ammunition. Answers whether a
+     * suit can put something downrange on its own, the opposite half of the
+     * model from {@link #BREACHER_ASSIST} ({@code integral-armor-systems.md}).
+     */
+    MISSILE_POD("missile-pod");
 
     public final String key;
 

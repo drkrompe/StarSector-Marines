@@ -64,6 +64,22 @@ story adds a spatial premise, not a second topology model.
 - Consumers read zone, frame, and spine membership from the published graph. No
   test or stage re-derives them from cell coordinates.
 
+## Measured: circulation is about a fifth of a walkable deck
+
+Counted 2026-08-28 over three hulls, generating each from its own outline:
+
+| Hull | Deck box | Walkable | Corridor cells | Room cells | Compartment area |
+|---|---|---|---|---|---|
+| Starliner | 428x185 | 33212 | 6435 (19.4%) | 26777 | 26777 |
+| Legion | 273x274 | 29953 | 6043 (20.2%) | 23910 | 23986 |
+| Valkyrie | 257x79 | 9045 | 1951 (21.6%) | 7094 | 7246 |
+
+Two things follow. The pack is real rather than an artifact of what the plan
+draws: compartment area and actual walkable room cells agree to within a
+percent, so the rooms genuinely occupy the deck they appear to. And the spine
+and its branches are a fifth of the walkable ship, which a plan drawing only
+compartments leaves invisible - the deck plan now draws them.
+
 ## Known: a large program occasionally fails to pack
 
 Measured 2026-08-28 over eight seeds per hull, generating each from its own
