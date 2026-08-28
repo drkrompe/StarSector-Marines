@@ -15,7 +15,6 @@ import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11.GL_LINEAR;
 import static org.lwjgl.opengl.GL11.GL_MODELVIEW;
-import static org.lwjgl.opengl.GL11.GL_NO_ERROR;
 import static org.lwjgl.opengl.GL11.GL_ONE_MINUS_SRC_ALPHA;
 import static org.lwjgl.opengl.GL11.GL_PROJECTION;
 import static org.lwjgl.opengl.GL11.GL_QUADS;
@@ -39,7 +38,6 @@ import static org.lwjgl.opengl.GL11.glColorMask;
 import static org.lwjgl.opengl.GL11.glDisable;
 import static org.lwjgl.opengl.GL11.glEnable;
 import static org.lwjgl.opengl.GL11.glEnd;
-import static org.lwjgl.opengl.GL11.glGetError;
 import static org.lwjgl.opengl.GL11.glGetInteger;
 import static org.lwjgl.opengl.GL11.glLoadIdentity;
 import static org.lwjgl.opengl.GL11.glMatrixMode;
@@ -397,8 +395,9 @@ public final class DecalAccumulator {
 
         glBindTexture(GL_TEXTURE_2D, fboColor);
         ByteBuffer empty = BufferUtils.createByteBuffer(fboPxW * fboPxH * 4);
+        GlErrors.clear();
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, fboPxW, fboPxH, 0, GL_RGBA, GL_UNSIGNED_BYTE, empty);
-        checkGL("glTexImage2D (decal FBO color)");
+        GlErrors.check("glTexImage2D (decal FBO color)");
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -424,12 +423,5 @@ public final class DecalAccumulator {
         // transparent surface so the blit doesn't paint random pixels over the
         // floor pass before any decals stamp.
         clearFbo();
-    }
-
-    private static void checkGL(String label) {
-        int err = glGetError();
-        if (err != GL_NO_ERROR) {
-            LOG.error("GL error at " + label + ": 0x" + Integer.toHexString(err));
-        }
     }
 }
