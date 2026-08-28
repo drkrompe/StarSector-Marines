@@ -300,7 +300,6 @@ final class BuildingShellCore {
             case BARRACKS -> purpose == RoomPurpose.BARRACKS;
             case VEHICLE_BAY -> purpose == RoomPurpose.VEHICLE_BAY;
             case CIVIC_HEADQUARTERS -> purpose == RoomPurpose.CIVIC_RECEPTION
-                    || purpose == RoomPurpose.CIVIC_OFFICE
                     || purpose == RoomPurpose.CONFERENCE_ROOM;
             case MEDICAL_CLINIC -> purpose == RoomPurpose.TREATMENT_ROOM
                     || purpose == RoomPurpose.PATIENT_WARD;

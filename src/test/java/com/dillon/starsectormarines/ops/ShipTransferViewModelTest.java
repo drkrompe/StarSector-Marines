@@ -36,6 +36,14 @@ class ShipTransferViewModelTest {
     private static final List<ShipTransferViewModel.Candidate> FLEET =
             List.of(TRANSPORT, LINER);
 
+    /** Ninety-six marines and four walkers, both hulls being cruisers. */
+    private static final int MOVE = 15_000 + 96 * 150 + 4 * 2_500;
+
+    /** A company of ninety-six and four machines, with this much in the purse. */
+    private static CompanyMeans company(int credits) {
+        return CompanyMeans.of(96, 4, credits);
+    }
+
     /** A company's standing with respect to quarters, as a mutable fixture. */
     private static final class Quarters {
         private CompanyShipDesignation.Home standing = CompanyShipDesignation.Home.NONE;
@@ -56,8 +64,8 @@ class ShipTransferViewModelTest {
     /** A company that has not chosen: no home, and a transfer that records one. */
     private static ShipTransferViewModel founding(Reactor reactor) {
         Quarters quarters = new Quarters();
-        return new ShipTransferViewModel(
-                reactor, () -> FLEET, quarters::get, quarters::moveAboard);
+        return new ShipTransferViewModel(reactor, () -> FLEET,
+                quarters::get, quarters::moveAboard, company(MOVE * 4));
     }
 
     @Test
@@ -90,8 +98,8 @@ class ShipTransferViewModelTest {
     void choosingAShipTurnsFoundingIntoTransfer() {
         Reactor reactor = new Reactor();
         Quarters quarters = new Quarters();
-        ShipTransferViewModel viewModel = new ShipTransferViewModel(
-                reactor, () -> FLEET, quarters::get, quarters::moveAboard);
+        ShipTransferViewModel viewModel = new ShipTransferViewModel(reactor,
+                () -> FLEET, quarters::get, quarters::moveAboard, company(MOVE * 4));
 
         viewModel.select(TRANSPORT.id());
         viewModel.commit();
@@ -108,8 +116,8 @@ class ShipTransferViewModelTest {
         Reactor reactor = new Reactor();
         Quarters quarters = new Quarters();
         quarters.moveAboard(TRANSPORT.id());
-        ShipTransferViewModel viewModel = new ShipTransferViewModel(
-                reactor, () -> FLEET, quarters::get, quarters::moveAboard);
+        ShipTransferViewModel viewModel = new ShipTransferViewModel(reactor,
+                () -> FLEET, quarters::get, quarters::moveAboard, company(MOVE * 4));
         viewModel.select(LINER.id());
 
         assertTrue(viewModel.verdict().get().contains("give up"),
@@ -124,7 +132,8 @@ class ShipTransferViewModelTest {
         Quarters quarters = new Quarters();
         quarters.moveAboard(TRANSPORT.id());
         ShipTransferViewModel viewModel = new ShipTransferViewModel(reactor, () -> FLEET,
-                quarters::get, ship -> quarters.displace("SOMEWHERE ELSE", false));
+                quarters::get, ship -> quarters.displace("SOMEWHERE ELSE", false),
+                company(MOVE * 4));
 
         viewModel.select(TRANSPORT.id());
         viewModel.commit();
@@ -138,7 +147,7 @@ class ShipTransferViewModelTest {
     void anEmptyFleetIsAnsweredRatherThanRefused() {
         ShipTransferViewModel viewModel = new ShipTransferViewModel(
                 new Reactor(), List::of,
-                () -> CompanyShipDesignation.Home.NONE, ship -> { });
+                () -> CompanyShipDesignation.Home.NONE, ship -> { }, CompanyMeans.NONE);
 
         assertNull(viewModel.selectedPlan());
         assertTrue(viewModel.candidateRows().get().isEmpty());
@@ -151,8 +160,8 @@ class ShipTransferViewModelTest {
     void aLostShipIsNamedAndDistinguishedFromOneLetGo() {
         Quarters quarters = new Quarters();
         quarters.displace("SABRE", true);
-        ShipTransferViewModel viewModel = new ShipTransferViewModel(
-                new Reactor(), () -> FLEET, quarters::get, quarters::moveAboard);
+        ShipTransferViewModel viewModel = new ShipTransferViewModel(new Reactor(),
+                () -> FLEET, quarters::get, quarters::moveAboard, company(MOVE * 4));
 
         assertTrue(viewModel.roomTitle().get().contains("DISPLACED"),
                 "a company that had a home is not founding a company: "
@@ -169,8 +178,8 @@ class ShipTransferViewModelTest {
     void aShipLetGoReadsDifferentlyFromOneLost() {
         Quarters quarters = new Quarters();
         quarters.displace("SABRE", false);
-        ShipTransferViewModel viewModel = new ShipTransferViewModel(
-                new Reactor(), () -> FLEET, quarters::get, quarters::moveAboard);
+        ShipTransferViewModel viewModel = new ShipTransferViewModel(new Reactor(),
+                () -> FLEET, quarters::get, quarters::moveAboard, company(MOVE * 4));
 
         String copy = viewModel.roomCopy().get();
         assertTrue(copy.contains("is gone"), copy);
@@ -182,8 +191,8 @@ class ShipTransferViewModelTest {
     void quarteringAgainClearsTheDisplacement() {
         Quarters quarters = new Quarters();
         quarters.displace("SABRE", true);
-        ShipTransferViewModel viewModel = new ShipTransferViewModel(
-                new Reactor(), () -> FLEET, quarters::get, quarters::moveAboard);
+        ShipTransferViewModel viewModel = new ShipTransferViewModel(new Reactor(),
+                () -> FLEET, quarters::get, quarters::moveAboard, company(MOVE * 4));
 
         viewModel.select(TRANSPORT.id());
         viewModel.commit();
@@ -191,6 +200,68 @@ class ShipTransferViewModelTest {
         assertEquals(TRANSPORT.id(), quarters.get().shipId());
         assertFalse(quarters.get().displaced(), "they have a home again");
         assertTrue(viewModel.roomTitle().get().contains("TRANSFER"));
+    }
+
+    @Test
+    @DisplayName("a company with nowhere to live moves for nothing")
+    void foundingCostsNothing() {
+        ShipTransferViewModel viewModel = founding(new Reactor());
+        viewModel.select(LINER.id());
+
+        assertTrue(viewModel.selectedCost().free(), "there is nothing to move out of");
+        assertTrue(viewModel.costLabel().get().startsWith("No charge"),
+                viewModel.costLabel().get());
+    }
+
+    @Test
+    @DisplayName("moving house is a refit, and the company pays the yard for it")
+    void movingHouseIsCharged() {
+        Quarters quarters = new Quarters();
+        quarters.moveAboard(TRANSPORT.id());
+        CompanyMeans means = company(MOVE * 2);
+        ShipTransferViewModel viewModel = new ShipTransferViewModel(new Reactor(),
+                () -> FLEET, quarters::get, quarters::moveAboard, means);
+
+        viewModel.select(LINER.id());
+        assertEquals(MOVE, viewModel.selectedCost().credits());
+        viewModel.commit();
+
+        assertEquals(LINER.id(), quarters.get().shipId(), "they moved");
+        assertEquals(MOVE, means.credits(), "and the yard was paid");
+    }
+
+    @Test
+    @DisplayName("a move nobody can pay for is refused rather than run up as a debt")
+    void anUnaffordableMoveIsRefused() {
+        Quarters quarters = new Quarters();
+        quarters.moveAboard(TRANSPORT.id());
+        CompanyMeans means = company(1_000);
+        ShipTransferViewModel viewModel = new ShipTransferViewModel(new Reactor(),
+                () -> FLEET, quarters::get, quarters::moveAboard, means);
+
+        viewModel.select(LINER.id());
+        viewModel.commit();
+
+        assertEquals(TRANSPORT.id(), quarters.get().shipId(), "they stayed put");
+        assertEquals(1_000, means.credits(), "and nothing was taken");
+        assertTrue(viewModel.transferClasses().get().contains("unaffordable"),
+                viewModel.transferClasses().get());
+        assertTrue(viewModel.costLabel().get().endsWith("short"),
+                "the shortfall is named: " + viewModel.costLabel().get());
+    }
+
+    @Test
+    @DisplayName("the ship they already live aboard is not priced")
+    void livingSomewhereIsNotAMove() {
+        Quarters quarters = new Quarters();
+        quarters.moveAboard(TRANSPORT.id());
+        ShipTransferViewModel viewModel = new ShipTransferViewModel(new Reactor(),
+                () -> FLEET, quarters::get, quarters::moveAboard, company(MOVE * 4));
+
+        viewModel.select(TRANSPORT.id());
+
+        assertTrue(viewModel.selectedCost().free());
+        assertEquals("", viewModel.costLabel().get());
     }
 
     private static ShipTransferViewModel.CandidateRow row(

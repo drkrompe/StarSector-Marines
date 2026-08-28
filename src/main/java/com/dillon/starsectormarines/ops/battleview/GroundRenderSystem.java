@@ -54,10 +54,10 @@ public final class GroundRenderSystem implements RenderSystem {
     private static final float CROSSWALK_ALPHA       = 0.85f;
     private static final float CROSSWALK_INSET_FRAC  = 0.08f;
 
-    /** Shared-edge windows are seams between cells, not miniature wall cells. */
-    private static final float EDGE_WINDOW_FRAME_THICKNESS_FRAC = 0.10f;
-    private static final float EDGE_WINDOW_GLASS_THICKNESS_FRAC = 0.04f;
-    private static final float EDGE_WINDOW_END_INSET_FRAC = 0.08f;
+    /** Visual width is deliberately larger than the mathematical navigation edge. */
+    private static final float EDGE_WINDOW_FRAME_THICKNESS_FRAC = 0.30f;
+    private static final float EDGE_WINDOW_GLASS_THICKNESS_FRAC = 0.12f;
+    private static final float EDGE_WINDOW_GLASS_END_INSET_FRAC = 0.08f;
 
     private static final int GROUND_TILE_EDGE_INSET_PX       = FixedGridTileDrawer.GROUND_INSET_PX_LARGE;
     private static final int GROUND_SMALL_TILE_EDGE_INSET_PX = FixedGridTileDrawer.GROUND_INSET_PX_SMALL;
@@ -269,7 +269,7 @@ public final class GroundRenderSystem implements RenderSystem {
         float cell = cam.cellPxSize();
         float frameThickness = cell * EDGE_WINDOW_FRAME_THICKNESS_FRAC;
         float glassThickness = cell * EDGE_WINDOW_GLASS_THICKNESS_FRAC;
-        float endInset = cell * EDGE_WINDOW_END_INSET_FRAC;
+        float glassEndInset = cell * EDGE_WINDOW_GLASS_END_INSET_FRAC;
         for (SharedEdgeBarrier barrier : grid.getEdgeBarriers()) {
             int x = barrier.cellX();
             int y = barrier.cellY();
@@ -280,21 +280,25 @@ public final class GroundRenderSystem implements RenderSystem {
 
             if (barrier.direction() == Direction.E) {
                 float edgeX = cam.cellToScreenX(x + 1f);
-                float y0 = cam.cellToScreenY(y) + endInset;
-                float y1 = cam.cellToScreenY(y + 1f) - endInset;
-                fillRect(edgeX - frameThickness * 0.5f, y0,
-                        edgeX + frameThickness * 0.5f, y1, WINDOW_FRAME);
-                fillRect(edgeX - glassThickness * 0.5f, y0 + endInset,
-                        edgeX + glassThickness * 0.5f, y1 - endInset,
+                float y0 = cam.cellToScreenY(y);
+                float y1 = cam.cellToScreenY(y + 1f);
+                float inward = barrier.structureCellX() == x ? -1f : 1f;
+                float centerX = edgeX + inward * frameThickness * 0.5f;
+                fillRect(centerX - frameThickness * 0.5f, y0,
+                        centerX + frameThickness * 0.5f, y1, WINDOW_FRAME);
+                fillRect(centerX - glassThickness * 0.5f, y0 + glassEndInset,
+                        centerX + glassThickness * 0.5f, y1 - glassEndInset,
                         WINDOW_GLASS);
             } else {
                 float edgeY = cam.cellToScreenY(y + 1f);
-                float x0 = cam.cellToScreenX(x) + endInset;
-                float x1 = cam.cellToScreenX(x + 1f) - endInset;
-                fillRect(x0, edgeY - frameThickness * 0.5f,
-                        x1, edgeY + frameThickness * 0.5f, WINDOW_FRAME);
-                fillRect(x0 + endInset, edgeY - glassThickness * 0.5f,
-                        x1 - endInset, edgeY + glassThickness * 0.5f,
+                float x0 = cam.cellToScreenX(x);
+                float x1 = cam.cellToScreenX(x + 1f);
+                float inward = barrier.structureCellY() == y ? -1f : 1f;
+                float centerY = edgeY + inward * frameThickness * 0.5f;
+                fillRect(x0, centerY - frameThickness * 0.5f,
+                        x1, centerY + frameThickness * 0.5f, WINDOW_FRAME);
+                fillRect(x0 + glassEndInset, centerY - glassThickness * 0.5f,
+                        x1 - glassEndInset, centerY + glassThickness * 0.5f,
                         WINDOW_GLASS);
             }
         }

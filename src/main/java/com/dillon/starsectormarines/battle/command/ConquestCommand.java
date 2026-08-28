@@ -224,6 +224,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
         final UnitRole role;
         final boolean localContact;
         final String executionSuspension;
+        final int activePathMembers;
         final ObjectiveAssignment originalAssignment;
         ObjectiveAssignment assignedObjective;
 
@@ -239,6 +240,7 @@ public final class ConquestCommand implements ConquestFrontCommand,
             role = state.role();
             localContact = state.localContact();
             executionSuspension = state.executionSuspension();
+            activePathMembers = state.activePathMembers();
             originalAssignment = state.assignment();
             assignedObjective = state.assignment();
         }
@@ -1215,7 +1217,8 @@ public final class ConquestCommand implements ConquestFrontCommand,
             states.add(new ConquestFrontSnapshot.SquadState(
                     squad.id, squad.aliveMembers, squad.centroidX,
                     squad.centroidY, squad.currentZoneId,
-                    squad.executionSuspension, squad.localContact));
+                    squad.executionSuspension, squad.localContact,
+                    squad.activePathMembers));
         }
         return states;
     }

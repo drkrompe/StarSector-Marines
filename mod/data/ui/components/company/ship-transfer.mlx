@@ -1,4 +1,4 @@
-<template props="roomTitle,roomCopy,contextLabel,candidateRows,facilityCells,selectedName,selectedSummary,verdict,transferLabel,transferClasses,transferAction,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses">
+<template props="roomTitle,roomCopy,contextLabel,candidateRows,facilityCells,selectedName,selectedSummary,verdict,costLabel,costClasses,transferLabel,transferClasses,transferAction,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses">
   <div id="transfer-root" class="transfer-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" contextLabel="{contextLabel}" />
 
@@ -36,6 +36,7 @@
 
         <div id="transfer-verdict-bar" class="verdict-bar surface-dark">
           <div id="transfer-verdict" class="label heading tone-accent verdict">{verdict}</div>
+          <div id="transfer-cost" class="{costClasses}">{costLabel}</div>
         </div>
 
         <div id="transfer-facilities" class="facilities-panel surface-dark">
@@ -78,12 +79,15 @@
   .selected-name { height: 25px; font-family: title; }
   .transfer-commit { width: 300px; height: 38px; padding: 9px; border-width: 1px; border-color: #ffd464; }
   .transfer-commit.current { border-color: #31485f; opacity: 0.6; }
+  .transfer-commit.unaffordable { border-color: #c44b4b; opacity: 0.55; }
   .commit-label { height: 20px; text-align: center; }
 
   .transfer-plan { width: 100%; height: 0px; flex-grow: 1; border-width: 1px; }
 
-  .verdict-bar { flex-direction: row; height: 36px; padding: 8px 9px; border-width: 1px; }
-  .verdict { width: 100%; height: 20px; }
+  .verdict-bar { flex-direction: row; height: 36px; padding: 8px 9px; gap: 10px; border-width: 1px; }
+  .verdict { width: 0px; flex-grow: 1; height: 20px; }
+  .transfer-cost { width: 400px; height: 20px; text-align: right; }
+  .transfer-cost.short { color: #c44b4b; }
 
   .facilities-panel { flex-direction: column; height: 116px; padding: 7px; gap: 5px; border-width: 1px; }
   .facility-cells { display: grid; height: 0px; flex-grow: 1; gap: 4px; overflow: hidden; }

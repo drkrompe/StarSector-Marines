@@ -254,7 +254,7 @@ class ConquestCommandBalanceTest {
     static String summaryJson(List<ReportRow> rows, int maxTicks,
                               boolean canonical) {
         StringBuilder out = new StringBuilder(2_048)
-                .append("{\"schemaVersion\":2,\"schedulerMode\":")
+                .append("{\"schemaVersion\":3,\"schedulerMode\":")
                 .append("\"SERIAL_DETERMINISTIC\",\"maxTicks\":")
                 .append(maxTicks)
                 .append(",\"repeatCount\":2,\"canonicalMatrix\":")
@@ -330,6 +330,8 @@ class ConquestCommandBalanceTest {
                     analysis.factions().get(Faction.DEFENDER);
             CommandTraceAnalyzer.PhysicalProgressMetrics movement =
                     marine.physicalProgress();
+            CommandTraceAnalyzer.CommandInactivityMetrics inactivity =
+                    marine.commandInactivity();
             CommandTraceAnalyzer.CompoundPresenceMetrics presence =
                     analysis.conquest().physicalPresence();
             out.append("\n### ").append(row.id).append("\n\n")
@@ -339,6 +341,25 @@ class ConquestCommandBalanceTest {
                     .append(marine.unassignedSquadTicks()).append(" squad-ticks; unreachable ")
                     .append(marine.unreachableSquadPulses()).append(", no-actionable ")
                     .append(marine.noActionableSquadPulses()).append(".\n")
+                    .append("- Marine command-unassigned causes: lifecycle ")
+                    .append(inactivity.lifecycleSquadPulses()).append(" / ")
+                    .append(inactivity.lifecycleSquadTicks())
+                    .append("; execution-suspended ")
+                    .append(inactivity.executionSuspendedSquadPulses()).append(" / ")
+                    .append(inactivity.executionSuspendedSquadTicks())
+                    .append("; local-contact ")
+                    .append(inactivity.localContactSquadPulses()).append(" / ")
+                    .append(inactivity.localContactSquadTicks())
+                    .append("; useful active-path movement ")
+                    .append(inactivity.usefulMovementSquadPulses()).append(" / ")
+                    .append(inactivity.usefulMovementSquadTicks())
+                    .append("; genuine idle ")
+                    .append(inactivity.genuineIdleSquadPulses()).append(" / ")
+                    .append(inactivity.genuineIdleSquadTicks())
+                    .append("; legacy/unclassified ")
+                    .append(inactivity.unclassifiedSquadPulses()).append(" / ")
+                    .append(inactivity.unclassifiedSquadTicks())
+                    .append(" (squad-pulses / squad-ticks).\n")
                     .append("- Marine distant captures deferred for front resistance: ")
                     .append(marine.distantCaptureDeferredSquadPulses())
                     .append(" squad-pulses.\n")

@@ -7,8 +7,9 @@ Written: 2026-08-23
 Updated: 2026-08-28 — pointed at the compound-program direction; shipped
 shared-edge windows for Conquest bunkers,
 widened compound firing aprons while preserving functional parcel members,
-added role-readable compound dressing and workstation groups, guaranteed
-standable interior anchors, and made pocket sealing yield to a compound.
+added role-readable compound dressing and authored multi-cell civic room
+programs, guaranteed standable interior anchors, and made pocket sealing yield
+to a compound.
 
 Map generation turns a deterministic request into a validated tactical world. It
 owns authored spatial intent; runtime systems own subsequent mutation and play.
@@ -67,7 +68,11 @@ adjacent cell returns the same feature. Both cells must already be walkable and
 the transition initially open: the feature divides usable space instead of
 smuggling a cell wall into edge metadata. Its profile defines sight and direct-
 projectile policy, directional cover and vertical catch, structure, and
-appearance together. The first profile is a transparent firing **window**: it
+appearance together. Canonicalization also retains the adjacent authoring cell
+whose structure owns the feature. That structural side orients presentation
+today and can resolve through the map's building registry for later destruction
+objectives without turning visual thickness into collision. The first profile
+is a transparent firing **window**: it
 blocks movement, passes sight and direct rounds, supplies low cover to both
 adjacent positions, and can be broken by structural blast damage. Destruction
 removes the identity and cover, then opens the reciprocal edge through the map
@@ -160,6 +165,15 @@ Purpose-built interiors express their function through grouped equipment rather
 than a single symbolic prop: command rooms organize console banks around a
 planning focus, server rooms organize repeated racks around a service aisle,
 and both retain doorway, firing-position, and room-connectivity obligations.
+Civic headquarters follow the same authored-program rule as ship mech labs:
+their two-cell spine, opposing entrances, room depths, and fixture groups are
+designed as one floor-plan family rather than discovered by random door and
+prop placement. A qualifying headquarters lot is at least 15 by 13 cells. Each
+office must fit its workstation-and-records group, each reception wing its
+counter, the conference room its central table, and the server room repeated
+racks around a service aisle. On the compact footprint, office facade windows
+yield to that required room capacity; reception and conference facades retain
+the building's firing apertures.
 
 ## City, station, and ship families
 

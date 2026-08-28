@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -295,6 +296,10 @@ class FleetArmoryViewModelTest {
         assertEquals("No integral system", bareCard.system());
         assertTrue(bareCard.systemClasses().contains("tone-muted"));
 
+        assertNotNull(carrierCard.systemIcon(), "a carried system has a family icon to show");
+        assertEquals(IntegralSystemCopy.iconPath(withSystem), carrierCard.systemIcon());
+        assertNull(bareCard.systemIcon(), "a pattern carrying nothing offers no icon");
+
         for (FleetArmoryViewModel.ArmorComparisonCard card : viewModel.armorComparisonCards().get()) {
             assertEquals(List.of("ARMOR", "RESIST", "MOVE", "EVASION"), card.stats().stream()
                     .map(FleetArmoryViewModel.StatMeter::label).toList());
@@ -333,6 +338,8 @@ class FleetArmoryViewModelTest {
                 assertEquals(card.description(),
                         instance.requireElement(card.descriptionId()).text());
                 assertEquals(card.system(), instance.requireElement(card.systemId()).text());
+                assertEquals(card.systemIcon(),
+                        instance.requireElement(card.systemIconId()).imageSource());
             }
         }
     }
