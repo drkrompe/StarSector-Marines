@@ -103,13 +103,13 @@ public final class DroneRenderSystem implements RenderSystem {
 
             float barY = cy + pxH / 2f + BattleRenderer.HP_BAR_GAP;
             Allegiance owner = Allegiance.of(ctx.sim.identity().faction(u));
-            float hpFrac = world.hp(u) / world.maxHp(u);
             if (world.hasArmor(u)) {
                 DurabilityBarDecor.emit(out, RenderLayer.DRONES, owner, cx, barY, barW,
-                        hpFrac, world.armor(u) / world.maxArmor(u), drawAlpha);
+                        world.hp(u), world.maxHp(u),
+                        world.armor(u), world.maxArmor(u), drawAlpha);
             } else {
                 DurabilityBarDecor.emit(out, RenderLayer.DRONES, owner, cx, barY, barW,
-                        hpFrac, drawAlpha);
+                        world.hp(u), world.maxHp(u), drawAlpha);
             }
         }
     }

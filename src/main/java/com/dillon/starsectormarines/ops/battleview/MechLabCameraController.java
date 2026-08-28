@@ -1,20 +1,51 @@
 package com.dillon.starsectormarines.ops.battleview;
 
-/** Eased presentation camera for the wide Mech Lab and its focused fitting view. */
+import com.dillon.starsectormarines.battle.world.gen.Gantry;
+
+import java.util.List;
+
+/**
+ * Eased presentation camera for the wide Mech Lab and its focused fitting view.
+ *
+ * <p>The easing is the whole of this class; <b>where</b> the camera can sit is
+ * not. A lab looks at a bay on whichever ship the company is living aboard, so
+ * the wide shot is that bay and a fitting shot is a berth in it — neither is a
+ * constant, and a controller that knew the coordinates would only work on one
+ * ship. It is handed the anchors and interpolates between them.
+ */
 public final class MechLabCameraController {
+
+    /** Where the lab's camera can sit on the ship it is looking at. */
+    public interface Anchors {
+
+        /** The whole room. */
+        CameraPose wide();
+
+        /** One berth, close enough to fit a machine standing in it. */
+        CameraPose berth(int index);
+    }
 
     static final float WIDE_ZOOM_NOTCHES = 0f;
     static final float FITTING_ZOOM_NOTCHES = 6.25f;
     static final float TRANSITION_SECONDS = 0.72f;
 
-    private CameraPose current = widePose(0);
-    private CameraPose transitionFrom = current;
-    private CameraPose target = current;
+    private final Anchors anchors;
+    private CameraPose current;
+    private CameraPose transitionFrom;
+    private CameraPose target;
     private float transitionSeconds = TRANSITION_SECONDS;
+
+    public MechLabCameraController(Anchors anchors) {
+        if (anchors == null) throw new IllegalArgumentException("camera anchors are required");
+        this.anchors = anchors;
+        current = anchors.wide();
+        transitionFrom = current;
+        target = current;
+    }
 
     public void target(boolean fittingFocused, int gantryIndex, int assignedAssets) {
         CameraPose requested = fittingFocused
-                ? fittingPose(gantryIndex) : widePose(assignedAssets);
+                ? anchors.berth(gantryIndex) : anchors.wide();
         if (same(requested, target)) return;
         transitionFrom = current;
         target = requested;
@@ -34,20 +65,58 @@ public final class MechLabCameraController {
     }
 
     public void snap(boolean fittingFocused, int gantryIndex, int assignedAssets) {
-        current = fittingFocused ? fittingPose(gantryIndex) : widePose(assignedAssets);
+        current = fittingFocused ? anchors.berth(gantryIndex) : anchors.wide();
         transitionFrom = current;
         target = current;
         transitionSeconds = TRANSITION_SECONDS;
     }
 
-    static CameraPose widePose(int assignedAssets) {
-        return new CameraPose(MechLabBattleScene.GRID_WIDTH * 0.5f,
-                MechLabBattleScene.GRID_HEIGHT * 0.5f, WIDE_ZOOM_NOTCHES);
+    /**
+     * Anchors on a compartment and the berths standing in it.
+     *
+     * <p>The wide shot looks at the middle of the room rather than at the
+     * machines, because a bay with one mech in it is still a bay and the camera
+     * should not swing to the corner the company happens to have filled.
+     */
+    public static Anchors on(ShipDeckBattleScene.RoomView room, List<Gantry> berths) {
+        if (room == null) throw new IllegalArgumentException("a room framing is required");
+        List<Gantry> standing = berths == null ? List.of() : List.copyOf(berths);
+        return new Anchors() {
+            @Override
+            public CameraPose wide() {
+                return new CameraPose(room.centerCellX(), room.centerCellY(),
+                        WIDE_ZOOM_NOTCHES);
+            }
+
+            @Override
+            public CameraPose berth(int index) {
+                if (standing.isEmpty()) return wide();
+                Gantry berth = standing.get(
+                        Math.max(0, Math.min(standing.size() - 1, index)));
+                return new CameraPose(berth.centerX + 0.5f, berth.centerY + 0.5f,
+                        FITTING_ZOOM_NOTCHES);
+            }
+        };
     }
 
-    static CameraPose fittingPose(int gantryIndex) {
-        return new CameraPose(MechLabBattleScene.mechWorldX(gantryIndex),
-                MechLabBattleScene.mechWorldY(gantryIndex), FITTING_ZOOM_NOTCHES);
+    /**
+     * Anchors on the hand-authored garage, for the headless fallback that draws
+     * it. Not a ship, and not a default: a live lab is always aboard something.
+     */
+    public static Anchors authoredGarage() {
+        return new Anchors() {
+            @Override
+            public CameraPose wide() {
+                return new CameraPose(MechLabBattleScene.GRID_WIDTH * 0.5f,
+                        MechLabBattleScene.GRID_HEIGHT * 0.5f, WIDE_ZOOM_NOTCHES);
+            }
+
+            @Override
+            public CameraPose berth(int index) {
+                return new CameraPose(MechLabBattleScene.mechWorldX(index),
+                        MechLabBattleScene.mechWorldY(index), FITTING_ZOOM_NOTCHES);
+            }
+        };
     }
 
     private static CameraPose interpolate(CameraPose from, CameraPose to, float amount) {
