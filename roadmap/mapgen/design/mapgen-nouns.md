@@ -4,7 +4,10 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — shipped authored shared-edge windows as the first narrow barrier profile and migrated Conquest forward bunkers to them.
+Updated: 2026-08-28 — shipped shared-edge windows for Conquest bunkers,
+widened compound firing aprons while preserving functional parcel members,
+guaranteed standable interior anchors, and made pocket sealing yield to a
+compound.
 
 Map generation turns a deterministic request into a validated tactical world. It
 owns authored spatial intent; runtime systems own subsequent mutation and play.
@@ -138,7 +141,9 @@ long straight runs with walkable firing space on both sides. Compound buildings
 retain a two-cell internal apron to support oblique firing angles, while gates,
 hardpoints, corners, and reserved road circulation remain clear. These wall-
 cell apertures model a thick shell; shared-edge windows model a narrow divider
-without consuming either side.
+without consuming either side. The apron expands the minimum parcel claimed by
+a walled compound; it may not reduce an intended member below a hollow shell
+with a standable interior and doorway.
 
 ## City, station, and ship families
 

@@ -65,6 +65,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static final String[] TRANSFER_FLEET = {
             "valkyrie", "legion", "starliner", "eagle", "atlas", "wolf" };
 
+    /**
+     * Where the transfer evidence points at the plan, in canvas pixels. Chosen
+     * to land on the mech bay, which is the compartment the whole screen is
+     * usually being read for.
+     */
+    private static final float[] HOVERED_CELL = { 436f, 273f };
+
     private static final List<String> SHIP_TRANSFER_COMPONENTS = List.of(
             "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/company/ship-transfer.mlx");
@@ -79,7 +86,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             "data/ui/components/armory/fleet-armory-fireteam.mlx",
             "data/ui/components/armory/fleet-armory-doctrine-designer.mlx",
             "data/ui/components/armory/armory-squad-doctrine.mlx",
-            "data/ui/components/armory/armory-refit-transaction.mlx");
+            "data/ui/components/armory/armory-refit-transaction.mlx",
+            "data/ui/components/armory/armory-armor-comparison.mlx");
     private static final List<String> MECH_LAB_COMPONENTS = List.of(
             "data/ui/components/marine-ops-page-nav.mlx",
             "data/ui/components/mech-lab/mech-lab.mlx");
@@ -114,10 +122,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
                 new SnapshotArtifact("ship-transfer-wide.png",
                         renderShipTransfer(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 0)),
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 0, HOVERED_CELL)),
                 new SnapshotArtifact("ship-transfer-costly-wide.png",
                         renderShipTransfer(context, renderer,
-                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 2)),
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 2, null)),
                 new SnapshotArtifact("fleet-armory-overview-wide.png",
                         renderFleetArmoryOverview(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
@@ -153,6 +161,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderEquipmentDesigner(
                                 context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
                                 SquadEquipmentDoctrines.OUTLAW_HEAVY_ARMOR)),
+                new SnapshotArtifact("fleet-armory-armor-comparison-wide.png",
+                        renderArmorComparison(
+                                context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
+                new SnapshotArtifact("fleet-armory-armor-comparison-battlesuits-wide.png",
+                        renderArmorComparison(
+                                context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)),
                 new SnapshotArtifact("mech-lab-wide.png",
                         renderMechLab(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f)),
@@ -200,7 +214,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
      */
     private static BufferedImage renderShipTransfer(
             SnapshotContext context, HeadlessUiRenderer renderer,
-            int width, int height, int selected) throws Exception {
+            int width, int height, int selected, float[] pointAt) throws Exception {
         Reactor reactor = new Reactor();
         List<ShipTransferViewModel.Candidate> fleet = transferFleet(context);
         if (fleet.isEmpty()) return renderer.renderRelative(new UiDocument(null),
@@ -219,9 +233,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
-            document.canvases().set(instance.requireElement("transfer-plan"),
-                    new DeckPlanCanvas(viewModel::selectedPlan,
-                            viewModel::selectedOutline));
+            DeckPlanCanvas plan = new DeckPlanCanvas(viewModel::selectedPlan);
+            // Pointed at the deck so the evidence shows what a player hovering
+            // one compartment is told about it.
+            if (pointAt != null) plan.pointAt(pointAt[0], pointAt[1]);
+            document.canvases().set(instance.requireElement("transfer-plan"), plan);
             return renderRelative(renderer, document, width, height, 1f);
         }
     }
@@ -467,6 +483,42 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         }
     }
 
+    private static BufferedImage renderArmorComparison(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height) throws Exception {
+        return renderArmorComparison(context, renderer, width, height, false);
+    }
+
+    /**
+     * @param scrolledToBattlesuits when true, scrolls past the light/line
+     *                              patterns to the tier-IV battlesuits, whose
+     *                              descriptions and integral-system lines are
+     *                              the longest text this surface renders — the
+     *                              case most likely to clip.
+     */
+    private static BufferedImage renderArmorComparison(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, boolean scrolledToBattlesuits) throws Exception {
+        Reactor reactor = new Reactor();
+        MarineRoster roster = new MarineRoster();
+        roster.bootstrapInitialComplement(MarineSquad.CAPACITY);
+        FleetArmoryViewModel viewModel = new FleetArmoryViewModel(reactor, roster);
+        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
+                context.modRoot().resolve(path)), WORKSPACE_COMPONENTS);
+        loader.reload();
+
+        try (MarkupInstance instance = loader.build(
+                reactor, "armory-armor-comparison", armorComparisonProps(viewModel))) {
+            UiDocument document = new UiDocument(instance.root());
+            for (var style : instance.styles()) document.addStyleSheet(style);
+            document.theme(MarineOpsThemes.standard());
+            if (scrolledToBattlesuits) {
+                instance.requireElement("comparison-list").scrollTop(100_000f);
+            }
+            return renderRelative(renderer, document, width, height, 1f);
+        }
+    }
+
     private static BufferedImage renderMechLab(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, float uiScale) throws Exception {
@@ -596,6 +648,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("showArmorPicker", viewModel.showArmorPickerAction());
         props.put("loadoutFilters", viewModel.loadoutFilters());
         props.put("loadoutBrowserSummary", viewModel.loadoutBrowserSummary());
+        props.put("showArmorComparison", (Runnable) () -> { });
+        props.put("armorComparisonSummary", viewModel.armorComparisonSummary());
+        props.put("armorComparisonCards", viewModel.armorComparisonCards());
         props.put("marineCards", viewModel.marineCards());
         props.put("transactionSummary", viewModel.transactionSummary());
         props.put("transactionClasses", viewModel.transactionClasses());
@@ -631,6 +686,17 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("renameDisabled", viewModel.renameDisabled());
         props.put("delete", viewModel.delete());
         props.put("deleteDisabled", viewModel.deleteDisabled());
+        props.put("backToFireTeams", (Runnable) () -> { });
+        props.put("back", (Runnable) () -> { });
+        putArmoryPageNavigation(props);
+        return props;
+    }
+
+    private static Map<String, Object> armorComparisonProps(FleetArmoryViewModel viewModel) {
+        Map<String, Object> props = new LinkedHashMap<>();
+        props.put("selectedSquadName", viewModel.selectedSquadName());
+        props.put("armorComparisonSummary", viewModel.armorComparisonSummary());
+        props.put("armorComparisonCards", viewModel.armorComparisonCards());
         props.put("backToFireTeams", (Runnable) () -> { });
         props.put("back", (Runnable) () -> { });
         putArmoryPageNavigation(props);

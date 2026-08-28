@@ -4,8 +4,9 @@ Status: ACTIVE — the layered command pipeline is shipped; asset consolidation 
 
 Written: 2026-08-23
 
-Updated: 2026-08-28 — the GROUND collector now presents sparse authored shared-
-edge windows directly from their live simulation identity.
+Updated: 2026-08-28 — parked road vehicles draw as ordinary doodads, shared-
+edge windows draw from live GROUND identity, and durability bars cover every
+shootable layer.
 
 ## Vocabulary
 
@@ -13,6 +14,7 @@ edge windows directly from their live simulation identity.
 - The **game render tier** decides what to show and in what order. It owns battle-specific layers, producers, presentation policy, and the frame context.
 - The **render engine** is the reusable mechanism that projects coordinates, buffers commands, batches primitives, and brackets hostile GL state. It does not know what a unit, roof, faction, or objective means.
 - A **render layer** is one named stratum in the world stack. Its ordinal is paint order; it is an occlusion contract, not a depth-sort hint.
+- A **prop** is scenery: authored, placed at generation, drawn from a sheet, and never a simulation actor. Size and subject do not promote one — a parked truck draws in the same layer, from the same registry, and with the same cover model as a crate. A second render path for scenery that merely looks important is duplication, and it drifts: the one this replaced had grown its own list, its own sheet cache, its own footprint stamp, and a cover rule nothing else in the game used.
 - A **render system** is a GL-free, per-frame producer. It reads the frame context and appends commands for its one layer without putting render data on simulation entities.
 - The **frame context** is the current simulation view plus camera, layout, alpha, selection/highlight state, and host-owned frame inputs. It is temporary and is not retained as gameplay state.
 - The **draw list** is the pooled, per-frame command buffer. A **draw command** describes one presentational operation: a sheet quad, whole sprite, solid geometry, line, ribbon, polygon, or a bounded own-GL escape.
