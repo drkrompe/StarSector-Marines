@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.tools.layerauthoring;
 
+import com.dillon.starsectormarines.tools.authoring.AuthoringCrashReporter;
 import com.dillon.starsectormarines.tools.authoring.AuthoringPage;
 import com.dillon.starsectormarines.tools.authoring.AuthoringPageCatalog;
 import com.dillon.starsectormarines.tools.authoring.AuthoringPageContext;
@@ -69,12 +70,16 @@ public final class LayerAuthoringWorkbench {
             throw new IllegalStateException("Layer authoring UI requires a desktop display");
         }
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        AuthoringCrashReporter.install(projectRoot);
         SwingUtilities.invokeLater(() -> {
             try {
                 new WorkbenchFrame(projectRoot).setVisible(true);
-            } catch (Exception failure) {
-                JOptionPane.showMessageDialog(null, failure.getMessage(),
-                        "Layer authoring failed", JOptionPane.ERROR_MESSAGE);
+            } catch (Throwable failure) {
+                // Throwable, not Exception: a NoClassDefFoundError or an
+                // OutOfMemoryError here used to escape and leave nothing behind.
+                // And the message alone is null for most failures, which is how
+                // a startup crash produced an empty dialog.
+                AuthoringCrashReporter.report("workbench startup", failure);
             }
         });
     }

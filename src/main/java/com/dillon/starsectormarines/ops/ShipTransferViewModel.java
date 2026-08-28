@@ -66,6 +66,7 @@ public final class ShipTransferViewModel {
     private final Supplier<List<Candidate>> fleet;
     private final Supplier<CompanyShipDesignation.Home> home;
     private final Consumer<String> moveAboard;
+    private final CompanyMeans means;
     private final Map<String, ShipInterior> interiors = new HashMap<>();
     private final Map<String, CompanyDeck> plans = new HashMap<>();
     private final MutableSignal<String> selectedShipId;
@@ -77,27 +78,32 @@ public final class ShipTransferViewModel {
     private final ComputedSignal<String> verdict;
     private final ComputedSignal<String> transferLabel;
     private final ComputedSignal<String> transferClasses;
+    private final ComputedSignal<String> costLabel;
+    private final ComputedSignal<String> costClasses;
     private final ComputedSignal<String> roomTitle;
     private final ComputedSignal<String> roomCopy;
     private final ComputedSignal<String> contextLabel;
 
-    /** The player's own fleet, and their own company's standing for quarters. */
+    /** The player's own fleet, company and purse. */
     public ShipTransferViewModel(Reactor reactor) {
         this(reactor, ShipTransferViewModel::playerFleet,
                 CompanyShipDesignation::home,
-                ShipTransferViewModel::designate);
+                ShipTransferViewModel::designate,
+                CompanyMeans.ofPlayer());
     }
 
     public ShipTransferViewModel(Reactor reactor, Supplier<List<Candidate>> fleet,
                                  Supplier<CompanyShipDesignation.Home> home,
-                                 Consumer<String> moveAboard) {
+                                 Consumer<String> moveAboard, CompanyMeans means) {
         if (reactor == null) throw new IllegalArgumentException("reactor is required");
         if (fleet == null) throw new IllegalArgumentException("a fleet is required");
         if (home == null) throw new IllegalArgumentException("a home is required");
         if (moveAboard == null) throw new IllegalArgumentException("a transfer is required");
+        if (means == null) throw new IllegalArgumentException("a company is required");
         this.fleet = fleet;
         this.home = home;
         this.moveAboard = moveAboard;
+        this.means = means;
         revision = reactor.signal(0);
         selectedShipId = reactor.signal(home.get().shipId());
         candidateRows = reactor.computed(this::buildCandidateRows);
@@ -116,7 +122,13 @@ public final class ShipTransferViewModel {
         });
         transferClasses = reactor.computed(() -> {
             revision.get();
-            return "transfer-commit" + (isHome(selected()) ? " current" : "");
+            if (isHome(selected())) return "transfer-commit current";
+            return affordable() ? "transfer-commit" : "transfer-commit unaffordable";
+        });
+        costLabel = reactor.computed(this::buildCostLabel);
+        costClasses = reactor.computed(() -> {
+            revision.get();
+            return "label transfer-cost" + (affordable() ? " tone-muted" : " short");
         });
         roomTitle = reactor.computed(() -> {
             revision.get();
@@ -154,6 +166,8 @@ public final class ShipTransferViewModel {
     public Signal<String> verdict() { return verdict; }
     public Signal<String> transferLabel() { return transferLabel; }
     public Signal<String> transferClasses() { return transferClasses; }
+    public Signal<String> costLabel() { return costLabel; }
+    public Signal<String> costClasses() { return costClasses; }
     public Signal<String> roomTitle() { return roomTitle; }
     public Signal<String> roomCopy() { return roomCopy; }
     public Signal<String> contextLabel() { return contextLabel; }
@@ -177,12 +191,36 @@ public final class ShipTransferViewModel {
         selectedShipId.set(shipId);
     }
 
-    /** Move the company to the selected ship. */
+    /**
+     * Move the company to the selected ship, and pay the yard for it.
+     *
+     * <p>A move nobody can pay for is refused rather than run up as a debt.
+     * The company is still standing where it was, which is the honest outcome
+     * and the one the screen is already showing.
+     */
     public void commit() {
         Candidate ship = selected();
         if (ship == null || isHome(ship)) return;
+        TransferCost price = costOf(ship);
+        if (price.credits() > means.credits()) return;
+        means.charge(price.credits());
         moveAboard.accept(ship.id());
         refresh();
+    }
+
+    /**
+     * What the yard would want to move the company onto this ship.
+     *
+     * <p>Free for a company with nowhere to live: see {@link TransferCost}.
+     */
+    public TransferCost costOf(Candidate ship) {
+        if (ship == null || isHome(ship) || unquartered()) return TransferCost.FREE;
+        return TransferCost.of(ship.ship().hullClass(), means.marines(), means.walkers());
+    }
+
+    /** The price on the ship the player is looking at. */
+    public TransferCost selectedCost() {
+        return costOf(selected());
     }
 
     public void refresh() {
@@ -272,6 +310,47 @@ public final class ShipTransferViewModel {
         return lost.isEmpty()
                 ? "Nothing aboard would be given up."
                 : "Moving here would give up " + list(lost, "and") + ".";
+    }
+
+    /**
+     * The price of the move in money, beside the price of it in rooms.
+     *
+     * <p>Silent on the ship they already live aboard, because there is no move
+     * to price. A company with nowhere to live is told the move is free rather
+     * than told nothing, so the absence of a number reads as a decision
+     * somebody made rather than as a screen that has not finished loading.
+     */
+    private String buildCostLabel() {
+        revision.get();
+        Candidate ship = selected();
+        if (ship == null || isHome(ship)) return "";
+        TransferCost price = costOf(ship);
+        if (price.free()) {
+            return unquartered() ? "No charge. There is nowhere to move out of." : "";
+        }
+        String line = "Refit  \u00b7  " + money(price.credits()) + " credits  \u00b7  "
+                + moved(price);
+        int shortfall = price.credits() - means.credits();
+        return shortfall > 0 ? line + "  \u00b7  " + money(shortfall) + " short" : line;
+    }
+
+    /** Who and what the yard is being paid to shift. */
+    private static String moved(TransferCost price) {
+        String heads = count(price.marines(), "marine");
+        return price.walkers() > 0 ? heads + " and " + count(price.walkers(), "walker") : heads;
+    }
+
+    private static String count(int many, String thing) {
+        return many + " " + thing + (many == 1 ? "" : "s");
+    }
+
+    private static String money(int credits) {
+        return String.format(Locale.US, "%,d", credits);
+    }
+
+    /** Whether the purse covers the move the player is looking at. */
+    private boolean affordable() {
+        return selectedCost().credits() <= means.credits();
     }
 
     /**

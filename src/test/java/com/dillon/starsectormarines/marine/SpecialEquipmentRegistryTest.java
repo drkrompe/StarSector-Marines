@@ -24,7 +24,7 @@ class SpecialEquipmentRegistryTest {
 
     @Test
     void allBuiltInsResolveThroughTheDataRegistry() {
-        assertEquals(5, SpecialEquipmentRegistry.installed().size());
+        assertEquals(7, SpecialEquipmentRegistry.installed().size());
         for (MarineSecondaryHandle handle : MarineSecondaryHandle.values()) {
             SpecialEquipmentDef def = SpecialEquipmentRegistry.require(handle.id);
             assertEquals(handle.id, def.id());

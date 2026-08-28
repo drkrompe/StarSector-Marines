@@ -26,8 +26,8 @@
         },
         "specialsByRisk": {
           "low": [{"id": "none", "weight": 93}, {"id": "special.smoke-grenade", "weight": 4}, {"id": "special.frag-grenade", "weight": 3}],
-          "medium": [{"id": "none", "weight": 84}, {"id": "special.smoke-grenade", "weight": 8}, {"id": "special.rocket-launcher", "weight": 4}, {"id": "special.frag-grenade", "weight": 4}],
-          "high": [{"id": "none", "weight": 72}, {"id": "special.smoke-grenade", "weight": 12}, {"id": "special.rocket-launcher", "weight": 7}, {"id": "special.anti-materiel-rifle", "weight": 3}, {"id": "special.frag-grenade", "weight": 6}]
+          "medium": [{"id": "none", "weight": 81}, {"id": "special.smoke-grenade", "weight": 8}, {"id": "special.rocket-launcher", "weight": 4}, {"id": "special.frag-grenade", "weight": 4}, {"id": "special.vibro-blade", "weight": 3}],
+          "high": [{"id": "none", "weight": 68}, {"id": "special.smoke-grenade", "weight": 12}, {"id": "special.rocket-launcher", "weight": 7}, {"id": "special.anti-materiel-rifle", "weight": 3}, {"id": "special.frag-grenade", "weight": 6}, {"id": "special.vibro-blade", "weight": 4}]
         }
       },
       "elite": {
@@ -50,8 +50,8 @@
         },
         "specialsByRisk": {
           "low": [{"id": "none", "weight": 84}, {"id": "special.smoke-grenade", "weight": 8}, {"id": "special.rocket-launcher", "weight": 4}, {"id": "special.frag-grenade", "weight": 4}],
-          "medium": [{"id": "none", "weight": 66}, {"id": "special.smoke-grenade", "weight": 14}, {"id": "special.rocket-launcher", "weight": 9}, {"id": "special.anti-materiel-rifle", "weight": 5}, {"id": "special.frag-grenade", "weight": 6}],
-          "high": [{"id": "none", "weight": 47}, {"id": "special.smoke-grenade", "weight": 18}, {"id": "special.rocket-launcher", "weight": 15}, {"id": "special.anti-materiel-rifle", "weight": 12}, {"id": "special.frag-grenade", "weight": 8}]
+          "medium": [{"id": "none", "weight": 59}, {"id": "special.smoke-grenade", "weight": 14}, {"id": "special.rocket-launcher", "weight": 9}, {"id": "special.anti-materiel-rifle", "weight": 5}, {"id": "special.frag-grenade", "weight": 6}, {"id": "special.vibro-blade", "weight": 4}, {"id": "special.breaching-cutter", "weight": 3}],
+          "high": [{"id": "none", "weight": 37}, {"id": "special.smoke-grenade", "weight": 18}, {"id": "special.rocket-launcher", "weight": 15}, {"id": "special.anti-materiel-rifle", "weight": 12}, {"id": "special.frag-grenade", "weight": 8}, {"id": "special.vibro-blade", "weight": 5}, {"id": "special.breaching-cutter", "weight": 5}]
         }
       }
     },
@@ -74,8 +74,8 @@
         },
         "specialsByRisk": {
           "low": [{"id": "none", "weight": 92}, {"id": "special.rocket-launcher", "weight": 5}, {"id": "special.frag-grenade", "weight": 3}],
-          "medium": [{"id": "none", "weight": 78}, {"id": "special.rocket-launcher", "weight": 12}, {"id": "special.smoke-grenade", "weight": 6}, {"id": "special.frag-grenade", "weight": 4}],
-          "high": [{"id": "none", "weight": 62}, {"id": "special.rocket-launcher", "weight": 20}, {"id": "special.anti-materiel-rifle", "weight": 8}, {"id": "special.smoke-grenade", "weight": 4}, {"id": "special.frag-grenade", "weight": 6}]
+          "medium": [{"id": "none", "weight": 75}, {"id": "special.rocket-launcher", "weight": 12}, {"id": "special.smoke-grenade", "weight": 6}, {"id": "special.frag-grenade", "weight": 4}, {"id": "special.vibro-blade", "weight": 3}],
+          "high": [{"id": "none", "weight": 58}, {"id": "special.rocket-launcher", "weight": 20}, {"id": "special.anti-materiel-rifle", "weight": 8}, {"id": "special.smoke-grenade", "weight": 4}, {"id": "special.frag-grenade", "weight": 6}, {"id": "special.vibro-blade", "weight": 4}]
         }
       },
       "elite": {
@@ -93,8 +93,8 @@
         },
         "specialsByRisk": {
           "low": [{"id": "none", "weight": 80}, {"id": "special.rocket-launcher", "weight": 10}, {"id": "special.smoke-grenade", "weight": 5}, {"id": "special.frag-grenade", "weight": 5}],
-          "medium": [{"id": "none", "weight": 56}, {"id": "special.rocket-launcher", "weight": 20}, {"id": "special.anti-materiel-rifle", "weight": 12}, {"id": "special.smoke-grenade", "weight": 6}, {"id": "special.frag-grenade", "weight": 6}],
-          "high": [{"id": "none", "weight": 34}, {"id": "special.rocket-launcher", "weight": 28}, {"id": "special.anti-materiel-rifle", "weight": 22}, {"id": "special.smoke-grenade", "weight": 8}, {"id": "special.frag-grenade", "weight": 8}]
+          "medium": [{"id": "none", "weight": 51}, {"id": "special.rocket-launcher", "weight": 20}, {"id": "special.anti-materiel-rifle", "weight": 12}, {"id": "special.smoke-grenade", "weight": 6}, {"id": "special.frag-grenade", "weight": 6}, {"id": "special.vibro-blade", "weight": 5}],
+          "high": [{"id": "none", "weight": 27}, {"id": "special.rocket-launcher", "weight": 28}, {"id": "special.anti-materiel-rifle", "weight": 22}, {"id": "special.smoke-grenade", "weight": 8}, {"id": "special.frag-grenade", "weight": 8}, {"id": "special.vibro-blade", "weight": 7}]
         }
       }
     },
@@ -179,8 +179,8 @@
         },
         "specialsByRisk": {
           "low": [{"id": "none", "weight": 82}, {"id": "special.smoke-grenade", "weight": 9}, {"id": "special.rocket-launcher", "weight": 5}, {"id": "special.frag-grenade", "weight": 4}],
-          "medium": [{"id": "none", "weight": 59}, {"id": "special.smoke-grenade", "weight": 16}, {"id": "special.rocket-launcher", "weight": 12}, {"id": "special.anti-materiel-rifle", "weight": 7}, {"id": "special.frag-grenade", "weight": 6}],
-          "high": [{"id": "none", "weight": 38}, {"id": "special.smoke-grenade", "weight": 21}, {"id": "special.rocket-launcher", "weight": 18}, {"id": "special.anti-materiel-rifle", "weight": 15}, {"id": "special.frag-grenade", "weight": 8}]
+          "medium": [{"id": "none", "weight": 55}, {"id": "special.smoke-grenade", "weight": 16}, {"id": "special.rocket-launcher", "weight": 12}, {"id": "special.anti-materiel-rifle", "weight": 7}, {"id": "special.frag-grenade", "weight": 6}, {"id": "special.vibro-blade", "weight": 4}],
+          "high": [{"id": "none", "weight": 32}, {"id": "special.smoke-grenade", "weight": 21}, {"id": "special.rocket-launcher", "weight": 18}, {"id": "special.anti-materiel-rifle", "weight": 15}, {"id": "special.frag-grenade", "weight": 8}, {"id": "special.vibro-blade", "weight": 6}]
         }
       }
     },
@@ -222,8 +222,8 @@
         },
         "specialsByRisk": {
           "low": [{"id": "none", "weight": 83}, {"id": "special.satchel-charge", "weight": 8}, {"id": "special.rocket-launcher", "weight": 6}, {"id": "special.frag-grenade", "weight": 3}],
-          "medium": [{"id": "none", "weight": 59}, {"id": "special.satchel-charge", "weight": 16}, {"id": "special.rocket-launcher", "weight": 14}, {"id": "special.smoke-grenade", "weight": 6}, {"id": "special.frag-grenade", "weight": 5}],
-          "high": [{"id": "none", "weight": 37}, {"id": "special.satchel-charge", "weight": 24}, {"id": "special.rocket-launcher", "weight": 20}, {"id": "special.anti-materiel-rifle", "weight": 8}, {"id": "special.smoke-grenade", "weight": 4}, {"id": "special.frag-grenade", "weight": 7}]
+          "medium": [{"id": "none", "weight": 55}, {"id": "special.satchel-charge", "weight": 16}, {"id": "special.rocket-launcher", "weight": 14}, {"id": "special.smoke-grenade", "weight": 6}, {"id": "special.frag-grenade", "weight": 5}, {"id": "special.breaching-cutter", "weight": 4}],
+          "high": [{"id": "none", "weight": 31}, {"id": "special.satchel-charge", "weight": 24}, {"id": "special.rocket-launcher", "weight": 20}, {"id": "special.anti-materiel-rifle", "weight": 8}, {"id": "special.smoke-grenade", "weight": 4}, {"id": "special.frag-grenade", "weight": 7}, {"id": "special.breaching-cutter", "weight": 6}]
         }
       }
     },
@@ -247,7 +247,7 @@
         "specialsByRisk": {
           "low": [{"id": "none", "weight": 86}, {"id": "special.satchel-charge", "weight": 10}, {"id": "special.frag-grenade", "weight": 4}],
           "medium": [{"id": "none", "weight": 64}, {"id": "special.satchel-charge", "weight": 23}, {"id": "special.smoke-grenade", "weight": 7}, {"id": "special.frag-grenade", "weight": 6}],
-          "high": [{"id": "none", "weight": 40}, {"id": "special.satchel-charge", "weight": 36}, {"id": "special.smoke-grenade", "weight": 10}, {"id": "special.rocket-launcher", "weight": 6}, {"id": "special.frag-grenade", "weight": 8}]
+          "high": [{"id": "none", "weight": 36}, {"id": "special.satchel-charge", "weight": 36}, {"id": "special.smoke-grenade", "weight": 10}, {"id": "special.rocket-launcher", "weight": 6}, {"id": "special.frag-grenade", "weight": 8}, {"id": "special.vibro-blade", "weight": 4}]
         }
       },
       "elite": {
@@ -265,8 +265,8 @@
         },
         "specialsByRisk": {
           "low": [{"id": "none", "weight": 73}, {"id": "special.satchel-charge", "weight": 18}, {"id": "special.smoke-grenade", "weight": 4}, {"id": "special.frag-grenade", "weight": 5}],
-          "medium": [{"id": "none", "weight": 44}, {"id": "special.satchel-charge", "weight": 30}, {"id": "special.smoke-grenade", "weight": 10}, {"id": "special.rocket-launcher", "weight": 8}, {"id": "special.frag-grenade", "weight": 8}],
-          "high": [{"id": "none", "weight": 20}, {"id": "special.satchel-charge", "weight": 42}, {"id": "special.smoke-grenade", "weight": 14}, {"id": "special.rocket-launcher", "weight": 10}, {"id": "special.anti-materiel-rifle", "weight": 4}, {"id": "special.frag-grenade", "weight": 10}]
+          "medium": [{"id": "none", "weight": 39}, {"id": "special.satchel-charge", "weight": 30}, {"id": "special.smoke-grenade", "weight": 10}, {"id": "special.rocket-launcher", "weight": 8}, {"id": "special.frag-grenade", "weight": 8}, {"id": "special.vibro-blade", "weight": 5}],
+          "high": [{"id": "none", "weight": 13}, {"id": "special.satchel-charge", "weight": 42}, {"id": "special.smoke-grenade", "weight": 14}, {"id": "special.rocket-launcher", "weight": 10}, {"id": "special.anti-materiel-rifle", "weight": 4}, {"id": "special.frag-grenade", "weight": 10}, {"id": "special.vibro-blade", "weight": 7}]
         }
       }
     },
@@ -308,8 +308,8 @@
         },
         "specialsByRisk": {
           "low": [{"id": "none", "weight": 80}, {"id": "special.rocket-launcher", "weight": 11}, {"id": "special.smoke-grenade", "weight": 5}, {"id": "special.frag-grenade", "weight": 4}],
-          "medium": [{"id": "none", "weight": 54}, {"id": "special.rocket-launcher", "weight": 22}, {"id": "special.anti-materiel-rifle", "weight": 12}, {"id": "special.smoke-grenade", "weight": 6}, {"id": "special.frag-grenade", "weight": 6}],
-          "high": [{"id": "none", "weight": 32}, {"id": "special.rocket-launcher", "weight": 30}, {"id": "special.anti-materiel-rifle", "weight": 22}, {"id": "special.smoke-grenade", "weight": 8}, {"id": "special.frag-grenade", "weight": 8}]
+          "medium": [{"id": "none", "weight": 50}, {"id": "special.rocket-launcher", "weight": 22}, {"id": "special.anti-materiel-rifle", "weight": 12}, {"id": "special.smoke-grenade", "weight": 6}, {"id": "special.frag-grenade", "weight": 6}, {"id": "special.vibro-blade", "weight": 4}],
+          "high": [{"id": "none", "weight": 26}, {"id": "special.rocket-launcher", "weight": 30}, {"id": "special.anti-materiel-rifle", "weight": 22}, {"id": "special.smoke-grenade", "weight": 8}, {"id": "special.frag-grenade", "weight": 8}, {"id": "special.vibro-blade", "weight": 6}]
         }
       }
     },
@@ -332,8 +332,8 @@
         },
         "specialsByRisk": {
           "low": [{"id": "none", "weight": 90}, {"id": "special.satchel-charge", "weight": 6}, {"id": "special.frag-grenade", "weight": 4}],
-          "medium": [{"id": "none", "weight": 72}, {"id": "special.satchel-charge", "weight": 12}, {"id": "special.rocket-launcher", "weight": 7}, {"id": "special.smoke-grenade", "weight": 3}, {"id": "special.frag-grenade", "weight": 6}],
-          "high": [{"id": "none", "weight": 54}, {"id": "special.satchel-charge", "weight": 18}, {"id": "special.rocket-launcher", "weight": 13}, {"id": "special.smoke-grenade", "weight": 7}, {"id": "special.frag-grenade", "weight": 8}]
+          "medium": [{"id": "none", "weight": 68}, {"id": "special.satchel-charge", "weight": 12}, {"id": "special.rocket-launcher", "weight": 7}, {"id": "special.smoke-grenade", "weight": 3}, {"id": "special.frag-grenade", "weight": 6}, {"id": "special.vibro-blade", "weight": 4}],
+          "high": [{"id": "none", "weight": 49}, {"id": "special.satchel-charge", "weight": 18}, {"id": "special.rocket-launcher", "weight": 13}, {"id": "special.smoke-grenade", "weight": 7}, {"id": "special.frag-grenade", "weight": 8}, {"id": "special.vibro-blade", "weight": 5}]
         }
       },
       "elite": {
@@ -351,8 +351,8 @@
         },
         "specialsByRisk": {
           "low": [{"id": "none", "weight": 79}, {"id": "special.satchel-charge", "weight": 8}, {"id": "special.rocket-launcher", "weight": 8}, {"id": "special.frag-grenade", "weight": 5}],
-          "medium": [{"id": "none", "weight": 52}, {"id": "special.satchel-charge", "weight": 15}, {"id": "special.rocket-launcher", "weight": 15}, {"id": "special.smoke-grenade", "weight": 6}, {"id": "special.anti-materiel-rifle", "weight": 4}, {"id": "special.frag-grenade", "weight": 8}],
-          "high": [{"id": "none", "weight": 30}, {"id": "special.satchel-charge", "weight": 20}, {"id": "special.rocket-launcher", "weight": 20}, {"id": "special.smoke-grenade", "weight": 10}, {"id": "special.anti-materiel-rifle", "weight": 10}, {"id": "special.frag-grenade", "weight": 10}]
+          "medium": [{"id": "none", "weight": 44}, {"id": "special.satchel-charge", "weight": 15}, {"id": "special.rocket-launcher", "weight": 15}, {"id": "special.smoke-grenade", "weight": 6}, {"id": "special.anti-materiel-rifle", "weight": 4}, {"id": "special.frag-grenade", "weight": 8}, {"id": "special.vibro-blade", "weight": 5}, {"id": "special.breaching-cutter", "weight": 3}],
+          "high": [{"id": "none", "weight": 18}, {"id": "special.satchel-charge", "weight": 20}, {"id": "special.rocket-launcher", "weight": 20}, {"id": "special.smoke-grenade", "weight": 10}, {"id": "special.anti-materiel-rifle", "weight": 10}, {"id": "special.frag-grenade", "weight": 10}, {"id": "special.vibro-blade", "weight": 7}, {"id": "special.breaching-cutter", "weight": 5}]
         }
       }
     }

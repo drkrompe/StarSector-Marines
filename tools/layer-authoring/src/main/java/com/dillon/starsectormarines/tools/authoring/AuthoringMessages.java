@@ -60,7 +60,7 @@ public final class AuthoringMessages {
         JOptionPane.showMessageDialog(parent, panel(title, body), title, messageType);
     }
 
-    private static JComponent panel(String title, String body) {
+    static JComponent panel(String title, String body) {
         String text = body == null ? "" : body;
         JTextArea area = new JTextArea(text);
         area.setEditable(false);

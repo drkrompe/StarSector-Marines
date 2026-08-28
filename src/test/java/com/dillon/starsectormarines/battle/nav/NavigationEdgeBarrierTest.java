@@ -120,6 +120,8 @@ class NavigationEdgeBarrierTest {
                 1, 0, Direction.E, SharedEdgeBarrier.Kind.WINDOW);
 
         assertSame(window, grid.getEdgeBarrier(2, 0, Direction.W));
+        assertEquals(1, window.structureCellX());
+        assertEquals(0, window.structureCellY());
         assertFalse(grid.isSharedEdgePassable(1, 0, Direction.E));
         assertArrayEquals(new int[]{1, 0, 1, 1, 2, 1, 2, 0},
                 GridPathfinder.findPath(grid, 1, 0, 2, 0, true, null));
@@ -160,6 +162,27 @@ class NavigationEdgeBarrierTest {
         assertThrows(IllegalArgumentException.class,
                 () -> grid.placeEdgeBarrier(0, 0, Direction.E,
                         SharedEdgeBarrier.Kind.WINDOW));
+    }
+
+    @Test
+    void canonicalizationRetainsTheAuthoredStructuralSide() {
+        NavigationGrid grid = walkableGrid(2, 2);
+
+        SharedEdgeBarrier west = grid.placeEdgeBarrier(
+                1, 0, Direction.W, SharedEdgeBarrier.Kind.WINDOW);
+        assertEquals(0, west.cellX());
+        assertEquals(0, west.cellY());
+        assertEquals(Direction.E, west.direction());
+        assertEquals(1, west.structureCellX());
+        assertEquals(0, west.structureCellY());
+
+        SharedEdgeBarrier south = grid.placeEdgeBarrier(
+                0, 1, Direction.S, SharedEdgeBarrier.Kind.WINDOW);
+        assertEquals(0, south.cellX());
+        assertEquals(0, south.cellY());
+        assertEquals(Direction.N, south.direction());
+        assertEquals(0, south.structureCellX());
+        assertEquals(1, south.structureCellY());
     }
 
     private static NavigationGrid walkableGrid(int width, int height) {
