@@ -2,9 +2,12 @@ package com.dillon.starsectormarines.tools.tilesetauthoring;
 
 import org.junit.jupiter.api.Test;
 
+import java.awt.Dimension;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -31,6 +34,9 @@ class RawArtStaysOutOfModTest {
 
     private static final Path MOD = Path.of("mod");
     private static final Path ART_SOURCE = Path.of("art-source");
+
+    /** Long-edge ceiling for a shipped Armory icon, matching the armour-tier art. */
+    private static final int MAX_ICON_EDGE = 512;
 
     private static List<Path> under(Path root, String suffix) throws IOException {
         if (!Files.isDirectory(root)) return List.of();
@@ -91,6 +97,47 @@ class RawArtStaysOutOfModTest {
                     .sorted()
                     .toList();
         }
+    }
+
+    /**
+     * An Armory icon is drawn between roughly 26 and 100 pixels. Authoring one
+     * at the generator's native ~1254 square is a 48x oversample that nothing
+     * ever sees, and the headless renderers decode every one of them into a
+     * BufferedImage cache: eight of them exhausted Gradle's default worker heap
+     * and surfaced as an OutOfMemoryError in three map-preview tests that have
+     * nothing to do with icons. The cap is asserted here so the next authored
+     * icon is refused at the source rather than three tests away.
+     */
+    @Test
+    void armoryIconsShipAtDisplayResolution() throws IOException {
+        Path icons = MOD.resolve("graphics").resolve("ui").resolve("armory");
+        if (!Files.isDirectory(icons)) return;
+        List<String> oversized = new ArrayList<>();
+        for (Path icon : under(icons, ".png")) {
+            Dimension size = pngSize(icon);
+            if (Math.max(size.width, size.height) > MAX_ICON_EDGE) {
+                oversized.add(icon.getFileName() + " is " + size.width + "x" + size.height);
+            }
+        }
+        assertEquals(List.of(), oversized,
+                "Armory icons must ship at no more than " + MAX_ICON_EDGE
+                        + "px on their long edge; downscale the master before committing it");
+    }
+
+    /** Reads an IHDR without decoding the image, so the guard costs nothing. */
+    private static Dimension pngSize(Path png) throws IOException {
+        byte[] header = new byte[24];
+        try (InputStream in = Files.newInputStream(png)) {
+            if (in.readNBytes(header, 0, header.length) < header.length) {
+                throw new IOException("truncated PNG: " + png);
+            }
+        }
+        return new Dimension(intAt(header, 16), intAt(header, 20));
+    }
+
+    private static int intAt(byte[] bytes, int offset) {
+        return ((bytes[offset] & 0xFF) << 24) | ((bytes[offset + 1] & 0xFF) << 16)
+                | ((bytes[offset + 2] & 0xFF) << 8) | (bytes[offset + 3] & 0xFF);
     }
 
     @Test

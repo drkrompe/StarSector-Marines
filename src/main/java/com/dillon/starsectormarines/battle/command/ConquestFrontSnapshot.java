@@ -73,7 +73,16 @@ public record ConquestFrontSnapshot(
             float centroidY,
             int currentZoneId,
             String executionSuspension,
-            boolean localContact) { }
+            boolean localContact,
+            int activePathMembers) {
+
+        public SquadState(int squadId, int aliveMembers, float centroidX,
+                          float centroidY, int currentZoneId,
+                          String executionSuspension, boolean localContact) {
+            this(squadId, aliveMembers, centroidX, centroidY, currentZoneId,
+                    executionSuspension, localContact, 0);
+        }
+    }
 
     public record SquadDirective(
             int squadId,
