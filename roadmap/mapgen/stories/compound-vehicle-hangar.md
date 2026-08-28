@@ -1,13 +1,17 @@
 # Compound vehicle hangar
 
-Status: BLOCKED on a compound program
+Status: BLOCKED on a compound-sized parcel
 
 Written: 2026-08-28
 
-Updated: 2026-08-28 — the fill machinery is shipped and family-neutral, but
-measurement showed a hangar has nowhere to go: compound parcels are not sized
-for a machine. The blocking model is `compound-programs.md`; this story is its
-first consumer and resumes at that document's step 3.
+Updated: 2026-08-28 — everything this story owns except the parcel is now
+shipped, and proven in the Conquest fortress: the fill machinery is
+family-neutral, a packed building furnishes from the shared fittings, a shed
+sized from the bay module publishes real five-by-seven berths, and a city map
+carries them on its result. What remains is the original blocker in its narrowed
+form — an ordinary `MILITARY_BASE` compound still has no wing a bay fits in,
+because its wings are sized by the partition. That is step 1 of
+`compound-programs.md`.
 
 Read `compound-programs.md` first, then `mapgen-nouns.md` for the parcel-
 ownership paragraph. `ship-interiors-nouns.md` owns the deck family this
@@ -53,14 +57,16 @@ module would be a second answer to a question already answered, and would go
 stale the first time a larger chassis shipped.
 
 Sharing it means the fitting machinery moves out of `gen.ship.fit` to a
-family-neutral home rather than being duplicated. That move is **shipped**: the
-fittings, the floor and the room shape live in `gen.fit` behind
-`FurnishableRoom`, and `DeckGraph.Compartment` is the ship family's
-implementation of it. A compound sub-building supplies the other.
+family-neutral home rather than being duplicated. That move is **shipped**, and
+so is everything downstream of it: the fittings, the floor, the room shape and
+the packer live in `gen.fit`; a packed room is itself a furnishable room; and a
+shed whose dimensions are arithmetic over the bay module publishes six berths in
+the Conquest fortress today.
 
-It is also the reason this story stopped where it did. With the module shared
-and the surface neutral, the only thing missing is a room worth putting a bay
-in — which is a claim problem, not a fill problem.
+It is also the reason this story stopped where it did. With the module shared,
+the surface neutral, and the fill proven on a real map, the only thing missing
+is a room worth putting a bay in — which is a claim problem, not a fill
+problem.
 
 ## Scope
 
