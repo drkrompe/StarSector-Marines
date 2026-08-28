@@ -70,12 +70,9 @@ public final class MechLocomotionSystem {
                     continue;
                 }
                 long target = hasCombat ? targets[row] : 0L;
-                MechFacingIntent.Point intent = target != 0L && roster.isLive(target)
+                MechFacingIntent.Point intent = target != 0L && roster.isAliveById(target)
                         ? new MechFacingIntent.Point(
-                        world.getFloat(target, components.POSITION,
-                                BattleComponents.POSITION_X),
-                        world.getFloat(target, components.POSITION,
-                                BattleComponents.POSITION_Y))
+                        roster.world().x(target), roster.world().y(target))
                         : MechFacingIntent.rememberedContact(id, roster);
                 if (intent == null) {
                     MechLocomotion.stopTurning(world, components, id);

@@ -71,6 +71,11 @@ public final class VehicleStateDumper {
             root.put("rerouteAvoidCount", ctl != null ? ctl.rerouteAvoidCount : 0);
             root.put("trajectory", trajectoryJson(ctl != null ? ctl.trajectory : null));
             root.put("marinesRemaining", v.marinesRemaining);
+            root.put("structure", round(convoy.structure(id)));
+            root.put("maxStructure", round(convoy.maxStructure(id)));
+            root.put("armor", round(convoy.armor(id)));
+            root.put("maxArmor", round(convoy.maxArmor(id)));
+            root.put("armorRating", round(convoy.armorRating(id)));
             root.put("overwatchCountdown", round(v.overwatchCountdown));
             root.put("turretAmmo", turret != null ? turret.ammo : 0);
 

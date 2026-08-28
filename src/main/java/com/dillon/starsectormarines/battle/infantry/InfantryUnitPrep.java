@@ -189,7 +189,7 @@ public final class InfantryUnitPrep {
     private static boolean legalSpecialShot(long unit, long target,
                                             SpecialEquipmentDef special,
                                             BattleView sim) {
-        if (target == 0L || !TacticalScoring.isHardened(sim.identity().type(target))) {
+        if (target == 0L || !sim.isHardenedTarget(target)) {
             return false;
         }
         if (!sim.world().isAlive(target)
@@ -293,7 +293,7 @@ public final class InfantryUnitPrep {
     private static boolean legalSatchelTarget(long unit, long target,
                                                SpecialEquipmentDef special,
                                                BattleView sim) {
-        if (target == 0L || !TacticalScoring.isHardened(sim.identity().type(target))) {
+        if (target == 0L || !sim.isHardenedTarget(target)) {
             return false;
         }
         if (!sim.world().isAlive(target)
