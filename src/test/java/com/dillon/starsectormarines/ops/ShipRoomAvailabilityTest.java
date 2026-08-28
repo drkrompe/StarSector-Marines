@@ -171,12 +171,14 @@ class ShipRoomAvailabilityTest {
      */
     @Test
     void everyRoomPageDeclaresItsCompartment() {
-        // The two pages that are not places aboard. Headquarters is the
-        // company rather than a wardroom, and choosing the ship is a decision
-        // about which vessel the rest of the shell is aboard — gating either on
-        // a compartment would let a hull exist the player cannot navigate.
+        // The pages that are not places aboard. Headquarters is the company
+        // rather than a wardroom; choosing the ship is a decision about which
+        // vessel the rest of the shell is aboard; and the ship view is the
+        // whole vessel rather than a room in her. Gating any of them on a
+        // compartment would let a hull exist the player cannot navigate.
         Set<MarineOpsPageNav.Page> notRooms = EnumSet.of(
-                MarineOpsPageNav.Page.HQ, MarineOpsPageNav.Page.SHIP_TRANSFER);
+                MarineOpsPageNav.Page.HQ, MarineOpsPageNav.Page.SHIP_TRANSFER,
+                MarineOpsPageNav.Page.SHIP_VIEW);
         for (MarineOpsPageNav.Page page : MarineOpsPageNav.Page.values()) {
             if (notRooms.contains(page)) {
                 assertEquals(null, page.room(),

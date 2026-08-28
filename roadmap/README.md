@@ -125,16 +125,17 @@ See `ui-nouns.md` and `company-view-nouns.md`.
 
 ## Immediate recommendation
 
-Continue Conquest secure-travel evidence at the episode boundary. Capture,
-command, execution, markers, and schema-7 evidence now share the same resolved
-capture room; the final entry hop commits through contact, room holding stays
-inside that room, and perspective traces count any own member in the assigned
-target zone. Finalize each secure episode by entry, retarget, release, loss,
-suspension, observation gap, timeout, or terminal result while keeping contact,
-active path, and quiet travel as orthogonal context. Then rerun the
-representative-duration matrix before tuning allocation. Exact whole-zone
-occupancy remains neutral outcome evidence and must never become commander
-input. Then close the remaining assignment-writer and live-acceptance edges in
+Use the explicit Conquest secure-travel exits to compare the full-strength row
+before tuning capture allocation or tactical doctrine. The sealed 6,000-tick
+reinforced row finalized all 23 trips—4 target entries, 5 retargets, 1 release,
+11 squad losses, and 2 timeout exits—with contact in every episode, an active
+path in 21, and quiet travel in only one. That fixture's non-arrivals are
+therefore predominantly lethal contact, not unexplained waiting. The paired
+full-strength run remains externally interrupted, so rerun it when the local
+Gradle environment permits and inspect retarget provenance and loss location
+before changing behavior. Exact whole-zone occupancy remains neutral outcome
+evidence and must never become commander input. Then close the remaining
+assignment-writer and live-acceptance edges in
 `autonomous-mission-command-foundation.md`. Assault's paired production
 commanders now share stable area geometry while retaining separate beliefs,
 ownership, directives, panel/dump/overlay views, and forced-serial trace evidence.

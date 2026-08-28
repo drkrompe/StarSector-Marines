@@ -144,6 +144,7 @@ public final class FortressWallStamper implements GenStage {
         List<Compound> compounds = ctx.get(BspKeys.COMPOUNDS);
         Compound keepCompound = findKeepCompound(compounds);
         boolean[][] compoundExclusion = buildCompoundExclusion(compounds, w, h);
+        markWard(compoundExclusion, ctx.get(BspKeys.FORTRESS_WARD), w, h);
         boolean[][] skip = mergeExclusions(ctx.get(BspKeys.ROAD_RESERVATION), compoundExclusion, w, h);
         boolean[][] wallMask = new boolean[w][h];
         if (axis == TraversalAxis.SOUTH_TO_NORTH) {
@@ -178,6 +179,23 @@ public final class FortressWallStamper implements GenStage {
             }
         }
         return mask;
+    }
+
+    /**
+     * Exclude the packed fortress ward the same way a compound is excluded.
+     *
+     * <p>The ward was laid out before this stage precisely so the wall would
+     * have something to enclose; a wall run through the middle of it would
+     * demolish the sheds and magazines it exists to protect. Absent on a map
+     * with no fortress band, where this is a no-op.
+     */
+    private static void markWard(boolean[][] exclusion, int[] ward, int w, int h) {
+        if (ward == null) return;
+        for (int x = Math.max(0, ward[0]); x <= Math.min(w - 1, ward[2]); x++) {
+            for (int y = Math.max(0, ward[1]); y <= Math.min(h - 1, ward[3]); y++) {
+                exclusion[x][y] = true;
+            }
+        }
     }
 
     /** The one conquest fortress base is the inner keep compound the outer ward must enclose. */
