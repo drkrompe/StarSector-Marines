@@ -94,7 +94,7 @@ class StationingIncidentResolutionTest {
         roster.applySoldierOutcome(Map.of(
                 roster.squadMembers(squad).get(0).id(), MarineSoldierStatus.KIA,
                 roster.squadMembers(squad).get(1).id(), MarineSoldierStatus.WIA),
-                0, 45f, 12f);
+                45f, 12f);
 
         StationingIncidentResolution.Result result = StationingIncidentResolution.apply(
                 state, state.contractId[0], 42, StationingIncidentType.LIVE_FIRE_RAID,

@@ -128,11 +128,14 @@ public final class HybridAStarPlanner {
 
             float gdx = goal.x - current.x, gdy = goal.y - current.y;
             float distSqToGoal = gdx * gdx + gdy * gdy;
-            int currentHeadingBin = headingBinFor(current.headingDeg);
-            int goalHeadingBin = headingBinFor(goal.facingDeg);
-            if (distSqToGoal <= goalRadiusSq
-                    && headingBinDistance(currentHeadingBin, goalHeadingBin)
-                    <= LOCAL_GOAL_HEADING_TOLERANCE_BINS) {
+            // A local plan is an executable motion, not merely a statement that
+            // the live pose lies inside the soft goal region. Accepting the
+            // parentless start node produces a one-pose extraction (null) and
+            // turns terminal proximity into a false planner failure. Require at
+            // least one footprint-checked bicycle successor before success.
+            if (current.parentKey >= 0
+                    && isInLocalGoalRegion(current.x, current.y, current.headingDeg,
+                            goal, goalRadiusSq)) {
                 goalNode = current;
                 break;
             }
@@ -381,6 +384,15 @@ public final class HybridAStarPlanner {
 
     static int stateIndex(int cx, int cy, int hb, int gridW) {
         return (cy * gridW + cx) * NUM_HEADING_BINS + hb;
+    }
+
+    /** Shared soft-goal predicate so the controller can distinguish terminal success from no-path failure. */
+    static boolean isInLocalGoalRegion(float x, float y, float facingDeg,
+                                       Pose goal, float goalRadiusSq) {
+        float dx = goal.x - x, dy = goal.y - y;
+        return dx * dx + dy * dy <= goalRadiusSq
+                && headingBinDistance(headingBinFor(facingDeg), headingBinFor(goal.facingDeg))
+                <= LOCAL_GOAL_HEADING_TOLERANCE_BINS;
     }
 
     private static int headingBinDistance(int a, int b) {

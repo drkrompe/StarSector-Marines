@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.marine;
 
-import com.dillon.starsectormarines.battle.infantry.ExperienceTier;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -62,7 +61,7 @@ class SquadLeadershipTest {
         MarineSoldier leader = roster.squadLeader(squad);
         List<MarineSoldier> teamLeaders = withRank(roster, squad, EnlistedRank.LANCE_CORPORAL);
         MarineSoldier heir = teamLeaders.get(0);
-        heir.addExperience(100);
+        deploy(heir);
 
         kill(roster, leader);
 
@@ -75,18 +74,18 @@ class SquadLeadershipTest {
     }
 
     @Test
-    void rankOutranksExperienceWhenPromoting() {
+    void rankOutranksTimeServedWhenPromoting() {
         MarineRoster roster = rosterOfOneSquad();
         MarineSquad squad = roster.squads().get(0);
         MarineSoldier leader = roster.squadLeader(squad);
         MarineSoldier veteranRifleman = withRank(roster, squad, EnlistedRank.MARINE).get(0);
-        veteranRifleman.addExperience(1000);
+        for (int tour = 0; tour < 5; tour++) deploy(veteranRifleman);
 
         kill(roster, leader);
 
         MarineSoldier successor = roster.squadLeader(squad);
         assertNotSame(veteranRifleman, successor,
-                "a fire-team leader steps up before the most experienced rifleman does");
+                "a fire-team leader steps up before the longest-serving rifleman does");
         assertEquals(EnlistedRank.CORPORAL, successor.enlistedRank());
     }
 
@@ -99,10 +98,20 @@ class SquadLeadershipTest {
         return matching;
     }
 
+    /**
+     * One completed tour on this marine's record, without re-deriving ranks.
+     * The roster path would refresh leadership on the way through, which is a
+     * different thing from what these tests are asking about — they want to
+     * see one promotion decision resolved against a known set of stripes.
+     */
+    private static void deploy(MarineSoldier soldier) {
+        soldier.career().recordDeployment(true, false, 0, 0, 0f, 0f, 0f, 0);
+    }
+
     private static void kill(MarineRoster roster, MarineSoldier soldier) {
         Map<String, MarineSoldierStatus> outcome = new HashMap<>();
         outcome.put(soldier.id(), MarineSoldierStatus.KIA);
-        roster.applySoldierOutcome(outcome, 0, 0f, 1f);
+        roster.applySoldierOutcome(outcome, 0f, 1f);
     }
 
     @Test
@@ -110,11 +119,10 @@ class SquadLeadershipTest {
         MarineRoster roster = rosterOfOneSquad();
         MarineSquad squad = roster.squads().get(0);
         MarineSoldier leader = roster.squadLeader(squad);
-        leader.addExperience(500);
 
         Map<String, MarineSoldierStatus> outcome = new HashMap<>();
         outcome.put(leader.id(), MarineSoldierStatus.WIA);
-        roster.applySoldierOutcome(outcome, 0, 10f, 7f);
+        roster.applySoldierOutcome(outcome, 10f, 7f);
 
         MarineSoldier acting = roster.squadLeader(squad);
         assertNotEquals(leader.id(), acting.id());
@@ -136,8 +144,8 @@ class SquadLeadershipTest {
         MarineSoldier leader = roster.squadLeader(squad);
 
         // Time served buys nothing: experience is issued with the kit, so a
-        // hoard of XP leaves an NCO in the same stripes.
-        leader.addExperience(ExperienceTier.ELITE.minimumXp * 4);
+        // long tour list leaves an NCO in the same stripes.
+        for (int tour = 0; tour < 12; tour++) deploy(leader);
         assertNotNull(roster.recruitToSquad(roster.reserveSquad().id()));
         assertEquals(EnlistedRank.CORPORAL, roster.squadLeader(squad).enlistedRank());
 
@@ -155,7 +163,7 @@ class SquadLeadershipTest {
         for (MarineSoldier soldier : roster.squadMembers(squad)) {
             outcome.put(soldier.id(), MarineSoldierStatus.KIA);
         }
-        roster.applySoldierOutcome(outcome, 0, 0f, 1f);
+        roster.applySoldierOutcome(outcome, 0f, 1f);
 
         assertNull(roster.squadLeader(squad));
         assertNull(roster.reserveSquad().leaderSoldierId());

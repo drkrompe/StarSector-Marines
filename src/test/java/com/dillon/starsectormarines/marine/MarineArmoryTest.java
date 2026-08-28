@@ -254,17 +254,17 @@ class MarineArmoryTest {
     }
 
     @Test
-    void survivorsDevelopAndFallenSoldiersStayPersistentlyKia() {
+    void fallenSoldiersStayPersistentlyKiaAndSurvivorsStayOnDuty() {
         MarineRoster roster = new MarineRoster();
         roster.ensureActiveSoldiers(2);
         MarineSoldier survivor = roster.activeSoldiers().get(0);
         MarineSoldier fallen = roster.activeSoldiers().get(1);
 
-        roster.applySoldierOutcome(Set.of(survivor.id()), Set.of(fallen.id()), 80);
+        roster.applySoldierOutcome(Set.of(survivor.id()), Set.of(fallen.id()));
 
-        assertEquals(80, survivor.experienceXp());
+        assertEquals(MarineSoldierStatus.ACTIVE, survivor.status());
         assertEquals(MarineSoldierStatus.KIA, fallen.status());
-        roster.applySoldierOutcome(Collections.emptySet(), Set.of(fallen.id()), 0);
+        roster.applySoldierOutcome(Collections.emptySet(), Set.of(fallen.id()));
         assertEquals(MarineSoldierStatus.KIA, fallen.status());
     }
 
@@ -454,7 +454,7 @@ class MarineArmoryTest {
                 roster.applyFireTeamTemplate(squad.id(), 1, FireTeamTemplateCards.RECON_ID));
         MarineSoldier wounded = roster.soldierById(squad.teamMembers(1).get(0));
         roster.applySoldierOutcome(Collections.singletonMap(
-                wounded.id(), MarineSoldierStatus.WIA), 0, 1f, 7f);
+                wounded.id(), MarineSoldierStatus.WIA), 1f, 7f);
 
         assertEquals(FireTeamTemplateResult.TEAM_NOT_READY,
                 roster.swapFireTeamTemplates(squad.id(), 0, squad.id(), 1));
@@ -576,7 +576,7 @@ class MarineArmoryTest {
                 roster.applySquadArrangement(squad.id(), field.id()));
         MarineSoldier wounded = roster.soldierById(squad.teamMembers(1).get(0));
         roster.applySoldierOutcome(Collections.singletonMap(
-                wounded.id(), MarineSoldierStatus.WIA), 0, 1f, 7f);
+                wounded.id(), MarineSoldierStatus.WIA), 1f, 7f);
 
         assertEquals(FireTeamTemplateResult.TEAM_NOT_READY,
                 roster.applySquadArrangement(squad.id(), line.id()));
@@ -724,7 +724,7 @@ class MarineArmoryTest {
         }
         MarineSoldier wounded = roster.soldiers().get(0);
         roster.applySoldierOutcome(Collections.singletonMap(
-                wounded.id(), MarineSoldierStatus.WIA), 0, 1f, 7f);
+                wounded.id(), MarineSoldierStatus.WIA), 1f, 7f);
 
         assertFalse(roster.allocatePrimary(roster.soldiers().get(3).id(),
                 WeaponRegistry.require(WeaponRegistry.DMR_ID), EquipmentGrade.SERVICE));

@@ -115,9 +115,10 @@ public final class VehicleControlSystem {
     }
 
     /**
-     * One tracking step. Priority: terminal RS docking (inbound) → arrival →
-     * rolling local-trajectory tracking → off-map coarse-corridor crossing,
-     * with a shared wall-stuck reverse stub wrapping the kinematic move.
+     * One tracking step. Priority: terminal RS docking (inbound) → exact arrival
+     * → rolling local-trajectory tracking → aligned terminal-region landing when
+     * no safe forward segment remains → off-map coarse-corridor crossing, with a
+     * shared wall-stuck reverse stub wrapping the kinematic move.
      */
     private void advance(VehicleMission mission, GroundBody body, VehicleType type,
                          VehicleControlComponent s, float[] xs, float[] ys, float dt, boolean isInbound) {
@@ -165,11 +166,10 @@ public final class VehicleControlSystem {
         }
 
         // --- Arrival -------------------------------------------------------
-        // Checked before planning: as the truck nears the corridor end the
-        // rolling goal pins to the endpoint and the local plan legitimately
-        // returns null (start already inside the soft goal radius). That is
-        // "arrived / coasting in," NOT a stuck signal — handle it here so it
-        // never escalates to recovery (slice-1 critique #1).
+        // Preserve the exact endpoint and tiny snap when docking or ordinary
+        // pursuit can actually reach it. A footprint-constrained terminal pose
+        // farther out is recognized below only after planning finds no safe
+        // forward segment.
         int lastIdx = xs.length - 1;
         float distToLast = body.distanceTo(xs[lastIdx], ys[lastIdx]);
         float threshold = isInbound ? VehicleController.LZ_ARRIVAL_DIST : VehicleController.EXIT_ARRIVAL_DIST;
@@ -199,6 +199,17 @@ public final class VehicleControlSystem {
                 body.x, body.y, body.facingDegrees,
                 type.visualLengthCells, type.visualWidthCells, navigation.getGrid());
         if (s.trajectory == null && bodyFullyOnGrid) {
+            // Hybrid A*'s soft goal is deliberately wider than the exact LZ
+            // snap. If the truck has reached that terminal region and no safe
+            // forward motion remains, this is the best footprint-valid landing
+            // pose—not a failed bend that should hold the payload forever.
+            if (isInbound && LocalTrajectoryPlanner.isInTerminalGoalRegion(
+                    new Pose(body.x, body.y, body.facingDegrees), s.corridor, type)) {
+                s.localPlanFailureTime = 0f;
+                body.speed = 0f;
+                s.arrived = true;
+                return;
+            }
             s.localPlanFailureTime += dt;
             body.speed = 0f;
             if (!s.localPlanFailureRerouteAttempted

@@ -49,7 +49,7 @@ class BarracksViewModelTest {
         MarineSquad selected = roster.squads().stream()
                 .filter(squad -> !squad.reserve()).findFirst().orElseThrow();
         roster.applySoldierOutcome(Map.of(selected.memberIds().get(0),
-                MarineSoldierStatus.WIA), 0, 100f, 1.25f);
+                MarineSoldierStatus.WIA), 100f, 1.25f);
         viewModel.refresh();
 
         assertEquals(MarineSquad.CAPACITY - 1, viewModel.sceneMarines().size());
@@ -90,7 +90,7 @@ class BarracksViewModelTest {
         outcomes.put(lost, MarineSoldierStatus.KIA);
         telemetry.put(survivor, row(survivor, squad.id(), 40, 10, 9f, 5));
         telemetry.put(lost, row(lost, squad.id(), 10, 5, 0f, 2));
-        roster.applySoldierOutcome(outcomes, 0, 100f, 7f, telemetry, true);
+        roster.applySoldierOutcome(outcomes, 100f, 7f, telemetry, true);
 
         BarracksViewModel viewModel = new BarracksViewModel(new Reactor(), roster, () -> 100d);
 
