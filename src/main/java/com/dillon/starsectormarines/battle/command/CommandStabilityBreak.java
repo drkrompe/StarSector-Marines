@@ -5,6 +5,7 @@ public enum CommandStabilityBreak {
     NONE("ordinary replanning"),
     OBJECTIVE_COMPLETED("objective completed"),
     TARGET_UNREACHABLE("target became unreachable"),
+    TOPOLOGY_REBOUND("target rebound to rebuilt topology"),
     CONTEXT_INVALIDATED("command context invalidated");
 
     private final String description;

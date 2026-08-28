@@ -245,6 +245,17 @@ likewise a map fact rather than a shipboard one — a fortress vehicle shed
 publishes the same berths a mech bay does, and what occupies one remains the
 host's decision from a roster.
 
+**Wedging is a hull's virtue and a compound's defect.** A packer scores a
+position by how tightly it wedges against something already solid, which is
+correct inside a vessel: a void between two compartments is wasted displacement.
+On open ground the same reward chains every building into one continuous slab,
+and nothing the packing checks notices — each room keeps its door and its route,
+so every test it applies passes. What it cannot see is the cost of crossing the
+place, which is why a place packed on open ground states how freely its rooms
+may be glued to one another. The bound that matters is the ground's own size: a
+run of wall longer than half the extent it stands on has no way round inside the
+place at all, and only a single building may exceed that on its own.
+
 **A wall is left over on a hull and authored on a map.** A packer carves a
 room's floor and leaves the ring around it alone, which is the whole of a
 bulkhead inside a vessel: a void in a hull is structure, and nothing has to say

@@ -159,6 +159,7 @@ public final class CompanyDeck {
      * different crew each time the player walked in.
      */
     public ShipDeckBattleScene scene() {
+        ensureSceneSprites();
         if (scene != null) return scene;
         generate();
         scene = new ShipDeckBattleScene(deck, rooms, seed, sprites);
@@ -169,6 +170,36 @@ public final class CompanyDeck {
         musterCompany();
         scene.manDeck();
         return scene;
+    }
+
+    /**
+     * Load every sheet the deck's own scene can draw.
+     *
+     * <p>Here rather than on the screens, because <b>the ship is one scene and
+     * the screens are only cameras onto it.</b> Each screen listing what it
+     * expects to have in shot is a list that is right until somebody frames the
+     * ship differently: the room views each loaded the ground and the crew, the
+     * Mech Lab loaded the machines as well, and the whole-ship view — which sees
+     * all of it at once — was written loading none of it and rendered a deck
+     * with no floor and no people in it. The set belongs to the deck, which
+     * knows what it contains, and is reached through the one door every screen
+     * already comes through.
+     *
+     * <p>Every loader below is one-shot and the cache is the ship's, so calling
+     * this per frame costs a handful of already-loaded checks.
+     *
+     * <p>Only what a deck actually paints. {@code INDOOR} plate resolves to the
+     * urban sheet and a door threshold to the road sheet; the outdoor surfaces,
+     * nature and water are ground a ship does not have.
+     */
+    private void ensureSceneSprites() {
+        if (sprites == null) return;
+        sprites.ensureTileSheet();
+        sprites.ensureRoadSheet();
+        sprites.ensureDoodadSheet();
+        sprites.ensureLayeredUnitSprites();
+        sprites.ensureLayeredMechSprites();
+        sprites.ensureMarineSecondarySprites();
     }
 
     /**
